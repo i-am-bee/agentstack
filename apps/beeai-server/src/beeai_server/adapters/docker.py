@@ -15,10 +15,11 @@
 import asyncio
 import base64
 import logging
+import re
 import uuid
 from contextlib import asynccontextmanager, suppress, AsyncExitStack
 from datetime import timedelta
-from typing import Iterable, AsyncGenerator
+from typing import Iterable, AsyncGenerator, AsyncIterator
 
 import aiohttp
 import anyio
@@ -72,6 +73,14 @@ class DockerContainerBackend(IContainerBackend):
                 return
         logger.warning("host.docker.internal not configured for docker, falling back to 'host-gateway' configuration")
         self._extra_hosts = ["host.docker.internal:host-gateway"]
+
+    async def import_image(self, *, data: AsyncIterator[bytes], image_id: DockerImageID):
+        async with self._docker as docker:
+            resp = await docker.images.import_image(data=data)
+            if resp and "error" in resp[0]:
+                raise DockerError(status=500, data={"message": resp[0]["error"]})
+            [name] = re.findall(r"sha256:.*", resp[0]["stream"].strip())
+            await docker.images.tag(name, repo=f"{image_id.registry}/{image_id.repository}", tag=image_id.tag)
 
     async def build_from_github(
         self,
@@ -135,7 +144,7 @@ class DockerContainerBackend(IContainerBackend):
 
         return DockerImageID(root=tag)
 
-    async def check_image(self, *, image: DockerImageID) -> bool:
+    async def check_image(self, *, image: DockerImageID | str) -> bool:
         async with self._docker as docker:
             with suppress(DockerError):
                 await docker.images.inspect(str(image))

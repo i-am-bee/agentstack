@@ -91,9 +91,13 @@ def register_global_exception_handlers(app: FastAPI):
                     return await catch_all_exception_handler(request, exc)
 
         logger.error("Error during HTTP request: %s", repr(extract_messages(exc)))
-        return await http_exception_handler(
-            request, HTTPException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=repr(extract_messages(exc)))
-        )
+
+        match exc:
+            case HTTPException():
+                exception = exc
+            case _:
+                exception = HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, detail=repr(extract_messages(exc)))
+        return await http_exception_handler(request, exception)
 
 
 def mount_routes(app: FastAPI):

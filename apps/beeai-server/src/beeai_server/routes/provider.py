@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import AsyncIterator
+
 import fastapi
 from starlette.status import HTTP_202_ACCEPTED
 
@@ -24,13 +26,29 @@ from beeai_server.schema import (
     ProviderWithStatus,
     RegisterUnmanagedProviderRequest,
 )
-from fastapi import Query, BackgroundTasks, HTTPException
+from fastapi import Query, BackgroundTasks, HTTPException, UploadFile
 from fastapi.responses import Response
 from starlette.responses import StreamingResponse
 
+from beeai_server.utils.docker import DockerImageID
 from beeai_server.utils.fastapi import streaming_response
 
 router = fastapi.APIRouter()
+
+
+@router.post("/import_image", status_code=fastapi.status.HTTP_202_ACCEPTED)
+async def import_image(file: UploadFile, provider_service: ProviderServiceDependency) -> None:
+    async def _file_stream() -> AsyncIterator[bytes]:
+        while chunk := await file.read(32_768):
+            yield chunk
+
+    await provider_service.import_image(data=_file_stream(), image_id=DockerImageID(root=file.filename))
+
+
+@router.get("/image/{image_id}")
+async def check_image(image_id: str, provider_service: ProviderServiceDependency) -> bool:
+    await provider_service.check_image(image_hash=image_id)
+    return True
 
 
 @router.post("/register/managed")

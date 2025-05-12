@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING, Iterable, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Iterable, Protocol, runtime_checkable, AsyncIterator
 
 from beeai_server.utils.docker import DockerImageID
 from beeai_server.utils.github import ResolvedGithubUrl
@@ -43,6 +43,7 @@ class IEnvVariableRepository(Protocol):
 
 
 class IContainerBackend(Protocol):
+    async def import_image(self, *, data: AsyncIterator[bytes], image_id: DockerImageID) -> None: ...
     async def build_from_github(
         self, *, github_url: ResolvedGithubUrl, destination: DockerImageID | None = None, logs_container: LogsContainer
     ) -> DockerImageID: ...
@@ -50,7 +51,7 @@ class IContainerBackend(Protocol):
     async def pull_image(
         self, *, image: DockerImageID, logs_container: LogsContainer | None = None, force: bool = False
     ): ...
-    async def check_image(self, *, image: DockerImageID) -> bool: ...
+    async def check_image(self, *, image: DockerImageID | str) -> bool: ...
     async def extract_labels(self, *, image: DockerImageID) -> dict[str, str]: ...
 
     @asynccontextmanager

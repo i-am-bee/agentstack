@@ -24,7 +24,7 @@ from fastapi import HTTPException
 from kink import inject
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
-from beeai_server.adapters.interface import IProviderRepository, IEnvVariableRepository
+from beeai_server.adapters.interface import IProviderRepository, IEnvVariableRepository, IContainerBackend
 from beeai_server.custom_types import ID
 from beeai_server.domain.provider.model import (
     ProviderLocation,
@@ -40,6 +40,7 @@ from beeai_server.domain.provider.container import (
 from beeai_server.domain.registry import RegistryLocation
 from beeai_server.schema import ProviderWithStatus
 from beeai_server.exceptions import ManifestLoadError
+from beeai_server.utils.docker import DockerImageID
 from beeai_server.utils.logs_container import LogsContainer
 
 logger = logging.getLogger(__name__)
@@ -56,6 +57,17 @@ class ProviderService:
         self._repository = provider_repository
         self._loaded_provider_container = loaded_provider_container
         self._env_repository = env_repository
+
+    @inject
+    async def import_image(
+        self, *, data: AsyncIterator[bytes], image_id: DockerImageID, container_backend: IContainerBackend
+    ):
+        await container_backend.import_image(data=data, image_id=image_id)
+
+    @inject
+    async def check_image(self, *, image_hash: str, container_backend: IContainerBackend):
+        if not await container_backend.check_image(image=image_hash):
+            raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail=f"Image with ID: {str(image_hash)} not found")
 
     async def register_provider(
         self, *, location: ProviderLocation, registry: RegistryLocation | None = None, persist: bool = True

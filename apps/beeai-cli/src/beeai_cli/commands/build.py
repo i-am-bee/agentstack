@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 import base64
 import json
 import subprocess
@@ -19,6 +20,7 @@ import sys
 import uuid
 from contextlib import suppress
 from datetime import timedelta
+from tempfile import SpooledTemporaryFile
 from typing import Optional
 
 import anyio
@@ -27,9 +29,10 @@ import typer
 from anyio import Path, open_process
 
 from anyio import run_process
-from httpx import HTTPError, AsyncClient
+from httpx import HTTPError, AsyncClient, HTTPStatusError
 from tenacity import AsyncRetrying, wait_fixed, stop_after_delay, retry_if_exception_type
 
+from beeai_cli.api import api_request
 from beeai_cli.async_typer import AsyncTyper
 from beeai_cli.console import console
 from beeai_cli.utils import extract_messages
@@ -44,6 +47,26 @@ async def find_free_port():
 
 
 app = AsyncTyper()
+
+
+async def upload_image_tar(image_id: str, tag: str):
+    try:
+        await api_request("get", f"providers/image/{image_id}")
+    except HTTPStatusError as ex:
+        if ex.response.status_code != 404:
+            raise ex
+        with console.status("uploading agent image to server", spinner="dots"):
+            with SpooledTemporaryFile(max_size=512 * 1024 * 1024, mode="w+b") as sp:
+                try:
+                    process = await asyncio.create_subprocess_exec("docker", "image", "save", image_id, stdout=sp)
+                    await process.wait()
+                    sp.seek(0)
+                    files = {"file": (tag, sp, "application/x-tar")}
+                    await api_request("post", "providers/import_image", files=files)
+                finally:
+                    with suppress(ProcessLookupError):
+                        process.kill()
+                        await process.wait()
 
 
 @app.command("build")
@@ -118,4 +141,6 @@ async def build(
         ),
         check=True,
     )
+    image_id = (await run_process(f"docker images {tag} --format " + "{{.ID}}")).stdout.decode().strip()
     console.print(f"✅ Successfully built agent: {tag}")
+    await upload_image_tar(f"sha256:{image_id}", tag=tag)
