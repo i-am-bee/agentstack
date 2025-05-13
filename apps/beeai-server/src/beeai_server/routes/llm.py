@@ -24,6 +24,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from beeai_framework.adapters.openai import OpenAIChatModel
+from beeai_framework.adapters.watsonx import WatsonxChatModel
 from beeai_framework.backend import (
     ChatModelNewTokenEvent,
     ChatModelSuccessEvent,
@@ -106,15 +107,25 @@ async def create_chat_completion(
 ):
     try:
         env = await env_service.list_env()
-        llm = OpenAIChatModel(
-            env["LLM_MODEL"],
-            settings={
-                "api_key": env["LLM_API_KEY"],
-                "base_url": env["LLM_API_BASE"],
-                "extra_headers": {"RITS_API_KEY": env["LLM_API_KEY"]}
-                if re.match(r"^https://[a-z0-9.-]+.rits.fmaas.res.ibm.com/.*$", env["LLM_API_BASE"])
-                else {},
-            },
+
+        is_rits = re.match(r"^https://[a-z0-9.-]+\.rits\.fmaas\.res\.ibm.com/.*$", env["LLM_API_BASE"])
+        is_watsonx = re.match(r"^https://[a-z0-9.-]+\.ml\.cloud\.ibm\.com.*?$", env["LLM_API_BASE"])
+
+        llm = (
+            WatsonxChatModel(
+                model_id=env["LLM_MODEL"],
+                api_key=env["LLM_API_KEY"],
+                base_url=env["LLM_API_BASE"],
+                project_id=env.get("WATSONX_PROJECT_ID"),
+                space_id=env.get("WATSONX_SPACE_ID"),
+            )
+            if is_watsonx
+            else OpenAIChatModel(
+                env["LLM_MODEL"],
+                api_key=env["LLM_API_KEY"],
+                base_url=env["LLM_API_BASE"],
+                extra_headers={"RITS_API_KEY": env["LLM_API_KEY"]} if is_rits else {},
+            )
         )
 
         messages = [
