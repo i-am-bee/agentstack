@@ -28,12 +28,12 @@ For example, write your agent code in `hello.py`
 import asyncio
 from collections.abc import AsyncGenerator
 
-from acp_sdk.models import Message
+from acp_sdk.models import Message, Metadata
 from acp_sdk.server import Context, RunYield, RunYieldResume, Server
 
 server = Server()
 
-@server.agent()
+@server.agent(metadata=Metadata(ui={"type": "chat"}))
 async def echo(
     input: list[Message], context: Context
 ) -> AsyncGenerator[RunYield, RunYieldResume]:
