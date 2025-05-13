@@ -24,7 +24,7 @@ from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
 from InquirerPy.validator import EmptyInputValidator
 
-from beeai_cli.api import api_request, wait_for_agents
+from beeai_cli.api import api_request
 from beeai_cli.async_typer import AsyncTyper, console, err_console, create_table
 from beeai_cli.utils import parse_env_var, format_error
 
@@ -280,15 +280,6 @@ async def setup() -> bool:
             "variables",
             json={"env": {"LLM_API_BASE": api_base, "LLM_API_KEY": api_key, "LLM_MODEL": selected_model}},
         )
-
-    with console.status("Reloading agents (may take a few minutes)...", spinner="dots"):
-        if not await wait_for_agents():
-            console.print(
-                "[bold red]Some agents did not properly start. Please check their status with:[/bold red] beeai info <agent>"
-            )
-            from beeai_cli.commands.agent import list_agents  # avoid circular dependency
-
-            await list_agents()
 
     console.print(
         "\n[bold green]You're all set![/bold green] (You can re-run this setup anytime with [blue]beeai env setup[/blue])"

@@ -272,8 +272,13 @@ class ManagedProvider(BaseProvider, extra="allow"):
     @property
     def _global_env(self) -> dict[str, str]:
         return {
+            "PORT": "8000",
+            "HOST": "0.0.0.0",
             "OTEL_EXPORTER_OTLP_ENDPOINT": replace_localhost_url(OTEL_HTTP_ENDPOINT),
             "PLATFORM_URL": "http://host.docker.internal:8333",
+            "LLM_MODEL": "dummy",
+            "LLM_API_KEY": "dummy",
+            "LLM_API_BASE": "http://host.docker.internal:8333/api/v1/llm",
         }
 
     async def stop(self):
@@ -292,11 +297,10 @@ class ManagedProvider(BaseProvider, extra="allow"):
         if not with_dummy_env:
             self.check_env(env)
 
-        required_env_vars = {var.name for var in self.env if var.required}
         env = {
-            **self._global_env,
-            **({var: "dummy" for var in required_env_vars} if with_dummy_env else {}),
+            **({var.name: "dummy" for var in self.env if var.required} if with_dummy_env else {}),
             **(self.extract_env(env=env)),
+            **self._global_env,
         }
         port = str(await find_free_port())
 
@@ -305,7 +309,7 @@ class ManagedProvider(BaseProvider, extra="allow"):
                 container_backend.open_container(
                     image=self.image_id,
                     port_mappings={port: "8000"},
-                    env={"PORT": "8000", "HOST": "0.0.0.0", **env},
+                    env=env,
                     logs_container=logs_container,
                 )
             )
