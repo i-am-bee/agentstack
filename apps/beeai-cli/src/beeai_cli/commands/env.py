@@ -14,6 +14,7 @@
 
 
 import os
+import re
 import sys
 import tempfile
 import typer
@@ -72,51 +73,58 @@ async def setup() -> bool:
         message="Select LLM provider:",
         choices=[
             Choice(
-                name="OpenAI".ljust(20) + "🚀 best performance", value=("OpenAI", "https://api.openai.com/v1", "gpt-4o")
+                name="OpenAI".ljust(25) + "🚀 best performance", value=("OpenAI", "https://api.openai.com/v1", "gpt-4o")
             ),
             Choice(
-                name="DeepSeek".ljust(20) + "🚀 best performance",
+                name="DeepSeek".ljust(25) + "🚀 best performance",
                 value=("DeepSeek", "https://api.deepseek.com/v1", "deepseek-reasoner"),
             ),
             Choice(
-                name="NVIDIA NIM".ljust(20) + "🚀 best performance",
+                name="NVIDIA NIM".ljust(25) + "🚀 best performance",
                 value=("NVIDIA", "https://integrate.api.nvidia.com/v1", "deepseek-ai/deepseek-r1"),
             ),
             Choice(
-                name="OpenRouter".ljust(20) + "🆓 has some free models",
+                name="OpenRouter".ljust(25) + "🆓 has some free models",
                 value=("OpenRouter", "https://openrouter.ai/api/v1", "deepseek/deepseek-r1-distill-llama-70b:free"),
             ),
             Choice(
-                name="Groq".ljust(20) + "🆓 has a free tier",
+                name="Groq".ljust(25) + "🆓 has a free tier",
                 value=("Groq", "https://api.groq.com/openai/v1", "deepseek-r1-distill-llama-70b"),
             ),
             Choice(
-                name="Cohere".ljust(20) + "🆓 has a free tier",
+                name="Cohere".ljust(25) + "🆓 has a free tier",
                 value=("Cohere", "https://api.cohere.ai/compatibility/v1", "command-r-plus"),
             ),
             Choice(
-                name="Mistral".ljust(20) + "🚧 experimental 🆓 has a free tier",
+                name="Mistral".ljust(25) + "🚧 experimental 🆓 has a free tier",
                 value=("Mistral", "https://api.mistral.ai/v1", "mistral-large-latest"),
             ),
             Choice(
-                name="Anthropic Claude".ljust(20) + "🚧 experimental",
+                name="Anthropic Claude".ljust(25) + "🚧 experimental",
                 value=("Anthropic", "https://api.anthropic.com/v1", "claude-3-7-sonnet-latest"),
             ),
             Choice(
-                name="Perplexity".ljust(20) + "🚧 experimental", value=("Perplexity", "https://api.perplexity.ai", None)
+                name="Perplexity".ljust(25) + "🚧 experimental", value=("Perplexity", "https://api.perplexity.ai", None)
             ),
-            Choice(name="Ollama".ljust(20) + "💻 local", value=("Ollama", "http://localhost:11434/v1", "llama3.1:8b")),
-            Choice(name="Jan".ljust(20) + "💻 local", value=("Jan", "http://localhost:1337/v1", None)),
-            Choice(name="Other".ljust(20) + "🔧 provide API URL", value=("Other", None, None)),
+            Choice(name="Ollama".ljust(25) + "💻 local", value=("Ollama", "http://localhost:11434/v1", "llama3.1:8b")),
+            Choice(name="Jan".ljust(25) + "💻 local", value=("Jan", "http://localhost:1337/v1", None)),
+            Choice(name="Other (RITS, vLLM, ...)".ljust(25) + "🔧 provide API URL", value=("Other", None, None)),
         ],
     ).execute_async()
 
     if provider_name == "Other":
+        api_base: str
         api_base = await inquirer.text(
             message="Enter the base URL of your API (OpenAI-compatible):",
             validate=lambda url: (url.startswith(("http://", "https://")) or "URL must start with http:// or https://"),
             transformer=lambda url: url.rstrip("/"),
         ).execute_async()
+
+    if re.match(r"^https://[a-z0-9.-]+.rits.fmaas.res.ibm.com/.*$", api_base):
+        provider_name = "RITS"
+
+    if provider_name == "RITS" and not api_base.endswith("/v1"):
+        api_base = api_base.removesuffix("/") + "/v1"
 
     if (api_key := os.environ.get(f"{provider_name.upper()}_API_KEY")) is None or not await inquirer.confirm(
         message=f"Use the API key from environment variable '{provider_name.upper()}_API_KEY'?",
@@ -133,8 +141,10 @@ async def setup() -> bool:
             async with httpx.AsyncClient() as client:
                 response = await client.get(
                     f"{api_base}/models",
-                    headers={"Authorization": f"Bearer {api_key}"},
-                    timeout=10.0,
+                    headers=(
+                        {"RITS_API_KEY": api_key} if provider_name == "RITS" else {"Authorization": f"Bearer {api_key}"}
+                    ),
+                    timeout=30.0,
                 )
                 if response.status_code == 404:
                     available_models = []
@@ -182,7 +192,8 @@ async def setup() -> bool:
         selected_model = (
             recommended_model
             if (
-                (not available_models or recommended_model in available_models or provider_name == "Ollama")
+                recommended_model
+                and (not available_models or recommended_model in available_models or provider_name == "Ollama")
                 and await inquirer.confirm(
                     message=f"Do you want to use the recommended model '{recommended_model}'?"
                     + (
@@ -198,7 +209,9 @@ async def setup() -> bool:
                     message="Select a model (type to filter):",
                     choices=sorted(available_models),
                 ).execute_async()
-                if available_models
+                if available_models and len(available_models) > 1
+                else available_models[0]
+                if available_models and len(available_models) == 1
                 else await inquirer.text(message="Write a model name to use:").execute_async()
             )
         )
@@ -262,12 +275,14 @@ async def setup() -> bool:
                             {"role": "user", "content": "Hello!"},
                         ],
                     },
-                    headers={"Authorization": f"Bearer {api_key}"},
-                    timeout=10.0,
+                    headers=(
+                        {"RITS_API_KEY": api_key} if provider_name == "RITS" else {"Authorization": f"Bearer {api_key}"}
+                    ),
+                    timeout=30.0,
                 )
         test_response.raise_for_status()
         response_text = test_response.json().get("choices", [{}])[0].get("message", {}).get("content", "")
-        if "Hello!" not in response_text:
+        if "Hello" not in response_text:
             err_console.print(format_error("Error", "Model did not provide a proper response."))
             return False
     except Exception as e:

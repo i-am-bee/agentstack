@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import json
+import re
 import time
 import uuid
 from typing import Dict, List, Literal, Optional, Union, AsyncGenerator
@@ -106,7 +107,14 @@ async def create_chat_completion(
     try:
         env = await env_service.list_env()
         llm = OpenAIChatModel(
-            env["LLM_MODEL"], settings={"api_key": env["LLM_API_KEY"], "base_url": env["LLM_API_BASE"]}
+            env["LLM_MODEL"],
+            settings={
+                "api_key": env["LLM_API_KEY"],
+                "base_url": env["LLM_API_BASE"],
+                "extra_headers": {"RITS_API_KEY": env["LLM_API_KEY"]}
+                if re.match(r"^https://[a-z0-9.-]+.rits.fmaas.res.ibm.com/.*$", env["LLM_API_BASE"])
+                else {},
+            },
         )
 
         messages = [
