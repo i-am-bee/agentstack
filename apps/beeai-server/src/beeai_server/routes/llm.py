@@ -19,7 +19,6 @@ import uuid
 from typing import Dict, List, Literal, Optional, Union, AsyncGenerator
 
 import fastapi
-from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
@@ -103,64 +102,59 @@ class ChatCompletionStreamResponse(BaseModel):
 async def create_chat_completion(
     env_service: EnvServiceDependency,
     request: ChatCompletionRequest,
-    authorization: str = fastapi.Header("Bearer dummy"),
 ):
-    try:
-        env = await env_service.list_env()
+    env = await env_service.list_env()
 
-        is_rits = re.match(r"^https://[a-z0-9.-]+\.rits\.fmaas\.res\.ibm.com/.*$", env["LLM_API_BASE"])
-        is_watsonx = re.match(r"^https://[a-z0-9.-]+\.ml\.cloud\.ibm\.com.*?$", env["LLM_API_BASE"])
+    is_rits = re.match(r"^https://[a-z0-9.-]+\.rits\.fmaas\.res\.ibm.com/.*$", env["LLM_API_BASE"])
+    is_watsonx = re.match(r"^https://[a-z0-9.-]+\.ml\.cloud\.ibm\.com.*?$", env["LLM_API_BASE"])
 
-        llm = (
-            WatsonxChatModel(
-                model_id=env["LLM_MODEL"],
-                api_key=env["LLM_API_KEY"],
-                base_url=env["LLM_API_BASE"],
-                project_id=env.get("WATSONX_PROJECT_ID"),
-                space_id=env.get("WATSONX_SPACE_ID"),
+    llm = (
+        WatsonxChatModel(
+            model_id=env["LLM_MODEL"],
+            api_key=env["LLM_API_KEY"],
+            base_url=env["LLM_API_BASE"],
+            project_id=env.get("WATSONX_PROJECT_ID"),
+            space_id=env.get("WATSONX_SPACE_ID"),
+        )
+        if is_watsonx
+        else OpenAIChatModel(
+            env["LLM_MODEL"],
+            api_key=env["LLM_API_KEY"],
+            base_url=env["LLM_API_BASE"],
+            extra_headers={"RITS_API_KEY": env["LLM_API_KEY"]} if is_rits else {},
+        )
+    )
+
+    messages = [
+        UserMessage(msg.get_text_content())
+        if msg.role == "user"
+        else SystemMessage(msg.get_text_content())
+        if msg.role == "system"
+        else AssistantMessage(msg.get_text_content())
+        for msg in request.messages
+        if msg.role in ["user", "system", "assistant"]
+    ]
+
+    if request.stream:
+        return StreamingResponse(stream_chat_completion(llm, messages, request), media_type="text/event-stream")
+
+    output = await llm.create(
+        messages=messages,
+        temperature=request.temperature,
+        maxTokens=request.max_tokens,
+    )
+
+    return ChatCompletionResponse(
+        id=f"chatcmpl-{str(uuid.uuid4())}",
+        created=int(time.time()),
+        model=request.model,
+        choices=[
+            ChatCompletionResponseChoice(
+                message=ChatCompletionMessage(content=output.get_text_content()),
+                finish_reason=output.finish_reason,
             )
-            if is_watsonx
-            else OpenAIChatModel(
-                env["LLM_MODEL"],
-                api_key=env["LLM_API_KEY"],
-                base_url=env["LLM_API_BASE"],
-                extra_headers={"RITS_API_KEY": env["LLM_API_KEY"]} if is_rits else {},
-            )
-        )
-
-        messages = [
-            UserMessage(msg.get_text_content())
-            if msg.role == "user"
-            else SystemMessage(msg.get_text_content())
-            if msg.role == "system"
-            else AssistantMessage(msg.get_text_content())
-            for msg in request.messages
-            if msg.role in ["user", "system", "assistant"]
-        ]
-
-        if request.stream:
-            return StreamingResponse(stream_chat_completion(llm, messages, request), media_type="text/event-stream")
-
-        output = await llm.create(
-            messages=messages,
-            temperature=request.temperature,
-            maxTokens=request.max_tokens,
-        )
-
-        return ChatCompletionResponse(
-            id=f"chatcmpl-{str(uuid.uuid4())}",
-            created=int(time.time()),
-            model=request.model,
-            choices=[
-                ChatCompletionResponseChoice(
-                    message=ChatCompletionMessage(content=output.get_text_content()),
-                    finish_reason=output.finish_reason,
-                )
-            ],
-        )
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        ],
+    )
 
 
 async def stream_chat_completion(
