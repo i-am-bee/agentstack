@@ -29,8 +29,7 @@ from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExp
 
 logger = logging.getLogger(__name__)
 
-OTEL_HTTP_PORT = get_configuration().collector_host.port
-OTEL_HTTP_ENDPOINT = str(get_configuration().collector_host)
+OTEL_HTTP_ENDPOINT = str(get_configuration().telemetry.collector_url)
 
 INSTRUMENTATION_NAME = "beeai-server"
 

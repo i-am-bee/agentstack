@@ -157,7 +157,3 @@ async def get_registry_image_config_and_labels(image_id: DockerImageID, configur
         config = config_resp.json()
         labels = config.get("config", {}).get("Labels", {})
         return config, labels
-
-
-def replace_localhost_url(val: str) -> str:
-    return re.sub(r"localhost|127\.0\.0\.1", "host.docker.internal", val)

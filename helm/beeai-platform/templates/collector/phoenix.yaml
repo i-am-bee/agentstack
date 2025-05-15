@@ -12,15 +12,18 @@ spec:
   ports:
     - port: 443
       protocol: TCP
-      targetPort: 6006
+      targetPort: {{ .Values.phoenix.service.port }}
       name: frontend
+      {{- if (eq .Values.service.type "NodePort") }}
+      nodePort: {{ .Values.phoenix.service.nodePort }}
+      {{- end }}
     - port: 8336
       name: backend
       protocol: TCP
       targetPort: 8336
   selector:
     app: phoenix-backend
-  type: ClusterIP
+  type: {{ .Values.phoenix.service.type }}
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -61,6 +64,7 @@ spec:
           ports:
             - containerPort: 6006
             - containerPort: 4317
+            - containerPort: 8336
             - containerPort: 9090
           volumeMounts:
             - mountPath: /mnt/data

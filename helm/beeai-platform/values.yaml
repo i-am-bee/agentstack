@@ -6,6 +6,16 @@
 replicaCount: 1
 
 providers: [ ]
+unmanagedProviders: [ ]
+
+# External registries in the format: [name: githubURL]
+# for example
+# github: "https://github.com/i-am-bee/beeai-platform@release-v0.1.3#path=agent-registry.yaml"
+externalRegistries: { }
+
+auth:
+  admin_password: ""
+  enabled: true # Warning, disable only for local deployments
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
@@ -14,6 +24,11 @@ image:
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
+
+encryptionKey: ""
+
+telemetry:
+  sharing: true
 
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: [ ]
@@ -24,7 +39,7 @@ fullnameOverride: ""
 # This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
 serviceAccount:
   # Specifies whether a service account should be created
-  create: false
+  create: true
   # Automatically mount a ServiceAccount's API credentials?
   automount: true
   # Annotations to add to the service account
@@ -122,6 +137,10 @@ phoenix:
   enabled: false
   image: docker.io/arizephoenix/phoenix:version-8.9.0
   resources: { }
+  service:
+    type: NodePort
+    port: 6006
+    nodePort: 31606
 
 collector:
   image: otel/opentelemetry-collector-contrib:0.122.1
@@ -152,6 +171,64 @@ agent:
   tolerations: [ ]
   affinity: { }
 
-variables:
+unmanagedProviderVariables:
   OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector-svc:8335
   PLATFORM_URL: http://beeai-platform-svc:8333
+
+## PostgreSQL chart configuration
+## ref: https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml
+## @param postgresql.enabled Switch to enable or disable the PostgreSQL helm chart
+## @param postgresql.auth.enablePostgresUser Assign a password to the "postgres" admin user. Otherwise, remote access will be blocked for this user
+## @param postgresql.auth.username Name for a custom user to create
+## @param postgresql.auth.password Password for the custom user to create
+## @param postgresql.auth.database Name for a custom database to create
+## @param postgresql.auth.existingSecret Name of existing secret to use for PostgreSQL credentials
+## @param postgresql.architecture PostgreSQL architecture (`standalone` or `replication`)
+##
+postgresql:
+  enabled: true
+  fullnameOverride: "postgresql"
+  auth:
+    enablePostgresUser: true
+    username: beeai-user
+    password: "password"
+    database: beeai
+    existingSecret: ""
+  architecture: standalone
+  primary:
+    ## PostgreSQL Primary resource requests and limits
+    ## ref: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+    ## @param postgresql.primary.resourcesPreset Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if primary.resources is set (primary.resources is recommended for production).
+    ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
+    ##
+    resourcesPreset: "nano"
+    ## @param postgresql.primary.resources Set container requests and limits for different resources like CPU or memory (essential for production workloads)
+    ## Example:
+    ## resources:
+    ##   requests:
+    ##     cpu: 2
+    ##     memory: 512Mi
+    ##   limits:
+    ##     cpu: 3
+    ##     memory: 1024Mi
+    ##
+    resources: { }
+## External PostgreSQL configuration
+## All of these values are only used when postgresql.enabled is set to false
+## @param externalDatabase.host Database host (ignored if externalDatabase.sqlConnection is set)
+## @param externalDatabase.port Database port number (ignored if externalDatabase.sqlConnection is set)
+## @param externalDatabase.user Non-root username for Airflow (ignored if externalDatabase.sqlConnection is set)
+## @param externalDatabase.password Password for the non-root username for Airflow (ignored if externalDatabase.sqlConnection or externalDatabase.existingSecret are set)
+## @param externalDatabase.database Airflow database name (ignored if externalDatabase.sqlConnection is set)
+## @param externalDatabase.sqlConnection SQL connection string
+## @param externalDatabase.existingSecret Name of an existing secret resource containing the database credentials
+## @param externalDatabase.existingSecretPasswordKey Name of an existing secret key containing the database credentials (ignored if externalDatabase.existingSecretSqlConnectionKey is set)
+## @param externalDatabase.existingSecretSqlConnectionKey Name of an existing secret key containing the SQL connection string
+##
+externalDatabase:
+  host: localhost
+  port: 5432
+  user: beeai-user
+  database: beeai
+  password: ""
+  existingSecret: ""

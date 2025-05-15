@@ -1,17 +1,29 @@
 # check
 
 ["helm:check"]
-depends = ["helm:check:*"]
+depends = ["helm:build:beeai-platform:dependencies", "helm:check:*"]
 
 ["helm:check:lint"]
 dir = "{{config_root}}/helm"
-run = "helm lint beeai-platform --with-subcharts --strict"
+run = """
+#!/bin/bash
+helm lint beeai-platform \
+    --with-subcharts \
+    --set encryptionKey=dummy \
+    --set auth.enabled=false \
+    --strict
+"""
 sources = ["beeai-platform/**/*"]
 outputs = { auto = true }
 
 ["helm:check:render"]
 dir = "{{config_root}}/helm"
-run = "helm template beeai-platform -f ../agent-registry.yaml | kubeconform -strict -summary"
+run = """
+#!/bin/bash
+helm template beeai-platform -f ../agent-registry.yaml \
+    --set encryptionKey=dummy \
+    --set auth.enabled=false | kubeconform -strict -summary
+"""
 sources = ["beeai-platform/**/*"]
 outputs = { auto = true }
 
@@ -20,7 +32,24 @@ outputs = { auto = true }
 ["helm:build"]
 depends = ["helm:build:*"]
 
+["helm:build:beeai-platform:dependencies"]
+dir = "{{config_root}}/helm/beeai-platform"
+run = "helm dependency build"
+sources = ["Chart.yaml", "Chart.lock"]
+outputs = { auto = true }
+
 ["helm:build:beeai-platform"]
 dir = "{{config_root}}/helm"
 run = "helm package beeai-platform"
+depends = ["helm:build:beeai-platform:dependencies"]
+sources = ["beeai-platform/**/*"]
+
+["helm:local:deploy"]
+dir = "{{config_root}}/helm"
+run = "./scripts/deploy_local_helm.sh"
+sources = ["beeai-platform/**/*"]
+
+["helm:local:clean"]
+dir = "{{config_root}}/helm"
+run = "kubectl delete namespace beeai-helm-local || true"
 sources = ["beeai-platform/**/*"]

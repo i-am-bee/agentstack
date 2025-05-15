@@ -18,21 +18,24 @@ import pathlib
 import os
 import sys
 from typing import Optional, List
-import httpx
 import base64
 import typing
 
 import typer
 import kr8s.asyncio
 import kr8s.asyncio.objects
+import yaml
 
+from beeai_cli import Configuration
 from beeai_cli.async_typer import AsyncTyper, console
+from beeai_cli.utils import get_telemetry_config
 
 app = AsyncTyper()
 
-REGISTRY_URL = "https://raw.githubusercontent.com/i-am-bee/beeai-platform/refs/heads/main/agent-registry.yaml"
+configuration = Configuration()
+
 DATA = pathlib.Path(__file__).joinpath("../../../../data").resolve()
-LIMA_HOME = pathlib.Path.home() / ".beeai" / "lima"
+LIMA_HOME = configuration.home / "lima"
 KUBECONFIG = LIMA_HOME / "beeai" / "copied-from-guest" / "kubeconfig.yaml"
 
 HelmChart = kr8s.asyncio.objects.new_class(
@@ -95,20 +98,22 @@ async def _get_lima_instance() -> Optional[dict]:
 
 @app.command("start")
 async def start(
-    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai",
     set_values_list: typing.Annotated[
         list[str],
         typer.Option(
             "--set",
             hidden=True,
             help="Set Helm chart values using <key>=<value> syntax, like: --set image.tag=local",
+            default_factory=list,
         ),
-    ] = [],
+    ],
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai",
     import_images: typing.Annotated[
         bool, typer.Option(hidden=True, help="Load images from the ~/.beeai/images folder on host into the VM")
     ] = False,
 ):
     """Start BeeAI platform."""
+    configuration.home.mkdir(exist_ok=True)
     lima_instance = await _get_lima_instance()
 
     if not lima_instance:
@@ -156,12 +161,18 @@ async def start(
             cwd="/",
         )
 
-    # TODO: Remove this once we have full managed mode ready in Helm chart
-    with console.status("Fetching providers...", spinner="dots"):
-        async with httpx.AsyncClient() as client:
-            response = await client.get(REGISTRY_URL)
-            response.raise_for_status()
-            values_content = response.text
+    values = {
+        "externalRegistries": {
+            "public_github": "https://github.com/i-am-bee/beeai-platform@release-v0.1.3#path=agent-registry.yaml"
+        },
+        # This is a "dummy" value for local use only
+        "encryptionKey": "Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc=",
+        "auth": {"enabled": False},
+    }
+
+    set_values = {key: value for key, value in (value.split("=", 1) for value in set_values_list)}
+    # add telemetry into set values, not values, because we can later patch it easily
+    set_values["telemetry.sharing"] = str(get_telemetry_config()["sharing"]).lower()
 
     try:
         with console.status("Applying HelmChart to Kubernetes...", spinner="dots"):
@@ -175,8 +186,8 @@ async def start(
                         "chartContent": base64.b64encode((DATA / "helm-chart.tgz").read_bytes()).decode(),
                         "targetNamespace": "beeai",
                         "createNamespace": True,
-                        "valuesContent": values_content,
-                        "set": {key: value for key, value in (value.split("=", 1) for value in set_values_list)},
+                        "valuesContent": yaml.dump(values),
+                        "set": set_values,
                     },
                 },
                 api=await kr8s.asyncio.api(kubeconfig=KUBECONFIG),

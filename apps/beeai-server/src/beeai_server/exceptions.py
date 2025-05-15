@@ -13,12 +13,14 @@
 # limitations under the License.
 
 from typing import TYPE_CHECKING
+from uuid import UUID
 
 from starlette.status import HTTP_404_NOT_FOUND
 from tenacity import retry_if_exception, retry_base
 
 if TYPE_CHECKING:
-    from beeai_server.domain.provider.model import EnvVar, ProviderLocation
+    from beeai_server.domain.models.provider import ProviderLocation
+    from beeai_server.domain.models.agent import EnvVar
 
 
 class ManifestLoadError(Exception):
@@ -29,6 +31,16 @@ class ManifestLoadError(Exception):
         message = message or f"Manifest at location {location} not found"
         self.status_code = status_code
         super().__init__(message)
+
+
+class EntityNotFoundError(Exception):
+    entity: str
+    id: UUID | str
+
+    def __init__(self, entity: str, id: UUID | str):
+        self.entity = entity
+        self.id = id
+        super().__init__(f"{entity} with id {id} not found")
 
 
 class MissingConfigurationError(Exception):

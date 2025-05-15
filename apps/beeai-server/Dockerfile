@@ -16,10 +16,9 @@ WORKDIR /app
 RUN apk add --no-cache libgcc
 COPY --from=builder /usr/local/lib/python3.11/site-packages/ /usr/local/lib/python3.11/site-packages/
 COPY --from=builder /usr/local/bin/beeai-server /usr/local/bin/beeai-server
+COPY --from=builder /usr/local/bin/migrate /usr/local/bin/migrate
 RUN chmod og+rx /root
 ENV PATH="/app/.venv/bin:/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
     HOME="/tmp" \
-    DISABLE_DOCKER=true \
-    COLLECTOR_MANAGED=false \
-    AGENT_REGISTRY__LOCATION="file:///app/registry.yaml"
+    AGENT_REGISTRY__LOCATIONS__FILE="file:///app/registry.yaml"
 CMD ["beeai-server"]

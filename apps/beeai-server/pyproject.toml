@@ -26,7 +26,11 @@ dependencies = [
     "tenacity>=9.0.0",
     "cachetools>=5.5.2",
     "python-multipart>=0.0.20",
+    "kr8s>=0.20.7",
     "beeai-framework>=0.1.20",
+    "alembic>=1.15.2",
+    "asyncpg>=0.30.0",
+    "sqlalchemy[asyncio]>=2.0.41",
 ]
 
 [tool.ruff]
@@ -34,6 +38,7 @@ line-length = 120
 
 [project.scripts]
 beeai-server = "beeai_server:serve"
+migrate = "beeai_server:migrate"
 
 [build-system]
 requires = ["hatchling"]

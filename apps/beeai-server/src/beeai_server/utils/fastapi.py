@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.responses import StreamingResponse, AsyncContentStream
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 
-from beeai_server.schema import ErrorStreamResponse, ErrorStreamResponseError
+from beeai_server.api.schema.common import ErrorStreamResponseError, ErrorStreamResponse
 from beeai_server.utils.utils import extract_messages
 
 

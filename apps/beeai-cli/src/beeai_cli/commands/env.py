@@ -356,7 +356,8 @@ async def setup() -> bool:
             "variables",
             json={
                 "env": {
-                    "LLM_API_BASE": api_base,
+                    # Replace localhost by host.lima.internal for lima
+                    "LLM_API_BASE": re.sub(r"localhost|127\.0\.0\.1", "host.docker.internal", api_base),
                     "LLM_API_KEY": api_key,
                     "LLM_MODEL": selected_model,
                     "WATSONX_PROJECT_ID": (

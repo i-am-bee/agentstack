@@ -22,7 +22,6 @@ import re
 from enum import StrEnum
 
 import jsonref
-from InquirerPy import inquirer
 from acp_sdk import (
     ArtifactEvent,
     Message,
@@ -113,7 +112,7 @@ async def install_agent(
     """Install discovered agent or add public docker image or github repository [aliases: install]"""
     provider = None
     with contextlib.suppress(ACPError):
-        provider = (await _get_agent(name_or_location)).metadata.provider
+        provider = (await _get_agent(name_or_location)).metadata.provider_id
 
     if provider:
         async for message in api_stream("PUT", f"providers/{provider}/install", params={"stream": True}):
@@ -121,7 +120,7 @@ async def install_agent(
     else:
         async for message in api_stream(
             "POST",
-            "providers/register/managed",
+            "providers",
             json={"location": name_or_location},
             params={"stream": True, "install": True},
         ):
@@ -135,7 +134,7 @@ async def uninstall_agent(name: str = typer.Argument(..., help="Agent name")) ->
     """Remove agent"""
     agent = await _get_agent(name)
     with console.status("Uninstalling agent (may take a few minutes)...", spinner="dots"):
-        await api_request("delete", f"providers/{agent.metadata.provider}")
+        await api_request("delete", f"providers/{agent.metadata.provider_id}")
     await list_agents()
 
 
@@ -143,7 +142,7 @@ async def uninstall_agent(name: str = typer.Argument(..., help="Agent name")) ->
 async def stream_logs(name: str = typer.Argument(..., help="Agent name")):
     """Stream agent provider logs"""
     agent = await _get_agent(name)
-    provider = agent.metadata.provider
+    provider = agent.metadata.provider_id
     async for message in api_stream("get", f"providers/{provider}/logs"):
         _print_log(message)
 
@@ -487,23 +486,13 @@ async def run_agent(
     agent = await _get_agent(name, agents_by_name)
 
     # Agent#provider is only available in platform, not when directly communicating with the agent
-    if hasattr(agent.metadata, "provider"):
-        provider = await get_provider(agent.metadata.provider)
-        if provider["status"] == "not_installed":
-            if not await inquirer.confirm(
-                message=f"The agent {name} is not installed. Do you want to install it now?",
-                default=True,
-            ).execute_async():
-                return
-            async for message_part in api_stream("PUT", f"providers/{provider['id']}/install", params={"stream": True}):
-                _print_log(message_part, ansi_mode=True)
-            provider = await get_provider(agent.metadata.provider)
-            if provider["status"] == "install_error":
-                raise RuntimeError(f"Error during installation: {provider['last_error']}")
-            console.print("\n")
-        if provider["status"] not in {"ready", "running", "starting"}:
+    if hasattr(agent.metadata, "provider_id"):
+        provider = await get_provider(agent.metadata.provider_id)
+        if provider["state"] == "missing":
+            console.print("Starting provider (this might take a while)...")
+        if provider["state"] not in {"ready", "running", "starting", "missing"}:
             err_console.print(
-                f":boom: Agent is not in a ready state: {provider['status']}, {provider['last_error']}\nRetrying..."
+                f":boom: Agent is not in a ready state: {provider['state']}, {provider['last_error']}\nRetrying..."
             )
 
     ui = agent.metadata.model_dump().get("ui", {}) or {}
@@ -573,18 +562,18 @@ async def list_agents():
     agents = await _get_agents()
     providers_by_id = {p["id"]: p for p in (await api_request("GET", "providers"))["items"]}
     max_provider_len = (
-        max(len(_get_short_location(p["location"])) for p in providers_by_id.values()) if providers_by_id else 0
+        max(len(_get_short_location(p["source"])) for p in providers_by_id.values()) if providers_by_id else 0
     )
 
     def _sort_fn(agent: Agent):
-        if not (provider := providers_by_id.get(agent.metadata.provider)):
+        if not (provider := providers_by_id.get(agent.metadata.provider_id)):
             return agent.name
-        status_rank = {"not_installed": "1"}
-        return str(status_rank.get(provider["status"], 0)) + f"_{agent.name}" if "registry" in provider else agent.name
+        state = {"missing": "1"}
+        return str(state.get(provider["state"], 0)) + f"_{agent.name}" if "registry" in provider else agent.name
 
     with create_table(
         Column("Name", style="yellow"),
-        Column("Status", width=len("not_installed")),
+        Column("State", width=len("starting")),
         Column("Description", max_width=30),
         Column("UI"),
         Column("Location", max_width=min(max_provider_len, 70)),
@@ -593,30 +582,29 @@ async def list_agents():
         no_wrap=True,
     ) as table:
         for agent in sorted(agents.values(), key=_sort_fn):
-            status = None
+            state = None
             missing_env = None
             location = None
             error = None
-            if provider := providers_by_id.get(agent.metadata.provider, None):
-                status = provider["status"]
+            if provider := providers_by_id.get(agent.metadata.provider_id, None):
+                state = provider["state"]
                 missing_env = ",".join(var["name"] for var in provider["missing_configuration"])
-                location = _get_short_location(provider["location"])
+                location = _get_short_location(provider["source"])
                 error = (
                     (provider.get("last_error") or {}).get("message", None)
-                    if provider["status"] != "ready"
+                    if provider["state"] != "ready"
                     else "<none>"
                 )
             table.add_row(
                 agent.name,
                 render_enum(
-                    status or "<unknown>",
+                    state or "<unknown>",
                     {
                         "running": "green",
                         "ready": "blue",
                         "starting": "blue",
-                        "installing": "yellow",
+                        "missing": "grey",
                         "error": "red",
-                        "install_error": "red",
                     },
                 ),
                 (agent.description or "<none>").replace("\n", " "),
@@ -697,7 +685,7 @@ async def agent_detail(name: str = typer.Argument(help="Name of agent tool to sh
     console.print()
     console.print(table)
 
-    provider = await get_provider(agent.metadata.provider)
+    provider = await get_provider(agent.metadata.provider_id)
     with create_table(Column("Key", ratio=1), Column("Value", ratio=5), title="Provider") as table:
         for key, value in omit(provider, {"image_id", "manifest", "source", "registry"}).items():
             table.add_row(key, str(value))

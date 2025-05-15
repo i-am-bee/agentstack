@@ -17,6 +17,7 @@ import functools
 import shutil
 from asyncio import CancelledError
 from contextlib import suppress
+from datetime import datetime, UTC
 from typing import TypeVar, Iterable
 
 import anyio.to_thread
@@ -60,3 +61,7 @@ async def cancel_task(task: asyncio.Task[None] | None):
         task.cancel()
         with suppress(CancelledError):
             await task
+
+
+def utc_now() -> datetime:
+    return datetime.now(UTC)

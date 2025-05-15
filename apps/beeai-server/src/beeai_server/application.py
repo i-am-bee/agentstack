@@ -26,9 +26,6 @@ from acp_sdk.server.errors import (
 )
 from starlette.requests import Request
 
-from beeai_server.adapters.interface import IProviderRepository
-from beeai_server.domain.provider.container import ProviderContainer
-from beeai_server.domain.provider.model import ProviderStatus
 from beeai_server.utils.fastapi import NoCacheStaticFiles
 from fastapi import FastAPI, APIRouter
 from fastapi import HTTPException
@@ -42,16 +39,15 @@ from opentelemetry.metrics import get_meter, Observation, CallbackOptions
 from fastapi.exceptions import RequestValidationError
 
 from beeai_server.telemetry import INSTRUMENTATION_NAME, shutdown_telemetry
-from beeai_server.domain.telemetry import TelemetryCollectorManager
 from beeai_server.bootstrap import bootstrap_dependencies_sync
 from beeai_server.configuration import Configuration
 from beeai_server.exceptions import ManifestLoadError, ProviderNotInstalledError
-from beeai_server.routes.provider import router as provider_router
-from beeai_server.routes.acp import router as acp_router
-from beeai_server.routes.env import router as env_router
-from beeai_server.routes.telemetry import router as telemetry_router
-from beeai_server.routes.llm import router as llm_router
-from beeai_server.routes.ui import router as ui_router
+from beeai_server.api.routes.provider import router as provider_router
+from beeai_server.api.routes.acp import router as acp_router
+from beeai_server.api.routes.env import router as env_router
+from beeai_server.api.routes.telemetry import router as telemetry_router
+from beeai_server.api.routes.llm import router as llm_router
+from beeai_server.api.routes.ui import router as ui_router
 
 logger = logging.getLogger(__name__)
 
@@ -131,8 +127,7 @@ def mount_routes(app: FastAPI):
     app.mount("/", ui_app)
 
 
-@inject
-def register_telemetry(provider_container: ProviderContainer):
+def register_telemetry():
     meter = get_meter(INSTRUMENTATION_NAME)
 
     def scrape_platform_status(options: CallbackOptions) -> Iterable[Observation]:
@@ -140,45 +135,32 @@ def register_telemetry(provider_container: ProviderContainer):
 
     meter.create_observable_gauge("platform_status", callbacks=[scrape_platform_status])
 
-    def scrape_providers_by_status(options: CallbackOptions) -> Iterable[Observation]:
-        providers = provider_container.loaded_providers.values()
-        for status in ProviderStatus:
-            count = 0
-            for provider in providers:
-                if provider.status == status:
-                    count += 1
-            yield Observation(
-                value=count,
-                attributes={
-                    "status": status,
-                },
-            )
+    # def scrape_providers_by_status(options: CallbackOptions) -> Iterable[Observation]:
+    #     providers = provider_container.loaded_providers.values()
+    #     for status in ProviderStatus:
+    #         count = 0
+    #         for provider in providers:
+    #             if provider.state == status:
+    #                 count += 1
+    #         yield Observation(
+    #             value=count,
+    #             attributes={
+    #                 "status": status,
+    #             },
+    #         )
 
-    meter.create_observable_gauge("providers_by_status", callbacks=[scrape_providers_by_status])
+    # meter.create_observable_gauge("providers_by_status", callbacks=[scrape_providers_by_status])
 
 
 @asynccontextmanager
 @inject
-async def lifespan(
-    _app: FastAPI,
-    provider_container: ProviderContainer,
-    telemetry_collector_manager: TelemetryCollectorManager,
-    provider_repository: IProviderRepository,
-):
-    from beeai_server.crons.sync_registry_providers import preinstall_background_tasks
+async def lifespan(_app: FastAPI):
     from beeai_server.utils.periodic import run_all_crons
 
-    register_telemetry()
-    for provider in await provider_repository.list():
-        await provider_container.add(provider)
-
-    async with provider_container, telemetry_collector_manager, run_all_crons():
+    async with run_all_crons():
         try:
             yield
         finally:
-            # Cancel unfinished installation tasks
-            for task in preinstall_background_tasks.values():
-                task.cancel()
             shutdown_telemetry()
 
 

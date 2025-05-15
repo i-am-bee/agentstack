@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any, Final
 
 import structlog
-from structlog.dev import RichTracebackFormatter
+from structlog.dev import RichTracebackFormatter, ConsoleRenderer, DIM
 
 from beeai_server.configuration import LoggingConfiguration, get_configuration
 
@@ -81,6 +81,10 @@ formatter_processors: Final = [
     structlog.dev.ConsoleRenderer(
         colors=True,
         pad_event=70,
+        level_styles={
+            **ConsoleRenderer.get_default_level_styles(),
+            "debug": DIM,
+        },
         exception_formatter=RichTracebackFormatter(show_locals=False, width=160, max_frames=10),
     ),
 ]
@@ -136,7 +140,7 @@ def configure_logging(configuration: LoggingConfiguration | None = None) -> None
                 },
                 "httpx": {"level": logging.WARNING},
                 "uvicorn.error": {"level": configuration.level_uvicorn},
-                "beeai_server.utils.managed_server_client": {"level": configuration.level_managed_provider},
+                "sqlalchemy.engine": {"level": configuration.level_sqlalchemy},
             },
         }
     )

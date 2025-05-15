@@ -62,4 +62,10 @@ def serve():
     )
 
 
+def migrate():
+    from beeai_server.infrastructure.persistence.migrations.migrate import migrate as migrate_fn
+
+    migrate_fn()
+
+
 __all__ = ["serve"]

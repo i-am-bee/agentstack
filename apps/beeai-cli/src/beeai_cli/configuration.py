@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import functools
+import pathlib
 
 import pydantic
 import pydantic_settings
@@ -25,3 +26,5 @@ class Configuration(pydantic_settings.BaseSettings):
     )
     host: pydantic.AnyUrl = "http://localhost:8333"
     debug: bool = False
+    telemetry_config: pathlib.Path = pathlib.Path.home() / ".beeai" / "telemetry.yaml"
+    home: pathlib.Path = pathlib.Path.home() / ".beeai"

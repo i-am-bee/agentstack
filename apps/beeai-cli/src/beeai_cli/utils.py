@@ -23,6 +23,7 @@ from cachetools import cached
 from jsf import JSF
 from prompt_toolkit.shortcuts import CompleteStyle
 from pydantic import BaseModel
+from beeai_cli import Configuration
 
 if TYPE_CHECKING:
     from prompt_toolkit.completion import Completer
@@ -157,3 +158,17 @@ def prompt_user(
         validator=validator or DummyValidator(),
         in_thread=True,
     )
+
+
+TELEMETRY_CONFIG_PATH = Configuration().telemetry_config
+
+
+def get_telemetry_config():
+    return yaml.safe_load(TELEMETRY_CONFIG_PATH.read_text()) if TELEMETRY_CONFIG_PATH.exists() else {"sharing": True}
+
+
+def save_telemetry_config(sharing: bool):
+    if sharing:
+        TELEMETRY_CONFIG_PATH.unlink(missing_ok=True)
+    else:
+        TELEMETRY_CONFIG_PATH.write_text(yaml.dump({"sharing": sharing}))

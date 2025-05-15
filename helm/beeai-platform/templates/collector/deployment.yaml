@@ -5,6 +5,8 @@ metadata:
   labels:
     app: otel-collector
     {{- include "beeai-platform.labels" . | nindent 4 }}
+  annotations:
+    checksum/config: {{ include (print $.Template.BasePath "/collector/config.yaml") . | sha256sum }}
 spec:
   replicas: 1
   selector:
@@ -45,10 +47,14 @@ spec:
               readOnly: true
           image: {{ .Values.collector.image }}
           command:
-            - "/otelcol-contrib"
-            - "--config"
-            - "/config/base.yaml"
-            - "--set"
+            - /otelcol-contrib
+            - --config
+            - /config/base.yaml
+          {{- if .Values.telemetry.sharing }}
+            - --config
+            - /config/beeai.yaml
+          {{- end }}
+            - --set
             - "receivers::otlp::protocols::http::endpoint=0.0.0.0:8335"
           imagePullPolicy: IfNotPresent
           ports:
@@ -57,7 +63,7 @@ spec:
       volumes:
         - name: otel-collector-config
           configMap:
-            name: otel-collector-config-cm
+            name: otel-collector-cm
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
