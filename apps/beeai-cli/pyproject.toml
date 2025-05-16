@@ -21,6 +21,7 @@ dependencies = [
     "psutil>=7.0.0",
     "acp-sdk>=0.8.1",
     "tenacity>=9.1.2",
+    "kr8s>=0.20.7",
 ]
 
 [tool.uv.sources]

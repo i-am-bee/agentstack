@@ -18,6 +18,10 @@ import pathlib
 import os
 import sys
 from typing import Optional, List
+import httpx
+import base64
+import kr8s.asyncio
+import kr8s.asyncio.objects
 
 from beeai_cli.async_typer import AsyncTyper, console
 
@@ -27,6 +31,12 @@ REGISTRY_URL = "https://raw.githubusercontent.com/i-am-bee/beeai-platform/refs/h
 DATA = pathlib.Path(__file__).joinpath("../../../../data").resolve()
 LIMA_HOME = pathlib.Path.home() / ".beeai" / "lima"
 KUBECONFIG = LIMA_HOME / "beeai" / "copied-from-guest" / "kubeconfig.yaml"
+
+HelmChart = kr8s.asyncio.objects.new_class(
+    kind="HelmChart",
+    version="helm.cattle.io/v1",
+    namespaced=True,
+)
 
 
 def _run_command(
@@ -49,8 +59,6 @@ def _run_command(
         console.print(f"[red]Error: {tool_name} is not installed. Please install {tool_name} first.[/red]")
         if tool_name == "limactl":
             console.print("[yellow]You can install Lima with: brew install lima[/yellow]")
-        elif tool_name == "helm":
-            console.print("[yellow]You can install Helm with: brew install helm[/yellow]")
         sys.exit(1)
     except subprocess.CalledProcessError as e:
         console.print(f"[red]ERROR: '{message}' failed with exit code {e.returncode}[/red]")
@@ -113,22 +121,37 @@ async def start():
         env={"LIMA_HOME": str(LIMA_HOME)},
     )
 
-    _run_command(
-        [
-            "helm",
-            "upgrade",
-            "--install",
-            "--atomic",
-            "--take-ownership",
-            "--namespace=beeai",
-            "--create-namespace",
-            f"--values={REGISTRY_URL}",
-            "beeai",
-            DATA / "helm-chart.tgz",
-        ],
-        "Installing BeeAI platform",
-        env={"KUBECONFIG": KUBECONFIG},
-    )
+    # TODO: Remove this once we have full managed mode ready in Helm chart
+    with console.status("Fetching Helm values...", spinner="dots"):
+        async with httpx.AsyncClient() as client:
+            response = await client.get(REGISTRY_URL)
+            response.raise_for_status()
+            values_content = response.text
+
+    try:
+        with console.status("Applying HelmChart to Kubernetes...", spinner="dots"):
+            helm_chart = HelmChart(
+                {
+                    "metadata": {
+                        "name": "beeai",
+                        "namespace": "default",
+                    },
+                    "spec": {
+                        "chartContent": base64.b64encode((DATA / "helm-chart.tgz").read_bytes()).decode(),
+                        "targetNamespace": "beeai",
+                        "createNamespace": True,
+                        "valuesContent": values_content,
+                    },
+                },
+                api=await kr8s.asyncio.api(kubeconfig=KUBECONFIG),
+            )
+            if await helm_chart.exists():
+                await helm_chart.patch(helm_chart.raw)
+            else:
+                await helm_chart.create()
+    except Exception as e:
+        console.print(f"[red]Error applying HelmChart: {e}[/red]")
+        sys.exit(1)
 
     console.print("[green]BeeAI platform deployed successfully![/green]")
 
