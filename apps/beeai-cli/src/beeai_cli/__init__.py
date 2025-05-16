@@ -31,7 +31,9 @@ app.add_typer(beeai_cli.commands.env.app, name="env", no_args_is_help=True, help
 app.add_typer(beeai_cli.commands.agent.app, name="agent", no_args_is_help=True, help="Manage agents.")
 app.add_typer(beeai_cli.commands.telemetry.app, name="telemetry", no_args_is_help=True, help="Configure telemetry.")
 app.add_typer(beeai_cli.commands.compose.app, name="compose", no_args_is_help=True, help="Manage agent composition.")
-app.add_typer(beeai_cli.commands.platform.app, name="platform", no_args_is_help=True, help="Manage BeeAI platform.")
+app.add_typer(
+    beeai_cli.commands.platform.app, name="platform", no_args_is_help=True, help="Manage BeeAI platform.", hidden=True
+)
 app.add_typer(beeai_cli.commands.build.app, name="", no_args_is_help=True, help="Build agent images.")
 
 
