@@ -47,16 +47,16 @@ outputs = { auto = true }
 
 ["beeai-cli:run"]
 description = "NOTE: Use double dash to pass extra args, like `mise beeai-cli:run -- provider list`"
-depends = ["setup:uv", "beeai-ui:build"]
+depends = ["setup:uv", "beeai-ui:build", "helm:build:beeai-platform"]
 dir = "{{cwd}}"
-run = "uv run beeai"
+run = "(rm {{config_root}}/apps/beeai-cli/data/*.tgz 2>/dev/null || true) && cp {{config_root}}/helm/beeai-platform-*.tgz {{config_root}}/apps/beeai-cli/data/helm-chart.tgz && uv run beeai"
 
 # build
 
 ["beeai-cli:build"]
-depends = ["setup:uv"]
+depends = ["setup:uv", "helm:build:beeai-platform"]
 dir = "{{config_root}}/apps/beeai-cli"
-run = "rm -rf ./dist && uv build --out-dir dist"
+run = "(rm {{config_root}}/apps/beeai-cli/data/*.tgz 2>/dev/null || true) && cp {{config_root}}/helm/beeai-platform-*.tgz {{config_root}}/apps/beeai-cli/data/helm-chart.tgz && rm -rf ./dist && uv build --out-dir dist"
 sources = ["src/**/*.py"]
 outputs = ["dist/**/*"]
 
@@ -64,4 +64,4 @@ outputs = ["dist/**/*"]
 
 ["beeai-cli:clean"]
 dir = "{{config_root}}/apps/beeai-cli"
-run = "rm -rf ./dist"
+run = "rm -rf ./dist && rm -rf ./data/*.tgz"

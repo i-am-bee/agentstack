@@ -14,3 +14,13 @@ dir = "{{config_root}}/helm"
 run = "helm template beeai-platform -f ../agent-registry.yaml | kubeconform -strict -summary"
 sources = ["beeai-platform/**/*"]
 outputs = { auto = true }
+
+# build
+
+["helm:build"]
+depends = ["helm:build:*"]
+
+["helm:build:beeai-platform"]
+dir = "{{config_root}}/helm"
+run = "helm package beeai-platform"
+sources = ["beeai-platform/**/*"]

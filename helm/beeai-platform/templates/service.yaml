@@ -12,6 +12,9 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
+      {{- if (eq .Values.service.type "NodePort") }}
+      nodePort: {{ .Values.service.nodePort }}
+      {{- end }}
   selector:
     app: beeai-platform-server
     {{- include "beeai-platform.selectorLabels" . | nindent 4 }}
