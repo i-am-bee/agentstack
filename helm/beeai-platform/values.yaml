@@ -118,7 +118,7 @@ affinity: { }
 
 phoenix:
   enabled: true
-  image: docker.io/arizephoenix/phoenix:version-4.0.0
+  image: docker.io/arizephoenix/phoenix:version-8.9.0
   resources: { }
 
 collector:
