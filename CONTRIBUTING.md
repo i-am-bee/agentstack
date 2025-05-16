@@ -134,3 +134,29 @@ From the user's point of view, the server is part of the BeeAI CLI through `beea
 Bump version in `apps/beeai-cli/pyproject.toml`. Commit the changes, push to main, and create and push a tag `beeai-cli-v<version>`, for example `beeai-cli-v0.0.1`. Check the GitHub Actions to see if everything went smoothly.
 
 After releasing to PyPI, the next step is releasing to Homebrew: follow the [instructions in the Homebrew tap](https://github.com/i-am-bee/homebrew-beeai/blob/main/CONTRIBUTING.md).
+
+---
+
+# Telepresence
+
+You can use [Telepresence](https://telepresence.io/) (installed through Mise) for local development against the full LimaVM+k3s stack.
+
+```sh
+export LIMA_HOME=$HOME/.beeai/lima
+export KUBECONFIG=$LIMA_HOME/beeai/copied-from-guest/kubeconfig.yaml
+mise beeai-cli:run -- platform start
+telepresence helm install
+telepresence connect --namespace beeai
+```
+
+After connecting:
+- Use `telepresence list` to see interceptable services.
+- Use `curl <service-name>:<service-port>` to send requests to services.
+- Use `telepresence replace <service-name> --env-file service.env` to replace a container (all requests will instead arrive at your local machine) and download its environment variables into a file `service.env`. This is useful for running a local instance of a service (including IDE debugging etc.) while having environment and network connectivity as if running inside the cluster.
+
+More information about how replace/intercept/ingress works can be found in the [Telepresence documentation](https://telepresence.io/docs/howtos/engage).
+
+Once done, quit Telepresence using:
+```sh
+telepresence quit
+```

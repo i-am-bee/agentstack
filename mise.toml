@@ -6,6 +6,7 @@ helm = "latest"
 kubeconform = "latest"
 pnpm = "latest"
 "ubi:B1NARY-GR0UP/nwa" = "latest"
+"ubi:telepresenceio/telepresence" = "latest"
 
 [settings]
 experimental = true # for python.uv_venv_auto

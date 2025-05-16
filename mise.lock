@@ -41,6 +41,13 @@ nwa-linux-x86_64 = "sha256:3ee63f5198b0fe61adb68f8f504fb73b718926c992dad759bade7
 nwa-macos-aarch64 = "sha256:128c6bbae86b8725381355d04132d4d8e71d54a01313cea0d0c20a294d058c9f"
 nwa-macos-x86_64 = "sha256:40dd0654c34b0adf8827a89c101ac543d7af1aeafdd7b1c0812be0bd730ea82c"
 
+[tools."ubi:telepresenceio/telepresence"]
+version = "2.22.4"
+backend = "ubi:telepresenceio/telepresence"
+
+[tools."ubi:telepresenceio/telepresence".checksums]
+telepresence-macos-aarch64 = "sha256:991d2aea9bef5c08dd64432cb5b3abb5bc6c441f27351d52fe94278705edc738"
+
 [tools.uv]
 version = "0.6.2"
 backend = "aqua:astral-sh/uv"
