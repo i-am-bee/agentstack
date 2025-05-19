@@ -19,10 +19,10 @@ import { SidePanel } from '#components/SidePanel/SidePanel.tsx';
 import { useApp } from '#contexts/App/index.ts';
 
 export function AppSidebar() {
-  const { sidebarOpen } = useApp();
+  const { navigationOpen } = useApp();
 
   return (
-    <SidePanel variant="left" isOpen={sidebarOpen}>
+    <SidePanel variant="left" isOpen={navigationOpen}>
       <AgentsNav />
     </SidePanel>
   );

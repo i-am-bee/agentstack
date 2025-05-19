@@ -21,6 +21,7 @@ $max-container: get-value($grid-breakpoints, 'max.width');
   grid-template-columns: 1fr calc((100vw / 3 * 2) - (max(100vw - #{$max-container}, 0px) / 2 / 3));
   block-size: 100%;
   inline-size: 100%;
+  overflow: hidden;
 }
 
 .simpleView {

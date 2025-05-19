@@ -29,7 +29,10 @@
 
 .main {
   grid-area: main;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr max-content;
+  align-items: stretch;
+  grid-template-rows: 1fr;
   overflow: hidden;
   view-transition-name: main;
 }

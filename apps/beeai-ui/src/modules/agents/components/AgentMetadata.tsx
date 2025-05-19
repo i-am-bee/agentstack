@@ -36,6 +36,11 @@ export function AgentMetadata({ agent, className, showSourceCodeLink }: Props) {
     keys: ['avg_run_time_seconds', 'avg_run_tokens'],
   });
 
+  const hasSourceCodeLinkVisible = showSourceCodeLink && sourceCodeUrl;
+  if (!avg_run_time_seconds || !avg_run_tokens || !license || !hasSourceCodeLinkVisible) {
+    return null;
+  }
+
   return (
     <ul className={clsx(classes.root, className)}>
       {avg_run_time_seconds && (
@@ -48,7 +53,7 @@ export function AgentMetadata({ agent, className, showSourceCodeLink }: Props) {
 
       {license && <li className={classes.item}>{license}</li>}
 
-      {showSourceCodeLink && sourceCodeUrl && (
+      {hasSourceCodeLinkVisible && (
         <li className={classes.item}>
           <SourceCodeLink url={sourceCodeUrl} />
         </li>

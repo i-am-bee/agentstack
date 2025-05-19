@@ -14,34 +14,54 @@
  * limitations under the License.
  */
 
+$rightPanelWidth: rem(432px);
+
 .root {
   @include scrollbar();
   position: fixed;
   inset-block-start: rem(56px) + rem(1px);
   inset-block-end: 0;
-  background-color: $background;
-  box-shadow: $box-shadow;
   z-index: 1;
-  padding-inline: $spacing-05;
+  // display: flex;
   transition: transform $duration-moderate-02 motion(exit, expressive);
   &.left {
     inset-inline-start: 0;
     inline-size: rem(272px);
-    padding-block: $spacing-06;
     &:not(.isOpen) {
       transform: translateX(calc(-100% - rem(8px)));
     }
   }
   &.right {
-    inset-inline-end: 0;
-    inline-size: rem(432px);
-    padding-block: $spacing-05 $spacing-06;
+    inset: 0;
+    position: relative;
+    inline-size: $rightPanelWidth;
+    transition: inline-size $duration-moderate-02 motion(exit, expressive);
+    overflow: hidden;
+
     &:not(.isOpen) {
-      transform: translateX(calc(100% + rem(8px)));
+      inline-size: 0;
     }
   }
 
   &:not(.isOpen) {
     transition-timing-function: motion(entrance, expressive);
+  }
+}
+
+.content {
+  background-color: $background;
+  box-shadow: $box-shadow;
+  padding-inline: $spacing-05;
+  block-size: 100%;
+
+  .left & {
+    padding-block: $spacing-06;
+  }
+
+  .right & {
+    padding-block: $spacing-05 $spacing-06;
+    box-shadow: none;
+    inline-size: $rightPanelWidth;
+    border-inline-start: 1px solid $border-subtle;
   }
 }

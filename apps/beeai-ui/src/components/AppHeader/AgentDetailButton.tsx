@@ -22,7 +22,7 @@ import { useApp } from '#contexts/App/index.ts';
 import classes from './AgentDetailButton.module.scss';
 
 export function AgentDetailButton() {
-  const { toggleAgentDetail } = useApp();
+  const { setAgentDetailOpen } = useApp();
 
   return (
     <IconButton
@@ -30,7 +30,7 @@ export function AgentDetailButton() {
       size="sm"
       label="Agent Detail"
       wrapperClasses={classes.root}
-      onClick={toggleAgentDetail}
+      onClick={() => setAgentDetailOpen?.((value) => !value)}
     >
       <Information />
     </IconButton>

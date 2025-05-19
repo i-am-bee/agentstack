@@ -22,10 +22,17 @@ import { useApp } from '#contexts/App/index.ts';
 import classes from './SidebarButton.module.scss';
 
 export function SidebarButton() {
-  const { toggleSidebar } = useApp();
+  const { setNavigationOpen, navigationToggleRef } = useApp();
 
   return (
-    <Button kind="ghost" size="sm" renderIcon={Menu} className={classes.root} onClick={toggleSidebar}>
+    <Button
+      kind="ghost"
+      size="sm"
+      ref={navigationToggleRef}
+      renderIcon={Menu}
+      className={classes.root}
+      onClick={() => setNavigationOpen?.((value) => !value)}
+    >
       BeeAI
     </Button>
   );

@@ -37,7 +37,7 @@ export function SidePanel({ variant, isOpen, className, children }: PropsWithChi
         className,
       )}
     >
-      {children}
+      <div className={classes.content}>{children}</div>
     </aside>
   );
 }

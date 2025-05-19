@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-import { createContext } from 'react';
+import { createContext, type Dispatch, type RefObject, type SetStateAction } from 'react';
 
 export const AppContext = createContext<AppContextValue>({});
 
 interface AppContextValue {
-  sidebarOpen?: boolean;
+  navigationOpen?: boolean;
   agentDetailOpen?: boolean;
-  toggleSidebar?: () => void;
-  toggleAgentDetail?: () => void;
+  navigationToggleRef?: RefObject<HTMLButtonElement>;
+  navigationPanelRef?: RefObject<HTMLElement>;
+  setNavigationOpen?: Dispatch<SetStateAction<boolean>>;
+  setAgentDetailOpen?: Dispatch<SetStateAction<boolean>>;
+  setCloseOnClickOutside?: Dispatch<SetStateAction<boolean>>;
 }

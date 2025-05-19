@@ -14,26 +14,39 @@
  * limitations under the License.
  */
 
-import type { PropsWithChildren } from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import type { PropsWithChildren, RefObject } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { useOnClickOutside } from 'usehooks-ts';
+
+import { isNotNull } from '#utils/helpers.ts';
 
 import { AppContext } from './app-context';
 
 export function AppProvider({ children }: PropsWithChildren) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [navigationOpen, setNavigationOpen] = useState(false);
   const [agentDetailOpen, setAgentDetailOpen] = useState(false);
+  const [closeOnClickOutside, setCloseOnClickOutside] = useState(false);
+  const navigationPanelRef = useRef<HTMLElement>(null);
+  const navigationToggleRef = useRef<HTMLButtonElement>(null);
 
-  const toggleSidebar = useCallback(() => {
-    setSidebarOpen((state) => !state);
-  }, []);
+  const clickOutsideRefs = useMemo(
+    () =>
+      [
+        navigationPanelRef.current ? navigationPanelRef : null,
+        navigationToggleRef.current ? navigationToggleRef : null,
+      ].filter(isNotNull) as RefObject<HTMLElement>[],
+    [],
+  );
 
-  const toggleAgentDetail = useCallback(() => {
-    setAgentDetailOpen((state) => !state);
-  }, []);
+  useOnClickOutside(clickOutsideRefs, () => {
+    if (closeOnClickOutside) {
+      setNavigationOpen(false);
+    }
+  });
 
   const contextValue = useMemo(
-    () => ({ sidebarOpen, agentDetailOpen, toggleSidebar, toggleAgentDetail }),
-    [sidebarOpen, agentDetailOpen, toggleSidebar, toggleAgentDetail],
+    () => ({ navigationOpen, agentDetailOpen, setNavigationOpen, setAgentDetailOpen }),
+    [navigationOpen, agentDetailOpen],
   );
 
   return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;
