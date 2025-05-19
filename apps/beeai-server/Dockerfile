@@ -14,19 +14,9 @@ RUN --mount=type=cache,target=/mise/downloads \
 
 FROM debian:12-slim AS runtime
 WORKDIR /app
-RUN apt-get update  &&\
-    apt-get -y --no-install-recommends install \
-    build-essential \
-    git \
-    make \
-    nodejs \
-    npm \
-    pipx \
-    python3 \
-    python3-dev \
-    &&\
+RUN apt-get update &&\
+    apt-get -y --no-install-recommends install pipx &&\
     rm -rf /var/lib/apt/lists/*
-RUN pipx install uv
 COPY --from=build /app/apps/beeai-server/dist/*.tar.gz .
 RUN pipx install ./*.tar.gz
 RUN chmod og+rx /root
@@ -35,5 +25,4 @@ ENV PATH="/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sb
     DISABLE_DOCKER=true \
     COLLECTOR_MANAGED=false \
     AGENT_REGISTRY__LOCATION="file:///app/registry.yaml"
-
 CMD ["beeai-server"]

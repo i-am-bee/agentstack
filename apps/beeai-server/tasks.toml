@@ -65,3 +65,14 @@ outputs = ["dist/**/*"]
 ["beeai-server:clean"]
 dir = "{{config_root}}/apps/beeai-server"
 run = "rm -rf ./dist"
+
+# build image
+
+["beeai-server:image-build"]
+dir = "{{config_root}}"
+run = """
+#!/bin/bash
+mkdir -p ~/.beeai/images
+docker build -t ghcr.io/i-am-bee/beeai-platform/beeai-server:local --file=apps/beeai-server/Dockerfile .
+docker save --output=$(realpath ~/.beeai/images)/beeai-server.tar ghcr.io/i-am-bee/beeai-platform/beeai-server:local
+"""

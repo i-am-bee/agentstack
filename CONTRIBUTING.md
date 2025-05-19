@@ -36,7 +36,49 @@ If you want to run tools directly without the `mise x --` prefix, you need to ac
 
 Edit `[env]` in `mise.local.toml` in the project root ([documentation](https://mise.jdx.dev/environments/)). Run `mise setup` if you don't see the file.
 
-### Running
+### Running the platform
+
+Starting up the platform using the CLI (`beeai platform start`, even `mise beeai-cli:run -- platform start`) will use **published images** by default. To use local images, you need to build them and import them into the platform.
+
+Build a local `beeai-server` image using:
+
+```sh
+mise beeai-server:image-build
+```
+
+This will export the image to `~/.beeai/images/beeai-server.tar` tagged as `ghcr.io/i-am-bee/beeai-platform/beeai-server:local`.
+
+Then, start the platform using:
+```sh
+mise beeai-cli:run -- platform start --import-images --set image.tag=local
+```
+
+### Running and debugging individual components
+
+It's desirable to run and debug (i.e. in an IDE) individual components against the full stack (PostgreSQL, OpenTelemetry, Arize Phoenix, ...). For this, we include [Telepresence](https://telepresence.io/) which allows rewiring a Kubernetes container to your local machine.
+
+Setting up Telepresence can be done using the following commands. Note that this will require **root access** on your machine, due to setting up a networking stack.
+
+```sh
+export LIMA_HOME=$HOME/.beeai/lima
+export KUBECONFIG=$LIMA_HOME/beeai/copied-from-guest/kubeconfig.yaml
+mise beeai-cli:run -- platform start
+mise x -- telepresence helm install
+mise x -- telepresence connect --namespace beeai
+```
+
+After connecting, you can send requests as if your machine was running inside the cluster. For example: `curl http://<service-name>:<service-port>`.
+
+If you want to also _receive_ requests that other services send to a container of your choice, you may `replace` the pod's container with your local machine, by running: `mise x -- telepresence replace <pod-name>`. You can also add `--env-file service.env` to download the environment variables of the container into a file.
+
+More information about how replace/intercept/ingress works can be found in the [Telepresence documentation](https://telepresence.io/docs/howtos/engage).
+
+Once done, quit Telepresence using:
+```sh
+mise x -- telepresence quit
+```
+
+### Running individual components
 
 To run BeeAI components in development mode (ensuring proper rebuilding), use the following commands.
 
@@ -134,29 +176,3 @@ From the user's point of view, the server is part of the BeeAI CLI through `beea
 Bump version in `apps/beeai-cli/pyproject.toml`. Commit the changes, push to main, and create and push a tag `beeai-cli-v<version>`, for example `beeai-cli-v0.0.1`. Check the GitHub Actions to see if everything went smoothly.
 
 After releasing to PyPI, the next step is releasing to Homebrew: follow the [instructions in the Homebrew tap](https://github.com/i-am-bee/homebrew-beeai/blob/main/CONTRIBUTING.md).
-
----
-
-# Telepresence
-
-You can use [Telepresence](https://telepresence.io/) (installed through Mise) for local development against the full LimaVM+k3s stack.
-
-```sh
-export LIMA_HOME=$HOME/.beeai/lima
-export KUBECONFIG=$LIMA_HOME/beeai/copied-from-guest/kubeconfig.yaml
-mise beeai-cli:run -- platform start
-telepresence helm install
-telepresence connect --namespace beeai
-```
-
-After connecting:
-- Use `telepresence list` to see interceptable services.
-- Use `curl <service-name>:<service-port>` to send requests to services.
-- Use `telepresence replace <service-name> --env-file service.env` to replace a container (all requests will instead arrive at your local machine) and download its environment variables into a file `service.env`. This is useful for running a local instance of a service (including IDE debugging etc.) while having environment and network connectivity as if running inside the cluster.
-
-More information about how replace/intercept/ingress works can be found in the [Telepresence documentation](https://telepresence.io/docs/howtos/engage).
-
-Once done, quit Telepresence using:
-```sh
-telepresence quit
-```
