@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-.options {
-  transform: translate(0, $spacing-06);
+.button {
+  border: 1px solid $border-subtle;
+}
 
-  &[data-floating-menu-direction='top'] {
-    transform: translate(0, -$spacing-06);
-  }
+.options {
+  // transform: translate(0, $spacing-06);
+
+  // &[data-floating-menu-direction='top'] {
+  //   transform: translate(0, -$spacing-06);
+  // }
 }

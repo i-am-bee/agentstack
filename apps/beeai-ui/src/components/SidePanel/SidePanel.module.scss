@@ -17,12 +17,10 @@
 $rightPanelWidth: rem(432px);
 
 .root {
-  @include scrollbar();
   position: fixed;
   inset-block-start: rem(56px) + rem(1px);
   inset-block-end: 0;
   z-index: 1;
-  // display: flex;
   transition: transform $duration-moderate-02 motion(exit, expressive);
   &.left {
     inset-inline-start: 0;
@@ -51,14 +49,15 @@ $rightPanelWidth: rem(432px);
 .content {
   background-color: $background;
   box-shadow: $box-shadow;
-  padding-inline: $spacing-05;
   block-size: 100%;
 
   .left & {
     padding-block: $spacing-06;
+    padding-inline-end: 0;
   }
 
   .right & {
+    padding-inline: $spacing-05;
     padding-block: $spacing-05 $spacing-06;
     box-shadow: none;
     inline-size: $rightPanelWidth;

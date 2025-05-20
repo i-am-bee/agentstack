@@ -16,14 +16,26 @@
 
 import { AgentsNav } from '#components/AgentsNav/AgentsNav.tsx';
 import { SidePanel } from '#components/SidePanel/SidePanel.tsx';
+import { UserNav } from '#components/UserNav/UserNav.tsx';
 import { useApp } from '#contexts/App/index.ts';
+import { FEATURE_FLAGS } from '#utils/feature-flags.ts';
+
+import classes from './AppSidebar.module.scss';
 
 export function AppSidebar() {
   const { navigationOpen, navigationPanelRef } = useApp();
 
   return (
     <SidePanel variant="left" isOpen={navigationOpen} ref={navigationPanelRef}>
-      <AgentsNav />
+      <div className={classes.root}>
+        <AgentsNav />
+
+        {FEATURE_FLAGS.Settings && (
+          <div className={classes.footer}>
+            <UserNav />
+          </div>
+        )}
+      </div>
     </SidePanel>
   );
 }

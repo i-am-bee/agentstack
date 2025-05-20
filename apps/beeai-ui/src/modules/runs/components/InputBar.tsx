@@ -18,7 +18,7 @@ import type { FormEventHandler, PropsWithChildren, ReactNode, Ref, TextareaHTMLA
 import { useImperativeHandle, useRef } from 'react';
 
 import { TextAreaAutoHeight } from '#components/TextAreaAutoHeight/TextAreaAutoHeight.tsx';
-import { dispatchInputEventOnFormTextarea, submitFormOnEnter } from '#utils/formUtils.ts';
+import { dispatchInputEventOnFormTextarea, submitFormOnEnter } from '#utils/form-utils.ts';
 
 import classes from './InputBar.module.scss';
 

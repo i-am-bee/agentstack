@@ -15,7 +15,7 @@
  */
 
 import { ErrorBoundary } from 'react-error-boundary';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
+import { BrowserRouter, Route, Routes } from 'react-router';
 
 import { ErrorFallback } from '#components/fallbacks/ErrorFallback.tsx';
 import { AppLayout } from '#components/layouts/AppLayout.tsx';
@@ -28,6 +28,7 @@ import { ComposeLanding } from '#modules/compose/ComposeLanding.tsx';
 import { ComposeSequential } from '#modules/compose/ComposeSequential.tsx';
 import { Agents } from '#pages/Agents.tsx';
 import { Agent } from '#pages/agents/Agent.tsx';
+import { Landing } from '#pages/Landing.tsx';
 import { NotFound } from '#pages/NotFound.tsx';
 import { AgentRunPage } from '#pages/runs/AgentRunPage.tsx';
 import { Settings } from '#pages/Settings.tsx';
@@ -44,10 +45,7 @@ export function App() {
                 <BrowserRouter>
                   <Routes>
                     <Route element={<AppLayout />}>
-                      <Route
-                        path={routeDefinitions.home()}
-                        element={<Navigate to={routeDefinitions.agents()} replace />}
-                      />
+                      <Route path={routeDefinitions.home()} element={<Landing />} />
                       <Route path={routeDefinitions.agents()} element={<Agents />} />
                       <Route path={routeDefinitions.agentDetail()} element={<Agent />} />
                       <Route path={routeDefinitions.agentRun()} element={<AgentRunPage />} />
