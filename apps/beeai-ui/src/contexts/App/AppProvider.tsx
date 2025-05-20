@@ -25,11 +25,11 @@ import { AppContext } from './app-context';
 export function AppProvider({ children }: PropsWithChildren) {
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [agentDetailOpen, setAgentDetailOpen] = useState(false);
-  const [closeOnClickOutside, setCloseNavOnClickOutside] = useState(false);
+  const [closeNavOnClickOutside, setCloseNavOnClickOutside] = useState(false);
   const navigationPanelRef = useRef<HTMLElement>(null);
   const navigationToggleRef = useRef<HTMLButtonElement>(null);
 
-  const clickOutsideRefs = useMemo(
+  const clickOutsideNavRefs = useMemo(
     () =>
       [
         navigationPanelRef.current ? navigationPanelRef : null,
@@ -38,8 +38,8 @@ export function AppProvider({ children }: PropsWithChildren) {
     [],
   );
 
-  useOnClickOutside(clickOutsideRefs, () => {
-    if (closeOnClickOutside) {
+  useOnClickOutside(clickOutsideNavRefs, () => {
+    if (closeNavOnClickOutside) {
       setNavigationOpen(false);
     }
   });

@@ -39,7 +39,7 @@ export function AgentDetailPanel() {
 
   const { name, description } = agent;
 
-  return agent ? (
+  return (
     <SidePanel variant="right" isOpen={agentDetailOpen}>
       <div className={classes.tabs}>
         <Tabs>
@@ -73,5 +73,5 @@ export function AgentDetailPanel() {
         </Tabs>
       </div>
     </SidePanel>
-  ) : null;
+  );
 }
