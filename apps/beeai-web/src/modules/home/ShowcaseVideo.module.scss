@@ -40,6 +40,10 @@
     display: none;
   }
   :global(.cds--btn) {
+    svg {
+      fill: $black;
+    }
+
     &:focus,
     &:active {
       background-color: transparent;
