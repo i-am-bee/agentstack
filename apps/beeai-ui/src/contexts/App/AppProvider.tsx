@@ -25,7 +25,7 @@ import { AppContext } from './app-context';
 export function AppProvider({ children }: PropsWithChildren) {
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [agentDetailOpen, setAgentDetailOpen] = useState(false);
-  const [closeOnClickOutside, setCloseOnClickOutside] = useState(false);
+  const [closeOnClickOutside, setCloseNavOnClickOutside] = useState(false);
   const navigationPanelRef = useRef<HTMLElement>(null);
   const navigationToggleRef = useRef<HTMLButtonElement>(null);
 
@@ -45,7 +45,15 @@ export function AppProvider({ children }: PropsWithChildren) {
   });
 
   const contextValue = useMemo(
-    () => ({ navigationOpen, agentDetailOpen, setNavigationOpen, setAgentDetailOpen }),
+    () => ({
+      navigationOpen,
+      agentDetailOpen,
+      navigationPanelRef,
+      navigationToggleRef,
+      setNavigationOpen,
+      setAgentDetailOpen,
+      setCloseNavOnClickOutside,
+    }),
     [navigationOpen, agentDetailOpen],
   );
 

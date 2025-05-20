@@ -15,7 +15,7 @@
  */
 
 import clsx from 'clsx';
-import type { PropsWithChildren } from 'react';
+import { forwardRef, type PropsWithChildren } from 'react';
 
 import classes from './SidePanel.module.scss';
 
@@ -25,9 +25,13 @@ interface Props {
   className?: string;
 }
 
-export function SidePanel({ variant, isOpen, className, children }: PropsWithChildren<Props>) {
+export const SidePanel = forwardRef<HTMLElement, PropsWithChildren<Props>>(function SidePanel(
+  { variant, isOpen, className, children },
+  ref,
+) {
   return (
     <aside
+      ref={ref}
       className={clsx(
         classes.root,
         [classes[variant]],
@@ -40,4 +44,4 @@ export function SidePanel({ variant, isOpen, className, children }: PropsWithChi
       <div className={classes.content}>{children}</div>
     </aside>
   );
-}
+});

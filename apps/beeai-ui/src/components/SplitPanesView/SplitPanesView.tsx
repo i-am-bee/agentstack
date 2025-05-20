@@ -17,7 +17,6 @@
 import { moderate02 } from '@carbon/motion';
 import { AnimatePresence, motion } from 'framer-motion';
 import { type PropsWithChildren, type ReactNode, useEffect } from 'react';
-import { useOnClickOutside } from 'usehooks-ts';
 
 import { Container } from '#components/layouts/Container.tsx';
 import { MainContent } from '#components/layouts/MainContent.tsx';
@@ -37,7 +36,8 @@ interface Props {
 
 export function SplitPanesView({ leftPane, rightPane, isSplit, spacing }: Props) {
   const { ref: leftPaneRef, scrollbarWidth } = useScrollbarWidth();
-  const { agentDetailOpen, setAgentDetailOpen, setNavigationOpen } = useApp();
+  const { agentDetailOpen, navigationOpen, setAgentDetailOpen, setNavigationOpen, setCloseNavOnClickOutside } =
+    useApp();
 
   useEffect(() => {
     if (isSplit) {
@@ -45,6 +45,18 @@ export function SplitPanesView({ leftPane, rightPane, isSplit, spacing }: Props)
       setNavigationOpen?.(false);
     }
   }, [isSplit, setAgentDetailOpen, setNavigationOpen]);
+
+  useEffect(() => {
+    if (navigationOpen && isSplit) {
+      setCloseNavOnClickOutside?.(true);
+    } else {
+      setCloseNavOnClickOutside?.(false);
+    }
+
+    return () => {
+      setCloseNavOnClickOutside?.(false);
+    };
+  }, [isSplit, navigationOpen, setCloseNavOnClickOutside]);
 
   return (
     <AnimatePresence mode="wait">

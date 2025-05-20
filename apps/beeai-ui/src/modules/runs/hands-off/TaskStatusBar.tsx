@@ -35,7 +35,7 @@ export function TaskStatusBar({ onStopClick }: Props) {
       <div className={classes.label}>
         {isPending && <Spinner center />}
         <span>
-          Task {isPending ? 'running for' : 'done in'} <ElapsedTime stats={stats} />
+          Task {isPending ? 'running for' : 'completed in'} <ElapsedTime stats={stats} />
         </span>
       </div>
 
