@@ -16,7 +16,7 @@
 
 import { LF_PROJECTS_LINK } from '#utils/constants.ts';
 
-import { CommunityNav } from '../CommunityNav/CommunityNav';
+import { FooterNav } from '../FooterNav/FooterNav';
 import classes from './AppFooter.module.scss';
 import { Container } from './Container';
 
@@ -39,7 +39,7 @@ export function AppFooter({ className }: Props) {
             .
           </p>
 
-          <CommunityNav className={classes.communityNav} />
+          <FooterNav className={classes.communityNav} />
         </div>
       </Container>
     </footer>

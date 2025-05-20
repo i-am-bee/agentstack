@@ -21,6 +21,7 @@ import {
   ACP_DOCUMENTATION_LINK,
   COMPOSE_LINK,
   Container,
+  DISCOVER_LINK,
   // DISCOVER_LINK,
   FRAMEWORK_GITHUB_REPO_LINK,
   RUN_LINK,
@@ -66,12 +67,11 @@ export function ExperienceShowcase() {
                   </a>
                 </p>
 
-                {/* TODO: Update link when documentation is ready */}
-                {/* <p className={classes.more}>
+                <p className={classes.more}>
                   <a href={DISCOVER_LINK} target="_blank" rel="noreferrer">
                     Learn more
                   </a>
-                </p> */}
+                </p>
 
                 <ShowcaseVideo key={videoSrc} src={videoSrc} poster={posterSrc} className={classes.video} />
               </AccordionItem>

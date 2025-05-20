@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export * from './components/CommunityNav/CommunityNav';
+export * from './components/FooterNav/FooterNav';
 export * from './components/ErrorPage/ErrorPage';
 export * from './components/GitHubLink/GitHubLink';
 export * from './components/layouts/AppFooter';
