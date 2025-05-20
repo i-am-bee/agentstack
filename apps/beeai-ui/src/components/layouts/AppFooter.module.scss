@@ -40,13 +40,12 @@ $max-container: get-value($grid-breakpoints, 'max.width');
   margin-inline-start: auto;
 }
 
-// @media (min-width: 124rem) {
-//   .communityNav {
-//     position: absolute;
-//     inset-block-end: $spacing-06;
-//     inset-inline-end: $grid-margin;
-//   }
-// }
+@include breakpoint-down(md) {
+  .holder {
+    flex-direction: column-reverse;
+    gap: $spacing-05;
+  }
+}
 
 @media (min-width: 125rem) {
   .communityNav {

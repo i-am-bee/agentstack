@@ -22,7 +22,6 @@ import {
   COMPOSE_LINK,
   Container,
   DISCOVER_LINK,
-  // DISCOVER_LINK,
   FRAMEWORK_GITHUB_REPO_LINK,
   RUN_LINK,
 } from '@i-am-bee/beeai-ui';
