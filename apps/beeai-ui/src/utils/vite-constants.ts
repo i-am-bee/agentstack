@@ -18,4 +18,6 @@ export const APP_NAME = __APP_NAME__;
 
 export const PHOENIX_SERVER_TARGET = __PHOENIX_SERVER_TARGET__;
 
+export const FEATURE_FLAGS = Object.freeze(__FEATURE_FLAGS__);
+
 export const PROD_MODE = import.meta.env.PROD;

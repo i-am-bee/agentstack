@@ -14,35 +14,34 @@
  * limitations under the License.
  */
 
-import type { ZodBoolean, ZodDefault } from 'zod';
 import z from 'zod';
 
-const Features = ['UserNavigation'];
-
-type FeatureName = (typeof Features)[number];
+const booleanFlag = z.boolean().default(false);
 
 const featureFlagsSchema = z
-  .object(
-    Features.reduce(
-      (acc, key) => {
-        acc[key] = z.boolean().default(false);
-        return acc;
-      },
-      {} as { [K in FeatureName]: ZodDefault<ZodBoolean> },
-    ),
-  )
+  .object({
+    UserNavigation: booleanFlag,
+  })
   .strict();
 
-function parseFeatureFlags(featureFlagEnv?: string) {
-  try {
-    const data = JSON.parse(featureFlagEnv ?? '');
-    const result = featureFlagsSchema.parse(data);
+export type FeatureFlags = z.infer<typeof featureFlagsSchema>;
 
-    return result;
-  } catch (err) {
-    console.error('Unable to parse feature flags!', err instanceof Error && err.toString());
-    return Object.fromEntries(Features.map((feature) => [feature, false])) as Record<FeatureName, boolean>;
+export function getFeatureFlags(env: Record<string, string>): FeatureFlags {
+  const result = featureFlagsSchema.safeParse(
+    (() => {
+      try {
+        return JSON.parse(env.FEATURE_FLAGS ?? '{}');
+      } catch (error) {
+        console.error('\n❌  Failed to parse JSON for FEATURE_FLAGS\n');
+        throw error;
+      }
+    })(),
+  );
+
+  if (!result.success) {
+    console.error('\n❌  Invalid FEATURE_FLAGS\n', result.error.format(), '\n');
+    throw result.error;
   }
-}
 
-export const FEATURE_FLAGS = parseFeatureFlags(import.meta.env.VITE_FEATURE_FLAGS);
+  return result.data;
+}
