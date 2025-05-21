@@ -55,9 +55,21 @@ export function isAgentUiSupported(agent: Agent) {
   return uiType && SupportedUis.includes(uiType);
 }
 
-export function getAgentLinkUrl<T extends components['schemas']['LinkType']>(
+type AgentLinkType = components['schemas']['LinkType'];
+
+export function getAvailableAgentLinkUrl<T extends AgentLinkType | AgentLinkType[]>(
   metadata: components['schemas']['Metadata'],
   type: T,
 ): string | undefined {
-  return metadata.links?.find((link) => link.type === type)?.url;
+  const typesArray = Array.isArray(type) ? type : [type];
+
+  let url = undefined;
+  for (const type of typesArray) {
+    url = metadata.links?.find((link) => link.type === type)?.url;
+    if (url) {
+      break;
+    }
+  }
+
+  return url;
 }
