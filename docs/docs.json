@@ -19,15 +19,16 @@
         ]
       },
       {
-        "group": "Getting Started",
+        "group": "How To",
         "pages": [
-          "/getting-started/discover-agents",
-          "/getting-started/environment-configuration",
-          "/getting-started/run-agents",
-          "/getting-started/manage-agents",
-          "/getting-started/share-agents",
-          "/getting-started/cli-reference",
-          "/getting-started/ui-overview"
+          "/how-to/discover-agents",
+          "/how-to/environment-configuration",
+          "/how-to/run-agents",
+          "/how-to/manage-agents",
+          "/how-to/build-agents",
+          "/how-to/share-agents",
+          "/how-to/cli-reference",
+          "/how-to/ui-overview"
         ]
       },
       {
@@ -35,11 +36,6 @@
         "pages": ["concepts/architecture",
                   "concepts/acp-protocol",
                   "concepts/agents"]
-      },
-      {
-        "group": "Building Agents",
-        "pages": ["building-agents/build-custom-agents",
-                  "building-agents/bring-in-external-agents"]
       },
       {
         "group": "Deployment",
