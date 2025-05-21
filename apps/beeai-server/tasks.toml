@@ -71,7 +71,15 @@ run = "rm -rf ./dist"
 ["beeai-server:image:build"]
 depends = ["beeai-server:build"]
 dir = "{{config_root}}"
-run = """docker build -t ghcr.io/i-am-bee/beeai-platform/beeai-server:local --file=apps/beeai-server/Dockerfile ."""
+run = """
+#!/bin/bash
+PLATFORM={{option(name="platform", default="")}}
+if [ -z "$PLATFORM" ]; then
+    docker build -t ghcr.io/i-am-bee/beeai-platform/beeai-server:local --file=apps/beeai-server/Dockerfile .
+else
+    docker build --platform "$PLATFORM" -t ghcr.io/i-am-bee/beeai-platform/beeai-server:local --file=apps/beeai-server/Dockerfile .
+fi
+"""
 sources = ["apps/beeai-server/Dockerfile", "apps/beeai-server/dist/*.tar.gz"]
 outputs = { auto = true }
 

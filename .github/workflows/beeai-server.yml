@@ -11,51 +11,37 @@ permissions:
   id-token: write
 
 jobs:
-  publish-pypi:
-    name: Publish on PyPI
-    if: startsWith(github.ref, 'refs/tags/beeai-server-v')
+  build-and-publish-pypi-and-docker:
+    name: Build and publish to PyPI and Docker Hub
     runs-on: ubuntu-latest
     environment: release
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
+      - id: version
+        run: echo "version=${GITHUB_REF#refs/tags/beeai-server-v}" >> $GITHUB_OUTPUT
+
+      # PyPI
       - run: mise beeai-server:build
       - uses: pypa/gh-action-pypi-publish@release/v1
-
         with:
           packages-dir: apps/beeai-server/dist
 
-  build-and-push:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Extract version from tag
-        id: version
-        run: echo "version=${GITHUB_REF#refs/tags/beeai-server-v}" >> $GITHUB_OUTPUT
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+      # Docker
+      - uses: docker/setup-buildx-action@v3
+      - run: mise run beeai-server:image:build --platform=linux/amd64,linux/arm64
+      - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./apps/beeai-server/Dockerfile
-          push: true
-          platforms: linux/amd64,linux/arm64
-          tags: |
-            ghcr.io/${{ github.repository }}/beeai-server:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/beeai-server:${{ steps.version.outputs.version }}
-            ghcr.io/${{ github.repository }}/beeai-server:latest
+      - run: |
+          docker tag ghcr.io/i-am-bee/beeai-platform/beeai-server:local ghcr.io/${{ github.repository }}/beeai-server:${{ github.sha }}
+          docker tag ghcr.io/i-am-bee/beeai-platform/beeai-server:local ghcr.io/${{ github.repository }}/beeai-server:${{ steps.version.outputs.version }}
+          docker tag ghcr.io/i-am-bee/beeai-platform/beeai-server:local ghcr.io/${{ github.repository }}/beeai-server:latest
+          docker push ghcr.io/${{ github.repository }}/beeai-server:${{ github.sha }}
+          docker push ghcr.io/${{ github.repository }}/beeai-server:${{ steps.version.outputs.version }}
+          docker push ghcr.io/${{ github.repository }}/beeai-server:latest
 
   build-and-push-helm-chart:
     # Inspired by: https://github.com/appany/helm-oci-chart-releaser
@@ -86,7 +72,7 @@ jobs:
         run: helm push '$beeai-platform-${{ steps.version.outputs.version }}.tgz' 'oci://ghcr.io/${{ github.repository }}/beeai-platform-chart'
 
   deploy-to-k8s:
-    needs: build-and-push
+    needs: build-and-publish-pypi-and-docker
     if: false
     runs-on: [ self-hosted ]
     steps:
