@@ -15,16 +15,16 @@ export default defineConfig(({ mode }) => {
   const featureFlags = featureFlagsSchema.safeParse(
     (() => {
       try {
-        return JSON.parse(env.VITE_FEATURE_FLAGS ?? '{}');
+        return JSON.parse(env.FEATURE_FLAGS ?? '{}');
       } catch (error) {
-        console.error('\n❌  Failed to parse JSON for VITE_FEATURE_FLAGS\n');
+        console.error('\n❌  Failed to parse JSON for FEATURE_FLAGS\n');
         throw error;
       }
     })(),
   );
 
   if (!featureFlags.success) {
-    console.error('\n❌  Invalid VITE_FEATURE_FLAGS\n', featureFlags.error.format(), '\n');
+    console.error('\n❌  Invalid FEATURE_FLAGS\n', featureFlags.error.format(), '\n');
     throw featureFlags.error;
   }
 
