@@ -1,9 +1,6 @@
 FROM debian:12-slim
 COPY --from=ghcr.io/astral-sh/uv:0.6.2 /uv /bin/
 WORKDIR /app
-RUN apt-get update && \
-    apt-get -y --no-install-recommends install python3 && \
-    rm -rf /var/lib/apt/lists/*
 COPY /apps/beeai-server/pyproject.toml .
 RUN uv venv && \
     uv pip compile pyproject.toml >requirements.txt && \
