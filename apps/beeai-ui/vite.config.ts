@@ -5,28 +5,13 @@ import react from '@vitejs/plugin-react-swc';
 import { defineConfig, loadEnv } from 'vite';
 import svgr from 'vite-plugin-svgr';
 
-import { featureFlagsSchema } from '#utils/feature-flags.ts';
+import { getFeatureFlags } from '#utils/feature-flags.ts';
 
 const phoenixServerTarget = 'http://localhost:6006';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-
-  const featureFlags = featureFlagsSchema.safeParse(
-    (() => {
-      try {
-        return JSON.parse(env.FEATURE_FLAGS ?? '{}');
-      } catch (error) {
-        console.error('\n❌  Failed to parse JSON for FEATURE_FLAGS\n');
-        throw error;
-      }
-    })(),
-  );
-
-  if (!featureFlags.success) {
-    console.error('\n❌  Invalid FEATURE_FLAGS\n', featureFlags.error.format(), '\n');
-    throw featureFlags.error;
-  }
+  const featureFlags = getFeatureFlags(env);
 
   return {
     plugins: [
@@ -38,7 +23,7 @@ export default defineConfig(({ mode }) => {
     define: {
       __APP_NAME__: JSON.stringify('BeeAI'),
       __PHOENIX_SERVER_TARGET__: JSON.stringify(phoenixServerTarget),
-      __FEATURE_FLAGS__: JSON.stringify(featureFlags.data),
+      __FEATURE_FLAGS__: JSON.stringify(featureFlags),
     },
     server: {
       proxy: {

@@ -18,10 +18,30 @@ import z from 'zod';
 
 const booleanFlag = z.boolean().default(false);
 
-export const featureFlagsSchema = z
+const featureFlagsSchema = z
   .object({
     UserNavigation: booleanFlag,
   })
   .strict();
 
 export type FeatureFlags = z.infer<typeof featureFlagsSchema>;
+
+export function getFeatureFlags(env: Record<string, string>): FeatureFlags {
+  const result = featureFlagsSchema.safeParse(
+    (() => {
+      try {
+        return JSON.parse(env.FEATURE_FLAGS ?? '{}');
+      } catch (error) {
+        console.error('\n❌  Failed to parse JSON for FEATURE_FLAGS\n');
+        throw error;
+      }
+    })(),
+  );
+
+  if (!result.success) {
+    console.error('\n❌  Invalid FEATURE_FLAGS\n', result.error.format(), '\n');
+    throw result.error;
+  }
+
+  return result.data;
+}
