@@ -12,8 +12,16 @@
 !/pyproject.toml
 !/uv.lock
 
-node_modules
+# Python
 .ruff-cache
-dist
+.venv
+
+# Docker
 Dockerfile
 .dockerignore
+
+# Node
+node_modules
+
+# Misc
+dist
