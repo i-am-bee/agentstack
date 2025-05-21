@@ -40,11 +40,6 @@ export function Navigation() {
         section: sections.agents,
       },
       {
-        label: 'Compose playground',
-        href: routes.compose(),
-        section: sections.compose,
-      },
-      {
         label: 'Traces',
         href: `${PHOENIX_SERVER_TARGET}/projects`,
         isExternal: true,
