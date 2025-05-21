@@ -57,7 +57,7 @@ run = "uv run beeai-server"
 depends = ["setup:uv", "beeai-ui:build"]
 dir = "{{config_root}}/apps/beeai-server"
 run = "rm -rf ./dist && uv build --out-dir dist"
-sources = ["src/**/*.py"]
+sources = ["pyproject.toml", "src/**/*.py"]
 outputs = ["dist/**/*"]
 
 # clean
@@ -72,7 +72,7 @@ run = "rm -rf ./dist"
 depends = ["beeai-server:build"]
 dir = "{{config_root}}"
 run = """docker build -t ghcr.io/i-am-bee/beeai-platform/beeai-server:local --file=apps/beeai-server/Dockerfile ."""
-sources = ["apps/beeai-server/dist/*.tar.gz"]
+sources = ["apps/beeai-server/Dockerfile", "apps/beeai-server/dist/*.tar.gz"]
 outputs = { auto = true }
 
 ["beeai-server:image:save"]
