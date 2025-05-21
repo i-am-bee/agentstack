@@ -18,7 +18,7 @@ import { AgentsNav } from '#components/AgentsNav/AgentsNav.tsx';
 import { SidePanel } from '#components/SidePanel/SidePanel.tsx';
 import { UserNav } from '#components/UserNav/UserNav.tsx';
 import { useApp } from '#contexts/App/index.ts';
-import { FEATURE_FLAGS } from '#utils/feature-flags.ts';
+import { FEATURE_FLAGS } from '#utils/vite-constants.ts';
 
 import classes from './AppSidebar.module.scss';
 

@@ -16,21 +16,12 @@
 
 import z from 'zod';
 
-const featureFlagsSchema = z
-  .object({
-    UserNavigation: z.boolean().catch(false).default(false),
-  })
-  .strip();
+const booleanFlag = z.boolean().default(false);
 
-export const FEATURE_FLAGS = Object.freeze(
-  featureFlagsSchema.parse(
-    (() => {
-      try {
-        return JSON.parse(import.meta.env.VITE_FEATURE_FLAGS);
-      } catch (err) {
-        console.error(err);
-        return {};
-      }
-    })(),
-  ),
-);
+export const featureFlagsSchema = z
+  .object({
+    UserNavigation: booleanFlag,
+  })
+  .strict();
+
+export type FeatureFlags = z.infer<typeof featureFlagsSchema>;
