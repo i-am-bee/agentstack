@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
+import clsx from 'clsx';
+
 import Bee from '#svgs/bee.svg';
 
 import classes from './AgentIcon.module.scss';
 
-export function AgentIcon() {
+interface Props {
+  size?: 'md' | 'xl';
+  inverted?: boolean;
+}
+
+export function AgentIcon({ size = 'md', inverted }: Props) {
   return (
-    <span className={classes.root}>
+    <span className={clsx(classes.root, classes[`size-${size}`], { [classes.inverted]: inverted })}>
       <Bee />
     </span>
   );

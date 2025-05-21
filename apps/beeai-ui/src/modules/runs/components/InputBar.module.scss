@@ -58,6 +58,12 @@
   column-gap: $spacing-04;
 }
 
+.actionBarLeft {
+  display: flex;
+  align-items: center;
+  gap: $spacing-05;
+}
+
 .settings {
   display: flex;
   :global(.#{$prefix}--btn) {

@@ -14,37 +14,27 @@
  * limitations under the License.
  */
 
-.root {
-  block-size: rem(32px);
-  inline-size: rem(32px);
-  border-radius: 50%;
-  background-color: $background;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow: $box-shadow;
+import { IbmGranite } from '@carbon/icons-react';
 
-  svg {
-    block-size: rem(16px);
-    inline-size: rem(16px);
+import { useListVariables } from '#modules/variables/api/queries/useListVariables.ts';
+import { AGENT_DISPLAY_MODEL_TEMP } from '#utils/constants.ts';
+
+import { isGraniteModel } from '../utils';
+import classes from './AgentModel.module.scss';
+
+export function AgentModel() {
+  const { data, isPending } = useListVariables();
+
+  if (isPending) {
+    return null;
   }
 
-  &.size-xl {
-    block-size: rem(80px);
-    inline-size: rem(80px);
+  const model = data?.env['LLM_MODEL'] ?? AGENT_DISPLAY_MODEL_TEMP;
 
-    svg {
-      inline-size: rem(40px);
-      block-size: rem(40px);
-    }
-  }
-}
-
-.inverted {
-  background-color: $background-inverse;
-
-  svg {
-    fill: $background;
-  }
+  return (
+    <div className={classes.root}>
+      {isGraniteModel(model) && <IbmGranite />}
+      {model}
+    </div>
+  );
 }

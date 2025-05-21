@@ -44,3 +44,5 @@ export const RUN_LINK = `${DOCUMENTATION_LINK}/how-to/run-agents`;
 export const COMPOSE_LINK = `${DOCUMENTATION_LINK}/how-to/compose-agents`;
 
 export const LF_PROJECTS_LINK = 'https://lfprojects.org/';
+
+export const AGENT_DISPLAY_MODEL_TEMP = 'granite-3.3-8b-instruct';

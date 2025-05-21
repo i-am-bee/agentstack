@@ -16,11 +16,13 @@
 
 import { ArrowDown } from '@carbon/icons-react';
 import { IconButton } from '@carbon/react';
+import clsx from 'clsx';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Container } from '#components/layouts/Container.tsx';
 
 import { AgentHeader } from '../components/AgentHeader';
+import { AgentIcon } from '../components/AgentIcon';
 import { useChat, useChatMessages } from '../contexts/chat';
 import classes from './Chat.module.scss';
 import { ChatInput } from './ChatInput';
@@ -31,7 +33,7 @@ export function Chat() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  const { agent, onClear } = useChat();
+  const { agent, onClear, isPending } = useChat();
   const messages = useChatMessages();
 
   const scrollToBottom = useCallback(() => {
@@ -69,23 +71,38 @@ export function Chat() {
     };
   }, []);
 
+  const userGreeting = agent.metadata.ui?.user_greeting;
+  const isNew = !(isPending || messages.length);
+
   return (
-    <div className={classes.root}>
+    <div className={clsx(classes.root, { [classes.isNew]: isNew })}>
       <Container size="sm" className={classes.holder}>
-        <AgentHeader agent={agent} className={classes.header} onNewSessionClick={onClear} />
+        {isNew ? (
+          <div className={classes.header}>
+            <AgentIcon size="xl" />
+            <h1 className={classes.heading}>
+              Hi, I am {agent.name}!<br />
+              {userGreeting || 'What is your task?'}
+            </h1>
+          </div>
+        ) : (
+          <AgentHeader className={classes.header} onNewSessionClick={onClear} />
+        )}
 
-        <div className={classes.content} ref={scrollRef}>
-          <div className={classes.scrollRef} ref={bottomRef} />
+        {!isNew && (
+          <div className={classes.content} ref={scrollRef}>
+            <div className={classes.scrollRef} ref={bottomRef} />
 
-          <ol className={classes.messages} aria-label="messages">
-            {messages.map((message) => (
-              <Message key={message.key} message={message} />
-            ))}
-          </ol>
-        </div>
+            <ol className={classes.messages} aria-label="messages">
+              {messages.map((message) => (
+                <Message key={message.key} message={message} />
+              ))}
+            </ol>
+          </div>
+        )}
 
         <div className={classes.bottom}>
-          {isScrolled && (
+          {!isNew && isScrolled && (
             <IconButton
               label="Scroll to bottom"
               kind="secondary"

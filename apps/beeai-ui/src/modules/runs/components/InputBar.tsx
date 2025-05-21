@@ -20,6 +20,7 @@ import { useImperativeHandle, useRef } from 'react';
 import { TextAreaAutoHeight } from '#components/TextAreaAutoHeight/TextAreaAutoHeight.tsx';
 import { dispatchInputEventOnFormTextarea, submitFormOnEnter } from '#utils/form-utils.ts';
 
+import { AgentModel } from './AgentModel';
 import classes from './InputBar.module.scss';
 
 interface Props {
@@ -80,7 +81,10 @@ export function InputBar({
       />
 
       <div className={classes.actionBar}>
-        {settings && <div className={classes.settings}>{settings}</div>}
+        <div className={classes.actionBarLeft}>
+          {settings && <div className={classes.settings}>{settings}</div>}
+          <AgentModel />
+        </div>
 
         <div className={classes.submit}>{children}</div>
       </div>

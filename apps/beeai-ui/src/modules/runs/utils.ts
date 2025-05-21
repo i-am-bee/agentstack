@@ -111,3 +111,7 @@ const parseJsonLikeString = (string: string): unknown | string => {
     return string;
   }
 };
+
+export function isGraniteModel(name: string) {
+  return name.includes('granite');
+}
