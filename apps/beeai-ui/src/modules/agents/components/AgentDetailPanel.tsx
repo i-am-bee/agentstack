@@ -24,6 +24,7 @@ import { useApp } from '#contexts/App/index.ts';
 
 import { useAgent } from '../api/queries/useAgent';
 import type { AgentPageParams } from '../types';
+import { getAgentLinkUrl } from '../utils';
 import classes from './AgentDetailPanel.module.scss';
 import { AgentTags } from './AgentTags';
 
@@ -35,7 +36,8 @@ export function AgentDetailPanel() {
   if (!agent) return null;
 
   const { description, metadata } = agent;
-  const documentationUrl = metadata.links?.find(({ type }) => type === 'documentation')?.url;
+  const documentationUrl = getAgentLinkUrl(metadata, 'documentation');
+  const authorName = metadata.author?.name;
 
   return (
     <SidePanel variant="right" isOpen={agentDetailOpen}>
@@ -53,12 +55,12 @@ export function AgentDetailPanel() {
                 <>
                   {description && <MarkdownContent className={classes.description}>{description}</MarkdownContent>}
 
-                  {metadata.author && <span>By {metadata.author.name}</span>}
+                  {authorName && <span>By {authorName}</span>}
 
                   <AgentTags agent={agent} />
 
                   {documentationUrl && (
-                    <a href={documentationUrl} rel="noreferrer">
+                    <a href={documentationUrl} rel="noreferrer" className={classes.docsLink}>
                       View more <ArrowUpRight />
                     </a>
                   )}

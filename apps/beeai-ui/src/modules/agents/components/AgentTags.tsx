@@ -43,8 +43,8 @@ export function AgentTags({ agent, className }: Props) {
     avg_run_tokens && `${avg_run_tokens} tokens/run (avg)`,
     license,
   ]
-    .map((value) => (value ? <AgentTag key={value} name={value} /> : null))
-    .filter(isNotNull);
+    .filter(isNotNull)
+    .map((value) => <AgentTag key={value} name={value} />);
 
   return <TagsList tags={tags} className={className} />;
 }

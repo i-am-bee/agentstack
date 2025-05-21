@@ -30,7 +30,7 @@ export function AppSidebar() {
       <div className={classes.root}>
         <AgentsNav />
 
-        {FEATURE_FLAGS.Settings && (
+        {FEATURE_FLAGS.UserNavigation && (
           <div className={classes.footer}>
             <UserNav />
           </div>
