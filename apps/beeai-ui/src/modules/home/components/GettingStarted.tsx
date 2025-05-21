@@ -37,7 +37,7 @@ export function GettingStarted({ video }: GettingStartedProps) {
         <LogoBeeAI />
 
         <p className={classes.description}>
-          The open-source platform to discover, run, and&nbsp;compose AI&nbsp;agents from&nbsp;any&nbsp;framework
+          The open-source platform to discover and run AI&nbsp;agents from&nbsp;any&nbsp;framework
         </p>
 
         <div className={classes.bottom}>
