@@ -14,35 +14,23 @@
  * limitations under the License.
  */
 
-import type { ZodBoolean, ZodDefault } from 'zod';
 import z from 'zod';
 
-const Features = ['UserNavigation'];
-
-type FeatureName = (typeof Features)[number];
-
 const featureFlagsSchema = z
-  .object(
-    Features.reduce(
-      (acc, key) => {
-        acc[key] = z.boolean().default(false);
-        return acc;
-      },
-      {} as { [K in FeatureName]: ZodDefault<ZodBoolean> },
-    ),
-  )
-  .strict();
+  .object({
+    UserNavigation: z.boolean().catch(false).default(false),
+  })
+  .strip();
 
-function parseFeatureFlags(featureFlagEnv?: string) {
-  try {
-    const data = JSON.parse(featureFlagEnv ?? '');
-    const result = featureFlagsSchema.parse(data);
-
-    return result;
-  } catch (err) {
-    console.error('Unable to parse feature flags!', err instanceof Error && err.toString());
-    return Object.fromEntries(Features.map((feature) => [feature, false])) as Record<FeatureName, boolean>;
-  }
-}
-
-export const FEATURE_FLAGS = parseFeatureFlags(import.meta.env.VITE_FEATURE_FLAGS);
+export const FEATURE_FLAGS = Object.freeze(
+  featureFlagsSchema.parse(
+    (() => {
+      try {
+        return JSON.parse(import.meta.env.VITE_FEATURE_FLAGS);
+      } catch (err) {
+        console.error(err);
+        return {};
+      }
+    })(),
+  ),
+);
