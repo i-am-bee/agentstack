@@ -85,9 +85,6 @@ beeai list
 
 # Run the chat agent
 beeai run chat
-
-# Compose agents
-beeai compose sequential
 ```
 
 ## Documentation
