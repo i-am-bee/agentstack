@@ -157,3 +157,16 @@ def prompt_user(
         validator=validator or DummyValidator(),
         in_thread=True,
     )
+
+
+async def launch_graphical_interface(host_url):
+    import webbrowser
+    import httpx
+    import beeai_cli.commands.env
+
+    # Failure here will trigger the automatic service start mechanism
+    async with httpx.AsyncClient() as client:
+        await client.head(host_url)
+
+    await beeai_cli.commands.env.ensure_llm_env()
+    webbrowser.open(host_url)

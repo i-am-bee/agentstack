@@ -17,12 +17,12 @@ from copy import deepcopy
 
 import beeai_cli.commands.agent
 import beeai_cli.commands.build
-import beeai_cli.commands.compose
 import beeai_cli.commands.env
 import beeai_cli.commands.platform
 import beeai_cli.commands.telemetry
 from beeai_cli.async_typer import AsyncTyper
 from beeai_cli.configuration import Configuration
+from beeai_cli.utils import launch_graphical_interface
 
 logging.basicConfig(level=logging.INFO if Configuration().debug else logging.FATAL)
 
@@ -30,7 +30,6 @@ app = AsyncTyper(no_args_is_help=True)
 app.add_typer(beeai_cli.commands.env.app, name="env", no_args_is_help=True, help="Manage environment variables.")
 app.add_typer(beeai_cli.commands.agent.app, name="agent", no_args_is_help=True, help="Manage agents.")
 app.add_typer(beeai_cli.commands.telemetry.app, name="telemetry", no_args_is_help=True, help="Configure telemetry.")
-app.add_typer(beeai_cli.commands.compose.app, name="compose", no_args_is_help=True, help="Manage agent composition.")
 app.add_typer(
     beeai_cli.commands.platform.app, name="platform", no_args_is_help=True, help="Manage BeeAI platform.", hidden=True
 )
@@ -65,17 +64,18 @@ async def serve():
 @app.command("ui")
 async def ui():
     """Launch graphical interface."""
-    import webbrowser
-    import httpx
-
     host_url = str(Configuration().host)
 
-    # Failure here will trigger the automatic service start mechanism
-    async with httpx.AsyncClient() as client:
-        await client.head(host_url)
+    await launch_graphical_interface(host_url)
 
-    await beeai_cli.commands.env.ensure_llm_env()
-    webbrowser.open(host_url)
+
+@app.command("playground")
+async def playground() -> None:
+    """Launch the graphical interface for the compose playground."""
+    config = Configuration()
+    host_url = str(config.host) + str(config.playground)
+
+    await launch_graphical_interface(host_url)
 
 
 if __name__ == "__main__":
