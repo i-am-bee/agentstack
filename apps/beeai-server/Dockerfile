@@ -1,5 +1,6 @@
 FROM debian:12-slim
 COPY --from=ghcr.io/astral-sh/uv:0.6.2 /uv /bin/
+ENV UV_NO_CACHE=1
 WORKDIR /app
 COPY /apps/beeai-server/pyproject.toml .
 RUN uv venv && \
