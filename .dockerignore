@@ -1,26 +1,19 @@
 *
 
-# source code
-!agents
-!apps
-!packages
+!/agents/
+!/apps/
+!/docs/
+!/helm/
+!/mise.toml
+!/mise.lock
+!/mise.local.toml-example
+!/pnpm-lock.yaml
+!/pnpm-workspace.yaml
+!/pyproject.toml
+!/uv.lock
 
-# mise
-!mise.toml
-!mise.lock
-!mise.local.toml-example
-
-# pnpm
-!pnpm-lock.yaml
-!pnpm-workspace.yaml
-
-# uv
-!pyproject.toml
-!uv.lock
-
-# sub-ignores
-**/node_modules
-**/.ruff-cache
-**/dist
-**/Dockerfile
-**/.dockerignore
+node_modules
+.ruff-cache
+dist
+Dockerfile
+.dockerignore

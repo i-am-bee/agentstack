@@ -66,13 +66,22 @@ outputs = ["dist/**/*"]
 dir = "{{config_root}}/apps/beeai-server"
 run = "rm -rf ./dist"
 
-# build image
+# container image
 
-["beeai-server:image-build"]
+["beeai-server:image:build"]
+depends = ["beeai-server:build"]
+dir = "{{config_root}}"
+run = """docker build -t ghcr.io/i-am-bee/beeai-platform/beeai-server:local --file=apps/beeai-server/Dockerfile ."""
+sources = ["apps/beeai-server/dist/*.tar.gz"]
+outputs = { auto = true }
+
+["beeai-server:image:save"]
+depends = ["beeai-server:image:build"]
 dir = "{{config_root}}"
 run = """
 #!/bin/bash
 mkdir -p ~/.beeai/images
-docker build -t ghcr.io/i-am-bee/beeai-platform/beeai-server:local --file=apps/beeai-server/Dockerfile .
 docker save --output=$(realpath ~/.beeai/images)/beeai-server.tar ghcr.io/i-am-bee/beeai-platform/beeai-server:local
 """
+sources = ["apps/beeai-server/dist/*.tar.gz"]
+outputs = ["~/.beeai/images/beeai-server.tar"]

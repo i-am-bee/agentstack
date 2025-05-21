@@ -204,3 +204,6 @@ mise.local.toml
 
 # Supervisor output
 /output
+
+# Ruff
+.ruff_cache/

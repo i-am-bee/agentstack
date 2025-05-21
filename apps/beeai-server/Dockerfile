@@ -1,26 +1,17 @@
-FROM jdxcode/mise AS build
-ENV UV_LINK_MODE copy
-ENV UV_COMPILE_BYTECODE 1
+FROM debian:12-slim
+COPY --from=ghcr.io/astral-sh/uv:0.6.2 /uv /bin/
 WORKDIR /app
-COPY . .
-# `python.uv_venv_auto` must be `false` to avoid https://github.com/rancher-sandbox/rancher-desktop/issues/8281
-RUN --mount=type=cache,target=/mise/downloads \
-    --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=cache,target=/root/.local/share/pnpm/store \
-    mise trust &&\
-    mise settings set --local python.uv_venv_auto false &&\
-    mise install &&\
-    mise run beeai-server:build
-
-FROM debian:12-slim AS runtime
-WORKDIR /app
-RUN apt-get update &&\
-    apt-get -y --no-install-recommends install pipx &&\
+RUN apt-get update && \
+    apt-get -y --no-install-recommends install python3 && \
     rm -rf /var/lib/apt/lists/*
-COPY --from=build /app/apps/beeai-server/dist/*.tar.gz .
-RUN pipx install ./*.tar.gz
+COPY /apps/beeai-server/pyproject.toml .
+RUN uv venv && \
+    uv pip compile pyproject.toml >requirements.txt && \
+    uv pip install -r requirements.txt
+COPY /apps/beeai-server/dist/*.tar.gz .
+RUN uv pip install ./*.tar.gz
 RUN chmod og+rx /root
-ENV PATH="/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
+ENV PATH="/app/.venv/bin:/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
     HOME="/tmp" \
     DISABLE_DOCKER=true \
     COLLECTOR_MANAGED=false \
