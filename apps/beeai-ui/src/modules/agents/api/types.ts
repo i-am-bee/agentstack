@@ -20,6 +20,7 @@ export type AgentsListResponse = ApiResponse<'/api/v1/acp/agents'>;
 
 export type Agent = ApiResponse<'/api/v1/acp/agents/{name}'> & {
   metadata: {
+    name?: string;
     ui?: {
       type?: UiType;
       user_greeting?: string;

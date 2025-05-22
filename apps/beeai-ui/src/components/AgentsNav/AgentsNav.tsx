@@ -21,7 +21,7 @@ import { useLocation } from 'react-router';
 import { SkeletonItems } from '#components/SkeletonItems/SkeletonItems.tsx';
 import { useViewTransition } from '#hooks/useViewTransition.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
-import { isAgentUiSupported, sortAgentsByName } from '#modules/agents/utils.ts';
+import { getAgentDisplayName, isAgentUiSupported, sortAgentsByName } from '#modules/agents/utils.ts';
 import { routes } from '#utils/router.ts';
 
 import classes from './AgentsNav.module.scss';
@@ -39,7 +39,8 @@ export function AgentsNav() {
 
       <ul className={classes.list}>
         {!isPending ? (
-          agents?.map(({ name }) => {
+          agents?.map((agent) => {
+            const { name } = agent;
             const route = routes.agentRun({ name });
             const isActive = pathname === route;
 
@@ -51,7 +52,7 @@ export function AgentsNav() {
                   className={clsx(classes.button, { [classes.isActive]: isActive })}
                   onClick={() => transitionTo(route)}
                 >
-                  {name}
+                  {getAgentDisplayName(agent)}
                 </Button>
               </li>
             );

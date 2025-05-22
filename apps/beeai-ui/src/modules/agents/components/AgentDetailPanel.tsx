@@ -53,7 +53,11 @@ export function AgentDetailPanel() {
             <TabPanel className={classes.info}>
               {!isPending ? (
                 <>
-                  {description && <MarkdownContent className={classes.description}>{description}</MarkdownContent>}
+                  {description && (
+                    <MarkdownContent className={classes.description}>
+                      {description ?? metadata.documentation}
+                    </MarkdownContent>
+                  )}
 
                   {authorName && <span>By {authorName}</span>}
 

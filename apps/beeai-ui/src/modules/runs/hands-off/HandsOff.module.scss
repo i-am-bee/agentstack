@@ -56,6 +56,7 @@
 }
 
 .heading {
+  @include font-family(sans);
   font-size: rem(42px);
   line-height: math.div(46, 42);
   font-weight: 300;
