@@ -45,7 +45,8 @@
     }
 
     &:focus,
-    &:active {
+    &:active,
+    &:hover {
       background-color: transparent;
       box-shadow: none;
       border-color: transparent;
