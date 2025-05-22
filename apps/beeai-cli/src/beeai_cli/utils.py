@@ -163,6 +163,7 @@ def prompt_user(
         in_thread=True,
     )
 
+
 async def launch_graphical_interface(host_url):
     import webbrowser
     import httpx
