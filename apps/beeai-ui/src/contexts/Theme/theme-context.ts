@@ -22,5 +22,13 @@ export const ThemeContext = createContext<ThemeContextValue>({} as ThemeContextV
 
 interface ThemeContextValue {
   theme: Theme;
+  themePreference: ThemePreference;
   toggleTheme: () => void;
+  setThemePreference: (theme: ThemePreference) => void;
+}
+
+export enum ThemePreference {
+  System = 'System',
+  Dark = 'Dark',
+  Light = 'Light',
 }

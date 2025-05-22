@@ -21,6 +21,7 @@ import { MainContent } from '#components/layouts/MainContent.tsx';
 import { ViewHeader } from '#components/ViewHeader/ViewHeader.tsx';
 import { ViewStack } from '#components/ViewStack/ViewStack.tsx';
 import { ProvidersView } from '#modules/providers/components/ProvidersView.tsx';
+import { ThemeView } from '#modules/settings/ThemeView.tsx';
 import { VariablesView } from '#modules/variables/components/VariablesView.tsx';
 
 export function Settings() {
@@ -33,8 +34,8 @@ export function Settings() {
           <Tabs>
             <TabList>
               <Tab>Variables</Tab>
-
               <Tab>Agent providers</Tab>
+              <Tab>Theme</Tab>
             </TabList>
 
             <TabPanels>
@@ -44,6 +45,10 @@ export function Settings() {
 
               <TabPanel>
                 <ProvidersView />
+              </TabPanel>
+
+              <TabPanel>
+                <ThemeView />
               </TabPanel>
             </TabPanels>
           </Tabs>
