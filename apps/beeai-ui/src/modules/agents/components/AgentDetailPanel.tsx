@@ -38,6 +38,7 @@ export function AgentDetailPanel() {
   const { description, metadata } = agent;
   const agentUrl = getAvailableAgentLinkUrl(metadata, ['homepage', 'documentation', 'source-code']);
   const authorName = metadata.author?.name;
+  const agentInfo = description ?? metadata.documentation;
 
   return (
     <SidePanel variant="right" isOpen={agentDetailOpen}>
@@ -53,11 +54,7 @@ export function AgentDetailPanel() {
             <TabPanel className={classes.info}>
               {!isPending ? (
                 <>
-                  {description && (
-                    <MarkdownContent className={classes.description}>
-                      {description ?? metadata.documentation}
-                    </MarkdownContent>
-                  )}
+                  {agentInfo && <MarkdownContent className={classes.description}>{agentInfo}</MarkdownContent>}
 
                   {authorName && <span>By {authorName}</span>}
 

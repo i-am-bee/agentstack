@@ -31,7 +31,7 @@ export function HandsOff() {
   const { agent, logs, output, isPending, stats, onClear } = useHandsOff();
 
   const isPendingOrOutput = Boolean(isPending || output);
-  const isFinal = Boolean(output && !isPending);
+  const isCompleted = Boolean(output && !isPending);
 
   return (
     <HandsOffView>
@@ -40,7 +40,7 @@ export function HandsOff() {
           <div className={classes.header}>
             <AgentHeader agent={agent} onNewSessionClick={isPendingOrOutput ? onClear : undefined} />
 
-            {isFinal ? (
+            {isCompleted ? (
               <h2 className={classes.heading}>Task input:</h2>
             ) : (
               <AgentGreeting agent={agent} className={classes.heading} defaultGreeting="What is your task?" />
@@ -50,7 +50,7 @@ export function HandsOff() {
           <div className={classes.body}>
             <HandsOffInput />
 
-            {isFinal && (
+            {isCompleted && (
               <span className={classes.elapsed}>
                 Task completed in <ElapsedTime stats={stats} />
               </span>
