@@ -23,6 +23,7 @@ from uuid import UUID
 
 import yaml
 
+from acp_sdk import Agent as AcpAgent
 from beeai_server.domain.constants import DOCKER_MANIFEST_LABEL_NAME
 from beeai_server.domain.models.agent import EnvVar, Agent
 from beeai_server.domain.models.registry import RegistryLocation
@@ -35,7 +36,7 @@ from pydantic import BaseModel, Field, computed_field, RootModel, HttpUrl, model
 logger = logging.getLogger(__name__)
 
 
-def _load_agents_with_provider_id(agents: list[Agent], provider_id: UUID) -> list[Agent]:
+def convert_agents_from_acp(agents: list[AcpAgent], provider_id: UUID) -> list[Agent]:
     loaded_agents = []
     for agent in agents:
         metadata = agent.metadata.model_dump() | {"provider_id": provider_id}
@@ -52,16 +53,15 @@ class DockerImageProviderLocation(RootModel):
         return UUID(bytes=location_digest[:16])
 
     @inject
-    async def load_agents(self, provider_id: UUID) -> list[Agent]:
+    async def load_agents(self) -> list[AcpAgent]:
         from acp_sdk import AgentsListResponse
 
         _, labels = await get_registry_image_config_and_labels(self.root)
         if DOCKER_MANIFEST_LABEL_NAME not in labels:
             raise ValueError(f"Docker image labels must contain 'beeai.dev.agent.yaml': {self.location}")
-        agents = AgentsListResponse.model_validate(
+        return AgentsListResponse.model_validate(
             yaml.safe_load(base64.b64decode(labels[DOCKER_MANIFEST_LABEL_NAME]))
         ).agents
-        return _load_agents_with_provider_id(agents, provider_id)
 
 
 class NetworkProviderLocation(RootModel):
@@ -77,8 +77,7 @@ class NetworkProviderLocation(RootModel):
 
         async with AsyncClient() as client:
             response = await client.get(f"{str(self.root).rstrip('/')}/agents", timeout=1)
-            agents = AgentsListResponse.model_validate(response.json()).agents
-            return _load_agents_with_provider_id(agents, provider_id)
+            return AgentsListResponse.model_validate(response.json()).agents
 
 
 ProviderLocation = DockerImageProviderLocation | NetworkProviderLocation

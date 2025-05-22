@@ -24,6 +24,7 @@ from fastapi import HTTPException
 from kink import inject
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
+from acp_sdk import Agent as AcpAgent
 from beeai_server.service_layer.deployment_manager import (
     IProviderDeploymentManager,
 )
@@ -32,6 +33,7 @@ from beeai_server.domain.models.provider import (
     Provider,
     ProviderWithState,
     ProviderDeploymentState,
+    convert_agents_from_acp,
 )
 from beeai_server.domain.models.registry import RegistryLocation
 from beeai_server.exceptions import ManifestLoadError
@@ -53,10 +55,17 @@ class ProviderService:
         self._deployment_manager = deployment_manager
 
     async def create_provider(
-        self, *, location: ProviderLocation, registry: RegistryLocation | None = None, auto_remove: bool = False
+        self,
+        *,
+        location: ProviderLocation,
+        registry: RegistryLocation | None = None,
+        auto_remove: bool = False,
+        agents: list[AcpAgent] | None = None,
     ) -> ProviderWithState:
         try:
-            agents = await location.load_agents(provider_id=location.provider_id)
+            if not agents:
+                agents = await location.load_agents(provider_id=location.provider_id)
+            agents = convert_agents_from_acp(agents, provider_id=location.provider_id)
             provider_env = {env.name: env for agent in agents for env in agent.metadata.env}
             provider = Provider(
                 source=location,
@@ -76,9 +85,12 @@ class ProviderService:
         [provider_response] = await self._get_providers_with_state(providers=[provider])
         return provider_response
 
-    async def preview_provider(self, location: ProviderLocation):
+    async def preview_provider(
+        self, location: ProviderLocation, agents: list[AcpAgent] | None = None
+    ) -> ProviderWithState:
         try:
-            agents = await location.load_agents(provider_id=location.provider_id)
+            if not agents:
+                agents = await location.load_agents(provider_id=location.provider_id)
             provider_env = {env.name: env for agent in agents for env in agent.metadata.env}
             provider = Provider(source=location, env=list(provider_env.values()))
             [provider_response] = await self._get_providers_with_state(providers=[provider])

@@ -18,6 +18,7 @@ from fastapi.params import Query
 
 from beeai_server.api.schema.provider import CreateProviderRequest
 from uuid import UUID
+
 from beeai_server.domain.models.provider import ProviderWithState
 from beeai_server.api.routes.dependencies import ProviderServiceDependency
 from beeai_server.api.schema.common import PaginatedResponse
@@ -34,7 +35,9 @@ async def create_provider(
     provider_service: ProviderServiceDependency,
     auto_remove: bool = Query(default=False),
 ) -> ProviderWithState:
-    return await provider_service.create_provider(location=request.location, auto_remove=auto_remove)
+    return await provider_service.create_provider(
+        location=request.location, agents=request.agents, auto_remove=auto_remove
+    )
 
 
 @router.post("/register/unmanaged", deprecated=True)
@@ -49,7 +52,7 @@ async def deprecated_create_unmanaged_provider(
 async def preview_provider(
     request: CreateProviderRequest, provider_service: ProviderServiceDependency
 ) -> ProviderWithState:
-    return await provider_service.preview_provider(location=request.location)
+    return await provider_service.preview_provider(location=request.location, agents=request.agents)
 
 
 @router.get("")

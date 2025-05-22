@@ -28,3 +28,11 @@ class Configuration(pydantic_settings.BaseSettings):
     debug: bool = False
     telemetry_config: pathlib.Path = pathlib.Path.home() / ".beeai" / "telemetry.yaml"
     home: pathlib.Path = pathlib.Path.home() / ".beeai"
+
+    @property
+    def lima_home(self) -> pathlib.Path:
+        return self.home / "lima"
+
+    @property
+    def kubeconfig(self):
+        return self.lima_home / "beeai" / "copied-from-guest" / "kubeconfig.yaml"

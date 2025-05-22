@@ -109,6 +109,7 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
                             {
                                 "name": self._get_k8s_name(provider.id, "container"),
                                 "image": str(provider.source.root),
+                                "imagePullPolicy": "IfNotPresent",
                                 "ports": [{"containerPort": 8000}],
                                 "envFrom": [{"secretRef": {"name": self._get_k8s_name(provider.id, "secret")}}],
                                 "livenessProbe": {

@@ -15,8 +15,9 @@
 import kr8s
 import typer
 
+from beeai_cli import Configuration
 from beeai_cli.async_typer import AsyncTyper, console
-from beeai_cli.commands.platform import HelmChart, KUBECONFIG
+from beeai_cli.commands.platform import HelmChart
 from beeai_cli.utils import get_telemetry_config, save_telemetry_config
 
 app = AsyncTyper()
@@ -32,7 +33,7 @@ async def sharing(disable: bool | None = typer.Option(None, help="Disable sharin
             save_telemetry_config(False)
             helm_chart = HelmChart(
                 {"metadata": {"name": "beeai", "namespace": "default"}},
-                api=await kr8s.asyncio.api(kubeconfig=KUBECONFIG),
+                api=await kr8s.asyncio.api(kubeconfig=Configuration().kubeconfig),
             )
             if await helm_chart.exists():
                 await helm_chart.patch({"spec": {"set": {"telemetry.sharing": str(sharing_enabled).lower()}}})

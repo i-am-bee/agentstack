@@ -13,8 +13,11 @@
 # limitations under the License.
 
 import json
+import os
+import subprocess
+import sys
 from copy import deepcopy
-from typing import Any, TypeVar, Iterable, Optional, TYPE_CHECKING
+from typing import Any, TypeVar, Iterable, Optional, TYPE_CHECKING, List
 from prompt_toolkit import PromptSession
 
 import typer
@@ -24,6 +27,7 @@ from jsf import JSF
 from prompt_toolkit.shortcuts import CompleteStyle
 from pydantic import BaseModel
 from beeai_cli import Configuration
+from beeai_cli.console import console
 
 if TYPE_CHECKING:
     from prompt_toolkit.completion import Completer
@@ -172,3 +176,55 @@ def save_telemetry_config(sharing: bool):
         TELEMETRY_CONFIG_PATH.unlink(missing_ok=True)
     else:
         TELEMETRY_CONFIG_PATH.write_text(yaml.dump({"sharing": sharing}))
+
+
+def run_command(
+    cmd: List[str],
+    message: str,
+    env: dict = None,
+    cwd: str = ".",
+) -> subprocess.CompletedProcess:
+    """Helper function to run a subprocess command and handle common errors."""
+    env = env or {}
+    try:
+        with console.status(message + "...", spinner="dots"):
+            return subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                check=True,
+                env={**os.environ, **env},
+                cwd=cwd,
+            )
+    except FileNotFoundError:
+        tool_name = cmd[0]
+        console.print(f"[red]Error: {tool_name} is not installed. Please install {tool_name} first.[/red]")
+        if tool_name == "limactl":
+            console.print("[yellow]You can install Lima with: brew install lima[/yellow]")
+        sys.exit(1)
+    except subprocess.CalledProcessError as e:
+        console.print(f"[red]ERROR: '{message}' failed with exit code {e.returncode}[/red]")
+        if e.stderr:
+            console.print(f"[red]Error: {e.stderr.strip()}[/red]")
+        if e.stdout:
+            console.print(f"[red]Output: {e.stdout.strip()}[/red]")
+        sys.exit(1)
+
+
+def import_images_to_vm(vm_name: str):
+    run_command(
+        [
+            "limactl",
+            "--tty=false",
+            "shell",
+            vm_name,
+            "--",
+            "/bin/bash",
+            "-c",
+            "ls /beeai/images/* | xargs -n 1 sudo ctr images import",
+        ],
+        "Importing images",
+        env={"LIMA_HOME": str(Configuration().lima_home)},
+        cwd="/",
+    )
+    run_command(["rm", "-f", "/beeai/images/*"], "Deleting temporary images")

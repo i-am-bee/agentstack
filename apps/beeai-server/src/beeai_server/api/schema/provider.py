@@ -14,8 +14,10 @@
 
 from pydantic import BaseModel
 
+from acp_sdk import Agent as AcpAgent
 from beeai_server.domain.models.provider import ProviderLocation
 
 
 class CreateProviderRequest(BaseModel):
     location: ProviderLocation
+    agents: list[AcpAgent] | None = None

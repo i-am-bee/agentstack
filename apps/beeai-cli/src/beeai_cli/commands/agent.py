@@ -36,6 +36,7 @@ from acp_sdk import (
     RunFailedEvent,
 )
 from acp_sdk.client import Client
+from anyio import run_process
 from rich.box import HORIZONTALS
 from rich.console import ConsoleRenderable, Group, NewLine
 from rich.panel import Panel
@@ -105,27 +106,16 @@ def _print_log(line, ansi_mode=False):
         console.print(decode(line["message"]))
 
 
-@app.command("add | install")
-async def install_agent(
-    name_or_location: str = typer.Argument(..., help="Agent name or location (public docker image or github url)"),
-):
+@app.command("add")
+async def add_agent(docker_image: str = typer.Argument(..., help="Agent docker image ID")):
     """Install discovered agent or add public docker image or github repository [aliases: install]"""
-    provider = None
-    with contextlib.suppress(ACPError):
-        provider = (await _get_agent(name_or_location)).metadata.provider_id
-
-    if provider:
-        async for message in api_stream("PUT", f"providers/{provider}/install", params={"stream": True}):
-            _print_log(message, ansi_mode=True)
-    else:
-        async for message in api_stream(
-            "POST",
-            "providers",
-            json={"location": name_or_location},
-            params={"stream": True, "install": True},
-        ):
-            _print_log(message, ansi_mode=True)
-
+    agents = None
+    with contextlib.suppress(Exception):
+        # Try extracting manifest locally for local images, if it fails, continue
+        process = await run_process(["docker", "inspect", docker_image], check=True)
+        manifest = base64.b64decode(json.loads(process.stdout)[0]["Config"]["Labels"]["beeai.dev.agent.yaml"]).decode()
+        agents = json.loads(manifest)["agents"]
+    await api_request("POST", "providers", json={"location": docker_image, "agents": agents})
     await list_agents()
 
 
