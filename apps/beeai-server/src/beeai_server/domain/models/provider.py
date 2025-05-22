@@ -122,39 +122,6 @@ class Provider(BaseModel):
         return {var: env[var] for var in env if var in declared_env_vars}
 
 
-# class ManagedProvider(BaseProvider, extra="allow"):
-#     @property
-#     def _global_env(self) -> dict[str, str]:
-#         return {
-#             "OTEL_EXPORTER_OTLP_ENDPOINT": replace_localhost_url(OTEL_HTTP_ENDPOINT),
-#             "PLATFORM_URL": "http://host.docker.internal:8333",
-#         }
-#
-#     async def stop(self):
-#         await self._container_exit_stack.aclose()
-#
-#     @inject
-#     async def start(
-#         self,
-#         *,
-#         configuration: Configuration,
-#         container_backend: IContainerBackend,
-#         env: dict[str, str] | None = None,
-#         with_dummy_env: bool = True,
-#         logs_container: LogsContainer | None = None,
-#     ) -> str:
-#         if not with_dummy_env:
-#             self.check_env(env)
-#
-#         required_env_vars = {var.name for var in self.env if var.required}
-#         env = {
-#             **self._global_env,
-#             **({var: "dummy" for var in required_env_vars} if with_dummy_env else {}),
-#             **(self.extract_env(env=env)),
-#         }
-#         port = str(await find_free_port())
-
-
 class ProviderDeploymentState(StrEnum):
     missing = "missing"
     starting = "starting"

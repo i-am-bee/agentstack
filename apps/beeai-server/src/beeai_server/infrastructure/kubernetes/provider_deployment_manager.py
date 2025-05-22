@@ -25,7 +25,7 @@ from uuid import UUID
 import kr8s
 from exceptiongroup import suppress
 from httpx import HTTPError, AsyncClient
-from kr8s.objects import Deployment, Service, Secret, Pod
+from kr8s.asyncio.objects import Deployment, Service, Secret, Pod
 from pydantic import HttpUrl
 from tenacity import AsyncRetrying, stop_after_delay, wait_fixed, retry_if_exception_type
 
@@ -136,10 +136,10 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
 
         deployment = Deployment(deployment_manifest, api=self._api)
         try:
-            existing_deployment = await Deployment.async_get(deployment.metadata.name, api=self._api)
+            existing_deployment = await Deployment.get(deployment.metadata.name, api=self._api)
             if existing_deployment.metadata.labels["deployment-hash"] == deployment_hash:
                 if existing_deployment.replicas == 0:
-                    await deployment.async_scale(1)
+                    await deployment.scale(1)
                     return True
                 return False  # Deployment was not modified
             logger.info(f"Recreating deployment {deployment.metadata.name} due to configuration change")
@@ -147,39 +147,39 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
         except kr8s.NotFoundError:
             logger.info(f"Creating new deployment {deployment.metadata.name}")
         try:
-            await secret.async_create()
-            await service.async_create()
-            await deployment.async_create()
-            await deployment.async_adopt(service)
-            await deployment.async_adopt(secret)
+            await secret.create()
+            await service.create()
+            await deployment.create()
+            await deployment.adopt(service)
+            await deployment.adopt(secret)
         except Exception:
             # Try to revert changes already made
             with suppress(Exception):
-                await secret.async_delete()
+                await secret.delete()
             with suppress(Exception):
-                await service.async_delete()
+                await service.delete()
             with suppress(Exception):
-                await deployment.async_delete()
+                await deployment.delete()
             raise
         return True
 
     async def delete(self, *, provider_id: UUID) -> None:
         with suppress(kr8s.NotFoundError):
-            deploy = await Deployment.async_get(name=self._get_k8s_name(provider_id, "deploy"), api=self._api)
-            await deploy.async_delete(propagation_policy="Foreground", force=True)
-            await deploy.async_wait({"delete"})
+            deploy = await Deployment.get(name=self._get_k8s_name(provider_id, "deploy"), api=self._api)
+            await deploy.delete(propagation_policy="Foreground", force=True)
+            await deploy.wait({"delete"})
 
     async def scale_down(self, *, provider_id: UUID) -> None:
-        deploy = await Deployment.async_get(name=self._get_k8s_name(provider_id, "deploy"), api=self._api)
-        await deploy.async_scale(0)
+        deploy = await Deployment.get(name=self._get_k8s_name(provider_id, "deploy"), api=self._api)
+        await deploy.scale(0)
 
     async def scale_up(self, *, provider_id: UUID) -> None:
-        deploy = await Deployment.async_get(name=self._get_k8s_name(provider_id, "deploy"), api=self._api)
-        await deploy.async_scale(1)
+        deploy = await Deployment.get(name=self._get_k8s_name(provider_id, "deploy"), api=self._api)
+        await deploy.scale(1)
 
     async def wait_for_startup(self, *, provider_id: UUID, timeout: timedelta) -> None:
-        deployment = await Deployment.async_get(name=self._get_k8s_name(provider_id, kind="deploy"), api=self._api)
-        await deployment.async_wait("condition=Available", timeout=int(timeout.total_seconds()))
+        deployment = await Deployment.get(name=self._get_k8s_name(provider_id, kind="deploy"), api=self._api)
+        await deployment.wait("condition=Available", timeout=int(timeout.total_seconds()))
         # For some reason the first request sometimes doesn't come through
         # (the service does not route immediately after deploy is available?)
         async for attempt in AsyncRetrying(
@@ -229,10 +229,10 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
             await asyncio.sleep(1)
 
         async def stream_logs(pod: Pod):
-            async for line in pod.async_logs(follow=True):
+            async for line in pod.logs(follow=True):
                 logs_container.add_stdout(f"{pod.name.replace(self._get_k8s_name(provider_id, 'deploy'), '')}: {line}")
 
         async with TaskGroup() as tg:
-            deploy = await Deployment.async_get(name=self._get_k8s_name(provider_id, kind="deploy"), api=self._api)
-            for pod in await deploy.async_pods():
+            deploy = await Deployment.get(name=self._get_k8s_name(provider_id, kind="deploy"), api=self._api)
+            for pod in await deploy.pods():
                 tg.create_task(stream_logs(pod))

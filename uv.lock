@@ -244,15 +244,6 @@ wheels = [
 ]
 
 [[package]]
-name = "backports-tarfile"
-version = "1.2.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/86/72/cd9b395f25e290e633655a100af28cb253e4393396264a98bd5f5951d50f/backports_tarfile-1.2.0.tar.gz", hash = "sha256:d75e02c268746e1b8144c278978b6e98e85de6ad16f8e4b0844a154557eca991", size = 86406 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b9/fa/123043af240e49752f1c4bd24da5053b6bd00cad78c2be53c0d1e8b975bc/backports.tarfile-1.2.0-py3-none-any.whl", hash = "sha256:77e284d754527b01fb1e6fa8a1afe577858ebe4e9dad8919e34c862cb399bc34", size = 30181 },
-]
-
-[[package]]
 name = "beeai-cli"
 version = "0.1.4"
 source = { editable = "apps/beeai-cli" }
@@ -327,7 +318,6 @@ dependencies = [
     { name = "anyio" },
     { name = "asgiref" },
     { name = "asyncpg" },
-    { name = "backports-tarfile" },
     { name = "beeai-framework" },
     { name = "cachetools" },
     { name = "fastapi", extra = ["standard"] },
@@ -363,7 +353,6 @@ requires-dist = [
     { name = "anyio", specifier = ">=4.9.0" },
     { name = "asgiref", specifier = ">=3.8.1" },
     { name = "asyncpg", specifier = ">=0.30.0" },
-    { name = "backports-tarfile", specifier = ">=1.2.0" },
     { name = "beeai-framework", specifier = ">=0.1.20" },
     { name = "cachetools", specifier = ">=5.5.2" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115.7" },

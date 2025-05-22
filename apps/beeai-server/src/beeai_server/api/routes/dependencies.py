@@ -21,7 +21,6 @@ from beeai_server.configuration import Configuration
 from beeai_server.service_layer.services.acp import AcpProxyService
 from beeai_server.service_layer.services.env import EnvService
 from beeai_server.service_layer.services.provider import ProviderService
-from beeai_server.service_layer.telemetry import TelemetryService
 from fastapi import Depends, HTTPException
 from kink import di
 
@@ -29,7 +28,6 @@ ConfigurationDependency = Annotated[Configuration, Depends(lambda: di[Configurat
 ProviderServiceDependency = Annotated[ProviderService, Depends(lambda: di[ProviderService])]
 AcpProxyServiceDependency = Annotated[AcpProxyService, Depends(lambda: di[AcpProxyService])]
 EnvServiceDependency = Annotated[EnvService, Depends(lambda: di[EnvService])]
-TelemetryServiceDependency = Annotated[TelemetryService, Depends(lambda: di[TelemetryService])]
 
 
 def admin_auth(

@@ -36,11 +36,12 @@ def setup_database_engine(config: Configuration) -> AsyncEngine:
     return create_async_engine(str(config.persistence.db_url.get_secret_value()), isolation_level="SERIALIZABLE")
 
 
-async def setup_kubernetes_client():
-    ns_path = Path("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
-    namespace = None
-    if await ns_path.exists():
-        namespace = (await ns_path.read_text()).strip()
+async def setup_kubernetes_client(config: Configuration):
+    namespace = config.k8s_namespace
+    if namespace is None:
+        ns_path = Path("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
+        if await ns_path.exists():
+            namespace = (await ns_path.read_text()).strip()
     return await kr8s.asyncio.api(namespace=namespace)
 
 
@@ -55,7 +56,7 @@ async def bootstrap_dependencies():
     di._aliases.clear()  # reset aliases
 
     di[Configuration] = config = get_configuration()
-    di[IProviderDeploymentManager] = KubernetesProviderDeploymentManager(api=await setup_kubernetes_client())
+    di[IProviderDeploymentManager] = KubernetesProviderDeploymentManager(api=await setup_kubernetes_client(config))
     di[IUnitOfWorkFactory] = SqlAlchemyUnitOfWorkFactory(setup_database_engine(config))
 
     register_all_crons()

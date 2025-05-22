@@ -21,7 +21,6 @@ import beeai_cli.commands.build
 import beeai_cli.commands.compose
 import beeai_cli.commands.env
 import beeai_cli.commands.platform
-import beeai_cli.commands.telemetry
 from beeai_cli.async_typer import AsyncTyper
 
 logging.basicConfig(level=logging.INFO if Configuration().debug else logging.FATAL)
@@ -29,7 +28,6 @@ logging.basicConfig(level=logging.INFO if Configuration().debug else logging.FAT
 app = AsyncTyper(no_args_is_help=True)
 app.add_typer(beeai_cli.commands.env.app, name="env", no_args_is_help=True, help="Manage environment variables.")
 app.add_typer(beeai_cli.commands.agent.app, name="agent", no_args_is_help=True, help="Manage agents.")
-app.add_typer(beeai_cli.commands.telemetry.app, name="telemetry", no_args_is_help=True, help="Configure telemetry.")
 app.add_typer(beeai_cli.commands.compose.app, name="compose", no_args_is_help=True, help="Manage agent composition.")
 app.add_typer(
     beeai_cli.commands.platform.app, name="platform", no_args_is_help=True, help="Manage BeeAI platform.", hidden=True

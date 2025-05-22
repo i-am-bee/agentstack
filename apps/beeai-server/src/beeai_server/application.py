@@ -135,6 +135,7 @@ def register_telemetry():
 
     meter.create_observable_gauge("platform_status", callbacks=[scrape_platform_status])
 
+    # TODO: extract to a separate "metrics exporter" pod
     # def scrape_providers_by_status(options: CallbackOptions) -> Iterable[Observation]:
     #     providers = provider_container.loaded_providers.values()
     #     for status in ProviderStatus:
@@ -156,6 +157,8 @@ def register_telemetry():
 @inject
 async def lifespan(_app: FastAPI):
     from beeai_server.utils.periodic import run_all_crons
+
+    register_telemetry()
 
     async with run_all_crons():
         try:

@@ -164,20 +164,6 @@ def prompt_user(
     )
 
 
-TELEMETRY_CONFIG_PATH = Configuration().telemetry_config
-
-
-def get_telemetry_config():
-    return yaml.safe_load(TELEMETRY_CONFIG_PATH.read_text()) if TELEMETRY_CONFIG_PATH.exists() else {"sharing": True}
-
-
-def save_telemetry_config(sharing: bool):
-    if sharing:
-        TELEMETRY_CONFIG_PATH.unlink(missing_ok=True)
-    else:
-        TELEMETRY_CONFIG_PATH.write_text(yaml.dump({"sharing": sharing}))
-
-
 def run_command(
     cmd: List[str],
     message: str,

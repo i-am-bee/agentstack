@@ -26,7 +26,7 @@ import yaml
 
 from beeai_cli import Configuration
 from beeai_cli.async_typer import AsyncTyper, console
-from beeai_cli.utils import get_telemetry_config, run_command, import_images_to_vm
+from beeai_cli.utils import run_command, import_images_to_vm
 
 app = AsyncTyper()
 
@@ -75,6 +75,7 @@ async def start(
     import_images: typing.Annotated[
         bool, typer.Option(hidden=True, help="Load images from the ~/.beeai/images folder on host into the VM")
     ] = False,
+    disable_telemetry_sharing: bool = typer.Option(False, help="Disable sharing"),
 ):
     """Start BeeAI platform."""
     configuration.home.mkdir(exist_ok=True)
@@ -118,11 +119,8 @@ async def start(
         # This is a "dummy" value for local use only
         "encryptionKey": "Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc=",
         "auth": {"enabled": False},
+        "telemetry": {"sharing": not disable_telemetry_sharing},
     }
-
-    set_values = {key: value for key, value in (value.split("=", 1) for value in set_values_list)}
-    # add telemetry into set values, not values, because we can later patch it easily
-    set_values["telemetry.sharing"] = str(get_telemetry_config()["sharing"]).lower()
 
     try:
         with console.status("Applying HelmChart to Kubernetes...", spinner="dots"):
@@ -137,7 +135,7 @@ async def start(
                         "targetNamespace": "beeai",
                         "createNamespace": True,
                         "valuesContent": yaml.dump(values),
-                        "set": set_values,
+                        "set": {key: value for key, value in (value.split("=", 1) for value in set_values_list)},
                     },
                 },
                 api=await kr8s.asyncio.api(kubeconfig=configuration.kubeconfig),

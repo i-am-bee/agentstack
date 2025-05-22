@@ -114,6 +114,7 @@ class Configuration(BaseSettings):
     oci_registry: dict[str, OCIRegistryConfiguration] = Field(default_factory=dict)
     telemetry: TelemetryConfiguration = Field(default_factory=TelemetryConfiguration)
     persistence: PersistenceConfiguration = Field(default_factory=PersistenceConfiguration)
+    k8s_namespace: str | None = None
 
     feature_flags: FeatureFlagsConfiguration = FeatureFlagsConfiguration()
 
