@@ -49,8 +49,8 @@ export function App() {
                     <Route path={routeDefinitions.agents()} element={<Agents />} />
                     <Route path={routeDefinitions.agentDetail()} element={<Agent />} />
                     <Route path={routeDefinitions.agentRun()} element={<AgentRunPage />} />
-                    <Route path={routeDefinitions.compose()} element={<ComposeLanding />} />
-                    <Route path={routeDefinitions.composeSequential()} element={<ComposeSequential />} />
+                    <Route path={routeDefinitions.playground()} element={<ComposeLanding />} />
+                    <Route path={routeDefinitions.playgroundSequential()} element={<ComposeSequential />} />
                     <Route path={routeDefinitions.settings()} element={<Settings />} />
 
                     <Route path="*" element={<NotFound />} />

@@ -78,7 +78,7 @@ const WORKFLOWS = [
   {
     id: 'sequential',
     name: 'Sequential',
-    route: routes.composeSequential(),
+    route: routes.playgroundSequential(),
     description: 'Define your agents and the sequence that makes sense for your workflow',
     image: SequentialIllustration,
   },

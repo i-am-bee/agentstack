@@ -20,8 +20,8 @@ export const routeDefinitions = {
   agents: () => `/${sections.agents}` as const,
   agentDetail: () => `/${sections.agents}/:agentName` as const,
   agentRun: () => `/${sections.agents}/:agentName/run` as const,
-  compose: () => `/${sections.compose}` as const,
-  composeSequential: () => `/${sections.compose}/sequential` as const,
+  playground: () => `/${sections.playground}` as const,
+  playgroundSequential: () => `/${sections.playground}/sequential` as const,
   settings: () => '/settings' as const,
 };
 
@@ -31,5 +31,5 @@ export const routes = {
   agentRun: ({ name }: { name: string }) => `/${sections.agents}/${name}/run`,
 };
 
-export const sections = { agents: 'agents', compose: 'compose' } as const;
+export const sections = { agents: 'agents', playground: 'playground' } as const;
 export type NavSectionName = (typeof sections)[keyof typeof sections];
