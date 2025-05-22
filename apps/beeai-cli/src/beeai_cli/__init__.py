@@ -15,11 +15,11 @@
 import logging
 from copy import deepcopy
 
+from beeai_cli.configuration import Configuration
 import beeai_cli.commands.agent
 import beeai_cli.commands.build
 import beeai_cli.commands.env
 import beeai_cli.commands.platform
-import beeai_cli.commands.telemetry
 from beeai_cli.async_typer import AsyncTyper
 from beeai_cli.configuration import Configuration
 from beeai_cli.utils import launch_graphical_interface

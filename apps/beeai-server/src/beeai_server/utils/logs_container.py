@@ -15,13 +15,15 @@
 import logging
 from collections import deque
 from contextlib import asynccontextmanager
-from datetime import UTC, datetime
+from datetime import datetime
 from enum import StrEnum
 from typing import Callable, Iterable, AsyncIterator
 
 import anyio
 from anyio import WouldBlock
 from pydantic import BaseModel, Field
+
+from beeai_server.utils.utils import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +36,7 @@ class ProcessLogType(StrEnum):
 class ProcessLogMessage(BaseModel, extra="allow"):
     stream: ProcessLogType
     message: str
-    time: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    time: datetime = Field(default_factory=utc_now)
 
 
 class LogsContainer:

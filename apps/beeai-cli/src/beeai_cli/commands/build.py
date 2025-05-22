@@ -12,30 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import asyncio
 import base64
 import json
 import subprocess
 import sys
+import typing
 import uuid
 from contextlib import suppress
 from datetime import timedelta
-from tempfile import SpooledTemporaryFile
 from typing import Optional
 
 import anyio
 import anyio.abc
 import typer
-from anyio import Path, open_process
+from anyio import open_process
 
 from anyio import run_process
-from httpx import HTTPError, AsyncClient, HTTPStatusError
+from httpx import HTTPError, AsyncClient
 from tenacity import AsyncRetrying, wait_fixed, stop_after_delay, retry_if_exception_type
 
-from beeai_cli.api import api_request
+from beeai_cli import Configuration
 from beeai_cli.async_typer import AsyncTyper
 from beeai_cli.console import console
-from beeai_cli.utils import extract_messages
+from beeai_cli.utils import extract_messages, import_images_to_vm
 
 
 async def find_free_port():
@@ -49,24 +48,10 @@ async def find_free_port():
 app = AsyncTyper()
 
 
-async def upload_image_tar(image_id: str, tag: str):
-    try:
-        await api_request("get", f"providers/image/{image_id}")
-    except HTTPStatusError as ex:
-        if ex.response.status_code != 404:
-            raise ex
-        with console.status("uploading agent image to server", spinner="dots"):
-            with SpooledTemporaryFile(max_size=512 * 1024 * 1024, mode="w+b") as sp:
-                try:
-                    process = await asyncio.create_subprocess_exec("docker", "image", "save", image_id, stdout=sp)
-                    await process.wait()
-                    sp.seek(0)
-                    files = {"file": (tag, sp, "application/x-tar")}
-                    await api_request("post", "providers/import_image", files=files)
-                finally:
-                    with suppress(ProcessLookupError):
-                        process.kill()
-                        await process.wait()
+async def save_image(image_id: str):
+    with console.status("Saving image", spinner="dots"):
+        path = str(Configuration().home / "images" / image_id.replace("/", "_")) + ".tar"
+        await run_process(["docker", "image", "save", "-o", path, image_id])
 
 
 @app.command("build")
@@ -74,17 +59,16 @@ async def build(
     context: Optional[str] = typer.Argument(".", help="Docker context for the agent"),
     tag: Optional[str] = typer.Option(None, help="Docker tag for the agent"),
     multi_platform: Optional[bool] = False,
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai",
+    import_images: typing.Annotated[
+        bool, typer.Option(help="Load images from the ~/.beeai/images folder on host into the VM")
+    ] = True,
 ):
     try:
         await run_process("which docker", check=True)
     except subprocess.CalledProcessError:
         raise RuntimeError(
             "The 'docker' command is not found on the system. Please install docker or similar and try again"
-        )
-    if not await Path(f"{context}/Dockerfile").is_file():
-        raise FileNotFoundError(
-            "Missing agent Dockerfile. Run this command in the agent folder with the supported structure or specify"
-            "a correct docker context"
         )
     image_id = "beeai-agent-build-tmp:latest"
     port = await find_free_port()
@@ -141,6 +125,7 @@ async def build(
         ),
         check=True,
     )
-    image_id = (await run_process(f"docker images {tag} --format " + "{{.ID}}")).stdout.decode().strip()
     console.print(f"✅ Successfully built agent: {tag}")
-    await upload_image_tar(f"sha256:{image_id}", tag=tag)
+    await save_image(image_id=tag)
+    if import_images:
+        import_images_to_vm(vm_name)

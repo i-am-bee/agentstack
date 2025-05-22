@@ -1,0 +1,21 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "beeai-platform.fullname" . }}-role
+  labels:
+    {{- include "beeai-platform.labels" . | nindent 4 }}
+rules:
+  # Permissions for deployments (CRUD)
+  - apiGroups: [ "apps" ]
+    resources: [ "deployments" ]
+    verbs: [ "create", "get", "list", "watch", "update", "patch", "delete" ]
+
+  # Permissions for services (CRUD)
+  - apiGroups: [ "" ]
+    resources: [ "services" ]
+    verbs: [ "create", "get", "list", "watch", "update", "patch", "delete" ]
+
+  # Permissions for secrets (CRUD)
+  - apiGroups: [ "" ]
+    resources: [ "secrets" ]
+    verbs: [ "create", "update", "patch", "get", "list", "watch", "delete" ]

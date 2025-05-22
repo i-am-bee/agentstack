@@ -17,18 +17,20 @@ import logging
 from collections import defaultdict
 from datetime import timedelta
 from functools import cache
-from pathlib import Path
 
-from beeai_server.domain.registry import GithubRegistryLocation, RegistryLocation
-from beeai_server.utils.github import GithubUrl
-from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator, AnyHttpUrl
+from pydantic_core.core_schema import ValidationInfo
+
+from beeai_server.domain.models.registry import RegistryLocation
+from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator, AnyUrl, Secret
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = logging.getLogger(__name__)
 
 
 class LoggingConfiguration(BaseModel):
     level: int = logging.INFO
-    level_managed_provider: int = logging.INFO
     level_uvicorn: int = Field(default=logging.FATAL, validate_default=True)
+    level_sqlalchemy: int = Field(default=None, validate_default=True)
 
     @model_validator(mode="after")
     def level_uvicorn_validator(self):
@@ -36,9 +38,15 @@ class LoggingConfiguration(BaseModel):
             self.level_uvicorn = logging.WARNING
         return self
 
-    @field_validator("level", "level_uvicorn", "level_managed_provider", mode="before")
+    @field_validator("level_sqlalchemy", mode="before")
+    def level_sqlalchemy_validator(cls, v: str | int | None, info: ValidationInfo):
+        if v is not None:
+            return cls.validate_level(v)
+        return logging.INFO if cls.validate_level(info.data["level"]) == logging.DEBUG else logging.WARNING
+
+    @field_validator("level", "level_uvicorn", mode="before")
     def validate_level(cls, v: str | int | None):
-        return v if isinstance(v, int) else logging.getLevelNamesMapping()[v]
+        return v if isinstance(v, int) else logging.getLevelNamesMapping()[v.upper()]
 
 
 class OCIRegistryConfiguration(BaseModel, extra="allow"):
@@ -58,12 +66,33 @@ class OCIRegistryConfiguration(BaseModel, extra="allow"):
 
 
 class AgentRegistryConfiguration(BaseModel):
-    enabled: bool = True
-    location: RegistryLocation = GithubRegistryLocation(
-        root=GithubUrl(root="https://github.com/i-am-bee/beeai-platform@release-v0.1.4#path=agent-registry.yaml")
-    )
-    preinstall: bool = False
+    locations: dict[str, RegistryLocation] = Field(default_factory=dict)
     sync_period_sec: int = Field(default=timedelta(minutes=10).total_seconds())
+
+
+class AuthConfiguration(BaseModel):
+    admin_password: Secret[str] | None = Field(default=None)
+    disable_auth: bool = False
+
+    @model_validator(mode="after")
+    def validate_auth(self):
+        if self.disable_auth:
+            logger.critical("Authentication is disabled! This is suitable only for local (desktop) deployment.")
+            return self
+        if self.admin_password is None:
+            raise ValueError("Admin password must be provided if authentication is enabled")
+        return self
+
+
+class PersistenceConfiguration(BaseModel):
+    db_url: Secret[AnyUrl] = Secret(AnyUrl("postgresql+asyncpg://postgres:postgres@db-postgresql:5432/beeai"))
+    encryption_key: Secret[str] | None = None
+    finished_requests_remove_after_sec: int = timedelta(minutes=30).total_seconds()
+    stale_requests_remove_after_sec: int = timedelta(hours=1).total_seconds()
+
+
+class TelemetryConfiguration(BaseModel):
+    collector_url: AnyUrl = AnyUrl("http://otel-collector-svc:8335")
 
 
 class UIFeatureFlags(BaseModel):
@@ -79,24 +108,18 @@ class Configuration(BaseSettings):
         env_file=".env", env_file_encoding="utf-8", env_nested_delimiter="__", extra="ignore"
     )
 
-    logging: LoggingConfiguration = LoggingConfiguration()
-    agent_registry: AgentRegistryConfiguration = AgentRegistryConfiguration()
+    auth: AuthConfiguration = Field(default_factory=AuthConfiguration)
+    logging: LoggingConfiguration = Field(default_factory=LoggingConfiguration)
+    agent_registry: AgentRegistryConfiguration = Field(default_factory=AgentRegistryConfiguration)
     oci_registry: dict[str, OCIRegistryConfiguration] = Field(default_factory=dict)
+    telemetry: TelemetryConfiguration = Field(default_factory=TelemetryConfiguration)
+    persistence: PersistenceConfiguration = Field(default_factory=PersistenceConfiguration)
+    k8s_namespace: str | None = None
+
     feature_flags: FeatureFlagsConfiguration = FeatureFlagsConfiguration()
 
-    provider_config_path: Path = Path.home() / ".beeai" / "providers.yaml"
-    telemetry_config_dir: Path = Path.home() / ".beeai" / "telemetry"
-    env_path: Path = Path.home() / ".beeai" / ".env"
-    cache_dir: Path = Path.home() / ".beeai" / "cache"
-
+    platform_service_name: str = "beeai-platform-svc"
     port: int = 8333
-    collector_host: AnyHttpUrl | None = "http://localhost:8335/"
-    collector_managed: bool = True
-
-    disable_docker: bool = False
-    docker_host: str | None = None
-    force_lima: bool = False
-    autostart_providers: bool = False
 
     @model_validator(mode="after")
     def _oci_registry_defaultdict(self):

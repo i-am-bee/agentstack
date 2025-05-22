@@ -85,3 +85,22 @@ docker save --output=$(realpath ~/.beeai/images)/beeai-server.tar ghcr.io/i-am-b
 """
 sources = ["dist/*.tar.gz"]
 outputs = ["~/.beeai/images/beeai-server.tar"]
+
+
+["beeai-server:dev:setup"]
+dir = "{{config_root}}/apps/beeai-server"
+run = "./scripts/bootstrap_dev.sh"
+
+["beeai-server:dev:disconnect"]
+dir = "{{config_root}}/apps/beeai-server"
+run = """
+#!/bin/bash
+NAMESPACE=beeai-local-dev
+telepresence --use ".*${NAMESPACE}.*" leave beeai-platform-svc
+telepresence --use ".*${NAMESPACE}.*" quit
+"""
+
+
+["beeai-server:dev:clean"]
+dir = "{{config_root}}/apps/beeai-server"
+run = "kubectl delete namespace beeai-local-dev || true"

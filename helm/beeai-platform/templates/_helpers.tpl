@@ -28,13 +28,7 @@ If release name contains chart name it will be used as a full name.
 {{- $root  := .root }}
 {{- $image := .image }}
 
-{{- /* Step 1: strip the registry part */}}
-{{- $path := regexReplaceAll "^[^/]+/(.+?[:@].*)?$" $image "$1" }}
-
-{{- $shortpath := replace "i-am-bee/beeai-platform/" "" $path }}
-{{- $name := replace ":" "-" (replace "/" "-" $shortpath) }}
-
-{{- printf "%s" $name | trunc 63 | trimSuffix "-" -}}
+{{- printf "agent-%s" ($image | sha256sum) | trunc 32 | trimSuffix "-" -}}
 {{- end }}
 
 {{/*
@@ -74,3 +68,91 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+*** DATABASE CONFIGURATION ***
+(bitnami-style helpers: https://github.com/bitnami/charts/blob/main/bitnami/airflow/templates/_helpers.tpl)
+*/}}
+
+{{/*
+Create a default fully qualified postgresql name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+*/}}
+{{- define "beeai.postgresql.fullname" -}}
+{{- include "common.names.dependency.fullname" (dict "chartName" "postgresql" "chartValues" .Values.postgresql "context" $) -}}
+{{- end -}}
+{{/*
+Return the PostgreSQL Hostname
+*/}}
+{{- define "beeai.databaseHost" -}}
+{{- if .Values.postgresql.enabled }}
+    {{- if eq .Values.postgresql.architecture "replication" }}
+        {{- printf "%s-%s" (include "beeai.postgresql.fullname" .) "primary" | trunc 63 | trimSuffix "-" -}}
+    {{- else -}}
+        {{- print (include "beeai.postgresql.fullname" .) -}}
+    {{- end -}}
+{{- else -}}
+    {{- print .Values.externalDatabase.host -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the PostgreSQL Port
+*/}}
+{{- define "beeai.databasePort" -}}
+{{- if .Values.postgresql.enabled }}
+    {{- print .Values.postgresql.primary.service.ports.postgresql -}}
+{{- else -}}
+    {{- printf "%d" (.Values.externalDatabase.port | int ) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the PostgreSQL Database Name
+*/}}
+{{- define "beeai.databaseName" -}}
+{{- if .Values.postgresql.enabled }}
+    {{- print .Values.postgresql.auth.database -}}
+{{- else -}}
+    {{- print .Values.externalDatabase.database -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the PostgreSQL User
+*/}}
+{{- define "beeai.databaseUser" -}}
+{{- if .Values.postgresql.enabled }}
+    {{- print .Values.postgresql.auth.username -}}
+{{- else -}}
+    {{- print .Values.externalDatabase.user -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the PostgreSQL Password
+*/}}
+{{- define "beeai.databasePassword" -}}
+{{- if .Values.postgresql.enabled }}
+    {{- print .Values.postgresql.auth.password -}}
+{{- else -}}
+    {{- print .Values.externalDatabase.password -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the PostgreSQL Secret Name
+*/}}
+{{- define "beeai.databaseSecretName" -}}
+{{- if .Values.postgresql.enabled }}
+    {{- if .Values.postgresql.auth.existingSecret -}}
+    {{- print .Values.postgresql.auth.existingSecret -}}
+    {{- else -}}
+    {{- print "beeai-platform-secret" -}}
+    {{- end -}}
+{{- else if .Values.externalDatabase.existingSecret -}}
+    {{- print .Values.externalDatabase.existingSecret -}}
+{{- else -}}
+    {{- print "beeai-platform-secret" -}}
+{{- end -}}
+{{- end -}}

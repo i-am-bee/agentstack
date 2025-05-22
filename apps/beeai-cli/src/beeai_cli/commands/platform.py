@@ -13,27 +13,26 @@
 # limitations under the License.
 
 import json
-import subprocess
 import pathlib
-import os
 import sys
-from typing import Optional, List
-import httpx
+from typing import Optional
 import base64
 import typing
 
 import typer
 import kr8s.asyncio
 import kr8s.asyncio.objects
+import yaml
 
+from beeai_cli import Configuration
 from beeai_cli.async_typer import AsyncTyper, console
+from beeai_cli.utils import run_command, import_images_to_vm
 
 app = AsyncTyper()
 
-REGISTRY_URL = "https://raw.githubusercontent.com/i-am-bee/beeai-platform/refs/heads/main/agent-registry.yaml"
+configuration = Configuration()
+
 DATA = pathlib.Path(__file__).joinpath("../../../../data").resolve()
-LIMA_HOME = pathlib.Path.home() / ".beeai" / "lima"
-KUBECONFIG = LIMA_HOME / "beeai" / "copied-from-guest" / "kubeconfig.yaml"
 
 HelmChart = kr8s.asyncio.objects.new_class(
     kind="HelmChart",
@@ -42,43 +41,11 @@ HelmChart = kr8s.asyncio.objects.new_class(
 )
 
 
-def _run_command(
-    cmd: List[str],
-    message: str,
-    env: dict = {},
-    cwd: str = ".",
-) -> subprocess.CompletedProcess:
-    """Helper function to run a subprocess command and handle common errors."""
-    try:
-        with console.status(message + "...", spinner="dots"):
-            return subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                check=True,
-                env={**os.environ, **env},
-                cwd=cwd,
-            )
-    except FileNotFoundError:
-        tool_name = cmd[0]
-        console.print(f"[red]Error: {tool_name} is not installed. Please install {tool_name} first.[/red]")
-        if tool_name == "limactl":
-            console.print("[yellow]You can install Lima with: brew install lima[/yellow]")
-        sys.exit(1)
-    except subprocess.CalledProcessError as e:
-        console.print(f"[red]ERROR: '{message}' failed with exit code {e.returncode}[/red]")
-        if e.stderr:
-            console.print(f"[red]Error: {e.stderr.strip()}[/red]")
-        if e.stdout:
-            console.print(f"[red]Output: {e.stdout.strip()}[/red]")
-        sys.exit(1)
-
-
 async def _get_lima_instance() -> Optional[dict]:
-    result = _run_command(
+    result = run_command(
         ["limactl", "--tty=false", "list", "--format=json"],
         "Looking for existing BeeAI VM",
-        env={"LIMA_HOME": str(LIMA_HOME)},
+        env={"LIMA_HOME": str(configuration.lima_home)},
     )
 
     return next(
@@ -95,25 +62,28 @@ async def _get_lima_instance() -> Optional[dict]:
 
 @app.command("start")
 async def start(
-    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai",
     set_values_list: typing.Annotated[
         list[str],
         typer.Option(
             "--set",
             hidden=True,
             help="Set Helm chart values using <key>=<value> syntax, like: --set image.tag=local",
+            default_factory=list,
         ),
-    ] = [],
+    ],
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai",
     import_images: typing.Annotated[
         bool, typer.Option(hidden=True, help="Load images from the ~/.beeai/images folder on host into the VM")
     ] = False,
+    disable_telemetry_sharing: bool = typer.Option(False, help="Disable sharing"),
 ):
     """Start BeeAI platform."""
+    configuration.home.mkdir(exist_ok=True)
     lima_instance = await _get_lima_instance()
 
     if not lima_instance:
-        LIMA_HOME.mkdir(parents=True, exist_ok=True)
-        _run_command(
+        configuration.lima_home.mkdir(parents=True, exist_ok=True)
+        run_command(
             [
                 "limactl",
                 "--tty=false",
@@ -122,46 +92,35 @@ async def start(
                 f"--name={vm_name}",
             ],
             "Creating BeeAI VM",
-            env={"LIMA_HOME": str(LIMA_HOME)},
+            env={"LIMA_HOME": str(configuration.lima_home)},
         )
     elif lima_instance.get("status") != "Running":
-        _run_command(
+        run_command(
             ["limactl", "--tty=false", "start", vm_name],
             "Starting BeeAI VM",
-            env={"LIMA_HOME": str(LIMA_HOME)},
+            env={"LIMA_HOME": str(configuration.lima_home)},
         )
     else:
         console.print("BeeAI VM is already running.")
 
-    _run_command(
+    run_command(
         ["limactl", "--tty=false", "start-at-login", vm_name],
         "Configuring BeeAI VM",
-        env={"LIMA_HOME": str(LIMA_HOME)},
+        env={"LIMA_HOME": str(configuration.lima_home)},
     )
 
     if import_images:
-        _run_command(
-            [
-                "limactl",
-                "--tty=false",
-                "shell",
-                vm_name,
-                "--",
-                "/bin/bash",
-                "-c",
-                "sudo ctr images import /beeai/images/*",
-            ],
-            "Importing images",
-            env={"LIMA_HOME": str(LIMA_HOME)},
-            cwd="/",
-        )
+        import_images_to_vm(vm_name)
 
-    # TODO: Remove this once we have full managed mode ready in Helm chart
-    with console.status("Fetching providers...", spinner="dots"):
-        async with httpx.AsyncClient() as client:
-            response = await client.get(REGISTRY_URL)
-            response.raise_for_status()
-            values_content = response.text
+    values = {
+        "externalRegistries": {
+            "public_github": "https://github.com/i-am-bee/beeai-platform@release-v0.1.3#path=agent-registry.yaml"
+        },
+        # This is a "dummy" value for local use only
+        "encryptionKey": "Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc=",
+        "auth": {"enabled": False},
+        "telemetry": {"sharing": not disable_telemetry_sharing},
+    }
 
     try:
         with console.status("Applying HelmChart to Kubernetes...", spinner="dots"):
@@ -175,11 +134,11 @@ async def start(
                         "chartContent": base64.b64encode((DATA / "helm-chart.tgz").read_bytes()).decode(),
                         "targetNamespace": "beeai",
                         "createNamespace": True,
-                        "valuesContent": values_content,
+                        "valuesContent": yaml.dump(values),
                         "set": {key: value for key, value in (value.split("=", 1) for value in set_values_list)},
                     },
                 },
-                api=await kr8s.asyncio.api(kubeconfig=KUBECONFIG),
+                api=await kr8s.asyncio.api(kubeconfig=configuration.kubeconfig),
             )
             if await helm_chart.exists():
                 await helm_chart.patch(helm_chart.raw)
@@ -207,10 +166,10 @@ async def stop(
         console.print(f"BeeAI VM is not running (status: {lima_instance.get('status')}). Nothing to stop.")
         return
 
-    _run_command(
+    run_command(
         ["limactl", "--tty=false", "stop", vm_name],
         "Stopping BeeAI VM",
-        env={"LIMA_HOME": str(LIMA_HOME)},
+        env={"LIMA_HOME": str(configuration.lima_home)},
     )
     console.print("[green]BeeAI VM stopped successfully.[/green]")
 
@@ -224,10 +183,10 @@ async def delete(
         console.print("BeeAI VM not found. Nothing to delete.")
         return
 
-    _run_command(
+    run_command(
         ["limactl", "--tty=false", "delete", "--force", vm_name],
         "Deleting BeeAI VM",
-        env={"LIMA_HOME": str(LIMA_HOME)},
+        env={"LIMA_HOME": str(configuration.lima_home)},
     )
 
     console.print("[green]BeeAI VM deleted successfully.[/green]")

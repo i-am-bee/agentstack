@@ -96,14 +96,6 @@ mise beeai-server:run
 #### CLI
 
 ```sh
-# add official framework provider 
-mise beeai-cli:run -- provider add file://agents/official/beeai-framework/beeai-provider.yaml
-
-# tools
-mise beeai-cli:run -- tool list
-mise beeai-cli:run -- tool call fetch '{"url": "http://iambee.ai"}'
-
-# agents
 mise beeai-cli:run -- agent list
 mise beeai-cli:run -- agent run website_summarizer "summarize iambee.ai"
 ```
