@@ -81,7 +81,7 @@ export function InputBar({
       />
 
       <div className={classes.actionBar}>
-        <div className={classes.actionBarLeft}>
+        <div className={classes.actionBarStart}>
           {settings && <div className={classes.settings}>{settings}</div>}
           <AgentModel />
         </div>

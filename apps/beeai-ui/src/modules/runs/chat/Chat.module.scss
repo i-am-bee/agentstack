@@ -42,10 +42,10 @@
 }
 
 .heading {
+  @include font-family(serif);
   font-size: rem(42px);
   line-height: math.div(60, 42);
   font-weight: 300;
-  @include font-family(serif);
 }
 
 .content {

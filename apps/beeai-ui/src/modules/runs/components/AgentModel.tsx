@@ -25,11 +25,14 @@ import classes from './AgentModel.module.scss';
 export function AgentModel() {
   const { data, isPending } = useListVariables();
 
+  // TEMP: Fetching the variables list will fail in production deployment,
+  // so we check `isPending` and use a fallback once any response is received.
+  // This is temporary solution until the agent model is returned by API.
   if (isPending) {
     return null;
   }
 
-  const model = data?.env['LLM_MODEL'] ?? AGENT_DISPLAY_MODEL_TEMP;
+  const model = data?.env.LLM_MODEL ?? AGENT_DISPLAY_MODEL_TEMP;
 
   return (
     <div className={classes.root}>
