@@ -14,17 +14,37 @@
  * limitations under the License.
  */
 
-.button {
-  all: unset;
+.root {
   display: flex;
-  justify-content: center;
-  border-radius: 50%;
-  background: $white;
-  cursor: pointer;
+  flex-direction: column;
+  row-gap: $spacing-04;
+  padding-inline: $spacing-05;
+  @include scrollbar();
+}
 
-  > svg {
-    fill: $black;
-    inline-size: var(--play-button-size);
-    block-size: var(--play-button-size);
+.heading {
+  font-size: rem(14px);
+  line-height: math.div(18, 14);
+  font-weight: 600;
+  letter-spacing: $letter-spacing;
+  padding-inline: $spacing-03;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  row-gap: $spacing-02;
+}
+
+.button {
+  inline-size: 100%;
+  padding: $spacing-03 - rem(1px);
+  &:global(.cds--skeleton) {
+    inline-size: 100%;
+    min-block-size: rem(34px);
+  }
+
+  &.isActive {
+    background-color: $layer-02;
   }
 }

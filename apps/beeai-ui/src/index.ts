@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-export * from './components/CommunityNav/CommunityNav';
 export * from './components/ErrorPage/ErrorPage';
+export * from './components/FooterNav/FooterNav';
 export * from './components/GitHubLink/GitHubLink';
 export * from './components/layouts/AppFooter';
-export * from './components/layouts/AppHeader';
 export * from './components/layouts/Container';
 export type * from './components/MainContentView/MainContentView';
 export * from './components/MainContentView/MainContentView';
@@ -34,5 +33,4 @@ export * from './modules/agents/components/AgentsFilters';
 export * from './modules/agents/components/AgentsList';
 export * from './modules/agents/providers/AgentsFiltersProvider';
 export * from './modules/home/components/GettingStarted';
-export type * from './modules/home/components/VideoBeeAI';
 export * from './utils/constants';

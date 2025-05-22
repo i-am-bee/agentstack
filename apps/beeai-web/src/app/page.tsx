@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-import { GettingStarted, type VideoBeeAIProps } from '@i-am-bee/beeai-ui';
+import { GettingStarted } from '@i-am-bee/beeai-ui';
 
 import { MainContent } from '@/layouts/MainContent';
-
-import poster from '../images/VideoBeeAIPoster.webp';
+import { ExperienceShowcase } from '@/modules/home/ExperienceShowcase';
 
 export default function Home() {
   return (
     <MainContent>
-      <GettingStarted video={video} />
+      <GettingStarted />
+
+      <ExperienceShowcase />
     </MainContent>
   );
 }
-
-const video: VideoBeeAIProps = {
-  src: 'https://github.com/user-attachments/assets/10640dbd-631c-42d8-a246-9b7a72eddb5b',
-  type: 'video/mp4',
-  poster: poster.src,
-};

@@ -26,8 +26,8 @@ export default defineConfig({
         target: 'http://localhost:8333',
       },
       '/phoenix': {
-        target: phoenixServerTarget
-      }
+        target: phoenixServerTarget,
+      },
     },
   },
   resolve: {

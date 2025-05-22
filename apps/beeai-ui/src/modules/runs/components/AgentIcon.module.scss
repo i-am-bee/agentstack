@@ -18,7 +18,7 @@
   block-size: rem(32px);
   inline-size: rem(32px);
   border-radius: 50%;
-  background-color: $text-primary;
+  background-color: $background;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -26,7 +26,25 @@
   box-shadow: $box-shadow;
 
   svg {
-    fill: $background;
     block-size: rem(16px);
+    inline-size: rem(16px);
+  }
+
+  &.size-xl {
+    block-size: rem(80px);
+    inline-size: rem(80px);
+
+    svg {
+      inline-size: rem(40px);
+      block-size: rem(40px);
+    }
+  }
+}
+
+.inverted {
+  background-color: $background-inverse;
+
+  svg {
+    fill: $background;
   }
 }

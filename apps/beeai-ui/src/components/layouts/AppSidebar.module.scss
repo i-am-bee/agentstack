@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-import { useNavigate, useParams } from 'react-router';
+.root {
+  block-size: 100%;
+  display: grid;
+  grid-template-rows: 1fr max-content;
+  gap: $spacing-05;
+}
 
-import { AgentRun } from '#modules/runs/components/AgentRun.tsx';
-import { routes } from '#utils/router.ts';
-
-type Params = {
-  agentName: string;
-};
-
-export function AgentRunPage() {
-  const { agentName } = useParams<Params>();
-  const navigate = useNavigate();
-
-  if (!agentName) {
-    navigate(routes.notFound(), { replace: true });
-    return null;
-  }
-
-  return <AgentRun name={agentName} />;
+.footer {
+  padding-inline: $spacing-05;
+  display: flex;
 }

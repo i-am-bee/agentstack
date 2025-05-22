@@ -51,6 +51,7 @@ from beeai_server.routes.acp import router as acp_router
 from beeai_server.routes.env import router as env_router
 from beeai_server.routes.telemetry import router as telemetry_router
 from beeai_server.routes.llm import router as llm_router
+from beeai_server.routes.ui import router as ui_router
 
 logger = logging.getLogger(__name__)
 
@@ -123,6 +124,7 @@ def mount_routes(app: FastAPI):
     server_router.include_router(env_router, prefix="/variables", tags=["variables"])
     server_router.include_router(telemetry_router, prefix="/telemetry", tags=["telemetry"])
     server_router.include_router(llm_router, prefix="/llm", tags=["llm"])
+    server_router.include_router(ui_router, prefix="/ui", tags=["ui"])
 
     app.mount("/healthcheck", lambda: "OK")
     app.include_router(server_router, prefix="/api/v1", tags=["provider"])

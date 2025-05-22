@@ -69,49 +69,66 @@ async def remove_env(
 @app.command("setup", help="Interactive setup for LLM provider environment variables")
 async def setup() -> bool:
     """Interactive setup for LLM provider environment variables"""
-    provider_name, api_base, recommended_model = await inquirer.select(
-        message="Select LLM provider:",
+    provider_name, api_base, recommended_model = await inquirer.fuzzy(
+        message="Select LLM provider (type to search):",
         choices=[
             Choice(
-                name="OpenAI".ljust(25) + "🚀 best performance", value=("OpenAI", "https://api.openai.com/v1", "gpt-4o")
+                name="Anthropic Claude".ljust(25),
+                value=("Anthropic", "https://api.anthropic.com/v1", "claude-3-7-sonnet-latest"),
             ),
             Choice(
-                name="DeepSeek".ljust(25) + "🚀 best performance",
-                value=("DeepSeek", "https://api.deepseek.com/v1", "deepseek-reasoner"),
+                name="Cerebras".ljust(25) + "🆓 has a free tier",
+                value=("Cerebras", "https://api.cerebras.ai/v1", "llama-3.3-70b"),
             ),
             Choice(
-                name="NVIDIA NIM".ljust(25) + "🚀 best performance",
-                value=("NVIDIA", "https://integrate.api.nvidia.com/v1", "deepseek-ai/deepseek-r1"),
-            ),
-            Choice(
-                name="OpenRouter".ljust(25) + "🆓 has some free models",
-                value=("OpenRouter", "https://openrouter.ai/api/v1", "deepseek/deepseek-r1-distill-llama-70b:free"),
-            ),
-            Choice(
-                name="Groq".ljust(25) + "🆓 has a free tier",
-                value=("Groq", "https://api.groq.com/openai/v1", "deepseek-r1-distill-llama-70b"),
+                name="Chutes".ljust(25) + "🆓 has a free tier",
+                value=("Chutes", "https://llm.chutes.ai/v1/", None),
             ),
             Choice(
                 name="Cohere".ljust(25) + "🆓 has a free tier",
                 value=("Cohere", "https://api.cohere.ai/compatibility/v1", "command-r-plus"),
             ),
             Choice(
-                name="Mistral".ljust(25) + "🚧 experimental 🆓 has a free tier",
+                name="DeepSeek",
+                value=("DeepSeek", "https://api.deepseek.com/v1", "deepseek-reasoner"),
+            ),
+            Choice(
+                name="Google Gemini".ljust(25) + "🆓 has a free tier",
+                value=("Google", "https://generativelanguage.googleapis.com/v1beta/openai/", None),
+            ),
+            Choice(
+                name="Groq".ljust(25) + "🆓 has a free tier",
+                value=("Groq", "https://api.groq.com/openai/v1", "deepseek-r1-distill-llama-70b"),
+            ),
+            Choice(
+                name="IBM watsonx".ljust(25),
+                value=("watsonx", None, "ibm/granite-3-3-8b-instruct"),
+            ),
+            Choice(name="Jan".ljust(25) + "💻 local", value=("Jan", "http://localhost:1337/v1", None)),
+            Choice(
+                name="Mistral".ljust(25) + "🆓 has a free tier",
                 value=("Mistral", "https://api.mistral.ai/v1", "mistral-large-latest"),
             ),
             Choice(
-                name="Anthropic Claude".ljust(25) + "🚧 experimental",
-                value=("Anthropic", "https://api.anthropic.com/v1", "claude-3-7-sonnet-latest"),
+                name="NVIDIA NIM".ljust(25),
+                value=("NVIDIA", "https://integrate.api.nvidia.com/v1", "deepseek-ai/deepseek-r1"),
             ),
             Choice(
-                name="Perplexity".ljust(25) + "🚧 experimental", value=("Perplexity", "https://api.perplexity.ai", None)
+                name="Ollama".ljust(25) + "💻 local", value=("Ollama", "http://localhost:11434/v1", "granite3.3:8b")
             ),
             Choice(
-                name="IBM watsonx".ljust(25) + "🚧 experimental",
-                value=("watsonx", None, "ibm/granite-3-8b-instruct"),
+                name="OpenAI".ljust(25),
+                value=("OpenAI", "https://api.openai.com/v1", "gpt-4o"),
             ),
-            Choice(name="Ollama".ljust(25) + "💻 local", value=("Ollama", "http://localhost:11434/v1", "llama3.1:8b")),
-            Choice(name="Jan".ljust(25) + "💻 local", value=("Jan", "http://localhost:1337/v1", None)),
+            Choice(
+                name="OpenRouter".ljust(25) + "🆓 has some free models",
+                value=("OpenRouter", "https://openrouter.ai/api/v1", "deepseek/deepseek-r1-distill-llama-70b:free"),
+            ),
+            Choice(name="Perplexity".ljust(25), value=("Perplexity", "https://api.perplexity.ai", None)),
+            Choice(
+                name="together.ai".ljust(25) + "🆓 has a free tier",
+                value=("Together", "https://api.together.xyz/v1", "deepseek-ai/DeepSeek-R1"),
+            ),
             Choice(name="Other (RITS, vLLM, ...)".ljust(25) + "🔧 provide API URL", value=("Other", None, None)),
         ],
     ).execute_async()
@@ -230,7 +247,7 @@ async def setup() -> bool:
             )
             else (
                 await inquirer.fuzzy(
-                    message="Select a model (type to filter):",
+                    message="Select a model (type to search):",
                     choices=sorted(available_models),
                 ).execute_async()
                 if available_models and len(available_models) > 1

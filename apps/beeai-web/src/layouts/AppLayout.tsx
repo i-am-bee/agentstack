@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { AppHeader, GitHubLink } from '@i-am-bee/beeai-ui';
+import { GitHubLink } from '@i-am-bee/beeai-ui';
 import type { PropsWithChildren } from 'react';
 
+import { AppHeader } from './AppHeader';
 import classes from './AppLayout.module.scss';
 import { Navigation } from './Navigation';
 

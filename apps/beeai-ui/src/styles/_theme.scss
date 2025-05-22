@@ -65,10 +65,24 @@ $dark: map.merge(
   themes.$g100,
   (
     background-inverse: $cool-gray-10,
-    background-hover: $cool-gray-80,
+    background-hover: $cool-gray-90,
     background-hover-50: rgba($cool-gray-80, 0.5),
     background-transparent: rgba($cool-gray-100, 0),
-    layer-hover-01: $cool-gray-80,
+    layer-01: $gray-100,
+    layer-02: $cool-gray-90,
+    layer-03: $cool-gray-80,
+
+    layer-hover-01: $cool-gray-90,
+    layer-hover-02: $cool-gray-80,
+    layer-hover-03: $cool-gray-70,
+
+    layer-selected-hover-01: $cool-gray-80,
+    layer-selected-hover-02: $cool-gray-70,
+    layer-selected-hover-03: $cool-gray-60,
+
+    layer-accent-01: $cool-gray-90,
+    layer-accent-02: $cool-gray-80,
+    layer-accent-03: $cool-gray-70,
 
     border-subtle-00: $cool-gray-80,
     border-interactive: $white,
@@ -81,7 +95,7 @@ $dark: map.merge(
     text-dark: $white,
     text-placeholder: $cool-gray-60,
     text-helper: $cool-gray-50,
-    box-shadow-color: rgba($cool-gray-70, 0.45),
+    box-shadow-color: rgba($cool-gray-30, 0.3),
     modal-background: rgba($cool-gray-100, 0.75),
     hero-background: $layer-01,
     expand-button-color: $cool-gray-30,

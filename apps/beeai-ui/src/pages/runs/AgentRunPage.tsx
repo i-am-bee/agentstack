@@ -16,15 +16,12 @@
 
 import { useNavigate, useParams } from 'react-router';
 
+import type { AgentPageParams } from '#modules/agents/types.ts';
 import { AgentRun } from '#modules/runs/components/AgentRun.tsx';
 import { routes } from '#utils/router.ts';
 
-type Params = {
-  agentName: string;
-};
-
 export function AgentRunPage() {
-  const { agentName } = useParams<Params>();
+  const { agentName } = useParams<AgentPageParams>();
   const navigate = useNavigate();
 
   if (!agentName) {

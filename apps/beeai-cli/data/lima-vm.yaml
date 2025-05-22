@@ -12,7 +12,11 @@ images:
   arch: "x86_64"
 - location: "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
   arch: "aarch64"
-mounts: []
+
+# ADDED BY BEEAI: mount configuration folder
+mounts:
+- location: "~/.beeai"
+  mountPoint: "/beeai"
 
 containerd:
   system: false
@@ -29,7 +33,17 @@ provision:
 - mode: system
   script: |
     #!/bin/sh
-    sed -i 's/host.lima.internal.*/host.lima.internal host.docker.internal/' /etc/hosts
+    until kubectl get configmap coredns -n kube-system >/dev/null 2>&1; do
+      sleep 2
+    done
+    TMP=$(mktemp -d)
+    HOST_IP=$(dig +noall +short host.lima.internal)
+    kubectl get configmap coredns -n kube-system -o yaml >$TMP/coredns.yaml
+    if ! grep -q "host.docker.internal" $TMP/coredns.yaml; then
+      awk -v ip="$HOST_IP" '/^  NodeHosts: \|/{print; print "    " ip " host.docker.internal"; next}1' $TMP/coredns.yaml >$TMP/coredns-patched.yaml
+      kubectl apply -f $TMP/coredns-patched.yaml
+      kubectl -n kube-system rollout restart deployment coredns
+    fi
 probes:
 - script: |
     #!/bin/bash

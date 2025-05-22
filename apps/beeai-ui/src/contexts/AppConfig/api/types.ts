@@ -14,22 +14,7 @@
  * limitations under the License.
  */
 
-import clsx from 'clsx';
-import type { PropsWithChildren } from 'react';
+import type { ApiResponse } from '#@types/utils.ts';
 
-import classes from './AppHeader.module.scss';
-import { Container } from './Container';
-
-interface Props {
-  className?: string;
-}
-
-export function AppHeader({ className, children }: PropsWithChildren<Props>) {
-  return (
-    <header className={clsx(classes.root, className)}>
-      <Container size="max">
-        <div className={classes.holder}>{children}</div>
-      </Container>
-    </header>
-  );
-}
+export type FeatureFlags = ApiResponse<'/api/v1/ui/config', 'get'>;
+export type FeatureName = keyof FeatureFlags;

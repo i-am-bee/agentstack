@@ -19,11 +19,17 @@
 .cds--btn {
   border-radius: $border-radius;
   padding-inline-end: rem(49px);
-  &.cds--skeleton {
-    overflow: hidden;
-  }
   .cds--inline-loading__text {
     color: inherit;
+  }
+}
+
+.cds--skeleton {
+  &.cds--btn {
+    overflow: hidden;
+  }
+  &.cds--btn--sm {
+    min-block-size: rem(32px);
   }
 }
 

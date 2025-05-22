@@ -29,10 +29,10 @@ If release name contains chart name it will be used as a full name.
 {{- $image := .image }}
 
 {{- /* Step 1: strip the registry part */}}
-{{- $path := regexReplaceAll "^[^/]+/(.+?)([:@].*)?$" $image "$1" }}
+{{- $path := regexReplaceAll "^[^/]+/(.+?[:@].*)?$" $image "$1" }}
 
 {{- $shortpath := replace "i-am-bee/beeai-platform/" "" $path }}
-{{- $name := replace "/" "-" $shortpath }}
+{{- $name := replace ":" "-" (replace "/" "-" $shortpath) }}
 
 {{- printf "%s" $name | trunc 63 | trimSuffix "-" -}}
 {{- end }}

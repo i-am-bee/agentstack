@@ -16,23 +16,23 @@
 
 import { Outlet } from 'react-router';
 
-import { UserNav } from '#components/UserNav/UserNav.tsx';
+import { AppHeader } from '#components/AppHeader/AppHeader.tsx';
+import { AgentDetailPanel } from '#modules/agents/components/AgentDetailPanel.tsx';
 
-import { AppHeader } from './AppHeader';
 import classes from './AppLayout.module.scss';
-import { Navigation } from './Navigation';
+import { AppSidebar } from './AppSidebar';
 
 export function AppLayout() {
   return (
     <div className={classes.root}>
-      <AppHeader className={classes.header}>
-        <Navigation />
+      <AppHeader className={classes.header} />
 
-        <UserNav />
-      </AppHeader>
+      <AppSidebar />
 
       <main className={classes.main} data-transition>
         <Outlet />
+
+        <AgentDetailPanel />
       </main>
     </div>
   );

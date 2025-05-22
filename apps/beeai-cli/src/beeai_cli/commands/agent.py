@@ -167,7 +167,7 @@ async def _run_agent(client: Client, name: str, input: str | list[Message], dump
                 data = filter_dict(event.generic.model_dump(), None)
                 if "agent_name" in data:
                     (new_log_type, content) = list(omit(data, {"agent_name", "agent_idx"}).items())[0]
-                    new_log_type = f"\[{data['agent_name']}]: {new_log_type}"
+                    new_log_type = f"[{data['agent_name']}]: {new_log_type}"
                 else:
                     (new_log_type, content) = list(data.items())[0]
                 if new_log_type != log_type:

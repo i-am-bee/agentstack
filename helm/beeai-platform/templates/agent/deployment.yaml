@@ -16,8 +16,9 @@ spec:
       {{- include "beeai-platform.selectorLabels" $root | nindent 6 }}
   template:
     metadata:
-      {{- with $root.Values.agent.podAnnotations }}
       annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/agent/secret.yaml") $root | sha256sum }}
+      {{- with $root.Values.agent.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:

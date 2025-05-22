@@ -42,7 +42,7 @@ export function AgentRunLogs({ logs, toggleable }: Props) {
           className={clsx(classes.toggle, { [classes.isExpanded]: isExpanded })}
           onClick={() => setIsExpanded((expanded) => !expanded)}
         >
-          <span>Logs</span>
+          <span>How did I get this result?</span>
 
           <ChevronDown />
         </button>

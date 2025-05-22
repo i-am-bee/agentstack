@@ -40,17 +40,19 @@ $max-container: get-value($grid-breakpoints, 'max.width');
   margin-inline-start: auto;
 }
 
-@include breakpoint-up(lg) {
-  .communityNav {
-    position: absolute;
-    inset-block-end: $spacing-06;
-    scrollbar-gutter: stable;
-    inset-inline-end: $grid-margin;
+@include breakpoint-down(md) {
+  .holder {
+    flex-direction: column-reverse;
+    gap: $spacing-05;
   }
 }
 
-@media (min-width: 107rem) {
+@media (min-width: 125rem) {
   .communityNav {
+    position: absolute;
+    inset-block-end: $spacing-06;
+    inset-inline-end: $grid-margin;
+
     inset-inline-end: auto;
     inset-inline-start: calc(50% + math.div($max-container, 2) - var(--scrollbar-width, 0));
     transform: translateX(-50%);

@@ -83,8 +83,8 @@ export function UserNav() {
       renderIcon={Settings}
       size="sm"
       aria-label="User navigation"
-      flipped
-      menuOptionsClass={classes.options}
+      direction="top"
+      className={classes.button}
     >
       {items.map(({ groupLabel, itemText, icon: Icon, isInternal, href, onClick, ...props }, idx) => {
         return groupLabel ? (

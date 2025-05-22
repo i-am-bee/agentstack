@@ -14,21 +14,10 @@
  * limitations under the License.
  */
 
-.list {
-  display: flex;
-  gap: $spacing-04;
-}
+import { api } from '#api/index.ts';
+import { ensureData } from '#api/utils.ts';
 
-.item {
-  flex-shrink: 0;
-}
-
-.link {
-  @include link-mask(-$spacing-02);
-  display: flex;
-  color: inherit;
-  position: relative;
-  &:hover {
-    color: $background-inverse;
-  }
+export async function readConfig() {
+  const response = await api.GET('/api/v1/ui/config');
+  return ensureData(response);
 }

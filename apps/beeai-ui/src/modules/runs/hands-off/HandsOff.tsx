@@ -18,6 +18,7 @@ import clsx from 'clsx';
 
 import { AgentHeader } from '../components/AgentHeader';
 import { AgentRunLogs } from '../components/AgentRunLogs';
+import { ElapsedTime } from '../components/ElapsedTime';
 import { useHandsOff } from '../contexts/hands-off';
 import classes from './HandsOff.module.scss';
 import { HandsOffInput } from './HandsOffInput';
@@ -25,7 +26,7 @@ import { HandsOffView } from './HandsOffView';
 import { TaskStatusBar } from './TaskStatusBar';
 
 export function HandsOff() {
-  const { agent, logs, output, isPending, onClear } = useHandsOff();
+  const { agent, logs, output, isPending, stats, onClear } = useHandsOff();
   const userGreeting = agent.metadata.ui?.user_greeting;
 
   const isPendingOrOutput = Boolean(isPending || output);
@@ -44,9 +45,15 @@ export function HandsOff() {
           <div className={classes.body}>
             <HandsOffInput />
 
+            {isFinal && (
+              <span className={classes.elapsed}>
+                Task completed in <ElapsedTime stats={stats} />
+              </span>
+            )}
+
             {logs && <AgentRunLogs logs={logs} toggleable={Boolean(output)} />}
 
-            <TaskStatusBar />
+            {isPending && <TaskStatusBar />}
           </div>
         </div>
       </div>

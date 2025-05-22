@@ -119,7 +119,7 @@ tolerations: [ ]
 affinity: { }
 
 phoenix:
-  enabled: true
+  enabled: false
   image: docker.io/arizephoenix/phoenix:version-8.9.0
   resources: { }
 

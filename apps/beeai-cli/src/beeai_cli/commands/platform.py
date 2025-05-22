@@ -20,6 +20,9 @@ import sys
 from typing import Optional, List
 import httpx
 import base64
+import typing
+
+import typer
 import kr8s.asyncio
 import kr8s.asyncio.objects
 
@@ -43,6 +46,7 @@ def _run_command(
     cmd: List[str],
     message: str,
     env: dict = {},
+    cwd: str = ".",
 ) -> subprocess.CompletedProcess:
     """Helper function to run a subprocess command and handle common errors."""
     try:
@@ -53,6 +57,7 @@ def _run_command(
                 text=True,
                 check=True,
                 env={**os.environ, **env},
+                cwd=cwd,
             )
     except FileNotFoundError:
         tool_name = cmd[0]
@@ -89,7 +94,20 @@ async def _get_lima_instance() -> Optional[dict]:
 
 
 @app.command("start")
-async def start():
+async def start(
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai",
+    set_values_list: typing.Annotated[
+        list[str],
+        typer.Option(
+            "--set",
+            hidden=True,
+            help="Set Helm chart values using <key>=<value> syntax, like: --set image.tag=local",
+        ),
+    ] = [],
+    import_images: typing.Annotated[
+        bool, typer.Option(hidden=True, help="Load images from the ~/.beeai/images folder on host into the VM")
+    ] = False,
+):
     """Start BeeAI platform."""
     lima_instance = await _get_lima_instance()
 
@@ -101,14 +119,14 @@ async def start():
                 "--tty=false",
                 "start",
                 DATA / "lima-vm.yaml",
-                "--name=beeai",
+                f"--name={vm_name}",
             ],
             "Creating BeeAI VM",
             env={"LIMA_HOME": str(LIMA_HOME)},
         )
     elif lima_instance.get("status") != "Running":
         _run_command(
-            ["limactl", "--tty=false", "start", "beeai"],
+            ["limactl", "--tty=false", "start", vm_name],
             "Starting BeeAI VM",
             env={"LIMA_HOME": str(LIMA_HOME)},
         )
@@ -116,13 +134,30 @@ async def start():
         console.print("BeeAI VM is already running.")
 
     _run_command(
-        ["limactl", "--tty=false", "start-at-login", "beeai"],
+        ["limactl", "--tty=false", "start-at-login", vm_name],
         "Configuring BeeAI VM",
         env={"LIMA_HOME": str(LIMA_HOME)},
     )
 
+    if import_images:
+        _run_command(
+            [
+                "limactl",
+                "--tty=false",
+                "shell",
+                vm_name,
+                "--",
+                "/bin/bash",
+                "-c",
+                "sudo ctr images import /beeai/images/*",
+            ],
+            "Importing images",
+            env={"LIMA_HOME": str(LIMA_HOME)},
+            cwd="/",
+        )
+
     # TODO: Remove this once we have full managed mode ready in Helm chart
-    with console.status("Fetching Helm values...", spinner="dots"):
+    with console.status("Fetching providers...", spinner="dots"):
         async with httpx.AsyncClient() as client:
             response = await client.get(REGISTRY_URL)
             response.raise_for_status()
@@ -141,6 +176,7 @@ async def start():
                         "targetNamespace": "beeai",
                         "createNamespace": True,
                         "valuesContent": values_content,
+                        "set": {key: value for key, value in (value.split("=", 1) for value in set_values_list)},
                     },
                 },
                 api=await kr8s.asyncio.api(kubeconfig=KUBECONFIG),
@@ -157,7 +193,9 @@ async def start():
 
 
 @app.command("stop")
-async def stop():
+async def stop(
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai",
+):
     """Stop BeeAI platform VM."""
     lima_instance = await _get_lima_instance()
 
@@ -170,7 +208,7 @@ async def stop():
         return
 
     _run_command(
-        ["limactl", "--tty=false", "stop", "beeai"],
+        ["limactl", "--tty=false", "stop", vm_name],
         "Stopping BeeAI VM",
         env={"LIMA_HOME": str(LIMA_HOME)},
     )
@@ -178,14 +216,16 @@ async def stop():
 
 
 @app.command("delete")
-async def delete():
+async def delete(
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai",
+):
     """Delete BeeAI platform VM."""
     if not await _get_lima_instance():
         console.print("BeeAI VM not found. Nothing to delete.")
         return
 
     _run_command(
-        ["limactl", "--tty=false", "delete", "--force", "beeai"],
+        ["limactl", "--tty=false", "delete", "--force", vm_name],
         "Deleting BeeAI VM",
         env={"LIMA_HOME": str(LIMA_HOME)},
     )

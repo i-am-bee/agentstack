@@ -24,7 +24,7 @@ import classes from './AgentHeader.module.scss';
 import NewSession from './NewSession.svg';
 
 interface Props {
-  agent: Agent;
+  agent?: Agent;
   onNewSessionClick?: () => void;
   className?: string;
 }
@@ -32,11 +32,15 @@ interface Props {
 export function AgentHeader({ agent, onNewSessionClick, className }: Props) {
   return (
     <header className={clsx(classes.root, className)}>
-      <h1 className={classes.heading}>
-        <AgentIcon />
+      <div>
+        {agent && (
+          <h1 className={classes.heading}>
+            <AgentIcon inverted />
 
-        <span className={classes.name}>{agent.name}</span>
-      </h1>
+            <span className={classes.name}>{agent.name}</span>
+          </h1>
+        )}
+      </div>
 
       {onNewSessionClick && (
         <IconButton kind="tertiary" size="sm" label="New session" autoAlign onClick={onNewSessionClick}>

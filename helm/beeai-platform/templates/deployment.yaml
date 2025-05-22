@@ -13,8 +13,9 @@ spec:
       {{- include "beeai-platform.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
@@ -58,6 +59,8 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
+            - name: FEATURE_FLAGS__UI__USER_NAVIGATION
+              value: "false"
             - name: AGENT_REGISTRY__SYNC_PERIOD_SEC
               value: "30"
             - name: AGENT_REGISTRY__LOCATION

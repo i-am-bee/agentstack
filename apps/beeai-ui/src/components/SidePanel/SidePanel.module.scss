@@ -1,0 +1,66 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+$rightPanelWidth: rem(432px);
+
+.root {
+  position: fixed;
+  inset-block-start: rem(56px) + rem(1px);
+  inset-block-end: 0;
+  z-index: 1;
+  transition: transform $duration-moderate-02 motion(exit, expressive);
+  &.left {
+    inset-inline-start: 0;
+    inline-size: rem(272px);
+    &:not(.isOpen) {
+      transform: translateX(calc(-100% - rem(8px)));
+    }
+  }
+  &.right {
+    inset: 0;
+    position: relative;
+    inline-size: $rightPanelWidth;
+    transition: inline-size $duration-moderate-02 motion(exit, expressive);
+    overflow: hidden;
+
+    &:not(.isOpen) {
+      inline-size: 0;
+    }
+  }
+
+  &:not(.isOpen) {
+    transition-timing-function: motion(entrance, expressive);
+  }
+}
+
+.content {
+  background-color: $background;
+  box-shadow: $box-shadow;
+  block-size: 100%;
+
+  .left & {
+    padding-block: $spacing-06;
+    padding-inline-end: 0;
+  }
+
+  .right & {
+    padding-inline: $spacing-05;
+    padding-block: $spacing-05 $spacing-06;
+    box-shadow: none;
+    inline-size: $rightPanelWidth;
+    border-inline-start: 1px solid $border-subtle;
+  }
+}

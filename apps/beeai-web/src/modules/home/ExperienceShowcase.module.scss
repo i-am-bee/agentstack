@@ -1,0 +1,111 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.accordion {
+  :global(.cds--accordion__item:first-child) {
+    border-block-start: 0;
+  }
+  :global(.cds--accordion__item:last-child) {
+    border-block-end: 0;
+  }
+  :global(.cds--accordion__heading) {
+    column-gap: $spacing-04;
+    min-block-size: rem(80px);
+    &:focus:not(:focus-visible) {
+      box-shadow: none;
+    }
+    &[aria-expanded='true'] {
+      pointer-events: none;
+      :global(.cds--accordion__arrow) {
+        display: none;
+      }
+    }
+  }
+  :global(.cds--accordion__title) {
+    padding-inline-start: 0;
+    font-weight: 600;
+    font-size: rem(24px);
+    line-height: math.div(32, 24);
+  }
+  :global(.cds--accordion__arrow) {
+    order: 1;
+    inline-size: rem(24px);
+    block-size: rem(24px);
+    flex-basis: rem(24px);
+  }
+  :global(.cds--accordion__wrapper) {
+    padding-block: $spacing-05 $spacing-06;
+  }
+  :global(.cds--accordion__content) {
+    color: $text-dark;
+    > p {
+      font-size: rem(16px);
+      line-height: math.div(21, 16);
+      letter-spacing: $letter-spacing-lg;
+    }
+    > * + * {
+      margin-block-start: $spacing-05;
+    }
+    a {
+      color: inherit;
+      &:hover {
+        text-decoration: none;
+      }
+    }
+  }
+
+  .more {
+    a {
+      text-decoration: none;
+      color: $expand-button-color;
+      &:hover {
+        color: $text-dark;
+      }
+    }
+  }
+}
+
+@include breakpoint-down(md) {
+  .right {
+    display: none;
+  }
+}
+
+@include breakpoint-up(md) {
+  .holder {
+    display: flex;
+    column-gap: $gap;
+  }
+
+  .left {
+    inline-size: rem(288px);
+    flex-shrink: 0;
+
+    .video {
+      display: none;
+    }
+  }
+
+  .right {
+    flex: 1 1 auto;
+  }
+
+  .accordion {
+    :global(.cds--accordion__content) {
+      padding-inline: 0 rem(46px);
+    }
+  }
+}

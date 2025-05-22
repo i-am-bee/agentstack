@@ -1,39 +1,25 @@
-FROM jdxcode/mise AS build
-ENV UV_LINK_MODE copy
-ENV UV_COMPILE_BYTECODE 1
+FROM python:3.11-alpine3.21 AS builder
 WORKDIR /app
-COPY . .
-# `python.uv_venv_auto` must be `false` to avoid https://github.com/rancher-sandbox/rancher-desktop/issues/8281
-RUN --mount=type=cache,target=/mise/downloads \
-    --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=cache,target=/root/.local/share/pnpm/store \
-    mise trust &&\
-    mise settings set --local python.uv_venv_auto false &&\
-    mise install &&\
-    mise run beeai-server:build
+COPY --from=ghcr.io/astral-sh/uv:0.6.2 /uv /bin/
+# tiktoken builds using rust and cargo
+RUN apk add --no-cache rust cargo
+COPY pyproject.toml .
+RUN uv pip compile pyproject.toml >requirements.txt && \
+    uv pip install --system -r requirements.txt && \
+    rm requirements.txt pyproject.toml
+COPY dist/*.tar.gz .
+RUN uv pip install --system ./*.tar.gz
 
-FROM debian:12-slim AS runtime
+FROM python:3.11-alpine3.21
 WORKDIR /app
-RUN apt-get update  &&\
-    apt-get -y --no-install-recommends install \
-    build-essential \
-    git \
-    make \
-    nodejs \
-    npm \
-    pipx \
-    python3 \
-    python3-dev \
-    &&\
-    rm -rf /var/lib/apt/lists/*
-RUN pipx install uv
-COPY --from=build /app/apps/beeai-server/dist/*.tar.gz .
-RUN pipx install ./*.tar.gz
+# tiktoken requires libgcc
+RUN apk add --no-cache libgcc
+COPY --from=builder /usr/local/lib/python3.11/site-packages/ /usr/local/lib/python3.11/site-packages/
+COPY --from=builder /usr/local/bin/beeai-server /usr/local/bin/beeai-server
 RUN chmod og+rx /root
-ENV PATH="/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
+ENV PATH="/app/.venv/bin:/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
     HOME="/tmp" \
     DISABLE_DOCKER=true \
     COLLECTOR_MANAGED=false \
     AGENT_REGISTRY__LOCATION="file:///app/registry.yaml"
-
 CMD ["beeai-server"]

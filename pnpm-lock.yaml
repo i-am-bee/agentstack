@@ -297,6 +297,9 @@ importers:
       server-only:
         specifier: ^0.0.1
         version: 0.0.1
+      usehooks-ts:
+        specifier: ^3.1.0
+        version: 3.1.1(react@19.0.0)
       yaml:
         specifier: ^2.7.1
         version: 2.7.1

@@ -16,11 +16,12 @@
 
 import { moderate02 } from '@carbon/motion';
 import { AnimatePresence, motion } from 'framer-motion';
-import type { PropsWithChildren, ReactNode } from 'react';
+import { type PropsWithChildren, type ReactNode, useEffect } from 'react';
 
 import { Container } from '#components/layouts/Container.tsx';
 import { MainContent } from '#components/layouts/MainContent.tsx';
 import type { MainContentViewProps } from '#components/MainContentView/MainContentView.tsx';
+import { useApp } from '#contexts/App/index.ts';
 import { useScrollbarWidth } from '#hooks/useScrollbarWidth.ts';
 import { createScrollbarStyles } from '#utils/createScrollbarStyles.ts';
 
@@ -35,10 +36,31 @@ interface Props {
 
 export function SplitPanesView({ leftPane, rightPane, isSplit, spacing }: Props) {
   const { ref: leftPaneRef, scrollbarWidth } = useScrollbarWidth();
+  const { agentDetailOpen, navigationOpen, setAgentDetailOpen, setNavigationOpen, setCloseNavOnClickOutside } =
+    useApp();
+
+  useEffect(() => {
+    if (isSplit) {
+      setAgentDetailOpen?.(false);
+      setNavigationOpen?.(false);
+    }
+  }, [isSplit, setAgentDetailOpen, setNavigationOpen]);
+
+  useEffect(() => {
+    if (navigationOpen && isSplit) {
+      setCloseNavOnClickOutside?.(true);
+    } else {
+      setCloseNavOnClickOutside?.(false);
+    }
+
+    return () => {
+      setCloseNavOnClickOutside?.(false);
+    };
+  }, [isSplit, navigationOpen, setCloseNavOnClickOutside]);
 
   return (
     <AnimatePresence mode="wait">
-      {isSplit ? (
+      {isSplit && !agentDetailOpen ? (
         <Wrapper key="split-view" className={classes.splitView} immediateExit>
           <div className={classes.leftPane} ref={leftPaneRef} {...createScrollbarStyles({ width: scrollbarWidth })}>
             <div className={classes.content}>{leftPane}</div>

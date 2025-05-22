@@ -19,14 +19,11 @@ import { useNavigate, useParams } from 'react-router';
 import { Container } from '#components/layouts/Container.tsx';
 import { MainContent } from '#components/layouts/MainContent.tsx';
 import { AgentDetailView } from '#modules/agents/detail/AgentDetailView.tsx';
+import type { AgentPageParams } from '#modules/agents/types.ts';
 import { routes } from '#utils/router.ts';
 
-type Params = {
-  agentName: string;
-};
-
 export function Agent() {
-  const { agentName } = useParams<Params>();
+  const { agentName } = useParams<AgentPageParams>();
   const navigate = useNavigate();
 
   if (!agentName) {
