@@ -106,6 +106,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/llm/chat/completions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create Chat Completion */
+    post: operations['create_chat_completion_api_v1_llm_chat_completions_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/providers': {
     parameters: {
       query?: never;
@@ -169,6 +186,40 @@ export interface paths {
     get: operations['stream_logs_api_v1_providers__id__logs_get'];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/providers/image/{image_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Check Image */
+    get: operations['check_image_api_v1_providers_image__image_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/providers/import_image': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Import Image */
+    post: operations['import_image_api_v1_providers_import_image_post'];
     delete?: never;
     options?: never;
     head?: never;
@@ -244,6 +295,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/ui/config': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Ui Config */
+    get: operations['get_ui_config_api_v1_ui_config_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/variables': {
     parameters: {
       query?: never;
@@ -309,6 +377,93 @@ export interface components {
       name: string;
       /** Url */
       url?: string | null;
+    };
+    /** Body_import_image_api_v1_providers_import_image_post */
+    Body_import_image_api_v1_providers_import_image_post: {
+      /**
+       * File
+       * Format: binary
+       */
+      file: string;
+    };
+    /** Capability */
+    Capability: {
+      /** Description */
+      description: string;
+      /** Name */
+      name: string;
+    };
+    /** ChatCompletionMessage */
+    ChatCompletionMessage: {
+      /**
+       * Content
+       * @default
+       */
+      content: string | components['schemas']['ContentItem'][];
+      /**
+       * Role
+       * @default assistant
+       * @enum {string}
+       */
+      role: 'system' | 'user' | 'assistant' | 'function' | 'tool';
+    };
+    /** ChatCompletionRequest */
+    ChatCompletionRequest: {
+      /**
+       * Frequency Penalty
+       * @default 0
+       */
+      frequency_penalty: number | null;
+      /** Logit Bias */
+      logit_bias?: {
+        [key: string]: number;
+      } | null;
+      /** Max Tokens */
+      max_tokens?: number | null;
+      /** Messages */
+      messages: components['schemas']['ChatCompletionMessage'][];
+      /** Model */
+      model: string;
+      /**
+       * N
+       * @default 1
+       */
+      n: number | null;
+      /**
+       * Presence Penalty
+       * @default 0
+       */
+      presence_penalty: number | null;
+      /** Stop */
+      stop?: string | string[] | null;
+      /**
+       * Stream
+       * @default false
+       */
+      stream: boolean | null;
+      /**
+       * Temperature
+       * @default 1
+       */
+      temperature: number | null;
+      /**
+       * Top P
+       * @default 1
+       */
+      top_p: number | null;
+      /** User */
+      user?: string | null;
+    };
+    /** ContentItem */
+    ContentItem: {
+      /** Text */
+      text: string;
+      /**
+       * Type
+       * @default text
+       * @constant
+       */
+      type: 'text';
     };
     /** Contributor */
     Contributor: {
@@ -404,6 +559,13 @@ export interface components {
     };
     /** Message */
     Message: {
+      /** Completed At */
+      completed_at?: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
       /** Parts */
       parts: components['schemas']['MessagePart'][];
     };
@@ -452,6 +614,8 @@ export interface components {
     Metadata: {
       annotations?: components['schemas']['AnyModel'] | null;
       author?: components['schemas']['Author'] | null;
+      /** Capabilities */
+      capabilities?: components['schemas']['Capability'][] | null;
       /** Contributors */
       contributors?: components['schemas']['Contributor'][] | null;
       /** Created At */
@@ -460,6 +624,8 @@ export interface components {
       dependencies?: components['schemas']['Dependency'][] | null;
       /** Documentation */
       documentation?: string | null;
+      /** Domains */
+      domains?: string[] | null;
       /**
        * Env
        * @description For configuration -- passed to the process
@@ -487,8 +653,6 @@ export interface components {
       } | null;
       /** Updated At */
       updated_at?: string | null;
-      /** Use Cases */
-      use_cases?: string[] | null;
     } & {
       [key: string]: unknown;
     };
@@ -568,7 +732,14 @@ export interface components {
       /** Agent Name */
       agent_name: string;
       await_request?: components['schemas']['MessageAwaitRequest'] | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
       error?: components['schemas']['Error'] | null;
+      /** Finished At */
+      finished_at?: string | null;
       /**
        * Output
        * @default []
@@ -600,7 +771,14 @@ export interface components {
       /** Agent Name */
       agent_name: string;
       await_request?: components['schemas']['MessageAwaitRequest'] | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
       error?: components['schemas']['Error'] | null;
+      /** Finished At */
+      finished_at?: string | null;
       /**
        * Output
        * @default []
@@ -626,7 +804,14 @@ export interface components {
       /** Agent Name */
       agent_name: string;
       await_request?: components['schemas']['MessageAwaitRequest'] | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
       error?: components['schemas']['Error'] | null;
+      /** Finished At */
+      finished_at?: string | null;
       /**
        * Output
        * @default []
@@ -652,7 +837,14 @@ export interface components {
       /** Agent Name */
       agent_name: string;
       await_request?: components['schemas']['MessageAwaitRequest'] | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
       error?: components['schemas']['Error'] | null;
+      /** Finished At */
+      finished_at?: string | null;
       /**
        * Output
        * @default []
@@ -673,6 +865,14 @@ export interface components {
      * @enum {string}
      */
     RunStatus: 'created' | 'in-progress' | 'awaiting' | 'cancelling' | 'cancelled' | 'completed' | 'failed';
+    /** UIFeatureFlags */
+    UIFeatureFlags: {
+      /**
+       * User Navigation
+       * @default true
+       */
+      user_navigation: boolean;
+    };
     /** UpdateTelemetryConfigRequest */
     UpdateTelemetryConfigRequest: {
       /** Sharing Enabled */
@@ -884,6 +1084,39 @@ export interface operations {
       };
     };
   };
+  create_chat_completion_api_v1_llm_chat_completions_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ChatCompletionRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   list_providers_api_v1_providers_get: {
     parameters: {
       query?: never;
@@ -1014,6 +1247,70 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  check_image_api_v1_providers_image__image_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        image_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': boolean;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  import_image_api_v1_providers_import_image_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'multipart/form-data': components['schemas']['Body_import_image_api_v1_providers_import_image_post'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
       };
       /** @description Validation Error */
       422: {
@@ -1179,6 +1476,26 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_ui_config_api_v1_ui_config_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['UIFeatureFlags'];
         };
       };
     };

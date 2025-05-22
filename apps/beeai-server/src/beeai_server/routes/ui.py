@@ -20,6 +20,6 @@ from beeai_server.routes.dependencies import ConfigurationDependency
 router = fastapi.APIRouter()
 
 
-@router.get("/config", include_in_schema=False)
+@router.get("/config")
 def get_ui_config(config: ConfigurationDependency) -> UIFeatureFlags:
     return config.feature_flags.ui

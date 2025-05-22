@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-.root {
-  block-size: 100%;
-  display: grid;
-  grid-template-rows: 1fr max-content;
-  gap: $spacing-05;
-}
+import type { ApiResponse } from '#@types/utils.ts';
 
-.footer {
-  padding-inline: $spacing-05;
-  display: flex;
-}
+export type FeatureFlags = ApiResponse<'/api/v1/ui/config', 'get'>;
+export type FeatureName = keyof FeatureFlags;

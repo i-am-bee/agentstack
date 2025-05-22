@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-.root {
-  block-size: 100%;
-  display: grid;
-  grid-template-rows: 1fr max-content;
-  gap: $spacing-05;
-}
+import { use } from 'react';
 
-.footer {
-  padding-inline: $spacing-05;
-  display: flex;
+import { AppConfigContext } from './app-config-context';
+
+export function useAppConfig() {
+  const context = use(AppConfigContext);
+
+  if (!context) {
+    throw new Error('useAppConfig must be used within a AppConfigContext');
+  }
+
+  return context;
 }

@@ -18,19 +18,20 @@ import { AgentsNav } from '#components/AgentsNav/AgentsNav.tsx';
 import { SidePanel } from '#components/SidePanel/SidePanel.tsx';
 import { UserNav } from '#components/UserNav/UserNav.tsx';
 import { useApp } from '#contexts/App/index.ts';
-import { FEATURE_FLAGS } from '#utils/vite-constants.ts';
+import { useAppConfig } from '#contexts/AppConfig/index.ts';
 
 import classes from './AppSidebar.module.scss';
 
 export function AppSidebar() {
   const { navigationOpen, navigationPanelRef } = useApp();
+  const { featureFlags } = useAppConfig();
 
   return (
     <SidePanel variant="left" isOpen={navigationOpen} ref={navigationPanelRef}>
       <div className={classes.root}>
         <AgentsNav />
 
-        {FEATURE_FLAGS.UserNavigation && (
+        {featureFlags?.user_navigation && (
           <div className={classes.footer}>
             <UserNav />
           </div>

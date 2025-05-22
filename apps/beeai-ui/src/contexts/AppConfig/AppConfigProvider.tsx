@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-.root {
-  block-size: 100%;
-  display: grid;
-  grid-template-rows: 1fr max-content;
-  gap: $spacing-05;
-}
+import type { PropsWithChildren } from 'react';
+import { useMemo } from 'react';
 
-.footer {
-  padding-inline: $spacing-05;
-  display: flex;
+import { useReadConfig } from './api/useReadConfig';
+import { AppConfigContext } from './app-config-context';
+
+export function AppConfigProvider({ children }: PropsWithChildren) {
+  const { data } = useReadConfig();
+
+  const contextValue = useMemo(() => ({ featureFlags: data }), [data]);
+
+  return <AppConfigContext.Provider value={contextValue}>{children}</AppConfigContext.Provider>;
 }

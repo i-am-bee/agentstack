@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-.root {
-  block-size: 100%;
-  display: grid;
-  grid-template-rows: 1fr max-content;
-  gap: $spacing-05;
-}
+import { createContext } from 'react';
 
-.footer {
-  padding-inline: $spacing-05;
-  display: flex;
+import type { FeatureFlags } from './api/types';
+
+export const AppConfigContext = createContext<AppConfigContextValue>({} as AppConfigContextValue);
+
+interface AppConfigContextValue {
+  featureFlags?: FeatureFlags;
 }

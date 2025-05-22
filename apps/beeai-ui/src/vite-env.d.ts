@@ -17,10 +17,5 @@
 /// <reference types="./@types/svg" />
 /// <reference types="vite/client" />
 
-import type { FeatureFlags } from '#utils/feature-flags.ts';
-
-declare global {
-  const __APP_NAME__: string;
-  const __PHOENIX_SERVER_TARGET__: string;
-  const __FEATURE_FLAGS__: FeatureFlags;
-}
+declare const __APP_NAME__: string;
+declare const __PHOENIX_SERVER_TARGET__: string;

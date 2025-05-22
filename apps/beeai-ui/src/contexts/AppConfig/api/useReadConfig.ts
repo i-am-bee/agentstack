@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-.root {
-  block-size: 100%;
-  display: grid;
-  grid-template-rows: 1fr max-content;
-  gap: $spacing-05;
-}
+import { useQuery } from '@tanstack/react-query';
 
-.footer {
-  padding-inline: $spacing-05;
-  display: flex;
+import { readConfig } from '.';
+
+export function useReadConfig() {
+  const query = useQuery({
+    queryKey: ['config'],
+    queryFn: readConfig,
+    staleTime: Infinity,
+  });
+
+  return query;
 }

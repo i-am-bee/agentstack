@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-.root {
-  block-size: 100%;
-  display: grid;
-  grid-template-rows: 1fr max-content;
-  gap: $spacing-05;
-}
+import { api } from '#api/index.ts';
+import { ensureData } from '#api/utils.ts';
 
-.footer {
-  padding-inline: $spacing-05;
-  display: flex;
+export async function readConfig() {
+  const response = await api.GET('/api/v1/ui/config');
+  return ensureData(response);
 }

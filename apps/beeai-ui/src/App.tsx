@@ -20,6 +20,7 @@ import { BrowserRouter, Route, Routes } from 'react-router';
 import { ErrorFallback } from '#components/fallbacks/ErrorFallback.tsx';
 import { AppLayout } from '#components/layouts/AppLayout.tsx';
 import { AppProvider } from '#contexts/App/AppProvider.tsx';
+import { AppConfigProvider } from '#contexts/AppConfig/AppConfigProvider.tsx';
 import { ModalProvider } from '#contexts/Modal/ModalProvider.tsx';
 import { QueryProvider } from '#contexts/QueryProvider/QueryProvider.tsx';
 import { ThemeProvider } from '#contexts/Theme/ThemeProvider.tsx';
@@ -41,23 +42,25 @@ export function App() {
         <QueryProvider>
           <ThemeProvider>
             <ModalProvider>
-              <AppProvider>
-                <BrowserRouter>
-                  <Routes>
-                    <Route element={<AppLayout />}>
-                      <Route path={routeDefinitions.home()} element={<Landing />} />
-                      <Route path={routeDefinitions.agents()} element={<Agents />} />
-                      <Route path={routeDefinitions.agentDetail()} element={<Agent />} />
-                      <Route path={routeDefinitions.agentRun()} element={<AgentRunPage />} />
-                      <Route path={routeDefinitions.compose()} element={<ComposeLanding />} />
-                      <Route path={routeDefinitions.composeSequential()} element={<ComposeSequential />} />
-                      <Route path={routeDefinitions.settings()} element={<Settings />} />
+              <AppConfigProvider>
+                <AppProvider>
+                  <BrowserRouter>
+                    <Routes>
+                      <Route element={<AppLayout />}>
+                        <Route path={routeDefinitions.home()} element={<Landing />} />
+                        <Route path={routeDefinitions.agents()} element={<Agents />} />
+                        <Route path={routeDefinitions.agentDetail()} element={<Agent />} />
+                        <Route path={routeDefinitions.agentRun()} element={<AgentRunPage />} />
+                        <Route path={routeDefinitions.compose()} element={<ComposeLanding />} />
+                        <Route path={routeDefinitions.composeSequential()} element={<ComposeSequential />} />
+                        <Route path={routeDefinitions.settings()} element={<Settings />} />
 
-                      <Route path="*" element={<NotFound />} />
-                    </Route>
-                  </Routes>
-                </BrowserRouter>
-              </AppProvider>
+                        <Route path="*" element={<NotFound />} />
+                      </Route>
+                    </Routes>
+                  </BrowserRouter>
+                </AppProvider>
+              </AppConfigProvider>
             </ModalProvider>
           </ThemeProvider>
         </QueryProvider>
