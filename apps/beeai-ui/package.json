@@ -25,8 +25,8 @@
     "@carbon/icons-react": "^11.57.0",
     "@carbon/layout": "^11.31.0",
     "@carbon/motion": "^11.25.0",
-    "@carbon/react": "^1.79.0",
-    "@carbon/styles": "^1.78.0",
+    "@carbon/react": "^1.83.0",
+    "@carbon/styles": "^1.82.0",
     "@floating-ui/react": "^0.27.5",
     "@ibm/plex": "^6.4.1",
     "@radix-ui/react-slot": "^1.1.2",
@@ -53,7 +53,7 @@
     "react-markdown": "^10.1.0",
     "react-merge-refs": "^2.1.1",
     "react-resizable": "^3.0.5",
-    "react-router": "^7.4.0",
+    "react-router": "^7.6.0",
     "react-syntax-highlighter": "^15.6.1",
     "rehype-minify-whitespace": "^6.0.2",
     "remark-gfm": "^4.0.1",
@@ -88,7 +88,7 @@
     "stylelint-plugin-logical-css": "catalog:",
     "typescript": "catalog:",
     "typescript-eslint": "catalog:",
-    "vite": "^6.2.3",
+    "vite": "^6.3.5",
     "vite-plugin-svgr": "^4.3.0"
   },
   "packageManager": "pnpm@9.9.0+sha512.60c18acd138bff695d339be6ad13f7e936eea6745660d4cc4a776d5247c540d0edee1a563695c183a66eb917ef88f2b4feb1fc25f32a7adcadc7aaf3438e99c1"

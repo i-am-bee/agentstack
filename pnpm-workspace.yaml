@@ -4,17 +4,17 @@ packages:
   - docs
 
 catalog:
-  "@eslint/js": "^9.23.0"
-  eslint: "^9.23.0"
-  eslint-plugin-react-hooks: "^5.2.0"
-  eslint-plugin-react-refresh: "^0.4.16"
-  eslint-plugin-simple-import-sort: "^12.1.1"
-  globals: "^16.0.0"
-  prettier: "^3.5.3"
-  sass-embedded: "^1.86.0"
-  stylelint: "^16.17.0"
-  stylelint-config-css-modules: "^4.4.0"
-  stylelint-config-recommended-scss: "^14.1.0"
-  stylelint-plugin-logical-css: "^1.2.2"
-  typescript-eslint: "^8.28.0"
-  typescript: "5.8.2"
+  '@eslint/js': ^9.23.0
+  eslint: ^9.23.0
+  eslint-plugin-react-hooks: ^5.2.0
+  eslint-plugin-react-refresh: ^0.4.16
+  eslint-plugin-simple-import-sort: ^12.1.1
+  globals: ^16.0.0
+  prettier: ^3.5.3
+  sass-embedded: ^1.86.0
+  stylelint: ^16.17.0
+  stylelint-config-css-modules: ^4.4.0
+  stylelint-config-recommended-scss: ^14.1.0
+  stylelint-plugin-logical-css: ^1.2.2
+  typescript-eslint: ^8.28.0
+  typescript: 5.8.2
