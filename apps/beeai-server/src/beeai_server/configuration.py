@@ -66,6 +66,14 @@ class AgentRegistryConfiguration(BaseModel):
     sync_period_sec: int = Field(default=timedelta(minutes=10).total_seconds())
 
 
+class UIFeatureFlags(BaseModel):
+    user_navigation: bool = Field(default=True)
+
+
+class FeatureFlagsConfiguration(BaseModel):
+    ui: UIFeatureFlags = UIFeatureFlags()
+
+
 class Configuration(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", env_nested_delimiter="__", extra="ignore"
@@ -74,6 +82,7 @@ class Configuration(BaseSettings):
     logging: LoggingConfiguration = LoggingConfiguration()
     agent_registry: AgentRegistryConfiguration = AgentRegistryConfiguration()
     oci_registry: dict[str, OCIRegistryConfiguration] = Field(default_factory=dict)
+    feature_flags: FeatureFlagsConfiguration = FeatureFlagsConfiguration()
 
     provider_config_path: Path = Path.home() / ".beeai" / "providers.yaml"
     telemetry_config_dir: Path = Path.home() / ".beeai" / "telemetry"
