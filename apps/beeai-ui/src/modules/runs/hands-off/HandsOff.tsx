@@ -46,7 +46,7 @@ export function HandsOff() {
             <HandsOffInput />
 
             {isFinal && (
-              <span>
+              <span className={classes.elapsed}>
                 Task completed in <ElapsedTime stats={stats} />
               </span>
             )}

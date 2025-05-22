@@ -66,6 +66,11 @@
   flex-grow: 1;
 }
 
+.elapsed {
+  @include type-style('body-compact-01');
+  color: $text-secondary;
+}
+
 @media (min-height: 640px) {
   .root:not(.isPendingOrOutput) {
     .holder {
