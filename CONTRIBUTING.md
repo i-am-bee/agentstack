@@ -212,7 +212,7 @@ Wait a bit, or restart your local BeeAI service, and confirm using `beeai provid
 
 Bump version in `apps/beeai-server/pyproject.toml`. Commit the changes, push to main, and create and push a tag `beeai-server-v<version>`, for example `beeai-server-v0.0.1`. Check the GitHub Actions to see if everything went smoothly.
 
-From the user's point of view, the server is part of the BeeAI CLI through `beeai serve`, so usually after releasing `beeai-server`, you might want to bump the dependency version and release `beeai-cli` as well.
+From the user's point of view, the server is part of the BeeAI CLI through `beeai platform start`, so usually after releasing `beeai-server`, you might want to bump the dependency version and release `beeai-cli` as well.
 
 ### Releasing `beeai-cli`
 

@@ -90,51 +90,19 @@ async def resolve_connection_error():
         )
         exit(1)
 
-    process_status = server_process_status()
-    service_status = brew_service_status()
-
-    if process_status == ProcessStatus.running_new:
-        with console.status(
-            "BeeAI service is still starting up. This may take a few minutes, please stand by... (You can cancel waiting with CTRL+C and re-try later.)",
-            spinner="dots",
-        ):
-            await wait_for_api()
-            await wait_for_agents()
-        return  # re-try now
-
-    if service_status == BrewServiceStatus.started or process_status == ProcessStatus.running_old:
-        err_console.print(
-            format_error("ConnectError", "The BeeAI service is running, but it did not accept the connection.")
-        )
-        if service_status == BrewServiceStatus.started:
-            err_console.print(
-                "💡 [yellow]HINT[/yellow]: Try restarting the service with [green]brew services restart beeai[/green], then retry."
-            )
-        else:
-            err_console.print("💡 [yellow]HINT[/yellow]: Try restarting the service, then retry.")
-        exit(1)
-
-    if service_status == BrewServiceStatus.not_installed:
-        err_console.print(format_error("ConnectError", "BeeAI service is not running."))
-        err_console.print(
-            "💡 [yellow]HINT[/yellow]: In a separate terminal, run [green]beeai serve[/green], keep it running and retry this command."
-        )
-        err_console.print(
-            "💡 [yellow]HINT[/yellow]: ...or alternatively, install BeeAI with [green]brew install i-am-bee/beeai/beeai[/green] and then start the service with [green]brew services start beeai[/green]."
-        )
-        exit(1)
-
     with console.status(
         "Starting the BeeAI service, this might take a few minutes, please stand by...", spinner="dots"
     ):
         try:
-            subprocess.check_output(["brew", "services", "start", "beeai"])
+            import beeai_cli.commands.platform
+
+            beeai_cli.commands.platform.start()
             await wait_for_api()
             await wait_for_agents()
         except Exception:
             err_console.print(format_error("ConnectError", "We failed to automatically start the BeeAI service."))
             err_console.print(
-                "💡 [yellow]HINT[/yellow]: Try starting the service manually with: [green]brew services start beeai[/green]"
+                "💡 [yellow]HINT[/yellow]: Try starting the service manually with: [green]beeai platform start[/green]"
             )
             exit(1)
 

@@ -11,13 +11,12 @@ Traces from instrumented agents can be collected and sent to the [Arize Phoenix]
 To visualize agent traces:
 
 <Steps>
-   <Step title="Install Arize Phoenix">
+   <Step title="Enable Arize Phoenix">
 
-Install and start Phoenix using [Homebrew](https://brew.sh/):
+Start the platform with Arize Phoenix enabled:
 
 ```sh
-brew install i-am-bee/beeai/arize-phoenix
-brew services start arize-phoenix
+beeai platform start --set phoenix.enabled=true
 ```
 
    </Step>

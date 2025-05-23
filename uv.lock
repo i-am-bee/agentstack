@@ -250,7 +250,6 @@ source = { editable = "apps/beeai-cli" }
 dependencies = [
     { name = "acp-sdk" },
     { name = "anyio" },
-    { name = "beeai-server" },
     { name = "cachetools" },
     { name = "gnureadline" },
     { name = "inquirerpy" },
@@ -270,7 +269,6 @@ dependencies = [
 requires-dist = [
     { name = "acp-sdk", specifier = ">=0.8.1" },
     { name = "anyio", specifier = ">=4.8.0" },
-    { name = "beeai-server", editable = "apps/beeai-server" },
     { name = "cachetools", specifier = ">=5.5.2" },
     { name = "gnureadline", specifier = ">=8.2.13" },
     { name = "inquirerpy", specifier = ">=0.3.4" },
