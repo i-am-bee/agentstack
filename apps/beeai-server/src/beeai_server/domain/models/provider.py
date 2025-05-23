@@ -76,8 +76,11 @@ class NetworkProviderLocation(RootModel):
         from acp_sdk import AgentsListResponse
 
         async with AsyncClient() as client:
-            response = await client.get(f"{str(self.root).rstrip('/')}/agents", timeout=1)
-            return AgentsListResponse.model_validate(response.json()).agents
+            try:
+                response = await client.get(f"{str(self.root).rstrip('/')}/agents", timeout=1)
+                return AgentsListResponse.model_validate(response.json()).agents
+            except Exception as ex:
+                raise ValueError(f"Unable to load agents from location: {self.root}: {ex}") from ex
 
 
 ProviderLocation = DockerImageProviderLocation | NetworkProviderLocation

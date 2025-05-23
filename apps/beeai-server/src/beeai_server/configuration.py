@@ -85,7 +85,7 @@ class AuthConfiguration(BaseModel):
 
 
 class PersistenceConfiguration(BaseModel):
-    db_url: Secret[AnyUrl] = Secret(AnyUrl("postgresql+asyncpg://postgres:postgres@db-postgresql:5432/beeai"))
+    db_url: Secret[AnyUrl] = Secret(AnyUrl("postgresql+asyncpg://beeai-user:password@postgresql:5432/beeai"))
     encryption_key: Secret[str] | None = None
     finished_requests_remove_after_sec: int = timedelta(minutes=30).total_seconds()
     stale_requests_remove_after_sec: int = timedelta(hours=1).total_seconds()

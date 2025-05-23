@@ -43,8 +43,20 @@ migrate = "beeai_server:migrate"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.pytest.ini_options]
+env = [
+    # Dummy encryption key
+    "PERSISTENCE__ENCRYPTION_KEY=3YwblH4IiFObl0igcHFqd-9BxV7csrrCrunaVotMda8=",
+    "AUTH__DISABLE_AUTH=true"
+]
+
 [dependency-groups]
-dev = ["pytest>=8.3.4", "pytest-asyncio>=0.25.3", "pytest-httpx>=0.35.0"]
+dev = [
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.25.3",
+    "pytest-env>=1.1.5",
+    "pytest-httpx>=0.35.0",
+]
 
 [tool.hatch.build.targets.wheel]
 artifacts = ["static/"]

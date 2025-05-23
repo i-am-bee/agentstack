@@ -32,6 +32,5 @@ class Configuration(pydantic_settings.BaseSettings):
     def lima_home(self) -> pathlib.Path:
         return self.home / "lima"
 
-    @property
-    def kubeconfig(self):
-        return self.lima_home / "beeai" / "copied-from-guest" / "kubeconfig.yaml"
+    def get_kubeconfig(self, vm_name: str) -> pathlib.Path:
+        return self.lima_home / vm_name / "copied-from-guest" / "kubeconfig.yaml"

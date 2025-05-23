@@ -207,10 +207,10 @@ def import_images_to_vm(vm_name: str):
             "--",
             "/bin/bash",
             "-c",
-            "ls /beeai/images/* | xargs -n 1 sudo ctr images import",
+            "ls /beeai/images | xargs -rn 1 sudo ctr images import",
         ],
         "Importing images",
         env={"LIMA_HOME": str(Configuration().lima_home)},
         cwd="/",
     )
-    run_command(["rm", "-f", "/beeai/images/*"], "Deleting temporary images")
+    run_command(["bash", "-c", "rm -f ~/.beeai/images/*"], "Deleting temporary images")

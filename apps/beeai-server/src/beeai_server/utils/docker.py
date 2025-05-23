@@ -120,8 +120,13 @@ async def get_registry_image_config_and_labels(image_id: DockerImageID, configur
     if registry.endswith("docker.io"):
         registry = "registry-1.docker.io"
 
+    try:
+        token_endpoint = await get_auth_endpoint(protocol, registry)
+    except Exception as ex:
+        raise Exception("Image registry does not exist or is not accessible") from ex
+
     async with httpx.AsyncClient() as client:
-        if token_endpoint := await get_auth_endpoint(protocol, registry):
+        if token_endpoint:
             token_endpoint = token_endpoint.format(repository=image_id.repository)
             auth_resp = await client.get(
                 token_endpoint,

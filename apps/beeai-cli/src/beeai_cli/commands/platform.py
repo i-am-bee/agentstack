@@ -41,7 +41,7 @@ HelmChart = kr8s.asyncio.objects.new_class(
 )
 
 
-async def _get_lima_instance() -> Optional[dict]:
+async def _get_lima_instance(vm_name: str) -> Optional[dict]:
     result = run_command(
         ["limactl", "--tty=false", "list", "--format=json"],
         "Looking for existing BeeAI VM",
@@ -54,7 +54,7 @@ async def _get_lima_instance() -> Optional[dict]:
             for line in result.stdout.split("\n")
             if line
             if (instance := json.loads(line))
-            if instance.get("name") == "beeai"
+            if instance.get("name") == vm_name
         ),
         None,
     )
@@ -79,7 +79,7 @@ async def start(
 ):
     """Start BeeAI platform."""
     configuration.home.mkdir(exist_ok=True)
-    lima_instance = await _get_lima_instance()
+    lima_instance = await _get_lima_instance(vm_name)
 
     if not lima_instance:
         configuration.lima_home.mkdir(parents=True, exist_ok=True)
@@ -138,7 +138,7 @@ async def start(
                         "set": {key: value for key, value in (value.split("=", 1) for value in set_values_list)},
                     },
                 },
-                api=await kr8s.asyncio.api(kubeconfig=configuration.kubeconfig),
+                api=await kr8s.asyncio.api(kubeconfig=configuration.get_kubeconfig(vm_name)),
             )
             if await helm_chart.exists():
                 await helm_chart.patch(helm_chart.raw)
@@ -156,7 +156,7 @@ async def stop(
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai",
 ):
     """Stop BeeAI platform VM."""
-    lima_instance = await _get_lima_instance()
+    lima_instance = await _get_lima_instance(vm_name)
 
     if not lima_instance:
         console.print("BeeAI VM not found. Nothing to stop.")
@@ -179,7 +179,7 @@ async def delete(
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai",
 ):
     """Delete BeeAI platform VM."""
-    if not await _get_lima_instance():
+    if not await _get_lima_instance(vm_name):
         console.print("BeeAI VM not found. Nothing to delete.")
         return
 

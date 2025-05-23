@@ -19,6 +19,7 @@ import inspect
 import json
 import random
 import re
+import typing
 from enum import StrEnum
 
 import jsonref
@@ -43,6 +44,7 @@ from rich.panel import Panel
 from rich.rule import Rule
 from rich.text import Text
 
+from beeai_cli.commands.build import build
 from beeai_cli.commands.env import ensure_llm_env
 
 
@@ -64,7 +66,15 @@ from rich.table import Column
 
 from beeai_cli.api import api_request, api_stream, acp_client
 from beeai_cli.async_typer import AsyncTyper, console, create_table, err_console
-from beeai_cli.utils import generate_schema_example, omit, prompt_user, remove_nullable, filter_dict, format_error
+from beeai_cli.utils import (
+    generate_schema_example,
+    omit,
+    prompt_user,
+    remove_nullable,
+    filter_dict,
+    format_error,
+    extract_messages,
+)
 
 
 class UiType(StrEnum):
@@ -107,15 +117,35 @@ def _print_log(line, ansi_mode=False):
 
 
 @app.command("add")
-async def add_agent(docker_image: str = typer.Argument(..., help="Agent docker image ID")):
+async def add_agent(
+    location: str = typer.Argument(..., help="Agent location (public docker image, local path or github url)"),
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai",
+):
     """Install discovered agent or add public docker image or github repository [aliases: install]"""
     agents = None
     with contextlib.suppress(Exception):
-        # Try extracting manifest locally for local images, if it fails, continue
-        process = await run_process(["docker", "inspect", docker_image], check=True)
-        manifest = base64.b64decode(json.loads(process.stdout)[0]["Config"]["Labels"]["beeai.dev.agent.yaml"]).decode()
-        agents = json.loads(manifest)["agents"]
-    await api_request("POST", "providers", json={"location": docker_image, "agents": agents})
+        # Try extracting manifest locally for local images
+        process = await run_process(["docker", "inspect", location], check=False)
+        if process.returncode:
+            # If image was not found locally, try building image
+            tag, agents = await build(location, tag=None, vm_name=vm_name, import_images=True, quiet=True)
+            process = await run_process(["docker", "inspect", tag])
+            location = tag
+        else:
+            manifest = base64.b64decode(
+                json.loads(process.stdout)[0]["Config"]["Labels"]["beeai.dev.agent.yaml"]
+            ).decode()
+            agents = json.loads(manifest)["agents"]
+    # If all build and inspect succeeded, use the local image, else use the original; maybe it exists remotely
+    try:
+        await api_request("POST", "providers", json={"location": location, "agents": agents})
+    except Exception as e:
+        raise RuntimeError(
+            f"Failed to add agent from {location}\n"
+            "   If this agent is built locally or from github, make sure you have docker command installed\n"
+            f"   Try building the image separately using [bold]beeai build {location}[/bold]\n"
+            f"   {extract_messages(e)}"
+        )
     await list_agents()
 
 
