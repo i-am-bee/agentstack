@@ -57,26 +57,76 @@ mise beeai-cli:run -- platform start --import-images --set image.tag=local
 
 It's desirable to run and debug (i.e. in an IDE) individual components against the full stack (PostgreSQL, OpenTelemetry, Arize Phoenix, ...). For this, we include [Telepresence](https://telepresence.io/) which allows rewiring a Kubernetes container to your local machine.
 
-Setting up Telepresence can be done using the following commands. Note that this will require **root access** on your machine, due to setting up a networking stack.
 
 ```sh
-export LIMA_HOME=$HOME/.beeai/lima
-export KUBECONFIG=$LIMA_HOME/beeai/copied-from-guest/kubeconfig.yaml
-mise beeai-cli:run -- platform start
-mise x -- telepresence helm install
-mise x -- telepresence connect --namespace beeai
+mise run beeai-server:dev:start
 ```
 
-After connecting, you can send requests as if your machine was running inside the cluster. For example: `curl http://<service-name>:<service-port>`.
+This will do the following:
+1. Create .env file if it doesn't exist yet (you can add your configuration here)
+2. Stop default platform VM ("beeai") if it exists
+3. Start a new VM named "beeai-local-dev" separate from the "beeai" VM used by default
+4. Install telepresence into the cluster
+   > Note that this will require **root access** on your machine, due to setting up a networking stack.
+5. Replace beeai-platform in the cluster and forward any incoming traffic to localhost
 
-If you want to also _receive_ requests that other services send to a container of your choice, you may `replace` the pod's container with your local machine, by running: `mise x -- telepresence replace <pod-name>`. You can also add `--env-file service.env` to download the environment variables of the container into a file.
+After the command succeeds, you can:
+- send requests as if your machine was running inside the cluster. For example: `curl http://<service-name>:<service-port>`.
+- connect to postgresql using the default credentials `postgresql://beeai-user:password@postgresql:5432/beeai`
+- now you can start your server from your IDE or using `mise run beeai-server:run` on port **18333**
+- run beeai-cli using `mise beeai-cli:run -- <command>` or HTTP requests to localhost:8333 or localhost:18333
+   - localhost:8333 is port-forwarded from the cluster, so any requests will pass through the cluster networking to the beeai-platform pod, which is replaced by telepresence and forwarded back to your local machine to port 18333
+   - localhost:18333 is where your local platform should be running
 
-More information about how replace/intercept/ingress works can be found in the [Telepresence documentation](https://telepresence.io/docs/howtos/engage).
+To inspect cluster using `kubectl` or `k9s` and lima using `limactl`, activate the dev environment using:
+```shell
+# Activate dev environment
+eval "$(mise run beeai-server:dev:shell)"
+# Deactivate dev environment
+deactivate
+```
 
-Once done, quit Telepresence using:
+When you're done you can stop the development cluster and networking using
+```shell
+mise run beeai-server:dev:stop
+```
+Or delete the cluster entirely using
+```shell
+mise run beeai-server:dev:clean
+```
+<details>
+
+<summary> Lower-level networking using telepresence directly</summary>
+
+```shell
+# Activate environment
+eval "$(mise run beeai-server:dev:shell)"
+
+# Start platform
+mise beeai-cli:run -- platform start --vm-name=beeai-local-dev # optional --tag [tag] --import-images
+mise x -- telepresence helm install
+mise x -- telepresence connect --namespace beeai
+
+# Receive traffic to a pod by replacing it in the cluster
+mise x -- telepresence replace <pod-name>
+
+# More information about how replace/intercept/ingress works can be found in the [Telepresence documentation](https://telepresence.io/docs/howtos/engage).
+# Once done, quit Telepresence using:
 ```sh
 mise x -- telepresence quit
 ```
+
+</details>
+
+### Running or creating migrations
+The following commands can be used to create or run migrations in the dev environment above:
+
+- Run migrations: `mise run beeai-server:migrations:run`
+- Generate migrations: `mise run beeai-server:migrations:generate`
+- Use Alembic command directly: `mise run beeai-server:migrations:alembic`
+
+> Note: The dev setup will run the production image including its migrations before replacing it with your local 
+> instance.
 
 ### Running individual components
 

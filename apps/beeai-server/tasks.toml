@@ -48,7 +48,7 @@ outputs = { auto = true }
 
 ["beeai-server:run"]
 depends = ["setup:uv", "beeai-ui:build"]
-dir = "{{cwd}}"
+dir = "{{config_root}}/apps/beeai-server"
 run = "uv run beeai-server"
 
 # build
@@ -86,21 +86,105 @@ docker save --output=$(realpath ~/.beeai/images)/beeai-server.tar ghcr.io/i-am-b
 sources = ["dist/*.tar.gz"]
 outputs = ["~/.beeai/images/beeai-server.tar"]
 
-
-["beeai-server:dev:setup"]
+["beeai-server:migrations:run"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "./scripts/bootstrap_dev.sh"
+depends = ["beeai-server:dev:start"]
+run = "uv run migrate"
 
-["beeai-server:dev:disconnect"]
+["beeai-server:migrations:alembic"]
+dir = "{{config_root}}/apps/beeai-server"
+depends = ["beeai-server:dev:start"]
+run = """
+#!/bin/bash
+set -a
+source .env
+set +a
+
+cd src/beeai_server/infrastructure/persistence/migrations
+alembic {{arg(name="alembic_vars", var=true)}}
+"""
+
+
+["beeai-server:migrations:generate"]
+dir = "{{config_root}}/apps/beeai-server"
+depends = ["beeai-server:dev:start"]
+run = "mise run beeai-server:migrations:alembic revision --autogenerate"
+
+["beeai-server:dev:start"]
 dir = "{{config_root}}/apps/beeai-server"
 run = """
 #!/bin/bash
-NAMESPACE=beeai-local-dev
-telepresence --use ".*${NAMESPACE}.*" leave beeai-platform-svc
+
+NAMESPACE=beeai
+VM_NAME=beeai-local-dev
+KUBECONFIG="${HOME}/.beeai/lima/${VM_NAME}/copied-from-guest/kubeconfig.yaml"
+
+[[ ! -f .env ]] && cp template.env .env
+
+tele="telepresence --use .*${NAMESPACE}.*"
+($tele list -n beeai --replacements 2>/dev/null | grep -q platform) && echo "Dev environment already running" && exit
+
+
+# Stopping official platform deployment
+beeai platform stop
+# TODO: use official image once available
+beeai platform start --vm-name=beeai-local-dev --import-images --set image.tag=local
+export KUBECONFIG
+
+$tele quit
+$tele helm install
+$tele connect --namespace "$NAMESPACE"
+$tele replace beeai-platform --port 18333:8333
+"""
+
+["beeai-server:dev:shell"]
+raw = true
+shell = "echo"
+dir = "{{cwd}}"
+run = """
+if [[ -n "$__OLD_PS1" ]]; then
+  echo "Environment for 'beeai-local-dev' is already activated. To deactivate, type 'deactivate'."
+  return 0
+fi
+
+VM_NAME=beeai-local-dev
+echo "Activating environment for '$VM_NAME'..."
+
+export __OLD_PS1="$PS1"
+export __OLD_LIMA_HOME="$LIMA_HOME"
+export __OLD_KUBECONFIG="$KUBECONFIG"
+
+export KUBECONFIG="${HOME}/.beeai/lima/${VM_NAME}/copied-from-guest/kubeconfig.yaml"
+export LIMA_HOME=~/.beeai/lima
+export PS1="(${VM_NAME}) ${__OLD_PS1}"
+
+deactivate () {
+  export PS1="$__OLD_PS1"
+
+  # Restore LIMA_HOME to its original state (set or unset)
+  [[ -n "$__OLD_LIMA_HOME" ]] && export LIMA_HOME="$__OLD_LIMA_HOME" || unset LIMA_HOME
+  [[ -n "$__OLD_KUBECONFIG" ]] && export KUBECONFIG="$__OLD_KUBECONFIG" || unset KUBECONFIG
+
+  # Clean up the backup values
+  unset __OLD_PS1
+  unset __OLD_LIMA_HOME
+  unset __OLD_KUBECONFIG
+  unset -f deactivate
+  echo "Environment for '$VM_NAME' deactivated."
+}
+"""
+
+
+["beeai-server:dev:stop"]
+dir = "{{config_root}}/apps/beeai-server"
+run = """
+#!/bin/bash
+NAMESPACE=beeai
 telepresence --use ".*${NAMESPACE}.*" quit
+beeai platform stop --vm-name beeai-local-dev
 """
 
 
 ["beeai-server:dev:clean"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "kubectl delete namespace beeai-local-dev || true"
+run = "beeai platform delete --vm-name=beeai-local-dev"
