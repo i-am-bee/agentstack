@@ -72,19 +72,6 @@ run = "rm -rf ./dist"
 depends = ["beeai-server:build"]
 dir = "{{config_root}}/apps/beeai-server"
 run = "docker build -t ghcr.io/i-am-bee/beeai-platform/beeai-server:local ."
-sources = ["Dockerfile", "dist/*.tar.gz"]
-outputs = { auto = true }
-
-["beeai-server:image:save"]
-depends = ["beeai-server:image:build"]
-dir = "{{config_root}}/apps/beeai-server"
-run = """
-#!/bin/bash
-mkdir -p ~/.beeai/images
-docker save --output=$(realpath ~/.beeai/images)/beeai-server.tar ghcr.io/i-am-bee/beeai-platform/beeai-server:local
-"""
-sources = ["dist/*.tar.gz"]
-outputs = ["~/.beeai/images/beeai-server.tar"]
 
 ["beeai-server:migrations:run"]
 dir = "{{config_root}}/apps/beeai-server"
@@ -104,7 +91,6 @@ cd src/beeai_server/infrastructure/persistence/migrations
 alembic {{arg(name="alembic_vars", var=true)}}
 """
 
-
 ["beeai-server:migrations:generate"]
 dir = "{{config_root}}/apps/beeai-server"
 depends = ["beeai-server:dev:start"]
@@ -112,6 +98,7 @@ run = "mise run beeai-server:migrations:alembic revision --autogenerate"
 
 ["beeai-server:dev:start"]
 dir = "{{config_root}}/apps/beeai-server"
+depends = ["beeai-server:image:build"]
 run = """
 #!/bin/bash
 
@@ -128,7 +115,7 @@ tele="telepresence --use .*${NAMESPACE}.*"
 # Stopping official platform deployment
 beeai platform stop
 # TODO: use official image once available
-beeai platform start --vm-name=beeai-local-dev --import-images --set image.tag=local
+beeai platform start --vm-driver=lima --vm-name=beeai-local-dev --import ghcr.io/i-am-bee/beeai-platform/beeai-server:local --set image.tag=local
 export KUBECONFIG
 
 $tele quit

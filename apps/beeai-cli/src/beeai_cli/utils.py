@@ -19,6 +19,7 @@ import sys
 from copy import deepcopy
 from typing import Any, TypeVar, Iterable, Optional, TYPE_CHECKING, List
 from prompt_toolkit import PromptSession
+from enum import Enum
 
 import typer
 import yaml
@@ -26,12 +27,16 @@ from cachetools import cached
 from jsf import JSF
 from prompt_toolkit.shortcuts import CompleteStyle
 from pydantic import BaseModel
-from beeai_cli import Configuration
 from beeai_cli.console import console
 
 if TYPE_CHECKING:
     from prompt_toolkit.completion import Completer
     from prompt_toolkit.validation import Validator
+
+
+class VMDriver(str, Enum):
+    lima = "lima"
+    docker = "docker"
 
 
 def format_model(value: BaseModel | list[BaseModel]) -> str:
@@ -169,6 +174,7 @@ def run_command(
     message: str,
     env: dict = None,
     cwd: str = ".",
+    check: bool = True,
 ) -> subprocess.CompletedProcess:
     """Helper function to run a subprocess command and handle common errors."""
     env = env or {}
@@ -178,7 +184,7 @@ def run_command(
                 cmd,
                 capture_output=True,
                 text=True,
-                check=True,
+                check=check,
                 env={**os.environ, **env},
                 cwd=cwd,
             )
@@ -195,22 +201,3 @@ def run_command(
         if e.stdout:
             console.print(f"[red]Output: {e.stdout.strip()}[/red]")
         sys.exit(1)
-
-
-def import_images_to_vm(vm_name: str):
-    run_command(
-        [
-            "limactl",
-            "--tty=false",
-            "shell",
-            vm_name,
-            "--",
-            "/bin/bash",
-            "-c",
-            "find /beeai/images -name '*.tar' | xargs -rn 1 sudo ctr images import",
-        ],
-        "Importing images",
-        env={"LIMA_HOME": str(Configuration().lima_home)},
-        cwd="/",
-    )
-    run_command(["bash", "-c", "rm -f ~/.beeai/images/*"], "Deleting temporary images")

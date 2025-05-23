@@ -40,17 +40,15 @@ Edit `[env]` in `mise.local.toml` in the project root ([documentation](https://m
 
 Starting up the platform using the CLI (`beeai platform start`, even `mise beeai-cli:run -- platform start`) will use **published images** by default. To use local images, you need to build them and import them into the platform.
 
-Save a local `beeai-server` image using:
+Build a local `ghcr.io/i-am-bee/beeai-platform/beeai-server:local` image using:
 
 ```sh
 mise beeai-server:image:save
 ```
 
-This will save the image to `~/.beeai/images/beeai-server.tar` tagged as `ghcr.io/i-am-bee/beeai-platform/beeai-server:local`.
-
 Then, start the platform using:
 ```sh
-mise beeai-cli:run -- platform start --import-images --set image.tag=local
+mise beeai-cli:run -- platform start --import ghcr.io/i-am-bee/beeai-platform/beeai-server:local --set image.tag=local
 ```
 
 ### Running and debugging individual components

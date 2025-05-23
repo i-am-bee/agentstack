@@ -25,6 +25,7 @@ from typing import Optional
 
 import anyio
 import anyio.abc
+from beeai_cli.utils import VMDriver
 import typer
 from anyio import open_process
 
@@ -32,10 +33,9 @@ from anyio import run_process
 from httpx import HTTPError, AsyncClient
 from tenacity import AsyncRetrying, wait_fixed, stop_after_delay, retry_if_exception_type
 
-from beeai_cli import Configuration
 from beeai_cli.async_typer import AsyncTyper
 from beeai_cli.console import console
-from beeai_cli.utils import extract_messages, import_images_to_vm
+from beeai_cli.utils import extract_messages
 
 
 async def find_free_port():
@@ -49,22 +49,15 @@ async def find_free_port():
 app = AsyncTyper()
 
 
-async def save_image(image_id: str):
-    with console.status("Saving image", spinner="dots"):
-        path = str(Configuration().home / "images" / image_id.replace("/", "_")) + ".tar"
-        await run_process(["docker", "image", "save", "-o", path, image_id])
-
-
 @app.command("build")
 async def build(
     context: Optional[str] = typer.Argument(".", help="Docker context for the agent"),
     tag: Optional[str] = typer.Option(None, help="Docker tag for the agent"),
     multi_platform: Optional[bool] = False,
-    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai",
     quiet: typing.Annotated[bool, typer.Option(hidden=True)] = False,
-    import_images: typing.Annotated[
-        bool, typer.Option(help="Load images from the ~/.beeai/images folder on host into the VM")
-    ] = True,
+    import_image: typing.Annotated[bool, typer.Option("--import", help="Import the image into BeeAI platform")] = True,
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
+    vm_driver: typing.Annotated[VMDriver, typer.Option(hidden=True)] = None,
 ):
     try:
         await run_process("which docker", check=True)
@@ -132,7 +125,9 @@ async def build(
         check=True,
     )
     console.print(f"✅ Successfully built agent: {tag}")
-    await save_image(image_id=tag)
-    if import_images:
-        import_images_to_vm(vm_name)
+    if import_image:
+        from beeai_cli.commands.platform import import_image
+
+        import_image(tag, vm_name=vm_name, vm_driver=vm_driver)
+
     return tag, response["agents"]

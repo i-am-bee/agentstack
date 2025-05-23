@@ -21,7 +21,7 @@ from typing import Iterator
 
 import rich.text
 import typer
-from httpx import ConnectError
+from httpx import ConnectError, RemoteProtocolError
 from rich.console import RenderResult
 from rich.markdown import Heading, Markdown
 from rich.table import Table
@@ -93,7 +93,7 @@ class AsyncTyper(typer.Typer):
                                 return asyncio.run(f(*args, **kwargs))
                             else:
                                 return f(*args, **kwargs)
-                        except* (ConnectionError, ConnectError):
+                        except* (RemoteProtocolError, ConnectionError, ConnectError):
                             if retries == 0:
                                 asyncio.run(resolve_connection_error())
                             else:

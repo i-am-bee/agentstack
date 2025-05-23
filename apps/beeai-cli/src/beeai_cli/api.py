@@ -98,7 +98,6 @@ async def resolve_connection_error():
 
             beeai_cli.commands.platform.start()
             await wait_for_api()
-            await wait_for_agents()
         except Exception:
             err_console.print(format_error("ConnectError", "We failed to automatically start the BeeAI service."))
             err_console.print(
@@ -107,24 +106,11 @@ async def resolve_connection_error():
             exit(1)
 
 
-async def wait_for_agents(initial_delay_seconds=5, wait_seconds=180):
-    time.sleep(initial_delay_seconds)
-    for i in range(wait_seconds):
-        time.sleep(1)
-        if all(
-            item["status"] in ["ready", "installing", "not_installed", "running"]
-            for item in (await api_request("get", "providers"))["items"]
-        ):
-            return True
-    else:
-        return False
-
-
 async def wait_for_api(initial_delay_seconds=5, wait_seconds=300):
     time.sleep(initial_delay_seconds)
-    for i in range(wait_seconds):
+    for _ in range(wait_seconds):
         time.sleep(1)
-        with contextlib.suppress(httpx.ConnectError, ConnectionError):
+        with contextlib.suppress(httpx.RemoteProtocolError, httpx.ConnectError, ConnectionError):
             await api_request("get", "providers")
             return True
     else:
