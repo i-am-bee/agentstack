@@ -118,6 +118,12 @@ mise x -- telepresence quit
 
 </details>
 
+#### Ollama
+If you want to run this local setup against Ollama you must use a special option when setting up the LLM:
+```
+beeai env setup --use-true-localhost
+```
+
 ### Running or creating migrations
 The following commands can be used to create or run migrations in the dev environment above:
 
@@ -133,15 +139,12 @@ The following commands can be used to create or run migrations in the dev enviro
 To run BeeAI components in development mode (ensuring proper rebuilding), use the following commands.
 
 #### Server
-
-```sh
-# remove existing providers (due to breaking changes during rapid development)
-rm -f ~/.beeai/providers.yaml
-
-# API
-mise beeai-server:run
-# (keep it running, open another terminal for next steps)
+Build image and run the platform using:
+```shell
+mise run beeai-server:image:save
+mise run beeai-cli:run -- platform start --import-images --set image.tag=local
 ```
+Or use development setup described in [Running and debugging individual components](#Running and debugging individual components)
 
 #### CLI
 

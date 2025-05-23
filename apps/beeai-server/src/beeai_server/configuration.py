@@ -17,6 +17,7 @@ import logging
 from collections import defaultdict
 from datetime import timedelta
 from functools import cache
+from pathlib import Path
 
 from pydantic_core.core_schema import ValidationInfo
 
@@ -115,10 +116,11 @@ class Configuration(BaseSettings):
     telemetry: TelemetryConfiguration = Field(default_factory=TelemetryConfiguration)
     persistence: PersistenceConfiguration = Field(default_factory=PersistenceConfiguration)
     k8s_namespace: str | None = None
+    k8s_kubeconfig: Path | None = None
 
     feature_flags: FeatureFlagsConfiguration = FeatureFlagsConfiguration()
 
-    platform_service_name: str = "beeai-platform-svc"
+    platform_service_url: str = "beeai-platform-svc:8333"
     port: int = 8333
 
     @model_validator(mode="after")

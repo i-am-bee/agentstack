@@ -17,6 +17,8 @@ import os
 import re
 import sys
 import tempfile
+import typing
+
 import typer
 import httpx
 import subprocess
@@ -67,7 +69,9 @@ async def remove_env(
 
 
 @app.command("setup", help="Interactive setup for LLM provider environment variables")
-async def setup() -> bool:
+async def setup(
+    use_true_localhost: typing.Annotated[bool, typer.Option(hidden=True)] = False,
+) -> bool:
     """Interactive setup for LLM provider environment variables"""
     provider_name, api_base, recommended_model = await inquirer.fuzzy(
         message="Select LLM provider (type to search):",
@@ -350,6 +354,9 @@ async def setup() -> bool:
         err_console.print(format_error("Error", f"Error during model test: {str(e)}"))
         return False
 
+    if not use_true_localhost:
+        api_base = re.sub(r"localhost|127\.0\.0\.1", "host.docker.internal", api_base)
+
     with console.status("Saving configuration...", spinner="dots"):
         await api_request(
             "put",
@@ -357,7 +364,7 @@ async def setup() -> bool:
             json={
                 "env": {
                     # Replace localhost by host.lima.internal for lima
-                    "LLM_API_BASE": re.sub(r"localhost|127\.0\.0\.1", "host.docker.internal", api_base),
+                    "LLM_API_BASE": api_base,
                     "LLM_API_KEY": api_key,
                     "LLM_MODEL": selected_model,
                     "WATSONX_PROJECT_ID": (

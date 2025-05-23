@@ -42,7 +42,7 @@ async def setup_kubernetes_client(config: Configuration):
         ns_path = Path("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
         if await ns_path.exists():
             namespace = (await ns_path.read_text()).strip()
-    return await kr8s.asyncio.api(namespace=namespace)
+    return await kr8s.asyncio.api(namespace=namespace, kubeconfig=str(config.k8s_kubeconfig))
 
 
 async def bootstrap_dependencies():
