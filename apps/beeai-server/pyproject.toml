@@ -44,10 +44,11 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
 env = [
     # Dummy encryption key
     "PERSISTENCE__ENCRYPTION_KEY=3YwblH4IiFObl0igcHFqd-9BxV7csrrCrunaVotMda8=",
-    "AUTH__DISABLE_AUTH=true"
+    "AUTH__DISABLE_AUTH=true",
 ]
 
 [dependency-groups]
@@ -56,6 +57,7 @@ dev = [
     "pytest-asyncio>=0.25.3",
     "pytest-env>=1.1.5",
     "pytest-httpx>=0.35.0",
+    "pytest-subtests>=0.14.1",
 ]
 
 [tool.hatch.build.targets.wheel]

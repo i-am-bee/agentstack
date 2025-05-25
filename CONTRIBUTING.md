@@ -94,6 +94,18 @@ mise run beeai-server:dev:clean
 ```
 <details>
 
+
+#### Developing e2e tests
+
+We use a separate VM for local development of e2e tests, the setup is almost identical, but you need to change
+kubeconfig location in your .env:
+```shell
+# Use for developing e2e tests locally
+K8S_KUBECONFIG=~/.beeai/lima/e2e-test/copied-from-guest/kubeconfig.yaml
+```
+and then run `beeai-server:dev:e2e:start`
+
+
 <summary> Lower-level networking using telepresence directly</summary>
 
 ```shell
@@ -139,8 +151,8 @@ To run BeeAI components in development mode (ensuring proper rebuilding), use th
 #### Server
 Build image and run the platform using:
 ```shell
-mise run beeai-server:image:save
-mise run beeai-cli:run -- platform start --import-images --set image.tag=local
+mise run beeai-server:image:build
+mise run beeai-cli:run -- platform start --import ghcr.io/i-am-bee/beeai-platform/beeai-server:local --set image.tag=local
 ```
 Or use development setup described in [Running and debugging individual components](#Running and debugging individual components)
 

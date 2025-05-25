@@ -110,7 +110,7 @@ async def wait_for_api(initial_delay_seconds=5, wait_seconds=300):
     time.sleep(initial_delay_seconds)
     for _ in range(wait_seconds):
         time.sleep(1)
-        with contextlib.suppress(httpx.RemoteProtocolError, httpx.ConnectError, ConnectionError):
+        with contextlib.suppress(httpx.RemoteProtocolError, httpx.ReadError, httpx.ConnectError, ConnectionError):
             await api_request("get", "providers")
             return True
     else:
