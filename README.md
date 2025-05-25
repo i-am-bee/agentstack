@@ -7,7 +7,7 @@
   BeeAI Platform
 </h1>
 
-<h4 align="center">Discover, run, and orchestrate AI agents from any framework</h4>
+<h4 align="center">Discover, run, and share agents from any framework</h4>
 
 <div align="center">
 
@@ -27,31 +27,55 @@
 
 <div align="center">
 
-https://github.com/user-attachments/assets/dc6cc4d7-4577-44c9-acf7-ec0133268a2d
-
 </div>
 
 <br />
 
-**BeeAI** is the first open-source platform built on the [Agent Communication Protocol (ACP)](https://agentcommunicationprotocol.dev/), an open standard designed to enable smooth communication between AI agents, no matter what framework they’re built on. Hosted by the **Linux Foundation**, BeeAI is driven by open governance and community collaboration.
+**BeeAI** is an open-source platform that makes it easy to **discover**, **run**, and **share** AI agents across frameworks. Built on the [Agent Communication Protocol (ACP)](https://agentcommunicationprotocol.dev/) and hosted by the **Linux Foundation**, BeeAI bridges the gap between different agent ecosystems.
 
 With ACP at its core, BeeAI makes it easy to:
 - **Discover** agents across a wide range of frameworks via our growing catalog
 - **Run** agents locally using your preferred LLM provider
-- **Orchestrate** agents into workflows — regardless of how or where they were built
-​
-## Key features
+- **Share** agents from any framework through standardized containers
 
-| Feature                 | Description                                                                                                                                                                                     |
-| :---------------------  | :---------------------------------------------------------------------------------------------------------------- |
-| 🏗️ **ACP Native**  | Built from the ground up around ACP as the official reference implementation for the protocol |
-| 🔄 **Lifecycle Management** | Discover, install, configure, and run agents with simple commands |
-| 🛠️ **Orchestration** | Connect specialized agents through standardized interfaces to create powerful workflows |
-| 🔍 **Discovery**     | Browse our curated catalog of ACP-compliant agents across multiple frameworks |
-| 🗂️ **Catalog**       | Access ready-to-use agents for research, content creation, coding, and more |
-| 🧠 **LLM Integration** | Connect to any LLM provider (Ollama, OpenAI, Anthropic, etc.) with simple configuration |
-| 💻 **Dual Interface Access** | Interact through both web UI and CLI depending on your preference |
-| 🚢 **Containerized Deployment** | Run agents in isolated containers with automated resource management for consistent performance |
+## The Problem BeeAI Solves
+
+Teams trying to operationalize AI agents face three critical challenges:
+
+- **Framework Fragmentation:** Different agent frameworks create silos and duplicated efforts
+- **Deployment Complexity:** Each agent requires its own setup, limiting scalability
+- **Discovery Challenges:** No central hub exists for finding and using available agents
+
+BeeAI provides a standardized platform to discover, run, and share agents from any framework - for both individuals and teams.
+
+## 👩‍💻 For Individual Developers
+
+BeeAI makes it easy to experiment with agent capabilities on your own machine:
+
+- 🧪 **Try agents** instantly from the community catalog without complex setup
+- 📦 Use **standard interfaces** that create consistent user experiences
+- 🛠️ **Package existing agents** from any framework using standardized containers
+- 🌍 **Share agents** with others through a consistent protocol
+
+## 👥 For Teams
+
+As you scale from personal experimentation to team adoption, BeeAI grows with you:
+
+- 🌐 **Deploy a centralized BeeAI instance** that the entire team can access
+- 📚 Create a **team catalog** where developers publish and end users discover agents
+- 🧰 **Standardize agent interfaces** for consistent user experiences
+- 🔐 **Centrally manage** LLM connections to control costs and access
+
+## Key Features
+
+| Feature | How It Works | Business Value |
+| :------ | :----------- | :------------- |
+| **Agent Catalog** | One BeeAI platform serves your entire team | Everyone works from the same system with unified management |
+| **Framework Agnostic** | BeeAI implements the Agent Communication Protocol (ACP) to standardize agent interfaces regardless of how they're built | Developers use their preferred tools while maintaining compatibility |
+| **Containerized Agents** | Each agent runs in its own container with defined resource limits | Better performance, improved security, and efficient resource usage |
+| **Consistent Interfaces** | Predictable agent interactions | Learn once, use everywhere |
+| **Agent Discovery** | All agents appear in a searchable catalog with capability details | End users easily find agents and developers see usage patterns |
+| **LLM Provider Flexibility** | Connect to any LLM provider | Use the best model for each task and easily switch providers |
 
 ## Quickstart
 
@@ -85,16 +109,13 @@ beeai list
 
 # Run the chat agent
 beeai run chat
-
-# Compose agents
-beeai compose sequential
 ```
 
 ## Documentation
 
 Visit [docs.beeai.dev](https://docs.beeai.dev) for full documentation.
 
-## Agent library
+## Agent Catalog
 
 Visit [beeai.dev/agents](https://beeai.dev/agents) for the list of reference agent implementations.
 
