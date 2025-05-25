@@ -33,11 +33,6 @@
 
 **BeeAI** is an open-source platform that makes it easy to **discover**, **run**, and **share** AI agents across frameworks. Built on the [Agent Communication Protocol (ACP)](https://agentcommunicationprotocol.dev/) and hosted by the **Linux Foundation**, BeeAI bridges the gap between different agent ecosystems.
 
-With ACP at its core, BeeAI makes it easy to:
-- **Discover** agents across a wide range of frameworks via our growing catalog
-- **Run** agents locally using your preferred LLM provider
-- **Share** agents from any framework through standardized containers
-
 ## The Problem BeeAI Solves
 
 Teams trying to operationalize AI agents face three critical challenges:
