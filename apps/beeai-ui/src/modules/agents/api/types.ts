@@ -21,6 +21,7 @@ export type AgentsListResponse = ApiResponse<'/api/v1/acp/agents'>;
 export type Agent = ApiResponse<'/api/v1/acp/agents/{name}'> & {
   metadata: {
     name?: string;
+    provider_id?: string;
     ui?: {
       type?: UiType;
       user_greeting?: string;
@@ -33,8 +34,6 @@ export type Agent = ApiResponse<'/api/v1/acp/agents/{name}'> & {
 };
 
 export type AgentName = Agent['name'];
-
-export type AgentProvider = Agent['metadata']['provider'];
 
 export type ReadAgentPath = ApiPath<'/api/v1/acp/agents/{name}'>;
 

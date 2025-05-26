@@ -35,7 +35,7 @@ import { ErrorMessage } from '#components/ErrorMessage/ErrorMessage.tsx';
 import { Modal } from '#components/Modal/Modal.tsx';
 import type { ModalProps } from '#contexts/Modal/modal-context.ts';
 import { useImportProvider } from '#modules/providers/api/mutations/useImportProvider.ts';
-import type { RegisterManagedProviderRequest } from '#modules/providers/api/types.ts';
+import type { RegisterProviderRequest } from '#modules/providers/api/types.ts';
 import { ProviderSourcePrefixes } from '#modules/providers/constants.ts';
 import { ProviderSource } from '#modules/providers/types.ts';
 
@@ -43,11 +43,15 @@ import { useListProviderAgents } from '../api/queries/useListProviderAgents';
 import { useAgentStatus } from '../hooks/useAgentStatus';
 import classes from './ImportAgentsModal.module.scss';
 
+/**
+ * TODO: Update to the current API capabilities is needed
+ */
 export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps) {
   const id = useId();
   const [registeredProviderId, setRegisteredProviderId] = useState<string>();
-  const { isNotInstalled, isInstallError, isReady } = useAgentStatus({ provider: registeredProviderId });
-  const { data: agents } = useListProviderAgents({ provider: registeredProviderId });
+  const { isNotInstalled, isInstallError, isReady } = useAgentStatus({ providerId: registeredProviderId });
+  const { data: agents } = useListProviderAgents({ providerId: registeredProviderId });
+
   const agentsCount = agents?.length ?? 0;
 
   const { mutateAsync: importProvider, isPending } = useImportProvider({
@@ -156,7 +160,7 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
   );
 }
 
-type FormValues = RegisterManagedProviderRequest & { source: ProviderSource };
+type FormValues = RegisterProviderRequest & { source: ProviderSource };
 
 const INPUTS_PROPS = {
   [ProviderSource.Docker]: {

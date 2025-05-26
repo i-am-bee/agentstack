@@ -25,7 +25,6 @@ import type { Agent } from '../api/types';
 import { AgentCard } from '../components/AgentCard';
 import { AgentsFilters } from '../components/AgentsFilters';
 import { AgentsList } from '../components/AgentsList';
-import { AgentStatusIndicator } from '../components/AgentStatusIndicator';
 import { ImportAgents } from '../components/ImportAgents';
 import type { AgentsFiltersParams } from '../providers/AgentsFiltersProvider';
 
@@ -53,7 +52,7 @@ export function AgentsView() {
               <AgentCard
                 agent={agent}
                 renderTitle={renderAgentTitle}
-                statusIndicator={<AgentStatusIndicator agent={agent} />}
+                // statusIndicator={<AgentStatusIndicator agent={agent} />} we might need this later
               />
             </li>
           ))

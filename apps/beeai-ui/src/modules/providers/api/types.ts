@@ -21,13 +21,11 @@ export type ProvidersList = ApiResponse<'/api/v1/providers'>;
 
 export type Provider = ProvidersList['items'][number];
 
-export type ProviderLocation = Provider['location'];
+export type ProviderLocation = Provider['source'];
 
 export type DeleteProviderPath = ApiPath<'/api/v1/providers/{id}', 'delete'>;
 
-export type InstallProviderPath = ApiPath<'/api/v1/providers/{id}/install', 'put'>;
-
-export type RegisterManagedProviderRequest = ApiRequest<'/api/v1/providers/register/managed'>;
+export type RegisterProviderRequest = ApiRequest<'/api/v1/providers'>;
 
 export enum ProviderStatus {
   NotLoaded = 'not_loaded',

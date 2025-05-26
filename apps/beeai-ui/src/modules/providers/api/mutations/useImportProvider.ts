@@ -20,27 +20,26 @@ import { useState } from 'react';
 import { StreamError } from '#api/errors.ts';
 import { handleStream } from '#api/utils.ts';
 import { agentKeys } from '#modules/agents/api/keys.ts';
-import type { AgentProvider } from '#modules/agents/api/types.ts';
 import { useMonitorProvider } from '#modules/providers/hooks/useMonitorProviderStatus.ts';
 
 import { registerManagedProvider } from '..';
 import { providerKeys } from '../keys';
 import { useProvider } from '../queries/useProvider';
-import type { Provider, ProviderImportEvent, ProviderLocation, RegisterManagedProviderRequest } from '../types';
+import type { Provider, ProviderImportEvent, ProviderLocation, RegisterProviderRequest } from '../types';
 
 interface Props {
   onSuccess?: (data?: Provider) => void;
 }
 
 export function useImportProvider({ onSuccess }: Props = {}) {
-  const [id, setId] = useState<AgentProvider>();
+  const [id, setId] = useState<string>();
   const [location, setLocation] = useState<ProviderLocation>();
-  const { refetch } = useProvider({ id: location });
+  const { refetch } = useProvider({ source: location });
 
   useMonitorProvider({ id });
 
   const mutation = useMutation({
-    mutationFn: async ({ body }: { body: RegisterManagedProviderRequest }) => {
+    mutationFn: async ({ body }: { body: RegisterProviderRequest }) => {
       setLocation(body.location);
 
       const stream = await registerManagedProvider({ body });

@@ -20,12 +20,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { useToast } from '#contexts/Toast/index.ts';
 import { TaskType, useTasks } from '#hooks/useTasks.ts';
 import { agentKeys } from '#modules/agents/api/keys.ts';
-import { useListProviderAgents } from '#modules/agents/api/queries/useListProviderAgents.ts';
-import type { AgentProvider } from '#modules/agents/api/types.ts';
+import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
 import { useAgentStatus } from '#modules/agents/hooks/useAgentStatus.ts';
 
 interface Props {
-  id: AgentProvider;
+  id?: string;
 }
 
 export function useMonitorProvider({ id }: Props) {
@@ -34,8 +33,8 @@ export function useMonitorProvider({ id }: Props) {
   const { addToast } = useToast();
   const { addTask, removeTask } = useTasks();
 
-  const { refetch: refetchStatus } = useAgentStatus({ provider: id });
-  const { data: agents } = useListProviderAgents({ provider: id });
+  const { refetch: refetchStatus } = useAgentStatus({ providerId: id });
+  const { data: agents } = useListAgents();
 
   const checkProvider = useCallback(async () => {
     const { isReady, isInstallError } = await refetchStatus();

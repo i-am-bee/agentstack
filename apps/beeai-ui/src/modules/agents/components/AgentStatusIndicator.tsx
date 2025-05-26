@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-import { CloudDownload } from '@carbon/icons-react';
-import { IconButton, InlineLoading } from '@carbon/react';
-import clsx from 'clsx';
-import { useCallback } from 'react';
-
-import { useInstallProvider } from '#modules/providers/api/mutations/useInstallProvider.ts';
+import { InlineLoading } from '@carbon/react';
 
 import type { Agent } from '../api/types';
 import { useAgentStatus } from '../hooks/useAgentStatus';
@@ -30,15 +25,8 @@ interface Props {
 }
 
 export function AgentStatusIndicator({ agent }: Props) {
-  const { provider } = agent.metadata;
-  const { isNotInstalled, isInstalling, isInstallError } = useAgentStatus({ provider });
-  const { mutate: installProvider } = useInstallProvider();
-
-  const handleInstall = useCallback(() => {
-    if (provider) {
-      installProvider({ id: provider });
-    }
-  }, [installProvider, provider]);
+  const { provider_id } = agent.metadata;
+  const { isInstalling } = useAgentStatus({ providerId: provider_id });
 
   if (isInstalling) {
     return (
@@ -47,20 +35,5 @@ export function AgentStatusIndicator({ agent }: Props) {
       </div>
     );
   }
-
-  if (isNotInstalled || isInstallError) {
-    return (
-      <IconButton
-        kind="ghost"
-        size="sm"
-        wrapperClasses={clsx(classes.root, classes.button)}
-        label="Install agent"
-        onClick={handleInstall}
-      >
-        <CloudDownload />
-      </IconButton>
-    );
-  }
-
   return null;
 }
