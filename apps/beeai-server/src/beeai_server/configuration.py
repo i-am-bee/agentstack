@@ -118,6 +118,11 @@ class Configuration(BaseSettings):
     k8s_namespace: str | None = None
     k8s_kubeconfig: Path | None = None
 
+    self_registration_use_local_network: bool = Field(
+        False,
+        description="Which network to use for self-registered providers - should be False when running in cluster",
+    )
+
     feature_flags: FeatureFlagsConfiguration = FeatureFlagsConfiguration()
 
     platform_service_url: str = "beeai-platform-svc:8333"

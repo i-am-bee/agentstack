@@ -15,23 +15,27 @@
 import base64
 import hashlib
 import logging
+import re
 from datetime import timedelta
 from enum import StrEnum
 
 from functools import cached_property
+from typing import Any
 from uuid import UUID
 
 import yaml
 
 from acp_sdk import Agent as AcpAgent
+
+from beeai_server.configuration import Configuration
 from beeai_server.domain.constants import DOCKER_MANIFEST_LABEL_NAME
 from beeai_server.domain.models.agent import EnvVar, Agent
 from beeai_server.domain.models.registry import RegistryLocation
 from beeai_server.exceptions import MissingConfigurationError
 from beeai_server.utils.docker import DockerImageID, get_registry_image_config_and_labels
 from httpx import AsyncClient
-from kink import inject
-from pydantic import BaseModel, Field, computed_field, RootModel, HttpUrl, model_validator
+from kink import inject, di
+from pydantic import BaseModel, Field, computed_field, RootModel, HttpUrl, model_validator, ModelWrapValidatorHandler
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +70,16 @@ class DockerImageProviderLocation(RootModel):
 
 class NetworkProviderLocation(RootModel):
     root: HttpUrl
+
+    @model_validator(mode="wrap")
+    def _replace_localhost_url(cls, data: Any, handler: ModelWrapValidatorHandler):
+        configuration = di[Configuration]
+        url: NetworkProviderLocation = handler(data)
+        # localhost does not make sense in k8s environment, replace it with host.docker.internal for backward compatibility
+        if configuration.self_registration_use_local_network:
+            return url
+        url.root = HttpUrl(re.sub(r"localhost|127\.0\.0\.1", "host.docker.internal", str(url.root)))
+        return url
 
     @property
     def provider_id(self) -> UUID:

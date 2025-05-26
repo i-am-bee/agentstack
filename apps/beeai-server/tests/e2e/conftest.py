@@ -2,9 +2,9 @@ import asyncio
 import logging
 import os
 import re
-from collections.abc import Callable
 from pathlib import Path
 from pprint import pprint
+from typing import AsyncIterator
 
 import httpx
 import kr8s
@@ -36,16 +36,20 @@ class TestConfiguration(BaseSettings):
         return self
 
 
-CONFIGURATION = TestConfiguration()
+@pytest.fixture(scope="session")
+def test_configuration():
+    return TestConfiguration()
+
+
 print("\n\nRunning with configuration:")
-pprint(CONFIGURATION.model_dump())
+pprint(TestConfiguration().model_dump())
 print()
 
 
 async def _get_kr8s_client():
     api = await kr8s.asyncio.api(namespace="beeai")
     kubeconfig = api.auth.kubeconfig
-    kubeconfig_regex = r".*/.beeai/(lima|docker)/e2e-test/copied-from-guest/kubeconfig.yaml$"
+    kubeconfig_regex = r".*/.beeai/(lima|docker)/e2e-test.*/copied-from-guest/kubeconfig.yaml$"
     if not re.match(kubeconfig_regex, str(kubeconfig.path)):
         raise ValueError(
             f"Preventing e2e tests run with invalid kubeconfig path.\n"
@@ -65,37 +69,34 @@ async def kr8s_client():
     return await _get_kr8s_client()
 
 
-@pytest.fixture()
-def api_client() -> Callable[[], httpx.AsyncClient]:
-    def client_factory():
-        return httpx.AsyncClient(base_url=f"{CONFIGURATION.server_url.rstrip('/')}/api/v1")
-
-    return client_factory
-
-
-@pytest.fixture()
-def acp_client(api_client) -> Callable[[], Client]:
-    def client_factory():
-        return Client(base_url=f"{str(api_client().base_url).rstrip('/')}/acp")
-
-    return client_factory
+@pytest_asyncio.fixture()
+async def api_client(test_configuration) -> AsyncIterator[httpx.AsyncClient]:
+    async with httpx.AsyncClient(
+        base_url=f"{test_configuration.server_url.rstrip('/')}/api/v1", timeout=None
+    ) as client:
+        yield client
 
 
 @pytest_asyncio.fixture()
-async def setup_real_llm(api_client):
+async def acp_client(api_client, test_configuration) -> AsyncIterator[Client]:
+    async with Client(base_url=f"{str(test_configuration.server_url).rstrip('/')}/api/v1/acp") as client:
+        yield client
+
+
+@pytest_asyncio.fixture()
+async def setup_real_llm(api_client, test_configuration):
     env = {
-        "LLM_API_BASE": CONFIGURATION.llm_api_base,
-        "LLM_API_KEY": CONFIGURATION.llm_api_key.get_secret_value(),
-        "LLM_MODEL": CONFIGURATION.llm_model,
+        "LLM_API_BASE": test_configuration.llm_api_base,
+        "LLM_API_KEY": test_configuration.llm_api_key.get_secret_value(),
+        "LLM_MODEL": test_configuration.llm_model,
     }
-    async with api_client() as client:
-        await client.put("variables", json={"env": env})
+    await api_client.put("variables", json={"env": env})
 
 
-@pytest_asyncio.fixture(autouse=True)
-async def auto_clean(kr8s_client):
+@pytest_asyncio.fixture()
+async def clean_up(kr8s_client, test_configuration):
     """Truncate all tables after each test."""
-    engine = create_async_engine(CONFIGURATION.db_url)
+    engine = create_async_engine(test_configuration.db_url)
     try:
         yield
     finally:
@@ -108,3 +109,21 @@ async def auto_clean(kr8s_client):
         async for deployment in kr8s_client.get(kind="deploy"):
             deployment.labels.app.startswith("beeai-provider-") and await deployment.delete()
         print("Cleaned up")
+
+
+@pytest.fixture(scope="session")
+def clean_up_fn(test_configuration):
+    async def _fn():
+        kr8s_client = await _get_kr8s_client()
+        engine = create_async_engine(test_configuration.db_url)
+        # Clean all tables
+        async with engine.connect() as connection:
+            for table in metadata.tables:
+                await connection.execute(text(f'TRUNCATE TABLE public."{table}" RESTART IDENTITY CASCADE'))
+            await connection.commit()
+        # Clean all deployments
+        async for deployment in kr8s_client.get(kind="deploy"):
+            deployment.labels.app.startswith("beeai-provider-") and await deployment.delete()
+        print("Cleaned up")
+
+    return _fn

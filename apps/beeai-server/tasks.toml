@@ -198,22 +198,25 @@ run = "mise run beeai-server:dev:start --vm-name=e2e-test --no-registry"
 dir = "{{config_root}}/apps/beeai-server"
 run = "mise run beeai-server:dev:clean --vm-name=e2e-test"
 
+["beeai-server:dev:e2e:shell"]
+dir = "{{config_root}}/apps/beeai-server"
+run = "mise run beeai-server:dev:shell --vm-name=e2e-test"
+
 ["beeai-server:test:e2e"]
 depends = ["beeai-server:image:build"]
 dir = "{{config_root}}/apps/beeai-server"
 run = """
 #!/bin/bash
-echo "Running e2e tests in docker driver. Make sure all your other dev/test platform instances are stopped".
+mise run beeai-server:dev:stop
 curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhost:8333 is already running" && exit 2
 
-VM_NAME=e2e-test
+VM_NAME=e2e-test-run
 mise run beeai-cli:run -- platform start \
-    --vm-driver=docker \
     --vm-name=${VM_NAME} \
     --import ghcr.io/i-am-bee/beeai-platform/beeai-server:local \
-    --set image.tag=local --set externalRegistries=null
+    --set image.tag=local --set externalRegistries=null $extra_flags
 
-export KUBECONFIG="${HOME}/.beeai/docker/${VM_NAME}/copied-from-guest/kubeconfig.yaml"
+export KUBECONFIG="${HOME}/.beeai/lima/${VM_NAME}/copied-from-guest/kubeconfig.yaml"
 export SERVER_URL="http://localhost:8333"
 export DB_URL="postgresql+asyncpg://beeai-user:password@localhost:5432/beeai"
 
@@ -222,7 +225,7 @@ export LLM_API_BASE="${LLM_API_BASE:-http://host.docker.internal:11434/v1}"
 kubectl port-forward -n beeai svc/postgresql 5432:5432 2>/dev/null 1>&2 &
 pytest -m e2e
 result=$?
-mise run beeai-cli:run -- platform delete --vm-driver=docker --vm-name=${VM_NAME}
+mise run beeai-cli:run -- platform delete --vm-name=${VM_NAME}
 kill %1
 exit $result
 """
