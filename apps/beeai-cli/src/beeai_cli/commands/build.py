@@ -117,6 +117,7 @@ async def build(
     context_hash = hashlib.sha256(context.encode()).hexdigest()[:6]
     context_shorter = re.sub(r"https?://", "", context).replace(r".git", "")
     tag = tag or f"beeai.local/{re.sub(r'[^a-zA-Z0-9._-]+', '-', context_shorter)[:32]}{context_hash}:latest"
+    tag = tag.lower()
     await run_process(
         command=(
             f"{build_command} {context} -t {tag} "
