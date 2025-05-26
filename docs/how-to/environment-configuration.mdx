@@ -1,4 +1,101 @@
 ---
 title: "Environment Configuration"
-description: ""
+description: "Learn how to configure LLM providers and environment variables"
 ---
+
+Most agents require access to language models and other external services to function. BeeAI makes it easy to configure these connections once and share them across all your agents.
+
+## Quick Setup
+
+The fastest way to get started is with the interactive setup wizard:
+
+```bash
+beeai env setup
+```
+
+The setup wizard will then guide you through:
+- API Key entry (with validation)
+- Model selection (with recommendations)
+- Connection testing (to verify everything works)
+- Provider-specific options (like context window for Ollama)
+
+## Supported LLM Providers
+
+BeeAI supports a wide range of language model providers:
+
+### Free Tier Providers
+- **Cerebras**
+- **Chutes**
+- **Cohere**
+- **Google Gemini**
+- **Groq**
+- **Mistral**
+- **OpenRouter**
+- **together.ai**
+
+### Commercial Providers
+- **IBM watsonx**
+- **OpenAI**
+- **Anthropic Claude**
+- **DeepSeek**
+- **NVIDIA NIM**
+- **Perplexity**
+
+### Local Providers
+- **Ollama**
+- **Jan**
+
+### Custom Providers
+- **Other (vLLM, etc.)** - Any OpenAI-compatible API
+
+## Agent-Specific Variables
+
+Some agents require additional API keys for external services.
+
+Example variables that agents might declare:
+
+```bash
+# Search APIs
+beeai env add TAVILY_API_KEY=your-tavily-key
+beeai env add SERP_API_KEY=your-serpapi-key
+
+# Third-party services
+beeai env add GITHUB_TOKEN=your-github-token
+beeai env add DATABASE_URL=postgresql://user:pass@host:5432/db
+```
+
+<Important>
+Agents can only access environment variables they explicitly declare. You can store any variables with `beeai env add`, but agents will only receive the ones they're configured to use.
+Use `beeai agent info <agent-name>` to see exactly what variables each agent needs.
+</Important>
+
+## Manual Environment Management
+
+### Add Variables
+
+Set individual variables:
+```bash
+beeai env add LLM_MODEL=gpt-4o
+beeai env add LLM_API_KEY=your-key-here
+beeai env add LLM_API_BASE=https://api.openai.com/v1
+```
+
+Set multiple variables at once:
+```bash
+beeai env add LLM_MODEL=gpt-4o LLM_API_KEY=sk-... LLM_API_BASE=https://api.openai.com/v1
+```
+
+### View Current Configuration
+
+List all configured environment variables:
+```bash
+beeai env list
+```
+
+### Remove Variables
+
+Remove specific variables:
+```bash
+beeai env remove LLM_API_KEY
+beeai env remove LLM_MODEL LLM_API_BASE
+```
