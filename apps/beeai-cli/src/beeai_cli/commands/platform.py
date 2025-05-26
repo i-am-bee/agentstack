@@ -231,6 +231,7 @@ async def start(
                                     "public_github": "https://github.com/i-am-bee/beeai-platform@release-v0.1.3#path=agent-registry.yaml"
                                 },
                                 "encryptionKey": "Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc=",  # Dummy key for local use
+                                "features": {"uiNavigation": True},
                                 "auth": {"enabled": False},
                                 "telemetry": {"sharing": not disable_telemetry_sharing},
                             }

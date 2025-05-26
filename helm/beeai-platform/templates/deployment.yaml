@@ -84,7 +84,7 @@ spec:
           {{- end }}
           env:
             - name: FEATURE_FLAGS__UI__USER_NAVIGATION
-              value: "false"
+              value: {{ .Values.features.uiNavigation | quote }}
             - name: AGENT_REGISTRY__SYNC_PERIOD_SEC
               value: "30"
             - name: AGENT_REGISTRY__LOCATIONS__FILE
