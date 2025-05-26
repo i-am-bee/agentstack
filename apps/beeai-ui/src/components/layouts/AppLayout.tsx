@@ -20,14 +20,11 @@ import { AppHeader } from '#components/AppHeader/AppHeader.tsx';
 import { AgentDetailPanel } from '#modules/agents/components/AgentDetailPanel.tsx';
 
 import classes from './AppLayout.module.scss';
-import { AppSidebar } from './AppSidebar';
 
 export function AppLayout() {
   return (
     <div className={classes.root}>
       <AppHeader className={classes.header} />
-
-      <AppSidebar />
 
       <main className={classes.main} data-transition>
         <Outlet />

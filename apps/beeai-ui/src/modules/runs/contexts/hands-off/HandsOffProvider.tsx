@@ -15,10 +15,11 @@
  */
 
 import type { PropsWithChildren } from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
+import { usePrevious } from '#hooks/usePrevious.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
 import type { RunLog, RunStats } from '#modules/runs/types.ts';
@@ -98,6 +99,13 @@ export function HandsOffProvider({ agent, children }: PropsWithChildren<Props>) 
     setStats(undefined);
     setLogs([]);
   }, [reset]);
+
+  const previousAgent = usePrevious(agent);
+  useEffect(() => {
+    if (agent !== previousAgent) {
+      handleClear();
+    }
+  }, [handleClear, agent, previousAgent]);
 
   const run = useCallback(
     async (input: string) => {

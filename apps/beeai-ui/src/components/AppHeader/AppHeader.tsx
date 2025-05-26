@@ -17,6 +17,7 @@
 import clsx from 'clsx';
 import { useParams } from 'react-router';
 
+import { MainNav } from '#components/layouts/MainNav.tsx';
 import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
 import type { AgentPageParams } from '#modules/agents/types.ts';
 import { getAgentDisplayName } from '#modules/agents/utils.ts';
@@ -24,7 +25,6 @@ import { getAgentDisplayName } from '#modules/agents/utils.ts';
 import { Container } from '../layouts/Container';
 import { AgentDetailButton } from './AgentDetailButton';
 import classes from './AppHeader.module.scss';
-import { SidebarButton } from './SidebarButton';
 
 interface Props {
   className?: string;
@@ -38,9 +38,7 @@ export function AppHeader({ className }: Props) {
     <header className={clsx(classes.root, className)}>
       <Container size="max">
         <div className={classes.holder}>
-          <div>
-            <SidebarButton />
-          </div>
+          <MainNav />
 
           <div>{agent && <p className={classes.agentName}>{getAgentDisplayName(agent)}</p>}</div>
 

@@ -22,13 +22,12 @@ import { useApp } from '#contexts/App/index.ts';
 import classes from './SidebarButton.module.scss';
 
 export function SidebarButton() {
-  const { setNavigationOpen, navigationToggleRef } = useApp();
+  const { setNavigationOpen } = useApp();
 
   return (
     <Button
       kind="ghost"
       size="sm"
-      ref={navigationToggleRef}
       renderIcon={Menu}
       className={classes.root}
       onClick={() => setNavigationOpen?.((value) => !value)}
