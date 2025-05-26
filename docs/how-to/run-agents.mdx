@@ -1,142 +1,103 @@
 ---
 title: "Run Agents"
-description: "Learn how to run agents"
+description: "Learn how to run agents in BeeAI"
 ---
 
+Once you've discovered agents and configured your environment, running them is simple.
 
-## GUI
+The graphical user interface (GUI) provides an intuitive way to launch and interact with agents. Launch the web interface with `beeai ui`.
 
-The graphical user interface (GUI) provides an intuitive way to launch and manage agents.
+<Info>
+Not all agents support GUI interaction.
+</Info>
 
-<Info>Not all agents support GUI interaction.</Info>
+## Quickstart Examples
 
-<Steps>
-
-    <Step title="Launch the web interface">
-
-```sh
-beeai ui
-```
-
-    </Step>
-    <Step title="Launch the agent">
-
-    - Navigate to the **Agents** tab.
-    - Select you desired agent.
-    - Install the agent by clicking on the cloud icon next to the agent name.
-    - Click the **Launch this agent** button.
-
-    </Step>
-
-</Steps>
-
-## CLI
-
-You can launch and interact with agents directly from your terminal using the command-line interface (CLI).
-
-Make sure the agent is installed and then you can run it using `run` command.
-
-Basic syntax:
-
-```sh
-beeai install <agent_name>
-beeai run <agent_name>
-```
-
-<Tip>To list all available agents, run: `beeai list`.</Tip>
-
-### Interactive interface
-
-Agents that implement a [standardized interface](/concepts/agents#standardized-agent-interfaces) support interactive mode.
-
-Example usage:
-
-```sh
-# Chat agents
+<Accordion title="Chat Agent">
+Start an interactive chat session:
+```bash
 beeai run chat
-
-# Hands-off agents
-beeai run gpt-researcher
 ```
 
-### Simplified interface
-
-Chat and hands-off agents support simplified invocation, accepting text part of an input as the first parameter:
-
-```sh
-# Chat agent example
-beeai run chat "Hello"
-
-# Hands-off agent example
-beeai run gpt-researcher "Impact of climate change on global agriculture"
+Or send a single message:
+```bash
+beeai run chat "Hello! How can you help me today?"
 ```
+</Accordion>
 
-## ACP SDK
+<Accordion title="GPT Researcher">
+```bash
+beeai run gpt-researcher "Research the latest developments in quantum computing"
+```
+</Accordion>
 
-All agents available on the platform are ACP-compliant out of the box, enabling you to remotely interact with them through the [ACP SDK](https://agentcommunicationprotocol.dev/python-sdk/client).
+<Accordion title="Aider - Code Assistant">
+```bash
+beeai run aider "
+Review this Python function and suggest improvements:
 
-The BeeAI platform is an ACP server that allows you to easily discover and run agents programmatically via the SDK or REST endpoints.
+def calculate_fibonacci(n):
+    if n <= 1:
+        return n
+    return calculate_fibonacci(n-1) + calculate_fibonacci(n-2)
+"
+```
+</Accordion>
 
-Install the SDK via
+<Accordion title="Prompt Chaining GPT Researcher -> Chat Agent">
+```bash
+beeai run gpt-researcher "Latest developments in renewable energy storage" | beeai run chat "Summarize this research in 3 key bullet points"
+```
+</Accordion>
+
+## Input Methods
+
+### Interactive Mode
 
 ```bash
-uv add acp-sdk
+beeai run chat
 ```
 
-Example usage:
+### Direct text Input
 
-```python
-import asyncio
-
-from acp_sdk.client import Client
-
-async def client() -> None:
-    async with Client(base_url="http://localhost:8333/api/v1/acp") as client:
-        run = await client.run_sync(agent="aider", input="Create a python script that prints 'Hello, world!'")
-        print(str(run.output[0]))
-
-if __name__ == "__main__":
-    asyncio.run(client())
+```bash
+beeai run gpt-researcher "Research the latest developments in quantum computing"
 ```
 
+### Multi-line Input
 
-## BeeAI framework
+```bash
+beeai run aider "
+Review this Python function and suggest improvements:
 
-The [BeeAI Framework](https://github.com/i-am-bee/beeai-framework) provides advanced tools to build and manage agent-based applications.
-
-Install it via:
-
-```sh
-uv add beeai-framework
+def calculate_fibonacci(n):
+    if n <= 1:
+        return n
+    return calculate_fibonacci(n-1) + calculate_fibonacci(n-2)
+"
 ```
 
-Example usage:
+### File Input
 
-```python
-import asyncio
-import sys
-import traceback
-
-from beeai_framework.agents.experimental.remote import RemoteAgent
-from beeai_framework.errors import FrameworkError
-from beeai_framework.memory.unconstrained_memory import UnconstrainedMemory
-from examples.helpers.io import ConsoleReader
-
-async def main() -> None:
-    reader = ConsoleReader()
-
-    agent = RemoteAgent(agent_name="chat", url="http://127.0.0.1:8333/api/v1/acp/", memory=UnconstrainedMemory())
-    for prompt in reader:
-        # Run the agent and observe events
-        response = await agent.run(prompt).on(
-            "update",
-            lambda data, event: (reader.write("Agent 🤖 (debug) : ", data)),
-        )
-
-        reader.write("Agent 🤖 : ", response.result.text)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+```bash
+beeai run chat < my_file.txt
 ```
 
-For more advanced examples, including partial updates and error logging, refer to the [BeeAI Framework repository](https://github.com/i-am-bee/beeai-framework).
+**Pipe output from one agent to another:**
+```bash
+beeai run gpt-researcher "Latest developments in renewable energy storage" | beeai run chat "Summarize this research in 3 key bullet points"
+```
+
+## Working with Agent Output
+
+### Save Output to Files
+
+```bash
+beeai run chat "Write a technical blog post about Docker" > ~/blog-post.md
+```
+
+### Append to Existing File
+
+```bash
+beeai run chat "Add a conclusion section" >> ~/blog-post.md
+```
