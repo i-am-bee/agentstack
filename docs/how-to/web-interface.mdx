@@ -1,0 +1,48 @@
+---
+title: "Web Interface"
+description: "User-friendly web interface designed for end users"
+---
+
+The BeeAI web interface is a clean, minimalist GUI designed for end users. It provides a simple way to run AI agents without needing technical knowledge or command-line experience.
+
+## Designed for End Users
+
+The web interface is intentionally simple because it's designed to be shared with business users and teams. Unlike developer tools that show every option, this interface only displays agents that are ready for use.
+
+## Getting Started
+
+Launch the web interface:
+
+```bash
+beeai ui
+```
+
+This opens your browser to [http://localhost:8333](http://localhost:8333) where you can browse and run available agents.
+
+## What You'll See
+
+### Agent Types
+
+1. **Chat Agents**: Conversational interfaces
+2. **Task Agents**: Single-purpose tools for specific jobs
+
+### What's Hidden
+
+The web interface only shows agents with proper user interfaces. Agents without UIs are hidden from the GUI but remain available through the command line.
+
+**Why?** This keeps the interface clean for business users while developers can still access everything via CLI during development.
+
+## Using the Interface
+
+1. **Browse Agents**: View available agents
+2. **Select an Agent**: Click to open its interface  
+3. **Provide Input**: Interact with agents
+4. **Get Results**: View outputs and download files as needed
+
+## Q&A
+
+**Q: Why don't I see all the agents from `beeai list`?**  
+A: The web interface only shows agents designed for end users. Developers can access all agents via CLI.
+
+**Q: How do I add an agent to the web interface?**  
+A: Agents need UI metadata to appear. See the [Build Agents](/how-tos/build-agents) guide for developers.
