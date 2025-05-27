@@ -1,4 +1,116 @@
 ---
 title: "Share Agents"
-description: ""
+description: "Learn how to share your AI agents with others using BeeAI"
 ---
+
+Once you've [built an agent](/how-to/build-agents), BeeAI provides multiple ways to share it with others. Choose the method that best fits your needs - whether you want to share publicly with the entire community or privately with just a few trusted collaborators.
+
+## Public Sharing
+
+### GitHub Repository (Recommended)
+
+The most common way to share agents publicly is through GitHub repositories. This provides transparency, version control, and easy distribution.
+
+```bash
+# Users can add your agent directly from GitHub
+beeai add "https://github.com/your-username/your-agent-repo"
+
+# With specific versions or branches
+beeai add "https://github.com/your-username/your-agent-repo@v1.0.0"
+beeai add "https://github.com/your-username/your-agent-repo@develop"
+
+# From specific subdirectories
+beeai add "https://github.com/your-username/your-agent-repo#path=/agents/my-agent"
+```
+
+**Requirements for GitHub sharing:**
+- Repository must be publicly accessible
+- Must contain a `Dockerfile` in the root or specified path
+- Agent must follow ACP (Agent Communication Protocol) standards
+- Include proper agent metadata and documentation
+
+### Public Container Registry
+
+Share pre-built Docker images through public container registries:
+
+```bash
+# GitHub Container Registry (recommended for open source)
+beeai add ghcr.io/your-username/your-agent:latest
+
+# Docker Hub
+beeai add your-username/your-agent:v1.0
+```
+
+<Tip>
+The [agent template](https://github.com/i-am-bee/beeai-platform-agent-starter) includes GitHub Actions that automatically build and publish to GitHub Container Registry on every push to main.
+</Tip>
+
+## Private Sharing
+
+### Private Container Registry
+
+For sharing with select people while maintaining control over access:
+
+```bash
+# GitHub Container Registry (private)
+beeai add ghcr.io/your-username/private-agent:latest
+
+# Private Docker registry
+beeai add registry.your-company.com/team/private-agent:latest
+```
+
+**Steps to set up private sharing:**
+
+<Steps>
+<Step title="Build your agent">
+```bash
+beeai build . --tag my-private-agent:latest
+```
+</Step>
+
+<Step title="Tag for private registry">
+```bash
+docker tag my-private-agent:latest ghcr.io/your-username/private-agent:latest
+```
+</Step>
+
+<Step title="Push to private registry">
+```bash
+docker push ghcr.io/your-username/private-agent:latest
+```
+</Step>
+
+<Step title="Share access">
+Provide trusted users with:
+- The image URL: `ghcr.io/your-username/private-agent:latest`
+- Access credentials to your private registry
+</Step>
+</Steps>
+
+### Direct Image Sharing
+
+For quick sharing with a small group without setting up a registry:
+
+```bash
+# Build the agent locally
+beeai build . --tag my-private-agent:latest
+
+# Export to a file
+docker save my-private-agent:latest > my-agent.tar
+
+# Share the .tar file with trusted users
+```
+
+Users can then load and use the shared image:
+
+```bash
+# Load the shared image
+docker load < my-agent.tar
+
+# Add to BeeAI
+beeai add my-private-agent:latest
+```
+
+<Warning>
+Direct file sharing works well for small groups but doesn't scale for larger teams or provide version management.
+</Warning>
