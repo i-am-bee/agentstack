@@ -45,8 +45,28 @@ BeeAI supports a wide range of language model providers:
 - **Ollama**
 - **Jan**
 
-### Custom Providers
-- **Other (vLLM, etc.)** - Any OpenAI-compatible API
+### Custom Provider via LLM Gateway
+
+If you have a custom OpenAI-compatible API endpoint, you can configure it during the interactive setup via `beeai env setup` by selecting "Other (RITS, vLLM, ...)" and providing your API URL.
+
+BeeAI includes a built-in LLM gateway that provides a unified OpenAI-compatible API endpoint. This is useful when you want to:
+- Point existing agents to BeeAI instead of directly to LLM providers
+- Centrally manage API keys and provider configurations
+- Switch providers without reconfiguring individual agents
+
+After configuring BeeAI with a provider, the gateway is available at: http://localhost:8333/api/v1/llm/chat/completions
+
+You can use this endpoint with any OpenAI-compatible client.
+
+The gateway automatically handles:
+- Authentication with your configured provider
+- Provider-specific request/response formatting
+- Both streaming and non-streaming responses
+- Request validation and error responses
+
+<Important>
+The gateway uses whatever LLM provider you've configured with `beeai env setup`. Configure your preferred provider first, then use the gateway endpoint in your applications.
+</Important>
 
 ## Agent-Specific Variables
 
