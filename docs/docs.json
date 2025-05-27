@@ -35,8 +35,7 @@
       {
         "group": "Core Concepts",
         "pages": ["concepts/architecture",
-                  "concepts/acp-protocol",
-                  "concepts/agents"]
+                  "concepts/acp-protocol"]
       },
       {
         "group": "Deployment",

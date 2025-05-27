@@ -1,25 +1,27 @@
 ---
 title: "ACP Protocol"
-description: "Learn about the open standard for agent communication"
+description: "Learn how ACP powers agent interoperability in BeeAI"
 ---
 
-BeeAI platform is built on the [Agent Communication Protocol (ACP)](https://agentcommunicationprotocol.dev), an open standard designed to enable smooth communication between AI agents, regardless of what framework they're built on.
-
-<Note>
-  For comprehensive documentation on ACP, please visit the [official ACP documentation site](https://agentcommunicationprotocol.dev).
-</Note>
+BeeAI Platform is built on the [Agent Communication Protocol (ACP)](https://agentcommunicationprotocol.dev), an open standard designed to enable smooth communication between AI agents, regardless of what framework they're built on.
 
 ## What is ACP?
 
-ACP standardizes how AI agents communicate, enabling:
-- Seamless interoperability between different agent frameworks
-- Consistent interfaces for agent inputs and outputs
-- Standardized event streams for real-time communication
-- Framework-agnostic tooling and infrastructure
+ACP defines a minimal RESTful API for agent communication, supporting:
+- Synchronous and asynchronous messaging with streaming capabilities
+- Multimodal content (text, images, files, artifacts)
+- Framework-agnostic design that works with any agent implementation
+- Lightweight requirements for easy adoption
 
 ## How BeeAI Uses ACP
 
-BeeAI leverages ACP to:
-- Discover agents across a wide range of frameworks 
-- Run agents locally using your preferred LLM provider
-- Orchestrate agents into workflows regardless of how they were built
+As the official implementation of ACP, BeeAI leverages the protocol to:
+
+- Discover agents from any ACP-compliant framework
+- Run agents locally with your preferred LLM provider
+- Orchestrate workflows by chaining agents together
+- Maintain consistency across different agent types and sources
+
+## Learn More
+
+Explore the complete specification and examples at [agentcommunicationprotocol.dev](https://agentcommunicationprotocol.dev).
