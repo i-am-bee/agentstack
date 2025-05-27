@@ -3,11 +3,9 @@ title: "Architecture"
 description: "An overview of BeeAI core concepts and architecture"
 ---
 
-## Architecture
+BeeAI is designed for a **local-first** experience - agents run directly on your laptop, giving you full control over your data and seamless integration with local inference engines like [ollama](https://ollama.com).
 
-BeeAI enables a local-first experience, running all agents on your laptop for full data control and seamless integration with local inference engines like `ollama`.
-
-The platform is made up of several core concepts as shown in the following diagram:
+The platform is built around several core components, illustrated in the diagram below:
 
 <img
     className="block mx-auto max-h-[648px] dark:hidden"
@@ -18,52 +16,54 @@ The platform is made up of several core concepts as shown in the following diagr
     src="/images/architecture-dark.svg"
 />
 
-## Agents
+## Core Components
 
-An agent is a container that communicates using the [Agent Communication Protocol](https://agentcommunicationprotocol.dev). Agents typically define a manifest that instructs BeeAI on how to run them and may include additional features like tools.
+### Agents
 
-For details on registering agents, see [agents](/concepts/agents).
+An **agent** is a lightweight container that communicates using the [Agent Communication Protocol (ACP)](https://agentcommunicationprotocol.dev). Agents may also define **tools** to extend their capabilities.
 
 <Info>
-    BeeAI includes several built-in agents, see our [agent
-    catalog](https://beeai.dev/agents).
+    BeeAI comes with several built-in agents. Browse the full list in our [Agent Catalog](https://beeai.dev/agents).
 </Info>
 
-## BeeAI Server
+### BeeAI Server
 
 <Info>
-    Explore the
-    [beeai-server](https://github.com/i-am-bee/beeai/tree/main/apps/beeai-server)
-    source code.
+    Dive into the [beeai-server source code](https://github.com/i-am-bee/beeai/tree/main/apps/beeai-server).
 </Info>
 
-BeeAI server manages agents, spawns/destroys agent containers, and provides a unified ACP interface for routing requests between agents and clients.
+The **BeeAI server** coordinates the platform:
+- Manages the lifecycle of agents (spawning and destroying containers)
+- Routes communication between agents and clients via the ACP interface
+- Handles agent configs and environment variables
+- Collects telemetry data and sends it to [Arize Phoenix](https://phoenix.arize.com/) via OpenTelemetry (OTEL)
 
-It also manages agent configurations and environment variables and collects telemetry data which is forwarded to the Arize Phoenix OTEL backend.
+The server uses an official [agent registry](https://github.com/i-am-bee/beeai-platform/blob/main/agent-registry.yaml) on GitHub to discover available agents.
 
-The server discovers a catalog of agents from an official registry hosted on GitHub, see
-[agent-registry.yaml](https://github.com/i-am-bee/beeai-platform/blob/main/agent-registry.yaml). The agents are not
-downloaded automatically, a manual step `beeai install <agent-name>` is required.
-
-## BeeAI CLI and UI
+### BeeAI CLI and UI
 
 <Info>
-    Explore the
+    Check out the
     [beeai-cli](https://github.com/i-am-bee/beeai/tree/main/apps/beeai-cli) and
-    [beeai-ui](https://github.com/i-am-bee/beeai/tree/main/apps/beeai-ui) source
-    code.
+    [beeai-ui](https://github.com/i-am-bee/beeai/tree/main/apps/beeai-ui) repositories.
 </Info>
 
-These components offer interfaces for interacting with agents.
+BeeAI offers two main interfaces:
+- The CLI, for scripting and command-line control
+- The UI, for interacting through a graphical interface (e.g., chat or hands-off mode)
 
-Agents can have custom input/output interfaces, but the platform provides standard UIs like chat and hands-off.
+To start interacting with an agent: `beeai run <name>`
 
-Use `beeai run <name>` or the graphical chat at [localhost:8333](http://localhost:8333) to interact with agents.
+Or open the web interface at [localhost:8333](http://localhost:8333).
 
-## Python client
+## Python Client Integration
 
-You can use the [ACP SDK](https://github.com/i-am-bee/acp) to programmatically interact with the agents and integrate multiple agents into a workflow for your application.
+You can also integrate BeeAI into your Python applications using the [ACP SDK](https://github.com/i-am-bee/acp). This makes it easy to coordinate multiple agents programmatically within your own workflows.
 
-## Arize Phoenix
+## Monitoring and Observability
 
-BeeAI integrates with [Arize Phoenix](https://phoenix.arize.com/), an open-source agent tracing tool. For more information see [agent observability](/observability/agents-traceability).
+### Arize Phoenix Integration
+
+BeeAI supports observability through [Arize Phoenix](https://phoenix.arize.com/), an open-source tool for tracing agent behavior.
+
+For more details, see our [Observe Agents](/how-to/observe-agents) guide.
