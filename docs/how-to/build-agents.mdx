@@ -164,90 +164,27 @@ beeai logs my-agent
 
 ## Step 6: Build and Deploy
 
-### For Local Development and Testing
-
-As covered in Step 5, you can develop and test locally without building containers - just run `uv run server` and test with BeeAI CLI.
-
-### For Production Deployment
-
-To deploy to a production BeeAI platform or share with others, you need to build a container image.
-
-#### Build Container Images
+### For Local BeeAI
 
 ```bash
-# For local BeeAI platform (single architecture)
+# Build and add to your local BeeAI platform
 beeai build .
+beeai add my-agent:latest
 
-# For production hosted platforms (multi-platform)
-beeai build . --tag my-agent:v1.0.0 --multi-platform --no-import
-```
-
-#### Set Up Automated CI/CD
-
-The template includes a GitHub Actions workflow that automatically builds production-ready images:
-
-**.github/workflows/build-agent.yaml** (already included in template):
-```yaml
-name: Build and Push Agent Image
-on:
-  push:
-    branches:
-      - main
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@v2
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-    - name: Build and Push
-      run: |
-        # Builds multi-platform image for production deployment
-        beeai build ./ --tag ghcr.io/${{ github.repository }}/my-agent:latest --no-import --multi-platform
-        docker push ghcr.io/${{ github.repository }}/my-agent:latest
-```
-
-**To enable automatic production builds:**
-1. Push your code to GitHub
-2. The workflow automatically builds multi-platform images on every push to `main`
-3. Images are pushed to GitHub Container Registry
-4. Ready for deployment to any BeeAI platform instance
-
-### Deploy Your Agent
-
-#### For Local BeeAI Platform
-
-```bash
-# Option 1: From locally built image
-beeai add my-agent:v1.0.0
-
-# Option 2: From GitHub (BeeAI builds it locally)
+# Or build from GitHub repository
 beeai add https://github.com/your-username/my-agent
 ```
 
-#### For Production/Hosted BeeAI Platforms
+### For Hosted BeeAI
+
+The template includes GitHub Actions that automatically build production-ready images:
 
 ```bash
-# Option 1: From container registry (recommended for production)
-beeai add ghcr.io/your-username/my-agent:latest
+# 1. Push your code to GitHub (triggers automatic build)
+git push origin main
 
-# Option 2: From GitHub with specific version
-beeai add https://github.com/your-username/my-agent@v1.0.0
+# 2. Deploy from the built container registry
+beeai add ghcr.io/your-username/my-agent:latest
 ```
 
-<Tip>
-**Local vs Production Summary:**
-- **Local development:** Run `uv run server` - no containers needed
-- **Production deployment:** Use CI/CD to build multi-platform container images
-- **Hosted platforms:** Deploy from container registries for best performance
-</Tip>
+The included CI pipeline builds multi-platform images and pushes them to GitHub Container Registry automatically on every push to main.
