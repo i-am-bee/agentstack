@@ -72,6 +72,8 @@ def register_global_exception_handlers(app: FastAPI):
         but this is an open-source service anyway, so the risk is acceptable
         """
 
+        logger.error("Error during HTTP request: %s", repr(extract_messages(exc)))
+
         if request.url.path.startswith("/api/v1/acp"):
             match exc:
                 case ACPError():
@@ -86,8 +88,6 @@ def register_global_exception_handlers(app: FastAPI):
                     )
                 case _:
                     return await catch_all_exception_handler(request, exc)
-
-        logger.error("Error during HTTP request: %s", repr(extract_messages(exc)))
 
         match exc:
             case HTTPException():

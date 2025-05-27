@@ -42,7 +42,11 @@ async def setup_kubernetes_client(config: Configuration):
         ns_path = Path("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
         if await ns_path.exists():
             namespace = (await ns_path.read_text()).strip()
-    return await kr8s.asyncio.api(namespace=namespace, kubeconfig=str(config.k8s_kubeconfig))
+
+    async def api_factory():
+        return await kr8s.asyncio.Api(bypass_factory=True, namespace=namespace, kubeconfig=str(config.k8s_kubeconfig))
+
+    return api_factory
 
 
 async def bootstrap_dependencies():
@@ -56,7 +60,9 @@ async def bootstrap_dependencies():
     di._aliases.clear()  # reset aliases
 
     di[Configuration] = config = get_configuration()
-    di[IProviderDeploymentManager] = KubernetesProviderDeploymentManager(api=await setup_kubernetes_client(config))
+    di[IProviderDeploymentManager] = KubernetesProviderDeploymentManager(
+        api_factory=await setup_kubernetes_client(config)
+    )
     di[IUnitOfWorkFactory] = SqlAlchemyUnitOfWorkFactory(setup_database_engine(config))
 
     register_all_crons()
