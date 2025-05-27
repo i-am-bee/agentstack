@@ -5,21 +5,37 @@ description: ""
 
 BeeAI provides a curated catalog of ready-to-use AI agents to help you get started and understand the platform's capabilities. 
 
-## Agent Catalog
-
 The easiest way to browse available agents is through the [Agent Catalog](https://beeai.dev/agents). This visual interface lets you explore agents by their capabilities, types, and usage examples.
 
-To explore from the command line, use:
+## List Agents
+
+To explore agents from the command line, use:
 
 ```bash
 beeai list
 ```
 
-This will return a list of agents with:
-- **Name** - The agent identifier
-- **State** - Current status (ready, running, starting, missing, error)
-- **Description** - Brief description of what the agent does
-- **Location** - Source registry or image location
+This command returns a table of installed and available agents with the following columns:
+
+| **Field**       | **Description**                                                                 |
+|:-----------------|:---------------------------------------------------------------------------------|
+| **NAME**         | The agent identifier.                                                            |
+| **STATUS**       | Current installation state of the agent.                        |
+| **DESCRIPTION**  | A brief summary of what the agent does.                                         |
+| **UI**           | The type of user interface it supports, such as `chat`, `hands-off`, or `<none>`. |
+| **LOCATION**     | The source registry path for the agent image.                                   |
+| **MISSING ENV**  | Lists any missing environment variables (if applicable).                        |
+| **LAST ERROR**   | Displays the last recorded error message (if applicable).                       |
+
+## Install Agents
+
+If an agent's **STATUS** is `not_installed`, that means it's available but not yet downloaded to your environment. You’ll need to install it before you can run it.
+
+To install an agent:
+
+```bash
+beeai add <agent_name>
+```
 
 ## Agent Details
 
