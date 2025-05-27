@@ -56,7 +56,9 @@ BeeAI includes a built-in LLM gateway that provides a unified OpenAI-compatible 
 
 After configuring BeeAI with a provider, the gateway is available at: http://localhost:8333/api/v1/llm/chat/completions
 
-You can use this endpoint with any OpenAI-compatible client.
+<Note>
+This is a POST-only API endpoint for programmatic use. Use curl or OpenAI-compatible clients to interact with it.
+</Note>
 
 The gateway automatically handles:
 - Authentication with your configured provider
