@@ -1,0 +1,167 @@
+---
+title: "Observe Agents"
+description: "Monitor, debug, and instrument your BeeAI agents"
+---
+
+BeeAI provides observability tools to monitor and debug your agents through logging, telemetry, and integration with external monitoring systems.
+
+## View Agent Logs
+
+Stream real-time logs from any running agent:
+
+```bash
+beeai logs <agent-name>
+```
+
+What you'll see:
+- Agent startup and initialization
+- Request processing steps
+- Error messages and stack traces
+- Container lifecycle events
+
+<Note>
+Logs are only available for managed (containerized) agents that are currently running.
+</Note>
+
+## Telemetry Collection
+
+BeeAI includes OpenTelemetry instrumentation to collect traces and metrics. Telemetry data helps with performance monitoring, error tracking, usage analytics, and debugging agent interactions.
+
+### Default Configuration
+
+By default, BeeAI sends telemetry to:
+- **Local Phoenix instance** (if running) for trace visualization
+- **BeeAI telemetry service** for anonymized platform improvement
+
+The telemetry includes:
+- Platform version and runtime details
+- Agent execution traces
+- Performance metrics
+- Anonymized usage statistics
+
+No sensitive data like prompts, responses, or personal information is collected.
+
+### Configure Telemetry Sharing
+
+Check current telemetry sharing status:
+```bash
+beeai telemetry sharing
+```
+
+To disable external telemetry sharing:
+```bash
+beeai telemetry sharing --disable
+```
+
+To re-enable telemetry sharing:
+```bash
+beeai telemetry sharing --enable
+```
+
+This controls whether anonymized usage data is sent to help improve BeeAI.
+
+## Integration with Phoenix
+
+[Arize Phoenix](https://phoenix.arize.com/) provides visualization for OpenTelemetry traces from your agents.
+
+<Steps>
+   <Step title="Install Arize Phoenix">
+
+Install and start Phoenix using [Homebrew](https://brew.sh/):
+
+```sh
+brew install i-am-bee/beeai/arize-phoenix
+brew services start arize-phoenix
+```
+
+   </Step>
+   <Step title="Run Agent with Phoenix Configuration">
+
+Execute the following command to run an example chat agent:
+
+```sh
+beeai run chat "Hello"
+```
+
+   </Step>
+   <Step title="View Traces in Phoenix">
+      Go to [http://localhost:6006](http://localhost:6006) in your browser and open the **default** project.
+   </Step>
+</Steps>
+
+<Tip>
+  Want richer trace detail? Use the [OpenInference](https://github.com/Arize-ai/openinference/) standard for custom instrumentation.
+</Tip>
+
+## Instrumenting with OpenInference
+
+To enable full traceability of your BeeAI agents, you can instrument them using [OpenInference](https://github.com/Arize-ai/openinference). This guide walks you through the installation and setup process for both [Python](https://github.com/Arize-ai/openinference/tree/main?tab=readme-ov-file#libraries) and [JavaScript](https://github.com/Arize-ai/openinference/tree/main?tab=readme-ov-file#libraries-1) frameworks.
+
+<Warning>
+This guide only covers frameworks officially supported by the OpenInference ecosystem. If your framework isn't listed, instrumentation guidance is not currently provided.
+</Warning>
+
+Before you begin, make sure the Phoenix server is running.
+
+<Tabs>
+
+<Tab title="Python Intrumentation">
+
+<Steps>
+   <Step title="Install required packages">
+
+```sh
+pip install beeai-framework openinference-instrumentation-beeai
+```
+
+   </Step>
+   <Step title="Instrument the BeeAI Framework">
+
+```sh
+from openinference.instrumentation.beeai import BeeAIInstrumentor
+
+BeeAIInstrumentor().instrument()
+```
+
+   </Step>
+   <Step title="Use BeeAI as Usual">
+      You can now run your BeeAI agents as normal. Telemetry data will be captured and exported automatically.
+   </Step>
+</Steps>
+
+<Tip>
+For advanced usage (e.g., running instrumentation outside the BeeAI lifecycle), see: [OpenInference Instrumentation for BeeAI](https://github.com/Arize-ai/openinference/tree/main/python/instrumentation/openinference-instrumentation-beeai)
+</Tip>
+
+</Tab>
+<Tab title="JavaScript Instrumentation">
+
+<Steps>
+   <Step title="Install required packages">
+
+```sh
+npm install --save @arizeai/openinference-instrumentation-beeai beeai-framework
+```
+
+   </Step>
+   <Step title="Instrument the BeeAI Framework">
+
+```sh
+import { BeeAIInstrumentation } from "@arizeai/openinference-instrumentation-beeai";
+import * as beeaiFramework from "beeai-framework";
+
+const beeAIInstrumentation = new BeeAIInstrumentation();
+beeAIInstrumentation.manuallyInstrument(beeaiFramework);
+```
+
+   </Step>
+   <Step title="Use BeeAI as Usual">
+      You can now run your BeeAI agents as normal. Telemetry data will be captured and exported automatically.
+   </Step>
+</Steps>
+
+<Tip>
+For advanced usage (e.g., running instrumentation outside the BeeAI lifecycle), see: [OpenInference Instrumentation for BeeAI](https://github.com/Arize-ai/openinference/tree/main/js/packages/openinference-instrumentation-beeai)
+</Tip>
+
+</Tab> </Tabs>
