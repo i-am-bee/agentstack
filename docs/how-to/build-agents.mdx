@@ -3,7 +3,7 @@ title: "Build Agents"
 description: "Learn how to build agents for BeeAI"
 ---
 
-BeeAI can run agents built in any framework - CrewAI, LangChain, BeeAI Framework, or custom Python code. We recommend using our Python template as it's the fastest way to get a working BeeAI agent.
+BeeAI can run agents built in any framework - CrewAI, LangChain, BeeAI Framework, or custom code. We recommend using our Python template as it's the fastest way to get a working BeeAI agent.
 
 ## Prerequisites
 
@@ -95,12 +95,8 @@ Add rich metadata to improve the user experience:
             }
         ],
         
-        # Additional Info (optional)
+        # Recommended model
         recommended_models=["llama3.3:70b-instruct-fp16"],
-        dependencies=[
-            {"type": "tool", "name": "Weather API"},
-            {"type": "tool", "name": "Wikipedia"}
-        ]
     )
 )
 async def my_agent(input: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
@@ -157,9 +153,6 @@ beeai list
 
 # Run your agent
 beeai run my-agent "Hello world!"
-
-# View logs if needed
-beeai logs my-agent
 ```
 
 ## Step 6: Build and Deploy
