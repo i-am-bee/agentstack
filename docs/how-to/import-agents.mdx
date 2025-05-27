@@ -1,93 +1,116 @@
 ---
 title: "Import Agents"
-description: "Add new agents to the platform"
-icon: "file-import"
+description: "Learn how to import new agents to BeeAI"
 ---
 
-The beeai-platform comes with a few agents out of the box. However, extending the agent library is an easy task,
-here are a few ways how you can add new agents.
+BeeAI provides multiple ways to work with agents in your local environment. This guide explains how to add and manage agents effectively.
 
+## Adding Agents
 
-### Import by magic 🪄
-When developing agents locally with ACP, all you need to do is to run the ACP server as you normally would, and your
-agents should seamlessly pop up in the platform! You should see them both in the UI and `beeai list` and be able to
-work with them the way you're used to in the platform.
+### Auto-Discovery for Local Development
 
-This is the simplest, most straightforward way to use your local agents in the platform and should be your go-to option
-for local development.
+When developing ACP-compliant agents locally, BeeAI automatically discovers them without manual setup:
 
-For example, write your agent code in `hello.py`
+```bash
+# Example: Run an ACP agent on port 8000 
+uv run my_agent.py
 
-```python hello.py
-# /// script
-# dependencies = [
-#   "acp-sdk>=0.8.1",
-# ]
-# ///
-
-import asyncio
-from collections.abc import AsyncGenerator
-
-from acp_sdk.models import Message, Metadata
-from acp_sdk.server import Context, RunYield, RunYieldResume, Server
-
-server = Server()
-
-@server.agent(metadata=Metadata(ui={"type": "chat"}))
-async def echo(
-    input: list[Message], context: Context
-) -> AsyncGenerator[RunYield, RunYieldResume]:
-    """Echoes everything"""
-    for message in input:
-        await asyncio.sleep(0.5)
-        yield {"thought": "I should echo everything"}
-        await asyncio.sleep(0.5)
-        yield message
-
-server.run()
+# The agent automatically appears in BeeAI
+beeai list  # Your agent will be visible here
 ```
 
-Once started with `uv run hello.py` you should see the agent automagically in the platform after running `beeai list`.
+<Info>
+  Auto-discovered agents appear in both the CLI and web UI automatically. No manual import needed!
+</Info>
 
-### Import docker image
-You can also add agents using a pre-built docker image. This can be a public image from the internet or one that you
-have built locally using `beeai build /path/to/agent`.
+### From GitHub Repositories
 
-Importing docker agents is as simple as
-```sh
-beeai add <IMAGE-ID>
+Import agents directly from GitHub repositories that contain proper Dockerfiles. Try this ready-to-go starter project:
+
+```bash
+beeai add "https://github.com/i-am-bee/beeai-platform-agent-starter"
 ```
 
+More import options:
 
-### Import GitHub repository
-Another way to add agents is to use source code in a public GitHub repository. All you have to do is run:
+```bash
+# Specify a version or branch
+beeai add "https://github.com/i-am-bee/custom-agent@v1.0.0"
+beeai add "https://github.com/i-am-bee/custom-agent@develop"
+
+# Import from specific subdirectory
+beeai add "https://github.com/i-am-bee/custom-agent#path=/agents/my-agent"
+
+# Combined version and path
+beeai add "https://github.com/i-am-bee/multi-agent-repo@v2.1.0#path=/agents/specialized-agent"
 ```
-beeai add "https://github.com/<org>/<repo>"
+
+<Note>
+  **Requirements for GitHub import:**
+  - Repository must contain a `Dockerfile` in the root or specified path
+  - Agent must follow ACP protocol standards
+  - Repository must be publicly accessible
+</Note>
+
+### From Docker Images
+
+Add agents from pre-built Docker images:
+
+```bash
+# From GitHub Container Registry
+beeai add ghcr.io/i-am-bee/beeai-platform/community/aider:latest
+
+# From Docker Hub
+beeai add myuser/my-agent:v1.0
+
+# From private registry
+beeai add registry.example.com/team/custom-agent:latest
 ```
-This will download the agent code, build its docker image locally and register it to the platform.
 
-<Tip>
-    You can pin the version or specify a subdirectory using the following URL segments:
-    - `@<version>` - specify branch or tag
-    - `#path=</sub/directory>` - specify agent folder
+### Build and Add Local Agents
 
-    For example:
-    ```sh
-    beeai add "https://github.com/i-am-bee/beeai-platform@release-v0.1.0#path=agents/official/beeai-framework/chat"
-    ```
-</Tip>
+For local development and testing:
+
+```bash
+# Build an agent from current directory
+beeai build .
+
+# Build from specific directory
+beeai build /path/to/my-agent
+
+# Build with custom tag
+beeai build . --tag my-custom-agent:dev
+
+# Build without importing (for testing)
+beeai build . --no-import
+```
+
+The built agent will automatically be available in your agent list.
+
+## Removing Agents
+
+When you no longer need an agent:
+
+```bash
+# Remove by agent name
+beeai remove <agent-name>
+
+# Alternative commands (aliases)
+beeai uninstall <agent-name>
+beeai delete <agent-name>
+beeai rm <agent-name>
+```
 
 <Warning>
-    The repository must contain a `Dockerfile`, see [Share Agents](/how-to/share-agents) section to learn how to publish
-    agents to GitHub to make them shareable.
+  **Important considerations when removing agents:**
+  - This deletes the agent's Docker image from your system
+  - For locally built agents, you'll need to rebuild them to use again
 </Warning>
 
+## Checking Agent Status
 
-### Removing agents
+You can check the status of your agents at any time:
 
-To remove an agent use
+```bash
+beeai list
 ```
-beeai remove <agent-name>
-```
-This will remove agent docker image from your system. If you remove a locally built agent, you'll need to re-run
-`beeai build /path/to/agent` if you want to add it again.
