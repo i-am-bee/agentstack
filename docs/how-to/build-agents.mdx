@@ -20,20 +20,20 @@ If you're building new agents from scratch, check out the [BeeAI Framework](http
 
 ### Set Up Your Project
 
-Use the [official starter template](https://github.com/i-am-bee/beeai-platform-agent-starter).
+Use the [official starter template](https://github.com/i-am-bee/beeai-platform-agent-starter) to get started quickly.
 
-**Option A** – Clone it directly:
+**Option A** – Clone directly:
 
 ```bash
 git clone https://github.com/i-am-bee/beeai-platform-agent-starter my-agent
 cd my-agent
 ```
 
-**Option B** – Use it as a GitHub template:
+**Option B** – Use as a GitHub template:
 
 1. Go to [the template repository](https://github.com/i-am-bee/beeai-platform-agent-starter)
 2. Click "Use this template" → "Create a new repository"
-3. Clone your new repository
+3. Clone your new repository locally
 
 ### Install Dependencies
 
@@ -73,47 +73,12 @@ my-agent/
 **Important files:**
 - `agent.py` - Where you implement your agent's behavior
 - `pyproject.toml` - Add new Python dependencies here
-- `Dockerfile` - Usually no changes needed
 
 ## Build Your Custom Agent
 
-### Understand the Template Agent
+### Implement Your Agent Logic
 
-The template includes a simple greeting agent in `src/beeai_agents/agent.py`:
-
-```python
-@server.agent(
-    metadata=Metadata(ui={"type": "hands-off"})
-)
-async def example_agent(...):
-    ...
-```
-
-It uses environment variables, handles messages, and responds with a polite greeting.
-
-### Wrap Your Own Agent
-
-Let’s say you want to integrate a CrewAI agent.
-
-<Accordion title="Example: Wrap a CrewAI Agent">
-
-```python
-@server.agent(
-    metadata=Metadata(
-        ui={"type": "hands-off"},
-        framework="CrewAI",
-        env=[{
-            "name": "OPENAI_API_KEY",
-            "description": "OpenAI API key for the CrewAI agent",
-            "required": True
-        }]
-    )
-)
-async def crewai_agent(input: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
-    ...
-```
-
-</Accordion>
+Navigate to [src/beeai_agents/agent.py](https://github.com/i-am-bee/beeai-platform-agent-starter/blob/main/src/beeai_agents/agent.py) and replace the example with your agent implementation.
 
 **Tips for Wrapping Agents:**
 - The function name becomes the agent ID (override with `name=`)
@@ -126,7 +91,13 @@ async def crewai_agent(input: list[Message], context: Context) -> AsyncGenerator
 Each `@server.agent` function defines a new agent service.
 </Tip>
 
-### Add Complete Metadata
+Here are examples of wrapping popular agent frameworks:
+
+1. [Example: BeeAI Framework](https://github.com/i-am-bee/acp/blob/main/examples/python/beeai-chat/agent.py)
+2. [Example: CrewAI](https://github.com/i-am-bee/acp/blob/main/examples/python/crewai-song-writer/agent.py)
+3. [Example: LangGraph](https://github.com/i-am-bee/acp/blob/main/examples/python/langgraph-greeting/agent.py)
+
+### Configure Agent Metadata
 
 The more metadata, the better the UX. Here's a full example with every supported option:
 
@@ -210,64 +181,63 @@ dependencies = [
 ]
 ```
 
-Then sync with `uv sync`.
+Then synchronize with `uv sync`.
 
-### Test Locally
+## Test Your Agent
 
-Start your server:
+Start the agent server:
 
 ```bash
 uv run server
 ```
 
-You should see:
+<Note>
+When you run `uv run server` locally, your agent automatically registers with the BeeAI Platform as an unmanaged provider. This means:
+- Your local server communicates directly with the platform
+- No containerization needed
+- Changes are immediately available
+- You control the lifecycle (start/stop manually)
+</Note>
 
-```
-INFO:     Uvicorn running on http://127.0.0.1:8000
-```
-
-In a separate terminal, test with BeeAI:
+Test with BeeAI CLI:
 
 ```bash
-beeai list  # Shows registered agents
-beeai run my-agent "Hello world!"
+# List available agents
+beeai list
 ```
 
-## Deploy Your Agent
+Run your agent:
 
-### Option 1: Build Locally
+```bash
+beeai run my_custom_agent "Hello!"
+```
+
+## Deployment
+
+### Build the Agent Image
+
+Before sharing or deploying your agent, test it in a containerized environment. This ensures compatibility and lets the BeeAI platform manage its lifecycle (start, stop, scale).
 
 ```bash
 beeai build .
-beeai list  # Confirms it's registered
-beeai run your_agent "test input"
 ```
 
-### Option 2: Deploy from GitHub
+This command:
+- Builds a Docker image of your agent
+- Extracts agent metadata during the build
+- Imports the image into your local BeeAI platform
+- Creates a **managed provider** (BeeAI handles container lifecycle)
 
-1. Push to GitHub
+### Add Agent to BeeAI Platform
+
+Use this when your agent comes from an external source (GitHub repo, remote/local Docker image).
 
 ```bash
-git add .
-git commit -m "Add custom agent"
-git push origin main
+beeai add .
 ```
 
-2. Register via BeeAI:
-
-```bash
-beeai add https://github.com/your-username/your-agent-repo
-```
-
-### Option 3: CI/CD with GitHub Actions
-
-The starter includes a built-in GitHub Actions workflow:
-1. Push your changes
-2. GitHub builds a Docker image
-3. Image is published to GHCR (GitHub Container Registry)
-
-Then add your agent:
-
-```bash
-beeai add ghcr.io/your-username/your-agent:latest
-```
+This command:
+- Downloads or pulls the agent source
+- Builds a Docker image if needed (e.g., from GitHub)
+- Registers it as a managed provider
+- Adds it to your local agent catalog

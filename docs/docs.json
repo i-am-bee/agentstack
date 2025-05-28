@@ -39,8 +39,9 @@
       },
       {
         "group": "Deployment",
-        "pages": ["deployment/self-hosting-options",
-                  "deployment/kubernetes"
+        "pages": ["deployment/overview",
+                  "deployment/kubernetes",
+                  "deployment/openshift"
                  ]
       },
       {
