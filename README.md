@@ -50,7 +50,7 @@ BeeAI makes it easy to experiment with agent capabilities on your own machine:
 - 🧪 **Try agents** instantly from the community catalog without complex setup
 - 📦 Use **standard interfaces** that create consistent user experiences
 - 🛠️ **Package existing agents** from any framework using standardized containers
-- 🌍 **Share agents** with others through a consistent protocol
+- 🌍 **Share agents** with others through a consistent web interface
 
 ## 👥 For Teams
 
