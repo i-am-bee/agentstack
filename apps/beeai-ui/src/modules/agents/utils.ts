@@ -73,3 +73,8 @@ export function getAvailableAgentLinkUrl<T extends AgentLinkType | AgentLinkType
 
   return url;
 }
+
+export function getAgentDisplayName(agent: Agent) {
+  const { name, metadata } = agent;
+  return metadata.name ?? name;
+}

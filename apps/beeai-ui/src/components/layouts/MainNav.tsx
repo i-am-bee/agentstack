@@ -14,29 +14,45 @@
  * limitations under the License.
  */
 
+import { type RefObject, useRef } from 'react';
+import { useOnClickOutside } from 'usehooks-ts';
+
 import { AgentsNav } from '#components/AgentsNav/AgentsNav.tsx';
+import { SidebarButton } from '#components/AppHeader/SidebarButton.tsx';
 import { SidePanel } from '#components/SidePanel/SidePanel.tsx';
 import { UserNav } from '#components/UserNav/UserNav.tsx';
 import { useApp } from '#contexts/App/index.ts';
 import { useAppConfig } from '#contexts/AppConfig/index.ts';
 
-import classes from './AppSidebar.module.scss';
+import classes from './MainNav.module.scss';
 
-export function AppSidebar() {
-  const { navigationOpen, navigationPanelRef } = useApp();
+export function MainNav() {
+  const { navigationOpen } = useApp();
   const { featureFlags } = useAppConfig();
+  const { closeNavOnClickOutside, setNavigationOpen } = useApp();
+  const navRef = useRef<HTMLDivElement>(null);
+
+  useOnClickOutside(navRef as RefObject<HTMLDivElement>, () => {
+    if (closeNavOnClickOutside) {
+      setNavigationOpen?.(false);
+    }
+  });
 
   return (
-    <SidePanel variant="left" isOpen={navigationOpen} ref={navigationPanelRef}>
-      <div className={classes.root}>
-        <AgentsNav />
+    <div ref={navRef}>
+      <SidebarButton />
 
-        {featureFlags?.user_navigation && (
-          <div className={classes.footer}>
-            <UserNav />
-          </div>
-        )}
-      </div>
-    </SidePanel>
+      <SidePanel variant="left" isOpen={navigationOpen}>
+        <div className={classes.root}>
+          <AgentsNav />
+
+          {featureFlags?.user_navigation && (
+            <div className={classes.footer}>
+              <UserNav />
+            </div>
+          )}
+        </div>
+      </SidePanel>
+    </div>
   );
 }

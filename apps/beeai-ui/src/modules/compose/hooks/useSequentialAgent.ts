@@ -21,7 +21,7 @@ import { SEQUENTIAL_WORKFLOW_AGENT_NAME } from '../sequential/constants';
 
 export function useSequentialAgent() {
   const { data: agent } = useAgent({ name: SEQUENTIAL_WORKFLOW_AGENT_NAME });
-  const { isReady } = useAgentStatus({ provider: agent?.metadata.provider });
+  const { isReady } = useAgentStatus({ providerId: agent?.metadata.provider_id });
 
   return isReady ? agent : undefined;
 }

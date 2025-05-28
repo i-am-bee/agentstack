@@ -10,7 +10,7 @@ unmanagedProviders: [ ]
 
 # External registries in the format: [name: githubURL]
 # for example
-# github: "https://github.com/i-am-bee/beeai-platform@release-v0.1.3#path=agent-registry.yaml"
+# github: "https://github.com/i-am-bee/beeai-platform@release-v0.2.0#path=agent-registry.yaml"
 externalRegistries: { }
 
 auth:
@@ -35,6 +35,10 @@ imagePullSecrets: [ ]
 # This is to override the chart name.
 nameOverride: ""
 fullnameOverride: ""
+
+features:
+  # Enables variable configuration - should be disabled in production (correlates with auth.enabled)
+  uiNavigation: false
 
 # This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
 serviceAccount:

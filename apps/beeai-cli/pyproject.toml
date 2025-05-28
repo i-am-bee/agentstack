@@ -1,12 +1,11 @@
 [project]
 name = "beeai-cli"
-version = "0.1.4"
+version = "0.2.1"
 description = "BeeAI CLI"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
 requires-python = ">=3.11,<4.0"
 dependencies = [
-    "beeai-server==0.1.4",
     "anyio>=4.8.0",
     "pydantic>=2.10.6",
     "pydantic-settings>=2.7.1",
@@ -22,6 +21,8 @@ dependencies = [
     "acp-sdk>=0.8.1",
     "tenacity>=9.1.2",
     "kr8s>=0.20.7",
+    "typer>=0.15.3",
+    "click~=8.1.8",
 ]
 
 [tool.uv.sources]

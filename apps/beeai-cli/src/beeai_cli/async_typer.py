@@ -21,14 +21,12 @@ from typing import Iterator
 
 import rich.text
 import typer
-from httpx import ConnectError
 from rich.console import RenderResult
 from rich.markdown import Heading, Markdown
 from rich.table import Table
 from typer.core import TyperGroup
 
 from beeai_cli.console import console, err_console
-from beeai_cli.api import resolve_connection_error
 from beeai_cli.configuration import Configuration
 from beeai_cli.utils import extract_messages, format_error
 
@@ -87,20 +85,17 @@ class AsyncTyper(typer.Typer):
             @functools.wraps(f)
             def wrapped_f(*args, **kwargs):
                 try:
-                    for retries in range(2):
-                        try:
-                            if inspect.iscoroutinefunction(f):
-                                return asyncio.run(f(*args, **kwargs))
-                            else:
-                                return f(*args, **kwargs)
-                        except* (ConnectionError, ConnectError):
-                            if retries == 0:
-                                asyncio.run(resolve_connection_error())
-                            else:
-                                raise
+                    if inspect.iscoroutinefunction(f):
+                        return asyncio.run(f(*args, **kwargs))
+                    else:
+                        return f(*args, **kwargs)
                 except* Exception as ex:
                     for exc_type, message in extract_messages(ex):
                         err_console.print(format_error(exc_type, message))
+                        if exc_type in ["ConnectionError", "ConnectError"]:
+                            err_console.print(
+                                "💡 [yellow]HINT[/yellow]: Start the BeeAI platform using: [green]beeai platform start[/green]"
+                            )
                         if exc_type == "McpError":
                             err_console.print(
                                 "💡 [yellow]HINT[/yellow]: Is your configuration correct? Try re-entering your LLM API details with: [green]beeai env setup[/green]"

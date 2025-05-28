@@ -20,6 +20,7 @@ import clsx from 'clsx';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Container } from '#components/layouts/Container.tsx';
+import { AgentGreeting } from '#modules/agents/components/AgentGreeting.tsx';
 
 import { AgentHeader } from '../components/AgentHeader';
 import { AgentIcon } from '../components/AgentIcon';
@@ -71,7 +72,6 @@ export function Chat() {
     };
   }, []);
 
-  const userGreeting = agent.metadata.ui?.user_greeting;
   const isNew = !(isPending || messages.length);
 
   return (
@@ -80,10 +80,7 @@ export function Chat() {
         {isNew ? (
           <div className={classes.header}>
             <AgentIcon size="xl" />
-            <h1 className={classes.heading}>
-              Hi, I am {agent.name}!<br />
-              {userGreeting || 'What is your task?'}
-            </h1>
+            <AgentGreeting agent={agent} />
           </div>
         ) : (
           <AgentHeader className={classes.header} onNewSessionClick={onClear} />

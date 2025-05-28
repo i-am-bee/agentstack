@@ -59,7 +59,7 @@ With ACP at its core, BeeAI makes it easy to:
 
 ```sh
 brew install i-am-bee/beeai/beeai
-brew services start beeai
+beeai platform start
 ```
 
 2. **Configure** LLM provider:

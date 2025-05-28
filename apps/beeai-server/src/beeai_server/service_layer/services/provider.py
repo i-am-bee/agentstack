@@ -171,6 +171,8 @@ class ProviderService:
             try:
                 async with logs_container.stream() as stream:
                     async for message in stream:
+                        if message.model_dump().get("error"):
+                            raise RuntimeError(f"Error capturing logs: {message.message}")
                         yield json.dumps(message.model_dump(mode="json"))
             finally:
                 await cancel_task(logs_task)

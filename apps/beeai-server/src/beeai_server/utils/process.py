@@ -21,7 +21,7 @@ import anyio.to_thread
 logger = logging.getLogger(__name__)
 
 
-async def find_free_port():
+async def find_free_port() -> int:
     """Get a random free port assigned by the OS."""
     listener = await anyio.create_tcp_listener()
     port = listener.extra(anyio.abc.SocketAttribute.local_address)[1]

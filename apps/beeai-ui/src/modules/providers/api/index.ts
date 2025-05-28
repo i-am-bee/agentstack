@@ -19,7 +19,7 @@ import { events } from 'fetch-event-stream';
 import { api } from '#api/index.ts';
 import { ensureData, ensureResponse } from '#api/utils.ts';
 
-import type { DeleteProviderPath, InstallProviderPath, RegisterManagedProviderRequest } from './types';
+import type { DeleteProviderPath, RegisterProviderRequest } from './types';
 
 export async function listProviders() {
   const response = await api.GET('/api/v1/providers');
@@ -33,17 +33,9 @@ export async function deleteProvider({ id }: DeleteProviderPath) {
   return ensureData(response);
 }
 
-export async function installProvider({ id }: InstallProviderPath) {
-  const response = await api.PUT('/api/v1/providers/{id}/install', { params: { path: { id } } });
-
-  return ensureData(response);
-}
-
-export async function registerManagedProvider({ body }: { body: RegisterManagedProviderRequest }) {
-  const response = await api.POST('/api/v1/providers/register/managed', {
-    parseAs: 'stream',
+export async function registerManagedProvider({ body }: { body: RegisterProviderRequest }) {
+  const response = await api.POST('/api/v1/providers', {
     body,
-    params: { query: { stream: true, install: true } },
   });
   const stream = events(ensureResponse(response));
 

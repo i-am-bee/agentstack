@@ -40,7 +40,7 @@ import { getAgentsProgrammingLanguages } from '#modules/agents/utils.ts';
 
 import { useDeleteProvider } from '../api/mutations/useDeleteProvider';
 import { useListProviders } from '../api/queries/useListProviders';
-import { getProviderSource, groupAgentsByProvider, stripProviderSourcePrefix } from '../utils';
+import { groupAgentsByProvider } from '../utils';
 import classes from './ProvidersView.module.scss';
 
 export function ProvidersView() {
@@ -49,16 +49,14 @@ export function ProvidersView() {
   const { mutate: deleteProvider } = useDeleteProvider();
   const { data: agents, isPending: isAgentsPending } = useListAgents();
   const agentsByProvider = groupAgentsByProvider(agents);
+
   const entries = useMemo(
     () =>
       providers
-        ? providers.items.map(({ id, location }) => {
+        ? providers.items.map(({ id, source }) => {
             const agents = agentsByProvider[id];
-            const source = getProviderSource(location);
-            const url = stripProviderSourcePrefix(location);
             return {
               id,
-              url,
               source,
               runtime: getAgentsProgrammingLanguages(agents).join(', '),
               agents: agents?.length ?? 0,
@@ -72,7 +70,7 @@ export function ProvidersView() {
                       openConfirmation({
                         title: (
                           <>
-                            Delete <span className={classes.deleteModalProviderId}>{url}</span>?
+                            Delete <span className={classes.deleteModalProviderId}>{source}</span>?
                           </>
                         ),
                         body: 'Are you sure you want to delete this provider? It can’t be undone.',
@@ -147,7 +145,6 @@ export function ProvidersView() {
 }
 
 const HEADERS = [
-  { key: 'url', header: 'URL' },
   { key: 'source', header: 'Source' },
   { key: 'runtime', header: 'Runtime' },
   { key: 'agents', header: <>#&nbsp;of&nbsp;agents</> },

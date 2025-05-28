@@ -13,9 +13,10 @@
 # limitations under the License.
 
 import base64
+import hashlib
 import json
+import re
 import subprocess
-import sys
 import typing
 import uuid
 from contextlib import suppress
@@ -24,6 +25,7 @@ from typing import Optional
 
 import anyio
 import anyio.abc
+from beeai_cli.utils import VMDriver
 import typer
 from anyio import open_process
 
@@ -31,10 +33,9 @@ from anyio import run_process
 from httpx import HTTPError, AsyncClient
 from tenacity import AsyncRetrying, wait_fixed, stop_after_delay, retry_if_exception_type
 
-from beeai_cli import Configuration
 from beeai_cli.async_typer import AsyncTyper
 from beeai_cli.console import console
-from beeai_cli.utils import extract_messages, import_images_to_vm
+from beeai_cli.utils import extract_messages
 
 
 async def find_free_port():
@@ -48,21 +49,17 @@ async def find_free_port():
 app = AsyncTyper()
 
 
-async def save_image(image_id: str):
-    with console.status("Saving image", spinner="dots"):
-        path = str(Configuration().home / "images" / image_id.replace("/", "_")) + ".tar"
-        await run_process(["docker", "image", "save", "-o", path, image_id])
-
-
 @app.command("build")
 async def build(
     context: Optional[str] = typer.Argument(".", help="Docker context for the agent"),
     tag: Optional[str] = typer.Option(None, help="Docker tag for the agent"),
     multi_platform: Optional[bool] = False,
-    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai",
-    import_images: typing.Annotated[
-        bool, typer.Option(help="Load images from the ~/.beeai/images folder on host into the VM")
+    quiet: typing.Annotated[bool, typer.Option(hidden=True)] = False,
+    import_image: typing.Annotated[
+        bool, typer.Option("--import/--no-import", is_flag=True, help="Import the image into BeeAI platform")
     ] = True,
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
+    vm_driver: typing.Annotated[VMDriver, typer.Option(hidden=True)] = None,
 ):
     try:
         await run_process("which docker", check=True)
@@ -73,11 +70,17 @@ async def build(
     image_id = "beeai-agent-build-tmp:latest"
     port = await find_free_port()
     if multi_platform:
-        build_command = "docker buildx build --platform=linux/amd64,linux/amd64/v2,linux/amd64/v3,linux/386"
+        build_command = "docker buildx build --platform=linux/amd64,linux/arm64 --load"
     else:
         build_command = "docker build"
 
-    await run_process(f"{build_command} {context} -t {image_id}", check=True, stdout=sys.stdout, stderr=sys.stderr)
+    with console.status("building agent image", spinner="dots"):
+        await run_process(
+            f"{build_command} {context} -t {image_id}",
+            check=True,
+            stdout=subprocess.DEVNULL if quiet else None,
+            stderr=subprocess.DEVNULL if quiet else None,
+        )
 
     response = None
 
@@ -101,6 +104,8 @@ async def build(
                             resp = await client.get(f"http://localhost:{port}/agents", timeout=1)
                             resp.raise_for_status()
                             response = resp.json()
+                            if "agents" not in response:
+                                raise ValueError(f"Missing agents in response from server: {response}")
                 with anyio.move_on_after(delay=1):
                     process.terminate()
                 with suppress(ProcessLookupError):
@@ -111,13 +116,10 @@ async def build(
             with suppress(BaseException):
                 await run_process(f"docker kill {container_id}")
 
-    if len(response["agents"]) > 1 and not tag:
-        raise ValueError(
-            "The server contains more than one agent - the image naming is ambiguous."
-            "please provide a specific docker tag to export, e.g. `beeai build --tag my-agent:latest"
-        )
-
-    tag = tag or f"beeai.local/{response['agents'][0]['name']}:latest"
+    context_hash = hashlib.sha256(context.encode()).hexdigest()[:6]
+    context_shorter = re.sub(r"https?://", "", context).replace(r".git", "")
+    tag = tag or f"beeai.local/{re.sub(r'[^a-zA-Z0-9._-]+', '-', context_shorter)[:32]}{context_hash}:latest"
+    tag = tag.lower()
     await run_process(
         command=(
             f"{build_command} {context} -t {tag} "
@@ -126,6 +128,9 @@ async def build(
         check=True,
     )
     console.print(f"✅ Successfully built agent: {tag}")
-    await save_image(image_id=tag)
-    if import_images:
-        import_images_to_vm(vm_name)
+    if import_image:
+        from beeai_cli.commands.platform import import_image
+
+        import_image(tag, vm_name=vm_name, vm_driver=vm_driver)
+
+    return tag, response["agents"]

@@ -16,6 +16,8 @@
 
 import clsx from 'clsx';
 
+import { AgentGreeting } from '#modules/agents/components/AgentGreeting.tsx';
+
 import { AgentHeader } from '../components/AgentHeader';
 import { AgentRunLogs } from '../components/AgentRunLogs';
 import { ElapsedTime } from '../components/ElapsedTime';
@@ -27,10 +29,9 @@ import { TaskStatusBar } from './TaskStatusBar';
 
 export function HandsOff() {
   const { agent, logs, output, isPending, stats, onClear } = useHandsOff();
-  const userGreeting = agent.metadata.ui?.user_greeting;
 
   const isPendingOrOutput = Boolean(isPending || output);
-  const isFinal = Boolean(output && !isPending);
+  const isCompleted = Boolean(output && !isPending);
 
   return (
     <HandsOffView>
@@ -39,13 +40,17 @@ export function HandsOff() {
           <div className={classes.header}>
             <AgentHeader agent={agent} onNewSessionClick={isPendingOrOutput ? onClear : undefined} />
 
-            <h2 className={classes.heading}>{isFinal ? 'Task input:' : userGreeting || 'What is your task?'}</h2>
+            {isCompleted ? (
+              <h2 className={classes.heading}>Task input:</h2>
+            ) : (
+              <AgentGreeting agent={agent} className={classes.heading} defaultGreeting="What is your task?" />
+            )}
           </div>
 
           <div className={classes.body}>
             <HandsOffInput />
 
-            {isFinal && (
+            {isCompleted && (
               <span className={classes.elapsed}>
                 Task completed in <ElapsedTime stats={stats} />
               </span>

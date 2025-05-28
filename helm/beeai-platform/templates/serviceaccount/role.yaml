@@ -19,3 +19,13 @@ rules:
   - apiGroups: [ "" ]
     resources: [ "secrets" ]
     verbs: [ "create", "update", "patch", "get", "list", "watch", "delete" ]
+
+  # Permissions for pods (list and logs)
+  - apiGroups: [ "" ]
+    resources: [ "pods" ]
+    verbs: [ "get", "list", "watch" ]
+
+  # Permissions for pod logs
+  - apiGroups: [ "" ]
+    resources: [ "pods/log" ]
+    verbs: [ "get" ]

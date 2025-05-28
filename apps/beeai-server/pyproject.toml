@@ -1,12 +1,12 @@
 [project]
 name = "beeai-server"
-version = "0.1.4"
+version = "0.2.0"
 description = "BeeAI server"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
 requires-python = ">=3.11,<4.0"
 dependencies = [
-    "acp-sdk>=0.8.1",
+    "acp-sdk>=0.9.1",
     "aiohttp>=3.11.11",
     "anyio>=4.9.0",
     "asgiref>=3.8.1",
@@ -43,8 +43,24 @@ migrate = "beeai_server:migrate"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
+markers = ["e2e"]
+addopts = "-v --strict-markers"
+env = [
+    # Dummy encryption key
+    "PERSISTENCE__ENCRYPTION_KEY=3YwblH4IiFObl0igcHFqd-9BxV7csrrCrunaVotMda8=",
+    "AUTH__DISABLE_AUTH=true",
+]
+
 [dependency-groups]
-dev = ["pytest>=8.3.4", "pytest-asyncio>=0.25.3", "pytest-httpx>=0.35.0"]
+dev = [
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.25.3",
+    "pytest-env>=1.1.5",
+    "pytest-httpx>=0.35.0",
+    "pytest-subtests>=0.14.1",
+]
 
 [tool.hatch.build.targets.wheel]
 artifacts = ["static/"]

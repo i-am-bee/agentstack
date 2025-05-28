@@ -52,15 +52,15 @@ class LogsContainer:
         for subscriber in self._subscribers:
             subscriber(log)
 
-    def _add(self, log: ProcessLogMessage):
+    def add(self, log: ProcessLogMessage):
         self._logs.append(log)
         self._notify_subscribers(log)
 
     def add_stdout(self, text: str):
-        self._add(ProcessLogMessage(stream=ProcessLogType.stdout, message=text.rstrip("\n\r")))
+        self.add(ProcessLogMessage(stream=ProcessLogType.stdout, message=text.rstrip("\n\r")))
 
     def add_stderr(self, text: str):
-        self._add(ProcessLogMessage(stream=ProcessLogType.stdout, message=text.rstrip("\n\r")))
+        self.add(ProcessLogMessage(stream=ProcessLogType.stdout, message=text.rstrip("\n\r")))
 
     def subscribe(self, handler: Callable[[ProcessLogMessage], None]):
         self._subscribers.add(handler)

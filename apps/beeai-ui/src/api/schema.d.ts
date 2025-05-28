@@ -106,6 +106,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/acp/runs/{run_id}/events': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Read Run Events */
+    get: operations['read_run_events_api_v1_acp_runs__run_id__events_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/llm/chat/completions': {
     parameters: {
       query?: never;
@@ -133,7 +150,8 @@ export interface paths {
     /** List Providers */
     get: operations['list_providers_api_v1_providers_get'];
     put?: never;
-    post?: never;
+    /** Create Provider */
+    post: operations['create_provider_api_v1_providers_post'];
     delete?: never;
     options?: never;
     head?: never;
@@ -158,23 +176,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/providers/{id}/install': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    /** Install Provider */
-    put: operations['install_provider_api_v1_providers__id__install_put'];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   '/api/v1/providers/{id}/logs': {
     parameters: {
       query?: never;
@@ -186,40 +187,6 @@ export interface paths {
     get: operations['stream_logs_api_v1_providers__id__logs_get'];
     put?: never;
     post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/providers/image/{image_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Check Image */
-    get: operations['check_image_api_v1_providers_image__image_id__get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/providers/import_image': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Import Image */
-    post: operations['import_image_api_v1_providers_import_image_post'];
     delete?: never;
     options?: never;
     head?: never;
@@ -243,23 +210,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/providers/register/managed': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Create Managed Provider */
-    post: operations['create_managed_provider_api_v1_providers_register_managed_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   '/api/v1/providers/register/unmanaged': {
     parameters: {
       query?: never;
@@ -269,26 +219,12 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    /** Add Unmanaged Provider */
-    post: operations['add_unmanaged_provider_api_v1_providers_register_unmanaged_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/telemetry': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Read Config */
-    get: operations['read_config_api_v1_telemetry_get'];
-    /** Update Config */
-    put: operations['update_config_api_v1_telemetry_put'];
-    post?: never;
+    /**
+     * Deprecated Create Unmanaged Provider
+     * @deprecated
+     * @description Backward compatibility for ACP sdk.
+     */
+    post: operations['deprecated_create_unmanaged_provider_api_v1_providers_register_unmanaged_post'];
     delete?: never;
     options?: never;
     head?: never;
@@ -334,14 +270,74 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /** AcpMetadata */
+    AcpMetadata: {
+      annotations?: components['schemas']['AnyModel'] | null;
+      author?: components['schemas']['Author'] | null;
+      /** Capabilities */
+      capabilities?: components['schemas']['Capability'][] | null;
+      /** Contributors */
+      contributors?: components['schemas']['Contributor'][] | null;
+      /** Created At */
+      created_at?: string | null;
+      /** Dependencies */
+      dependencies?: components['schemas']['Dependency'][] | null;
+      /** Documentation */
+      documentation?: string | null;
+      /** Domains */
+      domains?: string[] | null;
+      /**
+       * Env
+       * @description For configuration -- passed to the process
+       */
+      env?: components['schemas']['EnvVar'][];
+      /** Framework */
+      framework?: string | null;
+      /** License */
+      license?: string | null;
+      /** Links */
+      links?: components['schemas']['Link'][] | null;
+      /** Natural Languages */
+      natural_languages?: string[] | null;
+      /** Programming Language */
+      programming_language?: string | null;
+      /**
+       * Provider Id
+       * Format: uuid
+       */
+      provider_id: string;
+      /** Recommended Models */
+      recommended_models?: string[] | null;
+      /** Tags */
+      tags?: string[] | null;
+      /** Ui */
+      ui?: {
+        [key: string]: unknown;
+      } | null;
+      /** Updated At */
+      updated_at?: string | null;
+    } & {
+      [key: string]: unknown;
+    };
     /** Agent */
-    Agent: {
+    'Agent-Input': {
       /** Description */
       description?: string | null;
-      /** @default {
-       *       "env": []
-       *     } */
+      /** @default {} */
       metadata: components['schemas']['Metadata'];
+      /** Name */
+      name: string;
+    };
+    /** Agent */
+    'Agent-Output': {
+      /** Description */
+      description?: string | null;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id?: string;
+      metadata: components['schemas']['AcpMetadata'];
       /** Name */
       name: string;
     } & {
@@ -351,10 +347,12 @@ export interface components {
     AgentReadResponse: {
       /** Description */
       description?: string | null;
-      /** @default {
-       *       "env": []
-       *     } */
-      metadata: components['schemas']['Metadata'];
+      /**
+       * Id
+       * Format: uuid
+       */
+      id?: string;
+      metadata: components['schemas']['AcpMetadata'];
       /** Name */
       name: string;
     } & {
@@ -363,7 +361,7 @@ export interface components {
     /** AgentsListResponse */
     AgentsListResponse: {
       /** Agents */
-      agents: components['schemas']['Agent'][];
+      agents: components['schemas']['Agent-Output'][];
     };
     /** AnyModel */
     AnyModel: {
@@ -377,14 +375,6 @@ export interface components {
       name: string;
       /** Url */
       url?: string | null;
-    };
-    /** Body_import_image_api_v1_providers_import_image_post */
-    Body_import_image_api_v1_providers_import_image_post: {
-      /**
-       * File
-       * Format: binary
-       */
-      file: string;
     };
     /** Capability */
     Capability: {
@@ -474,13 +464,12 @@ export interface components {
       /** Url */
       url?: string | null;
     };
-    /** CreateManagedProviderRequest */
-    CreateManagedProviderRequest: {
+    /** CreateProviderRequest */
+    CreateProviderRequest: {
+      /** Agents */
+      agents?: components['schemas']['Agent-Input'][] | null;
       /** Location */
-      location:
-        | components['schemas']['GithubProviderLocation']
-        | components['schemas']['DockerImageProviderLocation']
-        | components['schemas']['NetworkProviderLocation'];
+      location: components['schemas']['DockerImageProviderLocation'] | components['schemas']['NetworkProviderLocation'];
     };
     /** Dependency */
     Dependency: {
@@ -525,8 +514,6 @@ export interface components {
      * Format: uri
      */
     FileSystemRegistryLocation: string;
-    /** GithubProviderLocation */
-    GithubProviderLocation: components['schemas']['GithubUrl'];
     /** GithubRegistryLocation */
     GithubRegistryLocation: components['schemas']['GithubUrl'];
     /** GithubUrl */
@@ -561,11 +548,8 @@ export interface components {
     Message: {
       /** Completed At */
       completed_at?: string | null;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at?: string;
+      /** Created At */
+      created_at?: string | null;
       /** Parts */
       parts: components['schemas']['MessagePart'][];
     };
@@ -626,11 +610,6 @@ export interface components {
       documentation?: string | null;
       /** Domains */
       domains?: string[] | null;
-      /**
-       * Env
-       * @description For configuration -- passed to the process
-       */
-      env?: components['schemas']['EnvVar'][];
       /** Framework */
       framework?: string | null;
       /** License */
@@ -641,16 +620,10 @@ export interface components {
       natural_languages?: string[] | null;
       /** Programming Language */
       programming_language?: string | null;
-      /** Provider */
-      provider?: string | null;
       /** Recommended Models */
       recommended_models?: string[] | null;
       /** Tags */
       tags?: string[] | null;
-      /** Ui */
-      ui?: {
-        [key: string]: unknown;
-      } | null;
       /** Updated At */
       updated_at?: string | null;
     } & {
@@ -666,46 +639,46 @@ export interface components {
      * Format: uri
      */
     NetworkRegistryLocation: string;
-    /** PaginatedResponse[ProviderWithStatus] */
-    PaginatedResponse_ProviderWithStatus_: {
+    /** PaginatedResponse[ProviderWithState] */
+    PaginatedResponse_ProviderWithState_: {
       /** Items */
-      items: components['schemas']['ProviderWithStatus'][];
+      items: components['schemas']['ProviderWithState'][];
       /** Total Count */
       total_count: number;
     };
+    /**
+     * ProviderDeploymentState
+     * @enum {string}
+     */
+    ProviderDeploymentState: 'missing' | 'starting' | 'ready' | 'running' | 'error';
     /** ProviderErrorMessage */
     ProviderErrorMessage: {
       /** Message */
       message: string;
     };
-    /** ProviderManifest */
-    ProviderManifest: {
-      /** Agents */
-      agents: components['schemas']['Agent'][];
-    } & {
-      [key: string]: unknown;
-    };
-    /**
-     * ProviderStatus
-     * @enum {string}
-     */
-    ProviderStatus:
-      | 'not_loaded'
-      | 'not_installed'
-      | 'install_error'
-      | 'installing'
-      | 'starting'
-      | 'ready'
-      | 'running'
-      | 'error';
-    /** ProviderWithStatus */
-    ProviderWithStatus: {
-      /** Id */
-      id: string;
+    /** ProviderWithState */
+    ProviderWithState: {
+      /**
+       * Auto Remove
+       * @default false
+       */
+      auto_remove: boolean;
+      /**
+       * Auto Stop Timeout
+       * Format: duration
+       * @default PT5M
+       */
+      auto_stop_timeout: string;
+      /** Env */
+      env: components['schemas']['EnvVar'][];
+      /**
+       * Id
+       * Format: uuid
+       */
+      readonly id: string;
       last_error?: components['schemas']['ProviderErrorMessage'] | null;
-      /** Location */
-      location: string;
-      manifest: components['schemas']['ProviderManifest'];
+      /** Managed */
+      readonly managed: boolean;
       /** Missing Configuration */
       missing_configuration?: components['schemas']['EnvVar'][];
       /** Registry */
@@ -714,18 +687,11 @@ export interface components {
         | components['schemas']['NetworkRegistryLocation']
         | components['schemas']['FileSystemRegistryLocation']
         | null;
-      status: components['schemas']['ProviderStatus'];
+      /** Source */
+      source: components['schemas']['DockerImageProviderLocation'] | components['schemas']['NetworkProviderLocation'];
+      state: components['schemas']['ProviderDeploymentState'];
     } & {
       [key: string]: unknown;
-    };
-    /** RegisterUnmanagedProviderRequest */
-    RegisterUnmanagedProviderRequest: {
-      /**
-       * Id
-       * @deprecated
-       */
-      id?: string | null;
-      location: components['schemas']['NetworkProviderLocation'];
     };
     /** RunCancelResponse */
     RunCancelResponse: {
@@ -872,11 +838,6 @@ export interface components {
        * @default true
        */
       user_navigation: boolean;
-    };
-    /** UpdateTelemetryConfigRequest */
-    UpdateTelemetryConfigRequest: {
-      /** Sharing Enabled */
-      sharing_enabled: boolean;
     };
     /** UpdateVariablesRequest */
     UpdateVariablesRequest: {
@@ -1084,6 +1045,37 @@ export interface operations {
       };
     };
   };
+  read_run_events_api_v1_acp_runs__run_id__events_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        run_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RunReadResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   create_chat_completion_api_v1_llm_chat_completions_post: {
     parameters: {
       query?: never;
@@ -1132,7 +1124,42 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['PaginatedResponse_ProviderWithStatus_'];
+          'application/json': components['schemas']['PaginatedResponse_ProviderWithState_'];
+        };
+      };
+    };
+  };
+  create_provider_api_v1_providers_post: {
+    parameters: {
+      query?: {
+        auto_remove?: boolean;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateProviderRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ProviderWithState'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
         };
       };
     };
@@ -1154,7 +1181,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['ProviderWithStatus'];
+          'application/json': components['schemas']['ProviderWithState'];
         };
       };
       /** @description Validation Error */
@@ -1197,39 +1224,6 @@ export interface operations {
       };
     };
   };
-  install_provider_api_v1_providers__id__install_put: {
-    parameters: {
-      query?: {
-        stream?: boolean;
-      };
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
   stream_logs_api_v1_providers__id__logs_get: {
     parameters: {
       query?: never;
@@ -1259,70 +1253,6 @@ export interface operations {
       };
     };
   };
-  check_image_api_v1_providers_image__image_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        image_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': boolean;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  import_image_api_v1_providers_import_image_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'multipart/form-data': components['schemas']['Body_import_image_api_v1_providers_import_image_post'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      202: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
   preview_provider_api_v1_providers_preview_post: {
     parameters: {
       query?: never;
@@ -1332,7 +1262,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        'application/json': components['schemas']['CreateManagedProviderRequest'];
+        'application/json': components['schemas']['CreateProviderRequest'];
       };
     };
     responses: {
@@ -1342,7 +1272,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['ProviderWithStatus'];
+          'application/json': components['schemas']['ProviderWithState'];
         };
       };
       /** @description Validation Error */
@@ -1356,98 +1286,7 @@ export interface operations {
       };
     };
   };
-  create_managed_provider_api_v1_providers_register_managed_post: {
-    parameters: {
-      query?: {
-        install?: boolean;
-        stream?: boolean;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateManagedProviderRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProviderWithStatus'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  add_unmanaged_provider_api_v1_providers_register_unmanaged_post: {
-    parameters: {
-      query?: {
-        persist?: boolean;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['RegisterUnmanagedProviderRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProviderWithStatus'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  read_config_api_v1_telemetry_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-    };
-  };
-  update_config_api_v1_telemetry_put: {
+  deprecated_create_unmanaged_provider_api_v1_providers_register_unmanaged_post: {
     parameters: {
       query?: never;
       header?: never;
@@ -1456,7 +1295,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        'application/json': components['schemas']['UpdateTelemetryConfigRequest'];
+        'application/json': components['schemas']['CreateProviderRequest'];
       };
     };
     responses: {
@@ -1466,7 +1305,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': unknown;
+          'application/json': components['schemas']['ProviderWithState'];
         };
       };
       /** @description Validation Error */

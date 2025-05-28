@@ -31,7 +31,7 @@
 
 .header {
   .isNew & {
-    padding-block: $spacing-03;
+    padding-block: 0;
     display: flex;
     flex-direction: column;
     gap: $spacing-06;
@@ -46,6 +46,8 @@
   font-size: rem(42px);
   line-height: math.div(60, 42);
   font-weight: 300;
+  text-wrap: pretty;
+  white-space: pre-line;
 }
 
 .content {

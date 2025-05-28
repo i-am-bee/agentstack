@@ -81,7 +81,7 @@ If you are not already a user, first install Homebrew by running this command:
 
 ```sh
 brew install i-am-bee/beeai/beeai
-brew services start beeai
+beeai platform start
 ```
 
 </Step>
@@ -93,13 +93,13 @@ brew services start beeai
 
 ```sh
 brew upgrade beeai
-brew services restart beeai
+beeai platform start
 ```
 
 ### Uninstall
 
 ```sh
-brew services stop beeai
+beeai platform delete
 brew uninstall beeai
 ```
 
@@ -108,18 +108,16 @@ brew uninstall beeai
 
 ## Install BeeAI with PyPI
 
-<Warning>This installation method is not recommended. We strongly recommend installing from Homebrew.</Warning>
-
-This method installs BeeAI using Python’s package manager but is **not recommended** due to additional manual setup requirements. It does not automatically manage dependencies or background services.
+This method installs BeeAI using Python’s package manager, and is usable on all supported platforms: **macOS**, **Linux** and **Windows (WSL2)**.
 
 ### Install
 
 <Steps>
 <Step title="Install a container runtime">
 
-Manually installed BeeAI needs you to provide a container runtime. If you already use one (Docker, Rancher, Podman, Colima, etc.), it will be detected and used for running agents.
+Manually installed BeeAI needs you to provide a container runtime. If you already use one (Docker, Rancher, Colima, etc.), it will be detected and used for running agents. If you use a non-Docker container runtime like Podman, make sure to install the Docker compatibility layer so that the `docker` CLI is available.
 
-If you don't have one or are not sure, the simplest way is to install [Rancher Desktop](https://rancherdesktop.io/) for your platform.
+If you are not sure, the simplest way is to install [Rancher Desktop](https://rancherdesktop.io/) for your platform.
 
 </Step>
 <Step title="Install pipx">
@@ -140,12 +138,10 @@ pipx install beeai-cli
 ```
 
 </Step>
-<Step title="Run the BeeAI server">
-
-The BeeAI server must remain running for the platform to function. Keep this command running in a separate terminal window:
+<Step title="Start the BeeAI platform">
 
 ```sh
-beeai serve
+beeai platform start
 ```
 
 </Step>

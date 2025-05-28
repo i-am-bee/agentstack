@@ -71,7 +71,7 @@ class AcpProxyService:
                 if agent_name:
                     agent = await uow.agents.get_agent_by_name(name=agent_name)
                 else:
-                    agent = await uow.agents.find_by_run_id(run_id=run_id)
+                    agent = await uow.agents.find_by_acp_run_id(run_id=run_id)
                 provider = await uow.providers.get(provider_id=agent.provider_id)
             bind_contextvars(provider=provider.id)
 

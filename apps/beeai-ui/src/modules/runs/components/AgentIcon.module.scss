@@ -19,6 +19,7 @@
   inline-size: rem(32px);
   border-radius: 50%;
   background-color: $background;
+  color: $text-primary;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -28,6 +29,7 @@
   svg {
     block-size: rem(16px);
     inline-size: rem(16px);
+    fill: currentColor;
   }
 
   &.size-xl {

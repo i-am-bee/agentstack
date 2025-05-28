@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 import contextlib
 import enum
 import json
 import re
 import subprocess
-import time
 import urllib
 import urllib.parse
 from contextlib import asynccontextmanager
@@ -31,8 +31,6 @@ from httpx import HTTPStatusError
 from httpx._types import RequestFiles
 
 from beeai_cli.configuration import Configuration
-from beeai_cli.console import console, err_console
-from beeai_cli.utils import format_error
 
 config = Configuration()
 BASE_URL = str(config.host).rstrip("/")
@@ -82,81 +80,11 @@ def server_process_status(
     return ProcessStatus.not_running
 
 
-async def resolve_connection_error():
-    if BASE_URL != "http://localhost:8333":
-        err_console.print(format_error("ConnectError", "Could not connect to the BeeAI service."))
-        err_console.print(
-            f'💡 [yellow]HINT[/yellow]: You have set the BeeAI host to "[bold]{BASE_URL}[/bold]" -- is this correct?'
-        )
-        exit(1)
-
-    process_status = server_process_status()
-    service_status = brew_service_status()
-
-    if process_status == ProcessStatus.running_new:
-        with console.status(
-            "BeeAI service is still starting up. This may take a few minutes, please stand by... (You can cancel waiting with CTRL+C and re-try later.)",
-            spinner="dots",
-        ):
-            await wait_for_api()
-            await wait_for_agents()
-        return  # re-try now
-
-    if service_status == BrewServiceStatus.started or process_status == ProcessStatus.running_old:
-        err_console.print(
-            format_error("ConnectError", "The BeeAI service is running, but it did not accept the connection.")
-        )
-        if service_status == BrewServiceStatus.started:
-            err_console.print(
-                "💡 [yellow]HINT[/yellow]: Try restarting the service with [green]brew services restart beeai[/green], then retry."
-            )
-        else:
-            err_console.print("💡 [yellow]HINT[/yellow]: Try restarting the service, then retry.")
-        exit(1)
-
-    if service_status == BrewServiceStatus.not_installed:
-        err_console.print(format_error("ConnectError", "BeeAI service is not running."))
-        err_console.print(
-            "💡 [yellow]HINT[/yellow]: In a separate terminal, run [green]beeai serve[/green], keep it running and retry this command."
-        )
-        err_console.print(
-            "💡 [yellow]HINT[/yellow]: ...or alternatively, install BeeAI with [green]brew install i-am-bee/beeai/beeai[/green] and then start the service with [green]brew services start beeai[/green]."
-        )
-        exit(1)
-
-    with console.status(
-        "Starting the BeeAI service, this might take a few minutes, please stand by...", spinner="dots"
-    ):
-        try:
-            subprocess.check_output(["brew", "services", "start", "beeai"])
-            await wait_for_api()
-            await wait_for_agents()
-        except Exception:
-            err_console.print(format_error("ConnectError", "We failed to automatically start the BeeAI service."))
-            err_console.print(
-                "💡 [yellow]HINT[/yellow]: Try starting the service manually with: [green]brew services start beeai[/green]"
-            )
-            exit(1)
-
-
-async def wait_for_agents(initial_delay_seconds=5, wait_seconds=180):
-    time.sleep(initial_delay_seconds)
-    for i in range(wait_seconds):
-        time.sleep(1)
-        if all(
-            item["status"] in ["ready", "installing", "not_installed", "running"]
-            for item in (await api_request("get", "providers"))["items"]
-        ):
-            return True
-    else:
-        return False
-
-
 async def wait_for_api(initial_delay_seconds=5, wait_seconds=300):
-    time.sleep(initial_delay_seconds)
-    for i in range(wait_seconds):
-        time.sleep(1)
-        with contextlib.suppress(httpx.ConnectError, ConnectionError):
+    await asyncio.sleep(initial_delay_seconds)
+    for _ in range(wait_seconds):
+        await asyncio.sleep(1)
+        with contextlib.suppress(httpx.HTTPError, ConnectionError):
             await api_request("get", "providers")
             return True
     else:

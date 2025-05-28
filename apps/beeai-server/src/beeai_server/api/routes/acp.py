@@ -65,6 +65,13 @@ async def read_run(run_id: RunId, acp_service: AcpProxyServiceDependency) -> Run
     return _to_fastapi(response)
 
 
+@router.get("/runs/{run_id}/events")
+async def read_run_events(run_id: RunId, acp_service: AcpProxyServiceDependency) -> RunReadResponse:
+    client = await acp_service.get_proxy_client(run_id=run_id)
+    response = await acp_service.send_request(client, "GET", f"/runs/{run_id}/events")
+    return _to_fastapi(response)
+
+
 @router.post("/runs/{run_id}")
 async def resume_run(
     run_id: RunId, request: RunResumeRequest, acp_service: AcpProxyServiceDependency

@@ -15,10 +15,11 @@
  */
 
 import type { PropsWithChildren } from 'react';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { v4 as uuid } from 'uuid';
 
 import { useImmerWithGetter } from '#hooks/useImmerWithGetter.ts';
+import { usePrevious } from '#hooks/usePrevious.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { type AssistantMessage, type ChatMessage, MessageStatus } from '#modules/runs/chat/types.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
@@ -115,6 +116,13 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
     reset();
     setMessages([]);
   }, [reset, setMessages]);
+
+  const previousAgent = usePrevious(agent);
+  useEffect(() => {
+    if (agent !== previousAgent) {
+      handleClear();
+    }
+  }, [handleClear, agent, previousAgent]);
 
   const contextValue = useMemo(
     () => ({

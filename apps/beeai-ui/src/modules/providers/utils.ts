@@ -18,23 +18,6 @@ import groupBy from 'lodash/groupBy';
 
 import type { Agent } from '#modules/agents/api/types.ts';
 
-import { ProviderSourcePrefixes } from './constants';
-
-export const getProviderSource = (location: string) => {
-  const source =
-    Object.entries(ProviderSourcePrefixes)
-      .find(([, prefix]) => location.startsWith(prefix))
-      ?.at(0) ?? 'Unknown';
-
-  return source;
-};
-
-export function stripProviderSourcePrefix(id: string) {
-  const prefixes = Object.values(ProviderSourcePrefixes);
-
-  return prefixes.reduce((acc, prefix) => (acc.startsWith(prefix) ? acc.slice(prefix.length) : acc), id);
-}
-
 export const groupAgentsByProvider = (agents: Agent[] | undefined) => {
-  return groupBy(agents, (agent) => agent.metadata.provider);
+  return groupBy(agents, (agent) => agent.metadata.provider_id);
 };

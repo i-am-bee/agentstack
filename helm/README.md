@@ -36,7 +36,7 @@ helm install -f ../agent-registry.yaml -f variables.ollama.yaml <release-name> b
 Or provide secrets on the command line:
 ```shell
 helm install \
-  -f https://raw.githubusercontent.com/i-am-bee/beeai-platform/refs/heads/release-v0.1.3/agent-registry.yaml \
+  -f https://raw.githubusercontent.com/i-am-bee/beeai-platform/refs/heads/release-v0.2.0/agent-registry.yaml \
   --set variables.LLM_API_BASE=http://host.docker.internal:11434/v1 \
   --set variables.LLM_API_KEY=dummy \
   --set variables.LLM_MODEL=llama3.1:8b \

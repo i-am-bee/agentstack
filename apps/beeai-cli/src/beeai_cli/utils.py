@@ -19,6 +19,7 @@ import sys
 from copy import deepcopy
 from typing import Any, TypeVar, Iterable, Optional, TYPE_CHECKING, List
 from prompt_toolkit import PromptSession
+from enum import Enum
 
 import typer
 import yaml
@@ -26,12 +27,16 @@ from cachetools import cached
 from jsf import JSF
 from prompt_toolkit.shortcuts import CompleteStyle
 from pydantic import BaseModel
-from beeai_cli import Configuration
 from beeai_cli.console import console
 
 if TYPE_CHECKING:
     from prompt_toolkit.completion import Completer
     from prompt_toolkit.validation import Validator
+
+
+class VMDriver(str, Enum):
+    lima = "lima"
+    docker = "docker"
 
 
 def format_model(value: BaseModel | list[BaseModel]) -> str:
@@ -182,48 +187,37 @@ def run_command(
     message: str,
     env: dict = None,
     cwd: str = ".",
+    check: bool = True,
+    ignore_missing: bool = False,
 ) -> subprocess.CompletedProcess:
     """Helper function to run a subprocess command and handle common errors."""
     env = env or {}
     try:
-        with console.status(message + "...", spinner="dots"):
-            return subprocess.run(
+        with console.status(f"{message}...", spinner="dots"):
+            result = subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
-                check=True,
+                check=check,
                 env={**os.environ, **env},
                 cwd=cwd,
             )
+        console.print(f"{message} [[green]DONE[/green]]")
+        return result
     except FileNotFoundError:
+        if ignore_missing:
+            return None
+        console.print(f"{message} [[red]ERROR[/red]]")
         tool_name = cmd[0]
         console.print(f"[red]Error: {tool_name} is not installed. Please install {tool_name} first.[/red]")
         if tool_name == "limactl":
             console.print("[yellow]You can install Lima with: brew install lima[/yellow]")
         sys.exit(1)
     except subprocess.CalledProcessError as e:
-        console.print(f"[red]ERROR: '{message}' failed with exit code {e.returncode}[/red]")
+        console.print(f"{message} [[red]ERROR[/red]]")
+        console.print(f"[red]Exit code: {e.returncode} [/red]")
         if e.stderr:
             console.print(f"[red]Error: {e.stderr.strip()}[/red]")
         if e.stdout:
             console.print(f"[red]Output: {e.stdout.strip()}[/red]")
         sys.exit(1)
-
-
-def import_images_to_vm(vm_name: str):
-    run_command(
-        [
-            "limactl",
-            "--tty=false",
-            "shell",
-            vm_name,
-            "--",
-            "/bin/bash",
-            "-c",
-            "ls /beeai/images/* | xargs -n 1 sudo ctr images import",
-        ],
-        "Importing images",
-        env={"LIMA_HOME": str(Configuration().lima_home)},
-        cwd="/",
-    )
-    run_command(["rm", "-f", "/beeai/images/*"], "Deleting temporary images")

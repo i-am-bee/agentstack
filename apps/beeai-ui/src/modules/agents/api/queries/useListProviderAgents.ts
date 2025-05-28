@@ -18,19 +18,18 @@ import { useQuery } from '@tanstack/react-query';
 
 import { listAgents } from '..';
 import { agentKeys } from '../keys';
-import type { AgentProvider } from '../types';
 
 interface Props {
-  provider: AgentProvider;
+  providerId?: string;
   enabled?: boolean;
 }
 
-export function useListProviderAgents({ provider, enabled = true }: Props) {
+export function useListProviderAgents({ providerId, enabled = true }: Props) {
   const query = useQuery({
-    queryKey: agentKeys.list({ provider }),
+    queryKey: agentKeys.list({ providerId }),
     queryFn: listAgents,
-    enabled: Boolean(enabled && provider),
-    select: (data) => data?.agents.filter((agent) => agent.metadata.provider === provider),
+    enabled: Boolean(enabled && providerId),
+    select: (data) => data?.agents.filter(({ metadata }) => metadata.provider_id === providerId),
   });
 
   return query;

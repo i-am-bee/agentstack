@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-import { ArrowRight, Download, Redo } from '@carbon/icons-react';
-import type { ButtonBaseProps } from '@carbon/react';
-import { Button, ButtonSkeleton, InlineLoading } from '@carbon/react';
+import { ArrowRight } from '@carbon/icons-react';
+import { Button, ButtonSkeleton } from '@carbon/react';
 import clsx from 'clsx';
 import isEmpty from 'lodash/isEmpty';
-import { useCallback } from 'react';
+import type { ComponentProps } from 'react';
 
 import { TransitionLink } from '#components/TransitionLink/TransitionLink.tsx';
 import { useModal } from '#contexts/Modal/index.tsx';
-import { useInstallProvider } from '#modules/providers/api/mutations/useInstallProvider.ts';
 import { SupportedUis } from '#modules/runs/constants.ts';
 import { AddRequiredVariablesModal } from '#modules/variables/components/AddRequiredVariablesModal.tsx';
 import { routes } from '#utils/router.ts';
@@ -32,7 +30,6 @@ import type { Agent, UiType } from '../api/types';
 import { useAgentStatus } from '../hooks/useAgentStatus';
 import { useMissingEnvs } from '../hooks/useMissingEnvs';
 import classes from './AgentLaunchButton.module.scss';
-import { InternetOffline } from './InternetOffline';
 
 interface Props {
   agent: Agent;
@@ -40,52 +37,25 @@ interface Props {
 
 export function AgentLaunchButton({ agent }: Props) {
   const { openModal } = useModal();
-  const { provider, ui } = agent.metadata;
+  const { provider_id, ui } = agent.metadata;
   const { missingEnvs, isPending: isMissingEnvsPending } = useMissingEnvs({ agent });
-  const { isNotInstalled, isInstalling, isInstallError } = useAgentStatus({ provider });
-  const { mutate: installProvider } = useInstallProvider();
+  const { isNotInstalled, isInstalling, isInstallError } = useAgentStatus({ providerId: provider_id });
 
   const uiType = ui?.type;
-  const sharedProps: ButtonBaseProps = {
+  const sharedProps: ComponentProps<typeof Button> = {
     kind: 'primary',
     size: 'md',
     className: classes.button,
   };
 
-  const handleInstall = useCallback(() => {
-    if (provider) {
-      installProvider({ id: provider });
-    }
-  }, [installProvider, provider]);
-
   if (isNotInstalled || isInstalling || isInstallError) {
-    return (
-      <div className={classes.root}>
-        <Button
-          {...sharedProps}
-          renderIcon={isInstalling ? InlineLoading : isInstallError ? undefined : Download}
-          disabled={isInstalling}
-          onClick={handleInstall}
-        >
-          {isInstalling ? (
-            <>Installing&hellip;</>
-          ) : isInstallError ? (
-            <>
-              <Redo />
-              <span>Retry install</span>
-            </>
-          ) : (
-            'Install to launch'
-          )}
-        </Button>
-
-        {isInstallError && <InternetOffline />}
-      </div>
-    );
+    // TODO:
+    return null;
   }
 
   if (uiType && SupportedUis.includes(uiType as UiType)) {
     return (
+      // @ts-expect-error as prop mismatch to be resolved later, if component is used again
       <Button
         {...sharedProps}
         renderIcon={ArrowRight}

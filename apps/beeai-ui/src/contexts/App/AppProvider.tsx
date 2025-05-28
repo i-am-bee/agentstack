@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-import type { PropsWithChildren, RefObject } from 'react';
-import { useMemo, useRef, useState } from 'react';
-import { useOnClickOutside } from 'usehooks-ts';
-
-import { isNotNull } from '#utils/helpers.ts';
+import type { PropsWithChildren } from 'react';
+import { useMemo, useState } from 'react';
 
 import { AppContext } from './app-context';
 
@@ -26,35 +23,17 @@ export function AppProvider({ children }: PropsWithChildren) {
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [agentDetailOpen, setAgentDetailOpen] = useState(false);
   const [closeNavOnClickOutside, setCloseNavOnClickOutside] = useState(false);
-  const navigationPanelRef = useRef<HTMLElement>(null);
-  const navigationToggleRef = useRef<HTMLButtonElement>(null);
-
-  const clickOutsideNavRefs = useMemo(
-    () =>
-      [
-        navigationPanelRef.current ? navigationPanelRef : null,
-        navigationToggleRef.current ? navigationToggleRef : null,
-      ].filter(isNotNull) as RefObject<HTMLElement>[],
-    [],
-  );
-
-  useOnClickOutside(clickOutsideNavRefs, () => {
-    if (closeNavOnClickOutside) {
-      setNavigationOpen(false);
-    }
-  });
 
   const contextValue = useMemo(
     () => ({
       navigationOpen,
       agentDetailOpen,
-      navigationPanelRef,
-      navigationToggleRef,
+      closeNavOnClickOutside,
       setNavigationOpen,
       setAgentDetailOpen,
       setCloseNavOnClickOutside,
     }),
-    [navigationOpen, agentDetailOpen],
+    [navigationOpen, agentDetailOpen, closeNavOnClickOutside],
   );
 
   return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;

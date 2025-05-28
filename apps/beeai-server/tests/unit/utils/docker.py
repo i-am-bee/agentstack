@@ -7,7 +7,7 @@ from beeai_server.utils.utils import filter_dict
 @pytest.mark.parametrize(
     "image_id,expected",
     [
-        ("ubuntu:20.04", {"repository": "ubuntu", "tag": "20.04"}),
+        ("ubuntu:20.04", {"repository": "library/ubuntu", "tag": "20.04"}),
         ("library/ubuntu:latest", {"repository": "library/ubuntu"}),
         ("docker.io/library/ubuntu:latest", {"repository": "library/ubuntu"}),
         (

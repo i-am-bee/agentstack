@@ -18,6 +18,7 @@ import { IconButton } from '@carbon/react';
 import clsx from 'clsx';
 
 import type { Agent } from '#modules/agents/api/types.ts';
+import { getAgentDisplayName } from '#modules/agents/utils.ts';
 
 import { AgentIcon } from '../components/AgentIcon';
 import classes from './AgentHeader.module.scss';
@@ -37,13 +38,13 @@ export function AgentHeader({ agent, onNewSessionClick, className }: Props) {
           <h1 className={classes.heading}>
             <AgentIcon inverted />
 
-            <span className={classes.name}>{agent.name}</span>
+            <span className={classes.name}>{getAgentDisplayName(agent)}</span>
           </h1>
         )}
       </div>
 
       {onNewSessionClick && (
-        <IconButton kind="tertiary" size="sm" label="New session" autoAlign onClick={onNewSessionClick}>
+        <IconButton kind="tertiary" size="sm" label="New session" align="left" autoAlign onClick={onNewSessionClick}>
           <NewSession />
         </IconButton>
       )}

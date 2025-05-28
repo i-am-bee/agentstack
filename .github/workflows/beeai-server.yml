@@ -53,20 +53,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
 
       - name: Extract version from tag
         id: version
         run: echo "version=${GITHUB_REF#refs/tags/beeai-server-v}" >> $GITHUB_OUTPUT
 
-      - name: Helm | lint chart
-        # soft render check (without kubeconform)
-        run: helm lint helm/beeai-platform --with-subcharts --strict && helm template helm/beeai-platform > /dev/null
-
       - name: Helm | login
         run: echo '${{ secrets.GITHUB_TOKEN }}' | helm registry login -u '${{ github.actor }}' --password-stdin ghcr.io
 
-      - name: Helm | update dependencies
-        run: helm dependency update helm/beeai-platform
+      - name: Helm | Lint
+        run: mise run helm:check:lint
 
       - name: Helm | Package
         run: helm package helm/beeai-platform --version '${{ steps.version.outputs.version }}' --app-version ${{ steps.version.outputs.version }}

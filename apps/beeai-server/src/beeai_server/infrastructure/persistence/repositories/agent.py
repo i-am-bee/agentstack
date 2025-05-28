@@ -119,11 +119,11 @@ class SqlAlchemyAgentRepository(IAgentRepository):
         query = delete(agent_requests_table).where(agent_requests_table.c.id == run_id)
         await self.connection.execute(query)
 
-    async def find_by_run_id(self, *, run_id: UUID) -> Agent:
+    async def find_by_acp_run_id(self, *, run_id: UUID) -> Agent:
         result = await self.connection.execute(
             select(agents_table)
             .join(agent_requests_table, agents_table.c.id == agent_requests_table.c.agent_id)
-            .where(agent_requests_table.c.id == run_id)
+            .where(agent_requests_table.c.acp_run_id == run_id)
             .limit(1)
         )
         if not (row := result.fetchone()):

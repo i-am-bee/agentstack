@@ -19,11 +19,8 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/mcp': {
-        target: 'http://localhost:8333',
-      },
       '/api': {
-        target: 'http://localhost:8333',
+        target: 'http://127.0.0.1:8333',
       },
       '/phoenix': {
         target: phoenixServerTarget,

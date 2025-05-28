@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@bprogress/next": "^3.2.10",
-    "@carbon/react": "^1.79.0",
+    "@carbon/react": "^1.83.0",
     "@i-am-bee/beeai-ui": "workspace:*",
     "clsx": "^2.1.1",
     "next": "15.2.4",

@@ -18,7 +18,7 @@ import { useProvider } from '#modules/providers/api/queries/useProvider.ts';
 import { type Provider, ProviderStatus } from '#modules/providers/api/types.ts';
 
 interface Props {
-  provider: string | null | undefined;
+  providerId: string | null | undefined;
 }
 
 function getStatusHelpers(data?: Provider) {
@@ -37,8 +37,8 @@ function getStatusHelpers(data?: Provider) {
   };
 }
 
-export function useAgentStatus({ provider }: Props) {
-  const query = useProvider({ id: provider });
+export function useAgentStatus({ providerId }: Props) {
+  const query = useProvider({ id: providerId ?? undefined });
 
   return {
     refetch: async () => {

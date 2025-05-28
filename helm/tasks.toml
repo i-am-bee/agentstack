@@ -1,9 +1,10 @@
 # check
 
 ["helm:check"]
-depends = ["helm:build:beeai-platform:dependencies", "helm:check:*"]
+depends = ["helm:check:*"]
 
 ["helm:check:lint"]
+depends = ["helm:build:beeai-platform:dependencies"]
 dir = "{{config_root}}/helm"
 run = """
 #!/bin/bash
