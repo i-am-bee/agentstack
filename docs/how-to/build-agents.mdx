@@ -185,59 +185,37 @@ Then synchronize with `uv sync`.
 
 ## Test Your Agent
 
-Start the agent server:
+### Start the Agent Server
 
 ```bash
 uv run server
 ```
 
-<Note>
-When you run `uv run server` locally, your agent automatically registers with the BeeAI Platform as an unmanaged provider. This means:
-- Your local server communicates directly with the platform
-- No containerization needed
-- Changes are immediately available
-- You control the lifecycle (start/stop manually)
-</Note>
+This launches your agent locally. Keep this terminal open - your agent runs only while this command is active.
 
-Test with BeeAI CLI:
+### Try it with BeeAI
+
+Open a second terminal and run these commands:
 
 ```bash
-# List available agents
+# See all available agents (yours should show up)
 beeai list
+
+# Talk to your agent!
+beeai run my_agent "Hello!"
 ```
 
-Run your agent:
+If you see a response, congrats - your agent is working!
 
-```bash
-beeai run my_custom_agent "Hello!"
-```
+## Add Your Agent to BeeAI
 
-## Deployment
-
-### Build the Agent Image
-
-Before sharing or deploying your agent, test it in a containerized environment. This ensures compatibility and lets the BeeAI platform manage its lifecycle (start, stop, scale).
-
-```bash
-beeai build .
-```
-
-This command:
-- Builds a Docker image of your agent
-- Extracts agent metadata during the build
-- Imports the image into your local BeeAI platform
-- Creates a **managed provider** (BeeAI handles container lifecycle)
-
-### Add Agent to BeeAI Platform
-
-Use this when your agent comes from an external source (GitHub repo, remote/local Docker image).
+Install your agent so BeeAI can run it automatically in the background:
 
 ```bash
 beeai add .
 ```
 
-This command:
-- Downloads or pulls the agent source
-- Builds a Docker image if needed (e.g., from GitHub)
-- Registers it as a managed provider
-- Adds it to your local agent catalog
+What this does:
+- Builds your agent into a Docker container
+- Lets BeeAI manage starting and stopping it
+- You no longer need to run `uv run server` manually
