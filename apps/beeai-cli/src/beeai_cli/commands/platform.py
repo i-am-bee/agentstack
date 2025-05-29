@@ -182,13 +182,13 @@ async def start(
     vm_driver = _validate_driver(vm_driver)
 
     # Stage 0: Clean up legacy Brew services
-    run_command(
+    await run_command(
         ["brew", "services", "stop", "beeai"],
         "Cleaning up legacy BeeAI service",
         check=False,
         ignore_missing=True,
     )
-    run_command(
+    await run_command(
         ["brew", "services", "stop", "arize-phoenix"],
         "Cleaning up legacy Arize Phoenix service",
         check=False,
@@ -205,7 +205,7 @@ async def start(
             templates_dir.joinpath(f"{vm_name}.yaml").write_text(
                 _lima_yaml(k3s_port=k3s_port, beeai_port=beeai_port, phoenix_port=phoenix_port)
             )
-        run_command(
+        await run_command(
             {
                 VMDriver.lima: [
                     "limactl",
@@ -240,7 +240,7 @@ async def start(
             env={"LIMA_HOME": str(configuration.lima_home)},
         )
     elif status != "running":
-        run_command(
+        await run_command(
             {
                 VMDriver.lima: ["limactl", "--tty=false", "start", vm_name],
                 VMDriver.docker: ["docker", "start", vm_name],
@@ -252,7 +252,7 @@ async def start(
         console.print("Updating an existing BeeAI platform instance.")
 
     if vm_driver == VMDriver.lima:
-        run_command(
+        await run_command(
             ["limactl", "--tty=false", "start-at-login", vm_name],
             "Configuring BeeAI platform",
             env={"LIMA_HOME": str(configuration.lima_home)},
@@ -268,7 +268,7 @@ async def start(
                 sys.exit(1)
 
             if (
-                run_command(
+                await run_command(
                     ["docker", "exec", vm_name, "test", "-f", "/etc/rancher/k3s/k3s.yaml"],
                     message="Checking if k3s is running",
                     check=False,
@@ -281,7 +281,7 @@ async def start(
             sys.exit(1)
         kubeconfig = configuration.get_kubeconfig(vm_driver=vm_driver, vm_name=vm_name)
         kubeconfig.parent.mkdir(parents=True, exist_ok=True)
-        run_command(
+        await run_command(
             ["docker", "cp", f"{vm_name}:/etc/rancher/k3s/k3s.yaml", str(kubeconfig)],
             "Copying Kubernetes configuration",
         )
@@ -355,7 +355,7 @@ async def stop(
     if status != "running":
         console.print("BeeAI platform is not running. Nothing to stop.")
         return
-    run_command(
+    await run_command(
         {
             VMDriver.lima: ["limactl", "--tty=false", "stop", vm_name],
             VMDriver.docker: ["docker", "stop", vm_name],
@@ -375,17 +375,14 @@ async def delete(
 ):
     """Delete BeeAI platform."""
     vm_driver = _validate_driver(vm_driver)
-    status = await _get_platform_status(vm_driver, vm_name)
-    if not status:
-        console.print("BeeAI VM not found. Nothing to delete.")
-        return
-    run_command(
+    await run_command(
         {
             VMDriver.lima: ["limactl", "--tty=false", "delete", "--force", vm_name],
             VMDriver.docker: ["docker", "rm", "--force", vm_name],
         }[vm_driver],
         "Deleting BeeAI platform",
         env={"LIMA_HOME": str(configuration.lima_home)},
+        check=False,
     )
     console.print("[green]BeeAI platform deleted successfully.[/green]")
 
@@ -400,14 +397,14 @@ async def import_image(
 ):
     """Import a local docker image into the BeeAI platform."""
     driver = _validate_driver(vm_driver)
-    run_command(["bash", "-c", "rm -f ~/.beeai/images/*"], "Removing temporary files")
+    await run_command(["bash", "-c", "rm -f ~/.beeai/images/*"], "Removing temporary files")
     image_path = Configuration().home / "images" / (tag.replace("/", "_") + ".tar")
     image_path.parent.mkdir(parents=True, exist_ok=True)
-    run_command(
+    await run_command(
         ["docker", "image", "save", "-o", str(image_path), tag],
         "Exporting images from Docker",
     )
-    run_command(
+    await run_command(
         {
             VMDriver.lima: ["limactl", "--tty=false", "shell", vm_name, "--"],
             VMDriver.docker: ["docker", "exec", vm_name],
@@ -421,4 +418,4 @@ async def import_image(
         env={"LIMA_HOME": str(Configuration().lima_home)},
         cwd="/",
     )
-    run_command(["/bin/sh", "-c", "rm -f ~/.beeai/images/*"], "Removing temporary files")
+    await run_command(["/bin/sh", "-c", "rm -f ~/.beeai/images/*"], "Removing temporary files")
