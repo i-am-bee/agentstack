@@ -21,21 +21,17 @@ import typing
 import uuid
 from contextlib import suppress
 from datetime import timedelta
-from typing import Optional
 
 import anyio
 import anyio.abc
-from beeai_cli.utils import VMDriver
 import typer
-from anyio import open_process
-
-from anyio import run_process
-from httpx import HTTPError, AsyncClient
-from tenacity import AsyncRetrying, wait_fixed, stop_after_delay, retry_if_exception_type
+from anyio import open_process, run_process
+from httpx import AsyncClient, HTTPError
+from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, wait_fixed
 
 from beeai_cli.async_typer import AsyncTyper
 from beeai_cli.console import console
-from beeai_cli.utils import extract_messages
+from beeai_cli.utils import VMDriver, extract_messages
 
 
 async def find_free_port():
@@ -51,9 +47,9 @@ app = AsyncTyper()
 
 @app.command("build")
 async def build(
-    context: Optional[str] = typer.Argument(".", help="Docker context for the agent"),
-    tag: Optional[str] = typer.Option(None, help="Docker tag for the agent"),
-    multi_platform: Optional[bool] = False,
+    context: typing.Annotated[str, typer.Argument(help="Docker context for the agent")] = ".",
+    tag: typing.Annotated[str | None, typer.Option(help="Docker tag for the agent")] = None,
+    multi_platform: bool | None = False,
     quiet: typing.Annotated[bool, typer.Option(hidden=True)] = False,
     import_image: typing.Annotated[
         bool, typer.Option("--import/--no-import", is_flag=True, help="Import the image into BeeAI platform")
@@ -63,10 +59,10 @@ async def build(
 ):
     try:
         await run_process("which docker", check=True)
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
         raise RuntimeError(
             "The 'docker' command is not found on the system. Please install docker or similar and try again"
-        )
+        ) from e
     image_id = "beeai-agent-build-tmp:latest"
     port = await find_free_port()
     if multi_platform:
@@ -106,8 +102,7 @@ async def build(
                             response = resp.json()
                             if "agents" not in response:
                                 raise ValueError(f"Missing agents in response from server: {response}")
-                with anyio.move_on_after(delay=1):
-                    process.terminate()
+                process.terminate()
                 with suppress(ProcessLookupError):
                     process.kill()
         except BaseException as ex:
@@ -118,8 +113,7 @@ async def build(
 
     context_hash = hashlib.sha256(context.encode()).hexdigest()[:6]
     context_shorter = re.sub(r"https?://", "", context).replace(r".git", "")
-    tag = tag or f"beeai.local/{re.sub(r'[^a-zA-Z0-9._-]+', '-', context_shorter)[:32]}{context_hash}:latest"
-    tag = tag.lower()
+    tag = (tag or f"beeai.local/{re.sub(r'[^a-zA-Z0-9._-]+', '-', context_shorter)[:32]}{context_hash}:latest").lower()
     await run_process(
         command=(
             f"{build_command} {context} -t {tag} "

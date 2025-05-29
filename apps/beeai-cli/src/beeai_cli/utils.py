@@ -16,17 +16,20 @@ import json
 import os
 import subprocess
 import sys
+from collections.abc import Iterable
 from copy import deepcopy
-from typing import Any, TypeVar, Iterable, Optional, TYPE_CHECKING, List
-from prompt_toolkit import PromptSession
 from enum import Enum
+from typing import TYPE_CHECKING, Any, Optional, TypeVar
 
+import anyio
 import typer
 import yaml
 from cachetools import cached
 from jsf import JSF
+from prompt_toolkit import PromptSession
 from prompt_toolkit.shortcuts import CompleteStyle
 from pydantic import BaseModel
+
 from beeai_cli.console import console
 
 if TYPE_CHECKING:
@@ -69,8 +72,8 @@ def parse_env_var(env_var: str) -> tuple[str, str]:
 def check_json(value: Any) -> dict[str, Any]:
     try:
         return json.loads(value)
-    except json.decoder.JSONDecodeError:
-        raise typer.BadParameter(f"Invalid JSON '{value}'")
+    except json.decoder.JSONDecodeError as e:
+        raise typer.BadParameter(f"Invalid JSON '{value}'") from e
 
 
 DictType = TypeVar("DictType", bound=dict)
@@ -169,9 +172,11 @@ def prompt_user(
     )
 
 
-async def launch_graphical_interface(host_url):
+async def launch_graphical_interface(host_url: str):
     import webbrowser
+
     import httpx
+
     import beeai_cli.commands.env
 
     # Failure here will trigger the automatic service start mechanism
@@ -182,26 +187,36 @@ async def launch_graphical_interface(host_url):
     webbrowser.open(host_url)
 
 
-def run_command(
-    cmd: List[str],
+async def run_command(
+    cmd: list[str],
     message: str,
-    env: dict = None,
+    env: dict | None = None,
     cwd: str = ".",
     check: bool = True,
     ignore_missing: bool = False,
+    passthrough: bool = False,
 ) -> subprocess.CompletedProcess:
     """Helper function to run a subprocess command and handle common errors."""
     env = env or {}
     try:
-        with console.status(f"{message}...", spinner="dots"):
-            result = subprocess.run(
+        if passthrough:
+            console.print(f"{message}:")
+            result = await anyio.run_process(
                 cmd,
-                capture_output=True,
-                text=True,
                 check=check,
+                stdin=None,
+                stderr=None,
                 env={**os.environ, **env},
                 cwd=cwd,
             )
+        else:
+            with console.status(f"{message}...", spinner="dots"):
+                result = await anyio.run_process(
+                    cmd,
+                    check=check,
+                    env={**os.environ, **env},
+                    cwd=cwd,
+                )
         console.print(f"{message} [[green]DONE[/green]]")
         return result
     except FileNotFoundError:

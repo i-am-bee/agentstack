@@ -7,6 +7,27 @@ members = [
 [tool.ruff]
 line-length = 120
 target-version = "py311"
+lint.select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "UP",    # pyupgrade
+    "I",     # isort
+    "B",     # bugbear
+    "N",     # pep8-naming
+    "C4",    # Comprehensions
+    "Q",     # Quotes
+    "SIM",   # Simplify
+    "RUF",   # Ruff
+    "TID",   # tidy-imports
+    "ASYNC", # async
+# TODO: add "DTZ",   # DatetimeZ
+# TODO: add "ANN",   # annotations
+]
+lint.ignore = [
+    "E501" # line lenght (annyoing)
+]
+force-exclude = true
 
 [tool.uv]
 dev-dependencies = ["pyright>=1.1.399", "pytest>=8.3.4", "ruff>=0.8.5"]

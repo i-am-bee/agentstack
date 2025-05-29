@@ -24,16 +24,16 @@ from enum import StrEnum
 
 import jsonref
 from acp_sdk import (
-    ArtifactEvent,
-    Message,
-    Agent,
     ACPError,
+    Agent,
+    ArtifactEvent,
     Error,
     ErrorCode,
     GenericEvent,
-    MessagePartEvent,
-    MessagePart,
+    Message,
     MessageCompletedEvent,
+    MessagePart,
+    MessagePartEvent,
     RunFailedEvent,
 )
 from acp_sdk.client import Client
@@ -47,16 +47,16 @@ from rich.text import Text
 from beeai_cli.commands.build import build
 from beeai_cli.commands.env import ensure_llm_env
 
-
 try:
     # This is necessary for proper handling of arrow keys in interactive input
-    import gnureadline as readline  # noqa: F401
+    import gnureadline as readline
 except ImportError:
     import readline  # noqa: F401
 
 import sys
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Optional, Callable
+from typing import Any
 
 import jsonschema
 import rich.json
@@ -64,16 +64,16 @@ import typer
 from rich.markdown import Markdown
 from rich.table import Column
 
-from beeai_cli.api import api_request, api_stream, acp_client
+from beeai_cli.api import acp_client, api_request, api_stream
 from beeai_cli.async_typer import AsyncTyper, console, create_table, err_console
 from beeai_cli.utils import (
+    extract_messages,
+    filter_dict,
+    format_error,
     generate_schema_example,
     omit,
     prompt_user,
     remove_nullable,
-    filter_dict,
-    format_error,
-    extract_messages,
 )
 
 
@@ -118,7 +118,9 @@ def _print_log(line, ansi_mode=False):
 
 @app.command("add")
 async def add_agent(
-    location: str = typer.Argument(..., help="Agent location (public docker image, local path or github url)"),
+    location: typing.Annotated[
+        str, typer.Argument(help="Agent location (public docker image, local path or github url)")
+    ],
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai",
 ):
     """Install discovered agent or add public docker image or github repository [aliases: install]"""
@@ -145,12 +147,12 @@ async def add_agent(
             "   If this agent is built locally or from github, make sure you have docker command installed\n"
             f"   Try building the image separately using [bold]beeai build {location}[/bold]\n"
             f"   {extract_messages(e)}"
-        )
+        ) from e
     await list_agents()
 
 
 @app.command("remove | uninstall | rm | delete")
-async def uninstall_agent(name: str = typer.Argument(..., help="Agent name")) -> None:
+async def uninstall_agent(name: typing.Annotated[str, typer.Argument(help="Agent name")]) -> None:
     """Remove agent"""
     agent = await _get_agent(name)
     with console.status("Uninstalling agent (may take a few minutes)...", spinner="dots"):
@@ -159,7 +161,7 @@ async def uninstall_agent(name: str = typer.Argument(..., help="Agent name")) ->
 
 
 @app.command("logs")
-async def stream_logs(name: str = typer.Argument(..., help="Agent name")):
+async def stream_logs(name: typing.Annotated[str, typer.Argument(help="Agent name")]):
     """Stream agent provider logs"""
     agent = await _get_agent(name)
     provider = agent.metadata.provider_id
@@ -185,10 +187,10 @@ async def _run_agent(client: Client, name: str, input: str | list[Message], dump
             case GenericEvent():
                 data = filter_dict(event.generic.model_dump(), None)
                 if "agent_name" in data:
-                    (new_log_type, content) = list(omit(data, {"agent_name", "agent_idx"}).items())[0]
+                    (new_log_type, content) = next(iter(omit(data, {"agent_name", "agent_idx"}).items()))
                     new_log_type = f"[{data['agent_name']}]: {new_log_type}"
                 else:
-                    (new_log_type, content) = list(data.items())[0]
+                    (new_log_type, content) = next(iter(data.items()))
                 if new_log_type != log_type:
                     if log_type is not None:
                         err_console.print()
@@ -235,7 +237,7 @@ async def _run_agent(client: Client, name: str, input: str | list[Message], dump
 
 
 class InteractiveCommand(abc.ABC):
-    args: list[str] = []
+    args: typing.ClassVar[list[str]] = []
     command: str
 
     @abc.abstractmethod
@@ -309,7 +311,7 @@ class ShowConfig(InteractiveCommand):
 class Set(InteractiveCommand):
     """Set agent configuration value. Use JSON syntax for more complex objects"""
 
-    args: list[str] = ["<key>", "<value>"]
+    args: typing.ClassVar[list[str]] = ["<key>", "<value>"]
     command = "set"
 
     def __init__(self, config_schema: dict[str, Any] | None, config: dict[str, Any]):
@@ -336,11 +338,11 @@ class Set(InteractiveCommand):
             jsonschema.validate(tmp_config, self.config_schema)
             self.config[key] = json_value
             console.print("Config:", self.config)
-        except json.JSONDecodeError:
-            raise ValueError(f"The provided value cannot be parsed into JSON: {value}")
+        except json.JSONDecodeError as ex:
+            raise ValueError(f"The provided value cannot be parsed into JSON: {value}") from ex
         except jsonschema.ValidationError as ex:
             err_console.print(json.dumps(generate_schema_example(self.config_schema["properties"][key])))
-            raise ValueError(f"Invalid value for key {key}: {ex}")
+            raise ValueError(f"Invalid value for key {key}: {ex}") from ex
 
     def completion_opts(self) -> dict[str, Any | None] | None:
         return {
@@ -386,7 +388,7 @@ def _create_input_handler(
     commands_router = {f"/{cmd.command}": cmd for cmd in commands}
     completer = {
         **{f"/{cmd.command}": cmd.completion_opts() for cmd in commands},
-        **{opt: None for opt in choice},
+        **dict.fromkeys(choice),
     }
 
     valid_options = set(choice) | commands_router.keys()
@@ -418,8 +420,8 @@ def _create_input_handler(
                 return input
             except ValueError as exc:
                 err_console.print(str(exc))
-            except EOFError:
-                raise KeyboardInterrupt
+            except EOFError as exc:
+                raise KeyboardInterrupt from exc
 
     return handler
 
@@ -492,12 +494,17 @@ async def get_provider(provider_id: str):
 
 @app.command("run")
 async def run_agent(
-    name: str = typer.Argument(help="Name of the agent to call"),
-    input: str = typer.Argument(
-        None if sys.stdin.isatty() else sys.stdin.read(),
-        help="Agent input as text or JSON",
-    ),
-    dump_files: Optional[Path] = typer.Option(None, help="Folder path to save any files returned by the agent"),
+    name: typing.Annotated[str, typer.Argument(help="Name of the agent to call")],
+    input: typing.Annotated[
+        str | None,
+        typer.Argument(
+            default_factory=lambda: None if sys.stdin.isatty() else sys.stdin.read(),
+            help="Agent input as text or JSON",
+        ),
+    ],
+    dump_files: typing.Annotated[
+        Path | None, typer.Option(help="Folder path to save any files returned by the agent")
+    ] = None,
 ) -> None:
     """Run an agent."""
     await ensure_llm_env()
@@ -567,7 +574,7 @@ async def run_agent(
 
 
 def render_enum(value: str, colors: dict[str, str]) -> str:
-    if color := colors.get(value, None):
+    if color := colors.get(value):
         return f"[{color}]{value}[/{color}]"
     return value
 
@@ -661,7 +668,7 @@ def _render_examples(agent: Agent):
     md = "## Examples"
     for i, example in enumerate(examples):
         processing_steps = "\n".join(
-            f"{i + 1}. {step}" for i, step in enumerate((example.get("processing_steps", []) or []))
+            f"{i + 1}. {step}" for i, step in enumerate(example.get("processing_steps", []) or [])
         )
         name = example.get("name", None) or f"Example #{i + 1}"
         output = f"""
@@ -688,7 +695,7 @@ def _render_examples(agent: Agent):
 
 
 @app.command("info")
-async def agent_detail(name: str = typer.Argument(help="Name of agent tool to show")):
+async def agent_detail(name: typing.Annotated[str, typer.Argument(help="Name of agent tool to show")]):
     """Show agent details."""
     agent = await _get_agent(name)
 

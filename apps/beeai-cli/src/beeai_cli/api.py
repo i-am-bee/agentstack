@@ -20,9 +20,10 @@ import re
 import subprocess
 import urllib
 import urllib.parse
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from datetime import timedelta, datetime
-from typing import AsyncIterator, Any
+from datetime import datetime, timedelta
+from typing import Any
 
 import httpx
 import psutil
@@ -116,25 +117,27 @@ async def api_stream(
     """Make a streaming API request to the server."""
     import json as jsonlib
 
-    async with httpx.AsyncClient() as client:
-        async with client.stream(
+    async with (
+        httpx.AsyncClient() as client,
+        client.stream(
             method,
             urllib.parse.urljoin(API_BASE_URL, path),
             json=json,
             params=params,
             timeout=timedelta(hours=1).total_seconds(),
-        ) as response:
-            response: httpx.Response
-            if response.is_error:
-                try:
-                    [error] = [jsonlib.loads(message) async for message in response.aiter_text()]
-                    error = error.get("detail", str(error))
-                except Exception:
-                    response.raise_for_status()
-                raise HTTPStatusError(message=error, request=response.request, response=response)
-            async for line in response.aiter_lines():
-                if line:
-                    yield jsonlib.loads(re.sub("^data:", "", line).strip())
+        ) as response,
+    ):
+        response: httpx.Response
+        if response.is_error:
+            try:
+                [error] = [jsonlib.loads(message) async for message in response.aiter_text()]
+                error = error.get("detail", str(error))
+            except Exception:
+                response.raise_for_status()
+            raise HTTPStatusError(message=error, request=response.request, response=response)
+        async for line in response.aiter_lines():
+            if line:
+                yield jsonlib.loads(re.sub("^data:", "", line).strip())
 
 
 @asynccontextmanager

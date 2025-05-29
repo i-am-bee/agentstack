@@ -15,9 +15,10 @@
 import functools
 import pathlib
 
-from beeai_cli.utils import VMDriver
 import pydantic
 import pydantic_settings
+
+from beeai_cli.utils import VMDriver
 
 
 @functools.cache

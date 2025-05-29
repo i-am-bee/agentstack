@@ -19,29 +19,28 @@ import sys
 import tempfile
 import typing
 
-from beeai_cli.configuration import Configuration
-import typer
+import anyio
 import httpx
-import subprocess
-from rich.table import Column
+import typer
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
 from InquirerPy.validator import EmptyInputValidator
+from rich.table import Column
 
 from beeai_cli.api import api_request
-from beeai_cli.async_typer import AsyncTyper, console, err_console, create_table
-from beeai_cli.utils import parse_env_var, format_error
+from beeai_cli.async_typer import AsyncTyper, console, create_table, err_console
+from beeai_cli.configuration import Configuration
+from beeai_cli.utils import format_error, parse_env_var, run_command
 
 app = AsyncTyper()
 
 
 @app.command("add")
 async def add(
-    env: list[str] = typer.Argument(help="Environment variables to pass to agent"),
+    env: typing.Annotated[list[str], typer.Argument(help="Environment variables to pass to agent")],
 ) -> None:
     """Store environment variables"""
-    env_vars = [parse_env_var(var) for var in env]
-    env_vars = {name: value for name, value in env_vars}
+    env_vars = dict(parse_env_var(var) for var in env)
     await api_request(
         "put",
         "variables",
@@ -63,9 +62,9 @@ async def list_env():
 
 @app.command("remove")
 async def remove_env(
-    env: list[str] = typer.Argument(help="Environment variable(s) to remove"),
+    env: typing.Annotated[list[str], typer.Argument(help="Environment variable(s) to remove")],
 ):
-    await api_request("put", "variables", json={**({"env": {var: None for var in env}})})
+    await api_request("put", "variables", json={**({"env": dict.fromkeys(env)})})
     await list_env()
 
 
@@ -269,9 +268,11 @@ async def setup(
 
     if provider_name == "Ollama" and selected_model not in available_models:
         try:
-            subprocess.run(["ollama", "pull", selected_model], check=True)
+            await run_command(
+                ["ollama", "pull", selected_model], "Pulling the selected model", check=True, passthrough=True
+            )
         except Exception as e:
-            console.print(f"[red]Error while pulling model: {str(e)}[/red]")
+            console.print(f"[red]Error while pulling model: {e!s}[/red]")
             return False
 
     if provider_name == "Ollama" and (
@@ -298,14 +299,17 @@ async def setup(
 
         try:
             if modified_model in available_models:
-                subprocess.run(["ollama", "rm", modified_model], check=False)
+                await run_command(["ollama", "rm", modified_model], "Removing old model")
             with tempfile.TemporaryDirectory() as temp_dir:
                 modelfile_path = os.path.join(temp_dir, "Modelfile")
-                with open(modelfile_path, "w") as f:
-                    f.write(f"FROM {selected_model}\n\nPARAMETER num_ctx {num_ctx}\n")
-                subprocess.run(["ollama", "create", modified_model], cwd=temp_dir, check=True)
+                await anyio.Path(modelfile_path).write_text(f"FROM {selected_model}\n\nPARAMETER num_ctx {num_ctx}\n")
+                await run_command(
+                    ["ollama", "create", modified_model],
+                    "Creating modified model",
+                    cwd=temp_dir,
+                )
         except Exception as e:
-            console.print(f"[red]Error setting up Ollama model: {str(e)}[/red]")
+            console.print(f"[red]Error setting up Ollama model: {e!s}[/red]")
             return False
 
         selected_model = modified_model
@@ -357,7 +361,7 @@ async def setup(
             err_console.print(format_error("Error", "Model did not provide a proper response."))
             return False
     except Exception as e:
-        err_console.print(format_error("Error", f"Error during model test: {str(e)}"))
+        err_console.print(format_error("Error", f"Error during model test: {e!s}"))
         return False
 
     if not use_true_localhost:
@@ -398,7 +402,7 @@ async def ensure_llm_env():
         env = (await api_request("get", "variables"))["env"]
     except httpx.HTTPStatusError:
         return  # Skip for non-conforming servers (like when running directly against an agent provider)
-    if all(required_variable in env.keys() for required_variable in ["LLM_MODEL", "LLM_API_KEY", "LLM_API_BASE"]):
+    if all(required_variable in env for required_variable in ["LLM_MODEL", "LLM_API_KEY", "LLM_API_BASE"]):
         return
     console.print("[bold]Welcome to 🐝 [red]BeeAI[/red]![/bold]")
     console.print("Let's start by configuring your LLM environment.\n")

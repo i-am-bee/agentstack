@@ -16,8 +16,8 @@ import asyncio
 import functools
 import inspect
 import re
+from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import Iterator
 
 import rich.text
 import typer
@@ -26,8 +26,8 @@ from rich.markdown import Heading, Markdown
 from rich.table import Table
 from typer.core import TyperGroup
 
-from beeai_cli.console import console, err_console
 from beeai_cli.configuration import Configuration
+from beeai_cli.console import console, err_console
 from beeai_cli.utils import extract_messages, format_error
 
 DEBUG = Configuration().debug
