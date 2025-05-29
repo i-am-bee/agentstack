@@ -195,6 +195,7 @@ async def run_command(
     check: bool = True,
     ignore_missing: bool = False,
     passthrough: bool = False,
+    input: bytes | None = None,
 ) -> subprocess.CompletedProcess:
     """Helper function to run a subprocess command and handle common errors."""
     env = env or {}
@@ -208,6 +209,7 @@ async def run_command(
                 stderr=None,
                 env={**os.environ, **env},
                 cwd=cwd,
+                input=input,
             )
         else:
             with console.status(f"{message}...", spinner="dots"):
@@ -216,6 +218,7 @@ async def run_command(
                     check=check,
                     env={**os.environ, **env},
                     cwd=cwd,
+                    input=input,
                 )
         console.print(f"{message} [[green]DONE[/green]]")
         return result

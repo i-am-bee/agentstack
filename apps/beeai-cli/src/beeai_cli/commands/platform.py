@@ -16,12 +16,12 @@ import asyncio
 import base64
 import importlib.resources
 import json
+import os
 import shutil
 import sys
 import typing
 
-import kr8s.asyncio
-import kr8s.asyncio.objects
+import anyio
 import typer
 import yaml
 
@@ -34,12 +34,6 @@ from beeai_cli.utils import VMDriver, run_command
 app = AsyncTyper()
 
 configuration = Configuration()
-
-HelmChart = kr8s.asyncio.objects.new_class(
-    kind="HelmChart",
-    version="helm.cattle.io/v1",
-    namespaced=True,
-)
 
 
 def _lima_yaml(k3s_port: int = 16443, beeai_port: int = 8333, phoenix_port: int = 6006) -> str:
@@ -98,6 +92,14 @@ portForwards:
     hostPort: {phoenix_port}"""
 
 
+def _vm_exec_command(vm_driver: VMDriver, vm_name: str) -> list[str]:
+    match vm_driver:
+        case VMDriver.lima:
+            return ["limactl", "shell", vm_name, "--"]
+        case VMDriver.docker:
+            return ["docker", "exec", vm_name, "--"]
+
+
 def _validate_driver(vm_driver: VMDriver | None) -> VMDriver:
     match vm_driver:
         case None:
@@ -125,7 +127,7 @@ async def _get_platform_status(vm_driver: VMDriver, vm_name: str) -> str | None:
             case VMDriver.lima:
                 result = await run_command(
                     ["limactl", "--tty=false", "list", "--format=json"],
-                    "Looking for existing BeeAI platform",
+                    f"Looking for existing instance in {vm_driver.name.capitalize()}",
                     env={"LIMA_HOME": str(configuration.lima_home)},
                 )
                 return next(
@@ -181,7 +183,7 @@ async def start(
     """Start BeeAI platform."""
     vm_driver = _validate_driver(vm_driver)
 
-    # Stage 0: Clean up legacy Brew services
+    # Clean up legacy Brew services
     await run_command(
         ["brew", "services", "stop", "beeai"],
         "Cleaning up legacy BeeAI service",
@@ -195,10 +197,19 @@ async def start(
         ignore_missing=True,
     )
 
-    # Stage 1: Start VM
+    # Start VM
     configuration.home.mkdir(exist_ok=True)
     status = await _get_platform_status(vm_driver, vm_name)
     if not status:
+        await run_command(
+            {
+                VMDriver.lima: ["limactl", "--tty=false", "delete", "--force", vm_name],
+                VMDriver.docker: ["docker", "rm", "--force", vm_name],
+            }[vm_driver],
+            "Cleaning up remains of previous instance",
+            env={"LIMA_HOME": str(configuration.lima_home)},
+            check=False,
+        )
         templates_dir = configuration.lima_home / "_templates"
         if vm_driver == VMDriver.lima:
             templates_dir.mkdir(parents=True, exist_ok=True)
@@ -236,7 +247,7 @@ async def start(
                     f"--https-listen-port={k3s_port}",
                 ],
             }[vm_driver],
-            "Creating BeeAI platform",
+            "Creating a " + {VMDriver.lima: "Lima VM", VMDriver.docker: "Docker container"}[vm_driver],
             env={"LIMA_HOME": str(configuration.lima_home)},
         )
     elif status != "running":
@@ -245,16 +256,16 @@ async def start(
                 VMDriver.lima: ["limactl", "--tty=false", "start", vm_name],
                 VMDriver.docker: ["docker", "start", vm_name],
             }[vm_driver],
-            "Starting BeeAI platform",
+            "Starting up",
             env={"LIMA_HOME": str(configuration.lima_home)},
         )
     else:
-        console.print("Updating an existing BeeAI platform instance.")
+        console.print("Updating an existing instance.")
 
     if vm_driver == VMDriver.lima:
         await run_command(
             ["limactl", "--tty=false", "start-at-login", vm_name],
-            "Configuring BeeAI platform",
+            "Configuring",
             env={"LIMA_HOME": str(configuration.lima_home)},
         )
 
@@ -286,52 +297,43 @@ async def start(
             "Copying Kubernetes configuration",
         )
 
-    # Stage 2: Import images
+    # Import images
     for image in import_images:
         await import_image(image, vm_name=vm_name, vm_driver=vm_driver)
 
-    # Stage 3: Deploy HelmChart
-    try:
-        with console.status("Applying HelmChart to Kubernetes...", spinner="dots"):
-            helm_chart = HelmChart(
-                {
-                    "metadata": {
-                        "name": "beeai",
-                        "namespace": "default",
-                    },
-                    "spec": {
-                        "chartContent": base64.b64encode(
-                            (importlib.resources.files("beeai_cli") / "data" / "helm-chart.tgz").read_bytes()
-                        ).decode(),
-                        "targetNamespace": "default",
-                        "valuesContent": yaml.dump(
-                            {
-                                "externalRegistries": {
-                                    "public_github": "https://github.com/i-am-bee/beeai-platform@release-v0.2.0#path=agent-registry.yaml"
-                                },
-                                "encryptionKey": "Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc=",  # Dummy key for local use
-                                "features": {"uiNavigation": True},
-                                "auth": {"enabled": False},
-                                "telemetry": {"sharing": telemetry_sharing},
-                            }
-                        ),
-                        "set": dict(value.split("=", 1) for value in set_values_list),
-                    },
+    # Deploy HelmChart
+    await run_command(
+        [*_vm_exec_command(vm_driver, vm_name), "kubectl", "apply", "-f", "-"],
+        "Applying Helm chart",
+        input=yaml.dump(
+            {
+                "apiVersion": "helm.cattle.io/v1",
+                "kind": "HelmChart",
+                "metadata": {
+                    "name": "beeai",
+                    "namespace": "default",
                 },
-                api=await kr8s.asyncio.api(
-                    kubeconfig=configuration.get_kubeconfig(vm_driver=vm_driver, vm_name=vm_name)
-                ),
-            )
-            if await helm_chart.exists():
-                await helm_chart.patch(helm_chart.raw)
-            else:
-                await helm_chart.create()
-    except Exception as e:
-        import traceback
-
-        traceback.print_exc()
-        console.print(f"[red]Error applying HelmChart: {e}[/red]")
-        sys.exit(1)
+                "spec": {
+                    "chartContent": base64.b64encode(
+                        (importlib.resources.files("beeai_cli") / "data" / "helm-chart.tgz").read_bytes()
+                    ).decode(),
+                    "targetNamespace": "default",
+                    "valuesContent": yaml.dump(
+                        {
+                            "externalRegistries": {
+                                "public_github": "https://github.com/i-am-bee/beeai-platform@release-v0.2.0#path=agent-registry.yaml"
+                            },
+                            "encryptionKey": "Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc=",  # Dummy key for local use
+                            "features": {"uiNavigation": True},
+                            "auth": {"enabled": False},
+                            "telemetry": {"sharing": telemetry_sharing},
+                        }
+                    ),
+                    "set": dict(value.split("=", 1) for value in set_values_list),
+                },
+            }
+        ).encode("utf-8"),
+    )
 
     with console.status("Waiting for BeeAI platform to be ready...", spinner="dots"):
         await wait_for_api()
@@ -419,3 +421,24 @@ async def import_image(
         cwd="/",
     )
     await run_command(["/bin/sh", "-c", "rm -f ~/.beeai/images/*"], "Removing temporary files")
+
+
+@app.command("exec")
+async def exec(
+    command: typing.Annotated[list[str], typer.Argument()],
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
+    vm_driver: typing.Annotated[
+        VMDriver | None, typer.Option(hidden=True, help="Platform driver: lima (VM) or docker (container)")
+    ] = None,
+):
+    """For debugging -- execute a command inside the BeeAI platform VM."""
+    vm_driver = _validate_driver(vm_driver)
+    await anyio.run_process(
+        [*_vm_exec_command(vm_driver, vm_name), *command],
+        input=None if sys.stdin.isatty() else sys.stdin.read(),
+        check=False,
+        stdout=None,
+        stderr=None,
+        env={**os.environ},
+        cwd="/",
+    )
