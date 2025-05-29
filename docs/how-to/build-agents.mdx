@@ -207,15 +207,66 @@ beeai run my_agent "Hello!"
 
 If you see a response, congrats - your agent is working!
 
-## Add Your Agent to BeeAI
+## Deploy Your Agent
 
-Install your agent so BeeAI can run it automatically in the background:
+Now that your agent works locally, you have two deployment options:
+
+### Option 1: Quick Local Development (Easiest)
+
+Perfect if you're developing and testing locally:
 
 ```bash
 beeai add .
 ```
 
 What this does:
-- Builds your agent into a Docker container
-- Lets BeeAI manage starting and stopping it
-- You no longer need to run `uv run server` manually
+- Builds your agent into a Docker container automatically
+- Adds it directly to your local BeeAI Platform
+- You can immediately use `beeai run my_agent "test"`
+
+When to use this:
+- Quick prototyping and testing
+- Local development
+- You don't need to share the agent with others
+
+### Option 2: Production Deployment (Sharing & CI/CD)
+
+Use this when you want to share your agent or deploy through CI/CD:
+
+**Step 1: Build the Container**
+
+```bash
+beeai build . --tag my-agent:1.0.0 --no-import
+```
+
+Why `--no-import?` This builds the container but doesn't add it to BeeAI yet. You want to push it to a registry first so others can use it.
+
+**Step 2: Push to Container Registry**
+
+Push your container to a registry (Docker Hub, GitHub Container Registry, etc.):
+
+```bash
+# Tag for your registry
+docker tag my-agent:1.0.0 ghcr.io/username/my-agent:1.0.0
+
+# Push to registry  
+docker push ghcr.io/username/my-agent:1.0.0
+```
+
+Why push to a registry?
+- **Sharing**: Others can install your agent with `beeai add ghcr.io/username/my-agent:1.0.0`
+- **Production**: Deploy the same container image across different environments
+- **CI/CD**: Automated builds can push to registries
+- **Versioning**: Tag different versions (`:1.0.0`, `:1.1.0`, `:latest`)
+
+**Step 3: Add to BeeAI Platform**
+
+Now install your agent from the registry:
+
+```bash
+beeai add ghcr.io/username/my-agent:1.0.0
+```
+
+<Note>
+**CI/CD Integration**: The starter template includes a complete GitHub Actions workflow for automated builds. Check out [.github/workflows/build-agent.yaml](https://github.com/i-am-bee/beeai-platform-agent-starter/blob/main/.github/workflows/build-agent.yaml) in your project.
+</Note>

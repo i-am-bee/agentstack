@@ -38,13 +38,6 @@
                   "concepts/acp-protocol"]
       },
       {
-        "group": "Deployment",
-        "pages": ["deployment/overview",
-                  "deployment/kubernetes",
-                  "deployment/openshift"
-                 ]
-      },
-      {
         "group": "Community and Support",
         "pages": ["community-and-support/troubleshooting",
                   "community-and-support/contribute"]
