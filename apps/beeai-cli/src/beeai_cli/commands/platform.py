@@ -323,6 +323,7 @@ async def start(
                 },
             }
         ).encode("utf-8"),
+        env={"LIMA_HOME": str(configuration.lima_home)},
     )
 
     with console.status("Waiting for BeeAI platform to be ready...", spinner="dots"):
@@ -429,6 +430,6 @@ async def exec(
         check=False,
         stdout=None,
         stderr=None,
-        env={**os.environ},
+        env={**os.environ, "LIMA_HOME": str(configuration.lima_home)},
         cwd="/",
     )
