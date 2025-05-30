@@ -51,7 +51,11 @@ export function Chat() {
     setIsScrolled(false);
   }, []);
 
+  const isNew = !(isPending || messages.length);
+
   useEffect(() => {
+    if (isNew) return;
+
     const bottomElement = bottomRef.current;
 
     const observer = new IntersectionObserver(
@@ -70,9 +74,7 @@ export function Chat() {
         observer.unobserve(bottomElement);
       }
     };
-  }, []);
-
-  const isNew = !(isPending || messages.length);
+  }, [isNew]);
 
   return (
     <div className={clsx(classes.root, { [classes.isNew]: isNew })}>
