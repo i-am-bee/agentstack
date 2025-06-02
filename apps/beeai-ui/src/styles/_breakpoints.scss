@@ -19,7 +19,7 @@
 @use '@carbon/grid/scss/config' as *;
 @use '@carbon/styles/scss/utilities/convert' as *;
 
-$grid-breakpoints: map.merge(
+$breakpoints: map.merge(
   $grid-breakpoints,
   (
     sm: map.merge(

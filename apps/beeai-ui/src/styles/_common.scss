@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
+@use 'breakpoints' as *;
+
 @forward '@carbon/styles/scss/config' with (
-  $font-display: swap
+  $font-display: swap,
+  $grid-breakpoints: $breakpoints
 );
 @forward 'theme';
-@forward 'grid';
 @forward 'functions';
 @forward 'mixins';
 @forward '@carbon/styles/scss/spacing';
