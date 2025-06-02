@@ -21,11 +21,12 @@ import {
   ACP_DOCUMENTATION_LINK,
   COMPOSE_LINK,
   Container,
-  DISCOVER_LINK,
   FRAMEWORK_GITHUB_REPO_LINK,
   RUN_LINK,
 } from '@i-am-bee/beeai-ui';
 import { useState } from 'react';
+
+import { TransitionLink } from '@/components/TransitionLink/TransitionLink';
 
 import composeImage from './compose.png';
 import discoverImage from './discover.png';
@@ -67,9 +68,7 @@ export function ExperienceShowcase() {
                 </p>
 
                 <p className={classes.more}>
-                  <a href={DISCOVER_LINK} target="_blank" rel="noreferrer">
-                    Learn more
-                  </a>
+                  <TransitionLink href="/agents">Learn more</TransitionLink>
                 </p>
 
                 <ShowcaseVideo key={videoSrc} src={videoSrc} poster={posterSrc} className={classes.video} />

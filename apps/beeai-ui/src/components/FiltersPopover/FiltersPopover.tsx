@@ -55,6 +55,7 @@ export function FiltersPopover({ groups, onClearAll, toggleButtonClassName }: Fi
           renderIcon={Filter}
           hasIconOnly
           onClick={toggleOpen}
+          iconDescription="Filters"
         />
       </div>
 
