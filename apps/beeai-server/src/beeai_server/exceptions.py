@@ -15,7 +15,7 @@
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from starlette.status import HTTP_404_NOT_FOUND
+from starlette.status import HTTP_404_NOT_FOUND, HTTP_400_BAD_REQUEST
 from tenacity import retry_if_exception, retry_base
 
 if TYPE_CHECKING:
@@ -49,6 +49,25 @@ class MissingConfigurationError(Exception):
 
 
 class ProviderNotInstalledError(Exception): ...
+
+
+class DuplicateEntityError(Exception):
+    entity: str
+    field: str
+    value: str | UUID | None
+    status_code: int
+
+    def __init__(
+        self, entity: str, field: str = "name", value: str | UUID | None = None, status_code: int = HTTP_400_BAD_REQUEST
+    ):
+        self.entity = entity
+        self.field = field
+        self.value = value
+        self.status_code = status_code
+        message = f"Duplicate {entity} found"
+        if value:
+            message = f"{message}: {field}='{value}' already exists"
+        super().__init__(message)
 
 
 def retry_if_exception_grp_type(*exception_types: type[BaseException]) -> retry_base:

@@ -18,12 +18,13 @@ from typing import AsyncIterator
 from uuid import UUID
 
 from sqlalchemy import Table, Column, String, UUID as SqlUUID, Integer, JSON, Row, Boolean
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncConnection
 from sqlalchemy.sql import select, delete
 
 from beeai_server.domain.models.provider import Provider
 from beeai_server.domain.repositories.provider import IProviderRepository
-from beeai_server.exceptions import EntityNotFoundError
+from beeai_server.exceptions import EntityNotFoundError, DuplicateEntityError
 from beeai_server.infrastructure.persistence.repositories.agent import agents_table, agent_requests_table
 from beeai_server.infrastructure.persistence.repositories.db_metadata import metadata
 from beeai_server.utils.utils import utc_now
@@ -59,7 +60,12 @@ class SqlAlchemyProviderRepository(IProviderRepository):
         )
         if provider.auto_remove:
             await self.connection.execute(providers_table.delete().where(providers_table.c.id == provider.id))
-        await self.connection.execute(query)
+        try:
+            await self.connection.execute(query)
+        except IntegrityError:
+            # Most likely the name field caused the duplication since it has a unique constraint
+            # Extract agent name from the error message if possible
+            raise DuplicateEntityError(entity="provider", field="source", value=provider.source.root)
 
     def _to_provider(self, row: Row) -> Provider:
         return Provider.model_validate(

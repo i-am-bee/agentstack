@@ -13,16 +13,17 @@
 # limitations under the License.
 
 from datetime import timedelta
-from typing import AsyncIterable
+from typing import AsyncIterator
 from uuid import UUID
 
 from sqlalchemy import Table, Column, String, JSON, ForeignKey, UUID as SqlUUID, Text, Select, Row, DateTime
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncConnection
 from sqlalchemy.sql import select, insert, delete
 
 from beeai_server.domain.models.agent import Agent, AgentRunRequest
 from beeai_server.domain.repositories.agent import IAgentRepository
-from beeai_server.exceptions import EntityNotFoundError
+from beeai_server.exceptions import EntityNotFoundError, DuplicateEntityError
 from beeai_server.infrastructure.persistence.repositories.db_metadata import metadata
 from beeai_server.utils.utils import utc_now
 
@@ -66,9 +67,15 @@ class SqlAlchemyAgentRepository(IAgentRepository):
                 for agent in agents
             ]
         )
-        await self.connection.execute(query)
+        try:
+            await self.connection.execute(query)
+        except IntegrityError as e:
+            # Most likely the name field caused the duplication since it has a unique constraint
+            # Extract agent name from the error message if possible
+            duplicate_agents = [agent.name for agent in agents if agent.name in str(e)] or [None]
+            raise DuplicateEntityError(entity="agent", field="name", value=duplicate_agents[0])
 
-    async def list(self) -> AsyncIterable[Agent]:
+    async def list(self) -> AsyncIterator[Agent]:
         async for row in await self.connection.stream(select(agents_table)):
             yield self._to_agent(row)
 
@@ -102,7 +109,10 @@ class SqlAlchemyAgentRepository(IAgentRepository):
             agent_id=request.agent_id,
             created_at=request.created_at,
         )
-        await self.connection.execute(query)
+        try:
+            await self.connection.execute(query)
+        except IntegrityError:
+            raise DuplicateEntityError(entity="agent_request", field="id", value=str(request.id))
 
     async def update_request(self, *, request: AgentRunRequest) -> None:
         query = (
