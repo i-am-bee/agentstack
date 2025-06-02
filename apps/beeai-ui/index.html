@@ -11,8 +11,9 @@
       (() => {
         try {
           const html = document.documentElement;
-          const darkMode = window.localStorage.getItem('@i-am-bee/beeai/DARK_MODE');
-          const isDarkMode =  darkMode === 'true' || (darkMode == null && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          const storedTheme = window.localStorage.getItem('@i-am-bee/beeai/THEME');
+          const theme = typeof storedTheme === 'string' ? JSON.parse(storedTheme) : 'System'; 
+          const isDarkMode = theme === 'Dark' || (theme === 'System' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
           if (isDarkMode) {
             html.classList.add('cds--g90');
