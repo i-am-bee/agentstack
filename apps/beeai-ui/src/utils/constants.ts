@@ -38,7 +38,6 @@ export const TRY_LOCALLY_LINK = `${DOCUMENTATION_LINK}/introduction/quickstart`;
 
 export const TRACEABILITY_LINK = `${DOCUMENTATION_LINK}/observability/agents-traceability`;
 
-// TODO: Update link when documentation is ready
 export const DISCOVER_LINK = `${DOCUMENTATION_LINK}/agents`;
 
 export const RUN_LINK = `${DOCUMENTATION_LINK}/how-to/run-agents`;

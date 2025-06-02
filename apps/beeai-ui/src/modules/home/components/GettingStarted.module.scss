@@ -19,15 +19,11 @@
   flex-direction: column;
   align-items: center;
   row-gap: $spacing-08;
-  margin-block: $spacing-08 rem(72px);
+  margin-block: $spacing-07 $spacing-09;
 
   @include breakpoint-up(md) {
     row-gap: $spacing-11;
-    margin-block-end: rem(88px);
-  }
-
-  @include breakpoint-up(lg) {
-    margin-block: rem(144px) rem(192px);
+    margin-block-end: rem(96px);
   }
 }
 
