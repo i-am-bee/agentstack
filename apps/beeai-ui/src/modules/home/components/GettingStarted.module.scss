@@ -23,7 +23,7 @@
 
   @include breakpoint-up(md) {
     row-gap: $spacing-11;
-    margin-block-end: rem(96px);
+    margin-block-end: $spacing-12;
   }
 }
 
