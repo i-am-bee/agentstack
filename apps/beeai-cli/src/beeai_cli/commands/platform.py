@@ -123,7 +123,7 @@ async def _get_platform_status(vm_driver: VMDriver, vm_name: str) -> str | None:
                 return next(
                     (
                         status["status"].lower() if "status" in status else None
-                        for line in result.stdout.split("\n")
+                        for line in result.stdout.decode().split("\n")
                         if line
                         if (status := json.loads(line))
                         if status.get("name") == vm_name
@@ -389,7 +389,7 @@ async def import_image(
     ] = None,
 ):
     """Import a local docker image into the BeeAI platform."""
-    driver = _validate_driver(vm_driver)
+    vm_driver = _validate_driver(vm_driver)
     await run_command(["bash", "-c", "rm -f ~/.beeai/images/*"], "Removing temporary files")
     image_path = Configuration().home / "images" / (tag.replace("/", "_") + ".tar")
     image_path.parent.mkdir(parents=True, exist_ok=True)
@@ -401,7 +401,7 @@ async def import_image(
         {
             VMDriver.lima: ["limactl", "--tty=false", "shell", vm_name, "--"],
             VMDriver.docker: ["docker", "exec", vm_name],
-        }[driver]
+        }[vm_driver]
         + [
             "/bin/sh",
             "-c",

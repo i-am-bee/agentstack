@@ -113,7 +113,9 @@ async def build(
 
     context_hash = hashlib.sha256(context.encode()).hexdigest()[:6]
     context_shorter = re.sub(r"https?://", "", context).replace(r".git", "")
-    tag = (tag or f"beeai.local/{re.sub(r'[^a-zA-Z0-9._-]+', '-', context_shorter)[:32]}{context_hash}:latest").lower()
+    tag = (
+        tag or f"beeai.local/{re.sub(r'[^a-zA-Z0-9._-]+', '-', context_shorter)[:32].lstrip('-')}-{context_hash}:latest"
+    ).lower()
     await run_process(
         command=(
             f"{build_command} {context} -t {tag} "
@@ -125,6 +127,6 @@ async def build(
     if import_image:
         from beeai_cli.commands.platform import import_image
 
-        import_image(tag, vm_name=vm_name, vm_driver=vm_driver)
+        await import_image(tag, vm_name=vm_name, vm_driver=vm_driver)
 
     return tag, response["agents"]
