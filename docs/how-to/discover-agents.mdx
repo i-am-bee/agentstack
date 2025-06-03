@@ -17,25 +17,15 @@ beeai list
 
 This command returns a table of installed and available agents with the following columns:
 
-| **Field**       | **Description**                                                                 |
-|:-----------------|:---------------------------------------------------------------------------------|
-| **NAME**         | The agent identifier.                                                            |
-| **STATUS**       | Current installation state of the agent.                        |
-| **DESCRIPTION**  | A brief summary of what the agent does.                                         |
+| **Field**       | **Description**                                                                    |
+|:-----------------|:----------------------------------------------------------------------------------|
+| **NAME**         | The agent identifier.                                                             |
+| **STATUS**       | Current state of the agent.                                                       |
+| **DESCRIPTION**  | A brief summary of what the agent does.                                           |
 | **UI**           | The type of user interface it supports, such as `chat`, `hands-off`, or `<none>`. |
-| **LOCATION**     | The source registry path for the agent image.                                   |
-| **MISSING ENV**  | Lists any missing environment variables (if applicable).                        |
-| **LAST ERROR**   | Displays the last recorded error message (if applicable).                       |
-
-## Install Agents
-
-If an agent's **STATUS** is `not_installed`, that means it's available but not yet downloaded to your environment. You’ll need to install it before you can run it.
-
-To install an agent:
-
-```bash
-beeai add <agent_name>
-```
+| **LOCATION**     | The source registry path for the agent image.                                     |
+| **MISSING ENV**  | Lists any missing environment variables (if applicable).                          |
+| **LAST ERROR**   | Displays the last recorded error message (if applicable).                         |
 
 ## Agent Details
 

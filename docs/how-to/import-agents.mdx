@@ -20,7 +20,7 @@ beeai list  # Your agent will be visible here
 ```
 
 <Info>
-  Auto-discovered agents appear in both the CLI and web UI automatically. No manual import needed!
+    Auto-discovered agents appear in both the CLI and web UI automatically. No manual import needed!
 </Info>
 
 ### From GitHub Repositories
@@ -35,21 +35,21 @@ More import options:
 
 ```bash
 # Specify a version or branch
-beeai add "https://github.com/i-am-bee/custom-agent@v1.0.0"
-beeai add "https://github.com/i-am-bee/custom-agent@develop"
+beeai add "https://github.com/i-am-bee/custom-agent.git#v1.0.0"
+beeai add "https://github.com/i-am-bee/custom-agent.git#develop"
 
 # Import from specific subdirectory
-beeai add "https://github.com/i-am-bee/custom-agent#path=/agents/my-agent"
+beeai add "https://github.com/i-am-bee/custom-agent.git#:agents/my-agent"
 
 # Combined version and path
-beeai add "https://github.com/i-am-bee/multi-agent-repo@v2.1.0#path=/agents/specialized-agent"
+beeai add "https://github.com/i-am-bee/multi-agent-repo.git#v2.1.0:agents/specialized-agent"
 ```
 
 <Note>
-  **Requirements for GitHub import:**
-  - Repository must contain a `Dockerfile` in the root or specified path
-  - Agent must follow ACP protocol standards
-  - Repository must be publicly accessible
+    **Requirements for GitHub import:**
+    - Repository must contain a `Dockerfile` in the root or specified path
+    - Agent must follow ACP protocol standards
+    - Repository must be publicly accessible
 </Note>
 
 ### From Docker Images
@@ -67,15 +67,23 @@ beeai add myuser/my-agent:v1.0
 beeai add registry.example.com/team/custom-agent:latest
 ```
 
-### Build and Add Local Agents
+### From Local Filesystem
 
-For local development and testing:
+Add local agents:
+```bash
+# Build an add an agent from current directory
+beeai add .
+
+# Build an add an agent from specific directory
+beeai add /path/to/my-agent
+```
+
+This will build the agent and add it to your agent list.
+
+If the command above is failing, or you only need to build the agent image, you can run the steps separately:
 
 ```bash
-# Build an agent from current directory
-beeai build .
-
-# Build from specific directory
+# Build agent only
 beeai build /path/to/my-agent
 
 # Build with custom tag
@@ -85,7 +93,10 @@ beeai build . --tag my-custom-agent:dev
 beeai build . --no-import
 ```
 
-The built agent will automatically be available in your agent list.
+After a successful build you'll get a message like
+`✅ Successfully built agent: beeai.local/path-to-my-agent-db09b8:latest`, you can add this image to the platform
+by `beeai add beeai.local/path-to-my-agent-db09b8:latest`
+
 
 ## Removing Agents
 
@@ -100,12 +111,6 @@ beeai uninstall <agent-name>
 beeai delete <agent-name>
 beeai rm <agent-name>
 ```
-
-<Warning>
-  **Important considerations when removing agents:**
-  - This deletes the agent's Docker image from your system
-  - For locally built agents, you'll need to rebuild them to use again
-</Warning>
 
 ## Checking Agent Status
 

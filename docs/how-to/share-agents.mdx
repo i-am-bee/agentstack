@@ -19,7 +19,7 @@ Share your repository URL:
 https://github.com/your-username/your-agent-repo
 
 # Share a specific version
-https://github.com/your-username/your-agent-repo@v1.0.0
+https://github.com/your-username/your-agent-repo#v1.0.0
 ```
 
 Others can install your agent using the BeeAI CLI:
@@ -29,14 +29,16 @@ Others can install your agent using the BeeAI CLI:
 beeai add "https://github.com/your-username/your-agent-repo"
 
 # Add specific version
-beeai add "https://github.com/your-username/your-agent-repo@v1.0.0"
+beeai add "https://github.com/your-username/your-agent-repo#v1.0.0"
 
 # Add with specific path (for monorepos)
-beeai add "https://github.com/your-username/monorepo@main#path=/agents/my-agent"
+beeai add "https://github.com/your-username/monorepo#main:agents/my-agent"
 ```
 
-<Tip> 
-**Versioning Tip**: Use Git tags like `v1.0.0`, `v1.1.0`, etc., to manage releases. BeeAI automatically builds and caches tagged versions to speed up installs. 
+<Tip>
+**Versioning Tip**: Use Git tags like `v1.0.0`, `v1.1.0`, etc., to manage releases before sharing them. This will help
+    you prevent unwanted updates compared to always using latest main. You can upgrade agents
+    by deleting them with `beeai remove` and adding again with the new version.
 </Tip>
 
 ## Share via Container Registry
@@ -55,12 +57,12 @@ beeai add your-username/your-agent:latest
 beeai add registry.yourcompany.com/team/agent:v2.1.0
 ```
 
-<Note> 
-**Why Containers?** Pre-built images install instantly—they don’t need to be built on the user’s machine. 
+<Note>
+**Why Containers?** Pre-built images install instantly—they don’t need to be built on the user’s machine.
 </Note> 
 
-<Note> 
-**CI/CD Ready**: The starter template includes a full GitHub Actions workflow to automate builds. See the [`build-agent.yaml`](https://github.com/i-am-bee/beeai-platform-agent-starter/blob/main/.github/workflows/build-agent.yaml) file for details. 
+<Note>
+**CI/CD Ready**: The starter template includes a full GitHub Actions workflow to automate builds. See the [`build-agent.yaml`](https://github.com/i-am-bee/beeai-platform-agent-starter/blob/main/.github/workflows/build-agent.yaml) file for details.
 </Note>
 
 ## Publish to the Community Catalog
