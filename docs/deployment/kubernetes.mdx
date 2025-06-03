@@ -1,5 +1,189 @@
 ---
 title: "Kubernetes"
-description: "Deploy BeeAI on Kubernetes"
+description: "Deploy BeeAI on a Kubernetes cluster using Helm charts"
 ---
 
+This guide walks you through deploying the BeeAI Platform to Kubernetes using Helm. You'll configure agents and LLM providers, then deploy everything with a single command.
+
+## Quick Start
+
+The fastest way to deploy BeeAI with default agents and Ollama:
+
+### Step 1: Get the Helm Chart
+
+```bash
+# Clone the BeeAI repository to get the Helm chart
+git clone https://github.com/i-am-bee/beeai-platform.git
+cd beeai-platform/helm
+```
+
+### Step 2: Install Dependencies
+
+```bash
+# Update Helm chart dependencies
+helm dependency build beeai-platform
+```
+
+### Step 3: Deploy with Default Configuration
+
+```bash
+# Deploy with Ollama configuration
+helm install my-beeai-platform ./beeai-platform \
+  -f ../agent-registry.yaml \
+  --set variables.LLM_API_BASE=http://host.docker.internal:11434/v1 \
+  --set variables.LLM_API_KEY=dummy \
+  --set variables.LLM_MODEL=llama3.1:8b \
+  --set encryptionKey=Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc= \
+  --set auth.enabled=false
+```
+
+**What this does:**
+- Installs BeeAI Platform with the release name `my-beeai-platform`
+- Configures Ollama as the LLM provider (running on host machine)
+- Includes default community agents from the official registry
+- Disables authentication for local testing
+- Sets a dummy encryption key (for testing only)
+
+## Custom Configuration
+
+For production deployments or custom configurations, create configuration files:
+
+### Step 1: Configure Your Agents
+
+Create `agents.yaml` to specify which agents to deploy:
+
+```yaml
+# agents.yaml - Choose which agents to include
+providers:
+  # Community agents (choose from https://beeai.dev/agents)
+  - location: ghcr.io/i-am-bee/beeai-platform/community/aider:latest
+  - location: ghcr.io/i-am-bee/beeai-platform/community/gpt-researcher:latest
+  
+  # Official agents
+  - location: ghcr.io/i-am-bee/beeai-platform/official/beeai-framework/chat:latest
+  
+  # Your custom agents
+  - location: your-registry.com/your-team/custom-agent:v1.0.0
+```
+
+**Alternative:** Use the default agent registry instead of creating your own:
+```bash
+# Skip creating agents.yaml and use this flag instead:
+-f https://raw.githubusercontent.com/i-am-bee/beeai-platform/refs/heads/release-v0.2.0/agent-registry.yaml
+```
+
+### Step 2: Configure Your LLM Provider
+
+Create `llm-config.yaml` with your LLM provider settings:
+
+<details>
+<summary><strong>OpenAI</strong></summary>
+
+```yaml
+# llm-config.yaml
+variables:
+  LLM_API_BASE: https://api.openai.com/v1
+  LLM_API_KEY: sk-your-openai-api-key-here
+  LLM_MODEL: gpt-4o
+```
+</details>
+
+<details>
+<summary><strong>Ollama (Local)</strong></summary>
+
+```yaml
+# llm-config.yaml
+variables:
+  LLM_API_BASE: http://host.docker.internal:11434/v1
+  LLM_API_KEY: dummy
+  LLM_MODEL: llama3.1:8b
+```
+</details>
+
+### Step 3: Security Configuration
+
+Create `security.yaml` for production settings:
+
+```yaml
+# security.yaml
+# Generate a secure encryption key: openssl rand -base64 32
+encryptionKey: your-base64-encoded-32-byte-key-here
+
+auth:
+  enabled: true
+  admin_password: your-secure-admin-password
+
+# For testing/development only:
+# auth:
+#   enabled: false
+```
+
+### Step 4: Deploy with Custom Configuration
+
+```bash
+# Make sure you're in the beeai-platform/helm directory
+helm install my-beeai-platform ./beeai-platform \
+  -f agents.yaml \
+  -f llm-config.yaml \
+  -f security.yaml
+```
+
+## Post-Deployment
+
+### Access BeeAI Platform
+
+1. **Get the service URL:**
+   ```bash
+   kubectl get services
+   # Look for beeai-platform-svc
+   ```
+
+2. **Port forward for local access:**
+   ```bash
+   kubectl port-forward svc/beeai-platform-svc 8333:8333
+   ```
+
+3. **Open in browser:**
+   - Web UI: http://localhost:8333
+   - API: http://localhost:8333/api/v1
+
+### Verify Deployment
+
+Check that everything is running:
+
+```bash
+# Check pod status
+kubectl get pods
+
+# Check platform logs
+kubectl logs deployment/beeai-platform
+
+# List available agents
+curl http://localhost:8333/api/v1/acp/agents
+```
+
+## Management Commands
+
+### Update Deployment
+```bash
+# From the beeai-platform/helm directory
+helm upgrade my-beeai-platform ./beeai-platform \
+  -f agents.yaml \
+  -f llm-config.yaml \
+  -f security.yaml
+```
+
+### View Configuration
+```bash
+helm get values my-beeai-platform
+```
+
+### Uninstall
+```bash
+helm uninstall my-beeai-platform
+```
+
+### Check Status
+```bash
+helm status my-beeai-platform
+```
