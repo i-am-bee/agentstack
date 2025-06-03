@@ -18,6 +18,7 @@ import { Menu } from '@carbon/icons-react';
 import { IconButton } from '@carbon/react';
 
 import { useApp } from '#contexts/App/index.ts';
+import { APP_NAME } from '#utils/vite-constants.ts';
 
 import classes from './SidebarButton.module.scss';
 
@@ -37,7 +38,7 @@ export function SidebarButton() {
         <Menu />
       </IconButton>
 
-      <span className={classes.label}>BeeAI</span>
+      <span className={classes.label}>{APP_NAME}</span>
     </div>
   );
 }

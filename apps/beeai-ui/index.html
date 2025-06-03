@@ -3,16 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/bee.svg" />
+    <link rel="icon" type="image/svg+xml" href="%__APP_FAVICON_SVG__%" />
 
-    <title>BeeAI</title>
+    <title>%__APP_NAME__%</title>
 
     <script>
       (() => {
         try {
           const html = document.documentElement;
           const storedTheme = window.localStorage.getItem('@i-am-bee/beeai/THEME');
-          const theme = typeof storedTheme === 'string' ? JSON.parse(storedTheme) : 'System'; 
+          const theme = typeof storedTheme === 'string' ? JSON.parse(storedTheme) : 'System';
           const isDarkMode = theme === 'Dark' || (theme === 'System' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
           if (isDarkMode) {
