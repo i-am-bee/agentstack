@@ -14,38 +14,12 @@
  * limitations under the License.
  */
 
-.tabs {
-  display: flex;
-  flex-direction: column;
-  row-gap: $spacing-05;
-  :global(.cds--tabs) {
-    box-shadow: inset 0 -2px 0 $border-subtle-00;
-  }
-}
+import classes from './AgentTools.module.scss';
 
-.info {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-05;
-}
-
-.infoHeader {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-03;
-}
-
-.author {
-  font-size: rem(14px);
-  line-height: math.div(18, 14);
-  color: $text-secondary;
-}
-
-.docsLink {
-  display: flex;
-  align-items: center;
-  gap: $spacing-02;
-  color: $text-primary;
-  text-decoration: none;
-  @include type-style('body-01');
+export function AgentTools() {
+  return (
+    <div className={classes.root}>
+      <p className={classes.empty}>This agent does not have any tools</p>
+    </div>
+  );
 }

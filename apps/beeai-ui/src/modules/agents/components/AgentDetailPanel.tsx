@@ -27,6 +27,7 @@ import type { AgentPageParams } from '../types';
 import { getAvailableAgentLinkUrl } from '../utils';
 import classes from './AgentDetailPanel.module.scss';
 import { AgentTags } from './AgentTags';
+// import { AgentTools } from './AgentTools';
 
 export function AgentDetailPanel() {
   const { agentName } = useParams<AgentPageParams>();
@@ -51,27 +52,37 @@ export function AgentDetailPanel() {
           </TabList>
 
           <TabPanels>
-            <TabPanel className={classes.info}>
-              {!isPending ? (
-                <>
-                  {agentInfo && <MarkdownContent className={classes.description}>{agentInfo}</MarkdownContent>}
+            <TabPanel>
+              <div className={classes.info}>
+                {!isPending ? (
+                  <>
+                    {(agentInfo || authorName) && (
+                      <div className={classes.infoHeader}>
+                        {agentInfo && <MarkdownContent className={classes.description}>{agentInfo}</MarkdownContent>}
 
-                  {authorName && <span>By {authorName}</span>}
+                        {authorName && <p className={classes.author}>By {authorName}</p>}
+                      </div>
+                    )}
 
-                  <AgentTags agent={agent} />
+                    <AgentTags agent={agent} />
 
-                  {agentUrl && (
-                    <a href={agentUrl} rel="noreferrer" className={classes.docsLink}>
-                      View more <ArrowUpRight />
-                    </a>
-                  )}
-                </>
-              ) : (
-                <>
-                  <SkeletonText paragraph={true} lineCount={5} />
-                </>
-              )}
+                    {agentUrl && (
+                      <a href={agentUrl} target="_blank" rel="noreferrer" className={classes.docsLink}>
+                        View more <ArrowUpRight />
+                      </a>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <SkeletonText paragraph={true} lineCount={5} />
+                  </>
+                )}
+              </div>
             </TabPanel>
+
+            {/* <TabPanel>
+              <AgentTools />
+            </TabPanel> */}
           </TabPanels>
         </Tabs>
       </div>

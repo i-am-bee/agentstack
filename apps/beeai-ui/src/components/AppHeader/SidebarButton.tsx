@@ -15,7 +15,7 @@
  */
 
 import { Menu } from '@carbon/icons-react';
-import { Button } from '@carbon/react';
+import { IconButton } from '@carbon/react';
 
 import { useApp } from '#contexts/App/index.ts';
 
@@ -25,14 +25,19 @@ export function SidebarButton() {
   const { setNavigationOpen } = useApp();
 
   return (
-    <Button
-      kind="ghost"
-      size="sm"
-      renderIcon={Menu}
-      className={classes.root}
-      onClick={() => setNavigationOpen?.((value) => !value)}
-    >
-      BeeAI
-    </Button>
+    <div className={classes.root}>
+      <IconButton
+        kind="ghost"
+        size="sm"
+        wrapperClasses={classes.button}
+        onClick={() => setNavigationOpen?.((value) => !value)}
+        label="Toggle sidebar"
+        autoAlign
+      >
+        <Menu />
+      </IconButton>
+
+      <span className={classes.label}>BeeAI</span>
+    </div>
   );
 }

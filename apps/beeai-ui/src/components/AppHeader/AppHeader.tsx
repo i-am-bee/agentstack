@@ -36,7 +36,7 @@ export function AppHeader({ className }: Props) {
 
   return (
     <header className={clsx(classes.root, className)}>
-      <Container size="max">
+      <Container size="full">
         <div className={classes.holder}>
           <MainNav />
 

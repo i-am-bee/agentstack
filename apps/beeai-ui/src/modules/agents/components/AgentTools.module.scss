@@ -14,38 +14,9 @@
  * limitations under the License.
  */
 
-.tabs {
-  display: flex;
-  flex-direction: column;
-  row-gap: $spacing-05;
-  :global(.cds--tabs) {
-    box-shadow: inset 0 -2px 0 $border-subtle-00;
-  }
-}
-
-.info {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-05;
-}
-
-.infoHeader {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-03;
-}
-
-.author {
+.empty {
   font-size: rem(14px);
-  line-height: math.div(18, 14);
-  color: $text-secondary;
-}
-
-.docsLink {
-  display: flex;
-  align-items: center;
-  gap: $spacing-02;
-  color: $text-primary;
-  text-decoration: none;
-  @include type-style('body-01');
+  line-height: math.div(20, 14);
+  letter-spacing: $letter-spacing;
+  color: $text-placeholder;
 }

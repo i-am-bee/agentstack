@@ -59,7 +59,7 @@ export function Message({ message }: Props) {
             subtitle={getErrorMessage(error)}
           />
         ) : (
-          <div className={classes.content}>
+          <div className={clsx(classes.content, { [classes.isUser]: isUserMessage })}>
             {content ? (
               <MarkdownContent>{content}</MarkdownContent>
             ) : (

@@ -15,15 +15,21 @@
  */
 
 .root {
-  &:global(.cds--btn) {
-    font-weight: 600;
-    column-gap: $spacing-03;
-    padding-inline: $spacing-03 - rem(1px);
-    margin-inline-start: -$spacing-03;
-  }
+  display: flex;
+  align-items: center;
+  column-gap: $spacing-03;
+  margin-inline-start: -$spacing-03;
+}
 
-  :global(.cds--btn__icon) {
-    margin: 0;
-    order: -1;
+.button {
+  :global(.cds--popover) {
+    display: none;
   }
+}
+
+.label {
+  font-size: rem(14px);
+  line-height: math.div(18, 14);
+  font-weight: 600;
+  color: $text-dark;
 }

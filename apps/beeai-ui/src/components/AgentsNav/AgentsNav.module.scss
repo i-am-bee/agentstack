@@ -39,9 +39,15 @@
 .button {
   inline-size: 100%;
   padding: $spacing-03 - rem(1px);
+
   &:global(.cds--skeleton) {
     inline-size: 100%;
     min-block-size: rem(34px);
+  }
+
+  &:focus:not(:focus-visible) {
+    box-shadow: none;
+    border-color: transparent;
   }
 
   &.isActive {

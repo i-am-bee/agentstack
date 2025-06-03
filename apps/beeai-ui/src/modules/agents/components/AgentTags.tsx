@@ -46,7 +46,7 @@ export function AgentTags({ agent, className }: Props) {
     .filter(isNotNull)
     .map((value) => <AgentTag key={value} name={value} />);
 
-  return <TagsList tags={tags} className={className} />;
+  return tags.length > 0 ? <TagsList tags={tags} className={className} /> : null;
 }
 
 function AgentTag({ name }: { name: string }) {
