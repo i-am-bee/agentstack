@@ -30,23 +30,24 @@ interface Props {
 }
 
 export function AgentTags({ agent, className }: Props) {
-  const { framework, license } = agent.metadata;
+  const { framework, license, tags } = agent.metadata;
 
   const { avg_run_time_seconds, avg_run_tokens } = getAgentStatusMetadata({
     agent,
     keys: ['avg_run_time_seconds', 'avg_run_tokens'],
   });
 
-  const tags = [
+  const tagsElements = [
     framework,
     avg_run_time_seconds && `${avg_run_time_seconds}s/run (avg)`,
     avg_run_tokens && `${avg_run_tokens} tokens/run (avg)`,
     license,
+    ...(tags ?? []),
   ]
     .filter(isNotNull)
     .map((value) => <AgentTag key={value} name={value} />);
 
-  return <TagsList tags={tags} className={className} />;
+  return <TagsList tags={tagsElements} className={className} />;
 }
 
 function AgentTag({ name }: { name: string }) {
