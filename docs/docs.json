@@ -38,6 +38,10 @@
                   "concepts/acp-protocol"]
       },
       {
+        "group": "Deployment",
+        "pages": ["deployment/kubernetes"]
+      },
+      {
         "group": "Community and Support",
         "pages": ["community-and-support/troubleshooting",
                   "community-and-support/contribute"]
