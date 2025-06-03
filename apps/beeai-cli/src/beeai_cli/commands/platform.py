@@ -310,7 +310,7 @@ async def start(
                     "targetNamespace": "default",
                     "valuesContent": yaml.dump(
                         {
-                            "externalRegistries": {"public_github": configuration.agent_registry},
+                            "externalRegistries": {"public_github": str(configuration.agent_registry)},
                             "encryptionKey": "Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc=",  # Dummy key for local use
                             "features": {"uiNavigation": True},
                             "auth": {"enabled": False},
