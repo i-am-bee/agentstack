@@ -29,3 +29,8 @@ rules:
   - apiGroups: [ "" ]
     resources: [ "pods/log" ]
     verbs: [ "get" ]
+
+  # Permissions for events (read-only)
+  - apiGroups: [ "" ]
+    resources: [ "events" ]
+    verbs: [ "get", "list", "watch" ]

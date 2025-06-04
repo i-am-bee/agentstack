@@ -91,7 +91,7 @@ class LogsContainer:
             try:
                 stream_send.send_nowait(log)
             except WouldBlock:
-                logger.error("Unable to stream logs to client due to a full buffer")
+                logger.debug("Unable to stream logs to client due to a full buffer")
 
         if include_old:
             for message in self.logs:

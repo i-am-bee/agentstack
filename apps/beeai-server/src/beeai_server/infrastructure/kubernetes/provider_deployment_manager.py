@@ -21,7 +21,7 @@ import re
 from asyncio import TaskGroup
 from contextlib import asynccontextmanager
 from datetime import timedelta
-from typing import Callable, Awaitable
+from typing import Callable, Awaitable, AsyncIterator
 from uuid import UUID
 
 import kr8s
@@ -40,11 +40,11 @@ logger = logging.getLogger(__name__)
 
 
 class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
-    def __init__(self, api_factory: Callable[[], Awaitable[kr8s.Api]]):
+    def __init__(self, api_factory: Callable[[], Awaitable[kr8s.asyncio.Api]]):
         self._api_factory = api_factory
 
     @asynccontextmanager
-    async def api(self):
+    async def api(self) -> AsyncIterator[kr8s.asyncio.Api]:
         client = await self._api_factory()
         yield client
 
@@ -240,13 +240,47 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
     async def stream_logs(self, *, provider_id: UUID, logs_container: LogsContainer):
         try:
             async with self.api() as api:
+                missing_logged = False
                 while True:
-                    [state] = await self.state(provider_ids=[provider_id])
-                    if state == ProviderDeploymentState.running:
-                        break
-                    logs_container.add_stdout("Waiting for provider startup...")
+                    try:
+                        deploy = await Deployment.get(name=self._get_k8s_name(provider_id, kind="deploy"), api=api)
+                        if pods := await deploy.pods():
+                            break
+                    except kr8s.NotFoundError:
+                        ...
+                    if not missing_logged:
+                        logs_container.add_stdout("Provider is not running, run a query to start it up...")
+                    missing_logged = True
                     await asyncio.sleep(1)
 
+                if deploy.status.get("availableReplicas", 0) == 0:
+                    async for event_stream_type, event in api.watch(
+                        kind="event",
+                        # TODO: we select for only one pod, for multi-pod agents this might hold up the logs for a while
+                        field_selector=f"involvedObject.name=={pods[0].name},involvedObject.kind==Pod",
+                    ):
+                        message = event.raw.get("message", "")
+                        logs_container.add_stdout(f"{event.raw.reason}: {message}")
+                        if event.raw.reason == "Started":
+                            break
+
+                for attempt in range(10):
+                    try:
+                        _ = [log async for log in pods[0].logs(tail_lines=1)]
+                        break
+                    except kr8s.ServerError:
+                        await asyncio.sleep(1)
+                else:
+                    logs_container.add_stdout("Container crashed or not starting up, attempting to get previous logs:")
+                    with suppress(kr8s.ServerError):
+                        previous_logs = [log async for log in pods[0].logs(previous=True)]
+                        if previous_logs:
+                            logs_container.add_stdout("Previous container logs:")
+                            for log in previous_logs:
+                                logs_container.add_stdout(f"Previous: {log}")
+                    return
+
+                # Stream logs from pods
                 async def stream_logs(pod: Pod):
                     async for line in pod.logs(follow=True):
                         logs_container.add_stdout(
@@ -254,9 +288,9 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
                         )
 
                 async with TaskGroup() as tg:
-                    deploy = await Deployment.get(name=self._get_k8s_name(provider_id, kind="deploy"), api=api)
                     for pod in await deploy.pods():
                         tg.create_task(stream_logs(pod))
+
         except Exception as ex:
             logs_container.add(
                 ProcessLogMessage(stream=ProcessLogType.stderr, message=extract_messages(ex), error=True)
