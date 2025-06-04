@@ -17,7 +17,7 @@ beeai platform start
 Make sure you have the latest version:
 ```bash
 brew upgrade beeai
-brew services restart beeai
+beeai platform start
 ```
 
 ### Check Your LLM Setup
@@ -30,6 +30,22 @@ beeai env setup
 If using [Ollama](https://ollama.com/), make sure it's installed and the model is pulled:
 ```bash
 ollama pull llama3.1:8b
+```
+
+### Advanced debugging
+You can inspect the agent logs and events using `beeai logs <agent-name>` or you can access the kubernetes
+cluster directly using `beeai platform exec`, for example:
+
+```bash
+# List running pods
+beeai platform exec kubectl get pod
+
+# Get server logs
+beeai platform exec kubectl logs svc/beeai-platform-svc
+
+# Inspect cluster using GUI
+export KUBECONFIG=~/.beeai/lima/beeai-platform/copied-from-guest/kubeconfig.yaml
+k9s
 ```
 
 ## Get Help

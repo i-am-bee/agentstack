@@ -43,19 +43,15 @@ No sensitive data like prompts, responses, or personal information is collected.
 
 ### Configure Telemetry Sharing
 
-Check current telemetry sharing status:
-```bash
-beeai telemetry sharing
-```
-
 To disable external telemetry sharing:
 ```bash
-beeai telemetry sharing --disable
+beeai platform start --no-telemetry-sharing
 ```
 
 To re-enable telemetry sharing:
 ```bash
-beeai telemetry sharing --enable
+# Omit --no-telemetry-sharing
+beeai platform start
 ```
 
 This controls whether anonymized usage data is sent to help improve BeeAI.
