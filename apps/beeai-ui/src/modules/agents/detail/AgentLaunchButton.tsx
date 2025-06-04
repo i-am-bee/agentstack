@@ -39,7 +39,7 @@ export function AgentLaunchButton({ agent }: Props) {
   const { openModal } = useModal();
   const { provider_id, ui } = agent.metadata;
   const { missingEnvs, isPending: isMissingEnvsPending } = useMissingEnvs({ agent });
-  const { isNotInstalled, isInstalling, isInstallError } = useAgentStatus({ providerId: provider_id });
+  const { isNotInstalled, isStarting, isError } = useAgentStatus({ providerId: provider_id });
 
   const uiType = ui?.type;
   const sharedProps: ComponentProps<typeof Button> = {
@@ -48,7 +48,7 @@ export function AgentLaunchButton({ agent }: Props) {
     className: classes.button,
   };
 
-  if (isNotInstalled || isInstalling || isInstallError) {
+  if (isNotInstalled || isStarting || isError) {
     // TODO:
     return null;
   }

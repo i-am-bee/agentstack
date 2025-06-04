@@ -49,7 +49,7 @@ import classes from './ImportAgentsModal.module.scss';
 export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps) {
   const id = useId();
   const [registeredProviderId, setRegisteredProviderId] = useState<string>();
-  const { isNotInstalled, isInstallError, isReady } = useAgentStatus({ providerId: registeredProviderId });
+  const { isNotInstalled, isError, isReady } = useAgentStatus({ providerId: registeredProviderId });
   const { data: agents } = useListProviderAgents({ providerId: registeredProviderId });
 
   const agentsCount = agents?.length ?? 0;
@@ -141,7 +141,7 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
 
           {isPending && <InlineLoading description="Installing agents&hellip;" />}
 
-          {isInstallError && <ErrorMessage subtitle="Agents failed to install." />}
+          {isError && <ErrorMessage subtitle="Agents failed to install." />}
         </form>
       </ModalBody>
 

@@ -19,9 +19,10 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { useToast } from '#contexts/Toast/index.ts';
 import { TaskType, useTasks } from '#hooks/useTasks.ts';
-import { agentKeys } from '#modules/agents/api/keys.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
 import { useAgentStatus } from '#modules/agents/hooks/useAgentStatus.ts';
+
+import { providerKeys } from '../api/keys';
 
 interface Props {
   id?: string;
@@ -33,11 +34,11 @@ export function useMonitorProvider({ id }: Props) {
   const { addToast } = useToast();
   const { addTask, removeTask } = useTasks();
 
-  const { refetch: refetchStatus } = useAgentStatus({ providerId: id });
+  const { refetch: refetchStatus, isStarting, isNotInstalled } = useAgentStatus({ providerId: id });
   const { data: agents } = useListAgents();
 
   const checkProvider = useCallback(async () => {
-    const { isReady, isInstallError } = await refetchStatus();
+    const { isReady, isError } = await refetchStatus();
 
     if (isReady) {
       agents?.forEach(({ name }) => {
@@ -47,7 +48,7 @@ export function useMonitorProvider({ id }: Props) {
           timeout: 5_000,
         });
       });
-    } else if (isInstallError) {
+    } else if (isError) {
       agents?.forEach(({ name }) => {
         addToast({
           title: `${name} failed to install.`,
@@ -56,8 +57,8 @@ export function useMonitorProvider({ id }: Props) {
       });
     }
 
-    if (isReady || isInstallError) {
-      queryClient.invalidateQueries({ queryKey: agentKeys.lists() });
+    if (isReady || isError) {
+      queryClient.invalidateQueries({ queryKey: providerKeys.lists() });
 
       if (id) {
         removeTask({ id, type: TaskType.ProviderStatusCheck });
@@ -68,7 +69,7 @@ export function useMonitorProvider({ id }: Props) {
   }, [id, agents, queryClient, refetchStatus, addToast, removeTask]);
 
   useEffect(() => {
-    if (id && !isDone) {
+    if (id && !isDone && (isStarting || isNotInstalled)) {
       addTask({
         id,
         type: TaskType.ProviderStatusCheck,
@@ -80,7 +81,7 @@ export function useMonitorProvider({ id }: Props) {
         removeTask({ id, type: TaskType.ProviderStatusCheck });
       };
     }
-  }, [id, isDone, addTask, removeTask, checkProvider]);
+  }, [id, isDone, addTask, removeTask, checkProvider, isStarting, isNotInstalled]);
 }
 
 const CHECK_PROVIDER_STATUS_INTERVAL = 2000;

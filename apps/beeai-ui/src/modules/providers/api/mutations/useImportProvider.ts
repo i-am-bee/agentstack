@@ -24,7 +24,7 @@ import { useMonitorProvider } from '#modules/providers/hooks/useMonitorProviderS
 
 import { registerManagedProvider } from '..';
 import { providerKeys } from '../keys';
-import { useProvider } from '../queries/useProvider';
+import { useProviderBySource } from '../queries/useProviderBySource';
 import type { Provider, ProviderImportEvent, ProviderLocation, RegisterProviderRequest } from '../types';
 
 interface Props {
@@ -34,7 +34,7 @@ interface Props {
 export function useImportProvider({ onSuccess }: Props = {}) {
   const [id, setId] = useState<string>();
   const [location, setLocation] = useState<ProviderLocation>();
-  const { refetch } = useProvider({ source: location });
+  const { refetch } = useProviderBySource({ source: location });
 
   useMonitorProvider({ id });
 

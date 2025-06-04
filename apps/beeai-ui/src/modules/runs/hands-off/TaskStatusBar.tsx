@@ -18,6 +18,8 @@ import { StopFilled } from '@carbon/icons-react';
 import { Button } from '@carbon/react';
 
 import { Spinner } from '#components/Spinner/Spinner.tsx';
+import { useAgentStatus } from '#modules/agents/hooks/useAgentStatus.ts';
+import { useMonitorProvider } from '#modules/providers/hooks/useMonitorProviderStatus.ts';
 
 import { ElapsedTime } from '../components/ElapsedTime';
 import { useHandsOff } from '../contexts/hands-off';
@@ -28,14 +30,26 @@ interface Props {
 }
 
 export function TaskStatusBar({ onStopClick }: Props) {
-  const { stats, isPending } = useHandsOff();
+  const { agent, stats, isPending } = useHandsOff();
+
+  useMonitorProvider({ id: agent.metadata.provider_id });
+
+  const { status, isNotInstalled, isStarting } = useAgentStatus({ providerId: agent.metadata.provider_id });
+
+  console.log({ status });
 
   return stats?.startTime ? (
     <div className={classes.root}>
       <div className={classes.label}>
         {isPending && <Spinner center />}
         <span>
-          Task {isPending ? 'running for' : 'completed in'} <ElapsedTime stats={stats} />
+          {isNotInstalled || isStarting ? (
+            'Starting the agent, please bee patient...'
+          ) : (
+            <>
+              Task {isPending ? 'running for' : 'completed in'} <ElapsedTime stats={stats} />
+            </>
+          )}
         </span>
       </div>
 

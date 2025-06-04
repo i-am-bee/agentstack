@@ -18,4 +18,6 @@ export const providerKeys = {
   all: () => ['providers'] as const,
   lists: () => [...providerKeys.all(), 'list'] as const,
   list: () => [...providerKeys.lists()] as const,
+  details: () => [...providerKeys.all(), 'detail'] as const,
+  detail: (id: string) => [...providerKeys.details(), id] as const,
 };
