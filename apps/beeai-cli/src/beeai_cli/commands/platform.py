@@ -247,7 +247,12 @@ async def start(
                 VMDriver.docker: ["docker", "start", vm_name],
             }[vm_driver],
             "Starting up",
-            env={"LIMA_HOME": str(configuration.lima_home)},
+            env={
+                "LIMA_HOME": str(configuration.lima_home),
+                # Hotfix for port-forwarding until this issue is resolved:
+                # https://github.com/lima-vm/lima/issues/3601#issuecomment-2936952923
+                "LIMA_SSH_PORT_FORWARDER": "true",
+            },
         )
     else:
         console.print("Updating an existing instance.")
