@@ -14,6 +14,40 @@
  * limitations under the License.
  */
 
+.root {
+  margin-block-start: $spacing-03;
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-06;
+
+    li {
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-02;
+    }
+
+    .name {
+      @include type-style('body-compact-01');
+    }
+    .description {
+      @include type-style('label-01');
+      text-wrap: pretty;
+    }
+    .viewMore {
+      justify-content: flex-start;
+      margin-block-start: $spacing-02;
+
+      button {
+        @include type-style('label-01');
+        color: $text-secondary;
+        gap: $spacing-02;
+      }
+    }
+  }
+}
+
 .empty {
   font-size: rem(14px);
   line-height: math.div(20, 14);

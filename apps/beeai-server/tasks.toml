@@ -71,7 +71,7 @@ run = "rm -rf ./dist"
 ["beeai-server:image:build"]
 depends = ["beeai-server:build"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "docker build -t ghcr.io/i-am-bee/beeai-platform/beeai-server:local ."
+run = "docker build -t ghcr.io/i-am-bee/beeai-platform/beeai-server:local . --load"
 
 ["beeai-server:migrations:run"]
 dir = "{{config_root}}/apps/beeai-server"

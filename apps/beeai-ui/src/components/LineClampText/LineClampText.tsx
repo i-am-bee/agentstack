@@ -26,9 +26,10 @@ import classes from './LineClampText.module.scss';
 interface Props {
   lines: number;
   className?: string;
+  buttonClassName?: string;
 }
 
-export function LineClampText({ lines, className, children }: PropsWithChildren<Props>) {
+export function LineClampText({ lines, className, buttonClassName, children }: PropsWithChildren<Props>) {
   const id = useId();
   const textRef = useRef<HTMLElement>(null);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -95,7 +96,7 @@ export function LineClampText({ lines, className, children }: PropsWithChildren<
       </span>
 
       {showButton && (
-        <span className={classes.button}>
+        <span className={clsx(classes.button, buttonClassName)}>
           <ExpandButton onClick={() => setIsExpanded((state) => !state)} aria-controls={id} aria-expanded={isExpanded}>
             {isExpanded ? 'View less' : 'View more'}
           </ExpandButton>
