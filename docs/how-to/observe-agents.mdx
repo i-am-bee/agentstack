@@ -67,14 +67,19 @@ This controls whether anonymized usage data is sent to help improve BeeAI.
 <Steps>
    <Step title="Install Arize Phoenix">
 
-Install and start Phoenix using [Homebrew](https://brew.sh/):
+Install and start Phoenix using `beeai platform start` command:
 
 ```sh
-brew install i-am-bee/beeai/arize-phoenix
-brew services start arize-phoenix
+beeai platform start --set phoenix.enabled=true
 ```
+       You can run this even if your platform is already running without loosing data.
 
    </Step>
+    <Step title="Check if Phoenix is running">
+        Spinning up phoenix can take a while, even after the `platform start` will report success.
+        Go to [http://localhost:6006](http://localhost:6006) and check if it's running. If not, please wait a few
+        minutes or check your internet connection.
+    </Step>
    <Step title="Run Agent with Phoenix Configuration">
 
 Execute the following command to run an example chat agent:
