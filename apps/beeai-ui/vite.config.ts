@@ -5,29 +5,27 @@ import react from '@vitejs/plugin-react-swc';
 import { defineConfig, loadEnv, type UserConfig } from 'vite';
 import svgr from 'vite-plugin-svgr';
 
+import { loadJson } from './src/utils/modules/loadJson';
+
 const DEFAULT_ENV = {
   VITE_APP_NAME: 'BeeAI',
   VITE_APP_FAVICON_SVG: '/bee.svg',
-  API_SERVER_TARGET: 'http://127.0.0.1:8333',
-  PHOENIX_SERVER_TARGET: 'http://localhost:6006',
+  VITE_API_SERVER_TARGET: 'http://localhost:8333',
+  VITE_PHOENIX_SERVER_TARGET: 'http://localhost:6006',
 } as const;
 
-export default defineConfig(({ mode }): UserConfig => {
-  const {
-    VITE_APP_NAME,
-    VITE_APP_FAVICON_SVG,
-    API_SERVER_TARGET,
-    PHOENIX_SERVER_TARGET,
-  } = { ...DEFAULT_ENV, ...loadEnv(mode, process.cwd()) };
+export default defineConfig(async ({ mode }): Promise<UserConfig> => {
+  const { VITE_APP_NAME, VITE_APP_FAVICON_SVG, VITE_API_SERVER_TARGET, VITE_PHOENIX_SERVER_TARGET } = {
+    ...DEFAULT_ENV,
+    ...loadEnv(mode, process.cwd()),
+  };
 
   return {
     plugins: [
       {
         name: 'constants',
         transformIndexHtml(html) {
-          return html
-            .replace(/%__APP_NAME__%/g, VITE_APP_NAME)
-            .replace(/%__APP_FAVICON_SVG__%/g, VITE_APP_FAVICON_SVG);
+          return html.replace(/%__APP_NAME__%/g, VITE_APP_NAME).replace(/%__APP_FAVICON_SVG__%/g, VITE_APP_FAVICON_SVG);
         },
       },
       react(),
@@ -37,15 +35,17 @@ export default defineConfig(({ mode }): UserConfig => {
     ],
     define: {
       __APP_NAME__: JSON.stringify(VITE_APP_NAME),
-      __PHOENIX_SERVER_TARGET__: JSON.stringify(PHOENIX_SERVER_TARGET),
+      __NAV__: await loadJson(import.meta.url, 'nav.json'),
+      __PHOENIX_SERVER_TARGET__: JSON.stringify(VITE_PHOENIX_SERVER_TARGET),
     },
     server: {
       proxy: {
         '/api': {
-          target: API_SERVER_TARGET,
+          target: VITE_API_SERVER_TARGET,
+          changeOrigin: true,
         },
         '/phoenix': {
-          target: PHOENIX_SERVER_TARGET,
+          target: VITE_PHOENIX_SERVER_TARGET,
         },
       },
     },

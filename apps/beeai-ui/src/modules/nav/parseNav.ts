@@ -14,30 +14,9 @@
  * limitations under the License.
  */
 
-.root {
-  position: sticky;
-  inset-block-start: 0;
-  background-color: $background;
-  border-block-end: 1px solid $border-subtle-00;
-  z-index: 1;
-}
+import { type NavItem, navSchema } from './schema';
 
-.holder {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  column-gap: $gap;
-  align-items: center;
-  block-size: rem(56px);
-  > :last-child {
-    text-align: end;
-  }
-
-  &.hasNav {
-    grid-template-columns: auto 1fr;
-  }
-}
-
-.agentName {
-  font-size: rem(14px);
-  line-height: math.div(20, 14);
+export function parseNav(data: unknown): NavItem[] {
+  const result = navSchema.safeParse(data);
+  return result.success ? result.data : [];
 }

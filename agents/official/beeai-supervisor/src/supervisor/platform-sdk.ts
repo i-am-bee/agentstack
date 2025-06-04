@@ -13,7 +13,7 @@ export class PlatformSdk {
   private transport: SSEClientTransport;
   private client: MCPClient;
   private availableAgents?: string[];
-  private sdkUrl = new URL(`${process.env.PLATFORM_URL || "http://127.0.0.1:8333"}/mcp/sse`);
+  private sdkUrl = new URL(`${process.env.PLATFORM_URL || "http://localhost:8333"}/mcp/sse`);
 
   private constructor() {
     this.logger = Logger.root.child({ name: this.constructor.name });

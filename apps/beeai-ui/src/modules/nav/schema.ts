@@ -14,30 +14,16 @@
  * limitations under the License.
  */
 
-.root {
-  position: sticky;
-  inset-block-start: 0;
-  background-color: $background;
-  border-block-end: 1px solid $border-subtle-00;
-  z-index: 1;
-}
+import { z } from 'zod';
 
-.holder {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  column-gap: $gap;
-  align-items: center;
-  block-size: rem(56px);
-  > :last-child {
-    text-align: end;
-  }
+const navItemSchema = z.object({
+  label: z.string(),
+  url: z.union([z.string().url(), z.literal('/')]),
+  isActive: z.boolean().optional(),
+  isExternal: z.boolean().optional(),
+  position: z.enum(['start', 'end']).optional(),
+});
 
-  &.hasNav {
-    grid-template-columns: auto 1fr;
-  }
-}
+export const navSchema = z.array(navItemSchema);
 
-.agentName {
-  font-size: rem(14px);
-  line-height: math.div(20, 14);
-}
+export type NavItem = z.infer<typeof navItemSchema>;

@@ -14,30 +14,47 @@
  * limitations under the License.
  */
 
-.root {
-  position: sticky;
-  inset-block-start: 0;
-  background-color: $background;
-  border-block-end: 1px solid $border-subtle-00;
-  z-index: 1;
+.nav,
+.ul,
+.link {
+  block-size: 100%;
 }
 
-.holder {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  column-gap: $gap;
+.nav {
+  @include type-style(body-compact-01);
+
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  block-size: rem(56px);
-  > :last-child {
-    text-align: end;
+}
+
+.ul {
+  display: flex;
+  column-gap: rem(40px);
+}
+
+.link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  column-gap: rem(8px);
+  text-decoration: none;
+
+  &:not(:hover) {
+    --cds-link-primary: #{$black};
   }
 
-  &.hasNav {
-    grid-template-columns: auto 1fr;
+  &.active::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    inset-inline-end: 0;
+    inset-block-end: -1px;
+    block-size: 2px;
+    background: #{$black};
   }
 }
 
-.agentName {
-  font-size: rem(14px);
-  line-height: math.div(20, 14);
+.icon {
+  color: #{$black};
 }
