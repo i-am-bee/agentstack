@@ -23,7 +23,7 @@ import { isGraniteModel } from '../utils';
 import classes from './AgentModel.module.scss';
 
 export function AgentModel() {
-  const { data, isPending } = useListVariables();
+  const { data, isPending } = useListVariables({ errorToast: false, retry: false });
 
   // TEMP: Fetching the variables list will fail in production deployment,
   // so we check `isPending` and use a fallback once any response is received.
