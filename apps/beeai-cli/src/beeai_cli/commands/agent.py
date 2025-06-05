@@ -19,6 +19,7 @@ import inspect
 import json
 import random
 import re
+import sys
 import typing
 from enum import StrEnum
 
@@ -47,11 +48,12 @@ from rich.text import Text
 from beeai_cli.commands.build import build
 from beeai_cli.commands.env import ensure_llm_env
 
-try:
-    # This is necessary for proper handling of arrow keys in interactive input
-    import gnureadline as readline
-except ImportError:
-    import readline  # noqa: F401
+if sys.platform != "win32":
+    try:
+        # This is necessary for proper handling of arrow keys in interactive input
+        import gnureadline as readline
+    except ImportError:
+        import readline  # noqa: F401
 
 import sys
 from collections.abc import Callable

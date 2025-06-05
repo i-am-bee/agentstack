@@ -3,105 +3,115 @@ title: "Installation & Setup"
 description: "Getting started with BeeAI on your system"
 ---
 
-BeeAI platform supports installation on **macOS**, **Linux**, and **Windows** (via WSL2) through multiple methods.
+BeeAI platform supports installation on **macOS**, **Linux**, and **Windows** through multiple methods.
 
-## Installation Methods
+## Installation
+
+BeeAI can be installed using Homebrew, or directly from PyPI. Homebrew is the easiest installation method, as it automatically sets up the needed container runtime using a Lima VM.
 
 <Tabs>
-<Tab title="Homebrew (Recommended)">
+<Tab title="Homebrew (macOS, Linux)">
 
-### Install via Homebrew
-
-[Homebrew](https://brew.sh/) is the recommended installation method as it automatically handles dependencies and configures background services.
+### Install
 
 <Steps>
-<Step title="Set up Homebrew">
+<Step title="Install Homebrew">
 
-If you don't have Homebrew installed:
+If you don't have Homebrew installed, install it with:
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-<Note>
-Follow the post-installation instructions shown in the terminal to add Homebrew to your PATH.
-</Note>
-</Step>
+Follow the post-installation instructions shown in the terminal to add Homebrew to your `PATH`.
 
+</Step>
 <Step title="Install BeeAI">
 
 ```bash
 brew install i-am-bee/beeai/beeai
-brew services start beeai
 ```
 
-The BeeAI server will start automatically as a background service.
+</Step>
+<Step title="Start the BeeAI platform">
+
+```bash
+beeai platform start
+```
+
 </Step>
 </Steps>
 
-### Updating BeeAI
+### Update
 
 ```bash
 brew upgrade beeai
-brew services restart beeai
+beeai platform start
 ```
 
-<Note>
-Agents are updated automatically when new versions are available.
-</Note>
-
-### Uninstalling BeeAI
+### Uninstall
 
 ```bash
-brew services stop beeai
+beeai platform delete
 brew uninstall beeai
 ```
 
 </Tab>
 
-<Tab title="PyPI">
+<Tab title="PyPI (macOS, Linux)">
 
-### Install via PyPI
-
-<Warning>
-This method requires manual setup of dependencies and does not manage the BeeAI server automatically. We recommend using Homebrew instead if possible.
-</Warning>
+### Install
 
 <Steps>
-<Step title="Install a Container Runtime">
+<Step title="Install a container runtime">
 
 BeeAI requires a container runtime to function. Choose one of:
 
 - [Rancher Desktop](https://rancherdesktop.io/) (recommended)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [Podman Desktop](https://podman-desktop.io/)
-- Lima (macOS only)
 
 Install and verify the container runtime is working before proceeding.
 </Step>
 
 <Step title="Install pipx">
 
-[pipx](https://pipx.pypa.io/) is recommended for installing Python applications:
+[pipx](https://pipx.pypa.io/) is recommended for installing Python applications. Install it with:
+
+
+<Tabs>
+<Tab title="Homebrew">
 
 ```bash
-# macOS
 brew install pipx
 pipx ensurepath
+```
 
-# Ubuntu/Debian
+</Tab>
+<Tab title="apt (Ubuntu, Debian, popOS, Mint, ...)">
+
+```bash
 sudo apt update
 sudo apt install pipx
 pipx ensurepath
+```
 
-# Fedora
+</Tab>
+
+<Tab title="dnf (Fedora)">
+
+```bash
 sudo dnf install pipx
 pipx ensurepath
 ```
 
-<Tip>
-If you use [uv](https://docs.astral.sh/uv/), you can use `uv tool install beeai-cli` instead.
-</Tip>
+</Tab>
+<Tab title="uv">
+
+If you use [uv](https://docs.astral.sh/uv/), you can avoid installing `pipx`. Simply replace `pipx` with `uv tool` in the following steps.
+
+</Tab>
+</Tabs>
 </Step>
 
 <Step title="Install BeeAI">
@@ -111,113 +121,186 @@ pipx install beeai-cli
 ```
 </Step>
 
-<Step title="Run the BeeAI Server">
-
-Unlike the Homebrew installation, you'll need to manually start the BeeAI server:
+<Step title="Start the BeeAI platform">
 
 ```bash
-beeai serve
+beeai platform start
 ```
 
-<Note>
-Keep this terminal window open while using BeeAI, or set up a system service to run it in the background.
-</Note>
 </Step>
 </Steps>
 
-### Updating BeeAI
+### Update
 
 ```bash
 pipx upgrade beeai-cli
+beeai platform start
 ```
 
-### Uninstalling BeeAI
+### Uninstall
 
 ```bash
 pipx uninstall beeai-cli
+beeai platform start
 ```
 
 </Tab>
-</Tabs>
+<Tab title="Windows">
 
-## Windows Setup with WSL2
-
-<Accordion title="Detailed Windows (WSL2) Setup Instructions">
-
-Windows users need to set up [WSL2 (Windows Subsystem for Linux)](https://learn.microsoft.com/en-us/windows/wsl/install) before installing BeeAI:
+### Install
 
 <Steps>
 <Step title="Install WSL2">
 
+If you don't already use [WSL2 (Windows Subsystem for Linux)](https://learn.microsoft.com/en-us/windows/wsl/install), install it:
+
 1. Open PowerShell or Command Prompt as Administrator
 2. Run the WSL installation command:
 
-```powershell
+```bash
 wsl --install
 ```
 
 3. Restart your computer when prompted
 4. After restart, a terminal window will open to complete the Ubuntu installation
 5. Create a username and password for your Ubuntu installation
+
 </Step>
+<Step title="Configure WSL2 networking">
 
-<Step title="Set Up a Container Runtime">
+In order for the agents to be able to auto-register and access [Ollama for Windows](https://ollama.com/download/windows), it's necessary to configure the WSL2 networking to a mirrored mode:
 
-Choose one of the following options:
-
-**Rancher Desktop (Recommended)**
-1. [Download and install Rancher Desktop](https://rancherdesktop.io/)
-2. During installation, select "dockerd" as the container runtime
-3. Go to Preferences > WSL Integration
-4. Enable integration for your Ubuntu distro
-
-**Docker Desktop**
-1. [Download and install Docker Desktop](https://www.docker.com/products/docker-desktop/)
-2. During installation, check "Use WSL 2 instead of Hyper-V"
-3. Go to Settings > Resources > WSL Integration
-4. Enable integration for your Ubuntu distro
-
-**Podman Desktop**
-1. [Download and install Podman Desktop](https://podman-desktop.io/)
-2. Follow the [documentation for socket forwarding to WSL2](https://podman-desktop.io/docs/podman/accessing-podman-from-another-wsl-instance)
-</Step>
-
-<Step title="Configure WSL for Ollama (Optional)">
-
-If you want to use [Ollama](https://ollama.com/) for local LLM access:
-
-1. [Download and install the Windows version of Ollama](https://ollama.com/download/windows)
-2. Create or edit the WSL configuration file:
+1. Run in PowerShell:
    
-   ```powershell
+   ```bash
    notepad $HOME\.wslconfig
    ```
 
-3. Add the following lines:
+2. Add the following lines:
 
    ```ini
    [wsl2]
    networkingMode=mirrored
    ```
 
-4. Restart WSL by running in PowerShell:
+3. Restart WSL by running in PowerShell:
 
-   ```powershell
+   ```bash
    wsl --shutdown
    ```
 
-5. This will allow your WSL2 environment to access the Windows Ollama service
+</Step>
+<Step title="Install a container runtime">
+
+Install one of the following container runtimes. Leave installation options at their default values (use WSL2, use `dockerd` runtime).
+
+- [Rancher Desktop](https://rancherdesktop.io/)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Podman Desktop](https://podman-desktop.io/)
+
+</Step>
+<Step title="Install Python and pipx">
+
+You may install the BeeAI CLI directly in Windows (PowerShell), or in the Ubuntu (WSL2) shell. You can even do both, it's up to your preference.
+
+<Tabs>
+<Tab title="PowerShell">
+
+Open PowerShell and run:
+
+```bash
+python --version
+```
+
+Windows Store will pop up and offer to install Python. After installing it, re-try the command again to ensure that it now prints the Python version. (If you can't use Windows Store, you may use a Python installer downloaded from the official website.)
+
+Afterwards, install `pipx` with:
+
+```bash
+python -m pip install pipx
+python -m pipx ensurepath
+```
+
+Then close and re-open the PowerShell window to make sure the `pipx` command is available.
+
+</Tab>
+<Tab title="Ubuntu (WSL2) shell">
+
+First configure your container runtime to be accessible from WSL2:
+
+<Tabs>
+<Tab title="Rancher Desktop">
+
+1. Open Rancher Desktop
+2. Go to Preferences > WSL Integration
+3. Enable integration for your Ubuntu distro
+
+</Tab>
+<Tab title="Docker Desktop">
+
+1. Open Docker Desktop
+2. Go to Settings > Resources > WSL Integration
+3. Enable integration for your Ubuntu distro
+
+</Tab>
+<Tab title="Podman Desktop">
+
+For Podman Desktop, follow the [documentation for socket forwarding to WSL2](https://podman-desktop.io/docs/podman/accessing-podman-from-another-wsl-instance).
+
+</Tab>
+</Tabs>
+
+Ensure that `docker` works in WSL2 by running the following in an Ubuntu (WSL2) shell:
+```bash
+docker ps
+```
+
+In the Ubuntu (WSL2) shell, run:
+
+```bash
+sudo apt update
+sudo apt install pipx
+pipx ensurepath
+```
+
+Then close and re-open the terminal window to make sure the `pipx` command is available.
+
+</Tab>
+</Tabs>
+</Step>
+<Step title="Install BeeAI">
+
+```bash
+pipx install beeai-cli
+```
+
 </Step>
 
-<Step title="Use BeeAI in WSL">
+<Step title="Start the BeeAI platform">
 
-1. Open your WSL2 terminal (you can type "Ubuntu" in the Start menu)
-2. Follow the standard installation instructions for either Homebrew or PyPI
-3. All BeeAI commands should be run from the WSL2 terminal, not from Windows directly
+```bash
+beeai platform start
+```
+
 </Step>
 </Steps>
 
-</Accordion>
+### Update
+
+```bash
+pipx upgrade beeai-cli
+beeai platform start
+```
+
+### Uninstall
+
+```bash
+pipx uninstall beeai-cli
+beeai platform start
+```
+
+</Tab>
+</Tabs>
 
 ## LLM Provider Configuration
 
@@ -332,7 +415,3 @@ beeai list
 ```
 
 This command should display a list of available agents.
-
-<Note>
-Agents should show a status of `ready` when fully installed. If you see `installing` status, wait for the operation to complete.
-</Note>

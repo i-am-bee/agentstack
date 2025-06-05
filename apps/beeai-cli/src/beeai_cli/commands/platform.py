@@ -85,13 +85,24 @@ portForwards:
 def _validate_driver(vm_driver: VMDriver | None) -> VMDriver:
     match vm_driver:
         case None:
-            if shutil.which("limactl"):
-                vm_driver = VMDriver.lima
-            elif shutil.which("docker"):
-                vm_driver = VMDriver.docker
-            else:
-                console.print("[red]Error: Neither limactl nor docker found. Please install one of them.[/red]")
-                sys.exit(1)
+            if sys.platform == "win32" or shutil.which("wsl.exe"):  # Windows / WSL
+                if shutil.which("docker"):
+                    return VMDriver.docker
+                else:
+                    console.print(
+                        "[red]Error: Running on Windows, but no compatible `docker` CLI found. Please follow the Windows installation instructions at https://docs.beeai.dev/introduction/installation[/red]"
+                    )
+                    sys.exit(1)
+            else:  # macOS / Linux
+                if shutil.which("limactl"):
+                    return VMDriver.lima
+                elif shutil.which("docker"):
+                    return VMDriver.docker
+                else:
+                    console.print(
+                        "[red]Error: Could not find a compatible container runtime. Please follow the installation instructions at https://docs.beeai.dev/introduction/installation[/red]"
+                    )
+                    sys.exit(1)
         case VMDriver.lima:
             if not shutil.which("limactl"):
                 console.print("[red]Error: limactl not found. Please install Lima.[/red]")
