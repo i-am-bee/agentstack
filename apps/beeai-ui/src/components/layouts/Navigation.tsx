@@ -3,15 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useMemo } from 'react';
+import { type ComponentType, useMemo } from 'react';
 
 import { MainNav } from '#components/MainNav/MainNav.tsx';
 import { TracesTooltip } from '#components/MainNav/TracesTooltip.tsx';
 import { TransitionLink } from '#components/TransitionLink/TransitionLink.tsx';
 import { useIsNavSectionActive } from '#hooks/useIsNavSectionActive.ts';
 import { usePhoenix } from '#modules/phoenix/api/queries/usePhoenix.ts';
+import { APP_NAME, PHOENIX_SERVER_TARGET } from '#utils/constants.ts';
 import { routes, sections } from '#utils/router.ts';
-import { APP_NAME, PHOENIX_SERVER_TARGET } from '#utils/vite-constants.ts';
 
 export function Navigation() {
   const isSectionActive = useIsNavSectionActive();
@@ -45,7 +45,7 @@ export function Navigation() {
 
   return (
     <MainNav
-      linkComponent={TransitionLink}
+      linkComponent={TransitionLink as ComponentType}
       items={items.map(({ section, ...item }) => ({ ...item, isActive: section && isSectionActive(section) }))}
     />
   );

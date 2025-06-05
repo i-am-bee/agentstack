@@ -13,7 +13,8 @@ import classes from './Img.module.scss';
 export function Img({ node, className, ...props }: ImgHTMLAttributes<HTMLImageElement> & ExtraProps) {
   return (
     <span className={classes.root}>
-      <img {...props} className={clsx(classes.img, className)} />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img {...props} className={clsx(classes.img, className)} alt={props.alt ?? 'Markdown image'} />
     </span>
   );
 }

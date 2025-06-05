@@ -14,6 +14,7 @@
   line-height: math.div(18, 14);
   letter-spacing: $letter-spacing;
   color: $expand-button-color;
+
   &:hover,
   &:active {
     background-color: transparent;
@@ -23,8 +24,10 @@
   }
   &:focus-visible {
     @include focus-outline('outline');
-    outline-offset: 0;
-    border-radius: $spacing-02;
+    & {
+      outline-offset: 0;
+      border-radius: $spacing-02;
+    }
   }
 
   > svg {

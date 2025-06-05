@@ -5,6 +5,7 @@
 
 import { ArrowRight } from '@carbon/icons-react';
 import { Button } from '@carbon/react';
+import clsx from 'clsx';
 import { useState } from 'react';
 
 import { Container } from '#components/layouts/Container.tsx';
@@ -32,27 +33,28 @@ export function ComposeLanding() {
 
         <ul className={classes.workflows}>
           {WORKFLOWS.map((workflow) => {
-            const { id, name, route, description, image: Image } = workflow;
+            const { id, name, route, description, image: WorkflowImage } = workflow;
             return (
               <li
                 key={id}
-                className={classes.workflow}
-                aria-disabled={!route}
-                aria-selected={id === selected.id}
+                className={clsx(classes.workflow, {
+                  [classes.disabled]: !route,
+                  [classes.selected]: id === selected.id,
+                })}
                 onClick={() => route && setSelected(workflow)}
               >
                 <div className={classes.workflowText}>
                   <span className={classes.name}>{name}</span>
                   <p>{description}</p>
                 </div>
-                <Image />
+                <WorkflowImage />
               </li>
             );
           })}
         </ul>
 
         <div className={classes.actionBar}>
-          <TransitionLink href={selected.route} asChild>
+          <TransitionLink href={selected.route ?? ''}>
             <Button renderIcon={ArrowRight} href={selected.route} className={classes.startBtn}>
               Start composing
             </Button>

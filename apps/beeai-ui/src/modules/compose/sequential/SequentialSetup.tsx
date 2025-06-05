@@ -80,7 +80,7 @@ export function SequentialSetup() {
       </div>
 
       <div className={classes.actionBar}>
-        <TransitionLink href={routes.playground()} asChild>
+        <TransitionLink href={routes.playground()}>
           <Button kind="ghost" size="md" className={classes.backButton} href={routes.playground()}>
             <ArrowLeft /> Back to patterns
           </Button>

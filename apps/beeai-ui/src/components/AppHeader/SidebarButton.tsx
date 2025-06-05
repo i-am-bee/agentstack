@@ -7,7 +7,7 @@ import { Menu } from '@carbon/icons-react';
 import { IconButton } from '@carbon/react';
 
 import { useApp } from '#contexts/App/index.ts';
-import { APP_NAME } from '#utils/vite-constants.ts';
+import { APP_NAME } from '#utils/constants.ts';
 
 import classes from './SidebarButton.module.scss';
 

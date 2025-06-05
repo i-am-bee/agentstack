@@ -5,8 +5,35 @@
 
 @use 'sass:map';
 
-@use '@carbon/grid/scss/config' as *;
 @use '@carbon/styles/scss/utilities/convert' as *;
+
+$grid-breakpoints: (
+  sm: (
+    columns: 4,
+    margin: 0,
+    width: rem(320px),
+  ),
+  md: (
+    columns: 8,
+    margin: rem(16px),
+    width: rem(672px),
+  ),
+  lg: (
+    columns: 16,
+    margin: rem(16px),
+    width: rem(1056px),
+  ),
+  xlg: (
+    columns: 16,
+    margin: rem(16px),
+    width: rem(1312px),
+  ),
+  max: (
+    columns: 16,
+    margin: rem(24px),
+    width: rem(1584px),
+  ),
+);
 
 $breakpoints: map.merge(
   $grid-breakpoints,

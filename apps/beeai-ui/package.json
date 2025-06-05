@@ -5,11 +5,11 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "check": "prettier --log-level silent --check src && eslint src && tsc --noEmit -p tsconfig.app.json && stylelint src/**/*.css src/**/*.scss",
+    "dev": "NODE_OPTIONS=\"--no-experimental-global-navigator\" next dev",
+    "build": "NODE_OPTIONS=\"--no-experimental-global-navigator\" next build",
+    "preview": "NODE_OPTIONS=\"--no-experimental-global-navigator\" next start",
+    "check": "prettier --log-level silent --check src && eslint src && tsc --noEmit -p tsconfig.json && stylelint src/**/*.css src/**/*.scss",
     "fix": "prettier --log-level silent --write src && eslint --fix src && stylelint --fix=lax src/**/*.css src/**/*.scss",
-    "preview": "vite preview",
     "clean": "rm -rf node_modules && rm -rf dist",
     "schema:generate": "pnpm dlx openapi-typescript 'http://localhost:8333/api/v1/openapi.json' -o ./src/api/schema.d.ts --alphabetize"
   },
@@ -20,6 +20,7 @@
     "#*": "./src/*"
   },
   "dependencies": {
+    "@bprogress/next": "^3.2.10",
     "@carbon/colors": "^11.30.0",
     "@carbon/grid": "^11.33.0",
     "@carbon/icons-react": "^11.57.0",
@@ -36,6 +37,7 @@
     "clsx": "^2.1.1",
     "fetch-event-stream": "^0.1.5",
     "framer-motion": "^12.6.2",
+    "http-proxy": "^1.18.1",
     "humanize-duration": "^3.32.1",
     "immer": "^10.1.1",
     "json5": "^2.2.3",
@@ -43,6 +45,7 @@
     "lodash": "^4.17.21",
     "lottie-react": "^2.4.1",
     "mdast-util-to-hast": "^13.2.0",
+    "next": "15.3.3",
     "openapi-fetch": "^0.13.5",
     "pluralize": "^8.0.0",
     "react": "^19.0.0",
@@ -54,7 +57,6 @@
     "react-markdown": "^10.1.0",
     "react-merge-refs": "^2.1.1",
     "react-resizable": "^3.0.5",
-    "react-router": "^7.6.0",
     "react-syntax-highlighter": "^15.6.1",
     "rehype-minify-whitespace": "^6.0.2",
     "remark-gfm": "^4.0.1",
@@ -67,14 +69,15 @@
   },
   "devDependencies": {
     "@eslint/js": "catalog:",
+    "@next/eslint-plugin-next": "15.2.4",
     "@types/hast": "^3.0.4",
+    "@types/http-proxy": "^1.17.14",
     "@types/humanize-duration": "^3.27.4",
     "@types/lodash": "^4.17.16",
     "@types/mdast": "^4.0.4",
     "@types/pluralize": "^0.0.33",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
-    "@vitejs/plugin-react-swc": "^3.8.1",
     "eslint": "catalog:",
     "eslint-plugin-react-hooks": "catalog:",
     "eslint-plugin-react-refresh": "catalog:",
@@ -89,9 +92,7 @@
     "stylelint-config-recommended-scss": "catalog:",
     "stylelint-plugin-logical-css": "catalog:",
     "typescript": "catalog:",
-    "typescript-eslint": "catalog:",
-    "vite": "^6.3.5",
-    "vite-plugin-svgr": "^4.3.0"
+    "typescript-eslint": "catalog:"
   },
   "packageManager": "pnpm@9.9.0+sha512.60c18acd138bff695d339be6ad13f7e936eea6745660d4cc4a776d5247c540d0edee1a563695c183a66eb917ef88f2b4feb1fc25f32a7adcadc7aaf3438e99c1"
 }

@@ -5,7 +5,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-import { PHOENIX_SERVER_TARGET, PROD_MODE } from '#utils/vite-constants.ts';
+import { PHOENIX_SERVER_TARGET, PROD_MODE } from '#utils/constants.ts';
 
 import { phoenixKeys } from '../keys';
 
@@ -15,7 +15,7 @@ export function usePhoenix() {
     refetchInterval: PROD_MODE ? 5_000 : false,
     enabled: Boolean(PHOENIX_SERVER_TARGET),
     queryFn: () =>
-      fetch(PHOENIX_SERVER_TARGET, { mode: 'no-cors' })
+      fetch(PHOENIX_SERVER_TARGET!, { mode: 'no-cors' })
         .then(() => true)
         .catch(() => false),
   });

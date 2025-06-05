@@ -6,7 +6,7 @@
 import Link, { LinkProps } from 'next/link';
 import { PropsWithChildren } from 'react';
 
-import { useRouteTransition } from '@/contexts/TransitionContext';
+import { useRouteTransition } from '../../../../beeai-ui/src/contexts/TransitionContext';
 
 interface Props extends LinkProps {
   className?: string;

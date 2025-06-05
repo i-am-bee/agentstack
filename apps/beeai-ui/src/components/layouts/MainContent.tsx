@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useLocation } from 'react-router';
+import { usePathname } from 'next/navigation';
 
 import type { MainContentViewProps } from '#components/MainContentView/MainContentView.tsx';
 import { MainContentView } from '#components/MainContentView/MainContentView.tsx';
 import { routes } from '#utils/router.ts';
 
 export function MainContent({ ...props }: MainContentViewProps) {
-  const { pathname } = useLocation();
+  const pathname = usePathname();
   const isAgentsRoute = pathname === routes.agents();
 
   return <MainContentView enableToTopButton={isAgentsRoute} {...props} />;

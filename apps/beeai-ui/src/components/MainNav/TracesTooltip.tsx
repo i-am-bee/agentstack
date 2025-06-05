@@ -11,8 +11,8 @@ export function TracesTooltip() {
       <strong>Traceability Not Configured</strong>
       <br />
       <br />
-      The traceability service isn't currently set up or reachable. To enable it, please check your configuration or
-      follow the steps in our{' '}
+      The traceability service isn&apos;t currently set up or reachable. To enable it, please check your configuration
+      or follow the steps in our{' '}
       <a href={TRACEABILITY_LINK} target="_blank" rel="noreferrer">
         setup guide
       </a>

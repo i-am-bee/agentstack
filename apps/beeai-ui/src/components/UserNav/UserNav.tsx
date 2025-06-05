@@ -6,14 +6,14 @@
 import { Launch, LogoGithub, Settings } from '@carbon/icons-react';
 import { OverflowMenu, OverflowMenuItem } from '@carbon/react';
 
-import { useViewTransition } from '#hooks/useViewTransition.ts';
+import { useRouteTransition } from '#contexts/TransitionContext/index.ts';
 import { DOCUMENTATION_LINK, GET_SUPPORT_LINK } from '#utils/constants.ts';
 import { routes } from '#utils/router.ts';
 
 import classes from './UserNav.module.scss';
 
 export function UserNav() {
-  const { transitionTo } = useViewTransition();
+  const { transitionTo } = useRouteTransition();
 
   return (
     <OverflowMenu

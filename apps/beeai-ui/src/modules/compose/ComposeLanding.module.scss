@@ -35,11 +35,11 @@
   justify-content: space-between;
   gap: $spacing-05;
 
-  &:not([aria-disabled='true']):hover,
-  &[aria-selected='true'] {
+  &:not(.disabled):hover,
+  &.selected {
     border-color: $text-primary;
   }
-  &[aria-disabled='true'] {
+  &.disabled {
     opacity: 0.6;
     cursor: not-allowed;
   }

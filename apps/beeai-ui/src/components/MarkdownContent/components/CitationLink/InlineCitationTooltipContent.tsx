@@ -22,7 +22,8 @@ export function InlineCitationTooltipContent({ source }: Props) {
   return (
     <div className={classes.root}>
       <h2 className={classes.heading}>
-        {faviconUrl && <img src={faviconUrl} className={classes.favicon} />}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {faviconUrl && <img src={faviconUrl} className={classes.favicon} alt={title} />}
 
         <a href={url} target="_blank" rel="noreferrer" className={classes.title}>
           {title}

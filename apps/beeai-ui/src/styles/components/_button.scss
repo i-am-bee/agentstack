@@ -5,6 +5,8 @@
 
 @use 'styles/common' as *;
 
+@use '@carbon/styles/scss/components/button';
+
 .cds--btn {
   border-radius: $border-radius;
   padding-inline-end: rem(49px);

@@ -5,9 +5,10 @@
 
 import { useRouter } from '@bprogress/next/app';
 import { moderate02 } from '@carbon/motion';
-import { NavigateOptions } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+import type { NavigateOptions } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { usePathname } from 'next/navigation';
-import { PropsWithChildren, useCallback, useEffect, useMemo, useRef } from 'react';
+import type { PropsWithChildren } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { RouteTransitionContext } from './context';
 
@@ -33,7 +34,7 @@ export function RouteTransitionProvider({ children }: PropsWithChildren) {
   }, [pathname]);
 
   const transitionTo = useCallback(
-    async (href: string, options: NavigateOptions) => {
+    async (href: string, options?: NavigateOptions) => {
       const element = document.querySelector('[data-route-transition]');
       if (!element || href === pathnameRef.current) {
         router.push(href, options);
@@ -49,7 +50,7 @@ export function RouteTransitionProvider({ children }: PropsWithChildren) {
           element.setAttribute('data-route-transition', 'in');
         } else {
           transitionControlRef.current = {
-            sourcePath: sourcePathname,
+            sourcePath: sourcePathname ?? '',
             element,
           };
         }

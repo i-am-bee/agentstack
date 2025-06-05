@@ -3,34 +3,30 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Slot } from '@radix-ui/react-slot';
-import type { HTMLProps } from 'react';
+import type { LinkProps } from 'next/link';
+import Link from 'next/link';
+import type { PropsWithChildren } from 'react';
 
-import { useViewTransition } from '#hooks/useViewTransition.ts';
+import { useRouteTransition } from '#contexts/TransitionContext/index.ts';
 
-interface Props extends Omit<HTMLProps<HTMLAnchorElement>, 'href'> {
-  href?: string;
-  asChild?: boolean;
+interface Props extends LinkProps {
+  className?: string;
 }
 
-export function TransitionLink({ href, onClick, asChild, children, ...props }: Props) {
-  const { transitionTo } = useViewTransition();
-
-  const Element = asChild ? Slot : 'a';
+export function TransitionLink({ href, children, ...props }: PropsWithChildren<Props>) {
+  const { transitionTo } = useRouteTransition();
 
   return (
-    <Element
-      {...props}
+    <Link
       href={href}
+      prefetch={true}
+      {...props}
       onClick={(e) => {
-        if (href) {
-          transitionTo(href);
-        }
-        onClick?.(e);
         e.preventDefault();
+        transitionTo(String(href), { scroll: props.scroll });
       }}
     >
       {children}
-    </Element>
+    </Link>
   );
 }

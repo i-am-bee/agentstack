@@ -1,30 +1,23 @@
-/**
- * Copyright 2025 © BeeAI a Series of LF Projects, LLC
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import type { PropsWithChildren } from 'react';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
-import { useSearchParams } from 'react-router';
 
 import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
-import { usePrevious } from '#hooks/usePrevious.ts';
 import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
-import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
 import { createMessagePart, extractOutput, formatLog, isArtifactPart } from '#modules/runs/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
-import { SEQUENTIAL_WORKFLOW_AGENT_NAME, SEQUENTIAL_WORKFLOW_AGENTS_URL_PARAM } from '../sequential/constants';
+import { SEQUENTIAL_WORKFLOW_AGENT_NAME } from '../sequential/constants';
 import type { ComposeMessagePart } from '../types';
 import type { ComposeStep, SequentialFormValues } from './compose-context';
 import { ComposeContext, ComposeStatus } from './compose-context';
 
 export function ComposeProvider({ children }: PropsWithChildren) {
-  const { data: agents } = useListAgents({ onlyUiSupported: true, sort: true });
-  const [searchParams, setSearchParams] = useSearchParams();
+  // TODO: Next.js
+  // const { data: agents } = useListAgents({ onlyUiSupported: true, sort: true });
+  // const [searchParams, setSearchParams] = useSearchParams();
   const errorHandler = useHandleError();
 
   const { handleSubmit, getValues, setValue, watch } = useFormContext<SequentialFormValues>();
@@ -34,40 +27,39 @@ export function ComposeProvider({ children }: PropsWithChildren) {
 
   const { data: sequentialAgent } = useAgent({ name: SEQUENTIAL_WORKFLOW_AGENT_NAME });
 
-  const previousSteps = usePrevious(steps);
-
   const lastStep = steps.at(-1);
   const result = useMemo(() => lastStep?.result, [lastStep]);
 
   let lastAgentIdx = 0;
 
-  useEffect(() => {
-    if (!agents || steps.length === previousSteps.length) return;
+  // TODO: Next.js
+  // useEffect(() => {
+  //   if (!agents || steps.length === previousSteps.length) return;
 
-    setSearchParams((searchParams) => {
-      searchParams.set(SEQUENTIAL_WORKFLOW_AGENTS_URL_PARAM, steps.map(({ agent }) => agent.name).join(','));
-      return searchParams;
-    });
-  }, [agents, previousSteps.length, setSearchParams, steps]);
+  //   setSearchParams((searchParams) => {
+  //     searchParams.set(SEQUENTIAL_WORKFLOW_AGENTS_URL_PARAM, steps.map(({ agent }) => agent.name).join(','));
+  //     return searchParams;
+  //   });
+  // }, [agents, previousSteps.length, setSearchParams, steps]);
 
-  useEffect(() => {
-    if (!agents) return;
+  // useEffect(() => {
+  //   if (!agents) return;
 
-    const agentNames = searchParams
-      .get(SEQUENTIAL_WORKFLOW_AGENTS_URL_PARAM)
-      ?.split(',')
-      .filter((item) => item.length);
-    if (agentNames?.length && !steps.length) {
-      replaceSteps(
-        agentNames
-          .map((name) => {
-            const agent = agents.find((agent) => name === agent.name);
-            return agent ? { agent, instruction: '' } : null;
-          })
-          .filter(isNotNull),
-      );
-    }
-  }, [agents, replaceSteps, searchParams, steps.length]);
+  //   const agentNames = searchParams
+  //     .get(SEQUENTIAL_WORKFLOW_AGENTS_URL_PARAM)
+  //     ?.split(',')
+  //     .filter((item) => item.length);
+  //   if (agentNames?.length && !steps.length) {
+  //     replaceSteps(
+  //       agentNames
+  //         .map((name) => {
+  //           const agent = agents.find((agent) => name === agent.name);
+  //           return agent ? { agent, instruction: '' } : null;
+  //         })
+  //         .filter(isNotNull),
+  //     );
+  //   }
+  // }, [agents, replaceSteps, searchParams, steps.length]);
 
   const { isPending, runAgent, stopAgent, reset } = useRunAgent({
     onMessagePart: (event) => {
