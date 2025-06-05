@@ -14,32 +14,18 @@
  * limitations under the License.
  */
 
-.root {
-  z-index: z('modal');
-}
+import type { PropsWithChildren } from 'react';
 
-.content {
-  @include type-style(label-02);
-  background-color: $background-inverse;
-  color: $text-inverse;
-  border-radius: $border-radius;
-  max-inline-size: rem(264px);
+import { MainContent } from '#components/layouts/MainContent.tsx';
 
-  .root.sm & {
-    padding: $spacing-02 $spacing-03;
-  }
-  .root.md & {
-    padding: $spacing-04 $spacing-05;
-  }
-  .root.lg & {
-    padding: $spacing-04;
-    max-inline-size: rem(294px);
-  }
-  a {
-    color: $link-inverse;
-  }
-}
+// import { SourcesPanel } from './SourcesPanel';
 
-.arrow {
-  fill: $background-inverse;
+export function ChatView({ children }: PropsWithChildren) {
+  return (
+    <>
+      <MainContent limitHeight>{children}</MainContent>
+
+      {/* <SourcesPanel /> */}
+    </>
+  );
 }

@@ -41,7 +41,7 @@ import classes from './Tooltip.module.scss';
 interface Props {
   content: ReactNode;
   placement?: Placement;
-  size?: 'sm' | 'md';
+  size?: 'sm' | 'md' | 'lg';
   asChild?: boolean;
 }
 
@@ -55,6 +55,11 @@ export function Tooltip({ content, placement = 'bottom', size = 'md', asChild, c
       Offset: 3,
     },
     md: {
+      ArrowWidth: 12,
+      ArrowHeight: 6,
+      Offset: 8,
+    },
+    lg: {
       ArrowWidth: 12,
       ArrowHeight: 6,
       Offset: 8,

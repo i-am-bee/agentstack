@@ -15,31 +15,29 @@
  */
 
 .root {
-  z-index: z('modal');
+  display: flex;
+  flex-direction: column;
+  row-gap: rem(20px);
 }
 
-.content {
-  @include type-style(label-02);
-  background-color: $background-inverse;
-  color: $text-inverse;
-  border-radius: $border-radius;
-  max-inline-size: rem(264px);
-
-  .root.sm & {
-    padding: $spacing-02 $spacing-03;
-  }
-  .root.md & {
-    padding: $spacing-04 $spacing-05;
-  }
-  .root.lg & {
-    padding: $spacing-04;
-    max-inline-size: rem(294px);
-  }
-  a {
-    color: $link-inverse;
-  }
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  column-gap: $spacing-05;
 }
 
-.arrow {
-  fill: $background-inverse;
+.heading {
+  font-size: rem(14px);
+  line-height: math.div(18, 14);
+  letter-spacing: $letter-spacing;
+  font-weight: 600;
+}
+
+.closeButton {
+  margin-block: -$spacing-03;
+  margin-inline-end: -$spacing-03;
+  :global(.cds--popover) {
+    display: none;
+  }
 }

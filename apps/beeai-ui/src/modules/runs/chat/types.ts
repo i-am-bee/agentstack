@@ -41,3 +41,18 @@ export enum MessageStatus {
   Aborted = 'aborted',
   Failed = 'failed',
 }
+
+export interface SourceReference {
+  number: number;
+  url: string;
+}
+
+export interface SourceMetadata {
+  title: string;
+  description?: string;
+  faviconUrl?: string;
+}
+
+export interface ResolvedSource extends SourceReference {
+  metadata: SourceMetadata;
+}

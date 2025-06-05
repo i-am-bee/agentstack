@@ -27,6 +27,7 @@ import { AgentIcon } from '../components/AgentIcon';
 import { useChat, useChatMessages } from '../contexts/chat';
 import classes from './Chat.module.scss';
 import { ChatInput } from './ChatInput';
+import { ChatView } from './ChatView';
 import { Message } from './Message';
 
 export function Chat() {
@@ -77,52 +78,54 @@ export function Chat() {
   }, [isNew]);
 
   return (
-    <div className={clsx(classes.root, { [classes.isNew]: isNew })}>
-      <Container size="sm" className={classes.holder}>
-        {isNew ? (
-          <div className={classes.header}>
-            <AgentIcon size="xl" />
-            <AgentGreeting agent={agent} />
-          </div>
-        ) : (
-          <AgentHeader className={classes.header} onNewSessionClick={onClear} />
-        )}
-
-        {!isNew && (
-          <div className={classes.content} ref={scrollRef}>
-            <div className={classes.scrollRef} ref={bottomRef} />
-
-            <ol className={classes.messages} aria-label="messages">
-              {messages.map((message) => (
-                <Message key={message.key} message={message} />
-              ))}
-            </ol>
-          </div>
-        )}
-
-        <div className={classes.bottom}>
-          {!isNew && isScrolled && (
-            <IconButton
-              label="Scroll to bottom"
-              kind="secondary"
-              size="sm"
-              wrapperClasses={classes.toBottomButton}
-              onClick={scrollToBottom}
-              autoAlign
-            >
-              <ArrowDown />
-            </IconButton>
+    <ChatView>
+      <div className={clsx(classes.root, { [classes.isNew]: isNew })}>
+        <Container size="sm" className={classes.holder}>
+          {isNew ? (
+            <div className={classes.header}>
+              <AgentIcon size="xl" />
+              <AgentGreeting agent={agent} />
+            </div>
+          ) : (
+            <AgentHeader className={classes.header} onNewSessionClick={onClear} />
           )}
 
-          <ChatInput
-            onMessageSubmit={() => {
-              requestAnimationFrame(() => {
-                scrollToBottom();
-              });
-            }}
-          />
-        </div>
-      </Container>
-    </div>
+          {!isNew && (
+            <div className={classes.content} ref={scrollRef}>
+              <div className={classes.scrollRef} ref={bottomRef} />
+
+              <ol className={classes.messages} aria-label="messages">
+                {messages.map((message) => (
+                  <Message key={message.key} message={message} />
+                ))}
+              </ol>
+            </div>
+          )}
+
+          <div className={classes.bottom}>
+            {!isNew && isScrolled && (
+              <IconButton
+                label="Scroll to bottom"
+                kind="secondary"
+                size="sm"
+                wrapperClasses={classes.toBottomButton}
+                onClick={scrollToBottom}
+                autoAlign
+              >
+                <ArrowDown />
+              </IconButton>
+            )}
+
+            <ChatInput
+              onMessageSubmit={() => {
+                requestAnimationFrame(() => {
+                  scrollToBottom();
+                });
+              }}
+            />
+          </div>
+        </Container>
+      </div>
+    </ChatView>
   );
 }

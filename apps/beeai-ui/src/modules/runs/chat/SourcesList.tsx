@@ -14,32 +14,22 @@
  * limitations under the License.
  */
 
-.root {
-  z-index: z('modal');
+import { Source } from './Source';
+import classes from './SourcesList.module.scss';
+import type { SourceReference } from './types';
+
+interface Props {
+  sources: SourceReference[];
 }
 
-.content {
-  @include type-style(label-02);
-  background-color: $background-inverse;
-  color: $text-inverse;
-  border-radius: $border-radius;
-  max-inline-size: rem(264px);
-
-  .root.sm & {
-    padding: $spacing-02 $spacing-03;
-  }
-  .root.md & {
-    padding: $spacing-04 $spacing-05;
-  }
-  .root.lg & {
-    padding: $spacing-04;
-    max-inline-size: rem(294px);
-  }
-  a {
-    color: $link-inverse;
-  }
-}
-
-.arrow {
-  fill: $background-inverse;
+export function SourcesList({ sources }: Props) {
+  return sources.length > 0 ? (
+    <ul className={classes.root}>
+      {sources.map((source) => (
+        <li key={source.number}>
+          <Source source={source} />
+        </li>
+      ))}
+    </ul>
+  ) : null;
 }

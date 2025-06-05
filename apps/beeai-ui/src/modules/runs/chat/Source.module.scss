@@ -1,0 +1,108 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+$padding-inline: $spacing-05;
+
+.root {
+  padding-block: $spacing-06;
+  color: $text-dark;
+  display: flex;
+  column-gap: $spacing-03;
+  margin-inline: -$padding-inline;
+  padding-inline: $padding-inline;
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline: $padding-inline;
+    block-size: 1px;
+    background-color: $border-subtle-00;
+  }
+
+  &.isActive {
+    background-color: $layer-hover-01;
+    .number {
+      background-color: $source-number-active-background;
+    }
+
+    .heading {
+      font-weight: 600;
+    }
+  }
+}
+
+.number {
+  inline-size: rem(16px);
+  block-size: rem(16px);
+  text-align: center;
+  border-radius: $spacing-02;
+  font-size: rem(10px);
+  line-height: 1;
+  letter-spacing: $letter-spacing;
+  background-color: $layer-02;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-block-start: 2px;
+}
+
+.body {
+  min-inline-size: 0;
+}
+
+.heading {
+  @include type-style(body-01);
+  @include line-clamp();
+}
+
+.link {
+  @include link-mask();
+  color: inherit;
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+  &:focus-visible {
+    @include focus-outline('outline');
+  }
+}
+
+.description {
+  @include type-style(label-01);
+  @include line-clamp(4);
+  margin-block-start: $spacing-03;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  column-gap: $spacing-02;
+  margin-block-start: $spacing-04;
+}
+
+.favicon {
+  inline-size: rem(16px);
+  block-size: rem(16px);
+  flex-shrink: 0;
+}
+
+.url {
+  @include type-style(label-01);
+  @include line-clamp();
+  color: $expand-button-color;
+}

@@ -15,31 +15,27 @@
  */
 
 .root {
-  z-index: z('modal');
-}
-
-.content {
-  @include type-style(label-02);
-  background-color: $background-inverse;
-  color: $text-inverse;
-  border-radius: $border-radius;
-  max-inline-size: rem(264px);
-
-  .root.sm & {
-    padding: $spacing-02 $spacing-03;
+  &:global(.cds--btn) {
+    font-family: font-family(sans);
+    padding: 0;
+    inline-size: rem(16px);
+    block-size: rem(16px);
+    min-block-size: 0;
+    font-size: rem(10px);
+    line-height: 1;
+    letter-spacing: $letter-spacing;
+    align-items: center;
+    justify-content: center;
+    border-radius: $spacing-02;
+    color: $text-dark;
+    background-color: $layer-02;
+    &.isActive,
+    &:hover {
+      background-color: $source-number-active-background;
+    }
+    &:focus:not(:focus-visible) {
+      box-shadow: none;
+      border-color: transparent;
+    }
   }
-  .root.md & {
-    padding: $spacing-04 $spacing-05;
-  }
-  .root.lg & {
-    padding: $spacing-04;
-    max-inline-size: rem(294px);
-  }
-  a {
-    color: $link-inverse;
-  }
-}
-
-.arrow {
-  fill: $background-inverse;
 }

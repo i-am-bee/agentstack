@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+$leftPanelWidth: rem(272px);
 $rightPanelWidth: rem(432px);
 
 .root {
@@ -24,7 +25,7 @@ $rightPanelWidth: rem(432px);
   transition: transform $duration-moderate-02 motion(exit, expressive);
   &.left {
     inset-inline-start: 0;
-    inline-size: rem(272px);
+    inline-size: $leftPanelWidth;
     &:not(.isOpen) {
       transform: translateX(calc(-100% - rem(8px)));
     }
@@ -35,6 +36,8 @@ $rightPanelWidth: rem(432px);
     inline-size: $rightPanelWidth;
     transition: inline-size $duration-moderate-02 motion(exit, expressive);
     overflow: hidden;
+    grid-column: 2 / -1;
+    grid-row: 1 / -1;
 
     &:not(.isOpen) {
       inline-size: 0;
@@ -57,6 +60,7 @@ $rightPanelWidth: rem(432px);
   }
 
   .right & {
+    @include scrollbar();
     padding-inline: $spacing-05;
     padding-block: $spacing-05 $spacing-06;
     box-shadow: none;
