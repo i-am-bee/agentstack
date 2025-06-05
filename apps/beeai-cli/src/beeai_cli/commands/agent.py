@@ -37,7 +37,6 @@ from acp_sdk import (
     RunFailedEvent,
 )
 from acp_sdk.client import Client
-from anyio import run_process
 from rich.box import HORIZONTALS
 from rich.console import ConsoleRenderable, Group, NewLine
 from rich.panel import Panel
@@ -68,13 +67,14 @@ from beeai_cli.api import acp_client, api_request, api_stream
 from beeai_cli.async_typer import AsyncTyper, console, create_table, err_console
 from beeai_cli.utils import (
     VMDriver,
-    extract_messages,
     filter_dict,
     format_error,
     generate_schema_example,
     omit,
     prompt_user,
     remove_nullable,
+    run_command,
+    verbosity,
 )
 
 
@@ -123,41 +123,26 @@ async def add_agent(
         str, typer.Argument(help="Agent location (public docker image, local path or github url)")
     ],
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
-    vm_driver: typing.Annotated[VMDriver, typer.Option(hidden=True)] = None,
-):
+    vm_driver: typing.Annotated[VMDriver | None, typer.Option(hidden=True)] = None,
+    verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
+) -> None:
     """Install discovered agent or add public docker image or github repository [aliases: install]"""
     agents = None
-    with contextlib.suppress(Exception):
-        # Try extracting manifest locally for local images
-        process = await run_process(["docker", "inspect", location], check=False)
+    # Try extracting manifest locally for local images
+
+    with verbosity(verbose):
+        process = await run_command(["docker", "inspect", location], check=False, message="Inspecting docker images.")
         if process.returncode:
-            # If image was not found locally, try building image
-            tag, agents = await build(
-                location,
-                tag=None,
-                vm_name=vm_name,
-                vm_driver=vm_driver,
-                import_image=True,
-                quiet=True,
-            )
-            process = await run_process(["docker", "inspect", tag])
-            location = tag
+            # If the image was not found locally, try building image
+            location, agents = await build(location, tag=None, vm_name=vm_name, vm_driver=vm_driver, import_image=True)
         else:
             manifest = base64.b64decode(
                 json.loads(process.stdout)[0]["Config"]["Labels"]["beeai.dev.agent.yaml"]
             ).decode()
             agents = json.loads(manifest)["agents"]
-    # If all build and inspect succeeded, use the local image, else use the original; maybe it exists remotely
-    try:
+        # If all build and inspect succeeded, use the local image, else use the original; maybe it exists remotely
         await api_request("POST", "providers", json={"location": location, "agents": agents})
-    except Exception as e:
-        raise RuntimeError(
-            f"Failed to add agent from {location}\n"
-            "   If this agent is built locally or from github, make sure you have docker command installed\n"
-            f"   Try building the image separately using [bold]beeai build {location}[/bold]\n"
-            f"   {extract_messages(e)}"
-        ) from e
-    await list_agents()
+        await list_agents()
 
 
 @app.command("remove | uninstall | rm | delete")

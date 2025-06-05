@@ -216,7 +216,7 @@ mise run beeai-server:dev:stop
 curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhost:8333 is already running" && exit 2
 
 VM_NAME=e2e-test-run
-mise run beeai-cli:run -- platform start \
+mise run beeai-cli:run -- platform start -v \
     --vm-name=${VM_NAME} \
     --import ghcr.io/i-am-bee/beeai-platform/beeai-server:local \
     --set image.tag=local --set externalRegistries=null $extra_flags
