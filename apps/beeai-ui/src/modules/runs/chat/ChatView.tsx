@@ -18,14 +18,34 @@ import type { PropsWithChildren } from 'react';
 
 import { MainContent } from '#components/layouts/MainContent.tsx';
 
-// import { SourcesPanel } from './SourcesPanel';
+// import { SourcesPanel } from '../sources/components/SourcesPanel';
 
 export function ChatView({ children }: PropsWithChildren) {
+  // TODO
+  // const sources = [
+  //   {
+  //     number: 1,
+  //     url: 'https://research.ibm.com/projects/bee-ai-platform',
+  //   },
+  //   {
+  //     number: 2,
+  //     url: 'https://research.ibm.com/projects/bee-ai-platform',
+  //   },
+  //   {
+  //     number: 3,
+  //     url: 'https://research.ibm.com/projects/bee-ai-platform',
+  //   },
+  //   {
+  //     number: 4,
+  //     url: 'https://research.ibm.com/projects/bee-ai-platform',
+  //   },
+  // ];
+
   return (
     <>
       <MainContent limitHeight>{children}</MainContent>
 
-      {/* <SourcesPanel /> */}
+      {/* <SourcesPanel sources={sources} /> */}
     </>
   );
 }

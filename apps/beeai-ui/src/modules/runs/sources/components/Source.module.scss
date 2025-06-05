@@ -59,10 +59,14 @@ $padding-inline: $spacing-05;
   justify-content: center;
   flex-shrink: 0;
   margin-block-start: 2px;
+  &:global(.cds--skeleton__placeholder) {
+    overflow: hidden;
+  }
 }
 
 .body {
   min-inline-size: 0;
+  flex-grow: 1;
 }
 
 .heading {
@@ -84,8 +88,15 @@ $padding-inline: $spacing-05;
 
 .description {
   @include type-style(label-01);
-  @include line-clamp(4);
   margin-block-start: $spacing-03;
+
+  &:global(:not(.cds--skeleton__text)) {
+    @include line-clamp(4);
+  }
+
+  &:global(.cds--skeleton__text + .cds--skeleton__text) {
+    margin-block-start: 0;
+  }
 }
 
 .footer {

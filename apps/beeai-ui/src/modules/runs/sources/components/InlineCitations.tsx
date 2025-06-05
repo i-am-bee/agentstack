@@ -14,30 +14,22 @@
  * limitations under the License.
  */
 
-import type { MessagePart } from '../api/types';
-import type { Role } from '../types';
+import type { SourceReference } from '../api/types';
+import { InlineCitationButton } from './InlineCitationButton';
+import classes from './InlineCitations.module.scss';
 
-interface Message {
-  key: string;
-  role: Role;
-  content: string;
-  error?: unknown;
-}
-export interface UserMessage extends Message {
-  role: Role.User;
-}
-export interface AssistantMessage extends Message {
-  role: Role.Assistant;
-  status: MessageStatus;
+interface Props {
+  sources: SourceReference[];
 }
 
-export type ChatMessage = UserMessage | AssistantMessage;
-
-export type MessageParams = Partial<MessagePart> & { content: string };
-
-export enum MessageStatus {
-  InProgress = 'in-progress',
-  Completed = 'completed',
-  Aborted = 'aborted',
-  Failed = 'failed',
+export function InlineCitations({ sources }: Props) {
+  return sources.length > 0 ? (
+    <span className={classes.root}>
+      {sources.map((source) => (
+        <sup key={source.number}>
+          <InlineCitationButton source={source} />
+        </sup>
+      ))}
+    </span>
+  ) : null;
 }

@@ -14,30 +14,17 @@
  * limitations under the License.
  */
 
-import type { MessagePart } from '../api/types';
-import type { Role } from '../types';
-
-interface Message {
-  key: string;
-  role: Role;
-  content: string;
-  error?: unknown;
-}
-export interface UserMessage extends Message {
-  role: Role.User;
-}
-export interface AssistantMessage extends Message {
-  role: Role.Assistant;
-  status: MessageStatus;
+export interface SourceReference {
+  number: number;
+  url: string;
 }
 
-export type ChatMessage = UserMessage | AssistantMessage;
+export interface SourceMetadata {
+  title: string;
+  description?: string;
+  faviconUrl?: string;
+}
 
-export type MessageParams = Partial<MessagePart> & { content: string };
-
-export enum MessageStatus {
-  InProgress = 'in-progress',
-  Completed = 'completed',
-  Aborted = 'aborted',
-  Failed = 'failed',
+export interface ResolvedSource extends SourceReference {
+  metadata: SourceMetadata;
 }

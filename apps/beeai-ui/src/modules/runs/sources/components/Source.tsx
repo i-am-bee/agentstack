@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
+import { SkeletonPlaceholder, SkeletonText } from '@carbon/react';
 import clsx from 'clsx';
 
+import { useSource } from '../api/queries/useSource';
+import type { SourceReference } from '../api/types';
+import { resolveSource } from '../utils';
 import classes from './Source.module.scss';
-import type { ResolvedSource, SourceReference } from './types';
 
 interface Props {
   source: SourceReference;
@@ -25,20 +28,18 @@ interface Props {
 }
 
 export function Source({ source, isActive }: Props) {
-  // TODO:
+  const { data, isPending } = useSource({ source });
+  const resolvedSource = resolveSource({ source, data });
+
+  if (isPending) {
+    return <Source.Skeleton />;
+  }
+
   const {
     number,
     url,
     metadata: { title, description, faviconUrl },
-  }: ResolvedSource = {
-    ...source,
-    metadata: {
-      title: 'beeai-platform: Discover, run, and compose AI',
-      description:
-        'Orchestrate agents into workflows — regardless of how or where they were built . Key features. Feature, Description. ACP Native, Built from the ground.',
-      faviconUrl: 'https://github.githubassets.com/favicons/favicon.svg',
-    },
-  };
+  } = resolvedSource;
 
   return (
     <article className={clsx(classes.root, { [classes.isActive]: isActive })}>
@@ -62,3 +63,21 @@ export function Source({ source, isActive }: Props) {
     </article>
   );
 }
+
+Source.Skeleton = function SourceSkeleton() {
+  return (
+    <article className={classes.root}>
+      <SkeletonPlaceholder className={classes.number} />
+
+      <div className={classes.body}>
+        <SkeletonText className={classes.heading} />
+
+        <SkeletonText paragraph lineCount={2} className={classes.description} />
+
+        <div className={classes.footer}>
+          <SkeletonText className={classes.url} />
+        </div>
+      </div>
+    </article>
+  );
+};

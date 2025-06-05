@@ -14,30 +14,24 @@
  * limitations under the License.
  */
 
-import type { MessagePart } from '../api/types';
-import type { Role } from '../types';
+import { useQuery } from '@tanstack/react-query';
 
-interface Message {
-  key: string;
-  role: Role;
-  content: string;
-  error?: unknown;
-}
-export interface UserMessage extends Message {
-  role: Role.User;
-}
-export interface AssistantMessage extends Message {
-  role: Role.Assistant;
-  status: MessageStatus;
+import { readSourceMetadata } from '..';
+import { sourceKeys } from '../keys';
+import type { SourceReference } from '../types';
+
+interface Params {
+  source: SourceReference;
 }
 
-export type ChatMessage = UserMessage | AssistantMessage;
+export function useSource({ source }: Params) {
+  const query = useQuery({
+    queryKey: sourceKeys.detail({ source }),
+    queryFn: async () => ({
+      ...source,
+      metadata: await readSourceMetadata({ url: source.url }),
+    }),
+  });
 
-export type MessageParams = Partial<MessagePart> & { content: string };
-
-export enum MessageStatus {
-  InProgress = 'in-progress',
-  Completed = 'completed',
-  Aborted = 'aborted',
-  Failed = 'failed',
+  return query;
 }

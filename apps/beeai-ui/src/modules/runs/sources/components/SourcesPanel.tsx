@@ -20,30 +20,16 @@ import { useState } from 'react';
 
 import { SidePanel } from '#components/SidePanel/SidePanel.tsx';
 
+import type { SourceReference } from '../api/types';
 import { SourcesList } from './SourcesList';
 import classes from './SourcesPanel.module.scss';
 
-export function SourcesPanel() {
+interface Props {
+  sources: SourceReference[];
+}
+
+export function SourcesPanel({ sources }: Props) {
   const [isOpen, setIsOpen] = useState(true);
-  // TODO
-  const sources = [
-    {
-      number: 1,
-      url: 'https://research.ibm.com/projects/bee-ai-platform',
-    },
-    {
-      number: 2,
-      url: 'https://research.ibm.com/projects/bee-ai-platform',
-    },
-    {
-      number: 3,
-      url: 'https://research.ibm.com/projects/bee-ai-platform',
-    },
-    {
-      number: 4,
-      url: 'https://research.ibm.com/projects/bee-ai-platform',
-    },
-  ];
 
   return (
     <SidePanel variant="right" isOpen={isOpen}>

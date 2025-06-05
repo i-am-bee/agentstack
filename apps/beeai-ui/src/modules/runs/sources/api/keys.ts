@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-import { Source } from './Source';
-import classes from './SourcesList.module.scss';
 import type { SourceReference } from './types';
 
-interface Props {
-  sources: SourceReference[];
-}
-
-export function SourcesList({ sources }: Props) {
-  return sources.length > 0 ? (
-    <ul className={classes.root}>
-      {sources.map((source) => (
-        <li key={source.number}>
-          <Source source={source} />
-        </li>
-      ))}
-    </ul>
-  ) : null;
-}
+export const sourceKeys = {
+  all: () => ['sources'] as const,
+  details: () => [...sourceKeys.all(), 'detail'] as const,
+  detail: ({ source }: { source: SourceReference }) => [...sourceKeys.details(), { source }] as const,
+};

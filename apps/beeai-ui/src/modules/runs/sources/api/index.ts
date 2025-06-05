@@ -14,30 +14,16 @@
  * limitations under the License.
  */
 
-import type { MessagePart } from '../api/types';
-import type { Role } from '../types';
+import type { SourceMetadata } from './types';
 
-interface Message {
-  key: string;
-  role: Role;
-  content: string;
-  error?: unknown;
-}
-export interface UserMessage extends Message {
-  role: Role.User;
-}
-export interface AssistantMessage extends Message {
-  role: Role.Assistant;
-  status: MessageStatus;
-}
+// TODO:
+export async function readSourceMetadata({ url }: { url: string }): Promise<SourceMetadata> {
+  const title: string | undefined = 'beeai-platform: Discover, run, and compose AI';
 
-export type ChatMessage = UserMessage | AssistantMessage;
-
-export type MessageParams = Partial<MessagePart> & { content: string };
-
-export enum MessageStatus {
-  InProgress = 'in-progress',
-  Completed = 'completed',
-  Aborted = 'aborted',
-  Failed = 'failed',
+  return {
+    title: title ?? url,
+    description:
+      'Orchestrate agents into workflows — regardless of how or where they were built . Key features. Feature, Description. ACP Native, Built from the ground.',
+    faviconUrl: 'https://github.githubassets.com/favicons/favicon.svg',
+  };
 }

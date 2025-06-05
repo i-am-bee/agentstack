@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-import { Button } from '@carbon/react';
+import { Button, InlineLoading } from '@carbon/react';
 import clsx from 'clsx';
 
 import { Tooltip } from '#components/Tooltip/Tooltip.tsx';
 
+import { useSource } from '../api/queries/useSource';
+import type { SourceReference } from '../api/types';
+import { resolveSource } from '../utils';
 import classes from './InlineCitationButton.module.scss';
 import { InlineCitationTooltipContent } from './InlineCitationTooltipContent';
-import type { ResolvedSource, SourceReference } from './types';
 
 interface Props {
   source: SourceReference;
@@ -29,19 +31,21 @@ interface Props {
 }
 
 export function InlineCitationButton({ source, isActive }: Props) {
-  // TODO:
-  const resolvedSource: ResolvedSource = {
-    ...source,
-    metadata: {
-      title: 'beeai-platform: Discover, run, and compose AI',
-      description:
-        'Orchestrate agents into workflows — regardless of how or where they were built . Key features. Feature, Description. ACP Native, Built from the ground.',
-      faviconUrl: 'https://github.githubassets.com/favicons/favicon.svg',
-    },
-  };
+  const { data, isPending } = useSource({ source });
+  const resolvedSource = resolveSource({ source, data });
 
   return (
-    <Tooltip size="lg" asChild content={<InlineCitationTooltipContent source={resolvedSource} />}>
+    <Tooltip
+      size="lg"
+      asChild
+      content={
+        isPending ? (
+          <InlineLoading description="Loading&hellip;" className={classes.loading} />
+        ) : (
+          <InlineCitationTooltipContent source={resolvedSource} />
+        )
+      }
+    >
       <Button className={clsx(classes.root, { [classes.isActive]: isActive })}>{source.number}</Button>
     </Tooltip>
   );
