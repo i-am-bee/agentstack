@@ -20,7 +20,7 @@ import { useState } from 'react';
 import { StreamError } from '#api/errors.ts';
 import { handleStream } from '#api/utils.ts';
 import { agentKeys } from '#modules/agents/api/keys.ts';
-import { useMonitorProvider } from '#modules/providers/hooks/useMonitorProviderStatus.ts';
+import { useMonitorProviderStatus } from '#modules/providers/hooks/useMonitorProviderStatus.ts';
 
 import { registerManagedProvider } from '..';
 import { providerKeys } from '../keys';
@@ -36,7 +36,7 @@ export function useImportProvider({ onSuccess }: Props = {}) {
   const [location, setLocation] = useState<ProviderLocation>();
   const { refetch } = useProviderBySource({ source: location });
 
-  useMonitorProvider({ id });
+  useMonitorProviderStatus({ id });
 
   const mutation = useMutation({
     mutationFn: async ({ body }: { body: RegisterProviderRequest }) => {

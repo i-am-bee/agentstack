@@ -25,6 +25,7 @@ import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
 import type { RunLog, RunStats } from '#modules/runs/types.ts';
 import { extractOutput, isArtifact } from '#modules/runs/utils.ts';
 
+import { AgentProvider } from '../agent/AgentProvider';
 import { HandsOffContext } from './hands-off-context';
 
 interface Props {
@@ -132,5 +133,11 @@ export function HandsOffProvider({ agent, children }: PropsWithChildren<Props>) 
     [agent, input, output, stats, logs, isPending, run, handleClear],
   );
 
-  return <HandsOffContext.Provider value={contextValue}>{children}</HandsOffContext.Provider>;
+  return (
+    <HandsOffContext.Provider value={contextValue}>
+      <AgentProvider agent={agent} isMonitorStatusEnabled={isPending}>
+        {children}
+      </AgentProvider>
+    </HandsOffContext.Provider>
+  );
 }

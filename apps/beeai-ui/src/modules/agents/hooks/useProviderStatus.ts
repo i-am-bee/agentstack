@@ -37,7 +37,7 @@ function getStatusHelpers(data?: Provider) {
   };
 }
 
-export function useAgentStatus({ providerId }: Props) {
+export function useProviderStatus({ providerId }: Props) {
   const query = useProvider({ id: providerId ?? undefined });
 
   return {
@@ -49,3 +49,5 @@ export function useAgentStatus({ providerId }: Props) {
     ...getStatusHelpers(query.data),
   };
 }
+
+export type ProviderStatusWithHelpers = ReturnType<typeof getStatusHelpers>;

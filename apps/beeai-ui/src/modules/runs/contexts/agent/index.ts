@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
-import { useProviderStatus } from '#modules/agents/hooks/useProviderStatus.ts';
+import { use } from 'react';
 
-import { SEQUENTIAL_WORKFLOW_AGENT_NAME } from '../sequential/constants';
+import { AgentContext } from './agent-context';
 
-export function useSequentialAgent() {
-  const { data: agent } = useAgent({ name: SEQUENTIAL_WORKFLOW_AGENT_NAME });
-  const { isReady } = useProviderStatus({ providerId: agent?.metadata.provider_id });
+export function useAgent() {
+  const context = use(AgentContext);
 
-  return isReady ? agent : undefined;
+  if (!context) {
+    throw new Error('useAgent must be used within a AgentProvider');
+  }
+
+  return context;
 }

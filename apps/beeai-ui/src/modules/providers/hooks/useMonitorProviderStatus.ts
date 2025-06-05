@@ -20,22 +20,27 @@ import { useCallback, useEffect, useState } from 'react';
 import { useToast } from '#contexts/Toast/index.ts';
 import { TaskType, useTasks } from '#hooks/useTasks.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
-import { useAgentStatus } from '#modules/agents/hooks/useAgentStatus.ts';
+import { useProviderStatus } from '#modules/agents/hooks/useProviderStatus.ts';
 
 import { providerKeys } from '../api/keys';
 
 interface Props {
   id?: string;
+  isEnabled?: boolean;
 }
 
-export function useMonitorProvider({ id }: Props) {
+export function useMonitorProviderStatus({ id, isEnabled }: Props) {
   const [isDone, setIsDone] = useState(false);
   const queryClient = useQueryClient();
   const { addToast } = useToast();
   const { addTask, removeTask } = useTasks();
 
-  const { refetch: refetchStatus, isStarting, isNotInstalled } = useAgentStatus({ providerId: id });
+  const { refetch: refetchStatus, ...agentStatusReturn } = useProviderStatus({ providerId: id });
   const { data: agents } = useListAgents();
+
+  const { isStarting, isNotInstalled, isReady } = agentStatusReturn;
+
+  const shouldMonitorStatus = isEnabled && !isDone && (isStarting || isNotInstalled || isReady);
 
   const checkProvider = useCallback(async () => {
     const { isReady, isError } = await refetchStatus();
@@ -66,22 +71,24 @@ export function useMonitorProvider({ id }: Props) {
 
       setIsDone(true);
     }
-  }, [id, agents, queryClient, refetchStatus, addToast, removeTask]);
+  }, [refetchStatus, agents, addToast, queryClient, id, removeTask]);
 
   useEffect(() => {
-    if (id && !isDone && (isStarting || isNotInstalled)) {
+    if (id && shouldMonitorStatus) {
       addTask({
-        id,
+        id: id,
         type: TaskType.ProviderStatusCheck,
         task: checkProvider,
         delay: CHECK_PROVIDER_STATUS_INTERVAL,
       });
 
       return () => {
-        removeTask({ id, type: TaskType.ProviderStatusCheck });
+        removeTask({ id: id, type: TaskType.ProviderStatusCheck });
       };
     }
-  }, [id, isDone, addTask, removeTask, checkProvider, isStarting, isNotInstalled]);
+  }, [addTask, checkProvider, id, removeTask, shouldMonitorStatus]);
+
+  return agentStatusReturn;
 }
 
 const CHECK_PROVIDER_STATUS_INTERVAL = 2000;

@@ -27,8 +27,8 @@ import { AddRequiredVariablesModal } from '#modules/variables/components/AddRequ
 import { routes } from '#utils/router.ts';
 
 import type { Agent, UiType } from '../api/types';
-import { useAgentStatus } from '../hooks/useAgentStatus';
 import { useMissingEnvs } from '../hooks/useMissingEnvs';
+import { useProviderStatus } from '../hooks/useProviderStatus';
 import classes from './AgentLaunchButton.module.scss';
 
 interface Props {
@@ -39,7 +39,7 @@ export function AgentLaunchButton({ agent }: Props) {
   const { openModal } = useModal();
   const { provider_id, ui } = agent.metadata;
   const { missingEnvs, isPending: isMissingEnvsPending } = useMissingEnvs({ agent });
-  const { isNotInstalled, isStarting, isError } = useAgentStatus({ providerId: provider_id });
+  const { isNotInstalled, isStarting, isError } = useProviderStatus({ providerId: provider_id });
 
   const uiType = ui?.type;
   const sharedProps: ComponentProps<typeof Button> = {

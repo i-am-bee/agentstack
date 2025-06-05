@@ -18,10 +18,9 @@ import { StopFilled } from '@carbon/icons-react';
 import { Button } from '@carbon/react';
 
 import { Spinner } from '#components/Spinner/Spinner.tsx';
-import { useAgentStatus } from '#modules/agents/hooks/useAgentStatus.ts';
-import { useMonitorProvider } from '#modules/providers/hooks/useMonitorProviderStatus.ts';
 
 import { ElapsedTime } from '../components/ElapsedTime';
+import { useAgent } from '../contexts/agent';
 import { useHandsOff } from '../contexts/hands-off';
 import classes from './TaskStatusBar.module.scss';
 
@@ -30,13 +29,10 @@ interface Props {
 }
 
 export function TaskStatusBar({ onStopClick }: Props) {
-  const { agent, stats, isPending } = useHandsOff();
-
-  useMonitorProvider({ id: agent.metadata.provider_id });
-
-  const { status, isNotInstalled, isStarting } = useAgentStatus({ providerId: agent.metadata.provider_id });
-
-  console.log({ status });
+  const { stats, isPending } = useHandsOff();
+  const {
+    status: { isNotInstalled, isStarting },
+  } = useAgent();
 
   return stats?.startTime ? (
     <div className={classes.root}>

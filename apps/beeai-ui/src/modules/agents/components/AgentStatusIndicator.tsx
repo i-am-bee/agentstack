@@ -17,7 +17,7 @@
 import { InlineLoading } from '@carbon/react';
 
 import type { Agent } from '../api/types';
-import { useAgentStatus } from '../hooks/useAgentStatus';
+import { useProviderStatus } from '../hooks/useProviderStatus';
 import classes from './AgentStatusIndicator.module.scss';
 
 interface Props {
@@ -26,7 +26,7 @@ interface Props {
 
 export function AgentStatusIndicator({ agent }: Props) {
   const { provider_id } = agent.metadata;
-  const { isStarting } = useAgentStatus({ providerId: provider_id });
+  const { isStarting } = useProviderStatus({ providerId: provider_id });
 
   if (isStarting) {
     return (
