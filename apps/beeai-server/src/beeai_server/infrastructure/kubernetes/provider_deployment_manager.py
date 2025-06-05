@@ -125,11 +125,13 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
                                         "httpGet": {"path": "/ping", "port": 8000},
                                         "initialDelaySeconds": 1,
                                         "periodSeconds": 3,
+                                        "timeoutSeconds": 2,
                                     },
                                     "readinessProbe": {
                                         "httpGet": {"path": "/ping", "port": 8000},
                                         "initialDelaySeconds": 1,
                                         "periodSeconds": 3,
+                                        "timeoutSeconds": 2,
                                     },
                                 }
                             ]
