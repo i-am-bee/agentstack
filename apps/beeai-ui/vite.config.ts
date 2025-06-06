@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react-swc';
 import { defineConfig, loadEnv, type UserConfig } from 'vite';
 import svgr from 'vite-plugin-svgr';
 
-import { loadJson } from './src/utils/modules/loadJson';
+import { loadJson } from './src/utils/files/loadJson';
 
 const DEFAULT_ENV = {
   VITE_APP_NAME: 'BeeAI',

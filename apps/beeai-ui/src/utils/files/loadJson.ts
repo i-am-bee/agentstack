@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
+import { promises as fs } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { pathToFileURL } from 'node:url';
 import { fileURLToPath } from 'node:url';
 
 /**
- * Dynamically loads a JSON file relative to the caller module.
- * Works in ESM environments using import assertions.
+ * Loads and parses a JSON file relative to the calling module.
+ * Returns undefined if the file is missing or contains invalid JSON.
  *
  * @param relativeTo - Typically `import.meta.url` from the caller module
  * @param filename - The JSON file name to load (e.g. 'nav.json')
@@ -29,13 +29,10 @@ import { fileURLToPath } from 'node:url';
 export async function loadJson(relativeTo: string, filename: string) {
   const dir = dirname(fileURLToPath(relativeTo));
   const fullPath = join(dir, filename);
-  const filePath = pathToFileURL(fullPath).href;
 
   try {
-    const module = await import(filePath, {
-      with: { type: 'json' },
-    });
-    return module.default;
+    const content = await fs.readFile(fullPath, 'utf8');
+    return JSON.parse(content);
   } catch {
     return undefined;
   }
