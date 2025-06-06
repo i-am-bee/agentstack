@@ -9,36 +9,46 @@ This guide walks you through deploying the BeeAI Platform to Kubernetes using He
 
 The fastest way to deploy BeeAI with default agents and Ollama:
 
-### Step 1: Get the Helm Chart
+### Step 1: Create Configuration Files
 
-```bash
-# Clone the BeeAI repository to get the Helm chart
-git clone https://github.com/i-am-bee/beeai-platform.git
-cd beeai-platform/helm
+Create your configuration files for agents and LLM provider.
+
+**agents.yaml** (or use the default registry):
+
+```yaml
+# Option 1: Use default agent registry
+# No file needed - pass this URL directly to helm:
+# https://raw.githubusercontent.com/i-am-bee/beeai-platform/refs/heads/release-v0.2.0/agent-registry.yaml
+
+# Option 2: Custom agent selection
+providers:
+  - location: ghcr.io/i-am-bee/beeai-platform/community/aider:latest
+  - location: ghcr.io/i-am-bee/beeai-platform/official/beeai-framework/chat:latest
 ```
 
-### Step 2: Install Dependencies
+**llm-config.yaml:**
 
-```bash
-# Update Helm chart dependencies
-helm dependency build beeai-platform
+```yaml
+variables:
+  LLM_API_BASE: http://host.docker.internal:11434/v1
+  LLM_API_KEY: dummy
+  LLM_MODEL: llama3.1:8b
 ```
 
-### Step 3: Deploy with Default Configuration
+### Step 2: Deploy with Helm OCI
 
 ```bash
-# Deploy with Ollama configuration
-helm install my-beeai-platform ./beeai-platform \
-  -f ../agent-registry.yaml \
-  --set variables.LLM_API_BASE=http://host.docker.internal:11434/v1 \
-  --set variables.LLM_API_KEY=dummy \
-  --set variables.LLM_MODEL=llama3.1:8b \
-  --set encryptionKey=Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc= \
-  --set auth.enabled=false
+# Deploy BeeAI Platform directly from OCI registry
+helm install my-beeai-platform \
+  oci://ghcr.io/i-am-bee/beeai-platform/beeai-platform-chart/beeai-platform:0.2.0 \
+  -f llm-config.yaml \
+  -f security.yaml \
+  -f https://raw.githubusercontent.com/i-am-bee/beeai-platform/refs/heads/release-v0.2.0/agent-registry.yaml
 ```
 
 **What this does:**
-- Installs BeeAI Platform with the release name `my-beeai-platform`
+- Installs BeeAI Platform with the release name my-beeai-platform
+- Pulls the Helm chart directly from GitHub Container Registry
 - Configures Ollama as the LLM provider (running on host machine)
 - Includes default community agents from the official registry
 - Disables authentication for local testing
