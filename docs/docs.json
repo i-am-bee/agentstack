@@ -52,7 +52,7 @@
     "primary": {
       "type": "button",
       "label": "GitHub",
-      "href": "https://github.com/i-am-bee/beeai"
+      "href": "https://github.com/i-am-bee/beeai-platform"
     },
     "links": [
       {
@@ -64,7 +64,7 @@
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/i-am-bee/beeai",
+      "github": "https://github.com/i-am-bee/beeai-platform",
       "discord": "https://discord.gg/AZFrp3UF5k",
       "bluesky": "https://bsky.app/profile/beeaiagents.bsky.social",
       "youtube": "https://www.youtube.com/@BeeAIAgents"

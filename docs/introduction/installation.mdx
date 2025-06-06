@@ -32,10 +32,10 @@ Follow the post-installation instructions shown in the terminal to add Homebrew 
 
 ```bash
 brew install i-am-bee/beeai/beeai
-brew services start beeai
+beeai platform start
 ```
 
-The BeeAI server will start automatically as a background service.
+The BeeAI platform will start automatically in a virtualized environment.
 </Step>
 </Steps>
 
@@ -43,7 +43,7 @@ The BeeAI server will start automatically as a background service.
 
 ```bash
 brew upgrade beeai
-brew services restart beeai
+beeai platform start
 ```
 
 <Note>
@@ -53,7 +53,7 @@ Agents are updated automatically when new versions are available.
 ### Uninstalling BeeAI
 
 ```bash
-brew services stop beeai
+beeai platform stop
 brew uninstall beeai
 ```
 
@@ -111,16 +111,16 @@ pipx install beeai-cli
 ```
 </Step>
 
-<Step title="Run the BeeAI Server">
+<Step title="Start the BeeAI Platform">
 
-Unlike the Homebrew installation, you'll need to manually start the BeeAI server:
+Unlike the Homebrew installation, you'll need to manually start the BeeAI platform:
 
 ```bash
-beeai serve
+beeai platform start
 ```
 
 <Note>
-Keep this terminal window open while using BeeAI, or set up a system service to run it in the background.
+This creates and manages a containerized environment for running agents. The platform needs to be running for agents to work.
 </Note>
 </Step>
 </Steps>
@@ -129,11 +129,14 @@ Keep this terminal window open while using BeeAI, or set up a system service to 
 
 ```bash
 pipx upgrade beeai-cli
+beeai platform start
 ```
 
 ### Uninstalling BeeAI
 
 ```bash
+beeai platform stop
+beeai platform delete
 pipx uninstall beeai-cli
 ```
 
@@ -186,7 +189,7 @@ Choose one of the following options:
 
 If you want to use [Ollama](https://ollama.com/) for local LLM access:
 
-1. [Download and install the Windows version of Ollama](https://ollama.com/download/windows)
+1. Download and install the [Windows version of Ollama](https://ollama.com/download/windows)
 2. Create or edit the WSL configuration file:
    
    ```powershell
@@ -255,6 +258,19 @@ If you prefer to configure your LLM provider manually, use the following example
 beeai env add LLM_API_BASE=https://api.openai.com/v1
 beeai env add LLM_API_KEY=sk-your-api-key-here
 beeai env add LLM_MODEL=gpt-4o
+```
+
+</Accordion>
+
+<Accordion title="IBM watsonx">
+
+```bash
+beeai env add LLM_API_BASE=https://us-south.ml.cloud.ibm.com
+beeai env add LLM_API_KEY=your-ibm-api-key
+beeai env add LLM_MODEL=ibm/granite-3-3-8b-instruct
+beeai env add WATSONX_PROJECT_ID=your-project-id
+# OR for deployment spaces:
+# beeai env add WATSONX_SPACE_ID=your-space-id
 ```
 
 </Accordion>
