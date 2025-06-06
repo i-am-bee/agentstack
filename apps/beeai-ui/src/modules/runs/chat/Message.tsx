@@ -23,6 +23,7 @@ import { Spinner } from '#components/Spinner/Spinner.tsx';
 
 import { AgentIcon } from '../components/AgentIcon';
 import { useChat } from '../contexts/chat';
+import { SourcesButton } from '../sources/components/SourcesButton';
 import { Role } from '../types';
 import classes from './Message.module.scss';
 import { type ChatMessage, MessageStatus } from './types';
@@ -42,6 +43,8 @@ export function Message({ message }: Props) {
   const isError =
     isAssistantMessage && (message.status === MessageStatus.Failed || message.status === MessageStatus.Aborted);
   const isFailed = isAssistantMessage && message.status === MessageStatus.Failed;
+
+  const sources = isAssistantMessage && message.sources ? message.sources : null;
 
   return (
     <li className={clsx(classes.root)}>
@@ -67,6 +70,8 @@ export function Message({ message }: Props) {
             )}
           </div>
         )}
+
+        {sources && <SourcesButton sources={sources} />}
       </div>
     </li>
   );
