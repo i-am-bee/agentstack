@@ -41,7 +41,7 @@
   text-decoration: none;
 
   &:not(:hover) {
-    --cds-link-primary: #{$black};
+    --cds-link-primary: #{$text-dark};
   }
 
   &.active::after {
@@ -51,10 +51,10 @@
     inset-inline-end: 0;
     inset-block-end: -1px;
     block-size: 2px;
-    background: #{$black};
+    background: $text-dark;
   }
 }
 
 .icon {
-  color: #{$black};
+  color: $text-dark;
 }
