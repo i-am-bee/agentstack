@@ -4,6 +4,9 @@ dependencies:
   version: 2.31.1
 - name: postgresql
   repository: oci://registry-1.docker.io/bitnamicharts
-  version: 16.7.4
-digest: sha256:4aa9a8b29982bc16a37c6d429e412ea0ca18a74c71a95308e134925151681413
-generated: "2025-05-20T10:51:03.75085+02:00"
+  version: 16.7.10
+- name: seaweedfs
+  repository: https://seaweedfs.github.io/seaweedfs/helm
+  version: 4.0.390
+digest: sha256:df785506ceef5c3c84c80bb5083e222ae01da0d8c7808ae78ff10ebd77cb44d6
+generated: "2025-06-10T15:00:16.57412+02:00"

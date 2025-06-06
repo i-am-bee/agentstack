@@ -56,6 +56,10 @@ class DockerImageProviderLocation(RootModel):
         location_digest = hashlib.sha256(str(self.root).encode()).digest()
         return UUID(bytes=location_digest[:16])
 
+    @property
+    def is_on_host(self) -> bool:
+        return False
+
     @inject
     async def load_agents(self) -> list[AcpAgent]:
         from acp_sdk import AgentsListResponse
@@ -75,11 +79,19 @@ class NetworkProviderLocation(RootModel):
     def _replace_localhost_url(cls, data: Any, handler: ModelWrapValidatorHandler):
         configuration = di[Configuration]
         url: NetworkProviderLocation = handler(data)
-        # localhost does not make sense in k8s environment, replace it with host.docker.internal for backward compatibility
         if configuration.self_registration_use_local_network:
-            return url
-        url.root = HttpUrl(re.sub(r"localhost|127\.0\.0\.1", "host.docker.internal", str(url.root)))
+            url.root = HttpUrl(re.sub(r"host.docker.internal", "localhost", str(url.root)))
+        else:
+            # localhost does not make sense in k8s environment, replace it with host.docker.internal for backward compatibility
+            url.root = HttpUrl(re.sub(r"localhost|127\.0\.0\.1", "host.docker.internal", str(url.root)))
         return url
+
+    @property
+    def is_on_host(self) -> bool:
+        """
+        Return True for self-registered providers which need to be treated a bit differently
+        """
+        return any(url in str(self.root) for url in {"host.docker.internal", "localhost", "127.0.0.1"})
 
     @property
     def provider_id(self) -> UUID:

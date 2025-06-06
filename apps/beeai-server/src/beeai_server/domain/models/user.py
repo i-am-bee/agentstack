@@ -12,14 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import fastapi
+from enum import StrEnum
+from uuid import UUID, uuid4
 
-from beeai_server.configuration import UIFeatureFlags
-from beeai_server.api.dependencies import ConfigurationDependency
+from pydantic import BaseModel, Field, EmailStr, AwareDatetime
 
-router = fastapi.APIRouter()
+from beeai_server.utils.utils import utc_now
 
 
-@router.get("/config")
-def get_ui_config(config: ConfigurationDependency) -> UIFeatureFlags:
-    return config.feature_flags.ui
+class UserRole(StrEnum):
+    admin = "admin"
+    user = "user"
+
+
+class User(BaseModel):
+    id: UUID = Field(default_factory=uuid4)
+    role: UserRole = UserRole.user
+    email: EmailStr
+    created_at: AwareDatetime = Field(default_factory=utc_now)

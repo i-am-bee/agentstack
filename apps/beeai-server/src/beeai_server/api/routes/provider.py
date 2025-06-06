@@ -20,7 +20,7 @@ from beeai_server.api.schema.provider import CreateProviderRequest
 from uuid import UUID
 
 from beeai_server.domain.models.provider import ProviderWithState
-from beeai_server.api.routes.dependencies import ProviderServiceDependency, AdminAuthDependency
+from beeai_server.api.dependencies import ProviderServiceDependency, AdminUserDependency
 from beeai_server.api.schema.common import PaginatedResponse
 from starlette.responses import StreamingResponse
 
@@ -31,7 +31,7 @@ router = fastapi.APIRouter()
 
 @router.post("")
 async def create_provider(
-    _: AdminAuthDependency,
+    _: AdminUserDependency,
     request: CreateProviderRequest,
     provider_service: ProviderServiceDependency,
     auto_remove: bool = Query(default=False),
@@ -43,7 +43,7 @@ async def create_provider(
 
 @router.post("/register/unmanaged", deprecated=True)
 async def deprecated_create_unmanaged_provider(
-    _: AdminAuthDependency,
+    _: AdminUserDependency,
     request: CreateProviderRequest,
     provider_service: ProviderServiceDependency,
 ) -> ProviderWithState:
@@ -71,7 +71,7 @@ async def get_provider(id: UUID, provider_service: ProviderServiceDependency) ->
 
 @router.delete("/{id}", status_code=fastapi.status.HTTP_204_NO_CONTENT)
 async def delete_provider(
-    _: AdminAuthDependency,
+    _: AdminUserDependency,
     id: UUID,
     provider_service: ProviderServiceDependency,
 ) -> None:
@@ -80,7 +80,7 @@ async def delete_provider(
 
 @router.get("/{id}/logs", status_code=fastapi.status.HTTP_204_NO_CONTENT)
 async def stream_logs(
-    _: AdminAuthDependency,
+    _: AdminUserDependency,
     id: UUID,
     provider_service: ProviderServiceDependency,
 ) -> StreamingResponse:

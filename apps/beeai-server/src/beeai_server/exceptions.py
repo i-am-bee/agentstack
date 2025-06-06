@@ -15,7 +15,7 @@
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from starlette.status import HTTP_404_NOT_FOUND, HTTP_400_BAD_REQUEST
+from fastapi import status
 from tenacity import retry_if_exception, retry_base
 
 if TYPE_CHECKING:
@@ -27,7 +27,9 @@ class ManifestLoadError(Exception):
     location: "ProviderLocation"
     status_code: int
 
-    def __init__(self, location: "ProviderLocation", message: str | None = None, status_code: int = HTTP_404_NOT_FOUND):
+    def __init__(
+        self, location: "ProviderLocation", message: str | None = None, status_code: int = status.HTTP_404_NOT_FOUND
+    ):
         message = message or f"Manifest at location {location} not found"
         self.status_code = status_code
         super().__init__(message)
@@ -35,17 +37,27 @@ class ManifestLoadError(Exception):
 
 class EntityNotFoundError(Exception):
     entity: str
+    status_code: int
     id: UUID | str
 
-    def __init__(self, entity: str, id: UUID | str):
+    def __init__(self, entity: str, id: UUID | str, status_code: int = status.HTTP_404_NOT_FOUND):
         self.entity = entity
         self.id = id
+        self.status_code = status_code
         super().__init__(f"{entity} with id {id} not found")
 
 
 class MissingConfigurationError(Exception):
     def __init__(self, missing_env: list["EnvVar"]):
         self.missing_env = missing_env
+
+
+class UsageLimitExceeded(Exception):
+    status_code: int
+
+    def __init__(self, message: str, status_code: int = status.HTTP_413_REQUEST_ENTITY_TOO_LARGE):
+        self.status_code = status_code
+        super().__init__(message)
 
 
 class ProviderNotInstalledError(Exception): ...
@@ -58,7 +70,11 @@ class DuplicateEntityError(Exception):
     status_code: int
 
     def __init__(
-        self, entity: str, field: str = "name", value: str | UUID | None = None, status_code: int = HTTP_400_BAD_REQUEST
+        self,
+        entity: str,
+        field: str = "name",
+        value: str | UUID | None = None,
+        status_code: int = status.HTTP_400_BAD_REQUEST,
     ):
         self.entity = entity
         self.field = field

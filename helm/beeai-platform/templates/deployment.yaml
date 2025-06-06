@@ -58,6 +58,39 @@ spec:
                 secretKeyRef:
                   key: sqlConnection
                   name: {{ include "beeai.databaseSecretName" . }}
+        - name: create-buckets
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          workingDir: "/app/"
+          command: [ "create-buckets" ]
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: AUTH__DISABLE_AUTH
+              value: "true"
+            - name: PERSISTENCE__ENCRYPTION_KEY
+              value: "dummy"
+            # Object Storage Configuration
+            - name: OBJECT_STORAGE__ENDPOINT_URL
+              value: {{ include "beeai.s3.endpoint" . | quote }}
+            - name: OBJECT_STORAGE__ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "beeai.s3.secretName" . }}
+                  key: s3AccessKeyId
+            - name: OBJECT_STORAGE__ACCESS_KEY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "beeai.s3.secretName" . }}
+                  key: s3AccessKeySecret
+            - name: OBJECT_STORAGE__BUCKET_NAME
+              value: {{ include "beeai.s3.bucket" . | quote }}
+            - name: OBJECT_STORAGE__REGION
+              value: {{ include "beeai.s3.region" . | quote }}
+            - name: OBJECT_STORAGE__USE_SSL
+              value: {{ ternary "true" "false" (eq (include "beeai.s3.protocol" .) "https") | quote}}
       containers:
         - name: {{ .Chart.Name }}
           {{- with .Values.securityContext }}
@@ -112,6 +145,25 @@ spec:
             - name: AUTH__DISABLE_AUTH
               value: "true"
             {{- end }}
+            # Object Storage Configuration
+            - name: OBJECT_STORAGE__ENDPOINT_URL
+              value: {{ include "beeai.s3.endpoint" . | quote }}
+            - name: OBJECT_STORAGE__ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "beeai.s3.secretName" . }}
+                  key: s3AccessKeyId
+            - name: OBJECT_STORAGE__ACCESS_KEY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "beeai.s3.secretName" . }}
+                  key: s3AccessKeySecret
+            - name: OBJECT_STORAGE__BUCKET_NAME
+              value: {{ include "beeai.s3.bucket" . | quote }}
+            - name: OBJECT_STORAGE__REGION
+              value: {{ include "beeai.s3.region" . | quote }}
+            - name: OBJECT_STORAGE__USE_SSL
+              value: {{ ternary "true" "false" (eq (include "beeai.s3.protocol" .) "https") | quote}}
           volumeMounts:
             - name: beeai-platform-providers
               mountPath: /app/config

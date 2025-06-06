@@ -12,14 +12,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import fastapi
-
-from beeai_server.configuration import UIFeatureFlags
-from beeai_server.api.dependencies import ConfigurationDependency
-
-router = fastapi.APIRouter()
-
-
-@router.get("/config")
-def get_ui_config(config: ConfigurationDependency) -> UIFeatureFlags:
-    return config.feature_flags.ui

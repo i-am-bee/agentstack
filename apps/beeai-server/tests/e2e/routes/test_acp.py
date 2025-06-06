@@ -28,7 +28,7 @@ from acp_sdk import (
     RunInProgressEvent,
     RunStatus,
 )
-
+from pydantic import AnyUrl
 
 """
 These tests are copied from acp repository: 
@@ -113,6 +113,16 @@ def server(request: pytest.FixtureRequest, test_configuration, clean_up_fn) -> I
             content_encoding="base64",
         )
 
+    @server.agent()
+    async def file_reader(input: list[Message], context: Context) -> AsyncGenerator[Message, None]:
+        for message in input:
+            for part in message.parts:
+                if part.content_url:
+                    async with httpx.AsyncClient() as client:
+                        content = await client.get(str(part.content_url))
+                        content_type = content.headers.get("Content-Type") or part.content_type
+                        yield MessagePart(content=content.content, content_type=content_type)
+
     try:
         thread = Thread(target=server.run, kwargs={"port": 9999}, daemon=True)
         thread.start()
@@ -193,7 +203,6 @@ async def test_failure(server: Server, acp_client: Client, agent: AgentName) -> 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("agent", ["awaiter", "slow_echo"])
-@pytest.mark.skip(reason="TODO: Runs do not enter cancelled state")  # TODO
 async def test_run_cancel(server: Server, acp_client: Client, agent: AgentName) -> None:
     run = await acp_client.run_async(agent=agent, input=input)
     run = await acp_client.run_cancel(run_id=run.run_id)
@@ -205,7 +214,6 @@ async def test_run_cancel(server: Server, acp_client: Client, agent: AgentName) 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("agent", ["slow_echo"])
-@pytest.mark.skip(reason="TODO: Runs do not enter cancelled state")  # TODO
 async def test_run_cancel_stream(server: Server, acp_client: Client, agent: AgentName) -> None:
     last_event = None
     async for event in acp_client.run_stream(agent=agent, input=input):
@@ -345,3 +353,30 @@ async def test_artifact_streaming(server: Server, acp_client: Client) -> None:
     assert "text/plain" in artifact_types
     assert "application/json" in artifact_types
     assert "image/png" in artifact_types
+
+
+@pytest.mark.asyncio
+async def test_file_reader_public_url(server: Server, acp_client: Client) -> None:
+    # Try downloading public url
+    url = "https://raw.githubusercontent.com/i-am-bee/beeai-platform/refs/heads/main/README.md"
+    response = await acp_client.run_sync(
+        agent="file_reader",
+        input=[Message(parts=[MessagePart(content_url=AnyUrl(url))])],
+    )
+    assert "beeai" in response.output[0].parts[0].content.lower()
+
+
+@pytest.mark.asyncio
+async def test_file_reader_platform_file(server: Server, api_client, acp_client: Client) -> None:
+    # Try downloading public url
+    response = await api_client.post("files", files={"file": ("test.txt", "Hello world", "custom/type")})
+    response.raise_for_status()
+    file_id = response.json()["id"]
+    content_url = f"http://{{platform_url}}/api/v1/files/{file_id}/content"
+
+    response = await acp_client.run_sync(
+        agent="file_reader",
+        input=[Message(parts=[MessagePart(content_url=AnyUrl(content_url))])],
+    )
+    assert response.output[0].parts[0].content == "Hello world"
+    assert response.output[0].parts[0].content_type == "custom/type"

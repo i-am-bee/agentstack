@@ -12,14 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import fastapi
+from typing import Protocol, AsyncIterator
+from uuid import UUID
 
-from beeai_server.configuration import UIFeatureFlags
-from beeai_server.api.dependencies import ConfigurationDependency
-
-router = fastapi.APIRouter()
+from beeai_server.domain.models.user import User
 
 
-@router.get("/config")
-def get_ui_config(config: ConfigurationDependency) -> UIFeatureFlags:
-    return config.feature_flags.ui
+class IUserRepository(Protocol):
+    async def list(self) -> AsyncIterator[User]:
+        yield ...
+
+    async def create(self, *, user: User) -> None: ...
+    async def get(self, *, user_id: UUID) -> User: ...
+    async def get_by_email(self, *, email: str) -> User: ...
+    async def delete(self, *, user_id: UUID) -> None: ...

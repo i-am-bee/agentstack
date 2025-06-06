@@ -85,6 +85,17 @@ class AuthConfiguration(BaseModel):
         return self
 
 
+class ObjectStorageConfiguration(BaseModel):
+    endpoint_url: AnyUrl = AnyUrl("http://seaweedfs-all-in-one:9009")
+    access_key_id: Secret[str] = Secret("beeai-admin-user")
+    access_key_secret: Secret[str] = Secret("beeai-admin-password")
+    bucket_name: str = "beeai-files"
+    region: str = "us-east-1"
+    use_ssl: bool = False
+    storage_limit_per_user_bytes: int = 1 * (1024 * 1024 * 1024)  # 1GiB
+    max_single_file_size: int = 100 * (1024 * 1024)  # 100 MiB
+
+
 class PersistenceConfiguration(BaseModel):
     db_url: Secret[AnyUrl] = Secret(AnyUrl("postgresql+asyncpg://beeai-user:password@postgresql:5432/beeai"))
     encryption_key: Secret[str] | None = None
@@ -115,6 +126,7 @@ class Configuration(BaseSettings):
     oci_registry: dict[str, OCIRegistryConfiguration] = Field(default_factory=dict)
     telemetry: TelemetryConfiguration = Field(default_factory=TelemetryConfiguration)
     persistence: PersistenceConfiguration = Field(default_factory=PersistenceConfiguration)
+    object_storage: ObjectStorageConfiguration = Field(default_factory=ObjectStorageConfiguration)
     k8s_namespace: str | None = None
     k8s_kubeconfig: Path | None = None
 

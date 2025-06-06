@@ -83,3 +83,19 @@ To upgrade to a newer version of the beeai platform, use
 ```
 helm upgrade --install -f config.yaml beeai oci://ghcr.io/i-am-bee/beeai-platform/beeai-platform-chart/beeai-platform:<newer-version>
 ```
+
+## External Services
+
+### External S3 support
+
+You may want to have beeai platform connect to an external storage streaming rather than installing seaweedfs inside
+your cluster. To achieve this, the chart allows you to specify credentials for an external storage streaming with the
+`externalS3`. You should also disable the seaweedfs installation with the `seaweedfs.enabled`
+option. Here is an example:
+
+```console
+seaweedfs.enabled=false
+externalS3.host=myexternalhost
+exterernalS3.accessKeyID=accesskey
+externalS3.accessKeySecret=secret
+```

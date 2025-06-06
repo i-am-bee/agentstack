@@ -12,14 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import fastapi
+from uuid import UUID
 
-from beeai_server.configuration import UIFeatureFlags
-from beeai_server.api.dependencies import ConfigurationDependency
-
-router = fastapi.APIRouter()
+from pydantic import BaseModel
 
 
-@router.get("/config")
-def get_ui_config(config: ConfigurationDependency) -> UIFeatureFlags:
-    return config.feature_flags.ui
+class FileResponse(BaseModel):
+    """Response schema for file operations."""
+
+    file_id: UUID
+    url: str | None = None
+
+
+class FileUploadResponse(FileResponse):
+    """Response schema for file upload."""
+
+    pass
+
+
+class FileUrlResponse(BaseModel):
+    """Response schema for file URL."""
+
+    url: str

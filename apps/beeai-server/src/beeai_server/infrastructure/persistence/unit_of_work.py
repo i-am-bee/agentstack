@@ -19,10 +19,14 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncConnection, AsyncTransactio
 
 from beeai_server.domain.repositories.agent import IAgentRepository
 from beeai_server.domain.repositories.env import IEnvVariableRepository
+from beeai_server.domain.repositories.files import IFileRepository
 from beeai_server.domain.repositories.provider import IProviderRepository
+from beeai_server.domain.repositories.users import IUserRepository
+from beeai_server.infrastructure.persistence.repositories.files import SqlAlchemyFileRepository
 from beeai_server.infrastructure.persistence.repositories.agent import SqlAlchemyAgentRepository
 from beeai_server.infrastructure.persistence.repositories.env import SqlAlchemyEnvVariableRepository
 from beeai_server.infrastructure.persistence.repositories.provider import SqlAlchemyProviderRepository
+from beeai_server.infrastructure.persistence.repositories.users import SqlAlchemyUserRepository
 from beeai_server.service_layer.unit_of_work import IUnitOfWork, IUnitOfWorkFactory
 
 
@@ -35,6 +39,8 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
     providers: IProviderRepository
     agents: IAgentRepository
     env: IEnvVariableRepository
+    files: IFileRepository
+    users: IUserRepository
 
     def __init__(self, engine: AsyncEngine) -> None:
         self._engine: AsyncEngine = engine
@@ -51,6 +57,8 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
             self.providers = SqlAlchemyProviderRepository(self._connection)
             self.agents = SqlAlchemyAgentRepository(self._connection)
             self.env = SqlAlchemyEnvVariableRepository(self._connection)
+            self.files = SqlAlchemyFileRepository(self._connection)
+            self.users = SqlAlchemyUserRepository(self._connection)
         except Exception as e:
             if self._connection:
                 await self._connection.close()
