@@ -11,7 +11,7 @@ The fastest way to deploy BeeAI with default agents and [Ollama](https://ollama.
 
 ### Step 1: Create Configuration Files
 
-Create your configuration files for agents and LLM provider.
+Create your configuration files for agents, LLM provider, and security settings.
 
 **agents.yaml** (or use the default registry):
 
@@ -35,6 +35,16 @@ variables:
   LLM_MODEL: llama3.1:8b
 ```
 
+**security.yaml:**
+
+```yaml
+# Generate encryption key: openssl rand -base64 32
+encryptionKey: Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc=
+
+auth:
+  enabled: false
+```
+
 ### Step 2: Deploy with Helm OCI
 
 ```bash
@@ -42,6 +52,7 @@ variables:
 helm install my-beeai-platform \
   oci://ghcr.io/i-am-bee/beeai-platform/beeai-platform-chart/beeai-platform:0.2.0 \
   -f llm-config.yaml \
+  -f security.yaml \
   -f https://raw.githubusercontent.com/i-am-bee/beeai-platform/refs/heads/release-v0.2.0/agent-registry.yaml
 ```
 
