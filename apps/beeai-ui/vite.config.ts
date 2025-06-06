@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react-swc';
 import { defineConfig, loadEnv, type UserConfig } from 'vite';
 import svgr from 'vite-plugin-svgr';
 
-import { loadJson } from './src/utils/files/loadJson';
+import { loadFile } from './src/utils/files/loadFile';
 
 const DEFAULT_ENV = {
   VITE_APP_NAME: 'BeeAI',
@@ -35,7 +35,7 @@ export default defineConfig(async ({ mode }): Promise<UserConfig> => {
     ],
     define: {
       __APP_NAME__: JSON.stringify(VITE_APP_NAME),
-      __NAV__: await loadJson(import.meta.url, 'nav.json'),
+      __NAV__: await loadFile(import.meta.url, 'nav.json'),
       __PHOENIX_SERVER_TARGET__: JSON.stringify(VITE_PHOENIX_SERVER_TARGET),
     },
     server: {

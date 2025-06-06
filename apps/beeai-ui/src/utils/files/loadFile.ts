@@ -15,24 +15,26 @@
  */
 
 import { promises as fs } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
- * Loads and parses a JSON file relative to the calling module.
- * Returns undefined if the file is missing or contains invalid JSON.
+ * Loads a file relative to the calling module.
+ * - Parses `.json` files as JSON
+ * - Returns string content for all other file types
+ * Returns `undefined` on read or parse failure.
  *
  * @param relativeTo - Typically `import.meta.url` from the caller module
- * @param filename - The JSON file name to load (e.g. 'nav.json')
- * @returns Parsed JSON object, or `undefined` if loading/parsing fails
+ * @param filename - File name to load (e.g. 'nav.json' or 'README.md')
+ * @returns Parsed object (for JSON) or raw string (for text), or `undefined` on failure
  */
-export async function loadJson(relativeTo: string, filename: string) {
+export async function loadFile(relativeTo: string, filename: string): Promise<unknown | string | undefined> {
   const dir = dirname(fileURLToPath(relativeTo));
   const fullPath = join(dir, filename);
 
   try {
     const content = await fs.readFile(fullPath, 'utf8');
-    return JSON.parse(content);
+    return extname(filename) === '.json' ? JSON.parse(content) : content;
   } catch {
     return undefined;
   }
