@@ -11,7 +11,7 @@
     "fix": "prettier --log-level silent --write src && eslint --fix src && stylelint --fix=lax src/**/*.css src/**/*.scss",
     "preview": "vite preview",
     "clean": "rm -rf node_modules && rm -rf dist",
-    "schema:generate": "pnpm dlx openapi-typescript 'http://127.0.0.1:8333/api/v1/openapi.json' -o ./src/api/schema.d.ts --alphabetize"
+    "schema:generate": "pnpm dlx openapi-typescript 'http://localhost:8333/api/v1/openapi.json' -o ./src/api/schema.d.ts --alphabetize"
   },
   "exports": {
     ".": "./src/index.ts"

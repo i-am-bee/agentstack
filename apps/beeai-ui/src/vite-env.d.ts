@@ -18,4 +18,5 @@
 /// <reference types="vite/client" />
 
 declare const __APP_NAME__: string;
+declare const __NAV__: object;
 declare const __PHOENIX_SERVER_TARGET__: string;

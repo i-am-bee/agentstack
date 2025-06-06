@@ -248,14 +248,14 @@ wheels = [
 
 [[package]]
 name = "beeai-cli"
-version = "0.2.6"
+version = "0.2.7"
 source = { editable = "apps/beeai-cli" }
 dependencies = [
     { name = "acp-sdk" },
     { name = "anyio" },
     { name = "cachetools" },
     { name = "click" },
-    { name = "gnureadline" },
+    { name = "gnureadline", marker = "sys_platform != 'win32'" },
     { name = "inquirerpy" },
     { name = "jsf" },
     { name = "jsonref" },
@@ -275,7 +275,7 @@ requires-dist = [
     { name = "anyio", specifier = ">=4.8.0" },
     { name = "cachetools", specifier = ">=5.5.2" },
     { name = "click", specifier = "~=8.1.8" },
-    { name = "gnureadline", specifier = ">=8.2.13" },
+    { name = "gnureadline", marker = "sys_platform != 'win32'", specifier = ">=8.2.13" },
     { name = "inquirerpy", specifier = ">=0.3.4" },
     { name = "jsf", specifier = ">=0.11.2" },
     { name = "jsonref", specifier = ">=1.1.0" },
