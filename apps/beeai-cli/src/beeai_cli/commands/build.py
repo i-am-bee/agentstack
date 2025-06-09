@@ -100,6 +100,8 @@ async def build(
                 finally:
                     with suppress(BaseException):
                         await run_command(["docker", "kill", container_id], "Killing container")
+                    with suppress(ProcessLookupError):
+                        process.kill()
 
         context_hash = hashlib.sha256(context.encode()).hexdigest()[:6]
         context_shorter = re.sub(r"https?://", "", context).replace(r".git", "")
