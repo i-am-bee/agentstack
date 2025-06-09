@@ -48,7 +48,7 @@ export function AppHeader({ className }: Props) {
             <>
               <p className={classes.agentName}>{getAgentDisplayName(agent)}</p>
 
-              <div className={classes.agentDetailButton}>
+              <div className={classes.agentDetailButtonContainer}>
                 <AgentDetailButton />
               </div>
             </>
