@@ -20,6 +20,9 @@ import { useImperativeHandle, useRef } from 'react';
 import { TextAreaAutoHeight } from '#components/TextAreaAutoHeight/TextAreaAutoHeight.tsx';
 import { dispatchInputEventOnFormTextarea, submitFormOnEnter } from '#utils/form-utils.ts';
 
+// import { FileCard } from '../files/components/FileCard';
+// import { FileCardsList } from '../files/components/FileCardsList';
+// import { FileUploadButton } from '../files/components/FileUploadButton';
 import { AgentModel } from './AgentModel';
 import classes from './InputBar.module.scss';
 
@@ -72,6 +75,14 @@ export function InputBar({
         onSubmit?.(event);
       }}
     >
+      {/* <div className={classes.files}>
+        <FileCardsList>
+          <li>
+            <FileCard filename="IBM-annual-report-2007.pdf" />
+          </li>
+        </FileCardsList>
+      </div> */}
+
       <TextAreaAutoHeight
         rows={1}
         autoFocus
@@ -79,10 +90,12 @@ export function InputBar({
         className={classes.textarea}
         onKeyDown={(event) => !isSubmitDisabled && submitFormOnEnter(event)}
       />
-
       <div className={classes.actionBar}>
         <div className={classes.actionBarStart}>
           {settings && <div className={classes.settings}>{settings}</div>}
+
+          {/* <FileUploadButton /> */}
+
           <AgentModel />
         </div>
 

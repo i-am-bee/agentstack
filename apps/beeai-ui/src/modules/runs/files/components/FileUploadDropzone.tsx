@@ -14,30 +14,20 @@
  * limitations under the License.
  */
 
-.root {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  inline-size: rem(16px);
-  block-size: rem(16px);
-  :global(.cds--inline-loading__animation) {
-    margin-inline-end: 0;
-  }
-}
+import { CloudUpload } from '@carbon/icons-react';
 
-.button {
-  @include hidePopover();
+import classes from './FileUploadDropzone.module.scss';
 
-  :global(.cds--btn) {
-    inline-size: rem(24px);
-    block-size: rem(24px);
-    min-block-size: 0;
-    &:hover,
-    &:active {
-      background-color: transparent;
-    }
-    &:focus {
-      outline-offset: 2px;
-    }
-  }
+export function FileUploadDropzone() {
+  return (
+    <div className={classes.root}>
+      <div className={classes.content}>
+        <CloudUpload size={96} />
+
+        <h2 className={classes.heading}>Drag & Drop</h2>
+
+        <p className={classes.description}>Drop to add file to current session</p>
+      </div>
+    </div>
+  );
 }

@@ -24,6 +24,11 @@
 
 @use 'components';
 
+:root {
+  --header-height: #{rem(56px)};
+  --header-border-height: #{rem(1px)};
+}
+
 :root,
 .cds--white {
   @include theme($light);

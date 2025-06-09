@@ -14,30 +14,10 @@
  * limitations under the License.
  */
 
-.root {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  inline-size: rem(16px);
-  block-size: rem(16px);
-  :global(.cds--inline-loading__animation) {
-    margin-inline-end: 0;
-  }
-}
+import type { PropsWithChildren } from 'react';
 
-.button {
-  @include hidePopover();
+import classes from './FileCardsList.module.scss';
 
-  :global(.cds--btn) {
-    inline-size: rem(24px);
-    block-size: rem(24px);
-    min-block-size: 0;
-    &:hover,
-    &:active {
-      background-color: transparent;
-    }
-    &:focus {
-      outline-offset: 2px;
-    }
-  }
+export function FileCardsList({ children }: PropsWithChildren) {
+  return <ul className={classes.root}>{children}</ul>;
 }

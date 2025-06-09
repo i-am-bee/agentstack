@@ -14,30 +14,16 @@
  * limitations under the License.
  */
 
-.root {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  inline-size: rem(16px);
-  block-size: rem(16px);
-  :global(.cds--inline-loading__animation) {
-    margin-inline-end: 0;
-  }
-}
+import { use } from 'react';
 
-.button {
-  @include hidePopover();
+import { FileUploadContext } from './file-upload-context';
 
-  :global(.cds--btn) {
-    inline-size: rem(24px);
-    block-size: rem(24px);
-    min-block-size: 0;
-    &:hover,
-    &:active {
-      background-color: transparent;
-    }
-    &:focus {
-      outline-offset: 2px;
-    }
+export function useFileUpload() {
+  const context = use(FileUploadContext);
+
+  if (!context) {
+    throw new Error('useFileUpload must be used within a FileUploadProvider');
   }
+
+  return context;
 }

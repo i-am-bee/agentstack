@@ -14,30 +14,26 @@
  * limitations under the License.
  */
 
-.root {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  inline-size: rem(16px);
-  block-size: rem(16px);
-  :global(.cds--inline-loading__animation) {
-    margin-inline-end: 0;
-  }
-}
+import { Attachment } from '@carbon/icons-react';
+import { IconButton } from '@carbon/react';
 
-.button {
-  @include hidePopover();
+import { useFileUpload } from '../contexts';
+import classes from './FileUploadButton.module.scss';
 
-  :global(.cds--btn) {
-    inline-size: rem(24px);
-    block-size: rem(24px);
-    min-block-size: 0;
-    &:hover,
-    &:active {
-      background-color: transparent;
-    }
-    &:focus {
-      outline-offset: 2px;
-    }
+export function FileUploadButton() {
+  const { dropzone } = useFileUpload();
+
+  if (!dropzone) {
+    return null;
   }
+
+  return (
+    <>
+      <input type="file" {...dropzone.getInputProps()} />
+
+      <IconButton onClick={dropzone.open} label="File upload" kind="ghost" size="sm" wrapperClasses={classes.root}>
+        <Attachment />
+      </IconButton>
+    </>
+  );
 }

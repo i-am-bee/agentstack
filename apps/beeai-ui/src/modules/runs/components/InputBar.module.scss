@@ -26,6 +26,11 @@
   }
 }
 
+.files {
+  padding-block-start: rem(11px);
+  padding-inline: rem(11px);
+}
+
 .textarea {
   max-block-size: rem(192px);
   overflow-y: auto;
@@ -61,7 +66,7 @@
 .actionBarStart {
   display: flex;
   align-items: center;
-  gap: $spacing-05;
+  gap: $spacing-03;
 }
 
 .settings {
