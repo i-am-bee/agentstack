@@ -28,9 +28,6 @@
   column-gap: $gap;
   align-items: center;
   block-size: rem(56px);
-  > :last-child {
-    text-align: end;
-  }
 
   &.hasNav {
     grid-template-columns: auto 1fr;
@@ -40,4 +37,8 @@
 .agentName {
   font-size: rem(14px);
   line-height: math.div(20, 14);
+}
+
+.agentDetailButton {
+  text-align: end;
 }
