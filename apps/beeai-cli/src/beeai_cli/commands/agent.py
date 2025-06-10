@@ -32,9 +32,11 @@ from acp_sdk import (
     ErrorCode,
     GenericEvent,
     Message,
+    MessageAwaitResume,
     MessageCompletedEvent,
     MessagePart,
     MessagePartEvent,
+    RunAwaitingEvent,
     RunFailedEvent,
 )
 from acp_sdk.client import Client
@@ -165,7 +167,13 @@ async def stream_logs(name: typing.Annotated[str, typer.Argument(help="Agent nam
         _print_log(message)
 
 
-async def _run_agent(client: Client, name: str, input: str | list[Message], dump_files_path: Path | None = None):
+async def _run_agent(
+    client: Client,
+    name: str,
+    input: str | list[Message],
+    dump_files_path: Path | None = None,
+    handle_input: Callable[[], str] | None = None,
+):
     status = console.status(random.choice(processing_messages), spinner="dots")
     status.start()
     status_stopped = False
@@ -174,62 +182,81 @@ async def _run_agent(client: Client, name: str, input: str | list[Message], dump
 
     log_type = None
     current_agent = None
-    async for event in client.run_stream(agent=name, input=input):
-        if not status_stopped:
-            status_stopped = True
-            status.stop()
 
-        match event:
-            case GenericEvent():
-                data = filter_dict(event.generic.model_dump(), None)
-                if "agent_name" in data:
-                    (new_log_type, content) = next(iter(omit(data, {"agent_name", "agent_idx"}).items()))
-                    new_log_type = f"[{data['agent_name']}]: {new_log_type}"
-                else:
-                    (new_log_type, content) = next(iter(data.items()))
-                if new_log_type != log_type:
-                    if log_type is not None:
-                        err_console.print()
-                    err_console.print(f"{new_log_type}: ", style="dim", end="")
-                    log_type = new_log_type
-                err_console.print(content, style="dim", end="")
-            case MessagePartEvent():
-                if log_type:
-                    console.print()
-                    log_type = None
-                if new_agent := event.part.model_dump().get("agent_name", None):
-                    if new_agent != current_agent:
-                        current_agent = new_agent
-                        err_console.print(f"\n[bold]{new_agent} output[/bold]\n", style="dim")
-                    err_console.print(event.part.content, style="dim", end="")
-                else:
-                    console.print(event.part.content, end="")
-            case MessageCompletedEvent():
-                console.print()
-            case RunFailedEvent():
-                console.print(format_error(event.run.error.code.value, event.run.error.message))
-            case ArtifactEvent():
-                if dump_files_path is None:
-                    continue
-                dump_files_path.mkdir(parents=True, exist_ok=True)
-                full_path = dump_files_path / event.part.name.lstrip("/")
-                with contextlib.suppress(ValueError):
-                    full_path.resolve().relative_to(dump_files_path.resolve())  # throws if outside folder
-                    full_path.parent.mkdir(parents=True, exist_ok=True)
-                    if event.part.content_url:
-                        err_console.print(
-                            f"⚠️ Downloading files is not supported by --dump-files, skipping {event.part.name} ({event.part.content_url})"
-                        )
-                    elif event.part.content_encoding == "base64":
-                        full_path.write_bytes(base64.b64decode(event.part.content))
-                        console.print(f"📁 Saved {full_path}")
-                    elif event.part.content_encoding == "plain" or not event.part.content_encoding:
-                        full_path.write_text(event.part.content)
-                        console.print(f"📁 Saved {full_path}")
+    stream = client.run_stream(agent=name, input=input)
+    while True:
+        async for event in stream:
+            if not status_stopped:
+                status_stopped = True
+                status.stop()
+
+            match event:
+                case GenericEvent():
+                    data = filter_dict(event.generic.model_dump(), None)
+                    if "agent_name" in data:
+                        (new_log_type, content) = next(iter(omit(data, {"agent_name", "agent_idx"}).items()))
+                        new_log_type = f"[{data['agent_name']}]: {new_log_type}"
                     else:
-                        err_console.print(
-                            f"⚠️ Unknown encoding {event.part.content_encoding}, skipping {event.part.name}"
-                        )
+                        (new_log_type, content) = next(iter(data.items()))
+                    if new_log_type != log_type:
+                        if log_type is not None:
+                            err_console.print()
+                        err_console.print(f"{new_log_type}: ", style="dim", end="")
+                        log_type = new_log_type
+                    err_console.print(content, style="dim", end="")
+                case MessagePartEvent():
+                    if log_type:
+                        console.print()
+                        log_type = None
+                    if new_agent := event.part.model_dump().get("agent_name", None):
+                        if new_agent != current_agent:
+                            current_agent = new_agent
+                            err_console.print(f"\n[bold]{new_agent} output[/bold]\n", style="dim")
+                        err_console.print(event.part.content, style="dim", end="")
+                    else:
+                        console.print(event.part.content, end="")
+                case MessageCompletedEvent():
+                    console.print()
+                case RunAwaitingEvent():
+                    assert event.run.await_request is not None
+
+                    if handle_input is None:
+                        raise ValueError("Agents awaiting are not supported in the given environment.")
+
+                    console.print(f"\n[bold]Agent '{event.run.agent_name}' requires your action[/bold]\n")
+                    console.print(str(event.run.await_request.message))
+
+                    resume_message = Message(parts=[MessagePart(content=handle_input(), role="user")])
+                    stream = client.run_resume_stream(
+                        MessageAwaitResume(message=resume_message), run_id=event.run.run_id
+                    )
+                    break
+                case RunFailedEvent():
+                    console.print(format_error(event.run.error.code.value, event.run.error.message))
+                case ArtifactEvent():
+                    if dump_files_path is None:
+                        continue
+                    dump_files_path.mkdir(parents=True, exist_ok=True)
+                    full_path = dump_files_path / event.part.name.lstrip("/")
+                    with contextlib.suppress(ValueError):
+                        full_path.resolve().relative_to(dump_files_path.resolve())  # throws if outside folder
+                        full_path.parent.mkdir(parents=True, exist_ok=True)
+                        if event.part.content_url:
+                            err_console.print(
+                                f"⚠️ Downloading files is not supported by --dump-files, skipping {event.part.name} ({event.part.content_url})"
+                            )
+                        elif event.part.content_encoding == "base64":
+                            full_path.write_bytes(base64.b64decode(event.part.content))
+                            console.print(f"📁 Saved {full_path}")
+                        elif event.part.content_encoding == "plain" or not event.part.content_encoding:
+                            full_path.write_text(event.part.content)
+                            console.print(f"📁 Saved {full_path}")
+                        else:
+                            err_console.print(
+                                f"⚠️ Unknown encoding {event.part.content_encoding}, skipping {event.part.name}"
+                            )
+        else:
+            break
 
 
 class InteractiveCommand(abc.ABC):
@@ -546,7 +573,7 @@ async def run_agent(
             async with acp_client() as client, client.session() as session:
                 while True:
                     console.print()
-                    await _run_agent(session, name, input, dump_files_path=dump_files)
+                    await _run_agent(session, name, input, dump_files_path=dump_files, handle_input=handle_input)
                     console.print()
                     input = handle_input()
 
@@ -556,13 +583,15 @@ async def run_agent(
             input = handle_input()
             console.print()
             async with acp_client() as client:
-                await _run_agent(client, name, input, dump_files_path=dump_files)
+                await _run_agent(client, name, input, dump_files_path=dump_files, handle_input=handle_input)
         elif is_sequential_workflow:
             workflow_steps = _setup_sequential_workflow(agents_by_name, splash_screen=splash_screen)
             console.print()
             message_part = MessagePart(content_type="application/json", content=json.dumps({"steps": workflow_steps}))
             async with acp_client() as client:
-                await _run_agent(client, name, [Message(parts=[message_part])], dump_files_path=dump_files)
+                await _run_agent(
+                    client, name, [Message(parts=[message_part])], dump_files_path=dump_files, handle_input=handle_input
+                )
 
     else:
         async with acp_client() as client:
