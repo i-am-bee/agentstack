@@ -39,7 +39,8 @@
       },
       {
         "group": "Deployment",
-        "pages": ["deployment/kubernetes"]
+        "pages": ["deployment/kubernetes",
+                  "deployment/openshift"]
       },
       {
         "group": "Community and Support",
