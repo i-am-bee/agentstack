@@ -40,8 +40,7 @@
       {
         "group": "Deployment",
         "pages": ["deployment/overview",
-                  "deployment/kubernetes",
-                  "deployment/openshift"]
+                  "deployment/kubernetes"]
       },
       {
         "group": "Community and Support",
