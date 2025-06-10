@@ -1,42 +1,37 @@
 ---
 title: "Overview"
-description: "Deploy the BeeAI Platform for your team"
+description: "Deploy the BeeAI Platform for your team with centralized agent management and shared resources"
 ---
 
-BeeAI Platform can be deployed as a centralized instance for your team, providing a shared environment where developers can publish agents and end users can discover and run them.
+BeeAI Platform can be deployed as a centralized instance for your team, providing a shared environment where developers can publish agents and end users can discover and run them through a unified interface.
+
+<Warning>
+**Internal Use Only**: BeeAI is not secure for public internet exposure. It includes an unprotected LLM API endpoint (`/chat/completions`) that would allow anyone to use your LLM credits for free. Deploy only on internal networks behind firewalls.
+</Warning>
 
 ## Why Deploy BeeAI?
 
-A team deployment offers:
+Moving from individual BeeAI instances to a team deployment provides several key advantages:
 
-- **Centralized Agent Catalog**: All team agents in one searchable location
-- **Shared LLM Configuration**: Manage API keys and model settings centrally  
-- **Resource Management**: Control compute resources and costs
-- **Team Collaboration**: Share agents and workflows across the organization
+- **Centralized Catalog:** All team agents in one searchable location
+- **Shared Configuration:** Manage LLM providers and API keys centrally
+- **Agent Sharing:** Developers can easily share and discover agents
+- **Resource Management:** Automatic scaling and resource allocation
 
-## Deployment Options
+## Deployment
 
-<CardGroup cols={2}>
-  <Card title="Kubernetes" icon="dharmachakra" href="/deployment/kubernetes">
-    Deploy using Helm on any Kubernetes cluster
-  </Card>
-  
-  <Card title="OpenShift" icon="redhat" href="/deployment/openshift">  
-    Deploy on Red Hat OpenShift with enhanced security
-  </Card>
-</CardGroup>
+BeeAI deploys on Kubernetes using Helm charts. See the [Kubernetes guide](/deployment/kubernetes) for detailed instructions.
 
 ## Requirements
 
-- Kubernetes cluster with admin access
-- Helm 3.x installed
-- Internet access for LLM providers
-- Persistent storage for PostgreSQL
+- Kubernetes 1.24+ with admin access
+- Helm 3.8+
+- Persistent storage (20GB+ for PostgreSQL)
+- LLM provider API access (OpenAI, Anthropic, etc.)
 
 ## Quick Start
 
-1. Choose your platform (Kubernetes or OpenShift)
-2. Follow the platform-specific deployment guide
-3. Configure your LLM provider
-4. Add agents to your catalog
-5. Share access with your team
+1. Follow the [Kubernetes guide](/deployment/kubernetes)
+2. Configure your LLM provider using environment variables
+3. Enable authentication for shared access
+4. Add agents from the public registry or your own sources
