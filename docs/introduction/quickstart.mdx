@@ -4,9 +4,7 @@ description: "Get up and running with BeeAI in minutes"
 ---
 
 <Note>
-
 Want to install on Windows, or don't want to use Homebrew? See the full [Installation & Setup](/introduction/installation) guide for more installation options.
-
 </Note>
 
 <Steps>
@@ -27,25 +25,35 @@ beeai env setup
 ```
 
 </Step>
-<Step title="Launch the web interface">
+<Step title="Start with the CLI (Primary Interface)">
+
+Get familiar with the core commands:
+
+```sh
+# List all available agents
+beeai list
+
+# Run an agent interactively
+beeai run chat
+
+# Run an agent with direct input
+beeai run chat "Hello! How are you?"
+
+# Get agent details and parameters
+beeai info chat
+
+# View all CLI options
+beeai --help
+```
+
+</Step>
+<Step title="Check out the Web Interface">
 
 ```sh
 beeai ui
 ```
 
-</Step>
-<Step title="Use from the terminal">
-
-```sh
-# List commands
-beeai --help
-
-# List all available agents
-beeai list
-
-# Run the chat agent
-beeai run chat
-```
+**Note:** The web UI is intentionally simplified for end-users who need basic agent interactions without CLI complexity. Think of the web UI as a deployment target for your agents, not your primary development environment.
 
 </Step>
 </Steps>
