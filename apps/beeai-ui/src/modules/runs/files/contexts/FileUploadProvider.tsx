@@ -14,29 +14,72 @@
  * limitations under the License.
  */
 
-import { type PropsWithChildren, useCallback, useMemo } from 'react';
-import { useDropzone } from 'react-dropzone';
+import { type PropsWithChildren, useCallback, useMemo, useState } from 'react';
+import { type FileRejection, useDropzone } from 'react-dropzone';
+import { v4 as uuid } from 'uuid';
+
+import { useToast } from '#contexts/Toast/index.ts';
 
 import { MAX_FILES } from '../constants';
+import type { FileEntity } from '../types';
 import { FileUploadContext } from './file-upload-context';
 
 export function FileUploadProvider({ children }: PropsWithChildren) {
+  const [files, setFiles] = useState<FileEntity[]>([]);
+
+  const { addToast } = useToast();
+
   const onDropAccepted = useCallback((acceptedFiles: File[]) => {
-    console.log(acceptedFiles);
+    const newFiles = acceptedFiles.map((file) =>
+      Object.assign(file, {
+        id: uuid(),
+      }),
+    );
+
+    setFiles((files) => [...files, ...newFiles]);
+  }, []);
+
+  const onDropRejected = useCallback(
+    (fileRejections: FileRejection[]) => {
+      fileRejections.forEach(({ errors, file }) => {
+        addToast({
+          title: `File ${file.name} was rejected`,
+          subtitle: errors.map(({ message }) => message).join('\n'),
+          timeout: 5_000,
+        });
+      });
+    },
+    [addToast],
+  );
+
+  const clearFiles = useCallback(() => {
+    setFiles([]);
+  }, []);
+
+  const removeFile = useCallback((id: string) => {
+    setFiles((files) => files.filter((file) => file.id !== id));
   }, []);
 
   const dropzone = useDropzone({
+    // TODO:
+    // accept: {
+    //   'image/*': [],
+    // },
     noClick: true,
     noKeyboard: true,
     maxFiles: MAX_FILES,
     onDropAccepted,
+    onDropRejected,
   });
 
   const contextValue = useMemo(
     () => ({
+      files,
       dropzone,
+      removeFile,
+      clearFiles,
     }),
-    [dropzone],
+    [files, dropzone, removeFile, clearFiles],
   );
 
   return <FileUploadContext.Provider value={contextValue}>{children}</FileUploadContext.Provider>;

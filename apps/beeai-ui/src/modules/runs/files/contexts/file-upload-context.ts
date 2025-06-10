@@ -32,8 +32,19 @@
 import { createContext } from 'react';
 import type { DropzoneState } from 'react-dropzone';
 
-export const FileUploadContext = createContext<FileUploadContextValue>({});
+import { noop } from '#utils/helpers.ts';
+
+import type { FileEntity } from '../types';
+
+export const FileUploadContext = createContext<FileUploadContextValue>({
+  files: [],
+  removeFile: noop,
+  clearFiles: noop,
+});
 
 interface FileUploadContextValue {
+  files: FileEntity[];
   dropzone?: DropzoneState;
+  removeFile: (id: string) => void;
+  clearFiles: () => void;
 }

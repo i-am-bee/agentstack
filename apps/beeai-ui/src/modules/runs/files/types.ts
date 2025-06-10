@@ -29,6 +29,6 @@
  * limitations under the License.
  */
 
-export const MAX_FILES = 5;
-
-export const MAX_FILE_SIZE = 100 * 1024 * 1024;
+export interface FileEntity extends File {
+  id: string;
+}

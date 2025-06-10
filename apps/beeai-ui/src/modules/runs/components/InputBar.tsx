@@ -20,9 +20,10 @@ import { useImperativeHandle, useRef } from 'react';
 import { TextAreaAutoHeight } from '#components/TextAreaAutoHeight/TextAreaAutoHeight.tsx';
 import { dispatchInputEventOnFormTextarea, submitFormOnEnter } from '#utils/form-utils.ts';
 
-// import { FileCard } from '../files/components/FileCard';
-// import { FileCardsList } from '../files/components/FileCardsList';
+import { FileCard } from '../files/components/FileCard';
+import { FileCardsList } from '../files/components/FileCardsList';
 // import { FileUploadButton } from '../files/components/FileUploadButton';
+import { useFileUpload } from '../files/contexts';
 import { AgentModel } from './AgentModel';
 import classes from './InputBar.module.scss';
 
@@ -47,6 +48,7 @@ export function InputBar({
   children,
 }: PropsWithChildren<Props>) {
   const formRef = useRef<HTMLFormElement>(null);
+  const { files, removeFile } = useFileUpload();
 
   useImperativeHandle(
     formRefProp,
@@ -75,13 +77,17 @@ export function InputBar({
         onSubmit?.(event);
       }}
     >
-      {/* <div className={classes.files}>
-        <FileCardsList>
-          <li>
-            <FileCard filename="IBM-annual-report-2007.pdf" />
-          </li>
-        </FileCardsList>
-      </div> */}
+      {files.length > 0 && (
+        <div className={classes.files}>
+          <FileCardsList>
+            {files.map(({ id, name }) => (
+              <li key={id}>
+                <FileCard filename={name} size="sm" onRemoveClick={() => removeFile(id)} />
+              </li>
+            ))}
+          </FileCardsList>
+        </div>
+      )}
 
       <TextAreaAutoHeight
         rows={1}

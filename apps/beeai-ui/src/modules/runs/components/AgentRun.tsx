@@ -66,17 +66,15 @@ const renderUi = ({ agent }: { agent: Agent }) => {
   switch (type) {
     case UiType.Chat:
       return (
-        <FileUploadProvider>
-          <MainContent limitHeight>
-            <ChatProvider agent={agent}>
-              <Chat />
-            </ChatProvider>
-          </MainContent>
+        <FileUploadProvider key={agent.name}>
+          <ChatProvider agent={agent}>
+            <Chat />
+          </ChatProvider>
         </FileUploadProvider>
       );
     case UiType.HandsOff:
       return (
-        <FileUploadProvider>
+        <FileUploadProvider key={agent.name}>
           <HandsOffProvider agent={agent}>
             <HandsOff />
           </HandsOffProvider>

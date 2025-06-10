@@ -26,6 +26,7 @@ import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
 import { Role } from '#modules/runs/types.ts';
 import { isArtifact } from '#modules/runs/utils.ts';
 
+import { useFileUpload } from '../../files/contexts';
 import { ChatContext, ChatMessagesContext } from './chat-context';
 
 interface Props {
@@ -35,6 +36,7 @@ interface Props {
 export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
   const [messages, , setMessages] = useImmerWithGetter<ChatMessage[]>([]);
 
+  const { clearFiles } = useFileUpload();
   const { isPending, runAgent, stopAgent, reset } = useRunAgent({
     onMessagePart: (event) => {
       const { part } = event;
@@ -115,7 +117,8 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
   const handleClear = useCallback(() => {
     reset();
     setMessages([]);
-  }, [reset, setMessages]);
+    clearFiles();
+  }, [reset, setMessages, clearFiles]);
 
   const previousAgent = usePrevious(agent);
   useEffect(() => {

@@ -25,6 +25,7 @@ import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
 import type { RunLog, RunStats } from '#modules/runs/types.ts';
 import { extractOutput, isArtifact } from '#modules/runs/utils.ts';
 
+import { useFileUpload } from '../../files/contexts';
 import { HandsOffContext } from './hands-off-context';
 
 interface Props {
@@ -38,6 +39,7 @@ export function HandsOffProvider({ agent, children }: PropsWithChildren<Props>) 
 
   const errorHandler = useHandleError();
 
+  const { clearFiles } = useFileUpload();
   const { input, isPending, runAgent, reset } = useRunAgent({
     onBeforeRun: () => {
       handleClear();
@@ -98,7 +100,8 @@ export function HandsOffProvider({ agent, children }: PropsWithChildren<Props>) 
     setOutput('');
     setStats(undefined);
     setLogs([]);
-  }, [reset]);
+    clearFiles();
+  }, [reset, clearFiles]);
 
   const previousAgent = usePrevious(agent);
   useEffect(() => {
