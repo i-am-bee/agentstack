@@ -3,26 +3,49 @@ title: "Overview"
 description: "Deploy the BeeAI Platform for your team"
 ---
 
-BeeAI Platform can be deployed as a centralized instance for your team, providing a shared environment where developers can publish agents and end users can discover and run them. This guide covers the available deployment options and configurations.
+BeeAI Platform can be deployed as a centralized instance for your team, providing a shared environment where developers can publish agents and end users can discover and run them.
 
 ## Why Deploy BeeAI?
 
-A team deployment of BeeAI offers:
+A team deployment offers:
 
-- **Centralized Agent Catalog**: Easily browse and manage all your team's agents in one searchable hub.
-- **Shared LLM Configuration**: Centrally manage model providers, API keys, and usage settings.
-- **Consistent User Experience**: Deliver a unified interface across all agents, improving usability and reducing friction.
-- **Resource Management**: Allocate compute resources and monitor usage to control costs.
-- **Access Control**: Implement team-based authentication, role-based permissions, and secure access policies.
+- **Centralized Agent Catalog**: All team agents in one searchable location
+- **Shared LLM Configuration**: Manage API keys and model settings centrally  
+- **Resource Management**: Control compute resources and costs
+- **Team Collaboration**: Share agents and workflows across the organization
 
 ## Deployment Options
 
-BeeAI supports multiple deployment targets to fit your infrastructure.
+<CardGroup cols={2}>
+  <Card title="Kubernetes" icon="dharmachakra" href="/deployment/kubernetes">
+    Deploy using Helm on any Kubernetes cluster
+    
+    **Best for:** Cloud providers (EKS, GKE, AKS) and self-managed clusters
+  </Card>
+  
+  <Card title="OpenShift" icon="redhat" href="/deployment/openshift">  
+    Deploy on Red Hat OpenShift with enhanced security
+    
+    **Best for:** Enterprise environments and Red Hat ecosystems
+  </Card>
+</CardGroup>
 
-### Kubernetes
+## Requirements
 
-Deploy BeeAI using standard Kubernetes clusters. Supports Helm-based installation and full customization of resources, secrets, and scaling policies.
+- Kubernetes cluster with admin access
+- Helm 3.x installed
+- Internet access for LLM providers
+- Persistent storage for PostgreSQL
 
-### OpenShift
+## Quick Start
 
-Deploy BeeAI on Red Hat OpenShift with support for integrated security, route management, and platform-specific optimizations.
+1. Choose your platform (Kubernetes or OpenShift)
+2. Follow the platform-specific deployment guide
+3. Configure your LLM provider
+4. Add agents to your catalog
+5. Share access with your team
+
+## Next Steps
+
+- **[Kubernetes Deployment](/deployment/kubernetes)** - Deploy on any Kubernetes cluster
+- **[OpenShift Deployment](/deployment/openshift)** - Deploy on Red Hat OpenShift
