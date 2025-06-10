@@ -10,6 +10,10 @@ description: "Deploy BeeAI to Kubernetes using Helm"
 - kubectl configured to access your cluster
 - BeeAI installed for post-deployment configuration
 
+<Warning>
+This deployment guide is intended for development and testing environments. We don't recommend public deployments at this time as the platform is still evolving and lacks production-ready security features like user management and rate limiting.
+</Warning>
+
 ## Installation
 
 ### Step 1: Create Configuration File
@@ -88,7 +92,11 @@ beeai run chat hi
 
 ### Security Settings
 
-For production deployments, ensure proper security:
+<Warning>
+The current authentication model is basic and intended for development use. For any deployment beyond local testing, carefully consider your security requirements and network access controls.
+</Warning>
+
+For development/testing environments with authentication:
 
 ```yaml
 # config.yaml
@@ -100,7 +108,7 @@ auth:
 encryptionKey: "your-32-byte-base64-encoded-key"
 ```
 
-For development/testing environments:
+For local testing environments without authentication:
 
 ```yaml
 # config.yaml - INSECURE, for testing only
@@ -185,10 +193,6 @@ kubectl get events --sort-by=.lastTimestamp
 ```bash
 # Verify LLM configuration
 kubectl logs deployment/beeai-platform | grep -i llm
-
-# Test LLM connectivity from within cluster
-kubectl run test-curl --image=curlimages/curl -it --rm --restart=Never -- \
-  curl -H "Authorization: Bearer your-api-key" https://api.openai.com/v1/models
 ```
 
 **Authentication issues:**
