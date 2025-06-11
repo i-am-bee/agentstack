@@ -62,7 +62,7 @@ class DockerImageProviderLocation(RootModel):
 
         _, labels = await get_registry_image_config_and_labels(self.root)
         if DOCKER_MANIFEST_LABEL_NAME not in labels:
-            raise ValueError(f"Docker image labels must contain 'beeai.dev.agent.yaml': {self.location}")
+            raise ValueError(f"Docker image labels must contain 'beeai.dev.agent.yaml': {str(self.root)}")
         return AgentsListResponse.model_validate(
             yaml.safe_load(base64.b64decode(labels[DOCKER_MANIFEST_LABEL_NAME]))
         ).agents
