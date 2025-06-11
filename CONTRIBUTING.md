@@ -204,7 +204,7 @@ Update _both_ `packages/beeai-sdk/package.json` and `packages/beeai-sdk/pyprojec
 
 ### Releasing agents
 
-The platform automatically grabs the `provider-registry.yaml` file from the `main` branch of `https://github.com/i-am-bee/beeai`. In there, it finds URLs for agent provider manifests (`beeai-provider.yaml`), and in those manifests, it finds URLs to the agent provider implementations. At the moment, we use `agents-v*` tags, for example `agents-v0.0.1`.
+The platform automatically grabs the `provider-registry.yaml` file from the `main` branch of `https://github.com/i-am-bee/beeai-platform`. In there, it finds URLs for agent provider manifests (`beeai-provider.yaml`), and in those manifests, it finds URLs to the agent provider implementations. At the moment, we use `agents-v*` tags, for example `agents-v0.0.1`.
 
 In order to release a new version of an agent (or several agents at once), be sure to bumpt the version in the URL in **both** `beeai-provider.yaml` of the affected agents and the corresponding URLs in `provider-registry.yaml`.
 

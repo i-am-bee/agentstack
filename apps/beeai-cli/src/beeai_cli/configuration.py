@@ -17,6 +17,7 @@ import pathlib
 
 import pydantic
 import pydantic_settings
+from pydantic import SecretStr
 
 
 @functools.cache
@@ -31,6 +32,7 @@ class Configuration(pydantic_settings.BaseSettings):
     agent_registry: pydantic.AnyUrl = (
         "https://github.com/i-am-bee/beeai-platform@release-v0.2.0#path=agent-registry.yaml"
     )
+    admin_password: SecretStr | None = None
 
     @property
     def lima_home(self) -> pathlib.Path:

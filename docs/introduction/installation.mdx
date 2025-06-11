@@ -30,7 +30,10 @@ Follow the post-installation instructions shown in the terminal to add Homebrew 
 
 ```bash
 brew install i-am-bee/beeai/beeai
+beeai platform start
 ```
+
+The BeeAI platform will start automatically in a virtualized environment.
 
 </Step>
 <Step title="Start the BeeAI platform">
@@ -121,11 +124,17 @@ pipx install beeai-cli
 ```
 </Step>
 
-<Step title="Start the BeeAI platform">
+<Step title="Start the BeeAI Platform">
+
+Unlike the Homebrew installation, you'll need to manually start the BeeAI Platform:
 
 ```bash
 beeai platform start
 ```
+
+<Note>
+This creates and manages a containerized environment for running agents. The platform needs to be running for agents to work.
+</Note>
 
 </Step>
 </Steps>
@@ -140,8 +149,9 @@ beeai platform start
 ### Uninstall
 
 ```bash
+beeai platform stop
 beeai platform delete
-brew uninstall beeai
+pipx uninstall beeai-cli
 ```
 
 </Tab>
@@ -170,7 +180,8 @@ wsl --install
 
 In order for the agents to be able to auto-register and access [Ollama for Windows](https://ollama.com/download/windows), it's necessary to configure the WSL2 networking to a mirrored mode:
 
-1. Run in PowerShell:
+1. Download and install the [Windows version of Ollama](https://ollama.com/download/windows)
+2. Create or edit the WSL configuration file:
    
    ```bash
    notepad $HOME\.wslconfig
@@ -338,6 +349,19 @@ If you prefer to configure your LLM provider manually, use the following example
 beeai env add LLM_API_BASE=https://api.openai.com/v1
 beeai env add LLM_API_KEY=sk-your-api-key-here
 beeai env add LLM_MODEL=gpt-4o
+```
+
+</Accordion>
+
+<Accordion title="IBM watsonx">
+
+```bash
+beeai env add LLM_API_BASE=https://us-south.ml.cloud.ibm.com
+beeai env add LLM_API_KEY=your-ibm-api-key
+beeai env add LLM_MODEL=ibm/granite-3-3-8b-instruct
+beeai env add WATSONX_PROJECT_ID=your-project-id
+# OR for deployment spaces:
+# beeai env add WATSONX_SPACE_ID=your-space-id
 ```
 
 </Accordion>

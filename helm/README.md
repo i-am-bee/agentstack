@@ -1,45 +1,85 @@
-# Install with a list of agent images to deploy
+# Install
 
-Create the following yaml value files:
+Create a value file with the minimum configuration
 
-`providers.yaml`:
+`config.yaml`:
 
 ```yaml
+# If you want to include agents from the default catalog (change release/tag accordingly):
+externalRegistries:
+  public_github: "https://github.com/i-am-bee/beeai-platform@release-v0.2.0#path=agent-registry.yaml"
+
+# Your custom agents as docker images
 providers:
+  # e.g.
+  # - location: ghcr.io/i-am-bee/beeai-platform-agent-starter/my-agent:latest
   - location: <docker-image-id>
-  - location: <docker-image-id>
+
+# Generate the encryption key:
+#  - using UV (https://docs.astral.sh/uv/getting-started/installation/)
+#   $ uv run --with cryptography python3 -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'
+#  - using python3 directly
+#   $ python3 -m pip install cryptography # (or use your preferred way to install the cryptography package)
+#   $ python3 -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'
+encryptionKey: "encryption-key-from-command"
+
+features:
+  uiNavigation: true
+
+# this requires passing an admin password to certain endpoints, you can disable auth for insecure deployments
+auth:
+  enabled: true
+  admin_password: "my-secret-password"
+
+# Help us improve the platform by sharing anonymized telemetry data
+telemetry:
+  sharing: true
 ```
 
-Or use `../agent-registry.yaml` from this repository.
-
-`variables.yaml`:
-
-```yaml
-variables:
-  LLM_API_BASE: <url>
-  LLM_API_KEY: <api-key>
-  LLM_MODEL: <model-id>
-```
-
-In this directory run:
+Then install the chart using
 
 ```shell
-helm install -f <providers.yaml> -f <variables.yaml> <release-name> beeai-platform
+helm install -f config.yaml beeai oci://ghcr.io/i-am-bee/beeai-platform/beeai-platform-chart/beeai-platform:0.2.6
 ```
 
-Or with default providers and ollama:
+After the beeai-platform becomes ready, it's necessary to configure the LLM provider. We will use the `admin-password`
+you created earlier and your preferred LLM credentials, for example:
+
+## Setup LLM
 
 ```shell
-helm install -f ../agent-registry.yaml -f variables.ollama.yaml <release-name> beeai-platform
+beeai platform exec -- kubectl run curlpod --image=curlimages/curl -it --rm --restart=Never -- curl -X PUT \
+  beeai-platform-svc:8333/api/v1/variables \
+  -u beeai-admin:my-secret-password \
+  -H "Content-Type: application/json" \
+  -d '{
+    "env": {
+        "LLM_API_BASE": "https://api.openai.com/v1",
+        "LLM_API_KEY": "sk-...",
+        "LLM_MODEL": "gpt-4o"
+    }
+  }'
 ```
 
-Or provide secrets on the command line:
+## Use the platform
+
+Test that the platform is working:
+
+# port-forward in a separate terminal
+
 ```shell
-helm install \
-  -f https://raw.githubusercontent.com/i-am-bee/beeai-platform/refs/heads/release-v0.2.0/agent-registry.yaml \
-  --set variables.LLM_API_BASE=http://host.docker.internal:11434/v1 \
-  --set variables.LLM_API_KEY=dummy \
-  --set variables.LLM_MODEL=llama3.1:8b \
-  my-release \
-  beeai-platform
+kubectl port-forward svc/beeai-platform-svc 8333:8333 &
+```
+
+```
+beeai list
+beeai run chat hi
+```
+
+# Upgrading
+
+To upgrade to a newer version of the beeai platform, use
+
+```
+helm upgrade --install -f config.yaml beeai oci://ghcr.io/i-am-bee/beeai-platform/beeai-platform-chart/beeai-platform:<newer-version>
 ```

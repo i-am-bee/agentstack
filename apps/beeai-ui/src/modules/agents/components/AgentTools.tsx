@@ -29,13 +29,19 @@ export function AgentTools({ agent }: Props) {
   return (
     <div className={classes.root}>
       {tools?.length ? (
-        <ul>
+        <ul className={classes.list}>
           {tools.map(({ name, description }, idx) => (
-            <li key={idx}>
-              <span className={classes.name}>{name}</span>
-              <LineClampText className={classes.description} buttonClassName={classes.viewMore} lines={3}>
-                {description}
-              </LineClampText>
+            <li key={idx} className={classes.item}>
+              <span className={classes.header}>
+                {/* <span className={classes.icon}></span> */}
+
+                <span className={classes.name}>{name}</span>
+              </span>
+              {description && (
+                <LineClampText className={classes.description} buttonClassName={classes.viewMore} lines={3}>
+                  {description}
+                </LineClampText>
+              )}
             </li>
           ))}
         </ul>

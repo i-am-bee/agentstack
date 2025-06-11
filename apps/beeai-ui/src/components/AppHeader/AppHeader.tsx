@@ -43,10 +43,14 @@ export function AppHeader({ className }: Props) {
           <MainNav />
 
           {NAV.length > 0 && <AppHeaderNav items={NAV} />}
+
           {!NAV.length && agent && (
             <>
               <p className={classes.agentName}>{getAgentDisplayName(agent)}</p>
-              <AgentDetailButton />
+
+              <div className={classes.agentDetailButtonContainer}>
+                <AgentDetailButton />
+              </div>
             </>
           )}
         </div>

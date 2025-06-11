@@ -1,28 +1,37 @@
 ---
 title: "Overview"
-description: "Deploy the BeeAI Platform for your team"
+description: "Deploy the BeeAI Platform for your team with centralized agent management and shared resources"
 ---
 
-BeeAI Platform can be deployed as a centralized instance for your team, providing a shared environment where developers can publish agents and end users can discover and run them. This guide covers the available deployment options and configurations.
+BeeAI Platform can be deployed as a centralized instance for your team, providing a shared environment where developers can publish agents and end users can discover and run them through a unified interface.
+
+<Warning>
+**Internal Use Only**: BeeAI is not secure for public internet exposure. It includes an unprotected LLM API endpoint (`/chat/completions`) that would allow anyone to use your LLM credits for free. Deploy only on internal networks behind firewalls.
+</Warning>
 
 ## Why Deploy BeeAI?
 
-A team deployment of BeeAI offers:
+Moving from individual BeeAI instances to a team deployment provides several key advantages:
 
-- **Centralized Agent Catalog**: Easily browse and manage all your team's agents in one searchable hub.
-- **Shared LLM Configuration**: Centrally manage model providers, API keys, and usage settings.
-- **Consistent User Experience**: Deliver a unified interface across all agents, improving usability and reducing friction.
-- **Resource Management**: Allocate compute resources and monitor usage to control costs.
-- **Access Control**: Implement team-based authentication, role-based permissions, and secure access policies.
+- **Centralized Catalog:** All team agents in one searchable location
+- **Shared Configuration:** Manage LLM providers and API keys centrally
+- **Agent Sharing:** Developers can easily share and discover agents
+- **Resource Management:** Automatic scaling and resource allocation
 
-## Deployment Options
+## Deployment
 
-BeeAI supports multiple deployment targets to fit your infrastructure.
+BeeAI deploys on Kubernetes using Helm charts. See the [Kubernetes guide](/deployment/kubernetes) for detailed instructions.
 
-### Kubernetes
+## Requirements
 
-Deploy BeeAI using standard Kubernetes clusters. Supports Helm-based installation and full customization of resources, secrets, and scaling policies.
+- Kubernetes 1.24+ with admin access
+- Helm 3.8+
+- Persistent storage (20GB+ for PostgreSQL)
+- LLM provider API access (OpenAI, Anthropic, etc.)
 
-### OpenShift
+## Quick Start
 
-Deploy BeeAI on Red Hat OpenShift with support for integrated security, route management, and platform-specific optimizations.
+1. Follow the [Kubernetes guide](/deployment/kubernetes)
+2. Configure your LLM provider using environment variables
+3. Enable authentication for shared access
+4. Add agents from the public registry or your own sources
