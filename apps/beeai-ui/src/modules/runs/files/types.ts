@@ -29,6 +29,19 @@
  * limitations under the License.
  */
 
-export interface FileEntity extends File {
+import type { UploadFileResponse } from './api/types';
+
+export interface FileEntity {
   id: string;
+  originalFile: File;
+  status: FileStatus;
+  uploadFile?: UploadFileResponse;
+  error?: string;
+}
+
+export enum FileStatus {
+  Idle = 'idle',
+  Uploading = 'uploading',
+  Completed = 'completed',
+  Failed = 'failed',
 }

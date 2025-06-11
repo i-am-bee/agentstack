@@ -22,7 +22,7 @@ import { dispatchInputEventOnFormTextarea, submitFormOnEnter } from '#utils/form
 
 import { FileCard } from '../files/components/FileCard';
 import { FileCardsList } from '../files/components/FileCardsList';
-// import { FileUploadButton } from '../files/components/FileUploadButton';
+import { FileUploadButton } from '../files/components/FileUploadButton';
 import { useFileUpload } from '../files/contexts';
 import { AgentModel } from './AgentModel';
 import classes from './InputBar.module.scss';
@@ -80,9 +80,9 @@ export function InputBar({
       {files.length > 0 && (
         <div className={classes.files}>
           <FileCardsList>
-            {files.map(({ id, name }) => (
+            {files.map(({ id, originalFile: { name }, status }) => (
               <li key={id}>
-                <FileCard filename={name} size="sm" onRemoveClick={() => removeFile(id)} />
+                <FileCard size="sm" filename={name} status={status} onRemoveClick={() => removeFile(id)} />
               </li>
             ))}
           </FileCardsList>
@@ -100,7 +100,7 @@ export function InputBar({
         <div className={classes.actionBarStart}>
           {settings && <div className={classes.settings}>{settings}</div>}
 
-          {/* <FileUploadButton /> */}
+          <FileUploadButton />
 
           <AgentModel />
         </div>

@@ -20,7 +20,6 @@
   position: relative;
   border: 1px solid $border-subtle-00;
   border-radius: $border-radius;
-  overflow: hidden;
   &:has(textarea:focus-visible) {
     border-color: $text-dark;
   }

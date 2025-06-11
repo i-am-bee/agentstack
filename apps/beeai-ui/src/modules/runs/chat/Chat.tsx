@@ -25,7 +25,7 @@ import { AgentGreeting } from '#modules/agents/components/AgentGreeting.tsx';
 import { AgentHeader } from '../components/AgentHeader';
 import { AgentIcon } from '../components/AgentIcon';
 import { useChat, useChatMessages } from '../contexts/chat';
-// import { FileUploadDropzone } from '../files/components/FileUploadDropzone';
+import { FileUploadDropzone } from '../files/components/FileUploadDropzone';
 import { useFileUpload } from '../files/contexts';
 import classes from './Chat.module.scss';
 import { ChatInput } from './ChatInput';
@@ -131,7 +131,7 @@ export function Chat() {
           </div>
         </Container>
 
-        {/* {dropzone?.isDragActive && <FileUploadDropzone />} */}
+        {dropzone?.isDragActive && <FileUploadDropzone />}
       </div>
     </ChatView>
   );

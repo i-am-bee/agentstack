@@ -29,24 +29,29 @@
  * limitations under the License.
  */
 
-import { createContext } from 'react';
-import type { DropzoneState } from 'react-dropzone';
-
-import { noop } from '#utils/helpers.ts';
+import { api } from '#api/index.ts';
+import { ensureData } from '#api/utils.ts';
 
 import type { FileEntity } from '../types';
+import type { DeleteFilePath, UploadFileRequest } from './types';
 
-export const FileUploadContext = createContext<FileUploadContextValue>({
-  files: [],
-  isPending: false,
-  removeFile: noop,
-  clearFiles: noop,
-});
+export async function uploadFile({ body }: { body: Omit<UploadFileRequest, 'file'> & { file: FileEntity } }) {
+  const response = await api.POST('/api/v1/files/upload', {
+    body: { ...body, file: body.file.originalFile } as unknown as UploadFileRequest,
+    bodySerializer: (body) => {
+      const formData = new FormData();
 
-interface FileUploadContextValue {
-  files: FileEntity[];
-  isPending: boolean;
-  dropzone?: DropzoneState;
-  removeFile: (id: string) => void;
-  clearFiles: () => void;
+      formData.append('file', body.file);
+
+      return formData;
+    },
+  });
+
+  return ensureData(response);
+}
+
+export async function deleteFile({ file_id }: DeleteFilePath) {
+  const response = await api.DELETE('/api/v1/files/{file_id}', { params: { path: { file_id } } });
+
+  return ensureData(response);
 }

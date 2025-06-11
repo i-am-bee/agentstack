@@ -29,24 +29,10 @@
  * limitations under the License.
  */
 
-import { createContext } from 'react';
-import type { DropzoneState } from 'react-dropzone';
+import type { ApiPath, ApiRequest, ApiResponse } from '#@types/utils.ts';
 
-import { noop } from '#utils/helpers.ts';
+export type UploadFileRequest = ApiRequest<'/api/v1/files/upload', 'post', 'multipart/form-data'>;
 
-import type { FileEntity } from '../types';
+export type UploadFileResponse = ApiResponse<'/api/v1/files/upload', 'post', 'application/json', 201>;
 
-export const FileUploadContext = createContext<FileUploadContextValue>({
-  files: [],
-  isPending: false,
-  removeFile: noop,
-  clearFiles: noop,
-});
-
-interface FileUploadContextValue {
-  files: FileEntity[];
-  isPending: boolean;
-  dropzone?: DropzoneState;
-  removeFile: (id: string) => void;
-  clearFiles: () => void;
-}
+export type DeleteFilePath = ApiPath<'/api/v1/files/{file_id}', 'delete'>;

@@ -29,24 +29,35 @@
  * limitations under the License.
  */
 
-import { createContext } from 'react';
-import type { DropzoneState } from 'react-dropzone';
+import { useMutation } from '@tanstack/react-query';
 
-import { noop } from '#utils/helpers.ts';
+import type { FileEntity } from '../../types';
+import { uploadFile } from '..';
+import type { UploadFileResponse } from '../types';
 
-import type { FileEntity } from '../types';
+interface Props {
+  onMutate?: (variables: UploadFileVariables) => void;
+  onSuccess?: (data: UploadFileResponse | undefined, variables: UploadFileVariables) => void;
+  onError?: (error: Error, variables: UploadFileVariables) => void;
+}
 
-export const FileUploadContext = createContext<FileUploadContextValue>({
-  files: [],
-  isPending: false,
-  removeFile: noop,
-  clearFiles: noop,
-});
+interface UploadFileVariables {
+  file: FileEntity;
+}
 
-interface FileUploadContextValue {
-  files: FileEntity[];
-  isPending: boolean;
-  dropzone?: DropzoneState;
-  removeFile: (id: string) => void;
-  clearFiles: () => void;
+export function useUploadFile({ onMutate, onSuccess, onError }: Props = {}) {
+  const mutation = useMutation({
+    mutationFn: ({ file }: UploadFileVariables) => uploadFile({ body: { file } }),
+    onMutate,
+    onSuccess,
+    onError,
+    meta: {
+      errorToast: {
+        title: 'Failed to upload file',
+        includeErrorMessage: true,
+      },
+    },
+  });
+
+  return mutation;
 }

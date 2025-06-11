@@ -29,24 +29,14 @@
  * limitations under the License.
  */
 
-import { createContext } from 'react';
-import type { DropzoneState } from 'react-dropzone';
+import { useMutation } from '@tanstack/react-query';
 
-import { noop } from '#utils/helpers.ts';
+import { deleteFile } from '..';
 
-import type { FileEntity } from '../types';
+export function useDeleteFile() {
+  const mutation = useMutation({
+    mutationFn: deleteFile,
+  });
 
-export const FileUploadContext = createContext<FileUploadContextValue>({
-  files: [],
-  isPending: false,
-  removeFile: noop,
-  clearFiles: noop,
-});
-
-interface FileUploadContextValue {
-  files: FileEntity[];
-  isPending: boolean;
-  dropzone?: DropzoneState;
-  removeFile: (id: string) => void;
-  clearFiles: () => void;
+  return mutation;
 }

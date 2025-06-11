@@ -22,10 +22,12 @@ import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
 
 import { InputBar } from '../components/InputBar';
 import { useHandsOff } from '../contexts/hands-off';
+import { useFileUpload } from '../files/contexts';
 import classes from './HandsOffInput.module.scss';
 
 export function HandsOffInput() {
   const { input, output, isPending, onSubmit } = useHandsOff();
+  const { isPending: isFileUploadPending } = useFileUpload();
 
   const form = useForm<FormValues>({
     mode: 'onChange',
@@ -39,7 +41,7 @@ export function HandsOffInput() {
     formState: { isSubmitting },
   } = form;
 
-  const isSubmitDisabled = isSubmitting;
+  const isSubmitDisabled = isSubmitting || isFileUploadPending;
   const isPendingOrOutput = Boolean(isPending || output);
 
   return (
