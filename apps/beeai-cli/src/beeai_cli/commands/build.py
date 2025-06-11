@@ -49,6 +49,7 @@ async def build(
     context: typing.Annotated[str, typer.Argument(help="Docker context for the agent")] = ".",
     tag: typing.Annotated[str | None, typer.Option(help="Docker tag for the agent")] = None,
     multi_platform: bool | None = False,
+    push: typing.Annotated[bool, typer.Argument(help="Push the image to the target registry.")] = False,
     import_image: typing.Annotated[
         bool, typer.Option("--import/--no-import", is_flag=True, help="Import the image into BeeAI platform")
     ] = True,
@@ -60,12 +61,8 @@ async def build(
         await run_command(["which", "docker"], "Checking docker")
         image_id = "beeai-agent-build-tmp:latest"
         port = await find_free_port()
-        if multi_platform:
-            build_command = ["docker", "buildx", "build", "--platform=linux/amd64,linux/arm64", "--load"]
-        else:
-            build_command = ["docker", "build"]
 
-        await run_command([*build_command, context, "-t", image_id], "Building agent image")
+        await run_command(["docker", "build", context, "-t", image_id], "Building agent image")
 
         response = None
 
@@ -111,7 +108,12 @@ async def build(
         ).lower()
         await run_command(
             command=[
-                *build_command,
+                *(
+                    ["docker", "buildx", "build", "--platform=linux/amd64,linux/arm64"]
+                    if multi_platform
+                    else ["docker", "build"]
+                ),
+                "--push" if push else "--load",
                 context,
                 "-t",
                 tag,
