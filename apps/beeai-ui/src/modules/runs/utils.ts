@@ -28,7 +28,7 @@ import {
   RunMode,
   type SessionId,
 } from './api/types';
-import type { UploadFileResponseWithId } from './files/api/types';
+import type { UploadFileResponse } from './files/api/types';
 import type { FileEntity } from './files/types';
 import { getFileContentUrl } from './files/utils';
 import { Role, type RunLog } from './types';
@@ -83,7 +83,7 @@ export function createMessagePart({
   };
 }
 
-export function createFileMessageParts(files: UploadFileResponseWithId[]) {
+export function createFileMessageParts(files: UploadFileResponse[]) {
   const messageParts = files.map(({ id }) =>
     createMessagePart({ content_url: getFileContentUrl({ id, addBase: true }) }),
   );
@@ -106,9 +106,7 @@ export function extractOutput(messages: Message[]) {
 }
 
 export function extractValidUploadFiles(files: FileEntity[]) {
-  const uploadFiles = files
-    .map(({ uploadFile }) => uploadFile)
-    .filter((file): file is UploadFileResponseWithId => Boolean(file?.id));
+  const uploadFiles = files.map(({ uploadFile }) => uploadFile).filter(isNotNull);
 
   return uploadFiles;
 }

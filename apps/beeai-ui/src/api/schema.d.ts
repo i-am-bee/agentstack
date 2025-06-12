@@ -569,28 +569,6 @@ export interface components {
      * @enum {string}
      */
     ErrorCode: 'server_error' | 'invalid_input' | 'not_found';
-    /** File */
-    File: {
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at?: string;
-      /**
-       * Created By
-       * Format: uuid
-       */
-      created_by: string;
-      /** File Size Bytes */
-      file_size_bytes?: number | null;
-      /** Filename */
-      filename: string;
-      /**
-       * Id
-       * Format: uuid
-       */
-      id?: string;
-    };
     /**
      * FileSystemRegistryLocation
      * Format: uri
@@ -710,6 +688,28 @@ export interface components {
       updated_at?: string | null;
     } & {
       [key: string]: unknown;
+    };
+    /** FileResponse */
+    ModelOutput: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      /** File Size Bytes */
+      file_size_bytes?: number | null;
+      /** Filename */
+      filename: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
     };
     /**
      * NetworkProviderLocation
@@ -1177,7 +1177,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['File'];
+          'application/json': components['schemas']['ModelOutput'];
         };
       };
       /** @description Validation Error */
@@ -1208,7 +1208,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['File'];
+          'application/json': components['schemas']['ModelOutput'];
         };
       };
       /** @description Validation Error */
