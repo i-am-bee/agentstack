@@ -45,9 +45,13 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
         return;
       }
 
-      updateLastAssistantMessage((message) => {
-        message.content += part.content;
-      });
+      const { content } = part;
+
+      if (content) {
+        updateLastAssistantMessage((message) => {
+          message.content += content;
+        });
+      }
     },
     onMessageCompleted: () => {
       updateLastAssistantMessage((message) => {
