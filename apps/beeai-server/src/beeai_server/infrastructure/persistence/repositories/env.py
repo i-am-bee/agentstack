@@ -47,7 +47,8 @@ class SqlAlchemyEnvVariableRepository(IEnvVariableRepository):
         to_remove = [key for key, value in variables.items() if value is None or key in existing_keys]
         crypted = {key: self.fernet.encrypt(var.encode()).decode() for key, var in variables.items() if var is not None}
         await self.connection.execute(variables_table.delete().where(variables_table.c.key.in_(to_remove)))
-        await self.connection.execute(variables_table.insert().values(list(crypted.items())))
+        if crypted:
+            await self.connection.execute(variables_table.insert().values(list(crypted.items())))
 
     async def get(self, *, key: str, default: str | None = NOT_SET) -> str:
         query = variables_table.select().where(variables_table.c.key == key)

@@ -58,3 +58,6 @@ backend = "aqua:astral-sh/uv"
 [tools.yq]
 version = "4.45.4"
 backend = "aqua:mikefarah/yq"
+
+[tools.yq.checksums]
+yq_darwin_arm64 = "sha256:602dbbc116af9eb8a91d2239d0ec286eb9c90b94e76676d5268ab6ca184719b6"

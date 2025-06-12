@@ -15,6 +15,8 @@
 import asyncio
 import concurrent.futures
 import logging
+from typing import TypeVar
+
 from anyio import Path
 
 import kr8s
@@ -25,13 +27,11 @@ from beeai_server.configuration import Configuration, get_configuration
 from beeai_server.domain.repositories.files import IObjectStorageRepository
 from beeai_server.infrastructure.kubernetes.provider_deployment_manager import KubernetesProviderDeploymentManager
 from beeai_server.infrastructure.object_storage.repository import S3ObjectStorageRepository
-from beeai_server.service_layer.services.files import FileService
-from beeai_server.service_layer.services.users import UserService
 
 from beeai_server.infrastructure.persistence.unit_of_work import SqlAlchemyUnitOfWorkFactory
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
 from beeai_server.utils.periodic import register_all_crons
-from kink import di
+from kink import di, Container
 
 logger = logging.getLogger(__name__)
 
@@ -53,33 +53,32 @@ async def setup_kubernetes_client(config: Configuration):
     return api_factory
 
 
-async def bootstrap_dependencies():
-    """
-    Disclaimer:
-        contains blocking calls, but it's fine because this function should run only during startup
-        it is async only because it needs to call other async code
-    """
+T = TypeVar("T")
+
+
+async def bootstrap_dependencies(dependency_overrides: Container | None = None):
+    dependency_overrides = dependency_overrides or Container()
+
+    def _set_di(service: type[T], instance: T):
+        di[service] = dependency_overrides[service] if service in dependency_overrides else instance
 
     di.clear_cache()
     di._aliases.clear()  # reset aliases
 
-    di[Configuration] = config = get_configuration()
-    di[IProviderDeploymentManager] = KubernetesProviderDeploymentManager(
-        api_factory=await setup_kubernetes_client(config)
+    _set_di(Configuration, get_configuration())
+    _set_di(
+        IProviderDeploymentManager,
+        KubernetesProviderDeploymentManager(api_factory=await setup_kubernetes_client(di[Configuration])),
     )
-    di[IUnitOfWorkFactory] = SqlAlchemyUnitOfWorkFactory(setup_database_engine(config))
+    _set_di(IUnitOfWorkFactory, SqlAlchemyUnitOfWorkFactory(setup_database_engine(di[Configuration])))
 
     # Register object storage repository and file service
-    di[IObjectStorageRepository] = S3ObjectStorageRepository(config)
-    di[FileService] = FileService(di[IObjectStorageRepository])
-
-    # Register user service
-    di[UserService] = UserService(di[IUnitOfWorkFactory])
+    _set_di(IObjectStorageRepository, S3ObjectStorageRepository(di[Configuration]))
 
     register_all_crons()
 
 
-def bootstrap_dependencies_sync():
+def bootstrap_dependencies_sync(dependency_overrides: Container | None = None):
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-        future = executor.submit(lambda: asyncio.run(bootstrap_dependencies()))
+        future = executor.submit(lambda: asyncio.run(bootstrap_dependencies(dependency_overrides)))
         return future.result()

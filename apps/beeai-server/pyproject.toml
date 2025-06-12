@@ -48,7 +48,7 @@ build-backend = "hatchling.build"
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
-markers = ["e2e"]
+markers = ["e2e", "unit", "integration"]
 addopts = "-v --strict-markers"
 env = [
     # Dummy encryption key

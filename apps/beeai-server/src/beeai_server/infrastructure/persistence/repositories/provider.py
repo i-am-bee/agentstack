@@ -75,6 +75,7 @@ class SqlAlchemyProviderRepository(IProviderRepository):
                 "registry": row.registry,
                 "auto_stop_timeout": timedelta(seconds=row.auto_stop_timeout_sec),
                 "env": row.env,
+                "auto_remove": row.auto_remove,
             }
         )
 
