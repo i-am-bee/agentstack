@@ -31,8 +31,8 @@
 
 import type { ApiPath, ApiRequest, ApiResponse } from '#@types/utils.ts';
 
-export type UploadFileRequest = ApiRequest<'/api/v1/files/upload', 'post', 'multipart/form-data'>;
+export type UploadFileRequest = ApiRequest<'/api/v1/files', 'post', 'multipart/form-data'>;
 
-export type UploadFileResponse = ApiResponse<'/api/v1/files/upload', 'post', 'application/json', 201>;
+export type UploadFileResponse = ApiResponse<'/api/v1/files', 'post', 'application/json', 201>;
 
 export type DeleteFilePath = ApiPath<'/api/v1/files/{file_id}', 'delete'>;

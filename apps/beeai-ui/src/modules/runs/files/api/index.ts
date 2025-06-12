@@ -36,7 +36,7 @@ import type { FileEntity } from '../types';
 import type { DeleteFilePath, UploadFileRequest } from './types';
 
 export async function uploadFile({ body }: { body: Omit<UploadFileRequest, 'file'> & { file: FileEntity } }) {
-  const response = await api.POST('/api/v1/files/upload', {
+  const response = await api.POST('/api/v1/files', {
     body: { ...body, file: body.file.originalFile } as unknown as UploadFileRequest,
     bodySerializer: (body) => {
       const formData = new FormData();
