@@ -83,7 +83,7 @@ class SqlAlchemyFileRepository(IFileRepository):
             query = query.where(files_table.c.created_by == user_id)
         await self.connection.execute(query)
 
-    async def list(self, user_id: UUID | None = None) -> AsyncIterator[File]:
+    async def list(self, *, user_id: UUID | None = None) -> AsyncIterator[File]:
         query = files_table.select()
         if user_id:
             query = query.where(files_table.c.created_by == user_id)

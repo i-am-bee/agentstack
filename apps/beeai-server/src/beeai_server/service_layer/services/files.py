@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import logging
-from contextlib import suppress
+from contextlib import suppress, asynccontextmanager
+from typing import AsyncIterator
 from uuid import UUID
 
 from kink import inject
@@ -68,10 +69,12 @@ class FileService:
         async with self._uow() as uow:
             return await uow.files.get(file_id=file_id, user_id=user.id)
 
-    async def get_content(self, *, file_id: UUID, user: User) -> AsyncFile:
+    @asynccontextmanager
+    async def get_content(self, *, file_id: UUID, user: User) -> AsyncIterator[AsyncFile]:
         async with self._uow() as uow:
             await uow.files.get(file_id=file_id, user_id=user.id)  # check if the user owns the file
-            return await self._object_storage.get_file(file_id=file_id)
+            async with self._object_storage.get_file(file_id=file_id) as file:
+                yield file
 
     async def delete(self, *, file_id: UUID, user: User) -> None:
         async with self._uow() as uow:

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import logging
+from contextlib import AsyncExitStack
 from uuid import UUID
 
 import fastapi
@@ -47,11 +48,15 @@ async def get_file(file_id: UUID, file_service: FileServiceDependency, user: Aut
 async def get_file_content(
     file_id: UUID, file_service: FileServiceDependency, user: AuthenticatedUserDependency
 ) -> StreamingResponse:
-    file = await file_service.get_content(file_id=file_id, user=user)
+    exit_stack = AsyncExitStack()
+    file = await exit_stack.enter_async_context(file_service.get_content(file_id=file_id, user=user))
 
     async def iter_file(chunk_size=8192):
-        while chunk := await file.read(chunk_size):
-            yield chunk
+        try:
+            while chunk := await file.read(chunk_size):
+                yield chunk
+        finally:
+            await exit_stack.aclose()
 
     return StreamingResponse(content=iter_file(), media_type=file.content_type)
 

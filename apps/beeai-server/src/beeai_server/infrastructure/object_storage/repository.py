@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import logging
+from contextlib import asynccontextmanager
+from typing import AsyncIterator
 from uuid import UUID
 
 import aioboto3
@@ -60,7 +62,8 @@ class S3ObjectStorageRepository(IObjectStorageRepository):
             result = await client.head_object(Bucket=self.config.bucket_name, Key=object_key)
             return result["ContentLength"]
 
-    async def get_file(self, *, file_id: UUID) -> AsyncFile:
+    @asynccontextmanager
+    async def get_file(self, *, file_id: UUID) -> AsyncIterator[AsyncFile]:
         object_key = self._get_object_key(file_id)
         async with self._get_client() as client:
             try:
@@ -69,7 +72,7 @@ class S3ObjectStorageRepository(IObjectStorageRepository):
                 async def read(amount: int = 8192) -> bytes:
                     return await response["Body"].read(amount)
 
-                return AsyncFile(
+                yield AsyncFile(
                     filename=response["Metadata"]["filename"], content_type=response["ContentType"], read=read
                 )
 
