@@ -98,13 +98,13 @@ def register_global_exception_handlers(app: FastAPI):
         return await http_exception_handler(request, exception)
 
 
-def mount_routes(app: FastAPI):
+def mount_routes(app: FastAPI, base_path: str = "/"):
     static_directory = pathlib.Path(__file__).parent.joinpath("static")
     if not static_directory.joinpath("index.html").exists():  # this check is for running locally
         raise RuntimeError("Could not find static files -- ensure that beeai-ui is built: `mise build:beeai-ui`")
 
     ui_app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
-    ui_app.mount("/", NoCacheStaticFiles(directory=static_directory, html=True))
+    ui_app.mount(base_path, NoCacheStaticFiles(directory=static_directory, html=True))
     ui_app.add_exception_handler(
         404,
         lambda _req, _exc: FileResponse(
@@ -122,7 +122,7 @@ def mount_routes(app: FastAPI):
     server_router.include_router(ui_router, prefix="/ui", tags=["ui"])
 
     app.mount("/healthcheck", lambda: "OK")
-    app.include_router(server_router, prefix="/api/v1", tags=["provider"])
+    app.include_router(server_router, prefix=f"{base_path}api/v1", tags=["provider"])
     app.mount("/", ui_app)
 
 
@@ -176,12 +176,12 @@ def app() -> FastAPI:
     app = FastAPI(
         lifespan=lifespan,
         default_response_class=ORJSONResponse,  # better performance then default + handle NaN floats
-        docs_url="/api/v1/docs",
-        openapi_url="/api/v1/openapi.json",
+        docs_url=f"{configuration.base_path}api/v1/docs",
+        openapi_url=f"{configuration.base_path}api/v1/openapi.json",
         servers=[{"url": f"http://localhost:{configuration.port}"}],
     )
 
     logger.info("Mounting routes...")
-    mount_routes(app)
+    mount_routes(app, configuration.base_path)
     register_global_exception_handlers(app)
     return app
