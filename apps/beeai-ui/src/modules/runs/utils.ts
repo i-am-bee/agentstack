@@ -28,6 +28,9 @@ import {
   RunMode,
   type SessionId,
 } from './api/types';
+import type { UploadFileResponseWithId } from './files/api/types';
+import type { FileEntity } from './files/types';
+import { getFileContentUrl } from './files/utils';
 import { Role, type RunLog } from './types';
 
 humanizeDuration.languages.shortEn = {
@@ -80,6 +83,14 @@ export function createMessagePart({
   };
 }
 
+export function createFileMessageParts(files: UploadFileResponseWithId[]) {
+  const messageParts = files.map(({ id }) =>
+    createMessagePart({ content_url: getFileContentUrl({ id, addBase: true }) }),
+  );
+
+  return messageParts;
+}
+
 export function isArtifact(part: MessagePart): part is Artifact {
   return typeof part.name === 'string';
 }
@@ -92,6 +103,14 @@ export function extractOutput(messages: Message[]) {
     .join('');
 
   return output;
+}
+
+export function extractValidUploadFiles(files: FileEntity[]) {
+  const uploadFiles = files
+    .map(({ uploadFile }) => uploadFile)
+    .filter((file): file is UploadFileResponseWithId => Boolean(file?.id));
+
+  return uploadFiles;
 }
 
 export function formatLog(log: RunLog) {

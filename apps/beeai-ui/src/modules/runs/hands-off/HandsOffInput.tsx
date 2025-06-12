@@ -34,14 +34,11 @@ export function HandsOffInput() {
     defaultValues: {},
   });
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { isSubmitting },
-  } = form;
+  const { register, handleSubmit, watch, reset } = form;
 
-  const isSubmitDisabled = isSubmitting || isFileUploadPending;
+  const inputValue = watch('input');
+
+  const isSubmitDisabled = isPending || isFileUploadPending || !inputValue;
   const isPendingOrOutput = Boolean(isPending || output);
 
   return (

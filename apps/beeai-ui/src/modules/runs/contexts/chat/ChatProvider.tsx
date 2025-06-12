@@ -22,12 +22,9 @@ import { useImmerWithGetter } from '#hooks/useImmerWithGetter.ts';
 import { usePrevious } from '#hooks/usePrevious.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { type AssistantMessage, type ChatMessage, MessageStatus } from '#modules/runs/chat/types.ts';
-import type { UploadFileResponse } from '#modules/runs/files/api/types.ts';
-import { getFileContentUrl } from '#modules/runs/files/utils.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
 import { Role } from '#modules/runs/types.ts';
-import { createMessagePart, isArtifact } from '#modules/runs/utils.ts';
-import { isNotNull } from '#utils/helpers.ts';
+import { createFileMessageParts, createMessagePart, extractValidUploadFiles, isArtifact } from '#modules/runs/utils.ts';
 
 import { useFileUpload } from '../../files/contexts';
 import { ChatContext, ChatMessagesContext } from './chat-context';
@@ -94,17 +91,15 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
 
   const sendMessage = useCallback(
     async (input: string) => {
-      const attachedFiles = files
-        .map((file) => file.uploadFile)
-        .filter(isNotNull)
-        .filter((file): file is Omit<UploadFileResponse, 'id'> & { id: string } => Boolean(file.id));
+      const uploadFiles = extractValidUploadFiles(files);
+      const messageParts = [createMessagePart({ content: input }), ...createFileMessageParts(uploadFiles)];
 
       setMessages((messages) => {
         messages.push({
           key: uuid(),
           role: Role.User,
           content: input,
-          files: attachedFiles,
+          files: uploadFiles,
         });
         messages.push({
           key: uuid(),
@@ -115,11 +110,6 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
       });
 
       clearFiles();
-
-      const messageParts = [
-        createMessagePart({ content: input }),
-        ...attachedFiles.map(({ id }) => createMessagePart({ content_url: getFileContentUrl({ id, addBase: true }) })),
-      ];
 
       try {
         await runAgent({ agent, messageParts });

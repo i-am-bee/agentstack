@@ -35,4 +35,6 @@ export type UploadFileRequest = ApiRequest<'/api/v1/files', 'post', 'multipart/f
 
 export type UploadFileResponse = ApiResponse<'/api/v1/files', 'post', 'application/json', 201>;
 
+export type UploadFileResponseWithId = Omit<UploadFileResponse, 'id'> & { id: string };
+
 export type DeleteFilePath = ApiPath<'/api/v1/files/{file_id}', 'delete'>;
