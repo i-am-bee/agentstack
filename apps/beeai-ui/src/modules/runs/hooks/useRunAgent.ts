@@ -17,7 +17,6 @@
 import { useCallback, useRef, useState } from 'react';
 
 import { handleStream } from '#api/utils.ts';
-import type { Agent } from '#modules/agents/api/types.ts';
 
 import { useCancelRun } from '../api/mutations/useCancelRun';
 import { useCreateRunStream } from '../api/mutations/useCreateRunStream';
@@ -34,8 +33,8 @@ import type {
   SessionId,
 } from '../api/types';
 import { EventType } from '../api/types';
-import type { MessageParams } from '../chat/types';
-import { createMessagePart, createRunStreamRequest } from '../utils';
+import type { RunAgentParams } from '../types';
+import { createRunStreamRequest } from '../utils';
 
 interface Props {
   onBeforeRun?: () => void;
@@ -77,12 +76,14 @@ export function useRunAgent({
   }, [onDone]);
 
   const runAgent = useCallback(
-    async ({ agent, ...params }: { agent: Agent } & MessageParams) => {
+    async ({ agent, messageParts }: RunAgentParams) => {
       try {
         onBeforeRun?.();
 
+        const content = messageParts.reduce((acc, { content }) => (content ? `${acc}\n${content}` : acc), '');
+
         setIsPending(true);
-        setInput(params.content);
+        setInput(content);
 
         const abortController = new AbortController();
         abortControllerRef.current = abortController;
@@ -90,7 +91,7 @@ export function useRunAgent({
         const stream = await createRunStream({
           body: createRunStreamRequest({
             agent: agent.name,
-            messagePart: createMessagePart(params),
+            messageParts,
             sessionId,
           }),
           signal: abortController.signal,

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { FILE_CONTENT_URL, FILE_CONTENT_URL_BASE } from './constants';
+
 export function parseFilename(filename: string) {
   const lastDotIndex = filename.lastIndexOf('.');
 
@@ -28,4 +30,8 @@ export function parseFilename(filename: string) {
     name: filename.slice(0, lastDotIndex),
     ext: filename.slice(lastDotIndex + 1),
   };
+}
+
+export function getFileContentUrl({ id, addBase }: { id: string; addBase?: boolean }) {
+  return `${addBase ? FILE_CONTENT_URL_BASE : ''}${FILE_CONTENT_URL.replace('{file_id}', id)}`;
 }

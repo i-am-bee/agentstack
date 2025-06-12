@@ -36,3 +36,7 @@ export const ALLOWED_FILES = {
 export const MAX_FILES = 5;
 
 export const MAX_FILE_SIZE = 100 * 1024 * 1024;
+
+export const FILE_CONTENT_URL = '/api/v1/files/{file_id}/content';
+
+export const FILE_CONTENT_URL_BASE = 'http://{platform_url}';

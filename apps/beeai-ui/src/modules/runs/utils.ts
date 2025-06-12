@@ -50,16 +50,16 @@ export function runDuration(ms: number) {
 
 export function createRunStreamRequest({
   agent,
-  messagePart,
+  messageParts,
   sessionId,
 }: {
   agent: AgentName;
-  messagePart: MessagePart;
+  messageParts: MessagePart[];
   sessionId?: SessionId;
 }): CreateRunStreamRequest {
   return {
     agent_name: agent,
-    input: [{ parts: [messagePart] }],
+    input: [{ parts: messageParts }],
     mode: RunMode.Stream,
     session_id: sessionId,
   };
@@ -69,11 +69,13 @@ export function createMessagePart({
   content,
   content_encoding = 'plain',
   content_type = 'text/plain',
+  content_url,
 }: Partial<Exclude<MessagePart, 'role'>>): MessagePart {
   return {
     content,
     content_encoding,
     content_type,
+    content_url,
     role: Role.User,
   };
 }
