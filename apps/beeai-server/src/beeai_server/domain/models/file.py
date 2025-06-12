@@ -33,10 +33,3 @@ class File(BaseModel):
     file_size_bytes: int | None = None
     created_at: AwareDatetime = Field(default_factory=utc_now)
     created_by: UUID
-
-
-class FileObject(BaseModel):
-    file_id: UUID
-    content_type: str
-    content_length: bytes
-    file: AsyncFile

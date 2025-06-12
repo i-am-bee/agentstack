@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Generic, TypeVar
+from uuid import UUID
 
 from pydantic import BaseModel
 
@@ -33,3 +34,16 @@ class ErrorStreamResponseError(BaseModel, extra="allow"):
 
 class ErrorStreamResponse(BaseModel, extra="allow"):
     error: ErrorStreamResponseError
+
+
+class EntityModel(BaseModel):
+    def __class_getitem__(cls, model: type[BaseModel]):
+        if not model.model_fields.get("id"):
+            raise TypeError(f"Class {model.__name__} cannot is missing the id attribute")
+
+        class ModelOutput(model):
+            id: UUID
+
+        ModelOutput.__name__ = f"{model.__name__}Response"
+
+        return ModelOutput

@@ -24,6 +24,7 @@ from beeai_server.api.dependencies import (
     FileServiceDependency,
     AuthenticatedUserDependency,
 )
+from beeai_server.api.schema.common import EntityModel
 from beeai_server.domain.models.file import AsyncFile, File
 
 logger = logging.getLogger(__name__)
@@ -32,7 +33,9 @@ router = APIRouter()
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-async def upload_file(file: UploadFile, file_service: FileServiceDependency, user: AuthenticatedUserDependency) -> File:
+async def upload_file(
+    file: UploadFile, file_service: FileServiceDependency, user: AuthenticatedUserDependency
+) -> EntityModel[File]:
     return await file_service.upload_file(
         file=AsyncFile(filename=file.filename, content_type=file.content_type, read=file.read, size=file.size),
         user=user,
@@ -40,7 +43,9 @@ async def upload_file(file: UploadFile, file_service: FileServiceDependency, use
 
 
 @router.get("/{file_id}")
-async def get_file(file_id: UUID, file_service: FileServiceDependency, user: AuthenticatedUserDependency) -> File:
+async def get_file(
+    file_id: UUID, file_service: FileServiceDependency, user: AuthenticatedUserDependency
+) -> EntityModel[File]:
     return await file_service.get(file_id=file_id, user=user)
 
 
