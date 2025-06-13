@@ -25,7 +25,7 @@ import { usePrevious } from '#hooks/usePrevious.ts';
 import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
-import { extractOutput, formatLog, isArtifact } from '#modules/runs/utils.ts';
+import { createMessagePart, extractOutput, formatLog, isArtifact } from '#modules/runs/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { SEQUENTIAL_WORKFLOW_AGENT_NAME, SEQUENTIAL_WORKFLOW_AGENTS_URL_PARAM } from '../sequential/constants';
@@ -243,10 +243,14 @@ export function ComposeProvider({ children }: PropsWithChildren) {
 
         await runAgent({
           agent: sequentialAgent,
-          content: JSON.stringify({
-            steps: steps.map(({ agent, instruction }) => ({ agent: agent.name, instruction })),
-          }),
-          content_type: 'application/json',
+          messageParts: [
+            createMessagePart({
+              content: JSON.stringify({
+                steps: steps.map(({ agent, instruction }) => ({ agent: agent.name, instruction })),
+              }),
+              content_type: 'application/json',
+            }),
+          ],
         });
       } catch (error) {
         handleError(error);

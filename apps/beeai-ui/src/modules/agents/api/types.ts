@@ -35,8 +35,8 @@ export type Agent = ApiResponse<'/api/v1/acp/agents/{name}'> & {
       cli?: { command?: string }[];
       command?: string;
     };
-    annotations: {
-      tools: AgentToolInfo[];
+    annotations?: {
+      tools?: AgentToolInfo[];
     };
   };
 };

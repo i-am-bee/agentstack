@@ -135,6 +135,7 @@
   }
 
   :global(.cds--modal-close-button) {
+    @include hidePopover();
     inset-block-start: $spacing-03;
     inset-inline-end: $spacing-03;
 
@@ -143,10 +144,6 @@
         min-inline-size: rem(24px);
         block-size: rem(24px);
       }
-    }
-
-    :global(.cds--popover) {
-      display: none;
     }
   }
 }

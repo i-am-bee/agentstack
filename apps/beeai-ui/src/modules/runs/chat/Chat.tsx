@@ -25,6 +25,8 @@ import { AgentGreeting } from '#modules/agents/components/AgentGreeting.tsx';
 import { AgentHeader } from '../components/AgentHeader';
 import { AgentIcon } from '../components/AgentIcon';
 import { useChat, useChatMessages } from '../contexts/chat';
+import { FileUploadDropzone } from '../files/components/FileUploadDropzone';
+import { useFileUpload } from '../files/contexts';
 import classes from './Chat.module.scss';
 import { ChatInput } from './ChatInput';
 import { ChatView } from './ChatView';
@@ -35,6 +37,7 @@ export function Chat() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
+  const { dropzone } = useFileUpload();
   const { agent, onClear, isPending } = useChat();
   const messages = useChatMessages();
 
@@ -77,9 +80,11 @@ export function Chat() {
     };
   }, [isNew]);
 
+  const className = clsx(classes.root, { [classes.isNew]: isNew });
+
   return (
     <ChatView>
-      <div className={clsx(classes.root, { [classes.isNew]: isNew })}>
+      <div {...(dropzone ? dropzone.getRootProps({ className }) : { className })}>
         <Container size="sm" className={classes.holder}>
           {isNew ? (
             <div className={classes.header}>
@@ -125,6 +130,8 @@ export function Chat() {
             />
           </div>
         </Container>
+
+        {dropzone?.isDragActive && <FileUploadDropzone />}
       </div>
     </ChatView>
   );

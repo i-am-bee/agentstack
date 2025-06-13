@@ -15,18 +15,22 @@
 import logging
 from contextlib import AsyncExitStack
 from datetime import timedelta
-from typing import overload, Any, NamedTuple, AsyncIterable
+from typing import overload, NamedTuple, AsyncIterable
 from uuid import UUID
 
 import httpx
-from acp_sdk import ACPError, Error, ErrorCode
+from acp_sdk import ACPError, Error, ErrorCode, RunCreateRequest, RunResumeRequest
 from kink import inject
+from pydantic import BaseModel, AnyUrl
 from structlog.contextvars import bind_contextvars, unbind_contextvars
 
+from beeai_server.configuration import Configuration
+from beeai_server.domain.models.user import User
 from beeai_server.service_layer.deployment_manager import IProviderDeploymentManager
 from beeai_server.domain.models.agent import AgentRunRequest, Agent
 from beeai_server.domain.models.provider import ProviderDeploymentState, Provider
 from beeai_server.exceptions import EntityNotFoundError
+from beeai_server.service_layer.services.users import UserService
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
 
 logger = logging.getLogger(__name__)
@@ -44,6 +48,7 @@ class AcpProxyClient(NamedTuple):
     client: httpx.AsyncClient
     provider: Provider
     agent: Agent
+    user: User
     run_id: UUID | None = None
 
 
@@ -55,15 +60,19 @@ class AcpProxyService:
         self,
         provider_deployment_manager: IProviderDeploymentManager,
         uow: IUnitOfWorkFactory,
+        user_service: UserService,
+        configuration: Configuration,
     ):
         self._deploy_manager = provider_deployment_manager
         self._uow = uow
+        self._user_service = user_service
+        self._config = configuration
 
     @overload
-    async def get_proxy_client(self, *, agent_name: str, run_id: None = None) -> httpx.AsyncClient: ...
+    async def get_proxy_client(self, *, agent_name: str, run_id: None = None, user: User) -> httpx.AsyncClient: ...
     @overload
-    async def get_proxy_client(self, *, agent_name: None = None, run_id: UUID) -> httpx.AsyncClient: ...
-    async def get_proxy_client(self, *, agent_name: str = None, run_id: None = None) -> AcpProxyClient:
+    async def get_proxy_client(self, *, agent_name: None = None, run_id: UUID, user: User) -> httpx.AsyncClient: ...
+    async def get_proxy_client(self, *, agent_name: str = None, run_id: None = None, user: User) -> AcpProxyClient:
         try:
             if not (bool(agent_name) ^ bool(run_id)):
                 raise ValueError("Exactly one of agent_name or run_id must be provided")
@@ -71,13 +80,13 @@ class AcpProxyService:
                 if agent_name:
                     agent = await uow.agents.get_agent_by_name(name=agent_name)
                 else:
-                    agent = await uow.agents.find_by_acp_run_id(run_id=run_id)
+                    agent = await uow.agents.find_by_acp_run_id(run_id=run_id, user_id=user.id)
                 provider = await uow.providers.get(provider_id=agent.provider_id)
             bind_contextvars(provider=provider.id)
 
             if not provider.managed:
                 client = httpx.AsyncClient(base_url=str(provider.source.root), timeout=None)
-                return AcpProxyClient(client=client, provider=provider, agent=agent, run_id=run_id)
+                return AcpProxyClient(client=client, provider=provider, agent=agent, run_id=run_id, user=user)
 
             provider_url = await self._deploy_manager.get_provider_url(provider_id=provider.id)
             [state] = await self._deploy_manager.state(provider_ids=[provider.id])
@@ -101,26 +110,51 @@ class AcpProxyService:
                 await self._deploy_manager.wait_for_startup(provider_id=provider.id, timeout=self.STARTUP_TIMEOUT)
                 logger.info("Provider is ready...")
             client = httpx.AsyncClient(base_url=str(provider_url), timeout=None)
-            return AcpProxyClient(client=client, provider=provider, agent=agent, run_id=run_id)
+            return AcpProxyClient(client=client, provider=provider, agent=agent, run_id=run_id, user=user)
         except EntityNotFoundError as ex:
-            if ex.entity == "agent":
-                raise ACPError(error=Error(code=ErrorCode.NOT_FOUND, message=f"Agent '{ex.id}' not found")) from ex
+            if ex.entity in {"agent", "agent_run"}:
+                raise ACPError(
+                    error=Error(code=ErrorCode.NOT_FOUND, message=f"{ex.entity} '{ex.id}' not found")
+                ) from ex
             raise
         finally:
             unbind_contextvars("provider")
+
+    def _replace_template_content_url(self, request: BaseModel, provider: Provider) -> BaseModel:
+        """
+        Replace all {platform_url} template strings with the actual platform url based on the provider source
+        (in cluster or self-registered)
+
+        TODO: temporary until a proper implementation in beeai-sdk
+        """
+        request = request.model_copy(deep=True)
+        platform_url = (
+            "localhost:8333"  # this is the port-forwarded port to beeai-platform, can be different from config.port
+            if provider.source.is_on_host
+            else self._config.platform_service_url
+        )
+        match request:
+            case RunCreateRequest():
+                for part in (part for message in request.input for part in message.parts if part.content_url):
+                    part.content_url = AnyUrl(str(part.content_url).replace("{platform_url}", platform_url))
+            case RunResumeRequest():
+                for part in (p for p in request.await_resume.message.parts if p.content_url):
+                    part.content_url = AnyUrl(str(part.content_url).replace("{platform_url}", platform_url))
+        return request
 
     async def send_request(
         self,
         client: AcpProxyClient,
         method: str,
         url: str,
-        json: dict[str, Any] | None = None,
+        payload: BaseModel | None = None,
     ):
         exit_stack = AsyncExitStack()
-        client, agent, run_id = client.client, client.agent, client.run_id
+        json = payload and self._replace_template_content_url(payload, client.provider).model_dump(mode="json")
+        client, agent, user, run_id = client.client, client.agent, client.user, client.run_id
         try:
             client = await exit_stack.enter_async_context(client)
-            request = AgentRunRequest(acp_run_id=run_id, agent_id=agent.id)
+            request = AgentRunRequest(acp_run_id=run_id, agent_id=agent.id, created_by=user.id)
 
             # Create a new run request
             async with self._uow() as uow:

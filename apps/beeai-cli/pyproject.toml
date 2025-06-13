@@ -1,6 +1,6 @@
 [project]
 name = "beeai-cli"
-version = "0.2.6"
+version = "0.2.7"
 description = "BeeAI CLI"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
@@ -12,7 +12,7 @@ dependencies = [
     "requests>=2.32.3",
     "jsonschema>=4.23.0",
     "jsf>=0.11.2",
-    "gnureadline>=8.2.13",
+    'gnureadline>=8.2.13; sys_platform != "win32"',
     "prompt-toolkit>=3.0.50",
     "cachetools>=5.5.2",
     "jsonref>=1.1.0",

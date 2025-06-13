@@ -45,6 +45,7 @@ agent_requests_table = Table(
     Column("agent_id", SqlUUID, ForeignKey("agents.id", ondelete="CASCADE"), nullable=False),
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("finished_at", DateTime(timezone=True), nullable=True),
+    Column("created_by", ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
 )
 
 
@@ -108,6 +109,7 @@ class SqlAlchemyAgentRepository(IAgentRepository):
             acp_run_id=request.acp_run_id,
             agent_id=request.agent_id,
             created_at=request.created_at,
+            created_by=request.created_by,
         )
         try:
             await self.connection.execute(query)
@@ -129,13 +131,17 @@ class SqlAlchemyAgentRepository(IAgentRepository):
         query = delete(agent_requests_table).where(agent_requests_table.c.id == run_id)
         await self.connection.execute(query)
 
-    async def find_by_acp_run_id(self, *, run_id: UUID) -> Agent:
-        result = await self.connection.execute(
+    async def find_by_acp_run_id(self, *, run_id: UUID, user_id: UUID | None = None) -> Agent:
+        query = (
             select(agents_table)
             .join(agent_requests_table, agents_table.c.id == agent_requests_table.c.agent_id)
             .where(agent_requests_table.c.acp_run_id == run_id)
-            .limit(1)
         )
+
+        if user_id:
+            query = query.where(agent_requests_table.c.created_by == user_id)
+
+        result = await self.connection.execute(query.limit(1))
         if not (row := result.fetchone()):
             raise EntityNotFoundError(entity="agent_run", id=run_id)
 

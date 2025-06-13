@@ -44,6 +44,10 @@ $avatar-padding-left: $spacing-04 + rem(32px);
   padding-inline-start: $avatar-padding-left;
 }
 
+.files {
+  margin-block-start: $spacing-02;
+}
+
 .content {
   font-size: rem(16px);
   line-height: math.div(26, 16);

@@ -175,6 +175,9 @@ unmanagedProviderVariables:
   OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector-svc:8335
   PLATFORM_URL: http://beeai-platform-svc:8333
 
+# Variable configuration
+variables: { }
+
 ## PostgreSQL chart configuration
 ## ref: https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml
 ## @param postgresql.enabled Switch to enable or disable the PostgreSQL helm chart
@@ -226,9 +229,73 @@ postgresql:
 ## @param externalDatabase.existingSecretSqlConnectionKey Name of an existing secret key containing the SQL connection string
 ##
 externalDatabase:
-  host: localhost
+  host: ""
   port: 5432
   user: beeai-user
   database: beeai
   password: ""
   existingSecret: ""
+
+## SeaweedFS chart configuration
+## ref: https://github.com/seaweedfs/seaweedfs/tree/master/k8s/charts/seaweedfs
+## @param seaweedfs.enabled Switch to enable or disable the SeaweedFS helm chart
+## @param seaweedfs.auth.existingSecret must have keys "accessKeyId" and "accessKeySecret"
+seaweedfs:
+  enabled: true
+  bucket: "beeai-files"
+  auth:
+    admin:
+      accessKeyID: "beeai-admin-user"
+      accessKeySecret: "beeai-admin-password"
+    existingSecret: ""
+  affinity: ""
+  master:
+    enabled: false
+  volume:
+    enabled: false
+  filer:
+    enabled: false
+  sftp:
+    enabled: false
+
+  ## @param s3.existingConfigSecret must be configured together with auth.admin.existingSecret, but it has
+  ##   a different format, see s3 configuration:
+  ##   https://github.com/seaweedfs/seaweedfs/tree/master/k8s/charts/seaweedfs#s3-configuration
+  s3:
+    port: 9009
+    enableAuth: true
+    existingConfigSecret: beeai-seaweedfs-default-config-secret
+
+  allInOne:
+    nodeSelector: ""
+    enabled: true
+    s3:
+      enabled: true
+    sftp:
+      enabled: false
+
+
+## @section External S3 parameters
+## All of these values are only used when redis.enabled is set to false
+## @param externalS3.host External S3 host
+## @param externalS3.port External S3 port number
+## @param externalS3.accessKeyID External S3 access key ID
+## @param externalS3.accessKeySecret External S3 access key secret
+## @param externalS3.existingSecret Name of an existing secret resource containing the S3 credentials
+## @param externalS3.existingSecretAccessKeyIDKey Name of an existing secret key containing the S3 access key ID
+## @param externalS3.existingSecretKeySecretKey Name of an existing secret key containing the S3 access key secret
+## @param externalS3.protocol External S3 protocol
+## @param externalS3.bucket External S3 bucket
+## @param externalS3.region External S3 region
+##
+externalS3:
+  host: ""
+  port: 443
+  accessKeyID: ""
+  accessKeySecret: ""
+  existingSecret: ""
+  existingSecretAccessKeyIDKey: "root-user"
+  existingSecretKeySecretKey: "root-password"
+  protocol: "https"
+  bucket: "beeai-files"
+  region: "us-east-1"

@@ -16,7 +16,6 @@ import base64
 import hashlib
 import json
 import re
-import subprocess
 import typing
 import uuid
 from contextlib import suppress
@@ -25,13 +24,13 @@ from datetime import timedelta
 import anyio
 import anyio.abc
 import typer
-from anyio import open_process, run_process
+from anyio import open_process
 from httpx import AsyncClient, HTTPError
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, wait_fixed
 
 from beeai_cli.async_typer import AsyncTyper
 from beeai_cli.console import console
-from beeai_cli.utils import VMDriver, extract_messages
+from beeai_cli.utils import VMDriver, capture_output, extract_messages, run_command, status, verbosity
 
 
 async def find_free_port():
@@ -50,83 +49,83 @@ async def build(
     context: typing.Annotated[str, typer.Argument(help="Docker context for the agent")] = ".",
     tag: typing.Annotated[str | None, typer.Option(help="Docker tag for the agent")] = None,
     multi_platform: bool | None = False,
-    quiet: typing.Annotated[bool, typer.Option(hidden=True)] = False,
+    push: typing.Annotated[bool, typer.Argument(help="Push the image to the target registry.")] = False,
     import_image: typing.Annotated[
         bool, typer.Option("--import/--no-import", is_flag=True, help="Import the image into BeeAI platform")
     ] = True,
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
     vm_driver: typing.Annotated[VMDriver, typer.Option(hidden=True)] = None,
+    verbose: typing.Annotated[bool, typer.Option("-v")] = False,
 ):
-    try:
-        await run_process("which docker", check=True)
-    except subprocess.CalledProcessError as e:
-        raise RuntimeError(
-            "The 'docker' command is not found on the system. Please install docker or similar and try again"
-        ) from e
-    image_id = "beeai-agent-build-tmp:latest"
-    port = await find_free_port()
-    if multi_platform:
-        build_command = "docker buildx build --platform=linux/amd64,linux/arm64 --load"
-    else:
-        build_command = "docker build"
+    with verbosity(verbose):
+        await run_command(["which", "docker"], "Checking docker")
+        image_id = "beeai-agent-build-tmp:latest"
+        port = await find_free_port()
 
-    with console.status("building agent image", spinner="dots"):
-        await run_process(
-            f"{build_command} {context} -t {image_id}",
+        await run_command(["docker", "build", context, "-t", image_id], "Building agent image")
+
+        response = None
+
+        container_id = uuid.uuid4()
+
+        with status("Extracting agent metadata"):
+            async with (
+                await open_process(
+                    f"docker run --name {container_id} --rm -p {port}:8000 -e HOST=0.0.0.0 -e PORT=8000 {image_id}",
+                ) as process,
+            ):
+                try:
+                    async with capture_output(process):
+                        async for attempt in AsyncRetrying(
+                            stop=stop_after_delay(timedelta(seconds=30)),
+                            wait=wait_fixed(timedelta(seconds=0.5)),
+                            retry=retry_if_exception_type(HTTPError),
+                            reraise=True,
+                        ):
+                            with attempt:
+                                async with AsyncClient() as client:
+                                    resp = await client.get(f"http://localhost:{port}/agents", timeout=1)
+                                    resp.raise_for_status()
+                                    response = resp.json()
+                                    if "agents" not in response:
+                                        raise ValueError(f"Missing agents in response from server: {response}")
+                        process.terminate()
+                        with suppress(ProcessLookupError):
+                            process.kill()
+                except BaseException as ex:
+                    raise RuntimeError(f"Failed to build agent: {extract_messages(ex)}") from ex
+                finally:
+                    with suppress(BaseException):
+                        await run_command(["docker", "kill", container_id], "Killing container")
+                    with suppress(ProcessLookupError):
+                        process.kill()
+
+        context_hash = hashlib.sha256(context.encode()).hexdigest()[:6]
+        context_shorter = re.sub(r"https?://", "", context).replace(r".git", "")
+        tag = (
+            tag
+            or f"beeai.local/{re.sub(r'[^a-zA-Z0-9_-]+', '-', context_shorter)[:32].lstrip('-')}-{context_hash}:latest"
+        ).lower()
+        await run_command(
+            command=[
+                *(
+                    ["docker", "buildx", "build", "--platform=linux/amd64,linux/arm64"]
+                    if multi_platform
+                    else ["docker", "build"]
+                ),
+                "--push" if push else "--load",
+                context,
+                "-t",
+                tag,
+                f"--label=beeai.dev.agent.yaml={base64.b64encode(json.dumps(response).encode()).decode()}",
+            ],
+            message="Adding agent labels to container",
             check=True,
-            stdout=subprocess.DEVNULL if quiet else None,
-            stderr=subprocess.DEVNULL if quiet else None,
         )
+        console.print(f"✅ Successfully built agent: {tag}")
+        if import_image:
+            from beeai_cli.commands.platform import import_image
 
-    response = None
+            await import_image(tag, vm_name=vm_name, vm_driver=vm_driver)
 
-    container_id = uuid.uuid4()
-
-    async with (
-        await open_process(
-            f"docker run --name {container_id} --rm -p {port}:8000 -e HOST=0.0.0.0 -e PORT=8000 {image_id}"
-        ) as process,
-    ):
-        try:
-            with console.status("extracting agent metadata", spinner="dots"):
-                async for attempt in AsyncRetrying(
-                    stop=stop_after_delay(timedelta(seconds=30)),
-                    wait=wait_fixed(timedelta(seconds=0.5)),
-                    retry=retry_if_exception_type(HTTPError),
-                    reraise=True,
-                ):
-                    with attempt:
-                        async with AsyncClient() as client:
-                            resp = await client.get(f"http://localhost:{port}/agents", timeout=1)
-                            resp.raise_for_status()
-                            response = resp.json()
-                            if "agents" not in response:
-                                raise ValueError(f"Missing agents in response from server: {response}")
-                process.terminate()
-                with suppress(ProcessLookupError):
-                    process.kill()
-        except BaseException as ex:
-            raise RuntimeError(f"Failed to build agent: {extract_messages(ex)}") from ex
-        finally:
-            with suppress(BaseException):
-                await run_process(f"docker kill {container_id}")
-
-    context_hash = hashlib.sha256(context.encode()).hexdigest()[:6]
-    context_shorter = re.sub(r"https?://", "", context).replace(r".git", "")
-    tag = (
-        tag or f"beeai.local/{re.sub(r'[^a-zA-Z0-9_-]+', '-', context_shorter)[:32].lstrip('-')}-{context_hash}:latest"
-    ).lower()
-    await run_process(
-        command=(
-            f"{build_command} {context} -t {tag} "
-            f"--label=beeai.dev.agent.yaml={base64.b64encode(json.dumps(response).encode()).decode()}"
-        ),
-        check=True,
-    )
-    console.print(f"✅ Successfully built agent: {tag}")
-    if import_image:
-        from beeai_cli.commands.platform import import_image
-
-        await import_image(tag, vm_name=vm_name, vm_driver=vm_driver)
-
-    return tag, response["agents"]
+        return tag, response["agents"]

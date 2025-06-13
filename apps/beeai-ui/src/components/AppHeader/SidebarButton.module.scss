@@ -22,9 +22,7 @@
 }
 
 .button {
-  :global(.cds--popover) {
-    display: none;
-  }
+  @include hidePopover();
 }
 
 .label {

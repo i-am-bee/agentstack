@@ -16,13 +16,17 @@ from typing import Protocol, Self
 
 from beeai_server.domain.repositories.agent import IAgentRepository
 from beeai_server.domain.repositories.env import IEnvVariableRepository
+from beeai_server.domain.repositories.files import IFileRepository
 from beeai_server.domain.repositories.provider import IProviderRepository
+from beeai_server.domain.repositories.users import IUserRepository
 
 
 class IUnitOfWork(Protocol):
     providers: IProviderRepository
     agents: IAgentRepository
+    files: IFileRepository
     env: IEnvVariableRepository
+    users: IUserRepository
 
     async def __aenter__(self) -> Self: ...
     async def __aexit__(self, exc_type, exc, tb) -> None: ...

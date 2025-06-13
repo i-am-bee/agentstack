@@ -49,6 +49,7 @@ class AgentRunRequest(BaseModel):
     agent_id: UUID
     created_at: AwareDatetime = Field(default_factory=utc_now)
     finished_at: AwareDatetime | None = None
+    created_by: UUID
 
     def set_finished(self):
         self.finished_at = utc_now()

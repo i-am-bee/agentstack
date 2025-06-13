@@ -1,0 +1,112 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.root {
+  display: inline-flex;
+  max-inline-size: 100%;
+  align-items: center;
+  position: relative;
+  font-size: rem(14px);
+  line-height: math.div(20, 14);
+  color: $text-dark;
+  border: 1px solid $border-subtle-00;
+  border-radius: $spacing-03;
+  z-index: 0;
+
+  &.sm {
+    padding: rem(5px) rem(7px);
+  }
+  &.md {
+    padding: rem(9px) rem(11px);
+  }
+
+  &.isPending {
+    color: $text-placeholder;
+    border-color: $border-subtle-00;
+    pointer-events: none;
+  }
+
+  &.isError {
+    color: $text-error;
+    border-color: inherit;
+  }
+}
+
+.errorIcon {
+  flex-shrink: 0;
+  margin-inline-end: $spacing-03;
+}
+
+.icon {
+  flex-shrink: 0;
+  margin-inline-end: $spacing-02;
+}
+
+.link {
+  @include link-mask();
+  text-decoration: none;
+  color: inherit;
+  &::before {
+    z-index: -1;
+    border-radius: calc($spacing-03 - 1px);
+  }
+  &:hover::before {
+    background-color: $button-tertiary-hover;
+  }
+}
+
+.name {
+  @include line-clamp();
+}
+
+.loading {
+  &:global(.cds--inline-loading) {
+    flex-grow: 0;
+    inline-size: auto;
+    margin-inline-start: $spacing-03;
+  }
+
+  :global(.cds--inline-loading__animation) {
+    margin-inline-end: 0;
+  }
+}
+
+.remove {
+  @include hidePopover();
+  visibility: hidden;
+
+  .root:hover &,
+  .root:focus-within &,
+  .root.isError & {
+    visibility: visible;
+  }
+
+  &:global(.cds--tooltip) {
+    position: absolute;
+    inset-block-start: rem(-6px);
+    inset-inline-end: rem(-6px);
+  }
+
+  :global(.cds--btn) {
+    inline-size: auto;
+    block-size: auto;
+    min-block-size: 0;
+    border-radius: 50%;
+    svg {
+      margin: -1px;
+    }
+  }
+}

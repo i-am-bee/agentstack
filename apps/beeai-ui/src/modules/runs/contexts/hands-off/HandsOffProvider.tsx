@@ -23,8 +23,15 @@ import { usePrevious } from '#hooks/usePrevious.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
 import type { RunLog, RunStats } from '#modules/runs/types.ts';
-import { extractOutput, isArtifact } from '#modules/runs/utils.ts';
+import {
+  createFileMessageParts,
+  createMessagePart,
+  extractOutput,
+  extractValidUploadFiles,
+  isArtifact,
+} from '#modules/runs/utils.ts';
 
+import { useFileUpload } from '../../files/contexts';
 import { HandsOffContext } from './hands-off-context';
 
 interface Props {
@@ -38,6 +45,7 @@ export function HandsOffProvider({ agent, children }: PropsWithChildren<Props>) 
 
   const errorHandler = useHandleError();
 
+  const { files, clearFiles } = useFileUpload();
   const { input, isPending, runAgent, reset } = useRunAgent({
     onBeforeRun: () => {
       handleClear();
@@ -98,7 +106,8 @@ export function HandsOffProvider({ agent, children }: PropsWithChildren<Props>) 
     setOutput('');
     setStats(undefined);
     setLogs([]);
-  }, [reset]);
+    clearFiles();
+  }, [reset, clearFiles]);
 
   const previousAgent = usePrevious(agent);
   useEffect(() => {
@@ -109,13 +118,18 @@ export function HandsOffProvider({ agent, children }: PropsWithChildren<Props>) 
 
   const run = useCallback(
     async (input: string) => {
+      const uploadFiles = extractValidUploadFiles(files);
+      const messageParts = [createMessagePart({ content: input }), ...createFileMessageParts(uploadFiles)];
+
+      clearFiles();
+
       try {
-        await runAgent({ agent, content: input });
+        await runAgent({ agent, messageParts });
       } catch (error) {
         handleError(error);
       }
     },
-    [agent, runAgent, handleError],
+    [agent, files, runAgent, handleError, clearFiles],
   );
 
   const contextValue = useMemo(

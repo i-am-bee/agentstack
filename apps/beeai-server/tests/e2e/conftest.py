@@ -102,7 +102,8 @@ async def clean_up(kr8s_client, test_configuration):
     finally:
         # Clean all tables
         async with engine.connect() as connection:
-            for table in metadata.tables:
+            # TODO: drop all users except dummy ones
+            for table in metadata.tables.keys() - {"users"}:
                 await connection.execute(text(f'TRUNCATE TABLE public."{table}" RESTART IDENTITY CASCADE'))
             await connection.commit()
         # Clean all deployments
@@ -118,7 +119,8 @@ def clean_up_fn(test_configuration):
         engine = create_async_engine(test_configuration.db_url)
         # Clean all tables
         async with engine.connect() as connection:
-            for table in metadata.tables:
+            # TODO: drop all users except dummy ones
+            for table in metadata.tables.keys() - {"users"}:
                 await connection.execute(text(f'TRUNCATE TABLE public."{table}" RESTART IDENTITY CASCADE'))
             await connection.commit()
         # Clean all deployments

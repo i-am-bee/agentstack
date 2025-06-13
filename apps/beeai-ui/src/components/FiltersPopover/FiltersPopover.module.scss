@@ -34,9 +34,7 @@
 }
 
 .toggleButtonContainer {
-  :global(.cds--popover) {
-    display: none;
-  }
+  @include hidePopover();
 
   button {
     border-start-start-radius: 0;

@@ -69,3 +69,9 @@
   font-weight: 400;
   margin-block-end: $spacing-06;
 }
+
+@mixin hidePopover() {
+  :global(.cds--popover) {
+    display: none;
+  }
+}

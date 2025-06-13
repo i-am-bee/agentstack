@@ -26,6 +26,7 @@
 }
 
 .button {
+  @include hidePopover();
   &:global(.cds--popover-container) {
     position: absolute;
     inset-inline-end: rem(16px);
@@ -35,9 +36,6 @@
       inline-size: rem(24px);
       block-size: rem(24px);
     }
-  }
-  :global(.cds--popover) {
-    display: none;
   }
   :global(.cds--btn) {
     svg {

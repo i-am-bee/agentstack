@@ -25,6 +25,7 @@ import { useAgent } from '../../agents/api/queries/useAgent';
 import { Chat } from '../chat/Chat';
 import { ChatProvider } from '../contexts/chat/ChatProvider';
 import { HandsOffProvider } from '../contexts/hands-off/HandsOffProvider';
+import { FileUploadProvider } from '../files/contexts/FileUploadProvider';
 import { HandsOff } from '../hands-off/HandsOff';
 import classes from './AgentRun.module.scss';
 
@@ -65,15 +66,19 @@ const renderUi = ({ agent }: { agent: Agent }) => {
   switch (type) {
     case UiType.Chat:
       return (
-        <ChatProvider agent={agent}>
-          <Chat />
-        </ChatProvider>
+        <FileUploadProvider key={agent.name}>
+          <ChatProvider agent={agent}>
+            <Chat />
+          </ChatProvider>
+        </FileUploadProvider>
       );
     case UiType.HandsOff:
       return (
-        <HandsOffProvider agent={agent}>
-          <HandsOff />
-        </HandsOffProvider>
+        <FileUploadProvider key={agent.name}>
+          <HandsOffProvider agent={agent}>
+            <HandsOff />
+          </HandsOffProvider>
+        </FileUploadProvider>
       );
     default:
       return (

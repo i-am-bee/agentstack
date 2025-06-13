@@ -28,6 +28,9 @@ import {
   RunMode,
   type SessionId,
 } from './api/types';
+import type { UploadFileResponse } from './files/api/types';
+import type { FileEntity } from './files/types';
+import { getFileContentUrl } from './files/utils';
 import { Role, type RunLog } from './types';
 
 humanizeDuration.languages.shortEn = {
@@ -50,16 +53,16 @@ export function runDuration(ms: number) {
 
 export function createRunStreamRequest({
   agent,
-  messagePart,
+  messageParts,
   sessionId,
 }: {
   agent: AgentName;
-  messagePart: MessagePart;
+  messageParts: MessagePart[];
   sessionId?: SessionId;
 }): CreateRunStreamRequest {
   return {
     agent_name: agent,
-    input: [{ parts: [messagePart] }],
+    input: [{ parts: messageParts }],
     mode: RunMode.Stream,
     session_id: sessionId,
   };
@@ -69,13 +72,23 @@ export function createMessagePart({
   content,
   content_encoding = 'plain',
   content_type = 'text/plain',
+  content_url,
 }: Partial<Exclude<MessagePart, 'role'>>): MessagePart {
   return {
     content,
     content_encoding,
     content_type,
+    content_url,
     role: Role.User,
   };
+}
+
+export function createFileMessageParts(files: UploadFileResponse[]) {
+  const messageParts = files.map(({ id }) =>
+    createMessagePart({ content_url: getFileContentUrl({ id, addBase: true }) }),
+  );
+
+  return messageParts;
 }
 
 export function isArtifact(part: MessagePart): part is Artifact {
@@ -90,6 +103,12 @@ export function extractOutput(messages: Message[]) {
     .join('');
 
   return output;
+}
+
+export function extractValidUploadFiles(files: FileEntity[]) {
+  const uploadFiles = files.map(({ uploadFile }) => uploadFile).filter(isNotNull);
+
+  return uploadFiles;
 }
 
 export function formatLog(log: RunLog) {
@@ -111,7 +130,3 @@ const parseJsonLikeString = (string: string): unknown | string => {
     return string;
   }
 };
-
-export function isGraniteModel(name: string) {
-  return name.includes('granite');
-}

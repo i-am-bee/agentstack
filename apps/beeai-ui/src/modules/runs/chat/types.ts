@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { MessagePart } from '../api/types';
+import type { UploadFileResponse } from '../files/api/types';
 import type { SourceReference } from '../sources/api/types';
 import type { Role } from '../types';
 
@@ -26,6 +26,7 @@ interface Message {
 }
 export interface UserMessage extends Message {
   role: Role.User;
+  files?: UploadFileResponse[];
 }
 export interface AssistantMessage extends Message {
   role: Role.Assistant;
@@ -34,8 +35,6 @@ export interface AssistantMessage extends Message {
 }
 
 export type ChatMessage = UserMessage | AssistantMessage;
-
-export type MessageParams = Partial<MessagePart> & { content: string };
 
 export enum MessageStatus {
   InProgress = 'in-progress',

@@ -15,8 +15,6 @@
  */
 
 .root {
+  @include hidePopover();
   margin-block: -$spacing-03;
-  :global(.cds--popover) {
-    display: none;
-  }
 }
