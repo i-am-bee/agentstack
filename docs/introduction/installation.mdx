@@ -3,37 +3,23 @@ title: "Installation & Setup"
 description: "Getting started with BeeAI on your system"
 ---
 
-BeeAI platform supports installation on **macOS**, **Linux**, and **Windows** through multiple methods.
-
-## Installation
-
-BeeAI can be installed using Homebrew, or directly from PyPI. Homebrew is the easiest installation method, as it automatically sets up the needed container runtime using a Lima VM.
-
 <Tabs>
-<Tab title="Homebrew (macOS, Linux)">
-
-### Install
-
+<Tab title="macOS">
 <Steps>
-<Step title="Install Homebrew">
+<Step title="Install uv">
 
-If you don't have Homebrew installed, install it with:
+If you don't have `uv` installed, install it with:
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
-
-Follow the post-installation instructions shown in the terminal to add Homebrew to your `PATH`.
 
 </Step>
 <Step title="Install BeeAI">
 
 ```bash
-brew install i-am-bee/beeai/beeai
-beeai platform start
+uv tool install beeai-cli
 ```
-
-The BeeAI platform will start automatically in a virtualized environment.
 
 </Step>
 <Step title="Start the BeeAI platform">
@@ -43,122 +29,102 @@ beeai platform start
 ```
 
 </Step>
+<Step title="Configure an LLM provider">
+
+BeeAI needs an LLM provider for the agents -- like OpenAI, Ollama, Anthropic, etc.
+
+If you don't already have an API key for a provider, you can register for a free one on [OpenRouter](https://openrouter.ai/).
+
+Run this command and follow the interactive prompts:
+
+```bash
+beeai env setup
+```
+
+<Tip>
+You can re-run this command anytime to change the LLM provider.
+</Tip>
+
+</Step>
+<Step title="Check that everything works">
+
+```bash
+beeai run chat Hi!
+```
+
+Starting up an agent for a first time may take a few minutes. If everything is succesful, you should see a friendly greeting from the agent.
+
+✨ **Done!** You are ready to use the BeeAI platform.
+
+</Step>
 </Steps>
 
-### Update
-
-```bash
-brew upgrade beeai
-beeai platform start
-```
-
-### Uninstall
-
-```bash
-beeai platform delete
-brew uninstall beeai
-```
-
 </Tab>
-
-<Tab title="PyPI (macOS, Linux)">
-
-### Install
-
+<Tab title="Linux">
 <Steps>
-<Step title="Install a container runtime">
+<Step title="Install uv">
 
-BeeAI requires a container runtime to function. Choose one of:
+If you don't have `uv` installed, install it with:
 
-- [Rancher Desktop](https://rancherdesktop.io/) (recommended)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- [Podman Desktop](https://podman-desktop.io/)
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 
-Install and verify the container runtime is working before proceeding.
 </Step>
+<Step title="Install QEMU">
 
-<Step title="Install pipx">
-
-[pipx](https://pipx.pypa.io/) is recommended for installing Python applications. Install it with:
-
-
-<Tabs>
-<Tab title="Homebrew">
-
-```bash
-brew install pipx
-pipx ensurepath
-```
-
-</Tab>
-<Tab title="apt (Ubuntu, Debian, popOS, Mint, ...)">
-
-```bash
-sudo apt update
-sudo apt install pipx
-pipx ensurepath
-```
-
-</Tab>
-
-<Tab title="dnf (Fedora)">
-
-```bash
-sudo dnf install pipx
-pipx ensurepath
-```
-
-</Tab>
-<Tab title="uv">
-
-If you use [uv](https://docs.astral.sh/uv/), you can avoid installing `pipx`. Simply replace `pipx` with `uv tool` in the following steps.
-
-</Tab>
-</Tabs>
-</Step>
-
-<Step title="Install BeeAI">
-
-```bash
-pipx install beeai-cli
-```
-</Step>
-
-<Step title="Start the BeeAI Platform">
-
-Unlike the Homebrew installation, you'll need to manually start the BeeAI Platform:
-
-```bash
-beeai platform start
-```
+Install QEMU according to the [official instructions](https://www.qemu.org/download/#linux).
 
 <Note>
-This creates and manages a containerized environment for running agents. The platform needs to be running for agents to work.
+Alternatively, BeeAI platform can run using `docker`. In that case, QEMU is not needed. Runtime will be automatically detected.
 </Note>
 
 </Step>
-</Steps>
-
-### Update
+<Step title="Install BeeAI">
 
 ```bash
-pipx upgrade beeai-cli
+uv tool install beeai-cli
+```
+
+</Step>
+<Step title="Start the BeeAI platform">
+
+```bash
 beeai platform start
 ```
 
-### Uninstall
+</Step>
+<Step title="Configure an LLM provider">
+
+BeeAI needs an LLM provider for the agents -- like OpenAI, Ollama, Anthropic, etc.
+
+If you don't already have an API key for a provider, you can register for a free one on [OpenRouter](https://openrouter.ai/).
+
+Run this command and follow the interactive prompts:
 
 ```bash
-beeai platform stop
-beeai platform delete
-pipx uninstall beeai-cli
+beeai env setup
 ```
 
+<Tip>
+You can re-run this command anytime to change the LLM provider.
+</Tip>
+
+</Step>
+<Step title="Check that everything works">
+
+```bash
+beeai run chat Hi!
+```
+
+Starting up an agent for a first time may take a few minutes. If everything is succesful, you should see a friendly greeting from the agent.
+
+✨ **Done!** You are ready to use the BeeAI platform.
+
+</Step>
+</Steps>
 </Tab>
 <Tab title="Windows">
-
-### Install
-
 <Steps>
 <Step title="Install WSL2">
 
@@ -180,14 +146,13 @@ wsl --install
 
 In order for the agents to be able to auto-register and access [Ollama for Windows](https://ollama.com/download/windows), it's necessary to configure the WSL2 networking to a mirrored mode:
 
-1. Download and install the [Windows version of Ollama](https://ollama.com/download/windows)
-2. Create or edit the WSL configuration file:
+1. Run this command in PowerShell to open a configuration file:
    
    ```bash
    notepad $HOME\.wslconfig
    ```
 
-2. Add the following lines:
+2. Confirm creation of the file if prompted, and insert the following lines:
 
    ```ini
    [wsl2]
@@ -205,12 +170,12 @@ In order for the agents to be able to auto-register and access [Ollama for Windo
 
 Install one of the following container runtimes. Leave installation options at their default values (use WSL2, use `dockerd` runtime).
 
-- [Rancher Desktop](https://rancherdesktop.io/)
+- [Rancher Desktop](https://rancherdesktop.io/) ✨ recommended
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [Podman Desktop](https://podman-desktop.io/)
 
 </Step>
-<Step title="Install Python and pipx">
+<Step title="Install uv">
 
 You may install the BeeAI CLI directly in Windows (PowerShell), or in the Ubuntu (WSL2) shell. You can even do both, it's up to your preference.
 
@@ -220,19 +185,8 @@ You may install the BeeAI CLI directly in Windows (PowerShell), or in the Ubuntu
 Open PowerShell and run:
 
 ```bash
-python --version
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
-
-Windows Store will pop up and offer to install Python. After installing it, re-try the command again to ensure that it now prints the Python version. (If you can't use Windows Store, you may use a Python installer downloaded from the official website.)
-
-Afterwards, install `pipx` with:
-
-```bash
-python -m pip install pipx
-python -m pipx ensurepath
-```
-
-Then close and re-open the PowerShell window to make sure the `pipx` command is available.
 
 </Tab>
 <Tab title="Ubuntu (WSL2) shell">
@@ -266,15 +220,11 @@ Ensure that `docker` works in WSL2 by running the following in the Ubuntu (WSL2)
 docker ps
 ```
 
-Install `pipx` with:
+Finally, install `uv` with:
 
 ```bash
-sudo apt update
-sudo apt install pipx
-pipx ensurepath
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
-
-Close and re-open the terminal window to make sure the `pipx` command is available.
 
 </Tab>
 </Tabs>
@@ -282,7 +232,7 @@ Close and re-open the terminal window to make sure the `pipx` command is availab
 <Step title="Install BeeAI">
 
 ```bash
-pipx install beeai-cli
+uv tool install beeai-cli
 ```
 
 </Step>
@@ -294,148 +244,83 @@ beeai platform start
 ```
 
 </Step>
-</Steps>
+<Step title="Configure an LLM provider">
 
-### Update
+BeeAI needs an LLM provider for the agents -- like OpenAI, Ollama, Anthropic, etc.
 
-```bash
-pipx upgrade beeai-cli
-beeai platform start
-```
+If you don't already have an API key for a provider, you can register for a free one on [OpenRouter](https://openrouter.ai/).
 
-### Uninstall
-
-```bash
-beeai platform delete
-brew uninstall beeai
-```
-
-</Tab>
-</Tabs>
-
-## LLM Provider Configuration
-
-After installation, configure your preferred LLM provider.
-
-<Tabs>
-<Tab title="Interactive Setup (Recommended)">
-
-Run the interactive setup wizard:
+Run this command and follow the interactive prompts:
 
 ```bash
 beeai env setup
 ```
 
-The wizard will:
-1. Help you select from popular LLM providers
-2. Guide you through API key configuration
-3. Test the connection to ensure everything works
-4. Save the configuration for future use
-
 <Tip>
-You can re-run this command anytime to change your LLM provider.
+You can re-run this command anytime to change the LLM provider.
 </Tip>
 
-</Tab>
-
-<Tab title="Manual Configuration">
-
-If you prefer to configure your LLM provider manually, use the following examples:
-
-<AccordionGroup>
-<Accordion title="OpenAI API">
+</Step>
+<Step title="Check that everything works">
 
 ```bash
-beeai env add LLM_API_BASE=https://api.openai.com/v1
-beeai env add LLM_API_KEY=sk-your-api-key-here
-beeai env add LLM_MODEL=gpt-4o
+beeai run chat Hi!
 ```
 
-</Accordion>
+Starting up an agent for a first time may take a few minutes. If everything is succesful, you should see a friendly greeting from the agent.
 
-<Accordion title="IBM watsonx">
+✨ **Done!** You are ready to use the BeeAI platform.
 
-```bash
-beeai env add LLM_API_BASE=https://us-south.ml.cloud.ibm.com
-beeai env add LLM_API_KEY=your-ibm-api-key
-beeai env add LLM_MODEL=ibm/granite-3-3-8b-instruct
-beeai env add WATSONX_PROJECT_ID=your-project-id
-# OR for deployment spaces:
-# beeai env add WATSONX_SPACE_ID=your-space-id
-```
-
-</Accordion>
-
-<Accordion title="Anthropic Claude API">
-
-```bash
-beeai env add LLM_API_BASE=https://api.anthropic.com/v1/
-beeai env add LLM_API_KEY=your-api-key-here
-beeai env add LLM_MODEL=claude-3-7-sonnet-20250219
-```
-
-</Accordion>
-
-<Accordion title="Groq API">
-
-```bash
-beeai env add LLM_API_BASE=https://api.groq.com/openai/v1
-beeai env add LLM_API_KEY=gsk-your-api-key-here
-beeai env add LLM_MODEL=deepseek-r1-distill-llama-70b
-```
-
-</Accordion>
-
-<Accordion title="Ollama (Local LLM)">
-
-```bash
-beeai env add LLM_API_BASE=http://localhost:11434/v1
-beeai env add LLM_API_KEY=ollama
-beeai env add LLM_MODEL=llama3.3
-```
-
-<Note>
-Ensure Ollama is running and the selected model is downloaded before using BeeAI.
-</Note>
-
-</Accordion>
-
-<Accordion title="OpenRouter">
-
-```bash
-beeai env add LLM_API_BASE=https://openrouter.ai/api/v1
-beeai env add LLM_API_KEY=sk-or-v1-your-api-key-here
-beeai env add LLM_MODEL=google/gemini-2.0-pro-exp-02-05:free
-```
-
-<Tip>
-OpenRouter allows access to various models with a single API key. [See their documentation](https://openrouter.ai/docs) for available models.
-</Tip>
-
-</Accordion>
-
-<Accordion title="Custom Provider">
-
-For custom or self-hosted OpenAI-compatible API endpoints:
-
-```bash
-beeai env add LLM_API_BASE=https://your-custom-endpoint.com/v1
-beeai env add LLM_API_KEY=your-api-key
-beeai env add LLM_MODEL=your-model-name
-```
-
-</Accordion>
-</AccordionGroup>
-
+</Step>
+</Steps>
 </Tab>
 </Tabs>
 
-## Verify Your Installation
-
-After installation and LLM configuration, verify that everything is working properly:
+<AccordionGroup>
+<Accordion title="Updating">
+<Steps>
+<Step title="Upgrade BeeAI">
 
 ```bash
-beeai list
+uv tool upgrade beeai
 ```
 
-This command should display a list of available agents.
+</Step>
+<Step title="Restart the BeeAI platform">
+
+```bash
+beeai platform start
+```
+
+</Step>
+<Step title="Done!">
+
+BeeAI platform is updated.
+
+</Step>
+</Steps>
+</Accordion>
+<Accordion title="Uninstalling">
+<Steps>
+<Step title="Remove the BeeAI platform instance">
+
+```bash
+beeai platform delete
+```
+
+</Step>
+<Step title="Uninstall the BeeAI platform">
+
+```bash
+uv tool uninstall beeai
+```
+
+</Step>
+<Step title="Done!">
+
+BeeAI platform is now fully removed.
+
+</Step>
+</Steps>
+</Accordion>
+</AccordionGroup>
