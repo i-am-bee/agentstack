@@ -30,7 +30,11 @@ beeai-sdk = { workspace = true }
 
 [project.scripts]
 beeai = "beeai_cli:app"
+beeai-cli = "beeai_cli:app"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.7.12,<0.8.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+source-include = ["src/beeai_cli/data"]

@@ -1,12 +1,21 @@
 [tools]
+# Python
 python = "3.11"
+uv = "0.7.13"
+
+# Node.js
 nodejs = "22"
-uv = "latest"
+pnpm = "latest"
+
+# Kubernetes
 helm = "latest"
 kubeconform = "latest"
-pnpm = "latest"
-"ubi:B1NARY-GR0UP/nwa" = "latest"
 "ubi:telepresenceio/telepresence" = "latest"
+
+# Misc
+lima = "1.0.7" # keep in sync with apps/beeai-cli/.lima-version
+yq = "latest"
+"ubi:B1NARY-GR0UP/nwa" = "latest"
 
 [settings]
 experimental = true # for python.uv_venv_auto

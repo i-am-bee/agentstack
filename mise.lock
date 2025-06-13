@@ -12,6 +12,13 @@ backend = "aqua:yannh/kubeconform"
 [tools.kubeconform.checksums]
 "kubeconform-darwin-arm64.tar.gz" = "sha256:cbb47d938a8d18eb5f79cb33663b2cecdee0c8ac0bf562ebcfca903df5f0802f"
 
+[tools.lima]
+version = "1.0.7"
+backend = "aqua:lima-vm/lima"
+
+[tools.lima.checksums]
+"lima-1.0.7-Darwin-arm64.tar.gz" = "sha256:fa3836128e19920ca7113bbcc9908399c56f0665b4b04f294dd76aa02ef38905"
+
 [tools.node]
 version = "22.14.0"
 backend = "core:node"
@@ -49,10 +56,12 @@ backend = "ubi:telepresenceio/telepresence"
 telepresence-macos-aarch64 = "sha256:991d2aea9bef5c08dd64432cb5b3abb5bc6c441f27351d52fe94278705edc738"
 
 [tools.uv]
-version = "0.6.2"
+version = "0.7.13"
 backend = "aqua:astral-sh/uv"
 
 [tools.uv.checksums]
-"uv-aarch64-apple-darwin.tar.gz" = "sha256:4af802a1216053650dd82eee85ea4241994f432937d41c8b0bc90f2639e6ae14"
-"uv-x86_64-apple-darwin.tar.gz" = "sha256:2b9e78b2562aea93f13e42df1177cb07c59a4d4f1c8ff8907d0c31f3a5e5e8db"
-"uv-x86_64-unknown-linux-musl.tar.gz" = "sha256:fcd01693df76379be5bc325efa43c644cf0704a2e720ccd6695f41ded09934d7"
+"uv-aarch64-apple-darwin.tar.gz" = "sha256:721f532b73171586574298d4311a91d5ea2c802ef4db3ebafc434239330090c6"
+
+[tools.yq]
+version = "4.45.4"
+backend = "aqua:mikefarah/yq"

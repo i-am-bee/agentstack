@@ -14,9 +14,11 @@
 
 import asyncio
 import base64
+import functools
 import importlib.resources
 import json
 import os
+import platform
 import shutil
 import sys
 import typing
@@ -37,9 +39,18 @@ configuration = Configuration()
 
 
 def _lima_yaml(k3s_port: int = 16443, beeai_port: int = 8333, phoenix_port: int = 6006) -> str:
-    return rf"""minimumLimaVersion: 1.1.0
-
-base: template://_images/ubuntu-lts
+    return rf"""
+images:
+- location: "https://cloud-images.ubuntu.com/releases/noble/release-20250516/ubuntu-24.04-server-cloudimg-amd64.img"
+  arch: "x86_64"
+  digest: "sha256:8d6161defd323d24d66f85dda40e64e2b9021aefa4ca879dcbc4ec775ad1bbc5"
+- location: "https://cloud-images.ubuntu.com/releases/noble/release-20250516/ubuntu-24.04-server-cloudimg-arm64.img"
+  arch: "aarch64"
+  digest: "sha256:c933c6932615d26c15f6e408e4b4f8c43cb3e1f73b0a98c2efa916cc9ab9549c"
+- location: https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-amd64.img
+  arch: x86_64
+- location: https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
+  arch: aarch64
 
 mounts:
 - location: "~/.beeai"
@@ -82,34 +93,60 @@ portForwards:
     hostPort: {phoenix_port}"""
 
 
+@functools.cache
+def _limactl_exe():
+    bundled_limactl = importlib.resources.files("beeai_cli") / "data" / "limactl"
+    return bundled_limactl if bundled_limactl.is_file() else "limactl"
+
+
 def _validate_driver(vm_driver: VMDriver | None) -> VMDriver:
+    is_windows = platform.system() == "Windows" or shutil.which("wsl.exe")
+    has_lima = (importlib.resources.files("beeai_cli") / "data" / "limactl").is_file() or shutil.which("limactl")
+    has_docker = shutil.which("docker")
+    has_vz = os.path.exists("/System/Library/Frameworks/Virtualization.framework")
+    has_qemu = bool(
+        shutil.which(
+            {"x86_64": "qemu-system-x86_64", "arm64": "qemu-system-aarch64", "aarch64": "qemu-system-aarch64"}[
+                platform.machine()
+            ]
+        )
+    )
     match vm_driver:
         case None:
-            if sys.platform == "win32" or shutil.which("wsl.exe"):  # Windows / WSL
-                if shutil.which("docker"):
+            if is_windows:
+                if has_docker:
                     return VMDriver.docker
                 else:
                     console.print(
-                        "[red]Error: Running on Windows, but no compatible `docker` CLI found. Please follow the Windows installation instructions at https://docs.beeai.dev/introduction/installation[/red]"
+                        "[red]Error: Running on Windows, but no compatible VM runtime found. Please follow the Windows installation instructions at https://docs.beeai.dev/introduction/installation[/red]"
                     )
                     sys.exit(1)
-            else:  # macOS / Linux
-                if shutil.which("limactl"):
-                    return VMDriver.lima
-                elif shutil.which("docker"):
-                    return VMDriver.docker
-                else:
-                    console.print(
-                        "[red]Error: Could not find a compatible container runtime. Please follow the installation instructions at https://docs.beeai.dev/introduction/installation[/red]"
-                    )
-                    sys.exit(1)
+            # macOS / Linux
+            if has_lima and (has_vz or has_qemu):
+                return VMDriver.lima
+            elif has_docker:
+                return VMDriver.docker
+            else:
+                console.print(
+                    "[red]Error: Could not find a compatible VM runtime. Please follow the installation instructions at https://docs.beeai.dev/introduction/installation[/red]"
+                )
+                sys.exit(1)
         case VMDriver.lima:
-            if not shutil.which("limactl"):
-                console.print("[red]Error: limactl not found. Please install Lima.[/red]")
+            if not has_lima:
+                console.print(
+                    "[red]Error: Lima not found. Please follow the installation instructions at https://docs.beeai.dev/introduction/installation[/red]"
+                )
+                sys.exit(1)
+            if not has_vz and not has_qemu:
+                console.print(
+                    "[red]Error: QEMU not found. Please follow the installation instructions at https://docs.beeai.dev/introduction/installation[/red]"
+                )
                 sys.exit(1)
         case VMDriver.docker:
-            if not shutil.which("docker"):
-                console.print("[red]Error: docker not found. Please install Docker.[/red]")
+            if not has_docker:
+                console.print(
+                    "[red]Error: Docker not found. Please follow the installation instructions at https://docs.beeai.dev/introduction/installation[/red]"
+                )
                 sys.exit(1)
     return vm_driver
 
@@ -119,7 +156,7 @@ async def _get_platform_status(vm_driver: VMDriver, vm_name: str) -> str | None:
         match vm_driver:
             case VMDriver.lima:
                 result = await run_command(
-                    ["limactl", "--tty=false", "list", "--format=json"],
+                    [_limactl_exe(), "--tty=false", "list", "--format=json"],
                     f"Looking for existing instance in {vm_driver.name.capitalize()}",
                     env={"LIMA_HOME": str(configuration.lima_home)},
                 )
@@ -198,7 +235,7 @@ async def start(
         if not status:
             await run_command(
                 {
-                    VMDriver.lima: ["limactl", "--tty=false", "delete", "--force", vm_name],
+                    VMDriver.lima: [_limactl_exe(), "--tty=false", "delete", "--force", vm_name],
                     VMDriver.docker: ["docker", "rm", "--force", vm_name],
                 }[vm_driver],
                 "Cleaning up remains of previous instance",
@@ -214,7 +251,7 @@ async def start(
             await run_command(
                 {
                     VMDriver.lima: [
-                        "limactl",
+                        _limactl_exe(),
                         "--tty=false",
                         "start",
                         templates_dir / f"{vm_name}.yaml",
@@ -245,23 +282,17 @@ async def start(
                 "Creating a " + {VMDriver.lima: "Lima VM", VMDriver.docker: "Docker container"}[vm_driver],
                 env={
                     "LIMA_HOME": str(configuration.lima_home),
-                    # Hotfix for port-forwarding until this issue is resolved:
-                    # https://github.com/lima-vm/lima/issues/3601#issuecomment-2936952923
-                    "LIMA_SSH_PORT_FORWARDER": "true",
                 },
             )
         elif status != "running":
             await run_command(
                 {
-                    VMDriver.lima: ["limactl", "--tty=false", "start", vm_name],
+                    VMDriver.lima: [_limactl_exe(), "--tty=false", "start", vm_name],
                     VMDriver.docker: ["docker", "start", vm_name],
                 }[vm_driver],
                 "Starting up",
                 env={
                     "LIMA_HOME": str(configuration.lima_home),
-                    # Hotfix for port-forwarding until this issue is resolved:
-                    # https://github.com/lima-vm/lima/issues/3601#issuecomment-2936952923
-                    "LIMA_SSH_PORT_FORWARDER": "true",
                 },
             )
         else:
@@ -270,19 +301,15 @@ async def start(
         if vm_driver == VMDriver.lima:
             await run_command(
                 [
-                    "limactl",
+                    _limactl_exe(),
                     "--tty=false",
                     "start-at-login",
-                    # TODO: temporarily disabled due to port-forwarding issue (workaround not working in start-at-login)
-                    "--enabled=false",
+                    "--enabled=true",
                     vm_name,
                 ],
                 "Configuring",
                 env={
                     "LIMA_HOME": str(configuration.lima_home),
-                    # Hotfix for port-forwarding until this issue is resolved:
-                    # https://github.com/lima-vm/lima/issues/3601#issuecomment-2936952923
-                    "LIMA_SSH_PORT_FORWARDER": "true",
                 },
             )
 
@@ -310,7 +337,7 @@ async def start(
         await run_command(
             [
                 *{
-                    VMDriver.lima: ["limactl", "shell", vm_name, "--"],
+                    VMDriver.lima: [_limactl_exe(), "shell", vm_name, "--"],
                     VMDriver.docker: ["docker", "exec", "-i", vm_name],
                 }[vm_driver],
                 "kubectl",
@@ -346,6 +373,7 @@ async def start(
                 }
             ).encode("utf-8"),
             env={"LIMA_HOME": str(configuration.lima_home)},
+            cwd="/",
         )
 
         with console.status("Waiting for BeeAI platform to be ready...", spinner="dots"):
@@ -369,12 +397,22 @@ async def stop(
         if not status:
             console.print("BeeAI platform not found. Nothing to stop.")
             return
-        if status != "running":
-            console.print("BeeAI platform is not running. Nothing to stop.")
-            return
+        await run_command(
+            [
+                _limactl_exe(),
+                "--tty=false",
+                "start-at-login",
+                "--enabled=false",
+                vm_name,
+            ],
+            "Configuring",
+            env={
+                "LIMA_HOME": str(configuration.lima_home),
+            },
+        )
         await run_command(
             {
-                VMDriver.lima: ["limactl", "--tty=false", "stop", vm_name],
+                VMDriver.lima: [_limactl_exe(), "--tty=false", "stop", "--force", vm_name],
                 VMDriver.docker: ["docker", "stop", vm_name],
             }[vm_driver],
             "Stopping BeeAI VM",
@@ -395,8 +433,21 @@ async def delete(
     with verbosity(verbose):
         vm_driver = _validate_driver(vm_driver)
         await run_command(
+            [
+                _limactl_exe(),
+                "--tty=false",
+                "start-at-login",
+                "--enabled=false",
+                vm_name,
+            ],
+            "Configuring",
+            env={
+                "LIMA_HOME": str(configuration.lima_home),
+            },
+        )
+        await run_command(
             {
-                VMDriver.lima: ["limactl", "--tty=false", "delete", "--force", vm_name],
+                VMDriver.lima: [_limactl_exe(), "--tty=false", "delete", "--force", vm_name],
                 VMDriver.docker: ["docker", "rm", "--force", vm_name],
             }[vm_driver],
             "Deleting BeeAI platform",
@@ -432,7 +483,7 @@ async def import_image(
         )
         await run_command(
             {
-                VMDriver.lima: ["limactl", "--tty=false", "shell", vm_name, "--"],
+                VMDriver.lima: [_limactl_exe(), "--tty=false", "shell", vm_name, "--"],
                 VMDriver.docker: ["docker", "exec", vm_name],
             }[vm_driver]
             + [
@@ -461,7 +512,7 @@ async def exec(
     await anyio.run_process(
         [
             *{
-                VMDriver.lima: ["limactl", "shell", f"--tty={sys.stdin.isatty()}", vm_name, "--"],
+                VMDriver.lima: [_limactl_exe(), "shell", f"--tty={sys.stdin.isatty()}", vm_name, "--"],
                 VMDriver.docker: ["docker", "exec", "-it" if sys.stdin.isatty() else "-i", vm_name],
             }[vm_driver],
             *command,
