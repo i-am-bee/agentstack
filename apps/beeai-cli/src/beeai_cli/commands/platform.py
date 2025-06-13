@@ -96,7 +96,14 @@ portForwards:
 @functools.cache
 def _limactl_exe():
     bundled_limactl = importlib.resources.files("beeai_cli") / "data" / "limactl"
-    return bundled_limactl if bundled_limactl.is_file() else "limactl"
+    if bundled_limactl.is_file():
+        return bundled_limactl
+    else:
+        limactl = shutil.which("limactl")
+        console.print(
+            f"[yellow]Warning: Using external Lima from {limactl}. This is fine in development, as long as the version matches.[/yellow]"
+        )
+        return limactl
 
 
 def _validate_driver(vm_driver: VMDriver | None) -> VMDriver:
@@ -493,6 +500,10 @@ async def exec(
     """For debugging -- execute a command inside the BeeAI platform VM."""
     command = command or ["/bin/sh"]
     vm_driver = _validate_driver(vm_driver)
+    status = await _get_platform_status(vm_driver, vm_name)
+    if status != "running":
+        console.log("[red]BeeAI platform is not running.[/red]")
+        sys.exit(1)
     await anyio.run_process(
         [
             *{
