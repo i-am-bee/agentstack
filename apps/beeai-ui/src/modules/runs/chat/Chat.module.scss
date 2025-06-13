@@ -17,16 +17,15 @@
 .root {
   block-size: 100%;
   display: flex;
-
-  &.isNew {
-    align-items: center;
-  }
 }
 
 .holder {
   display: grid;
   grid-template-rows: max-content 1fr max-content;
   row-gap: $spacing-06;
+  .isNew & {
+    margin-block: auto;
+  }
 }
 
 .header {

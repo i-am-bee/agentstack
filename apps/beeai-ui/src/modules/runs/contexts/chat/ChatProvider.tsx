@@ -24,8 +24,9 @@ import type { Agent } from '#modules/agents/api/types.ts';
 import { type AssistantMessage, type ChatMessage, MessageStatus } from '#modules/runs/chat/types.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
 import { Role } from '#modules/runs/types.ts';
-import { isArtifact } from '#modules/runs/utils.ts';
+import { createFileMessageParts, createMessagePart, extractValidUploadFiles, isArtifact } from '#modules/runs/utils.ts';
 
+import { useFileUpload } from '../../files/contexts';
 import { AgentProvider } from '../agent/AgentProvider';
 import { ChatContext, ChatMessagesContext } from './chat-context';
 
@@ -36,6 +37,7 @@ interface Props {
 export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
   const [messages, , setMessages] = useImmerWithGetter<ChatMessage[]>([]);
 
+  const { files, clearFiles } = useFileUpload();
   const { isPending, runAgent, stopAgent, reset } = useRunAgent({
     onMessagePart: (event) => {
       const { part } = event;
@@ -44,9 +46,13 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
         return;
       }
 
-      updateLastAssistantMessage((message) => {
-        message.content += part.content;
-      });
+      const { content } = part;
+
+      if (content) {
+        updateLastAssistantMessage((message) => {
+          message.content += content;
+        });
+      }
     },
     onMessageCompleted: () => {
       updateLastAssistantMessage((message) => {
@@ -90,11 +96,15 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
 
   const sendMessage = useCallback(
     async (input: string) => {
+      const uploadFiles = extractValidUploadFiles(files);
+      const messageParts = [createMessagePart({ content: input }), ...createFileMessageParts(uploadFiles)];
+
       setMessages((messages) => {
         messages.push({
           key: uuid(),
           role: Role.User,
           content: input,
+          files: uploadFiles,
         });
         messages.push({
           key: uuid(),
@@ -104,19 +114,22 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
         });
       });
 
+      clearFiles();
+
       try {
-        await runAgent({ agent, content: input });
+        await runAgent({ agent, messageParts });
       } catch (error) {
         handleError(error);
       }
     },
-    [agent, runAgent, setMessages, handleError],
+    [agent, files, runAgent, setMessages, handleError, clearFiles],
   );
 
   const handleClear = useCallback(() => {
     reset();
     setMessages([]);
-  }, [reset, setMessages]);
+    clearFiles();
+  }, [reset, setMessages, clearFiles]);
 
   const previousAgent = usePrevious(agent);
   useEffect(() => {

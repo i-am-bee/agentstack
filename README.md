@@ -1,8 +1,8 @@
 <h1 align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/i-am-bee/beeai/master/docs/logo/beeai_framework_light.svg">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/i-am-bee/beeai/master/docs/logo/beeai_framework_dark.svg">
-    <img alt="BeeAI" src="https://raw.githubusercontent.com/i-am-bee/beeai/master/docs/logo/beeai_framework_dark.svg" width="60"><br><br>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/i-am-bee/beeai-platform/master/docs/logo/beeai_framework_light.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/i-am-bee/beeai-platform/master/docs/logo/beeai_framework_dark.svg">
+    <img alt="BeeAI" src="https://raw.githubusercontent.com/i-am-bee/beeai-platform/master/docs/logo/beeai_framework_dark.svg" width="60"><br><br>
   </picture>
   BeeAI Platform
 </h1>
@@ -132,8 +132,8 @@ Contributions to BeeAI are always welcome and greatly appreciated. Before contri
 
 Special thanks to our contributors for helping us improve BeeAI.
 
-<a href="https://github.com/i-am-bee/beeai/graphs/contributors">
-  <img alt="Contributors list" src="https://contrib.rocks/image?repo=i-am-bee/beeai" />
+<a href="https://github.com/i-am-bee/beeai-platform/graphs/contributors">
+  <img alt="Contributors list" src="https://contrib.rocks/image?repo=i-am-bee/beeai-platform" />
 </a>
 
 ## Acknowledgements

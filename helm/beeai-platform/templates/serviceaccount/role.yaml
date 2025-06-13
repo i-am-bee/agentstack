@@ -9,6 +9,9 @@ rules:
   - apiGroups: [ "apps" ]
     resources: [ "deployments" ]
     verbs: [ "create", "get", "list", "watch", "update", "patch", "delete" ]
+  - apiGroups: [ "apps" ]
+    resources: [ "deployments/finalizers" ]
+    verbs: [ "update" ]
 
   # Permissions for services (CRUD)
   - apiGroups: [ "" ]
@@ -29,3 +32,8 @@ rules:
   - apiGroups: [ "" ]
     resources: [ "pods/log" ]
     verbs: [ "get" ]
+
+  # Permissions for events (read-only)
+  - apiGroups: [ "" ]
+    resources: [ "events" ]
+    verbs: [ "get", "list", "watch" ]

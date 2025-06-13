@@ -28,7 +28,7 @@ from typing import Any
 import httpx
 import psutil
 from acp_sdk.client import Client
-from httpx import HTTPStatusError
+from httpx import BasicAuth, HTTPStatusError
 from httpx._types import RequestFiles
 
 from beeai_cli.configuration import Configuration
@@ -98,7 +98,12 @@ async def api_request(
     """Make an API request to the server."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            method, urllib.parse.urljoin(API_BASE_URL, path), json=json, files=files, timeout=60
+            method,
+            urllib.parse.urljoin(API_BASE_URL, path),
+            json=json,
+            files=files,
+            timeout=60,
+            auth=BasicAuth("beeai-admin", config.admin_password.get_secret_value()) if config.admin_password else None,
         )
         if response.is_error:
             try:
@@ -106,6 +111,9 @@ async def api_request(
                 error = error.get("detail", str(error))
             except Exception:
                 response.raise_for_status()
+            if response.status_code == 401:
+                message = f'{error}\nexport BEEAI__ADMIN_PASSWORD="<PASSWORD>" to set the admin password.'
+                raise HTTPStatusError(message=message, request=response.request, response=response)
             raise HTTPStatusError(message=error, request=response.request, response=response)
         if response.content:
             return response.json()

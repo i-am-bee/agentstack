@@ -41,10 +41,17 @@ from fastapi.exceptions import RequestValidationError
 from beeai_server.telemetry import INSTRUMENTATION_NAME, shutdown_telemetry
 from beeai_server.bootstrap import bootstrap_dependencies_sync
 from beeai_server.configuration import Configuration
-from beeai_server.exceptions import ManifestLoadError, ProviderNotInstalledError, DuplicateEntityError
+from beeai_server.exceptions import (
+    ManifestLoadError,
+    ProviderNotInstalledError,
+    DuplicateEntityError,
+    UsageLimitExceeded,
+    EntityNotFoundError,
+)
 from beeai_server.api.routes.provider import router as provider_router
 from beeai_server.api.routes.acp import router as acp_router
 from beeai_server.api.routes.env import router as env_router
+from beeai_server.api.routes.files import router as files_router
 from beeai_server.api.routes.llm import router as llm_router
 from beeai_server.api.routes.ui import router as ui_router
 
@@ -61,6 +68,8 @@ def extract_messages(exc):
 def register_global_exception_handlers(app: FastAPI):
     @app.exception_handler(DuplicateEntityError)
     @app.exception_handler(ManifestLoadError)
+    @app.exception_handler(UsageLimitExceeded)
+    @app.exception_handler(EntityNotFoundError)
     async def entity_not_found_exception_handler(request, exc: ManifestLoadError | DuplicateEntityError):
         return await http_exception_handler(request, HTTPException(status_code=exc.status_code, detail=str(exc)))
 
@@ -118,6 +127,7 @@ def mount_routes(app: FastAPI):
     server_router.include_router(acp_router, prefix="/acp")
     server_router.include_router(provider_router, prefix="/providers", tags=["providers"])
     server_router.include_router(env_router, prefix="/variables", tags=["variables"])
+    server_router.include_router(files_router, prefix="/files", tags=["files"])
     server_router.include_router(llm_router, prefix="/llm", tags=["llm"])
     server_router.include_router(ui_router, prefix="/ui", tags=["ui"])
 

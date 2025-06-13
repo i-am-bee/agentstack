@@ -71,7 +71,7 @@ run = "rm -rf ./dist"
 ["beeai-server:image:build"]
 depends = ["beeai-server:build"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "docker build -t ghcr.io/i-am-bee/beeai-platform/beeai-server:local ."
+run = "docker build -t ghcr.io/i-am-bee/beeai-platform/beeai-server:local . --load"
 
 ["beeai-server:migrations:run"]
 dir = "{{config_root}}/apps/beeai-server"
@@ -102,18 +102,22 @@ depends = ["beeai-server:image:build"]
 run = """
 #!/bin/bash
 
-NAMESPACE=beeai
+NAMESPACE=default
 VM_NAME='{{option(name="vm-name", default="beeai-local-dev")}}'
 KUBECONFIG="${HOME}/.beeai/lima/${VM_NAME}/copied-from-guest/kubeconfig.yaml"
+LIMA_HOME=~/.beeai/lima
+
+export KUBECONFIG
+export LIMA_HOME
 
 [[ ! -f .env ]] && cp template.env .env
 
 tele="telepresence --use .*${NAMESPACE}.*"
-($tele list -n beeai --replacements 2>/dev/null | grep -q platform) && echo "Dev environment already running" && exit
-
-mise run beeai-server:dev:stop
+($tele list --replacements 2>/dev/null | grep -q platform) && echo "Dev environment already running" && exit
 
 # Stopping all platform deployments
+mise run beeai-server:dev:stop
+
 if [ '{{flag(name='no-registry')}}' = 'true' ]; then
   extra_flags="--set externalRegistries=null"
 fi
@@ -122,7 +126,6 @@ mise run beeai-cli:run -- platform start \
     --vm-name=${VM_NAME} \
     --import ghcr.io/i-am-bee/beeai-platform/beeai-server:local \
     --set image.tag=local $extra_flags
-export KUBECONFIG
 
 $tele helm install
 $tele connect --namespace "$NAMESPACE"
@@ -171,7 +174,9 @@ deactivate () {
 dir = "{{config_root}}/apps/beeai-server"
 run = """
 #!/bin/bash
-NAMESPACE=beeai
+NAMESPACE=default
+
+telepresence --use ".*${NAMESPACE}.*" uninstall --all-agents || true
 
 # Stop all lima VMs
 {% raw %}
@@ -211,7 +216,7 @@ mise run beeai-server:dev:stop
 curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhost:8333 is already running" && exit 2
 
 VM_NAME=e2e-test-run
-mise run beeai-cli:run -- platform start \
+mise run beeai-cli:run -- platform start -v \
     --vm-name=${VM_NAME} \
     --import ghcr.io/i-am-bee/beeai-platform/beeai-server:local \
     --set image.tag=local --set externalRegistries=null $extra_flags

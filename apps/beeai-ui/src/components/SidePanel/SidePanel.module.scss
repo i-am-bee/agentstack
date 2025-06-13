@@ -18,7 +18,7 @@ $rightPanelWidth: rem(432px);
 
 .root {
   position: fixed;
-  inset-block-start: rem(56px) + rem(1px);
+  inset-block-start: calc(var(--header-height) + var(--header-border-height));
   inset-block-end: 0;
   z-index: 1;
   transition: transform $duration-moderate-02 motion(exit, expressive);

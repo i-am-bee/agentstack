@@ -14,12 +14,40 @@
  * limitations under the License.
  */
 
+import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
+
+import type { Agent } from '../api/types';
 import classes from './AgentTools.module.scss';
 
-export function AgentTools() {
+interface Props {
+  agent: Agent;
+}
+
+export function AgentTools({ agent }: Props) {
+  const tools = agent.metadata.annotations?.tools;
+
   return (
     <div className={classes.root}>
-      <p className={classes.empty}>This agent does not have any tools</p>
+      {tools?.length ? (
+        <ul className={classes.list}>
+          {tools.map(({ name, description }, idx) => (
+            <li key={idx} className={classes.item}>
+              <span className={classes.header}>
+                {/* <span className={classes.icon}></span> */}
+
+                <span className={classes.name}>{name}</span>
+              </span>
+              {description && (
+                <LineClampText className={classes.description} buttonClassName={classes.viewMore} lines={3}>
+                  {description}
+                </LineClampText>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className={classes.empty}>This agent does not have any tools</p>
+      )}
     </div>
   );
 }

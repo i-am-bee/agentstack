@@ -23,6 +23,9 @@ import { Spinner } from '#components/Spinner/Spinner.tsx';
 
 import { AgentIcon } from '../components/AgentIcon';
 import { useChat } from '../contexts/chat';
+import { FileCard } from '../files/components/FileCard';
+import { FileCardsList } from '../files/components/FileCardsList';
+import { getFileContentUrl } from '../files/utils';
 import { Role } from '../types';
 import classes from './Message.module.scss';
 import { type ChatMessage, MessageStatus } from './types';
@@ -42,6 +45,8 @@ export function Message({ message }: Props) {
   const isError =
     isAssistantMessage && (message.status === MessageStatus.Failed || message.status === MessageStatus.Aborted);
   const isFailed = isAssistantMessage && message.status === MessageStatus.Failed;
+
+  const files = (isUserMessage ? message.files : undefined) ?? [];
 
   return (
     <li className={clsx(classes.root)}>
@@ -66,6 +71,20 @@ export function Message({ message }: Props) {
               <span className={classes.empty}>Message has no content</span>
             )}
           </div>
+        )}
+
+        {files.length > 0 && (
+          <FileCardsList>
+            {files.map(({ id, filename }) => {
+              const href = id ? getFileContentUrl({ id }) : undefined;
+
+              return (
+                <li key={id}>
+                  <FileCard href={href} filename={filename} />
+                </li>
+              );
+            })}
+          </FileCardsList>
         )}
       </div>
     </li>

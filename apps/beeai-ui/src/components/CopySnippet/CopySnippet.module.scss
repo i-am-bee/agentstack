@@ -46,6 +46,7 @@
 }
 
 .button {
+  @include hidePopover();
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -86,9 +87,5 @@
 
       background-color: $text-dark;
     }
-  }
-
-  :global(.cds--popover) {
-    display: none;
   }
 }

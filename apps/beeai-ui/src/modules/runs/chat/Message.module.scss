@@ -38,6 +38,9 @@ $avatar-padding-left: $spacing-04 + rem(32px);
 }
 
 .body {
+  display: flex;
+  flex-direction: column;
+  row-gap: $spacing-04;
   padding-inline-start: $avatar-padding-left;
 }
 

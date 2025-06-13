@@ -20,9 +20,10 @@ export type ApiResponse<
   Path extends keyof paths,
   Method extends keyof paths[Path] & ('get' | 'post' | 'delete') = 'get',
   ContentType extends 'application/json' | 'text/event-stream' = 'application/json',
+  StatusCode extends number = 200,
 > = paths[Path][Method] extends {
   responses: {
-    200: {
+    [code in StatusCode]: {
       content: {
         'application/json'?: infer JSON;
         'text/event-stream'?: infer EventStream;

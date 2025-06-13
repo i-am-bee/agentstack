@@ -32,7 +32,7 @@ from beeai_framework.backend import (
     SystemMessage,
     AssistantMessage,
 )
-from beeai_server.api.routes.dependencies import EnvServiceDependency
+from beeai_server.api.dependencies import EnvServiceDependency
 
 
 router = fastapi.APIRouter()

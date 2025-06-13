@@ -18,6 +18,11 @@ import type { ApiPath, ApiResponse } from '#@types/utils.ts';
 
 export type AgentsListResponse = ApiResponse<'/api/v1/acp/agents'>;
 
+interface AgentToolInfo {
+  name: string;
+  description?: string;
+}
+
 export type Agent = ApiResponse<'/api/v1/acp/agents/{name}'> & {
   metadata: {
     name?: string;
@@ -29,6 +34,9 @@ export type Agent = ApiResponse<'/api/v1/acp/agents/{name}'> & {
     examples?: {
       cli?: { command?: string }[];
       command?: string;
+    };
+    annotations?: {
+      tools?: AgentToolInfo[];
     };
   };
 };

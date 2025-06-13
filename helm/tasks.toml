@@ -35,7 +35,7 @@ depends = ["helm:build:*"]
 
 ["helm:build:beeai-platform:dependencies"]
 dir = "{{config_root}}/helm/beeai-platform"
-run = "helm dependency build"
+run = "helm repo add seaweedfs https://seaweedfs.github.io/seaweedfs/helm && helm dependency build"
 sources = ["Chart.yaml", "Chart.lock"]
 outputs = { auto = true }
 

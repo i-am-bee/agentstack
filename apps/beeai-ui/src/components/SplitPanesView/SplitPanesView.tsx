@@ -18,7 +18,6 @@ import { moderate02 } from '@carbon/motion';
 import { AnimatePresence, motion } from 'framer-motion';
 import { type PropsWithChildren, type ReactNode, useEffect } from 'react';
 
-import { Container } from '#components/layouts/Container.tsx';
 import { MainContent } from '#components/layouts/MainContent.tsx';
 import type { MainContentViewProps } from '#components/MainContentView/MainContentView.tsx';
 import { useApp } from '#contexts/App/index.ts';
@@ -30,11 +29,12 @@ import classes from './SplitPanesView.module.scss';
 interface Props {
   leftPane: ReactNode;
   rightPane: ReactNode;
+  mainContent?: ReactNode;
   isSplit?: boolean;
   spacing?: MainContentViewProps['spacing'];
 }
 
-export function SplitPanesView({ leftPane, rightPane, isSplit, spacing }: Props) {
+export function SplitPanesView({ leftPane, rightPane, mainContent, isSplit, spacing }: Props) {
   const { ref: leftPaneRef, scrollbarWidth } = useScrollbarWidth();
   const { agentDetailOpen, navigationOpen, setAgentDetailOpen, setNavigationOpen, setCloseNavOnClickOutside } =
     useApp();
@@ -73,7 +73,7 @@ export function SplitPanesView({ leftPane, rightPane, isSplit, spacing }: Props)
       ) : (
         <MainContent spacing={spacing}>
           <Wrapper key="simple-view" className={classes.simpleView}>
-            <Container size="sm">{leftPane}</Container>
+            {mainContent || leftPane}
           </Wrapper>
         </MainContent>
       )}

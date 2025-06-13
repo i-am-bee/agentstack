@@ -41,12 +41,10 @@ app.add_typer(agent_alias, name="", no_args_is_help=True)
 
 @app.command("version")
 def show_version():
-    """Print version of the BeeAI CLI and related libraries."""
+    """Print version of the BeeAI CLI."""
     from importlib.metadata import version
 
     print("beeai-cli version:", version("beeai-cli"))
-    print("beeai-server version:", version("beeai-server"))
-    print("acp-sdk version:", version("acp-sdk"))
 
 
 @app.command("ui")

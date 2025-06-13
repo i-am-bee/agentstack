@@ -37,11 +37,9 @@
 }
 
 .toggle {
+  @include hidePopover();
   margin-block: rem(-6px);
   &.toggled :global(.cds--btn) svg {
     transform: scaleY(-1);
-  }
-  :global(.cds--popover) {
-    display: none;
   }
 }

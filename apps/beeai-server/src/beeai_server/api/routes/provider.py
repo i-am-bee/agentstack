@@ -20,7 +20,7 @@ from beeai_server.api.schema.provider import CreateProviderRequest
 from uuid import UUID
 
 from beeai_server.domain.models.provider import ProviderWithState
-from beeai_server.api.routes.dependencies import ProviderServiceDependency
+from beeai_server.api.dependencies import ProviderServiceDependency, AdminUserDependency
 from beeai_server.api.schema.common import PaginatedResponse
 from starlette.responses import StreamingResponse
 
@@ -31,6 +31,7 @@ router = fastapi.APIRouter()
 
 @router.post("")
 async def create_provider(
+    _: AdminUserDependency,
     request: CreateProviderRequest,
     provider_service: ProviderServiceDependency,
     auto_remove: bool = Query(default=False),
@@ -42,7 +43,9 @@ async def create_provider(
 
 @router.post("/register/unmanaged", deprecated=True)
 async def deprecated_create_unmanaged_provider(
-    request: CreateProviderRequest, provider_service: ProviderServiceDependency
+    _: AdminUserDependency,
+    request: CreateProviderRequest,
+    provider_service: ProviderServiceDependency,
 ) -> ProviderWithState:
     """Backward compatibility for ACP sdk."""
     return await provider_service.create_provider(location=request.location, auto_remove=True)
@@ -67,11 +70,19 @@ async def get_provider(id: UUID, provider_service: ProviderServiceDependency) ->
 
 
 @router.delete("/{id}", status_code=fastapi.status.HTTP_204_NO_CONTENT)
-async def delete_provider(id: UUID, provider_service: ProviderServiceDependency) -> None:
+async def delete_provider(
+    _: AdminUserDependency,
+    id: UUID,
+    provider_service: ProviderServiceDependency,
+) -> None:
     await provider_service.delete_provider(provider_id=id)
 
 
 @router.get("/{id}/logs", status_code=fastapi.status.HTTP_204_NO_CONTENT)
-async def stream_logs(id: UUID, provider_service: ProviderServiceDependency) -> StreamingResponse:
+async def stream_logs(
+    _: AdminUserDependency,
+    id: UUID,
+    provider_service: ProviderServiceDependency,
+) -> StreamingResponse:
     logs_iterator = await provider_service.stream_logs(provider_id=id)
     return streaming_response(logs_iterator())

@@ -12,25 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import contextlib
 import json
 import os
 import subprocess
-import sys
 from collections.abc import Iterable
+from contextlib import asynccontextmanager
+from contextvars import ContextVar
 from copy import deepcopy
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Optional, TypeVar
+from io import BytesIO
+from typing import TYPE_CHECKING, Any, Optional, TypeVar, cast
 
 import anyio
 import typer
 import yaml
+from anyio import create_task_group
+from anyio.abc import ByteReceiveStream
 from cachetools import cached
 from jsf import JSF
 from prompt_toolkit import PromptSession
 from prompt_toolkit.shortcuts import CompleteStyle
 from pydantic import BaseModel
+from rich.text import Text
 
-from beeai_cli.console import console
+from beeai_cli.console import console, err_console
 
 if TYPE_CHECKING:
     from prompt_toolkit.completion import Completer
@@ -187,50 +193,63 @@ async def launch_graphical_interface(host_url: str):
     webbrowser.open(host_url)
 
 
+@asynccontextmanager
+async def capture_output(process: anyio.abc.Process, stream_contents: list | None = None):
+    async def receive_logs(stream: ByteReceiveStream, index=0):
+        buffer = BytesIO()
+        async for chunk in stream:
+            err_console.print(Text.from_ansi(chunk.decode()), style="dim")
+            buffer.write(chunk)
+        if stream_contents:
+            stream_contents[index] = buffer.getvalue()
+
+    async with create_task_group() as tg:
+        if process.stdout:
+            tg.start_soon(receive_logs, process.stdout, 0)
+        if process.stderr:
+            tg.start_soon(receive_logs, process.stderr, 1)
+        yield
+
+
 async def run_command(
-    cmd: list[str],
+    command: list[str],
     message: str,
     env: dict | None = None,
     cwd: str = ".",
     check: bool = True,
     ignore_missing: bool = False,
-    passthrough: bool = False,
     input: bytes | None = None,
 ) -> subprocess.CompletedProcess:
     """Helper function to run a subprocess command and handle common errors."""
     env = env or {}
     try:
-        if passthrough:
-            console.print(f"{message}:")
-            result = await anyio.run_process(
-                cmd,
-                check=check,
-                stdin=None,
-                stderr=None,
-                env={**os.environ, **env},
-                cwd=cwd,
-                input=input,
-            )
-        else:
-            with console.status(f"{message}...", spinner="dots"):
-                result = await anyio.run_process(
-                    cmd,
-                    check=check,
-                    env={**os.environ, **env},
-                    cwd=cwd,
-                    input=input,
-                )
-        console.print(f"{message} [[green]DONE[/green]]")
-        return result
+        with status(message):
+            err_console.print(f"Command: {command}", style="dim")
+            async with await anyio.open_process(
+                command, stdin=subprocess.PIPE if input else None, env={**os.environ, **env}, cwd=cwd
+            ) as process:
+                stream_contents: list[bytes | None] = [None, None]
+                async with capture_output(process, stream_contents=stream_contents):
+                    if process.stdin and input:
+                        await process.stdin.send(input)
+                        await process.stdin.aclose()
+                    await process.wait()
+
+                output, errors = stream_contents
+                if check and process.returncode != 0:
+                    raise subprocess.CalledProcessError(cast(int, process.returncode), command, output, errors)
+
+                console.print(f"{message} [[green]DONE[/green]]")
+                return subprocess.CompletedProcess(command, cast(int, process.returncode), output, errors)
     except FileNotFoundError:
         if ignore_missing:
             return None
         console.print(f"{message} [[red]ERROR[/red]]")
-        tool_name = cmd[0]
+        tool_name = command[0]
         console.print(f"[red]Error: {tool_name} is not installed. Please install {tool_name} first.[/red]")
         if tool_name == "limactl":
             console.print("[yellow]You can install Lima with: brew install lima[/yellow]")
-        sys.exit(1)
+        raise
     except subprocess.CalledProcessError as e:
         console.print(f"{message} [[red]ERROR[/red]]")
         console.print(f"[red]Exit code: {e.returncode} [/red]")
@@ -238,4 +257,43 @@ async def run_command(
             console.print(f"[red]Error: {e.stderr.strip()}[/red]")
         if e.stdout:
             console.print(f"[red]Output: {e.stdout.strip()}[/red]")
-        sys.exit(1)
+        raise
+
+
+IN_VERBOSITY_CONTEXT: ContextVar[bool] = ContextVar("verbose", default=False)
+VERBOSE: ContextVar[bool] = ContextVar("verbose", default=False)
+
+
+@contextlib.contextmanager
+def status(message: str):
+    if VERBOSE.get():
+        console.print(f"{message}...")
+        yield
+        return
+    else:
+        err_console.print(f"\n[bold]{message}[/bold]")
+        with console.status(f"{message}...", spinner="dots"):
+            yield
+
+
+@contextlib.contextmanager
+def verbosity(verbose: bool):
+    if IN_VERBOSITY_CONTEXT.get():
+        yield  # Already in a verbosity context, act as a null context manager
+        return
+
+    IN_VERBOSITY_CONTEXT.set(True)
+    token = VERBOSE.set(verbose)
+    try:
+        with err_console.capture() if not verbose else contextlib.nullcontext() as capture:
+            yield
+
+    except Exception:
+        if not verbose and capture and (logs := capture.get().strip()):
+            err_console.print("\n[yellow]--- Captured logs ---[/yellow]\n")
+            err_console.print(Text.from_ansi(logs, style="dim"))
+            err_console.print("\n[red]------- Error -------[/red]\n")
+        raise
+    finally:
+        VERBOSE.reset(token)
+        IN_VERBOSITY_CONTEXT.set(False)

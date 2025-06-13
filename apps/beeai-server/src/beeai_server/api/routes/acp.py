@@ -27,7 +27,7 @@ from acp_sdk.models import (
 )
 
 from beeai_server.api.schema.acp import AgentsListResponse, AgentReadResponse
-from beeai_server.api.routes.dependencies import AcpProxyServiceDependency
+from beeai_server.api.dependencies import AcpProxyServiceDependency, AuthenticatedUserDependency
 from beeai_server.service_layer.services.acp import AcpServerResponse
 
 router = fastapi.APIRouter()
@@ -52,37 +52,45 @@ def _to_fastapi(response: AcpServerResponse):
 
 
 @router.post("/runs")
-async def create_run(request: RunCreateRequest, acp_service: AcpProxyServiceDependency) -> RunCreateResponse:
-    client = await acp_service.get_proxy_client(agent_name=request.agent_name)
-    response = await acp_service.send_request(client, "POST", "/runs", request.model_dump(mode="json"))
+async def create_run(
+    request: RunCreateRequest, acp_service: AcpProxyServiceDependency, user: AuthenticatedUserDependency
+) -> RunCreateResponse:
+    client = await acp_service.get_proxy_client(agent_name=request.agent_name, user=user)
+    response = await acp_service.send_request(client, "POST", "/runs", request)
     return _to_fastapi(response)
 
 
 @router.get("/runs/{run_id}")
-async def read_run(run_id: RunId, acp_service: AcpProxyServiceDependency) -> RunReadResponse:
-    client = await acp_service.get_proxy_client(run_id=run_id)
+async def read_run(
+    run_id: RunId, acp_service: AcpProxyServiceDependency, user: AuthenticatedUserDependency
+) -> RunReadResponse:
+    client = await acp_service.get_proxy_client(run_id=run_id, user=user)
     response = await acp_service.send_request(client, "GET", f"/runs/{run_id}")
     return _to_fastapi(response)
 
 
 @router.get("/runs/{run_id}/events")
-async def read_run_events(run_id: RunId, acp_service: AcpProxyServiceDependency) -> RunReadResponse:
-    client = await acp_service.get_proxy_client(run_id=run_id)
+async def read_run_events(
+    run_id: RunId, acp_service: AcpProxyServiceDependency, user: AuthenticatedUserDependency
+) -> RunReadResponse:
+    client = await acp_service.get_proxy_client(run_id=run_id, user=user)
     response = await acp_service.send_request(client, "GET", f"/runs/{run_id}/events")
     return _to_fastapi(response)
 
 
 @router.post("/runs/{run_id}")
 async def resume_run(
-    run_id: RunId, request: RunResumeRequest, acp_service: AcpProxyServiceDependency
+    run_id: RunId, request: RunResumeRequest, acp_service: AcpProxyServiceDependency, user: AuthenticatedUserDependency
 ) -> RunResumeResponse:
-    client = await acp_service.get_proxy_client(run_id=run_id)
-    response = await acp_service.send_request(client, "POST", f"/runs/{run_id}", request.model_dump(mode="json"))
+    client = await acp_service.get_proxy_client(run_id=run_id, user=user)
+    response = await acp_service.send_request(client, "POST", f"/runs/{run_id}", request)
     return _to_fastapi(response)
 
 
 @router.post("/runs/{run_id}/cancel")
-async def cancel_run(run_id: RunId, acp_service: AcpProxyServiceDependency) -> RunCancelResponse:
-    client = await acp_service.get_proxy_client(run_id=run_id)
+async def cancel_run(
+    run_id: RunId, acp_service: AcpProxyServiceDependency, user: AuthenticatedUserDependency
+) -> RunCancelResponse:
+    client = await acp_service.get_proxy_client(run_id=run_id, user=user)
     response = await acp_service.send_request(client, "POST", f"/runs/{run_id}/cancel")
     return _to_fastapi(response)

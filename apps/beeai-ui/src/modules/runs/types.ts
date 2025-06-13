@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 
-import type { GenericEvent } from './api/types';
+import type { Agent } from '#modules/agents/api/types.ts';
+
+import type { GenericEvent, MessagePart } from './api/types';
 
 export enum Role {
   User = 'user',
   Assistant = 'assistant',
+}
+
+export interface RunAgentParams {
+  agent: Agent;
+  messageParts: MessagePart[];
 }
 
 export interface RunStats {

@@ -27,7 +27,7 @@ import type { AgentPageParams } from '../types';
 import { getAvailableAgentLinkUrl } from '../utils';
 import classes from './AgentDetailPanel.module.scss';
 import { AgentTags } from './AgentTags';
-// import { AgentTools } from './AgentTools';
+import { AgentTools } from './AgentTools';
 
 export function AgentDetailPanel() {
   const { agentName } = useParams<AgentPageParams>();
@@ -48,7 +48,7 @@ export function AgentDetailPanel() {
           <TabList>
             <Tab>Agent details</Tab>
 
-            <Tab disabled>Tools</Tab>
+            <Tab>Tools</Tab>
           </TabList>
 
           <TabPanels>
@@ -80,9 +80,9 @@ export function AgentDetailPanel() {
               </div>
             </TabPanel>
 
-            {/* <TabPanel>
-              <AgentTools />
-            </TabPanel> */}
+            <TabPanel>
+              <AgentTools agent={agent} />
+            </TabPanel>
           </TabPanels>
         </Tabs>
       </div>

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 import logging
 import os
 import socket
@@ -66,6 +67,14 @@ def migrate():
     from beeai_server.infrastructure.persistence.migrations.migrate import migrate as migrate_fn
 
     migrate_fn()
+
+
+def create_buckets():
+    from beeai_server.infrastructure.object_storage.create_buckets import create_buckets
+
+    configure_logging()
+    configuration = get_configuration()
+    asyncio.run(create_buckets(configuration.object_storage))
 
 
 __all__ = ["serve"]

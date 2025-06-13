@@ -22,24 +22,23 @@ import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
 
 import { InputBar } from '../components/InputBar';
 import { useHandsOff } from '../contexts/hands-off';
+import { useFileUpload } from '../files/contexts';
 import classes from './HandsOffInput.module.scss';
 
 export function HandsOffInput() {
   const { input, output, isPending, onSubmit } = useHandsOff();
+  const { isPending: isFileUploadPending } = useFileUpload();
 
   const form = useForm<FormValues>({
     mode: 'onChange',
     defaultValues: {},
   });
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { isSubmitting },
-  } = form;
+  const { register, handleSubmit, watch, reset } = form;
 
-  const isSubmitDisabled = isSubmitting;
+  const inputValue = watch('input');
+
+  const isSubmitDisabled = isPending || isFileUploadPending || !inputValue;
   const isPendingOrOutput = Boolean(isPending || output);
 
   return (

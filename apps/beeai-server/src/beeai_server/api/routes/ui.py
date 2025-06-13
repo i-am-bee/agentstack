@@ -15,7 +15,7 @@
 import fastapi
 
 from beeai_server.configuration import UIFeatureFlags
-from beeai_server.api.routes.dependencies import ConfigurationDependency
+from beeai_server.api.dependencies import ConfigurationDependency
 
 router = fastapi.APIRouter()
 

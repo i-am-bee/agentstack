@@ -14,6 +14,60 @@
  * limitations under the License.
  */
 
+.root {
+  padding-inline: $spacing-02;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-03;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-02;
+  padding-block: $spacing-03 $spacing-04;
+  max-inline-size: rem(376px);
+}
+
+.header {
+  display: flex;
+  column-gap: $spacing-02;
+  align-items: center;
+}
+
+.icon {
+  inline-size: rem(24px);
+  block-size: rem(24px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.name {
+  @include type-style('body-compact-01');
+  @include line-clamp();
+  color: $text-dark;
+}
+
+.description {
+  @include type-style('label-01');
+  display: flex;
+  flex-direction: column;
+  row-gap: $spacing-02;
+}
+
+.viewMore {
+  justify-content: flex-start;
+  :global(.cds--btn) {
+    @include type-style('label-01');
+    column-gap: $spacing-02;
+    color: $text-secondary;
+  }
+}
+
 .empty {
   font-size: rem(14px);
   line-height: math.div(20, 14);
