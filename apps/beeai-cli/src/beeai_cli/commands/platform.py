@@ -122,6 +122,7 @@ def _validate_driver(vm_driver: VMDriver | None) -> VMDriver:
         case None:
             if is_windows:
                 if has_docker:
+                    console.print("[yellow]Warning: Windows support is experimental.[/yellow]")
                     return VMDriver.docker
                 else:
                     console.print(
@@ -132,6 +133,9 @@ def _validate_driver(vm_driver: VMDriver | None) -> VMDriver:
             if has_lima and (has_vz or has_qemu):
                 return VMDriver.lima
             elif has_docker:
+                console.print(
+                    "[yellow]Warning: Running the VM in Docker, since Lima is not set up properly. If you want to use Lima instead, run `beeai platform delete --vm-driver=docker` and then follow the installation instructions at https://docs.beeai.dev/introduction/installation[/yellow]"
+                )
                 return VMDriver.docker
             else:
                 console.print(
