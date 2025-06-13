@@ -13,7 +13,7 @@ kubeconform = "latest"
 "ubi:telepresenceio/telepresence" = "latest"
 
 # Misc
-lima = "1.0.7" # keep in sync with apps/beeai-cli/.lima-version
+lima = "1.1.1" # keep in sync with apps/beeai-cli/.lima-version
 yq = "latest"
 "ubi:B1NARY-GR0UP/nwa" = "latest"
 

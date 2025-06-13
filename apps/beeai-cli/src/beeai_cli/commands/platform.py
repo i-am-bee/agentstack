@@ -282,6 +282,9 @@ async def start(
                 "Creating a " + {VMDriver.lima: "Lima VM", VMDriver.docker: "Docker container"}[vm_driver],
                 env={
                     "LIMA_HOME": str(configuration.lima_home),
+                    # Hotfix for port-forwarding until this issue is resolved:
+                    # https://github.com/lima-vm/lima/issues/3601#issuecomment-2936952923
+                    "LIMA_SSH_PORT_FORWARDER": "true",
                 },
             )
         elif status != "running":
@@ -293,6 +296,9 @@ async def start(
                 "Starting up",
                 env={
                     "LIMA_HOME": str(configuration.lima_home),
+                    # Hotfix for port-forwarding until this issue is resolved:
+                    # https://github.com/lima-vm/lima/issues/3601#issuecomment-2936952923
+                    "LIMA_SSH_PORT_FORWARDER": "true",
                 },
             )
         else:
@@ -301,15 +307,19 @@ async def start(
         if vm_driver == VMDriver.lima:
             await run_command(
                 [
-                    _limactl_exe(),
+                    "limactl",
                     "--tty=false",
                     "start-at-login",
-                    "--enabled=true",
+                    # TODO: temporarily disabled due to port-forwarding issue (workaround not working in start-at-login)
+                    "--enabled=false",
                     vm_name,
                 ],
                 "Configuring",
                 env={
                     "LIMA_HOME": str(configuration.lima_home),
+                    # Hotfix for port-forwarding until this issue is resolved:
+                    # https://github.com/lima-vm/lima/issues/3601#issuecomment-2936952923
+                    "LIMA_SSH_PORT_FORWARDER": "true",
                 },
             )
 
@@ -398,19 +408,6 @@ async def stop(
             console.print("BeeAI platform not found. Nothing to stop.")
             return
         await run_command(
-            [
-                _limactl_exe(),
-                "--tty=false",
-                "start-at-login",
-                "--enabled=false",
-                vm_name,
-            ],
-            "Configuring",
-            env={
-                "LIMA_HOME": str(configuration.lima_home),
-            },
-        )
-        await run_command(
             {
                 VMDriver.lima: [_limactl_exe(), "--tty=false", "stop", "--force", vm_name],
                 VMDriver.docker: ["docker", "stop", vm_name],
@@ -432,19 +429,6 @@ async def delete(
     """Delete BeeAI platform."""
     with verbosity(verbose):
         vm_driver = _validate_driver(vm_driver)
-        await run_command(
-            [
-                _limactl_exe(),
-                "--tty=false",
-                "start-at-login",
-                "--enabled=false",
-                vm_name,
-            ],
-            "Configuring",
-            env={
-                "LIMA_HOME": str(configuration.lima_home),
-            },
-        )
         await run_command(
             {
                 VMDriver.lima: [_limactl_exe(), "--tty=false", "delete", "--force", vm_name],
