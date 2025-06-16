@@ -3,17 +3,39 @@ title: "Installation & Setup"
 description: "Getting started with BeeAI on your system"
 ---
 
+<Tip>
+
+BeeAI runs on supported versions of macOS, Linux and Windows.
+
+</Tip>
+
 <Tabs>
 <Tab title="macOS">
 <Steps>
 <Step title="Install uv">
 
-If you don't have `uv` installed, install it with:
+If you don't have `uv` installed, install it using one of the supported ways:
+
+<Tabs>
+<Tab title="Installation script">
+
+Open a terminal and run:
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
+</Tab>
+<Tab title="Homebrew">
+
+Open a terminal and run:
+
+```bash
+brew install uv
+```
+
+</Tab>
+</Tabs>
 </Step>
 <Step title="Install BeeAI">
 
@@ -64,12 +86,30 @@ Starting up an agent for a first time may take a few minutes. If everything is s
 <Steps>
 <Step title="Install uv">
 
-If you don't have `uv` installed, install it with:
+If you don't have `uv` installed, install it through one of the available ways:
+
+<Tabs>
+<Tab title="Installation script">
+
+Open a terminal and run:
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
+</Tab>
+<Tab title="Package manager">
+
+Some Linux distributions package `uv`, but beware that some may include outdated versions.
+
+Check the [Repology website](https://repology.org/project/uv/versions) to see if your distribution packages `uv`.
+
+Alternatively, you may install `uv` using `pipx` or `cargo` according to the [official installation instructions](https://docs.astral.sh/uv/getting-started/installation/).
+
+If in doubt, just use the installation script.
+
+</Tab>
+</Tabs>
 </Step>
 <Step title="Install QEMU">
 
