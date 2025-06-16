@@ -45,6 +45,11 @@ export type AgentName = Agent['name'];
 
 export type ReadAgentPath = ApiPath<'/api/v1/acp/agents/{name}'>;
 
+export interface ListAgentsParams {
+  onlySupportedUis?: boolean;
+  sort?: boolean;
+}
+
 export enum UiType {
   Chat = 'chat',
   HandsOff = 'hands-off',

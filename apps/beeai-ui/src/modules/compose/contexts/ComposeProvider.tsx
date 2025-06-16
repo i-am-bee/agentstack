@@ -24,7 +24,6 @@ import { useHandleError } from '#hooks/useHandleError.ts';
 import { usePrevious } from '#hooks/usePrevious.ts';
 import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
-import { useSupportedAgents } from '#modules/agents/hooks/useSupportedAgents.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
 import { createMessagePart, extractOutput, formatLog, isArtifact } from '#modules/runs/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
@@ -35,8 +34,7 @@ import type { ComposeStep, SequentialFormValues } from './compose-context';
 import { ComposeContext, ComposeStatus } from './compose-context';
 
 export function ComposeProvider({ children }: PropsWithChildren) {
-  const { data } = useListAgents();
-  const agents = useSupportedAgents({ agents: data });
+  const { data: agents } = useListAgents({ params: { onlySupportedUis: true, sort: true } });
   const [searchParams, setSearchParams] = useSearchParams();
   const errorHandler = useHandleError();
 

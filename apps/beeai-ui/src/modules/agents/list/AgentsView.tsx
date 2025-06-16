@@ -26,12 +26,16 @@ import { AgentCard } from '../components/AgentCard';
 import { AgentsFilters } from '../components/AgentsFilters';
 import { AgentsList } from '../components/AgentsList';
 import { ImportAgents } from '../components/ImportAgents';
-import { useSupportedAgents } from '../hooks/useSupportedAgents';
 import type { AgentsFiltersParams } from '../providers/AgentsFiltersProvider';
 
 export function AgentsView() {
-  const { data, isPending, error, refetch, isRefetching } = useListAgents();
-  const agents = useSupportedAgents({ agents: data });
+  const {
+    data: agents,
+    isPending,
+    error,
+    refetch,
+    isRefetching,
+  } = useListAgents({ params: { onlySupportedUis: true, sort: true } });
 
   const { watch } = useFormContext<AgentsFiltersParams>();
   const filters = watch();

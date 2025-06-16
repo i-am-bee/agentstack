@@ -36,7 +36,6 @@ import { useModal } from '#contexts/Modal/index.tsx';
 import { useTableSearch } from '#hooks/useTableSearch.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
 import { ImportAgentsModal } from '#modules/agents/components/ImportAgentsModal.tsx';
-import { useSupportedAgents } from '#modules/agents/hooks/useSupportedAgents.ts';
 import { getAgentsProgrammingLanguages } from '#modules/agents/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
@@ -49,8 +48,9 @@ export function ProvidersView() {
   const { openModal, openConfirmation } = useModal();
   const { data: providers, isPending: isProvidersPending } = useListProviders();
   const { mutate: deleteProvider } = useDeleteProvider();
-  const { data, isPending: isAgentsPending } = useListAgents();
-  const agents = useSupportedAgents({ agents: data });
+  const { data: agents, isPending: isAgentsPending } = useListAgents({
+    params: { onlySupportedUis: true, sort: true },
+  });
   const agentsByProvider = groupAgentsByProvider(agents);
 
   const entries = useMemo(
