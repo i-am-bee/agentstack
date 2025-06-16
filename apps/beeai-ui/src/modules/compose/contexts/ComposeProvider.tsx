@@ -24,6 +24,7 @@ import { useHandleError } from '#hooks/useHandleError.ts';
 import { usePrevious } from '#hooks/usePrevious.ts';
 import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
+import { useSupportedAgents } from '#modules/agents/hooks/useSupportedAgents.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
 import { createMessagePart, extractOutput, formatLog, isArtifact } from '#modules/runs/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
@@ -34,7 +35,8 @@ import type { ComposeStep, SequentialFormValues } from './compose-context';
 import { ComposeContext, ComposeStatus } from './compose-context';
 
 export function ComposeProvider({ children }: PropsWithChildren) {
-  const { data: availableAgents } = useListAgents();
+  const { data } = useListAgents();
+  const agents = useSupportedAgents({ agents: data });
   const [searchParams, setSearchParams] = useSearchParams();
   const errorHandler = useHandleError();
 
@@ -53,16 +55,16 @@ export function ComposeProvider({ children }: PropsWithChildren) {
   let lastAgentIdx = 0;
 
   useEffect(() => {
-    if (!availableAgents || steps.length === previousSteps.length) return;
+    if (!agents || steps.length === previousSteps.length) return;
 
     setSearchParams((searchParams) => {
       searchParams.set(SEQUENTIAL_WORKFLOW_AGENTS_URL_PARAM, steps.map(({ agent }) => agent.name).join(','));
       return searchParams;
     });
-  }, [availableAgents, previousSteps.length, setSearchParams, steps]);
+  }, [agents, previousSteps.length, setSearchParams, steps]);
 
   useEffect(() => {
-    if (!availableAgents) return;
+    if (!agents) return;
 
     const agentNames = searchParams
       .get(SEQUENTIAL_WORKFLOW_AGENTS_URL_PARAM)
@@ -72,13 +74,13 @@ export function ComposeProvider({ children }: PropsWithChildren) {
       replaceSteps(
         agentNames
           .map((name) => {
-            const agent = availableAgents.find((agent) => name === agent.name);
+            const agent = agents.find((agent) => name === agent.name);
             return agent ? { agent, instruction: '' } : null;
           })
           .filter(isNotNull),
       );
     }
-  }, [availableAgents, replaceSteps, searchParams, steps.length]);
+  }, [agents, replaceSteps, searchParams, steps.length]);
 
   const { isPending, runAgent, stopAgent, reset } = useRunAgent({
     onMessagePart: (event) => {
