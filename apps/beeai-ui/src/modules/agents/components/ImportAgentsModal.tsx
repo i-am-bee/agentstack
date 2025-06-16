@@ -41,6 +41,7 @@ import { ProviderSource } from '#modules/providers/types.ts';
 
 import { useListProviderAgents } from '../api/queries/useListProviderAgents';
 import { useAgentStatus } from '../hooks/useAgentStatus';
+import { getAgentDisplayName } from '../utils';
 import classes from './ImportAgentsModal.module.scss';
 
 /**
@@ -134,7 +135,11 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
               </FormLabel>
 
               <UnorderedList>
-                {agents?.map((agent) => <ListItem key={agent.name}>{agent.name}</ListItem>)}
+                {agents?.map((agent) => {
+                  const displayName = getAgentDisplayName(agent);
+
+                  return <ListItem key={agent.name}>{displayName}</ListItem>;
+                })}
               </UnorderedList>
             </div>
           )}

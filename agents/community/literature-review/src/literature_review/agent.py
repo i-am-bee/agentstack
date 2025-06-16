@@ -50,6 +50,7 @@ server = Server()
             """
         ),
         ui={"type": "hands-off", "user_greeting": "What topic do you want to research?"},
+        annotations={"display_name": "Literature Review"},
         examples={
             "cli": [
                 {

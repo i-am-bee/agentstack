@@ -21,6 +21,7 @@ import { useFormContext } from 'react-hook-form';
 
 import { Spinner } from '#components/Spinner/Spinner.tsx';
 import { TextAreaAutoHeight } from '#components/TextAreaAutoHeight/TextAreaAutoHeight.tsx';
+import { getAgentDisplayName } from '#modules/agents/utils.ts';
 
 import { useCompose } from '../contexts';
 import type { SequentialFormValues } from '../contexts/compose-context';
@@ -46,6 +47,7 @@ export function ComposeStepListItem({ idx }: Props) {
 
   const step = watch(`steps.${idx}`);
   const { agent, isPending, stats, instruction } = step;
+  const displayName = getAgentDisplayName(agent);
 
   const isViewMode = status !== 'ready';
   const isFinished = Boolean(!isPending && stats?.endTime);
@@ -56,7 +58,7 @@ export function ComposeStepListItem({ idx }: Props) {
         <div className={classes.bullet}>{isPending ? <Spinner /> : <span>{idx + 1}</span>}</div>
       </div>
       <div className={classes.content}>
-        <div className={classes.name}>{agent.name}</div>
+        <div className={classes.name}>{displayName}</div>
 
         <div className={classes.actions}>
           {!isViewMode && (

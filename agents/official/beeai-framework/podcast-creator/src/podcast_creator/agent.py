@@ -90,6 +90,7 @@ processing_steps = [
             """
         ),
         ui={"type": "hands-off", "user_greeting": "Add the content from which you'd like to create your podcast"},
+        annotations={"display_name": "Podcast Creator"},
         examples={
             "cli": [
                 {

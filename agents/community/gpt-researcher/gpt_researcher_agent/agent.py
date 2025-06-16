@@ -47,6 +47,7 @@ server = Server()
             "**Customizable** – Offers customization options to tailor research for specific domains or tasks.",
         ],
         ui={"type": "hands-off", "user_greeting": "What topic do you want to research?"},
+        annotations={"display_name": "GPT Researcher"},
         examples={
             "cli": [
                 {

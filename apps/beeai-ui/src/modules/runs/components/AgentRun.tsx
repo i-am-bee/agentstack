@@ -20,6 +20,7 @@ import { ErrorMessage } from '#components/ErrorMessage/ErrorMessage.tsx';
 import { Container } from '#components/layouts/Container.tsx';
 import { MainContent } from '#components/layouts/MainContent.tsx';
 import { type Agent, UiType } from '#modules/agents/api/types.ts';
+import { getAgentDisplayName } from '#modules/agents/utils.ts';
 
 import { useAgent } from '../../agents/api/queries/useAgent';
 import { Chat } from '../chat/Chat';
@@ -62,6 +63,7 @@ export function AgentRun({ name }: Props) {
 
 const renderUi = ({ agent }: { agent: Agent }) => {
   const type = agent.metadata.ui?.type;
+  const displayName = getAgentDisplayName(agent);
 
   switch (type) {
     case UiType.Chat:
@@ -84,7 +86,7 @@ const renderUi = ({ agent }: { agent: Agent }) => {
       return (
         <MainContent>
           <Container size="sm">
-            <h1>{agent.name}</h1>
+            <h1>{displayName}</h1>
             <div className={classes.uiNotAvailable}>
               {type
                 ? `The UI requested by the agent is not available: '${type}'`

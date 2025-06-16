@@ -84,6 +84,7 @@ def to_framework_message(role: Role, content: str) -> beeai_framework.backend.Me
             "**Agents with Long-Term Memory** – Maintains context across conversations for improved interactions.",
         ],
         ui={"type": "chat", "user_greeting": "How can I help you?"},
+        annotations={"display_name": "Chat"},
         examples={
             "cli": [
                 {

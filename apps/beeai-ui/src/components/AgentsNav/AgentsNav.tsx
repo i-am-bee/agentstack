@@ -41,6 +41,7 @@ export function AgentsNav() {
         {!isPending ? (
           agents?.map((agent) => {
             const { name } = agent;
+            const displayName = getAgentDisplayName(agent);
             const route = routes.agentRun({ name });
             const isActive = pathname === route;
 
@@ -52,7 +53,7 @@ export function AgentsNav() {
                   className={clsx(classes.button, { [classes.isActive]: isActive })}
                   onClick={() => transitionTo(route)}
                 >
-                  {getAgentDisplayName(agent)}
+                  {displayName}
                 </Button>
               </li>
             );

@@ -22,6 +22,7 @@ import { TaskType, useTasks } from '#hooks/useTasks.ts';
 import { agentKeys } from '#modules/agents/api/keys.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
 import { useAgentStatus } from '#modules/agents/hooks/useAgentStatus.ts';
+import { getAgentDisplayName } from '#modules/agents/utils.ts';
 
 interface Props {
   id?: string;
@@ -40,17 +41,21 @@ export function useMonitorProvider({ id }: Props) {
     const { isReady, isInstallError } = await refetchStatus();
 
     if (isReady) {
-      agents?.forEach(({ name }) => {
+      agents?.forEach((agent) => {
+        const displayName = getAgentDisplayName(agent);
+
         addToast({
-          title: `${name} has installed successfully.`,
+          title: `${displayName} has installed successfully.`,
           kind: 'info',
           timeout: 5_000,
         });
       });
     } else if (isInstallError) {
-      agents?.forEach(({ name }) => {
+      agents?.forEach((agent) => {
+        const displayName = getAgentDisplayName(agent);
+
         addToast({
-          title: `${name} failed to install.`,
+          title: `${displayName} failed to install.`,
           timeout: 5_000,
         });
       });

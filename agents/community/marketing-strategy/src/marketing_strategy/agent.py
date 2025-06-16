@@ -63,6 +63,7 @@ server = Server()
         ],
         license="Apache 2.0",
         ui={"type": "hands-off", "user_greeting": "What topic do you want to create a marketing strategy around?"},
+        annotations={"display_name": "Marketing Strategy"},
         examples={
             "cli": [
                 {

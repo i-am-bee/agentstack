@@ -66,6 +66,7 @@ server = Server()
             {"name": "LLM_API_KEY", "description": "API key for OpenAI-compatible API endpoint"},
         ],
         ui={"type": "hands-off", "user_greeting": "What topic do you want to research?"},
+        annotations={"display_name": "Ollama Deep Researcher"},
         examples={
             "cli": [
                 {

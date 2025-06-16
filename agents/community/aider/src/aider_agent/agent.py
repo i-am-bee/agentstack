@@ -65,6 +65,7 @@ server = Server()
             "**Bash/Shell Scripting Assistance** – Automates script writing, optimization, and debugging.",
         ],
         ui={"type": "hands-off", "user_greeting": "Define your programming task"},
+        annotations={"display_name": "Aider"},
         env=[
             {
                 "name": "LLM_MODEL",

@@ -85,6 +85,7 @@ processing_steps = [
             """
         ),
         ui={"type": "hands-off", "user_greeting": "Provide source code of the AI agent you want to document"},
+        annotations={"display_name": "Agent Docs Creator"},
         examples={
             "cli": [
                 {

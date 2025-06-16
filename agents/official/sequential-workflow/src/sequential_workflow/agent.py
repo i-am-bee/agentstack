@@ -87,6 +87,7 @@ server = Server()
             - **Progress Reporting**: Provides detailed logs and progress updates throughout the workflow execution.
             """
         ),
+        annotations={"display_name": "Sequential Workflow"},
         examples={
             "cli": [
                 {
