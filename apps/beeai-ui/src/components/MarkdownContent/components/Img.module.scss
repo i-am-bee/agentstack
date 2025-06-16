@@ -14,34 +14,13 @@
  * limitations under the License.
  */
 
-import type { Role } from '../types';
-
-interface Message {
-  key: string;
-  role: Role;
-  content: string;
-  error?: unknown;
-  files?: MessageFile[];
-}
-export interface UserMessage extends Message {
-  role: Role.User;
-}
-export interface AssistantMessage extends Message {
-  role: Role.Assistant;
-  status: MessageStatus;
+.root {
+  display: flex;
+  border-radius: $spacing-03;
+  overflow: hidden;
 }
 
-export interface MessageFile {
-  key: string;
-  filename: string;
-  href: string;
-}
-
-export type ChatMessage = UserMessage | AssistantMessage;
-
-export enum MessageStatus {
-  InProgress = 'in-progress',
-  Completed = 'completed',
-  Aborted = 'aborted',
-  Failed = 'failed',
+.img {
+  max-inline-size: 100%;
+  block-size: auto;
 }
