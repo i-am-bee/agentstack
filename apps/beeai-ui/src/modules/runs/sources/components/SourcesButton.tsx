@@ -25,13 +25,14 @@ import classes from './SourcesButton.module.scss';
 interface Props {
   sources: SourceReference[];
   isActive?: boolean;
+  onClick?: () => void;
 }
 
-export function SourcesButton({ sources, isActive }: Props) {
+export function SourcesButton({ sources, isActive, onClick }: Props) {
   const count = sources.length;
 
   return (
-    <Button kind="tertiary" className={clsx(classes.root, { [classes.isActive]: isActive })}>
+    <Button kind="tertiary" className={clsx(classes.root, { [classes.isActive]: isActive })} onClick={onClick}>
       <span className={classes.sources}>
         {sources.slice(0, 5).map((source) => (
           <Source key={source.number} source={source} />

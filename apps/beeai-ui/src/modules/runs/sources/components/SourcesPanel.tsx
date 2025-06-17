@@ -16,11 +16,11 @@
 
 import { Close } from '@carbon/icons-react';
 import { IconButton } from '@carbon/react';
-import { useState } from 'react';
 
 import { SidePanel } from '#components/SidePanel/SidePanel.tsx';
 
 import type { SourceReference } from '../api/types';
+import { useSources } from '../contexts';
 import { SourcesList } from './SourcesList';
 import classes from './SourcesPanel.module.scss';
 
@@ -29,7 +29,8 @@ interface Props {
 }
 
 export function SourcesPanel({ sources }: Props) {
-  const [isOpen, setIsOpen] = useState(true);
+  const { activeMessage, hideSources } = useSources();
+  const isOpen = Boolean(activeMessage);
 
   return (
     <SidePanel variant="right" isOpen={isOpen}>
@@ -37,13 +38,7 @@ export function SourcesPanel({ sources }: Props) {
         <header className={classes.header}>
           <h2 className={classes.heading}>Sources</h2>
 
-          <IconButton
-            size="sm"
-            kind="ghost"
-            label="Close"
-            wrapperClasses={classes.closeButton}
-            onClick={() => setIsOpen(false)}
-          >
+          <IconButton size="sm" kind="ghost" label="Close" wrapperClasses={classes.closeButton} onClick={hideSources}>
             <Close />
           </IconButton>
         </header>

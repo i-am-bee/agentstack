@@ -14,8 +14,58 @@
  * limitations under the License.
  */
 
-import type { ResolvedSource, SourceReference } from './api/types';
+import { v4 as uuid } from 'uuid';
+
+import type { CitationMetadata } from '../api/types';
+import type { AssistantMessage, ChatMessage } from '../chat/types';
+import { Role } from '../types';
+import type { ResolvedSource, SourceReference, SourcesData } from './api/types';
 
 export function resolveSource({ source, data }: { source: SourceReference; data: ResolvedSource | undefined }) {
   return data ?? { ...source, metadata: { title: source.url } };
+}
+
+export function prepareMessageSources({
+  message,
+  metadata,
+}: {
+  message: AssistantMessage;
+  metadata: CitationMetadata;
+}) {
+  const {
+    data: { url, start_index, end_index },
+  } = metadata;
+  const { sources = [] } = message;
+
+  const newSources: SourceReference[] = [
+    ...sources,
+    {
+      key: uuid(),
+      url,
+      startIndex: start_index,
+      endIndex: end_index,
+    },
+  ]
+    .sort((a, b) => a.startIndex - b.startIndex)
+    .map((source, idx) => ({
+      ...source,
+      number: idx + 1,
+    }));
+
+  return newSources;
+}
+
+export function extractSources(messages: ChatMessage[]) {
+  const sources = messages.reduce<SourcesData>((data, message) => {
+    if (message.role === Role.Assistant && message.sources) {
+      return {
+        ...data,
+        [message.key]: message.sources,
+      };
+    }
+
+    return data;
+  }, {});
+
+  return sources;
 }

@@ -14,24 +14,16 @@
  * limitations under the License.
  */
 
-export interface SourceReference {
-  key: string;
-  number: number;
-  url: string;
-  startIndex: number;
-  endIndex: number;
-}
+import { use } from 'react';
 
-export interface SourceMetadata {
-  title: string;
-  description?: string;
-  faviconUrl?: string;
-}
+import { SourcesContext } from './sources-context';
 
-export interface ResolvedSource extends SourceReference {
-  metadata: SourceMetadata;
-}
+export function useSources() {
+  const context = use(SourcesContext);
 
-export interface SourcesData {
-  [messageKey: string]: SourceReference[];
+  if (!context) {
+    throw new Error('useSources must be used within a SourcesProvider');
+  }
+
+  return context;
 }

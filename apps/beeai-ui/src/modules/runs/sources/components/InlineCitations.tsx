@@ -26,7 +26,7 @@ export function InlineCitations({ sources }: Props) {
   return sources.length > 0 ? (
     <span className={classes.root}>
       {sources.map((source) => (
-        <sup key={source.number}>
+        <sup key={source.key}>
           <InlineCitationButton source={source} />
         </sup>
       ))}

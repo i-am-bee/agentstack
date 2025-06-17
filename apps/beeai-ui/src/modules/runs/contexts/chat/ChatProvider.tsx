@@ -22,8 +22,12 @@ import { v4 as uuid } from 'uuid';
 import { useImmerWithGetter } from '#hooks/useImmerWithGetter.ts';
 import { usePrevious } from '#hooks/usePrevious.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
+import { type MessagePartMetadata, MetadataKind } from '#modules/runs/api/types.ts';
 import { type AssistantMessage, type ChatMessage, MessageStatus } from '#modules/runs/chat/types.ts';
+import { prepareMessageFiles } from '#modules/runs/files/utils.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
+import { SourcesProvider } from '#modules/runs/sources/contexts/SourcesProvider.tsx';
+import { extractSources, prepareMessageSources } from '#modules/runs/sources/utils.ts';
 import { Role } from '#modules/runs/types.ts';
 import {
   createFileMessageParts,
@@ -49,7 +53,7 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
   const { isPending, runAgent, stopAgent, reset } = useRunAgent({
     onMessagePart: (event) => {
       const { part } = event;
-      const { content, content_type, content_url } = part;
+      const { content, content_type, content_url, metadata } = part;
 
       const isArtifact = isArtifactPart(part);
       const hasFile = isString(content_url);
@@ -59,16 +63,7 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
       if (isArtifact) {
         if (hasFile) {
           updateLastAssistantMessage((message) => {
-            const files = [
-              ...(message.files ?? []),
-              {
-                key: uuid(),
-                filename: part.name,
-                href: content_url,
-              },
-            ];
-
-            message.files = files;
+            message.files = prepareMessageFiles({ files: message.files, data: part });
           });
         }
       }
@@ -83,6 +78,10 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
         updateLastAssistantMessage((message) => {
           message.content += toMarkdownImage(content_url);
         });
+      }
+
+      if (metadata) {
+        processMetadata(metadata);
       }
     },
     onMessageCompleted: () => {
@@ -100,6 +99,8 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
     },
   });
 
+  const sourcesData = useMemo(() => extractSources(messages), [messages]);
+
   const updateLastAssistantMessage = useCallback(
     (updater: (message: AssistantMessage) => void) => {
       setMessages((messages) => {
@@ -111,6 +112,23 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
       });
     },
     [setMessages],
+  );
+
+  const processMetadata = useCallback(
+    (metadata: MessagePartMetadata) => {
+      switch (metadata.kind) {
+        case MetadataKind.Citation:
+          updateLastAssistantMessage((message) => {
+            message.sources = prepareMessageSources({ message, metadata });
+          });
+
+          break;
+
+        default:
+          break;
+      }
+    },
+    [updateLastAssistantMessage],
   );
 
   const handleError = useCallback(
@@ -182,8 +200,10 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
   );
 
   return (
-    <ChatContext.Provider value={contextValue}>
-      <ChatMessagesContext.Provider value={messages}>{children}</ChatMessagesContext.Provider>
-    </ChatContext.Provider>
+    <SourcesProvider data={sourcesData}>
+      <ChatContext.Provider value={contextValue}>
+        <ChatMessagesContext.Provider value={messages}>{children}</ChatMessagesContext.Provider>
+      </ChatContext.Provider>
+    </SourcesProvider>
   );
 }

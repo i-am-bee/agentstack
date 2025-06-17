@@ -26,6 +26,7 @@ import { useChat } from '../contexts/chat';
 import { FileCard } from '../files/components/FileCard';
 import { FileCardsList } from '../files/components/FileCardsList';
 import { SourcesButton } from '../sources/components/SourcesButton';
+import { useSources } from '../sources/contexts';
 import { Role } from '../types';
 import classes from './Message.module.scss';
 import { type ChatMessage, MessageStatus } from './types';
@@ -37,6 +38,7 @@ interface Props {
 
 export function Message({ message }: Props) {
   const { agent } = useChat();
+  const { activeMessage, showSources, hideSources } = useSources();
   const { content, role, error } = message;
 
   const isUserMessage = role === Role.User;
@@ -50,7 +52,8 @@ export function Message({ message }: Props) {
   const sources = (isAssistantMessage ? message.sources : null) ?? [];
 
   const hasFiles = files.length > 0;
-  const hasSources = sources.length > 0;
+  const hasSources = isAssistantMessage && sources.length > 0;
+  const isSourcesActive = activeMessage === message.key;
 
   return (
     <li className={clsx(classes.root)}>
@@ -87,7 +90,13 @@ export function Message({ message }: Props) {
           </FileCardsList>
         )}
 
-        {hasSources && <SourcesButton sources={sources} />}
+        {hasSources && (
+          <SourcesButton
+            sources={sources}
+            isActive={isSourcesActive}
+            onClick={() => (isSourcesActive ? hideSources() : showSources(message.key))}
+          />
+        )}
       </div>
     </li>
   );
