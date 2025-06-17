@@ -252,11 +252,11 @@ async def run_command(
         raise
     except subprocess.CalledProcessError as e:
         console.print(f"{message} [[red]ERROR[/red]]")
-        console.print(f"[red]Exit code: {e.returncode} [/red]")
+        err_console.print(f"[red]Exit code: {e.returncode} [/red]")
         if e.stderr:
-            console.print(f"[red]Error: {e.stderr.strip()}[/red]")
+            err_console.print(f"[red]Error: {e.stderr.strip()}[/red]")
         if e.stdout:
-            console.print(f"[red]Output: {e.stdout.strip()}[/red]")
+            err_console.print(f"[red]Output: {e.stdout.strip()}[/red]")
         raise
 
 

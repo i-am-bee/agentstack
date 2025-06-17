@@ -78,6 +78,7 @@ from beeai_cli.utils import (
     prompt_user,
     remove_nullable,
     run_command,
+    status,
     verbosity,
 )
 
@@ -136,16 +137,31 @@ async def add_agent(
 
     with verbosity(verbose):
         process = await run_command(["docker", "inspect", location], check=False, message="Inspecting docker images.")
-        if process.returncode:
-            # If the image was not found locally, try building image
-            location, agents = await build(location, tag=None, vm_name=vm_name, vm_driver=vm_driver, import_image=True)
-        else:
-            manifest = base64.b64decode(
-                json.loads(process.stdout)[0]["Config"]["Labels"]["beeai.dev.agent.yaml"]
-            ).decode()
-            agents = json.loads(manifest)["agents"]
-        # If all build and inspect succeeded, use the local image, else use the original; maybe it exists remotely
-        await api_request("POST", "providers", json={"location": location, "agents": agents})
+        from subprocess import CalledProcessError
+
+        errors = []
+
+        try:
+            if process.returncode:
+                # If the image was not found locally, try building image
+                location, agents = await build(
+                    location, tag=None, vm_name=vm_name, vm_driver=vm_driver, import_image=True
+                )
+            else:
+                manifest = base64.b64decode(
+                    json.loads(process.stdout)[0]["Config"]["Labels"]["beeai.dev.agent.yaml"]
+                ).decode()
+                agents = json.loads(manifest)["agents"]
+            # If all build and inspect succeeded, use the local image, else use the original; maybe it exists remotely
+        except CalledProcessError as e:
+            errors.append(e)
+            console.print("Attempting to use remote image...")
+        try:
+            with status("Registering agent to platform"):
+                await api_request("POST", "providers", json={"location": location, "agents": agents})
+            console.print("Registering agent to platform [[green]DONE[/green]]")
+        except Exception as e:
+            raise ExceptionGroup("Error occured", [*errors, e]) from e
         await list_agents()
 
 
