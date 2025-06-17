@@ -168,108 +168,43 @@ Starting up an agent for a first time may take a few minutes. If everything is s
 </Tab>
 <Tab title="Windows">
 <Steps>
-<Step title="Install WSL2">
-
-If you don't already use [WSL2 (Windows Subsystem for Linux)](https://learn.microsoft.com/en-us/windows/wsl/install), install it:
-
-1. Open PowerShell or Command Prompt as Administrator
-2. Run the WSL installation command:
-
-```bash
-wsl --install
-```
-
-3. Restart your computer when prompted
-4. After restart, a terminal window will open to complete the WSL2 Ubuntu installation
-5. You will be prompted to create a username and password
-
-</Step>
-<Step title="Configure WSL2 networking">
-
-In order for the agents to be able to auto-register and access [Ollama for Windows](https://ollama.com/download/windows), it's necessary to configure the WSL2 networking to a mirrored mode:
-
-1. Run this command in PowerShell to open a configuration file:
-   
-   ```bash
-   notepad $HOME\.wslconfig
-   ```
-
-2. Confirm creation of the file if prompted, and insert the following lines:
-
-   ```ini
-   [wsl2]
-   networkingMode=mirrored
-   ```
-
-3. Restart WSL by running in PowerShell:
-
-   ```bash
-   wsl --shutdown
-   ```
-
-</Step>
-<Step title="Install a container runtime">
-
-Install one of the following container runtimes. Leave installation options at their default values (use WSL2, use `dockerd` runtime).
-
-- [Rancher Desktop](https://rancherdesktop.io/) ✨ recommended
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- [Podman Desktop](https://podman-desktop.io/)
-
-</Step>
 <Step title="Install uv">
 
-You may install the BeeAI CLI directly in Windows (PowerShell), or in the Ubuntu (WSL2) shell. You can even do both, it's up to your preference.
-
-<Tabs>
-<Tab title="PowerShell">
+If you don't have `uv` installed, install it using one of the supported ways.
 
 Open PowerShell and run:
+
+<Tabs>
+<Tab title="Installation script">
 
 ```bash
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
 </Tab>
-<Tab title="Ubuntu (WSL2) shell">
+<Tab title="Winget">
 
-First configure your container runtime to be accessible from WSL2:
-
-<Tabs>
-<Tab title="Rancher Desktop">
-
-1. Open Rancher Desktop
-2. Go to Preferences > WSL Integration
-3. Enable integration for your Ubuntu WSL2 distro
-
-</Tab>
-<Tab title="Docker Desktop">
-
-1. Open Docker Desktop
-2. Go to Settings > Resources > WSL Integration
-3. Enable integration for your Ubuntu WSL2 distro
-
-</Tab>
-<Tab title="Podman Desktop">
-
-For Podman Desktop, follow the [documentation for socket forwarding to WSL2](https://podman-desktop.io/docs/podman/accessing-podman-from-another-wsl-instance).
-
-</Tab>
-</Tabs>
-
-Ensure that `docker` works in WSL2 by running the following in the Ubuntu (WSL2) shell:
 ```bash
-docker ps
+winget install --id=astral-sh.uv -e
 ```
 
-Finally, install `uv` with:
+</Tab>
+<Tab title="Scoop">
 
 ```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
+scoop install uv
+```
+
+</Tab>
+<Tab title="Chocolatey">
+
+```bash
+choco install uv
 ```
 
 </Tab>
 </Tabs>
+
 </Step>
 <Step title="Install BeeAI">
 
@@ -281,6 +216,12 @@ uv tool install beeai-cli
 
 <Step title="Start the BeeAI platform">
 
+<Warning>
+
+This command needs PowerShell to be opened as Administrator. Press the `Win+X` key combination, and you will see this option in the menu that pops up.
+
+</Warning>
+
 ```bash
 beeai platform start
 ```
@@ -291,6 +232,20 @@ beeai platform start
 BeeAI needs an LLM provider for the agents -- like OpenAI, Ollama, Anthropic, etc.
 
 If you don't already have an API key for a provider, you can register for a free one on [OpenRouter](https://openrouter.ai/).
+
+<Accordion title="Want to use Ollama?">
+
+You can use [Ollama for Windows](https://ollama.com/download/windows) with the BeeAI platform, but it needs one extra step.
+
+Run this command in PowerShell (needs Administrator rights, same as previous step):
+
+```bash
+setx OLLAMA_HOST "0.0.0.0" /M
+```
+
+After this, if Ollama is already running, right-click the icon in tray and quit it. Then start Ollama again.
+
+</Accordion>
 
 Run this command and follow the interactive prompts:
 
