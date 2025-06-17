@@ -19,7 +19,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { useToast } from '#contexts/Toast/index.ts';
 import { TaskType, useTasks } from '#hooks/useTasks.ts';
-import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
+import { useListProviderAgents } from '#modules/agents/api/queries/useListProviderAgents.ts';
 import { useProviderStatus } from '#modules/agents/hooks/useProviderStatus.ts';
 
 import { providerKeys } from '../api/keys';
@@ -36,11 +36,11 @@ export function useMonitorProviderStatus({ id, isEnabled }: Props) {
   const { addTask, removeTask } = useTasks();
 
   const { refetch: refetchStatus, ...agentStatusReturn } = useProviderStatus({ providerId: id });
-  const { data: agents } = useListAgents();
+  const { data: agents } = useListProviderAgents({ providerId: id });
 
-  const { isStarting, isNotInstalled, isReady } = agentStatusReturn;
+  const { isStarting, isNotInstalled } = agentStatusReturn;
 
-  const shouldMonitorStatus = isEnabled && !isDone && (isStarting || isNotInstalled || isReady);
+  const shouldMonitorStatus = isEnabled && !isDone && (isStarting || isNotInstalled);
 
   const checkProvider = useCallback(async () => {
     const { isReady, isError } = await refetchStatus();

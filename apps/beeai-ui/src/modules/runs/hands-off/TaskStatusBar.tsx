@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-import { StopFilled } from '@carbon/icons-react';
-import { Button } from '@carbon/react';
-
-import { Spinner } from '#components/Spinner/Spinner.tsx';
-
 import { ElapsedTime } from '../components/ElapsedTime';
+import { StatusBar } from '../components/StatusBar';
 import { useAgent } from '../contexts/agent';
 import { useHandsOff } from '../contexts/hands-off';
-import classes from './TaskStatusBar.module.scss';
 
 interface Props {
   onStopClick?: () => void;
@@ -35,25 +30,14 @@ export function TaskStatusBar({ onStopClick }: Props) {
   } = useAgent();
 
   return stats?.startTime ? (
-    <div className={classes.root}>
-      <div className={classes.label}>
-        {isPending && <Spinner center />}
-        <span>
-          {isNotInstalled || isStarting ? (
-            'Starting the agent, please bee patient...'
-          ) : (
-            <>
-              Task {isPending ? 'running for' : 'completed in'} <ElapsedTime stats={stats} />
-            </>
-          )}
-        </span>
-      </div>
-
-      {onStopClick && (
-        <Button kind="tertiary" size="sm" renderIcon={StopFilled} onClick={onStopClick}>
-          Stop
-        </Button>
+    <StatusBar isPending={isPending} onStopClick={onStopClick}>
+      {isNotInstalled || isStarting ? (
+        'Starting the agent, please bee patient...'
+      ) : (
+        <>
+          Task {isPending ? 'running for' : 'completed in'} <ElapsedTime stats={stats} />
+        </>
       )}
-    </div>
+    </StatusBar>
   ) : null;
 }
