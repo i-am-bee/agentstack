@@ -41,6 +41,7 @@ line-length = 120
 beeai-server = "beeai_server:serve"
 migrate = "beeai_server:migrate"
 create-buckets = "beeai_server:create_buckets"
+create-vector-extension = "beeai_server:create_vector_extension"
 
 [build-system]
 requires = ["hatchling"]

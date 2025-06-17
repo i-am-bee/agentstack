@@ -101,6 +101,7 @@ class PersistenceConfiguration(BaseModel):
     encryption_key: Secret[str] | None = None
     finished_requests_remove_after_sec: int = timedelta(minutes=30).total_seconds()
     stale_requests_remove_after_sec: int = timedelta(hours=1).total_seconds()
+    vector_db_schema: str = Field("vector_db", pattern=r"^[a-zA-Z0-9_]+$")
 
 
 class TelemetryConfiguration(BaseModel):

@@ -130,6 +130,17 @@ Return the PostgreSQL User
 {{- end -}}
 
 {{/*
+Return the PostgreSQL Admin Password
+*/}}
+{{- define "beeai.databaseAdminUser" -}}
+{{- if .Values.postgresql.enabled }}
+    {{- printf "postgres" -}}
+{{- else -}}
+    {{- print .Values.externalDatabase.adminUser -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the PostgreSQL Password
 */}}
 {{- define "beeai.databasePassword" -}}
@@ -139,6 +150,18 @@ Return the PostgreSQL Password
     {{- print .Values.externalDatabase.password -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Return the PostgreSQL Admin Password
+*/}}
+{{- define "beeai.databaseAdminPassword" -}}
+{{- if .Values.postgresql.enabled }}
+    {{- print .Values.postgresql.auth.postgresPassword -}}
+{{- else -}}
+    {{- print .Values.externalDatabase.adminPassword -}}
+{{- end -}}
+{{- end -}}
+
 
 {{/*
 Return the PostgreSQL Secret Name
