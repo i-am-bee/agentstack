@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-import type { Components } from 'react-markdown';
+import clsx from 'clsx';
+import type { ImgHTMLAttributes } from 'react';
+import type { ExtraProps } from 'react-markdown';
 
-import { Code } from './Code';
-import { Img } from './Img';
-import { Table } from './Table';
+import classes from './Img.module.scss';
 
-export const components: Components = {
-  code: Code,
-  table: Table,
-  img: Img,
-};
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function Img({ node, className, ...props }: ImgHTMLAttributes<HTMLImageElement> & ExtraProps) {
+  return (
+    <span className={classes.root}>
+      <img {...props} className={clsx(classes.img, className)} />
+    </span>
+  );
+}

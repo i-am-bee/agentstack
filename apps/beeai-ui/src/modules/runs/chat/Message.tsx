@@ -25,7 +25,6 @@ import { AgentIcon } from '../components/AgentIcon';
 import { useChat } from '../contexts/chat';
 import { FileCard } from '../files/components/FileCard';
 import { FileCardsList } from '../files/components/FileCardsList';
-import { getFileContentUrl } from '../files/utils';
 import { SourcesButton } from '../sources/components/SourcesButton';
 import { Role } from '../types';
 import classes from './Message.module.scss';
@@ -47,7 +46,7 @@ export function Message({ message }: Props) {
     isAssistantMessage && (message.status === MessageStatus.Failed || message.status === MessageStatus.Aborted);
   const isFailed = isAssistantMessage && message.status === MessageStatus.Failed;
 
-  const files = (isUserMessage ? message.files : null) ?? [];
+  const files = message.files ?? [];
   const sources = (isAssistantMessage ? message.sources : null) ?? [];
 
   const hasFiles = files.length > 0;
@@ -80,15 +79,11 @@ export function Message({ message }: Props) {
 
         {hasFiles && (
           <FileCardsList className={classes.files}>
-            {files.map(({ id, filename }) => {
-              const href = id ? getFileContentUrl({ id }) : undefined;
-
-              return (
-                <li key={id}>
-                  <FileCard href={href} filename={filename} />
-                </li>
-              );
-            })}
+            {files.map(({ key, filename, href }) => (
+              <li key={key}>
+                <FileCard href={href} filename={filename} />
+              </li>
+            ))}
           </FileCardsList>
         )}
 

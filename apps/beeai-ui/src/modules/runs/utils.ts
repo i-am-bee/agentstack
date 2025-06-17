@@ -91,7 +91,7 @@ export function createFileMessageParts(files: UploadFileResponse[]) {
   return messageParts;
 }
 
-export function isArtifact(part: MessagePart): part is Artifact {
+export function isArtifactPart(part: MessagePart): part is Artifact {
   return typeof part.name === 'string';
 }
 
@@ -109,6 +109,10 @@ export function extractValidUploadFiles(files: FileEntity[]) {
   const uploadFiles = files.map(({ uploadFile }) => uploadFile).filter(isNotNull);
 
   return uploadFiles;
+}
+
+export function mapToMessageFiles(uploadFiles: UploadFileResponse[]) {
+  return uploadFiles.map(({ id, filename }) => ({ key: id, filename, href: getFileContentUrl({ id }) }));
 }
 
 export function formatLog(log: RunLog) {

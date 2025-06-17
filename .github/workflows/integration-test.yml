@@ -1,0 +1,40 @@
+name: integration-test
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch: { }
+  pull_request:
+    paths:
+      - 'apps/beeai-server/**'
+      - 'apps/beeai-cli/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/beeai-server/**'
+      - 'apps/beeai-cli/**'
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Set up Lima"
+        uses: lima-vm/lima-actions/setup@v1
+        id: lima-actions-setup
+      - name: "Cache ~/.cache/lima"
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/lima
+          key: lima-${{ steps.lima-actions-setup.outputs.version }}
+      - uses: ./.github/actions/setup
+      - run: mise run beeai-server:test:integration
+        env:
+          # TODO: use github models
+          # LLM_API_BASE: "https://models.github.ai/inference"
+          # LLM_MODEL: "meta/Meta-Llama-3.1-8B-Instruct"
+          # LLM_API_KEY: "${{ secrets.GITHUB_TOKEN }}"
+          LLM_API_BASE: "https://api.groq.com/openai/v1"
+          LLM_MODEL: "llama-3.1-8b-instant"
+          LLM_API_KEY: "${{ secrets.GROQ_API_KEY }}"

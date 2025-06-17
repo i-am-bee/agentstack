@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-import type { Components } from 'react-markdown';
+.root {
+  display: flex;
+  border-radius: $spacing-03;
+  overflow: hidden;
+}
 
-import { Code } from './Code';
-import { Img } from './Img';
-import { Table } from './Table';
-
-export const components: Components = {
-  code: Code,
-  table: Table,
-  img: Img,
-};
+.img {
+  max-inline-size: 100%;
+  block-size: auto;
+}

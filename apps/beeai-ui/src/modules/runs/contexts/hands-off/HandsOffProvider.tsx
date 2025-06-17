@@ -28,7 +28,7 @@ import {
   createMessagePart,
   extractOutput,
   extractValidUploadFiles,
-  isArtifact,
+  isArtifactPart,
 } from '#modules/runs/utils.ts';
 
 import { useFileUpload } from '../../files/contexts';
@@ -54,7 +54,7 @@ export function HandsOffProvider({ agent, children }: PropsWithChildren<Props>) 
     onMessagePart: (event) => {
       const { part } = event;
 
-      if (isArtifact(part)) {
+      if (isArtifactPart(part)) {
         return;
       }
 

@@ -33,3 +33,7 @@ export function isNotNull<T>(value: T | null | undefined): value is T {
 export function compareStrings(a: string, b: string): number {
   return a.localeCompare(b, 'en', { sensitivity: 'base' });
 }
+
+export function isImageContentType(contentType: string | null | undefined): boolean {
+  return Boolean(contentType?.toLowerCase().startsWith('image/'));
+}

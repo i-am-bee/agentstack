@@ -95,15 +95,15 @@ mise run beeai-server:dev:clean
 <details>
 
 
-#### Developing e2e tests
+#### Developing tests
 
-We use a separate VM for local development of e2e tests, the setup is almost identical, but you need to change
-kubeconfig location in your .env:
+We use a separate VM for local development of e2e and integration tests, the setup is almost identical, 
+but you need to change kubeconfig location in your .env:
 ```shell
-# Use for developing e2e tests locally
-K8S_KUBECONFIG=~/.beeai/lima/e2e-test/copied-from-guest/kubeconfig.yaml
+# Use for developing e2e and integration tests locally
+K8S_KUBECONFIG=~/.beeai/lima/beeai-local-test/copied-from-guest/kubeconfig.yaml
 ```
-and then run `beeai-server:dev:e2e:start`
+and then run `beeai-server:dev:test:start`
 
 
 <summary> Lower-level networking using telepresence directly</summary>

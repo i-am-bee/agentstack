@@ -61,7 +61,7 @@ export function FileCard({ filename, href, size = 'md', status, onRemoveClick }:
       {Icon && <Icon className={classes.icon} />}
 
       {href ? (
-        <a href={href} download={filename} className={classes.link}>
+        <a href={href} target="_blank" rel="noreferrer" download={filename} className={classes.link}>
           {content}
         </a>
       ) : (
