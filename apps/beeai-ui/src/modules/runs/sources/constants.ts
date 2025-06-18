@@ -14,22 +14,4 @@
  * limitations under the License.
  */
 
-import type { SourceReference } from '../api/types';
-import { InlineCitationButton } from './InlineCitationButton';
-import classes from './InlineCitations.module.scss';
-
-interface Props {
-  sources: SourceReference[];
-}
-
-export function InlineCitations({ sources }: Props) {
-  return sources.length > 0 ? (
-    <span className={classes.root}>
-      {sources.map((source) => (
-        <sup key={source.key}>
-          <InlineCitationButton source={source} />
-        </sup>
-      ))}
-    </span>
-  ) : null;
-}
+export const CITATION_LINK_PREFIX = 'citation:';

@@ -21,8 +21,12 @@ export const AppContext = createContext<AppContextValue>({});
 interface AppContextValue {
   navigationOpen?: boolean;
   agentDetailOpen?: boolean;
+  sourcesPanelOpen?: boolean;
   closeNavOnClickOutside?: boolean;
   setNavigationOpen?: Dispatch<SetStateAction<boolean>>;
-  setAgentDetailOpen?: Dispatch<SetStateAction<boolean>>;
+  showAgentDetail?: () => void;
+  hideAgentDetail?: () => void;
+  showSourcesPanel?: () => void;
+  hideSourcesPanel?: () => void;
   setCloseNavOnClickOutside?: Dispatch<SetStateAction<boolean>>;
 }

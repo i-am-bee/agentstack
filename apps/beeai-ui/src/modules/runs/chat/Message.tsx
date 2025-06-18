@@ -15,11 +15,13 @@
  */
 
 import clsx from 'clsx';
+import { useCallback } from 'react';
 
 import { getErrorMessage } from '#api/utils.ts';
 import { ErrorMessage } from '#components/ErrorMessage/ErrorMessage.tsx';
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 import { Spinner } from '#components/Spinner/Spinner.tsx';
+import { useApp } from '#contexts/App/index.ts';
 
 import { AgentIcon } from '../components/AgentIcon';
 import { useChat } from '../contexts/chat';
@@ -38,8 +40,9 @@ interface Props {
 
 export function Message({ message }: Props) {
   const { agent } = useChat();
-  const { activeMessage, showSources, hideSources } = useSources();
-  const { content, role, error } = message;
+  const { sourcesPanelOpen, showSourcesPanel, hideSourcesPanel } = useApp();
+  const { activeMessageKey, setActiveMessageKey, setActiveSourceKey } = useSources();
+  const { key, content, role, error } = message;
 
   const isUserMessage = role === Role.User;
   const isAssistantMessage = role === Role.Assistant;
@@ -53,7 +56,29 @@ export function Message({ message }: Props) {
 
   const hasFiles = files.length > 0;
   const hasSources = isAssistantMessage && sources.length > 0;
-  const isSourcesActive = activeMessage === message.key;
+  const isSourcesActive = sourcesPanelOpen && activeMessageKey === key;
+
+  const handleSourcesButtonClick = useCallback(() => {
+    if (key === activeMessageKey) {
+      if (sourcesPanelOpen) {
+        hideSourcesPanel?.();
+      } else {
+        showSourcesPanel?.();
+      }
+    } else {
+      setActiveMessageKey?.(key);
+      setActiveSourceKey?.(null);
+      showSourcesPanel?.();
+    }
+  }, [
+    key,
+    activeMessageKey,
+    sourcesPanelOpen,
+    hideSourcesPanel,
+    showSourcesPanel,
+    setActiveMessageKey,
+    setActiveSourceKey,
+  ]);
 
   return (
     <li className={clsx(classes.root)}>
@@ -73,7 +98,7 @@ export function Message({ message }: Props) {
         ) : (
           <div className={clsx(classes.content, { [classes.isUser]: isUserMessage })}>
             {content ? (
-              <MarkdownContent>{content}</MarkdownContent>
+              <MarkdownContent sources={sources}>{content}</MarkdownContent>
             ) : (
               <span className={classes.empty}>Message has no content</span>
             )}
@@ -91,11 +116,7 @@ export function Message({ message }: Props) {
         )}
 
         {hasSources && (
-          <SourcesButton
-            sources={sources}
-            isActive={isSourcesActive}
-            onClick={() => (isSourcesActive ? hideSources() : showSources(message.key))}
-          />
+          <SourcesButton sources={sources} isActive={isSourcesActive} onClick={handleSourcesButtonClick} />
         )}
       </div>
     </li>

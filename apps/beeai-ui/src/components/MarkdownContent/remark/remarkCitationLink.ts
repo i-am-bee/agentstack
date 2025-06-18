@@ -14,21 +14,29 @@
  * limitations under the License.
  */
 
-import type { JSX } from 'react';
-import type { Components } from 'react-markdown';
+import type { Root } from 'hast';
+import type { Link } from 'mdast';
+import { visit } from 'unist-util-visit';
 
+import { CITATION_LINK_PREFIX } from '#modules/runs/sources/constants.ts';
 import type { CitationLinkProperties } from '#modules/runs/sources/types.ts';
 
-import { Code } from './Code';
-import { Img } from './Img';
-import { Table } from './Table';
+export function remarkCitationLink() {
+  return (tree: Root) => {
+    visit(tree, 'link', (node: Link) => {
+      const { url } = node;
 
-export interface ExtendedComponents extends Components {
-  citationLink?: (props: CitationLinkProperties) => JSX.Element;
+      if (url.startsWith(CITATION_LINK_PREFIX)) {
+        const keys = url.slice(CITATION_LINK_PREFIX.length).split(',');
+
+        node.data = {
+          ...node.data,
+          hName: 'citationLink',
+          hProperties: {
+            keys,
+          } satisfies CitationLinkProperties,
+        };
+      }
+    });
+  };
 }
-
-export const components = {
-  code: Code,
-  table: Table,
-  img: Img,
-};

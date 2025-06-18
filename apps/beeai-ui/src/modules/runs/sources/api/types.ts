@@ -20,6 +20,7 @@ export interface SourceReference {
   url: string;
   startIndex: number;
   endIndex: number;
+  messageKey: string;
 }
 
 export interface SourceMetadata {

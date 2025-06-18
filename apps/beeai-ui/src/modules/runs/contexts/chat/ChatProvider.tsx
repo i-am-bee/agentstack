@@ -200,7 +200,7 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
   );
 
   return (
-    <SourcesProvider data={sourcesData}>
+    <SourcesProvider sourcesData={sourcesData}>
       <ChatContext.Provider value={contextValue}>
         <ChatMessagesContext.Provider value={messages}>{children}</ChatMessagesContext.Provider>
       </ChatContext.Provider>

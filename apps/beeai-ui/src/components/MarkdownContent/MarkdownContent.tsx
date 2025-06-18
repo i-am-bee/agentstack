@@ -15,22 +15,45 @@
  */
 
 import clsx from 'clsx';
+import { useMemo } from 'react';
 import Markdown from 'react-markdown';
 
-import { components } from './components';
+import type { SourceReference } from '#modules/runs/sources/api/types.ts';
+
+import { components, type ExtendedComponents } from './components';
+import { InlineCitations } from './components/CitationLink/InlineCitations';
 import classes from './MarkdownContent.module.scss';
 import { remarkPlugins } from './remark';
 
 interface Props {
+  sources?: SourceReference[];
   children?: string;
   className?: string;
 }
 
-export function MarkdownContent({ className, children }: Props) {
+export function MarkdownContent({ sources, className, children }: Props) {
+  const extendedComponents: ExtendedComponents = useMemo(
+    () => ({
+      ...components,
+      citationLink: ({ keys, children }) => {
+        const filteredSources = sources?.filter(({ key }) => keys.includes(key));
+
+        return <InlineCitations sources={filteredSources}>{children}</InlineCitations>;
+      },
+    }),
+    [sources],
+  );
+
+  const content = sources?.length
+    ? `Lorem ipsum dolor, sit amet [consectetur](citation:${sources.at(0)?.key}) adipisicing elit. Nemo eveniet dicta
+      architecto dolores minima, [recusandae placeat modi nam, itaque aspernatur](citation:${sources.at(2)?.key}) cumque culpa debitis quod facere
+      corrupti eius quae praesentium [voluptates](citation:${sources.at(1)?.key},${sources.at(3)?.key}).`
+    : children;
+
   return (
     <div className={clsx(classes.root, className)}>
-      <Markdown remarkPlugins={remarkPlugins} components={components}>
-        {children}
+      <Markdown remarkPlugins={remarkPlugins} components={extendedComponents}>
+        {content}
       </Markdown>
     </div>
   );

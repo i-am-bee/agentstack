@@ -14,25 +14,8 @@
  * limitations under the License.
  */
 
-import { Information } from '@carbon/icons-react';
-import { IconButton } from '@carbon/react';
+import type { PropsWithChildren } from 'react';
 
-import { useApp } from '#contexts/App/index.ts';
-
-import classes from './AgentDetailButton.module.scss';
-
-export function AgentDetailButton() {
-  const { agentDetailOpen, showAgentDetail, hideAgentDetail } = useApp();
-
-  return (
-    <IconButton
-      kind="tertiary"
-      size="sm"
-      label="Agent Detail"
-      wrapperClasses={classes.root}
-      onClick={() => (agentDetailOpen ? hideAgentDetail?.() : showAgentDetail?.())}
-    >
-      <Information />
-    </IconButton>
-  );
+export interface CitationLinkProperties extends PropsWithChildren {
+  keys: string[];
 }

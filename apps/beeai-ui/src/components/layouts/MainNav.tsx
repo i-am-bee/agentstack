@@ -27,9 +27,8 @@ import { useAppConfig } from '#contexts/AppConfig/index.ts';
 import classes from './MainNav.module.scss';
 
 export function MainNav() {
-  const { navigationOpen } = useApp();
+  const { navigationOpen, closeNavOnClickOutside, setNavigationOpen } = useApp();
   const { featureFlags } = useAppConfig();
-  const { closeNavOnClickOutside, setNavigationOpen } = useApp();
   const navRef = useRef<HTMLDivElement>(null);
 
   useOnClickOutside(navRef as RefObject<HTMLDivElement>, () => {

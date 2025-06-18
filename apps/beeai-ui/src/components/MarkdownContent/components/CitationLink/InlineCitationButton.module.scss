@@ -29,6 +29,7 @@
     border-radius: $spacing-02;
     color: $text-dark;
     background-color: $layer-02;
+    vertical-align: middle;
     &.isActive,
     &:hover {
       background-color: $source-number-active-background;

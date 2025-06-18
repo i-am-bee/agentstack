@@ -14,36 +14,38 @@
  * limitations under the License.
  */
 
-import { type PropsWithChildren, useCallback, useMemo, useState } from 'react';
+import { type PropsWithChildren, useEffect, useMemo, useState } from 'react';
+
+import { useApp } from '#contexts/App/index.ts';
 
 import type { SourcesData } from '../api/types';
 import { SourcesContext } from './sources-context';
+import type { ActiveMessageKey, ActiveSourceKey } from './types';
 
 interface Props {
-  data: SourcesData;
+  sourcesData: SourcesData;
 }
 
-export function SourcesProvider({ data, children }: PropsWithChildren<Props>) {
-  const [activeMessage, setActiveMessage] = useState<string | null>(null);
+export function SourcesProvider({ sourcesData, children }: PropsWithChildren<Props>) {
+  const { sourcesPanelOpen } = useApp();
+  const [activeMessageKey, setActiveMessageKey] = useState<ActiveMessageKey>(null);
+  const [activeSourceKey, setActiveSourceKey] = useState<ActiveSourceKey>(null);
 
-  const sources = useMemo(() => (activeMessage ? data[activeMessage] : []), [data, activeMessage]);
-
-  const showSources = useCallback((messageKey: string) => {
-    setActiveMessage(messageKey);
-  }, []);
-
-  const hideSources = useCallback(() => {
-    setActiveMessage(null);
-  }, []);
+  useEffect(() => {
+    if (!sourcesPanelOpen) {
+      setActiveSourceKey(null);
+    }
+  }, [sourcesPanelOpen]);
 
   const contextValue = useMemo(
     () => ({
-      activeMessage,
-      sources,
-      showSources,
-      hideSources,
+      sourcesData,
+      activeMessageKey,
+      activeSourceKey,
+      setActiveMessageKey,
+      setActiveSourceKey,
     }),
-    [activeMessage, sources, showSources, hideSources],
+    [sourcesData, activeMessageKey, activeSourceKey, setActiveMessageKey, setActiveSourceKey],
   );
 
   return <SourcesContext.Provider value={contextValue}>{children}</SourcesContext.Provider>;

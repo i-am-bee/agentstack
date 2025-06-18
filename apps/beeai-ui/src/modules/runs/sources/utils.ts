@@ -44,6 +44,7 @@ export function prepareMessageSources({
       url,
       startIndex: start_index,
       endIndex: end_index,
+      messageKey: message.key,
     },
   ]
     .sort((a, b) => a.startIndex - b.startIndex)

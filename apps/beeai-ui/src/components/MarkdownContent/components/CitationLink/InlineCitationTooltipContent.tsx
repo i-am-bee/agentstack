@@ -16,7 +16,8 @@
 
 import { ArrowUpRight } from '@carbon/icons-react';
 
-import type { ResolvedSource } from '../api/types';
+import type { ResolvedSource } from '#modules/runs/sources/api/types.ts';
+
 import classes from './InlineCitationTooltipContent.module.scss';
 
 interface Props {

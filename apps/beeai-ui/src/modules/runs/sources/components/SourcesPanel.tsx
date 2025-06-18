@@ -16,29 +16,41 @@
 
 import { Close } from '@carbon/icons-react';
 import { IconButton } from '@carbon/react';
+import { useEffect } from 'react';
 
 import { SidePanel } from '#components/SidePanel/SidePanel.tsx';
+import { useApp } from '#contexts/App/index.ts';
 
-import type { SourceReference } from '../api/types';
 import { useSources } from '../contexts';
 import { SourcesList } from './SourcesList';
 import classes from './SourcesPanel.module.scss';
 
-interface Props {
-  sources: SourceReference[];
-}
+export function SourcesPanel() {
+  const { sourcesPanelOpen, hideSourcesPanel } = useApp();
+  const { sourcesData, activeMessageKey } = useSources();
 
-export function SourcesPanel({ sources }: Props) {
-  const { activeMessage, hideSources } = useSources();
-  const isOpen = Boolean(activeMessage);
+  const sources = activeMessageKey ? (sourcesData[activeMessageKey] ?? []) : [];
+  const hasSources = sources.length > 0;
+
+  useEffect(() => {
+    if (!hasSources) {
+      hideSourcesPanel?.();
+    }
+  }, [hasSources, hideSourcesPanel]);
 
   return (
-    <SidePanel variant="right" isOpen={isOpen}>
+    <SidePanel variant="right" isOpen={sourcesPanelOpen}>
       <div className={classes.root}>
         <header className={classes.header}>
           <h2 className={classes.heading}>Sources</h2>
 
-          <IconButton size="sm" kind="ghost" label="Close" wrapperClasses={classes.closeButton} onClick={hideSources}>
+          <IconButton
+            size="sm"
+            kind="ghost"
+            label="Close"
+            wrapperClasses={classes.closeButton}
+            onClick={hideSourcesPanel}
+          >
             <Close />
           </IconButton>
         </header>

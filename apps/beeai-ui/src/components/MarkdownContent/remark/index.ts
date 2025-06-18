@@ -17,4 +17,6 @@
 import remarkGfm from 'remark-gfm';
 import type { PluggableList } from 'unified';
 
-export const remarkPlugins = [remarkGfm] satisfies PluggableList;
+import { remarkCitationLink } from './remarkCitationLink';
+
+export const remarkPlugins = [remarkGfm, remarkCitationLink] satisfies PluggableList;

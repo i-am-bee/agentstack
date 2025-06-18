@@ -36,15 +36,14 @@ interface Props {
 
 export function SplitPanesView({ leftPane, rightPane, mainContent, isSplit, spacing }: Props) {
   const { ref: leftPaneRef, scrollbarWidth } = useScrollbarWidth();
-  const { agentDetailOpen, navigationOpen, setAgentDetailOpen, setNavigationOpen, setCloseNavOnClickOutside } =
-    useApp();
+  const { agentDetailOpen, navigationOpen, hideAgentDetail, setNavigationOpen, setCloseNavOnClickOutside } = useApp();
 
   useEffect(() => {
     if (isSplit) {
-      setAgentDetailOpen?.(false);
+      hideAgentDetail?.();
       setNavigationOpen?.(false);
     }
-  }, [isSplit, setAgentDetailOpen, setNavigationOpen]);
+  }, [isSplit, hideAgentDetail, setNavigationOpen]);
 
   useEffect(() => {
     if (navigationOpen && isSplit) {
