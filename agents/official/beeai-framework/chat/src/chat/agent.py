@@ -8,7 +8,7 @@ from acp_sdk import Message, Metadata, Link, LinkType
 from acp_sdk.models import MessagePart
 from acp_sdk.server import Context, Server
 from beeai_framework.agents.react import ReActAgent, ReActAgentUpdateEvent
-from beeai_framework.backend import AssistantMessage, Role, UserMessage
+from beeai_framework.backend import AssistantMessage, UserMessage
 from beeai_framework.backend.chat import ChatModel, ChatModelParameters
 from beeai_framework.memory import UnconstrainedMemory
 from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
@@ -26,14 +26,12 @@ logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setL
 server = Server()
 
 
-def to_framework_message(role: Role, content: str) -> beeai_framework.backend.Message:
+def to_framework_message(role: str, content: str) -> beeai_framework.backend.Message:
     match role:
-        case Role.USER:
+        case "user":
             return UserMessage(content)
-        case Role.ASSISTANT:
-            return AssistantMessage(content)
         case _:
-            raise ValueError(f"Unsupported role {role}")
+            return AssistantMessage(content)
 
 
 @server.agent(
@@ -123,7 +121,9 @@ async def chat(input: list[Message], context: Context) -> AsyncGenerator:
     # Create agent with memory and tools
     agent = ReActAgent(llm=llm, tools=tools, memory=UnconstrainedMemory())
 
-    framework_messages = [to_framework_message(Role(message.parts[0].role), str(message)) for message in input]
+    history = [message async for message in context.session.load_history()]
+
+    framework_messages = [to_framework_message(message.role, str(message)) for message in input + history]
     await agent.memory.add_many(framework_messages)
 
     async for data, event in agent.run():
@@ -136,7 +136,7 @@ async def chat(input: list[Message], context: Context) -> AsyncGenerator:
                     case "thought" | "tool_name" | "tool_input" | "tool_output":
                         yield {data.update.key: update}
                     case "final_answer":
-                        yield MessagePart(content=update, role="assistant")
+                        yield MessagePart(content=update)
 
 
 def run():
