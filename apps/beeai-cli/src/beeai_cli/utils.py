@@ -240,7 +240,8 @@ async def run_command(
                 if check and process.returncode != 0:
                     raise subprocess.CalledProcessError(cast(int, process.returncode), command, output, errors)
 
-                console.print(f"{message} [[green]DONE[/green]]")
+                if SHOW_SUCCESS_STATUS.get():
+                    console.print(f"{message} [[green]DONE[/green]]")
                 return subprocess.CompletedProcess(command, cast(int, process.returncode), output, errors)
     except FileNotFoundError:
         if ignore_missing:
@@ -263,6 +264,7 @@ async def run_command(
 
 IN_VERBOSITY_CONTEXT: ContextVar[bool] = ContextVar("verbose", default=False)
 VERBOSE: ContextVar[bool] = ContextVar("verbose", default=False)
+SHOW_SUCCESS_STATUS: ContextVar[bool] = ContextVar("show_command_status", default=True)
 
 
 @contextlib.contextmanager
@@ -278,13 +280,14 @@ def status(message: str):
 
 
 @contextlib.contextmanager
-def verbosity(verbose: bool):
+def verbosity(verbose: bool, show_success_status: bool = True):
     if IN_VERBOSITY_CONTEXT.get():
         yield  # Already in a verbosity context, act as a null context manager
         return
 
     IN_VERBOSITY_CONTEXT.set(True)
     token = VERBOSE.set(verbose)
+    token_command_status = SHOW_SUCCESS_STATUS.set(show_success_status)
     try:
         with err_console.capture() if not verbose else contextlib.nullcontext() as capture:
             yield
@@ -298,3 +301,4 @@ def verbosity(verbose: bool):
     finally:
         VERBOSE.reset(token)
         IN_VERBOSITY_CONTEXT.set(False)
+        SHOW_SUCCESS_STATUS.reset(token_command_status)

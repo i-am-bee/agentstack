@@ -795,27 +795,29 @@ async def exec(
     vm_driver: typing.Annotated[
         VMDriver | None, typer.Option(hidden=True, help="Platform driver: lima (VM) or docker (container)")
     ] = None,
+    verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ):
     """For debugging -- execute a command inside the BeeAI platform VM."""
-    command = command or ["/bin/sh"]
-    vm_driver = await _validate_driver(vm_driver)
-    status = await _get_platform_status(vm_driver, vm_name)
-    if status != "running":
-        console.log("[red]BeeAI platform is not running.[/red]")
-        sys.exit(1)
-    await anyio.run_process(
-        [
-            *{
-                VMDriver.lima: [_limactl_exe(), "shell", f"--tty={sys.stdin.isatty()}", vm_name, "--"],
-                VMDriver.docker: ["docker", "exec", "-it" if sys.stdin.isatty() else "-i", vm_name],
-                VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
-            }[vm_driver],
-            *command,
-        ],
-        input=None if sys.stdin.isatty() else sys.stdin.read(),
-        check=False,
-        stdout=None,
-        stderr=None,
-        env={**os.environ, "LIMA_HOME": str(Configuration().lima_home)},
-        cwd="/",
-    )
+    with verbosity(verbose, show_success_status=False):
+        command = command or ["/bin/sh"]
+        vm_driver = await _validate_driver(vm_driver)
+        status = await _get_platform_status(vm_driver, vm_name)
+        if status != "running":
+            console.log("[red]BeeAI platform is not running.[/red]")
+            sys.exit(1)
+        await anyio.run_process(
+            [
+                *{
+                    VMDriver.lima: [_limactl_exe(), "shell", f"--tty={sys.stdin.isatty()}", vm_name, "--"],
+                    VMDriver.docker: ["docker", "exec", "-it" if sys.stdin.isatty() else "-i", vm_name],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[vm_driver],
+                *command,
+            ],
+            input=None if sys.stdin.isatty() else sys.stdin.read(),
+            check=False,
+            stdout=None,
+            stderr=None,
+            env={**os.environ, "LIMA_HOME": str(Configuration().lima_home)},
+            cwd="/",
+        )
