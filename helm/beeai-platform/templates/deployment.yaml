@@ -120,6 +120,13 @@ spec:
               value: {{ .Values.features.uiNavigation | quote }}
             - name: AGENT_REGISTRY__SYNC_PERIOD_SEC
               value: "30"
+            {{- range $idx, $secret := .Values.imagePullSecrets }}
+            - name: OCI_REGISTRY_DOCKER_CONFIG_JSON__{{ $idx }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secret.name }}
+                  key: ".dockerconfigjson"
+            {{- end }}
             - name: AGENT_REGISTRY__LOCATIONS__FILE
               value: file:///app/config/registry.yaml
             {{- range $name, $location := .Values.externalRegistries }}
