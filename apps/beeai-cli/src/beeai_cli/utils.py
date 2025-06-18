@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import contextlib
+import functools
 import json
 import os
 import subprocess
@@ -29,7 +30,6 @@ import typer
 import yaml
 from anyio import create_task_group
 from anyio.abc import ByteReceiveStream
-from cachetools import cached
 from jsf import JSF
 from prompt_toolkit import PromptSession
 from prompt_toolkit.shortcuts import CompleteStyle
@@ -99,7 +99,7 @@ def filter_dict(map: dict[str, T | V], value_to_exclude: V = None) -> dict[str, 
     return {filter: value for filter, value in map.items() if value is not value_to_exclude}
 
 
-@cached(cache={}, key=json.dumps)
+@functools.cache
 def generate_schema_example(json_schema: dict[str, Any]) -> dict[str, Any]:
     json_schema = deepcopy(remove_nullable(json_schema))
 
@@ -249,9 +249,6 @@ async def run_command(
         console.print(f"{message} [[red]ERROR[/red]]")
         tool_name = command[0]
         console.print(f"[red]Error: {tool_name} is not installed. Please install {tool_name} first.[/red]")
-        if tool_name == "limactl":
-            console.print("[yellow]You can install Lima with: brew install lima[/yellow]")
-        raise
     except subprocess.CalledProcessError as e:
         console.print(f"{message} [[red]ERROR[/red]]")
         err_console.print(f"[red]Exit code: {e.returncode} [/red]")

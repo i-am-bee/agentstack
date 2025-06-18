@@ -3,29 +3,35 @@ title: "Quickstart"
 description: "Get up and running with BeeAI in minutes"
 ---
 
-<Note>
-Want to install on Windows, or don't want to use Homebrew? See the full [Installation & Setup](/introduction/installation) guide for more installation options.
-</Note>
+<Tip>
+This is the short version. See the [installation guide](/introduction/installation) for detailed instructions.
+</Tip>
 
 <Steps>
 <Step title="Install BeeAI">
 
-Install BeeAI using [Homebrew](https://brew.sh/) (recommended for macOS and Linux)
+Install the BeeAI CLI using [uv](https://docs.astral.sh/uv/) (on Linux you'll also need [QEMU](https://www.qemu.org/download/#linux)):
 
 ```sh
-brew install i-am-bee/beeai/beeai
+uv tool install beeai-cli
+```
+
+</Step>
+<Step title="Start the BeeAI platform">
+
+```sh
 beeai platform start
 ```
 
 </Step>
-<Step title="Configure your LLM provider"> 
+<Step title="Configure the LLM provider"> 
    
 ```sh
 beeai env setup
 ```
 
 </Step>
-<Step title="Start with the CLI (Primary Interface)">
+<Step title="Use the CLI">
 
 Get familiar with the core commands:
 
@@ -47,13 +53,15 @@ beeai --help
 ```
 
 </Step>
-<Step title="Check out the Web Interface">
+<Step title="Launch the web interface">
 
 ```sh
 beeai ui
 ```
 
-**Note:** The web UI is intentionally simplified for end-users who need basic agent interactions without CLI complexity. Think of the web UI as a deployment target for your agents, not your primary development environment.
+<Note>
+    The web UI is intentionally simplified for end-users who need basic agent interactions without CLI complexity. Think of the web UI as a deployment target for your agents, not your primary development environment.
+</Note>
 
 </Step>
 </Steps>

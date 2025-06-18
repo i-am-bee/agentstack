@@ -16,12 +16,12 @@ BeeAI may not function properly on out-of-support operating systems, like macOS 
 <Steps>
 <Step title="Install uv">
 
-If you don't have `uv` installed, install it using one of the supported ways:
-
-<Tabs>
-<Tab title="Installation script">
+If you don't have `uv` installed, install it using one of the supported ways.
 
 Open a terminal and run:
+
+<Tabs>
+<Tab title="Installation script (recommended)">
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -30,14 +30,16 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 </Tab>
 <Tab title="Homebrew">
 
-Open a terminal and run:
-
 ```bash
 brew install uv
+uv tool update-shell
 ```
 
 </Tab>
 </Tabs>
+
+After this, close the terminal and re-open it.
+
 </Step>
 <Step title="Install BeeAI">
 
@@ -91,7 +93,7 @@ Starting up an agent for a first time may take a few minutes. If everything is s
 If you don't have `uv` installed, install it through one of the available ways:
 
 <Tabs>
-<Tab title="Installation script">
+<Tab title="Installation script (recommended)">
 
 Open a terminal and run:
 
@@ -103,15 +105,21 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 <Tab title="Package manager">
 
 Some Linux distributions package `uv`, but beware that some may include outdated versions.
-
 Check the [Repology website](https://repology.org/project/uv/versions) to see if your distribution packages `uv`.
-
 Alternatively, you may install `uv` using `pipx` or `cargo` according to the [official installation instructions](https://docs.astral.sh/uv/getting-started/installation/).
-
 If in doubt, just use the installation script.
+
+After installing `uv`, run this to update your PATH:
+
+```bash
+uv tool update-shell
+```
 
 </Tab>
 </Tabs>
+
+After this, close the terminal and re-open it.
+
 </Step>
 <Step title="Install QEMU">
 
@@ -175,7 +183,7 @@ If you don't have `uv` installed, install it using one of the supported ways.
 Open PowerShell and run:
 
 <Tabs>
-<Tab title="Installation script">
+<Tab title="Installation script (recommended)">
 
 ```bash
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
@@ -185,7 +193,8 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 <Tab title="Winget">
 
 ```bash
-winget install --id=astral-sh.uv -e
+winget install astral-sh.uv
+uv tool update-shell
 ```
 
 </Tab>
@@ -193,6 +202,7 @@ winget install --id=astral-sh.uv -e
 
 ```bash
 scoop install uv
+uv tool update-shell
 ```
 
 </Tab>
@@ -200,10 +210,13 @@ scoop install uv
 
 ```bash
 choco install uv
+uv tool update-shell
 ```
 
 </Tab>
 </Tabs>
+
+After this, close the terminal and re-open it.
 
 </Step>
 <Step title="Install BeeAI">
@@ -279,7 +292,7 @@ Starting up an agent for a first time may take a few minutes. If everything is s
 <Step title="Upgrade BeeAI">
 
 ```bash
-uv tool upgrade beeai
+uv tool upgrade beeai-cli
 ```
 
 </Step>
@@ -309,7 +322,7 @@ beeai platform delete
 <Step title="Uninstall the BeeAI platform">
 
 ```bash
-uv tool uninstall beeai
+uv tool uninstall beeai-cli
 ```
 
 </Step>

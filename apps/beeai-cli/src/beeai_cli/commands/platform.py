@@ -421,7 +421,7 @@ async def start(
                     "--enabled=false",
                     vm_name,
                 ],
-                "Configuring",
+                "Disabling start-at-login",
                 env={
                     "LIMA_HOME": str(Configuration().lima_home),
                     # Hotfix for port-forwarding until this issue is resolved:
@@ -584,6 +584,7 @@ async def start(
                         "namespace": "default",
                     },
                     "spec": {
+                        "timeout": "1h",
                         "chartContent": base64.b64encode(
                             (importlib.resources.files("beeai_cli") / "data" / "helm-chart.tgz").read_bytes()
                         ).decode(),
@@ -601,6 +602,41 @@ async def start(
                     },
                 }
             ).encode("utf-8"),
+            env={"LIMA_HOME": str(Configuration().lima_home)},
+            cwd="/",
+        )
+
+        await run_command(
+            [
+                *{
+                    VMDriver.lima: [_limactl_exe(), "shell", "--tty=false", vm_name, "--"],
+                    VMDriver.docker: ["docker", "exec", "-i", vm_name],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[vm_driver],
+                "kubectl",
+                "wait",
+                "--for=condition=JobCreated",
+                "helmchart.helm.cattle.io/beeai",
+            ],
+            "Waiting for deploy job to be created",
+            env={"LIMA_HOME": str(Configuration().lima_home)},
+            cwd="/",
+        )
+
+        await run_command(
+            [
+                *{
+                    VMDriver.lima: [_limactl_exe(), "shell", "--tty=false", vm_name, "--"],
+                    VMDriver.docker: ["docker", "exec", "-i", vm_name],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[vm_driver],
+                "kubectl",
+                "wait",
+                "--for=condition=Complete",
+                "--timeout=1h",
+                "job/helm-install-beeai",
+            ],
+            "Waiting for deploy job to be finished",
             env={"LIMA_HOME": str(Configuration().lima_home)},
             cwd="/",
         )
