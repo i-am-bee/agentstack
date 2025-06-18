@@ -52,13 +52,18 @@ dir = "{{config_root}}/apps/beeai-server"
 run = "uv run beeai-server"
 
 # build
+["beeai-server:build:requirements"]
+dir = "{{config_root}}/apps/beeai-server"
+run = "mkdir -p dist && uv export --no-hashes --no-emit-workspace --format requirements-txt > dist/requirements.txt"
+sources = ["pyproject.toml", "src/**/*.py"]
+outputs = ["dist/requirements.txt"]
 
 ["beeai-server:build"]
-depends = ["setup:uv", "beeai-ui:build"]
+depends = ["setup:uv", "beeai-ui:build", "beeai-server:build:requirements"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "rm -rf ./dist && uv build --out-dir dist"
+run = "rm -rf ./dist/pkg && uv build --out-dir dist/pkg"
 sources = ["pyproject.toml", "src/**/*.py"]
-outputs = ["dist/**/*"]
+outputs = ["dist/pkg/**/*"]
 
 # clean
 

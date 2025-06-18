@@ -17,7 +17,7 @@ from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field, AwareDatetime
 
-from acp_sdk.models import Agent as AcpAgentOriginal, Metadata as AcpMetadataOriginal
+from acp_sdk.models import AgentManifest as AcpAgentOriginal, Metadata as AcpMetadataOriginal
 
 from beeai_server.utils.utils import utc_now
 

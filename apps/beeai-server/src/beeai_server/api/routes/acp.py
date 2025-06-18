@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import fastapi
 import fastapi.responses
+from acp_sdk import PingResponse
 from acp_sdk.models import (
     AgentName,
     RunCancelResponse,
@@ -33,6 +33,11 @@ from beeai_server.service_layer.services.acp import AcpServerResponse
 router = fastapi.APIRouter()
 
 
+@router.get("/ping")
+async def ping() -> PingResponse:
+    return PingResponse()
+
+
 @router.get("/agents")
 async def list_agents(acp_service: AcpProxyServiceDependency) -> AgentsListResponse:
     return AgentsListResponse(agents=await acp_service.list_agents())
@@ -40,7 +45,7 @@ async def list_agents(acp_service: AcpProxyServiceDependency) -> AgentsListRespo
 
 @router.get("/agents/{name}")
 async def read_agent(name: AgentName, acp_service: AcpProxyServiceDependency) -> AgentReadResponse:
-    return AgentReadResponse.model_validate(await acp_service.get_agent_by_name(name))
+    return (await acp_service.get_agent_by_name(name)).model_dump()
 
 
 def _to_fastapi(response: AcpServerResponse):

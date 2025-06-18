@@ -26,7 +26,6 @@ from enum import StrEnum
 import jsonref
 from acp_sdk import (
     ACPError,
-    Agent,
     ArtifactEvent,
     Error,
     ErrorCode,
@@ -39,6 +38,7 @@ from acp_sdk import (
     RunAwaitingEvent,
     RunFailedEvent,
 )
+from acp_sdk import AgentManifest as Agent
 from acp_sdk.client import Client
 from rich.box import HORIZONTALS
 from rich.console import ConsoleRenderable, Group, NewLine

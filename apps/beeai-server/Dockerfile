@@ -3,11 +3,10 @@ WORKDIR /app
 COPY --from=ghcr.io/astral-sh/uv:0.6.2 /uv /bin/
 # tiktoken builds using rust and cargo
 RUN apk add --no-cache rust cargo
-COPY pyproject.toml .
-RUN uv pip compile pyproject.toml >requirements.txt && \
-    uv pip install --system -r requirements.txt && \
+COPY pyproject.toml dist/requirements.txt ./
+RUN uv pip install --system -r requirements.txt && \
     rm requirements.txt pyproject.toml
-COPY dist/*.tar.gz .
+COPY dist/pkg/*.tar.gz .
 RUN uv pip install --system ./*.tar.gz
 
 FROM python:3.11-alpine3.21
