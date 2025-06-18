@@ -123,7 +123,7 @@ async def chat(input: list[Message], context: Context) -> AsyncGenerator:
 
     history = [message async for message in context.session.load_history()]
 
-    framework_messages = [to_framework_message(message.role, str(message)) for message in input + history]
+    framework_messages = [to_framework_message(message.role, str(message)) for message in history + input]
     await agent.memory.add_many(framework_messages)
 
     async for data, event in agent.run():
