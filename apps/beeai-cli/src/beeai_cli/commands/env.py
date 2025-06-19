@@ -365,6 +365,18 @@ async def setup(
             if "Hello" not in response_text:
                 err_console.print(format_error("Error", "Model did not provide a proper response."))
                 return False
+
+            if provider_name in ["watsonx", "OpenAI", "Ollama"]:
+                selected_embedding_model = None
+                if available_models and len(available_models) >= 1:
+                    selected_embedding_model = await inquirer.fuzzy(
+                        message="Select an embedding model (type to search):",
+                        choices=sorted(["None", "Write model name", *available_models]),
+                    ).execute_async()
+
+                if selected_embedding_model == "Write model name" or len(available_models) == 0:
+                    await inquirer.text(message="Write a model name to use:").execute_async()
+
         except Exception as e:
             err_console.print(format_error("Error", f"Error during model test: {e!s}"))
             return False
@@ -382,6 +394,7 @@ async def setup(
                         "LLM_API_BASE": api_base,
                         "LLM_API_KEY": api_key,
                         "LLM_MODEL": selected_model,
+                        "EMBEDDING_MODEL": None if selected_embedding_model == "None" else selected_embedding_model,
                         "WATSONX_PROJECT_ID": (
                             watsonx_project_or_space_id
                             if provider_name == "watsonx" and watsonx_project_or_space == "project"
