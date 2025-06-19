@@ -35,12 +35,14 @@ export function prepareMessageSources({
   const {
     data: { url, start_index, end_index },
   } = metadata;
-  const { sources = [] } = message;
+  const { sources: prevSources = [] } = message;
 
-  const newSources: SourceReference[] = [
-    ...sources,
+  const key = uuid();
+
+  const sources: SourceReference[] = [
+    ...prevSources,
     {
-      key: uuid(),
+      key,
       url,
       startIndex: start_index,
       endIndex: end_index,
@@ -53,7 +55,9 @@ export function prepareMessageSources({
       number: idx + 1,
     }));
 
-  return newSources;
+  const newSource = sources.find((source) => source.key === key)!;
+
+  return { sources, newSource };
 }
 
 export function extractSources(messages: ChatMessage[]) {

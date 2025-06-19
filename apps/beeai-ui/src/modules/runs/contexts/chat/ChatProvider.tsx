@@ -23,21 +23,29 @@ import { useImmerWithGetter } from '#hooks/useImmerWithGetter.ts';
 import { usePrevious } from '#hooks/usePrevious.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { type MessagePartMetadata, MetadataKind } from '#modules/runs/api/types.ts';
-import { type AssistantMessage, type ChatMessage, MessageStatus } from '#modules/runs/chat/types.ts';
+import {
+  type AssistantMessage,
+  type ChatMessage,
+  type CitationTransform,
+  MessageContentTransformType,
+  MessageStatus,
+} from '#modules/runs/chat/types.ts';
 import { prepareMessageFiles } from '#modules/runs/files/utils.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
 import { SourcesProvider } from '#modules/runs/sources/contexts/SourcesProvider.tsx';
 import { extractSources, prepareMessageSources } from '#modules/runs/sources/utils.ts';
 import { Role } from '#modules/runs/types.ts';
 import {
+  applyContentTransforms,
+  createCitationTransform,
   createFileMessageParts,
+  createImageTransform,
   createMessagePart,
   extractValidUploadFiles,
   isArtifactPart,
   mapToMessageFiles,
 } from '#modules/runs/utils.ts';
 import { isImageContentType } from '#utils/helpers.ts';
-import { toMarkdownImage } from '#utils/markdown.ts';
 
 import { useFileUpload } from '../../files/contexts';
 import { ChatContext, ChatMessagesContext } from './chat-context';
@@ -70,19 +78,31 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
 
       if (hasContent) {
         updateLastAssistantMessage((message) => {
-          message.content += content;
+          message.rawContent += content;
         });
       }
 
       if (hasImage) {
         updateLastAssistantMessage((message) => {
-          message.content += toMarkdownImage(content_url);
+          message.contentTransforms.push(
+            createImageTransform({
+              imageUrl: content_url,
+              insertAt: message.rawContent.length,
+            }),
+          );
         });
       }
 
       if (metadata) {
         processMetadata(metadata);
       }
+
+      updateLastAssistantMessage((message) => {
+        message.content = applyContentTransforms({
+          rawContent: message.rawContent,
+          transforms: message.contentTransforms,
+        });
+      });
     },
     onMessageCompleted: () => {
       updateLastAssistantMessage((message) => {
@@ -119,7 +139,21 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
       switch (metadata.kind) {
         case MetadataKind.Citation:
           updateLastAssistantMessage((message) => {
-            message.sources = prepareMessageSources({ message, metadata });
+            const { sources, newSource } = prepareMessageSources({ message, metadata });
+
+            const citationTransformGroup = message.contentTransforms.find(
+              (transform): transform is CitationTransform =>
+                transform.kind === MessageContentTransformType.Citation &&
+                transform.startIndex === newSource.startIndex,
+            );
+
+            message.sources = sources;
+
+            if (citationTransformGroup) {
+              citationTransformGroup.sources.push(newSource);
+            } else {
+              message.contentTransforms.push(createCitationTransform({ source: newSource }));
+            }
           });
 
           break;
@@ -160,6 +194,8 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
           key: uuid(),
           role: Role.Assistant,
           content: '',
+          rawContent: '',
+          contentTransforms: [],
           status: MessageStatus.InProgress,
         });
       });

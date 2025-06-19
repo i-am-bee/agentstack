@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
+import type { SourceReference } from '#modules/runs/sources/api/types.ts';
+
 export function createCodeBlock(language: string, snippet: string) {
   return `\`\`\`${language}\n${snippet}\n\`\`\``;
 }
 
 export function toMarkdownImage(url: string) {
-  return `![](${url})`;
+  return `\n\n![](${url})\n\n`;
+}
+
+export function toMarkdownCitation({ text, sources }: { text: string; sources: SourceReference[] }) {
+  return `[${text}](citation:${sources.map(({ key }) => key).join(',')})`;
 }

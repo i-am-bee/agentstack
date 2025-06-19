@@ -29,6 +29,8 @@ export interface UserMessage extends Message {
 }
 export interface AssistantMessage extends Message {
   role: Role.Assistant;
+  rawContent: string;
+  contentTransforms: MessageContentTransform[];
   status: MessageStatus;
   sources?: SourceReference[];
 }
@@ -39,6 +41,18 @@ export interface MessageFile {
   href: string;
 }
 
+export interface MessageContentTransform {
+  key: string;
+  kind: MessageContentTransformType;
+  startIndex: number;
+  apply: ({ content, offset }: { content: string; offset: number }) => string;
+}
+
+export interface CitationTransform extends MessageContentTransform {
+  kind: MessageContentTransformType.Citation;
+  sources: SourceReference[];
+}
+
 export type ChatMessage = UserMessage | AssistantMessage;
 
 export enum MessageStatus {
@@ -46,4 +60,9 @@ export enum MessageStatus {
   Completed = 'completed',
   Aborted = 'aborted',
   Failed = 'failed',
+}
+
+export enum MessageContentTransformType {
+  Citation = 'citation',
+  Image = 'image',
 }
