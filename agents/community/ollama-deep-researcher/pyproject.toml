@@ -7,7 +7,7 @@ readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.11"
 dependencies = [
-    "acp-sdk==0.11.0",
+    "acp-sdk==0.12.0",
     "langgraph>=0.2.55",
     "langchain-community>=0.3.9",
     "tavily-python>=0.5.0",
