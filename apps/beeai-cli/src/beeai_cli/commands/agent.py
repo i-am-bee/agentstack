@@ -561,11 +561,11 @@ async def run_agent(
                 f":boom: Agent is not in a ready state: {provider['state']}, {provider['last_error']}\nRetrying..."
             )
 
-    ui = agent.metadata.model_dump().get("ui", {}) or {}
-    ui_type = ui.get("type", None)
+    ui_annotations = (agent.metadata.model_dump().get("annotations", {}) or {}).get("beeai_ui", {}) or {}
+    ui_type = ui_annotations.get("ui_type", None)
     is_sequential_workflow = agent.name in {"sequential_workflow"}
 
-    user_greeting = ui.get("user_greeting", None) or "How can I help you?"
+    user_greeting = ui_annotations.get("user_greeting", None) or "How can I help you?"
 
     if not input:
         if ui_type not in {UiType.chat, UiType.hands_off} and not is_sequential_workflow:
@@ -594,7 +594,7 @@ async def run_agent(
                     input = handle_input()
 
         elif ui_type == UiType.hands_off:
-            user_greeting = ui.get("user_greeting", None) or "Enter your instructions."
+            user_greeting = ui_annotations.get("user_greeting", None) or "Enter your instructions."
             console.print(f"{user_greeting}\n")
             input = handle_input()
             console.print()
@@ -676,7 +676,12 @@ async def list_agents():
                     },
                 ),
                 (agent.description or "<none>").replace("\n", " "),
-                (agent.metadata.model_dump().get("ui", {}) or {}).get("type", None) or "<none>",
+                (
+                    agent.metadata.model_dump().get("annotations", {}).get("beeai_ui", {}).get("ui_type")
+                    if agent.metadata.model_dump().get("annotations")
+                    else None
+                )
+                or "<none>",
                 location or "<none>",
                 missing_env or "<none>",
                 error or "<none>",
