@@ -4,9 +4,11 @@ from collections.abc import AsyncGenerator
 from textwrap import dedent
 
 import beeai_framework
-from acp_sdk import Message, Metadata, Link, LinkType
+from acp_sdk import Message, Metadata, Link, LinkType, Annotations
 from acp_sdk.models import MessagePart
 from acp_sdk.server import Context, Server
+from acp_sdk.models.platform import PlatformUIAnnotation, PlatformUIType, AgentToolInfo
+
 from beeai_framework.agents.react import ReActAgent, ReActAgentUpdateEvent
 from beeai_framework.backend import AssistantMessage, UserMessage
 from beeai_framework.backend.chat import ChatModel, ChatModelParameters
@@ -36,6 +38,19 @@ def to_framework_message(role: str, content: str) -> beeai_framework.backend.Mes
 
 @server.agent(
     metadata=Metadata(
+        annotations=Annotations(
+            beeai_ui=PlatformUIAnnotation(
+                ui_type=PlatformUIType.CHAT,
+                user_greeting="How can I help you?",
+                tools=[
+                    AgentToolInfo(name="Web Search (DuckDuckGo)", description="Retrieves real-time search results."),
+                    AgentToolInfo(name="Wikipedia Search", description="Fetches summaries from Wikipedia."),
+                    AgentToolInfo(
+                        name="Weather Information (OpenMeteo)", description="Provides real-time weather updates."
+                    ),
+                ],
+            ),
+        ),
         programming_language="Python",
         links=[
             Link(
@@ -81,22 +96,6 @@ def to_framework_message(role: str, content: str) -> beeai_framework.backend.Mes
             "**Weather Inquiries** – Provides real-time weather updates based on location.",
             "**Agents with Long-Term Memory** – Maintains context across conversations for improved interactions.",
         ],
-        ui={"type": "chat", "user_greeting": "How can I help you?"},
-        examples={
-            "cli": [
-                {
-                    "command": 'beeai run chat "What is the weather like in Paris?',
-                    "name": "With tools",
-                    "description": "Run agent with tools.",
-                    "output": "The current temperature in Paris is 12°C with partly cloudy skies.",
-                    "processing_steps": [
-                        "The agent receives the user message and detects the weather query",
-                        "It invokes the OpenMeteoTool to fetch real-time weather data",
-                        "The response is generated and sent back to the user",
-                    ],
-                },
-            ]
-        },
         env=[
             {"name": "LLM_MODEL", "description": "Model to use from the specified OpenAI-compatible API."},
             {"name": "LLM_API_BASE", "description": "Base URL for OpenAI-compatible API endpoint"},

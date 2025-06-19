@@ -27,16 +27,13 @@ export type Agent = ApiResponse<'/api/v1/acp/agents/{name}'> & {
   metadata: {
     name?: string;
     provider_id?: string;
-    ui?: {
-      type?: UiType;
-      user_greeting?: string;
-    };
-    examples?: {
-      cli?: { command?: string }[];
-      command?: string;
-    };
     annotations?: {
-      tools?: AgentToolInfo[];
+      beeai_ui?: {
+        ui_type: UiType;
+        user_greeting?: string;
+        display_name?: string;
+        tools: AgentToolInfo[];
+      };
     };
   };
 };
