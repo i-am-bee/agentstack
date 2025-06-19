@@ -7,6 +7,7 @@ from typing import AsyncIterator, AsyncGenerator, Iterator
 import httpx
 import pytest
 from acp_sdk.server import Server, Context
+from acp_sdk.models.platform import PlatformUIAnnotation, PlatformUIType, AgentToolInfo
 
 from acp_sdk import (
     MessageAwaitRequest,
@@ -17,7 +18,9 @@ from acp_sdk import (
     ErrorCode,
     Message,
     MessagePart,
+    Metadata,
     ResourceUrl,
+    Annotations,
 )
 
 """
@@ -124,6 +127,20 @@ def server(request: pytest.FixtureRequest, clean_up_fn, test_configuration) -> I
                         content = await client.get(str(part.content_url))
                         content_type = content.headers.get("Content-Type") or part.content_type
                         yield MessagePart(content=content.content, content_type=content_type)
+
+    @server.agent(
+        metadata=Metadata(
+            annotations=Annotations(
+                beeai_ui=PlatformUIAnnotation(
+                    ui_type=PlatformUIType.HANDSOFF,
+                    user_greeting="This is a test",
+                    tools=[AgentToolInfo(name="testing tool", description="testing description")],
+                ),
+            ),
+        )
+    )
+    async def platform_annotations(input: list[Message], context: Context) -> AsyncGenerator[Message, None]:
+        yield MessagePart(content="Hello World")
 
     try:
         thread = Thread(target=server.run, kwargs={"port": 9999}, daemon=True)
