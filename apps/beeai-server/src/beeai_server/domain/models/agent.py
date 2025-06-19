@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field, AwareDatetime
@@ -30,7 +29,6 @@ class EnvVar(BaseModel):
 
 class AcpMetadata(AcpMetadataOriginal):
     env: list[EnvVar] = Field(default_factory=list, description="For configuration -- passed to the process")
-    ui: dict[str, Any] | None = None
     provider_id: UUID
 
 
