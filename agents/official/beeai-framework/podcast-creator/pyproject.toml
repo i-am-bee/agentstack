@@ -5,7 +5,7 @@ description = "The agent creates structured podcast-style dialogues optimized fo
 authors = [{ name = "IBM Corp." }]
 requires-python = ">=3.11,<3.12"
 dependencies = [
-    "acp-sdk==0.11.0",
+    "acp-sdk==0.12.0",
     "beeai-framework==0.1.18",
     "openinference-instrumentation-beeai>=0.1.5",
     "pydantic-settings>=2.9.0",
