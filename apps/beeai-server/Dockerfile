@@ -1,18 +1,19 @@
-FROM python:3.11-alpine3.21 AS builder
+FROM python:3.11-slim AS builder
 WORKDIR /app
 COPY --from=ghcr.io/astral-sh/uv:0.6.2 /uv /bin/
 # tiktoken builds using rust and cargo
-RUN apk add --no-cache rust cargo
+# RUN apk add --no-cache rust cargo
 COPY pyproject.toml dist/requirements.txt ./
+RUN uv pip install --system torch==2.7.1 torchvision==0.22.1 --extra-index-url https://download.pytorch.org/whl/cpu
 RUN uv pip install --system -r requirements.txt && \
     rm requirements.txt pyproject.toml
 COPY dist/pkg/*.tar.gz .
 RUN uv pip install --system ./*.tar.gz
 
-FROM python:3.11-alpine3.21
+FROM python:3.11-slim
 WORKDIR /app
 # tiktoken requires libgcc
-RUN apk add --no-cache libgcc
+# RUN apk add --no-cache libgcc
 COPY --from=builder /usr/local/lib/python3.11/site-packages/ /usr/local/lib/python3.11/site-packages/
 COPY --from=builder /usr/local/bin/beeai-server /usr/local/bin/beeai-server
 COPY --from=builder /usr/local/bin/migrate /usr/local/bin/migrate
