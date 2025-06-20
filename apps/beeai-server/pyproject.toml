@@ -32,6 +32,7 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.41",
     "aioboto3>=14.3.0",
     "pyjwt>=2.10.1",
+    "beautifulsoup4>=4.13.4",
 ]
 
 [tool.ruff]
