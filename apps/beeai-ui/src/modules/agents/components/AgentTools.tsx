@@ -24,7 +24,7 @@ interface Props {
 }
 
 export function AgentTools({ agent }: Props) {
-  const tools = agent.metadata.annotations?.tools;
+  const tools = agent.metadata.annotations?.beeai_ui?.tools;
 
   return (
     <div className={classes.root}>

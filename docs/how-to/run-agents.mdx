@@ -31,7 +31,7 @@ beeai run chat "Hello! How can you help me today?"
 
 <Accordion title="GPT Researcher">
 ```bash
-beeai run gpt-researcher "Research the latest developments in quantum computing"
+beeai run gpt_researcher "Research the latest developments in quantum computing"
 ```
 </Accordion>
 
@@ -50,7 +50,7 @@ def calculate_fibonacci(n):
 
 <Accordion title="Prompt Chaining: GPT Researcher -> Chat Agent">
 ```bash
-beeai run gpt-researcher "Latest developments in renewable energy storage" | beeai run chat "Summarize this research in 3 key bullet points"
+beeai run gpt_researcher "Latest developments in renewable energy storage" | beeai run chat "Summarize this research in 3 key bullet points"
 ```
 </Accordion>
 
@@ -73,7 +73,7 @@ beeai run chat
 Run an agent with a single message or prompt.
 
 ```bash
-beeai run gpt-researcher "Research the latest developments in quantum computing"
+beeai run gpt_researcher "Research the latest developments in quantum computing"
 ```
 
 ### Multi-line Input
@@ -104,7 +104,7 @@ beeai run chat < my_file.txt
 Send output from one agent into another.
 
 ```bash
-beeai run gpt-researcher "Latest developments in renewable energy storage" | beeai run chat "Summarize this research in 3 key bullet points"
+beeai run gpt_researcher "Latest developments in renewable energy storage" | beeai run chat "Summarize this research in 3 key bullet points"
 ```
 
 ## Output Handling

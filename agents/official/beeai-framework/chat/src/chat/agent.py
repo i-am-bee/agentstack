@@ -4,11 +4,13 @@ from collections.abc import AsyncGenerator
 from textwrap import dedent
 
 import beeai_framework
-from acp_sdk import Message, Metadata, Link, LinkType
+from acp_sdk import Message, Metadata, Link, LinkType, Annotations
 from acp_sdk.models import MessagePart
 from acp_sdk.server import Context, Server
+from acp_sdk.models.platform import PlatformUIAnnotation, PlatformUIType, AgentToolInfo
+
 from beeai_framework.agents.react import ReActAgent, ReActAgentUpdateEvent
-from beeai_framework.backend import AssistantMessage, Role, UserMessage
+from beeai_framework.backend import AssistantMessage, UserMessage
 from beeai_framework.backend.chat import ChatModel, ChatModelParameters
 from beeai_framework.memory import UnconstrainedMemory
 from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
@@ -26,18 +28,29 @@ logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setL
 server = Server()
 
 
-def to_framework_message(role: Role, content: str) -> beeai_framework.backend.Message:
+def to_framework_message(role: str, content: str) -> beeai_framework.backend.Message:
     match role:
-        case Role.USER:
+        case "user":
             return UserMessage(content)
-        case Role.ASSISTANT:
-            return AssistantMessage(content)
         case _:
-            raise ValueError(f"Unsupported role {role}")
+            return AssistantMessage(content)
 
 
 @server.agent(
     metadata=Metadata(
+        annotations=Annotations(
+            beeai_ui=PlatformUIAnnotation(
+                ui_type=PlatformUIType.CHAT,
+                user_greeting="How can I help you?",
+                tools=[
+                    AgentToolInfo(name="Web Search (DuckDuckGo)", description="Retrieves real-time search results."),
+                    AgentToolInfo(name="Wikipedia Search", description="Fetches summaries from Wikipedia."),
+                    AgentToolInfo(
+                        name="Weather Information (OpenMeteo)", description="Provides real-time weather updates."
+                    ),
+                ],
+            ),
+        ),
         programming_language="Python",
         links=[
             Link(
@@ -83,22 +96,6 @@ def to_framework_message(role: Role, content: str) -> beeai_framework.backend.Me
             "**Weather Inquiries** – Provides real-time weather updates based on location.",
             "**Agents with Long-Term Memory** – Maintains context across conversations for improved interactions.",
         ],
-        ui={"type": "chat", "user_greeting": "How can I help you?"},
-        examples={
-            "cli": [
-                {
-                    "command": 'beeai run chat "What is the weather like in Paris?',
-                    "name": "With tools",
-                    "description": "Run agent with tools.",
-                    "output": "The current temperature in Paris is 12°C with partly cloudy skies.",
-                    "processing_steps": [
-                        "The agent receives the user message and detects the weather query",
-                        "It invokes the OpenMeteoTool to fetch real-time weather data",
-                        "The response is generated and sent back to the user",
-                    ],
-                },
-            ]
-        },
         env=[
             {"name": "LLM_MODEL", "description": "Model to use from the specified OpenAI-compatible API."},
             {"name": "LLM_API_BASE", "description": "Base URL for OpenAI-compatible API endpoint"},
@@ -123,7 +120,9 @@ async def chat(input: list[Message], context: Context) -> AsyncGenerator:
     # Create agent with memory and tools
     agent = ReActAgent(llm=llm, tools=tools, memory=UnconstrainedMemory())
 
-    framework_messages = [to_framework_message(Role(message.parts[0].role), str(message)) for message in input]
+    history = [message async for message in context.session.load_history()]
+
+    framework_messages = [to_framework_message(message.role, str(message)) for message in history + input]
     await agent.memory.add_many(framework_messages)
 
     async for data, event in agent.run():
@@ -136,7 +135,7 @@ async def chat(input: list[Message], context: Context) -> AsyncGenerator:
                     case "thought" | "tool_name" | "tool_input" | "tool_output":
                         yield {data.update.key: update}
                     case "final_answer":
-                        yield MessagePart(content=update, role="assistant")
+                        yield MessagePart(content=update)
 
 
 def run():

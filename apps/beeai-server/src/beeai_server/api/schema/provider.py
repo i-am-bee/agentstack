@@ -14,7 +14,7 @@
 
 from pydantic import BaseModel
 
-from acp_sdk import Agent as AcpAgent
+from acp_sdk import AgentManifest as AcpAgent
 from beeai_server.domain.models.provider import ProviderLocation
 
 

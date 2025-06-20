@@ -8,7 +8,8 @@ from pathlib import Path
 from collections.abc import AsyncGenerator
 from textwrap import dedent
 
-from acp_sdk import Message, Metadata, Link, LinkType, MessagePart, Artifact
+from acp_sdk.models.platform import PlatformUIAnnotation, PlatformUIType
+from acp_sdk import Annotations, Message, Metadata, Link, LinkType, MessagePart, Artifact
 from acp_sdk.server import Context, Server
 from pydantic import AnyUrl
 import mimetypes
@@ -18,6 +19,12 @@ server = Server()
 
 @server.agent(
     metadata=Metadata(
+        annotations=Annotations(
+            beeai_ui=PlatformUIAnnotation(
+                ui_type=PlatformUIType.HANDSOFF,
+                user_greeting="Define your programming task.",
+            ),
+        ),
         programming_language="Python",
         links=[
             Link(
@@ -64,7 +71,6 @@ server = Server()
             "**Collaborative Programming** – Simulates a pair programming experience, enhancing coding efficiency and learning.",
             "**Bash/Shell Scripting Assistance** – Automates script writing, optimization, and debugging.",
         ],
-        ui={"type": "hands-off", "user_greeting": "Define your programming task"},
         env=[
             {
                 "name": "LLM_MODEL",

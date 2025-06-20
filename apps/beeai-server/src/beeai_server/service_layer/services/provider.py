@@ -24,7 +24,7 @@ from fastapi import HTTPException
 from kink import inject
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
-from acp_sdk import Agent as AcpAgent
+from acp_sdk import AgentManifest as AcpAgent
 from beeai_server.service_layer.deployment_manager import (
     IProviderDeploymentManager,
 )

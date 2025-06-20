@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 
 
 def setup_database_engine(config: Configuration) -> AsyncEngine:
-    return create_async_engine(str(config.persistence.db_url.get_secret_value()), isolation_level="SERIALIZABLE")
+    return create_async_engine(str(config.persistence.db_url.get_secret_value()), isolation_level="READ COMMITTED")
 
 
 async def setup_kubernetes_client(config: Configuration):

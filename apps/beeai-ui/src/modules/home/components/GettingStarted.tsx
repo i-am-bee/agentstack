@@ -16,7 +16,7 @@
 
 'use client';
 
-import { BREW_INSTALL_BEEAI } from '@i-am-bee/beeai-ui';
+import { INSTALL_BEEAI } from '@i-am-bee/beeai-ui';
 
 import { CopySnippet } from '#components/CopySnippet/CopySnippet.tsx';
 import { Container } from '#components/layouts/Container.tsx';
@@ -36,7 +36,7 @@ export function GettingStarted() {
         </p>
 
         <div className={classes.bottom}>
-          <CopySnippet>{BREW_INSTALL_BEEAI}</CopySnippet>
+          <CopySnippet>{INSTALL_BEEAI}</CopySnippet>
           <GitHubButton />
         </div>
       </Container>

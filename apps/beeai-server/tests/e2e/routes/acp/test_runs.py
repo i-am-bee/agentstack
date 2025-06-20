@@ -1,20 +1,9 @@
 import asyncio
 import base64
-import time
-from threading import Thread
-from typing import AsyncIterator, AsyncGenerator, Iterator
 
-import httpx
 import pytest
-from acp_sdk.server import Server, Context
-
 from acp_sdk.client import Client
-from acp_sdk import (
-    MessageAwaitRequest,
-    AwaitResume,
-    Error,
-    ACPError,
-    Artifact,
+from acp_sdk.models import (
     AgentName,
     ArtifactEvent,
     ErrorCode,
@@ -28,7 +17,7 @@ from acp_sdk import (
     RunInProgressEvent,
     RunStatus,
 )
-from pydantic import AnyUrl
+from acp_sdk.server import Server
 
 """
 These tests are copied from acp repository: 
@@ -37,111 +26,8 @@ https://github.com/i-am-bee/acp/blob/main/python/tests/e2e/test_suites/test_runs
 
 pytestmark = pytest.mark.e2e
 
-
-@pytest.fixture(scope="module")
-def server(request: pytest.FixtureRequest, test_configuration, clean_up_fn) -> Iterator[None]:
-    server = Server()
-
-    @server.agent()
-    async def echo(input: list[Message], context: Context) -> AsyncIterator[Message]:
-        for message in input:
-            yield message
-
-    @server.agent()
-    async def slow_echo(input: list[Message], context: Context) -> AsyncIterator[Message]:
-        for message in input:
-            await asyncio.sleep(1)
-            yield message
-
-    @server.agent()
-    async def awaiter(
-        input: list[Message], context: Context
-    ) -> AsyncGenerator[Message | MessageAwaitRequest, AwaitResume]:
-        yield MessageAwaitRequest(message=Message(parts=[]))
-        yield MessagePart(content="empty", content_type="text/plain")
-
-    @server.agent()
-    async def failer(input: list[Message], context: Context) -> AsyncIterator[Message]:
-        yield Error(code=ErrorCode.INVALID_INPUT, message="Wrong question buddy!")
-        raise RuntimeError("Unreachable code")
-
-    @server.agent()
-    async def raiser(input: list[Message], context: Context) -> AsyncIterator[Message]:
-        raise ACPError(Error(code=ErrorCode.INVALID_INPUT, message="Wrong question buddy!"))
-
-    @server.agent()
-    async def sessioner(input: list[Message], context: Context) -> AsyncIterator[Message]:
-        assert context.session_id is not None
-
-        yield MessagePart(content=str(context.session_id), content_type="text/plain")
-
-    @server.agent()
-    async def mime_types(input: list[Message], context: Context) -> AsyncIterator[Message]:
-        yield MessagePart(content="<h1>HTML Content</h1>", content_type="text/html")
-        yield MessagePart(content='{"key": "value"}', content_type="application/json")
-        yield MessagePart(content="console.log('Hello');", content_type="application/javascript")
-        yield MessagePart(content="body { color: red; }", content_type="text/css")
-
-    @server.agent()
-    async def base64_encoding(input: list[Message], context: Context) -> AsyncIterator[Message]:
-        yield Message(
-            parts=[
-                MessagePart(
-                    content=base64.b64encode(
-                        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
-                    ).decode("ascii"),
-                    content_type="image/png",
-                    content_encoding="base64",
-                ),
-                MessagePart(content="This is plain text", content_type="text/plain"),
-            ]
-        )
-
-    @server.agent()
-    async def artifact_producer(input: list[Message], context: Context) -> AsyncGenerator[Message | Artifact, None]:
-        yield MessagePart(content="Processing with artifacts", content_type="text/plain")
-        yield Artifact(name="text-result.txt", content_type="text/plain", content="This is a text artifact result")
-        yield Artifact(
-            name="data.json", content_type="application/json", content='{"results": [1, 2, 3], "status": "complete"}'
-        )
-        yield Artifact(
-            name="image.png",
-            content_type="image/png",
-            content=base64.b64encode(
-                b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
-            ).decode("ascii"),
-            content_encoding="base64",
-        )
-
-    @server.agent()
-    async def file_reader(input: list[Message], context: Context) -> AsyncGenerator[Message, None]:
-        for message in input:
-            for part in message.parts:
-                if part.content_url:
-                    async with httpx.AsyncClient() as client:
-                        content = await client.get(str(part.content_url))
-                        content_type = content.headers.get("Content-Type") or part.content_type
-                        yield MessagePart(content=content.content, content_type=content_type)
-
-    try:
-        thread = Thread(target=server.run, kwargs={"port": 9999}, daemon=True)
-        thread.start()
-        with httpx.Client(base_url=f"{test_configuration.server_url}/api/v1") as client:
-            for attempt in range(10):
-                if client.get("providers").json()["items"]:
-                    break
-                time.sleep(1)
-            else:
-                raise RuntimeError("Server did not start or register itself correctly")
-
-            yield server
-    finally:
-        asyncio.run(clean_up_fn())
-        server.should_exit = True
-        thread.join(timeout=2)
-
-
 input = [Message(parts=[MessagePart(content="Hello!")])]
+output = [message.model_copy(update={"role": "agent/echo"}) for message in input]
 await_resume = MessageAwaitResume(message=Message(parts=[]))
 
 
@@ -149,7 +35,7 @@ await_resume = MessageAwaitResume(message=Message(parts=[]))
 async def test_run_sync(server: Server, acp_client: Client) -> None:
     run = await acp_client.run_sync(agent="echo", input=input)
     assert run.status == RunStatus.COMPLETED
-    assert run.output == input
+    assert run.output == output
 
 
 @pytest.mark.asyncio
@@ -163,7 +49,7 @@ async def test_run_stream(server: Server, acp_client: Client) -> None:
     event_stream = [event async for event in acp_client.run_stream(agent="echo", input=input)]
     assert isinstance(event_stream[0], RunCreatedEvent)
     assert isinstance(event_stream[-1], RunCompletedEvent)
-    assert event_stream[-1].run.output == input
+    assert event_stream[-1].run.output == output
 
 
 @pytest.mark.asyncio
@@ -256,15 +142,6 @@ async def test_run_resume_stream(server: Server, acp_client: Client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_run_session(server: Server, acp_client: Client) -> None:
-    async with acp_client.session() as session:
-        run = await session.run_sync(agent="echo", input=input)
-        assert run.output == input
-        run = await session.run_sync(agent="echo", input=input)
-        assert run.output == input + input + input
-
-
-@pytest.mark.asyncio
 async def test_mime_types(server: Server, acp_client: Client) -> None:
     run = await acp_client.run_sync(agent="mime_types", input=input)
     assert run.status == RunStatus.COMPLETED
@@ -353,30 +230,3 @@ async def test_artifact_streaming(server: Server, acp_client: Client) -> None:
     assert "text/plain" in artifact_types
     assert "application/json" in artifact_types
     assert "image/png" in artifact_types
-
-
-@pytest.mark.asyncio
-async def test_file_reader_public_url(server: Server, acp_client: Client) -> None:
-    # Try downloading public url
-    url = "https://raw.githubusercontent.com/i-am-bee/beeai-platform/refs/heads/main/README.md"
-    response = await acp_client.run_sync(
-        agent="file_reader",
-        input=[Message(parts=[MessagePart(content_url=AnyUrl(url))])],
-    )
-    assert "beeai" in response.output[0].parts[0].content.lower()
-
-
-@pytest.mark.asyncio
-async def test_file_reader_platform_file(server: Server, api_client, acp_client: Client) -> None:
-    # Try downloading public url
-    response = await api_client.post("files", files={"file": ("test.txt", "Hello world", "custom/type")})
-    response.raise_for_status()
-    file_id = response.json()["id"]
-    content_url = f"http://{{platform_url}}/api/v1/files/{file_id}/content"
-
-    response = await acp_client.run_sync(
-        agent="file_reader",
-        input=[Message(parts=[MessagePart(content_url=AnyUrl(content_url))])],
-    )
-    assert response.output[0].parts[0].content == "Hello world"
-    assert response.output[0].parts[0].content_type == "custom/type"

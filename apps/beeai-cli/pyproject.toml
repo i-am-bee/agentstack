@@ -1,27 +1,25 @@
 [project]
 name = "beeai-cli"
-version = "0.2.8"
+version = "0.2.12"
 description = "BeeAI CLI"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
 requires-python = ">=3.11,<4.0"
 dependencies = [
-    "anyio>=4.8.0",
-    "pydantic>=2.10.6",
-    "pydantic-settings>=2.7.1",
-    "requests>=2.32.3",
-    "jsonschema>=4.23.0",
-    "jsf>=0.11.2",
-    'gnureadline>=8.2.13; sys_platform != "win32"',
-    "prompt-toolkit>=3.0.50",
-    "cachetools>=5.5.2",
-    "jsonref>=1.1.0",
-    "inquirerpy>=0.3.4",
-    "psutil>=7.0.0",
-    "acp-sdk>=0.8.1",
-    "tenacity>=9.1.2",
-    "typer>=0.15.3",
-    "click~=8.1.8",
+    "anyio~=4.9.0",
+    "pydantic~=2.11.7",
+    "pydantic-settings~=2.9.1",
+    "requests~=2.32.4",
+    "jsonschema~=4.24.0",
+    "jsf~=0.11.2",
+    'gnureadline~=8.2.13; sys_platform != "win32"',
+    "prompt-toolkit~=3.0.51",
+    "jsonref~=1.1.0",
+    "inquirerpy~=0.3.4",
+    "psutil~=7.0.0",
+    "acp-sdk~=0.12.0",
+    "tenacity~=9.1.2",
+    "typer~=0.16.0",
 ]
 
 [tool.uv.sources]

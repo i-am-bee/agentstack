@@ -6,7 +6,7 @@ authors = [{ name = "IBM Corp." }]
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
 dependencies = [
-    "acp-sdk>=0.8.1",
+    "acp-sdk==0.12.0",
     "aider-chat>=0.18.1",
     "pydantic-settings>=2.7.1",
     "pydantic>=2.10.6",
