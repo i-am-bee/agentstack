@@ -38,7 +38,7 @@ class SourceMetadata(BaseModel):
 
 # We plan to switch from Vite to Next.js for beeai-ui (https://github.com/i-am-bee/beeai-platform/pull/760), so then we can move this endpoint there.
 @router.post("/source")
-def get_source_metadata(url: str):
+def get_source_metadata(url: str) -> SourceMetadata:
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()

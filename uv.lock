@@ -17,7 +17,7 @@ dev = [
 
 [[package]]
 name = "acp-sdk"
-version = "0.12.0"
+version = "0.12.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cachetools" },
@@ -35,9 +35,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "redis" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/79/dd/7be23f4650840c38c6c24b21d48ee40d471c5627b021b5d9135c76aa5a22/acp_sdk-0.12.0.tar.gz", hash = "sha256:11e875f03540ed19f4151623aaebe91eb39c1bdfa3273043c684a7a5edc4895e", size = 28743, upload-time = "2025-06-19T08:31:38.539Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e6/71/58ab388e939799705e73f209cfddfa66a80eea0210dc88e25b12c3512083/acp_sdk-0.12.2.tar.gz", hash = "sha256:32844d736d71cd41d214138b268115c89e5f40dbc6c3654f8959526e190d548d", size = 29181, upload-time = "2025-06-23T09:53:30.556Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/44/58/548f42c49b32b400782a9ee3d5ce10556166f10f4c7f181a977ab9675463/acp_sdk-0.12.0-py3-none-any.whl", hash = "sha256:4409eef74fd3bb9d9c9f5437812f3a6e475d4701b612f4dac72921817920d846", size = 30475, upload-time = "2025-06-19T08:31:37.195Z" },
+    { url = "https://files.pythonhosted.org/packages/65/2a/96761bb81f1139e02ec127a7c3ea3ab3a7b285f2e44cb3c2f575d7ad84ac/acp_sdk-0.12.2-py3-none-any.whl", hash = "sha256:3ba125c8fb6cfb5bfe5a2206d84334483eb0948eda4616cb2279f86d3ce22d02", size = 31210, upload-time = "2025-06-23T09:53:29.091Z" },
 ]
 
 [[package]]
@@ -420,7 +420,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "acp-sdk", specifier = ">=0.12.0" },
+    { name = "acp-sdk", specifier = ">=0.12.2" },
     { name = "aioboto3", specifier = ">=14.3.0" },
     { name = "aiodocker", specifier = ">=0.24.0" },
     { name = "aiohttp", specifier = ">=3.11.11" },

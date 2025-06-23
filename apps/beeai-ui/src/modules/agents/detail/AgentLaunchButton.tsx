@@ -37,11 +37,11 @@ interface Props {
 
 export function AgentLaunchButton({ agent }: Props) {
   const { openModal } = useModal();
-  const { provider_id, ui } = agent.metadata;
+  const { provider_id, annotations } = agent.metadata;
   const { missingEnvs, isPending: isMissingEnvsPending } = useMissingEnvs({ agent });
   const { isNotInstalled, isStarting, isError } = useProviderStatus({ providerId: provider_id });
 
-  const uiType = ui?.type;
+  const uiType = annotations?.beeai_ui?.ui_type;
   const sharedProps: ComponentProps<typeof Button> = {
     kind: 'primary',
     size: 'md',

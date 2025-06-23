@@ -33,9 +33,9 @@ export function useSource({ source }: Params) {
       return {
         ...source,
         metadata: {
-          title: metadata.title,
-          description: metadata.description,
-          faviconUrl: metadata.favicon_url,
+          title: metadata?.title,
+          description: metadata?.description,
+          faviconUrl: metadata?.favicon_url,
         } as SourceMetadata,
       };
     },
