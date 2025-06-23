@@ -180,6 +180,10 @@ spec:
             - name: AUTH__DISABLE_AUTH
               value: "true"
             {{- end }}
+            {{- if .Values.features.selfRegistration }}
+            - name: PROVIDER__AUTO_REMOVE_ENABLED
+              value: "true"
+            {{- end }}
             # Object Storage Configuration
             - name: OBJECT_STORAGE__ENDPOINT_URL
               value: {{ include "beeai.s3.endpoint" . | quote }}
