@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { use } from 'react';
 
-import { readProvider } from '..';
-import { providerKeys } from '../keys';
+import { AgentContext } from './agent-context';
 
-interface Props {
-  id?: string;
-}
+export function useAgent() {
+  const context = use(AgentContext);
 
-export function useProvider({ id }: Props) {
-  const query = useQuery({
-    queryKey: providerKeys.detail(id ?? ''),
-    queryFn: () => readProvider(id!),
-    enabled: Boolean(id),
-  });
+  if (!context) {
+    throw new Error('useAgent must be used within a AgentProvider');
+  }
 
-  return query;
+  return context;
 }

@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { createContext } from 'react';
 
-import { readProvider } from '..';
-import { providerKeys } from '../keys';
+import type { Agent } from '#modules/agents/api/types.ts';
+import type { ProviderStatusWithHelpers } from '#modules/agents/hooks/useProviderStatus.ts';
 
-interface Props {
-  id?: string;
-}
+export const AgentContext = createContext<AgentContextValue | undefined>(undefined);
 
-export function useProvider({ id }: Props) {
-  const query = useQuery({
-    queryKey: providerKeys.detail(id ?? ''),
-    queryFn: () => readProvider(id!),
-    enabled: Boolean(id),
-  });
-
-  return query;
+interface AgentContextValue {
+  agent: Agent;
+  status: ProviderStatusWithHelpers;
 }

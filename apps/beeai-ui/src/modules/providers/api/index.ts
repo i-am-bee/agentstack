@@ -27,6 +27,12 @@ export async function listProviders() {
   return ensureData(response);
 }
 
+export async function readProvider(id: string) {
+  const response = await api.GET('/api/v1/providers/{id}', { params: { path: { id } } });
+
+  return ensureData(response);
+}
+
 export async function deleteProvider({ id }: DeleteProviderPath) {
   const response = await api.DELETE('/api/v1/providers/{id}', { params: { path: { id } } });
 

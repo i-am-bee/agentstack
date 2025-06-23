@@ -48,6 +48,7 @@ import {
 import { isImageContentType } from '#utils/helpers.ts';
 
 import { useFileUpload } from '../../files/contexts';
+import { AgentProvider } from '../agent/AgentProvider';
 import { ChatContext, ChatMessagesContext } from './chat-context';
 
 interface Props {
@@ -238,7 +239,11 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
   return (
     <SourcesProvider sourcesData={sourcesData}>
       <ChatContext.Provider value={contextValue}>
-        <ChatMessagesContext.Provider value={messages}>{children}</ChatMessagesContext.Provider>
+        <ChatMessagesContext.Provider value={messages}>
+          <AgentProvider agent={agent} isMonitorStatusEnabled={isPending}>
+            {children}
+          </AgentProvider>
+        </ChatMessagesContext.Provider>
       </ChatContext.Provider>
     </SourcesProvider>
   );
