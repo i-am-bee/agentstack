@@ -42,11 +42,9 @@ export type Artifact = Exclude<MessagePart, 'name'> & { name: string };
 
 export interface CitationMetadata {
   kind: MetadataKind.Citation;
-  data: {
-    url: string;
-    start_index: number;
-    end_index: number;
-  };
+  url: string;
+  start_index: number;
+  end_index: number;
 }
 
 export type RunId = CreateRunResponse['run_id'];

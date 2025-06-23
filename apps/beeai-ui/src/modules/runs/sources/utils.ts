@@ -32,9 +32,7 @@ export function prepareMessageSources({
   message: AssistantMessage;
   metadata: CitationMetadata;
 }) {
-  const {
-    data: { url, start_index, end_index },
-  } = metadata;
+  const { url, start_index, end_index } = metadata;
   const { sources: prevSources = [] } = message;
 
   const key = uuid();

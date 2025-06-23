@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-import type { SourceMetadata } from './types';
+import { api } from '#api/index.ts';
+import { ensureData } from '#api/utils.ts';
 
 // TODO:
-export async function readSourceMetadata({ url }: { url: string }): Promise<SourceMetadata> {
-  const title: string | undefined = 'beeai-platform: Discover, run, and compose AI';
+export async function readSourceMetadata({ url }: { url: string }) {
+  const response = await api.POST('/api/v1/ui/source', { params: { query: { url } } });
 
-  return {
-    title: title ?? url,
-    description:
-      'Orchestrate agents into workflows — regardless of how or where they were built . Key features. Feature, Description. ACP Native, Built from the ground.',
-    faviconUrl: 'https://github.githubassets.com/favicons/favicon.svg',
-  };
+  return ensureData(response);
+
+  // const title: string | undefined = 'beeai-platform: Discover, run, and compose AI';
+
+  // return {
+  //   title: title ?? url,
+  //   description:
+  //     'Orchestrate agents into workflows — regardless of how or where they were built . Key features. Feature, Description. ACP Native, Built from the ground.',
+  //   faviconUrl: 'https://github.githubassets.com/favicons/favicon.svg',
+  // };
 }
