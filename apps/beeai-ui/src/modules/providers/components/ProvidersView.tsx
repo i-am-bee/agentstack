@@ -48,9 +48,7 @@ export function ProvidersView() {
   const { openModal, openConfirmation } = useModal();
   const { data: providers, isPending: isProvidersPending } = useListProviders();
   const { mutate: deleteProvider } = useDeleteProvider();
-  const { data: agents, isPending: isAgentsPending } = useListAgents({
-    params: { onlySupportedUis: true, sort: true },
-  });
+  const { data: agents, isPending: isAgentsPending } = useListAgents({ onlyUiSupported: true, sort: true });
   const agentsByProvider = groupAgentsByProvider(agents);
 
   const entries = useMemo(

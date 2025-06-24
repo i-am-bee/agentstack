@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { isString } from 'lodash';
+import isString from 'lodash/isString';
 import type { HTMLAttributes } from 'react';
 import type { ExtraProps } from 'react-markdown';
 

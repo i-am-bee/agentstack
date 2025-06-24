@@ -35,7 +35,7 @@ export function AgentsView() {
     error,
     refetch,
     isRefetching,
-  } = useListAgents({ params: { onlySupportedUis: true, sort: true } });
+  } = useListAgents({ onlyUiSupported: true, sort: true });
 
   const { watch } = useFormContext<AgentsFiltersParams>();
   const filters = watch();

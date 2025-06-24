@@ -25,7 +25,7 @@ import classes from './Landing.module.scss';
 
 export function Landing() {
   const { transitionTo } = useViewTransition();
-  const { data: agents } = useListAgents({ params: { onlySupportedUis: true, sort: true } });
+  const { data: agents } = useListAgents({ onlyUiSupported: true, sort: true });
 
   useEffect(() => {
     const firstAgent = agents?.at(0);

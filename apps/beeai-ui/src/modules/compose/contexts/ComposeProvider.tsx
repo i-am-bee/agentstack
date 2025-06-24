@@ -34,7 +34,7 @@ import type { ComposeStep, SequentialFormValues } from './compose-context';
 import { ComposeContext, ComposeStatus } from './compose-context';
 
 export function ComposeProvider({ children }: PropsWithChildren) {
-  const { data: agents } = useListAgents({ params: { onlySupportedUis: true, sort: true } });
+  const { data: agents } = useListAgents({ onlyUiSupported: true, sort: true });
   const [searchParams, setSearchParams] = useSearchParams();
   const errorHandler = useHandleError();
 

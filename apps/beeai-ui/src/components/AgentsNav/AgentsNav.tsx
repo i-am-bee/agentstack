@@ -30,7 +30,7 @@ export function AgentsNav() {
   const { pathname } = useLocation();
   const { transitionTo } = useViewTransition();
 
-  const { data: agents, isPending } = useListAgents({ params: { onlySupportedUis: true, sort: true } });
+  const { data: agents, isPending } = useListAgents({ onlyUiSupported: true, sort: true });
 
   return (
     <nav className={classes.root}>

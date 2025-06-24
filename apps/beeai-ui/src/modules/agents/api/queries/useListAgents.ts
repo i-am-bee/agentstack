@@ -22,22 +22,18 @@ import { listAgents } from '..';
 import { agentKeys } from '../keys';
 import type { Agent, ListAgentsParams } from '../types';
 
-interface Props {
-  params?: ListAgentsParams;
-}
-
-export function useListAgents({ params }: Props = {}) {
+export function useListAgents({ onlyUiSupported, sort }: ListAgentsParams = {}) {
   const query = useQuery({
-    queryKey: agentKeys.list({ params }),
+    queryKey: agentKeys.list(),
     queryFn: listAgents,
     select: (data) => {
       let agents = data?.agents as Agent[];
 
-      if (params?.onlySupportedUis) {
+      if (onlyUiSupported) {
         agents = agents.filter(isAgentUiSupported);
       }
 
-      if (params?.sort) {
+      if (sort) {
         agents = agents.sort(sortAgentsByName);
       }
 
