@@ -442,7 +442,17 @@ async def start(
                     await asyncio.sleep(5)
                 if (
                     await run_command(
-                        ["docker", "exec", vm_name, "kubectl", "get", "crd", "helmcharts.helm.cattle.io"],
+                        [
+                            "docker",
+                            "exec",
+                            vm_name,
+                            "k3s",
+                            "kubectl",
+                            "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+                            "get",
+                            "crd",
+                            "helmcharts.helm.cattle.io",
+                        ],
                         message="Checking if k3s is running",
                         check=False,
                     )
@@ -492,7 +502,20 @@ async def start(
                 if line.startswith("default via ")
             )
             await run_command(
-                ["wsl.exe", "--user", "root", "--distribution", vm_name, "--", "kubectl", "apply", "-f", "-"],
+                [
+                    "wsl.exe",
+                    "--user",
+                    "root",
+                    "--distribution",
+                    vm_name,
+                    "--",
+                    "k3s",
+                    "kubectl",
+                    "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+                    "apply",
+                    "-f",
+                    "-",
+                ],
                 "Setting up internal networking",
                 input=yaml.dump(
                     {
@@ -574,7 +597,9 @@ async def start(
                     VMDriver.docker: ["docker", "exec", "-i", vm_name],
                     VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
                 }[vm_driver],
+                "k3s",
                 "kubectl",
+                "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
                 "apply",
                 "-f",
                 "-",
@@ -618,7 +643,9 @@ async def start(
                     VMDriver.docker: ["docker", "exec", "-i", vm_name],
                     VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
                 }[vm_driver],
+                "k3s",
                 "kubectl",
+                "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
                 "wait",
                 "--for=condition=JobCreated",
                 "helmchart.helm.cattle.io/beeai",
@@ -635,7 +662,9 @@ async def start(
                     VMDriver.docker: ["docker", "exec", "-i", vm_name],
                     VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
                 }[vm_driver],
+                "k3s",
                 "kubectl",
+                "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
                 "wait",
                 "--for=condition=Complete",
                 "--timeout=1h",
@@ -653,7 +682,9 @@ async def start(
                     VMDriver.docker: ["docker", "exec", "-i", vm_name],
                     VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
                 }[vm_driver],
+                "k3s",
                 "kubectl",
+                "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
                 "wait",
                 "--for=condition=Available",
                 "--timeout=1h",
