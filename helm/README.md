@@ -30,10 +30,6 @@ features:
 auth:
   enabled: true
   admin_password: "my-secret-password"
-
-# Help us improve the platform by sharing anonymized telemetry data
-telemetry:
-  sharing: true
 ```
 
 Then install the chart using

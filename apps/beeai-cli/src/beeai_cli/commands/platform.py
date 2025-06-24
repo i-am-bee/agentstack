@@ -202,9 +202,6 @@ async def start(
             default_factory=list,
         ),
     ],
-    telemetry_sharing: typing.Annotated[
-        bool, typer.Option(help="Control the sharing of telemetry data with the BeeAI team")
-    ] = True,
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
     vm_driver: typing.Annotated[
         VMDriver | None, typer.Option(hidden=True, help="Platform driver: lima (VM) or docker (container)")
@@ -595,7 +592,6 @@ async def start(
                                 "encryptionKey": "Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc=",  # Dummy key for local use
                                 "features": {"uiNavigation": True},
                                 "auth": {"enabled": False},
-                                "telemetry": {"sharing": telemetry_sharing},
                             }
                         ),
                         "set": dict(value.split("=", 1) for value in set_values_list),

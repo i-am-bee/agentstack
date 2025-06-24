@@ -14,13 +14,15 @@ beeai logs <agent-name>
 ```
 
 What you'll see:
+
 - Agent startup and initialization
 - Request processing steps
 - Error messages and stack traces
 - Container lifecycle events
 
 <Note>
-Logs are only available for managed (containerized) agents that are currently running.
+  Logs are only available for managed (containerized) agents that are currently
+  running.
 </Note>
 
 ## Telemetry Collection
@@ -30,38 +32,27 @@ BeeAI includes OpenTelemetry instrumentation to collect traces and metrics. Tele
 ### Default Configuration
 
 By default, BeeAI sends telemetry to:
+
 - **Local Phoenix instance** (if running) for trace visualization
-- **BeeAI telemetry service** for anonymized platform improvement
 
 The telemetry includes:
+
 - Platform version and runtime details
 - Agent execution traces
-- Performance metrics
-- Anonymized usage statistics
-
-No sensitive data like prompts, responses, or personal information is collected.
-
-### Configure Telemetry Sharing
-
-To disable external telemetry sharing:
-```bash
-beeai platform start --no-telemetry-sharing
-```
-
-To re-enable telemetry sharing:
-```bash
-# Omit --no-telemetry-sharing
-beeai platform start
-```
-
-This controls whether anonymized usage data is sent to help improve BeeAI.
 
 ## Integration with Phoenix
 
 [Arize Phoenix](https://phoenix.arize.com/) provides visualization for OpenTelemetry traces from your agents.
 
 <Warning>
-**Important License Notice**: Phoenix is disabled by default in BeeAI. When you enable Phoenix, be aware that Arize Phoenix is licensed under the Elastic License v2 (ELv2), which has specific terms regarding commercial use and distribution. By enabling Phoenix, you acknowledge that you are responsible for ensuring compliance with the ELv2 license terms for your specific use case. Please review the [Phoenix license](https://github.com/Arize-ai/phoenix/blob/main/LICENSE) before enabling this feature in production environments.
+  **Important License Notice**: Phoenix is disabled by default in BeeAI. When
+  you enable Phoenix, be aware that Arize Phoenix is licensed under the Elastic
+  License v2 (ELv2), which has specific terms regarding commercial use and
+  distribution. By enabling Phoenix, you acknowledge that you are responsible
+  for ensuring compliance with the ELv2 license terms for your specific use
+  case. Please review the [Phoenix
+  license](https://github.com/Arize-ai/phoenix/blob/main/LICENSE) before
+  enabling this feature in production environments.
 </Warning>
 
 <Steps>
@@ -72,6 +63,7 @@ Install and start Phoenix using `beeai platform start` command:
 ```sh
 beeai platform start --set phoenix.enabled=true
 ```
+
        You can run this even if your platform is already running without loosing data.
 
    </Step>
@@ -95,7 +87,9 @@ beeai run chat "Hello"
 </Steps>
 
 <Tip>
-  Want richer trace detail? Use the [OpenInference](https://github.com/Arize-ai/openinference/) standard for custom instrumentation.
+  Want richer trace detail? Use the
+  [OpenInference](https://github.com/Arize-ai/openinference/) standard for
+  custom instrumentation.
 </Tip>
 
 ## Instrumenting with OpenInference
@@ -103,7 +97,9 @@ beeai run chat "Hello"
 To enable full traceability of your BeeAI agents, you can instrument them using [OpenInference](https://github.com/Arize-ai/openinference). This guide walks you through the installation and setup process for both [Python](https://github.com/Arize-ai/openinference/tree/main?tab=readme-ov-file#libraries) and [JavaScript](https://github.com/Arize-ai/openinference/tree/main?tab=readme-ov-file#libraries-1) frameworks.
 
 <Warning>
-This guide only covers frameworks officially supported by the OpenInference ecosystem. If your framework isn't listed, instrumentation guidance is not currently provided.
+  This guide only covers frameworks officially supported by the OpenInference
+  ecosystem. If your framework isn't listed, instrumentation guidance is not
+  currently provided.
 </Warning>
 
 Before you begin, make sure the Phoenix server is running.
@@ -135,7 +131,9 @@ BeeAIInstrumentor().instrument()
 </Steps>
 
 <Tip>
-For advanced usage (e.g., running instrumentation outside the BeeAI lifecycle), see: [OpenInference Instrumentation for BeeAI](https://github.com/Arize-ai/openinference/tree/main/python/instrumentation/openinference-instrumentation-beeai)
+  For advanced usage (e.g., running instrumentation outside the BeeAI
+  lifecycle), see: [OpenInference Instrumentation for
+  BeeAI](https://github.com/Arize-ai/openinference/tree/main/python/instrumentation/openinference-instrumentation-beeai)
 </Tip>
 
 </Tab>
@@ -166,7 +164,9 @@ beeAIInstrumentation.manuallyInstrument(beeaiFramework);
 </Steps>
 
 <Tip>
-For advanced usage (e.g., running instrumentation outside the BeeAI lifecycle), see: [OpenInference Instrumentation for BeeAI](https://github.com/Arize-ai/openinference/tree/main/js/packages/openinference-instrumentation-beeai)
+  For advanced usage (e.g., running instrumentation outside the BeeAI
+  lifecycle), see: [OpenInference Instrumentation for
+  BeeAI](https://github.com/Arize-ai/openinference/tree/main/js/packages/openinference-instrumentation-beeai)
 </Tip>
 
 </Tab> </Tabs>
