@@ -134,6 +134,7 @@ async def _get_platform_status(vm_driver: VMDriver, vm_name: str) -> str | None:
                     [_limactl_exe(), "--tty=false", "list", "--format=json"],
                     f"Looking for existing instance in {vm_driver.name.capitalize()}",
                     env={"LIMA_HOME": str(Configuration().lima_home)},
+                    cwd="/",
                 )
                 return next(
                     (
@@ -272,6 +273,7 @@ async def start(
                 "Cleaning up remains of previous instance",
                 env={"LIMA_HOME": str(Configuration().lima_home)},
                 check=False,
+                cwd="/",
             )
             templates_dir = Configuration().lima_home / "_templates"
             if vm_driver == VMDriver.lima:
@@ -391,6 +393,7 @@ async def start(
                     # https://github.com/lima-vm/lima/issues/3601#issuecomment-2936952923
                     "LIMA_SSH_PORT_FORWARDER": "true",
                 },
+                cwd="/",
             )
         elif status != "running":
             await run_command(
@@ -406,6 +409,7 @@ async def start(
                     # https://github.com/lima-vm/lima/issues/3601#issuecomment-2936952923
                     "LIMA_SSH_PORT_FORWARDER": "true",
                 },
+                cwd="/",
             )
         else:
             console.print("Updating an existing instance.")
@@ -428,6 +432,7 @@ async def start(
                     # https://github.com/lima-vm/lima/issues/3601#issuecomment-2936952923
                     "LIMA_SSH_PORT_FORWARDER": "true",
                 },
+                cwd="/",
             )
 
         # Wait for asynchronous k3s startup for Docker
@@ -689,6 +694,7 @@ async def stop(
             }[vm_driver],
             "Stopping BeeAI VM",
             env={"LIMA_HOME": str(Configuration().lima_home)},
+            cwd="/",
         )
         if vm_driver == VMDriver.wsl:
             await run_command(
@@ -740,6 +746,7 @@ async def delete(
             "Deleting BeeAI platform",
             env={"LIMA_HOME": str(Configuration().lima_home)},
             check=False,
+            cwd="/",
         )
         if vm_driver == VMDriver.wsl:
             await run_command(
