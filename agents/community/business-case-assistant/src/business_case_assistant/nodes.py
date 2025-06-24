@@ -1,11 +1,9 @@
-from langgraph.graph import StateGraph, END, MessagesState
-from typing import TypedDict, Literal
+from langgraph.graph import END, MessagesState
+from typing import Literal
 from langchain_core.messages import RemoveMessage
 from langchain_core.output_parsers import StrOutputParser
-import os
 from langchain_core.tools import tool
-import json
-from langchain_core.output_parsers import JsonOutputKeyToolsParser
+
 
 # Define the state for the graph, extending MessagesState
 class BusinessCaseState(MessagesState):
@@ -17,11 +15,12 @@ class BusinessCaseState(MessagesState):
     executive_summary: str
     document: str
     requirements: str
-    next: str 
+    next: str
     next_instructions: str
     message_summary: str
 
-introduction_intructions =  """A Business Case assists organizational stakeholders in making decisions regarding the viability of a proposed\
+
+introduction_intructions = """A Business Case assists organizational stakeholders in making decisions regarding the viability of a proposed\
     project effort. Use of a Business Case is considered standard practice throughout private and public industry.\
     In government there are also specific laws and regulations that mandate the use of Business Cases for certain project types.\
     For additional information regarding Business Case requirements contact the appropriate Capital Planning and Investment Control Office(r)."""
@@ -92,9 +91,9 @@ Include a detailed alternative analysis that contains information such as:
 •	Security considerations
 •	Etc"""
 
+
 # Define the logic for each node
 def gather_requirements(state: BusinessCaseState, model) -> BusinessCaseState:
-   
     gather_prompt = """You are tasked with helping write a business use case document.\
     Your first job is to gather all the user requirements about the project.\
     You should have a clear sense of all the needs of each stage the project.\
@@ -103,19 +102,20 @@ def gather_requirements(state: BusinessCaseState, model) -> BusinessCaseState:
      If you have a good idea of what they are trying to build and have enough information to write the section, \
     call the `WriteRequirements` tool with a detailed description.\
     """
+
     @tool
     def WriteRequirements(requirements):
-        '''
+        """
         If you have a good idea of what they are trying to build and have enough information to write the section, \
         call the this tool.\
         Args: requirements
-        '''
+        """
         return requirements
 
     messages = [
         {"role": "system", "content": gather_prompt},
-    ] + state['messages']
-   
+    ] + state["messages"]
+
     model_write = model.bind_tools([WriteRequirements])
     response = model_write.invoke(messages)
     print(response.tool_calls)
@@ -123,72 +123,83 @@ def gather_requirements(state: BusinessCaseState, model) -> BusinessCaseState:
         return {"messages": [response]}
     else:
         requirements = WriteRequirements.invoke(response.tool_calls[0]).content
-        delete_messages = [RemoveMessage(id=m.id) for m in state['messages'][:1]]
+        delete_messages = [RemoveMessage(id=m.id) for m in state["messages"][:1]]
         return {"requirements": requirements, "messages": delete_messages}
 
+
 def write_introduction(state: BusinessCaseState, model) -> BusinessCaseState:
-    introduction_prompt =  """ You are tasked with writing the Introduction section to a business case document\
+    introduction_prompt = """ You are tasked with writing the Introduction section to a business case document\
     take the requirements that have obtained from the user and summerize them into a introduction using the following\
     intructions as a guide.
     Intructions: {instructions}
     """
 
     messages = [
-       {"role": "system", "content": introduction_prompt.format(instructions=introduction_intructions)},
-       {"role":"user","content":state['requirements']}
-   ] 
-    
+        {"role": "system", "content": introduction_prompt.format(instructions=introduction_intructions)},
+        {"role": "user", "content": state["requirements"]},
+    ]
+
     introduction_chain = model | StrOutputParser()
     introduction = introduction_chain.invoke(messages)
 
-    return {"introduction": introduction,}
+    return {
+        "introduction": introduction,
+    }
+
 
 def write_general_project_information(state: BusinessCaseState, model) -> BusinessCaseState:
     gpi_prompt = """You are tasked with writing the General Project Information of a Business Case.\
           Take the requirements you obtained from the user and write the section using the following instructions:
            {instructions} 
            """
-    
+
     messages = [
-       {"role": "system", "content": gpi_prompt.format(instructions=gpi_intructions)},
-       {"role":"user","content":state['requirements']}
-   ]
+        {"role": "system", "content": gpi_prompt.format(instructions=gpi_intructions)},
+        {"role": "user", "content": state["requirements"]},
+    ]
 
     gpi_chain = model | StrOutputParser()
-    gpi =  gpi_chain.invoke(messages)
-    return {"general_project_information": gpi,}
-    
+    gpi = gpi_chain.invoke(messages)
+    return {
+        "general_project_information": gpi,
+    }
+
+
 def write_high_level_business_impact(state: BusinessCaseState, model) -> BusinessCaseState:
-    impact_prompt =  """You are tasked with writing the High Level Business Impact of a business case document.\
+    impact_prompt = """You are tasked with writing the High Level Business Impact of a business case document.\
     Take the requirements obtained from the user and write the section using the following instructions as a guide.\
             Instructions: {instructions} """
 
     messages = [
         {"role": "system", "content": impact_prompt.format(instructions=biz_instructions)},
-        {"role":"user","content":state['requirements']}
+        {"role": "user", "content": state["requirements"]},
     ]
     biz_chain = model | StrOutputParser()
     biz_impact = biz_chain.invoke(messages)
     return {"high_level_business_impact": biz_impact}
 
-def write_alternatives_and_analysis(state: BusinessCaseState, small_model, medium_model) -> BusinessCaseState:
 
+def write_alternatives_and_analysis(state: BusinessCaseState, small_model, medium_model) -> BusinessCaseState:
     alt_analysis_prompt = """You are an expert Business Case Writer take the users requirements and ideas\
         using the following instructions {instructions}
         User Requirements: {requirements}"""
 
     messages = messages = [
-       {"role": "system", "content": alt_analysis_prompt.format(
-           instructions=alt_analysis_instructions,
-           requirements=state["requirements"]
-       )},
-       {"role":"user","content":state['requirements']}
-   ]
+        {
+            "role": "system",
+            "content": alt_analysis_prompt.format(
+                instructions=alt_analysis_instructions, requirements=state["requirements"]
+            ),
+        },
+        {"role": "user", "content": state["requirements"]},
+    ]
     alt_analysis_chain = medium_model | StrOutputParser()
     alt_analysis = alt_analysis_chain.invoke(messages)
-    
-    return {"alternatives_and_analysis": alt_analysis,}
-    
+
+    return {
+        "alternatives_and_analysis": alt_analysis,
+    }
+
 
 def write_preferred_solution(state: BusinessCaseState, model) -> BusinessCaseState:
     solution_prompt = """You are tasked with writing the Preferred Solutions section to a business case document.\
@@ -197,54 +208,68 @@ def write_preferred_solution(state: BusinessCaseState, model) -> BusinessCaseSta
         """
 
     messages = [
-        {"role": "system", "content": solution_prompt.format(instructions = solution_instructions)},
-       {"role":"user","content":state['requirements']}
+        {"role": "system", "content": solution_prompt.format(instructions=solution_instructions)},
+        {"role": "user", "content": state["requirements"]},
     ]
     solution_chain = model | StrOutputParser()
     solution = solution_chain.invoke(messages)
-    return {"preferred_solution": solution,}
+    return {
+        "preferred_solution": solution,
+    }
+
 
 def write_executive_summary(state: BusinessCaseState, model) -> BusinessCaseState:
-    first_draft_doc = (str(state['introduction'])
-                       + str(state['general_project_information'])
-                       + str(state['high_level_business_impact'])
-                       + str(state['alternatives_and_analysis'])
-                       + str(state['preferred_solution'])
+    first_draft_doc = (
+        str(state["introduction"])
+        + str(state["general_project_information"])
+        + str(state["high_level_business_impact"])
+        + str(state["alternatives_and_analysis"])
+        + str(state["preferred_solution"])
     )
     exe_sum_prompt = """You are tasked with the writing the executive summary of a Buisness Case.\
         Take the draft you obtained from the user and create write a short executive summmary\
         no more 3-5 sentences: """
-    
-    messages = [
-       {"role": "system", "content": exe_sum_prompt},
-       {"role":"user","content":first_draft_doc}
-   ] 
+
+    messages = [{"role": "system", "content": exe_sum_prompt}, {"role": "user", "content": first_draft_doc}]
     exe_sum_chain = model | StrOutputParser()
     exe_sum = exe_sum_chain.invoke(messages)
 
-    draft_doc = (str(exe_sum) + "\n\n"
-                 + str(state['introduction']) + "\n\n"
-                 + str(state['general_project_information']) +"\n\n"
-                 + str(state['high_level_business_impact']) + "\n\n"
-                 + str(state['alternatives_and_analysis']) + "\n\n"
-                 + str(state['preferred_solution']) 
+    draft_doc = (
+        str(exe_sum)
+        + "\n\n"
+        + str(state["introduction"])
+        + "\n\n"
+        + str(state["general_project_information"])
+        + "\n\n"
+        + str(state["high_level_business_impact"])
+        + "\n\n"
+        + str(state["alternatives_and_analysis"])
+        + "\n\n"
+        + str(state["preferred_solution"])
     )
     return {"executive_summary": exe_sum, "document": draft_doc}
 
+
 def compile_document(state: BusinessCaseState) -> BusinessCaseState:
-    final_doc = (str(state['executive_summary']) + "\n\n"
-                 + str(state['introduction']) + "\n\n"
-                 + str(state['general_project_information']) +"\n\n"
-                 + str(state['high_level_business_impact']) + "\n\n"
-                 + str(state['alternatives_and_analysis']) + "\n\n"
-                 + str(state['preferred_solution']) 
+    final_doc = (
+        str(state["executive_summary"])
+        + "\n\n"
+        + str(state["introduction"])
+        + "\n\n"
+        + str(state["general_project_information"])
+        + "\n\n"
+        + str(state["high_level_business_impact"])
+        + "\n\n"
+        + str(state["alternatives_and_analysis"])
+        + "\n\n"
+        + str(state["preferred_solution"])
     )
 
     return {"document": final_doc}
 
 
-def route_gather(state: BusinessCaseState) -> Literal["Writing Introduction",END]:
-    if state.get('requirements'):
+def route_gather(state: BusinessCaseState) -> Literal["Writing Introduction", END]:
+    if state.get("requirements"):
         return "Writing Introduction"
     else:
         return END

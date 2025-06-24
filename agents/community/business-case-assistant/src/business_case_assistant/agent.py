@@ -12,6 +12,8 @@ graph = build_graph()
 graph = graph.compile(checkpointer=memory)
 
 server = Server()
+
+
 @server.agent(
     metadata=Metadata(
         version="1.0.0",
@@ -68,18 +70,18 @@ async def business_case_assistant(input: list[Message], context: Context) -> Asy
         output = event
         print(output)
         node = list(output.keys())[0]
-        if node == 'Gathering Requirements':
-            output = output.get('Gathering Requirements', {}).get('messages', [])
+        if node == "Gathering Requirements":
+            output = output.get("Gathering Requirements", {}).get("messages", [])
             for msg in output:
                 yield MessagePart(content=msg.content)
-        elif node == 'Compiling Document':
-            output = output.get('Compiling Document', {}).get('document', [])
-            yield MessagePart(content = output)
-        
+        elif node == "Compiling Document":
+            output = output.get("Compiling Document", {}).get("document", [])
+            yield MessagePart(content=output)
+
+
 def run():
     server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
 
+
 if __name__ == "__main__":
     run()
-    
-
