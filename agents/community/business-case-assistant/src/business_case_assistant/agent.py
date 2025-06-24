@@ -2,9 +2,8 @@ from collections.abc import AsyncGenerator
 from acp_sdk.models import Message, MessagePart
 from acp_sdk.server import Context, RunYield, RunYieldResume, Server
 from acp_sdk import Metadata
-from functools import reduce
 from textwrap import dedent
-import os, sys
+import os
 from langgraph.checkpoint.memory import MemorySaver
 from business_case_assistant.graph import build_graph
 
@@ -14,16 +13,14 @@ graph = graph.compile(checkpointer=memory)
 
 server = Server()
 @server.agent(
-    name="Business Case Assistant",
-    description="The Business Case Assistant uses advanced language models \
-        and LangGraph to interview the user about project requirements and create \
-        a business case document based on the user's responses.",
     metadata=Metadata(
         version="1.0.0",
         framework="LangGraph",
         programming_language="Python",
-        ui={"type":"chat",
-            "user_greeting": """To get started, could you please share the key points or objectives of your business case?"""},
+        ui={
+            "type": "chat",
+            "user_greeting": """To get started, could you please share the key points or objectives of your business case?""",
+        },
         author={
             "name": "Caitlin Tran",
         },
@@ -60,9 +57,10 @@ server = Server()
             "**Conversational AI** - Handles multi-turn conversations with memory while interviewing the user about business requirements",
             "**Business Case Generation** - Drafts business case documents based on the business requirements inputted by the user",
         ],
-    )
+    ),
 )
 async def business_case_assistant(input: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
+    """Interviews the user about project requirements and creates a business case document."""
     message = input[-1].parts[0].content
     config = {"configurable": {"thread_id": context.session_id}}
 
