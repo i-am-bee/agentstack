@@ -34,7 +34,6 @@ import { AgentLaunchButton } from '../detail/AgentLaunchButton';
 import { getAgentDisplayName } from '../utils';
 import classes from './AgentDetail.module.scss';
 import { AgentDetailSection } from './AgentDetailSection';
-import { AgentExampleRequests } from './AgentExampleRequests';
 import { AgentMetadata } from './AgentMetadata';
 import { AgentTags } from './AgentTags';
 import { BeeBadge } from './BeeBadge';
@@ -46,8 +45,7 @@ interface Props {
 
 export function AgentDetail({ agent, buttons }: Props) {
   const { name, description, metadata } = agent;
-  const { examples, documentation } = metadata;
-  const exampleCommand = examples?.cli?.at(0)?.command ?? examples?.command;
+  const { documentation } = metadata;
   const displayName = getAgentDisplayName(agent);
 
   return (
@@ -75,7 +73,7 @@ export function AgentDetail({ agent, buttons }: Props) {
         {buttons}
       </motion.div>
 
-      {(exampleCommand || documentation) && (
+      {documentation && (
         <motion.hr
           {...fadeInPropsWithMarginShift({
             start: { from: spacing[7], to: spacing[6] },
@@ -83,18 +81,6 @@ export function AgentDetail({ agent, buttons }: Props) {
           })}
           className={classes.divider}
         />
-      )}
-
-      {exampleCommand && (
-        <motion.div
-          {...fadeInPropsWithMarginShift({
-            end: { from: spacing[10], to: spacing[9] },
-          })}
-        >
-          <AgentDetailSection title="Example requests">
-            <AgentExampleRequests cli={exampleCommand} />
-          </AgentDetailSection>
-        </motion.div>
       )}
 
       {documentation && (

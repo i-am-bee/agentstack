@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import type { UploadFileResponse } from '../files/api/types';
 import type { Role } from '../types';
 
 interface Message {
@@ -22,14 +21,20 @@ interface Message {
   role: Role;
   content: string;
   error?: unknown;
+  files?: MessageFile[];
 }
 export interface UserMessage extends Message {
   role: Role.User;
-  files?: UploadFileResponse[];
 }
 export interface AssistantMessage extends Message {
   role: Role.Assistant;
   status: MessageStatus;
+}
+
+export interface MessageFile {
+  key: string;
+  filename: string;
+  href: string;
 }
 
 export type ChatMessage = UserMessage | AssistantMessage;

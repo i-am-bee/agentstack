@@ -19,26 +19,32 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { useToast } from '#contexts/Toast/index.ts';
 import { TaskType, useTasks } from '#hooks/useTasks.ts';
-import { agentKeys } from '#modules/agents/api/keys.ts';
-import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
-import { useAgentStatus } from '#modules/agents/hooks/useAgentStatus.ts';
+import { useListProviderAgents } from '#modules/agents/api/queries/useListProviderAgents.ts';
+import { useProviderStatus } from '#modules/agents/hooks/useProviderStatus.ts';
 import { getAgentDisplayName } from '#modules/agents/utils.ts';
+
+import { providerKeys } from '../api/keys';
 
 interface Props {
   id?: string;
+  isEnabled?: boolean;
 }
 
-export function useMonitorProvider({ id }: Props) {
+export function useMonitorProviderStatus({ id, isEnabled }: Props) {
   const [isDone, setIsDone] = useState(false);
   const queryClient = useQueryClient();
   const { addToast } = useToast();
   const { addTask, removeTask } = useTasks();
 
-  const { refetch: refetchStatus } = useAgentStatus({ providerId: id });
-  const { data: agents } = useListAgents();
+  const { refetch: refetchStatus, ...agentStatusReturn } = useProviderStatus({ providerId: id });
+  const { data: agents } = useListProviderAgents({ providerId: id });
+
+  const { isStarting, isNotInstalled } = agentStatusReturn;
+
+  const shouldMonitorStatus = isEnabled && !isDone && (isStarting || isNotInstalled);
 
   const checkProvider = useCallback(async () => {
-    const { isReady, isInstallError } = await refetchStatus();
+    const { isReady, isError } = await refetchStatus();
 
     if (isReady) {
       agents?.forEach((agent) => {
@@ -50,7 +56,7 @@ export function useMonitorProvider({ id }: Props) {
           timeout: 5_000,
         });
       });
-    } else if (isInstallError) {
+    } else if (isError) {
       agents?.forEach((agent) => {
         const displayName = getAgentDisplayName(agent);
 
@@ -61,8 +67,8 @@ export function useMonitorProvider({ id }: Props) {
       });
     }
 
-    if (isReady || isInstallError) {
-      queryClient.invalidateQueries({ queryKey: agentKeys.lists() });
+    if (isReady || isError) {
+      queryClient.invalidateQueries({ queryKey: providerKeys.lists() });
 
       if (id) {
         removeTask({ id, type: TaskType.ProviderStatusCheck });
@@ -70,22 +76,24 @@ export function useMonitorProvider({ id }: Props) {
 
       setIsDone(true);
     }
-  }, [id, agents, queryClient, refetchStatus, addToast, removeTask]);
+  }, [refetchStatus, agents, addToast, queryClient, id, removeTask]);
 
   useEffect(() => {
-    if (id && !isDone) {
+    if (id && shouldMonitorStatus) {
       addTask({
-        id,
+        id: id,
         type: TaskType.ProviderStatusCheck,
         task: checkProvider,
         delay: CHECK_PROVIDER_STATUS_INTERVAL,
       });
 
       return () => {
-        removeTask({ id, type: TaskType.ProviderStatusCheck });
+        removeTask({ id: id, type: TaskType.ProviderStatusCheck });
       };
     }
-  }, [id, isDone, addTask, removeTask, checkProvider]);
+  }, [addTask, checkProvider, id, removeTask, shouldMonitorStatus]);
+
+  return agentStatusReturn;
 }
 
 const CHECK_PROVIDER_STATUS_INTERVAL = 2000;

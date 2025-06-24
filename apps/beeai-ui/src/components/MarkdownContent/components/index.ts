@@ -17,9 +17,11 @@
 import type { Components } from 'react-markdown';
 
 import { Code } from './Code';
+import { Img } from './Img';
 import { Table } from './Table';
 
 export const components: Components = {
   code: Code,
   table: Table,
+  img: Img,
 };

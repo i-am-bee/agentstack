@@ -69,6 +69,12 @@ def migrate():
     migrate_fn()
 
 
+def create_vector_extension():
+    from beeai_server.infrastructure.persistence.migrations.migrate import create_vector_extension as create_fn
+
+    asyncio.run(create_fn())
+
+
 def create_buckets():
     from beeai_server.infrastructure.object_storage.create_buckets import create_buckets
 

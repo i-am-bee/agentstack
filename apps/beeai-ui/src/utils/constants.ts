@@ -32,7 +32,7 @@ export const ACP_DOCUMENTATION_LINK = 'https://agentcommunicationprotocol.dev/in
 
 export const BEE_AI_FRAMEWORK_TAG = 'BeeAI';
 
-export const BREW_INSTALL_BEEAI = 'brew install i-am-bee/beeai/beeai';
+export const INSTALL_BEEAI = 'uv tool install beeai-cli';
 
 export const TRY_LOCALLY_LINK = `${DOCUMENTATION_LINK}/introduction/quickstart`;
 

@@ -14,7 +14,7 @@
 
 import logging
 import pathlib
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, nullcontext
 from typing import Iterable
 
 from acp_sdk import ACPError
@@ -31,7 +31,7 @@ from fastapi import FastAPI, APIRouter
 from fastapi import HTTPException
 from fastapi.exception_handlers import http_exception_handler
 from fastapi.responses import ORJSONResponse
-from kink import inject, di
+from kink import inject, di, Container
 from starlette.responses import FileResponse
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR, HTTP_400_BAD_REQUEST
 from starlette.exceptions import HTTPException as StarletteHttpException
@@ -162,26 +162,25 @@ def register_telemetry():
     # meter.create_observable_gauge("providers_by_status", callbacks=[scrape_providers_by_status])
 
 
-@asynccontextmanager
-@inject
-async def lifespan(_app: FastAPI):
-    from beeai_server.utils.periodic import run_all_crons
-
-    register_telemetry()
-
-    async with run_all_crons():
-        try:
-            yield
-        finally:
-            shutdown_telemetry()
-
-
-def app() -> FastAPI:
+def app(*, dependency_overrides: Container | None = None, enable_crons: bool = True) -> FastAPI:
     """Entrypoint for API application, called by Uvicorn"""
 
     logger.info("Bootstrapping dependencies...")
-    bootstrap_dependencies_sync()
+    bootstrap_dependencies_sync(dependency_overrides=dependency_overrides)
     configuration = di[Configuration]
+
+    @asynccontextmanager
+    @inject
+    async def lifespan(_app: FastAPI):
+        from beeai_server.utils.periodic import run_all_crons
+
+        register_telemetry()
+
+        async with run_all_crons() if enable_crons else nullcontext():
+            try:
+                yield
+            finally:
+                shutdown_telemetry()
 
     app = FastAPI(
         lifespan=lifespan,

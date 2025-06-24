@@ -1,12 +1,12 @@
 [project]
 name = "beeai-server"
-version = "0.2.6"
+version = "0.2.8"
 description = "BeeAI server"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
 requires-python = ">=3.11,<4.0"
 dependencies = [
-    "acp-sdk>=0.10.1",
+    "acp-sdk>=0.12.0",
     "aiohttp>=3.11.11",
     "anyio>=4.9.0",
     "asgiref>=3.8.1",
@@ -41,6 +41,7 @@ line-length = 120
 beeai-server = "beeai_server:serve"
 migrate = "beeai_server:migrate"
 create-buckets = "beeai_server:create_buckets"
+create-vector-extension = "beeai_server:create_vector_extension"
 
 [build-system]
 requires = ["hatchling"]
@@ -48,7 +49,7 @@ build-backend = "hatchling.build"
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
-markers = ["e2e"]
+markers = ["e2e", "unit", "integration"]
 addopts = "-v --strict-markers"
 env = [
     # Dummy encryption key

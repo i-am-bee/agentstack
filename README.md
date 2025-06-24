@@ -74,37 +74,54 @@ As you scale from personal experimentation to team adoption, BeeAI grows with yo
 
 ## Quickstart
 
-1. **Install** BeeAI using [Homebrew](https://brew.sh/) (or see the [installation guide](https://docs.beeai.dev/introduction/installation) for other methods):
+> [!TIP]
+> This is the short version. See the [installation guide](https://docs.beeai.dev/introduction/installation) for detailed instructions.
+
+1. **Install** the BeeAI CLI using [uv](https://docs.astral.sh/uv/) (on Linux you'll also need [QEMU](https://www.qemu.org/download/#linux)):
 
 ```sh
-brew install i-am-bee/beeai/beeai
+uv tool install beeai-cli
+```
+
+2. **Start** the BeeAI platform:
+
+```sh
 beeai platform start
 ```
 
-2. **Configure** LLM provider:
+3. **Configure** the LLM provider:
 
 ```sh
 beeai env setup
 ```
 
-3. **Launch** the web interface:
+4. **Use** the CLI:
+
+```sh
+# List all available agents
+beeai list
+
+# Run an agent interactively
+beeai run chat
+
+# Run an agent with direct input
+beeai run chat "Hello! How are you?"
+
+# Get agent details and parameters
+beeai info chat
+
+# View all CLI options
+beeai --help
+```
+
+5. **Launch** the web interface:
 
 ```sh
 beeai ui
 ```
 
-4. **Use** from the terminal:
-
-```sh
-# List commands
-beeai --help
-
-# List all available agents
-beeai list
-
-# Run the chat agent
-beeai run chat
-```
+> [!NOTE]
+> The web UI is intentionally simplified for end-users who need basic agent interactions without CLI complexity. Think of the web UI as a deployment target for your agents, not your primary development environment.
 
 ## Documentation
 

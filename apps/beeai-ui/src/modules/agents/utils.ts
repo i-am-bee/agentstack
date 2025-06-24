@@ -50,7 +50,7 @@ export function sortAgentsByName(a: Agent, b: Agent) {
 }
 
 export function isAgentUiSupported(agent: Agent) {
-  const uiType = agent.metadata.ui?.type;
+  const uiType = agent.metadata.annotations?.beeai_ui?.ui_type;
 
   return uiType && SupportedUis.includes(uiType);
 }
@@ -80,5 +80,5 @@ export function getAgentDisplayName(agent: Agent) {
     metadata: { annotations },
   } = agent;
 
-  return annotations?.display_name ?? name;
+  return annotations?.beeai_ui?.display_name ?? name;
 }

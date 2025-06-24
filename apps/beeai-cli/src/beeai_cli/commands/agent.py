@@ -26,7 +26,6 @@ from enum import StrEnum
 import jsonref
 from acp_sdk import (
     ACPError,
-    Agent,
     ArtifactEvent,
     Error,
     ErrorCode,
@@ -39,6 +38,7 @@ from acp_sdk import (
     RunAwaitingEvent,
     RunFailedEvent,
 )
+from acp_sdk import AgentManifest as Agent
 from acp_sdk.client import Client
 from rich.box import HORIZONTALS
 from rich.console import ConsoleRenderable, Group, NewLine
@@ -78,6 +78,7 @@ from beeai_cli.utils import (
     prompt_user,
     remove_nullable,
     run_command,
+    status,
     verbosity,
 )
 
@@ -136,16 +137,31 @@ async def add_agent(
 
     with verbosity(verbose):
         process = await run_command(["docker", "inspect", location], check=False, message="Inspecting docker images.")
-        if process.returncode:
-            # If the image was not found locally, try building image
-            location, agents = await build(location, tag=None, vm_name=vm_name, vm_driver=vm_driver, import_image=True)
-        else:
-            manifest = base64.b64decode(
-                json.loads(process.stdout)[0]["Config"]["Labels"]["beeai.dev.agent.yaml"]
-            ).decode()
-            agents = json.loads(manifest)["agents"]
-        # If all build and inspect succeeded, use the local image, else use the original; maybe it exists remotely
-        await api_request("POST", "providers", json={"location": location, "agents": agents})
+        from subprocess import CalledProcessError
+
+        errors = []
+
+        try:
+            if process.returncode:
+                # If the image was not found locally, try building image
+                location, agents = await build(
+                    location, tag=None, vm_name=vm_name, vm_driver=vm_driver, import_image=True
+                )
+            else:
+                manifest = base64.b64decode(
+                    json.loads(process.stdout)[0]["Config"]["Labels"]["beeai.dev.agent.yaml"]
+                ).decode()
+                agents = json.loads(manifest)["agents"]
+            # If all build and inspect succeeded, use the local image, else use the original; maybe it exists remotely
+        except CalledProcessError as e:
+            errors.append(e)
+            console.print("Attempting to use remote image...")
+        try:
+            with status("Registering agent to platform"):
+                await api_request("POST", "providers", json={"location": location, "agents": agents})
+            console.print("Registering agent to platform [[green]DONE[/green]]")
+        except Exception as e:
+            raise ExceptionGroup("Error occured", [*errors, e]) from e
         await list_agents()
 
 
@@ -545,11 +561,11 @@ async def run_agent(
                 f":boom: Agent is not in a ready state: {provider['state']}, {provider['last_error']}\nRetrying..."
             )
 
-    ui = agent.metadata.model_dump().get("ui", {}) or {}
-    ui_type = ui.get("type", None)
+    ui_annotations = (agent.metadata.model_dump().get("annotations", {}) or {}).get("beeai_ui", {}) or {}
+    ui_type = ui_annotations.get("ui_type", None)
     is_sequential_workflow = agent.name in {"sequential_workflow"}
 
-    user_greeting = ui.get("user_greeting", None) or "How can I help you?"
+    user_greeting = ui_annotations.get("user_greeting", None) or "How can I help you?"
 
     if not input:
         if ui_type not in {UiType.chat, UiType.hands_off} and not is_sequential_workflow:
@@ -578,7 +594,7 @@ async def run_agent(
                     input = handle_input()
 
         elif ui_type == UiType.hands_off:
-            user_greeting = ui.get("user_greeting", None) or "Enter your instructions."
+            user_greeting = ui_annotations.get("user_greeting", None) or "Enter your instructions."
             console.print(f"{user_greeting}\n")
             input = handle_input()
             console.print()
@@ -660,7 +676,12 @@ async def list_agents():
                     },
                 ),
                 (agent.description or "<none>").replace("\n", " "),
-                (agent.metadata.model_dump().get("ui", {}) or {}).get("type", None) or "<none>",
+                (
+                    agent.metadata.model_dump().get("annotations", {}).get("beeai_ui", {}).get("ui_type")
+                    if agent.metadata.model_dump().get("annotations")
+                    else None
+                )
+                or "<none>",
                 location or "<none>",
                 missing_env or "<none>",
                 error or "<none>",

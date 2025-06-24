@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import contextlib
+import functools
 import json
 import os
 import subprocess
@@ -29,7 +30,6 @@ import typer
 import yaml
 from anyio import create_task_group
 from anyio.abc import ByteReceiveStream
-from cachetools import cached
 from jsf import JSF
 from prompt_toolkit import PromptSession
 from prompt_toolkit.shortcuts import CompleteStyle
@@ -46,6 +46,7 @@ if TYPE_CHECKING:
 class VMDriver(str, Enum):
     lima = "lima"
     docker = "docker"
+    wsl = "wsl"
 
 
 def format_model(value: BaseModel | list[BaseModel]) -> str:
@@ -98,7 +99,7 @@ def filter_dict(map: dict[str, T | V], value_to_exclude: V = None) -> dict[str, 
     return {filter: value for filter, value in map.items() if value is not value_to_exclude}
 
 
-@cached(cache={}, key=json.dumps)
+@functools.cache
 def generate_schema_example(json_schema: dict[str, Any]) -> dict[str, Any]:
     json_schema = deepcopy(remove_nullable(json_schema))
 
@@ -239,7 +240,8 @@ async def run_command(
                 if check and process.returncode != 0:
                     raise subprocess.CalledProcessError(cast(int, process.returncode), command, output, errors)
 
-                console.print(f"{message} [[green]DONE[/green]]")
+                if SHOW_SUCCESS_STATUS.get():
+                    console.print(f"{message} [[green]DONE[/green]]")
                 return subprocess.CompletedProcess(command, cast(int, process.returncode), output, errors)
     except FileNotFoundError:
         if ignore_missing:
@@ -247,21 +249,19 @@ async def run_command(
         console.print(f"{message} [[red]ERROR[/red]]")
         tool_name = command[0]
         console.print(f"[red]Error: {tool_name} is not installed. Please install {tool_name} first.[/red]")
-        if tool_name == "limactl":
-            console.print("[yellow]You can install Lima with: brew install lima[/yellow]")
-        raise
     except subprocess.CalledProcessError as e:
         console.print(f"{message} [[red]ERROR[/red]]")
-        console.print(f"[red]Exit code: {e.returncode} [/red]")
+        err_console.print(f"[red]Exit code: {e.returncode} [/red]")
         if e.stderr:
-            console.print(f"[red]Error: {e.stderr.strip()}[/red]")
+            err_console.print(f"[red]Error: {e.stderr.strip()}[/red]")
         if e.stdout:
-            console.print(f"[red]Output: {e.stdout.strip()}[/red]")
+            err_console.print(f"[red]Output: {e.stdout.strip()}[/red]")
         raise
 
 
 IN_VERBOSITY_CONTEXT: ContextVar[bool] = ContextVar("verbose", default=False)
 VERBOSE: ContextVar[bool] = ContextVar("verbose", default=False)
+SHOW_SUCCESS_STATUS: ContextVar[bool] = ContextVar("show_command_status", default=True)
 
 
 @contextlib.contextmanager
@@ -277,13 +277,14 @@ def status(message: str):
 
 
 @contextlib.contextmanager
-def verbosity(verbose: bool):
+def verbosity(verbose: bool, show_success_status: bool = True):
     if IN_VERBOSITY_CONTEXT.get():
         yield  # Already in a verbosity context, act as a null context manager
         return
 
     IN_VERBOSITY_CONTEXT.set(True)
     token = VERBOSE.set(verbose)
+    token_command_status = SHOW_SUCCESS_STATUS.set(show_success_status)
     try:
         with err_console.capture() if not verbose else contextlib.nullcontext() as capture:
             yield
@@ -297,3 +298,4 @@ def verbosity(verbose: bool):
     finally:
         VERBOSE.reset(token)
         IN_VERBOSITY_CONTEXT.set(False)
+        SHOW_SUCCESS_STATUS.reset(token_command_status)

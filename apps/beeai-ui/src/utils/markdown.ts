@@ -17,3 +17,7 @@
 export function createCodeBlock(language: string, snippet: string) {
   return `\`\`\`${language}\n${snippet}\n\`\`\``;
 }
+
+export function toMarkdownImage(url: string) {
+  return `![](${url})`;
+}

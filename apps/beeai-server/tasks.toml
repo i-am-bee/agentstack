@@ -52,13 +52,18 @@ dir = "{{config_root}}/apps/beeai-server"
 run = "uv run beeai-server"
 
 # build
+["beeai-server:build:requirements"]
+dir = "{{config_root}}/apps/beeai-server"
+run = "mkdir -p dist && uv export --no-hashes --no-emit-workspace --format requirements-txt > dist/requirements.txt"
+sources = ["pyproject.toml", "src/**/*.py"]
+outputs = ["dist/requirements.txt"]
 
 ["beeai-server:build"]
-depends = ["setup:uv", "beeai-ui:build"]
+depends = ["setup:uv", "beeai-ui:build", "beeai-server:build:requirements"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "rm -rf ./dist && uv build --out-dir dist"
+run = "rm -rf ./dist/pkg && uv build --out-dir dist/pkg"
 sources = ["pyproject.toml", "src/**/*.py"]
-outputs = ["dist/**/*"]
+outputs = ["dist/pkg/**/*"]
 
 # clean
 
@@ -195,24 +200,27 @@ VM_NAME={{option(name="vm-name", default="beeai-local-dev")}}
 mise run beeai-cli:run -- platform delete --vm-name="$VM_NAME"
 """
 
-["beeai-server:dev:e2e:start"]
+["beeai-server:dev:test:start"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "mise run beeai-server:dev:start --vm-name=e2e-test --no-registry"
+run = "mise run beeai-server:dev:start --vm-name=beeai-local-test --no-registry"
 
-["beeai-server:dev:e2e:clean"]
+["beeai-server:dev:test:clean"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "mise run beeai-server:dev:clean --vm-name=e2e-test"
+run = "mise run beeai-server:dev:clean --vm-name=beeai-local-test"
 
-["beeai-server:dev:e2e:shell"]
+["beeai-server:dev:test:shell"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "mise run beeai-server:dev:shell --vm-name=e2e-test"
+run = "mise run beeai-server:dev:shell --vm-name=beeai-local-test"
 
 ["beeai-server:test:e2e"]
 depends = ["beeai-server:image:build"]
 dir = "{{config_root}}/apps/beeai-server"
 run = """
 #!/bin/bash
+set -e
+
 mise run beeai-server:dev:stop
+mise run beeai-cli:run -- platform delete --vm-name=${VM_NAME}
 curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhost:8333 is already running" && exit 2
 
 VM_NAME=e2e-test-run
@@ -234,3 +242,18 @@ mise run beeai-cli:run -- platform delete --vm-name=${VM_NAME}
 kill %1
 exit $result
 """
+
+["beeai-server:test:integration"]
+dir = "{{config_root}}/apps/beeai-server"
+depends = ["beeai-server:image:build"]
+run = """
+#!/bin/bash
+VM_NAME=itegration-test-run
+mise run beeai-server:dev:start --vm-name="$VM_NAME" --no-registry
+export KUBECONFIG="${HOME}/.beeai/lima/${VM_NAME}/copied-from-guest/kubeconfig.yaml"
+
+pytest -m integration
+result=$?
+exit $result
+"""
+

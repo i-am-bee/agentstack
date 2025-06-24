@@ -22,22 +22,22 @@ interface Props {
 }
 
 function getStatusHelpers(data?: Provider) {
-  const status = data?.status;
-  const isNotInstalled = status === ProviderStatus.NotInstalled;
-  const isInstalling = status === ProviderStatus.Installing;
-  const isInstallError = status === ProviderStatus.InstallError;
-  const isReady = status === ProviderStatus.Ready;
+  const status = data?.state;
+  const isNotInstalled = status === ProviderStatus.Missing;
+  const isStarting = status === ProviderStatus.Starting;
+  const isError = status === ProviderStatus.Error;
+  const isReady = status === ProviderStatus.Ready || status === ProviderStatus.Running;
 
   return {
     status,
     isNotInstalled,
-    isInstalling,
-    isInstallError,
+    isStarting,
+    isError,
     isReady,
   };
 }
 
-export function useAgentStatus({ providerId }: Props) {
+export function useProviderStatus({ providerId }: Props) {
   const query = useProvider({ id: providerId ?? undefined });
 
   return {
@@ -49,3 +49,5 @@ export function useAgentStatus({ providerId }: Props) {
     ...getStatusHelpers(query.data),
   };
 }
+
+export type ProviderStatusWithHelpers = ReturnType<typeof getStatusHelpers>;

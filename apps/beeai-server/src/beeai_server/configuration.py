@@ -52,8 +52,9 @@ class LoggingConfiguration(BaseModel):
 
 class OCIRegistryConfiguration(BaseModel, extra="allow"):
     username: str | None = None
-    password: str | None = None
+    password: Secret[str] | None = None
     insecure: bool = False
+    auth_header: Secret[str] | None = None
 
     @property
     def protocol(self):
@@ -61,8 +62,10 @@ class OCIRegistryConfiguration(BaseModel, extra="allow"):
 
     @property
     def basic_auth_str(self) -> str | None:
+        if self.auth_header:
+            return self.auth_header.get_secret_value()
         if self.username and self.password:
-            return base64.b64encode(f"{self.username}:{self.password}".encode()).decode()
+            return base64.b64encode(f"{self.username}:{self.password.get_secret_value()}".encode()).decode()
         return None
 
 
@@ -101,6 +104,7 @@ class PersistenceConfiguration(BaseModel):
     encryption_key: Secret[str] | None = None
     finished_requests_remove_after_sec: int = timedelta(minutes=30).total_seconds()
     stale_requests_remove_after_sec: int = timedelta(hours=1).total_seconds()
+    vector_db_schema: str = Field("vector_db", pattern=r"^[a-zA-Z0-9_]+$")
 
 
 class TelemetryConfiguration(BaseModel):
@@ -115,6 +119,16 @@ class FeatureFlagsConfiguration(BaseModel):
     ui: UIFeatureFlags = UIFeatureFlags()
 
 
+class DockerConfigJsonAuth(BaseModel, extra="allow"):
+    auth: Secret[str] | None = None
+    username: str | None = None
+    password: Secret[str] | None = None
+
+
+class DockerConfigJson(BaseModel):
+    auths: dict[str, DockerConfigJsonAuth] = Field(default_factory=dict)
+
+
 class Configuration(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", env_nested_delimiter="__", extra="ignore"
@@ -124,6 +138,7 @@ class Configuration(BaseSettings):
     logging: LoggingConfiguration = Field(default_factory=LoggingConfiguration)
     agent_registry: AgentRegistryConfiguration = Field(default_factory=AgentRegistryConfiguration)
     oci_registry: dict[str, OCIRegistryConfiguration] = Field(default_factory=dict)
+    oci_registry_docker_config_json: dict[int, DockerConfigJson] = {}
     telemetry: TelemetryConfiguration = Field(default_factory=TelemetryConfiguration)
     persistence: PersistenceConfiguration = Field(default_factory=PersistenceConfiguration)
     object_storage: ObjectStorageConfiguration = Field(default_factory=ObjectStorageConfiguration)
@@ -145,6 +160,15 @@ class Configuration(BaseSettings):
         oci_registry = defaultdict(OCIRegistryConfiguration)
         oci_registry.update(self.oci_registry)
         self.oci_registry = oci_registry
+        for docker_config_json in self.oci_registry_docker_config_json.values():
+            try:
+                for registry, conf in docker_config_json.auths.items():
+                    registry_short = AnyUrl(registry).host if "://" in registry else registry.strip("/")
+                    self.oci_registry[registry_short].username = conf.username
+                    self.oci_registry[registry_short].password = conf.password
+                    self.oci_registry[registry_short].auth_header = conf.auth
+            except ValueError as e:
+                logger.error(f"Failed to parse .dockerconfigjson: {e}. Some agent images might not work correctly.")
         return self
 
 

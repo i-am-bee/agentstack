@@ -26,7 +26,6 @@ import { AgentIcon } from '../components/AgentIcon';
 import { useChat } from '../contexts/chat';
 import { FileCard } from '../files/components/FileCard';
 import { FileCardsList } from '../files/components/FileCardsList';
-import { getFileContentUrl } from '../files/utils';
 import { Role } from '../types';
 import classes from './Message.module.scss';
 import { type ChatMessage, MessageStatus } from './types';
@@ -40,6 +39,8 @@ export function Message({ message }: Props) {
   const { agent } = useChat();
   const { content, role, error } = message;
 
+  const displayName = getAgentDisplayName(agent);
+
   const isUserMessage = role === Role.User;
   const isAssistantMessage = role === Role.Assistant;
   const isPending = isAssistantMessage && message.status === MessageStatus.InProgress && !content;
@@ -47,8 +48,9 @@ export function Message({ message }: Props) {
     isAssistantMessage && (message.status === MessageStatus.Failed || message.status === MessageStatus.Aborted);
   const isFailed = isAssistantMessage && message.status === MessageStatus.Failed;
 
-  const files = (isUserMessage ? message.files : undefined) ?? [];
-  const displayName = getAgentDisplayName(agent);
+  const files = message.files ?? [];
+
+  const hasFiles = files.length > 0;
 
   return (
     <li className={clsx(classes.root)}>
@@ -75,17 +77,13 @@ export function Message({ message }: Props) {
           </div>
         )}
 
-        {files.length > 0 && (
+        {hasFiles && (
           <FileCardsList>
-            {files.map(({ id, filename }) => {
-              const href = id ? getFileContentUrl({ id }) : undefined;
-
-              return (
-                <li key={id}>
-                  <FileCard href={href} filename={filename} />
-                </li>
-              );
-            })}
+            {files.map(({ key, filename, href }) => (
+              <li key={key}>
+                <FileCard href={href} filename={filename} />
+              </li>
+            ))}
           </FileCardsList>
         )}
       </div>

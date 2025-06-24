@@ -62,7 +62,7 @@ export function AgentRun({ name }: Props) {
 }
 
 const renderUi = ({ agent }: { agent: Agent }) => {
-  const type = agent.metadata.ui?.type;
+  const type = agent.metadata.annotations?.beeai_ui?.ui_type;
   const displayName = getAgentDisplayName(agent);
 
   switch (type) {

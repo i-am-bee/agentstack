@@ -15,9 +15,7 @@
 import asyncio
 import contextlib
 import enum
-import json
 import re
-import subprocess
 import urllib
 import urllib.parse
 from collections.abc import AsyncIterator
@@ -37,25 +35,6 @@ config = Configuration()
 BASE_URL = str(config.host).rstrip("/")
 API_BASE_URL = f"{BASE_URL}/api/v1/"
 ACP_URL = f"{API_BASE_URL}acp"
-
-
-class BrewServiceStatus(enum.StrEnum):
-    not_installed = "not_installed"
-    stopped = "stopped"
-    started = "started"
-
-
-def brew_service_status() -> BrewServiceStatus:
-    beeai_service = None
-    with contextlib.suppress(Exception):
-        services = json.loads(subprocess.check_output(["brew", "services", "list", "--json"]))
-        beeai_service = next((service for service in services if service["name"] == "beeai"), None)
-    if not beeai_service:
-        return BrewServiceStatus.not_installed
-    elif beeai_service["status"] == "started":
-        return BrewServiceStatus.started
-    else:
-        return BrewServiceStatus.stopped
 
 
 class ProcessStatus(enum.StrEnum):

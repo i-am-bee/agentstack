@@ -25,7 +25,7 @@ from uuid import UUID
 
 import yaml
 
-from acp_sdk import Agent as AcpAgent
+from acp_sdk import AgentManifest as AcpAgent
 
 from beeai_server.configuration import Configuration
 from beeai_server.domain.constants import DOCKER_MANIFEST_LABEL_NAME
