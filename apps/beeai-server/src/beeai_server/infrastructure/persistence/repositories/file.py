@@ -8,7 +8,7 @@ from kink import inject
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from beeai_server.domain.models.file import File
-from beeai_server.domain.repositories.files import IFileRepository
+from beeai_server.domain.repositories.file import IFileRepository
 from beeai_server.exceptions import EntityNotFoundError
 from beeai_server.infrastructure.persistence.repositories.db_metadata import metadata
 

@@ -97,6 +97,11 @@ class PersistenceConfiguration(BaseModel):
     procrastinate_schema: str = Field("procrastinate", pattern=r"^[a-zA-Z0-9_]+$")
 
 
+class VectorStoresConfiguration(BaseModel):
+    expire_after_days: int = 7  # Number of days after which a vector store is considered expired
+    storage_limit_per_user_bytes: int = 1 * (1024 * 1024 * 1024)  # 1GiB
+
+
 class TelemetryConfiguration(BaseModel):
     collector_url: AnyUrl = AnyUrl("http://otel-collector-svc:8335")
 
@@ -140,6 +145,7 @@ class Configuration(BaseSettings):
     telemetry: TelemetryConfiguration = Field(default_factory=TelemetryConfiguration)
     persistence: PersistenceConfiguration = Field(default_factory=PersistenceConfiguration)
     object_storage: ObjectStorageConfiguration = Field(default_factory=ObjectStorageConfiguration)
+    vector_stores: VectorStoresConfiguration = Field(default_factory=VectorStoresConfiguration)
     k8s_namespace: str | None = None
     k8s_kubeconfig: Path | None = None
 

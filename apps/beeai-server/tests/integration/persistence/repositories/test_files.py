@@ -7,7 +7,7 @@ from sqlalchemy import text
 
 from beeai_server.domain.models.file import File
 from beeai_server.exceptions import EntityNotFoundError
-from beeai_server.infrastructure.persistence.repositories.files import SqlAlchemyFileRepository
+from beeai_server.infrastructure.persistence.repositories.file import SqlAlchemyFileRepository
 from beeai_server.utils.utils import utc_now
 
 pytestmark = pytest.mark.integration

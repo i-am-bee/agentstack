@@ -38,6 +38,7 @@ dependencies = [
     # https://procrastinate.readthedocs.io/en/stable/howto/production/migrations.html#migrate-the-procrastinate-schema
     "procrastinate==3.2.2",
     "sqlparse>=0.5.3",
+    "pgvector>=0.4.1",
 ]
 
 [tool.ruff]

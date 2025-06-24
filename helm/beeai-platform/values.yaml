@@ -191,6 +191,13 @@ variables: { }
 postgresql:
   enabled: true
   fullnameOverride: "postgresql"
+  global:
+    security:
+      allowInsecureImages: true
+  image:
+    registry: ghcr.io
+    repository: i-am-bee/bitnami/postgresql-pgvector
+    tag: 17.5.0
   auth:
     postgresPassword: "admin-password"
     enablePostgresUser: true
@@ -209,7 +216,7 @@ postgresql:
     ## @param postgresql.primary.resourcesPreset Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if primary.resources is set (primary.resources is recommended for production).
     ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
     ##
-    resourcesPreset: "nano"
+    resourcesPreset: "medium"
     ## @param postgresql.primary.resources Set container requests and limits for different resources like CPU or memory (essential for production workloads)
     ## Example:
     ## resources:
