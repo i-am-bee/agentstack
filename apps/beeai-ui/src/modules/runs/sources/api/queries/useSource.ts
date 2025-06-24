@@ -16,7 +16,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-import { readSourceMetadata } from '..';
 import { sourceKeys } from '../keys';
 import type { SourceMetadata, SourceReference } from '../types';
 
@@ -28,14 +27,11 @@ export function useSource({ source }: Params) {
   const query = useQuery({
     queryKey: sourceKeys.detail({ source }),
     queryFn: async () => {
-      const metadata = await readSourceMetadata({ url: source.url });
-
       return {
         ...source,
         metadata: {
-          title: metadata?.title,
-          description: metadata?.description,
-          faviconUrl: metadata?.favicon_url,
+          title: source.title ?? source.url,
+          description: source.description,
         } as SourceMetadata,
       };
     },

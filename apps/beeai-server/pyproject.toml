@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [{ name = "IBM Corp." }]
 requires-python = ">=3.11,<4.0"
 dependencies = [
-    "acp-sdk>=0.12.2",
+    "acp-sdk>=0.12.0",
     "aiohttp>=3.11.11",
     "anyio>=4.9.0",
     "asgiref>=3.8.1",
@@ -32,7 +32,6 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.41",
     "aioboto3>=14.3.0",
     "pyjwt>=2.10.1",
-    "beautifulsoup4>=4.13.4",
 ]
 
 [tool.ruff]

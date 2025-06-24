@@ -45,6 +45,8 @@ export interface CitationMetadata {
   url: string;
   start_index: number;
   end_index: number;
+  title: string | null;
+  description: string | null;
 }
 
 export type RunId = CreateRunResponse['run_id'];

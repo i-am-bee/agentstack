@@ -61,11 +61,11 @@ function Source({ source }: SourceProps) {
 
   return isPending ? (
     <Source.Skeleton />
-  ) : (
+  ) : faviconUrl ? (
     <span className={classes.source}>
       <img src={faviconUrl} className={classes.icon} />
     </span>
-  );
+  ) : null;
 }
 
 Source.Skeleton = function SourceSkeleton() {

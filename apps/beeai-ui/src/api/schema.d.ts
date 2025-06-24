@@ -317,23 +317,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/ui/source': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Get Source Metadata */
-    post: operations['get_source_metadata_api_v1_ui_source_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   '/api/v1/variables': {
     parameters: {
       query?: never;
@@ -1058,15 +1041,6 @@ export interface components {
       /** State */
       state?: string | null;
     };
-    /** SourceMetadata */
-    SourceMetadata: {
-      /** Description */
-      description?: string | null;
-      /** Favicon Url */
-      favicon_url?: string | null;
-      /** Title */
-      title?: string | null;
-    };
     /** UIFeatureFlags */
     UIFeatureFlags: {
       /**
@@ -1715,37 +1689,6 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['UIFeatureFlags'];
-        };
-      };
-    };
-  };
-  get_source_metadata_api_v1_ui_source_post: {
-    parameters: {
-      query: {
-        url: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['SourceMetadata'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
         };
       };
     };

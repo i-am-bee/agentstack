@@ -32,7 +32,7 @@ export function prepareMessageSources({
   message: AssistantMessage;
   metadata: CitationMetadata;
 }) {
-  const { url, start_index, end_index } = metadata;
+  const { url, start_index, end_index, title, description } = metadata;
   const { sources: prevSources = [] } = message;
 
   const key = uuid();
@@ -45,6 +45,8 @@ export function prepareMessageSources({
       startIndex: start_index,
       endIndex: end_index,
       messageKey: message.key,
+      title: title ?? undefined,
+      description: description ?? undefined,
     },
   ]
     .sort((a, b) => a.startIndex - b.startIndex)

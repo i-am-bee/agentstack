@@ -21,6 +21,8 @@ export interface SourceReference {
   startIndex: number;
   endIndex: number;
   messageKey: string;
+  title?: string;
+  description?: string;
 }
 
 export interface SourceMetadata {
