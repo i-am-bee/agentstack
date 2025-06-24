@@ -123,6 +123,7 @@ async def _get_platform_status(vm_driver: VMDriver, vm_name: str) -> str | None:
                     [_limactl_exe(), "--tty=false", "list", "--format=json"],
                     f"Looking for existing instance in {vm_driver.name.capitalize()}",
                     env={"LIMA_HOME": str(Configuration().lima_home)},
+                    cwd="/",
                 )
                 return next(
                     (
@@ -261,6 +262,7 @@ async def start(
                 "Cleaning up remains of previous instance",
                 env={"LIMA_HOME": str(Configuration().lima_home)},
                 check=False,
+                cwd="/",
             )
             templates_dir = Configuration().lima_home / "_templates"
             if vm_driver == VMDriver.lima:
@@ -380,6 +382,7 @@ async def start(
                     # https://github.com/lima-vm/lima/issues/3601#issuecomment-2936952923
                     "LIMA_SSH_PORT_FORWARDER": "true",
                 },
+                cwd="/",
             )
         elif status != "running":
             await run_command(
@@ -395,6 +398,7 @@ async def start(
                     # https://github.com/lima-vm/lima/issues/3601#issuecomment-2936952923
                     "LIMA_SSH_PORT_FORWARDER": "true",
                 },
+                cwd="/",
             )
         else:
             console.print("Updating an existing instance.")
@@ -417,6 +421,7 @@ async def start(
                     # https://github.com/lima-vm/lima/issues/3601#issuecomment-2936952923
                     "LIMA_SSH_PORT_FORWARDER": "true",
                 },
+                cwd="/",
             )
 
         # Wait for asynchronous k3s startup for Docker
@@ -426,7 +431,17 @@ async def start(
                     await asyncio.sleep(5)
                 if (
                     await run_command(
-                        ["docker", "exec", vm_name, "kubectl", "get", "crd", "helmcharts.helm.cattle.io"],
+                        [
+                            "docker",
+                            "exec",
+                            vm_name,
+                            "k3s",
+                            "kubectl",
+                            "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+                            "get",
+                            "crd",
+                            "helmcharts.helm.cattle.io",
+                        ],
                         message="Checking if k3s is running",
                         check=False,
                     )
@@ -476,7 +491,20 @@ async def start(
                 if line.startswith("default via ")
             )
             await run_command(
-                ["wsl.exe", "--user", "root", "--distribution", vm_name, "--", "kubectl", "apply", "-f", "-"],
+                [
+                    "wsl.exe",
+                    "--user",
+                    "root",
+                    "--distribution",
+                    vm_name,
+                    "--",
+                    "k3s",
+                    "kubectl",
+                    "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+                    "apply",
+                    "-f",
+                    "-",
+                ],
                 "Setting up internal networking",
                 input=yaml.dump(
                     {
@@ -558,7 +586,9 @@ async def start(
                     VMDriver.docker: ["docker", "exec", "-i", vm_name],
                     VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
                 }[vm_driver],
+                "k3s",
                 "kubectl",
+                "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
                 "apply",
                 "-f",
                 "-",
@@ -602,7 +632,9 @@ async def start(
                     VMDriver.docker: ["docker", "exec", "-i", vm_name],
                     VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
                 }[vm_driver],
+                "k3s",
                 "kubectl",
+                "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
                 "wait",
                 "--for=condition=JobCreated",
                 "helmchart.helm.cattle.io/beeai",
@@ -619,7 +651,9 @@ async def start(
                     VMDriver.docker: ["docker", "exec", "-i", vm_name],
                     VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
                 }[vm_driver],
+                "k3s",
                 "kubectl",
+                "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
                 "wait",
                 "--for=condition=Complete",
                 "--timeout=1h",
@@ -637,7 +671,9 @@ async def start(
                     VMDriver.docker: ["docker", "exec", "-i", vm_name],
                     VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
                 }[vm_driver],
+                "k3s",
                 "kubectl",
+                "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
                 "wait",
                 "--for=condition=Available",
                 "--timeout=1h",
@@ -678,6 +714,7 @@ async def stop(
             }[vm_driver],
             "Stopping BeeAI VM",
             env={"LIMA_HOME": str(Configuration().lima_home)},
+            cwd="/",
         )
         if vm_driver == VMDriver.wsl:
             await run_command(
@@ -729,6 +766,7 @@ async def delete(
             "Deleting BeeAI platform",
             env={"LIMA_HOME": str(Configuration().lima_home)},
             check=False,
+            cwd="/",
         )
         if vm_driver == VMDriver.wsl:
             await run_command(
