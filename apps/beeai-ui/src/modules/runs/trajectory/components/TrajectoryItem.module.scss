@@ -1,0 +1,90 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.root {
+  border-block-end: 1px solid $border-subtle-00;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  column-gap: $spacing-03;
+  position: relative;
+  padding-block: $spacing-02;
+  padding-inline-start: $spacing-07;
+  min-block-size: rem(40px);
+}
+
+.button {
+  @include hide-popover();
+  margin-inline-end: -$spacing-03;
+  margin-inline-start: -$spacing-07;
+  &:global(.cds--popover-container:not(.cds--popover--auto-align)) {
+    position: static;
+  }
+  :global(.cds--btn) {
+    @include link-mask();
+    @include reset-focus();
+    position: static;
+    &:hover {
+      background-color: transparent;
+    }
+
+    .root.isOpen & svg {
+      transform: scaleY(-1);
+    }
+  }
+}
+
+.name {
+  @include type-style(body-01);
+  font-weight: 600;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  inline-size: rem(24px);
+  block-size: rem(24px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.message {
+  @include type-style(body-01);
+  @include line-clamp();
+  color: $text-secondary;
+
+  .root.isOpen & {
+    display: none;
+  }
+}
+
+.body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows $duration-moderate-02 motion(standard, expressive);
+  .root.isOpen & {
+    grid-template-rows: 1fr;
+  }
+}
+
+.panel {
+  overflow: hidden;
+}

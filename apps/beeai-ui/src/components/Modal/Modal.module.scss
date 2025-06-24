@@ -135,7 +135,7 @@
   }
 
   :global(.cds--modal-close-button) {
-    @include hidePopover();
+    @include hide-popover();
     inset-block-start: $spacing-03;
     inset-inline-end: $spacing-03;
 

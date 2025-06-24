@@ -15,7 +15,7 @@
  */
 
 .root {
-  @include hidePopover();
+  @include hide-popover();
   position: fixed;
   inset-block-end: rem(72px);
   inset-inline-end: 0;

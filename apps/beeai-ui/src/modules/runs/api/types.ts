@@ -36,11 +36,26 @@ export type Message = CreateRunRequest['input'][number];
 
 export type MessagePart = Message['parts'][number];
 
+export type MessagePartMetadata = TrajectoryMetadata;
+
 export type Artifact = Exclude<MessagePart, 'name'> & { name: string };
 
 export type RunId = CreateRunResponse['run_id'];
 
 export type SessionId = CreateRunResponse['session_id'];
+
+export interface TrajectoryMetadata {
+  kind: MetadataKind.Trajectory;
+  key: string;
+  message?: string | null;
+  tool_name?: string | null;
+  tool_input?: object | null;
+  tool_output?: object | null;
+}
+
+export enum MetadataKind {
+  Trajectory = 'trajectory',
+}
 
 export enum RunMode {
   Sync = 'sync',

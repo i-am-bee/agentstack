@@ -14,32 +14,24 @@
  * limitations under the License.
  */
 
-.root {
-  border-block-end: 1px solid $border-subtle-00;
-  padding-block: $spacing-03;
-  display: flex;
-  align-items: flex-start;
-  column-gap: $spacing-03;
+import type { TrajectoryMetadata } from '#modules/runs/api/types.ts';
+
+import classes from './TrajectoryItemContent.module.scss';
+
+interface Props {
+  trajectory: TrajectoryMetadata;
 }
 
-.holder {
-  flex-grow: 1;
-}
+export function TrajectoryItemContent({ trajectory }: Props) {
+  const { message } = trajectory;
 
-.content {
-  font-size: rem(14px);
-  line-height: math.div(20, 14);
-  letter-spacing: $letter-spacing;
-}
+  return (
+    <div className={classes.root}>
+      <div className={classes.group}>
+        <p className={classes.label}>Thought</p>
 
-.clamped {
-  @include line-clamp();
-}
-
-.toggle {
-  @include hide-popover();
-  margin-block: rem(-6px);
-  &.toggled :global(.cds--btn) svg {
-    transform: scaleY(-1);
-  }
+        <p className={classes.content}>{message}</p>
+      </div>
+    </div>
+  );
 }

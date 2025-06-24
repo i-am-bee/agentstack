@@ -14,32 +14,16 @@
  * limitations under the License.
  */
 
-.root {
-  border-block-end: 1px solid $border-subtle-00;
-  padding-block: $spacing-03;
-  display: flex;
-  align-items: flex-start;
-  column-gap: $spacing-03;
+import { isNotNull } from '#utils/helpers.ts';
+
+import type { TrajectoryMetadata } from '../api/types';
+
+export function hasViewableTrajectoryMetadata(trajectory: TrajectoryMetadata) {
+  const nonViewableProperties = ['kind', 'key'] as NonViewableProperty[];
+
+  return Object.entries(trajectory)
+    .filter(([key]) => !nonViewableProperties.includes(key as NonViewableProperty))
+    .some(([, value]) => isNotNull(value));
 }
 
-.holder {
-  flex-grow: 1;
-}
-
-.content {
-  font-size: rem(14px);
-  line-height: math.div(20, 14);
-  letter-spacing: $letter-spacing;
-}
-
-.clamped {
-  @include line-clamp();
-}
-
-.toggle {
-  @include hide-popover();
-  margin-block: rem(-6px);
-  &.toggled :global(.cds--btn) svg {
-    transform: scaleY(-1);
-  }
-}
+type NonViewableProperty = keyof Pick<TrajectoryMetadata, 'kind' | 'key'>;

@@ -85,7 +85,7 @@
 }
 
 .remove {
-  @include hidePopover();
+  @include hide-popover();
   visibility: hidden;
 
   .root:hover &,

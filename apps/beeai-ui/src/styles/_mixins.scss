@@ -70,8 +70,15 @@
   margin-block-end: $spacing-06;
 }
 
-@mixin hidePopover() {
+@mixin hide-popover() {
   :global(.cds--popover) {
     display: none;
+  }
+}
+
+@mixin reset-focus() {
+  &:focus:not(:focus-visible) {
+    box-shadow: none;
+    border-color: transparent;
   }
 }

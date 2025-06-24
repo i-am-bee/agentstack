@@ -14,32 +14,28 @@
  * limitations under the License.
  */
 
-.root {
-  border-block-end: 1px solid $border-subtle-00;
-  padding-block: $spacing-03;
-  display: flex;
-  align-items: flex-start;
-  column-gap: $spacing-03;
+import { ChevronDown } from '@carbon/icons-react';
+import { Button } from '@carbon/react';
+import clsx from 'clsx';
+import type { MouseEventHandler } from 'react';
+
+import classes from './TrajectoryButton.module.scss';
+
+interface Props {
+  isOpen?: boolean;
+  onClick?: MouseEventHandler;
 }
 
-.holder {
-  flex-grow: 1;
-}
-
-.content {
-  font-size: rem(14px);
-  line-height: math.div(20, 14);
-  letter-spacing: $letter-spacing;
-}
-
-.clamped {
-  @include line-clamp();
-}
-
-.toggle {
-  @include hide-popover();
-  margin-block: rem(-6px);
-  &.toggled :global(.cds--btn) svg {
-    transform: scaleY(-1);
-  }
+export function TrajectoryButton({ isOpen, onClick }: Props) {
+  return (
+    <Button
+      kind="ghost"
+      size="sm"
+      renderIcon={ChevronDown}
+      className={clsx(classes.root, { [classes.isOpen]: isOpen })}
+      onClick={onClick}
+    >
+      How did I get this answer?
+    </Button>
+  );
 }

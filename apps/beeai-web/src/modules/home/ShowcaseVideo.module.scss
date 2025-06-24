@@ -26,7 +26,7 @@
 }
 
 .button {
-  @include hidePopover();
+  @include hide-popover();
   &:global(.cds--popover-container) {
     position: absolute;
     inset-inline-end: rem(16px);

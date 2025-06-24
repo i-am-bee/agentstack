@@ -16,15 +16,18 @@
 
 import clsx from 'clsx';
 
+// import { v4 as uuid } from 'uuid';
 import { getErrorMessage } from '#api/utils.ts';
 import { ErrorMessage } from '#components/ErrorMessage/ErrorMessage.tsx';
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 import { Spinner } from '#components/Spinner/Spinner.tsx';
 
+// import { MetadataKind, type TrajectoryMetadata } from '../api/types';
 import { AgentIcon } from '../components/AgentIcon';
 import { useChat } from '../contexts/chat';
 import { FileCard } from '../files/components/FileCard';
 import { FileCardsList } from '../files/components/FileCardsList';
+// import { TrajectoryView } from '../trajectory/components/TrajectoryView';
 import { Role } from '../types';
 import classes from './Message.module.scss';
 import { type ChatMessage, MessageStatus } from './types';
@@ -48,6 +51,20 @@ export function Message({ message }: Props) {
   const files = message.files ?? [];
 
   const hasFiles = files.length > 0;
+
+  // const trajectories = [
+  //   {
+  //     kind: MetadataKind.Trajectory,
+  //     key: uuid(),
+  //     tool_name: 'Python Interpreter',
+  //     message:
+  //       "I need to search the web to find interesting menus. I'll use the Google Search tool to run some queries.",
+  //   },
+  //   { kind: MetadataKind.Trajectory, key: uuid(), tool_name: null },
+  //   { kind: MetadataKind.Trajectory, key: uuid(), tool_name: 'Tool name' },
+  //   { kind: MetadataKind.Trajectory, key: uuid(), message: 'Message' },
+  //   { kind: MetadataKind.Trajectory, key: uuid() },
+  // ] satisfies TrajectoryMetadata[];
 
   return (
     <li className={clsx(classes.root)}>
@@ -83,6 +100,8 @@ export function Message({ message }: Props) {
             ))}
           </FileCardsList>
         )}
+
+        {/* {isAssistantMessage && <TrajectoryView trajectories={trajectories} />} */}
       </div>
     </li>
   );

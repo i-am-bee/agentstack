@@ -34,7 +34,7 @@
 }
 
 .toggleButtonContainer {
-  @include hidePopover();
+  @include hide-popover();
 
   button {
     border-start-start-radius: 0;

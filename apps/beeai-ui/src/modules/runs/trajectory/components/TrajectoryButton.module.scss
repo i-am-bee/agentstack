@@ -15,31 +15,20 @@
  */
 
 .root {
-  border-block-end: 1px solid $border-subtle-00;
-  padding-block: $spacing-03;
-  display: flex;
-  align-items: flex-start;
-  column-gap: $spacing-03;
-}
+  &:global(.cds--btn) {
+    @include reset-focus();
+    padding-inline: 0;
+    color: $expand-button-color;
+    &:hover,
+    &:active {
+      background-color: transparent;
+      color: $button-tertiary;
+    }
+  }
 
-.holder {
-  flex-grow: 1;
-}
-
-.content {
-  font-size: rem(14px);
-  line-height: math.div(20, 14);
-  letter-spacing: $letter-spacing;
-}
-
-.clamped {
-  @include line-clamp();
-}
-
-.toggle {
-  @include hide-popover();
-  margin-block: rem(-6px);
-  &.toggled :global(.cds--btn) svg {
-    transform: scaleY(-1);
+  &.isOpen {
+    :global(.cds--btn__icon) {
+      transform: scaleY(-1);
+    }
   }
 }
