@@ -32,7 +32,7 @@ export const AgentGreeting = memo(function AgentGreeting({
   className,
   defaultGreeting = DEFAULT_GREETING,
 }: Props) {
-  const userGreetingTemplate = agent.metadata.ui?.user_greeting ?? defaultGreeting;
+  const userGreetingTemplate = agent.metadata.annotations?.beeai_ui?.user_greeting ?? defaultGreeting;
   const userGreeting = renderVariables(userGreetingTemplate, {
     name: getAgentDisplayName(agent),
   });

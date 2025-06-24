@@ -55,15 +55,16 @@ run = "(rm {{config_root}}/apps/beeai-cli/src/beeai_cli/data/*.tgz 2>/dev/null |
 
 ["beeai-cli:build:download-binaries"]
 dir = "{{config_root}}/apps/beeai-cli"
-sources = [".lima-version"]
-outputs = { auto = true }
 run = '''
 set -e
 LIMA_VERSION=$(cat .lima-version)
-mkdir -p ./vendor/lima/manylinux_2_28_x86_64  && curl -sSL https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Linux-x86_64.tar.gz  | bsdtar -xf- -C ./vendor/lima/manylinux_2_28_x86_64
-mkdir -p ./vendor/lima/manylinux_2_28_aarch64 && curl -sSL https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Linux-aarch64.tar.gz | bsdtar -xf- -C ./vendor/lima/manylinux_2_28_aarch64
-mkdir -p ./vendor/lima/macosx_12_0_x86_64     && curl -sSL https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Darwin-x86_64.tar.gz | bsdtar -xf- -C ./vendor/lima/macosx_12_0_x86_64
-mkdir -p ./vendor/lima/macosx_12_0_arm64      && curl -sSL https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Darwin-arm64.tar.gz  | bsdtar -xf- -C ./vendor/lima/macosx_12_0_arm64
+mkdir -p ./vendor
+echo '*' >./vendor/.gitignore
+( test -f ./vendor/lima-$LIMA_VERSION/manylinux_2_28_x86_64/bin/limactl  || ( mkdir -p ./vendor/lima-$LIMA_VERSION/manylinux_2_28_x86_64  && curl -fsL -H "Authorization: Bearer $GITHUB_TOKEN" https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Linux-x86_64.tar.gz  | tar -xzf - -C ./vendor/lima-$LIMA_VERSION/manylinux_2_28_x86_64  )) &
+( test -f ./vendor/lima-$LIMA_VERSION/manylinux_2_28_aarch64/bin/limactl || ( mkdir -p ./vendor/lima-$LIMA_VERSION/manylinux_2_28_aarch64 && curl -fsL -H "Authorization: Bearer $GITHUB_TOKEN" https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Linux-aarch64.tar.gz | tar -xzf - -C ./vendor/lima-$LIMA_VERSION/manylinux_2_28_aarch64 )) &
+( test -f ./vendor/lima-$LIMA_VERSION/macosx_12_0_x86_64/bin/limactl     || ( mkdir -p ./vendor/lima-$LIMA_VERSION/macosx_12_0_x86_64     && curl -fsL -H "Authorization: Bearer $GITHUB_TOKEN" https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Darwin-x86_64.tar.gz | tar -xzf - -C ./vendor/lima-$LIMA_VERSION/macosx_12_0_x86_64     )) &
+( test -f ./vendor/lima-$LIMA_VERSION/macosx_12_0_arm64/bin/limactl      || ( mkdir -p ./vendor/lima-$LIMA_VERSION/macosx_12_0_arm64      && curl -fsL -H "Authorization: Bearer $GITHUB_TOKEN" https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Darwin-arm64.tar.gz  | tar -xzf - -C ./vendor/lima-$LIMA_VERSION/macosx_12_0_arm64      )) &
+wait
 '''
 
 ["beeai-cli:build:copy-helm-chart"]
@@ -83,6 +84,7 @@ set -euo pipefail
 rm -rf ./dist
 uv build -q --out-dir ./dist
 
+export lima_version=$(cat .lima-version)
 export version="$(yq -o toml .project.version pyproject.toml)"
 export universal_wheel=$(realpath "./dist/beeai_cli-$version-py3-none-any.whl")
 
@@ -93,10 +95,10 @@ build_wheel() {
   platform_wheel="$(realpath "./dist")/beeai_cli-$version-py3-none-$wheel_tag.whl"
   cp "$universal_wheel" "$platform_wheel"
   unzip -q "$universal_wheel" "beeai_cli-$version.dist-info/WHEEL" -d "$tmpdir"
-  sed -i '' "s/Root-Is-Purelib: true/Root-Is-Purelib: false/" "$tmpdir/beeai_cli-$version.dist-info/WHEEL"
-  sed -i '' "s/Tag: .*/Tag: py3-none-$wheel_tag/" "$tmpdir/beeai_cli-$version.dist-info/WHEEL"
+  perl -pi -e "s/Root-Is-Purelib: true/Root-Is-Purelib: false/" "$tmpdir/beeai_cli-$version.dist-info/WHEEL"
+  perl -pi -e "s/Tag: .*/Tag: py3-none-$wheel_tag/" "$tmpdir/beeai_cli-$version.dist-info/WHEEL"
   mkdir -p "$tmpdir/beeai_cli/data"
-  cp "./vendor/lima/$wheel_tag/bin/limactl" "./vendor/lima/$wheel_tag/share/lima/lima-guestagent.Linux-$hostagent_arch"* "$tmpdir/beeai_cli/data"
+  cp "./vendor/lima-$lima_version/$wheel_tag/bin/limactl" "./vendor/lima-$lima_version/$wheel_tag/share/lima/lima-guestagent.Linux-$hostagent_arch"* "$tmpdir/beeai_cli/data"
   (cd "$tmpdir" && zip -q "$platform_wheel" -r .)
   rm -rf "$tmpdir"
 }
@@ -105,7 +107,8 @@ build_wheel manylinux_2_28_x86_64  x86_64  &
 build_wheel manylinux_2_28_aarch64 aarch64 &
 build_wheel macosx_12_0_x86_64     x86_64  &
 build_wheel macosx_12_0_arm64      aarch64 &
-wait
+
+for job in $(jobs -p); do wait $job; done
 '''
 
 # clean

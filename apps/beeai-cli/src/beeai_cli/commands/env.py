@@ -272,7 +272,9 @@ async def setup(
         if provider_name == "Ollama" and selected_model not in available_models:
             try:
                 await run_command(
-                    ["ollama", "pull", selected_model], "Pulling the selected model", check=True, verbose=True
+                    ["ollama", "pull", selected_model],
+                    "Pulling the selected model",
+                    check=True,
                 )
             except Exception as e:
                 console.print(f"[red]Error while pulling model: {e!s}[/red]")

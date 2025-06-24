@@ -25,8 +25,8 @@ import { AddRequiredVariablesModal } from '#modules/variables/components/AddRequ
 import { routes } from '#utils/router.ts';
 
 import type { Agent } from '../api/types';
-import { useAgentStatus } from '../hooks/useAgentStatus';
 import { useMissingEnvs } from '../hooks/useMissingEnvs';
+import { useProviderStatus } from '../hooks/useProviderStatus';
 import { isAgentUiSupported } from '../utils';
 import classes from './AgentLaunchButton.module.scss';
 
@@ -38,10 +38,10 @@ export function AgentLaunchButton({ agent }: Props) {
   const { openModal } = useModal();
   const { provider_id } = agent.metadata;
   const { missingEnvs, isPending: isMissingEnvsPending } = useMissingEnvs({ agent });
-  const { isNotInstalled, isInstalling, isInstallError } = useAgentStatus({ providerId: provider_id });
+  const { isNotInstalled, isStarting, isError } = useProviderStatus({ providerId: provider_id });
   const isUiSupported = isAgentUiSupported(agent);
 
-  if (isNotInstalled || isInstalling || isInstallError || !isUiSupported) {
+  if (isNotInstalled || isStarting || isError || !isUiSupported) {
     return null;
   }
 

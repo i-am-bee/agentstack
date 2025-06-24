@@ -2,7 +2,17 @@ import os
 from textwrap import dedent
 from typing import Any
 
-from acp_sdk import AnyUrl, Link, LinkType, Message, MessagePart, Metadata
+from acp_sdk import (
+    Annotations,
+    AnyUrl,
+    Link,
+    LinkType,
+    Message,
+    MessagePart,
+    Metadata,
+    PlatformUIAnnotation,
+)
+from acp_sdk.models.platform import PlatformUIType
 
 from gpt_researcher import GPTResearcher
 
@@ -13,6 +23,12 @@ server = Server()
 
 @server.agent(
     metadata=Metadata(
+        annotations=Annotations(
+            beeai_ui=PlatformUIAnnotation(
+                ui_type=PlatformUIType.HANDSOFF,
+                user_greeting="What topic do you want to research?",
+            ),
+        ),
         programming_language="Python",
         links=[
             Link(
@@ -46,22 +62,6 @@ server = Server()
             "**High Performance** – Utilizes parallelized processes for efficient and swift report generation.",
             "**Customizable** – Offers customization options to tailor research for specific domains or tasks.",
         ],
-        ui={"type": "hands-off", "user_greeting": "What topic do you want to research?"},
-        examples={
-            "cli": [
-                {
-                    "command": 'beeai run gpt_researcher "Impact of climate change on global agriculture"',
-                    "name": "Conducting Research",
-                    "description": "Conducting Research on Climate Change",
-                    "processing_steps": [
-                        "Initializes task-specific agents to interpret the query",
-                        "Generates a series of questions to form an objective opinion on the topic"
-                        "Uses a crawler agent to gather and summarize information for each question",
-                        "Aggregates and filters these summaries into a final comprehensive report",
-                    ],
-                },
-            ]
-        },
         env=[
             {"name": "LLM_MODEL", "description": "Model to use from the specified OpenAI-compatible API."},
             {"name": "LLM_API_BASE", "description": "Base URL for OpenAI-compatible API endpoint"},

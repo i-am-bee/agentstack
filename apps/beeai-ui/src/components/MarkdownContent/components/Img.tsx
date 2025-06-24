@@ -14,26 +14,17 @@
  * limitations under the License.
  */
 
-import { Tab, TabList, TabPanel, TabPanels, Tabs } from '@carbon/react';
+import clsx from 'clsx';
+import type { ImgHTMLAttributes } from 'react';
+import type { ExtraProps } from 'react-markdown';
 
-import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
-import { createCodeBlock } from '#utils/markdown.ts';
+import classes from './Img.module.scss';
 
-interface Props {
-  cli: string;
-}
-
-export function AgentExampleRequests({ cli }: Props) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function Img({ node, className, ...props }: ImgHTMLAttributes<HTMLImageElement> & ExtraProps) {
   return (
-    <Tabs>
-      <TabList>
-        <Tab>CLI</Tab>
-      </TabList>
-      <TabPanels>
-        <TabPanel tabIndex={-1}>
-          <MarkdownContent>{createCodeBlock('bash', cli)}</MarkdownContent>
-        </TabPanel>
-      </TabPanels>
-    </Tabs>
+    <span className={classes.root}>
+      <img {...props} className={clsx(classes.img, className)} />
+    </span>
   );
 }

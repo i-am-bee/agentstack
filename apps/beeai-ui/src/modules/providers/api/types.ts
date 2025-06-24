@@ -28,10 +28,7 @@ export type DeleteProviderPath = ApiPath<'/api/v1/providers/{id}', 'delete'>;
 export type RegisterProviderRequest = ApiRequest<'/api/v1/providers'>;
 
 export enum ProviderStatus {
-  NotLoaded = 'not_loaded',
-  NotInstalled = 'not_installed',
-  InstallError = 'install_error',
-  Installing = 'installing',
+  Missing = 'missing',
   Starting = 'starting',
   Ready = 'ready',
   Running = 'running',

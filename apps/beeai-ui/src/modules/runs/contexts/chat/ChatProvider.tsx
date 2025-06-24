@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import isString from 'lodash/isString';
 import type { PropsWithChildren } from 'react';
 import { useCallback, useEffect, useMemo } from 'react';
 import { v4 as uuid } from 'uuid';
@@ -24,9 +25,18 @@ import type { Agent } from '#modules/agents/api/types.ts';
 import { type AssistantMessage, type ChatMessage, MessageStatus } from '#modules/runs/chat/types.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
 import { Role } from '#modules/runs/types.ts';
-import { createFileMessageParts, createMessagePart, extractValidUploadFiles, isArtifact } from '#modules/runs/utils.ts';
+import {
+  createFileMessageParts,
+  createMessagePart,
+  extractValidUploadFiles,
+  isArtifactPart,
+  mapToMessageFiles,
+} from '#modules/runs/utils.ts';
+import { isImageContentType } from '#utils/helpers.ts';
+import { toMarkdownImage } from '#utils/markdown.ts';
 
 import { useFileUpload } from '../../files/contexts';
+import { AgentProvider } from '../agent/AgentProvider';
 import { ChatContext, ChatMessagesContext } from './chat-context';
 
 interface Props {
@@ -40,16 +50,39 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
   const { isPending, runAgent, stopAgent, reset } = useRunAgent({
     onMessagePart: (event) => {
       const { part } = event;
+      const { content, content_type, content_url } = part;
 
-      if (isArtifact(part)) {
-        return;
+      const isArtifact = isArtifactPart(part);
+      const hasFile = isString(content_url);
+      const hasContent = isString(content);
+      const hasImage = hasFile && isImageContentType(content_type);
+
+      if (isArtifact) {
+        if (hasFile) {
+          updateLastAssistantMessage((message) => {
+            const files = [
+              ...(message.files ?? []),
+              {
+                key: uuid(),
+                filename: part.name,
+                href: content_url,
+              },
+            ];
+
+            message.files = files;
+          });
+        }
       }
 
-      const { content } = part;
-
-      if (content) {
+      if (hasContent) {
         updateLastAssistantMessage((message) => {
           message.content += content;
+        });
+      }
+
+      if (hasImage) {
+        updateLastAssistantMessage((message) => {
+          message.content += toMarkdownImage(content_url);
         });
       }
     },
@@ -97,13 +130,14 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
     async (input: string) => {
       const uploadFiles = extractValidUploadFiles(files);
       const messageParts = [createMessagePart({ content: input }), ...createFileMessageParts(uploadFiles)];
+      const userFiles = mapToMessageFiles(uploadFiles);
 
       setMessages((messages) => {
         messages.push({
           key: uuid(),
           role: Role.User,
           content: input,
-          files: uploadFiles,
+          files: userFiles,
         });
         messages.push({
           key: uuid(),
@@ -150,7 +184,11 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
 
   return (
     <ChatContext.Provider value={contextValue}>
-      <ChatMessagesContext.Provider value={messages}>{children}</ChatMessagesContext.Provider>
+      <ChatMessagesContext.Provider value={messages}>
+        <AgentProvider agent={agent} isMonitorStatusEnabled={isPending}>
+          {children}
+        </AgentProvider>
+      </ChatMessagesContext.Provider>
     </ChatContext.Provider>
   );
 }

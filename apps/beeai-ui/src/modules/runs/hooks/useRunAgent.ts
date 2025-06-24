@@ -27,6 +27,7 @@ import type {
   MessagePartEvent,
   RunCancelledEvent,
   RunCompletedEvent,
+  RunCreatedEvent,
   RunEvent,
   RunFailedEvent,
   RunId,
@@ -38,6 +39,7 @@ import { createRunStreamRequest } from '../utils';
 
 interface Props {
   onBeforeRun?: () => void;
+  onRunCreated?: (event: RunCreatedEvent) => void;
   onRunFailed?: (event: RunFailedEvent) => void;
   onRunCancelled?: (event: RunCancelledEvent) => void;
   onRunCompleted?: (event: RunCompletedEvent) => void;
@@ -50,6 +52,7 @@ interface Props {
 
 export function useRunAgent({
   onBeforeRun,
+  onRunCreated,
   onRunFailed,
   onRunCancelled,
   onRunCompleted,
@@ -102,6 +105,7 @@ export function useRunAgent({
           onEvent: (event) => {
             switch (event.type) {
               case EventType.RunCreated:
+                onRunCreated?.(event);
                 setRunId(event.run.run_id);
                 setSessionId(event.run.session_id);
 
@@ -143,10 +147,11 @@ export function useRunAgent({
       }
     },
     [
-      sessionId,
-      createRunStream,
-      handleDone,
       onBeforeRun,
+      createRunStream,
+      sessionId,
+      onRunCreated,
+      handleDone,
       onRunFailed,
       onRunCancelled,
       onRunCompleted,

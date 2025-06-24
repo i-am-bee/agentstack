@@ -72,6 +72,9 @@
 .bottom {
   position: relative;
   min-inline-size: 0;
+  min-block-size: rem(88px);
+  display: flex;
+  flex-direction: column;
 }
 
 .toBottomButton {

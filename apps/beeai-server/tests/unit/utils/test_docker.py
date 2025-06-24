@@ -3,6 +3,8 @@ import pytest
 from beeai_server.utils.docker import DockerImageID
 from beeai_server.utils.utils import filter_dict
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.mark.parametrize(
     "image_id,expected",

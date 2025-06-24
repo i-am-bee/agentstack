@@ -24,6 +24,8 @@ import { AgentGreeting } from '#modules/agents/components/AgentGreeting.tsx';
 
 import { AgentHeader } from '../components/AgentHeader';
 import { AgentIcon } from '../components/AgentIcon';
+import { StatusBar } from '../components/StatusBar';
+import { useAgent } from '../contexts/agent';
 import { useChat, useChatMessages } from '../contexts/chat';
 import { FileUploadDropzone } from '../files/components/FileUploadDropzone';
 import { useFileUpload } from '../files/contexts';
@@ -40,6 +42,9 @@ export function Chat() {
   const { dropzone } = useFileUpload();
   const { agent, onClear, isPending } = useChat();
   const messages = useChatMessages();
+  const {
+    status: { isNotInstalled, isStarting },
+  } = useAgent();
 
   const scrollToBottom = useCallback(() => {
     const scrollElement = scrollRef.current;
@@ -121,13 +126,17 @@ export function Chat() {
               </IconButton>
             )}
 
-            <ChatInput
-              onMessageSubmit={() => {
-                requestAnimationFrame(() => {
-                  scrollToBottom();
-                });
-              }}
-            />
+            {isPending && (isNotInstalled || isStarting) ? (
+              <StatusBar isPending>Starting the agent, please bee patient&hellip;</StatusBar>
+            ) : (
+              <ChatInput
+                onMessageSubmit={() => {
+                  requestAnimationFrame(() => {
+                    scrollToBottom();
+                  });
+                }}
+              />
+            )}
           </div>
         </Container>
 

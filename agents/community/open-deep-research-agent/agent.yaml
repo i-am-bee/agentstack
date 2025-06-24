@@ -11,7 +11,7 @@ avgRunTimeSeconds: 2.1
 avgRunTokens: 111
 examples: 
   cli:
-    - command: beeai run gpt-researcher "Impact of climate change on global agriculture"
+    - command: beeai run open-deep-research "Impact of climate change on global agriculture"
       description: Conducting Research on Climate Change
       processingSteps:
         - Initializes task-specific agents to interpret the query

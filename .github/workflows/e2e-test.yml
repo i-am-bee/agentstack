@@ -9,12 +9,14 @@ on:
     paths:
       - 'apps/beeai-server/**'
       - 'apps/beeai-cli/**'
+      - 'helm/beeai-platform/**'
   push:
     branches:
       - main
     paths:
       - 'apps/beeai-server/**'
       - 'apps/beeai-cli/**'
+      - 'helm/beeai-platform/**'
 jobs:
   e2e-test:
     runs-on: ubuntu-latest

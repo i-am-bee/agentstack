@@ -69,6 +69,8 @@ securityContext: { }
 # readOnlyRootFilesystem: true
 # runAsNonRoot: true
 # runAsUser: 1000
+initContainers:
+  createVectorDbExtension: true
 
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
@@ -192,11 +194,16 @@ postgresql:
   enabled: true
   fullnameOverride: "postgresql"
   auth:
+    postgresPassword: "admin-password"
     enablePostgresUser: true
     username: beeai-user
     password: "password"
     database: beeai
     existingSecret: ""
+    # TODO: bug - broken update password script: https://github.com/bitnami/charts/pull/34527
+    usePasswordFiles: false
+  passwordUpdateJob:
+    enabled: true
   architecture: standalone
   primary:
     ## PostgreSQL Primary resource requests and limits
@@ -220,13 +227,10 @@ postgresql:
 ## All of these values are only used when postgresql.enabled is set to false
 ## @param externalDatabase.host Database host (ignored if externalDatabase.sqlConnection is set)
 ## @param externalDatabase.port Database port number (ignored if externalDatabase.sqlConnection is set)
-## @param externalDatabase.user Non-root username for Airflow (ignored if externalDatabase.sqlConnection is set)
-## @param externalDatabase.password Password for the non-root username for Airflow (ignored if externalDatabase.sqlConnection or externalDatabase.existingSecret are set)
-## @param externalDatabase.database Airflow database name (ignored if externalDatabase.sqlConnection is set)
-## @param externalDatabase.sqlConnection SQL connection string
+## @param externalDatabase.user Non-root username for Beeai (ignored if externalDatabase.sqlConnection is set)
+## @param externalDatabase.password Password for the non-root username for Beeai (ignored if externalDatabase.sqlConnection or externalDatabase.existingSecret are set)
+## @param externalDatabase.database Beeai database name (ignored if externalDatabase.sqlConnection is set)
 ## @param externalDatabase.existingSecret Name of an existing secret resource containing the database credentials
-## @param externalDatabase.existingSecretPasswordKey Name of an existing secret key containing the database credentials (ignored if externalDatabase.existingSecretSqlConnectionKey is set)
-## @param externalDatabase.existingSecretSqlConnectionKey Name of an existing secret key containing the SQL connection string
 ##
 externalDatabase:
   host: ""
@@ -234,6 +238,9 @@ externalDatabase:
   user: beeai-user
   database: beeai
   password: ""
+  # Required when initContainers.createVectorDbExtension is enabled
+  adminUser: ""
+  adminPassword: ""
   existingSecret: ""
 
 ## SeaweedFS chart configuration
