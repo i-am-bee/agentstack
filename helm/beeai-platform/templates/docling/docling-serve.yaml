@@ -1,4 +1,5 @@
 # This example deployment configures Docling Serve with a Service and cuda image
+{{ if .Values.features.docling }}
 ---
 apiVersion: v1
 kind: Service
@@ -6,11 +7,11 @@ metadata:
   name: docling-serve
   labels:
     app: docling-serve
-    component: docling-serve-api
+    {{- include "beeai-platform.labels" . | nindent 4 }}
 spec:
   ports:
   - name: http
-    port: 5001
+    port: {{ .Values.docling.service.port }}
     targetPort: http
   selector:
     app: docling-serve
@@ -40,17 +41,18 @@ spec:
         - name: api
           resources:
             limits:
-              cpu: 500m
-              memory: 2Gi
+              cpu: {{ .Values.docling.resources.limits.cpu }}
+              memory: {{ .Values.docling.resources.limits.memory }}
             requests:
-              cpu: 250m
-              memory: 1Gi
+              cpu: {{ .Values.docling.resources.requests.cpu }}
+              memory:  {{ .Values.docling.resources.requests.memory }}
           env:
             - name: DOCLING_SERVE_ENABLE_UI
-              value: 'true'
+              value: {{ if .Values.docling.env.DOCLING_SERVE_ENABLE_UI }}'true'{{ else }}'false'{{ end }}
           ports:
             - name: http
-              containerPort: 5001
+              containerPort: {{ .Values.docling.service.port }}
               protocol: TCP
-          imagePullPolicy: Always
-          image: 'ghcr.io/docling-project/docling-serve'
+          imagePullPolicy: {{ .Values.docling.imagePullPolicy }}
+          image: {{ .Values.docling.image }}
+{{ end }}

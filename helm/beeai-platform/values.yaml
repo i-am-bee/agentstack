@@ -304,3 +304,18 @@ externalS3:
   protocol: "https"
   bucket: "beeai-files"
   region: "us-east-1"
+
+docling:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 2Gi
+    requests:
+      cpu: 250m
+      memory: 1Gi
+  env:
+    DOCLING_SERVE_ENABLE_UI: "true"
+  service:
+    port: 5001
+  imagePullPolicy: "Always"
+  image: "ghcr.io/docling-project/docling-serve"
