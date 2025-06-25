@@ -22,7 +22,7 @@ import { TagsList } from '#components/TagsList/TagsList.tsx';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { AgentTags } from '#modules/agents/components/AgentTags.tsx';
 import { BeeBadge } from '#modules/agents/components/BeeBadge.tsx';
-import { getAgentDisplayName } from '#modules/agents/utils.ts';
+import { getAgentUiMetadata } from '#modules/agents/utils.ts';
 
 import classes from './AgentListOption.module.scss';
 
@@ -31,13 +31,13 @@ interface Props {
   onClick: (event: MouseEvent) => void;
 }
 export function AgentListOption({ agent, onClick }: Props) {
-  const displayName = getAgentDisplayName(agent);
+  const { display_name } = getAgentUiMetadata(agent);
 
   return (
     <li className={classes.root} role="option" onClick={onClick}>
       <div className={classes.content}>
         <div className={classes.name}>
-          <span>{displayName}</span>
+          <span>{display_name}</span>
 
           <BeeBadge agent={agent} />
         </div>

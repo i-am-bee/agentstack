@@ -20,7 +20,7 @@ import { getErrorMessage } from '#api/utils.ts';
 import { ErrorMessage } from '#components/ErrorMessage/ErrorMessage.tsx';
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 import { Spinner } from '#components/Spinner/Spinner.tsx';
-import { getAgentDisplayName } from '#modules/agents/utils.ts';
+import { getAgentUiMetadata } from '#modules/agents/utils.ts';
 
 import { AgentIcon } from '../components/AgentIcon';
 import { useChat } from '../contexts/chat';
@@ -39,7 +39,7 @@ export function Message({ message }: Props) {
   const { agent } = useChat();
   const { content, role, error } = message;
 
-  const displayName = getAgentDisplayName(agent);
+  const { display_name } = getAgentUiMetadata(agent);
 
   const isUserMessage = role === Role.User;
   const isAssistantMessage = role === Role.Assistant;
@@ -56,7 +56,7 @@ export function Message({ message }: Props) {
     <li className={clsx(classes.root)}>
       <div className={classes.sender}>
         <div className={classes.senderIcon}>{isUserMessage ? <UserIcon /> : <AgentIcon />}</div>
-        <div className={classes.senderName}>{isUserMessage ? 'User' : displayName}</div>
+        <div className={classes.senderName}>{isUserMessage ? 'User' : display_name}</div>
       </div>
 
       <div className={classes.body}>

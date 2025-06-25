@@ -50,9 +50,9 @@ export function sortAgentsByName(a: Agent, b: Agent) {
 }
 
 export function isAgentUiSupported(agent: Agent) {
-  const uiType = agent.metadata.annotations?.beeai_ui?.ui_type;
+  const { ui_type } = getAgentUiMetadata(agent);
 
-  return uiType && SupportedUis.includes(uiType);
+  return ui_type && SupportedUis.includes(ui_type);
 }
 
 type AgentLinkType = components['schemas']['LinkType'];
@@ -74,11 +74,12 @@ export function getAvailableAgentLinkUrl<T extends AgentLinkType | AgentLinkType
   return url;
 }
 
-export function getAgentDisplayName(agent: Agent) {
-  const {
-    name,
-    metadata: { annotations },
-  } = agent;
+export function getAgentUiMetadata(agent: Agent) {
+  const { name, metadata } = agent;
+  const beeai_ui = metadata.annotations?.beeai_ui;
 
-  return annotations?.beeai_ui?.display_name ?? name;
+  return {
+    ...beeai_ui,
+    display_name: beeai_ui?.display_name ?? name,
+  };
 }

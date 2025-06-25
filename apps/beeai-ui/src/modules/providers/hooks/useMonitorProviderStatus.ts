@@ -21,7 +21,7 @@ import { useToast } from '#contexts/Toast/index.ts';
 import { TaskType, useTasks } from '#hooks/useTasks.ts';
 import { useListProviderAgents } from '#modules/agents/api/queries/useListProviderAgents.ts';
 import { useProviderStatus } from '#modules/agents/hooks/useProviderStatus.ts';
-import { getAgentDisplayName } from '#modules/agents/utils.ts';
+import { getAgentUiMetadata } from '#modules/agents/utils.ts';
 
 import { providerKeys } from '../api/keys';
 
@@ -48,20 +48,20 @@ export function useMonitorProviderStatus({ id, isEnabled }: Props) {
 
     if (isReady) {
       agents?.forEach((agent) => {
-        const displayName = getAgentDisplayName(agent);
+        const { display_name } = getAgentUiMetadata(agent);
 
         addToast({
-          title: `${displayName} has installed successfully.`,
+          title: `${display_name} has installed successfully.`,
           kind: 'info',
           timeout: 5_000,
         });
       });
     } else if (isError) {
       agents?.forEach((agent) => {
-        const displayName = getAgentDisplayName(agent);
+        const { display_name } = getAgentUiMetadata(agent);
 
         addToast({
-          title: `${displayName} failed to install.`,
+          title: `${display_name} failed to install.`,
           timeout: 5_000,
         });
       });

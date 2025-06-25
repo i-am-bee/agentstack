@@ -29,10 +29,10 @@ export type Agent = ApiResponse<'/api/v1/acp/agents/{name}'> & {
     provider_id?: string;
     annotations?: {
       beeai_ui?: {
-        ui_type: UiType;
+        ui_type?: UiType;
         user_greeting?: string;
         display_name?: string;
-        tools: AgentToolInfo[];
+        tools?: AgentToolInfo[];
       };
     };
   };
