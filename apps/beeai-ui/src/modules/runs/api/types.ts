@@ -49,8 +49,8 @@ export interface TrajectoryMetadata {
   key: string;
   message?: string | null;
   tool_name?: string | null;
-  tool_input?: object | null;
-  tool_output?: object | null;
+  tool_input?: Record<string, unknown> | null;
+  tool_output?: Record<string, unknown> | null;
 }
 
 export enum MetadataKind {

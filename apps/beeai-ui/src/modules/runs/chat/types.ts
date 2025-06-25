@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import type { TrajectoryMetadata } from '../api/types';
 import type { Role } from '../types';
 
 interface Message {
@@ -29,6 +30,7 @@ export interface UserMessage extends Message {
 export interface AssistantMessage extends Message {
   role: Role.Assistant;
   status: MessageStatus;
+  trajectories?: TrajectoryMetadata[];
 }
 
 export interface MessageFile {

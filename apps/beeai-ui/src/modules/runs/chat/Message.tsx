@@ -28,6 +28,7 @@ import { AgentIcon } from '../components/AgentIcon';
 import { useChat } from '../contexts/chat';
 import { FileCard } from '../files/components/FileCard';
 import { FileCardsList } from '../files/components/FileCardsList';
+import { TrajectoryView } from '../trajectory/components/TrajectoryView';
 // import { TrajectoryView } from '../trajectory/components/TrajectoryView';
 import { Role } from '../types';
 import classes from './Message.module.scss';
@@ -52,22 +53,10 @@ export function Message({ message }: Props) {
   const isFailed = isAssistantMessage && message.status === MessageStatus.Failed;
 
   const files = message.files ?? [];
+  const trajectories = (isAssistantMessage ? message.trajectories : null) ?? [];
 
   const hasFiles = files.length > 0;
-
-  // const trajectories = [
-  //   {
-  //     kind: MetadataKind.Trajectory,
-  //     key: uuid(),
-  //     tool_name: 'Python Interpreter',
-  //     message:
-  //       "I need to search the web to find interesting menus. I'll use the Google Search tool to run some queries.",
-  //   },
-  //   { kind: MetadataKind.Trajectory, key: uuid(), tool_name: null },
-  //   { kind: MetadataKind.Trajectory, key: uuid(), tool_name: 'Tool name' },
-  //   { kind: MetadataKind.Trajectory, key: uuid(), message: 'Message' },
-  //   { kind: MetadataKind.Trajectory, key: uuid() },
-  // ] satisfies TrajectoryMetadata[];
+  const hasTrajectories = trajectories.length > 0;
 
   return (
     <li className={clsx(classes.root)}>
@@ -104,7 +93,7 @@ export function Message({ message }: Props) {
           </FileCardsList>
         )}
 
-        {/* {isAssistantMessage && <TrajectoryView trajectories={trajectories} />} */}
+        {hasTrajectories && <TrajectoryView trajectories={trajectories} />}
       </div>
     </li>
   );

@@ -22,6 +22,7 @@ import { v4 as uuid } from 'uuid';
 import { useImmerWithGetter } from '#hooks/useImmerWithGetter.ts';
 import { usePrevious } from '#hooks/usePrevious.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
+import { MetadataKind, type TrajectoryMetadata } from '#modules/runs/api/types.ts';
 import { type AssistantMessage, type ChatMessage, MessageStatus } from '#modules/runs/chat/types.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
 import { Role } from '#modules/runs/types.ts';
@@ -50,12 +51,13 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
   const { isPending, runAgent, stopAgent, reset } = useRunAgent({
     onMessagePart: (event) => {
       const { part } = event;
-      const { content, content_type, content_url } = part;
+      const { content, content_type, content_url, metadata } = part;
 
       const isArtifact = isArtifactPart(part);
       const hasFile = isString(content_url);
       const hasContent = isString(content);
       const hasImage = hasFile && isImageContentType(content_type);
+      const hasTrajectory = metadata?.kind === MetadataKind.Trajectory;
 
       if (isArtifact) {
         if (hasFile) {
@@ -83,6 +85,17 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
       if (hasImage) {
         updateLastAssistantMessage((message) => {
           message.content += toMarkdownImage(content_url);
+        });
+      }
+
+      if (hasTrajectory) {
+        updateLastAssistantMessage((message) => {
+          const newTrajectory = {
+            ...metadata,
+            key: uuid(),
+          } as TrajectoryMetadata;
+
+          message.trajectories = message.trajectories ? [...message.trajectories, newTrajectory] : [newTrajectory];
         });
       }
     },
