@@ -35,6 +35,6 @@ def upgrade() -> None:
 def downgrade() -> None:
     """Downgrade schema."""
     # Drop vector_db schema
-    op.execute(f"DROP SCHEMA IF EXISTS {get_configuration().persistence.vector_db_schema}")
+    op.execute(f"DROP SCHEMA IF EXISTS {get_configuration().persistence.vector_db_schema} CASCADE")
 
     # We are not dropping the extension (user might have insufficient permissions)

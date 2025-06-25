@@ -2,24 +2,40 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-from asyncio import Task
 from datetime import timedelta
 
+import anyio
+import httpx
 
+from kink import inject
+from procrastinate import Blueprint
+
+from beeai_server import get_configuration
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.provider import Provider
+
 from beeai_server.service_layer.services.provider import ProviderService
-from beeai_server.utils.periodic import periodic
-from kink import inject, di
+from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
+from beeai_server.utils.utils import extract_messages
+
 
 logger = logging.getLogger(__name__)
 
-preinstall_background_tasks: dict[str, Task] = {}
+blueprint = Blueprint()
 
 
-@periodic(period=timedelta(seconds=di[Configuration].agent_registry.sync_period_sec))
+@blueprint.periodic(cron="*/1 * * * *")
+@blueprint.task(queueing_lock="scale_down_providers", queue="cron:provider")
 @inject
-async def check_registry(configuration: Configuration, provider_service: ProviderService):
+async def scale_down_providers(timestamp: int, service: ProviderService):
+    await service.scale_down_providers()
+
+
+# TODO: Can't use DI here because it's not initialized yet
+@blueprint.periodic(cron=get_configuration().agent_registry.sync_period_cron)
+@blueprint.task(queueing_lock="check_registry", queue="cron:provider")
+@inject
+async def check_registry(timestamp: int, configuration: Configuration, provider_service: ProviderService):
     if not configuration.agent_registry.locations:
         return
 
@@ -67,3 +83,24 @@ async def check_registry(configuration: Configuration, provider_service: Provide
 
     if errors:
         raise ExceptionGroup("Exceptions occurred when reloading providers", errors)
+
+
+if get_configuration().provider.auto_remove_enabled:
+
+    @blueprint.periodic(cron="* * * * * */5")
+    @blueprint.task(queueing_lock="auto_remove_providers", queue="cron:provider")
+    @inject
+    async def auto_remove_providers(timestamp: int, uow_f: IUnitOfWorkFactory, provider_service: ProviderService):
+        async with uow_f() as uow:
+            auto_remove_providers = [provider async for provider in uow.providers.list(auto_remove_filter=True)]
+
+        for provider in auto_remove_providers:
+            try:
+                timeout_sec = timedelta(seconds=30).total_seconds()
+                with anyio.fail_after(delay=timeout_sec):
+                    client = httpx.AsyncClient(base_url=str(provider.source.root), timeout=timeout_sec)
+                    await client.get("ping")
+            except Exception as ex:
+                logger.error(f"Provider {provider.id} failed to respond to ping in 30 seconds: {extract_messages(ex)}")
+                await provider_service.delete_provider(provider_id=provider.id)
+                logger.info(f"Provider {provider.id} was automatically removed")

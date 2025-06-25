@@ -2,12 +2,13 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import asyncio
+import concurrent.futures
 import functools
 import shutil
 from asyncio import CancelledError
 from contextlib import suppress
 from datetime import datetime, UTC
-from typing import TypeVar, Iterable
+from typing import TypeVar, Iterable, Callable, Any
 
 import anyio.to_thread
 
@@ -54,3 +55,16 @@ async def cancel_task(task: asyncio.Task[None] | None):
 
 def utc_now() -> datetime:
     return datetime.now(UTC)
+
+
+AnyCallableT = TypeVar("AnyCallableT", bound=Callable[..., Any])
+
+
+def async_to_sync_isolated(fn: AnyCallableT) -> AnyCallableT:
+    @functools.wraps(fn)
+    def wrapped_fn(*args, **kwargs):
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(lambda: asyncio.run(fn(*args, **kwargs)))
+            return future.result()
+
+    return wrapped_fn

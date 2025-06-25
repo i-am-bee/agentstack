@@ -3,13 +3,14 @@
 
 
 import fastapi
+from fastapi import HTTPException, status
 from fastapi.params import Query
 
 from beeai_server.api.schema.provider import CreateProviderRequest
 from uuid import UUID
 
 from beeai_server.domain.models.provider import ProviderWithState
-from beeai_server.api.dependencies import ProviderServiceDependency, AdminUserDependency
+from beeai_server.api.dependencies import ProviderServiceDependency, AdminUserDependency, ConfigurationDependency
 from beeai_server.api.schema.common import PaginatedResponse
 from starlette.responses import StreamingResponse
 
@@ -23,21 +24,14 @@ async def create_provider(
     _: AdminUserDependency,
     request: CreateProviderRequest,
     provider_service: ProviderServiceDependency,
+    configuration: ConfigurationDependency,
     auto_remove: bool = Query(default=False),
 ) -> ProviderWithState:
+    if auto_remove and not configuration.provider.auto_remove_enabled:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Auto remove functionality is disabled")
     return await provider_service.create_provider(
         location=request.location, agents=request.agents, auto_remove=auto_remove
     )
-
-
-@router.post("/register/unmanaged", deprecated=True)
-async def deprecated_create_unmanaged_provider(
-    _: AdminUserDependency,
-    request: CreateProviderRequest,
-    provider_service: ProviderServiceDependency,
-) -> ProviderWithState:
-    """Backward compatibility for ACP sdk."""
-    return await provider_service.create_provider(location=request.location, auto_remove=True)
 
 
 @router.post("/preview")

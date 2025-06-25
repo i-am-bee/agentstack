@@ -68,7 +68,7 @@ class NetworkProviderLocation(RootModel):
     def _replace_localhost_url(cls, data: Any, handler: ModelWrapValidatorHandler):
         configuration = di[Configuration]
         url: NetworkProviderLocation = handler(data)
-        if configuration.self_registration_use_local_network:
+        if configuration.provider.self_registration_use_local_network:
             url.root = HttpUrl(re.sub(r"host.docker.internal", "localhost", str(url.root)))
         else:
             # localhost does not make sense in k8s environment, replace it with host.docker.internal for backward compatibility

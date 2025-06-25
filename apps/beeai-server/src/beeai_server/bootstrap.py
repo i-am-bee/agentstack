@@ -1,16 +1,16 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import asyncio
-import concurrent.futures
 import logging
 from typing import TypeVar
 
+import procrastinate
 from anyio import Path
 
 import kr8s
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
 
+from beeai_server.jobs.procrastinate import create_app
 from beeai_server.service_layer.deployment_manager import IProviderDeploymentManager
 from beeai_server.configuration import Configuration, get_configuration
 from beeai_server.domain.repositories.files import IObjectStorageRepository
@@ -19,8 +19,9 @@ from beeai_server.infrastructure.object_storage.repository import S3ObjectStorag
 
 from beeai_server.infrastructure.persistence.unit_of_work import SqlAlchemyUnitOfWorkFactory
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
-from beeai_server.utils.periodic import register_all_crons
 from kink import di, Container
+
+from beeai_server.utils.utils import async_to_sync_isolated
 
 logger = logging.getLogger(__name__)
 
@@ -63,11 +64,7 @@ async def bootstrap_dependencies(dependency_overrides: Container | None = None):
 
     # Register object storage repository and file service
     _set_di(IObjectStorageRepository, S3ObjectStorageRepository(di[Configuration]))
+    _set_di(procrastinate.App, create_app())
 
-    register_all_crons()
 
-
-def bootstrap_dependencies_sync(dependency_overrides: Container | None = None):
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-        future = executor.submit(lambda: asyncio.run(bootstrap_dependencies(dependency_overrides)))
-        return future.result()
+bootstrap_dependencies_sync = async_to_sync_isolated(bootstrap_dependencies)
