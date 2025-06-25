@@ -17,6 +17,7 @@
 import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
 
 import type { Agent } from '../api/types';
+import { getAgentUiMetadata } from '../utils';
 import classes from './AgentTools.module.scss';
 
 interface Props {
@@ -24,7 +25,7 @@ interface Props {
 }
 
 export function AgentTools({ agent }: Props) {
-  const tools = agent.metadata.annotations?.beeai_ui?.tools;
+  const { tools } = getAgentUiMetadata(agent);
 
   return (
     <div className={classes.root}>

@@ -620,7 +620,7 @@ async def start(
                             {
                                 "externalRegistries": {"public_github": str(Configuration().agent_registry)},
                                 "encryptionKey": "Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc=",  # Dummy key for local use
-                                "features": {"uiNavigation": True},
+                                "features": {"uiNavigation": True, "selfRegistration": True},
                                 "auth": {"enabled": False},
                             }
                         ),

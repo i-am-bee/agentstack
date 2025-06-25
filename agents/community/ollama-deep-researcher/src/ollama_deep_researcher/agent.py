@@ -22,6 +22,7 @@ server = Server()
             beeai_ui=PlatformUIAnnotation(
                 ui_type=PlatformUIType.HANDSOFF,
                 user_greeting="What topic do you want to research?",
+                display_name="Ollama Deep Researcher",
             ),
         ),
         programming_language="Python",

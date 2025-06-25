@@ -140,6 +140,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/acp/sessions/{session_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Read Session */
+    get: operations['read_session_api_v1_acp_sessions__session_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/files': {
     parameters: {
       query?: never;
@@ -273,27 +290,6 @@ export interface paths {
     put?: never;
     /** Preview Provider */
     post: operations['preview_provider_api_v1_providers_preview_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/providers/register/unmanaged': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Deprecated Create Unmanaged Provider
-     * @deprecated
-     * @description Backward compatibility for ACP sdk.
-     */
-    post: operations['deprecated_create_unmanaged_provider_api_v1_providers_register_unmanaged_post'];
     delete?: never;
     options?: never;
     head?: never;
@@ -1041,6 +1037,18 @@ export interface components {
       /** State */
       state?: string | null;
     };
+    /** SessionReadResponse */
+    SessionReadResponse: {
+      /** History */
+      history?: string[];
+      /**
+       * Id
+       * Format: uuid
+       */
+      id?: string;
+      /** State */
+      state?: string | null;
+    };
     /** UIFeatureFlags */
     UIFeatureFlags: {
       /**
@@ -1293,6 +1301,37 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['RunReadResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  read_session_api_v1_acp_sessions__session_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        session_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SessionReadResponse'];
         };
       };
       /** @description Validation Error */
@@ -1608,39 +1647,6 @@ export interface operations {
     };
   };
   preview_provider_api_v1_providers_preview_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateProviderRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProviderWithState'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  deprecated_create_unmanaged_provider_api_v1_providers_register_unmanaged_post: {
     parameters: {
       query?: never;
       header?: never;
