@@ -27,9 +27,6 @@ image:
 
 encryptionKey: ""
 
-telemetry:
-  sharing: true
-
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: [ ]
 # This is to override the chart name.
@@ -39,6 +36,7 @@ fullnameOverride: ""
 features:
   # Enables variable configuration - should be disabled in production (correlates with auth.enabled)
   uiNavigation: false
+  selfRegistration: false
 
 # This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
 serviceAccount:

@@ -32,6 +32,12 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.41",
     "aioboto3>=14.3.0",
     "pyjwt>=2.10.1",
+    # !!! WARNING !!!
+    # Migrations need to be applied appropriately when upgrading procrastinate. Make sure to update the appropriate
+    # migration scripts in ./src/beeai_server/infrastructure/peristence/migrations/alembic
+    # https://procrastinate.readthedocs.io/en/stable/howto/production/migrations.html#migrate-the-procrastinate-schema
+    "procrastinate==3.2.2",
+    "sqlparse>=0.5.3",
 ]
 
 [tool.ruff]
