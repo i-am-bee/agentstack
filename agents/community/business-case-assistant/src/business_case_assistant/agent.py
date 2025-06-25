@@ -1,5 +1,6 @@
 from collections.abc import AsyncGenerator
-from acp_sdk.models import Message, MessagePart
+from acp_sdk.models.platform import PlatformUIAnnotation, PlatformUIType
+from acp_sdk import Annotations, Message, Metadata, MessagePart
 from acp_sdk.server import Context, RunYield, RunYieldResume, Server
 from acp_sdk import Metadata
 from textwrap import dedent
@@ -16,13 +17,16 @@ server = Server()
 
 @server.agent(
     metadata=Metadata(
+        annotations=Annotations(
+            beeai_ui=PlatformUIAnnotation(
+                ui_type=PlatformUIType.CHAT,
+                user_greeting="To get started, could you please share the key points or objectives of your business case?",
+                display_name="Business Case Assistant",
+            ),
+        ),
         version="1.0.0",
         framework="LangGraph",
         programming_language="Python",
-        ui={
-            "type": "chat",
-            "user_greeting": """To get started, could you please share the key points or objectives of your business case?""",
-        },
         author={
             "name": "Caitlin Tran",
         },

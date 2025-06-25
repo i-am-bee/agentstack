@@ -43,6 +43,7 @@ processing_steps = [
             beeai_ui=PlatformUIAnnotation(
                 ui_type=PlatformUIType.HANDSOFF,
                 user_greeting="Add the content from which you'd like to create your podcast.",
+                display_name="Podcast Creator",
             ),
         ),
         programming_language="Python",
@@ -96,7 +97,6 @@ processing_steps = [
                 curiosity and engagement.
             """
         ),
-        ui={"type": "hands-off", "user_greeting": "Add the content from which you'd like to create your podcast"},
         env=[
             {"name": "LLM_MODEL", "description": "Model to use from the specified OpenAI-compatible API."},
             {"name": "LLM_API_BASE", "description": "Base URL for OpenAI-compatible API endpoint"},
