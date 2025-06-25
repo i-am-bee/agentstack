@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import logging
+from contextlib import suppress
 from datetime import timedelta
 
 import anyio
@@ -24,6 +25,7 @@ from procrastinate import Blueprint
 from beeai_server import get_configuration
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.provider import Provider
+from beeai_server.exceptions import EntityNotFoundError
 
 from beeai_server.service_layer.services.provider import ProviderService
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
@@ -113,5 +115,7 @@ if get_configuration().provider.auto_remove_enabled:
                     await client.get("ping")
             except Exception as ex:
                 logger.error(f"Provider {provider.id} failed to respond to ping in 30 seconds: {extract_messages(ex)}")
-                await provider_service.delete_provider(provider_id=provider.id)
-                logger.info(f"Provider {provider.id} was automatically removed")
+                with suppress(EntityNotFoundError):
+                    # Provider might be already deleted by another instance of this job
+                    await provider_service.delete_provider(provider_id=provider.id)
+                    logger.info(f"Provider {provider.id} was automatically removed")
