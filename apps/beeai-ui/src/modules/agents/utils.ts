@@ -20,6 +20,7 @@ import type { components } from '#api/schema.js';
 import { SupportedUis } from '#modules/runs/constants.ts';
 import { compareStrings, isNotNull } from '#utils/helpers.ts';
 
+import type { UiType } from './api/types';
 import { type Agent, LinkType } from './api/types';
 
 export const getAgentsProgrammingLanguages = (agents: Agent[] | undefined) =>
@@ -50,9 +51,9 @@ export function sortAgentsByName(a: Agent, b: Agent) {
 }
 
 export function isAgentUiSupported(agent: Agent) {
-  const uiType = agent.metadata.annotations?.beeai_ui?.ui_type;
+  const { ui_type } = getAgentUiMetadata(agent);
 
-  return uiType && SupportedUis.includes(uiType);
+  return ui_type && SupportedUis.includes(ui_type as UiType);
 }
 
 type AgentLinkType = components['schemas']['LinkType'];
@@ -74,7 +75,12 @@ export function getAvailableAgentLinkUrl<T extends AgentLinkType | AgentLinkType
   return url;
 }
 
-export function getAgentDisplayName(agent: Agent) {
+export function getAgentUiMetadata(agent: Agent) {
   const { name, metadata } = agent;
-  return metadata.name ?? name;
+  const beeai_ui = metadata.annotations?.beeai_ui;
+
+  return {
+    ...beeai_ui,
+    display_name: beeai_ui?.display_name ?? name,
+  };
 }

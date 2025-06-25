@@ -2,10 +2,7 @@ import asyncio
 
 import pytest
 from acp_sdk.client import Client
-from acp_sdk.models import (
-    Message,
-    MessagePart,
-)
+from acp_sdk import Message, MessagePart, Session
 from acp_sdk.server import Server
 
 """
@@ -30,10 +27,25 @@ async def test_session(server: Server, acp_client: Client) -> None:
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="Missing feature in the platform proxy")
+@pytest.mark.skip(reason="Waiting for header implementation in acp-sdk")
 async def test_session_refresh(server: Server, acp_client: Client) -> None:
     async with acp_client.session() as session:
         await session.run_async(agent=agent, input=input)
         await asyncio.sleep(2)
         sess = await session.refresh_session()
         assert len(sess.history) == len(input) * 2
+
+
+@pytest.mark.asyncio
+@pytest.mark.skip(reason="Waiting for header implementation in acp-sdk")
+async def test_session_multi_client(server: Server, acp_client: Client) -> None:
+    session = Session()
+
+    async with acp_client.session(session) as session_client:
+        run = await session_client.run_sync(input, agent=agent)
+        assert run.output == output
+        print(run.session_id)
+
+    async with acp_client.session(session) as session_client:
+        run = await session_client.run_sync(input, agent=agent)
+        assert run.output == output * 3

@@ -71,7 +71,7 @@ class OCIRegistryConfiguration(BaseModel, extra="allow"):
 
 class AgentRegistryConfiguration(BaseModel):
     locations: dict[str, RegistryLocation] = Field(default_factory=dict)
-    sync_period_sec: int = Field(default=timedelta(minutes=10).total_seconds())
+    sync_period_cron: str = Field(default="*/10 * * * *")  # every 10 minutes
 
 
 class AuthConfiguration(BaseModel):
@@ -104,6 +104,8 @@ class PersistenceConfiguration(BaseModel):
     encryption_key: Secret[str] | None = None
     finished_requests_remove_after_sec: int = timedelta(minutes=30).total_seconds()
     stale_requests_remove_after_sec: int = timedelta(hours=1).total_seconds()
+    vector_db_schema: str = Field("vector_db", pattern=r"^[a-zA-Z0-9_]+$")
+    procrastinate_schema: str = Field("procrastinate", pattern=r"^[a-zA-Z0-9_]+$")
 
 
 class TelemetryConfiguration(BaseModel):
@@ -128,6 +130,14 @@ class DockerConfigJson(BaseModel):
     auths: dict[str, DockerConfigJsonAuth] = Field(default_factory=dict)
 
 
+class ManagedProviderConfiguration(BaseModel):
+    auto_remove_enabled: bool = False
+    self_registration_use_local_network: bool = Field(
+        False,
+        description="Which network to use for self-registered providers - should be False when running in cluster",
+    )
+
+
 class Configuration(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", env_nested_delimiter="__", extra="ignore"
@@ -144,12 +154,8 @@ class Configuration(BaseSettings):
     k8s_namespace: str | None = None
     k8s_kubeconfig: Path | None = None
 
-    self_registration_use_local_network: bool = Field(
-        False,
-        description="Which network to use for self-registered providers - should be False when running in cluster",
-    )
-
-    feature_flags: FeatureFlagsConfiguration = FeatureFlagsConfiguration()
+    provider: ManagedProviderConfiguration = Field(default_factory=ManagedProviderConfiguration)
+    feature_flags: FeatureFlagsConfiguration = Field(default_factory=FeatureFlagsConfiguration)
 
     platform_service_url: str = "beeai-platform-svc:8333"
     port: int = 8333

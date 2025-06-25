@@ -23,6 +23,7 @@ server = Server()
             beeai_ui=PlatformUIAnnotation(
                 ui_type=PlatformUIType.HANDSOFF,
                 user_greeting="Define your programming task.",
+                display_name="Aider",
             ),
         ),
         programming_language="Python",

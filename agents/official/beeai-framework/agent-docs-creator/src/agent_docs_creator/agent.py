@@ -42,6 +42,7 @@ processing_steps = [
             beeai_ui=PlatformUIAnnotation(
                 ui_type=PlatformUIType.HANDSOFF,
                 user_greeting="Provide source code of the AI agent you want to document.",
+                display_name="Agent Docs Creator",
             ),
         ),
         programming_language="Python",

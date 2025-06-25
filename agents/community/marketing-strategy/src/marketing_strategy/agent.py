@@ -24,6 +24,7 @@ server = Server()
             beeai_ui=PlatformUIAnnotation(
                 ui_type=PlatformUIType.HANDSOFF,
                 user_greeting="What topic do you want to create a marketing strategy around?",
+                display_name="Marketing Strategy",
             ),
         ),
         programming_language="Python",

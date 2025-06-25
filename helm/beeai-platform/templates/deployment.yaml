@@ -36,6 +36,32 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       initContainers:
+        {{- if .Values.initContainers.createVectorDbExtension }}
+        - name: create-pgvector-extension
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          workingDir: "/app/"
+          command: [ "create-vector-extension" ]
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: AUTH__DISABLE_AUTH
+              value: "true"
+            - name: LOGGING__LEVEL_SQLALCHEMY
+              value: INFO
+            - name: PERSISTENCE__ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: beeai-platform-secret
+                  key: encryptionKey
+            - name: PERSISTENCE__DB_URL
+              valueFrom:
+                secretKeyRef:
+                  key: sqlConnectionSuperuser
+                  name: {{ include "beeai.databaseSecretName" . }}
+        {{- end }}
         - name: run-migrations
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -48,6 +74,8 @@ spec:
           env:
             - name: AUTH__DISABLE_AUTH
               value: "true"
+            - name: LOGGING__LEVEL_SQLALCHEMY
+              value: INFO
             - name: PERSISTENCE__ENCRYPTION_KEY
               valueFrom:
                 secretKeyRef:
@@ -150,6 +178,10 @@ spec:
                   name: beeai-platform-secret
             {{- if not .Values.auth.enabled }}
             - name: AUTH__DISABLE_AUTH
+              value: "true"
+            {{- end }}
+            {{- if .Values.features.selfRegistration }}
+            - name: PROVIDER__AUTO_REMOVE_ENABLED
               value: "true"
             {{- end }}
             # Object Storage Configuration

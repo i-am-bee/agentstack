@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [{ name = "IBM Corp." }]
 requires-python = ">=3.11,<4.0"
 dependencies = [
-    "acp-sdk>=0.12.0",
+    "acp-sdk>=0.12.3",
     "aiohttp>=3.11.11",
     "anyio>=4.9.0",
     "asgiref>=3.8.1",
@@ -32,6 +32,12 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.41",
     "aioboto3>=14.3.0",
     "pyjwt>=2.10.1",
+    # !!! WARNING !!!
+    # Migrations need to be applied appropriately when upgrading procrastinate. Make sure to update the appropriate
+    # migration scripts in ./src/beeai_server/infrastructure/peristence/migrations/alembic
+    # https://procrastinate.readthedocs.io/en/stable/howto/production/migrations.html#migrate-the-procrastinate-schema
+    "procrastinate==3.2.2",
+    "sqlparse>=0.5.3",
 ]
 
 [tool.ruff]
@@ -41,6 +47,7 @@ line-length = 120
 beeai-server = "beeai_server:serve"
 migrate = "beeai_server:migrate"
 create-buckets = "beeai_server:create_buckets"
+create-vector-extension = "beeai_server:create_vector_extension"
 
 [build-system]
 requires = ["hatchling"]
