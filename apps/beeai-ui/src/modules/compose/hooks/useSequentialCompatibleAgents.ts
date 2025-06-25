@@ -14,7 +14,10 @@ const SupportedUis: UiType[] = [UiType.HandsOff];
 export function useSequentialCompatibleAgents() {
   const { data, isPending } = useListAgents();
   const agents = useMemo(
-    () => data?.filter((agent) => SupportedUis.includes(agent.metadata.ui?.type as UiType)).sort(sortAgentsByName),
+    () =>
+      data
+        ?.filter((agent) => SupportedUis.includes(agent.metadata.annotations?.beeai_ui?.ui_type as UiType))
+        .sort(sortAgentsByName),
     [data],
   );
 

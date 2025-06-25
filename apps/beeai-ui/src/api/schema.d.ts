@@ -43,6 +43,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/acp/ping': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Ping */
+    get: operations['ping_api_v1_acp_ping_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/acp/runs': {
     parameters: {
       query?: never;
@@ -104,6 +121,23 @@ export interface paths {
     };
     /** Read Run Events */
     get: operations['read_run_events_api_v1_acp_runs__run_id__events_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/acp/sessions/{session_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Read Session */
+    get: operations['read_session_api_v1_acp_sessions__session_id__get'];
     put?: never;
     post?: never;
     delete?: never;
@@ -251,27 +285,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/providers/register/unmanaged': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Deprecated Create Unmanaged Provider
-     * @deprecated
-     * @description Backward compatibility for ACP sdk.
-     */
-    post: operations['deprecated_create_unmanaged_provider_api_v1_providers_register_unmanaged_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   '/api/v1/ui/config': {
     parameters: {
       query?: never;
@@ -313,7 +326,7 @@ export interface components {
   schemas: {
     /** AcpMetadata */
     AcpMetadata: {
-      annotations?: components['schemas']['AnyModel'] | null;
+      annotations?: components['schemas']['Annotations-Output'] | null;
       author?: components['schemas']['Author'] | null;
       /** Capabilities */
       capabilities?: components['schemas']['Capability'][] | null;
@@ -351,26 +364,13 @@ export interface components {
       recommended_models?: string[] | null;
       /** Tags */
       tags?: string[] | null;
-      /** Ui */
-      ui?: {
-        [key: string]: unknown;
-      } | null;
       /** Updated At */
       updated_at?: string | null;
     } & {
       [key: string]: unknown;
     };
     /** Agent */
-    'Agent-Input': {
-      /** Description */
-      description?: string | null;
-      /** @default {} */
-      metadata: components['schemas']['Metadata'];
-      /** Name */
-      name: string;
-    };
-    /** Agent */
-    'Agent-Output': {
+    Agent: {
       /** Description */
       description?: string | null;
       /**
@@ -383,6 +383,15 @@ export interface components {
       name: string;
     } & {
       [key: string]: unknown;
+    };
+    /** AgentManifest */
+    AgentManifest: {
+      /** Description */
+      description?: string | null;
+      /** @default {} */
+      metadata: components['schemas']['Metadata'];
+      /** Name */
+      name: string;
     };
     /** AgentReadResponse */
     AgentReadResponse: {
@@ -402,10 +411,27 @@ export interface components {
     /** AgentsListResponse */
     AgentsListResponse: {
       /** Agents */
-      agents: components['schemas']['Agent-Output'][];
+      agents: components['schemas']['Agent'][];
     };
-    /** AnyModel */
-    AnyModel: {
+    /** AgentToolInfo */
+    AgentToolInfo: {
+      /** Description */
+      description?: string | null;
+      /** Name */
+      name: string;
+    } & {
+      [key: string]: unknown;
+    };
+    /** Annotations */
+    'Annotations-Input': {
+      beeai_ui?: components['schemas']['PlatformUIAnnotation'] | null;
+    } & {
+      [key: string]: unknown;
+    };
+    /** Annotations */
+    'Annotations-Output': {
+      beeai_ui?: components['schemas']['PlatformUIAnnotation'] | null;
+    } & {
       [key: string]: unknown;
     };
     /** Author */
@@ -493,6 +519,48 @@ export interface components {
       /** User */
       user?: string | null;
     };
+    /**
+     * CitationMetadata
+     * @description Represents an inline citation, providing info about information source. This
+     *     is supposed to be rendered as an inline icon, optionally marking a text
+     *     range it belongs to.
+     *
+     *     If CitationMetadata is included together with content in the message part,
+     *     the citation belongs to that content and renders at the MessagePart position.
+     *     This way may be used for non-text content, like images and files.
+     *
+     *     Alternatively, `start_index` and `end_index` may define a text range,
+     *     counting characters in the current Message across all MessageParts with
+     *     content type `text/*`, where the citation will be rendered. If one of
+     *     `start_index` and `end_index` is missing or their values are equal, the
+     *     citation renders only as an inline icon at that position.
+     *
+     *     If both `start_index` and `end_index` are not present and MessagePart has no
+     *     content, the citation renders as inline icon only at the MessagePart position.
+     *
+     *     Properties:
+     *     - url: URL of the source document.
+     *     - title: Title of the source document.
+     *     - description: Accompanying text, which may be a general description of the
+     *                    source document, or a specific snippet.
+     */
+    CitationMetadata: {
+      /** Description */
+      description: string | null;
+      /** End Index */
+      end_index: number | null;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'citation';
+      /** Start Index */
+      start_index: number | null;
+      /** Title */
+      title: string | null;
+      /** Url */
+      url: string | null;
+    };
     /** ContentItem */
     ContentItem: {
       /** Text */
@@ -516,7 +584,7 @@ export interface components {
     /** CreateProviderRequest */
     CreateProviderRequest: {
       /** Agents */
-      agents?: components['schemas']['Agent-Input'][] | null;
+      agents?: components['schemas']['AgentManifest'][] | null;
       /** Location */
       location: components['schemas']['DockerImageProviderLocation'] | components['schemas']['NetworkProviderLocation'];
     };
@@ -594,17 +662,36 @@ export interface components {
       };
     };
     /** Message */
-    Message: {
+    'Message-Input': {
       /** Completed At */
       completed_at?: string | null;
       /** Created At */
       created_at?: string | null;
       /** Parts */
       parts: components['schemas']['MessagePart'][];
+      /**
+       * Role
+       * @default user
+       */
+      role: 'user' | 'agent' | string;
+    };
+    /** Message */
+    'Message-Output': {
+      /** Completed At */
+      completed_at?: string | null;
+      /** Created At */
+      created_at?: string | null;
+      /** Parts */
+      parts: components['schemas']['MessagePart'][];
+      /**
+       * Role
+       * @default user
+       */
+      role: string;
     };
     /** MessageAwaitRequest */
     MessageAwaitRequest: {
-      message: components['schemas']['Message'];
+      message: components['schemas']['Message-Output'];
       /**
        * Type
        * @default message
@@ -614,7 +701,7 @@ export interface components {
     };
     /** MessageAwaitResume */
     MessageAwaitResume: {
-      message: components['schemas']['Message'];
+      message: components['schemas']['Message-Input'];
       /**
        * Type
        * @default message
@@ -638,6 +725,8 @@ export interface components {
       content_type: string | null;
       /** Content Url */
       content_url?: string | null;
+      /** Metadata */
+      metadata?: components['schemas']['CitationMetadata'] | null;
       /** Name */
       name?: string | null;
     } & {
@@ -645,7 +734,7 @@ export interface components {
     };
     /** Metadata */
     Metadata: {
-      annotations?: components['schemas']['AnyModel'] | null;
+      annotations?: components['schemas']['Annotations-Input'] | null;
       author?: components['schemas']['Author'] | null;
       /** Capabilities */
       capabilities?: components['schemas']['Capability'][] | null;
@@ -717,6 +806,28 @@ export interface components {
       /** Total Count */
       total_count: number;
     };
+    /** PingResponse */
+    PingResponse: Record<string, never>;
+    /** PlatformUIAnnotation */
+    PlatformUIAnnotation: {
+      /** Display Name */
+      display_name?: string | null;
+      /**
+       * Tools
+       * @default []
+       */
+      tools: components['schemas']['AgentToolInfo'][];
+      ui_type: components['schemas']['PlatformUIType'];
+      /** User Greeting */
+      user_greeting?: string | null;
+    } & {
+      [key: string]: unknown;
+    };
+    /**
+     * PlatformUIType
+     * @enum {string}
+     */
+    PlatformUIType: 'chat' | 'hands-off';
     /**
      * ProviderDeploymentState
      * @enum {string}
@@ -781,7 +892,7 @@ export interface components {
        * Output
        * @default []
        */
-      output: components['schemas']['Message'][];
+      output: components['schemas']['Message-Output'][];
       /**
        * Run Id
        * Format: uuid
@@ -797,9 +908,10 @@ export interface components {
       /** Agent Name */
       agent_name: string;
       /** Input */
-      input: components['schemas']['Message'][];
+      input: components['schemas']['Message-Input'][];
       /** @default sync */
       mode: components['schemas']['RunMode'];
+      session?: components['schemas']['Session'] | null;
       /** Session Id */
       session_id?: string | null;
     };
@@ -820,7 +932,7 @@ export interface components {
        * Output
        * @default []
        */
-      output: components['schemas']['Message'][];
+      output: components['schemas']['Message-Output'][];
       /**
        * Run Id
        * Format: uuid
@@ -853,7 +965,7 @@ export interface components {
        * Output
        * @default []
        */
-      output: components['schemas']['Message'][];
+      output: components['schemas']['Message-Output'][];
       /**
        * Run Id
        * Format: uuid
@@ -886,7 +998,7 @@ export interface components {
        * Output
        * @default []
        */
-      output: components['schemas']['Message'][];
+      output: components['schemas']['Message-Output'][];
       /**
        * Run Id
        * Format: uuid
@@ -902,6 +1014,30 @@ export interface components {
      * @enum {string}
      */
     RunStatus: 'created' | 'in-progress' | 'awaiting' | 'cancelling' | 'cancelled' | 'completed' | 'failed';
+    /** Session */
+    Session: {
+      /** History */
+      history?: string[];
+      /**
+       * Id
+       * Format: uuid
+       */
+      id?: string;
+      /** State */
+      state?: string | null;
+    };
+    /** SessionReadResponse */
+    SessionReadResponse: {
+      /** History */
+      history?: string[];
+      /**
+       * Id
+       * Format: uuid
+       */
+      id?: string;
+      /** State */
+      state?: string | null;
+    };
     /** UIFeatureFlags */
     UIFeatureFlags: {
       /**
@@ -982,6 +1118,26 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  ping_api_v1_acp_ping_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PingResponse'];
         };
       };
     };
@@ -1134,6 +1290,37 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['RunReadResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  read_session_api_v1_acp_sessions__session_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        session_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SessionReadResponse'];
         };
       };
       /** @description Validation Error */
@@ -1449,39 +1636,6 @@ export interface operations {
     };
   };
   preview_provider_api_v1_providers_preview_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateProviderRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProviderWithState'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  deprecated_create_unmanaged_provider_api_v1_providers_register_unmanaged_post: {
     parameters: {
       query?: never;
       header?: never;

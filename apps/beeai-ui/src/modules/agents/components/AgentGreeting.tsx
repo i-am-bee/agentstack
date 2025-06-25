@@ -21,8 +21,8 @@ export const AgentGreeting = memo(function AgentGreeting({
   className,
   defaultGreeting = DEFAULT_GREETING,
 }: Props) {
-  const { display_name, user_greeting = defaultGreeting } = getAgentUiMetadata(agent);
-  const userGreeting = renderVariables(user_greeting, { name: display_name });
+  const { display_name, user_greeting } = getAgentUiMetadata(agent);
+  const userGreeting = renderVariables(user_greeting ?? defaultGreeting, { name: display_name });
 
   return <h1 className={clsx(classes.root, className)}>{userGreeting}</h1>;
 });
