@@ -154,7 +154,7 @@ Build image and run the platform using:
 mise run beeai-server:image:build
 mise run beeai-cli:run -- platform start --import ghcr.io/i-am-bee/beeai-platform/beeai-server:local --set image.tag=local
 ```
-Or use development setup described in [Running and debugging individual components](#Running and debugging individual components)
+Or use development setup described in [Running and debugging individual components](#running-and-debugging-individual-components)
 
 #### CLI
 

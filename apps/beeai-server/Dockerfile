@@ -17,6 +17,7 @@ COPY --from=builder /usr/local/lib/python3.11/site-packages/ /usr/local/lib/pyth
 COPY --from=builder /usr/local/bin/beeai-server /usr/local/bin/beeai-server
 COPY --from=builder /usr/local/bin/migrate /usr/local/bin/migrate
 COPY --from=builder /usr/local/bin/create-buckets /usr/local/bin/create-buckets
+COPY --from=builder /usr/local/bin/create-vector-extension /usr/local/bin/create-vector-extension
 RUN chmod og+rx /root
 ENV PATH="/app/.venv/bin:/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
     HOME="/tmp" \

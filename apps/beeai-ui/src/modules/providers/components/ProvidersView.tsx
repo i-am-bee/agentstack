@@ -37,6 +37,7 @@ import { useTableSearch } from '#hooks/useTableSearch.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
 import { ImportAgentsModal } from '#modules/agents/components/ImportAgentsModal.tsx';
 import { getAgentsProgrammingLanguages } from '#modules/agents/utils.ts';
+import { isNotNull } from '#utils/helpers.ts';
 
 import { useDeleteProvider } from '../api/mutations/useDeleteProvider';
 import { useListProviders } from '../api/queries/useListProviders';
@@ -47,46 +48,54 @@ export function ProvidersView() {
   const { openModal, openConfirmation } = useModal();
   const { data: providers, isPending: isProvidersPending } = useListProviders();
   const { mutate: deleteProvider } = useDeleteProvider();
-  const { data: agents, isPending: isAgentsPending } = useListAgents();
+  const { data: agents, isPending: isAgentsPending } = useListAgents({ onlyUiSupported: true, sort: true });
   const agentsByProvider = groupAgentsByProvider(agents);
 
   const entries = useMemo(
     () =>
       providers
-        ? providers.items.map(({ id, source }) => {
-            const agents = agentsByProvider[id];
-            return {
-              id,
-              source,
-              runtime: getAgentsProgrammingLanguages(agents).join(', '),
-              agents: agents?.length ?? 0,
-              actions: (
-                <TableViewActions>
-                  <IconButton
-                    label="Delete provider"
-                    kind="ghost"
-                    size="sm"
-                    onClick={() =>
-                      openConfirmation({
-                        title: (
-                          <>
-                            Delete <span className={classes.deleteModalProviderId}>{source}</span>?
-                          </>
-                        ),
-                        body: 'Are you sure you want to delete this provider? It can’t be undone.',
-                        primaryButtonText: 'Delete',
-                        danger: true,
-                        onSubmit: () => deleteProvider({ id }),
-                      })
-                    }
-                    align="left"
-                  >
-                    <TrashCan />
-                  </IconButton>
-                </TableViewActions>
-              ),
-            };
-          })
+        ? providers.items
+            .map(({ id, source }) => {
+              const agents = agentsByProvider[id];
+              const agentsCount = agents?.length ?? 0;
+
+              if (agentsCount === 0) {
+                return null;
+              }
+
+              return {
+                id,
+                source,
+                runtime: getAgentsProgrammingLanguages(agents).join(', '),
+                agents: agentsCount,
+                actions: (
+                  <TableViewActions>
+                    <IconButton
+                      label="Delete provider"
+                      kind="ghost"
+                      size="sm"
+                      onClick={() =>
+                        openConfirmation({
+                          title: (
+                            <>
+                              Delete <span className={classes.deleteModalProviderId}>{source}</span>?
+                            </>
+                          ),
+                          body: 'Are you sure you want to delete this provider? It can’t be undone.',
+                          primaryButtonText: 'Delete',
+                          danger: true,
+                          onSubmit: () => deleteProvider({ id }),
+                        })
+                      }
+                      align="left"
+                    >
+                      <TrashCan />
+                    </IconButton>
+                  </TableViewActions>
+                ),
+              };
+            })
+            .filter(isNotNull)
         : [],
     [providers, agentsByProvider, deleteProvider, openConfirmation],
   );

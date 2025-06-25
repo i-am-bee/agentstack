@@ -19,16 +19,13 @@ import { useEffect } from 'react';
 
 import { useViewTransition } from '#hooks/useViewTransition.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
-import { sortAgentsByName } from '#modules/agents/utils.ts';
 import { routes } from '#utils/router.ts';
 
 import classes from './Landing.module.scss';
 
 export function Landing() {
-  const { data } = useListAgents();
   const { transitionTo } = useViewTransition();
-
-  const agents = data?.sort(sortAgentsByName);
+  const { data: agents } = useListAgents({ onlyUiSupported: true, sort: true });
 
   useEffect(() => {
     const firstAgent = agents?.at(0);

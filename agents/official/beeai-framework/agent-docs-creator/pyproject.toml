@@ -1,10 +1,12 @@
 [project]
 name = "agent-docs-creator"
 version = "0.1.0"
-authors = [{ name = "IBM Corp." }]
+authors = [
+    { name = "IBM Corp." },
+]
 requires-python = ">=3.11,<3.12"
 dependencies = [
-    "acp-sdk==0.12.0",
+    "acp-sdk==0.12.1",
     "beeai-framework==0.1.18",
     "openinference-instrumentation-beeai>=0.1.5",
     "pydantic-settings>=2.9.0",
@@ -14,5 +16,7 @@ dependencies = [
 server = "agent_docs_creator.agent:run"
 
 [build-system]
-requires = ["hatchling"]
+requires = [
+    "hatchling",
+]
 build-backend = "hatchling.build"

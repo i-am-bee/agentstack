@@ -4,7 +4,7 @@ requires-python = "==3.11.*"
 
 [[package]]
 name = "acp-sdk"
-version = "0.12.0"
+version = "0.12.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cachetools" },
@@ -22,9 +22,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "redis" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/79/dd/7be23f4650840c38c6c24b21d48ee40d471c5627b021b5d9135c76aa5a22/acp_sdk-0.12.0.tar.gz", hash = "sha256:11e875f03540ed19f4151623aaebe91eb39c1bdfa3273043c684a7a5edc4895e", size = 28743, upload-time = "2025-06-19T08:31:38.539Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/58/dc/bdf2b2b44c509a7d581136c62e95e637193a992f6206823698bfb26b6608/acp_sdk-0.12.1.tar.gz", hash = "sha256:ed1b5fe477849515b4d98aadaf6c9af28e1db49ecb2b68ef97bc26a3745eb662", size = 29151, upload-time = "2025-06-20T06:57:41.663Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/44/58/548f42c49b32b400782a9ee3d5ce10556166f10f4c7f181a977ab9675463/acp_sdk-0.12.0-py3-none-any.whl", hash = "sha256:4409eef74fd3bb9d9c9f5437812f3a6e475d4701b612f4dac72921817920d846", size = 30475, upload-time = "2025-06-19T08:31:37.195Z" },
+    { url = "https://files.pythonhosted.org/packages/ef/1a/3ec197a02e2dfc616b5fb8b7ca482f78fa01cd383ba71f0dd66d3d154cf9/acp_sdk-0.12.1-py3-none-any.whl", hash = "sha256:b45ceb38d7c40c88f4292c32014564a013f485215ffe82c7432a494614a0b040", size = 31179, upload-time = "2025-06-20T06:57:39.881Z" },
 ]
 
 [[package]]
@@ -1475,7 +1475,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "acp-sdk", specifier = "==0.12.0" },
+    { name = "acp-sdk", specifier = "==0.12.1" },
     { name = "crewai", extras = ["tools"], specifier = ">=0.102.0,<1.0.0" },
     { name = "databricks-sdk", specifier = ">=0.46.0" },
     { name = "openinference-instrumentation-crewai", specifier = ">=0.1.7" },

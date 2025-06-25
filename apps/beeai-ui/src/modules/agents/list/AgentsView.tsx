@@ -29,12 +29,19 @@ import { ImportAgents } from '../components/ImportAgents';
 import type { AgentsFiltersParams } from '../providers/AgentsFiltersProvider';
 
 export function AgentsView() {
-  const { data, isPending, error, refetch, isRefetching } = useListAgents();
+  const {
+    data: agents,
+    isPending,
+    error,
+    refetch,
+    isRefetching,
+  } = useListAgents({ onlyUiSupported: true, sort: true });
+
   const { watch } = useFormContext<AgentsFiltersParams>();
   const filters = watch();
 
   const renderList = () => {
-    if (error && !data)
+    if (error && !agents)
       return (
         <ErrorMessage
           title="Failed to load agents."
@@ -45,7 +52,7 @@ export function AgentsView() {
       );
 
     return (
-      <AgentsList agents={data} filters={filters} action={<ImportAgents />} isPending={isPending}>
+      <AgentsList agents={agents} filters={filters} action={<ImportAgents />} isPending={isPending}>
         {(filteredAgents) =>
           filteredAgents?.map((agent, idx) => (
             <li key={idx}>
@@ -63,7 +70,7 @@ export function AgentsView() {
 
   return (
     <>
-      {!isPending ? <AgentsFilters agents={data} /> : <AgentsFilters.Skeleton />}
+      {!isPending ? <AgentsFilters agents={agents} /> : <AgentsFilters.Skeleton />}
       {renderList()}
     </>
   );
