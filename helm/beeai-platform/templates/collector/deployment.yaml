@@ -50,10 +50,6 @@ spec:
             - /otelcol-contrib
             - --config
             - /config/base.yaml
-          {{- if .Values.telemetry.sharing }}
-            - --config
-            - /config/beeai.yaml
-          {{- end }}
             - --set
             - "receivers::otlp::protocols::http::endpoint=0.0.0.0:8335"
           imagePullPolicy: IfNotPresent
