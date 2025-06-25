@@ -16,6 +16,7 @@ import { AgentsFilters } from '../components/AgentsFilters';
 import { AgentsList } from '../components/AgentsList';
 import { ImportAgents } from '../components/ImportAgents';
 import type { AgentsFiltersParams } from '../providers/AgentsFiltersProvider';
+import { getAgentUiMetadata } from '../utils';
 
 export function AgentsView() {
   const {
@@ -67,9 +68,11 @@ export function AgentsView() {
 
 const renderAgentTitle = ({ className, agent }: { className: string; agent: Agent }) => {
   const route = routes.agentDetail({ name: agent.name });
+  const { display_name } = getAgentUiMetadata(agent);
+
   return (
     <TransitionLink className={className} href={route}>
-      {agent.name}
+      {display_name}
     </TransitionLink>
   );
 };

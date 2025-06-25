@@ -20,6 +20,7 @@ import { fadeProps } from '#utils/fadeProps.ts';
 
 import type { Agent } from '../api/types';
 import { AgentLaunchButton } from '../detail/AgentLaunchButton';
+import { getAgentUiMetadata } from '../utils';
 import classes from './AgentDetail.module.scss';
 import { AgentDetailSection } from './AgentDetailSection';
 import { AgentMetadata } from './AgentMetadata';
@@ -32,12 +33,17 @@ interface Props {
 }
 
 export function AgentDetail({ agent, buttons }: Props) {
-  const { name, description, metadata } = agent;
-  const { documentation } = metadata;
+  const {
+    name,
+    description,
+    metadata: { documentation },
+  } = agent;
+  const { display_name } = getAgentUiMetadata(agent);
+
   return (
     <div className={classes.root}>
       <motion.header {...fadeInPropsWithMarginShift({ start: { from: spacing[4] } })} className={classes.header}>
-        <h1 className={classes.name}>{agent.name}</h1>
+        <h1 className={classes.name}>{display_name}</h1>
 
         <BeeBadge agent={agent} size="lg" />
       </motion.header>

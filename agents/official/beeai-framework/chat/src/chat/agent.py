@@ -42,6 +42,7 @@ def to_framework_message(role: str, content: str) -> beeai_framework.backend.Mes
             beeai_ui=PlatformUIAnnotation(
                 ui_type=PlatformUIType.CHAT,
                 user_greeting="How can I help you?",
+                display_name="Chat",
                 tools=[
                     AgentToolInfo(name="Web Search (DuckDuckGo)", description="Retrieves real-time search results."),
                     AgentToolInfo(name="Wikipedia Search", description="Fetches summaries from Wikipedia."),

@@ -9,6 +9,7 @@ import { ErrorMessage } from '#components/ErrorMessage/ErrorMessage.tsx';
 import { Container } from '#components/layouts/Container.tsx';
 import { MainContent } from '#components/layouts/MainContent.tsx';
 import { type Agent, UiType } from '#modules/agents/api/types.ts';
+import { getAgentUiMetadata } from '#modules/agents/utils.ts';
 
 import { useAgent } from '../../agents/api/queries/useAgent';
 import { Chat } from '../chat/Chat';
@@ -50,9 +51,10 @@ export function AgentRun({ name }: Props) {
 }
 
 const renderUi = ({ agent }: { agent: Agent }) => {
-  const type = agent.metadata.annotations?.beeai_ui?.ui_type;
+  const { ui_type } = getAgentUiMetadata(agent);
+  const { display_name } = getAgentUiMetadata(agent);
 
-  switch (type) {
+  switch (ui_type) {
     case UiType.Chat:
       return (
         <FileUploadProvider key={agent.name}>
@@ -73,10 +75,10 @@ const renderUi = ({ agent }: { agent: Agent }) => {
       return (
         <MainContent>
           <Container size="sm">
-            <h1>{agent.name}</h1>
+            <h1>{display_name}</h1>
             <div className={classes.uiNotAvailable}>
-              {type
-                ? `The UI requested by the agent is not available: '${type}'`
+              {ui_type
+                ? `The UI requested by the agent is not available: '${ui_type}'`
                 : `The agent doesn’t have a defined UI.`}
             </div>
           </Container>
