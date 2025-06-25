@@ -48,10 +48,10 @@ spec:
               memory:  {{ .Values.docling.resources.requests.memory }}
           env:
             - name: DOCLING_SERVE_ENABLE_UI
-              value: {{ if .Values.docling.env.DOCLING_SERVE_ENABLE_UI }}'true'{{ else }}'false'{{ end }}
+              value: {{ .Values.docling.ui.enabled | default "false" | quote }}
           ports:
             - name: http
-              containerPort: {{ .Values.docling.service.port }}
+              containerPort: 5001
               protocol: TCP
           imagePullPolicy: {{ .Values.docling.imagePullPolicy }}
           image: {{ .Values.docling.image }}
