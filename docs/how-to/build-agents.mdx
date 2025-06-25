@@ -106,14 +106,16 @@ The more metadata, the better the UX. Here's a full example with every supported
     name="my-custom-agent",
     description="A full-featured BeeAI agent with metadata and documentation",
     metadata=Metadata(
+        annotations=Annotations(
+            beeai_ui=PlatformUIAnnotation(
+                ui_type=PlatformUIType.HANDSOFF,
+                user_greeting="How can I help you process your data today?",
+            ),
+        ),
         version="1.0.0",
         framework="BeeAI",
         programming_language="Python",
         license="Apache 2.0",
-        ui={
-            "type": "hands-off",
-            "user_greeting": "How can I help you process your data today?"
-        },
         author={
             "name": "John Doe",
             "email": "john.doe@example.com",
