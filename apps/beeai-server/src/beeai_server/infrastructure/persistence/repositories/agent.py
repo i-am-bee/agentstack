@@ -31,6 +31,7 @@ agent_requests_table = Table(
     metadata,
     Column("id", SqlUUID, primary_key=True),
     Column("acp_run_id", SqlUUID, nullable=True),
+    Column("acp_session_id", SqlUUID, nullable=True),
     Column("agent_id", SqlUUID, ForeignKey("agents.id", ondelete="CASCADE"), nullable=False),
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("finished_at", DateTime(timezone=True), nullable=True),
@@ -132,7 +133,23 @@ class SqlAlchemyAgentRepository(IAgentRepository):
 
         result = await self.connection.execute(query.limit(1))
         if not (row := result.fetchone()):
-            raise EntityNotFoundError(entity="agent_run", id=run_id)
+            raise EntityNotFoundError(entity="agent_run", id=run_id, attribute="run_id")
+
+        return self._to_agent(row)
+
+    async def find_by_acp_session_id(self, *, session_id: UUID, user_id: UUID | None = None) -> Agent:
+        query = (
+            select(agents_table)
+            .join(agent_requests_table, agents_table.c.id == agent_requests_table.c.agent_id)
+            .where(agent_requests_table.c.acp_session_id == session_id)
+        )
+
+        if user_id:
+            query = query.where(agent_requests_table.c.created_by == user_id)
+
+        result = await self.connection.execute(query.limit(1))
+        if not (row := result.fetchone()):
+            raise EntityNotFoundError(entity="agent_run", id=session_id, attribute="session_id")
 
         return self._to_agent(row)
 

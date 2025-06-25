@@ -1,12 +1,13 @@
 import asyncio
 import base64
 import time
+from datetime import timedelta
 from threading import Thread
 from typing import AsyncIterator, AsyncGenerator, Iterator
 
 import httpx
 import pytest
-from acp_sdk.server import Server, Context
+from acp_sdk.server import Server, Context, MemoryStore
 from acp_sdk.models.platform import PlatformUIAnnotation, PlatformUIType, AgentToolInfo
 
 from acp_sdk import (
@@ -143,7 +144,11 @@ def server(request: pytest.FixtureRequest, clean_up_fn, test_configuration) -> I
         yield MessagePart(content="Hello World")
 
     try:
-        thread = Thread(target=server.run, kwargs={"port": 9999}, daemon=True)
+        thread = Thread(
+            target=server.run,
+            kwargs={"port": 9999, "store": MemoryStore(limit=1000, ttl=timedelta(minutes=1))},
+            daemon=True,
+        )
         thread.start()
         with httpx.Client(base_url=f"{test_configuration.server_url}/api/v1") as client:
             for attempt in range(10):

@@ -33,6 +33,7 @@ class Agent(AcpAgentOriginal, extra="allow"):
 class AgentRunRequest(BaseModel):
     id: UUID = Field(default_factory=uuid4)
     acp_run_id: UUID | None = None
+    acp_session_id: UUID | None = None
     agent_id: UUID
     created_at: AwareDatetime = Field(default_factory=utc_now)
     finished_at: AwareDatetime | None = None

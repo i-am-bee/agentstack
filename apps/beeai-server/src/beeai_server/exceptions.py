@@ -28,12 +28,16 @@ class EntityNotFoundError(Exception):
     entity: str
     status_code: int
     id: UUID | str
+    attribute: str
 
-    def __init__(self, entity: str, id: UUID | str, status_code: int = status.HTTP_404_NOT_FOUND):
+    def __init__(
+        self, entity: str, id: UUID | str, status_code: int = status.HTTP_404_NOT_FOUND, attribute: str = "id"
+    ):
         self.entity = entity
         self.id = id
+        self.attribute = attribute
         self.status_code = status_code
-        super().__init__(f"{entity} with id {id} not found")
+        super().__init__(f"{entity} with {attribute} {id} not found")
 
 
 class MissingConfigurationError(Exception):
