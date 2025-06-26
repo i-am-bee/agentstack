@@ -1,0 +1,67 @@
+name: Build PostgreSQL with pgvector
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Exact PostgreSQL tag (e.g., 17.5.0-debian-12-r12)'
+        required: true
+        type: string
+        default: '17.5.0-debian-12-r12'
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  build-pgvector-docker-image:
+    name: Build PostgreSQL 17 with pgvector
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v4
+
+      # Docker
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Extract version components
+      - name: Extract version components
+        id: version
+        run: |
+          EXACT_TAG="${{ github.event.inputs.tag }}"
+          MAJOR_VERSION=$(echo $EXACT_TAG | cut -d'.' -f1)
+          VERSION=$(echo $EXACT_TAG | grep -oE '^[0-9]+\.[0-9]+\.[0-9]+')
+          OS_TAG=$(echo $EXACT_TAG | grep -oE 'debian-[0-9]+')
+          echo "exact_tag=$EXACT_TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "major_version=$MAJOR_VERSION" >> $GITHUB_OUTPUT
+          echo "major_os_tag=${MAJOR_VERSION}-${OS_TAG}" >> $GITHUB_OUTPUT
+          echo "os_tag=$OS_TAG" >> $GITHUB_OUTPUT
+      # Create Dockerfile for PostgreSQL 17 with pgvector
+      - name: Create Dockerfile
+        run: |
+          cat > Dockerfile << 'EOF'
+          FROM pgvector/pgvector:pg17 AS builder
+          FROM bitnami/postgresql:${{ github.event.inputs.tag }}
+          COPY --from=builder /usr/lib/postgresql/17/lib/vector.so /opt/bitnami/postgresql/lib/
+          COPY --from=builder /usr/share/postgresql/17/extension/vector* /opt/bitnami/postgresql/share/extension/
+          EOF
+      # Build and push the image
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/i-am-bee/bitnami/postgresql-pgvector:${{ steps.version.outputs.exact_tag }}
+            ghcr.io/i-am-bee/bitnami/postgresql-pgvector:${{ steps.version.outputs.version }}
+            ghcr.io/i-am-bee/bitnami/postgresql-pgvector:${{ steps.version.outputs.major_version }}
+            ghcr.io/i-am-bee/bitnami/postgresql-pgvector:${{ steps.version.outputs.major_os_tag }}
+            ghcr.io/i-am-bee/bitnami/postgresql-pgvector:latest

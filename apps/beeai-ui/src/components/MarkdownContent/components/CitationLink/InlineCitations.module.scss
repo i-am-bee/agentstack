@@ -1,0 +1,24 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.root {
+  &:has(.item:hover) .content,
+  &:has(.item.isActive) .content {
+    text-decoration: underline;
+  }
+}
+
+.list {
+  display: inline-flex;
+  gap: $spacing-02;
+  line-height: 1;
+  vertical-align: middle;
+  margin-inline-start: $spacing-02;
+  margin-block-start: rem(-2px);
+}
+
+.item {
+  display: flex;
+}

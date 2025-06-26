@@ -1,17 +1,6 @@
 /**
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import type { ApiPath, ApiRequest, ApiResponse } from '#@types/utils.ts';
@@ -36,13 +25,22 @@ export type Message = CreateRunRequest['input'][number];
 
 export type MessagePart = Message['parts'][number];
 
-export type MessagePartMetadata = TrajectoryMetadata;
+export type MessagePartMetadata = CitationMetadata | TrajectoryMetadata;
 
 export type Artifact = Exclude<MessagePart, 'name'> & { name: string };
 
 export type RunId = CreateRunResponse['run_id'];
 
 export type SessionId = CreateRunResponse['session_id'];
+
+export interface CitationMetadata {
+  kind: MetadataKind.Citation;
+  url: string;
+  start_index: number;
+  end_index: number;
+  title: string | null;
+  description: string | null;
+}
 
 export interface TrajectoryMetadata {
   kind: MetadataKind.Trajectory;
@@ -54,6 +52,7 @@ export interface TrajectoryMetadata {
 }
 
 export enum MetadataKind {
+  Citation = 'citation',
   Trajectory = 'trajectory',
 }
 

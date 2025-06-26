@@ -1,35 +1,25 @@
 /**
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import clsx from 'clsx';
+import { useCallback } from 'react';
 
-// import { v4 as uuid } from 'uuid';
 import { getErrorMessage } from '#api/utils.ts';
 import { ErrorMessage } from '#components/ErrorMessage/ErrorMessage.tsx';
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 import { Spinner } from '#components/Spinner/Spinner.tsx';
+import { useApp } from '#contexts/App/index.ts';
 import { getAgentUiMetadata } from '#modules/agents/utils.ts';
 
-// import { MetadataKind, type TrajectoryMetadata } from '../api/types';
 import { AgentIcon } from '../components/AgentIcon';
 import { useChat } from '../contexts/chat';
 import { FileCard } from '../files/components/FileCard';
 import { FileCardsList } from '../files/components/FileCardsList';
+import { SourcesButton } from '../sources/components/SourcesButton';
+import { useSources } from '../sources/contexts';
 import { TrajectoryView } from '../trajectory/components/TrajectoryView';
-// import { TrajectoryView } from '../trajectory/components/TrajectoryView';
 import { Role } from '../types';
 import classes from './Message.module.scss';
 import { type ChatMessage, MessageStatus } from './types';
@@ -41,7 +31,9 @@ interface Props {
 
 export function Message({ message }: Props) {
   const { agent } = useChat();
-  const { content, role, error } = message;
+  const { sourcesPanelOpen, showSourcesPanel, hideSourcesPanel } = useApp();
+  const { activeMessageKey, setActiveMessageKey, setActiveSourceKey } = useSources();
+  const { key, content, role, error } = message;
 
   const { display_name } = getAgentUiMetadata(agent);
 
@@ -53,10 +45,36 @@ export function Message({ message }: Props) {
   const isFailed = isAssistantMessage && message.status === MessageStatus.Failed;
 
   const files = message.files ?? [];
+  const sources = (isAssistantMessage ? message.sources : null) ?? [];
   const trajectories = (isAssistantMessage ? message.trajectories : null) ?? [];
 
   const hasFiles = files.length > 0;
+  const hasSources = isAssistantMessage && sources.length > 0;
   const hasTrajectories = trajectories.length > 0;
+
+  const isSourcesActive = sourcesPanelOpen && activeMessageKey === key;
+
+  const handleSourcesButtonClick = useCallback(() => {
+    if (key === activeMessageKey) {
+      if (sourcesPanelOpen) {
+        hideSourcesPanel?.();
+      } else {
+        showSourcesPanel?.();
+      }
+    } else {
+      setActiveMessageKey?.(key);
+      setActiveSourceKey?.(null);
+      showSourcesPanel?.();
+    }
+  }, [
+    key,
+    activeMessageKey,
+    sourcesPanelOpen,
+    hideSourcesPanel,
+    showSourcesPanel,
+    setActiveMessageKey,
+    setActiveSourceKey,
+  ]);
 
   return (
     <li className={clsx(classes.root)}>
@@ -76,7 +94,7 @@ export function Message({ message }: Props) {
         ) : (
           <div className={clsx(classes.content, { [classes.isUser]: isUserMessage })}>
             {content ? (
-              <MarkdownContent>{content}</MarkdownContent>
+              <MarkdownContent sources={sources}>{content}</MarkdownContent>
             ) : (
               <span className={classes.empty}>Message has no content</span>
             )}
@@ -84,13 +102,17 @@ export function Message({ message }: Props) {
         )}
 
         {hasFiles && (
-          <FileCardsList>
+          <FileCardsList className={classes.files}>
             {files.map(({ key, filename, href }) => (
               <li key={key}>
                 <FileCard href={href} filename={filename} />
               </li>
             ))}
           </FileCardsList>
+        )}
+
+        {hasSources && (
+          <SourcesButton sources={sources} isActive={isSourcesActive} onClick={handleSourcesButtonClick} />
         )}
 
         {hasTrajectories && <TrajectoryView trajectories={trajectories} />}

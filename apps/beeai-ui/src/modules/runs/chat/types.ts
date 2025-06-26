@@ -1,20 +1,10 @@
 /**
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import type { TrajectoryMetadata } from '../api/types';
+import type { SourceReference } from '../sources/api/types';
 import type { Role } from '../types';
 
 interface Message {
@@ -29,7 +19,10 @@ export interface UserMessage extends Message {
 }
 export interface AssistantMessage extends Message {
   role: Role.Assistant;
+  rawContent: string;
+  contentTransforms: MessageContentTransform[];
   status: MessageStatus;
+  sources?: SourceReference[];
   trajectories?: TrajectoryMetadata[];
 }
 
@@ -39,6 +32,18 @@ export interface MessageFile {
   href: string;
 }
 
+export interface MessageContentTransform {
+  key: string;
+  kind: MessageContentTransformType;
+  startIndex: number;
+  apply: ({ content, offset }: { content: string; offset: number }) => string;
+}
+
+export interface CitationTransform extends MessageContentTransform {
+  kind: MessageContentTransformType.Citation;
+  sources: SourceReference[];
+}
+
 export type ChatMessage = UserMessage | AssistantMessage;
 
 export enum MessageStatus {
@@ -46,4 +51,9 @@ export enum MessageStatus {
   Completed = 'completed',
   Aborted = 'aborted',
   Failed = 'failed',
+}
+
+export enum MessageContentTransformType {
+  Citation = 'citation',
+  Image = 'image',
 }
