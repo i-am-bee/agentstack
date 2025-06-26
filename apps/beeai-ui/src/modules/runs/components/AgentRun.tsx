@@ -51,8 +51,7 @@ export function AgentRun({ name }: Props) {
 }
 
 const renderUi = ({ agent }: { agent: Agent }) => {
-  const { ui_type } = getAgentUiMetadata(agent);
-  const { display_name } = getAgentUiMetadata(agent);
+  const { ui_type, display_name } = getAgentUiMetadata(agent);
 
   switch (ui_type) {
     case UiType.Chat:

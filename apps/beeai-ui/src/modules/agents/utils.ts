@@ -70,6 +70,11 @@ export function getAgentUiMetadata(agent: Agent) {
 
   return {
     ...beeai_ui,
+    // TODO: Temporary fallback until agents with new metadata are released in the registry.
+    ui_type: beeai_ui?.ui_type ?? ((metadata?.ui as Record<string, unknown> | undefined)?.type as UiType | undefined),
+    user_greeting:
+      beeai_ui?.user_greeting ??
+      ((metadata?.ui as Record<string, unknown> | undefined)?.user_greeting as string | null | undefined),
     display_name: beeai_ui?.display_name ?? name,
   };
 }
