@@ -47,7 +47,7 @@ outputs = { auto = true }
 
 ["beeai-cli:run"]
 description = "NOTE: Use double dash to pass extra args, like `mise beeai-cli:run -- provider list`"
-depends = ["setup:uv", "helm:build:beeai-platform"]
+depends = ["setup:uv", "beeai-cli:build:copy-helm-chart"]
 dir = "{{cwd}}"
 run = "(rm {{config_root}}/apps/beeai-cli/src/beeai_cli/data/*.tgz 2>/dev/null || true) && cp {{config_root}}/helm/beeai-platform-*.tgz {{config_root}}/apps/beeai-cli/src/beeai_cli/data/helm-chart.tgz && uv run beeai"
 
@@ -71,6 +71,8 @@ wait
 depends = ["helm:build:beeai-platform"]
 dir = "{{config_root}}/apps/beeai-cli"
 run = "rm -f ./src/beeai_cli/data/helm-chart.tgz && cp {{config_root}}/helm/beeai-platform-*.tgz ./src/beeai_cli/data/helm-chart.tgz"
+sources = ["{{config_root}}/helm/beeai-platform-*.tgz"]
+outputs = ["./src/beeai_cli/data/helm-chart.tgz"]
 
 ["beeai-cli:build"]
 depends = ["setup:uv", "beeai-cli:build:*"]
