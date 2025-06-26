@@ -46,6 +46,10 @@ spec:
         app: phoenix-backend
         {{- include "beeai-platform.labels" . | nindent 8 }}
     spec:
+      {{- if .Values.hostNetwork }}
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- end }}
       containers:
         - name: phoenix-backend
           args:

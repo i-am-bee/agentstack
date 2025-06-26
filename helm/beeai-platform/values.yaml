@@ -2,6 +2,9 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# Use host network for certain pods -- useful for local netwokring
+hostNetwork: false
+
 # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
 replicaCount: 1
 
@@ -73,11 +76,9 @@ initContainers:
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
   # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
-  type: NodePort
+  type: ClusterIP
   # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
   port: 8333
-  # This sets the nodePort for the service. The host port 8333 will be forwarded to this port on the VM.
-  nodePort: 31833
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
@@ -138,9 +139,8 @@ phoenix:
   image: docker.io/arizephoenix/phoenix:version-8.9.0
   resources: { }
   service:
-    type: NodePort
+    type: ClusterIP
     port: 6006
-    nodePort: 31606
 
 collector:
   image: otel/opentelemetry-collector-contrib:0.122.1
