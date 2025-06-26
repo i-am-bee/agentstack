@@ -11,7 +11,7 @@ import { v4 as uuid } from 'uuid';
 import { useImmerWithGetter } from '#hooks/useImmerWithGetter.ts';
 import { usePrevious } from '#hooks/usePrevious.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
-import { type MessagePartMetadata, MetadataKind, type TrajectoryMetadata } from '#modules/runs/api/types.ts';
+import { type MessagePartMetadata, MetadataKind } from '#modules/runs/api/types.ts';
 import {
   type AssistantMessage,
   type ChatMessage,
@@ -23,6 +23,7 @@ import { prepareMessageFiles } from '#modules/runs/files/utils.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
 import { SourcesProvider } from '#modules/runs/sources/contexts/SourcesProvider.tsx';
 import { extractSources, prepareMessageSources } from '#modules/runs/sources/utils.ts';
+import { prepareTrajectories } from '#modules/runs/trajectory/utils.ts';
 import { Role } from '#modules/runs/types.ts';
 import {
   applyContentTransforms,
@@ -57,7 +58,6 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
       const hasFile = isString(content_url);
       const hasContent = isString(content);
       const hasImage = hasFile && isImageContentType(content_type);
-      const hasTrajectory = metadata?.kind === MetadataKind.Trajectory;
 
       if (isArtifact) {
         if (hasFile) {
@@ -81,17 +81,6 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
               insertAt: message.rawContent.length,
             }),
           );
-        });
-      }
-
-      if (hasTrajectory) {
-        updateLastAssistantMessage((message) => {
-          const newTrajectory = {
-            ...metadata,
-            key: uuid(),
-          } as TrajectoryMetadata;
-
-          message.trajectories = message.trajectories ? [...message.trajectories, newTrajectory] : [newTrajectory];
         });
       }
 
@@ -159,7 +148,12 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
           });
 
           break;
+        case MetadataKind.Trajectory:
+          updateLastAssistantMessage((message) => {
+            message.trajectories = prepareTrajectories({ trajectories: message.trajectories, data: metadata });
+          });
 
+          break;
         default:
           break;
       }

@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { v4 as uuid } from 'uuid';
+
 import { isNotNull } from '#utils/helpers.ts';
 
 import type { TrajectoryMetadata } from '../api/types';
@@ -16,3 +18,21 @@ export function hasViewableTrajectoryMetadata(trajectory: TrajectoryMetadata) {
 }
 
 type NonViewableProperty = keyof Pick<TrajectoryMetadata, 'kind' | 'key'>;
+
+export function prepareTrajectories({
+  trajectories = [],
+  data,
+}: {
+  trajectories: TrajectoryMetadata[] | undefined;
+  data: TrajectoryMetadata;
+}) {
+  const newTrajectories: TrajectoryMetadata[] = [
+    ...trajectories,
+    {
+      ...data,
+      key: uuid(),
+    },
+  ];
+
+  return newTrajectories;
+}
