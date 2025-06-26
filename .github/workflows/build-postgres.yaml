@@ -60,8 +60,8 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ghcr.io/${{ github.organization }}/bitnami/postgresql-pgvector:${{ steps.version.outputs.exact_tag }}
-            ghcr.io/${{ github.organization }}/bitnami/postgresql-pgvector:${{ steps.version.outputs.version }}
-            ghcr.io/${{ github.organization }}/bitnami/postgresql-pgvector:${{ steps.version.outputs.major_version }}
-            ghcr.io/${{ github.organization }}/bitnami/postgresql-pgvector:${{ steps.version.outputs.major_os_tag }}
-            ghcr.io/${{ github.organization }}/bitnami/postgresql-pgvector:latest
+            ghcr.io/i-am-bee/bitnami/postgresql-pgvector:${{ steps.version.outputs.exact_tag }}
+            ghcr.io/i-am-bee/bitnami/postgresql-pgvector:${{ steps.version.outputs.version }}
+            ghcr.io/i-am-bee/bitnami/postgresql-pgvector:${{ steps.version.outputs.major_version }}
+            ghcr.io/i-am-bee/bitnami/postgresql-pgvector:${{ steps.version.outputs.major_os_tag }}
+            ghcr.io/i-am-bee/bitnami/postgresql-pgvector:latest
