@@ -14,6 +14,7 @@ import shutil
 import sys
 import textwrap
 import typing
+import uuid
 
 import anyio
 import typer
@@ -38,18 +39,12 @@ def _limactl_exe():
 
 
 async def _validate_driver(vm_driver: VMDriver | None) -> VMDriver:
-    is_windows = platform.system() == "Windows"
+    is_windows = platform.system() == "Windows" or shutil.which("wsl.exe")
     has_lima = (importlib.resources.files("beeai_cli") / "data" / "limactl").is_file() or shutil.which("limactl")
     has_docker = shutil.which("docker")
     has_vz = os.path.exists("/System/Library/Frameworks/Virtualization.framework")
     arch = platform.machine().lower()
     has_qemu = not is_windows and bool(shutil.which("qemu-system-" + ("aarch64" if arch == "arm64" else arch)))
-
-    if not is_windows and shutil.which("wsl.exe"):
-        console.print(
-            "[red]Error: BeeAI CLI does not support running inside WSL. Please run it in Windows directly, according to the installation instructions at https://docs.beeai.dev/introduction/installation[/red]"
-        )
-        sys.exit(1)
 
     match vm_driver:
         case None:
@@ -96,22 +91,6 @@ async def _validate_driver(vm_driver: VMDriver | None) -> VMDriver:
             f"[yellow]Warning: Using external Lima from {shutil.which('limactl')}. This is fine in development, as long as the version matches.[/yellow]"
         )
 
-    if (
-        vm_driver == VMDriver.wsl
-        and (
-            await run_command(
-                ["net.exe", "session"],
-                "Checking for admin rights",
-                check=False,
-            )
-        ).returncode
-        != 0
-    ):
-        console.print(
-            "[red]Error: This command must be executed as administrator. TIP: Press Win+X to show a menu where you can open a new terminal as administrator.[/red]"
-        )
-        sys.exit(0)
-
     return vm_driver
 
 
@@ -121,7 +100,7 @@ async def _get_platform_status(vm_driver: VMDriver, vm_name: str) -> str | None:
             case VMDriver.lima:
                 result = await run_command(
                     [_limactl_exe(), "--tty=false", "list", "--format=json"],
-                    f"Looking for existing instance in {vm_driver.name.capitalize()}",
+                    "Looking for existing BeeAI platform in Lima",
                     env={"LIMA_HOME": str(Configuration().lima_home)},
                     cwd="/",
                 )
@@ -138,7 +117,7 @@ async def _get_platform_status(vm_driver: VMDriver, vm_name: str) -> str | None:
             case VMDriver.docker:
                 result = await run_command(
                     ["docker", "inspect", vm_name],
-                    "Looking for existing BeeAI platform",
+                    "Looking for existing BeeAI platform in Docker",
                     check=False,
                 )
                 return json.loads(result.stdout)[0]["State"]["Status"].lower()
@@ -147,7 +126,7 @@ async def _get_platform_status(vm_driver: VMDriver, vm_name: str) -> str | None:
                     (
                         await run_command(
                             ["wsl.exe", "--list", "--running", "--quiet"],
-                            "Looking for running BeeAI platform",
+                            "Looking for running BeeAI platform in WSL",
                             env={"WSL_UTF8": "1"},
                         )
                     )
@@ -160,7 +139,7 @@ async def _get_platform_status(vm_driver: VMDriver, vm_name: str) -> str | None:
                     (
                         await run_command(
                             ["wsl.exe", "--list", "--quiet"],
-                            "Looking for existing BeeAI platform",
+                            "Looking for existing BeeAI platform in WSL",
                             env={"WSL_UTF8": "1"},
                         )
                     )
@@ -231,20 +210,41 @@ async def start(
             await run_command(["wsl.exe", "--upgrade"], "Upgrading WSL2", check=False)
 
             # Configure networking mode
-            # (NAT is the default, but we originally told users to switch to mirrored, so we just configure it back)
-            config_file_path = pathlib.Path.home().joinpath(".wslconfig")
-            config_file_path.touch()
-            config = configparser.ConfigParser()
-            with config_file_path.open("r+") as f:
-                config.read(f)
+            home = (
+                pathlib.Path.home()
+                if platform.system() == "Windows"
+                else pathlib.Path(
+                    (
+                        await run_command(
+                            ["/bin/sh", "-c", '''wslpath "$(cmd.exe /c 'echo %USERPROFILE%')"'''],
+                            "Detecting home path",
+                        )
+                    )
+                    .stdout.decode()
+                    .strip()
+                )
+            )
+            (home / ".wslconfig").touch()
+            with (home / ".wslconfig").open("r+") as f:
+                config = configparser.ConfigParser()
+                f.seek(0)
+                config.read_file(f)
                 if not config.has_section("wsl2"):
                     config.add_section("wsl2")
-                if config.get("wsl2", "networkingMode", fallback=None) != "NAT":
-                    config.set("wsl2", "networkingMode", "NAT")
+                if config.get("wsl2", "networkingMode", fallback=None) != "mirrored":
+                    config.set("wsl2", "networkingMode", "mirrored")
                     f.seek(0)
                     f.truncate(0)
                     config.write(f)
-                    await run_command(["wsl.exe", "--shutdown"], "Updating WSL2 networking")
+                    f.close()
+                    if platform.system() == "Linux":
+                        console.print(
+                            "WSL networking mode has been updated. Please re-open WSL and run [green]beeai platform start[/green] again."
+                        )
+                        await run_command(["wsl.exe", "--shutdown"], "Shutting down WSL")
+                        sys.exit(1)
+                    else:
+                        await run_command(["wsl.exe", "--shutdown"], "Updating WSL2 networking")
 
         # Start VM
         Configuration().home.mkdir(exist_ok=True)
@@ -287,16 +287,8 @@ async def start(
                                     "arch": "aarch64",
                                 },
                             ],
-                            "mounts": [
-                                {
-                                    "location": "~/.beeai",
-                                    "mountPoint": "/beeai",
-                                }
-                            ],
-                            "containerd": {
-                                "system": False,
-                                "user": False,
-                            },
+                            "mounts": [{"location": "/tmp/beeai", "mountPoint": "/tmp/beeai", "writable": True}],
+                            "containerd": {"system": False, "user": False},
                             "hostResolver": {"hosts": {"host.docker.internal": "host.lima.internal"}},
                             "provision": [
                                 {
@@ -323,10 +315,6 @@ async def start(
                                     "deleteOnStop": True,
                                 }
                             ],
-                            "portForwards": [
-                                {"guestPort": 31833, "hostPort": 8333},
-                                {"guestPort": 31606, "hostPort": 6006},
-                            ],
                         }
                     )
                 )
@@ -348,9 +336,9 @@ async def start(
                         "-p",
                         "16433:16433",
                         "-p",
-                        "8333:31833",
+                        "8333:8333",
                         "-p",
-                        "6006:31606",
+                        "6006:6006",
                         "-v",
                         f"{Configuration().home}:/beeai",
                         "-d",
@@ -472,21 +460,7 @@ async def start(
                 message="Installing k3s",
             )
 
-            # Set-up host.docker.internal
-            host_ip = next(
-                line.split()[2]
-                for line in (
-                    await run_command(
-                        ["wsl.exe", "--user", "root", "--distribution", vm_name, "--", "ip", "route", "show"],
-                        "Detecting host IP address",
-                        env={"WSL_UTF8": "1"},
-                    )
-                )
-                .stdout.decode()
-                .strip()
-                .splitlines()
-                if line.startswith("default via ")
-            )
+            # Set-up host.docker.internal -> localhost
             await run_command(
                 [
                     "wsl.exe",
@@ -513,62 +487,18 @@ async def start(
                         },
                         "data": {
                             "default.server": textwrap.dedent(
-                                f"""\
-                                host.docker.internal {{
-                                    hosts {{
-                                        {host_ip} host.docker.internal
+                                """\
+                                host.docker.internal {
+                                    hosts {
+                                        127.0.0.1 host.docker.internal
                                         fallthrough
-                                    }}
-                                }}
+                                    }
+                                }
                                 """
                             )
                         },
                     }
                 ).encode(),
-            )
-
-            # Start port-forwarding to Windows
-            guest_ip = (
-                (
-                    await run_command(
-                        ["wsl.exe", "--user", "root", "--distribution", vm_name, "--", "hostname", "-I"],
-                        "Detecting VM IP address",
-                        env={"WSL_UTF8": "1"},
-                    )
-                )
-                .stdout.decode()
-                .strip()
-                .split()[0]
-            )
-            await run_command(
-                [
-                    "netsh.exe",
-                    "interface",
-                    "portproxy",
-                    "add",
-                    "v4tov4",
-                    "listenport=8333",
-                    "listenaddress=0.0.0.0",
-                    "connectport=31833",
-                    f"connectaddress={guest_ip}",
-                ],
-                "Forwarding the BeeAI port",
-                check=False,
-            )
-            await run_command(
-                [
-                    "netsh.exe",
-                    "interface",
-                    "portproxy",
-                    "add",
-                    "v4tov4",
-                    "listenport=6006",
-                    "listenaddress=0.0.0.0",
-                    "connectport=31606",
-                    f"connectaddress={guest_ip}",
-                ],
-                "Forwarding the Arize Phoenix port",
-                check=False,
             )
 
         # Import images
@@ -607,6 +537,7 @@ async def start(
                         "targetNamespace": "default",
                         "valuesContent": yaml.dump(
                             {
+                                "hostNetwork": True,
                                 "externalRegistries": {"public_github": str(Configuration().agent_registry)},
                                 "encryptionKey": "Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc=",  # Dummy key for local use
                                 "features": {"uiNavigation": True, "selfRegistration": True},
@@ -712,33 +643,6 @@ async def stop(
             env={"LIMA_HOME": str(Configuration().lima_home)},
             cwd="/",
         )
-        if vm_driver == VMDriver.wsl:
-            await run_command(
-                [
-                    "netsh.exe",
-                    "interface",
-                    "portproxy",
-                    "add",
-                    "v4tov4",
-                    "listenport=8333",
-                    "listenaddress=0.0.0.0",
-                ],
-                "Un-forwarding the BeeAI port",
-                check=False,
-            )
-            await run_command(
-                [
-                    "netsh.exe",
-                    "interface",
-                    "portproxy",
-                    "add",
-                    "v4tov4",
-                    "listenport=6006",
-                    "listenaddress=0.0.0.0",
-                ],
-                "Un-forwarding the Arize Phoenix port",
-                check=False,
-            )
         console.print("[green]BeeAI platform stopped successfully.[/green]")
 
 
@@ -764,33 +668,6 @@ async def delete(
             check=False,
             cwd="/",
         )
-        if vm_driver == VMDriver.wsl:
-            await run_command(
-                [
-                    "netsh.exe",
-                    "interface",
-                    "portproxy",
-                    "delete",
-                    "v4tov4",
-                    "listenport=8333",
-                    "listenaddress=0.0.0.0",
-                ],
-                "Un-forwarding the BeeAI port",
-                check=False,
-            )
-            await run_command(
-                [
-                    "netsh.exe",
-                    "interface",
-                    "portproxy",
-                    "delete",
-                    "v4tov4",
-                    "listenport=6006",
-                    "listenaddress=0.0.0.0",
-                ],
-                "Un-forwarding the Arize Phoenix port",
-                check=False,
-            )
         console.print("[green]BeeAI platform deleted successfully.[/green]")
 
 
@@ -807,63 +684,82 @@ async def import_image(
     with verbosity(verbose):
         vm_driver = await _validate_driver(vm_driver)
 
-        for image_path in Configuration().home.joinpath("images").glob("*"):
-            image_path.unlink()
-
-        image_path = Configuration().home / "images" / (tag.replace("/", "_") + ".tar")
-        image_path.parent.mkdir(parents=True, exist_ok=True)
-
         status = await _get_platform_status(vm_driver, vm_name)
         if status != "running":
-            raise RuntimeError("BeeAI platform is not running. Start the platform first before importing images.")
+            console.print("[red]BeeAI platform is not running.[/red]")
+            sys.exit(1)
 
-        await run_command(
-            ["docker", "image", "save", "-o", str(image_path), tag],
-            "Exporting images from Docker",
-        )
-
-        vm_image_path = (
-            (
-                (
-                    await run_command(
-                        [
-                            "wsl.exe",
-                            "--user",
-                            "root",
-                            "--distribution",
-                            vm_name,
-                            "--",
-                            "wslpath",
-                            str(image_path),
-                        ],
-                        "Detecting image path in WSL",
-                        env={"WSL_UTF8": "1"},
+        if platform.system() == "Windows":
+            image_directory = pathlib.Path(os.environ.get("TMP")) / "beeai"
+        elif shutil.which("wsl.exe"):
+            image_directory = (
+                pathlib.Path(
+                    (
+                        await run_command(
+                            ["/bin/sh", "-c", '''wslpath "$(cmd.exe /c 'echo %TMP%')"'''],
+                            "Detecting temporary directory path",
+                        )
                     )
+                    .stdout.decode()
+                    .strip()
                 )
-                .stdout.decode()
-                .strip()
+                / "beeai"
             )
-            if vm_driver == VMDriver.wsl
-            else "/beeai/images"
-        )
+        else:
+            image_directory = pathlib.Path("/tmp/beeai")
 
-        await run_command(
-            {
-                VMDriver.lima: [_limactl_exe(), "--tty=false", "shell", vm_name, "--"],
-                VMDriver.docker: ["docker", "exec", vm_name],
-                VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
-            }[vm_driver]
-            + [
-                "/bin/sh",
-                "-c",
-                f'for img in {vm_image_path}/*; do {"sudo" if vm_driver == VMDriver.lima else ""} ctr images import "$img"; done',
-            ],
-            "Importing images into BeeAI platform",
-            env={"LIMA_HOME": str(Configuration().lima_home)},
-            cwd="/",
-        )
+        image_directory.mkdir(exist_ok=True, parents=True)
+        image_filename = str(uuid.uuid4())
+        image_path = image_directory / image_filename
 
-        await run_command(["/bin/sh", "-c", "rm -f ~/.beeai/images/*"], "Removing temporary files")
+        try:
+            await run_command(
+                ["docker", "image", "save", "-o", str(image_path), tag],
+                f"Exporting image {tag} from Docker",
+            )
+
+            vm_image_path = (
+                (
+                    (
+                        await run_command(
+                            [
+                                "wsl.exe",
+                                "--user",
+                                "root",
+                                "--distribution",
+                                vm_name,
+                                "--",
+                                "wslpath",
+                                str(image_path),
+                            ],
+                            "Detecting image path in WSL",
+                            env={"WSL_UTF8": "1"},
+                        )
+                    )
+                    .stdout.decode()
+                    .strip()
+                )
+                if vm_driver == VMDriver.wsl
+                else f"/tmp/beeai/{image_filename}"
+            )
+
+            await run_command(
+                {
+                    VMDriver.lima: [_limactl_exe(), "--tty=false", "shell", vm_name, "--"],
+                    VMDriver.docker: ["docker", "exec", vm_name],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[vm_driver]
+                + [
+                    "/bin/sh",
+                    "-c",
+                    f"{'sudo' if vm_driver == VMDriver.lima else ''} k3s ctr images import {vm_image_path}",
+                ],
+                f"Importing image {tag} into BeeAI platform",
+                env={"LIMA_HOME": str(Configuration().lima_home)},
+                cwd="/",
+            )
+        finally:
+            image_path.unlink()
 
 
 @app.command("exec")
@@ -881,7 +777,7 @@ async def exec(
         vm_driver = await _validate_driver(vm_driver)
         status = await _get_platform_status(vm_driver, vm_name)
         if status != "running":
-            console.log("[red]BeeAI platform is not running.[/red]")
+            console.print("[red]BeeAI platform is not running.[/red]")
             sys.exit(1)
         await anyio.run_process(
             [
