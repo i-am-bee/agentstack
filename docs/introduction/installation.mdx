@@ -5,14 +5,13 @@ description: "Getting started with BeeAI on your system"
 
 BeeAI can be installed and used locally through the BeeAI CLI. Internally, this creates an automatically managed virtual machine for running agents. We offer support for macOS, Linux and Windows.
 
-<Warning>
-
-BeeAI may not function properly on out-of-support operating systems, like macOS 12 or Windows 8.
-
-</Warning>
-
 <Tabs>
 <Tab title="macOS">
+<Warning>
+
+BeeAI requires macOS 13 (Ventura) or later.
+
+</Warning>
 <Steps>
 <Step title="Install uv">
 
@@ -175,6 +174,16 @@ Starting up an agent for a first time may take a few minutes. If everything is s
 </Steps>
 </Tab>
 <Tab title="Windows">
+<Warning>
+
+BeeAI requires Windows 11 22H2 or later.
+
+</Warning>
+<Info>
+
+These steps guide you through installing BeeAI in PowerShell. If you wish, you may work in a WSL distribution instead. In that case, simply switch to the Linux instructions and skip installing QEMU.
+
+</Info>
 <Steps>
 <Step title="Install uv">
 
@@ -229,12 +238,6 @@ uv tool install beeai-cli
 
 <Step title="Start the BeeAI platform">
 
-<Warning>
-
-This command needs PowerShell to be opened as Administrator. Press the `Win+X` key combination, and you will see this option in the menu that pops up.
-
-</Warning>
-
 ```bash
 beeai platform start
 ```
@@ -245,20 +248,6 @@ beeai platform start
 BeeAI needs an LLM provider for the agents -- like OpenAI, Ollama, Anthropic, etc.
 
 If you don't already have an API key for a provider, you can register for a free one on [OpenRouter](https://openrouter.ai/).
-
-<Accordion title="Want to use Ollama?">
-
-You can use [Ollama for Windows](https://ollama.com/download/windows) with the BeeAI platform, but it needs one extra step.
-
-Run this command in PowerShell (needs Administrator rights, same as previous step):
-
-```bash
-setx OLLAMA_HOST "0.0.0.0" /M
-```
-
-After this, if Ollama is already running, right-click the icon in tray and quit it. Then start Ollama again.
-
-</Accordion>
 
 Run this command and follow the interactive prompts:
 
