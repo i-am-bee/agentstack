@@ -306,16 +306,22 @@ externalS3:
   region: "us-east-1"
 
 docling:
-  resources:
-    limits:
-      cpu: 500m
-      memory: 2Gi
-    requests:
-      cpu: 250m
-      memory: 1Gi
+  enabled: false
+  podAnnotations: { }
+  podSecurityContext: { }
+  podLabels: { }
+  resources: { }
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: http
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: http
   ui:
-    enabled: "true"
+    enabled: true
   service:
-    port: 5001
-  imagePullPolicy: "Always"
+    port: 15001
+  imagePullPolicy: IfNotPresent
   image: "ghcr.io/docling-project/docling-serve-cpu"
