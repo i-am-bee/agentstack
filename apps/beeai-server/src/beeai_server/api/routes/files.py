@@ -14,7 +14,9 @@ from beeai_server.api.dependencies import (
     AuthenticatedUserDependency,
 )
 from beeai_server.api.schema.common import EntityModel
-from beeai_server.domain.models.file import AsyncFile, File
+from beeai_server.domain.models.file import AsyncFile, File, TextExtraction
+from beeai_server.domain.models.user import User
+from beeai_server.service_layer.services.files import FileService
 
 logger = logging.getLogger(__name__)
 
@@ -38,10 +40,7 @@ async def get_file(
     return await file_service.get(file_id=file_id, user=user)
 
 
-@router.get("/{file_id}/content")
-async def get_file_content(
-    file_id: UUID, file_service: FileServiceDependency, user: AuthenticatedUserDependency
-) -> StreamingResponse:
+async def _stream_file(*, file_service: FileService, user: User, file_id: UUID) -> StreamingResponse:
     exit_stack = AsyncExitStack()
     file = await exit_stack.enter_async_context(file_service.get_content(file_id=file_id, user=user))
 
@@ -55,10 +54,49 @@ async def get_file_content(
     return StreamingResponse(content=iter_file(), media_type=file.content_type)
 
 
+@router.get("/{file_id}/content")
+async def get_file_content(
+    file_id: UUID, file_service: FileServiceDependency, user: AuthenticatedUserDependency
+) -> StreamingResponse:
+    return await _stream_file(file_service=file_service, user=user, file_id=file_id)
+
+
+@router.get("/{file_id}/text_content")
+async def get_text_file_content(
+    file_id: UUID, file_service: FileServiceDependency, user: AuthenticatedUserDependency
+) -> StreamingResponse:
+    extraction = await file_service.get_extraction(file_id=file_id, user=user)
+    return await _stream_file(file_service=file_service, user=user, file_id=extraction.extracted_file_id)
+
+
 @router.delete("/{file_id}", status_code=fastapi.status.HTTP_204_NO_CONTENT)
-async def delete_file(
-    file_id: UUID,
-    file_service: FileServiceDependency,
-    user: AuthenticatedUserDependency,
-) -> None:
+async def delete_file(file_id: UUID, file_service: FileServiceDependency, user: AuthenticatedUserDependency) -> None:
     await file_service.delete(file_id=file_id, user=user)
+
+
+@router.post("/{file_id}/extraction", status_code=status.HTTP_201_CREATED)
+async def create_text_extraction(
+    file_id: UUID, file_service: FileServiceDependency, user: AuthenticatedUserDependency
+) -> EntityModel[TextExtraction]:
+    """Create or return text extraction for a file.
+
+    - If extraction is completed, returns existing result
+    - If extraction failed, retries the extraction
+    - If extraction is pending/in-progress, returns current status
+    - If no extraction exists, creates a new one
+    """
+    return await file_service.create_extraction(file_id=file_id, user=user)
+
+
+@router.get("/{file_id}/extraction")
+async def get_text_extraction(
+    file_id: UUID, file_service: FileServiceDependency, user: AuthenticatedUserDependency
+) -> EntityModel[TextExtraction]:
+    return await file_service.get_extraction(file_id=file_id, user=user)
+
+
+@router.delete("/{file_id}/extraction", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_text_extraction(
+    file_id: UUID, file_service: FileServiceDependency, user: AuthenticatedUserDependency
+) -> None:
+    await file_service.delete_extraction(file_id=file_id, user=user)

@@ -25,6 +25,8 @@ metadata:
     {{- include "beeai-platform.labels" . | nindent 4 }}
 spec:
   replicas: 1
+  strategy:
+    type: {{ ternary "Recreate" "RollingUpdate" .Values.hostNetwork }}
   selector:
     matchLabels:
       app: docling-serve
