@@ -12,11 +12,11 @@ export function HandsOffText() {
   const { agent, output, isPending } = useHandsOff();
   const { ref: autoScrollRef } = useAutoScroll([output]);
 
-  return (
-    <>
+  return output ? (
+    <div>
       <AgentOutputBox text={output} isPending={isPending} downloadFileName={`${agent.name}-output`} />
 
-      <div ref={autoScrollRef} />
-    </>
-  );
+      {isPending && <div ref={autoScrollRef} />}
+    </div>
+  ) : null;
 }

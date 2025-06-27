@@ -3,36 +3,40 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { PropsWithChildren } from 'react';
-
-import { Container } from '#components/layouts/Container.tsx';
-import { SplitPanesView } from '#components/SplitPanesView/SplitPanesView.tsx';
+import { MainContent } from '#components/layouts/MainContent.tsx';
+import type { Agent } from '#modules/agents/api/types.ts';
 
 import { useHandsOff } from '../contexts/hands-off';
-import { FileUploadDropzone } from '../files/components/FileUploadDropzone';
-import { useFileUpload } from '../files/contexts';
-import { HandsOffText } from './HandsOffText';
-import classes from './HandsOffView.module.scss';
+import { HandsOffProvider } from '../contexts/hands-off/HandsOffProvider';
+import { FileUploadProvider } from '../files/contexts/FileUploadProvider';
+import { SourcesPanel } from '../sources/components/SourcesPanel';
+import { HandsOffLandingView } from './HandsOffLandingView';
+import { HandsOffOutputView } from './HandsOffOutputView';
 
-export function HandsOffView({ children }: PropsWithChildren) {
-  const { output } = useHandsOff();
-  const { dropzone } = useFileUpload();
+interface Props {
+  agent: Agent;
+}
 
-  const className = classes.mainContent;
+export function HandsOffView({ agent }: Props) {
+  return (
+    <FileUploadProvider key={agent.name}>
+      <HandsOffProvider agent={agent}>
+        <HandsOff />
+      </HandsOffProvider>
+    </FileUploadProvider>
+  );
+}
+
+function HandsOff() {
+  const { output, isPending } = useHandsOff();
+
+  const isIdle = !isPending && !output;
 
   return (
-    <SplitPanesView
-      mainContent={
-        <div {...(dropzone ? dropzone.getRootProps({ className }) : { className })}>
-          <Container size="sm">{children}</Container>
+    <>
+      <MainContent spacing="md">{isIdle ? <HandsOffLandingView /> : <HandsOffOutputView />}</MainContent>
 
-          {dropzone?.isDragActive && <FileUploadDropzone />}
-        </div>
-      }
-      leftPane={children}
-      rightPane={<HandsOffText />}
-      isSplit={Boolean(output)}
-      spacing="md"
-    />
+      <SourcesPanel />
+    </>
   );
 }

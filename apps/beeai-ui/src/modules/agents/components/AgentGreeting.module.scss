@@ -4,10 +4,15 @@
  */
 
 .root {
-  @include font-family(serif);
   font-size: rem(42px);
   line-height: math.div(60, 42);
   font-weight: 300;
   text-wrap: pretty;
   white-space: pre-line;
+  &.ui--chat {
+    @include font-family(serif);
+  }
+  &.ui--hands-off {
+    line-height: math.div(46, 42);
+  }
 }

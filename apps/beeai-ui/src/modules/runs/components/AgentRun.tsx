@@ -3,85 +3,43 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Loading } from '@carbon/react';
-
-import { ErrorMessage } from '#components/ErrorMessage/ErrorMessage.tsx';
-import { Container } from '#components/layouts/Container.tsx';
-import { MainContent } from '#components/layouts/MainContent.tsx';
 import { type Agent, UiType } from '#modules/agents/api/types.ts';
 import { getAgentUiMetadata } from '#modules/agents/utils.ts';
 
 import { useAgent } from '../../agents/api/queries/useAgent';
-import { Chat } from '../chat/Chat';
-import { ChatProvider } from '../contexts/chat/ChatProvider';
-import { HandsOffProvider } from '../contexts/hands-off/HandsOffProvider';
-import { FileUploadProvider } from '../files/contexts/FileUploadProvider';
-import { HandsOff } from '../hands-off/HandsOff';
-import classes from './AgentRun.module.scss';
+import { ChatView } from '../chat/ChatView';
+import { HandsOffView } from '../hands-off/HandsOffView';
+import { UiFailedView } from './UiFailedView';
+import { UiLoadingView } from './UiLoadingView';
+import { UiNotAvailableView } from './UiNotAvailableView';
 
 interface Props {
   name: string;
 }
 
 export function AgentRun({ name }: Props) {
-  const { data: agent, isPending, refetch, isRefetching, error } = useAgent({ name });
+  const { data: agent, error, isPending, isRefetching, refetch } = useAgent({ name });
 
   return !isPending ? (
     agent ? (
       renderUi({ agent })
     ) : (
-      <MainContent>
-        <Container size="sm">
-          <ErrorMessage
-            title="Failed to load the agent."
-            onRetry={refetch}
-            isRefetching={isRefetching}
-            subtitle={error?.message}
-          />
-        </Container>
-      </MainContent>
+      <UiFailedView message={error?.message} isRefetching={isRefetching} onRetry={refetch} />
     )
   ) : (
-    <MainContent>
-      <div className={classes.loading}>
-        <Loading withOverlay={false} />
-      </div>
-    </MainContent>
+    <UiLoadingView />
   );
 }
 
 const renderUi = ({ agent }: { agent: Agent }) => {
-  const { ui_type, display_name } = getAgentUiMetadata(agent);
+  const { ui_type } = getAgentUiMetadata(agent);
 
   switch (ui_type) {
     case UiType.Chat:
-      return (
-        <FileUploadProvider key={agent.name}>
-          <ChatProvider agent={agent}>
-            <Chat />
-          </ChatProvider>
-        </FileUploadProvider>
-      );
+      return <ChatView agent={agent} />;
     case UiType.HandsOff:
-      return (
-        <FileUploadProvider key={agent.name}>
-          <HandsOffProvider agent={agent}>
-            <HandsOff />
-          </HandsOffProvider>
-        </FileUploadProvider>
-      );
+      return <HandsOffView agent={agent} />;
     default:
-      return (
-        <MainContent>
-          <Container size="sm">
-            <h1>{display_name}</h1>
-            <div className={classes.uiNotAvailable}>
-              {ui_type
-                ? `The UI requested by the agent is not available: '${ui_type}'`
-                : `The agent doesn’t have a defined UI.`}
-            </div>
-          </Container>
-        </MainContent>
-      );
+      return <UiNotAvailableView agent={agent} />;
   }
 };

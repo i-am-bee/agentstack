@@ -23,3 +23,9 @@ export interface RunStats {
 }
 
 export type RunLog = GenericEvent['generic'];
+
+export enum RunUiStatus {
+  Idle = 'idle',
+  Pending = 'pending',
+  Completed = 'completed',
+}

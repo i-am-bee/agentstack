@@ -12,11 +12,11 @@ export const HandsOffContext = createContext<HandsOffContextValue | undefined>(u
 
 interface HandsOffContextValue {
   agent: Agent;
+  isPending: boolean;
   input?: string;
+  output?: string;
   stats?: RunStats;
   logs?: RunLog[];
-  output?: string;
-  isPending: boolean;
   onSubmit: (input: string) => Promise<void>;
   onClear: () => void;
 }

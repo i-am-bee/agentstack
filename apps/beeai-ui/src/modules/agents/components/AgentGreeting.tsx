@@ -6,30 +6,29 @@
 import clsx from 'clsx';
 import { memo } from 'react';
 
-import type { Agent } from '../api/types';
+import { type Agent, UiType } from '../api/types';
 import { getAgentUiMetadata } from '../utils';
 import classes from './AgentGreeting.module.scss';
 
 interface Props {
   agent: Agent;
-  className?: string;
   defaultGreeting?: string;
 }
 
-export const AgentGreeting = memo(function AgentGreeting({
-  agent,
-  className,
-  defaultGreeting = DEFAULT_GREETING,
-}: Props) {
-  const { display_name, user_greeting } = getAgentUiMetadata(agent);
+export const AgentGreeting = memo(function AgentGreeting({ agent }: Props) {
+  const { display_name, user_greeting, ui_type } = getAgentUiMetadata(agent);
+  const defaultGreeting = ui_type ? DEFAULT_GREETINGS[ui_type] : DEFAULT_GREETINGS[UiType.Chat];
   const userGreeting = renderVariables(user_greeting ?? defaultGreeting, { name: display_name });
 
-  return <h1 className={clsx(classes.root, className)}>{userGreeting}</h1>;
+  return <p className={clsx(classes.root, { [classes[`ui--${ui_type}`]]: ui_type })}>{userGreeting}</p>;
 });
 
 function renderVariables(str: string, variables: Record<string, string>): string {
   return str.replace(/{(.*?)}/g, (_, key) => variables[key] ?? `{${key}}`);
 }
 
-const DEFAULT_GREETING = `Hi, I am {name}!
-How can I help you?`;
+const DEFAULT_GREETINGS = {
+  [UiType.Chat]: `Hi, I am {name}!
+How can I help you?`,
+  [UiType.HandsOff]: 'What is your task?',
+};

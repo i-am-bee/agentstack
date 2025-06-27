@@ -11,10 +11,6 @@
   display: flex;
   justify-content: space-between;
   column-gap: $spacing-04;
-  margin-block-start: auto;
-  position: sticky;
-  inset-block-end: 0;
-  z-index: 1;
 }
 
 .label {
