@@ -60,7 +60,7 @@ class OCIRegistryConfiguration(BaseModel, extra="allow"):
 
 class AgentRegistryConfiguration(BaseModel):
     locations: dict[str, RegistryLocation] = Field(default_factory=dict)
-    sync_period_cron: str = Field(default="*/10 * * * *")  # every 10 minutes
+    sync_period_cron: str = Field(default="*/5 * * * *")  # every 10 minutes
 
 
 class AuthConfiguration(BaseModel):

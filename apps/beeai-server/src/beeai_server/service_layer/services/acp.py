@@ -107,7 +107,8 @@ class AcpProxyService:
                 ):
                     async with self._uow() as uow:
                         env = await uow.env.get_all()
-                    should_wait = await self._deploy_manager.create_or_replace(provider=provider, env=env)
+                    modified = await self._deploy_manager.create_or_replace(provider=provider, env=env)
+                    should_wait = modified or state != ProviderDeploymentState.running
                 case _:
                     raise ValueError(f"Unknown provider state: {state}")
             if should_wait:
