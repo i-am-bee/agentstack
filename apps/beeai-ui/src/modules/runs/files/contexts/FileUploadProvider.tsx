@@ -11,11 +11,15 @@ import { useToast } from '#contexts/Toast/index.ts';
 
 import { useDeleteFile } from '../api/mutations/useDeleteFile';
 import { useUploadFile } from '../api/mutations/useUploadFile';
-import { ALLOWED_FILES, MAX_FILE_SIZE, MAX_FILES } from '../constants';
+import { MAX_FILE_SIZE, MAX_FILES } from '../constants';
 import { type FileEntity, FileStatus } from '../types';
 import { FileUploadContext } from './file-upload-context';
 
-export function FileUploadProvider({ children }: PropsWithChildren) {
+interface Props {
+  allowedFiles: string[];
+}
+
+export function FileUploadProvider({ allowedFiles, children }: PropsWithChildren<Props>) {
   const [files, setFiles] = useState<FileEntity[]>([]);
 
   const { addToast } = useToast();
@@ -84,8 +88,11 @@ export function FileUploadProvider({ children }: PropsWithChildren) {
     [files],
   );
 
+  const isDisabled = !allowedFiles.length;
+
   const dropzone = useDropzone({
-    accept: ALLOWED_FILES,
+    accept: allowedFiles.reduce((value, mimeType) => ({ ...value, [mimeType]: [] }), {} as Record<string, string[]>),
+    disabled: isDisabled,
     noClick: true,
     noKeyboard: true,
     maxFiles: MAX_FILES,
@@ -98,11 +105,12 @@ export function FileUploadProvider({ children }: PropsWithChildren) {
     () => ({
       files,
       isPending,
+      isDisabled,
       dropzone,
       removeFile,
       clearFiles,
     }),
-    [files, isPending, dropzone, removeFile, clearFiles],
+    [files, isPending, isDisabled, dropzone, removeFile, clearFiles],
   );
 
   return <FileUploadContext.Provider value={contextValue}>{children}</FileUploadContext.Provider>;

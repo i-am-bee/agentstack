@@ -3,10 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export const ALLOWED_FILES = {
-  // 'image/*': [],
-};
-
 export const MAX_FILES = 5;
 
 export const MAX_FILE_SIZE = 100 * 1024 * 1024;

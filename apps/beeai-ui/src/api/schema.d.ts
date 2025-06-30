@@ -405,6 +405,7 @@ export interface components {
       metadata: components['schemas']['AcpMetadata'];
       /** Name */
       name: string;
+      input_content_types?: string[];
     } & {
       [key: string]: unknown;
     };
@@ -432,10 +433,6 @@ export interface components {
     'Annotations-Output': {
       beeai_ui?: components['schemas']['PlatformUIAnnotation'] | null;
     } & {
-      [key: string]: unknown;
-    };
-    /** AnyModel */
-    AnyModel: {
       [key: string]: unknown;
     };
     /** Author */
@@ -672,7 +669,7 @@ export interface components {
       /** Created At */
       created_at?: string | null;
       /** Parts */
-      parts: components['schemas']['MessagePart-Input'][];
+      parts: components['schemas']['MessagePart'][];
       /**
        * Role
        * @default user
@@ -686,7 +683,7 @@ export interface components {
       /** Created At */
       created_at?: string | null;
       /** Parts */
-      parts: components['schemas']['MessagePart-Output'][];
+      parts: components['schemas']['MessagePart'][];
       /**
        * Role
        * @default user
@@ -714,7 +711,7 @@ export interface components {
       type: 'message';
     };
     /** MessagePart */
-    'MessagePart-Input': {
+    MessagePart: {
       /** Content */
       content?: string | null;
       /**
@@ -730,30 +727,7 @@ export interface components {
       /** Content Url */
       content_url?: string | null;
       /** Metadata */
-      metadata?: (components['schemas']['CitationMetadata'] | components['schemas']['TrajectoryMetadata']) | null;
-      /** Name */
-      name?: string | null;
-    } & {
-      [key: string]: unknown;
-    };
-    /** MessagePart */
-    'MessagePart-Output': {
-      /** Content */
-      content?: string | null;
-      /**
-       * Content Encoding
-       * @default plain
-       */
-      content_encoding: ('plain' | 'base64') | null;
-      /**
-       * Content Type
-       * @default text/plain
-       */
-      content_type: string | null;
-      /** Content Url */
-      content_url?: string | null;
-      /** Metadata */
-      metadata?: (components['schemas']['CitationMetadata'] | components['schemas']['TrajectoryMetadata']) | null;
+      metadata?: components['schemas']['CitationMetadata'] | null;
       /** Name */
       name?: string | null;
     } & {
@@ -1064,38 +1038,6 @@ export interface components {
       id?: string;
       /** State */
       state?: string | null;
-    };
-    /**
-     * TrajectoryMetadata
-     * @description Represents trajectory information for an agent's reasoning or tool execution
-     *     steps. This metadata helps track the agent's decision-making process and
-     *     provides transparency into how the agent arrived at its response.
-     *
-     *     TrajectoryMetadata can capture either:
-     *     1. A reasoning step with a message
-     *     2. A tool execution with tool name, input, and output
-     *
-     *     This information can be used for debugging, audit trails, and providing
-     *     users with insight into the agent's thought process.
-     *
-     *     Properties:
-     *     - message: A reasoning step or thought in the agent's decision process.
-     *     - tool_name: Name of the tool that was executed.
-     *     - tool_input: Input parameters passed to the tool.
-     *     - tool_output: Output or result returned by the tool.
-     */
-    TrajectoryMetadata: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      kind: 'trajectory';
-      /** Message */
-      message?: string | null;
-      tool_input?: components['schemas']['AnyModel'] | null;
-      /** Tool Name */
-      tool_name?: string | null;
-      tool_output?: components['schemas']['AnyModel'] | null;
     };
     /** UIFeatureFlags */
     UIFeatureFlags: {
