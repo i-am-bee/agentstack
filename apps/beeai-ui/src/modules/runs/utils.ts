@@ -204,5 +204,5 @@ const parseJsonLikeString = (string: string): unknown | string => {
 };
 
 export function isAgentMessage(message: ChatMessage): message is AgentMessage {
-  return message.role === Role.Agent || message.role.startsWith('agent/');
+  return message.role === Role.Agent || message.role.startsWith(`${Role.Agent}/`);
 }
