@@ -9,7 +9,7 @@ import type { GenericEvent, MessagePart } from './api/types';
 
 export enum Role {
   User = 'user',
-  Assistant = 'assistant',
+  Agent = 'agent',
 }
 
 export interface RunAgentParams {

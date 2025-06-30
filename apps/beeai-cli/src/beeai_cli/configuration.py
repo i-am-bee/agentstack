@@ -19,7 +19,7 @@ class Configuration(pydantic_settings.BaseSettings):
     debug: bool = False
     home: pathlib.Path = pathlib.Path.home() / ".beeai"
     agent_registry: pydantic.AnyUrl = (
-        "https://github.com/i-am-bee/beeai-platform@release-v0.2.0#path=agent-registry.yaml"
+        "https://github.com/i-am-bee/beeai-platform@release-v0.2.14#path=agent-registry.yaml"
     )
     admin_password: SecretStr | None = None
 
