@@ -1,18 +1,8 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0
 
 import contextlib
+import functools
 import json
 import os
 import subprocess
@@ -29,7 +19,6 @@ import typer
 import yaml
 from anyio import create_task_group
 from anyio.abc import ByteReceiveStream
-from cachetools import cached
 from jsf import JSF
 from prompt_toolkit import PromptSession
 from prompt_toolkit.shortcuts import CompleteStyle
@@ -99,7 +88,7 @@ def filter_dict(map: dict[str, T | V], value_to_exclude: V = None) -> dict[str, 
     return {filter: value for filter, value in map.items() if value is not value_to_exclude}
 
 
-@cached(cache={}, key=json.dumps)
+@functools.cache
 def generate_schema_example(json_schema: dict[str, Any]) -> dict[str, Any]:
     json_schema = deepcopy(remove_nullable(json_schema))
 
@@ -240,7 +229,8 @@ async def run_command(
                 if check and process.returncode != 0:
                     raise subprocess.CalledProcessError(cast(int, process.returncode), command, output, errors)
 
-                console.print(f"{message} [[green]DONE[/green]]")
+                if SHOW_SUCCESS_STATUS.get():
+                    console.print(f"{message} [[green]DONE[/green]]")
                 return subprocess.CompletedProcess(command, cast(int, process.returncode), output, errors)
     except FileNotFoundError:
         if ignore_missing:
@@ -248,9 +238,6 @@ async def run_command(
         console.print(f"{message} [[red]ERROR[/red]]")
         tool_name = command[0]
         console.print(f"[red]Error: {tool_name} is not installed. Please install {tool_name} first.[/red]")
-        if tool_name == "limactl":
-            console.print("[yellow]You can install Lima with: brew install lima[/yellow]")
-        raise
     except subprocess.CalledProcessError as e:
         console.print(f"{message} [[red]ERROR[/red]]")
         err_console.print(f"[red]Exit code: {e.returncode} [/red]")
@@ -263,6 +250,7 @@ async def run_command(
 
 IN_VERBOSITY_CONTEXT: ContextVar[bool] = ContextVar("verbose", default=False)
 VERBOSE: ContextVar[bool] = ContextVar("verbose", default=False)
+SHOW_SUCCESS_STATUS: ContextVar[bool] = ContextVar("show_command_status", default=True)
 
 
 @contextlib.contextmanager
@@ -278,13 +266,14 @@ def status(message: str):
 
 
 @contextlib.contextmanager
-def verbosity(verbose: bool):
+def verbosity(verbose: bool, show_success_status: bool = True):
     if IN_VERBOSITY_CONTEXT.get():
         yield  # Already in a verbosity context, act as a null context manager
         return
 
     IN_VERBOSITY_CONTEXT.set(True)
     token = VERBOSE.set(verbose)
+    token_command_status = SHOW_SUCCESS_STATUS.set(show_success_status)
     try:
         with err_console.capture() if not verbose else contextlib.nullcontext() as capture:
             yield
@@ -298,3 +287,4 @@ def verbosity(verbose: bool):
     finally:
         VERBOSE.reset(token)
         IN_VERBOSITY_CONTEXT.set(False)
+        SHOW_SUCCESS_STATUS.reset(token_command_status)

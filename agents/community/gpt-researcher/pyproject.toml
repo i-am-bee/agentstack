@@ -2,11 +2,13 @@
 name = "gpt-researcher-agent"
 version = "0.1.0"
 description = ""
-authors = [{ name = "IBM Corp." }]
+authors = [
+    { name = "IBM Corp." },
+]
 readme = "README.md"
 requires-python = ">=3.11,<4.0"
 dependencies = [
-    "acp-sdk>=0.8.1",
+    "acp-sdk==0.12.1",
     "gpt-researcher>=0.10.11,<0.11.0",
     "duckduckgo-search~=7.5.5",
     "pydantic-settings>=2.7.1",
@@ -18,10 +20,12 @@ dependencies = [
 server = "gpt_researcher_agent.agent:run"
 
 [build-system]
-requires = ["hatchling"]
+requires = [
+    "hatchling",
+]
 build-backend = "hatchling.build"
 
 [tool.uv]
 override-dependencies = [
-    "pydantic==2.10.6"
+    "pydantic==2.10.6",
 ]

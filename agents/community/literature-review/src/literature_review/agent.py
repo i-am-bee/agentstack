@@ -4,7 +4,8 @@ import os
 from textwrap import dedent
 from typing import AsyncGenerator
 
-from acp_sdk import AnyUrl, Link, LinkType, Message, MessagePart, Metadata
+from acp_sdk import Annotations, AnyUrl, Link, LinkType, Message, MessagePart, Metadata, PlatformUIAnnotation
+from acp_sdk.models.platform import PlatformUIType
 from acp_sdk.server import Context, Server
 from literature_review.team import team
 from autogen_agentchat.messages import BaseChatMessage, BaseAgentEvent
@@ -15,6 +16,13 @@ server = Server()
 
 @server.agent(
     metadata=Metadata(
+        annotations=Annotations(
+            beeai_ui=PlatformUIAnnotation(
+                ui_type=PlatformUIType.HANDSOFF,
+                user_greeting="What topic do you want to research?",
+                display_name="Literature Review",
+            ),
+        ),
         programming_language="Python",
         links=[
             Link(
@@ -49,23 +57,6 @@ server = Server()
             - **Dynamic Agent Collaboration** – Uses a round-robin approach to coordinate between search and report agents.
             """
         ),
-        ui={"type": "hands-off", "user_greeting": "What topic do you want to research?"},
-        examples={
-            "cli": [
-                {
-                    "command": 'beeai run literature_review "quantum"',
-                    "name": "Literature Review",
-                    "description": "Conducting a Literature Review on AI in Healthcare",
-                    "output": "The current temperature in Paris is 12°C with partly cloudy skies.",
-                    "processing_steps": [
-                        "Initiates a round-robin task involving Google and Arxiv search agents to gather data",
-                        "Collects and processes search results from both sources"
-                        "The report agent synthesizes the data into a formatted literature review with appropriate references",
-                        "Outputs the literature review, ending the task with the specified termination condition",
-                    ],
-                },
-            ]
-        },
         env=[
             {"name": "LLM_MODEL", "description": "Model to use from the specified OpenAI-compatible API."},
             {"name": "LLM_API_BASE", "description": "Base URL for OpenAI-compatible API endpoint"},

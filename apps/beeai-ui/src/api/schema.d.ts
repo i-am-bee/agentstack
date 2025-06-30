@@ -1,17 +1,6 @@
 /**
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -46,6 +35,23 @@ export interface paths {
     };
     /** Read Agent */
     get: operations['read_agent_api_v1_acp_agents__name__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/acp/ping': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Ping */
+    get: operations['ping_api_v1_acp_ping_get'];
     put?: never;
     post?: never;
     delete?: never;
@@ -115,6 +121,23 @@ export interface paths {
     };
     /** Read Run Events */
     get: operations['read_run_events_api_v1_acp_runs__run_id__events_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/acp/sessions/{session_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Read Session */
+    get: operations['read_session_api_v1_acp_sessions__session_id__get'];
     put?: never;
     post?: never;
     delete?: never;
@@ -262,27 +285,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/providers/register/unmanaged': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Deprecated Create Unmanaged Provider
-     * @deprecated
-     * @description Backward compatibility for ACP sdk.
-     */
-    post: operations['deprecated_create_unmanaged_provider_api_v1_providers_register_unmanaged_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   '/api/v1/ui/config': {
     parameters: {
       query?: never;
@@ -324,7 +326,7 @@ export interface components {
   schemas: {
     /** AcpMetadata */
     AcpMetadata: {
-      annotations?: components['schemas']['AnyModel'] | null;
+      annotations?: components['schemas']['Annotations-Output'] | null;
       author?: components['schemas']['Author'] | null;
       /** Capabilities */
       capabilities?: components['schemas']['Capability'][] | null;
@@ -362,26 +364,13 @@ export interface components {
       recommended_models?: string[] | null;
       /** Tags */
       tags?: string[] | null;
-      /** Ui */
-      ui?: {
-        [key: string]: unknown;
-      } | null;
       /** Updated At */
       updated_at?: string | null;
     } & {
       [key: string]: unknown;
     };
     /** Agent */
-    'Agent-Input': {
-      /** Description */
-      description?: string | null;
-      /** @default {} */
-      metadata: components['schemas']['Metadata'];
-      /** Name */
-      name: string;
-    };
-    /** Agent */
-    'Agent-Output': {
+    Agent: {
       /** Description */
       description?: string | null;
       /**
@@ -394,6 +383,15 @@ export interface components {
       name: string;
     } & {
       [key: string]: unknown;
+    };
+    /** AgentManifest */
+    AgentManifest: {
+      /** Description */
+      description?: string | null;
+      /** @default {} */
+      metadata: components['schemas']['Metadata'];
+      /** Name */
+      name: string;
     };
     /** AgentReadResponse */
     AgentReadResponse: {
@@ -413,7 +411,28 @@ export interface components {
     /** AgentsListResponse */
     AgentsListResponse: {
       /** Agents */
-      agents: components['schemas']['Agent-Output'][];
+      agents: components['schemas']['Agent'][];
+    };
+    /** AgentToolInfo */
+    AgentToolInfo: {
+      /** Description */
+      description?: string | null;
+      /** Name */
+      name: string;
+    } & {
+      [key: string]: unknown;
+    };
+    /** Annotations */
+    'Annotations-Input': {
+      beeai_ui?: components['schemas']['PlatformUIAnnotation'] | null;
+    } & {
+      [key: string]: unknown;
+    };
+    /** Annotations */
+    'Annotations-Output': {
+      beeai_ui?: components['schemas']['PlatformUIAnnotation'] | null;
+    } & {
+      [key: string]: unknown;
     };
     /** AnyModel */
     AnyModel: {
@@ -504,6 +523,48 @@ export interface components {
       /** User */
       user?: string | null;
     };
+    /**
+     * CitationMetadata
+     * @description Represents an inline citation, providing info about information source. This
+     *     is supposed to be rendered as an inline icon, optionally marking a text
+     *     range it belongs to.
+     *
+     *     If CitationMetadata is included together with content in the message part,
+     *     the citation belongs to that content and renders at the MessagePart position.
+     *     This way may be used for non-text content, like images and files.
+     *
+     *     Alternatively, `start_index` and `end_index` may define a text range,
+     *     counting characters in the current Message across all MessageParts with
+     *     content type `text/*`, where the citation will be rendered. If one of
+     *     `start_index` and `end_index` is missing or their values are equal, the
+     *     citation renders only as an inline icon at that position.
+     *
+     *     If both `start_index` and `end_index` are not present and MessagePart has no
+     *     content, the citation renders as inline icon only at the MessagePart position.
+     *
+     *     Properties:
+     *     - url: URL of the source document.
+     *     - title: Title of the source document.
+     *     - description: Accompanying text, which may be a general description of the
+     *                    source document, or a specific snippet.
+     */
+    CitationMetadata: {
+      /** Description */
+      description: string | null;
+      /** End Index */
+      end_index: number | null;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'citation';
+      /** Start Index */
+      start_index: number | null;
+      /** Title */
+      title: string | null;
+      /** Url */
+      url: string | null;
+    };
     /** ContentItem */
     ContentItem: {
       /** Text */
@@ -527,7 +588,7 @@ export interface components {
     /** CreateProviderRequest */
     CreateProviderRequest: {
       /** Agents */
-      agents?: components['schemas']['Agent-Input'][] | null;
+      agents?: components['schemas']['AgentManifest'][] | null;
       /** Location */
       location: components['schemas']['DockerImageProviderLocation'] | components['schemas']['NetworkProviderLocation'];
     };
@@ -605,17 +666,36 @@ export interface components {
       };
     };
     /** Message */
-    Message: {
+    'Message-Input': {
       /** Completed At */
       completed_at?: string | null;
       /** Created At */
       created_at?: string | null;
       /** Parts */
-      parts: components['schemas']['MessagePart'][];
+      parts: components['schemas']['MessagePart-Input'][];
+      /**
+       * Role
+       * @default user
+       */
+      role: 'user' | 'agent' | string;
+    };
+    /** Message */
+    'Message-Output': {
+      /** Completed At */
+      completed_at?: string | null;
+      /** Created At */
+      created_at?: string | null;
+      /** Parts */
+      parts: components['schemas']['MessagePart-Output'][];
+      /**
+       * Role
+       * @default user
+       */
+      role: string;
     };
     /** MessageAwaitRequest */
     MessageAwaitRequest: {
-      message: components['schemas']['Message'];
+      message: components['schemas']['Message-Output'];
       /**
        * Type
        * @default message
@@ -625,7 +705,7 @@ export interface components {
     };
     /** MessageAwaitResume */
     MessageAwaitResume: {
-      message: components['schemas']['Message'];
+      message: components['schemas']['Message-Input'];
       /**
        * Type
        * @default message
@@ -634,7 +714,7 @@ export interface components {
       type: 'message';
     };
     /** MessagePart */
-    MessagePart: {
+    'MessagePart-Input': {
       /** Content */
       content?: string | null;
       /**
@@ -649,6 +729,31 @@ export interface components {
       content_type: string | null;
       /** Content Url */
       content_url?: string | null;
+      /** Metadata */
+      metadata?: (components['schemas']['CitationMetadata'] | components['schemas']['TrajectoryMetadata']) | null;
+      /** Name */
+      name?: string | null;
+    } & {
+      [key: string]: unknown;
+    };
+    /** MessagePart */
+    'MessagePart-Output': {
+      /** Content */
+      content?: string | null;
+      /**
+       * Content Encoding
+       * @default plain
+       */
+      content_encoding: ('plain' | 'base64') | null;
+      /**
+       * Content Type
+       * @default text/plain
+       */
+      content_type: string | null;
+      /** Content Url */
+      content_url?: string | null;
+      /** Metadata */
+      metadata?: (components['schemas']['CitationMetadata'] | components['schemas']['TrajectoryMetadata']) | null;
       /** Name */
       name?: string | null;
     } & {
@@ -656,7 +761,7 @@ export interface components {
     };
     /** Metadata */
     Metadata: {
-      annotations?: components['schemas']['AnyModel'] | null;
+      annotations?: components['schemas']['Annotations-Input'] | null;
       author?: components['schemas']['Author'] | null;
       /** Capabilities */
       capabilities?: components['schemas']['Capability'][] | null;
@@ -728,6 +833,28 @@ export interface components {
       /** Total Count */
       total_count: number;
     };
+    /** PingResponse */
+    PingResponse: Record<string, never>;
+    /** PlatformUIAnnotation */
+    PlatformUIAnnotation: {
+      /** Display Name */
+      display_name?: string | null;
+      /**
+       * Tools
+       * @default []
+       */
+      tools: components['schemas']['AgentToolInfo'][];
+      ui_type: components['schemas']['PlatformUIType'];
+      /** User Greeting */
+      user_greeting?: string | null;
+    } & {
+      [key: string]: unknown;
+    };
+    /**
+     * PlatformUIType
+     * @enum {string}
+     */
+    PlatformUIType: 'chat' | 'hands-off';
     /**
      * ProviderDeploymentState
      * @enum {string}
@@ -792,7 +919,7 @@ export interface components {
        * Output
        * @default []
        */
-      output: components['schemas']['Message'][];
+      output: components['schemas']['Message-Output'][];
       /**
        * Run Id
        * Format: uuid
@@ -808,9 +935,10 @@ export interface components {
       /** Agent Name */
       agent_name: string;
       /** Input */
-      input: components['schemas']['Message'][];
+      input: components['schemas']['Message-Input'][];
       /** @default sync */
       mode: components['schemas']['RunMode'];
+      session?: components['schemas']['Session'] | null;
       /** Session Id */
       session_id?: string | null;
     };
@@ -831,7 +959,7 @@ export interface components {
        * Output
        * @default []
        */
-      output: components['schemas']['Message'][];
+      output: components['schemas']['Message-Output'][];
       /**
        * Run Id
        * Format: uuid
@@ -864,7 +992,7 @@ export interface components {
        * Output
        * @default []
        */
-      output: components['schemas']['Message'][];
+      output: components['schemas']['Message-Output'][];
       /**
        * Run Id
        * Format: uuid
@@ -897,7 +1025,7 @@ export interface components {
        * Output
        * @default []
        */
-      output: components['schemas']['Message'][];
+      output: components['schemas']['Message-Output'][];
       /**
        * Run Id
        * Format: uuid
@@ -913,6 +1041,62 @@ export interface components {
      * @enum {string}
      */
     RunStatus: 'created' | 'in-progress' | 'awaiting' | 'cancelling' | 'cancelled' | 'completed' | 'failed';
+    /** Session */
+    Session: {
+      /** History */
+      history?: string[];
+      /**
+       * Id
+       * Format: uuid
+       */
+      id?: string;
+      /** State */
+      state?: string | null;
+    };
+    /** SessionReadResponse */
+    SessionReadResponse: {
+      /** History */
+      history?: string[];
+      /**
+       * Id
+       * Format: uuid
+       */
+      id?: string;
+      /** State */
+      state?: string | null;
+    };
+    /**
+     * TrajectoryMetadata
+     * @description Represents trajectory information for an agent's reasoning or tool execution
+     *     steps. This metadata helps track the agent's decision-making process and
+     *     provides transparency into how the agent arrived at its response.
+     *
+     *     TrajectoryMetadata can capture either:
+     *     1. A reasoning step with a message
+     *     2. A tool execution with tool name, input, and output
+     *
+     *     This information can be used for debugging, audit trails, and providing
+     *     users with insight into the agent's thought process.
+     *
+     *     Properties:
+     *     - message: A reasoning step or thought in the agent's decision process.
+     *     - tool_name: Name of the tool that was executed.
+     *     - tool_input: Input parameters passed to the tool.
+     *     - tool_output: Output or result returned by the tool.
+     */
+    TrajectoryMetadata: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'trajectory';
+      /** Message */
+      message?: string | null;
+      tool_input?: components['schemas']['AnyModel'] | null;
+      /** Tool Name */
+      tool_name?: string | null;
+      tool_output?: components['schemas']['AnyModel'] | null;
+    };
     /** UIFeatureFlags */
     UIFeatureFlags: {
       /**
@@ -993,6 +1177,26 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  ping_api_v1_acp_ping_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PingResponse'];
         };
       };
     };
@@ -1145,6 +1349,37 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['RunReadResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  read_session_api_v1_acp_sessions__session_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        session_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SessionReadResponse'];
         };
       };
       /** @description Validation Error */
@@ -1460,39 +1695,6 @@ export interface operations {
     };
   };
   preview_provider_api_v1_providers_preview_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateProviderRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProviderWithState'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  deprecated_create_unmanaged_provider_api_v1_providers_register_unmanaged_post: {
     parameters: {
       query?: never;
       header?: never;

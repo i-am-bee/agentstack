@@ -5,7 +5,6 @@ import httpx
 import pytest_asyncio
 from acp_sdk.client import Client
 
-
 logger = logging.getLogger(__name__)
 
 

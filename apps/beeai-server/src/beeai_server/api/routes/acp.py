@@ -1,20 +1,9 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
+# SPDX-License-Identifier: Apache-2.0
 
 import fastapi
 import fastapi.responses
+from acp_sdk import PingResponse, SessionId, SessionReadResponse
 from acp_sdk.models import (
     AgentName,
     RunCancelResponse,
@@ -33,6 +22,11 @@ from beeai_server.service_layer.services.acp import AcpServerResponse
 router = fastapi.APIRouter()
 
 
+@router.get("/ping")
+async def ping() -> PingResponse:
+    return PingResponse()
+
+
 @router.get("/agents")
 async def list_agents(acp_service: AcpProxyServiceDependency) -> AgentsListResponse:
     return AgentsListResponse(agents=await acp_service.list_agents())
@@ -40,7 +34,7 @@ async def list_agents(acp_service: AcpProxyServiceDependency) -> AgentsListRespo
 
 @router.get("/agents/{name}")
 async def read_agent(name: AgentName, acp_service: AcpProxyServiceDependency) -> AgentReadResponse:
-    return AgentReadResponse.model_validate(await acp_service.get_agent_by_name(name))
+    return (await acp_service.get_agent_by_name(name)).model_dump()
 
 
 def _to_fastapi(response: AcpServerResponse):
@@ -55,8 +49,8 @@ def _to_fastapi(response: AcpServerResponse):
 async def create_run(
     request: RunCreateRequest, acp_service: AcpProxyServiceDependency, user: AuthenticatedUserDependency
 ) -> RunCreateResponse:
-    client = await acp_service.get_proxy_client(agent_name=request.agent_name, user=user)
-    response = await acp_service.send_request(client, "POST", "/runs", request)
+    context = await acp_service.get_proxy_context(agent_name=request.agent_name, user=user)
+    response = await acp_service.send_request(context, "POST", "/runs", request)
     return _to_fastapi(response)
 
 
@@ -64,7 +58,7 @@ async def create_run(
 async def read_run(
     run_id: RunId, acp_service: AcpProxyServiceDependency, user: AuthenticatedUserDependency
 ) -> RunReadResponse:
-    client = await acp_service.get_proxy_client(run_id=run_id, user=user)
+    client = await acp_service.get_proxy_context(run_id=run_id, user=user)
     response = await acp_service.send_request(client, "GET", f"/runs/{run_id}")
     return _to_fastapi(response)
 
@@ -73,7 +67,7 @@ async def read_run(
 async def read_run_events(
     run_id: RunId, acp_service: AcpProxyServiceDependency, user: AuthenticatedUserDependency
 ) -> RunReadResponse:
-    client = await acp_service.get_proxy_client(run_id=run_id, user=user)
+    client = await acp_service.get_proxy_context(run_id=run_id, user=user)
     response = await acp_service.send_request(client, "GET", f"/runs/{run_id}/events")
     return _to_fastapi(response)
 
@@ -82,7 +76,7 @@ async def read_run_events(
 async def resume_run(
     run_id: RunId, request: RunResumeRequest, acp_service: AcpProxyServiceDependency, user: AuthenticatedUserDependency
 ) -> RunResumeResponse:
-    client = await acp_service.get_proxy_client(run_id=run_id, user=user)
+    client = await acp_service.get_proxy_context(run_id=run_id, user=user)
     response = await acp_service.send_request(client, "POST", f"/runs/{run_id}", request)
     return _to_fastapi(response)
 
@@ -91,6 +85,15 @@ async def resume_run(
 async def cancel_run(
     run_id: RunId, acp_service: AcpProxyServiceDependency, user: AuthenticatedUserDependency
 ) -> RunCancelResponse:
-    client = await acp_service.get_proxy_client(run_id=run_id, user=user)
+    client = await acp_service.get_proxy_context(run_id=run_id, user=user)
     response = await acp_service.send_request(client, "POST", f"/runs/{run_id}/cancel")
+    return _to_fastapi(response)
+
+
+@router.get("/sessions/{session_id}")
+async def read_session(
+    session_id: SessionId, acp_service: AcpProxyServiceDependency, user: AuthenticatedUserDependency
+) -> SessionReadResponse:
+    client = await acp_service.get_proxy_context(session_id=session_id, user=user)
+    response = await acp_service.send_request(client, "GET", f"/sessions/{session_id}")
     return _to_fastapi(response)

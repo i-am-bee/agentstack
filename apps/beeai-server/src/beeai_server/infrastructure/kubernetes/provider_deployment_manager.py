@@ -1,16 +1,5 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0
 
 import asyncio
 import base64
@@ -42,6 +31,7 @@ logger = logging.getLogger(__name__)
 class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
     def __init__(self, api_factory: Callable[[], Awaitable[kr8s.asyncio.Api]]):
         self._api_factory = api_factory
+        self._create_lock = asyncio.Lock()
 
     @asynccontextmanager
     async def api(self) -> AsyncIterator[kr8s.asyncio.Api]:
@@ -146,33 +136,34 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
             deployment_manifest["metadata"]["labels"]["deployment-hash"] = deployment_hash
 
             deployment = Deployment(deployment_manifest, api=api)
-            try:
-                existing_deployment = await Deployment.get(deployment.metadata.name, api=api)
-                if existing_deployment.metadata.labels["deployment-hash"] == deployment_hash:
-                    if existing_deployment.replicas == 0:
-                        await deployment.scale(1)
-                        return True
-                    return False  # Deployment was not modified
-                logger.info(f"Recreating deployment {deployment.metadata.name} due to configuration change")
-                await self.delete(provider_id=provider.id)
-            except kr8s.NotFoundError:
-                logger.info(f"Creating new deployment {deployment.metadata.name}")
-            try:
-                await secret.create()
-                await service.create()
-                await deployment.create()
-                await deployment.adopt(service)
-                await deployment.adopt(secret)
-            except Exception:
-                # Try to revert changes already made
-                with suppress(Exception):
-                    await secret.delete()
-                with suppress(Exception):
-                    await service.delete()
-                with suppress(Exception):
-                    await deployment.delete()
-                raise
-            return True
+            async with self._create_lock:
+                try:
+                    existing_deployment = await Deployment.get(deployment.metadata.name, api=api)
+                    if existing_deployment.metadata.labels["deployment-hash"] == deployment_hash:
+                        if existing_deployment.replicas == 0:
+                            await deployment.scale(1)
+                            return True
+                        return False  # Deployment was not modified
+                    logger.info(f"Recreating deployment {deployment.metadata.name} due to configuration change")
+                    await self.delete(provider_id=provider.id)
+                except kr8s.NotFoundError:
+                    logger.info(f"Creating new deployment {deployment.metadata.name}")
+                try:
+                    await secret.create()
+                    await service.create()
+                    await deployment.create()
+                    await deployment.adopt(service)
+                    await deployment.adopt(secret)
+                except Exception:
+                    # Try to revert changes already made
+                    with suppress(Exception):
+                        await secret.delete()
+                    with suppress(Exception):
+                        await service.delete()
+                    with suppress(Exception):
+                        await deployment.delete()
+                    raise
+                return True
 
     async def delete(self, *, provider_id: UUID) -> None:
         with suppress(kr8s.NotFoundError):

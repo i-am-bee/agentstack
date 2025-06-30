@@ -1,34 +1,22 @@
 /**
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import { ArrowRight } from '@carbon/icons-react';
 import { Button, ButtonSkeleton } from '@carbon/react';
 import clsx from 'clsx';
 import isEmpty from 'lodash/isEmpty';
-import type { ComponentProps } from 'react';
 
 import { TransitionLink } from '#components/TransitionLink/TransitionLink.tsx';
 import { useModal } from '#contexts/Modal/index.tsx';
-import { SupportedUis } from '#modules/runs/constants.ts';
 import { AddRequiredVariablesModal } from '#modules/variables/components/AddRequiredVariablesModal.tsx';
 import { routes } from '#utils/router.ts';
 
-import type { Agent, UiType } from '../api/types';
-import { useAgentStatus } from '../hooks/useAgentStatus';
+import type { Agent } from '../api/types';
 import { useMissingEnvs } from '../hooks/useMissingEnvs';
+import { useProviderStatus } from '../hooks/useProviderStatus';
+import { isAgentUiSupported } from '../utils';
 import classes from './AgentLaunchButton.module.scss';
 
 interface Props {
@@ -37,46 +25,36 @@ interface Props {
 
 export function AgentLaunchButton({ agent }: Props) {
   const { openModal } = useModal();
-  const { provider_id, ui } = agent.metadata;
+  const { provider_id } = agent.metadata;
   const { missingEnvs, isPending: isMissingEnvsPending } = useMissingEnvs({ agent });
-  const { isNotInstalled, isInstalling, isInstallError } = useAgentStatus({ providerId: provider_id });
+  const { isNotInstalled, isStarting, isError } = useProviderStatus({ providerId: provider_id });
+  const isUiSupported = isAgentUiSupported(agent);
 
-  const uiType = ui?.type;
-  const sharedProps: ComponentProps<typeof Button> = {
-    kind: 'primary',
-    size: 'md',
-    className: classes.button,
-  };
-
-  if (isNotInstalled || isInstalling || isInstallError) {
-    // TODO:
+  if (isNotInstalled || isStarting || isError || !isUiSupported) {
     return null;
   }
 
-  if (uiType && SupportedUis.includes(uiType as UiType)) {
-    return (
-      // @ts-expect-error as prop mismatch to be resolved later, if component is used again
-      <Button
-        {...sharedProps}
-        renderIcon={ArrowRight}
-        disabled={isMissingEnvsPending}
-        {...(isEmpty(missingEnvs)
-          ? {
-              as: TransitionLink,
-              href: routes.agentRun({ name: agent.name }),
-            }
-          : {
-              onClick: () => {
-                openModal((props) => <AddRequiredVariablesModal {...props} missingEnvs={missingEnvs} />);
-              },
-            })}
-      >
-        Launch this agent
-      </Button>
-    );
-  }
-
-  return null;
+  return (
+    <Button
+      kind="primary"
+      size="md"
+      className={classes.button}
+      renderIcon={ArrowRight}
+      disabled={isMissingEnvsPending}
+      {...(isEmpty(missingEnvs)
+        ? {
+            as: TransitionLink,
+            href: routes.agentRun({ name: agent.name }),
+          }
+        : {
+            onClick: () => {
+              openModal((props) => <AddRequiredVariablesModal {...props} missingEnvs={missingEnvs} />);
+            },
+          })}
+    >
+      Launch this agent
+    </Button>
+  );
 }
 
 AgentLaunchButton.Skeleton = function AgentLaunchButtonSkeleton() {

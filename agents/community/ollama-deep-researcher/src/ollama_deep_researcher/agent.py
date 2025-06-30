@@ -2,7 +2,8 @@ import os
 from textwrap import dedent
 from typing import AsyncIterator
 
-from acp_sdk import Metadata, Message, Link, LinkType, MessagePart
+from acp_sdk import Annotations, Metadata, Message, Link, LinkType, MessagePart, PlatformUIAnnotation
+from acp_sdk.models.platform import PlatformUIType
 from acp_sdk.server import Server
 from openinference.instrumentation.langchain import LangChainInstrumentor
 from pydantic import AnyUrl
@@ -17,6 +18,13 @@ server = Server()
 
 @server.agent(
     metadata=Metadata(
+        annotations=Annotations(
+            beeai_ui=PlatformUIAnnotation(
+                ui_type=PlatformUIType.HANDSOFF,
+                user_greeting="What topic do you want to research?",
+                display_name="Ollama Deep Researcher",
+            ),
+        ),
         programming_language="Python",
         license="Apache 2.0",
         framework="LangGraph",
@@ -65,23 +73,6 @@ server = Server()
             {"name": "LLM_API_BASE", "description": "Base URL for OpenAI-compatible API endpoint"},
             {"name": "LLM_API_KEY", "description": "API key for OpenAI-compatible API endpoint"},
         ],
-        ui={"type": "hands-off", "user_greeting": "What topic do you want to research?"},
-        examples={
-            "cli": [
-                {
-                    "command": 'beeai run ollama_deep_researcher "Advancements in quantum computing"',
-                    "description": "Running a Research Query",
-                    "processing_steps": [
-                        'Generates a query: "Recent breakthroughs in quantum computing hardware"',
-                        "Searches the web using Tavily",
-                        "Summarizes retrieved data",
-                        'Reflects on missing insights, generating a follow-up query: "How do quantum error correction techniques improve stability?"',
-                        "Repeats the search-summarization cycle until the iteration limit is reached",
-                        "Outputs a structured summary with cited sources",
-                    ],
-                }
-            ]
-        },
     )
 )
 async def ollama_deep_researcher(input: list[Message]) -> AsyncIterator:

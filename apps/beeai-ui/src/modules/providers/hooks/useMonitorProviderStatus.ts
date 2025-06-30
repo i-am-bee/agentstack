@@ -1,17 +1,6 @@
 /**
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import { useQueryClient } from '@tanstack/react-query';
@@ -19,45 +8,56 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { useToast } from '#contexts/Toast/index.ts';
 import { TaskType, useTasks } from '#hooks/useTasks.ts';
-import { agentKeys } from '#modules/agents/api/keys.ts';
-import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
-import { useAgentStatus } from '#modules/agents/hooks/useAgentStatus.ts';
+import { useListProviderAgents } from '#modules/agents/api/queries/useListProviderAgents.ts';
+import { useProviderStatus } from '#modules/agents/hooks/useProviderStatus.ts';
+import { getAgentUiMetadata } from '#modules/agents/utils.ts';
+
+import { providerKeys } from '../api/keys';
 
 interface Props {
   id?: string;
+  isEnabled?: boolean;
 }
 
-export function useMonitorProvider({ id }: Props) {
+export function useMonitorProviderStatus({ id, isEnabled }: Props) {
   const [isDone, setIsDone] = useState(false);
   const queryClient = useQueryClient();
   const { addToast } = useToast();
   const { addTask, removeTask } = useTasks();
 
-  const { refetch: refetchStatus } = useAgentStatus({ providerId: id });
-  const { data: agents } = useListAgents();
+  const { refetch: refetchStatus, ...agentStatusReturn } = useProviderStatus({ providerId: id });
+  const { data: agents } = useListProviderAgents({ providerId: id });
+
+  const { isStarting, isNotInstalled } = agentStatusReturn;
+
+  const shouldMonitorStatus = isEnabled && !isDone && (isStarting || isNotInstalled);
 
   const checkProvider = useCallback(async () => {
-    const { isReady, isInstallError } = await refetchStatus();
+    const { isReady, isError } = await refetchStatus();
 
     if (isReady) {
-      agents?.forEach(({ name }) => {
+      agents?.forEach((agent) => {
+        const { display_name } = getAgentUiMetadata(agent);
+
         addToast({
-          title: `${name} has installed successfully.`,
+          title: `${display_name} has installed successfully.`,
           kind: 'info',
           timeout: 5_000,
         });
       });
-    } else if (isInstallError) {
-      agents?.forEach(({ name }) => {
+    } else if (isError) {
+      agents?.forEach((agent) => {
+        const { display_name } = getAgentUiMetadata(agent);
+
         addToast({
-          title: `${name} failed to install.`,
+          title: `${display_name} failed to install.`,
           timeout: 5_000,
         });
       });
     }
 
-    if (isReady || isInstallError) {
-      queryClient.invalidateQueries({ queryKey: agentKeys.lists() });
+    if (isReady || isError) {
+      queryClient.invalidateQueries({ queryKey: providerKeys.lists() });
 
       if (id) {
         removeTask({ id, type: TaskType.ProviderStatusCheck });
@@ -65,22 +65,24 @@ export function useMonitorProvider({ id }: Props) {
 
       setIsDone(true);
     }
-  }, [id, agents, queryClient, refetchStatus, addToast, removeTask]);
+  }, [refetchStatus, agents, addToast, queryClient, id, removeTask]);
 
   useEffect(() => {
-    if (id && !isDone) {
+    if (id && shouldMonitorStatus) {
       addTask({
-        id,
+        id: id,
         type: TaskType.ProviderStatusCheck,
         task: checkProvider,
         delay: CHECK_PROVIDER_STATUS_INTERVAL,
       });
 
       return () => {
-        removeTask({ id, type: TaskType.ProviderStatusCheck });
+        removeTask({ id: id, type: TaskType.ProviderStatusCheck });
       };
     }
-  }, [id, isDone, addTask, removeTask, checkProvider]);
+  }, [addTask, checkProvider, id, removeTask, shouldMonitorStatus]);
+
+  return agentStatusReturn;
 }
 
 const CHECK_PROVIDER_STATUS_INTERVAL = 2000;

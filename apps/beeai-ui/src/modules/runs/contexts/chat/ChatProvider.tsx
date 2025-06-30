@@ -1,17 +1,6 @@
 /**
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import isString from 'lodash/isString';
@@ -22,20 +11,34 @@ import { v4 as uuid } from 'uuid';
 import { useImmerWithGetter } from '#hooks/useImmerWithGetter.ts';
 import { usePrevious } from '#hooks/usePrevious.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
-import { type AssistantMessage, type ChatMessage, MessageStatus } from '#modules/runs/chat/types.ts';
+import { type MessagePartMetadata, MetadataKind } from '#modules/runs/api/types.ts';
+import {
+  type AssistantMessage,
+  type ChatMessage,
+  type CitationTransform,
+  MessageContentTransformType,
+  MessageStatus,
+} from '#modules/runs/chat/types.ts';
+import { prepareMessageFiles } from '#modules/runs/files/utils.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
+import { SourcesProvider } from '#modules/runs/sources/contexts/SourcesProvider.tsx';
+import { extractSources, prepareMessageSources } from '#modules/runs/sources/utils.ts';
+import { prepareTrajectories } from '#modules/runs/trajectory/utils.ts';
 import { Role } from '#modules/runs/types.ts';
 import {
+  applyContentTransforms,
+  createCitationTransform,
   createFileMessageParts,
+  createImageTransform,
   createMessagePart,
   extractValidUploadFiles,
   isArtifactPart,
   mapToMessageFiles,
 } from '#modules/runs/utils.ts';
 import { isImageContentType } from '#utils/helpers.ts';
-import { toMarkdownImage } from '#utils/markdown.ts';
 
 import { useFileUpload } from '../../files/contexts';
+import { AgentProvider } from '../agent/AgentProvider';
 import { ChatContext, ChatMessagesContext } from './chat-context';
 
 interface Props {
@@ -49,7 +52,7 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
   const { isPending, runAgent, stopAgent, reset } = useRunAgent({
     onMessagePart: (event) => {
       const { part } = event;
-      const { content, content_type, content_url } = part;
+      const { content, content_type, content_url, metadata } = part;
 
       const isArtifact = isArtifactPart(part);
       const hasFile = isString(content_url);
@@ -59,31 +62,38 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
       if (isArtifact) {
         if (hasFile) {
           updateLastAssistantMessage((message) => {
-            const files = [
-              ...(message.files ?? []),
-              {
-                key: uuid(),
-                filename: part.name,
-                href: content_url,
-              },
-            ];
-
-            message.files = files;
+            message.files = prepareMessageFiles({ files: message.files, data: part });
           });
         }
       }
 
       if (hasContent) {
         updateLastAssistantMessage((message) => {
-          message.content += content;
+          message.rawContent += content;
         });
       }
 
       if (hasImage) {
         updateLastAssistantMessage((message) => {
-          message.content += toMarkdownImage(content_url);
+          message.contentTransforms.push(
+            createImageTransform({
+              imageUrl: content_url,
+              insertAt: message.rawContent.length,
+            }),
+          );
         });
       }
+
+      if (metadata) {
+        processMetadata(metadata as MessagePartMetadata);
+      }
+
+      updateLastAssistantMessage((message) => {
+        message.content = applyContentTransforms({
+          rawContent: message.rawContent,
+          transforms: message.contentTransforms,
+        });
+      });
     },
     onMessageCompleted: () => {
       updateLastAssistantMessage((message) => {
@@ -100,6 +110,8 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
     },
   });
 
+  const sourcesData = useMemo(() => extractSources(messages), [messages]);
+
   const updateLastAssistantMessage = useCallback(
     (updater: (message: AssistantMessage) => void) => {
       setMessages((messages) => {
@@ -111,6 +123,42 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
       });
     },
     [setMessages],
+  );
+
+  const processMetadata = useCallback(
+    (metadata: MessagePartMetadata) => {
+      switch (metadata.kind) {
+        case MetadataKind.Citation:
+          updateLastAssistantMessage((message) => {
+            const { sources, newSource } = prepareMessageSources({ message, metadata });
+
+            const citationTransformGroup = message.contentTransforms.find(
+              (transform): transform is CitationTransform =>
+                transform.kind === MessageContentTransformType.Citation &&
+                transform.startIndex === newSource.startIndex,
+            );
+
+            message.sources = sources;
+
+            if (citationTransformGroup) {
+              citationTransformGroup.sources.push(newSource);
+            } else {
+              message.contentTransforms.push(createCitationTransform({ source: newSource }));
+            }
+          });
+
+          break;
+        case MetadataKind.Trajectory:
+          updateLastAssistantMessage((message) => {
+            message.trajectories = prepareTrajectories({ trajectories: message.trajectories, data: metadata });
+          });
+
+          break;
+        default:
+          break;
+      }
+    },
+    [updateLastAssistantMessage],
   );
 
   const handleError = useCallback(
@@ -142,6 +190,8 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
           key: uuid(),
           role: Role.Assistant,
           content: '',
+          rawContent: '',
+          contentTransforms: [],
           status: MessageStatus.InProgress,
         });
       });
@@ -182,8 +232,14 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
   );
 
   return (
-    <ChatContext.Provider value={contextValue}>
-      <ChatMessagesContext.Provider value={messages}>{children}</ChatMessagesContext.Provider>
-    </ChatContext.Provider>
+    <SourcesProvider sourcesData={sourcesData}>
+      <ChatContext.Provider value={contextValue}>
+        <ChatMessagesContext.Provider value={messages}>
+          <AgentProvider agent={agent} isMonitorStatusEnabled={isPending}>
+            {children}
+          </AgentProvider>
+        </ChatMessagesContext.Provider>
+      </ChatContext.Provider>
+    </SourcesProvider>
   );
 }

@@ -5,23 +5,22 @@ description: "Getting started with BeeAI on your system"
 
 BeeAI can be installed and used locally through the BeeAI CLI. Internally, this creates an automatically managed virtual machine for running agents. We offer support for macOS, Linux and Windows.
 
-<Warning>
-
-BeeAI may not function properly on out-of-support operating systems, like macOS 12 or Windows 8.
-
-</Warning>
-
 <Tabs>
 <Tab title="macOS">
+<Warning>
+
+BeeAI requires macOS 13 (Ventura) or later.
+
+</Warning>
 <Steps>
 <Step title="Install uv">
 
-If you don't have `uv` installed, install it using one of the supported ways:
-
-<Tabs>
-<Tab title="Installation script">
+If you don't have `uv` installed, install it using one of the supported ways.
 
 Open a terminal and run:
+
+<Tabs>
+<Tab title="Installation script (recommended)">
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -30,14 +29,16 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 </Tab>
 <Tab title="Homebrew">
 
-Open a terminal and run:
-
 ```bash
 brew install uv
+uv tool update-shell
 ```
 
 </Tab>
 </Tabs>
+
+After this, close the terminal and re-open it.
+
 </Step>
 <Step title="Install BeeAI">
 
@@ -91,7 +92,7 @@ Starting up an agent for a first time may take a few minutes. If everything is s
 If you don't have `uv` installed, install it through one of the available ways:
 
 <Tabs>
-<Tab title="Installation script">
+<Tab title="Installation script (recommended)">
 
 Open a terminal and run:
 
@@ -103,15 +104,21 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 <Tab title="Package manager">
 
 Some Linux distributions package `uv`, but beware that some may include outdated versions.
-
 Check the [Repology website](https://repology.org/project/uv/versions) to see if your distribution packages `uv`.
-
 Alternatively, you may install `uv` using `pipx` or `cargo` according to the [official installation instructions](https://docs.astral.sh/uv/getting-started/installation/).
-
 If in doubt, just use the installation script.
+
+After installing `uv`, run this to update your PATH:
+
+```bash
+uv tool update-shell
+```
 
 </Tab>
 </Tabs>
+
+After this, close the terminal and re-open it.
+
 </Step>
 <Step title="Install QEMU">
 
@@ -167,6 +174,16 @@ Starting up an agent for a first time may take a few minutes. If everything is s
 </Steps>
 </Tab>
 <Tab title="Windows">
+<Warning>
+
+BeeAI requires Windows 11 22H2 or later.
+
+</Warning>
+<Info>
+
+These steps guide you through installing BeeAI in PowerShell. If you wish, you may work in a WSL distribution instead. In that case, simply switch to the Linux instructions and skip installing QEMU.
+
+</Info>
 <Steps>
 <Step title="Install uv">
 
@@ -175,7 +192,7 @@ If you don't have `uv` installed, install it using one of the supported ways.
 Open PowerShell and run:
 
 <Tabs>
-<Tab title="Installation script">
+<Tab title="Installation script (recommended)">
 
 ```bash
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
@@ -185,7 +202,8 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 <Tab title="Winget">
 
 ```bash
-winget install --id=astral-sh.uv -e
+winget install astral-sh.uv
+uv tool update-shell
 ```
 
 </Tab>
@@ -193,6 +211,7 @@ winget install --id=astral-sh.uv -e
 
 ```bash
 scoop install uv
+uv tool update-shell
 ```
 
 </Tab>
@@ -200,10 +219,13 @@ scoop install uv
 
 ```bash
 choco install uv
+uv tool update-shell
 ```
 
 </Tab>
 </Tabs>
+
+After this, close the terminal and re-open it.
 
 </Step>
 <Step title="Install BeeAI">
@@ -216,12 +238,6 @@ uv tool install beeai-cli
 
 <Step title="Start the BeeAI platform">
 
-<Warning>
-
-This command needs PowerShell to be opened as Administrator. Press the `Win+X` key combination, and you will see this option in the menu that pops up.
-
-</Warning>
-
 ```bash
 beeai platform start
 ```
@@ -232,20 +248,6 @@ beeai platform start
 BeeAI needs an LLM provider for the agents -- like OpenAI, Ollama, Anthropic, etc.
 
 If you don't already have an API key for a provider, you can register for a free one on [OpenRouter](https://openrouter.ai/).
-
-<Accordion title="Want to use Ollama?">
-
-You can use [Ollama for Windows](https://ollama.com/download/windows) with the BeeAI platform, but it needs one extra step.
-
-Run this command in PowerShell (needs Administrator rights, same as previous step):
-
-```bash
-setx OLLAMA_HOST "0.0.0.0" /M
-```
-
-After this, if Ollama is already running, right-click the icon in tray and quit it. Then start Ollama again.
-
-</Accordion>
 
 Run this command and follow the interactive prompts:
 
@@ -279,7 +281,7 @@ Starting up an agent for a first time may take a few minutes. If everything is s
 <Step title="Upgrade BeeAI">
 
 ```bash
-uv tool upgrade beeai
+uv tool upgrade beeai-cli
 ```
 
 </Step>
@@ -309,7 +311,7 @@ beeai platform delete
 <Step title="Uninstall the BeeAI platform">
 
 ```bash
-uv tool uninstall beeai
+uv tool uninstall beeai-cli
 ```
 
 </Step>

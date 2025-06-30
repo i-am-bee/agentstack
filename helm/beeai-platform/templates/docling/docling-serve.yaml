@@ -1,0 +1,84 @@
+{{-  if .Values.docling.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: docling-serve
+  labels:
+    app: docling-serve
+    {{- include "beeai-platform.labels" . | nindent 4 }}
+spec:
+  ports:
+    - name: http
+      port: {{ .Values.docling.service.port }}
+      targetPort: http
+  selector:
+    app: docling-serve
+    component: docling-serve-api
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: docling-serve
+  labels:
+    app: docling-serve
+    component: docling-serve-api
+    {{- include "beeai-platform.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: docling-serve
+      component: docling-serve-api
+      {{- include "beeai-platform.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.docling.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        app: docling-serve
+        component: docling-serve-api
+        {{- include "beeai-platform.labels" . | nindent 8 }}
+        {{- with .Values.docling.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- if .Values.hostNetwork }}
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- end }}
+      restartPolicy: Always
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.docling.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: api
+          {{- with .Values.docling.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.docling.readinessProbe }}
+          readinessProbe:
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.docling.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: DOCLING_SERVE_ENABLE_UI
+              value: {{ .Values.docling.ui.enabled | quote }}
+            - name: UVICORN_PORT
+              value: "15001"
+          ports:
+            - name: http
+              containerPort: 15001
+              protocol: TCP
+          imagePullPolicy: {{ .Values.docling.imagePullPolicy }}
+          image: {{ .Values.docling.image }}
+{{- end }}

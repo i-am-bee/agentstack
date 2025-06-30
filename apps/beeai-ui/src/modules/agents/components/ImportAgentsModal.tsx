@@ -1,17 +1,6 @@
 /**
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import {
@@ -40,7 +29,8 @@ import { ProviderSourcePrefixes } from '#modules/providers/constants.ts';
 import { ProviderSource } from '#modules/providers/types.ts';
 
 import { useListProviderAgents } from '../api/queries/useListProviderAgents';
-import { useAgentStatus } from '../hooks/useAgentStatus';
+import { useProviderStatus } from '../hooks/useProviderStatus';
+import { getAgentUiMetadata } from '../utils';
 import classes from './ImportAgentsModal.module.scss';
 
 /**
@@ -49,7 +39,7 @@ import classes from './ImportAgentsModal.module.scss';
 export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps) {
   const id = useId();
   const [registeredProviderId, setRegisteredProviderId] = useState<string>();
-  const { isNotInstalled, isInstallError, isReady } = useAgentStatus({ providerId: registeredProviderId });
+  const { isNotInstalled, isError, isReady } = useProviderStatus({ providerId: registeredProviderId });
   const { data: agents } = useListProviderAgents({ providerId: registeredProviderId });
 
   const agentsCount = agents?.length ?? 0;
@@ -134,14 +124,18 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
               </FormLabel>
 
               <UnorderedList>
-                {agents?.map((agent) => <ListItem key={agent.name}>{agent.name}</ListItem>)}
+                {agents?.map((agent) => {
+                  const { display_name } = getAgentUiMetadata(agent);
+
+                  return <ListItem key={agent.name}>{display_name}</ListItem>;
+                })}
               </UnorderedList>
             </div>
           )}
 
           {isPending && <InlineLoading description="Installing agents&hellip;" />}
 
-          {isInstallError && <ErrorMessage subtitle="Agents failed to install." />}
+          {isError && <ErrorMessage subtitle="Agents failed to install." />}
         </form>
       </ModalBody>
 

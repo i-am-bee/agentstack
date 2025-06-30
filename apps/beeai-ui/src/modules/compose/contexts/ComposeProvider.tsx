@@ -1,17 +1,6 @@
 /**
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import type { PropsWithChildren } from 'react';
@@ -34,7 +23,7 @@ import type { ComposeStep, SequentialFormValues } from './compose-context';
 import { ComposeContext, ComposeStatus } from './compose-context';
 
 export function ComposeProvider({ children }: PropsWithChildren) {
-  const { data: availableAgents } = useListAgents();
+  const { data: agents } = useListAgents({ onlyUiSupported: true, sort: true });
   const [searchParams, setSearchParams] = useSearchParams();
   const errorHandler = useHandleError();
 
@@ -53,16 +42,16 @@ export function ComposeProvider({ children }: PropsWithChildren) {
   let lastAgentIdx = 0;
 
   useEffect(() => {
-    if (!availableAgents || steps.length === previousSteps.length) return;
+    if (!agents || steps.length === previousSteps.length) return;
 
     setSearchParams((searchParams) => {
       searchParams.set(SEQUENTIAL_WORKFLOW_AGENTS_URL_PARAM, steps.map(({ agent }) => agent.name).join(','));
       return searchParams;
     });
-  }, [availableAgents, previousSteps.length, setSearchParams, steps]);
+  }, [agents, previousSteps.length, setSearchParams, steps]);
 
   useEffect(() => {
-    if (!availableAgents) return;
+    if (!agents) return;
 
     const agentNames = searchParams
       .get(SEQUENTIAL_WORKFLOW_AGENTS_URL_PARAM)
@@ -72,13 +61,13 @@ export function ComposeProvider({ children }: PropsWithChildren) {
       replaceSteps(
         agentNames
           .map((name) => {
-            const agent = availableAgents.find((agent) => name === agent.name);
+            const agent = agents.find((agent) => name === agent.name);
             return agent ? { agent, instruction: '' } : null;
           })
           .filter(isNotNull),
       );
     }
-  }, [availableAgents, replaceSteps, searchParams, steps.length]);
+  }, [agents, replaceSteps, searchParams, steps.length]);
 
   const { isPending, runAgent, stopAgent, reset } = useRunAgent({
     onMessagePart: (event) => {

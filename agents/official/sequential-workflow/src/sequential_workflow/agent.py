@@ -86,16 +86,7 @@ server = Server()
             - **Validation**: Ensures that each agent in the sequence is available and compatible with the expected input schema.
             - **Progress Reporting**: Provides detailed logs and progress updates throughout the workflow execution.
             """
-        ),
-        examples={
-            "cli": [
-                {
-                    "name": "Compose agents",
-                    "command": "beeai run sequential_workflow",
-                    "input": "Long article text here...",
-                },
-            ]
-        },
+        )
     )
 )
 async def sequential_workflow(input: list[Message]) -> AsyncIterator:

@@ -47,7 +47,7 @@ outputs = { auto = true }
 
 ["beeai-cli:run"]
 description = "NOTE: Use double dash to pass extra args, like `mise beeai-cli:run -- provider list`"
-depends = ["setup:uv", "helm:build:beeai-platform"]
+depends = ["setup:uv", "beeai-cli:build:copy-helm-chart"]
 dir = "{{cwd}}"
 run = "(rm {{config_root}}/apps/beeai-cli/src/beeai_cli/data/*.tgz 2>/dev/null || true) && cp {{config_root}}/helm/beeai-platform-*.tgz {{config_root}}/apps/beeai-cli/src/beeai_cli/data/helm-chart.tgz && uv run beeai"
 
@@ -60,10 +60,10 @@ set -e
 LIMA_VERSION=$(cat .lima-version)
 mkdir -p ./vendor
 echo '*' >./vendor/.gitignore
-( test -f ./vendor/lima-$LIMA_VERSION/manylinux_2_28_x86_64/bin/limactl  || ( mkdir -p ./vendor/lima-$LIMA_VERSION/manylinux_2_28_x86_64  && curl -sSL https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Linux-x86_64.tar.gz  | tar -xzf - -C ./vendor/lima-$LIMA_VERSION/manylinux_2_28_x86_64  )) &
-( test -f ./vendor/lima-$LIMA_VERSION/manylinux_2_28_aarch64/bin/limactl || ( mkdir -p ./vendor/lima-$LIMA_VERSION/manylinux_2_28_aarch64 && curl -sSL https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Linux-aarch64.tar.gz | tar -xzf - -C ./vendor/lima-$LIMA_VERSION/manylinux_2_28_aarch64 )) &
-( test -f ./vendor/lima-$LIMA_VERSION/macosx_12_0_x86_64/bin/limactl     || ( mkdir -p ./vendor/lima-$LIMA_VERSION/macosx_12_0_x86_64     && curl -sSL https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Darwin-x86_64.tar.gz | tar -xzf - -C ./vendor/lima-$LIMA_VERSION/macosx_12_0_x86_64     )) &
-( test -f ./vendor/lima-$LIMA_VERSION/macosx_12_0_arm64/bin/limactl      || ( mkdir -p ./vendor/lima-$LIMA_VERSION/macosx_12_0_arm64      && curl -sSL https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Darwin-arm64.tar.gz  | tar -xzf - -C ./vendor/lima-$LIMA_VERSION/macosx_12_0_arm64      )) &
+( test -f ./vendor/lima-$LIMA_VERSION/manylinux_2_28_x86_64/bin/limactl  || ( mkdir -p ./vendor/lima-$LIMA_VERSION/manylinux_2_28_x86_64  && curl -fsL -H "Authorization: Bearer $GITHUB_TOKEN" https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Linux-x86_64.tar.gz  | tar -xzf - -C ./vendor/lima-$LIMA_VERSION/manylinux_2_28_x86_64  )) &
+( test -f ./vendor/lima-$LIMA_VERSION/manylinux_2_28_aarch64/bin/limactl || ( mkdir -p ./vendor/lima-$LIMA_VERSION/manylinux_2_28_aarch64 && curl -fsL -H "Authorization: Bearer $GITHUB_TOKEN" https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Linux-aarch64.tar.gz | tar -xzf - -C ./vendor/lima-$LIMA_VERSION/manylinux_2_28_aarch64 )) &
+( test -f ./vendor/lima-$LIMA_VERSION/macosx_12_0_x86_64/bin/limactl     || ( mkdir -p ./vendor/lima-$LIMA_VERSION/macosx_12_0_x86_64     && curl -fsL -H "Authorization: Bearer $GITHUB_TOKEN" https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Darwin-x86_64.tar.gz | tar -xzf - -C ./vendor/lima-$LIMA_VERSION/macosx_12_0_x86_64     )) &
+( test -f ./vendor/lima-$LIMA_VERSION/macosx_12_0_arm64/bin/limactl      || ( mkdir -p ./vendor/lima-$LIMA_VERSION/macosx_12_0_arm64      && curl -fsL -H "Authorization: Bearer $GITHUB_TOKEN" https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Darwin-arm64.tar.gz  | tar -xzf - -C ./vendor/lima-$LIMA_VERSION/macosx_12_0_arm64      )) &
 wait
 '''
 
@@ -71,6 +71,8 @@ wait
 depends = ["helm:build:beeai-platform"]
 dir = "{{config_root}}/apps/beeai-cli"
 run = "rm -f ./src/beeai_cli/data/helm-chart.tgz && cp {{config_root}}/helm/beeai-platform-*.tgz ./src/beeai_cli/data/helm-chart.tgz"
+sources = ["{{config_root}}/helm/beeai-platform-*.tgz"]
+outputs = ["./src/beeai_cli/data/helm-chart.tgz"]
 
 ["beeai-cli:build"]
 depends = ["setup:uv", "beeai-cli:build:*"]
@@ -107,7 +109,8 @@ build_wheel manylinux_2_28_x86_64  x86_64  &
 build_wheel manylinux_2_28_aarch64 aarch64 &
 build_wheel macosx_12_0_x86_64     x86_64  &
 build_wheel macosx_12_0_arm64      aarch64 &
-wait
+
+for job in $(jobs -p); do wait $job; done
 '''
 
 # clean

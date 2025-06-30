@@ -1,17 +1,6 @@
 /**
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 'use client';
@@ -31,9 +20,9 @@ import { fadeProps } from '#utils/fadeProps.ts';
 
 import type { Agent } from '../api/types';
 import { AgentLaunchButton } from '../detail/AgentLaunchButton';
+import { getAgentUiMetadata } from '../utils';
 import classes from './AgentDetail.module.scss';
 import { AgentDetailSection } from './AgentDetailSection';
-import { AgentExampleRequests } from './AgentExampleRequests';
 import { AgentMetadata } from './AgentMetadata';
 import { AgentTags } from './AgentTags';
 import { BeeBadge } from './BeeBadge';
@@ -44,13 +33,17 @@ interface Props {
 }
 
 export function AgentDetail({ agent, buttons }: Props) {
-  const { name, description, metadata } = agent;
-  const { examples, documentation } = metadata;
-  const exampleCommand = examples?.cli?.at(0)?.command ?? examples?.command;
+  const {
+    name,
+    description,
+    metadata: { documentation },
+  } = agent;
+  const { display_name } = getAgentUiMetadata(agent);
+
   return (
     <div className={classes.root}>
       <motion.header {...fadeInPropsWithMarginShift({ start: { from: spacing[4] } })} className={classes.header}>
-        <h1 className={classes.name}>{agent.name}</h1>
+        <h1 className={classes.name}>{display_name}</h1>
 
         <BeeBadge agent={agent} size="lg" />
       </motion.header>
@@ -72,7 +65,7 @@ export function AgentDetail({ agent, buttons }: Props) {
         {buttons}
       </motion.div>
 
-      {(exampleCommand || documentation) && (
+      {documentation && (
         <motion.hr
           {...fadeInPropsWithMarginShift({
             start: { from: spacing[7], to: spacing[6] },
@@ -80,18 +73,6 @@ export function AgentDetail({ agent, buttons }: Props) {
           })}
           className={classes.divider}
         />
-      )}
-
-      {exampleCommand && (
-        <motion.div
-          {...fadeInPropsWithMarginShift({
-            end: { from: spacing[10], to: spacing[9] },
-          })}
-        >
-          <AgentDetailSection title="Example requests">
-            <AgentExampleRequests cli={exampleCommand} />
-          </AgentDetailSection>
-        </motion.div>
       )}
 
       {documentation && (

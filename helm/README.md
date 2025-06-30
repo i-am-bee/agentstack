@@ -30,16 +30,12 @@ features:
 auth:
   enabled: true
   admin_password: "my-secret-password"
-
-# Help us improve the platform by sharing anonymized telemetry data
-telemetry:
-  sharing: true
 ```
 
 Then install the chart using
 
 ```shell
-helm install -f config.yaml beeai oci://ghcr.io/i-am-bee/beeai-platform/beeai-platform-chart/beeai-platform:0.2.8
+helm install -f config.yaml beeai oci://ghcr.io/i-am-bee/beeai-platform/beeai-platform-chart/beeai-platform:0.2.9
 ```
 
 After the beeai-platform becomes ready, it's necessary to configure the LLM provider. We will use the `admin-password`

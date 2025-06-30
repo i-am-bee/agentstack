@@ -1,17 +1,6 @@
 /**
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import { Loading } from '@carbon/react';
@@ -20,6 +9,7 @@ import { ErrorMessage } from '#components/ErrorMessage/ErrorMessage.tsx';
 import { Container } from '#components/layouts/Container.tsx';
 import { MainContent } from '#components/layouts/MainContent.tsx';
 import { type Agent, UiType } from '#modules/agents/api/types.ts';
+import { getAgentUiMetadata } from '#modules/agents/utils.ts';
 
 import { useAgent } from '../../agents/api/queries/useAgent';
 import { Chat } from '../chat/Chat';
@@ -61,9 +51,9 @@ export function AgentRun({ name }: Props) {
 }
 
 const renderUi = ({ agent }: { agent: Agent }) => {
-  const type = agent.metadata.ui?.type;
+  const { ui_type, display_name } = getAgentUiMetadata(agent);
 
-  switch (type) {
+  switch (ui_type) {
     case UiType.Chat:
       return (
         <FileUploadProvider key={agent.name}>
@@ -84,10 +74,10 @@ const renderUi = ({ agent }: { agent: Agent }) => {
       return (
         <MainContent>
           <Container size="sm">
-            <h1>{agent.name}</h1>
+            <h1>{display_name}</h1>
             <div className={classes.uiNotAvailable}>
-              {type
-                ? `The UI requested by the agent is not available: '${type}'`
+              {ui_type
+                ? `The UI requested by the agent is not available: '${ui_type}'`
                 : `The agent doesn’t have a defined UI.`}
             </div>
           </Container>

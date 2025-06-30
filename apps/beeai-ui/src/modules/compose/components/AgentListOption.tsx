@@ -1,17 +1,6 @@
 /**
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import { SkeletonText } from '@carbon/react';
@@ -22,6 +11,7 @@ import { TagsList } from '#components/TagsList/TagsList.tsx';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { AgentTags } from '#modules/agents/components/AgentTags.tsx';
 import { BeeBadge } from '#modules/agents/components/BeeBadge.tsx';
+import { getAgentUiMetadata } from '#modules/agents/utils.ts';
 
 import classes from './AgentListOption.module.scss';
 
@@ -30,11 +20,13 @@ interface Props {
   onClick: (event: MouseEvent) => void;
 }
 export function AgentListOption({ agent, onClick }: Props) {
+  const { display_name } = getAgentUiMetadata(agent);
+
   return (
     <li className={classes.root} role="option" onClick={onClick}>
       <div className={classes.content}>
         <div className={classes.name}>
-          <span>{agent.name}</span>
+          <span>{display_name}</span>
 
           <BeeBadge agent={agent} />
         </div>

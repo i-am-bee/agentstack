@@ -1,22 +1,12 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0
 
 import logging
 import pathlib
-from contextlib import asynccontextmanager, nullcontext
+from contextlib import asynccontextmanager
 from typing import Iterable
 
+import procrastinate
 from acp_sdk import ACPError
 from acp_sdk.server.errors import (
     acp_error_handler,
@@ -26,6 +16,7 @@ from acp_sdk.server.errors import (
 )
 from starlette.requests import Request
 
+from beeai_server.run_workers import run_workers
 from beeai_server.utils.fastapi import NoCacheStaticFiles
 from fastapi import FastAPI, APIRouter
 from fastapi import HTTPException
@@ -164,7 +155,7 @@ def register_telemetry():
     # meter.create_observable_gauge("providers_by_status", callbacks=[scrape_providers_by_status])
 
 
-def app(*, dependency_overrides: Container | None = None, enable_crons: bool = True) -> FastAPI:
+def app(*, dependency_overrides: Container | None = None) -> FastAPI:
     """Entrypoint for API application, called by Uvicorn"""
 
     logger.info("Bootstrapping dependencies...")
@@ -173,16 +164,17 @@ def app(*, dependency_overrides: Container | None = None, enable_crons: bool = T
 
     @asynccontextmanager
     @inject
-    async def lifespan(_app: FastAPI):
-        from beeai_server.utils.periodic import run_all_crons
-
-        register_telemetry()
-
-        async with run_all_crons() if enable_crons else nullcontext():
-            try:
-                yield
-            finally:
-                shutdown_telemetry()
+    async def lifespan(_app: FastAPI, procrastinate_app: procrastinate.App):
+        try:
+            register_telemetry()
+            async with procrastinate_app.open_async(), run_workers(app=procrastinate_app):
+                try:
+                    yield
+                finally:
+                    shutdown_telemetry()
+        except Exception as e:
+            logger.error("Error during startup: %s", repr(extract_messages(e)))
+            raise
 
     app = FastAPI(
         lifespan=lifespan,

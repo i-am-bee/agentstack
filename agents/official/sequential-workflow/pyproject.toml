@@ -1,10 +1,12 @@
 [project]
 name = "sequential-workflow"
 version = "0.1.0"
-authors = [{ name = "IBM Corp." }]
+authors = [
+    { name = "IBM Corp." },
+]
 requires-python = ">=3.11,<3.12"
 dependencies = [
-    "acp-sdk>=0.8.1",
+    "acp-sdk==0.12.1",
     "pyyaml>=6.0.2",
 ]
 
@@ -12,5 +14,7 @@ dependencies = [
 server = "sequential_workflow.agent:run"
 
 [build-system]
-requires = ["hatchling"]
+requires = [
+    "hatchling",
+]
 build-backend = "hatchling.build"

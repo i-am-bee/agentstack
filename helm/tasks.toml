@@ -44,3 +44,4 @@ depends = ["helm:build:beeai-platform:dependencies"]
 dir = "{{config_root}}/helm"
 run = "helm package beeai-platform --app-version $(python -c \"import tomllib; print(tomllib.load(open('../apps/beeai-server/pyproject.toml', 'rb'))['project']['version'])\")"
 sources = ["beeai-platform/**/*", "../apps/beeai-server/pyproject.toml"]
+outputs = ["*.tgz"]

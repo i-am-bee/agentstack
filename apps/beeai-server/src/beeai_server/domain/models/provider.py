@@ -1,16 +1,5 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0
 
 import base64
 import hashlib
@@ -25,7 +14,7 @@ from uuid import UUID
 
 import yaml
 
-from acp_sdk import Agent as AcpAgent
+from acp_sdk import AgentManifest as AcpAgent
 
 from beeai_server.configuration import Configuration
 from beeai_server.domain.constants import DOCKER_MANIFEST_LABEL_NAME
@@ -79,7 +68,7 @@ class NetworkProviderLocation(RootModel):
     def _replace_localhost_url(cls, data: Any, handler: ModelWrapValidatorHandler):
         configuration = di[Configuration]
         url: NetworkProviderLocation = handler(data)
-        if configuration.self_registration_use_local_network:
+        if configuration.provider.self_registration_use_local_network:
             url.root = HttpUrl(re.sub(r"host.docker.internal", "localhost", str(url.root)))
         else:
             # localhost does not make sense in k8s environment, replace it with host.docker.internal for backward compatibility

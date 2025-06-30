@@ -1,16 +1,5 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0
 
 from typing import TYPE_CHECKING
 from uuid import UUID
@@ -39,12 +28,16 @@ class EntityNotFoundError(Exception):
     entity: str
     status_code: int
     id: UUID | str
+    attribute: str
 
-    def __init__(self, entity: str, id: UUID | str, status_code: int = status.HTTP_404_NOT_FOUND):
+    def __init__(
+        self, entity: str, id: UUID | str, status_code: int = status.HTTP_404_NOT_FOUND, attribute: str = "id"
+    ):
         self.entity = entity
         self.id = id
+        self.attribute = attribute
         self.status_code = status_code
-        super().__init__(f"{entity} with id {id} not found")
+        super().__init__(f"{entity} with {attribute} {id} not found")
 
 
 class MissingConfigurationError(Exception):

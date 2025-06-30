@@ -18,6 +18,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
       - run: mise beeai-cli:build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: apps/beeai-cli/dist

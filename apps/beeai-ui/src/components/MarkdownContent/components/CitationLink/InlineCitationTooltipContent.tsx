@@ -1,0 +1,39 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { ArrowUpRight } from '@carbon/icons-react';
+
+import type { ResolvedSource } from '#modules/runs/sources/api/types.ts';
+
+import classes from './InlineCitationTooltipContent.module.scss';
+
+interface Props {
+  source: ResolvedSource;
+}
+
+export function InlineCitationTooltipContent({ source }: Props) {
+  const {
+    url,
+    metadata: { title, description, faviconUrl },
+  } = source;
+
+  return (
+    <div className={classes.root}>
+      <h2 className={classes.heading}>
+        {faviconUrl && <img src={faviconUrl} className={classes.favicon} />}
+
+        <a href={url} target="_blank" rel="noreferrer" className={classes.title}>
+          {title}
+        </a>
+
+        <ArrowUpRight className={classes.icon} />
+      </h2>
+
+      {description && <p className={classes.description}>{description}</p>}
+
+      <p className={classes.url}>{url}</p>
+    </div>
+  );
+}

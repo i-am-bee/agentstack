@@ -1,17 +1,6 @@
 /**
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import { ArrowDown } from '@carbon/icons-react';
@@ -24,6 +13,8 @@ import { AgentGreeting } from '#modules/agents/components/AgentGreeting.tsx';
 
 import { AgentHeader } from '../components/AgentHeader';
 import { AgentIcon } from '../components/AgentIcon';
+import { StatusBar } from '../components/StatusBar';
+import { useAgent } from '../contexts/agent';
 import { useChat, useChatMessages } from '../contexts/chat';
 import { FileUploadDropzone } from '../files/components/FileUploadDropzone';
 import { useFileUpload } from '../files/contexts';
@@ -40,6 +31,9 @@ export function Chat() {
   const { dropzone } = useFileUpload();
   const { agent, onClear, isPending } = useChat();
   const messages = useChatMessages();
+  const {
+    status: { isNotInstalled, isStarting },
+  } = useAgent();
 
   const scrollToBottom = useCallback(() => {
     const scrollElement = scrollRef.current;
@@ -121,13 +115,17 @@ export function Chat() {
               </IconButton>
             )}
 
-            <ChatInput
-              onMessageSubmit={() => {
-                requestAnimationFrame(() => {
-                  scrollToBottom();
-                });
-              }}
-            />
+            {isPending && (isNotInstalled || isStarting) ? (
+              <StatusBar isPending>Starting the agent, please bee patient&hellip;</StatusBar>
+            ) : (
+              <ChatInput
+                onMessageSubmit={() => {
+                  requestAnimationFrame(() => {
+                    scrollToBottom();
+                  });
+                }}
+              />
+            )}
           </div>
         </Container>
 

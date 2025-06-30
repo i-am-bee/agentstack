@@ -154,7 +154,7 @@ Build image and run the platform using:
 mise run beeai-server:image:build
 mise run beeai-cli:run -- platform start --import ghcr.io/i-am-bee/beeai-platform/beeai-server:local --set image.tag=local
 ```
-Or use development setup described in [Running and debugging individual components](#Running and debugging individual components)
+Or use development setup described in [Running and debugging individual components](#running-and-debugging-individual-components)
 
 #### CLI
 
@@ -177,40 +177,13 @@ mise beeai-server:run
 
 ## Releasing
 
-This repository contains several projects which get released to NPM, PyPI, and/or Homebrew through GitHub Actions.
-
-This is the general structure of dependency.
-
-**⚠️ At the moment, we use strict versioning for dependencies, so most of the time you will need to bump the dependants as well!**
-
-```mermaid
-flowchart TD
-    beeai-sdk --> acp
-    agents --> beeai-sdk
-    beeai-server --> beeai-sdk
-    beeai-server --> beeai-ui
-    beeai-cli --> beeai-server
-```
-
-### Releasing `acp-typescript-sdk` and `acp-python-sdk`
-
-Update _both_ `packages/acp-typescript-sdk/package.json` and `packages/acp-python-sdk/pyproject.toml` to include the correct version. These two are released in sync. Commit the changes, push to main, and create and push a tag `acp-v<version>`, for example `acp-v0.0.1`. Check the GitHub Actions to see if everything went smoothly.
-
-### Releasing `beeai-sdk`
-
-`beeai-sdk` is actually two projects in a trenchcoat, one TypeScript and one Python. 
-
-Update _both_ `packages/beeai-sdk/package.json` and `packages/beeai-sdk/pyproject.toml` to include the correct version. These two are released in sync. Commit the changes, push to main, and create and push a tag `beeai-sdk-v<version>`, for example `beeai-sdk-v0.0.1`. Check the GitHub Actions to see if everything went smoothly.
+This repository contains several projects which get released to PyPI and ghcr.io through GitHub Actions.
 
 ### Releasing agents
 
-The platform automatically grabs the `provider-registry.yaml` file from the `main` branch of `https://github.com/i-am-bee/beeai-platform`. In there, it finds URLs for agent provider manifests (`beeai-provider.yaml`), and in those manifests, it finds URLs to the agent provider implementations. At the moment, we use `agents-v*` tags, for example `agents-v0.0.1`.
+The platform automatically grabs the `agent-registry.yaml` file from the `main` branch of `https://github.com/i-am-bee/beeai-platform`. In there, it finds URLs for agent provider manifests (`agent.yaml`), and in those manifests, it finds URLs to the agent provider implementations. At the moment, we use `agents-v*` tags, for example `agents-v0.0.1`.
 
-In order to release a new version of an agent (or several agents at once), be sure to bumpt the version in the URL in **both** `beeai-provider.yaml` of the affected agents and the corresponding URLs in `provider-registry.yaml`.
-
-To not accidentally bump the version in `provider-registry.yaml` before actually creating the tag, it's advised to first update `beeai-provider.yaml` file(s) and tag that commit, and update `provider-registry.yaml` in a later commit. Or use `git push --atomic main agents-v...`.
-
-Wait a bit, or restart your local BeeAI service, and confirm using `beeai provider list` that the new versions have been loaded.
+In order to release a new version of an agent (or several agents at once), be sure to bump the version in the URL in `agent.yaml` of the affected agents.
 
 ### Releasing `beeai-ui`
 
@@ -218,16 +191,10 @@ Wait a bit, or restart your local BeeAI service, and confirm using `beeai provid
 
 ### Releasing `beeai-server`
 
-**⚠️ Ensure that the new version does not depend on unreleased changes of dependencies!**
-
 Bump version in `apps/beeai-server/pyproject.toml`. Commit the changes, push to main, and create and push a tag `beeai-server-v<version>`, for example `beeai-server-v0.0.1`. Check the GitHub Actions to see if everything went smoothly.
 
 From the user's point of view, the server is part of the BeeAI CLI through `beeai platform start`, so usually after releasing `beeai-server`, you might want to bump the dependency version and release `beeai-cli` as well.
 
 ### Releasing `beeai-cli`
 
-**⚠️ Ensure that the new version does not depend on unreleased changes of dependencies!**
-
 Bump version in `apps/beeai-cli/pyproject.toml`. Commit the changes, push to main, and create and push a tag `beeai-cli-v<version>`, for example `beeai-cli-v0.0.1`. Check the GitHub Actions to see if everything went smoothly.
-
-After releasing to PyPI, the next step is releasing to Homebrew: follow the [instructions in the Homebrew tap](https://github.com/i-am-bee/homebrew-beeai/blob/main/CONTRIBUTING.md).

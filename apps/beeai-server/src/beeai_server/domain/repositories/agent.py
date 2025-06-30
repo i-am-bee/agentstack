@@ -1,16 +1,5 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0
 
 from datetime import timedelta
 from typing import Protocol, runtime_checkable, AsyncIterator
@@ -30,6 +19,7 @@ class IAgentRepository(Protocol):
     async def update_request(self, *, request: AgentRunRequest) -> None: ...
     async def delete_run(self, *, run_id: UUID) -> None: ...
     async def find_by_acp_run_id(self, *, run_id: UUID, user_id: UUID | None = None) -> Agent: ...
+    async def find_by_acp_session_id(self, *, session_id: UUID, user_id: UUID | None = None) -> Agent: ...
     async def delete_requests_older_than(
         self, *, finished_threshold: timedelta, stale_threshold: timedelta | None = None
     ) -> int: ...

@@ -1,17 +1,6 @@
 /**
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import uniq from 'lodash/uniq';
@@ -20,6 +9,7 @@ import type { components } from '#api/schema.js';
 import { SupportedUis } from '#modules/runs/constants.ts';
 import { compareStrings, isNotNull } from '#utils/helpers.ts';
 
+import type { UiType } from './api/types';
 import { type Agent, LinkType } from './api/types';
 
 export const getAgentsProgrammingLanguages = (agents: Agent[] | undefined) =>
@@ -50,9 +40,9 @@ export function sortAgentsByName(a: Agent, b: Agent) {
 }
 
 export function isAgentUiSupported(agent: Agent) {
-  const uiType = agent.metadata.ui?.type;
+  const { ui_type } = getAgentUiMetadata(agent);
 
-  return uiType && SupportedUis.includes(uiType);
+  return ui_type && SupportedUis.includes(ui_type as UiType);
 }
 
 type AgentLinkType = components['schemas']['LinkType'];
@@ -74,7 +64,17 @@ export function getAvailableAgentLinkUrl<T extends AgentLinkType | AgentLinkType
   return url;
 }
 
-export function getAgentDisplayName(agent: Agent) {
+export function getAgentUiMetadata(agent: Agent) {
   const { name, metadata } = agent;
-  return metadata.name ?? name;
+  const beeai_ui = metadata.annotations?.beeai_ui;
+
+  return {
+    ...beeai_ui,
+    // TODO: Temporary fallback until agents with new metadata are released in the registry.
+    ui_type: beeai_ui?.ui_type ?? ((metadata?.ui as Record<string, unknown> | undefined)?.type as UiType | undefined),
+    user_greeting:
+      beeai_ui?.user_greeting ??
+      ((metadata?.ui as Record<string, unknown> | undefined)?.user_greeting as string | null | undefined),
+    display_name: beeai_ui?.display_name ?? name,
+  };
 }

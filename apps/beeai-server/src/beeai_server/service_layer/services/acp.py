@@ -1,16 +1,5 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0
 
 import logging
 from contextlib import AsyncExitStack
@@ -44,12 +33,13 @@ class AcpServerResponse(NamedTuple):
     media_type: str
 
 
-class AcpProxyClient(NamedTuple):
+class ProxyRequestContext(NamedTuple):
     client: httpx.AsyncClient
     provider: Provider
     agent: Agent
     user: User
     run_id: UUID | None = None
+    session_id: UUID | None = None
 
 
 @inject
@@ -69,24 +59,39 @@ class AcpProxyService:
         self._config = configuration
 
     @overload
-    async def get_proxy_client(self, *, agent_name: str, run_id: None = None, user: User) -> httpx.AsyncClient: ...
+    async def get_proxy_context(
+        self, *, agent_name: None = None, run_id: None = None, session_id: UUID, user: User
+    ) -> httpx.AsyncClient: ...
     @overload
-    async def get_proxy_client(self, *, agent_name: None = None, run_id: UUID, user: User) -> httpx.AsyncClient: ...
-    async def get_proxy_client(self, *, agent_name: str = None, run_id: None = None, user: User) -> AcpProxyClient:
+    async def get_proxy_context(
+        self, *, agent_name: str, run_id: None = None, session_id: None = None, user: User
+    ) -> httpx.AsyncClient: ...
+    @overload
+    async def get_proxy_context(
+        self, *, agent_name: None = None, run_id: UUID, session_id: None = None, user: User
+    ) -> httpx.AsyncClient: ...
+    async def get_proxy_context(
+        self, *, agent_name: str | None = None, run_id: UUID | None = None, session_id: UUID | None = None, user: User
+    ) -> ProxyRequestContext:
         try:
-            if not (bool(agent_name) ^ bool(run_id)):
-                raise ValueError("Exactly one of agent_name or run_id must be provided")
+            if bool(agent_name) + bool(run_id) + bool(session_id) > 1:
+                raise ValueError("Exactly one of agent_name, run_id or session_id must be provided")
             async with self._uow() as uow:
                 if agent_name:
                     agent = await uow.agents.get_agent_by_name(name=agent_name)
-                else:
+                elif run_id:
                     agent = await uow.agents.find_by_acp_run_id(run_id=run_id, user_id=user.id)
+                else:
+                    agent = await uow.agents.find_by_acp_session_id(session_id=session_id, user_id=user.id)
+
                 provider = await uow.providers.get(provider_id=agent.provider_id)
             bind_contextvars(provider=provider.id)
 
             if not provider.managed:
                 client = httpx.AsyncClient(base_url=str(provider.source.root), timeout=None)
-                return AcpProxyClient(client=client, provider=provider, agent=agent, run_id=run_id, user=user)
+                return ProxyRequestContext(
+                    client=client, provider=provider, agent=agent, run_id=run_id, session_id=session_id, user=user
+                )
 
             provider_url = await self._deploy_manager.get_provider_url(provider_id=provider.id)
             [state] = await self._deploy_manager.state(provider_ids=[provider.id])
@@ -102,7 +107,8 @@ class AcpProxyService:
                 ):
                     async with self._uow() as uow:
                         env = await uow.env.get_all()
-                    should_wait = await self._deploy_manager.create_or_replace(provider=provider, env=env)
+                    modified = await self._deploy_manager.create_or_replace(provider=provider, env=env)
+                    should_wait = modified or state != ProviderDeploymentState.running
                 case _:
                     raise ValueError(f"Unknown provider state: {state}")
             if should_wait:
@@ -110,12 +116,10 @@ class AcpProxyService:
                 await self._deploy_manager.wait_for_startup(provider_id=provider.id, timeout=self.STARTUP_TIMEOUT)
                 logger.info("Provider is ready...")
             client = httpx.AsyncClient(base_url=str(provider_url), timeout=None)
-            return AcpProxyClient(client=client, provider=provider, agent=agent, run_id=run_id, user=user)
+            return ProxyRequestContext(client=client, provider=provider, agent=agent, run_id=run_id, user=user)
         except EntityNotFoundError as ex:
             if ex.entity in {"agent", "agent_run"}:
-                raise ACPError(
-                    error=Error(code=ErrorCode.NOT_FOUND, message=f"{ex.entity} '{ex.id}' not found")
-                ) from ex
+                raise ACPError(error=Error(code=ErrorCode.NOT_FOUND, message=str(ex))) from ex
             raise
         finally:
             unbind_contextvars("provider")
@@ -144,17 +148,21 @@ class AcpProxyService:
 
     async def send_request(
         self,
-        client: AcpProxyClient,
+        context: ProxyRequestContext,
         method: str,
         url: str,
         payload: BaseModel | None = None,
     ):
         exit_stack = AsyncExitStack()
-        json = payload and self._replace_template_content_url(payload, client.provider).model_dump(mode="json")
-        client, agent, user, run_id = client.client, client.agent, client.user, client.run_id
+        json = payload and self._replace_template_content_url(payload, context.provider).model_dump(mode="json")
         try:
-            client = await exit_stack.enter_async_context(client)
-            request = AgentRunRequest(acp_run_id=run_id, agent_id=agent.id, created_by=user.id)
+            client = await exit_stack.enter_async_context(context.client)
+            request = AgentRunRequest(
+                acp_run_id=context.run_id,
+                agent_id=context.agent.id,
+                created_by=context.user.id,
+                acp_session_id=context.session_id,
+            )
 
             # Create a new run request
             async with self._uow() as uow:
@@ -173,13 +181,15 @@ class AcpProxyService:
             is_stream = resp.headers["content-type"].startswith("text/event-stream")
 
             # For stream, save a new run ID to a database immediately
-            if is_stream and run_id is None and "Run-ID" in resp.headers:
+            if is_stream and context.run_id is None and "Run-ID" in resp.headers:
                 async with self._uow() as uow:
-                    request.acp_run_id = UUID(resp.headers["Run-ID"])
+                    request.acp_run_id = resp.headers["Run-ID"]
+                    request.acp_session_id = resp.headers.get("Session-ID", None)
                     await uow.agents.update_request(request=request)
                     await uow.commit()
             else:
-                request.acp_run_id = resp.headers.get("Run-ID", run_id)
+                request.acp_run_id = resp.headers.get("Run-ID", context.run_id)
+                request.acp_session_id = resp.headers.get("Session-ID", context.session_id)
 
             async def stream_fn():
                 try:

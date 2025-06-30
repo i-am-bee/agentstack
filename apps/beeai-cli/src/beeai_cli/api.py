@@ -1,23 +1,10 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0
 
 import asyncio
 import contextlib
 import enum
-import json
 import re
-import subprocess
 import urllib
 import urllib.parse
 from collections.abc import AsyncIterator
@@ -37,25 +24,6 @@ config = Configuration()
 BASE_URL = str(config.host).rstrip("/")
 API_BASE_URL = f"{BASE_URL}/api/v1/"
 ACP_URL = f"{API_BASE_URL}acp"
-
-
-class BrewServiceStatus(enum.StrEnum):
-    not_installed = "not_installed"
-    stopped = "stopped"
-    started = "started"
-
-
-def brew_service_status() -> BrewServiceStatus:
-    beeai_service = None
-    with contextlib.suppress(Exception):
-        services = json.loads(subprocess.check_output(["brew", "services", "list", "--json"]))
-        beeai_service = next((service for service in services if service["name"] == "beeai"), None)
-    if not beeai_service:
-        return BrewServiceStatus.not_installed
-    elif beeai_service["status"] == "started":
-        return BrewServiceStatus.started
-    else:
-        return BrewServiceStatus.stopped
 
 
 class ProcessStatus(enum.StrEnum):

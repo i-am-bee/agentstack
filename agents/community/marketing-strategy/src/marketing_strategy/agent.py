@@ -1,7 +1,8 @@
 import os
 from textwrap import dedent
 
-from acp_sdk import MessagePart, Metadata, Link, LinkType
+from acp_sdk import Annotations, MessagePart, Metadata, Link, LinkType, PlatformUIAnnotation
+from acp_sdk.models.platform import PlatformUIType
 from crewai import LLM
 from acp_sdk.server import Server, Context
 from acp_sdk.models import Message
@@ -19,6 +20,13 @@ server = Server()
 
 @server.agent(
     metadata=Metadata(
+        annotations=Annotations(
+            beeai_ui=PlatformUIAnnotation(
+                ui_type=PlatformUIType.HANDSOFF,
+                user_greeting="What topic do you want to create a marketing strategy around?",
+                display_name="Marketing Strategy",
+            ),
+        ),
         programming_language="Python",
         links=[
             Link(
@@ -62,20 +70,6 @@ server = Server()
             "**Copy Creation** – Develops compelling marketing copies tailored to specific campaign ideas and target audiences.",
         ],
         license="Apache 2.0",
-        ui={"type": "hands-off", "user_greeting": "What topic do you want to create a marketing strategy around?"},
-        examples={
-            "cli": [
-                {
-                    "command": 'beeai run marketing_strategy "Launch of a new eco-friendly product line targeting young adults interested in sustainable living.',
-                    "description": "Generating a Marketing Strategy for a new product",
-                    "processing_steps": [
-                        "The Lead Market Analyst conducts research on the product and its competitors",
-                        "The Chief Marketing Strategist synthesizes insights to formulate a marketing strategy"
-                        "The Creative Content Creator develops campaign ideas and creates marketing copies",
-                    ],
-                }
-            ]
-        },
         env=[
             {"name": "LLM_MODEL", "description": "Model to use from the specified OpenAI-compatible API."},
             {"name": "LLM_API_BASE", "description": "Base URL for OpenAI-compatible API endpoint"},

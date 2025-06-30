@@ -1,20 +1,11 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0
 
 
+import functools
 import os
 import re
+import shutil
 import sys
 import tempfile
 import typing
@@ -33,6 +24,13 @@ from beeai_cli.configuration import Configuration
 from beeai_cli.utils import format_error, parse_env_var, run_command, verbosity
 
 app = AsyncTyper()
+
+
+@functools.cache
+def _ollama_exe():
+    for exe in ("ollama", "ollama.exe"):
+        if shutil.which(exe):
+            return exe
 
 
 @app.command("add")
@@ -272,7 +270,9 @@ async def setup(
         if provider_name == "Ollama" and selected_model not in available_models:
             try:
                 await run_command(
-                    ["ollama", "pull", selected_model], "Pulling the selected model", check=True, verbose=True
+                    [_ollama_exe(), "pull", selected_model],
+                    "Pulling the selected model",
+                    check=True,
                 )
             except Exception as e:
                 console.print(f"[red]Error while pulling model: {e!s}[/red]")
@@ -302,14 +302,14 @@ async def setup(
 
             try:
                 if modified_model in available_models:
-                    await run_command(["ollama", "rm", modified_model], "Removing old model")
+                    await run_command([_ollama_exe(), "rm", modified_model], "Removing old model")
                 with tempfile.TemporaryDirectory() as temp_dir:
                     modelfile_path = os.path.join(temp_dir, "Modelfile")
                     await anyio.Path(modelfile_path).write_text(
                         f"FROM {selected_model}\n\nPARAMETER num_ctx {num_ctx}\n"
                     )
                     await run_command(
-                        ["ollama", "create", modified_model],
+                        [_ollama_exe(), "create", modified_model],
                         "Creating modified model",
                         cwd=temp_dir,
                     )

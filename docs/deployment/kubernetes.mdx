@@ -11,7 +11,10 @@ description: "Deploy BeeAI to Kubernetes using Helm"
 - BeeAI installed for post-deployment configuration
 
 <Warning>
-This deployment guide is intended for development and testing environments. We don't recommend public deployments at this time as the platform is still evolving and lacks production-ready security features like user management and rate limiting.
+  This deployment guide is intended for development and testing environments. We
+  don't recommend public deployments at this time as the platform is still
+  evolving and lacks production-ready security features like user management and
+  rate limiting.
 </Warning>
 
 ## Installation
@@ -21,6 +24,7 @@ This deployment guide is intended for development and testing environments. We d
 Create a value file with the minimum configuration:
 
 `config.yaml`:
+
 ```yaml
 # If you want to include agents from the default catalog (change release/tag accordingly):
 externalRegistries:
@@ -43,9 +47,6 @@ features:
 auth:
   enabled: true
   admin_password: "my-secret-password"
-# Help us improve the platform by sharing anonymized telemetry data
-telemetry:
-  sharing: true
 ```
 
 ### Step 2: Install the Chart
@@ -53,7 +54,7 @@ telemetry:
 Then install the chart using:
 
 ```shell
-helm install -f config.yaml beeai oci://ghcr.io/i-am-bee/beeai-platform/beeai-platform-chart/beeai-platform:0.2.8
+helm install -f config.yaml beeai oci://ghcr.io/i-am-bee/beeai-platform/beeai-platform-chart/beeai-platform:0.2.9
 ```
 
 ### Step 3: Setup LLM
@@ -93,7 +94,9 @@ beeai run chat hi
 ### Security Settings
 
 <Warning>
-The current authentication model is basic and intended for development use. For any deployment beyond local testing, carefully consider your security requirements and network access controls.
+  The current authentication model is basic and intended for development use.
+  For any deployment beyond local testing, carefully consider your security
+  requirements and network access controls.
 </Warning>
 
 For development/testing environments with authentication:
@@ -126,10 +129,10 @@ providers:
   # Community agents
   - location: ghcr.io/i-am-bee/beeai-platform/community/aider:latest
   - location: ghcr.io/i-am-bee/beeai-platform/community/gpt-researcher:latest
-  
+
   # Official agents
   - location: ghcr.io/i-am-bee/beeai-platform/official/beeai-framework/chat:latest
-  
+
   # Your custom agents
   - location: your-registry.com/your-team/custom-agent:v1.0.0
 ```
@@ -142,7 +145,6 @@ Use the default agent registry instead of specifying individual agents:
 # config.yaml
 externalRegistries:
   public_github: "https://github.com/i-am-bee/beeai-platform@release-v0.2.0#path=agent-registry.yaml"
-
 # Omit the 'providers' section to use only registry agents
 ```
 
@@ -181,6 +183,7 @@ helm uninstall beeai
 ### Common Issues
 
 **Platform not starting:**
+
 ```bash
 # Check pod logs
 kubectl logs deployment/beeai-platform
@@ -190,12 +193,14 @@ kubectl get events --sort-by=.lastTimestamp
 ```
 
 **Can't access agents:**
+
 ```bash
 # Verify LLM configuration
 kubectl logs deployment/beeai-platform | grep -i llm
 ```
 
 **Authentication issues:**
+
 ```bash
 # Check if authentication is properly configured
 kubectl get secret beeai-platform-secret -o yaml

@@ -1,24 +1,15 @@
 /**
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import humanizeDuration from 'humanize-duration';
 import JSON5 from 'json5';
+import { v4 as uuid } from 'uuid';
 
 import type { AgentName } from '#modules/agents/api/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
+import { toMarkdownCitation, toMarkdownImage } from '#utils/markdown.ts';
 
 import {
   type Artifact,
@@ -28,9 +19,11 @@ import {
   RunMode,
   type SessionId,
 } from './api/types';
+import { type CitationTransform, type MessageContentTransform, MessageContentTransformType } from './chat/types';
 import type { UploadFileResponse } from './files/api/types';
 import type { FileEntity } from './files/types';
 import { getFileContentUrl } from './files/utils';
+import type { SourceReference } from './sources/api/types';
 import { Role, type RunLog } from './types';
 
 humanizeDuration.languages.shortEn = {
@@ -62,7 +55,12 @@ export function createRunStreamRequest({
 }): CreateRunStreamRequest {
   return {
     agent_name: agent,
-    input: [{ parts: messageParts }],
+    input: [
+      {
+        parts: messageParts,
+        role: `agent/${agent}`,
+      },
+    ],
     mode: RunMode.Stream,
     session_id: sessionId,
   };
@@ -89,6 +87,70 @@ export function createFileMessageParts(files: UploadFileResponse[]) {
   );
 
   return messageParts;
+}
+
+export function createImageTransform({
+  imageUrl,
+  insertAt,
+}: {
+  imageUrl: string;
+  insertAt: number;
+}): MessageContentTransform {
+  const startIndex = insertAt;
+
+  return {
+    key: uuid(),
+    kind: MessageContentTransformType.Image,
+    startIndex,
+    apply: ({ content, offset }) => {
+      const adjustedStartIndex = startIndex + offset;
+      const before = content.slice(0, adjustedStartIndex);
+      const after = content.slice(adjustedStartIndex);
+
+      return `${before}${toMarkdownImage(imageUrl)}${after}`;
+    },
+  };
+}
+
+export function createCitationTransform({ source }: { source: SourceReference }): CitationTransform {
+  const { startIndex, endIndex } = source;
+
+  return {
+    key: uuid(),
+    kind: MessageContentTransformType.Citation,
+    startIndex,
+    sources: [source],
+    apply: function ({ content, offset }) {
+      const adjustedStartIndex = startIndex + offset;
+      const adjustedEndIndex = endIndex + offset;
+      const before = content.slice(0, adjustedStartIndex);
+      const text = content.slice(adjustedStartIndex, adjustedEndIndex);
+      const after = content.slice(adjustedEndIndex);
+
+      return `${before}${toMarkdownCitation({ text, sources: this.sources })}${after}`;
+    },
+  };
+}
+
+export function applyContentTransforms({
+  rawContent,
+  transforms,
+}: {
+  rawContent: string;
+  transforms: MessageContentTransform[];
+}): string {
+  let offset = 0;
+
+  const transformedContent = transforms
+    .sort((a, b) => a.startIndex - b.startIndex)
+    .reduce((content, transform) => {
+      const newContent = transform.apply({ content, offset });
+      offset += newContent.length - content.length;
+
+      return newContent;
+    }, rawContent);
+
+  return transformedContent;
 }
 
 export function isArtifactPart(part: MessagePart): part is Artifact {

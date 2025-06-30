@@ -1,17 +1,6 @@
 /**
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import { useCallback, useRef, useState } from 'react';
@@ -27,6 +16,7 @@ import type {
   MessagePartEvent,
   RunCancelledEvent,
   RunCompletedEvent,
+  RunCreatedEvent,
   RunEvent,
   RunFailedEvent,
   RunId,
@@ -38,6 +28,7 @@ import { createRunStreamRequest } from '../utils';
 
 interface Props {
   onBeforeRun?: () => void;
+  onRunCreated?: (event: RunCreatedEvent) => void;
   onRunFailed?: (event: RunFailedEvent) => void;
   onRunCancelled?: (event: RunCancelledEvent) => void;
   onRunCompleted?: (event: RunCompletedEvent) => void;
@@ -50,6 +41,7 @@ interface Props {
 
 export function useRunAgent({
   onBeforeRun,
+  onRunCreated,
   onRunFailed,
   onRunCancelled,
   onRunCompleted,
@@ -102,6 +94,7 @@ export function useRunAgent({
           onEvent: (event) => {
             switch (event.type) {
               case EventType.RunCreated:
+                onRunCreated?.(event);
                 setRunId(event.run.run_id);
                 setSessionId(event.run.session_id);
 
@@ -143,10 +136,11 @@ export function useRunAgent({
       }
     },
     [
-      sessionId,
-      createRunStream,
-      handleDone,
       onBeforeRun,
+      createRunStream,
+      sessionId,
+      onRunCreated,
+      handleDone,
       onRunFailed,
       onRunCancelled,
       onRunCompleted,

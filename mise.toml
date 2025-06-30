@@ -98,7 +98,7 @@ depends = ["common:check:*"]
 
 [tasks."common:check:nwa"]
 dir = "{{config_root}}"
-run = "nwa check -l apache -c '© BeeAI a Series of LF Projects, LLC' 'apps/*/src/**/*.{py,js,jsx,ts,tsx,html,css,scss}'"
+run = "nwa check -i Apache-2.0 -c '© BeeAI a Series of LF Projects, LLC' 'apps/*/src/**/*.{py,js,jsx,ts,tsx,html,css,scss}'"
 # sources don't support {a,b} -- https://github.com/jdx/mise/discussions/4469
 sources = ["apps/*/src/**/*.py", "apps/*/src/**/*.js", "apps/*/src/**/*.jsx", "apps/*/src/**/*.ts", "apps/*/src/**/*.tsx", "apps/*/src/**/*.html", "apps/*/src/**/*.css", "apps/*/src/**/*.scss"]
 outputs = { auto = true }
@@ -111,8 +111,8 @@ depends = ["common:fix:*"]
 [tasks."common:fix:nwa"]
 dir = "{{config_root}}"
 run = """
-nwa update -l apache -c '© BeeAI a Series of LF Projects, LLC' 'apps/*/src/**/*.{py,js,jsx,ts,tsx,html,css,scss}' --mute || true
-nwa add    -l apache -c '© BeeAI a Series of LF Projects, LLC' 'apps/*/src/**/*.{py,js,jsx,ts,tsx,html,css,scss}' --mute || true
+nwa update -i Apache-2.0 -c '© BeeAI a Series of LF Projects, LLC' 'apps/*/src/**/*.{py,js,jsx,ts,tsx,html,css,scss}' --mute || true
+nwa add    -i Apache-2.0 -c '© BeeAI a Series of LF Projects, LLC' 'apps/*/src/**/*.{py,js,jsx,ts,tsx,html,css,scss}' --mute || true
 """
 # sources don't support {a,b} -- https://github.com/jdx/mise/discussions/4469
 sources = ["apps/*/src/**/*.py", "apps/*/src/**/*.js", "apps/*/src/**/*.jsx", "apps/*/src/**/*.ts", "apps/*/src/**/*.tsx", "apps/*/src/**/*.html", "apps/*/src/**/*.css", "apps/*/src/**/*.scss"]

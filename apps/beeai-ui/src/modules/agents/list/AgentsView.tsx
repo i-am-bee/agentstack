@@ -1,17 +1,6 @@
 /**
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import { useFormContext } from 'react-hook-form';
@@ -27,14 +16,22 @@ import { AgentsFilters } from '../components/AgentsFilters';
 import { AgentsList } from '../components/AgentsList';
 import { ImportAgents } from '../components/ImportAgents';
 import type { AgentsFiltersParams } from '../providers/AgentsFiltersProvider';
+import { getAgentUiMetadata } from '../utils';
 
 export function AgentsView() {
-  const { data, isPending, error, refetch, isRefetching } = useListAgents();
+  const {
+    data: agents,
+    isPending,
+    error,
+    refetch,
+    isRefetching,
+  } = useListAgents({ onlyUiSupported: true, sort: true });
+
   const { watch } = useFormContext<AgentsFiltersParams>();
   const filters = watch();
 
   const renderList = () => {
-    if (error && !data)
+    if (error && !agents)
       return (
         <ErrorMessage
           title="Failed to load agents."
@@ -45,7 +42,7 @@ export function AgentsView() {
       );
 
     return (
-      <AgentsList agents={data} filters={filters} action={<ImportAgents />} isPending={isPending}>
+      <AgentsList agents={agents} filters={filters} action={<ImportAgents />} isPending={isPending}>
         {(filteredAgents) =>
           filteredAgents?.map((agent, idx) => (
             <li key={idx}>
@@ -63,7 +60,7 @@ export function AgentsView() {
 
   return (
     <>
-      {!isPending ? <AgentsFilters agents={data} /> : <AgentsFilters.Skeleton />}
+      {!isPending ? <AgentsFilters agents={agents} /> : <AgentsFilters.Skeleton />}
       {renderList()}
     </>
   );
@@ -71,9 +68,11 @@ export function AgentsView() {
 
 const renderAgentTitle = ({ className, agent }: { className: string; agent: Agent }) => {
   const route = routes.agentDetail({ name: agent.name });
+  const { display_name } = getAgentUiMetadata(agent);
+
   return (
     <TransitionLink className={className} href={route}>
-      {agent.name}
+      {display_name}
     </TransitionLink>
   );
 };

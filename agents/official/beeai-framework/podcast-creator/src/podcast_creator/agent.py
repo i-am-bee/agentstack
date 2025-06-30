@@ -4,12 +4,13 @@ import os
 from collections.abc import AsyncGenerator
 from textwrap import dedent
 
-from acp_sdk import Message, Metadata, Link, LinkType, MessagePart, Artifact
+from acp_sdk import Annotations, Artifact, Link, LinkType, Message, MessagePart, Metadata
+from acp_sdk.models.platform import PlatformUIAnnotation, PlatformUIType
 from acp_sdk.server import Context, Server
-from beeai_framework.backend import UserMessage, SystemMessage, ChatModelNewTokenEvent, ChatModelSuccessEvent
+from beeai_framework.backend import ChatModelNewTokenEvent, ChatModelSuccessEvent, SystemMessage, UserMessage
 from beeai_framework.backend.chat import ChatModel, ChatModelParameters
-from pydantic import AnyUrl
 from openinference.instrumentation.beeai import BeeAIInstrumentor
+from pydantic import AnyUrl
 
 ## TODO: https://github.com/phoenixframework/phoenix/issues/6224
 logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(logging.CRITICAL)
@@ -38,6 +39,13 @@ processing_steps = [
 
 @server.agent(
     metadata=Metadata(
+        annotations=Annotations(
+            beeai_ui=PlatformUIAnnotation(
+                ui_type=PlatformUIType.HANDSOFF,
+                user_greeting="Add the content from which you'd like to create your podcast.",
+                display_name="Podcast Creator",
+            ),
+        ),
         programming_language="Python",
         links=[
             Link(
@@ -89,25 +97,6 @@ processing_steps = [
                 curiosity and engagement.
             """
         ),
-        ui={"type": "hands-off", "user_greeting": "Add the content from which you'd like to create your podcast"},
-        examples={
-            "cli": [
-                {
-                    "command": f"beeai run podcast_creator {example_input}",
-                    "name": "Insert article directly",
-                    "description": "Provide the entire article on the command line",
-                    "output": example_output,
-                    "processing_steps": processing_steps,
-                },
-                {
-                    "command": "cat /path/to/article.txt | beeai run podcast_creator",
-                    "name": "Insert article directly",
-                    "description": "Provide the entire article on the command line",
-                    "output": example_output,
-                    "processing_steps": processing_steps,
-                },
-            ]
-        },
         env=[
             {"name": "LLM_MODEL", "description": "Model to use from the specified OpenAI-compatible API."},
             {"name": "LLM_API_BASE", "description": "Base URL for OpenAI-compatible API endpoint"},
