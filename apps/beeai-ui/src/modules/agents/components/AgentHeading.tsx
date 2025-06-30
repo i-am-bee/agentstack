@@ -13,7 +13,6 @@ import classes from './AgentHeading.module.scss';
 
 interface Props {
   agent: Agent;
-  uiType?: UiType;
 }
 
 export function AgentHeading({ agent }: Props) {
