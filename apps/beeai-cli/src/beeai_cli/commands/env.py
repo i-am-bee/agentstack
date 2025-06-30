@@ -77,67 +77,85 @@ async def setup(
         async with httpx.AsyncClient() as client:
             await client.head(str(Configuration().host))
 
-        provider_name, api_base, recommended_model = await inquirer.fuzzy(
+        provider_name, api_base, recommended_model, recommended_embedding_model = await inquirer.fuzzy(
             message="Select LLM provider (type to search):",
             choices=[
                 Choice(
                     name="Anthropic Claude".ljust(25),
-                    value=("Anthropic", "https://api.anthropic.com/v1", "claude-3-7-sonnet-latest"),
+                    value=("Anthropic", "https://api.anthropic.com/v1", "claude-3-7-sonnet-latest", "voyage-3.5"),
                 ),
                 Choice(
                     name="Cerebras".ljust(25) + "🆓 has a free tier",
-                    value=("Cerebras", "https://api.cerebras.ai/v1", "llama-3.3-70b"),
+                    value=("Cerebras", "https://api.cerebras.ai/v1", "llama-3.3-70b", None),
                 ),
                 Choice(
                     name="Chutes".ljust(25) + "🆓 has a free tier",
-                    value=("Chutes", "https://llm.chutes.ai/v1/", None),
+                    value=("Chutes", "https://llm.chutes.ai/v1/", None, None),
                 ),
                 Choice(
                     name="Cohere".ljust(25) + "🆓 has a free tier",
-                    value=("Cohere", "https://api.cohere.ai/compatibility/v1", "command-r-plus"),
+                    value=(
+                        "Cohere",
+                        "https://api.cohere.ai/compatibility/v1",
+                        "command-r-plus",
+                        "embed-multilingual-v3.0",
+                    ),
                 ),
                 Choice(
                     name="DeepSeek",
-                    value=("DeepSeek", "https://api.deepseek.com/v1", "deepseek-reasoner"),
+                    value=("DeepSeek", "https://api.deepseek.com/v1", "deepseek-reasoner", None),
                 ),
                 Choice(
                     name="Google Gemini".ljust(25) + "🆓 has a free tier",
-                    value=("Google", "https://generativelanguage.googleapis.com/v1beta/openai/", None),
+                    value=(
+                        "Google",
+                        "https://generativelanguage.googleapis.com/v1beta/openai/",
+                        None,
+                        "gemini-embedding-001",
+                    ),
                 ),
                 Choice(
                     name="Groq".ljust(25) + "🆓 has a free tier",
-                    value=("Groq", "https://api.groq.com/openai/v1", "deepseek-r1-distill-llama-70b"),
+                    value=("Groq", "https://api.groq.com/openai/v1", "deepseek-r1-distill-llama-70b", None),
                 ),
                 Choice(
                     name="IBM watsonx".ljust(25),
-                    value=("watsonx", None, "ibm/granite-3-3-8b-instruct"),
+                    value=("watsonx", None, "ibm/granite-3-3-8b-instruct", "granite-embedding-278m-multilingual"),
                 ),
-                Choice(name="Jan".ljust(25) + "💻 local", value=("Jan", "http://localhost:1337/v1", None)),
+                Choice(name="Jan".ljust(25) + "💻 local", value=("Jan", "http://localhost:1337/v1", None, None)),
                 Choice(
                     name="Mistral".ljust(25) + "🆓 has a free tier",
-                    value=("Mistral", "https://api.mistral.ai/v1", "mistral-large-latest"),
+                    value=("Mistral", "https://api.mistral.ai/v1", "mistral-large-latest", "mistral-embed"),
                 ),
                 Choice(
                     name="NVIDIA NIM".ljust(25),
-                    value=("NVIDIA", "https://integrate.api.nvidia.com/v1", "deepseek-ai/deepseek-r1"),
+                    value=("NVIDIA", "https://integrate.api.nvidia.com/v1", "deepseek-ai/deepseek-r1", None),
                 ),
                 Choice(
-                    name="Ollama".ljust(25) + "💻 local", value=("Ollama", "http://localhost:11434/v1", "granite3.3:8b")
+                    name="Ollama".ljust(25) + "💻 local",
+                    value=("Ollama", "http://localhost:11434/v1", "granite3.3:8b", "nomic-embed-text:latest"),
                 ),
                 Choice(
                     name="OpenAI".ljust(25),
-                    value=("OpenAI", "https://api.openai.com/v1", "gpt-4o"),
+                    value=("OpenAI", "https://api.openai.com/v1", "gpt-4o", "text-embedding-3-small"),
                 ),
                 Choice(
                     name="OpenRouter".ljust(25) + "🆓 has some free models",
-                    value=("OpenRouter", "https://openrouter.ai/api/v1", "deepseek/deepseek-r1-distill-llama-70b:free"),
+                    value=(
+                        "OpenRouter",
+                        "https://openrouter.ai/api/v1",
+                        "deepseek/deepseek-r1-distill-llama-70b:free",
+                        None,
+                    ),
                 ),
-                Choice(name="Perplexity".ljust(25), value=("Perplexity", "https://api.perplexity.ai", None)),
+                Choice(name="Perplexity".ljust(25), value=("Perplexity", "https://api.perplexity.ai", None, None)),
                 Choice(
                     name="together.ai".ljust(25) + "🆓 has a free tier",
-                    value=("Together", "https://api.together.xyz/v1", "deepseek-ai/DeepSeek-R1"),
+                    value=("Together", "https://api.together.xyz/v1", "deepseek-ai/DeepSeek-R1", None),
                 ),
-                Choice(name="Other (RITS, vLLM, ...)".ljust(25) + "🔧 provide API URL", value=("Other", None, None)),
+                Choice(
+                    name="Other (RITS, vLLM, ...)".ljust(25) + "🔧 provide API URL", value=("Other", None, None, None)
+                ),
             ],
         ).execute_async()
 
@@ -366,16 +384,56 @@ async def setup(
                 err_console.print(format_error("Error", "Model did not provide a proper response."))
                 return False
 
-            if provider_name in ["watsonx", "OpenAI", "Ollama"]:
-                selected_embedding_model = None
-                if available_models and len(available_models) >= 1:
-                    selected_embedding_model = await inquirer.fuzzy(
-                        message="Select an embedding model (type to search):",
-                        choices=sorted(["None", "Write model name", *available_models]),
-                    ).execute_async()
+            selected_embedding_model = None
+            if (
+                provider_name in ["watsonx", "OpenAI", "Ollama", "Cohere"]
+                and await inquirer.confirm(
+                    message="Do you want to set up embedding model?", default=True
+                ).execute_async()
+            ):
+                selected_embedding_model = (
+                    recommended_embedding_model
+                    if (
+                        recommended_embedding_model
+                        and (
+                            not available_models
+                            or recommended_embedding_model in available_models
+                            or provider_name == "Ollama"
+                        )
+                        and await inquirer.confirm(
+                            message=f"Do you want to use the recommended embedding model '{recommended_embedding_model}'?"
+                            + (
+                                " It will be pulled from Ollama now."
+                                if recommended_embedding_model not in available_models and provider_name == "Ollama"
+                                else ""
+                            ),
+                            default=True,
+                        ).execute_async()
+                    )
+                    else (
+                        await inquirer.fuzzy(
+                            message="Select an embedding model (type to search):",
+                            choices=sorted(available_models),
+                        ).execute_async()
+                        if available_models and len(available_models) > 1
+                        else await inquirer.text(message="Write a model name to use for embedding:").execute_async()
+                    )
+                )
 
-                if selected_embedding_model == "Write model name" or len(available_models) == 0:
-                    await inquirer.text(message="Write a model name to use:").execute_async()
+                if (
+                    provider_name == "Ollama"
+                    and selected_embedding_model is not None
+                    and selected_embedding_model not in available_models
+                ):
+                    try:
+                        await run_command(
+                            ["ollama", "pull", selected_embedding_model],
+                            "Pulling the selected embedding model",
+                            check=True,
+                        )
+                    except Exception as e:
+                        console.print(f"[red]Error while pulling embrdding model: {e!s}[/red]")
+                        return False
 
         except Exception as e:
             err_console.print(format_error("Error", f"Error during model test: {e!s}"))
@@ -394,7 +452,7 @@ async def setup(
                         "LLM_API_BASE": api_base,
                         "LLM_API_KEY": api_key,
                         "LLM_MODEL": selected_model,
-                        "EMBEDDING_MODEL": None if selected_embedding_model == "None" else selected_embedding_model,
+                        "EMBEDDING_MODEL": selected_embedding_model,
                         "WATSONX_PROJECT_ID": (
                             watsonx_project_or_space_id
                             if provider_name == "watsonx" and watsonx_project_or_space == "project"

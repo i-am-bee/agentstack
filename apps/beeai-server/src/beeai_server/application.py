@@ -122,7 +122,7 @@ def mount_routes(app: FastAPI):
     server_router.include_router(files_router, prefix="/files", tags=["files"])
     server_router.include_router(llm_router, prefix="/llm", tags=["llm"])
     server_router.include_router(ui_router, prefix="/ui", tags=["ui"])
-    server_router.include_router(embeddings_router, prefix="/embeddings", tags=["embeddings"])
+    server_router.include_router(embeddings_router, prefix="/llm", tags=["embeddings"])
 
     app.mount("/healthcheck", lambda: "OK")
     app.include_router(server_router, prefix="/api/v1", tags=["provider"])
