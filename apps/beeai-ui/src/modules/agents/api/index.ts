@@ -3,19 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { api } from '#api/index.ts';
-import { ensureData } from '#api/utils.ts';
+import { acp } from '#acp/index.ts';
 
-import type { ReadAgentPath } from './types';
+import type { AgentName } from './types';
 
 export async function listAgents() {
-  const response = await api.GET('/api/v1/acp/agents');
-
-  return ensureData(response);
+  return await acp.agents();
 }
 
-export async function readAgent({ name }: ReadAgentPath) {
-  const response = await api.GET('/api/v1/acp/agents/{name}', { params: { path: { name } } });
-
-  return ensureData(response);
+export async function readAgent(name: AgentName) {
+  return await acp.agent(name);
 }

@@ -3,6 +3,7 @@ version = "3.17.3"
 backend = "aqua:helm/helm"
 
 [tools.helm.checksums]
+"helm-v3.17.3-darwin-amd64.tar.gz" = "sha256:20ef8df4671349a6fc556a621be1170dd709c6c0cf5f7e83a2d9fb0515fd97fc"
 "helm-v3.17.3-darwin-arm64.tar.gz" = "sha256:89aec43ce07b06239f1bba4a6507236bb48ae487bc5065a8e254d3ce58a16997"
 
 [tools.kubeconform]
@@ -10,6 +11,7 @@ version = "0.6.7"
 backend = "aqua:yannh/kubeconform"
 
 [tools.kubeconform.checksums]
+"kubeconform-darwin-amd64.tar.gz" = "sha256:3b5324ac4fd38ac60a49823b4051ff42ff7eb70144f1e9741fed1d14bc4fdb4e"
 "kubeconform-darwin-arm64.tar.gz" = "sha256:cbb47d938a8d18eb5f79cb33663b2cecdee0c8ac0bf562ebcfca903df5f0802f"
 
 [tools.node]
@@ -47,6 +49,7 @@ backend = "ubi:telepresenceio/telepresence"
 
 [tools."ubi:telepresenceio/telepresence".checksums]
 telepresence-macos-aarch64 = "sha256:991d2aea9bef5c08dd64432cb5b3abb5bc6c441f27351d52fe94278705edc738"
+telepresence-macos-x86_64 = "sha256:a7e224bd10456dfbd56d0ba194f145ab0b4e97946ec6c29e18de29c5a25e66d1"
 
 [tools.uv]
 version = "0.7.13"
@@ -54,10 +57,12 @@ backend = "aqua:astral-sh/uv"
 
 [tools.uv.checksums]
 "uv-aarch64-apple-darwin.tar.gz" = "sha256:721f532b73171586574298d4311a91d5ea2c802ef4db3ebafc434239330090c6"
+"uv-x86_64-apple-darwin.tar.gz" = "sha256:d785753ac092e25316180626aa691c5dfe1fb075290457ba4fdb72c7c5661321"
 
 [tools.yq]
 version = "4.45.4"
 backend = "aqua:mikefarah/yq"
 
 [tools.yq.checksums]
+yq_darwin_amd64 = "sha256:5580ff2c1fc80dd91f248b3e19af2431f1c95767ad0949a60176601ca5140318"
 yq_darwin_arm64 = "sha256:602dbbc116af9eb8a91d2239d0ec286eb9c90b94e76676d5268ab6ca184719b6"

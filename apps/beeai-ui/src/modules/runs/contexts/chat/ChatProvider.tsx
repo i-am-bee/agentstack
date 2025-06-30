@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { MessagePart } from 'acp-sdk';
 import isString from 'lodash/isString';
 import type { PropsWithChildren } from 'react';
 import { useCallback, useEffect, useMemo } from 'react';
@@ -11,7 +12,6 @@ import { v4 as uuid } from 'uuid';
 import { useImmerWithGetter } from '#hooks/useImmerWithGetter.ts';
 import { usePrevious } from '#hooks/usePrevious.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
-import { type MessagePartMetadata, MetadataKind } from '#modules/runs/api/types.ts';
 import {
   type AgentMessage,
   type ChatMessage,
@@ -41,6 +41,8 @@ import { isImageContentType } from '#utils/helpers.ts';
 import { useFileUpload } from '../../files/contexts';
 import { AgentProvider } from '../agent/AgentProvider';
 import { ChatContext, ChatMessagesContext } from './chat-context';
+
+type MessagePartMetadata = NonNullable<MessagePart['metadata']>;
 
 interface Props {
   agent: Agent;
@@ -129,17 +131,21 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
   const processMetadata = useCallback(
     (metadata: MessagePartMetadata) => {
       switch (metadata.kind) {
-        case MetadataKind.Citation:
+        case 'citation':
           updateLastAssistantMessage((message) => {
             const { sources, newSource } = prepareMessageSources({ message, metadata });
+
+            message.sources = sources;
+
+            if (newSource == null) {
+              return;
+            }
 
             const citationTransformGroup = message.contentTransforms.find(
               (transform): transform is CitationTransform =>
                 transform.kind === MessageContentTransformType.Citation &&
                 transform.startIndex === newSource.startIndex,
             );
-
-            message.sources = sources;
 
             if (citationTransformGroup) {
               citationTransformGroup.sources.push(newSource);
@@ -149,7 +155,7 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
           });
 
           break;
-        case MetadataKind.Trajectory:
+        case 'trajectory':
           updateLastAssistantMessage((message) => {
             message.trajectories = prepareTrajectories({ trajectories: message.trajectories, data: metadata });
           });
