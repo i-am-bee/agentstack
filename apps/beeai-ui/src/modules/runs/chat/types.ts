@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { CreateRunStreamRequest, TrajectoryMetadata } from '../api/types';
+import type { TrajectoryMetadata } from '../api/types';
 import type { SourceReference } from '../sources/api/types';
 import type { Role } from '../types';
 
 interface Message {
   key: string;
-  role: CreateRunStreamRequest['input'][number]['role'];
+  role: Role | string;
   content: string;
   error?: unknown;
   files?: MessageFile[];
