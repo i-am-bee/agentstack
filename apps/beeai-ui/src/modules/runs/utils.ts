@@ -58,7 +58,7 @@ export function createRunStreamRequest({
     input: [
       {
         parts: messageParts,
-        role: 'user',
+        role: Role.User,
       },
     ],
     mode: RunMode.Stream,
