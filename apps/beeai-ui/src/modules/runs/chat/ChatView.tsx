@@ -35,7 +35,7 @@ function Chat() {
 
   return (
     <>
-      <MainContent spacing="md" limitHeight>
+      <MainContent spacing="md" scrollable={isIdle}>
         {isIdle ? <ChatLandingView /> : <ChatMessagesView />}
       </MainContent>
 

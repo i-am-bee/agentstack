@@ -4,13 +4,16 @@
  */
 
 .root {
-  @include scrollbar();
   inline-size: 100%;
   block-size: 100%;
   padding-block: $spacing-07;
   display: flex;
   flex-direction: column;
   row-gap: $spacing-07;
+  min-block-size: 0;
+  &.scrollable {
+    @include scrollbar();
+  }
   &:has(.footer) {
     padding-block-end: 0;
   }
@@ -18,9 +21,7 @@
 
 .body {
   flex-grow: 1;
-  &.limitHeight {
-    min-block-size: 0;
-  }
+  min-block-size: 0;
 }
 
 @include breakpoint-up(md) {

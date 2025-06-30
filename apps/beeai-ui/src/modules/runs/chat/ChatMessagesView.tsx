@@ -9,7 +9,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Container } from '#components/layouts/Container.tsx';
 
-import { AgentHeader } from '../components/AgentHeader';
+import { NewSessionButton } from '../components/NewSessionButton';
 import { StatusBar } from '../components/StatusBar';
 import { useAgent } from '../contexts/agent';
 import { useChat, useChatMessages } from '../contexts/chat';
@@ -66,20 +66,26 @@ export function ChatMessagesView() {
 
   return (
     <FileUpload>
-      <Container size="sm" className={classes.holder}>
-        <AgentHeader onNewSessionClick={onClear} />
+      <div className={classes.holder}>
+        <Container size="sm" asChild>
+          <header className={classes.header}>
+            <NewSessionButton onClick={onClear} />
+          </header>
+        </Container>
 
-        <div className={classes.content} ref={scrollRef}>
+        <div className={classes.scrollable} ref={scrollRef}>
           <div className={classes.scrollRef} ref={bottomRef} />
 
-          <ol className={classes.messages} aria-label="messages">
-            {messages.map((message) => (
-              <Message key={message.key} message={message} />
-            ))}
-          </ol>
+          <Container size="sm" asChild>
+            <ol className={classes.messages} aria-label="messages">
+              {messages.map((message) => (
+                <Message key={message.key} message={message} />
+              ))}
+            </ol>
+          </Container>
         </div>
 
-        <div className={classes.bottom}>
+        <Container size="sm" className={classes.bottom}>
           {isScrolled && (
             <IconButton
               label="Scroll to bottom"
@@ -104,8 +110,8 @@ export function ChatMessagesView() {
               }}
             />
           )}
-        </div>
-      </Container>
+        </Container>
+      </div>
     </FileUpload>
   );
 }

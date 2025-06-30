@@ -4,17 +4,23 @@
  */
 
 .holder {
+  inline-size: 100%;
   display: grid;
   grid-template-rows: max-content 1fr max-content;
   row-gap: $spacing-06;
 }
 
-.content {
+.header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.scrollable {
   @include scrollbar();
-  position: relative;
   display: flex;
   flex-direction: column-reverse;
   padding-block: $spacing-06;
+  position: relative;
 }
 
 .messages {

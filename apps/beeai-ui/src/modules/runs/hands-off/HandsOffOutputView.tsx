@@ -14,7 +14,7 @@ import { HandsOffText } from './HandsOffText';
 import { TaskStatusBar } from './TaskStatusBar';
 
 export function HandsOffOutputView() {
-  const { agent, input, output, logs, isPending, onClear } = useHandsOff();
+  const { agent, input, output, logs, isPending, onCancel, onClear } = useHandsOff();
 
   const hasOutput = Boolean(output);
 
@@ -40,7 +40,7 @@ export function HandsOffOutputView() {
 
           {isPending && (
             <div className={classes.statusBar}>
-              <TaskStatusBar />
+              <TaskStatusBar onStopClick={onCancel} />
             </div>
           )}
         </div>

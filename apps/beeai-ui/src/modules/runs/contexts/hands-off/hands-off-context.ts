@@ -18,5 +18,6 @@ interface HandsOffContextValue {
   stats?: RunStats;
   logs?: RunLog[];
   onSubmit: (input: string) => Promise<void>;
+  onCancel: () => void;
   onClear: () => void;
 }

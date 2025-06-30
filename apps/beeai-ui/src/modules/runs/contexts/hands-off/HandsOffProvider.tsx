@@ -36,7 +36,7 @@ export function HandsOffProvider({ agent, children }: PropsWithChildren<Props>) 
   const errorHandler = useHandleError();
 
   const { files, clearFiles } = useFileUpload();
-  const { input, isPending, runAgent, reset } = useRunAgent({
+  const { input, isPending, runAgent, stopAgent, reset } = useRunAgent({
     onBeforeRun: () => {
       handleClear();
       setStats({ startTime: Date.now() });
@@ -131,9 +131,10 @@ export function HandsOffProvider({ agent, children }: PropsWithChildren<Props>) 
       logs,
       isPending,
       onSubmit: run,
+      onCancel: stopAgent,
       onClear: handleClear,
     }),
-    [agent, input, output, stats, logs, isPending, run, handleClear],
+    [agent, input, output, stats, logs, isPending, run, stopAgent, handleClear],
   );
 
   return (
