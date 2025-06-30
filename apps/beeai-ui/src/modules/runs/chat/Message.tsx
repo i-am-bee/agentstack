@@ -21,6 +21,7 @@ import { SourcesButton } from '../sources/components/SourcesButton';
 import { useSources } from '../sources/contexts';
 import { TrajectoryView } from '../trajectory/components/TrajectoryView';
 import { Role } from '../types';
+import { isAgentMessage } from '../utils';
 import classes from './Message.module.scss';
 import { type ChatMessage, MessageStatus } from './types';
 import { UserIcon } from './UserIcon';
@@ -38,7 +39,7 @@ export function Message({ message }: Props) {
   const { display_name } = getAgentUiMetadata(agent);
 
   const isUserMessage = role === Role.User;
-  const isAssistantMessage = role === Role.Assistant;
+  const isAssistantMessage = isAgentMessage(message);
   const isPending = isAssistantMessage && message.status === MessageStatus.InProgress && !content;
   const isError =
     isAssistantMessage && (message.status === MessageStatus.Failed || message.status === MessageStatus.Aborted);

@@ -6,21 +6,15 @@
 import { v4 as uuid } from 'uuid';
 
 import type { CitationMetadata } from '../api/types';
-import type { AssistantMessage, ChatMessage } from '../chat/types';
-import { Role } from '../types';
+import type { AgentMessage, ChatMessage } from '../chat/types';
+import { isAgentMessage } from '../utils';
 import type { ResolvedSource, SourceReference, SourcesData } from './api/types';
 
 export function resolveSource({ source, data }: { source: SourceReference; data: ResolvedSource | undefined }) {
   return data ?? { ...source, metadata: { title: source.url } };
 }
 
-export function prepareMessageSources({
-  message,
-  metadata,
-}: {
-  message: AssistantMessage;
-  metadata: CitationMetadata;
-}) {
+export function prepareMessageSources({ message, metadata }: { message: AgentMessage; metadata: CitationMetadata }) {
   const { url, start_index, end_index, title, description } = metadata;
   const { sources: prevSources = [] } = message;
 
@@ -51,7 +45,7 @@ export function prepareMessageSources({
 
 export function extractSources(messages: ChatMessage[]) {
   const sources = messages.reduce<SourcesData>((data, message) => {
-    if (message.role === Role.Assistant && message.sources) {
+    if (isAgentMessage(message) && message.sources) {
       return {
         ...data,
         [message.key]: message.sources,
