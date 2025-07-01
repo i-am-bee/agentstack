@@ -386,9 +386,9 @@ async def setup(
 
             selected_embedding_model = None
             if (
-                provider_name in ["watsonx", "OpenAI", "Ollama", "Cohere"]
+                recommended_embedding_model is not None
                 and await inquirer.confirm(
-                    message="Do you want to set up embedding model?", default=True
+                    message="Do you want to set up an embedding model?", default=True
                 ).execute_async()
             ):
                 selected_embedding_model = (
@@ -415,7 +415,7 @@ async def setup(
                             message="Select an embedding model (type to search):",
                             choices=sorted(available_models),
                         ).execute_async()
-                        if available_models and len(available_models) > 1
+                        if available_models and len(available_models) >= 1
                         else await inquirer.text(message="Write a model name to use for embedding:").execute_async()
                     )
                 )
@@ -432,7 +432,7 @@ async def setup(
                             check=True,
                         )
                     except Exception as e:
-                        console.print(f"[red]Error while pulling embrdding model: {e!s}[/red]")
+                        console.print(f"[red]Error while pulling the embedding model: {e!s}[/red]")
                         return False
 
         except Exception as e:
