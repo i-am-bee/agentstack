@@ -1,3 +1,6 @@
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 from typing import List, Callable
 from crewai import Agent, Crew, Process, Task, LLM
 from crewai_tools import SerperDevTool, ScrapeWebsiteTool
