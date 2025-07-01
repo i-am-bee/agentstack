@@ -24,7 +24,7 @@ from fastapi.exception_handlers import http_exception_handler
 from fastapi.responses import ORJSONResponse
 from kink import inject, di, Container
 from starlette.responses import FileResponse
-from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR, HTTP_400_BAD_REQUEST
+from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 from starlette.exceptions import HTTPException as StarletteHttpException
 from opentelemetry.metrics import get_meter, Observation, CallbackOptions
 from fastapi.exceptions import RequestValidationError
@@ -34,10 +34,8 @@ from beeai_server.bootstrap import bootstrap_dependencies_sync
 from beeai_server.configuration import Configuration
 from beeai_server.exceptions import (
     ManifestLoadError,
-    ProviderNotInstalledError,
     DuplicateEntityError,
-    UsageLimitExceeded,
-    EntityNotFoundError,
+    PlatformError,
 )
 from beeai_server.api.routes.provider import router as provider_router
 from beeai_server.api.routes.acp import router as acp_router
@@ -46,6 +44,7 @@ from beeai_server.api.routes.files import router as files_router
 from beeai_server.api.routes.llm import router as llm_router
 from beeai_server.api.routes.ui import router as ui_router
 from beeai_server.api.routes.embeddings import router as embeddings_router
+from beeai_server.api.routes.vector_stores import router as vector_stores_router
 
 logger = logging.getLogger(__name__)
 
@@ -58,10 +57,7 @@ def extract_messages(exc):
 
 
 def register_global_exception_handlers(app: FastAPI):
-    @app.exception_handler(DuplicateEntityError)
-    @app.exception_handler(ManifestLoadError)
-    @app.exception_handler(UsageLimitExceeded)
-    @app.exception_handler(EntityNotFoundError)
+    @app.exception_handler(PlatformError)
     async def entity_not_found_exception_handler(request, exc: ManifestLoadError | DuplicateEntityError):
         return await http_exception_handler(request, HTTPException(status_code=exc.status_code, detail=str(exc)))
 
@@ -84,10 +80,6 @@ def register_global_exception_handlers(app: FastAPI):
                     return await acp_http_exception_handler(request, exc)
                 case RequestValidationError():
                     return await validation_exception_handler(request, exc)
-                case ProviderNotInstalledError():
-                    return await acp_http_exception_handler(
-                        request, HTTPException(status_code=HTTP_400_BAD_REQUEST, detail=str(exc))
-                    )
                 case _:
                     return await catch_all_exception_handler(request, exc)
 
@@ -123,6 +115,7 @@ def mount_routes(app: FastAPI):
     server_router.include_router(llm_router, prefix="/llm", tags=["llm"])
     server_router.include_router(ui_router, prefix="/ui", tags=["ui"])
     server_router.include_router(embeddings_router, prefix="/llm", tags=["embeddings"])
+    server_router.include_router(vector_stores_router, prefix="/vector_stores", tags=["vector_stores"])
 
     app.mount("/healthcheck", lambda: "OK")
     app.include_router(server_router, prefix="/api/v1", tags=["provider"])

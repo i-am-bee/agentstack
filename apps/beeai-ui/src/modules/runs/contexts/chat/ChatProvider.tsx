@@ -13,7 +13,7 @@ import { usePrevious } from '#hooks/usePrevious.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { type MessagePartMetadata, MetadataKind } from '#modules/runs/api/types.ts';
 import {
-  type AssistantMessage,
+  type AgentMessage,
   type ChatMessage,
   type CitationTransform,
   MessageContentTransformType,
@@ -32,6 +32,7 @@ import {
   createImageTransform,
   createMessagePart,
   extractValidUploadFiles,
+  isAgentMessage,
   isArtifactPart,
   mapToMessageFiles,
 } from '#modules/runs/utils.ts';
@@ -113,11 +114,11 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
   const sourcesData = useMemo(() => extractSources(messages), [messages]);
 
   const updateLastAssistantMessage = useCallback(
-    (updater: (message: AssistantMessage) => void) => {
+    (updater: (message: AgentMessage) => void) => {
       setMessages((messages) => {
         const lastMessage = messages.at(-1);
 
-        if (lastMessage?.role === Role.Assistant) {
+        if (lastMessage && isAgentMessage(lastMessage)) {
           updater(lastMessage);
         }
       });
@@ -188,7 +189,7 @@ export function ChatProvider({ agent, children }: PropsWithChildren<Props>) {
         });
         messages.push({
           key: uuid(),
-          role: Role.Assistant,
+          role: Role.Agent,
           content: '',
           rawContent: '',
           contentTransforms: [],

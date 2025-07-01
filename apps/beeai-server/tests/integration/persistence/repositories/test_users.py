@@ -7,7 +7,7 @@ from sqlalchemy import text
 
 from beeai_server.domain.models.user import User, UserRole
 from beeai_server.exceptions import EntityNotFoundError
-from beeai_server.infrastructure.persistence.repositories.users import SqlAlchemyUserRepository
+from beeai_server.infrastructure.persistence.repositories.user import SqlAlchemyUserRepository
 
 pytestmark = pytest.mark.integration
 

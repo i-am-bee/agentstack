@@ -9,7 +9,7 @@ import type { Role } from '../types';
 
 interface Message {
   key: string;
-  role: Role;
+  role: Role | string;
   content: string;
   error?: unknown;
   files?: MessageFile[];
@@ -17,8 +17,8 @@ interface Message {
 export interface UserMessage extends Message {
   role: Role.User;
 }
-export interface AssistantMessage extends Message {
-  role: Role.Assistant;
+export interface AgentMessage extends Message {
+  role: Role.Agent | string;
   rawContent: string;
   contentTransforms: MessageContentTransform[];
   status: MessageStatus;
@@ -44,7 +44,7 @@ export interface CitationTransform extends MessageContentTransform {
   sources: SourceReference[];
 }
 
-export type ChatMessage = UserMessage | AssistantMessage;
+export type ChatMessage = UserMessage | AgentMessage;
 
 export enum MessageStatus {
   InProgress = 'in-progress',

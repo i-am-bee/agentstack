@@ -19,7 +19,13 @@ import {
   RunMode,
   type SessionId,
 } from './api/types';
-import { type CitationTransform, type MessageContentTransform, MessageContentTransformType } from './chat/types';
+import {
+  type AgentMessage,
+  type ChatMessage,
+  type CitationTransform,
+  type MessageContentTransform,
+  MessageContentTransformType,
+} from './chat/types';
 import type { UploadFileResponse } from './files/api/types';
 import type { FileEntity } from './files/types';
 import { getFileContentUrl } from './files/utils';
@@ -58,7 +64,7 @@ export function createRunStreamRequest({
     input: [
       {
         parts: messageParts,
-        role: `agent/${agent}`,
+        role: Role.User,
       },
     ],
     mode: RunMode.Stream,
@@ -196,3 +202,7 @@ const parseJsonLikeString = (string: string): unknown | string => {
     return string;
   }
 };
+
+export function isAgentMessage(message: ChatMessage): message is AgentMessage {
+  return message.role === Role.Agent || message.role.startsWith(`${Role.Agent}/`);
+}

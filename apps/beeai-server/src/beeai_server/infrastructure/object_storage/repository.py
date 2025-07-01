@@ -12,7 +12,7 @@ from kink import inject
 
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.file import AsyncFile
-from beeai_server.domain.repositories.files import IObjectStorageRepository
+from beeai_server.domain.repositories.file import IObjectStorageRepository
 from beeai_server.exceptions import EntityNotFoundError
 
 logger = logging.getLogger(__name__)
