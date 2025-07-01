@@ -19,7 +19,7 @@ import type {
   RunId,
   SessionId,
 } from '../api/types';
-import type { RunAgentParams } from '../types';
+import { Role, type RunAgentParams } from '../types';
 
 interface Props {
   onBeforeRun?: () => void;
@@ -81,10 +81,10 @@ export function useRunAgent({
             input: [
               {
                 parts: messageParts,
-                role: 'user',
+                role: Role.User,
               } as Message,
             ],
-            sessionId: sessionId ?? undefined,
+            sessionId,
           },
           signal: abortController.signal,
         });
