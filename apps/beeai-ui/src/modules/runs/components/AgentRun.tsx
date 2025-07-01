@@ -58,7 +58,7 @@ const renderUi = ({ agent }: { agent: Agent }) => {
   switch (ui_type) {
     case UiType.Chat:
       return (
-        <FileUploadProvider key={agent.name} allowedFiles={inputContentTypes}>
+        <FileUploadProvider key={agent.name} allowedContentTypes={inputContentTypes}>
           <ChatProvider agent={agent}>
             <Chat />
           </ChatProvider>
@@ -66,7 +66,7 @@ const renderUi = ({ agent }: { agent: Agent }) => {
       );
     case UiType.HandsOff:
       return (
-        <FileUploadProvider key={agent.name} allowedFiles={inputContentTypes}>
+        <FileUploadProvider key={agent.name} allowedContentTypes={inputContentTypes}>
           <HandsOffProvider agent={agent}>
             <HandsOff />
           </HandsOffProvider>

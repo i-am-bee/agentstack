@@ -16,10 +16,10 @@ import { type FileEntity, FileStatus } from '../types';
 import { FileUploadContext } from './file-upload-context';
 
 interface Props {
-  allowedFiles: string[];
+  allowedContentTypes: string[];
 }
 
-export function FileUploadProvider({ allowedFiles, children }: PropsWithChildren<Props>) {
+export function FileUploadProvider({ allowedContentTypes, children }: PropsWithChildren<Props>) {
   const [files, setFiles] = useState<FileEntity[]>([]);
 
   const { addToast } = useToast();
@@ -88,10 +88,13 @@ export function FileUploadProvider({ allowedFiles, children }: PropsWithChildren
     [files],
   );
 
-  const isDisabled = !allowedFiles.length;
+  const isDisabled = !allowedContentTypes.length;
 
   const dropzone = useDropzone({
-    accept: allowedFiles.reduce((value, mimeType) => ({ ...value, [mimeType]: [] }), {} as Record<string, string[]>),
+    accept: allowedContentTypes.reduce(
+      (value, mimeType) => ({ ...value, [mimeType]: [] }),
+      {} as Record<string, string[]>,
+    ),
     disabled: isDisabled,
     noClick: true,
     noKeyboard: true,
