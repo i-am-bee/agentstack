@@ -8,6 +8,7 @@ import type { ApiPath, ApiResponse } from '#@types/utils.ts';
 export type AgentsListResponse = ApiResponse<'/api/v1/acp/agents'>;
 
 export type Agent = ApiResponse<'/api/v1/acp/agents/{name}'> & {
+  input_content_types?: string[];
   metadata: {
     name?: string;
   };
