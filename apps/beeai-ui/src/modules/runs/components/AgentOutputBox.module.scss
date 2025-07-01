@@ -10,6 +10,9 @@
   border-radius: $border-radius;
   border: 1px solid $border-subtle-00;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  row-gap: $spacing-06;
 }
 
 .actions {

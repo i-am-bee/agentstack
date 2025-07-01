@@ -8,6 +8,8 @@ import type { Agent } from '#modules/agents/api/types.ts';
 
 import { useHandsOff } from '../contexts/hands-off';
 import { HandsOffProvider } from '../contexts/hands-off/HandsOffProvider';
+import { useMessages } from '../contexts/messages';
+import { MessagesProvider } from '../contexts/messages/MessagesProviders';
 import { FileUploadProvider } from '../files/contexts/FileUploadProvider';
 import { SourcesPanel } from '../sources/components/SourcesPanel';
 import { HandsOffLandingView } from './HandsOffLandingView';
@@ -20,17 +22,20 @@ interface Props {
 export function HandsOffView({ agent }: Props) {
   return (
     <FileUploadProvider key={agent.name}>
-      <HandsOffProvider agent={agent}>
-        <HandsOff />
-      </HandsOffProvider>
+      <MessagesProvider>
+        <HandsOffProvider agent={agent}>
+          <HandsOff />
+        </HandsOffProvider>
+      </MessagesProvider>
     </FileUploadProvider>
   );
 }
 
 function HandsOff() {
-  const { output, isPending } = useHandsOff();
+  const { isPending } = useHandsOff();
+  const { messages } = useMessages();
 
-  const isIdle = !isPending && !output;
+  const isIdle = !(isPending || messages?.length);
 
   return (
     <>

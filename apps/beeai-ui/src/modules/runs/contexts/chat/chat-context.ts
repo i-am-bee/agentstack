@@ -6,11 +6,8 @@
 import { createContext } from 'react';
 
 import type { Agent } from '#modules/agents/api/types.ts';
-import type { ChatMessage } from '#modules/runs/chat/types.ts';
 
 export const ChatContext = createContext<ChatContextValue | null>(null);
-
-export const ChatMessagesContext = createContext<ChatMessage[]>([]);
 
 interface ChatContextValue {
   agent: Agent;

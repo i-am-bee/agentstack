@@ -12,7 +12,8 @@ import { Container } from '#components/layouts/Container.tsx';
 import { NewSessionButton } from '../components/NewSessionButton';
 import { StatusBar } from '../components/StatusBar';
 import { useAgent } from '../contexts/agent';
-import { useChat, useChatMessages } from '../contexts/chat';
+import { useChat } from '../contexts/chat';
+import { useMessages } from '../contexts/messages';
 import { FileUpload } from '../files/components/FileUpload';
 import { ChatInput } from './ChatInput';
 import classes from './ChatMessagesView.module.scss';
@@ -24,7 +25,7 @@ export function ChatMessagesView() {
   const [isScrolled, setIsScrolled] = useState(false);
 
   const { isPending, onClear } = useChat();
-  const messages = useChatMessages();
+  const { messages } = useMessages();
   const {
     status: { isNotInstalled, isStarting },
   } = useAgent();

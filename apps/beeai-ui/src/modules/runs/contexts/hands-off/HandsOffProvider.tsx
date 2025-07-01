@@ -3,25 +3,44 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import isString from 'lodash/isString';
 import type { PropsWithChildren } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { v4 as uuid } from 'uuid';
 
 import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 import { usePrevious } from '#hooks/usePrevious.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
-import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
-import type { RunLog, RunStats } from '#modules/runs/types.ts';
+import type { MessagePartMetadata } from '#modules/runs/api/types.ts';
 import {
+  type AgentMessage,
+  type CitationTransform,
+  MessageContentTransformType,
+  MessageStatus,
+} from '#modules/runs/chat/types.ts';
+import { prepareMessageFiles } from '#modules/runs/files/utils.ts';
+import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
+import { SourcesProvider } from '#modules/runs/sources/contexts/SourcesProvider.tsx';
+import { extractSources, prepareMessageSources } from '#modules/runs/sources/utils.ts';
+import { prepareTrajectories } from '#modules/runs/trajectory/utils.ts';
+import { Role, type RunLog, type RunStats } from '#modules/runs/types.ts';
+import {
+  applyContentTransforms,
+  createCitationTransform,
   createFileMessageParts,
+  createImageTransform,
   createMessagePart,
-  extractOutput,
   extractValidUploadFiles,
+  isAgentMessage,
   isArtifactPart,
+  mapToMessageFiles,
 } from '#modules/runs/utils.ts';
+import { isImageContentType } from '#utils/helpers.ts';
 
 import { useFileUpload } from '../../files/contexts';
 import { AgentProvider } from '../agent/AgentProvider';
+import { useMessages } from '../messages';
 import { HandsOffContext } from './hands-off-context';
 
 interface Props {
@@ -29,7 +48,7 @@ interface Props {
 }
 
 export function HandsOffProvider({ agent, children }: PropsWithChildren<Props>) {
-  const [output, setOutput] = useState<string>('');
+  const { messages, setMessages } = useMessages();
   const [stats, setStats] = useState<RunStats>();
   const [logs, setLogs] = useState<RunLog[]>([]);
 
@@ -37,25 +56,60 @@ export function HandsOffProvider({ agent, children }: PropsWithChildren<Props>) 
 
   const { files, clearFiles } = useFileUpload();
   const { input, isPending, runAgent, stopAgent, reset } = useRunAgent({
-    onBeforeRun: () => {
-      handleClear();
-      setStats({ startTime: Date.now() });
-    },
     onMessagePart: (event) => {
       const { part } = event;
+      const { content, content_type, content_url, metadata } = part;
 
-      if (isArtifactPart(part)) {
-        return;
+      const isArtifact = isArtifactPart(part);
+      const hasFile = isString(content_url);
+      const hasContent = isString(content);
+      const hasImage = hasFile && isImageContentType(content_type);
+
+      if (isArtifact) {
+        if (hasFile) {
+          updateLastAgentMessage((message) => {
+            message.files = prepareMessageFiles({ files: message.files, data: part });
+          });
+        }
       }
 
-      const { content } = part;
+      if (hasContent) {
+        updateLastAgentMessage((message) => {
+          message.rawContent += content;
+        });
+      }
 
-      setOutput((output) => (content ? output.concat(content) : output));
+      if (hasImage) {
+        updateLastAgentMessage((message) => {
+          message.contentTransforms.push(
+            createImageTransform({
+              imageUrl: content_url,
+              insertAt: message.rawContent.length,
+            }),
+          );
+        });
+      }
+
+      if (metadata) {
+        processMetadata(metadata as MessagePartMetadata);
+      }
+
+      updateLastAgentMessage((message) => {
+        message.content = applyContentTransforms({
+          rawContent: message.rawContent,
+          transforms: message.contentTransforms,
+        });
+      });
     },
-    onRunCompleted: (event) => {
-      const output = extractOutput(event.run.output);
-
-      setOutput(output);
+    onMessageCompleted: () => {
+      updateLastAgentMessage((message) => {
+        message.status = MessageStatus.Completed;
+      });
+    },
+    onStop: () => {
+      updateLastAgentMessage((message) => {
+        message.status = MessageStatus.Aborted;
+      });
     },
     onGeneric: (event) => {
       const log = event.generic;
@@ -76,6 +130,57 @@ export function HandsOffProvider({ agent, children }: PropsWithChildren<Props>) 
     },
   });
 
+  const sourcesData = useMemo(() => extractSources(messages), [messages]);
+
+  const updateLastAgentMessage = useCallback(
+    (updater: (message: AgentMessage) => void) => {
+      setMessages((messages) => {
+        const lastMessage = messages.at(-1);
+
+        if (lastMessage && isAgentMessage(lastMessage)) {
+          updater(lastMessage);
+        }
+      });
+    },
+    [setMessages],
+  );
+
+  const processMetadata = useCallback(
+    (metadata: MessagePartMetadata) => {
+      switch (metadata.kind) {
+        case 'citation':
+          updateLastAgentMessage((message) => {
+            const { sources, newSource } = prepareMessageSources({ message, metadata });
+
+            const citationTransformGroup = message.contentTransforms.find(
+              (transform): transform is CitationTransform =>
+                transform.kind === MessageContentTransformType.Citation &&
+                transform.startIndex === newSource.startIndex,
+            );
+
+            message.sources = sources;
+
+            if (citationTransformGroup) {
+              citationTransformGroup.sources.push(newSource);
+            } else {
+              message.contentTransforms.push(createCitationTransform({ source: newSource }));
+            }
+          });
+
+          break;
+        case 'trajectory':
+          updateLastAgentMessage((message) => {
+            message.trajectories = prepareTrajectories({ trajectories: message.trajectories, data: metadata });
+          });
+
+          break;
+        default:
+          break;
+      }
+    },
+    [updateLastAgentMessage],
+  );
+
   const handleDone = useCallback(() => {
     setStats((stats) => ({ ...stats, endTime: Date.now() }));
   }, []);
@@ -93,11 +198,11 @@ export function HandsOffProvider({ agent, children }: PropsWithChildren<Props>) 
 
   const handleClear = useCallback(() => {
     reset();
-    setOutput('');
+    setMessages([]);
     setStats(undefined);
     setLogs([]);
     clearFiles();
-  }, [reset, clearFiles]);
+  }, [reset, setMessages, clearFiles]);
 
   const previousAgent = usePrevious(agent);
   useEffect(() => {
@@ -108,8 +213,29 @@ export function HandsOffProvider({ agent, children }: PropsWithChildren<Props>) 
 
   const run = useCallback(
     async (input: string) => {
+      handleClear();
+      setStats({ startTime: Date.now() });
+
       const uploadFiles = extractValidUploadFiles(files);
       const messageParts = [createMessagePart({ content: input }), ...createFileMessageParts(uploadFiles)];
+      const userFiles = mapToMessageFiles(uploadFiles);
+
+      setMessages((messages) => {
+        messages.push({
+          key: uuid(),
+          role: Role.User,
+          content: input,
+          files: userFiles,
+        });
+        messages.push({
+          key: uuid(),
+          role: Role.Agent,
+          content: '',
+          rawContent: '',
+          contentTransforms: [],
+          status: MessageStatus.InProgress,
+        });
+      });
 
       clearFiles();
 
@@ -119,14 +245,14 @@ export function HandsOffProvider({ agent, children }: PropsWithChildren<Props>) 
         handleError(error);
       }
     },
-    [agent, files, runAgent, handleError, clearFiles],
+    [agent, files, runAgent, setMessages, handleError, handleClear, clearFiles],
   );
 
   const contextValue = useMemo(
     () => ({
       agent,
       input,
-      output,
+      messages,
       stats,
       logs,
       isPending,
@@ -134,14 +260,16 @@ export function HandsOffProvider({ agent, children }: PropsWithChildren<Props>) 
       onCancel: stopAgent,
       onClear: handleClear,
     }),
-    [agent, input, output, stats, logs, isPending, run, stopAgent, handleClear],
+    [agent, input, messages, stats, logs, isPending, run, stopAgent, handleClear],
   );
 
   return (
-    <HandsOffContext.Provider value={contextValue}>
-      <AgentProvider agent={agent} isMonitorStatusEnabled={isPending}>
-        {children}
-      </AgentProvider>
-    </HandsOffContext.Provider>
+    <SourcesProvider sourcesData={sourcesData}>
+      <HandsOffContext.Provider value={contextValue}>
+        <AgentProvider agent={agent} isMonitorStatusEnabled={isPending}>
+          {children}
+        </AgentProvider>
+      </HandsOffContext.Provider>
+    </SourcesProvider>
   );
 }

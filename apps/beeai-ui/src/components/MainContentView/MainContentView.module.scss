@@ -22,6 +22,9 @@
 .body {
   flex-grow: 1;
   min-block-size: 0;
+  .root.scrollable & {
+    min-block-size: auto;
+  }
 }
 
 @include breakpoint-up(md) {

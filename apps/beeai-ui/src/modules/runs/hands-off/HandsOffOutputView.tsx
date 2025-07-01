@@ -9,12 +9,16 @@ import { AgentHeading } from '#modules/agents/components/AgentHeading.tsx';
 import { AgentRunLogs } from '../components/AgentRunLogs';
 import { NewSessionButton } from '../components/NewSessionButton';
 import { useHandsOff } from '../contexts/hands-off';
+import { useMessages } from '../contexts/messages';
 import classes from './HandsOffOutputView.module.scss';
 import { HandsOffText } from './HandsOffText';
 import { TaskStatusBar } from './TaskStatusBar';
+import { getHandsOffOutput } from './utils';
 
 export function HandsOffOutputView() {
-  const { agent, input, output, logs, isPending, onCancel, onClear } = useHandsOff();
+  const { agent, input, logs, isPending, onCancel, onClear } = useHandsOff();
+  const { messages } = useMessages();
+  const output = getHandsOffOutput(messages);
 
   const hasOutput = Boolean(output);
 
@@ -28,13 +32,9 @@ export function HandsOffOutputView() {
         </header>
 
         <div className={classes.body}>
-          {hasOutput && (
-            <>
-              <AgentHeading agent={agent} />
+          <AgentHeading agent={agent} />
 
-              <HandsOffText />
-            </>
-          )}
+          <HandsOffText />
 
           {logs && <AgentRunLogs logs={logs} toggleable={hasOutput} />}
 

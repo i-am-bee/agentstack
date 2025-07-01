@@ -25,6 +25,7 @@ import {
   type CitationTransform,
   type MessageContentTransform,
   MessageContentTransformType,
+  type UserMessage,
 } from './chat/types';
 import type { UploadFileResponse } from './files/api/types';
 import type { FileEntity } from './files/types';
@@ -205,4 +206,8 @@ const parseJsonLikeString = (string: string): unknown | string => {
 
 export function isAgentMessage(message: ChatMessage): message is AgentMessage {
   return message.role === Role.Agent || message.role.startsWith(`${Role.Agent}/`);
+}
+
+export function isUserMessage(message: ChatMessage): message is UserMessage {
+  return message.role === Role.Agent;
 }

@@ -14,7 +14,6 @@ interface HandsOffContextValue {
   agent: Agent;
   isPending: boolean;
   input?: string;
-  output?: string;
   stats?: RunStats;
   logs?: RunLog[];
   onSubmit: (input: string) => Promise<void>;
