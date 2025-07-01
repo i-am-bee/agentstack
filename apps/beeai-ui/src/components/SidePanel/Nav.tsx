@@ -44,7 +44,7 @@ function renderItems(items: NavItem[]) {
         onClick={onClick}
       >
         {label}
-        {isExternal && <ArrowUpRight className={classes.icon} />}
+        {isExternal && <ArrowUpRight />}
       </Button>
     </li>
   ));
