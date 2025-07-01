@@ -70,10 +70,10 @@ auth_url_per_registry = {
 }
 
 
-async def get_auth_endpoint(protocol: str, registry: str):
+async def get_auth_endpoint(registry: str, get_manifest_url: str) -> str | None:
     if registry not in auth_url_per_registry:
         async with httpx.AsyncClient() as client:
-            registry_resp = await client.get(f"{protocol}://{registry}/v2/_catalog", follow_redirects=True)
+            registry_resp = await client.get(get_manifest_url, follow_redirects=True)
             header = registry_resp.headers.get("www-authenticate")
         if not header:
             return
@@ -91,7 +91,9 @@ async def get_auth_endpoint(protocol: str, registry: str):
 
 
 @inject
-async def get_registry_image_config_and_labels(image_id: DockerImageID, configuration: Configuration):
+async def get_registry_image_config_and_labels(
+    image_id: DockerImageID, configuration: Configuration
+) -> tuple[dict, dict]:
     # Parse image name to determine registry and repository
     headers = {
         "Accept": (
@@ -109,8 +111,11 @@ async def get_registry_image_config_and_labels(image_id: DockerImageID, configur
     if registry.endswith("docker.io"):
         registry = "registry-1.docker.io"
 
+    manifest_base_url = f"{protocol}://{registry}/v2/{image_id.repository}/manifests"
+    get_manifest_url = f"{manifest_base_url}/{image_id.tag}"
+
     try:
-        token_endpoint = await get_auth_endpoint(protocol, registry)
+        token_endpoint = await get_auth_endpoint(registry, get_manifest_url)
     except Exception as ex:
         raise Exception("Image registry does not exist or is not accessible") from ex
 
@@ -127,8 +132,7 @@ async def get_registry_image_config_and_labels(image_id: DockerImageID, configur
             token = auth_resp.json()["token"]
             headers["Authorization"] = f"Bearer {token}"
 
-        manifest_url = f"{protocol}://{registry}/v2/{image_id.repository}/manifests"
-        manifest_resp = await client.get(f"{manifest_url}/{image_id.tag}", headers=headers, follow_redirects=True)
+        manifest_resp = await client.get(get_manifest_url, headers=headers, follow_redirects=True)
 
         if manifest_resp.status_code != 200:
             raise Exception(f"Failed to get manifest: {manifest_resp.status_code}, {manifest_resp.text}")
@@ -137,7 +141,7 @@ async def get_registry_image_config_and_labels(image_id: DockerImageID, configur
 
         if "manifests" in manifest:
             manifest_resp = await client.get(
-                f"{manifest_url}/{manifest['manifests'][0]['digest']}", headers=headers, follow_redirects=True
+                f"{manifest_base_url}/{manifest['manifests'][0]['digest']}", headers=headers, follow_redirects=True
             )
             manifest = manifest_resp.json()
 

@@ -35,25 +35,5 @@ def test_parses_github_url(image_id, expected):
     image_id = DockerImageID(image_id)
     expected = {"registry": "docker.io", "tag": "latest", **expected}
     assert (
-        filter_dict(
-            {
-                "registry": image_id.registry,
-                "repository": image_id.repository,
-                "tag": image_id.tag,
-            }
-        )
-        == expected
+        filter_dict({"registry": image_id.registry, "repository": image_id.repository, "tag": image_id.tag}) == expected
     )
-
-
-# @pytest.mark.parametrize(
-#     "url",
-#     [
-#         "",  # Empty string
-#         "github.com/user/repo",  # Missing org and repo
-#     ],
-# )
-# def test_invalid_urls(url):
-#     """Test that invalid URLs raise ValueError."""
-#     with pytest.raises(ValueError):
-#         DockerImageID(url)
