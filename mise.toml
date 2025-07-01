@@ -14,7 +14,8 @@ kubeconform = "latest"
 
 # Misc
 yq = "latest"
-"ubi:B1NARY-GR0UP/nwa" = "latest"
+fd = "latest"
+"ubi:google/addlicense" = "latest"
 
 [settings]
 experimental = true # for python.uv_venv_auto
@@ -96,27 +97,18 @@ outputs = { auto = true }
 [tasks."common:check"]
 depends = ["common:check:*"]
 
-[tasks."common:check:nwa"]
+[tasks."common:check:license"]
 dir = "{{config_root}}"
-run = "nwa check -i Apache-2.0 -c '© BeeAI a Series of LF Projects, LLC' 'apps/*/src/**/*.{py,js,jsx,ts,tsx,html,css,scss}'"
-# sources don't support {a,b} -- https://github.com/jdx/mise/discussions/4469
-sources = ["apps/*/src/**/*.py", "apps/*/src/**/*.js", "apps/*/src/**/*.jsx", "apps/*/src/**/*.ts", "apps/*/src/**/*.tsx", "apps/*/src/**/*.html", "apps/*/src/**/*.css", "apps/*/src/**/*.scss"]
-outputs = { auto = true }
+run = "addlicense -check -l apache -s=only -c '© BeeAI a Series of LF Projects, LLC' $(fd '\\.(py|[jt]sx?|html|s?css)$')"
 
 ### fix
 
 [tasks."common:fix"]
 depends = ["common:fix:*"]
 
-[tasks."common:fix:nwa"]
+[tasks."common:fix:license"]
 dir = "{{config_root}}"
-run = """
-nwa update -i Apache-2.0 -c '© BeeAI a Series of LF Projects, LLC' 'apps/*/src/**/*.{py,js,jsx,ts,tsx,html,css,scss}' --mute || true
-nwa add    -i Apache-2.0 -c '© BeeAI a Series of LF Projects, LLC' 'apps/*/src/**/*.{py,js,jsx,ts,tsx,html,css,scss}' --mute || true
-"""
-# sources don't support {a,b} -- https://github.com/jdx/mise/discussions/4469
-sources = ["apps/*/src/**/*.py", "apps/*/src/**/*.js", "apps/*/src/**/*.jsx", "apps/*/src/**/*.ts", "apps/*/src/**/*.tsx", "apps/*/src/**/*.html", "apps/*/src/**/*.css", "apps/*/src/**/*.scss"]
-outputs = { auto = true }
+run = "addlicense -l apache -s=only -c '© BeeAI a Series of LF Projects, LLC' $(fd '\\.(py|[jt]sx?|html|s?css)$')"
 
 ### test
 

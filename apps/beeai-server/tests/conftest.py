@@ -1,3 +1,6 @@
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 import asyncio
 import os
 import re
@@ -93,6 +96,12 @@ def clean_up_fn(test_configuration):
             # TODO: drop all users except dummy ones
             for table in metadata.tables.keys() - {"users"}:
                 await connection.execute(text(f'TRUNCATE TABLE public."{table}" RESTART IDENTITY CASCADE'))
+
+            # Drop all vector_db tables
+            vecdb = await connection.execute(text("SELECT tablename from pg_tables where schemaname = 'vector_db'"))
+            for row in vecdb.fetchall():
+                await connection.execute(text(f"DROP TABLE vector_db.{row.tablename} CASCADE"))
+
             await connection.commit()
         # Clean all deployments
         async for deployment in kr8s_client.get(kind="deploy"):

@@ -49,4 +49,15 @@ async def create_vector_extension(wait_for_db: bool = True):
     engine = create_async_engine(db_url)
     async with engine.connect() as connection, connection.begin() as transaction:
         await connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        await connection.execute(text("SET maintenance_work_mem = '512MB'"))
+
+        # Improve recall at the cost of performance
+        # In pgvector when using filtering (which we are doing heavily - by the vector_store_id column)
+        # it might actually return fewer results than it should because filtering is applied after the index is scanned
+        # to mitigate this we use the iterative scan feature
+        # - filtering: https://github.com/pgvector/pgvector?tab=readme-ov-file#filtering
+        # - iterative index scan: https://github.com/pgvector/pgvector?tab=readme-ov-file#iterative-index-scans
+        await connection.execute(text("SET hnsw.ef_search = 1000"))
+        await connection.execute(text("SET hnsw.iterative_scan = strict_order"))
+        await connection.execute(text("SET hnsw.max_scan_tuples = 1000000"))  # 1M, default is 20k
         await transaction.commit()

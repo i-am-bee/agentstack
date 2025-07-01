@@ -13,6 +13,7 @@ from beeai_server.service_layer.services.env import EnvService
 from beeai_server.service_layer.services.files import FileService
 from beeai_server.service_layer.services.provider import ProviderService
 from beeai_server.service_layer.services.users import UserService
+from beeai_server.service_layer.services.vector_stores import VectorStoreService
 from fastapi import Depends
 from kink import di
 
@@ -23,6 +24,7 @@ AcpProxyServiceDependency = Annotated[AcpProxyService, Depends(lambda: di[AcpPro
 EnvServiceDependency = Annotated[EnvService, Depends(lambda: di[EnvService])]
 FileServiceDependency = Annotated[FileService, Depends(lambda: di[FileService])]
 UserServiceDependency = Annotated[UserService, Depends(lambda: di[UserService])]
+VectorStoreServiceDependency = Annotated[VectorStoreService, Depends(lambda: di[VectorStoreService])]
 
 # Auth
 

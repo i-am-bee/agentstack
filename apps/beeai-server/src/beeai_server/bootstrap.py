@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
 from beeai_server.jobs.procrastinate import create_app
 from beeai_server.service_layer.deployment_manager import IProviderDeploymentManager
 from beeai_server.configuration import Configuration, get_configuration
-from beeai_server.domain.repositories.files import IObjectStorageRepository
+from beeai_server.domain.repositories.file import IObjectStorageRepository
 from beeai_server.infrastructure.kubernetes.provider_deployment_manager import KubernetesProviderDeploymentManager
 from beeai_server.infrastructure.object_storage.repository import S3ObjectStorageRepository
 
@@ -60,7 +60,10 @@ async def bootstrap_dependencies(dependency_overrides: Container | None = None):
         IProviderDeploymentManager,
         KubernetesProviderDeploymentManager(api_factory=await setup_kubernetes_client(di[Configuration])),
     )
-    _set_di(IUnitOfWorkFactory, SqlAlchemyUnitOfWorkFactory(setup_database_engine(di[Configuration])))
+    _set_di(
+        IUnitOfWorkFactory,
+        SqlAlchemyUnitOfWorkFactory(setup_database_engine(di[Configuration]), di[Configuration]),
+    )
 
     # Register object storage repository and file service
     _set_di(IObjectStorageRepository, S3ObjectStorageRepository(di[Configuration]))

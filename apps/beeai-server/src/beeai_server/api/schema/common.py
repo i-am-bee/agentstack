@@ -28,7 +28,7 @@ class ErrorStreamResponse(BaseModel, extra="allow"):
 class EntityModel(BaseModel):
     def __class_getitem__(cls, model: type[BaseModel]):
         if not model.model_fields.get("id"):
-            raise TypeError(f"Class {model.__name__} cannot is missing the id attribute")
+            raise TypeError(f"Class {model.__name__} is missing the id attribute")
 
         class ModelOutput(model):
             id: UUID
