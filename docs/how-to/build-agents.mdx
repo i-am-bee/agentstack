@@ -102,6 +102,10 @@ Here are examples of wrapping popular agent frameworks:
 The more metadata, the better the UX. Here's a full example with every supported option:
 
 ```python
+from acp_sdk import Metadata
+from acp_sdk.models.models import Annotations, CitationMetadata
+from acp_sdk.models.platform import PlatformUIAnnotation, PlatformUIType, AgentToolInfo
+
 @server.agent(
     name="my-custom-agent",
     description="A full-featured BeeAI agent with metadata and documentation",
@@ -110,10 +114,13 @@ The more metadata, the better the UX. Here's a full example with every supported
         framework="BeeAI",
         programming_language="Python",
         license="Apache 2.0",
-        ui={
-            "type": "hands-off",
-            "user_greeting": "How can I help you process your data today?"
-        },
+        annotations=Annotations(
+            beeai_ui=PlatformUIAnnotation(
+                ui_type=PlatformUIType.HANDSOFF,
+                user_greeting="How can I help you process your data today?",
+                tools=[AgentToolInfo(name="Wikipedia", description="Search for information on Wikipedia")],
+            )
+        ),
         author={
             "name": "John Doe",
             "email": "john.doe@example.com",
@@ -129,10 +136,10 @@ The more metadata, the better the UX. Here's a full example with every supported
             "gpt-4-turbo",
             "claude-3-sonnet"
         ],
-        use_cases=[
-            "**Data Analysis** – Process structured/unstructured data",
-            "**Report Generation** – Produce clean summaries and insights",
-            "**Content Summarization** – Shorten long articles or documents"
+        capabilities=[
+            {"name": "Data Analysis", "description": "Process structured/unstructured data"},
+            {"name": "Report Generation", "description": "Produce clean summaries and insights"},
+            {"name": "Content Summarization", "description": "Shorten long articles or documents"}
         ],
         tags=["data-processing", "analysis", "automation", "nlp", "research"],
         documentation="""
@@ -165,7 +172,16 @@ async def my_custom_agent(...):
 
 ```
 
-**Agent Types:**
+#### Configure UI Annotations in Metadata
+UI annotations allow you to customize how your agent appears and behaves in the BeeAI platform. These annotations are part of the ACP (Agent Communication Protocol) metadata and provide rich information about your agent's capabilities and user experience.
+
+The `beeai_ui` annotation is defined within the `PlatformUIAnnotation` model and contains properties that control:
+
+- **UI Type**: How the agent interface behaves (chat vs hands-off)
+- **User Greeting**: Greeting messages and display names
+- **Tool Information**: List of tools that agent is using
+
+**Available UI Types:**
 - `"hands-off"`: One-shot tasks (summarization, analysis, generation)
 - `"chat"`: Conversational interactions
 
@@ -175,7 +191,7 @@ Add your agent's dependencies to `pyproject.toml`:
 
 ```toml
 dependencies = [
-    "acp-sdk>=0.8.1",
+    "acp-sdk>=0.13.0",
     "requests>=2.31.0",     # Add your dependencies here
     "crewai >= 0.30.0"      # For example, CrewAI
 ]

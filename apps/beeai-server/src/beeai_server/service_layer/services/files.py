@@ -3,7 +3,8 @@
 
 import logging
 from contextlib import suppress, asynccontextmanager
-from typing import AsyncIterator
+from typing import AsyncIterator, Callable, Awaitable, Annotated
+from typing_extensions import Doc
 from uuid import UUID
 
 from kink import inject
@@ -11,10 +12,10 @@ from kink import inject
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.file import AsyncFile, File
 from beeai_server.domain.models.user import User
-from beeai_server.domain.repositories.files import IObjectStorageRepository
+from beeai_server.domain.repositories.file import IObjectStorageRepository
+from beeai_server.exceptions import StorageCapacityExceededError
 from beeai_server.service_layer.services.users import UserService
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
-from beeai_server.utils.fastapi import limit_size_wrapper
 
 logger = logging.getLogger(__name__)
 
@@ -70,3 +71,27 @@ class FileService:
             await uow.files.delete(file_id=file_id, user_id=user.id)
             await self._object_storage.delete_file(file_id=file_id)
             await uow.commit()
+
+
+def limit_size_wrapper(
+    read: Callable[[int], Awaitable[bytes]], max_size: int = None, size: int | None = None
+) -> Callable[[int], Awaitable[bytes]]:
+    current_size = 0
+
+    # Quick check using the Content-Length header. This is not fully reliable as the header can be omitted or incorrect,
+    # but it can reject large files early.
+    if max_size is not None and size is not None and size > max_size:
+        raise StorageCapacityExceededError("file", max_size)
+
+    async def _read(size: Annotated[int, Doc("The number of bytes to read from the file.")] = -1) -> bytes:
+        nonlocal current_size
+        if max_size is None:
+            return await read(size)
+
+        if chunk := await read(size):
+            current_size += len(chunk)
+            if current_size > max_size:
+                raise StorageCapacityExceededError("file", max_size)
+        return chunk
+
+    return _read

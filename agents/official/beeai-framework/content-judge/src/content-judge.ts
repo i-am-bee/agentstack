@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { z } from "zod";
 import { SystemMessage, UserMessage } from "beeai-framework/backend/message";
 import { Metadata } from "@i-am-bee/beeai-sdk/schemas/metadata";

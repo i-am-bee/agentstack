@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Client as MCPClient } from "@i-am-bee/acp-sdk/client/index";
 import { SSEClientTransport } from "@i-am-bee/acp-sdk/client/sse";
 import { AgentRunProgressNotificationSchema } from "@i-am-bee/acp-sdk/types";

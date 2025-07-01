@@ -12,9 +12,12 @@ if TYPE_CHECKING:
     from beeai_server.domain.models.agent import EnvVar
 
 
-class ManifestLoadError(Exception):
+class PlatformError(Exception):
+    status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+class ManifestLoadError(PlatformError):
     location: "ProviderLocation"
-    status_code: int
 
     def __init__(
         self, location: "ProviderLocation", message: str | None = None, status_code: int = status.HTTP_404_NOT_FOUND
@@ -24,9 +27,8 @@ class ManifestLoadError(Exception):
         super().__init__(message)
 
 
-class EntityNotFoundError(Exception):
+class EntityNotFoundError(PlatformError):
     entity: str
-    status_code: int
     id: UUID | str
     attribute: str
 
@@ -40,27 +42,38 @@ class EntityNotFoundError(Exception):
         super().__init__(f"{entity} with {attribute} {id} not found")
 
 
-class MissingConfigurationError(Exception):
-    def __init__(self, missing_env: list["EnvVar"]):
-        self.missing_env = missing_env
+class InvalidVectorDimensionError(PlatformError): ...
 
 
-class UsageLimitExceeded(Exception):
+class StorageCapacityExceededError(PlatformError):
+    entity: str
     status_code: int
 
+    def __init__(self, entity: str, max_size: int, status_code: int = status.HTTP_413_REQUEST_ENTITY_TOO_LARGE):
+        self.entity = entity
+        self.status_code = status_code
+        super().__init__(
+            f"{entity} exceeds the limit of {max_size / 1024 / 1024:.2f} MB. "
+            f"Either the {entity} is too large or you exceeded the available storage capacity."
+        )
+
+
+class MissingConfigurationError(Exception):
+    def __init__(self, missing_env: list["EnvVar"], status_code: int = status.HTTP_400_BAD_REQUEST):
+        self.missing_env = missing_env
+        self.status_code = status_code
+
+
+class UsageLimitExceeded(PlatformError):
     def __init__(self, message: str, status_code: int = status.HTTP_413_REQUEST_ENTITY_TOO_LARGE):
         self.status_code = status_code
         super().__init__(message)
 
 
-class ProviderNotInstalledError(Exception): ...
-
-
-class DuplicateEntityError(Exception):
+class DuplicateEntityError(PlatformError):
     entity: str
     field: str
     value: str | UUID | None
-    status_code: int
 
     def __init__(
         self,
