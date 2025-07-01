@@ -150,6 +150,9 @@ collector:
 
 agent:
   podAnnotations: { }
+  deploymentStrategy: RollingUpdate
+  deploymentAnnotations: { }
+  imagePullPolicy: ""
   podLabels: { }
   resources: { }
   securityContext: { }
@@ -161,10 +164,16 @@ agent:
     httpGet:
       path: /ping
       port: 8000
+    initialDelaySeconds: 1
+    periodSeconds: 3
+    timeoutSeconds: 2
   readinessProbe:
     httpGet:
       path: /ping
       port: 8000
+    initialDelaySeconds: 1
+    periodSeconds: 3
+    timeoutSeconds: 2
   volumes: [ ]
   volumeMounts: [ ]
   nodeSelector: { }
