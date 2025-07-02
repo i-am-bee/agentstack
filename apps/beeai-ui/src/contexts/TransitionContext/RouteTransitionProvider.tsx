@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+'use client';
+
 import { useRouter } from '@bprogress/next/app';
 import { moderate02 } from '@carbon/motion';
 import type { NavigateOptions } from 'next/dist/shared/lib/app-router-context.shared-runtime';
