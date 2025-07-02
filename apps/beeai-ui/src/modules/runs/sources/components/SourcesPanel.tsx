@@ -9,26 +9,30 @@ import { useEffect } from 'react';
 
 import { SidePanel } from '#components/SidePanel/SidePanel.tsx';
 import { useApp } from '#contexts/App/index.ts';
+import { SidePanelVariant } from '#contexts/App/types.ts';
 
 import { useSources } from '../contexts';
 import { SourcesList } from './SourcesList';
 import classes from './SourcesPanel.module.scss';
 
 export function SourcesPanel() {
-  const { sourcesPanelOpen, hideSourcesPanel } = useApp();
-  const { sourcesData, activeMessageKey } = useSources();
+  const { activeSidePanel, closeSidePanel } = useApp();
+  const { sourcesData, activeSource } = useSources();
 
-  const sources = activeMessageKey ? (sourcesData[activeMessageKey] ?? []) : [];
+  const messageKey = activeSource?.messageKey;
+  const sources = messageKey ? (sourcesData[messageKey] ?? []) : [];
   const hasSources = sources.length > 0;
+
+  const isOpen = activeSidePanel === SidePanelVariant.Sources;
 
   useEffect(() => {
     if (!hasSources) {
-      hideSourcesPanel?.();
+      closeSidePanel();
     }
-  }, [hasSources, hideSourcesPanel]);
+  }, [hasSources, closeSidePanel]);
 
   return (
-    <SidePanel variant="right" isOpen={sourcesPanelOpen}>
+    <SidePanel variant="right" isOpen={isOpen}>
       <div className={classes.root}>
         <header className={classes.header}>
           <h2 className={classes.heading}>Sources</h2>
@@ -38,7 +42,7 @@ export function SourcesPanel() {
             kind="ghost"
             label="Close"
             wrapperClasses={classes.closeButton}
-            onClick={hideSourcesPanel}
+            onClick={closeSidePanel}
           >
             <Close />
           </IconButton>

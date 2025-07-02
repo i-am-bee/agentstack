@@ -11,8 +11,8 @@ import { Container } from '#components/layouts/Container.tsx';
 
 import { NewSessionButton } from '../components/NewSessionButton';
 import { StatusBar } from '../components/StatusBar';
-import { useAgent } from '../contexts/agent';
-import { useChat } from '../contexts/chat';
+import { useAgentRun } from '../contexts/agent-run';
+import { useAgentStatus } from '../contexts/agent-status';
 import { useMessages } from '../contexts/messages';
 import { FileUpload } from '../files/components/FileUpload';
 import { ChatInput } from './ChatInput';
@@ -24,11 +24,11 @@ export function ChatMessagesView() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  const { isPending, onClear } = useChat();
+  const { isPending, clear } = useAgentRun();
   const { messages } = useMessages();
   const {
     status: { isNotInstalled, isStarting },
-  } = useAgent();
+  } = useAgentStatus();
 
   const scrollToBottom = useCallback(() => {
     const scrollElement = scrollRef.current;
@@ -70,7 +70,7 @@ export function ChatMessagesView() {
       <div className={classes.holder}>
         <Container size="sm" asChild>
           <header className={classes.header}>
-            <NewSessionButton onClick={onClear} />
+            <NewSessionButton onClick={clear} />
           </header>
         </Container>
 

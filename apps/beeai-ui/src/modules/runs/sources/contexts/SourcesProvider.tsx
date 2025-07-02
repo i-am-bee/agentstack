@@ -6,35 +6,35 @@
 import { type PropsWithChildren, useEffect, useMemo, useState } from 'react';
 
 import { useApp } from '#contexts/App/index.ts';
+import { SidePanelVariant } from '#contexts/App/types.ts';
 
 import type { SourcesData } from '../api/types';
 import { SourcesContext } from './sources-context';
-import type { ActiveMessageKey, ActiveSourceKey } from './types';
+import type { ActiveSource } from './types';
 
 interface Props {
   sourcesData: SourcesData;
 }
 
 export function SourcesProvider({ sourcesData, children }: PropsWithChildren<Props>) {
-  const { sourcesPanelOpen } = useApp();
-  const [activeMessageKey, setActiveMessageKey] = useState<ActiveMessageKey>(null);
-  const [activeSourceKey, setActiveSourceKey] = useState<ActiveSourceKey>(null);
+  const { activeSidePanel } = useApp();
+  const [activeSource, setActiveSource] = useState<ActiveSource | null>(null);
+
+  const isOpen = activeSidePanel === SidePanelVariant.Sources;
 
   useEffect(() => {
-    if (!sourcesPanelOpen) {
-      setActiveSourceKey(null);
+    if (!isOpen) {
+      setActiveSource(null);
     }
-  }, [sourcesPanelOpen]);
+  }, [isOpen]);
 
   const contextValue = useMemo(
     () => ({
       sourcesData,
-      activeMessageKey,
-      activeSourceKey,
-      setActiveMessageKey,
-      setActiveSourceKey,
+      activeSource,
+      setActiveSource,
     }),
-    [sourcesData, activeMessageKey, activeSourceKey, setActiveMessageKey, setActiveSourceKey],
+    [sourcesData, activeSource, setActiveSource],
   );
 
   return <SourcesContext.Provider value={contextValue}>{children}</SourcesContext.Provider>;

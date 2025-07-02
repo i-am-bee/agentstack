@@ -8,11 +8,11 @@ import { Button } from '@carbon/react';
 import { useForm } from 'react-hook-form';
 
 import { InputBar } from '../components/InputBar';
-import { useHandsOff } from '../contexts/hands-off';
+import { useAgentRun } from '../contexts/agent-run';
 import { useFileUpload } from '../files/contexts';
 
 export function HandsOffInput() {
-  const { isPending, onSubmit } = useHandsOff();
+  const { isPending, run } = useAgentRun();
   const { isPending: isFileUploadPending } = useFileUpload();
 
   const form = useForm<FormValues>({
@@ -30,7 +30,7 @@ export function HandsOffInput() {
     <InputBar
       onSubmit={() => {
         handleSubmit(async ({ input }) => {
-          await onSubmit(input);
+          await run(input);
 
           reset();
         })();

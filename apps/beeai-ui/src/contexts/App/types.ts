@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export type ActiveSource = {
-  key: string | null;
-  messageKey: string;
-};
+export enum SidePanelVariant {
+  AgentDetail = 'AgentDetail',
+  Sources = 'Sources',
+}

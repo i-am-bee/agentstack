@@ -8,15 +8,15 @@ import { createContext } from 'react';
 import type { Agent } from '#modules/agents/api/types.ts';
 import type { RunLog, RunStats } from '#modules/runs/types.ts';
 
-export const HandsOffContext = createContext<HandsOffContextValue | undefined>(undefined);
+export const AgentRunContext = createContext<AgentRunContextValue | undefined>(undefined);
 
-interface HandsOffContextValue {
+interface AgentRunContextValue {
   agent: Agent;
   isPending: boolean;
   input?: string;
   stats?: RunStats;
   logs?: RunLog[];
-  onSubmit: (input: string) => Promise<void>;
-  onCancel: () => void;
-  onClear: () => void;
+  run: (input: string) => Promise<void>;
+  cancel: () => void;
+  clear: () => void;
 }

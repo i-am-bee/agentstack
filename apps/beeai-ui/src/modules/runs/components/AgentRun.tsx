@@ -36,9 +36,9 @@ const renderUi = ({ agent }: { agent: Agent }) => {
 
   switch (ui_type) {
     case UiType.Chat:
-      return <ChatView agent={agent} />;
+      return <ChatView agent={agent} key={agent.name} />;
     case UiType.HandsOff:
-      return <HandsOffView agent={agent} />;
+      return <HandsOffView agent={agent} key={agent.name} />;
     default:
       return <UiNotAvailableView agent={agent} />;
   }

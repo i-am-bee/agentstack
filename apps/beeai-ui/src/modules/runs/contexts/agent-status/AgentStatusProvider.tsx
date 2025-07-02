@@ -9,14 +9,14 @@ import { useMemo } from 'react';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { useMonitorProviderStatus } from '#modules/providers/hooks/useMonitorProviderStatus.ts';
 
-import { AgentContext } from './agent-context';
+import { AgentStatusContext } from './agent-status-context';
 
 interface Props {
   agent: Agent;
   isMonitorStatusEnabled: boolean;
 }
 
-export function AgentProvider({ agent, isMonitorStatusEnabled, children }: PropsWithChildren<Props>) {
+export function AgentStatusProvider({ agent, isMonitorStatusEnabled, children }: PropsWithChildren<Props>) {
   const providerStatus = useMonitorProviderStatus({
     id: agent.metadata.provider_id,
     isEnabled: isMonitorStatusEnabled,
@@ -30,5 +30,5 @@ export function AgentProvider({ agent, isMonitorStatusEnabled, children }: Props
     [agent, providerStatus],
   );
 
-  return <AgentContext.Provider value={contextValue}>{children}</AgentContext.Provider>;
+  return <AgentStatusContext.Provider value={contextValue}>{children}</AgentStatusContext.Provider>;
 }

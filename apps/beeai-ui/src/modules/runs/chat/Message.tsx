@@ -12,7 +12,7 @@ import { getAgentUiMetadata } from '#modules/agents/utils.ts';
 
 import { AgentIcon } from '../components/AgentIcon';
 import { MessageContent } from '../components/MessageContent';
-import { useChat } from '../contexts/chat';
+import { useAgentRun } from '../contexts/agent-run';
 import { MessageFiles } from '../files/components/MessageFiles';
 import { MessageSources } from '../sources/components/MessageSources';
 import { MessageTrajectories } from '../trajectory/components/MessageTrajectories';
@@ -26,7 +26,7 @@ interface Props {
 }
 
 export function Message({ message }: Props) {
-  const { agent } = useChat();
+  const { agent } = useAgentRun();
   const { content, error } = message;
   const { display_name } = getAgentUiMetadata(agent);
 

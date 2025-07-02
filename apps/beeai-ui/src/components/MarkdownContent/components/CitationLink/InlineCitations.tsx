@@ -7,6 +7,7 @@ import clsx from 'clsx';
 import type { PropsWithChildren } from 'react';
 
 import { useApp } from '#contexts/App/index.ts';
+import { SidePanelVariant } from '#contexts/App/types.ts';
 import type { SourceReference } from '#modules/runs/sources/api/types.ts';
 import { useSources } from '#modules/runs/sources/contexts/index.ts';
 
@@ -18,8 +19,8 @@ interface Props {
 }
 
 export function InlineCitations({ sources = [], children }: PropsWithChildren<Props>) {
-  const { sourcesPanelOpen, showSourcesPanel } = useApp();
-  const { activeSourceKey, setActiveMessageKey, setActiveSourceKey } = useSources();
+  const { activeSidePanel, openSidePanel } = useApp();
+  const { activeSource, setActiveSource } = useSources();
 
   return sources.length > 0 ? (
     <span className={classes.root}>
@@ -28,7 +29,7 @@ export function InlineCitations({ sources = [], children }: PropsWithChildren<Pr
       <span className={classes.list}>
         {sources.map((source) => {
           const { key, messageKey } = source;
-          const isActive = sourcesPanelOpen && activeSourceKey === key;
+          const isActive = activeSidePanel === SidePanelVariant.Sources && activeSource?.key === key;
 
           return (
             <sup key={key} className={clsx(classes.item, { [classes.isActive]: isActive })}>
@@ -36,9 +37,8 @@ export function InlineCitations({ sources = [], children }: PropsWithChildren<Pr
                 source={source}
                 isActive={isActive}
                 onClick={() => {
-                  setActiveMessageKey?.(messageKey);
-                  setActiveSourceKey?.(key);
-                  showSourcesPanel?.();
+                  setActiveSource({ key, messageKey });
+                  openSidePanel(SidePanelVariant.Sources);
                 }}
               />
             </sup>

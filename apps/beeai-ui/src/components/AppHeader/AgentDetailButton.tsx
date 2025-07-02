@@ -7,11 +7,14 @@ import { Information } from '@carbon/icons-react';
 import { IconButton } from '@carbon/react';
 
 import { useApp } from '#contexts/App/index.ts';
+import { SidePanelVariant } from '#contexts/App/types.ts';
 
 import classes from './AgentDetailButton.module.scss';
 
 export function AgentDetailButton() {
-  const { agentDetailOpen, showAgentDetail, hideAgentDetail } = useApp();
+  const { activeSidePanel, openSidePanel, closeSidePanel } = useApp();
+
+  const isOpen = activeSidePanel === SidePanelVariant.AgentDetail;
 
   return (
     <IconButton
@@ -19,7 +22,7 @@ export function AgentDetailButton() {
       size="sm"
       label="Agent Detail"
       wrapperClasses={classes.root}
-      onClick={() => (agentDetailOpen ? hideAgentDetail?.() : showAgentDetail?.())}
+      onClick={() => (isOpen ? closeSidePanel() : openSidePanel(SidePanelVariant.AgentDetail))}
     >
       <Information />
     </IconButton>

@@ -7,13 +7,13 @@ import { Container } from '#components/layouts/Container.tsx';
 import { AgentGreeting } from '#modules/agents/components/AgentGreeting.tsx';
 import { AgentHeading } from '#modules/agents/components/AgentHeading.tsx';
 
-import { useChat } from '../contexts/chat';
+import { useAgentRun } from '../contexts/agent-run';
 import { FileUpload } from '../files/components/FileUpload';
 import { ChatInput } from './ChatInput';
 import classes from './ChatLandingView.module.scss';
 
 export function ChatLandingView() {
-  const { agent } = useChat();
+  const { agent } = useAgentRun();
 
   return (
     <FileUpload>

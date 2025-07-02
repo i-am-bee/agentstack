@@ -6,6 +6,7 @@
 import { useCallback } from 'react';
 
 import { useApp } from '#contexts/App/index.ts';
+import { SidePanelVariant } from '#contexts/App/types.ts';
 import type { AgentMessage } from '#modules/runs/chat/types.ts';
 
 import { useSources } from '../contexts';
@@ -16,36 +17,29 @@ interface Props {
 }
 
 export function MessageSources({ message }: Props) {
-  const { sourcesPanelOpen, showSourcesPanel, hideSourcesPanel } = useApp();
-  const { activeMessageKey, setActiveMessageKey, setActiveSourceKey } = useSources();
+  const { activeSidePanel, openSidePanel, closeSidePanel } = useApp();
+  const { activeSource, setActiveSource } = useSources();
 
   const messageKey = message.key;
   const sources = message.sources ?? [];
   const hasSources = sources.length > 0;
 
-  const isActive = sourcesPanelOpen && messageKey === activeMessageKey;
+  const isPanelOpen = activeSidePanel === SidePanelVariant.Sources;
+  const isMessageActive = messageKey === activeSource?.messageKey;
+  const isActive = isPanelOpen && isMessageActive;
 
   const handleButtonClick = useCallback(() => {
-    if (messageKey === activeMessageKey) {
-      if (sourcesPanelOpen) {
-        hideSourcesPanel?.();
+    if (isMessageActive) {
+      if (isPanelOpen) {
+        closeSidePanel();
       } else {
-        showSourcesPanel?.();
+        openSidePanel(SidePanelVariant.Sources);
       }
     } else {
-      setActiveMessageKey?.(messageKey);
-      setActiveSourceKey?.(null);
-      showSourcesPanel?.();
+      setActiveSource({ key: null, messageKey });
+      openSidePanel(SidePanelVariant.Sources);
     }
-  }, [
-    messageKey,
-    activeMessageKey,
-    sourcesPanelOpen,
-    hideSourcesPanel,
-    showSourcesPanel,
-    setActiveMessageKey,
-    setActiveSourceKey,
-  ]);
+  }, [isMessageActive, isPanelOpen, messageKey, openSidePanel, closeSidePanel, setActiveSource]);
 
   return hasSources ? <SourcesButton sources={sources} isActive={isActive} onClick={handleButtonClick} /> : null;
 }

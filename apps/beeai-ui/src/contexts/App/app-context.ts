@@ -5,17 +5,16 @@
 
 import { createContext, type Dispatch, type SetStateAction } from 'react';
 
-export const AppContext = createContext<AppContextValue>({});
+import type { SidePanelVariant } from './types';
+
+export const AppContext = createContext<AppContextValue | undefined>(undefined);
 
 interface AppContextValue {
-  navigationOpen?: boolean;
-  agentDetailOpen?: boolean;
-  sourcesPanelOpen?: boolean;
-  closeNavOnClickOutside?: boolean;
-  setNavigationOpen?: Dispatch<SetStateAction<boolean>>;
-  showAgentDetail?: () => void;
-  hideAgentDetail?: () => void;
-  showSourcesPanel?: () => void;
-  hideSourcesPanel?: () => void;
-  setCloseNavOnClickOutside?: Dispatch<SetStateAction<boolean>>;
+  navigationOpen: boolean;
+  closeNavOnClickOutside: boolean;
+  activeSidePanel: SidePanelVariant | null;
+  setNavigationOpen: Dispatch<SetStateAction<boolean>>;
+  setCloseNavOnClickOutside: Dispatch<SetStateAction<boolean>>;
+  openSidePanel: (variant: SidePanelVariant) => void;
+  closeSidePanel: () => void;
 }

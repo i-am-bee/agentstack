@@ -7,54 +7,32 @@ import type { PropsWithChildren } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 
 import { AppContext } from './app-context';
+import type { SidePanelVariant } from './types';
 
 export function AppProvider({ children }: PropsWithChildren) {
   const [navigationOpen, setNavigationOpen] = useState(false);
-  const [agentDetailOpen, setAgentDetailOpen] = useState(false);
-  const [sourcesPanelOpen, setSourcesPanelOpen] = useState(false);
   const [closeNavOnClickOutside, setCloseNavOnClickOutside] = useState(false);
+  const [activeSidePanel, setActiveSidePanel] = useState<SidePanelVariant | null>(null);
 
-  const hideSourcesPanel = useCallback(() => {
-    setSourcesPanelOpen(false);
+  const openSidePanel = useCallback((variant: SidePanelVariant) => {
+    setActiveSidePanel(variant);
   }, []);
 
-  const showAgentDetail = useCallback(() => {
-    setAgentDetailOpen(true);
-    hideSourcesPanel();
-  }, [hideSourcesPanel]);
-
-  const hideAgentDetail = useCallback(() => {
-    setAgentDetailOpen(false);
+  const closeSidePanel = useCallback(() => {
+    setActiveSidePanel(null);
   }, []);
-
-  const showSourcesPanel = useCallback(() => {
-    setSourcesPanelOpen(true);
-    hideAgentDetail();
-  }, [hideAgentDetail]);
 
   const contextValue = useMemo(
     () => ({
       navigationOpen,
-      agentDetailOpen,
-      sourcesPanelOpen,
       closeNavOnClickOutside,
+      activeSidePanel,
       setNavigationOpen,
-      showAgentDetail,
-      hideAgentDetail,
-      showSourcesPanel,
-      hideSourcesPanel,
       setCloseNavOnClickOutside,
+      openSidePanel,
+      closeSidePanel,
     }),
-    [
-      navigationOpen,
-      agentDetailOpen,
-      sourcesPanelOpen,
-      closeNavOnClickOutside,
-      showAgentDetail,
-      hideAgentDetail,
-      showSourcesPanel,
-      hideSourcesPanel,
-    ],
+    [navigationOpen, closeNavOnClickOutside, activeSidePanel, openSidePanel, closeSidePanel],
   );
 
   return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;

@@ -8,9 +8,9 @@ import { createContext } from 'react';
 import type { Agent } from '#modules/agents/api/types.ts';
 import type { ProviderStatusWithHelpers } from '#modules/agents/hooks/useProviderStatus.ts';
 
-export const AgentContext = createContext<AgentContextValue | undefined>(undefined);
+export const AgentStatusContext = createContext<AgentStatusContextValue | undefined>(undefined);
 
-interface AgentContextValue {
+interface AgentStatusContextValue {
   agent: Agent;
   status: ProviderStatusWithHelpers;
 }
