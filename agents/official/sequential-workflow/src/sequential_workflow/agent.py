@@ -89,7 +89,7 @@ server = Server()
             - **Validation**: Ensures that each agent in the sequence is available and compatible with the expected input schema.
             - **Progress Reporting**: Provides detailed logs and progress updates throughout the workflow execution.
             """
-        )
+        ),
     )
 )
 async def sequential_workflow(input: list[Message]) -> AsyncIterator:

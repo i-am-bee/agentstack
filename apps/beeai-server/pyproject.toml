@@ -71,6 +71,7 @@ dev = [
     "pytest-env>=1.1.5",
     "pytest-httpx>=0.35.0",
     "pytest-subtests>=0.14.1",
+    "reportlab>=4.4.2",
 ]
 
 [tool.hatch.build.targets.wheel]

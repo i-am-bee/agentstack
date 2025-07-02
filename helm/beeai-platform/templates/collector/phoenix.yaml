@@ -46,6 +46,11 @@ spec:
         app: phoenix-backend
         {{- include "beeai-platform.labels" . | nindent 8 }}
     spec:
+      {{/*
+        TODO: upgrade might break! We are not able to set strategy on a StatefulSet
+        strategy:
+          type: {{ ternary "Recreate" "RollingUpdate" .Values.hostNetwork }}
+       */}}
       {{- if .Values.hostNetwork }}
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
