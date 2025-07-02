@@ -3,6 +3,28 @@
 ["beeai-server:check"]
 depends = ["beeai-server:check:*"]
 
+["beeai-server:check:pytest-marks"]
+depends = ["setup:uv"]
+dir = "{{config_root}}/apps/beeai-server"
+run = """
+#!/bin/bash
+
+# Use pytest to collect tests that are not marked with unit, integration, or e2e
+unmarked_tests=$(uv run python -m pytest --collect-only --no-header --no-summary -q -m "not (unit or integration or e2e)" tests/ 2>/dev/null)
+
+if echo "$unmarked_tests" | grep "tests collected" | grep -qv "no tests collected"; then
+    echo "ERROR: Found tests without required pytest marks:\n"
+    echo "$unmarked_tests" | grep 'tests collected'
+    echo ""
+    echo "All tests must be marked with @pytest.mark.unit, @pytest.mark.integration, or @pytest.mark.e2e"
+    exit 1
+else
+    echo "✓ All tests have pytest marks"
+fi
+"""
+sources = ["tests/**/*.py"]
+outputs = { auto = true }
+
 ["beeai-server:check:ruff-check"]
 depends = ["setup:uv"]
 dir = "{{config_root}}/apps/beeai-server"
@@ -106,6 +128,7 @@ dir = "{{config_root}}/apps/beeai-server"
 depends = ["beeai-server:image:build"]
 run = """
 #!/bin/bash
+set -e
 
 NAMESPACE=default
 VM_NAME='{{option(name="vm-name", default="beeai-local-dev")}}'
@@ -123,16 +146,23 @@ tele="telepresence --use .*${NAMESPACE}.*"
 # Stopping all platform deployments
 mise run beeai-server:dev:stop
 
+extra_flags=()
+
 if [ '{{flag(name='no-registry')}}' = 'true' ]; then
-  extra_flags="--set externalRegistries=null"
+  extra_flags+=("--set" "externalRegistries=null")
 fi
+
+if [ '{{flag(name='docling')}}' = 'true' ]; then
+  extra_flags+=("--set" "docling.enabled=true")
+fi
+
 mise run beeai-cli:run -- platform start \
     --vm-driver=lima \
     --vm-name=${VM_NAME} \
     --import ghcr.io/i-am-bee/beeai-platform/beeai-server:local \
-    --set image.tag=local $extra_flags
+    --set image.tag=local "${extra_flags[@]}"
 
-$tele helm install
+$tele helm install || true
 $tele connect --namespace "$NAMESPACE"
 $tele replace beeai-platform --port 18333:8333
 """
@@ -217,7 +247,6 @@ depends = ["beeai-server:image:build"]
 dir = "{{config_root}}/apps/beeai-server"
 run = """
 #!/bin/bash
-set -e
 
 mise run beeai-server:dev:stop
 mise run beeai-cli:run -- platform delete --vm-name=${VM_NAME}
@@ -227,7 +256,9 @@ VM_NAME=e2e-test-run
 mise run beeai-cli:run -- platform start -v \
     --vm-name=${VM_NAME} \
     --import ghcr.io/i-am-bee/beeai-platform/beeai-server:local \
-    --set image.tag=local --set externalRegistries=null $extra_flags
+    --set image.tag=local \
+    --set externalRegistries=null \
+    --set docling.enabled=true
 
 export KUBECONFIG="${HOME}/.beeai/lima/${VM_NAME}/copied-from-guest/kubeconfig.yaml"
 export SERVER_URL="http://localhost:8333"
@@ -238,6 +269,15 @@ export LLM_API_BASE="${LLM_API_BASE:-http://host.docker.internal:11434/v1}"
 kubectl port-forward svc/postgresql 5432:5432 2>/dev/null 1>&2 &
 pytest -m e2e
 result=$?
+
+if [ $result -ne 0 ]; then
+    echo "Tests failed. Checking pod status..."
+    echo "------------- pods --------------"
+    kubectl get pod
+    echo "------------ events -------------"
+    kubectl get event
+fi
+
 mise run beeai-cli:run -- platform delete --vm-name=${VM_NAME}
 kill %1
 exit $result

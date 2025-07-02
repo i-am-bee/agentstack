@@ -11,6 +11,8 @@ spec:
     matchLabels:
       app: beeai-platform-server
       {{- include "beeai-platform.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: {{ ternary "Recreate" "RollingUpdate" .Values.hostNetwork }}
   template:
     metadata:
       annotations:
@@ -133,7 +135,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.service.port }}
+              containerPort: 8333
               protocol: TCP
           {{- with .Values.livenessProbe }}
           livenessProbe:
@@ -150,6 +152,8 @@ spec:
           env:
             - name: FEATURE_FLAGS__UI__USER_NAVIGATION
               value: {{ .Values.features.uiNavigation | quote }}
+            - name: TEXT_EXTRACTION__ENABLED
+              value: {{ .Values.docling.enabled | quote }}
             - name: AGENT_REGISTRY__SYNC_PERIOD_SEC
               value: "30"
             {{- range $idx, $secret := .Values.imagePullSecrets }}

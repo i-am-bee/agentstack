@@ -1,3 +1,6 @@
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 query_writer_instructions = """Your goal is to generate a targeted web search query.
 The query will gather information related to a specific topic.
 

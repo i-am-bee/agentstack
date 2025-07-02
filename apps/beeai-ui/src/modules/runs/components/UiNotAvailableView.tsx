@@ -26,7 +26,7 @@ export function UiNotAvailableView({ agent }: Props) {
         <p className={classes.description}>
           {ui_type
             ? `The UI type requested by the agent is not available: '${ui_type}'`
-            : `The agent doesn’t have a defined UI type.`}
+            : 'The agent doesn’t have a defined UI type.'}
         </p>
       </Container>
     </MainContent>

@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 from sqlalchemy import Table, Column, String, DateTime, Row, select, delete, UUID as SqlUUID, Enum
 
 from beeai_server.domain.models.user import User, UserRole
-from beeai_server.domain.repositories.users import IUserRepository
+from beeai_server.domain.repositories.user import IUserRepository
 from beeai_server.exceptions import EntityNotFoundError
 from beeai_server.infrastructure.persistence.repositories.db_metadata import metadata
 

@@ -1,3 +1,6 @@
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 import os
 from textwrap import dedent
 from typing import Any, AsyncIterator
@@ -86,7 +89,7 @@ server = Server()
             - **Validation**: Ensures that each agent in the sequence is available and compatible with the expected input schema.
             - **Progress Reporting**: Provides detailed logs and progress updates throughout the workflow execution.
             """
-        )
+        ),
     )
 )
 async def sequential_workflow(input: list[Message]) -> AsyncIterator:

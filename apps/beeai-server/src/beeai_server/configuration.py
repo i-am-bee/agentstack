@@ -7,6 +7,7 @@ from collections import defaultdict
 from datetime import timedelta
 from functools import cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic_core.core_schema import ValidationInfo
 
@@ -97,6 +98,11 @@ class PersistenceConfiguration(BaseModel):
     procrastinate_schema: str = Field("procrastinate", pattern=r"^[a-zA-Z0-9_]+$")
 
 
+class VectorStoresConfiguration(BaseModel):
+    expire_after_days: int = 7  # Number of days after which a vector store is considered expired
+    storage_limit_per_user_bytes: int = 1 * (1024 * 1024 * 1024)  # 1GiB
+
+
 class TelemetryConfiguration(BaseModel):
     collector_url: AnyUrl = AnyUrl("http://otel-collector-svc:8335")
 
@@ -127,6 +133,13 @@ class ManagedProviderConfiguration(BaseModel):
     )
 
 
+class DoclingExtractionConfiguration(BaseModel):
+    backend: Literal["docling"] = "docling"
+    enabled: bool = False
+    docling_service_url: str = "http://docling-serve:15001"
+    processing_timeout_sec: int = timedelta(minutes=5).total_seconds()
+
+
 class Configuration(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", env_nested_delimiter="__", extra="ignore"
@@ -140,6 +153,8 @@ class Configuration(BaseSettings):
     telemetry: TelemetryConfiguration = Field(default_factory=TelemetryConfiguration)
     persistence: PersistenceConfiguration = Field(default_factory=PersistenceConfiguration)
     object_storage: ObjectStorageConfiguration = Field(default_factory=ObjectStorageConfiguration)
+    vector_stores: VectorStoresConfiguration = Field(default_factory=VectorStoresConfiguration)
+    text_extraction: DoclingExtractionConfiguration = Field(default_factory=DoclingExtractionConfiguration)
     k8s_namespace: str | None = None
     k8s_kubeconfig: Path | None = None
 

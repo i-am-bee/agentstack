@@ -5,7 +5,7 @@ import json
 import re
 import time
 import uuid
-from typing import Dict, List, Literal, Optional, Union, AsyncGenerator
+from typing import Any, Dict, List, Literal, Optional, Union, AsyncGenerator
 
 import fastapi
 from fastapi.responses import StreamingResponse
@@ -55,6 +55,7 @@ class ChatCompletionRequest(BaseModel):
     frequency_penalty: Optional[float] = 0.0
     logit_bias: Optional[Dict[str, float]] = None
     user: Optional[str] = None
+    response_format: Optional[Dict[str, Any]] = None
 
 
 class ChatCompletionResponseChoice(BaseModel):
@@ -131,6 +132,7 @@ async def create_chat_completion(
         messages=messages,
         temperature=request.temperature,
         maxTokens=request.max_tokens,
+        response_format=request.response_format,
     )
 
     return ChatCompletionResponse(
@@ -159,6 +161,7 @@ async def stream_chat_completion(
             stream=True,
             temperature=request.temperature,
             maxTokens=request.max_tokens,
+            response_format=request.response_format,
         ):
             if isinstance(event, ChatModelNewTokenEvent):
                 yield f"""data: {

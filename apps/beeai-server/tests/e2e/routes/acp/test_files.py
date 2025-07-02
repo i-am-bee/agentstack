@@ -1,3 +1,6 @@
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 import pytest
 from acp_sdk import MessagePart, Message
 from acp_sdk.client import Client
