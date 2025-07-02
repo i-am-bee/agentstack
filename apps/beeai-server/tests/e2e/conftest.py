@@ -2,17 +2,13 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-from pathlib import Path
 from typing import AsyncIterator
 
 import httpx
-import pytest
 import pytest_asyncio
 from acp_sdk.client import Client
 
 logger = logging.getLogger(__name__)
-
-_data_dir = Path(__file__).parent / "data"
 
 
 @pytest_asyncio.fixture()
@@ -37,8 +33,3 @@ async def setup_real_llm(api_client, test_configuration):
         "LLM_MODEL": test_configuration.llm_model,
     }
     await api_client.put("variables", json={"env": env})
-
-
-@pytest.fixture
-def data_dir():
-    return _data_dir

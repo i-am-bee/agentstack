@@ -1,5 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
+from io import BytesIO
+from typing import Callable
 
 import httpx
 import pytest
@@ -38,24 +40,48 @@ async def test_files(subtests, setup_real_llm, api_client, acp_client):
             response.raise_for_status()
 
 
+@pytest.fixture
+def test_pdf() -> Callable[[str], BytesIO]:
+    from reportlab.lib.pagesizes import letter
+    from reportlab.pdfgen import canvas
+
+    def create_fn(text: str) -> BytesIO:
+        buffer = BytesIO()
+        c = canvas.Canvas(buffer, pagesize=letter, initialFontSize=12)
+        x, y, max_y = 100, 750, 50
+        for line in text.split("\n"):
+            c.drawString(x, y, line)
+            y -= 15
+            if y < max_y:
+                c.showPage()
+                y = 750
+        c.save()
+        buffer.seek(0)
+        return buffer
+
+    return create_fn
+
+
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up")
-async def test_text_extraction_pdf_workflow(subtests, api_client, data_dir):
+async def test_text_extraction_pdf_workflow(subtests, api_client, test_pdf: Callable[[str], BytesIO]):
     """Test complete PDF text extraction workflow: upload -> extract -> wait -> verify"""
 
     # Create a simple PDF-like content for testing
     # In a real scenario, you would use a proper PDF file
 
     file_id = None
+    pdf = test_pdf(
+        "Test of sirens\n" * 100 + "\nBeeai is the future of AI\n\nThere is no better platform than the beeai platform."
+    )
 
     with subtests.test("upload PDF file"):
-        with open(data_dir / "beeai.pdf", "rb") as f:
-            response = await api_client.post("files", files={"file": ("test_document.pdf", f, "application/pdf")})
-            response.raise_for_status()
-            file_data = response.json()
-            file_id = file_data["id"]
-            assert file_data["filename"] == "test_document.pdf"
-            assert file_data["file_type"] == "user_upload"
+        response = await api_client.post("files", files={"file": ("test_document.pdf", pdf, "application/pdf")})
+        response.raise_for_status()
+        file_data = response.json()
+        file_id = file_data["id"]
+        assert file_data["filename"] == "test_document.pdf"
+        assert file_data["file_type"] == "user_upload"
 
     with subtests.test("create text extraction"):
         response = await api_client.post(f"files/{file_id}/extraction")
@@ -92,7 +118,7 @@ async def test_text_extraction_pdf_workflow(subtests, api_client, data_dir):
         # Check that we get some text content back
         content = response.text
         assert len(content) > 0, "No text content was extracted"
-        assert "Deploy BeeAI to Kubernetes using Helm" in content
+        assert "Beeai is the future of AI" in content
 
     with subtests.test("delete extraction"):
         response = await api_client.delete(f"files/{file_id}/extraction")
