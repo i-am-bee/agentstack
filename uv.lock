@@ -344,7 +344,7 @@ requires-dist = [
 
 [[package]]
 name = "beeai-framework"
-version = "0.1.27"
+version = "0.1.29"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -357,9 +357,9 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6d/c1/66ee4411bde17d65f5299454a3c85fa109fbf0949aa90025550dad8dce0b/beeai_framework-0.1.27.tar.gz", hash = "sha256:cce083f8b382f21fa6df6b75576be6cba4da1c795bbd5e72b9ef49d87b61046d", size = 119999 }
+sdist = { url = "https://files.pythonhosted.org/packages/1e/9e/6bcac07b0f240100d6c05db0f95c9539bb0cd221fe9d9187f339b954cecf/beeai_framework-0.1.29.tar.gz", hash = "sha256:36604e6287e309eb4b99e17ddb5bc160f532844fb64af7bd5bfa2c43ad3635c2", size = 119982 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a8/18/0fd2acdc0f84bc1fd432b28854695a63274dceddd93a7198c06ee146ba30/beeai_framework-0.1.27-py3-none-any.whl", hash = "sha256:c0b3aed5b05c0e6be6b43ecdf87d7948a2affdc52a13e6eb83299b8bc73ec5f1", size = 271869 },
+    { url = "https://files.pythonhosted.org/packages/ad/7b/c8e60c4412ccb519441e91e0f53625c13e7072eb67a2432d08bd0ebf87bc/beeai_framework-0.1.29-py3-none-any.whl", hash = "sha256:ae07b62f36be6783e6b1cdb72f78f8acaae038a08b89a16cc777527a152529d9", size = 271857 },
 ]
 
 [[package]]
@@ -417,7 +417,7 @@ requires-dist = [
     { name = "anyio", specifier = ">=4.9.0" },
     { name = "asgiref", specifier = ">=3.8.1" },
     { name = "asyncpg", specifier = ">=0.30.0" },
-    { name = "beeai-framework", specifier = ">=0.1.27" },
+    { name = "beeai-framework", specifier = "~=0.1.29" },
     { name = "cachetools", specifier = ">=5.5.2" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115.7" },
     { name = "httpx", specifier = ">=0.28.1" },
