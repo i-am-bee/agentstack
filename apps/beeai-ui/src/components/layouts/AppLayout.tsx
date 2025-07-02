@@ -15,7 +15,7 @@ export function AppLayout({ children }: PropsWithChildren) {
     <div className={classes.root}>
       <AppHeader className={classes.header} />
 
-      <main className={classes.main} data-transition>
+      <main className={classes.main} data-route-transition>
         {children}
 
         <AgentDetailPanel />
