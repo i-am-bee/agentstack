@@ -1,3 +1,6 @@
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 from langgraph.graph import END, MessagesState
 from typing import Literal
 from langchain_core.messages import RemoveMessage

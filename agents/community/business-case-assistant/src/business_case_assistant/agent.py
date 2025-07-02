@@ -1,3 +1,6 @@
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 from collections.abc import AsyncGenerator
 from acp_sdk.models.platform import PlatformUIAnnotation, PlatformUIType
 from acp_sdk import Annotations, Message, Metadata, MessagePart

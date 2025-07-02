@@ -1,3 +1,10 @@
+[tools.fd]
+version = "10.2.0"
+backend = "aqua:sharkdp/fd"
+
+[tools.fd.checksums]
+"fd-v10.2.0-aarch64-apple-darwin.tar.gz" = "sha256:ae6327ba8c9a487cd63edd8bddd97da0207887a66d61e067dfe80c1430c5ae36"
+
 [tools.helm]
 version = "3.17.3"
 backend = "aqua:helm/helm"
@@ -32,14 +39,12 @@ pnpm-macos-arm64 = "sha256:0b396d48e9697588bfd4f3d40ed0d10d043432ecf1fe30dcdcad0
 version = "3.11.11"
 backend = "core:python"
 
-[tools."ubi:B1NARY-GR0UP/nwa"]
-version = "0.5.2"
-backend = "ubi:B1NARY-GR0UP/nwa"
+[tools."ubi:google/addlicense"]
+version = "1.1.1"
+backend = "ubi:google/addlicense"
 
-[tools."ubi:B1NARY-GR0UP/nwa".checksums]
-nwa-linux-x86_64 = "sha256:3ee63f5198b0fe61adb68f8f504fb73b718926c992dad759bade751187657369"
-nwa-macos-aarch64 = "sha256:128c6bbae86b8725381355d04132d4d8e71d54a01313cea0d0c20a294d058c9f"
-nwa-macos-x86_64 = "sha256:40dd0654c34b0adf8827a89c101ac543d7af1aeafdd7b1c0812be0bd730ea82c"
+[tools."ubi:google/addlicense".checksums]
+addlicense-macos-aarch64 = "sha256:ce5830d1efd60c71f4b51071c12fa2be927ee13c5058f587a57be69eee1d8ab4"
 
 [tools."ubi:telepresenceio/telepresence"]
 version = "2.22.4"

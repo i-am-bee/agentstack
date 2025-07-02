@@ -1,4 +1,9 @@
 #!/usr/bin/env -S npx -y tsx@latest
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 
 import { Monitor } from "@i-am-bee/beekeeper/ui/monitor.js";
 import { OUTPUT_DIR } from "./supervisor.js";
