@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+'use client';
+
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '@carbon/react';
 
 import { Container } from '#components/layouts/Container.tsx';

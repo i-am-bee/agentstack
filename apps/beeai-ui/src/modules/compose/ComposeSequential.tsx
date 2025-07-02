@@ -5,6 +5,7 @@
 
 'use client';
 
+import { Suspense } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { ComposeView } from './components/ComposeView';
@@ -18,10 +19,12 @@ export function ComposeSequential() {
   });
 
   return (
-    <FormProvider {...formReturn}>
-      <ComposeProvider>
-        <ComposeView />
-      </ComposeProvider>
-    </FormProvider>
+    <Suspense>
+      <FormProvider {...formReturn}>
+        <ComposeProvider>
+          <ComposeView />
+        </ComposeProvider>
+      </FormProvider>
+    </Suspense>
   );
 }

@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+'use client';
+
 import { Loading } from '@carbon/react';
 
 import { ErrorMessage } from '#components/ErrorMessage/ErrorMessage.tsx';
