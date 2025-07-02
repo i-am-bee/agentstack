@@ -12,6 +12,7 @@ from beeai_server.domain.models.user import User, UserRole
 from beeai_server.service_layer.services.a2a import A2AProxyService
 from beeai_server.service_layer.services.env import EnvService
 from beeai_server.service_layer.services.files import FileService
+from beeai_server.service_layer.services.mcp import McpService
 from beeai_server.service_layer.services.provider import ProviderService
 from beeai_server.service_layer.services.user_feedback import UserFeedbackService
 from beeai_server.service_layer.services.users import UserService
@@ -20,6 +21,7 @@ from beeai_server.service_layer.services.vector_stores import VectorStoreService
 ConfigurationDependency = Annotated[Configuration, Depends(lambda: di[Configuration])]
 ProviderServiceDependency = Annotated[ProviderService, Depends(lambda: di[ProviderService])]
 A2AProxyServiceDependency = Annotated[A2AProxyService, Depends(lambda: di[A2AProxyService])]
+McpServiceDependency = Annotated[McpService, Depends(lambda: di[McpService])]
 EnvServiceDependency = Annotated[EnvService, Depends(lambda: di[EnvService])]
 FileServiceDependency = Annotated[FileService, Depends(lambda: di[FileService])]
 UserServiceDependency = Annotated[UserService, Depends(lambda: di[UserService])]

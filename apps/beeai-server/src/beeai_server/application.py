@@ -19,6 +19,7 @@ from beeai_server.api.routes.embeddings import router as embeddings_router
 from beeai_server.api.routes.env import router as env_router
 from beeai_server.api.routes.files import router as files_router
 from beeai_server.api.routes.llm import router as llm_router
+from beeai_server.api.routes.mcp import router as mcp_router
 from beeai_server.api.routes.provider import router as provider_router
 from beeai_server.api.routes.ui import router as ui_router
 from beeai_server.api.routes.user_feedback import router as user_feedback_router
@@ -31,6 +32,7 @@ from beeai_server.exceptions import (
     PlatformError,
 )
 from beeai_server.run_workers import run_workers
+from beeai_server.service_layer.services.mcp import McpService
 from beeai_server.telemetry import INSTRUMENTATION_NAME, shutdown_telemetry
 
 logger = logging.getLogger(__name__)
@@ -75,6 +77,7 @@ def register_global_exception_handlers(app: FastAPI):
 def mount_routes(app: FastAPI):
     server_router = APIRouter()
     server_router.include_router(a2a_router, prefix="/a2a")
+    server_router.include_router(mcp_router, prefix="/mcp")
     server_router.include_router(provider_router, prefix="/providers", tags=["providers"])
     server_router.include_router(env_router, prefix="/variables", tags=["variables"])
     server_router.include_router(files_router, prefix="/files", tags=["files"])
@@ -126,10 +129,10 @@ def app(*, dependency_overrides: Container | None = None) -> FastAPI:
 
     @asynccontextmanager
     @inject
-    async def lifespan(_app: FastAPI, procrastinate_app: procrastinate.App):
+    async def lifespan(_app: FastAPI, procrastinate_app: procrastinate.App, mcp_service: McpService):
         try:
             register_telemetry()
-            async with procrastinate_app.open_async(), run_workers(app=procrastinate_app):
+            async with procrastinate_app.open_async(), run_workers(app=procrastinate_app), mcp_service:
                 try:
                     yield
                 finally:

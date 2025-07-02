@@ -402,3 +402,27 @@ docling:
     type: ClusterIP
   imagePullPolicy: IfNotPresent
   image: "ghcr.io/docling-project/docling-serve-cpu:v0.16.0"
+
+## MCP Context Forge configuration
+forge:
+  image: ghcr.io/i-am-bee/mcp-context-forge:0.5.0
+  service:
+    type: ClusterIP
+    port: 4444
+  config:
+    CACHE_TYPE: "memory"
+    HOST: 0.0.0.0
+    PORT: 4444
+  secret:
+    AUTH_REQUIRED: "false"
+    DATABASE_URL: "sqlite:////data/forge.db"
+  storage:
+    storage: 256Mi
+    storageClass: null
+  volumeMounts:
+    - name: forge-storage
+      mountPath: /data
+  volumes:
+      - name: forge-storage
+        persistentVolumeClaim:
+          claimName: forge-pvc

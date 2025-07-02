@@ -1,0 +1,66 @@
+---
+title: "Model Context Protocol"
+description: "Learn how to register MCP servers into the platform and create curated toolkits for agents to use"
+---
+
+## Prerequisites
+
+- [BeeAI Platform](/introduction/quickstart) installed
+- Arbitrary [MCP server](https://modelcontextprotocol.io/introduction) with tools served over [Streamable HTTP transport](https://modelcontextprotocol.io/docs/concepts/transports#streamable-http)
+
+<Tip>
+  You may use
+  [server-everything](https://www.npmjs.com/package/@modelcontextprotocol/server-everything)
+  to complete the tutorial.
+</Tip>
+
+<Tip>
+  If your server only supports `stdio` transport, use
+  [supergateway](https://github.com/supercorp-ai/supergateway) to wrap it.
+</Tip>
+
+## Register the MCP server
+
+Start by registering the MCP server into the Platform:
+
+```bash
+beeai mcp add <server-name> <server-url>
+```
+
+## List available tools
+
+List available MCP tools:
+
+<Note>
+  If you have multiple MCP servers registered, tools across all the servers will
+  be listed.
+</Note>
+
+```bash
+beeai mcp tools
+```
+
+## Create a toolkit
+
+Create a toolkit:
+
+```bash
+beeai mcp toolkit <tool-1> <tool-2> ...
+```
+
+Toolkit is just another MCP server containing the selected tools. It is served over Streamable HTTP.
+
+<Note>
+  Toolkits have an expiration. They are temporary resources meant to be used by
+  an agent for a single task.
+</Note>
+
+## Use the toolkit with your agent
+
+Grab the URL of the toolkit and give it to an agent. The agent can now use this URL with the MCP client to connect an use the toolkit.
+
+<Note>
+  We're working on a mechanism for agents to receive arbitrary MCP server as a
+  dependency injection over the agent protocol. Currently, the URL delivery must
+  be done out of bound.
+</Note>

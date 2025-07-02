@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: forge-pvc
+  labels: 
+    app: forge-pvc
+    {{- include "beeai-platform.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.forge.storage.storage | quote }}
+  storageClassName: {{ .Values.forge.storage.storageClass | quote }}

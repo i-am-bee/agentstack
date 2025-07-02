@@ -5,7 +5,6 @@ import base64
 import hashlib
 import json
 import logging
-import re
 from datetime import timedelta
 from enum import StrEnum
 from functools import cached_property
@@ -29,6 +28,7 @@ from pydantic import (
 from beeai_server.configuration import Configuration
 from beeai_server.domain.constants import DOCKER_MANIFEST_LABEL_NAME, REQUIRED_ENV_EXTENSION_URI
 from beeai_server.domain.models.registry import RegistryLocation
+from beeai_server.domain.utils import bridge_k8s_to_localhost, bridge_localhost_to_k8s
 from beeai_server.exceptions import MissingConfigurationError
 from beeai_server.utils.docker import DockerImageID, get_registry_image_config_and_labels
 from beeai_server.utils.utils import utc_now
@@ -67,10 +67,10 @@ class NetworkProviderLocation(RootModel):
         configuration = di[Configuration]
         url: NetworkProviderLocation = handler(data)
         if configuration.provider.self_registration_use_local_network:
-            url.root = HttpUrl(re.sub(r"host.docker.internal", "localhost", str(url.root)))
+            url.root = bridge_k8s_to_localhost(url.root)
         else:
             # localhost does not make sense in k8s environment, replace it with host.docker.internal for backward compatibility
-            url.root = HttpUrl(re.sub(r"localhost|127\.0\.0\.1", "host.docker.internal", str(url.root)))
+            url.root = bridge_localhost_to_k8s(url.root)
         return url
 
     @property

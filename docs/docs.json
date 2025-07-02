@@ -29,24 +29,28 @@
           "/how-to/build-agents",
           "/how-to/share-agents",
           "/how-to/cli-reference",
-          "/how-to/web-interface"
+          "/how-to/web-interface",
+          "/how-to/mcp"
         ]
       },
       {
         "group": "Core Concepts",
-        "pages": ["concepts/architecture",
-                  "concepts/acp-protocol",
-                  "concepts/gui-components"]
+        "pages": [
+          "concepts/architecture",
+          "concepts/acp-protocol",
+          "concepts/gui-components"
+        ]
       },
       {
         "group": "Deployment",
-        "pages": ["deployment/overview",
-                  "deployment/kubernetes"]
+        "pages": ["deployment/overview", "deployment/kubernetes"]
       },
       {
         "group": "Community and Support",
-        "pages": ["community-and-support/troubleshooting",
-                  "community-and-support/contribute"]
+        "pages": [
+          "community-and-support/troubleshooting",
+          "community-and-support/contribute"
+        ]
       }
     ]
   },

@@ -7,6 +7,7 @@ from copy import deepcopy
 import beeai_cli.commands.agent
 import beeai_cli.commands.build
 import beeai_cli.commands.env
+import beeai_cli.commands.mcp
 import beeai_cli.commands.platform
 from beeai_cli.async_typer import AsyncTyper
 from beeai_cli.configuration import Configuration
@@ -17,6 +18,7 @@ app = AsyncTyper(no_args_is_help=True)
 app.add_typer(beeai_cli.commands.env.app, name="env", no_args_is_help=True, help="Manage environment variables.")
 app.add_typer(beeai_cli.commands.agent.app, name="agent", no_args_is_help=True, help="Manage agents.")
 app.add_typer(beeai_cli.commands.platform.app, name="platform", no_args_is_help=True, help="Manage BeeAI platform.")
+app.add_typer(beeai_cli.commands.mcp.app, name="mcp", no_args_is_help=True, help="Manage MCP servers and toolkits.")
 app.add_typer(beeai_cli.commands.build.app, name="", no_args_is_help=True, help="Build agent images.")
 
 

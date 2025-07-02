@@ -1,0 +1,12 @@
+{{- if .Values.forge.config }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: forge-config
+  labels:
+    {{- include "beeai-platform.labels" . | nindent 4 }}
+data:
+    {{- range $key, $val := .Values.forge.config }}
+    {{ $key }}: {{ $val | quote }}
+    {{- end }}
+{{- end }}
