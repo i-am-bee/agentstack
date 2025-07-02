@@ -9,6 +9,21 @@
   row-gap: $spacing-04;
   padding-inline: $spacing-05;
   @include scrollbar();
+
+  .button {
+    @include reset-focus();
+    inline-size: 100%;
+    padding: $spacing-03 - rem(1px);
+
+    &:global(.cds--skeleton) {
+      inline-size: 100%;
+      min-block-size: rem(34px);
+    }
+
+    &.isActive {
+      background-color: $layer-02;
+    }
+  }
 }
 
 .heading {
@@ -23,19 +38,4 @@
   display: flex;
   flex-direction: column;
   row-gap: $spacing-02;
-}
-
-.button {
-  @include reset-focus();
-  inline-size: 100%;
-  padding: $spacing-03 - rem(1px);
-
-  &:global(.cds--skeleton) {
-    inline-size: 100%;
-    min-block-size: rem(34px);
-  }
-
-  &.isActive {
-    background-color: $layer-02;
-  }
 }

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { parseNav } from '#modules/nav/parseNav.ts';
 
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? 'BeeAI';

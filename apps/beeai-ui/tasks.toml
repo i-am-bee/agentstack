@@ -20,7 +20,7 @@ outputs = { auto = true }
 ["beeai-ui:check:tsc"]
 depends = ["setup:pnpm"]
 dir = "{{config_root}}/apps/beeai-ui"
-run = "pnpm tsc --noEmit -p tsconfig.app.json"
+run = "pnpm tsc --noEmit -p tsconfig.json"
 sources = ["src/**/*.ts", "src/**/*.tsx"]
 outputs = { auto = true }
 

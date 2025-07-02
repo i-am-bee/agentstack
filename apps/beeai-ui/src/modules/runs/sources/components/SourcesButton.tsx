@@ -5,6 +5,7 @@
 
 import { Button, SkeletonIcon } from '@carbon/react';
 import clsx from 'clsx';
+import Image from 'next/image';
 import pluralize from 'pluralize';
 
 import { useSource } from '../api/queries/useSource';
@@ -45,6 +46,7 @@ function Source({ source }: SourceProps) {
   }
 
   const {
+    title,
     metadata: { faviconUrl },
   } = data;
 
@@ -52,7 +54,7 @@ function Source({ source }: SourceProps) {
     <Source.Skeleton />
   ) : faviconUrl ? (
     <span className={classes.source}>
-      <img src={faviconUrl} className={classes.icon} />
+      <Image src={faviconUrl} className={classes.icon} alt={title ?? ''} />
     </span>
   ) : null;
 }

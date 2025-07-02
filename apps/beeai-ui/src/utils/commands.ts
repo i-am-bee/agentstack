@@ -14,7 +14,7 @@ function convertInputToCliArgument(input: string) {
   }
 }
 
-export default {
+const commands = {
   beeai: {
     run(name: string, input?: string) {
       return [
@@ -27,3 +27,5 @@ export default {
     },
   },
 };
+
+export default commands;

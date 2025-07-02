@@ -7,9 +7,8 @@
 
 import { ArrowRight } from '@carbon/icons-react';
 import { Button } from '@carbon/react';
-import { ErrorPage } from '@i-am-bee/beeai-ui';
+import { ErrorPage, TransitionLink } from '@i-am-bee/beeai-ui';
 
-import { TransitionLink } from '@/components/TransitionLink/TransitionLink';
 import { MainContent } from '@/layouts/MainContent';
 
 export default function NotFoundPage() {

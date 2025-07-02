@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+'use client';
+
 import { ArrowRight } from '@carbon/icons-react';
 import { Button } from '@carbon/react';
 import clsx from 'clsx';

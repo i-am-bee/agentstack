@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+'use client';
+
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { ComposeView } from './components/ComposeView';

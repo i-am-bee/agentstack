@@ -6,19 +6,22 @@
 import { notFound, redirect } from 'next/navigation';
 
 import { listAgents } from '#modules/agents/api/index.ts';
+import { sortAgentsByName } from '#modules/agents/utils.ts';
 import { routes } from '#utils/router.ts';
 
 export default async function LandingPage() {
+  let firstAgentName;
+
   try {
     const response = await listAgents();
-    const firstAgentName = response?.agents.at(0)?.name;
-
-    if (firstAgentName) {
-      redirect(routes.agentRun({ name: firstAgentName }));
-    }
+    const agents = response?.agents.sort(sortAgentsByName);
+    firstAgentName = agents?.at(0)?.name;
   } catch (err) {
-    // TODO:
     console.log(err);
+  }
+
+  if (firstAgentName) {
+    redirect(routes.agentRun({ name: firstAgentName }));
   }
 
   return notFound();

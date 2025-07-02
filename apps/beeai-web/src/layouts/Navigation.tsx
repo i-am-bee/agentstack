@@ -6,11 +6,9 @@
 'use client';
 
 import { ArrowUpRight } from '@carbon/icons-react';
-import { DOCUMENTATION_LINK, MainNav } from '@i-am-bee/beeai-ui';
+import { DOCUMENTATION_LINK, MainNav, TransitionLink } from '@i-am-bee/beeai-ui';
 import { usePathname } from 'next/navigation';
 import { ComponentType } from 'react';
-
-import { TransitionLink } from '@/components/TransitionLink/TransitionLink';
 
 export function Navigation() {
   const pathname = usePathname();

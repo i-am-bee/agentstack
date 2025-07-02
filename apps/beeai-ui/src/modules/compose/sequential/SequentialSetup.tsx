@@ -8,7 +8,6 @@ import { Button, IconButton } from '@carbon/react';
 import clsx from 'clsx';
 import { useFormState } from 'react-hook-form';
 
-import { TransitionLink } from '#components/TransitionLink/TransitionLink.tsx';
 import { VersionTag } from '#components/VersionTag/VersionTag.tsx';
 import type { Agent } from '#modules/agents/api/types.ts';
 import NewSession from '#modules/runs/components/NewSession.svg';
@@ -80,11 +79,9 @@ export function SequentialSetup() {
       </div>
 
       <div className={classes.actionBar}>
-        <TransitionLink href={routes.playground()}>
-          <Button kind="ghost" size="md" className={classes.backButton} href={routes.playground()}>
-            <ArrowLeft /> Back to patterns
-          </Button>
-        </TransitionLink>
+        <Button kind="ghost" size="md" className={classes.backButton} href={routes.playground()}>
+          <ArrowLeft /> Back to patterns
+        </Button>
 
         {!isCompleted &&
           (!isPending ? (

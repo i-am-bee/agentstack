@@ -10,34 +10,31 @@ import { MainContent } from '#components/layouts/MainContent.tsx';
 import { ViewHeader } from '#components/ViewHeader/ViewHeader.tsx';
 import { ViewStack } from '#components/ViewStack/ViewStack.tsx';
 import { ProvidersView } from '#modules/providers/components/ProvidersView.tsx';
-import { ThemeView } from '#modules/settings/ThemeView.tsx';
 import { VariablesView } from '#modules/variables/components/VariablesView.tsx';
 
-export function Settings() {
+import { ThemeView } from './ThemeView';
+
+export function SettingsView() {
   return (
     <MainContent>
       <Container size="lg">
         <ViewStack>
           <ViewHeader heading="Settings" />
-
           <Tabs>
             <TabList>
               <Tab>Variables</Tab>
               <Tab>Agent providers</Tab>
               <Tab>Theme</Tab>
             </TabList>
-
             <TabPanels>
               <TabPanel>
-                <VariablesView />
+                <VariablesView />{' '}
               </TabPanel>
-
               <TabPanel>
-                <ProvidersView />
+                <ProvidersView />{' '}
               </TabPanel>
-
               <TabPanel>
-                <ThemeView />
+                <ThemeView />{' '}
               </TabPanel>
             </TabPanels>
           </Tabs>

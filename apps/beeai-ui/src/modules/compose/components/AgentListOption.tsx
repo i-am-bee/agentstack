@@ -23,7 +23,7 @@ export function AgentListOption({ agent, onClick }: Props) {
   const { display_name } = getAgentUiMetadata(agent);
 
   return (
-    <li className={classes.root} role="option" onClick={onClick}>
+    <li className={classes.root} role="option" aria-selected onClick={onClick}>
       <div className={classes.content}>
         <div className={classes.name}>
           <span>{display_name}</span>

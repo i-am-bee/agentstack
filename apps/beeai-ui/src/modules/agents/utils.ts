@@ -53,7 +53,7 @@ export function getAvailableAgentLinkUrl<T extends AgentLinkType | AgentLinkType
 ): string | undefined {
   const typesArray = Array.isArray(type) ? type : [type];
 
-  let url = undefined;
+  let url: string | undefined;
   for (const type of typesArray) {
     url = metadata.links?.find((link) => link.type === type)?.url;
     if (url) {

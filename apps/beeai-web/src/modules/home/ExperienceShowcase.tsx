@@ -12,10 +12,9 @@ import {
   Container,
   FRAMEWORK_GITHUB_REPO_LINK,
   RUN_LINK,
+  TransitionLink,
 } from '@i-am-bee/beeai-ui';
 import { useState } from 'react';
-
-import { TransitionLink } from '@/components/TransitionLink/TransitionLink';
 
 import composeImage from './compose.png';
 import discoverImage from './discover.png';
