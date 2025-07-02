@@ -20,15 +20,15 @@ interface Props {
 export function AgentRun({ name }: Props) {
   const { data: agent, error, isPending, isRefetching, refetch } = useAgent({ name });
 
-  return !isPending ? (
-    agent ? (
-      renderUi({ agent })
-    ) : (
-      <UiFailedView message={error?.message} isRefetching={isRefetching} onRetry={refetch} />
-    )
-  ) : (
-    <UiLoadingView />
-  );
+  if (isPending) {
+    return <UiLoadingView />;
+  }
+
+  if (!agent) {
+    return <UiFailedView message={error?.message} isRefetching={isRefetching} onRetry={refetch} />;
+  }
+
+  return renderUi({ agent });
 }
 
 const renderUi = ({ agent }: { agent: Agent }) => {
