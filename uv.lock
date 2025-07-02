@@ -17,7 +17,7 @@ dev = [
 
 [[package]]
 name = "acp-sdk"
-version = "0.12.3"
+version = "1.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cachetools" },
@@ -35,9 +35,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "redis" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/87/b2/2a45196d3728a5708bf39845a24a10e2de18f705e45572aadc67f8925b2d/acp_sdk-0.12.3.tar.gz", hash = "sha256:74be45333ecff7266c4009f426f7707e0596cf6d998b272dc2d81b2854bd2805", size = 29220, upload-time = "2025-06-24T07:37:15.743Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/70/27/2dc08578badd7863634bbb395a63b1539f571c3d1d2fba3c639e27603625/acp_sdk-1.0.0.tar.gz", hash = "sha256:997351cc9042eb2cf3d1bd3f53997d8d5b83afd5ae975c32c419a86de7205ad5", size = 30077, upload-time = "2025-07-01T06:08:40.172Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b1/4d/589e379ef5c170f3f471956a5c6e9c1e562a71da276bb0df0756769ba64b/acp_sdk-0.12.3-py3-none-any.whl", hash = "sha256:6a42312eb48d0435ca46e346d2e18d843c602bfbb13f00d0c10e4dfc9e4392fa", size = 31195, upload-time = "2025-06-24T07:37:14.058Z" },
+    { url = "https://files.pythonhosted.org/packages/d7/91/dce09af24c6f67a4df7fcaf898a565b0efd44de3d085894ee1c0a672ae9a/acp_sdk-1.0.0-py3-none-any.whl", hash = "sha256:837779e52f1f922f8c017b1e6a19181ef618fe996de971255cfd0251b9408180", size = 32253, upload-time = "2025-07-01T06:08:38.603Z" },
 ]
 
 [[package]]
@@ -326,7 +326,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "acp-sdk", specifier = "~=0.12.0" },
+    { name = "acp-sdk", specifier = "~=1.0.0" },
     { name = "anyio", specifier = "~=4.9.0" },
     { name = "gnureadline", marker = "sys_platform != 'win32'", specifier = "~=8.2.13" },
     { name = "inquirerpy", specifier = "~=0.3.4" },
@@ -409,7 +409,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "acp-sdk", specifier = ">=0.12.3" },
+    { name = "acp-sdk", specifier = ">=1.0.0" },
     { name = "aioboto3", specifier = ">=14.3.0" },
     { name = "aiodocker", specifier = ">=0.24.0" },
     { name = "aiohttp", specifier = ">=3.11.11" },
