@@ -13,7 +13,7 @@ unmanagedProviders: [ ]
 
 # External registries in the format: [name: githubURL]
 # for example
-# github: "https://github.com/i-am-bee/beeai-platform@release-v0.2.0#path=agent-registry.yaml"
+# github: "https://github.com/i-am-bee/beeai-platform@v0.2.14#path=agent-registry.yaml"
 externalRegistries: { }
 
 auth:

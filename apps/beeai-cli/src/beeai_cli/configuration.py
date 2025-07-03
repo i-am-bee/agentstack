@@ -3,6 +3,7 @@
 
 import functools
 import pathlib
+from importlib.metadata import version
 
 import pydantic
 import pydantic_settings
@@ -19,7 +20,7 @@ class Configuration(pydantic_settings.BaseSettings):
     debug: bool = False
     home: pathlib.Path = pathlib.Path.home() / ".beeai"
     agent_registry: pydantic.AnyUrl = (
-        "https://github.com/i-am-bee/beeai-platform@release-v0.2.14#path=agent-registry.yaml"
+        f"https://github.com/i-am-bee/beeai-platform@v{version('beeai-cli')}#path=agent-registry.yaml"
     )
     admin_password: SecretStr | None = None
 

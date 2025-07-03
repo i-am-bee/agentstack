@@ -1,6 +1,6 @@
 {
   "name": "@i-am-bee/beeai-web",
-  "version": "0.1.0",
+  "version": "0.2.14",
   "private": true,
   "scripts": {
     "dev": "NODE_OPTIONS=\"--no-experimental-global-navigator\" next dev",

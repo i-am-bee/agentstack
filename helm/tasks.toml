@@ -13,7 +13,7 @@ outputs = { auto = true }
 ["helm:check:render"]
 depends = ["helm:build:dependencies"]
 dir = "{{config_root}}/helm"
-run = "helm template . -f ../agent-registry.yaml --set encryptionKey=dummy --set auth.enabled=false | kubeconform -strict -summary"
+run = "helm template . --set encryptionKey=dummy --set auth.enabled=false | kubeconform -strict -summary"
 sources = ["Chart.yaml", "Chart.lock", "values.yaml", ".helmignore", "charts/*", "templates/**/*"]
 outputs = { auto = true }
 

@@ -7,7 +7,7 @@ Create a value file with the minimum configuration
 ```yaml
 # If you want to include agents from the default catalog (change release/tag accordingly):
 externalRegistries:
-  public_github: "https://github.com/i-am-bee/beeai-platform@release-v0.2.0#path=agent-registry.yaml"
+  public_github: "https://github.com/i-am-bee/beeai-platform@v0.2.14#path=agent-registry.yaml"
 
 # Your custom agents as docker images
 providers:

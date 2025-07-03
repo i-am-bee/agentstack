@@ -101,17 +101,20 @@ helm_app_version=$(yq -r .appVersion helm/Chart.yaml)
 beeai_cli_version=$(yq -r .project.version apps/beeai-cli/pyproject.toml)
 beeai_server_version=$(yq -r .project.version apps/beeai-server/pyproject.toml)
 beeai_ui_version=$(yq -r .version apps/beeai-ui/package.json)
+beeai_web_version=$(yq -r .version apps/beeai-web/package.json)
 
 if [ "$helm_version" != "$helm_app_version" ] || \
    [ "$helm_version" != "$beeai_cli_version" ] || \
    [ "$helm_version" != "$beeai_server_version" ] || \
-   [ "$helm_version" != "$beeai_ui_version" ]; then
+   [ "$helm_version" != "$beeai_ui_version" ] || \
+   [ "$helm_version" != "$beeai_web_version" ]; then
   echo "Version mismatch:"
   echo "  helm.version:         $helm_version"
   echo "  helm.appVersion:      $helm_app_version"
   echo "  beeai-cli:            $beeai_cli_version"
   echo "  beeai-server:         $beeai_server_version"
   echo "  beeai-ui:             $beeai_ui_version"
+  echo "  beeai-web:            $beeai_web_version"
   exit 1
 fi
 
@@ -152,6 +155,7 @@ yq -i ".version = \"$new_version\" | .appVersion = \"$new_version\"" helm/Chart.
 perl -pi -e "s/^(version\\s*=\\s*\")[^\"]*(\")/\${1}$new_version\${2}/" apps/beeai-cli/pyproject.toml
 perl -pi -e "s/^(version\\s*=\\s*\")[^\"]*(\")/\${1}$new_version\${2}/" apps/beeai-server/pyproject.toml
 yq -i ".version = \"$new_version\"" apps/beeai-ui/package.json
+yq -i ".version = \"$new_version\"" apps/beeai-web/package.json
 uv lock
 
 # Confirm commit and push (default: yes)
