@@ -47,29 +47,16 @@ jobs:
             ghcr.io/${{ github.repository }}/beeai-server:latest
 
   build-and-push-helm-chart:
-    # Inspired by: https://github.com/appany/helm-oci-chart-releaser
     runs-on: ubuntu-latest
-    env: { HELM_EXPERIMENTAL_OCI: '1' }
+    env:
+      HELM_EXPERIMENTAL_OCI: '1'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
-
-      - name: Extract version from tag
-        id: version
-        run: echo "version=${GITHUB_REF#refs/tags/beeai-server-v}" >> $GITHUB_OUTPUT
-
-      - name: Helm | login
-        run: echo '${{ secrets.GITHUB_TOKEN }}' | helm registry login -u '${{ github.actor }}' --password-stdin ghcr.io
-
-      - name: Helm | Lint
-        run: mise run helm:check:lint
-
-      - name: Helm | Package
-        run: helm package helm/beeai-platform --version '${{ steps.version.outputs.version }}' --app-version ${{ steps.version.outputs.version }}
-
-      - name: Helm | Push
-        run: helm push 'beeai-platform-${{ steps.version.outputs.version }}.tgz' 'oci://ghcr.io/${{ github.repository }}/beeai-platform-chart'
+      - run: echo '${{ secrets.GITHUB_TOKEN }}' | helm registry login --username '${{ github.actor }}' --password-stdin ghcr.io
+      - run: mise run helm:check
+      - run: mise run helm:build
+      - run: helm push dist/beeai-platform-*.tgz 'oci://ghcr.io/${{ github.repository }}/beeai-platform-chart'
 
   deploy-to-k8s:
     needs: build-and-publish-pypi-and-docker
