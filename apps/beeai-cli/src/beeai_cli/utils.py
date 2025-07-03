@@ -34,7 +34,6 @@ if TYPE_CHECKING:
 
 class VMDriver(str, Enum):
     lima = "lima"
-    docker = "docker"
     wsl = "wsl"
 
 

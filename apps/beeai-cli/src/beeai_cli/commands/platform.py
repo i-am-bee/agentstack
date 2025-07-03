@@ -1,7 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import asyncio
 import base64
 import configparser
 import functools
@@ -38,53 +37,23 @@ def _limactl_exe():
         return shutil.which("limactl")
 
 
-async def _validate_driver(vm_driver: VMDriver | None) -> VMDriver:
+@functools.cache
+def _vm_driver() -> VMDriver:
     is_windows = platform.system() == "Windows" or shutil.which("wsl.exe")
     has_lima = (importlib.resources.files("beeai_cli") / "data" / "limactl").is_file() or shutil.which("limactl")
-    has_docker = shutil.which("docker")
     has_vz = os.path.exists("/System/Library/Frameworks/Virtualization.framework")
     arch = platform.machine().lower()
     has_qemu = not is_windows and bool(shutil.which("qemu-system-" + ("aarch64" if arch == "arm64" else arch)))
 
-    match vm_driver:
-        case None:
-            if is_windows:
-                vm_driver = VMDriver.wsl
-            elif has_lima and (has_vz or has_qemu):
-                vm_driver = VMDriver.lima
-            elif has_docker:
-                console.print(
-                    "[yellow]Warning: Running the VM in Docker, since Lima is not set up properly. If you want to use Lima instead, run `beeai platform delete --vm-driver=docker` and then follow the installation instructions at https://docs.beeai.dev/introduction/installation[/yellow]"
-                )
-                vm_driver = VMDriver.docker
-            else:
-                console.print(
-                    "[red]Error: Could not find a compatible VM runtime. Please follow the installation instructions at https://docs.beeai.dev/introduction/installation[/red]"
-                )
-                sys.exit(1)
-        case VMDriver.lima:
-            if not has_lima:
-                console.print(
-                    "[red]Error: Lima not found. Please follow the installation instructions at https://docs.beeai.dev/introduction/installation[/red]"
-                )
-                sys.exit(1)
-            if not has_vz and not has_qemu:
-                console.print(
-                    "[red]Error: QEMU not found. Please follow the installation instructions at https://docs.beeai.dev/introduction/installation[/red]"
-                )
-                sys.exit(1)
-        case VMDriver.docker:
-            if not has_docker:
-                console.print(
-                    "[red]Error: Docker not found. Please follow the installation instructions at https://docs.beeai.dev/introduction/installation[/red]"
-                )
-                sys.exit(1)
-        case VMDriver.wsl:
-            if not is_windows:
-                console.print(
-                    "[red]Error: WSL is only supported on Windows. Please follow the installation instructions at https://docs.beeai.dev/introduction/installation[/red]"
-                )
-                sys.exit(1)
+    if is_windows:
+        vm_driver = VMDriver.wsl
+    elif has_lima and (has_vz or has_qemu):
+        vm_driver = VMDriver.lima
+    else:
+        console.print(
+            "[red]Error: Could not find a compatible VM runtime. Please follow the installation instructions at https://docs.beeai.dev/introduction/installation[/red]"
+        )
+        sys.exit(1)
 
     if vm_driver == VMDriver.lima and not (importlib.resources.files("beeai_cli") / "data" / "limactl").is_file():
         console.print(
@@ -94,9 +63,9 @@ async def _validate_driver(vm_driver: VMDriver | None) -> VMDriver:
     return vm_driver
 
 
-async def _get_platform_status(vm_driver: VMDriver, vm_name: str) -> str | None:
+async def _platform_status(vm_name: str) -> str | None:
     try:
-        match vm_driver:
+        match _vm_driver():
             case VMDriver.lima:
                 result = await run_command(
                     [_limactl_exe(), "--tty=false", "list", "--format=json"],
@@ -114,13 +83,6 @@ async def _get_platform_status(vm_driver: VMDriver, vm_name: str) -> str | None:
                     ),
                     None,
                 )
-            case VMDriver.docker:
-                result = await run_command(
-                    ["docker", "inspect", vm_name],
-                    "Looking for existing BeeAI platform in Docker",
-                    check=False,
-                )
-                return json.loads(result.stdout)[0]["State"]["Status"].lower()
             case VMDriver.wsl:
                 running = (
                     (
@@ -172,15 +134,10 @@ async def start(
         ),
     ],
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
-    vm_driver: typing.Annotated[
-        VMDriver | None, typer.Option(hidden=True, help="Platform driver: lima (VM) or docker (container)")
-    ] = None,
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ):
     """Start BeeAI platform."""
     with verbosity(verbose):
-        vm_driver = await _validate_driver(vm_driver)
-
         # Clean up legacy Brew services
         await run_command(
             ["brew", "services", "stop", "beeai"],
@@ -195,7 +152,7 @@ async def start(
             ignore_missing=True,
         )
 
-        if vm_driver == VMDriver.wsl:
+        if _vm_driver() == VMDriver.wsl:
             # Install WSL2
             if (await run_command(["wsl.exe", "--status"], "Checking for WSL2", check=False)).returncode != 0 or not (
                 await run_command(
@@ -248,21 +205,20 @@ async def start(
 
         # Start VM
         Configuration().home.mkdir(exist_ok=True)
-        status = await _get_platform_status(vm_driver, vm_name)
+        status = await _platform_status(vm_name)
         if not status:
             await run_command(
                 {
                     VMDriver.lima: [_limactl_exe(), "--tty=false", "delete", "--force", vm_name],
-                    VMDriver.docker: ["docker", "rm", "--force", vm_name],
                     VMDriver.wsl: ["wsl.exe", "--unregister", vm_name],
-                }[vm_driver],
+                }[_vm_driver()],
                 "Cleaning up remains of previous instance",
                 env={"LIMA_HOME": str(Configuration().lima_home)},
                 check=False,
                 cwd="/",
             )
             templates_dir = Configuration().lima_home / "_templates"
-            if vm_driver == VMDriver.lima:
+            if _vm_driver() == VMDriver.lima:
                 templates_dir.mkdir(parents=True, exist_ok=True)
                 templates_dir.joinpath(f"{vm_name}.yaml").write_text(
                     yaml.dump(
@@ -328,27 +284,6 @@ async def start(
                         templates_dir / f"{vm_name}.yaml",
                         f"--name={vm_name}",
                     ],
-                    VMDriver.docker: [
-                        "docker",
-                        "run",
-                        "--privileged",
-                        f"--name={vm_name}",
-                        f"--hostname={vm_name}",
-                        "-p",
-                        "16433:16433",
-                        "-p",
-                        "8333:8333",
-                        "-p",
-                        "6006:6006",
-                        "-v",
-                        f"{Configuration().home}:/beeai",
-                        "-d",
-                        "rancher/k3s:v1.33.0-k3s1",
-                        "--",
-                        "server",
-                        "--write-kubeconfig-mode=644",
-                        "--https-listen-port=16433",
-                    ],
                     VMDriver.wsl: [
                         "wsl.exe",
                         "--install",
@@ -357,11 +292,8 @@ async def start(
                         "--no-launch",
                         "--web-download",
                     ],
-                }[vm_driver],
-                "Creating a "
-                + {VMDriver.lima: "Lima VM", VMDriver.docker: "Docker container", VMDriver.wsl: "WSL distribution"}[
-                    vm_driver
-                ],
+                }[_vm_driver()],
+                "Creating a " + {VMDriver.lima: "Lima VM", VMDriver.wsl: "WSL distribution"}[_vm_driver()],
                 env={
                     "LIMA_HOME": str(Configuration().lima_home),
                     # Hotfix for port-forwarding until this issue is resolved:
@@ -374,9 +306,8 @@ async def start(
             await run_command(
                 {
                     VMDriver.lima: [_limactl_exe(), "--tty=false", "start", "--memory=8", vm_name],
-                    VMDriver.docker: ["docker", "start", vm_name],
                     VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "dbus-launch", "true"],
-                }[vm_driver],
+                }[_vm_driver()],
                 "Starting up",
                 env={
                     "LIMA_HOME": str(Configuration().lima_home),
@@ -390,7 +321,7 @@ async def start(
             console.print("Updating an existing instance.")
 
         # Configure start-at-login for Lima
-        if vm_driver == VMDriver.lima:
+        if _vm_driver() == VMDriver.lima:
             await run_command(
                 [
                     _limactl_exe(),
@@ -410,35 +341,8 @@ async def start(
                 cwd="/",
             )
 
-        # Wait for asynchronous k3s startup for Docker
-        if vm_driver == VMDriver.docker:
-            for _ in range(10):
-                with console.status("Waiting for k3s to start...", spinner="dots"):
-                    await asyncio.sleep(5)
-                if (
-                    await run_command(
-                        [
-                            "docker",
-                            "exec",
-                            vm_name,
-                            "k3s",
-                            "kubectl",
-                            "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
-                            "get",
-                            "crd",
-                            "helmcharts.helm.cattle.io",
-                        ],
-                        message="Checking if k3s is running",
-                        check=False,
-                    )
-                ).returncode == 0:
-                    break
-            else:
-                console.print("[red]Error: Timed out waiting for k3s to start.[/red]")
-                sys.exit(1)
-
         # Set up WSL
-        if vm_driver == VMDriver.wsl:
+        if _vm_driver() == VMDriver.wsl:
             # Run a persistent process
             await run_command(
                 ["wsl.exe", "--user", "root", "--distribution", vm_name, "--", "dbus-launch", "true"],
@@ -504,16 +408,15 @@ async def start(
 
         # Import images
         for image in import_images:
-            await import_image(image, vm_name=vm_name, vm_driver=vm_driver)
+            await import_image(image, vm_name=vm_name)
 
         # Deploy HelmChart
         await run_command(
             [
                 *{
                     VMDriver.lima: [_limactl_exe(), "shell", vm_name, "--"],
-                    VMDriver.docker: ["docker", "exec", "-i", vm_name],
                     VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
-                }[vm_driver],
+                }[_vm_driver()],
                 "k3s",
                 "kubectl",
                 "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
@@ -557,9 +460,8 @@ async def start(
             [
                 *{
                     VMDriver.lima: [_limactl_exe(), "shell", "--tty=false", vm_name, "--"],
-                    VMDriver.docker: ["docker", "exec", "-i", vm_name],
                     VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
-                }[vm_driver],
+                }[_vm_driver()],
                 "k3s",
                 "kubectl",
                 "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
@@ -576,9 +478,8 @@ async def start(
             [
                 *{
                     VMDriver.lima: [_limactl_exe(), "shell", "--tty=false", vm_name, "--"],
-                    VMDriver.docker: ["docker", "exec", "-i", vm_name],
                     VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
-                }[vm_driver],
+                }[_vm_driver()],
                 "k3s",
                 "kubectl",
                 "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
@@ -596,9 +497,8 @@ async def start(
             [
                 *{
                     VMDriver.lima: [_limactl_exe(), "shell", "--tty=false", vm_name, "--"],
-                    VMDriver.docker: ["docker", "exec", "-i", vm_name],
                     VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
-                }[vm_driver],
+                }[_vm_driver()],
                 "k3s",
                 "kubectl",
                 "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
@@ -622,24 +522,19 @@ async def start(
 @app.command("stop")
 async def stop(
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
-    vm_driver: typing.Annotated[
-        VMDriver | None, typer.Option(hidden=True, help="Platform driver: lima (VM) or docker (container)")
-    ] = None,
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ):
     """Stop BeeAI platform."""
     with verbosity(verbose):
-        vm_driver = await _validate_driver(vm_driver)
-        status = await _get_platform_status(vm_driver, vm_name)
+        status = await _platform_status(vm_name)
         if not status:
             console.print("BeeAI platform not found. Nothing to stop.")
             return
         await run_command(
             {
                 VMDriver.lima: [_limactl_exe(), "--tty=false", "stop", "--force", vm_name],
-                VMDriver.docker: ["docker", "stop", vm_name],
                 VMDriver.wsl: ["wsl.exe", "--terminate", vm_name],
-            }[vm_driver],
+            }[_vm_driver()],
             "Stopping BeeAI VM",
             env={"LIMA_HOME": str(Configuration().lima_home)},
             cwd="/",
@@ -650,20 +545,15 @@ async def stop(
 @app.command("delete")
 async def delete(
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
-    vm_driver: typing.Annotated[
-        VMDriver | None, typer.Option(hidden=True, help="Platform driver: lima (VM) or docker (container)")
-    ] = None,
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ):
     """Delete BeeAI platform."""
     with verbosity(verbose):
-        vm_driver = await _validate_driver(vm_driver)
         await run_command(
             {
                 VMDriver.lima: [_limactl_exe(), "--tty=false", "delete", "--force", vm_name],
-                VMDriver.docker: ["docker", "rm", "--force", vm_name],
                 VMDriver.wsl: ["wsl.exe", "--unregister", vm_name],
-            }[vm_driver],
+            }[_vm_driver()],
             "Deleting BeeAI platform",
             env={"LIMA_HOME": str(Configuration().lima_home)},
             check=False,
@@ -676,17 +566,11 @@ async def delete(
 async def import_image(
     tag: typing.Annotated[str, typer.Argument(help="Docker image tag to import")],
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
-    vm_driver: typing.Annotated[
-        VMDriver | None, typer.Option(hidden=True, help="Platform driver: lima (VM) or docker (container)")
-    ] = None,
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ):
     """Import a local docker image into the BeeAI platform."""
     with verbosity(verbose):
-        vm_driver = await _validate_driver(vm_driver)
-
-        status = await _get_platform_status(vm_driver, vm_name)
-        if status != "running":
+        if (await _platform_status(vm_name)) != "running":
             console.print("[red]BeeAI platform is not running.[/red]")
             sys.exit(1)
 
@@ -740,20 +624,19 @@ async def import_image(
                     .stdout.decode()
                     .strip()
                 )
-                if vm_driver == VMDriver.wsl
+                if _vm_driver() == VMDriver.wsl
                 else f"/tmp/beeai/{image_filename}"
             )
 
             await run_command(
                 {
                     VMDriver.lima: [_limactl_exe(), "--tty=false", "shell", vm_name, "--"],
-                    VMDriver.docker: ["docker", "exec", vm_name],
                     VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
-                }[vm_driver]
+                }[_vm_driver()]
                 + [
                     "/bin/sh",
                     "-c",
-                    f"{'sudo' if vm_driver == VMDriver.lima else ''} k3s ctr images import {vm_image_path}",
+                    f"{'sudo' if _vm_driver() == VMDriver.lima else ''} k3s ctr images import {vm_image_path}",
                 ],
                 f"Importing image {tag} into BeeAI platform",
                 env={"LIMA_HOME": str(Configuration().lima_home)},
@@ -767,26 +650,20 @@ async def import_image(
 async def exec(
     command: typing.Annotated[list[str] | None, typer.Argument()] = None,
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
-    vm_driver: typing.Annotated[
-        VMDriver | None, typer.Option(hidden=True, help="Platform driver: lima (VM) or docker (container)")
-    ] = None,
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ):
     """For debugging -- execute a command inside the BeeAI platform VM."""
     with verbosity(verbose, show_success_status=False):
         command = command or ["/bin/sh"]
-        vm_driver = await _validate_driver(vm_driver)
-        status = await _get_platform_status(vm_driver, vm_name)
-        if status != "running":
+        if (await _platform_status(vm_name)) != "running":
             console.print("[red]BeeAI platform is not running.[/red]")
             sys.exit(1)
         await anyio.run_process(
             [
                 *{
                     VMDriver.lima: [_limactl_exe(), "shell", f"--tty={sys.stdin.isatty()}", vm_name, "--"],
-                    VMDriver.docker: ["docker", "exec", "-it" if sys.stdin.isatty() else "-i", vm_name],
                     VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
-                }[vm_driver],
+                }[_vm_driver()],
                 *command,
             ],
             input=None if sys.stdin.isatty() else sys.stdin.read(),

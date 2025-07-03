@@ -157,7 +157,6 @@ if [ '{{flag(name='docling')}}' = 'true' ]; then
 fi
 
 mise run beeai-cli:run -- platform start \
-    --vm-driver=lima \
     --vm-name=${VM_NAME} \
     --import ghcr.io/i-am-bee/beeai-platform/beeai-server:local \
     --set image.tag=local "${extra_flags[@]}"
