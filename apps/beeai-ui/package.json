@@ -2,7 +2,7 @@
   "name": "@i-am-bee/beeai-ui",
   "autor": "IBM Corp.",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.14",
   "type": "module",
   "scripts": {
     "dev": "vite",
