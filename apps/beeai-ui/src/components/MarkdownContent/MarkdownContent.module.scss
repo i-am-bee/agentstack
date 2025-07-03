@@ -71,12 +71,4 @@
   pre {
     white-space: pre-wrap;
   }
-
-  code:not([class*='language-']) {
-    @include type-style(label-01);
-
-    background-color: $layer-02;
-    padding-inline: $spacing-02;
-    border-radius: $spacing-02;
-  }
 }

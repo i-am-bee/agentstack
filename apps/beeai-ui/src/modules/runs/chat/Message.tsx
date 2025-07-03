@@ -31,7 +31,7 @@ interface Props {
 }
 
 export function Message({ message }: Props) {
-  const { agent } = useChat();
+  const { agent, isPending: isChatPending } = useChat();
   const { sourcesPanelOpen, showSourcesPanel, hideSourcesPanel } = useApp();
   const { activeMessageKey, setActiveMessageKey, setActiveSourceKey } = useSources();
   const { key, content, role, error } = message;
@@ -95,7 +95,9 @@ export function Message({ message }: Props) {
         ) : (
           <div className={clsx(classes.content, { [classes.isUser]: isUserMessage })}>
             {content ? (
-              <MarkdownContent sources={sources}>{content}</MarkdownContent>
+              <MarkdownContent isPending={isChatPending} sources={sources}>
+                {content}
+              </MarkdownContent>
             ) : (
               <span className={classes.empty}>Message has no content</span>
             )}

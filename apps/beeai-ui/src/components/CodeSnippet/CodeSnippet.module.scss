@@ -1,0 +1,21 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.root {
+  @include type-style(label-01);
+  background-color: $layer-02;
+  padding: $spacing-05;
+  border-radius: $border-radius;
+  position: relative;
+}
+
+.copyButton {
+  position: absolute;
+  inset-block-start: $spacing-03;
+  inset-inline-end: $spacing-03;
+  :global(.cds--btn):hover {
+    background-color: $layer-03;
+  }
+}
