@@ -36,7 +36,7 @@
         "group": "Core Concepts",
         "pages": ["concepts/architecture",
                   "concepts/acp-protocol",
-                  "concepts/gui-components]
+                  "concepts/gui-components"]
       },
       {
         "group": "Deployment",
