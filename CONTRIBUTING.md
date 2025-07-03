@@ -172,29 +172,3 @@ mise beeai-ui:run
 # UI is also available from beeai-server (in static mode):
 mise beeai-server:run
 ```
-
----
-
-## Releasing
-
-This repository contains several projects which get released to PyPI and ghcr.io through GitHub Actions.
-
-### Releasing agents
-
-The platform automatically grabs the `agent-registry.yaml` file from the `main` branch of `https://github.com/i-am-bee/beeai-platform`. In there, it finds URLs for agent provider manifests (`agent.yaml`), and in those manifests, it finds URLs to the agent provider implementations. At the moment, we use `agents-v*` tags, for example `agents-v0.0.1`.
-
-In order to release a new version of an agent (or several agents at once), be sure to bump the version in the URL in `agent.yaml` of the affected agents.
-
-### Releasing `beeai-ui`
-
-`beeai-ui` is statically included in `beeai-server`, so it can be considered a part of that project. It is not versioned separately. For any changes, `beeai-server` needs to be released.
-
-### Releasing `beeai-server`
-
-Bump version in `apps/beeai-server/pyproject.toml`. Commit the changes, push to main, and create and push a tag `beeai-server-v<version>`, for example `beeai-server-v0.0.1`. Check the GitHub Actions to see if everything went smoothly.
-
-From the user's point of view, the server is part of the BeeAI CLI through `beeai platform start`, so usually after releasing `beeai-server`, you might want to bump the dependency version and release `beeai-cli` as well.
-
-### Releasing `beeai-cli`
-
-Bump version in `apps/beeai-cli/pyproject.toml`. Commit the changes, push to main, and create and push a tag `beeai-cli-v<version>`, for example `beeai-cli-v0.0.1`. Check the GitHub Actions to see if everything went smoothly.
