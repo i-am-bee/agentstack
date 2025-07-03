@@ -1,0 +1,234 @@
+---
+title: "GUI Components"
+description: "Customize how your agents appear and behave in the BeeAI platform interface"
+---
+
+GUI components in the BeeAI platform define how your agents appear and behave in the user interface. Through the `PlatformUIAnnotation` metadata, you can customize the visual presentation and interaction patterns for your agents.
+
+## Configuration
+
+The `PlatformUIAnnotation` is the primary configuration object that defines how your agent appears in the GUI. It's specified within your agent's metadata annotations.
+
+```python
+from acp_sdk.models.platform import PlatformUIAnnotation, PlatformUIType
+
+@server.agent(
+    metadata=Metadata(
+        annotations=Annotations(
+            beeai_ui=PlatformUIAnnotation(
+                ui_type=PlatformUIType.CHAT,
+                user_greeting="Hello! I'm your AI assistant. How can I help you today?",
+                display_name="My Custom Agent",
+                tools=[
+                    AgentToolInfo(name="Weather", description="Get current weather information"),
+                    AgentToolInfo(name="Wikipedia", description="Search Wikipedia articles"),
+                ]
+            )
+        )
+    )
+)
+```
+
+## UI Types
+
+The platform supports two primary UI types, each optimized for different interaction patterns:
+
+### Chat UI
+
+The chat interface (`PlatformUIType.CHAT`) provides a conversational experience.
+
+<Info>
+    Chat UI is best suited for conversational agents, customer support bots, and multi-turn dialogues.
+</Info>
+
+### Hands-off UI
+
+The hands-off interface (`PlatformUIType.HANDS_OFF`) is designed for autonomous agents that work independently:
+
+- **Task Execution**: Focus on agent actions rather than conversation
+- **Result Display**: Clear presentation of final outcomes
+
+<Info>
+    Hands-off UI is ideal for automated workflows where there is a clear output.
+</Info>
+
+## Display Properties
+
+### Display Name
+
+Override the default agent name shown in the UI:
+
+```python
+PlatformUIAnnotation(
+    display_name="Customer Support Assistant"
+)
+```
+
+### User Greeting
+
+Set a welcoming message displayed when users first interact with your agent:
+
+```python
+PlatformUIAnnotation(
+    user_greeting="Welcome! I'm here to help you with your questions."
+)
+```
+
+### Tags
+
+Custom tags help categorize and filter agents:
+
+```python
+metadata=Metadata(
+    tags=["Research", "Data Analysis", "Educational"]
+)
+```
+
+### Framework Badge
+
+Shows which framework the agent is built with, with special styling for BeeAI agents:
+
+```python
+metadata=Metadata(
+    framework="BeeAI"  # Displays with special BeeAI badge
+)
+```
+
+### License
+
+Shows the agent's license information:
+
+```python
+metadata=Metadata(
+    license="Apache 2.0"
+)
+```
+
+### Programming Language
+
+Displays the primary programming language:
+
+```python
+metadata=Metadata(
+    programming_language="Python"
+)
+```
+
+### Author Information
+
+Shows agent author details:
+
+```python
+metadata=Metadata(
+    author={
+        "name": "John Smith",
+        "email": "jsmith@example.com",
+        "url": "https://example.com"
+    }
+)
+```
+
+### Tool Information
+
+Define the tools your agent can use, providing clear descriptions for users:
+
+```python
+PlatformUIAnnotation(
+    tools=[
+        AgentToolInfo(
+            name="Search Engine",
+            description="Search the web for current information"
+        ),
+        AgentToolInfo(
+            name="Calculator",
+            description="Perform mathematical calculations"
+        ),
+        AgentToolInfo(
+            name="File Processor",
+            description="Read and analyze uploaded files"
+        )
+    ]
+)
+```
+
+## Advanced Features
+
+### Dynamic Content Rendering
+
+The platform automatically renders various content types within your agent responses:
+
+#### Markdown Support
+- Headers, lists, and text formatting
+- Code blocks with syntax highlighting
+- Tables and structured data
+- Links and references
+
+### Trajectory Visualization
+
+The platform provides built-in trajectory visualization to show the step-by-step process of agent execution:
+
+```python
+from acp_sdk.models.models import TrajectoryMetadata
+
+# Show trajectory steps during agent execution
+yield MessagePart(metadata=TrajectoryMetadata(
+    message="Processing user request with Trajectory Agent...",
+    tool_name="Think"  # Optional: specify which tool is being used
+))
+
+yield MessagePart(metadata=TrajectoryMetadata(
+    message="Step 1: Analyzing the problem",
+    tool_name="Think"
+))
+
+yield MessagePart(metadata=TrajectoryMetadata(
+    message="Step 2: Searching for relevant information",
+    tool_name="Wikipedia"
+))
+```
+
+<Info>
+    Trajectory metadata creates a visual timeline in the UI, helping users understand the agent's reasoning process and tool usage.
+</Info>
+
+### File Upload Support
+
+The platform automatically handles file uploads and makes them available to agents through `content_url`:
+
+```python
+import httpx
+
+async def file_processing_agent(input: list[Message], context: Context):
+    # Check for uploaded files
+    for part in input[-1].parts:
+        if part.content_url:
+            yield MessagePart(content="📁 Processing uploaded file...")
+            
+            try:
+                # Download file content
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(str(part.content_url))
+                    content = response.content.decode('utf-8')
+                    
+                    # Process the file content
+                    # ... your processing logic here
+                    
+            except Exception as e:
+                yield MessagePart(content=f"❌ Error processing file: {str(e)}")
+```
+
+### Citation and Sources
+
+For agents that reference external sources, the platform provides built-in citation components:
+
+```python
+# Citations are automatically rendered when included in message metadata
+MessagePart(
+    content="According to recent studies...",
+    metadata=CitationMetadata(
+        url="https://example.com/study",
+        title="Recent Research Study",
+        description="Comprehensive analysis of the topic"
+    )
+)
+```
