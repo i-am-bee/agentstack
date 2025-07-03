@@ -63,8 +63,8 @@ async def build(
                     f"docker run --name {container_id} --rm -p {port}:8000 -e HOST=0.0.0.0 -e PORT=8000 {image_id}",
                 ) as process,
             ):
-                try:
-                    async with capture_output(process):
+                async with capture_output(process) as task_group:
+                    try:
                         async for attempt in AsyncRetrying(
                             stop=stop_after_delay(timedelta(seconds=30)),
                             wait=wait_fixed(timedelta(seconds=0.5)),
@@ -81,13 +81,14 @@ async def build(
                         process.terminate()
                         with suppress(ProcessLookupError):
                             process.kill()
-                except BaseException as ex:
-                    raise RuntimeError(f"Failed to build agent: {extract_messages(ex)}") from ex
-                finally:
-                    with suppress(BaseException):
-                        await run_command(["docker", "kill", container_id], "Killing container")
-                    with suppress(ProcessLookupError):
-                        process.kill()
+                    except BaseException as ex:
+                        raise RuntimeError(f"Failed to build agent: {extract_messages(ex)}") from ex
+                    finally:
+                        task_group.cancel_scope.cancel()
+                        with suppress(BaseException):
+                            await run_command(["docker", "kill", container_id], "Killing container")
+                        with suppress(ProcessLookupError):
+                            process.kill()
 
         context_hash = hashlib.sha256(context.encode()).hexdigest()[:6]
         context_shorter = re.sub(r"https?://", "", context).replace(r".git", "")

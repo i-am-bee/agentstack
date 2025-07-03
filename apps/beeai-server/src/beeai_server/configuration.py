@@ -7,6 +7,7 @@ from collections import defaultdict
 from datetime import timedelta
 from functools import cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic_core.core_schema import ValidationInfo
 
@@ -126,10 +127,18 @@ class DockerConfigJson(BaseModel):
 
 class ManagedProviderConfiguration(BaseModel):
     auto_remove_enabled: bool = False
+    manifest_template_dir: Path | None = None
     self_registration_use_local_network: bool = Field(
         False,
         description="Which network to use for self-registered providers - should be False when running in cluster",
     )
+
+
+class DoclingExtractionConfiguration(BaseModel):
+    backend: Literal["docling"] = "docling"
+    enabled: bool = False
+    docling_service_url: str = "http://docling-serve:15001"
+    processing_timeout_sec: int = timedelta(minutes=5).total_seconds()
 
 
 class Configuration(BaseSettings):
@@ -146,6 +155,7 @@ class Configuration(BaseSettings):
     persistence: PersistenceConfiguration = Field(default_factory=PersistenceConfiguration)
     object_storage: ObjectStorageConfiguration = Field(default_factory=ObjectStorageConfiguration)
     vector_stores: VectorStoresConfiguration = Field(default_factory=VectorStoresConfiguration)
+    text_extraction: DoclingExtractionConfiguration = Field(default_factory=DoclingExtractionConfiguration)
     k8s_namespace: str | None = None
     k8s_kubeconfig: Path | None = None
 

@@ -26,10 +26,18 @@ interface Props {
 export function AgentRun({ name }: Props) {
   const { data: agent, isPending, refetch, isRefetching, error } = useAgent({ name });
 
-  return !isPending ? (
-    agent ? (
-      renderUi({ agent })
-    ) : (
+  if (isPending) {
+    return (
+      <MainContent>
+        <div className={classes.loading}>
+          <Loading withOverlay={false} />
+        </div>
+      </MainContent>
+    );
+  }
+
+  if (!agent) {
+    return (
       <MainContent>
         <Container size="sm">
           <ErrorMessage
@@ -40,14 +48,10 @@ export function AgentRun({ name }: Props) {
           />
         </Container>
       </MainContent>
-    )
-  ) : (
-    <MainContent>
-      <div className={classes.loading}>
-        <Loading withOverlay={false} />
-      </div>
-    </MainContent>
-  );
+    );
+  }
+
+  return renderUi({ agent });
 }
 
 const renderUi = ({ agent }: { agent: Agent }) => {
@@ -80,7 +84,7 @@ const renderUi = ({ agent }: { agent: Agent }) => {
             <div className={classes.uiNotAvailable}>
               {ui_type
                 ? `The UI requested by the agent is not available: '${ui_type}'`
-                : `The agent doesn’t have a defined UI.`}
+                : 'The agent doesn’t have a defined UI.'}
             </div>
           </Container>
         </MainContent>

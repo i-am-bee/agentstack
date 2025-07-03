@@ -4,13 +4,16 @@
 import asyncio
 import concurrent.futures
 import functools
+import json
+import re
 import shutil
 from asyncio import CancelledError
 from contextlib import suppress
 from datetime import datetime, UTC
-from typing import TypeVar, Iterable, Callable, Any
+from typing import TypeVar, Iterable, Callable, Any, AsyncIterable
 
 import anyio.to_thread
+
 
 T = TypeVar("T")
 V = TypeVar("V")
@@ -68,3 +71,45 @@ def async_to_sync_isolated(fn: AnyCallableT) -> AnyCallableT:
             return future.result()
 
     return wrapped_fn
+
+
+async def extract_string_value_stream(
+    async_stream: Callable[[int], AsyncIterable[str]], key: str, chunk_size: int = 1024
+) -> AsyncIterable[str]:
+    buffer = ""
+    max_buffer_size = len(key) * 2
+    state = "outside"
+    if chunk_size < max_buffer_size:
+        raise ValueError("Chunk size too small")
+
+    async for chunk in async_stream(chunk_size):
+        buffer += chunk
+        if state == "outside":
+            if match := re.search(rf'"{key}" *: *"', buffer):
+                buffer = buffer[match.end() :]
+                state = "inside"
+            else:
+                buffer = buffer[-max_buffer_size:]
+        if state == "inside":
+            backslash_count = 0
+            for idx, char in enumerate(buffer):
+                if char == "\\":
+                    backslash_count += 1
+                elif char == '"':
+                    if backslash_count % 2 == 0:
+                        yield json.loads(f'"{buffer[:idx]}"')
+                        return
+                    backslash_count = 0
+                else:
+                    backslash_count = 0
+            if backslash_count % 2 == 0:
+                yield json.loads(f'"{buffer}"')
+                buffer = ""
+            else:
+                yield json.loads(f'"{buffer[:-1]}"')
+                buffer = "\\"
+
+    if state == "inside":
+        raise EOFError("Unterminated string value in JSON input")
+    else:
+        raise KeyError(f"Key {key} not found in JSON input")

@@ -27,6 +27,9 @@
 
 .button {
   @include reset-focus();
+  justify-content: flex-start;
+  align-items: center;
+  gap: rem(8px);
   inline-size: 100%;
   padding: $spacing-03 - rem(1px);
 

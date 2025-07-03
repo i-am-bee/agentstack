@@ -6,7 +6,7 @@ import functools
 import json
 import os
 import subprocess
-from collections.abc import Iterable
+from collections.abc import AsyncIterable, Iterable
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
 from copy import deepcopy
@@ -18,7 +18,7 @@ import anyio
 import typer
 import yaml
 from anyio import create_task_group
-from anyio.abc import ByteReceiveStream
+from anyio.abc import ByteReceiveStream, TaskGroup
 from jsf import JSF
 from prompt_toolkit import PromptSession
 from prompt_toolkit.shortcuts import CompleteStyle
@@ -184,7 +184,7 @@ async def launch_graphical_interface(host_url: str):
 
 
 @asynccontextmanager
-async def capture_output(process: anyio.abc.Process, stream_contents: list | None = None):
+async def capture_output(process: anyio.abc.Process, stream_contents: list | None = None) -> AsyncIterable[TaskGroup]:
     async def receive_logs(stream: ByteReceiveStream, index=0):
         buffer = BytesIO()
         async for chunk in stream:
@@ -198,7 +198,7 @@ async def capture_output(process: anyio.abc.Process, stream_contents: list | Non
             tg.start_soon(receive_logs, process.stdout, 0)
         if process.stderr:
             tg.start_soon(receive_logs, process.stderr, 1)
-        yield
+        yield tg
 
 
 async def run_command(

@@ -8,6 +8,10 @@ metadata:
   labels:
     app: {{ include "agent.fullname" (dict "root" $root "image" $p.location) }}
     {{- include "beeai-platform.labels" $root | nindent 4 }}
+  {{- with $root.Values.agent.deploymentAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 8 }}
+  {{- end }}
 spec:
   replicas: 1
   selector:
@@ -55,7 +59,9 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           image: {{ $p.location }}
-          imagePullPolicy: IfNotPresent
+          {{- if .Values.agent.imagePullPolicy }}
+          imagePullPolicy: {{ .Values.agent.imagePullPolicy }}
+          {{- end }}
           ports:
             - containerPort: {{ $root.Values.agent.service.port }}
               name: http
