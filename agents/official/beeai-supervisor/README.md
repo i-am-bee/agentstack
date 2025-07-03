@@ -1,3 +1,0 @@
-# BeeAI Framework Provider
-
-TBD

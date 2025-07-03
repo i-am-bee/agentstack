@@ -2,11 +2,6 @@ providers:
   # Official
   - location: ghcr.io/i-am-bee/beeai-platform/official/sequential-workflow:agents-v0.3.0
   - location: ghcr.io/i-am-bee/beeai-platform/official/beeai-framework/chat:agents-v0.3.0
-  - location: ghcr.io/i-am-bee/beeai-platform/official/beeai-framework/agent-docs-creator:agents-v0.3.0
-  - location: ghcr.io/i-am-bee/beeai-platform/official/beeai-framework/podcast-creator:agents-v0.3.0
   # Community
   - location: ghcr.io/i-am-bee/beeai-platform/community/aider:agents-v0.3.0
   - location: ghcr.io/i-am-bee/beeai-platform/community/gpt-researcher:agents-v0.3.0
-  - location: ghcr.io/i-am-bee/beeai-platform/community/literature-review:agents-v0.3.0
-  - location: ghcr.io/i-am-bee/beeai-platform/community/marketing-strategy:agents-v0.3.0
-  - location: ghcr.io/i-am-bee/beeai-platform/community/ollama-deep-researcher:agents-v0.3.0

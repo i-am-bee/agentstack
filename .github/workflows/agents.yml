@@ -18,15 +18,10 @@ jobs:
         agent:
           # Official
           - official/beeai-framework/chat
-          - official/beeai-framework/agent-docs-creator
-          - official/beeai-framework/podcast-creator
           - official/sequential-workflow
           # Community
           - community/aider
           - community/gpt-researcher
-          - community/literature-review
-          - community/marketing-strategy
-          - community/ollama-deep-researcher
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
