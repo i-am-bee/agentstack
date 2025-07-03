@@ -1,4 +1,7 @@
 [tools]
+# Runtime
+lima = "1.1.1"
+
 # Python
 python = "3.11"
 uv = "0.7.13"

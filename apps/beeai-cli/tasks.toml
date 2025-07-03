@@ -57,7 +57,7 @@ run = "(rm {{config_root}}/apps/beeai-cli/src/beeai_cli/data/*.tgz 2>/dev/null |
 dir = "{{config_root}}/apps/beeai-cli"
 run = '''
 set -e
-LIMA_VERSION=$(cat .lima-version)
+LIMA_VERSION=$(yq -r .tools.lima ../../mise.toml)
 mkdir -p ./vendor
 echo '*' >./vendor/.gitignore
 ( test -f ./vendor/lima-$LIMA_VERSION/manylinux_2_28_x86_64/bin/limactl  || ( mkdir -p ./vendor/lima-$LIMA_VERSION/manylinux_2_28_x86_64  && curl -fsL -H "Authorization: Bearer $GITHUB_TOKEN" https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Linux-x86_64.tar.gz  | tar -xzf - -C ./vendor/lima-$LIMA_VERSION/manylinux_2_28_x86_64  )) &
@@ -86,7 +86,7 @@ set -euo pipefail
 rm -rf ./dist
 uv build -q --out-dir ./dist
 
-export lima_version=$(cat .lima-version)
+export lima_version=$(yq -r .tools.lima ../../mise.toml)
 export version="$(yq -o toml .project.version pyproject.toml)"
 export universal_wheel=$(realpath "./dist/beeai_cli-$version-py3-none-any.whl")
 
