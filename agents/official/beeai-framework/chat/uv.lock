@@ -142,7 +142,7 @@ wheels = [
 
 [[package]]
 name = "beeai-framework"
-version = "0.1.18"
+version = "0.1.29"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -155,9 +155,9 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f8/b7/1fe4051968bf6cd654a9e2ce759dc61611bcea6a8028ee7f325f11e41717/beeai_framework-0.1.18.tar.gz", hash = "sha256:c4de4398efdf9b6862b00767f4bcb87c9a55011b156227db47bb64643cd1ded1", size = 80728 }
+sdist = { url = "https://files.pythonhosted.org/packages/1e/9e/6bcac07b0f240100d6c05db0f95c9539bb0cd221fe9d9187f339b954cecf/beeai_framework-0.1.29.tar.gz", hash = "sha256:36604e6287e309eb4b99e17ddb5bc160f532844fb64af7bd5bfa2c43ad3635c2", size = 119982 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f7/45/ba9cffe0bec0c1c99106305ed378aab6a0e01ddb0b03eaa92398d726066a/beeai_framework-0.1.18-py3-none-any.whl", hash = "sha256:230e4fd52fd21d25179e6760bcb26b8616f387a4741a70e7b6660686e67b444d", size = 173217 },
+    { url = "https://files.pythonhosted.org/packages/ad/7b/c8e60c4412ccb519441e91e0f53625c13e7072eb67a2432d08bd0ebf87bc/beeai_framework-0.1.29-py3-none-any.whl", hash = "sha256:ae07b62f36be6783e6b1cdb72f78f8acaae038a08b89a16cc777527a152529d9", size = 271857 },
 ]
 
 [package.optional-dependencies]
@@ -222,8 +222,8 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "acp-sdk", specifier = "==1.0.0" },
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = "==0.1.18" },
-    { name = "openinference-instrumentation-beeai", specifier = ">=0.1.5" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = "~=0.1.29" },
+    { name = "openinference-instrumentation-beeai", specifier = ">=0.1.6" },
     { name = "pydantic-settings", specifier = ">=2.9.0" },
 ]
 
@@ -289,16 +289,16 @@ wheels = [
 
 [[package]]
 name = "duckduckgo-search"
-version = "8.0.1"
+version = "8.0.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
     { name = "lxml" },
     { name = "primp" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/66/1f/8a66088ae1d7a68f40db9890642435cfff2b54701f47f19d5cc9404d5f65/duckduckgo_search-8.0.1.tar.gz", hash = "sha256:1d40d4425062a33dc72d19603e25ebf36b212bd8ef0662bff39fd47598226f6f", size = 21932 }
+sdist = { url = "https://files.pythonhosted.org/packages/46/2e/680bedb6c66f7de544eb92f8a369406c2671d9907a4ee51f79cffa7b6433/duckduckgo_search-8.0.5.tar.gz", hash = "sha256:a46f83a92d4666b823ac45abce1495573ec58d984c8d6d19368f850758c95456", size = 22101 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/83/a2/66adca41164860dee6d2d47b506fef3262c8879aab727b687c798d67313f/duckduckgo_search-8.0.1-py3-none-any.whl", hash = "sha256:87ea18d9abb1cd5dc8f63fc70ac867996acce2cb5e0129d191b9491c202420be", size = 18125 },
+    { url = "https://files.pythonhosted.org/packages/6a/28/bd84c58623bc7a817b30ae8ba23356f8cfca8577969c15c7133ac29db1e4/duckduckgo_search-8.0.5-py3-none-any.whl", hash = "sha256:c9f18cb8f8311b9005c8f8f699216dd124b01a797d97a2df725942c1af4c16fa", size = 18228 },
 ]
 
 [[package]]
@@ -601,7 +601,7 @@ wheels = [
 
 [[package]]
 name = "litellm"
-version = "1.67.5"
+version = "1.73.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -616,9 +616,9 @@ dependencies = [
     { name = "tiktoken" },
     { name = "tokenizers" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/61/a4/c111de4d64b0201ed43576ebcd9114aa7473c6d9e05bb8d97c93fcf64570/litellm-1.67.5.tar.gz", hash = "sha256:a9c73feed05aba33b3f2879658f57bb3480b43404ae693ebc827f1c157affde5", size = 7276940 }
+sdist = { url = "https://files.pythonhosted.org/packages/26/58/1a8ecf64b9a1f01dbddc123200f3156638c919fc3de683bd206235ccd33c/litellm-1.73.6.tar.gz", hash = "sha256:072ff9225aaa9caafe0fa9782df0ba4c93f893791cc55dd5ed218a401e788e88", size = 8750656 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/99/dc/e4db6b72347446893cab8599b0a043b8883e3380ce5d86a17d4e71aaffbd/litellm-1.67.5-py3-none-any.whl", hash = "sha256:bd3329731a36200539293521d312adf4f05fc4a6312a84baff2ce5a8b1507a43", size = 7639326 },
+    { url = "https://files.pythonhosted.org/packages/81/be/3e9a3097c3b25bd1bc24073afdf5e6316120d8f4127e38bd6dcc3e193f55/litellm-1.73.6-py3-none-any.whl", hash = "sha256:98b3c7f436e6521e280f98faf9bad06c4c76d6a1678db2b370ffa175c206d288", size = 8467603 },
 ]
 
 [[package]]
@@ -769,7 +769,7 @@ wheels = [
 
 [[package]]
 name = "openinference-instrumentation-beeai"
-version = "0.1.5"
+version = "0.1.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "openinference-instrumentation" },
@@ -779,9 +779,9 @@ dependencies = [
     { name = "opentelemetry-semantic-conventions" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/77/e9/ba8c1517b9c57869d32299c35f5ced3789876f60d85fa740297ace2b57c4/openinference_instrumentation_beeai-0.1.5.tar.gz", hash = "sha256:236383d52809e55819d7c24dade93260a3af9a8a3b2e274e963e8a1409ba0581", size = 10528 }
+sdist = { url = "https://files.pythonhosted.org/packages/64/bd/f5be4e237e6bb15f69a8d0ba3fd792d8ca3f0a2f4d7a7869d3551e9b701e/openinference_instrumentation_beeai-0.1.6.tar.gz", hash = "sha256:edbeb8b0a40c2128d2a6b43896eac7ee73e90c80f374d545caafa48a31521b7c", size = 10521 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b5/91/0723efd8dfb23a7d195d0807f0ebdc64b7bb27c7d5940adb0f7d161be566/openinference_instrumentation_beeai-0.1.5-py3-none-any.whl", hash = "sha256:b44c51ec678160275d9359d6df5c2cd5b53d8225b50fbfe428fbbac088b94386", size = 15399 },
+    { url = "https://files.pythonhosted.org/packages/91/77/9ca6304db8c1083f0f6e040b1501db8b190907572c8ddca0b8706ad20c91/openinference_instrumentation_beeai-0.1.6-py3-none-any.whl", hash = "sha256:b34fc6e27076910894cc4a8d768522fa275eb3e6bd0650b2fbba83eef9967d13", size = 15380 },
 ]
 
 [[package]]

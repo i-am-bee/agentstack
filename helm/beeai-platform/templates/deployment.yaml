@@ -11,10 +11,13 @@ spec:
     matchLabels:
       app: beeai-platform-server
       {{- include "beeai-platform.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: {{ ternary "Recreate" "RollingUpdate" .Values.hostNetwork }}
   template:
     metadata:
       annotations:
         checksum/providers: {{ include (print $.Template.BasePath "/config/providers.yaml") . | sha256sum }}
+        checksum/templates: {{ include (print $.Template.BasePath "/config/provider_templates.yaml") . | sha256sum }}
         checksum/secret: {{ include (print $.Template.BasePath "/config/secret.yaml") . | sha256sum }}
       {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
@@ -133,7 +136,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.service.port }}
+              containerPort: 8333
               protocol: TCP
           {{- with .Values.livenessProbe }}
           livenessProbe:
@@ -150,6 +153,8 @@ spec:
           env:
             - name: FEATURE_FLAGS__UI__USER_NAVIGATION
               value: {{ .Values.features.uiNavigation | quote }}
+            - name: TEXT_EXTRACTION__ENABLED
+              value: {{ .Values.docling.enabled | quote }}
             - name: AGENT_REGISTRY__SYNC_PERIOD_SEC
               value: "30"
             {{- range $idx, $secret := .Values.imagePullSecrets }}
@@ -188,6 +193,8 @@ spec:
             - name: PROVIDER__AUTO_REMOVE_ENABLED
               value: "true"
             {{- end }}
+            - name: PROVIDER__MANIFEST_TEMPLATE_DIR
+              value: /app/templates
             # Object Storage Configuration
             - name: OBJECT_STORAGE__ENDPOINT_URL
               value: {{ include "beeai.s3.endpoint" . | quote }}
@@ -211,6 +218,9 @@ spec:
             - name: beeai-platform-providers
               mountPath: /app/config
               readOnly: true
+            - name: beeai-platform-manifest-templates
+              mountPath: /app/templates
+              readOnly: true
             {{- with .Values.volumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -218,6 +228,9 @@ spec:
         - name: beeai-platform-providers
           configMap:
             name: beeai-platform-providers-cm
+        - name: beeai-platform-manifest-templates
+          configMap:
+            name: beeai-platform-manifest-templates-cm
         {{- with .Values.volumes }}
           {{- toYaml . | nindent 8 }}
         {{- end }}

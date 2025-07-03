@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ provider_service_name }}"
+  labels:
+    app: "{{ provider_app_label }}"
+spec:
+  type: ClusterIP
+  selector:
+    app: "{{ provider_app_label }}"
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+      name: http
+

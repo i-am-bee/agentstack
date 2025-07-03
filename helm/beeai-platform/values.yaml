@@ -150,6 +150,9 @@ collector:
 
 agent:
   podAnnotations: { }
+  deploymentStrategy: RollingUpdate
+  deploymentAnnotations: { }
+  imagePullPolicy: ""
   podLabels: { }
   resources: { }
   securityContext: { }
@@ -161,10 +164,16 @@ agent:
     httpGet:
       path: /ping
       port: 8000
+    initialDelaySeconds: 1
+    periodSeconds: 3
+    timeoutSeconds: 2
   readinessProbe:
     httpGet:
       path: /ping
       port: 8000
+    initialDelaySeconds: 1
+    periodSeconds: 3
+    timeoutSeconds: 2
   volumes: [ ]
   volumeMounts: [ ]
   nodeSelector: { }
@@ -318,11 +327,16 @@ docling:
   podSecurityContext: { }
   podLabels: { }
   resources: { }
-  livenessProbe:
-    httpGet:
-      path: /health
-      port: http
+  livenessProbe: { }
+  # Unfortunately, docling does not handle IO properly and does not respond to health requests while processing file
+  #    httpGet:
+  #      path: /health
+  #      port: http
   readinessProbe:
+    initialDelaySeconds: 2
+    timeoutSeconds: 5
+    failureThreshold: 30
+    periodSeconds: 2
     httpGet:
       path: /health
       port: http
@@ -331,4 +345,4 @@ docling:
   service:
     port: 15001
   imagePullPolicy: IfNotPresent
-  image: "ghcr.io/docling-project/docling-serve-cpu"
+  image: "ghcr.io/docling-project/docling-serve-cpu:v0.16.0"

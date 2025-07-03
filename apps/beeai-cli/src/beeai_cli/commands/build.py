@@ -19,7 +19,7 @@ from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, w
 
 from beeai_cli.async_typer import AsyncTyper
 from beeai_cli.console import console
-from beeai_cli.utils import VMDriver, capture_output, extract_messages, run_command, status, verbosity
+from beeai_cli.utils import capture_output, extract_messages, run_command, status, verbosity
 
 
 async def find_free_port():
@@ -43,7 +43,6 @@ async def build(
         bool, typer.Option("--import/--no-import", is_flag=True, help="Import the image into BeeAI platform")
     ] = True,
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
-    vm_driver: typing.Annotated[VMDriver, typer.Option(hidden=True)] = None,
     verbose: typing.Annotated[bool, typer.Option("-v")] = False,
 ):
     with verbosity(verbose):
@@ -63,8 +62,8 @@ async def build(
                     f"docker run --name {container_id} --rm -p {port}:8000 -e HOST=0.0.0.0 -e PORT=8000 {image_id}",
                 ) as process,
             ):
-                try:
-                    async with capture_output(process):
+                async with capture_output(process) as task_group:
+                    try:
                         async for attempt in AsyncRetrying(
                             stop=stop_after_delay(timedelta(seconds=30)),
                             wait=wait_fixed(timedelta(seconds=0.5)),
@@ -81,13 +80,14 @@ async def build(
                         process.terminate()
                         with suppress(ProcessLookupError):
                             process.kill()
-                except BaseException as ex:
-                    raise RuntimeError(f"Failed to build agent: {extract_messages(ex)}") from ex
-                finally:
-                    with suppress(BaseException):
-                        await run_command(["docker", "kill", container_id], "Killing container")
-                    with suppress(ProcessLookupError):
-                        process.kill()
+                    except BaseException as ex:
+                        raise RuntimeError(f"Failed to build agent: {extract_messages(ex)}") from ex
+                    finally:
+                        task_group.cancel_scope.cancel()
+                        with suppress(BaseException):
+                            await run_command(["docker", "kill", container_id], "Killing container")
+                        with suppress(ProcessLookupError):
+                            process.kill()
 
         context_hash = hashlib.sha256(context.encode()).hexdigest()[:6]
         context_shorter = re.sub(r"https?://", "", context).replace(r".git", "")
@@ -113,6 +113,6 @@ async def build(
         if import_image:
             from beeai_cli.commands.platform import import_image
 
-            await import_image(tag, vm_name=vm_name, vm_driver=vm_driver)
+            await import_image(tag, vm_name=vm_name)
 
         return tag, response["agents"]

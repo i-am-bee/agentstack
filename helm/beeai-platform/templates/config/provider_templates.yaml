@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: beeai-platform-manifest-templates-cm
+data:
+  deployment.yaml: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: "{{`{{ provider_deployment_name }}`}}"
+      labels:
+        app: "{{`{{ provider_app_label }}`}}"
+        managedBy: beeai-platform
+      annotations:
+        {{- with .Values.agent.deploymentAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      strategy:
+        type: {{ .Values.agent.deploymentStrategy }}
+      replicas: 1
+      selector:
+        matchLabels:
+          app: "{{`{{ provider_app_label }}`}}"
+      template:
+        metadata:
+          labels:
+            app: "{{`{{ provider_app_label }}`}}"
+          {{- with .Values.agent.podAnnotations }}
+          annotations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        spec:
+          containers:
+            - name: agent-container
+              image: "{{`{{ image }}`}}"
+              {{- if .Values.agent.imagePullPolicy }}
+              imagePullPolicy: {{ .Values.agent.imagePullPolicy }}
+              {{- end }}
+              ports:
+                - containerPort: 8000
+              env:
+                - name: HOME
+                  value: /tmp
+              envFrom:
+                - secretRef:
+                    name: "{{`{{ provider_secret_name }}`}}"
+              {{- with .Values.agent.livenessProbe }}
+              livenessProbe:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- with .Values.agent.readinessProbe }}
+              readinessProbe:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+  service.yaml: |
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: "{{`{{ provider_service_name }}`}}"
+      labels:
+        app: "{{`{{ provider_app_label }}`}}"
+    spec:
+      type: {{ .Values.agent.service.type }}
+      selector:
+        app: "{{`{{ provider_app_label }}`}}"
+      ports:
+        - port: {{ .Values.agent.service.port }}
+          targetPort: 8000
+          protocol: TCP
+          name: http
+
+  secret.yaml: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: "{{`{{ provider_secret_name }}`}}"
+      labels:
+        app: "{{`{{ provider_app_label }}`}}"
+    type: Opaque
+    data: {{`{{ secret_data }}`}}

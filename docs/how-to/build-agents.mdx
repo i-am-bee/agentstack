@@ -117,6 +117,7 @@ from acp_sdk.models.platform import PlatformUIAnnotation, PlatformUIType, AgentT
         annotations=Annotations(
             beeai_ui=PlatformUIAnnotation(
                 ui_type=PlatformUIType.HANDSOFF,
+                display_name="My Custom Agent",
                 user_greeting="How can I help you process your data today?",
                 tools=[AgentToolInfo(name="Wikipedia", description="Search for information on Wikipedia")],
             )

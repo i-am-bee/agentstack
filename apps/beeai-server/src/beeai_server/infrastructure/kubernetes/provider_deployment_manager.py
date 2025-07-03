@@ -10,12 +10,17 @@ import re
 from asyncio import TaskGroup
 from contextlib import asynccontextmanager
 from datetime import timedelta
-from typing import Callable, Awaitable, AsyncIterator
+from enum import StrEnum
+from pathlib import Path
+from typing import Callable, Awaitable, AsyncIterator, Any, Final
 from uuid import UUID
 
+import anyio
 import kr8s
+import yaml
 from exceptiongroup import suppress
 from httpx import HTTPError, AsyncClient
+from jinja2 import Template
 from kr8s.asyncio.objects import Deployment, Service, Secret, Pod
 from pydantic import HttpUrl
 from tenacity import AsyncRetrying, stop_after_delay, wait_fixed, retry_if_exception_type
@@ -28,20 +33,47 @@ from beeai_server.utils.utils import extract_messages
 logger = logging.getLogger(__name__)
 
 
+class TemplateKind(StrEnum):
+    deploy = "deploy"
+    svc = "svc"
+    secret = "secret"
+
+
+TEMPLATE_KIND_TO_FILE_NAME: Final = {
+    TemplateKind.deploy: "deployment.yaml",
+    TemplateKind.svc: "service.yaml",
+    TemplateKind.secret: "secret.yaml",
+}
+
+DEFAULT_TEMPLATE_DIR: Final = Path(__file__).parent / "default_templates"
+
+
 class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
-    def __init__(self, api_factory: Callable[[], Awaitable[kr8s.asyncio.Api]]):
+    def __init__(
+        self,
+        api_factory: Callable[[], Awaitable[kr8s.asyncio.Api]],
+        manifest_template_dir: Path | None = None,
+    ):
         self._api_factory = api_factory
         self._create_lock = asyncio.Lock()
+        self._template_dir = anyio.Path(manifest_template_dir or DEFAULT_TEMPLATE_DIR)
+        self._templates: dict[TemplateKind, str] = {}
 
     @asynccontextmanager
     async def api(self) -> AsyncIterator[kr8s.asyncio.Api]:
         client = await self._api_factory()
         yield client
 
-    def _get_k8s_name(self, provider_id: UUID, kind: str | None = None):
+    async def _render_template(self, kind: TemplateKind, **variables) -> dict[str, Any]:
+        if kind not in self._templates:
+            self._templates[kind] = await (self._template_dir / TEMPLATE_KIND_TO_FILE_NAME[kind]).read_text()
+        template = self._templates[kind]
+        return yaml.safe_load(Template(template).render(**variables))
+
+    def _get_k8s_name(self, provider_id: UUID, kind: TemplateKind | None = None):
         return f"beeai-provider-{provider_id}" + (f"-{kind}" if kind else "")
 
-    def _get_provider_id_from_name(self, name: str, kind: str | None = None) -> UUID:
+    def _get_provider_id_from_name(self, name: str, kind: TemplateKind | None = None) -> UUID:
         pattern = rf"beeai-provider-([0-9a-f-]+)-{kind}$" if kind else r"beeai-provider-([0-9a-f-]+)$"
         if match := re.match(pattern, name):
             [provider_id] = match.groups()
@@ -58,78 +90,33 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
         async with self.api() as api:
             env = env or {}
             label = self._get_k8s_name(provider.id)
+
             service = Service(
-                {
-                    "apiVersion": "v1",
-                    "kind": "Service",
-                    "metadata": {
-                        "name": self._get_k8s_name(provider.id, "svc"),
-                        "labels": {"app": label},
-                    },
-                    "spec": {
-                        "type": "ClusterIP",
-                        "ports": [{"port": 8000, "targetPort": 8000, "protocol": "TCP", "name": "http"}],
-                        "selector": {"app": label},
-                    },
-                },
+                await self._render_template(
+                    TemplateKind.svc,
+                    provider_service_name=self._get_k8s_name(provider.id, kind=TemplateKind.svc),
+                    provider_app_label=label,
+                ),
                 api=api,
             )
             env = self._get_env_for_provider(provider, env)
             secret = Secret(
-                {
-                    "apiVersion": "v1",
-                    "kind": "Secret",
-                    "metadata": {
-                        "name": self._get_k8s_name(provider.id, "secret"),
-                        "labels": {"app": label},
-                    },
-                    "type": "Opaque",
-                    "data": {key: base64.b64encode(value.encode()).decode() for key, value in env.items()},
-                },
+                await self._render_template(
+                    TemplateKind.secret,
+                    provider_secret_name=self._get_k8s_name(provider.id, TemplateKind.secret),
+                    provider_app_label=label,
+                    secret_data={key: base64.b64encode(value.encode()).decode() for key, value in env.items()},
+                ),
                 api=api,
             )
 
-            deployment_manifest = {
-                "apiVersion": "apps/v1",
-                "kind": "Deployment",
-                "metadata": {
-                    "name": self._get_k8s_name(provider.id, "deploy"),
-                    "labels": {"app": label, "managedBy": "beeai-platform"},
-                },
-                "spec": {
-                    "replicas": 1,
-                    "selector": {
-                        "matchLabels": {"app": label},
-                    },
-                    "template": {
-                        "metadata": {"labels": {"app": label}},
-                        "spec": {
-                            "containers": [
-                                {
-                                    "name": self._get_k8s_name(provider.id, "container"),
-                                    "image": str(provider.source.root),
-                                    "imagePullPolicy": "IfNotPresent",
-                                    "ports": [{"containerPort": 8000}],
-                                    "env": [{"name": "HOME", "value": "/tmp"}],
-                                    "envFrom": [{"secretRef": {"name": self._get_k8s_name(provider.id, "secret")}}],
-                                    "livenessProbe": {
-                                        "httpGet": {"path": "/ping", "port": 8000},
-                                        "initialDelaySeconds": 1,
-                                        "periodSeconds": 3,
-                                        "timeoutSeconds": 2,
-                                    },
-                                    "readinessProbe": {
-                                        "httpGet": {"path": "/ping", "port": 8000},
-                                        "initialDelaySeconds": 1,
-                                        "periodSeconds": 3,
-                                        "timeoutSeconds": 2,
-                                    },
-                                }
-                            ]
-                        },
-                    },
-                },
-            }
+            deployment_manifest = await self._render_template(
+                TemplateKind.deploy,
+                provider_deployment_name=self._get_k8s_name(provider.id, TemplateKind.deploy),
+                provider_app_label=label,
+                image=str(provider.source.root),
+                provider_secret_name=self._get_k8s_name(provider.id, TemplateKind.secret),
+            )
             combined_manifest = json.dumps(
                 {"service": service.raw, "secret": secret.raw, "deployment": deployment_manifest}
             )
@@ -155,7 +142,8 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
                     await deployment.create()
                     await deployment.adopt(service)
                     await deployment.adopt(secret)
-                except Exception:
+                except Exception as ex:
+                    logger.error("Failed to create provider", exc_info=ex)
                     # Try to revert changes already made
                     with suppress(Exception):
                         await secret.delete()
@@ -169,23 +157,23 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
     async def delete(self, *, provider_id: UUID) -> None:
         with suppress(kr8s.NotFoundError):
             async with self.api() as api:
-                deploy = await Deployment.get(name=self._get_k8s_name(provider_id, "deploy"), api=api)
+                deploy = await Deployment.get(name=self._get_k8s_name(provider_id, TemplateKind.deploy), api=api)
                 await deploy.delete(propagation_policy="Foreground", force=True)
                 await deploy.wait({"delete"})
 
     async def scale_down(self, *, provider_id: UUID) -> None:
         async with self.api() as api:
-            deploy = await Deployment.get(name=self._get_k8s_name(provider_id, "deploy"), api=api)
+            deploy = await Deployment.get(name=self._get_k8s_name(provider_id, TemplateKind.deploy), api=api)
             await deploy.scale(0)
 
     async def scale_up(self, *, provider_id: UUID) -> None:
         async with self.api() as api:
-            deploy = await Deployment.get(name=self._get_k8s_name(provider_id, "deploy"), api=api)
+            deploy = await Deployment.get(name=self._get_k8s_name(provider_id, TemplateKind.deploy), api=api)
             await deploy.scale(1)
 
     async def wait_for_startup(self, *, provider_id: UUID, timeout: timedelta) -> None:
         async with self.api() as api:
-            deployment = await Deployment.get(name=self._get_k8s_name(provider_id, kind="deploy"), api=api)
+            deployment = await Deployment.get(name=self._get_k8s_name(provider_id, kind=TemplateKind.deploy), api=api)
             await deployment.wait("condition=Available", timeout=int(timeout.total_seconds()))
             # For some reason the first request sometimes doesn't come through
             # (the service does not route immediately after deploy is available?)
@@ -205,7 +193,7 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
     async def state(self, *, provider_ids: list[UUID]) -> list[ProviderDeploymentState]:
         async with self.api() as api:
             deployments = {
-                self._get_provider_id_from_name(deployment.metadata.name, "deploy"): deployment
+                self._get_provider_id_from_name(deployment.metadata.name, TemplateKind.deploy): deployment
                 async for deployment in kr8s.asyncio.get(
                     kind="deployment",
                     label_selector={"managedBy": "beeai-platform"},
@@ -229,7 +217,7 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
             return states
 
     async def get_provider_url(self, *, provider_id: UUID) -> HttpUrl:
-        return HttpUrl(f"http://{self._get_k8s_name(provider_id, 'svc')}:8000")
+        return HttpUrl(f"http://{self._get_k8s_name(provider_id, TemplateKind.svc)}:8000")
 
     async def stream_logs(self, *, provider_id: UUID, logs_container: LogsContainer):
         try:
@@ -237,7 +225,10 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
                 missing_logged = False
                 while True:
                     try:
-                        deploy = await Deployment.get(name=self._get_k8s_name(provider_id, kind="deploy"), api=api)
+                        deploy = await Deployment.get(
+                            name=self._get_k8s_name(provider_id, kind=TemplateKind.deploy),
+                            api=api,
+                        )
                         if pods := await deploy.pods():
                             break
                     except kr8s.NotFoundError:
@@ -278,7 +269,7 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
                 async def stream_logs(pod: Pod):
                     async for line in pod.logs(follow=True):
                         logs_container.add_stdout(
-                            f"{pod.name.replace(self._get_k8s_name(provider_id, 'deploy'), '')}: {line}"
+                            f"{pod.name.replace(self._get_k8s_name(provider_id, TemplateKind.deploy), '')}: {line}"
                         )
 
                 async with TaskGroup() as tg:

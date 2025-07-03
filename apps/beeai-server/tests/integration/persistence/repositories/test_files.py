@@ -1,6 +1,8 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from typing import Any
+
 import pytest
 import pytest_asyncio
 import uuid
@@ -46,6 +48,32 @@ async def test_file(test_user_id: uuid.UUID) -> File:
     )
 
 
+def db_file_for(user_id: uuid.UUID, filename: str = "test_file.txt", file_size_bytes: int = 1024) -> dict[str, Any]:
+    return {
+        "id": uuid.uuid4(),
+        "filename": filename,
+        "file_size_bytes": file_size_bytes,
+        "file_type": "user_upload",
+        "created_at": utc_now(),
+        "created_by": user_id,
+    }
+
+
+@pytest_asyncio.fixture
+async def db_test_file(db_transaction: AsyncConnection, test_user_id: uuid.UUID) -> dict[str, Any]:
+    # Create file data
+    file_data = db_file_for(test_user_id)
+    # Insert file directly into database
+    await db_transaction.execute(
+        text(
+            "INSERT INTO files (id, filename, file_size_bytes, file_type, created_at, created_by) "
+            "VALUES (:id, :filename, :file_size_bytes, :file_type, :created_at, :created_by)"
+        ),
+        file_data,
+    )
+    return file_data
+
+
 @pytest.mark.asyncio
 async def test_create_file(db_transaction: AsyncConnection, test_file: File):
     # Create repository
@@ -66,76 +94,38 @@ async def test_create_file(db_transaction: AsyncConnection, test_file: File):
 
 
 @pytest.mark.asyncio
-async def test_get_file(db_transaction: AsyncConnection, test_user_id: uuid.UUID):
+async def test_get_file(db_transaction: AsyncConnection, db_test_file: dict[str, Any]):
     # Create repository
     repository = SqlAlchemyFileRepository(connection=db_transaction)
 
-    # Create file data
-    file_id = uuid.uuid4()
-    file_data = {
-        "id": file_id,
-        "filename": "test_file.txt",
-        "file_size_bytes": 1024,
-        "created_at": utc_now(),
-        "created_by": test_user_id,
-    }
-
-    # Insert file directly into database
-    await db_transaction.execute(
-        text(
-            "INSERT INTO files (id, filename, file_size_bytes, created_at, created_by) "
-            "VALUES (:id, :filename, :file_size_bytes, :created_at, :created_by)"
-        ),
-        file_data,
-    )
-
     # Get file
-    file = await repository.get(file_id=file_id)
+    file = await repository.get(file_id=db_test_file["id"])
 
     # Verify file
-    assert file.id == file_id
-    assert file.filename == file_data["filename"]
-    assert file.file_size_bytes == file_data["file_size_bytes"]
-    assert str(file.created_by) == str(file_data["created_by"])
+    assert file.id == db_test_file["id"]
+    assert file.filename == db_test_file["filename"]
+    assert file.file_size_bytes == db_test_file["file_size_bytes"]
+    assert str(file.created_by) == str(db_test_file["created_by"])
 
 
 @pytest.mark.asyncio
-async def test_get_file_by_user(db_transaction: AsyncConnection, test_user_id: uuid.UUID):
+async def test_get_file_by_user(db_transaction: AsyncConnection, db_test_file: dict[str, Any], test_user_id: uuid.UUID):
     # Create repository
     repository = SqlAlchemyFileRepository(connection=db_transaction)
 
-    # Create file data
-    file_id = uuid.uuid4()
-    file_data = {
-        "id": file_id,
-        "filename": "test_file.txt",
-        "file_size_bytes": 1024,
-        "created_at": utc_now(),
-        "created_by": test_user_id,
-    }
-
-    # Insert file directly into database
-    await db_transaction.execute(
-        text(
-            "INSERT INTO files (id, filename, file_size_bytes, created_at, created_by) "
-            "VALUES (:id, :filename, :file_size_bytes, :created_at, :created_by)"
-        ),
-        file_data,
-    )
-
     # Get file with user filter
-    file = await repository.get(file_id=file_id, user_id=test_user_id)
+    file = await repository.get(file_id=db_test_file["id"], user_id=test_user_id)
 
     # Verify file
-    assert file.id == file_id
-    assert file.filename == file_data["filename"]
-    assert file.file_size_bytes == file_data["file_size_bytes"]
-    assert str(file.created_by) == str(file_data["created_by"])
+    assert file.id == db_test_file["id"]
+    assert file.filename == db_test_file["filename"]
+    assert file.file_size_bytes == db_test_file["file_size_bytes"]
+    assert str(file.created_by) == str(db_test_file["created_by"])
 
     # Try to get file with wrong user
     other_user_id = uuid.uuid4()
     with pytest.raises(EntityNotFoundError):
-        await repository.get(file_id=file_id, user_id=other_user_id)
+        await repository.get(file_id=db_test_file["id"], user_id=other_user_id)
 
 
 @pytest.mark.asyncio
@@ -207,39 +197,19 @@ async def test_list_files(db_transaction: AsyncConnection, test_user_id: uuid.UU
 
     # Create file data for test user
     user_files = [
-        {
-            "id": uuid.uuid4(),
-            "filename": "test_file_1.txt",
-            "file_size_bytes": 1024,
-            "created_at": utc_now(),
-            "created_by": test_user_id,
-        },
-        {
-            "id": uuid.uuid4(),
-            "filename": "test_file_2.txt",
-            "file_size_bytes": 2048,
-            "created_at": utc_now(),
-            "created_by": test_user_id,
-        },
+        db_file_for(test_user_id, filename="test_file_1.txt", file_size_bytes=1024),
+        db_file_for(test_user_id, filename="test_file_1.txt", file_size_bytes=2048),
     ]
 
     # Create file data for other user
-    other_user_files = [
-        {
-            "id": uuid.uuid4(),
-            "filename": "other_file.txt",
-            "file_size_bytes": 4096,
-            "created_at": utc_now(),
-            "created_by": other_user_id,
-        }
-    ]
+    other_user_files = [db_file_for(other_user_id, filename="other_file.txt", file_size_bytes=4096)]
 
     # Insert files directly into database
     for file_data in user_files + other_user_files:
         await db_transaction.execute(
             text(
-                "INSERT INTO files (id, filename, file_size_bytes, created_at, created_by) "
-                "VALUES (:id, :filename, :file_size_bytes, :created_at, :created_by)"
+                "INSERT INTO files (id, filename, file_size_bytes, file_type, created_at, created_by) "
+                "VALUES (:id, :filename, :file_size_bytes, :file_type, :created_at, :created_by)"
             ),
             file_data,
         )
@@ -278,39 +248,19 @@ async def test_total_usage(db_transaction: AsyncConnection, test_user_id: uuid.U
 
     # Create file data for test user
     user_files = [
-        {
-            "id": uuid.uuid4(),
-            "filename": "test_file_1.txt",
-            "file_size_bytes": 1024,
-            "created_at": utc_now(),
-            "created_by": test_user_id,
-        },
-        {
-            "id": uuid.uuid4(),
-            "filename": "test_file_2.txt",
-            "file_size_bytes": 2048,
-            "created_at": utc_now(),
-            "created_by": test_user_id,
-        },
+        db_file_for(test_user_id, filename="test_file_1.txt", file_size_bytes=1024),
+        db_file_for(test_user_id, filename="test_file_1.txt", file_size_bytes=2048),
     ]
 
     # Create file data for other user
-    other_user_files = [
-        {
-            "id": uuid.uuid4(),
-            "filename": "other_file.txt",
-            "file_size_bytes": 4096,
-            "created_at": utc_now(),
-            "created_by": other_user_id,
-        }
-    ]
+    other_user_files = [db_file_for(other_user_id, filename="other_file.txt", file_size_bytes=4096)]
 
     # Insert files directly into database
     for file_data in user_files + other_user_files:
         await db_transaction.execute(
             text(
-                "INSERT INTO files (id, filename, file_size_bytes, created_at, created_by) "
-                "VALUES (:id, :filename, :file_size_bytes, :created_at, :created_by)"
+                "INSERT INTO files (id, filename, file_size_bytes, file_type, created_at, created_by) "
+                "VALUES (:id, :filename, :file_size_bytes, :file_type, :created_at, :created_by)"
             ),
             file_data,
         )
