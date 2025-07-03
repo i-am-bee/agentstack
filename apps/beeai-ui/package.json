@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "NODE_OPTIONS=\"--no-experimental-global-navigator\" next dev --turbopack",
+    "dev": "NODE_OPTIONS=\"--no-experimental-global-navigator\" next dev",
     "build": "NODE_OPTIONS=\"--no-experimental-global-navigator\" next build",
     "preview": "pnpm build && NODE_OPTIONS=\"--no-experimental-global-navigator\" next start",
     "check": "prettier --log-level silent --check src && eslint src && tsc --noEmit -p tsconfig.json && stylelint src/**/*.css src/**/*.scss",

@@ -47,17 +47,9 @@ h1 {
 ::view-transition-new(main) {
   animation-duration: $duration-moderate-02;
 }
-
 ::view-transition-old(main) {
   opacity: 1;
 }
-::view-transition-old(main).view-transition-leaving {
-  opacity: 0;
-}
-
 ::view-transition-new(main) {
   opacity: 0;
-}
-::view-transition-new(main).view-transition-entering {
-  opacity: 1;
 }
