@@ -79,7 +79,7 @@ depends = ["setup:pnpm"]
 dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm build"
 sources = ["*.json", "*.js", "index.html", "src/**/*.tsx", "src/**/*.ts"]
-outputs = [".next/**/*"]
+outputs = { auto = true }
 
 # preview
 
