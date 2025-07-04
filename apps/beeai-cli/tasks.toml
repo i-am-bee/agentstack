@@ -71,7 +71,7 @@ wait
 depends = ["helm:build"]
 dir = "{{config_root}}/apps/beeai-cli"
 run = "rm ./src/beeai_cli/data/helm-chart.tgz 2>/dev/null || true && cp {{config_root}}/helm/dist/beeai-platform-*.tgz ./src/beeai_cli/data/helm-chart.tgz"
-sources = ["{{config_root}}/helm/beeai-platform-*.tgz"]
+sources = ["{{config_root}}/helm/dist/beeai-platform-*.tgz"]
 outputs = ["./src/beeai_cli/data/helm-chart.tgz"]
 
 ["beeai-cli:build"]
