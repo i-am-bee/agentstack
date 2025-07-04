@@ -1,0 +1,113 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  agents:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        agent:
+          - official/beeai-framework/chat
+          - official/sequential-workflow
+          - community/aider
+          - community/gpt-researcher
+    steps:
+      - uses: actions/checkout@v4
+      - id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./agents/${{ matrix.agent }}
+          push: false
+          load: true
+          build-args: |
+            RELEASE_VERSION=${{ github.ref_name }}
+          tags: tmp-agent-image
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/${{ matrix.agent }}:cache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/${{ matrix.agent }}:cache,mode=max
+      - id: agent-manifest
+        run: |
+          set -e
+          docker run -d --rm --name=tmp-agent -p 8000:8000 -e HOST=0.0.0.0 tmp-agent-image
+          success=0
+          for i in {1..30}; do
+            echo "Extracting manifest: attempt $i"
+            response=$(curl http://localhost:8000/agents 2>/dev/null) && success=1 && break
+            sleep 0.5
+          done
+          [[ "$success" == 1 ]] || (echo "Failed to discover agents" && exit 1)
+          docker kill tmp-agent
+          AGENT_MANIFEST=$(echo "$response" | base64 -w 0)
+          echo "content=$AGENT_MANIFEST" >> $GITHUB_OUTPUT
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./agents/${{ matrix.agent }}
+          push: true
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            RELEASE_VERSION=${{ github.ref_name }}
+          tags: |
+            ghcr.io/${{ github.repository }}/${{ matrix.agent }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/${{ matrix.agent }}:${{ steps.version.outputs.version }}
+            ghcr.io/${{ github.repository }}/${{ matrix.agent }}:latest
+          labels: |
+            beeai.dev.agent.yaml=${{ steps.agent-manifest.outputs.content }}
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/${{ matrix.agent }}:cache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/${{ matrix.agent }}:cache,mode=max
+
+  beeai-platform:
+    needs: agents
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      HELM_EXPERIMENTAL_OCI: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      - uses: ./.github/actions/setup
+      - run: mise run version:check
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: mise run beeai-server:build
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./apps/beeai-server
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository }}/beeai-server:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/beeai-server:${{ steps.version.outputs.version }}
+            ghcr.io/${{ github.repository }}/beeai-server:latest
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/beeai-server:cache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/beeai-server:cache,mode=max
+
+      - run: mise run helm:build
+      - run: echo '${{ secrets.GITHUB_TOKEN }}' | helm registry login --username '${{ github.actor }}' --password-stdin ghcr.io
+      - run: helm push dist/beeai-platform-*.tgz 'oci://ghcr.io/${{ github.repository }}/beeai-platform-chart'
+
+      - run: mise run beeai-cli:build
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: apps/beeai-cli/dist
