@@ -3,8 +3,8 @@
 "asdf:CrouchingMuppet/asdf-lima" = "1.1.1" # using lima from asdf since the aqua one fails to install in CI
 
 # Python
-python = "3.11"
-uv = "0.7.13"
+python = "3.13"
+uv = "0.7.19"
 
 # Node.js
 nodejs = "22"

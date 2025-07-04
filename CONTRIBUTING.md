@@ -92,7 +92,10 @@ Or delete the cluster entirely using
 ```shell
 mise run beeai-server:dev:clean
 ```
-<details>
+
+> TIP: If you run into connection issues after sleep or longer period of inactivity
+> try `mise run beeai-server:dev:reconnect` first. You may not need to clean and restart
+> the entire VM
 
 
 #### Developing tests
@@ -105,7 +108,9 @@ K8S_KUBECONFIG=~/.beeai/lima/beeai-local-test/copied-from-guest/kubeconfig.yaml
 ```
 and then run `beeai-server:dev:test:start`
 
+> TIP: Similarly to dev environment you can use `mise run beeai-server:dev:test:reconnect`
 
+<details>
 <summary> Lower-level networking using telepresence directly</summary>
 
 ```shell
@@ -141,7 +146,7 @@ The following commands can be used to create or run migrations in the dev enviro
 - Generate migrations: `mise run beeai-server:migrations:generate`
 - Use Alembic command directly: `mise run beeai-server:migrations:alembic`
 
-> Note: The dev setup will run the production image including its migrations before replacing it with your local 
+> NOTE: The dev setup will run the production image including its migrations before replacing it with your local 
 > instance.
 
 ### Running individual components

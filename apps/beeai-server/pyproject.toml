@@ -4,7 +4,7 @@ version = "0.2.15-rc2"
 description = "BeeAI server"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
-requires-python = ">=3.11,<4.0"
+requires-python = ">=3.13,<4.0"
 dependencies = [
     "acp-sdk>=1.0.0",
     "aiohttp>=3.11.11",

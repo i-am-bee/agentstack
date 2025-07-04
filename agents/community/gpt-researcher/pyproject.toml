@@ -6,7 +6,7 @@ authors = [
     { name = "IBM Corp." },
 ]
 readme = "README.md"
-requires-python = ">=3.11,<4.0"
+requires-python = ">=3.13,<4.0"
 dependencies = [
     "acp-sdk==1.0.0",
     "gpt-researcher>=0.10.11,<0.11.0",

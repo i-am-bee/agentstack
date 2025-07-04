@@ -8,7 +8,7 @@ import json
 import logging
 import re
 from asyncio import TaskGroup
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from datetime import timedelta
 from enum import StrEnum
 from pathlib import Path
@@ -18,7 +18,6 @@ from uuid import UUID
 import anyio
 import kr8s
 import yaml
-from exceptiongroup import suppress
 from httpx import HTTPError, AsyncClient
 from jinja2 import Template
 from kr8s.asyncio.objects import Deployment, Service, Secret, Pod

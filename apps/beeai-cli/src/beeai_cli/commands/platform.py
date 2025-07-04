@@ -435,7 +435,7 @@ async def start(
                         "namespace": "default",
                     },
                     "spec": {
-                        "timeout": "1h",
+                        "timeout": "1h0m0s",
                         "chartContent": base64.b64encode(
                             (importlib.resources.files("beeai_cli") / "data" / "helm-chart.tgz").read_bytes()
                         ).decode(),

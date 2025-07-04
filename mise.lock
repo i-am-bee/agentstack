@@ -43,7 +43,7 @@ pnpm-linux-x64 = "sha256:24fdba5caab4190d9f1b0f4e7e2a7557f534519047ac7277430e048
 pnpm-macos-arm64 = "sha256:0b396d48e9697588bfd4f3d40ed0d10d043432ecf1fe30dcdcad0f87b6d4140a"
 
 [tools.python]
-version = "3.11.11"
+version = "3.13.2"
 backend = "core:python"
 
 [tools."ubi:google/addlicense"]
@@ -63,12 +63,11 @@ telepresence-macos-aarch64 = "sha256:991d2aea9bef5c08dd64432cb5b3abb5bc6c441f273
 telepresence-macos-x86_64 = "sha256:a7e224bd10456dfbd56d0ba194f145ab0b4e97946ec6c29e18de29c5a25e66d1"
 
 [tools.uv]
-version = "0.7.13"
+version = "0.7.19"
 backend = "aqua:astral-sh/uv"
 
 [tools.uv.checksums]
-"uv-aarch64-apple-darwin.tar.gz" = "sha256:721f532b73171586574298d4311a91d5ea2c802ef4db3ebafc434239330090c6"
-"uv-x86_64-apple-darwin.tar.gz" = "sha256:d785753ac092e25316180626aa691c5dfe1fb075290457ba4fdb72c7c5661321"
+"uv-aarch64-apple-darwin.tar.gz" = "sha256:698d24883fd441960fb4bc153b7030b89517a295502017ff3fdbba2fb0a0aa67"
 
 [tools.yq]
 version = "4.45.4"
