@@ -118,12 +118,9 @@ if [ "$helm_version" != "$helm_app_version" ] || \
   exit 1
 fi
 
-if [ -n "$GITHUB_REF" ]; then
-  expected_ref="refs/tags/v$helm_version"
-  if [ "$GITHUB_REF" != "$expected_ref" ]; then
-    echo "GITHUB_REF '$GITHUB_REF' does not match expected '$expected_ref'"
-    exit 1
-  fi
+if [[ "$GITHUB_REF" == refs/tags/v* && "$GITHUB_REF" != "refs/tags/v$helm_version" ]]; then
+  echo "GITHUB_REF '$GITHUB_REF' does not match expected 'refs/tags/v$helm_version'"
+  exit 1
 fi
 """
 
