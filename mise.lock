@@ -1,3 +1,7 @@
+[tools."asdf:CrouchingMuppet/asdf-lima"]
+version = "1.1.1"
+backend = "asdf:CrouchingMuppet/asdf-lima"
+
 [tools.fd]
 version = "10.2.0"
 backend = "aqua:sharkdp/fd"
@@ -21,13 +25,6 @@ backend = "aqua:yannh/kubeconform"
 [tools.kubeconform.checksums]
 "kubeconform-darwin-amd64.tar.gz" = "sha256:3b5324ac4fd38ac60a49823b4051ff42ff7eb70144f1e9741fed1d14bc4fdb4e"
 "kubeconform-darwin-arm64.tar.gz" = "sha256:cbb47d938a8d18eb5f79cb33663b2cecdee0c8ac0bf562ebcfca903df5f0802f"
-
-[tools.lima]
-version = "1.1.1"
-backend = "aqua:lima-vm/lima"
-
-[tools.lima.checksums]
-"lima-1.1.1-Darwin-arm64.tar.gz" = "sha256:3c3c2bb59076716eaeefdb36e2ab5f876c15c06a7620dc8af23a7ddd904796de"
 
 [tools.node]
 version = "22.14.0"
