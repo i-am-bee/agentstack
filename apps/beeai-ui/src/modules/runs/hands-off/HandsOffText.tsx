@@ -5,22 +5,21 @@
 
 import { useAutoScroll } from '#hooks/useAutoScroll.ts';
 
+import type { AgentMessage } from '../chat/types';
 import { AgentOutputBox } from '../components/AgentOutputBox';
 import { useAgentRun } from '../contexts/agent-run';
-import { useMessages } from '../contexts/messages';
 import { MessageFiles } from '../files/components/MessageFiles';
 import { MessageSources } from '../sources/components/MessageSources';
-import { isAgentMessage } from '../utils';
 
-export function HandsOffText() {
+interface Props {
+  message: AgentMessage;
+}
+
+export function HandsOffText({ message }: Props) {
   const { agent, isPending } = useAgentRun();
-  const { messages } = useMessages();
-
-  const message = messages.find(isAgentMessage);
-  const output = message?.content;
+  const output = message.content;
   const { ref: autoScrollRef } = useAutoScroll([output]);
-
-  const sources = message?.sources ?? [];
+  const sources = message.sources ?? [];
 
   return output ? (
     <div>

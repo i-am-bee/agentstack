@@ -14,7 +14,8 @@ import { usePrevious } from '#hooks/usePrevious.ts';
 import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
-import { createMessagePart, extractOutput, formatLog, isArtifactPart } from '#modules/runs/utils.ts';
+import { createTrajectoryMetadata } from '#modules/runs/trajectory/utils.ts';
+import { createMessagePart, extractOutput, isArtifactPart } from '#modules/runs/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { SEQUENTIAL_WORKFLOW_AGENT_NAME, SEQUENTIAL_WORKFLOW_AGENTS_URL_PARAM } from '../sequential/constants';
@@ -121,8 +122,8 @@ export function ComposeProvider({ children }: PropsWithChildren) {
       updateStep(finalAgentIdx, { ...lastStep!, result: output });
     },
     onGeneric: (event) => {
-      const log = event.generic;
-      const { agent_idx } = log;
+      const { generic } = event;
+      const { agent_idx } = generic;
 
       if (isNotNull(agent_idx)) {
         if (agent_idx !== lastAgentIdx) {
@@ -152,8 +153,9 @@ export function ComposeProvider({ children }: PropsWithChildren) {
           }
         }
 
-        if (log) {
+        if (generic) {
           const step = getStep(agent_idx);
+          const metadata = createTrajectoryMetadata(generic);
 
           const updatedStep = {
             ...step,
@@ -161,7 +163,7 @@ export function ComposeProvider({ children }: PropsWithChildren) {
             stats: {
               startTime: step.stats?.startTime ?? Date.now(),
             },
-            logs: [...(step.logs ?? []), formatLog(log)],
+            logs: [...(step.logs ?? []), metadata?.message].filter(isNotNull),
           };
 
           updateStep(agent_idx, updatedStep);

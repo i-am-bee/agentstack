@@ -6,7 +6,7 @@
 import { createContext } from 'react';
 
 import type { Agent } from '#modules/agents/api/types.ts';
-import type { RunLog, RunStats } from '#modules/runs/types.ts';
+import type { RunStats } from '#modules/runs/types.ts';
 
 export const AgentRunContext = createContext<AgentRunContextValue | undefined>(undefined);
 
@@ -15,7 +15,6 @@ interface AgentRunContextValue {
   isPending: boolean;
   input?: string;
   stats?: RunStats;
-  logs?: RunLog[];
   run: (input: string) => Promise<void>;
   cancel: () => void;
   clear: () => void;

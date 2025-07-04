@@ -11,7 +11,7 @@ import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 import { useImmerWithGetter } from '#hooks/useImmerWithGetter.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
-import type { MessagePartMetadata } from '#modules/runs/api/types.ts';
+import type { MessagePartMetadata, TrajectoryMetadata } from '#modules/runs/api/types.ts';
 import {
   type AgentMessage,
   type ChatMessage,
@@ -23,8 +23,8 @@ import { prepareMessageFiles } from '#modules/runs/files/utils.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
 import { SourcesProvider } from '#modules/runs/sources/contexts/SourcesProvider.tsx';
 import { extractSources, prepareMessageSources } from '#modules/runs/sources/utils.ts';
-import { prepareTrajectories } from '#modules/runs/trajectory/utils.ts';
-import { Role, type RunLog, type RunStats } from '#modules/runs/types.ts';
+import { createTrajectoryMetadata, prepareTrajectories } from '#modules/runs/trajectory/utils.ts';
+import { Role, type RunStats } from '#modules/runs/types.ts';
 import {
   applyContentTransforms,
   createCitationTransform,
@@ -50,7 +50,6 @@ interface Props {
 export function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
   const [messages, getMessages, setMessages] = useImmerWithGetter<ChatMessage[]>([]);
   const [stats, setStats] = useState<RunStats>();
-  const [logs, setLogs] = useState<RunLog[]>([]);
 
   const errorHandler = useHandleError();
 
@@ -105,9 +104,11 @@ export function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) 
       });
     },
     onGeneric: (event) => {
-      const log = event.generic;
+      const metadata = createTrajectoryMetadata(event.generic);
 
-      setLogs((logs) => [...logs, log]);
+      if (metadata) {
+        processMetadata(metadata as TrajectoryMetadata);
+      }
     },
     onMessageCompleted: () => {
       updateLastAgentMessage((message) => {
@@ -133,7 +134,11 @@ export function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) 
           message.status = MessageStatus.Failed;
         });
 
-        setLogs((logs) => [...logs, error]);
+        const metadata = createTrajectoryMetadata({ message: error.message });
+
+        if (metadata) {
+          processMetadata(metadata as TrajectoryMetadata);
+        }
       }
     },
   });
@@ -208,7 +213,6 @@ export function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) 
     reset();
     setMessages([]);
     setStats(undefined);
-    setLogs([]);
     clearFiles();
   }, [reset, setMessages, clearFiles]);
 
@@ -254,12 +258,11 @@ export function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) 
       isPending,
       input,
       stats,
-      logs,
       run,
       cancel,
       clear,
     }),
-    [agent, isPending, input, stats, logs, run, cancel, clear],
+    [agent, isPending, input, stats, run, cancel, clear],
   );
 
   return (

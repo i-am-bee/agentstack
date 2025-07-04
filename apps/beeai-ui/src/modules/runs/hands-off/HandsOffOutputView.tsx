@@ -6,21 +6,19 @@
 import { Container } from '#components/layouts/Container.tsx';
 import { AgentHeading } from '#modules/agents/components/AgentHeading.tsx';
 
-import { AgentRunLogs } from '../components/AgentRunLogs';
 import { NewSessionButton } from '../components/NewSessionButton';
 import { useAgentRun } from '../contexts/agent-run';
 import { useMessages } from '../contexts/messages';
+import { MessageTrajectories } from '../trajectory/components/MessageTrajectories';
+import { isAgentMessage } from '../utils';
 import classes from './HandsOffOutputView.module.scss';
 import { HandsOffText } from './HandsOffText';
 import { TaskStatusBar } from './TaskStatusBar';
-import { getHandsOffOutput } from './utils';
 
 export function HandsOffOutputView() {
-  const { agent, input, logs, isPending, cancel, clear } = useAgentRun();
+  const { agent, input, isPending, cancel, clear } = useAgentRun();
   const { messages } = useMessages();
-  const output = getHandsOffOutput(messages);
-
-  const hasOutput = Boolean(output);
+  const message = messages.find(isAgentMessage);
 
   return (
     <div className={classes.root}>
@@ -34,9 +32,13 @@ export function HandsOffOutputView() {
         <div className={classes.body}>
           <AgentHeading agent={agent} />
 
-          <HandsOffText />
+          {message && (
+            <>
+              <HandsOffText message={message} />
 
-          {logs && <AgentRunLogs logs={logs} toggleable={hasOutput} />}
+              <MessageTrajectories message={message} />
+            </>
+          )}
 
           {isPending && (
             <div className={classes.statusBar}>

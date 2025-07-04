@@ -138,15 +138,8 @@ export interface MessageCompletedEvent {
 export interface GenericEvent {
   type: EventType.Generic;
   generic: {
-    // TODO: We should probably narrow this down for each UI type
-    thought?: string;
-    tool_name?: string;
-    tool_input?: string;
-    tool_output?: string;
     message?: string;
     agent_idx?: number;
-  } & {
-    [key: string]: unknown;
   };
 }
 
