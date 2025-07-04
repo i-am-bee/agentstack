@@ -421,6 +421,7 @@ async def start(
                 "kubectl",
                 "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
                 "apply",
+                "--server-side",
                 "-f",
                 "-",
             ],
