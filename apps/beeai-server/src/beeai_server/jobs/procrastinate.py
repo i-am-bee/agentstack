@@ -23,7 +23,7 @@ def create_app(configuration: Configuration) -> procrastinate.App:
         import os
         import signal
 
-        logger.critical("DB is not responging, forcing shutdown")
+        logger.critical("DB is not responding, forcing shutdown")
 
         os.kill(os.getpid(), signal.SIGTERM)
 
