@@ -7,6 +7,7 @@ from uuid import UUID
 import fastapi
 from fastapi import HTTPException, status
 from fastapi.params import Query
+from fastapi.requests import Request
 from starlette.responses import StreamingResponse
 
 from beeai_server.api.dependencies import AdminUserDependency, ConfigurationDependency, ProviderServiceDependency
@@ -29,7 +30,7 @@ async def create_provider(
     if auto_remove and not configuration.provider.auto_remove_enabled:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Auto remove functionality is disabled")
     return await provider_service.create_provider(
-        location=request.location, agents=request.agents, auto_remove=auto_remove
+        location=request.location, agent_card=request.agent_card, auto_remove=auto_remove
     )
 
 
@@ -37,12 +38,19 @@ async def create_provider(
 async def preview_provider(
     request: CreateProviderRequest, provider_service: ProviderServiceDependency
 ) -> ProviderWithState:
-    return await provider_service.preview_provider(location=request.location, agents=request.agents)
+    return await provider_service.preview_provider(location=request.location, agent_card=request.agent_card)
 
 
 @router.get("")
-async def list_providers(provider_service: ProviderServiceDependency) -> PaginatedResponse[ProviderWithState]:
-    providers = await provider_service.list_providers()
+async def list_providers(
+    provider_service: ProviderServiceDependency, request: Request
+) -> PaginatedResponse[ProviderWithState]:
+    providers = []
+    for provider in await provider_service.list_providers():
+        url = str(request.url_for("send_request", provider_id=provider.id))
+        new_provider = provider.model_copy(update={"agent_card": provider.agent_card.model_copy(update={"url": url})})
+        providers.append(new_provider)
+
     return PaginatedResponse(items=providers, total_count=len(providers))
 
 

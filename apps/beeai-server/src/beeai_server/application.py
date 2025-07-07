@@ -6,26 +6,15 @@ from collections.abc import Iterable
 from contextlib import asynccontextmanager
 
 import procrastinate
-from acp_sdk import ACPError
-from acp_sdk.server.errors import (
-    acp_error_handler,
-    catch_all_exception_handler,
-    validation_exception_handler,
-)
-from acp_sdk.server.errors import (
-    http_exception_handler as acp_http_exception_handler,
-)
 from fastapi import APIRouter, FastAPI, HTTPException
 from fastapi.exception_handlers import http_exception_handler
-from fastapi.exceptions import RequestValidationError
 from fastapi.responses import ORJSONResponse
 from kink import Container, di, inject
 from opentelemetry.metrics import CallbackOptions, Observation, get_meter
-from starlette.exceptions import HTTPException as StarletteHttpException
 from starlette.requests import Request
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 
-from beeai_server.api.routes.acp import router as acp_router
+from beeai_server.api.routes.a2a import router as a2a_router
 from beeai_server.api.routes.embeddings import router as embeddings_router
 from beeai_server.api.routes.env import router as env_router
 from beeai_server.api.routes.files import router as files_router
@@ -69,16 +58,10 @@ def register_global_exception_handlers(app: FastAPI):
 
         logger.error("Error during HTTP request: %s", repr(extract_messages(exc)))
 
-        if request.url.path.startswith("/api/v1/acp"):
+        if request.url.path.startswith("/api/v1/a2a"):
             match exc:
-                case ACPError():
-                    return await acp_error_handler(request, exc)
-                case StarletteHttpException():
-                    return await acp_http_exception_handler(request, exc)
-                case RequestValidationError():
-                    return await validation_exception_handler(request, exc)
                 case _:
-                    return await catch_all_exception_handler(request, exc)
+                    ...  # TODO
 
         match exc:
             case HTTPException():
@@ -90,7 +73,7 @@ def register_global_exception_handlers(app: FastAPI):
 
 def mount_routes(app: FastAPI):
     server_router = APIRouter()
-    server_router.include_router(acp_router, prefix="/acp")
+    server_router.include_router(a2a_router, prefix="/a2a")
     server_router.include_router(provider_router, prefix="/providers", tags=["providers"])
     server_router.include_router(env_router, prefix="/variables", tags=["variables"])
     server_router.include_router(files_router, prefix="/files", tags=["files"])

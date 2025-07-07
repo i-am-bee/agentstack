@@ -9,7 +9,7 @@ from kink import di
 
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.user import User, UserRole
-from beeai_server.service_layer.services.acp import AcpProxyService
+from beeai_server.service_layer.services.a2a import A2AProxyService
 from beeai_server.service_layer.services.env import EnvService
 from beeai_server.service_layer.services.files import FileService
 from beeai_server.service_layer.services.provider import ProviderService
@@ -18,7 +18,7 @@ from beeai_server.service_layer.services.vector_stores import VectorStoreService
 
 ConfigurationDependency = Annotated[Configuration, Depends(lambda: di[Configuration])]
 ProviderServiceDependency = Annotated[ProviderService, Depends(lambda: di[ProviderService])]
-AcpProxyServiceDependency = Annotated[AcpProxyService, Depends(lambda: di[AcpProxyService])]
+A2AProxyServiceDependency = Annotated[A2AProxyService, Depends(lambda: di[A2AProxyService])]
 EnvServiceDependency = Annotated[EnvService, Depends(lambda: di[EnvService])]
 FileServiceDependency = Annotated[FileService, Depends(lambda: di[FileService])]
 UserServiceDependency = Annotated[UserService, Depends(lambda: di[UserService])]
@@ -44,9 +44,7 @@ async def authenticated_user(
     return await user_service.get_user_by_email("user@beeai.dev")
 
 
-def admin_auth(
-    user: Annotated[User, Depends(authenticated_user)],
-) -> User:
+def admin_auth(user: Annotated[User, Depends(authenticated_user)]) -> User:
     if user.role != UserRole.admin:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
     return user

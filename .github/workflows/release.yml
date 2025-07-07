@@ -68,7 +68,7 @@ jobs:
             ghcr.io/${{ github.repository }}/${{ matrix.agent }}:${{ steps.version.outputs.version }}
             ghcr.io/${{ github.repository }}/${{ matrix.agent }}:${{ steps.version.outputs.latestTag }}
           labels: |
-            beeai.dev.agent.yaml=${{ steps.agent-manifest.outputs.content }}
+            beeai.dev.agent.json=${{ steps.agent-manifest.outputs.content }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/${{ matrix.agent }}:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/${{ matrix.agent }}:cache,mode=max
 

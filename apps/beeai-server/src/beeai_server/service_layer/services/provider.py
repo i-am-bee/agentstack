@@ -9,7 +9,7 @@ import logging
 from collections.abc import AsyncIterator, Callable
 from uuid import UUID
 
-from acp_sdk import AgentManifest as AcpAgent
+from a2a.types import AgentCard
 from fastapi import HTTPException
 from kink import inject
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
@@ -19,7 +19,6 @@ from beeai_server.domain.models.provider import (
     ProviderDeploymentState,
     ProviderLocation,
     ProviderWithState,
-    convert_agents_from_acp,
 )
 from beeai_server.domain.models.registry import RegistryLocation
 from beeai_server.exceptions import ManifestLoadError
@@ -49,18 +48,16 @@ class ProviderService:
         location: ProviderLocation,
         registry: RegistryLocation | None = None,
         auto_remove: bool = False,
-        agents: list[AcpAgent] | None = None,
+        agent_card: AgentCard | None = None,
     ) -> ProviderWithState:
         try:
-            if not agents:
-                agents = await location.load_agents(provider_id=location.provider_id)
-            agents = convert_agents_from_acp(agents, provider_id=location.provider_id)
-            provider_env = {env.name: env for agent in agents for env in agent.metadata.env}
+            if not agent_card:
+                agent_card = await location.load_agent_card()
             provider = Provider(
                 source=location,
                 registry=registry,
-                env=list(provider_env.values()),
                 auto_remove=auto_remove,
+                agent_card=agent_card,
             )
         except ValueError as ex:
             raise ManifestLoadError(location=location, message=str(ex), status_code=HTTP_400_BAD_REQUEST) from ex
@@ -69,19 +66,17 @@ class ProviderService:
 
         async with self._uow() as uow:
             await uow.providers.create(provider=provider)
-            await uow.agents.bulk_create(agents)
             await uow.commit()
         [provider_response] = await self._get_providers_with_state(providers=[provider])
         return provider_response
 
     async def preview_provider(
-        self, location: ProviderLocation, agents: list[AcpAgent] | None = None
+        self, location: ProviderLocation, agent_card: AgentCard | None = None
     ) -> ProviderWithState:
         try:
-            if not agents:
-                agents = await location.load_agents(provider_id=location.provider_id)
-            provider_env = {env.name: env for agent in agents for env in agent.metadata.env}
-            provider = Provider(source=location, env=list(provider_env.values()))
+            if not agent_card:
+                agent_card = await location.load_agent_card()
+            provider = Provider(source=location, agent_card=agent_card)
             [provider_response] = await self._get_providers_with_state(providers=[provider])
             return provider_response
         except ValueError as ex:
@@ -126,10 +121,8 @@ class ProviderService:
         ]
         errors = []
         for provider in active_providers:
-            async with self._uow() as uow:
-                last_active = await uow.providers.get_last_active_at(provider_id=provider.id)
             try:
-                if last_active and (last_active + provider.auto_stop_timeout) < utc_now():
+                if provider.last_active_at and (provider.last_active_at + provider.auto_stop_timeout) < utc_now():
                     logger.info(f"Scaling down provider: {provider.id}")
                     await self._deployment_manager.scale_down(provider_id=provider.id)
             except Exception as ex:

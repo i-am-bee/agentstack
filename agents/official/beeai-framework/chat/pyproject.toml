@@ -7,14 +7,16 @@ authors = [
 ]
 requires-python = ">=3.13,<4"
 dependencies = [
-    "acp-sdk==1.0.0",
+    "a2a-sdk>=0.2.11",
     "beeai-framework[duckduckgo,wikipedia]~=0.1.29",
     "openinference-instrumentation-beeai>=0.1.6",
     "pydantic-settings>=2.9.0",
+    "sqlalchemy>=2.0.41",
+    "uvicorn>=0.35.0",
 ]
 
 [project.scripts]
-server = "chat.agent:run"
+server = "chat.__main__:main"
 
 [build-system]
 requires = [

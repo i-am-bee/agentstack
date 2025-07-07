@@ -8,8 +8,7 @@ from fastapi import status
 from tenacity import retry_base, retry_if_exception
 
 if TYPE_CHECKING:
-    from beeai_server.domain.models.agent import EnvVar
-    from beeai_server.domain.models.provider import ProviderLocation
+    from beeai_server.domain.models.provider import EnvVar, ProviderLocation
 
 
 class PlatformError(Exception):

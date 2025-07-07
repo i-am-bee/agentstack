@@ -3,6 +3,7 @@
 
 from typing import Final
 
-DEFAULT_MANIFEST_PATH: Final = "agent.yaml"
-DOCKER_MANIFEST_LABEL_NAME: Final = "beeai.dev.agent.yaml"
-LOCAL_IMAGE_REGISTRY: Final = "beeai.local"
+DOCKER_MANIFEST_LABEL_NAME: Final[str] = "beeai.dev.agent.json"
+
+# A2A platform constants
+REQUIRED_ENV_EXTENSION_URI: Final[str] = "required_env"
