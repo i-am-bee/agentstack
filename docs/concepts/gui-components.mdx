@@ -14,7 +14,8 @@ To fully customize your agent's appearance and behavior in the interface, you'll
 The `PlatformUIAnnotation` is the primary configuration object that defines how your agent appears in the GUI. It's specified within your agent's metadata annotations.
 
 ```python
-from acp_sdk.models.platform import PlatformUIAnnotation, PlatformUIType
+from acp_sdk import Annotations, Metadata
+from acp_sdk.models.platform import PlatformUIAnnotation, PlatformUIType, AgentToolInfo
 
 @server.agent(
     metadata=Metadata(
@@ -47,7 +48,7 @@ The chat interface (`PlatformUIType.CHAT`) provides a conversational experience.
 
 ### Hands-off UI
 
-The hands-off interface (`PlatformUIType.HANDS_OFF`) is designed for autonomous agents that work independently:
+The hands-off interface (`PlatformUIType.HANDSOFF`) is designed for autonomous agents that work independently:
 
 - **Task Execution**: Focus on agent actions rather than conversation
 - **Result Display**: Clear presentation of final outcomes
@@ -75,6 +76,29 @@ Set a welcoming message displayed when users first interact with your agent:
 ```python
 PlatformUIAnnotation(
     user_greeting="Welcome! I'm here to help you with your questions."
+)
+```
+
+### Tool Information
+
+Define the tools your agent can use, providing clear descriptions for users:
+
+```python
+PlatformUIAnnotation(
+    tools=[
+        AgentToolInfo(
+            name="Search Engine",
+            description="Search the web for current information"
+        ),
+        AgentToolInfo(
+            name="Calculator",
+            description="Perform mathematical calculations"
+        ),
+        AgentToolInfo(
+            name="File Processor",
+            description="Read and analyze uploaded files"
+        )
+    ]
 )
 ```
 
@@ -132,29 +156,6 @@ metadata=Metadata(
 )
 ```
 
-### Tool Information
-
-Define the tools your agent can use, providing clear descriptions for users:
-
-```python
-PlatformUIAnnotation(
-    tools=[
-        AgentToolInfo(
-            name="Search Engine",
-            description="Search the web for current information"
-        ),
-        AgentToolInfo(
-            name="Calculator",
-            description="Perform mathematical calculations"
-        ),
-        AgentToolInfo(
-            name="File Processor",
-            description="Read and analyze uploaded files"
-        )
-    ]
-)
-```
-
 ## Advanced Features
 
 ### Dynamic Content Rendering
@@ -166,12 +167,14 @@ The platform automatically renders various content types within your agent respo
 - Code blocks with syntax highlighting
 - Tables and structured data
 - Links and references
+= Images
 
 ### Trajectory Visualization
 
 The platform provides built-in trajectory visualization to show the step-by-step process of agent execution:
 
 ```python
+from acp_sdk import MessagePart
 from acp_sdk.models.models import TrajectoryMetadata
 
 # Show trajectory steps during agent execution
@@ -232,7 +235,9 @@ MessagePart(
     metadata=CitationMetadata(
         url="https://example.com/study",
         title="Recent Research Study",
-        description="Comprehensive analysis of the topic"
+        description="Comprehensive analysis of the topic",
+        start_index=0,
+        end_index=25
     )
 )
 ```
