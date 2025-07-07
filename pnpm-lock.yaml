@@ -12,12 +12,6 @@ catalogs:
     eslint:
       specifier: ^9.23.0
       version: 9.23.0
-    eslint-plugin-react-hooks:
-      specifier: ^5.2.0
-      version: 5.2.0
-    eslint-plugin-react-refresh:
-      specifier: ^0.4.16
-      version: 0.4.19
     eslint-plugin-simple-import-sort:
       specifier: ^12.1.1
       version: 12.1.1
@@ -192,6 +186,9 @@ importers:
         specifier: 3.24.5
         version: 3.24.5(zod@3.24.2)
     devDependencies:
+      '@eslint/eslintrc':
+        specifier: ^3.3.1
+        version: 3.3.1
       '@eslint/js':
         specifier: 'catalog:'
         version: 9.23.0
@@ -225,12 +222,6 @@ importers:
       eslint:
         specifier: 'catalog:'
         version: 9.23.0
-      eslint-plugin-react-hooks:
-        specifier: 'catalog:'
-        version: 5.2.0(eslint@9.23.0)
-      eslint-plugin-react-refresh:
-        specifier: 'catalog:'
-        version: 0.4.19(eslint@9.23.0)
       eslint-plugin-simple-import-sort:
         specifier: 'catalog:'
         version: 12.1.1(eslint@9.23.0)
@@ -288,6 +279,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      framer-motion:
+        specifier: '*'
+        version: 12.6.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       next:
         specifier: '*'
         version: 15.3.3(@babel/core@7.26.9)(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sass@1.85.0)
@@ -340,12 +334,6 @@ importers:
       eslint-config-prettier:
         specifier: ^10.1.1
         version: 10.1.1(eslint@9.23.0)
-      eslint-plugin-react-hooks:
-        specifier: 'catalog:'
-        version: 5.2.0(eslint@9.23.0)
-      eslint-plugin-react-refresh:
-        specifier: 'catalog:'
-        version: 0.4.19(eslint@9.23.0)
       eslint-plugin-simple-import-sort:
         specifier: 'catalog:'
         version: 12.1.1(eslint@9.23.0)
@@ -3185,11 +3173,6 @@ packages:
     engines: {node: '>=10'}
     peerDependencies:
       eslint: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0 || ^9.0.0
-
-  eslint-plugin-react-refresh@0.4.19:
-    resolution: {integrity: sha512-eyy8pcr/YxSYjBoqIFSrlbn9i/xvxUFa8CjzAYo9cFjgGXqq1hyjihcpZvxRLalpaWmueWR81xn7vuKmAFijDQ==}
-    peerDependencies:
-      eslint: '>=8.40'
 
   eslint-plugin-react@7.37.4:
     resolution: {integrity: sha512-BGP0jRmfYyvOyvMoRX/uoUeW+GqNj9y16bPQzqAHf3AYII/tDs+jMN0dBVkl88/OZwNGwrVFxE7riHsXVfy/LQ==}
@@ -9385,10 +9368,6 @@ snapshots:
       string.prototype.includes: 2.0.1
 
   eslint-plugin-react-hooks@5.2.0(eslint@9.23.0):
-    dependencies:
-      eslint: 9.23.0
-
-  eslint-plugin-react-refresh@0.4.19(eslint@9.23.0):
     dependencies:
       eslint: 9.23.0
 

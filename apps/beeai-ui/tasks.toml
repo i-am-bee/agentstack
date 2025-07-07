@@ -76,10 +76,10 @@ outputs = ["dist/**/*"]
 
 # preview
 
-["beeai-ui:preview"]
+["beeai-ui:start"]
 depends = ["setup:pnpm"]
 dir = "{{config_root}}/apps/beeai-ui"
-run = "pnpm preview"
+run = "pnpm start"
 
 # clean
 

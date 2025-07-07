@@ -5,7 +5,6 @@
 
 import { Button, SkeletonIcon } from '@carbon/react';
 import clsx from 'clsx';
-import Image from 'next/image';
 import pluralize from 'pluralize';
 
 import { useSource } from '../api/queries/useSource';
@@ -54,7 +53,8 @@ function Source({ source }: SourceProps) {
     <Source.Skeleton />
   ) : faviconUrl ? (
     <span className={classes.source}>
-      <Image src={faviconUrl} className={classes.icon} alt={title ?? ''} />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={faviconUrl} className={classes.icon} alt={title ?? ''} />
     </span>
   ) : null;
 }

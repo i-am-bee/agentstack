@@ -1,4 +1,4 @@
-export default {
+const config = {
   extends: ['stylelint-config-recommended-scss', 'stylelint-config-css-modules'],
   plugins: ['stylelint-plugin-logical-css'],
   rules: {
@@ -14,3 +14,5 @@ export default {
     ],
   },
 };
+
+export default config;

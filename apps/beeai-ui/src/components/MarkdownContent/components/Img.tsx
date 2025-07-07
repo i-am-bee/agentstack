@@ -14,7 +14,7 @@ export function Img({ node, className, ...props }: ImgHTMLAttributes<HTMLImageEl
   return (
     <span className={classes.root}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img {...props} className={clsx(classes.img, className)} alt={props.alt ?? 'Markdown image'} />
+      <img {...props} className={clsx(classes.img, className)} alt={props.alt ?? ''} />
     </span>
   );
 }

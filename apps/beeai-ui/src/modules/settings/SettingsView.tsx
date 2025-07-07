@@ -30,13 +30,13 @@ export function SettingsView() {
             </TabList>
             <TabPanels>
               <TabPanel>
-                <VariablesView />{' '}
+                <VariablesView />
               </TabPanel>
               <TabPanel>
-                <ProvidersView />{' '}
+                <ProvidersView />
               </TabPanel>
               <TabPanel>
-                <ThemeView />{' '}
+                <ThemeView />
               </TabPanel>
             </TabPanels>
           </Tabs>

@@ -5,8 +5,8 @@
 
 'use client';
 
+import { ArrowUpRight } from '@carbon/icons-react';
 import { SkeletonText, Tab, TabList, TabPanel, TabPanels, Tabs } from '@carbon/react';
-import { ArrowUpRight } from '@carbon/react/icons';
 
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 import { SidePanel } from '#components/SidePanel/SidePanel.tsx';

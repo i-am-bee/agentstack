@@ -15,7 +15,7 @@ export function usePhoenix() {
     refetchInterval: PROD_MODE ? 5_000 : false,
     enabled: Boolean(PHOENIX_SERVER_TARGET),
     queryFn: () =>
-      fetch(PHOENIX_SERVER_TARGET!, { mode: 'no-cors' })
+      fetch(PHOENIX_SERVER_TARGET, { mode: 'no-cors' })
         .then(() => true)
         .catch(() => false),
   });

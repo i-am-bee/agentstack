@@ -7,10 +7,10 @@
 
 @use '@carbon/styles/scss/utilities/convert' as *;
 
-$grid-breakpoints: (
+$breakpoints: (
   sm: (
     columns: 4,
-    margin: 0,
+    margin: rem(16px),
     width: rem(320px),
   ),
   md: (
@@ -20,47 +20,17 @@ $grid-breakpoints: (
   ),
   lg: (
     columns: 16,
-    margin: rem(16px),
+    margin: rem(24px),
     width: rem(1056px),
   ),
   xlg: (
     columns: 16,
-    margin: rem(16px),
+    margin: rem(32px),
     width: rem(1312px),
   ),
   max: (
     columns: 16,
-    margin: rem(24px),
+    margin: rem(32px),
     width: rem(1584px),
   ),
-);
-
-$breakpoints: map.merge(
-  $grid-breakpoints,
-  (
-    sm: map.merge(
-        map.get($grid-breakpoints, sm),
-        (
-          margin: rem(16px),
-        )
-      ),
-    lg: map.merge(
-        map.get($grid-breakpoints, lg),
-        (
-          margin: rem(24px),
-        )
-      ),
-    xlg: map.merge(
-        map.get($grid-breakpoints, xlg),
-        (
-          margin: rem(32px),
-        )
-      ),
-    max: map.merge(
-        map.get($grid-breakpoints, max),
-        (
-          margin: rem(32px),
-        )
-      ),
-  )
 );

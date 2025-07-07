@@ -6,7 +6,7 @@
 import { notFound, redirect } from 'next/navigation';
 
 import { listAgents } from '#modules/agents/api/index.ts';
-import { sortAgentsByName } from '#modules/agents/utils.ts';
+import { isAgentUiSupported, sortAgentsByName } from '#modules/agents/utils.ts';
 import { routes } from '#utils/router.ts';
 
 export default async function LandingPage() {
@@ -14,7 +14,8 @@ export default async function LandingPage() {
 
   try {
     const response = await listAgents();
-    const agents = response?.agents.sort(sortAgentsByName);
+    const agents = response?.agents.filter(isAgentUiSupported).sort(sortAgentsByName);
+
     firstAgentName = agents?.at(0)?.name;
   } catch (err) {
     console.log(err);

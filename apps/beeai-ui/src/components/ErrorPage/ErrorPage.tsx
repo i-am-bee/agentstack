@@ -11,10 +11,11 @@ import { Container } from '../layouts/Container';
 import classes from './ErrorPage.module.scss';
 
 interface Props {
+  message?: string;
   renderButton: (props: { className: string }) => ReactNode;
 }
 
-export function ErrorPage({ renderButton }: Props) {
+export function ErrorPage({ renderButton, message = 'We couldn’t find the page you are looking for.' }: Props) {
   return (
     <div className={classes.root}>
       <Container size="xs">
@@ -22,7 +23,7 @@ export function ErrorPage({ renderButton }: Props) {
 
         <h1 className={classes.heading}>Oooh, buzzkill.</h1>
 
-        <p className={classes.description}>We couldn’t find the page you are looking for.</p>
+        <p className={classes.description}>{message}</p>
 
         {renderButton({ className: classes.button })}
       </Container>

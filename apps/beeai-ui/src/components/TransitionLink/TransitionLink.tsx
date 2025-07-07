@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { LinkProps } from 'next/link';
-import Link from 'next/link';
+import Link, { type LinkProps } from 'next/link';
 import type { PropsWithChildren } from 'react';
 
 import { useRouteTransition } from '#contexts/TransitionContext/index.ts';

@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "NODE_OPTIONS=\"--no-experimental-global-navigator\" next dev",
     "build": "NODE_OPTIONS=\"--no-experimental-global-navigator\" next build",
-    "preview": "NODE_OPTIONS=\"--no-experimental-global-navigator\" next start",
+    "start": "NODE_OPTIONS=\"--no-experimental-global-navigator\" next start",
     "check": "prettier --log-level silent --check src && eslint src && tsc --noEmit -p tsconfig.json && stylelint src/**/*.css src/**/*.scss",
     "fix": "prettier --log-level silent --write src && eslint --fix src && stylelint --fix=lax src/**/*.css src/**/*.scss",
     "lint": "next lint"
@@ -14,6 +14,7 @@
     "@bprogress/next": "*",
     "@carbon/icons-react": "*",
     "@tanstack/react-query": "*",
+    "framer-motion": "*",
     "next": "*",
     "react": "*",
     "react-dom": "*",
@@ -38,8 +39,6 @@
     "eslint": "catalog:",
     "eslint-config-next": "15.2.4",
     "eslint-config-prettier": "^10.1.1",
-    "eslint-plugin-react-hooks": "catalog:",
-    "eslint-plugin-react-refresh": "catalog:",
     "eslint-plugin-simple-import-sort": "catalog:",
     "prettier": "catalog:",
     "sass-embedded": "catalog:",

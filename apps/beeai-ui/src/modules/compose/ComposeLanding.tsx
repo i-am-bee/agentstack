@@ -41,8 +41,10 @@ export function ComposeLanding() {
                 key={id}
                 className={clsx(classes.workflow, {
                   [classes.disabled]: !route,
-                  [classes.selected]: id === selected.id,
                 })}
+                role="option"
+                aria-selected={id === selected.id}
+                aria-disabled={!route}
                 onClick={() => route && setSelected(workflow)}
               >
                 <div className={classes.workflowText}>

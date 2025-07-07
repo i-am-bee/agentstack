@@ -21,6 +21,13 @@
     ],
     "strictNullChecks": true
   },
-  "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "next-env.d.ts",
+    ".next/types/**/*.ts",
+    "../beeai-web/src/modules/agents/AgentDetail.tsx",
+    "../beeai-web/src/modules/agents/AgentDetailSection.tsx"
+  ],
   "exclude": ["node_modules"]
 }

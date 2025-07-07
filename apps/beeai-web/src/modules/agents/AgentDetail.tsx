@@ -8,24 +8,24 @@
 import { spacing } from '@carbon/layout';
 import { moderate01 } from '@carbon/motion';
 import { ButtonSkeleton, SkeletonText } from '@carbon/react';
+import {
+  Agent,
+  AgentMetadata,
+  AgentTags,
+  BeeBadge,
+  commands,
+  CopySnippet,
+  fadeProps,
+  getAgentUiMetadata,
+  MarkdownContent,
+  TagsList,
+} from '@i-am-bee/beeai-ui';
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
 import type { ReactNode } from 'react';
 
-import { CopySnippet } from '#components/CopySnippet/CopySnippet.tsx';
-import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
-import { TagsList } from '#components/TagsList/TagsList.tsx';
-import commands from '#utils/commands.ts';
-import { fadeProps } from '#utils/fadeProps.ts';
-
-import type { Agent } from '../api/types';
-import { AgentLaunchButton } from '../detail/AgentLaunchButton';
-import { getAgentUiMetadata } from '../utils';
 import classes from './AgentDetail.module.scss';
 import { AgentDetailSection } from './AgentDetailSection';
-import { AgentMetadata } from './AgentMetadata';
-import { AgentTags } from './AgentTags';
-import { BeeBadge } from './BeeBadge';
 
 interface Props {
   agent: Agent;
@@ -100,8 +100,6 @@ AgentDetail.Skeleton = function AgentDetailSkeleton() {
       <TagsList.Skeleton length={2} className={classes.tags} />
 
       <div className={classes.buttons}>
-        <AgentLaunchButton.Skeleton />
-
         {/* .cds--layout--size-md fixes Carbon bug where button size prop is not respected */}
         <ButtonSkeleton size="md" className={clsx('cds--layout--size-md', classes.copySnippet)} />
       </div>

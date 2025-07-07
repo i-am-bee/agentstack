@@ -5,7 +5,6 @@
 
 import { SkeletonPlaceholder, SkeletonText } from '@carbon/react';
 import clsx from 'clsx';
-import Image from 'next/image';
 
 import { useSource } from '../api/queries/useSource';
 import type { SourceReference } from '../api/types';
@@ -45,7 +44,8 @@ export function Source({ source, isActive }: Props) {
         {description && <p className={classes.description}>{description}</p>}
 
         <p className={classes.footer}>
-          {faviconUrl && <Image src={faviconUrl} className={classes.favicon} alt={title} />}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {faviconUrl && <img src={faviconUrl} className={classes.favicon} alt={title} />}
 
           <span className={classes.url}>{url}</span>
         </p>

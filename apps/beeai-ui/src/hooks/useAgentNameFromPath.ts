@@ -3,15 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { usePathname } from 'next/navigation';
+import { useParams } from 'next/navigation';
 
 export function useAgentNameFromPath() {
-  const pathname = usePathname();
-  const parts = pathname?.split('/');
+  const params = useParams();
 
-  if (parts?.at(1) === 'agents') {
-    return parts.at(2);
-  }
-
-  return null;
+  return params?.agentName ? params.agentName.toString() : null;
 }

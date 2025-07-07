@@ -83,10 +83,10 @@ outputs = [".next/**/*"]
 
 # preview
 
-["beeai-web:preview"]
+["beeai-web:start"]
 depends = ["setup:pnpm"]
 dir = "{{config_root}}/apps/beeai-web"
-run = "pnpm preview"
+run = "pnpm start"
 
 # clean
 

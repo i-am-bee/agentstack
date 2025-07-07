@@ -15,7 +15,7 @@ export function useUpdateSearchParams() {
     (params: Record<string, string | number | boolean>) => {
       const newSearchParams = new URLSearchParams(searchParams ?? undefined);
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
+        if (value) {
           newSearchParams.set(key, String(value));
         } else {
           newSearchParams.delete(key);
