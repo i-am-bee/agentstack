@@ -48,19 +48,24 @@ export function createMessagePart({
   content_encoding = 'plain',
   content_type = 'text/plain',
   content_url,
+  name,
 }: Partial<Exclude<MessagePart, 'role'>>): MessagePart {
   return {
     content,
     content_encoding,
     content_type,
     content_url,
+    name,
     role: Role.User,
   };
 }
 
 export function createFileMessageParts(files: UploadFileResponse[]) {
-  const messageParts = files.map(({ id }) =>
-    createMessagePart({ content_url: getFileContentUrl({ id, addBase: true }) }),
+  const messageParts = files.map(({ id, filename }) =>
+    createMessagePart({
+      content_url: getFileContentUrl({ id, addBase: true }),
+      name: filename,
+    }),
   );
 
   return messageParts;

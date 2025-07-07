@@ -5,6 +5,7 @@
 
 .root {
   display: inline-flex;
+  overflow: hidden;
   max-inline-size: 100%;
   align-items: center;
   position: relative;
@@ -46,7 +47,7 @@
 
 .link {
   @include link-mask();
-  text-decoration: none;
+  @include line-clamp();
   color: inherit;
   &::before {
     z-index: -1;
