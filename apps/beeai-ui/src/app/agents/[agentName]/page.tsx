@@ -17,7 +17,7 @@ export default async function AgentRunPage({ params }: Props) {
 
   let agent;
   try {
-    agent = await readAgent({ name: agentName });
+    agent = await readAgent(agentName);
   } catch (error) {
     console.error('Error fetching agent:', error);
     notFound();

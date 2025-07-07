@@ -1,12 +1,12 @@
 [project]
 name = "beeai-server"
-version = "0.2.10"
+version = "0.2.15-rc3"
 description = "BeeAI server"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
-requires-python = ">=3.11,<4.0"
+requires-python = ">=3.13,<4.0"
 dependencies = [
-    "acp-sdk>=0.12.3",
+    "acp-sdk>=1.0.0",
     "aiohttp>=3.11.11",
     "anyio>=4.9.0",
     "asgiref>=3.8.1",
@@ -26,7 +26,7 @@ dependencies = [
     "cachetools>=5.5.2",
     "python-multipart>=0.0.20",
     "kr8s>=0.20.7",
-    "beeai-framework>=0.1.20",
+    "beeai-framework~=0.1.29",
     "alembic>=1.15.2",
     "asyncpg>=0.30.0",
     "sqlalchemy[asyncio]>=2.0.41",

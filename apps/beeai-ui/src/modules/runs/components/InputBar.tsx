@@ -37,7 +37,7 @@ export function InputBar({
   children,
 }: PropsWithChildren<Props>) {
   const formRef = useRef<HTMLFormElement>(null);
-  const { files, removeFile } = useFileUpload();
+  const { files, removeFile, isDisabled: isFileUploadDisabled } = useFileUpload();
 
   useImperativeHandle(
     formRefProp,
@@ -89,7 +89,7 @@ export function InputBar({
         <div className={classes.actionBarStart}>
           {settings && <div className={classes.settings}>{settings}</div>}
 
-          <FileUploadButton />
+          {!isFileUploadDisabled && <FileUploadButton />}
 
           <AgentModel />
         </div>

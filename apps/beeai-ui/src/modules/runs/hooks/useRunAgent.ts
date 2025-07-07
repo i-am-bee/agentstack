@@ -5,26 +5,21 @@
 
 import { useCallback, useRef, useState } from 'react';
 
-import { handleStream } from '#api/utils.ts';
-
 import { useCancelRun } from '../api/mutations/useCancelRun';
 import { useCreateRunStream } from '../api/mutations/useCreateRunStream';
 import type {
-  ArtifactEvent,
   GenericEvent,
+  Message,
   MessageCompletedEvent,
   MessagePartEvent,
   RunCancelledEvent,
   RunCompletedEvent,
   RunCreatedEvent,
-  RunEvent,
   RunFailedEvent,
   RunId,
   SessionId,
 } from '../api/types';
-import { EventType } from '../api/types';
-import type { RunAgentParams } from '../types';
-import { createRunStreamRequest } from '../utils';
+import { Role, type RunAgentParams } from '../types';
 
 interface Props {
   onBeforeRun?: () => void;
@@ -32,7 +27,7 @@ interface Props {
   onRunFailed?: (event: RunFailedEvent) => void;
   onRunCancelled?: (event: RunCancelledEvent) => void;
   onRunCompleted?: (event: RunCompletedEvent) => void;
-  onMessagePart?: (event: ArtifactEvent | MessagePartEvent) => void;
+  onMessagePart?: (event: MessagePartEvent) => void;
   onMessageCompleted?: (event: MessageCompletedEvent) => void;
   onGeneric?: (event: GenericEvent) => void;
   onDone?: () => void;
@@ -81,54 +76,49 @@ export function useRunAgent({
         abortControllerRef.current = abortController;
 
         const stream = await createRunStream({
-          body: createRunStreamRequest({
-            agent: agent.name,
-            messageParts,
+          body: {
+            agentName: agent.name,
+            input: [
+              {
+                parts: messageParts,
+                role: Role.User,
+              } as Message,
+            ],
             sessionId,
-          }),
+          },
           signal: abortController.signal,
         });
 
-        handleStream<RunEvent>({
-          stream,
-          onEvent: (event) => {
-            switch (event.type) {
-              case EventType.RunCreated:
-                onRunCreated?.(event);
-                setRunId(event.run.run_id);
-                setSessionId(event.run.session_id);
-
-                break;
-              case EventType.RunFailed:
-                handleDone();
-                onRunFailed?.(event);
-
-                break;
-              case EventType.RunCancelled:
-                handleDone();
-                onRunCancelled?.(event);
-
-                break;
-              case EventType.RunCompleted:
-                handleDone();
-                onRunCompleted?.(event);
-
-                break;
-              case EventType.MessagePart:
-                onMessagePart?.(event);
-
-                break;
-              case EventType.MessageCompleted:
-                onMessageCompleted?.(event);
-
-                break;
-              case EventType.Generic:
-                onGeneric?.(event);
-
-                break;
-            }
-          },
-        });
+        for await (const event of stream) {
+          switch (event.type) {
+            case 'run.created':
+              onRunCreated?.(event);
+              setRunId(event.run.run_id);
+              setSessionId(event.run.session_id ?? undefined);
+              break;
+            case 'run.failed':
+              handleDone();
+              onRunFailed?.(event);
+              break;
+            case 'run.cancelled':
+              handleDone();
+              onRunCancelled?.(event);
+              break;
+            case 'run.completed':
+              handleDone();
+              onRunCompleted?.(event);
+              break;
+            case 'message.part':
+              onMessagePart?.(event);
+              break;
+            case 'message.completed':
+              onMessageCompleted?.(event);
+              break;
+            case 'generic':
+              onGeneric?.(event);
+              break;
+          }
+        }
       } catch (error) {
         handleDone();
 
@@ -158,7 +148,7 @@ export function useRunAgent({
     setIsPending(false);
 
     if (runId) {
-      cancelRun({ run_id: runId });
+      cancelRun(runId);
     }
 
     abortControllerRef.current?.abort();

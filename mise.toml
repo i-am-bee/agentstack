@@ -1,7 +1,10 @@
 [tools]
+# Runtime
+"asdf:CrouchingMuppet/asdf-lima" = "1.1.1" # using lima from asdf since the aqua one fails to install in CI
+
 # Python
-python = "3.11"
-uv = "0.7.13"
+python = "3.13"
+uv = "0.7.19"
 
 # Node.js
 nodejs = "22"
@@ -70,9 +73,7 @@ outputs = { auto = true }
 [tasks."setup:git-hooks"]
 hide = true
 dir = "{{config_root}}"
-run = """
-test ! -d .git || (printf '#!/bin/sh\n{{ mise_bin }} run git-hooks:pre-commit' >.git/hooks/pre-commit && chmod +x .git/hooks/pre-commit)
-"""
+run = "test ! -d .git || (printf '#!/bin/sh\n{{ mise_bin }} run git-hooks:pre-commit' >.git/hooks/pre-commit && chmod +x .git/hooks/pre-commit)"
 sources = [".git/hooks/pre-commit"]
 outputs = { auto = true }
 
@@ -89,6 +90,86 @@ dir = "{{config_root}}"
 run = "uv sync --all-extras --dev"
 sources = ["uv.lock", "pyproject.toml", "apps/*/pyproject.toml"]
 outputs = { auto = true }
+
+## release tasks
+
+[tasks."version:check"]
+dir = "{{config_root}}"
+run = """
+#!/bin/bash
+set -e -o pipefail
+
+helm_version=$(yq -r .version helm/Chart.yaml)
+helm_app_version=$(yq -r .appVersion helm/Chart.yaml)
+beeai_cli_version=$(yq -r .project.version apps/beeai-cli/pyproject.toml)
+beeai_server_version=$(yq -r .project.version apps/beeai-server/pyproject.toml)
+beeai_ui_version=$(yq -r .version apps/beeai-ui/package.json)
+beeai_web_version=$(yq -r .version apps/beeai-web/package.json)
+
+if [ "$helm_version" != "$helm_app_version" ] || \
+   [ "$helm_version" != "$beeai_cli_version" ] || \
+   [ "$helm_version" != "$beeai_server_version" ] || \
+   [ "$helm_version" != "$beeai_ui_version" ] || \
+   [ "$helm_version" != "$beeai_web_version" ]; then
+  echo "Version mismatch:"
+  echo "  helm.version:         $helm_version"
+  echo "  helm.appVersion:      $helm_app_version"
+  echo "  beeai-cli:            $beeai_cli_version"
+  echo "  beeai-server:         $beeai_server_version"
+  echo "  beeai-ui:             $beeai_ui_version"
+  echo "  beeai-web:            $beeai_web_version"
+  exit 1
+fi
+
+if [[ "$GITHUB_REF" == refs/tags/v* && "$GITHUB_REF" != "refs/tags/v$helm_version" ]]; then
+  echo "GITHUB_REF '$GITHUB_REF' does not match expected 'refs/tags/v$helm_version'"
+  exit 1
+fi
+"""
+
+[tasks."version:bump"]
+dir = "{{config_root}}"
+run = '''
+#!/bin/bash
+set -eu -o pipefail
+
+# Ensure on main branch
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+if [[ "$current_branch" != "main" ]]; then
+  echo "ERROR: You must be on the 'main' branch (current: $current_branch)"
+  exit 1
+fi
+
+# Ensure working directory is clean
+if [[ -n "$(git status --porcelain)" ]]; then
+  echo "ERROR: Working directory not clean"
+  git status
+  exit 1
+fi
+
+# Prompt for version bump
+read -p "Bump from $(yq -r .version helm/Chart.yaml) to: " new_version
+
+# Update all version fields
+yq -i ".version = \"$new_version\" | .appVersion = \"$new_version\"" helm/Chart.yaml
+perl -pi -e "s/^(version\\s*=\\s*\")[^\"]*(\")/\${1}$new_version\${2}/" apps/beeai-cli/pyproject.toml
+perl -pi -e "s/^(version\\s*=\\s*\")[^\"]*(\")/\${1}$new_version\${2}/" apps/beeai-server/pyproject.toml
+yq -i ".version = \"$new_version\"" apps/beeai-ui/package.json
+yq -i ".version = \"$new_version\"" apps/beeai-web/package.json
+uv lock
+
+# Confirm commit and push (default: yes)
+read -p "Commit and push? [Y/n] " confirm
+if [[ "${confirm:-y}" =~ ^[Yy]$ ]]; then
+  (
+    set -eux -o pipefail
+    git add uv.lock helm/Chart.yaml apps/beeai-cli/pyproject.toml apps/beeai-server/pyproject.toml apps/beeai-ui/package.json apps/beeai-web/package.json
+    git commit -m "release: v$new_version"
+    git tag "v$new_version"
+    git push --atomic origin main "v$new_version"
+  )
+fi
+'''
 
 ## common tasks
 

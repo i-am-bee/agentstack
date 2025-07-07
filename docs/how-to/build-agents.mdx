@@ -117,6 +117,7 @@ from acp_sdk.models.platform import PlatformUIAnnotation, PlatformUIType, AgentT
         annotations=Annotations(
             beeai_ui=PlatformUIAnnotation(
                 ui_type=PlatformUIType.HANDSOFF,
+                display_name="My Custom Agent",
                 user_greeting="How can I help you process your data today?",
                 tools=[AgentToolInfo(name="Wikipedia", description="Search for information on Wikipedia")],
             )
@@ -222,16 +223,3 @@ beeai run my_agent "Hello!"
 ```
 
 If you see a response, congrats - your agent is working!
-
-## Add Your Agent
-
-Now that your agent works locally, you can at it to the platform by running:
-
-```bash
-beeai add .
-```
-
-What this does:
-- Builds your agent into a Docker container automatically
-- Adds it directly to your local BeeAI Platform
-- You can immediately use `beeai run my_agent "test"`

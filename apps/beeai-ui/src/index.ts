@@ -24,7 +24,7 @@ export * from './contexts/Theme/ThemeProvider';
 export * from './contexts/TransitionContext/RouteTransitionProvider';
 export type * from './modules/agents/api/types';
 export * from './modules/agents/components/AgentCard';
-export * from './modules/agents/components/AgentMetadata';
+export * from './modules/agents/components/AgentMetadataView';
 export * from './modules/agents/components/AgentsFilters';
 export * from './modules/agents/components/AgentsList';
 export * from './modules/agents/components/AgentTags';

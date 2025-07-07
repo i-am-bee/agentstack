@@ -351,7 +351,7 @@ async def test_document_listing(subtests, api_client, acp_client):
     with subtests.test("list documents in vector store"):
         response = await api_client.get(f"vector_stores/{vector_store_id}/documents")
         response.raise_for_status()
-        documents = response.json()
+        documents = response.json()["items"]
 
         # Should have 2 unique documents (doc_001 and doc_002)
         document_ids = {doc["id"] for doc in documents}

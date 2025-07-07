@@ -13,7 +13,7 @@ import { TagsList } from '#components/TagsList/TagsList.tsx';
 
 import type { Agent } from '../api/types';
 import classes from './AgentCard.module.scss';
-import { AgentMetadata } from './AgentMetadata';
+import { AgentMetadataView } from './AgentMetadataView';
 import { AgentTags } from './AgentTags';
 import { BeeBadge } from './BeeBadge';
 
@@ -36,7 +36,7 @@ export function AgentCard({ agent, renderTitle, statusIndicator }: Props) {
       </header>
 
       <div className={classes.body}>
-        <AgentMetadata agent={agent} />
+        <AgentMetadataView agent={agent} />
 
         {description && <MarkdownContent className={classes.description}>{description}</MarkdownContent>}
 
@@ -52,7 +52,7 @@ AgentCard.Skeleton = function AgentCardSkeleton() {
       <SkeletonText className={classes.name} width="50%" />
 
       <div className={classes.body}>
-        <AgentMetadata.Skeleton />
+        <AgentMetadataView.Skeleton />
 
         <div className={classes.description}>
           <SkeletonText paragraph lineCount={2} />

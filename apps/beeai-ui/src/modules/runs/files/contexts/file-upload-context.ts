@@ -13,6 +13,7 @@ import type { FileEntity } from '../types';
 export const FileUploadContext = createContext<FileUploadContextValue>({
   files: [],
   isPending: false,
+  isDisabled: true,
   removeFile: noop,
   clearFiles: noop,
 });
@@ -20,6 +21,7 @@ export const FileUploadContext = createContext<FileUploadContextValue>({
 interface FileUploadContextValue {
   files: FileEntity[];
   isPending: boolean;
+  isDisabled: boolean;
   dropzone?: DropzoneState;
   removeFile: (id: string) => void;
   clearFiles: () => void;

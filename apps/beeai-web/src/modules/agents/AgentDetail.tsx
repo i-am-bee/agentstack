@@ -10,7 +10,7 @@ import { moderate01 } from '@carbon/motion';
 import { ButtonSkeleton, SkeletonText } from '@carbon/react';
 import {
   Agent,
-  AgentMetadata,
+  AgentMetadataView,
   AgentTags,
   BeeBadge,
   commands,
@@ -49,7 +49,7 @@ export function AgentDetail({ agent, buttons }: Props) {
       </motion.header>
 
       <motion.div {...fadeInPropsWithMarginShift({ start: { from: spacing[3] } })}>
-        <AgentMetadata agent={agent} showSourceCodeLink className={classes.metadata} />
+        <AgentMetadataView agent={agent} showSourceCodeLink className={classes.metadata} />
 
         {description && <MarkdownContent className={classes.description}>{description}</MarkdownContent>}
 
@@ -91,7 +91,7 @@ AgentDetail.Skeleton = function AgentDetailSkeleton() {
     <div className={classes.root}>
       <SkeletonText className={classes.name} width="50%" />
 
-      <AgentMetadata.Skeleton className={classes.metadata} />
+      <AgentMetadataView.Skeleton className={classes.metadata} />
 
       <div className={classes.description}>
         <SkeletonText paragraph lineCount={3} />

@@ -59,7 +59,6 @@ from rich.table import Column
 from beeai_cli.api import acp_client, api_request, api_stream
 from beeai_cli.async_typer import AsyncTyper, console, create_table, err_console
 from beeai_cli.utils import (
-    VMDriver,
     filter_dict,
     format_error,
     generate_schema_example,
@@ -117,7 +116,6 @@ async def add_agent(
         str, typer.Argument(help="Agent location (public docker image, local path or github url)")
     ],
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
-    vm_driver: typing.Annotated[VMDriver | None, typer.Option(hidden=True)] = None,
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ) -> None:
     """Install discovered agent or add public docker image or github repository [aliases: install]"""
@@ -133,9 +131,7 @@ async def add_agent(
         try:
             if process.returncode:
                 # If the image was not found locally, try building image
-                location, agents = await build(
-                    location, tag=None, vm_name=vm_name, vm_driver=vm_driver, import_image=True
-                )
+                location, agents = await build(location, tag=None, vm_name=vm_name, import_image=True)
             else:
                 manifest = base64.b64decode(
                     json.loads(process.stdout)[0]["Config"]["Labels"]["beeai.dev.agent.yaml"]

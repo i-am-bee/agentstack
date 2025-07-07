@@ -23,10 +23,12 @@ interface Props {
 export function AgentRun({ agent }: Props) {
   const { ui_type, display_name } = getAgentUiMetadata(agent);
 
+  const inputContentTypes = agent.input_content_types ?? [];
+
   switch (ui_type) {
     case UiType.Chat:
       return (
-        <FileUploadProvider key={agent.name}>
+        <FileUploadProvider key={agent.name} allowedContentTypes={inputContentTypes}>
           <ChatProvider agent={agent}>
             <Chat />
           </ChatProvider>
@@ -34,7 +36,7 @@ export function AgentRun({ agent }: Props) {
       );
     case UiType.HandsOff:
       return (
-        <FileUploadProvider key={agent.name}>
+        <FileUploadProvider key={agent.name} allowedContentTypes={inputContentTypes}>
           <HandsOffProvider agent={agent}>
             <HandsOff />
           </HandsOffProvider>

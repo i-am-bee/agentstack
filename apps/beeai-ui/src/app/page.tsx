@@ -14,7 +14,7 @@ export default async function LandingPage() {
 
   try {
     const response = await listAgents();
-    const agents = response?.agents.filter(isAgentUiSupported).sort(sortAgentsByName);
+    const agents = response?.filter(isAgentUiSupported).sort(sortAgentsByName);
 
     firstAgentName = agents?.at(0)?.name;
   } catch (err) {

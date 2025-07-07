@@ -1,3 +1,0 @@
-# content-judge
-
-TBD

@@ -7,18 +7,10 @@ import humanizeDuration from 'humanize-duration';
 import JSON5 from 'json5';
 import { v4 as uuid } from 'uuid';
 
-import type { AgentName } from '#modules/agents/api/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
 import { toMarkdownCitation, toMarkdownImage } from '#utils/markdown.ts';
 
-import {
-  type Artifact,
-  type CreateRunStreamRequest,
-  type Message,
-  type MessagePart,
-  RunMode,
-  type SessionId,
-} from './api/types';
+import type { Artifact, Message, MessagePart } from './api/types';
 import {
   type AgentMessage,
   type ChatMessage,
@@ -48,28 +40,6 @@ export function runDuration(ms: number) {
   });
 
   return duration;
-}
-
-export function createRunStreamRequest({
-  agent,
-  messageParts,
-  sessionId,
-}: {
-  agent: AgentName;
-  messageParts: MessagePart[];
-  sessionId?: SessionId;
-}): CreateRunStreamRequest {
-  return {
-    agent_name: agent,
-    input: [
-      {
-        parts: messageParts,
-        role: Role.User,
-      },
-    ],
-    mode: RunMode.Stream,
-    session_id: sessionId,
-  };
 }
 
 export function createMessagePart({

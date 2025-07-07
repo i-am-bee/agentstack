@@ -156,8 +156,11 @@ if [ '{{flag(name='docling')}}' = 'true' ]; then
   extra_flags+=("--set" "docling.enabled=true")
 fi
 
+if [ '{{flag(name='phoenix')}}' = 'true' ]; then
+  extra_flags+=("--set" "phoenix.enabled=true")
+fi
+
 mise run beeai-cli:run -- platform start \
-    --vm-driver=lima \
     --vm-name=${VM_NAME} \
     --import ghcr.io/i-am-bee/beeai-platform/beeai-server:local \
     --set image.tag=local "${extra_flags[@]}"
@@ -230,6 +233,26 @@ VM_NAME={{option(name="vm-name", default="beeai-local-dev")}}
 mise run beeai-cli:run -- platform delete --vm-name="$VM_NAME"
 """
 
+["beeai-server:dev:reconnect"]
+dir = "{{config_root}}/apps/beeai-server"
+run = """
+#!/bin/bash
+
+VM_NAME='{{option(name="vm-name", default="beeai-local-dev")}}'
+NAMESPACE=default
+
+export KUBECONFIG="${HOME}/.beeai/lima/${VM_NAME}/copied-from-guest/kubeconfig.yaml"
+
+tele="telepresence --use .*${NAMESPACE}.*"
+
+$tele uninstall --all-agents || true
+$tele quit
+
+$tele connect --namespace "$NAMESPACE"
+$tele replace beeai-platform --port 18333:8333
+"""
+
+
 ["beeai-server:dev:test:start"]
 dir = "{{config_root}}/apps/beeai-server"
 run = "mise run beeai-server:dev:start --vm-name=beeai-local-test --no-registry"
@@ -241,6 +264,11 @@ run = "mise run beeai-server:dev:clean --vm-name=beeai-local-test"
 ["beeai-server:dev:test:shell"]
 dir = "{{config_root}}/apps/beeai-server"
 run = "mise run beeai-server:dev:shell --vm-name=beeai-local-test"
+
+
+["beeai-server:dev:test:reconnect"]
+dir = "{{config_root}}/apps/beeai-server"
+run = "mise run beeai-server:dev:reconnect --vm-name=beeai-local-test"
 
 ["beeai-server:test:e2e"]
 depends = ["beeai-server:image:build"]

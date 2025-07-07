@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { type AgentsListResponse } from '@i-am-bee/beeai-ui';
+import { type Agent } from '@i-am-bee/beeai-ui';
 
 import { DOCKER_MANIFEST_LABEL_NAME, SupportedDockerRegistries } from '@/constants';
 
@@ -15,6 +15,7 @@ type TokenJson = { token: string };
 type ManifestJson = { config: { digest: string } };
 type ManifestListJson = { manifests: { digest: string }[] };
 type ConfigJson = { config: { Labels: { [key: string]: string } } };
+type AgentsListResponse = { agents: Agent[] };
 
 export async function fetchAgentMetadata({ dockerImageId }: { dockerImageId: string }): Promise<AgentsListResponse> {
   const { registry, repository, tag } = parseDockerImageId(dockerImageId);

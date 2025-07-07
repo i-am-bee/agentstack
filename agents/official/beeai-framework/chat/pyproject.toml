@@ -5,11 +5,11 @@ description = "AI-powered conversational system with memory and tools."
 authors = [
     { name = "IBM Corp." },
 ]
-requires-python = ">=3.11,<3.12"
+requires-python = ">=3.13,<4"
 dependencies = [
-    "acp-sdk==0.12.1",
-    "beeai-framework[duckduckgo,wikipedia]==0.1.18",
-    "openinference-instrumentation-beeai>=0.1.5",
+    "acp-sdk==1.0.0",
+    "beeai-framework[duckduckgo,wikipedia]~=0.1.29",
+    "openinference-instrumentation-beeai>=0.1.6",
     "pydantic-settings>=2.9.0",
 ]
 

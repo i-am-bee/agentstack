@@ -92,7 +92,10 @@ Or delete the cluster entirely using
 ```shell
 mise run beeai-server:dev:clean
 ```
-<details>
+
+> TIP: If you run into connection issues after sleep or longer period of inactivity
+> try `mise run beeai-server:dev:reconnect` first. You may not need to clean and restart
+> the entire VM
 
 
 #### Developing tests
@@ -105,7 +108,9 @@ K8S_KUBECONFIG=~/.beeai/lima/beeai-local-test/copied-from-guest/kubeconfig.yaml
 ```
 and then run `beeai-server:dev:test:start`
 
+> TIP: Similarly to dev environment you can use `mise run beeai-server:dev:test:reconnect`
 
+<details>
 <summary> Lower-level networking using telepresence directly</summary>
 
 ```shell
@@ -141,7 +146,7 @@ The following commands can be used to create or run migrations in the dev enviro
 - Generate migrations: `mise run beeai-server:migrations:generate`
 - Use Alembic command directly: `mise run beeai-server:migrations:alembic`
 
-> Note: The dev setup will run the production image including its migrations before replacing it with your local 
+> NOTE: The dev setup will run the production image including its migrations before replacing it with your local 
 > instance.
 
 ### Running individual components
@@ -172,29 +177,3 @@ mise beeai-ui:run
 # UI is also available from beeai-server (in static mode):
 mise beeai-server:run
 ```
-
----
-
-## Releasing
-
-This repository contains several projects which get released to PyPI and ghcr.io through GitHub Actions.
-
-### Releasing agents
-
-The platform automatically grabs the `agent-registry.yaml` file from the `main` branch of `https://github.com/i-am-bee/beeai-platform`. In there, it finds URLs for agent provider manifests (`agent.yaml`), and in those manifests, it finds URLs to the agent provider implementations. At the moment, we use `agents-v*` tags, for example `agents-v0.0.1`.
-
-In order to release a new version of an agent (or several agents at once), be sure to bump the version in the URL in `agent.yaml` of the affected agents.
-
-### Releasing `beeai-ui`
-
-`beeai-ui` is statically included in `beeai-server`, so it can be considered a part of that project. It is not versioned separately. For any changes, `beeai-server` needs to be released.
-
-### Releasing `beeai-server`
-
-Bump version in `apps/beeai-server/pyproject.toml`. Commit the changes, push to main, and create and push a tag `beeai-server-v<version>`, for example `beeai-server-v0.0.1`. Check the GitHub Actions to see if everything went smoothly.
-
-From the user's point of view, the server is part of the BeeAI CLI through `beeai platform start`, so usually after releasing `beeai-server`, you might want to bump the dependency version and release `beeai-cli` as well.
-
-### Releasing `beeai-cli`
-
-Bump version in `apps/beeai-cli/pyproject.toml`. Commit the changes, push to main, and create and push a tag `beeai-cli-v<version>`, for example `beeai-cli-v0.0.1`. Check the GitHub Actions to see if everything went smoothly.
