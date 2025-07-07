@@ -72,11 +72,11 @@ async def build(
                         ):
                             with attempt:
                                 async with AsyncClient() as client:
-                                    resp = await client.get(f"http://localhost:{port}/agents", timeout=1)
+                                    resp = await client.get(
+                                        f"http://localhost:{port}/.well-known/agent.json", timeout=1
+                                    )
                                     resp.raise_for_status()
                                     response = resp.json()
-                                    if "agents" not in response:
-                                        raise ValueError(f"Missing agents in response from server: {response}")
                         process.terminate()
                         with suppress(ProcessLookupError):
                             process.kill()
@@ -104,7 +104,7 @@ async def build(
                 context,
                 "-t",
                 tag,
-                f"--label=beeai.dev.agent.yaml={base64.b64encode(json.dumps(response).encode()).decode()}",
+                f"--label=beeai.dev.agent.json={base64.b64encode(json.dumps(response).encode()).decode()}",
             ],
             message="Adding agent labels to container",
             check=True,

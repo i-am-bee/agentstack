@@ -3,7 +3,6 @@
 
 from typing import Protocol, Self
 
-from beeai_server.domain.repositories.agent import IAgentRepository
 from beeai_server.domain.repositories.env import IEnvVariableRepository
 from beeai_server.domain.repositories.file import IFileRepository
 from beeai_server.domain.repositories.provider import IProviderRepository
@@ -13,7 +12,6 @@ from beeai_server.domain.repositories.vector_store import IVectorDatabaseReposit
 
 class IUnitOfWork(Protocol):
     providers: IProviderRepository
-    agents: IAgentRepository
     files: IFileRepository
     env: IEnvVariableRepository
     users: IUserRepository

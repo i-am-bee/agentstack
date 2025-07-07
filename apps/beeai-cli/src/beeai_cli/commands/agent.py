@@ -3,7 +3,6 @@
 
 import abc
 import base64
-import contextlib
 import inspect
 import json
 import random
@@ -11,24 +10,31 @@ import re
 import sys
 import typing
 from enum import StrEnum
+from uuid import uuid4
 
+import httpx
 import jsonref
-from acp_sdk import (
-    ACPError,
-    ArtifactEvent,
-    Error,
-    ErrorCode,
-    GenericEvent,
+from a2a.client import A2AClient
+from a2a.types import (
+    AgentCard,
+    DataPart,
+    FilePart,
+    FileWithBytes,
+    FileWithUri,
+    JSONRPCErrorResponse,
     Message,
-    MessageAwaitResume,
-    MessageCompletedEvent,
-    MessagePart,
-    MessagePartEvent,
-    RunAwaitingEvent,
-    RunFailedEvent,
+    MessageSendParams,
+    Part,
+    Role,
+    SendStreamingMessageRequest,
+    SendStreamingMessageSuccessResponse,
+    Task,
+    TaskArtifactUpdateEvent,
+    TaskState,
+    TaskStatusUpdateEvent,
+    TextPart,
 )
-from acp_sdk import AgentManifest as Agent
-from acp_sdk.client import Client
+from pydantic import BaseModel, computed_field
 from rich.box import HORIZONTALS
 from rich.console import ConsoleRenderable, Group, NewLine
 from rich.panel import Panel
@@ -56,10 +62,9 @@ import typer
 from rich.markdown import Markdown
 from rich.table import Column
 
-from beeai_cli.api import acp_client, api_request, api_stream
+from beeai_cli.api import a2a_client, api_request, api_stream
 from beeai_cli.async_typer import AsyncTyper, console, create_table, err_console
 from beeai_cli.utils import (
-    filter_dict,
     format_error,
     generate_schema_example,
     omit,
@@ -74,6 +79,30 @@ from beeai_cli.utils import (
 class UiType(StrEnum):
     chat = "chat"
     hands_off = "hands-off"
+
+
+class Provider(BaseModel):
+    agent_card: AgentCard
+    id: str
+    metadata: dict[str, Any]
+
+    @computed_field
+    @property
+    def ui_annotations(self) -> dict[str, str] | None:
+        ui_extension = [ext for ext in self.agent_card.capabilities.extensions or [] if ext.uri == "beeai_ui"]
+        return ui_extension[0].params if ui_extension else None
+
+    @computed_field
+    @property
+    def last_error(self) -> str | None:
+        return (
+            (self.metadata.get("last_error") or {}).get("message", None) if self.metadata["state"] != "ready" else None
+        )
+
+    @computed_field
+    @property
+    def short_location(self) -> str:
+        return re.sub(r"[a-z]*.io/i-am-bee/beeai-platform/", "", self.metadata["source"]).lower()
 
 
 app = AsyncTyper()
@@ -134,130 +163,229 @@ async def add_agent(
                 location, agents = await build(location, tag=None, vm_name=vm_name, import_image=True)
             else:
                 manifest = base64.b64decode(
-                    json.loads(process.stdout)[0]["Config"]["Labels"]["beeai.dev.agent.yaml"]
+                    json.loads(process.stdout)[0]["Config"]["Labels"]["beeai.dev.agent.json"]
                 ).decode()
-                agents = json.loads(manifest)["agents"]
+                agent_card = json.loads(manifest)
             # If all build and inspect succeeded, use the local image, else use the original; maybe it exists remotely
         except CalledProcessError as e:
             errors.append(e)
             console.print("Attempting to use remote image...")
         try:
             with status("Registering agent to platform"):
-                await api_request("POST", "providers", json={"location": location, "agents": agents})
+                await api_request("POST", "providers", json={"location": location, "agent_card": agent_card})
             console.print("Registering agent to platform [[green]DONE[/green]]")
         except Exception as e:
             raise ExceptionGroup("Error occured", [*errors, e]) from e
         await list_agents()
 
 
+def select_provider(search_path: str, providers: list[Provider]):
+    search_path = search_path.lower()
+    provider_candidates = {p.id: p for p in providers if search_path in p.id.lower()}
+    provider_candidates.update({p.id: p for p in providers if search_path in p.agent_card.name.lower()})
+    provider_candidates.update({p.id: p for p in providers if search_path in p.short_location})
+    if len(provider_candidates) != 1:
+        provider_candidates = [f"  - {c}" for c in provider_candidates]
+        remove_providers_detail = ":\n" + "\n".join(provider_candidates) if provider_candidates else ""
+        raise ValueError(f"{len(provider_candidates)} matching agents{remove_providers_detail}")
+    [selected_provider] = provider_candidates.values()
+    return selected_provider
+
+
 @app.command("remove | uninstall | rm | delete")
-async def uninstall_agent(name: typing.Annotated[str, typer.Argument(help="Agent name")]) -> None:
+async def uninstall_agent(
+    search_path: typing.Annotated[
+        str, typer.Argument(..., help="Short ID, agent name or part of the provider location")
+    ],
+) -> None:
     """Remove agent"""
-    agent = await _get_agent(name)
     with console.status("Uninstalling agent (may take a few minutes)...", spinner="dots"):
-        await api_request("delete", f"providers/{agent.metadata.provider_id}")
+        remove_provider = select_provider(search_path, await get_providers()).id
+        await api_request("delete", f"providers/{remove_provider}")
     await list_agents()
 
 
 @app.command("logs")
-async def stream_logs(name: typing.Annotated[str, typer.Argument(help="Agent name")]):
+async def stream_logs(
+    search_path: typing.Annotated[
+        str, typer.Argument(..., help="Short ID, agent name or part of the provider location")
+    ],
+):
     """Stream agent provider logs"""
-    agent = await _get_agent(name)
-    provider = agent.metadata.provider_id
+    provider = select_provider(search_path, await get_providers()).id
     async for message in api_stream("get", f"providers/{provider}/logs"):
         _print_log(message)
 
 
 async def _run_agent(
-    client: Client,
-    name: str,
-    input: str | list[Message],
+    client: A2AClient,
+    input: str | Message,
     dump_files_path: Path | None = None,
     handle_input: Callable[[], str] | None = None,
-):
+    task_id: str | None = None,
+    context_id: str | None = None,
+) -> tuple[str | None, str | None]:
     status = console.status(random.choice(processing_messages), spinner="dots")
     status.start()
     status_stopped = False
 
-    input = [Message(parts=[MessagePart(content=input, role="user")])] if isinstance(input, str) else input
+    input = (
+        Message(
+            messageId=str(uuid4()),
+            parts=[Part(root=TextPart(text=input))],
+            role=Role.user,
+            taskId=task_id,
+            contextId=context_id,
+        )
+        if isinstance(input, str)
+        else input
+    )
 
     log_type = None
-    current_agent = None
 
-    stream = client.run_stream(agent=name, input=input)
+    request = SendStreamingMessageRequest(id=str(uuid4()), params=MessageSendParams(message=input))
+    stream = client.send_message_streaming(request)
+
     while True:
         async for event in stream:
             if not status_stopped:
                 status_stopped = True
                 status.stop()
+            match event.root:
+                case SendStreamingMessageSuccessResponse():
+                    task_id = getattr(event.root.result, "taskId", None)
+                    context_id = getattr(event.root.result, "contextId", None)
+                    match event.root.result:
+                        case Task(id=tid, contextId=cid):
+                            # Handle task creation
+                            task_id = tid
+                            context_id = cid
+                        case Message():
+                            # Handle message response - check for update_kind metadata
+                            message = event.root.result
+                            update_kind = None
 
-            match event:
-                case GenericEvent():
-                    data = filter_dict(event.generic.model_dump(), None)
-                    if "agent_name" in data:
-                        (new_log_type, content) = next(iter(omit(data, {"agent_name", "agent_idx"}).items()))
-                        new_log_type = f"[{data['agent_name']}]: {new_log_type}"
-                    else:
-                        (new_log_type, content) = next(iter(data.items()))
-                    if new_log_type != log_type:
-                        if log_type is not None:
-                            err_console.print()
-                        err_console.print(f"{new_log_type}: ", style="dim", end="")
-                        log_type = new_log_type
-                    err_console.print(content, style="dim", end="")
-                case MessagePartEvent():
-                    if log_type:
-                        console.print()
-                        log_type = None
-                    if new_agent := event.part.model_dump().get("agent_name", None):
-                        if new_agent != current_agent:
-                            current_agent = new_agent
-                            err_console.print(f"\n[bold]{new_agent} output[/bold]\n", style="dim")
-                        err_console.print(event.part.content, style="dim", end="")
-                    else:
-                        console.print(event.part.content, end="")
-                case MessageCompletedEvent():
-                    console.print()
-                case RunAwaitingEvent():
-                    assert event.run.await_request is not None
+                            # Check for update_kind in message metadata
+                            if update_kind := (message.metadata or {}).get("update_kind"):
+                                # This is a streaming update with a specific type
+                                if update_kind != log_type:
+                                    if log_type is not None:
+                                        err_console.print()
+                                    err_console.print(f"{update_kind}: ", style="dim", end="")
+                                    log_type = update_kind
 
-                    if handle_input is None:
-                        raise ValueError("Agents awaiting are not supported in the given environment.")
+                                # Stream the content
+                                for part in message.parts:
+                                    if hasattr(part.root, "text"):
+                                        err_console.print(part.root.text, style="dim", end="")
+                            else:
+                                # This is regular message content
+                                if log_type:
+                                    console.print()
+                                    log_type = None
+                                for part in message.parts:
+                                    if hasattr(part.root, "text"):
+                                        console.print(part.root.text, end="")
+                        case TaskStatusUpdateEvent(status=task_status):
+                            match task_status.state:
+                                case TaskState.completed:
+                                    console.print()  # Add newline after completion
+                                    return None, context_id
+                                case TaskState.submitted:
+                                    pass
+                                case TaskState.working:
+                                    # Handle streaming content during working state
+                                    if hasattr(task_status, "message") and task_status.message:
+                                        message = task_status.message
+                                        update_kind = (message.metadata or {}).get("update_kind")
+                                        if update_kind and update_kind != "final_answer":
+                                            if update_kind != log_type:
+                                                if log_type is not None:
+                                                    err_console.print()
+                                                err_console.print(f"{update_kind}: ", style="dim", end="")
+                                                log_type = update_kind
 
-                    console.print(f"\n[bold]Agent '{event.run.agent_name}' requires your action[/bold]\n")
-                    console.print(str(event.run.await_request.message))
+                                            # Stream the content
+                                            for part in message.parts:
+                                                if hasattr(part.root, "text"):
+                                                    err_console.print(part.root.text, style="dim", end="")
+                                        else:
+                                            # This is regular message content
+                                            if log_type:
+                                                console.print()
+                                                log_type = None
+                                            for part in message.parts:
+                                                if hasattr(part.root, "text"):
+                                                    console.print(part.root.text, end="")
+                                case TaskState.input_required:
+                                    if handle_input is None:
+                                        raise ValueError("Agent requires input but no input handler provided")
 
-                    resume_message = Message(parts=[MessagePart(content=handle_input(), role="user")])
-                    stream = client.run_resume_stream(
-                        MessageAwaitResume(message=resume_message), run_id=event.run.run_id
-                    )
-                    break
-                case RunFailedEvent():
-                    console.print(format_error(str(event.run.error.code), event.run.error.message))
-                case ArtifactEvent():
-                    if dump_files_path is None:
-                        continue
-                    dump_files_path.mkdir(parents=True, exist_ok=True)
-                    full_path = dump_files_path / event.part.name.lstrip("/")
-                    with contextlib.suppress(ValueError):
-                        full_path.resolve().relative_to(dump_files_path.resolve())  # throws if outside folder
-                        full_path.parent.mkdir(parents=True, exist_ok=True)
-                        if event.part.content_url:
-                            err_console.print(
-                                f"⚠️ Downloading files is not supported by --dump-files, skipping {event.part.name} ({event.part.content_url})"
-                            )
-                        elif event.part.content_encoding == "base64":
-                            full_path.write_bytes(base64.b64decode(event.part.content))
-                            console.print(f"📁 Saved {full_path}")
-                        elif event.part.content_encoding == "plain" or not event.part.content_encoding:
-                            full_path.write_text(event.part.content)
-                            console.print(f"📁 Saved {full_path}")
-                        else:
-                            err_console.print(
-                                f"⚠️ Unknown encoding {event.part.content_encoding}, skipping {event.part.name}"
-                            )
+                                    console.print("\n[bold]Agent requires your input[/bold]\n")
+                                    user_input = handle_input()
+
+                                    # Send the user input back to the agent
+                                    response_message = Message(
+                                        messageId=str(uuid4()),
+                                        parts=[Part(root=TextPart(text=user_input))],
+                                        role=Role.user,
+                                        taskId=task_id,
+                                        contextId=context_id,
+                                    )
+                                    new_request = SendStreamingMessageRequest(
+                                        id=str(uuid4()), params=MessageSendParams(message=response_message)
+                                    )
+                                    stream = client.send_message_streaming(new_request)
+                                    break
+                                case TaskState.canceled:
+                                    console.print("[yellow]Task was canceled[/yellow]")
+                                    return task_id, context_id
+                                case TaskState.failed:
+                                    console.print("[red]Task failed[/red]")
+                                    return task_id, context_id
+                                case TaskState.rejected:
+                                    console.print("[red]Task was rejected[/red]")
+                                    return task_id, context_id
+                                case TaskState.auth_required:
+                                    console.print("[yellow]Authentication required[/yellow]")
+                                    return task_id, context_id
+                                case TaskState.unknown:
+                                    console.print("[yellow]Unknown task status[/yellow]")
+                        case TaskArtifactUpdateEvent():
+                            artifact = event.root.result.artifact
+                            if dump_files_path is None:
+                                continue
+                            dump_files_path.mkdir(parents=True, exist_ok=True)
+                            full_path = dump_files_path / artifact.name.lstrip("/")
+                            full_path.resolve().relative_to(dump_files_path.resolve())
+                            full_path.parent.mkdir(parents=True, exist_ok=True)
+                            try:
+                                for part in artifact.parts[:1]:
+                                    match part.root:
+                                        case FilePart():
+                                            match part.root.file:
+                                                case FileWithBytes(bytes=bytes):
+                                                    full_path.write_bytes(base64.b64decode(bytes))
+                                                case FileWithUri(uri=uri):
+                                                    async with httpx.AsyncClient() as client:
+                                                        resp = await client.get(uri)
+                                                        full_path.write_bytes(base64.b64decode(resp.content))
+                                            console.print(f"📁 Saved {full_path}")
+                                        case TextPart(text=text):
+                                            full_path.write_text(text)
+                                        case _:
+                                            console.print(f"⚠️ Artifact part {type(part).__name__} is not supported")
+                                if len(artifact.parts) > 1:
+                                    console.print("⚠️ Artifact with more than 1 part are not supported.")
+                            except ValueError:
+                                console.print(f"⚠️ Skipping artifact {artifact.name} - outside dump directory")
+                case JSONRPCErrorResponse():
+                    console.print(format_error(str(type(event.root.error)), event.root.error.message))
+                    return task_id, context_id
         else:
+            # Stream ended normally
             break
+    return task_id, context_id
 
 
 class InteractiveCommand(abc.ABC):
@@ -450,11 +578,11 @@ def _create_input_handler(
     return handler
 
 
-def _setup_sequential_workflow(agents_by_name: dict[str, Agent], splash_screen: ConsoleRenderable | None = None):
+def _setup_sequential_workflow(providers: list[Provider], splash_screen: ConsoleRenderable | None = None):
     prompt_agents = {
-        name: agent
-        for name, agent in agents_by_name.items()
-        if (agent.metadata.model_dump().get("ui", {}) or {}).get("type", None) == UiType.hands_off
+        provider.agent_card.name: provider
+        for provider in providers
+        if (provider.ui_annotations or {}).get("ui_type") == UiType.hands_off
     }
     steps = []
 
@@ -518,7 +646,9 @@ async def get_provider(provider_id: str):
 
 @app.command("run")
 async def run_agent(
-    name: typing.Annotated[str, typer.Argument(help="Name of the agent to call")],
+    search_path: typing.Annotated[
+        str, typer.Argument(..., help="Short ID, agent name or part of the provider location")
+    ],
     input: typing.Annotated[
         str | None,
         typer.Argument(
@@ -533,21 +663,19 @@ async def run_agent(
     """Run an agent."""
     await ensure_llm_env()
 
-    agents_by_name = await _get_agents()
-    agent = await _get_agent(name, agents_by_name)
+    providers = await get_providers()
+    provider = select_provider(search_path, providers=providers)
+    agent = provider.agent_card
 
-    # Agent#provider is only available in platform, not when directly communicating with the agent
-    if hasattr(agent.metadata, "provider_id"):
-        provider = await get_provider(agent.metadata.provider_id)
-        if provider["state"] == "missing":
-            console.print("Starting provider (this might take a while)...")
-        if provider["state"] not in {"ready", "running", "starting", "missing"}:
-            err_console.print(
-                f":boom: Agent is not in a ready state: {provider['state']}, {provider['last_error']}\nRetrying..."
-            )
+    if provider.metadata["state"] == "missing":
+        console.print("Starting provider (this might take a while)...")
+    if provider.metadata["state"] not in {"ready", "running", "starting", "missing"}:
+        err_console.print(
+            f":boom: Agent is not in a ready state: {provider['state']}, {provider['last_error']}\nRetrying..."
+        )
 
-    ui_annotations = (agent.metadata.model_dump().get("annotations", {}) or {}).get("beeai_ui", {}) or {}
-    ui_type = ui_annotations.get("ui_type", None)
+    ui_annotations = provider.ui_annotations or {}
+    ui_type = ui_annotations.get("ui_type")
     is_sequential_workflow = agent.name in {"sequential_workflow"}
 
     user_greeting = ui_annotations.get("user_greeting", None) or "How can I help you?"
@@ -555,7 +683,7 @@ async def run_agent(
     if not input:
         if ui_type not in {UiType.chat, UiType.hands_off} and not is_sequential_workflow:
             err_console.print(
-                f"💥 [red][b]Error[/red][/b]: Agent {name} does not use any supported UIs.\n"
+                f"💥 [red][b]Error[/red][/b]: Agent {agent.name} does not use any supported UIs.\n"
                 f"Please use the agent according to the following examples and schema:"
             )
             err_console.print(_render_examples(agent))
@@ -571,10 +699,18 @@ async def run_agent(
         if ui_type == UiType.chat:
             console.print(f"{user_greeting}\n")
             input = handle_input()
-            async with acp_client() as client, client.session() as session:
+            async with a2a_client(provider.agent_card) as client:
+                task_id, context_id = None, None
                 while True:
                     console.print()
-                    await _run_agent(session, name, input, dump_files_path=dump_files, handle_input=handle_input)
+                    task_id, context_id = await _run_agent(
+                        client,
+                        input,
+                        dump_files_path=dump_files,
+                        handle_input=handle_input,
+                        task_id=task_id,
+                        context_id=context_id,
+                    )
                     console.print()
                     input = handle_input()
 
@@ -583,20 +719,27 @@ async def run_agent(
             console.print(f"{user_greeting}\n")
             input = handle_input()
             console.print()
-            async with acp_client() as client:
-                await _run_agent(client, name, input, dump_files_path=dump_files, handle_input=handle_input)
+            async with a2a_client(provider.agent_card) as client:
+                await _run_agent(client, input, dump_files_path=dump_files, handle_input=handle_input)
         elif is_sequential_workflow:
-            workflow_steps = _setup_sequential_workflow(agents_by_name, splash_screen=splash_screen)
+            workflow_steps = _setup_sequential_workflow(providers, splash_screen=splash_screen)
             console.print()
-            message_part = MessagePart(content_type="application/json", content=json.dumps({"steps": workflow_steps}))
-            async with acp_client() as client:
+            message_part = DataPart(data={"steps": workflow_steps}, metadata={"kind": "configuration"})
+            async with a2a_client(provider.agent_card) as client:
                 await _run_agent(
-                    client, name, [Message(parts=[message_part])], dump_files_path=dump_files, handle_input=handle_input
+                    client,
+                    Message(
+                        messageId=str(uuid4()),
+                        parts=[Part(root=message_part)],
+                        role=Role.user,
+                    ),
+                    dump_files_path=dump_files,
+                    handle_input=handle_input,
                 )
 
     else:
-        async with acp_client() as client:
-            await _run_agent(client, name, input, dump_files_path=dump_files)
+        async with a2a_client(provider.agent_card) as client:
+            await _run_agent(client, input, dump_files_path=dump_files)
 
 
 def render_enum(value: str, colors: dict[str, str]) -> str:
@@ -605,51 +748,51 @@ def render_enum(value: str, colors: dict[str, str]) -> str:
     return value
 
 
-def _get_short_location(provider_id: str) -> str:
-    return re.sub(r"[a-z]*.io/i-am-bee/beeai-platform/", "", provider_id)
+async def get_providers() -> list[Provider]:
+    return [
+        Provider(
+            agent_card=provider["agent_card"],
+            id=provider["id"],
+            metadata=omit(provider, {"agent_card"}),
+        )
+        for provider in (await api_request("GET", "providers"))["items"]
+    ]
 
 
 @app.command("list")
 async def list_agents():
     """List agents."""
-    agents = await _get_agents()
-    providers_by_id = {p["id"]: p for p in (await api_request("GET", "providers"))["items"]}
-    max_provider_len = (
-        max(len(_get_short_location(p["source"])) for p in providers_by_id.values()) if providers_by_id else 0
-    )
+    providers = await get_providers()
+    max_provider_len = max(len(p.short_location) for p in providers) if providers else 0
+    max_error_len = max(len(p.last_error or "") for p in providers) if providers else 0
 
-    def _sort_fn(agent: Agent):
-        if not (provider := providers_by_id.get(agent.metadata.provider_id)):
-            return agent.name
+    def _sort_fn(provider: Provider):
         state = {"missing": "1"}
-        return str(state.get(provider["state"], 0)) + f"_{agent.name}" if "registry" in provider else agent.name
+        return (
+            str(state.get(provider.metadata["state"], 0)) + f"_{provider.agent_card.name}"
+            if "registry" in provider
+            else provider.agent_card.name
+        )
 
     with create_table(
+        Column("Short ID", style="yellow"),
         Column("Name", style="yellow"),
         Column("State", width=len("starting")),
-        Column("Description", max_width=30),
+        Column("Description", ratio=2),
         Column("UI"),
-        Column("Location", max_width=min(max_provider_len, 70)),
+        Column("Location", max_width=min(max(max_provider_len, len("Location")), 70)),
         Column("Missing Env", max_width=50),
-        Column("Last Error", ratio=1),
+        Column("Last Error", max_width=min(max(max_error_len, len("Last Error")), 50)),
         no_wrap=True,
     ) as table:
-        for agent in sorted(agents.values(), key=_sort_fn):
+        for provider in sorted(providers, key=_sort_fn):
             state = None
             missing_env = None
-            location = None
-            error = None
-            if provider := providers_by_id.get(agent.metadata.provider_id, None):
-                state = provider["state"]
-                missing_env = ",".join(var["name"] for var in provider["missing_configuration"])
-                location = _get_short_location(provider["source"])
-                error = (
-                    (provider.get("last_error") or {}).get("message", None)
-                    if provider["state"] != "ready"
-                    else "<none>"
-                )
+            state = provider.metadata["state"]
+            missing_env = ",".join(var["name"] for var in provider.metadata["missing_configuration"])
             table.add_row(
-                agent.name,
+                provider.id[:8],
+                provider.agent_card.name,
                 render_enum(
                     state or "<unknown>",
                     {
@@ -660,90 +803,77 @@ async def list_agents():
                         "error": "red",
                     },
                 ),
-                (agent.description or "<none>").replace("\n", " "),
-                (
-                    agent.metadata.model_dump().get("annotations", {}).get("beeai_ui", {}).get("ui_type")
-                    if agent.metadata.model_dump().get("annotations")
-                    else None
-                )
-                or "<none>",
-                location or "<none>",
+                (provider.agent_card.description or "<none>").replace("\n", " "),
+                (provider.ui_annotations or {}).get("ui_type") or "<none>",
+                provider.short_location or "<none>",
                 missing_env or "<none>",
-                error or "<none>",
+                provider.last_error or "<none>",
             )
     console.print(table)
-
-
-async def _get_agents() -> dict[str, Agent]:
-    async with acp_client() as client:
-        agents: list[Agent] = [agent async for agent in client.agents()]
-    agents_by_name = {agent.name: agent for agent in agents}
-    return agents_by_name
-
-
-async def _get_agent(name: str, agents_by_name: dict[str, Agent] | None = None) -> Agent:
-    if not agents_by_name:
-        agents_by_name = await _get_agents()
-    if agent := agents_by_name.get(name, None):
-        return agent
-    raise ACPError(error=Error(code=ErrorCode.NOT_FOUND, message=f"Agent '{name}' not found"))
 
 
 def _render_schema(schema: dict[str, Any] | None):
     return "No schema provided." if not schema else rich.json.JSON.from_data(schema)
 
 
-def _render_examples(agent: Agent):
-    if not (examples := (agent.metadata.model_dump().get("examples", {}) or {}).get("cli", []) or []):
-        return Text()
-    md = "## Examples"
-    for i, example in enumerate(examples):
-        processing_steps = "\n".join(
-            f"{i + 1}. {step}" for i, step in enumerate(example.get("processing_steps", []) or [])
-        )
-        name = example.get("name", None) or f"Example #{i + 1}"
-        output = f"""
-### Output
-```
-{example.get("output", "")}
-```
-"""
-        md += f"""
-### {name}
-{example.get("description", None) or ""}
-
-#### Command
-```sh
-{example["command"]}
-```
-{output if example.get("output", None) else ""}
-
-#### Processing steps
-{processing_steps}
-"""
-
-    return Markdown(md)
+def _render_examples(agent: AgentCard):
+    # TODO
+    return Text()
+    #     md = "## Examples"
+    #     for i, example in enumerate(examples):
+    #         processing_steps = "\n".join(
+    #             f"{i + 1}. {step}" for i, step in enumerate(example.get("processing_steps", []) or [])
+    #         )
+    #         name = example.get("name", None) or f"Example #{i + 1}"
+    #         output = f"""
+    # ### Output
+    # ```
+    # {example.get("output", "")}
+    # ```
+    # """
+    #         md += f"""
+    # ### {name}
+    # {example.get("description", None) or ""}
+    #
+    # #### Command
+    # ```sh
+    # {example["command"]}
+    # ```
+    # {output if example.get("output", None) else ""}
+    #
+    # #### Processing steps
+    # {processing_steps}
+    # """
+    # return Markdown(md)
 
 
 @app.command("info")
-async def agent_detail(name: typing.Annotated[str, typer.Argument(help="Name of agent tool to show")]):
+async def agent_detail(
+    search_path: typing.Annotated[
+        str, typer.Argument(..., help="Short ID, agent name or part of the provider location")
+    ],
+):
     """Show agent details."""
-    agent = await _get_agent(name)
+    provider = select_provider(search_path, await get_providers())
+    agent = provider.agent_card
 
     basic_info = f"# {agent.name}\n{agent.description}"
 
     console.print(Markdown(basic_info), "")
-    console.print(Markdown(agent.metadata.documentation or ""))
+    console.print(Markdown("## Skills"))
+    console.print()
+    for skill in agent.skills:
+        console.print(Markdown(f"**{skill.name}**  \n{skill.description}"))
+
     console.print(_render_examples(agent))
 
     with create_table(Column("Key", ratio=1), Column("Value", ratio=5), title="Extra information") as table:
-        for key, value in omit(agent.metadata.model_dump(), {"documentation", "examples"}).items():
+        for key, value in omit(agent.model_dump(), {"description", "examples"}).items():
             if value:
                 table.add_row(key, str(value))
     console.print()
     console.print(table)
 
-    provider = await get_provider(agent.metadata.provider_id)
     with create_table(Column("Key", ratio=1), Column("Value", ratio=5), title="Provider") as table:
         for key, value in omit(provider, {"image_id", "manifest", "source", "registry"}).items():
             table.add_row(key, str(value))

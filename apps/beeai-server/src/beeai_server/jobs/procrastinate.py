@@ -38,5 +38,5 @@ def create_app(configuration: Configuration) -> procrastinate.App:
     )
     app.add_tasks_from(blueprint=file_tasks, namespace="text_extraction")
     app.add_tasks_from(blueprint=provider_crons, namespace="cron_provider")
-    app.add_tasks_from(blueprint=cleanup_crons, namespace="cron_acp")
+    app.add_tasks_from(blueprint=cleanup_crons, namespace="cron_cleanup")
     return app

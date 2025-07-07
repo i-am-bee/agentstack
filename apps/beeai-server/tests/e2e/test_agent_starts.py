@@ -2,16 +2,25 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import asyncio
+from uuid import uuid4
 
 import pytest
-from acp_sdk import MessagePart
+from a2a.types import (
+    AgentCard,
+    Message,
+    MessageSendParams,
+    Role,
+    SendMessageRequest,
+    SendMessageSuccessResponse,
+    TextPart,
+)
 
 
 @pytest.mark.e2e
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up")
-async def test_agent(subtests, setup_real_llm, api_client, acp_client):
-    agent_image = "ghcr.io/i-am-bee/beeai-platform/official/beeai-framework/chat:agents-v0.2.14"
+async def test_agent(subtests, setup_real_llm, api_client, a2a_client_factory):
+    agent_image = "ghcr.io/i-am-bee/beeai-platform-agent-starter/my-agent-a2a:latest"
     with subtests.test("add chat agent"):
         response = await api_client.post("providers", json={"location": agent_image})
         response.raise_for_status()
@@ -20,21 +29,40 @@ async def test_agent(subtests, setup_real_llm, api_client, acp_client):
         providers = providers_response.json()
         assert len(providers["items"]) == 1
         assert providers["items"][0]["source"] == agent_image
+        agent_card = AgentCard.model_validate(providers["items"][0]["agent_card"])
+        assert agent_card
 
-    with subtests.test("run chat agent for the first time"):
-        num_parallel = 3
-        agent_input = MessagePart(content="Repeat this exactly: 'hello world'", role="user")
+        async with a2a_client_factory(agent_card) as a2a_client:
+            with subtests.test("run chat agent for the first time"):
+                num_parallel = 3
+                message = Message(
+                    messageId=str(uuid4()), parts=[TextPart(text="Repeat this exactly: 'hello world'")], role=Role.user
+                )
+                response = await a2a_client.send_message(
+                    SendMessageRequest(id=str(uuid4()), params=MessageSendParams(message=message))
+                )
 
-        # Run 3 requests in parallel (test that each request waits)
-        run_results = await asyncio.gather(
-            *(acp_client.run_sync(agent_input, agent="chat") for _ in range(num_parallel))
-        )
+                # Verify response
+                assert isinstance(response.root, SendMessageSuccessResponse)
+                assert "hello world" in response.root.result.parts[0].root.text
 
-        for result in run_results:
-            assert not result.error
-            assert "hello" in str(result.output[0]).lower()
+                # Run 3 requests in parallel (test that each request waits)
+                run_results = await asyncio.gather(
+                    *(
+                        a2a_client.send_message(
+                            SendMessageRequest(id=str(uuid4()), params=MessageSendParams(message=message))
+                        )
+                        for _ in range(num_parallel)
+                    )
+                )
 
-    with subtests.test("run chat agent for the second time"):
-        run = await acp_client.run_sync(agent_input, agent="chat")
-        assert not run.error
-        assert "hello" in str(run.output[0]).lower()
+                for response in run_results:
+                    assert isinstance(response.root, SendMessageSuccessResponse)
+                    assert "hello world" in response.root.result.parts[0].root.text
+
+            with subtests.test("run chat agent for the second time"):
+                response = await a2a_client.send_message(
+                    SendMessageRequest(id=str(uuid4()), params=MessageSendParams(message=message))
+                )
+                assert isinstance(response.root, SendMessageSuccessResponse)
+                assert "hello world" in response.root.result.parts[0].root.text

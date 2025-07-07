@@ -1,12 +1,11 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import datetime
 from collections.abc import AsyncIterator
 from datetime import timedelta
 from uuid import UUID
 
-from sqlalchemy import JSON, Boolean, Column, Integer, Row, String, Table
+from sqlalchemy import JSON, Boolean, Column, DateTime, Integer, Row, String, Table
 from sqlalchemy import UUID as SQL_UUID
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncConnection
@@ -15,7 +14,6 @@ from sqlalchemy.sql import delete, select
 from beeai_server.domain.models.provider import Provider
 from beeai_server.domain.repositories.provider import IProviderRepository
 from beeai_server.exceptions import DuplicateEntityError, EntityNotFoundError
-from beeai_server.infrastructure.persistence.repositories.agent import agent_requests_table, agents_table
 from beeai_server.infrastructure.persistence.repositories.db_metadata import metadata
 from beeai_server.utils.utils import utc_now
 
@@ -25,9 +23,11 @@ providers_table = Table(
     Column("id", SQL_UUID, primary_key=True),
     Column("source", String(2048), nullable=False),
     Column("registry", String(2048), nullable=True),
-    Column("env", JSON, nullable=False),
     Column("auto_stop_timeout_sec", Integer, nullable=False),
     Column("auto_remove", Boolean, default=False, nullable=False),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+    Column("last_active_at", DateTime(timezone=True), nullable=False),
+    Column("agent_card", JSON, nullable=False),
 )
 
 
@@ -44,8 +44,10 @@ class SqlAlchemyProviderRepository(IProviderRepository):
                 ),
                 "source": str(provider.source.root),
                 "registry": provider.registry and str(provider.registry.root),
-                "env": [env.model_dump(mode="json") for env in provider.env],
                 "auto_remove": provider.auto_remove,
+                "agent_card": provider.agent_card.model_dump(mode="json"),
+                "created_at": provider.created_at,
+                "last_active_at": provider.last_active_at,
             }
         )
         if provider.auto_remove:
@@ -53,8 +55,6 @@ class SqlAlchemyProviderRepository(IProviderRepository):
         try:
             await self.connection.execute(query)
         except IntegrityError as e:
-            # Most likely the name field caused the duplication since it has a unique constraint
-            # Extract agent name from the error message if possible
             raise DuplicateEntityError(entity="provider", field="source", value=provider.source.root) from e
 
     def _to_provider(self, row: Row) -> Provider:
@@ -64,8 +64,10 @@ class SqlAlchemyProviderRepository(IProviderRepository):
                 "source": row.source,
                 "registry": row.registry,
                 "auto_stop_timeout": timedelta(seconds=row.auto_stop_timeout_sec),
-                "env": row.env,
                 "auto_remove": row.auto_remove,
+                "last_active_at": row.last_active_at,
+                "created_at": row.created_at,
+                "agent_card": row.agent_card,
             }
         )
 
@@ -77,24 +79,13 @@ class SqlAlchemyProviderRepository(IProviderRepository):
 
         return self._to_provider(row)
 
+    async def update_last_accessed(self, *, provider_id: UUID) -> None:
+        query = providers_table.update().where(providers_table.c.id == provider_id).values(last_active_at=utc_now())
+        await self.connection.execute(query)
+
     async def delete(self, *, provider_id: UUID) -> None:
         query = delete(providers_table).where(providers_table.c.id == provider_id)
         await self.connection.execute(query)
-
-    async def get_last_active_at(self, *, provider_id: UUID) -> datetime.datetime | None:
-        rows = (
-            await self.connection.execute(
-                agent_requests_table.select()
-                .join(agents_table, agent_requests_table.c.agent_id == agents_table.c.id)
-                .join(providers_table, agents_table.c.provider_id == providers_table.c.id)
-                .where(providers_table.c.id == provider_id)
-                .order_by(agent_requests_table.c.finished_at.desc())
-                .limit(1)
-            )
-        ).all()
-        if not rows:
-            return None
-        return rows[0].finished_at or utc_now()
 
     async def list(self, *, auto_remove_filter: bool | None = None) -> AsyncIterator[Provider]:
         query = providers_table.select()

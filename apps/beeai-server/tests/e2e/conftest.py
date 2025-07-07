@@ -2,11 +2,14 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
+from contextlib import asynccontextmanager
+from typing import Any
 
 import httpx
 import pytest_asyncio
-from acp_sdk.client import Client
+from a2a.client import A2AClient
+from a2a.types import AgentCard
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +23,13 @@ async def api_client(test_configuration) -> AsyncIterator[httpx.AsyncClient]:
 
 
 @pytest_asyncio.fixture()
-async def acp_client(api_client, test_configuration) -> AsyncIterator[Client]:
-    async with Client(base_url=f"{str(test_configuration.server_url).rstrip('/')}/api/v1/acp") as client:
-        yield client
+async def a2a_client_factory() -> Callable[[AgentCard | dict[str, Any]], AsyncIterator[A2AClient]]:
+    @asynccontextmanager
+    async def a2a_client_factory(agent_card: AgentCard | dict) -> AsyncIterator[A2AClient]:
+        async with httpx.AsyncClient(timeout=None) as client:
+            yield A2AClient(client, agent_card)
+
+    return a2a_client_factory
 
 
 @pytest_asyncio.fixture()

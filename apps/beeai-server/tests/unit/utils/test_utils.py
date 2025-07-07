@@ -55,5 +55,5 @@ async def test_extract_string_value_stream_key_in_between_chunks(obj, error):
     reader = async_json_reader(obj)
 
     with pytest.raises(error):
-        async for chunk in extract_string_value_stream(reader, "text"):
+        async for _chunk in extract_string_value_stream(reader, "text"):
             ...

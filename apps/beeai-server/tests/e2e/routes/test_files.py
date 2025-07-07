@@ -13,7 +13,7 @@ pytestmark = pytest.mark.e2e
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up")
-async def test_files(subtests, setup_real_llm, api_client, acp_client):
+async def test_files(subtests, setup_real_llm, api_client):
     with subtests.test("upload file"):
         response = await api_client.post(
             "files", files={"file": ("test.txt", '{"hello": "world"}', "application/json")}
@@ -124,15 +124,14 @@ async def test_text_extraction_pdf_workflow(subtests, api_client, test_pdf: Call
         response = await api_client.delete(f"files/{file_id}/extraction")
         response.raise_for_status()
 
-    with subtests.test("verify extraction deleted"):
-        with pytest.raises(httpx.HTTPStatusError, match="404 Not Found"):
-            response = await api_client.get(f"files/{file_id}/extraction")
-            response.raise_for_status()
+    with subtests.test("verify extraction deleted"), pytest.raises(httpx.HTTPStatusError, match="404 Not Found"):
+        response = await api_client.get(f"files/{file_id}/extraction")
+        response.raise_for_status()
 
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up")
-async def test_text_extraction_plain_text_workflow(subtests, setup_real_llm, api_client, acp_client):
+async def test_text_extraction_plain_text_workflow(subtests, setup_real_llm, api_client):
     """Test text extraction for plain text files (should be immediate)"""
 
     text_content = "This is a sample text document with some content for testing text extraction."

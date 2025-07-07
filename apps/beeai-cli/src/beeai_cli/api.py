@@ -14,7 +14,8 @@ from typing import Any
 
 import httpx
 import psutil
-from acp_sdk.client import Client
+from a2a.client import A2AClient
+from a2a.types import AgentCard
 from httpx import BasicAuth, HTTPStatusError
 from httpx._types import RequestFiles
 
@@ -117,6 +118,6 @@ async def api_stream(
 
 
 @asynccontextmanager
-async def acp_client() -> AsyncIterator[Client]:
-    async with Client(base_url=ACP_URL) as client:
-        yield client
+async def a2a_client(agent_card: AgentCard) -> AsyncIterator[A2AClient]:
+    async with httpx.AsyncClient() as httpx_client:
+        yield A2AClient(httpx_client=httpx_client, agent_card=agent_card)

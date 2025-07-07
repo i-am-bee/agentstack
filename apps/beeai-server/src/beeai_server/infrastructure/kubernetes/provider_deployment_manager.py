@@ -187,7 +187,7 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
                     async with AsyncClient(
                         base_url=str(await self.get_provider_url(provider_id=provider_id))
                     ) as client:
-                        resp = await client.get("ping", timeout=1)
+                        resp = await client.get(".well-known/agent.json", timeout=2)
                         resp.raise_for_status()
 
     async def state(self, *, provider_ids: list[UUID]) -> list[ProviderDeploymentState]:

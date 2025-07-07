@@ -8,7 +8,7 @@ pytestmark = pytest.mark.e2e
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up")
-async def test_vector_stores(subtests, api_client, acp_client):
+async def test_vector_stores(subtests, api_client):
     items = [
         {
             "document_id": "doc_001",
@@ -66,7 +66,7 @@ async def test_vector_stores(subtests, api_client, acp_client):
         for result in response_json["items"]:
             assert "item" in result
             assert "score" in result
-            assert isinstance(result["score"], (int, float))
+            assert isinstance(result["score"], int | float)
             assert 0.0 <= result["score"] <= 1.0
 
         # Verify the search results order based on the items in the result
@@ -77,7 +77,7 @@ async def test_vector_stores(subtests, api_client, acp_client):
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up")
-async def test_vector_store_deletion(subtests, api_client, acp_client):
+async def test_vector_store_deletion(subtests, api_client):
     """Test vector store deletion functionality"""
     items = [
         {
@@ -117,7 +117,7 @@ async def test_vector_store_deletion(subtests, api_client, acp_client):
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up")
-async def test_document_deletion(subtests, api_client, acp_client):
+async def test_document_deletion(subtests, api_client):
     """Test individual document deletion functionality"""
     initial_items = [
         {
@@ -200,7 +200,7 @@ async def test_document_deletion(subtests, api_client, acp_client):
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up")
-async def test_adding_items_to_existing_documents(subtests, api_client, acp_client):
+async def test_adding_items_to_existing_documents(subtests, api_client):
     """Test adding new items to existing documents in vector store"""
     initial_items = [
         {
@@ -308,7 +308,7 @@ async def test_adding_items_to_existing_documents(subtests, api_client, acp_clie
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up")
-async def test_document_listing(subtests, api_client, acp_client):
+async def test_document_listing(subtests, api_client):
     """Test listing documents in a vector store"""
     items = [
         {

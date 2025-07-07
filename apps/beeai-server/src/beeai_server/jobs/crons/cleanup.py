@@ -15,20 +15,6 @@ blueprint = Blueprint()
 logger = logging.getLogger(__name__)
 
 
-@blueprint.periodic(cron="*/5 * * * *")
-@blueprint.task(queueing_lock="clean_up_old_requests", queue="cron:cleanup")
-@inject
-async def clean_up_old_requests(timestamp: int, configuration: Configuration, uow: IUnitOfWorkFactory):
-    async with uow() as uow:
-        deleted_count = await uow.agents.delete_requests_older_than(
-            finished_threshold=timedelta(seconds=configuration.persistence.finished_requests_remove_after_sec),
-            stale_threshold=timedelta(seconds=configuration.persistence.stale_requests_remove_after_sec),
-        )
-        await uow.commit()
-    if deleted_count:
-        logger.info(f"Deleted {deleted_count} old requests")
-
-
 @blueprint.periodic(cron="5 * * * *")
 @blueprint.task(queueing_lock="cleanup_expired_vector_stores", queue="cron:cleanup")
 @inject

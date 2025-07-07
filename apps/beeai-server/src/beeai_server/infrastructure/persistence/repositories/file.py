@@ -20,9 +20,7 @@ from sqlalchemy import (
     func,
     select,
 )
-from sqlalchemy import (
-    UUID as SQL_UUID,
-)
+from sqlalchemy import UUID as SQL_UUID
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from beeai_server.domain.models.file import ExtractionStatus, File, FileType, TextExtraction

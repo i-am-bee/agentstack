@@ -7,14 +7,15 @@ from datetime import timedelta
 
 import pytest
 import pytest_asyncio
+from a2a.types import AgentCapabilities, AgentCard
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from beeai_server.configuration import Configuration
-from beeai_server.domain.models.agent import EnvVar
 from beeai_server.domain.models.provider import NetworkProviderLocation, Provider
 from beeai_server.exceptions import DuplicateEntityError, EntityNotFoundError
 from beeai_server.infrastructure.persistence.repositories.provider import SqlAlchemyProviderRepository
+from beeai_server.utils.utils import utc_now
 
 pytestmark = pytest.mark.integration
 
@@ -32,9 +33,16 @@ async def test_provider(set_di_configuration) -> Provider:
     return Provider(
         source=NetworkProviderLocation(root="http://localhost:8000"),
         registry=None,
-        env=[
-            EnvVar(name="TEST_ENV", description="Test environment variable", required=False),
-        ],
+        agent_card=AgentCard(
+            name="Hello World Agent",
+            description="Just a hello world agent",
+            url="http://localhost:8000/",
+            version="1.0.0",
+            defaultInputModes=["text"],
+            defaultOutputModes=["text"],
+            capabilities=AgentCapabilities(),
+            skills=[],
+        ),
         auto_stop_timeout=timedelta(minutes=5),
         auto_remove=False,
     )
@@ -61,7 +69,7 @@ async def test_create_provider(db_transaction: AsyncConnection, test_provider: P
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("set_di_configuration")
-async def test_get_provider(db_transaction: AsyncConnection):
+async def test_get_provider(db_transaction: AsyncConnection, test_provider):
     # Create repository
     repository = SqlAlchemyProviderRepository(connection=db_transaction)
 
@@ -70,17 +78,29 @@ async def test_get_provider(db_transaction: AsyncConnection):
         "id": source.provider_id,
         "source": str(source.root),
         "registry": None,
-        "env": json.dumps([{"name": "TEST_ENV", "description": "Test environment variable", "required": False}]),
+        "created_at": utc_now(),
+        "last_active_at": utc_now(),
+        "agent_card": {
+            "capabilities": {},
+            "defaultInputModes": ["text"],
+            "defaultOutputModes": ["text"],
+            "description": "Just a hello world agent",
+            "name": "Hello World Agent",
+            "protocolVersion": "0.2.5",
+            "skills": [],
+            "url": "http://localhost:8000/",
+            "version": "1.0.0",
+        },
         "auto_stop_timeout_sec": 300,  # 5 minutes
         "auto_remove": False,
     }
 
     await db_transaction.execute(
         text(
-            "INSERT INTO providers (id, source, registry, env, auto_stop_timeout_sec, auto_remove) "
-            "VALUES (:id, :source, :registry, :env, :auto_stop_timeout_sec, :auto_remove)"
+            "INSERT INTO providers (id, source, registry, auto_stop_timeout_sec, auto_remove, agent_card, created_at, last_active_at) "
+            "VALUES (:id, :source, :registry, :auto_stop_timeout_sec, :auto_remove, :agent_card, :created_at, :last_active_at)"
         ),
-        provider_data,
+        {**provider_data, "agent_card": json.dumps(provider_data["agent_card"])},
     )
     # Get provider
     provider = await repository.get(provider_id=provider_data["id"])
@@ -136,7 +156,19 @@ async def test_list_providers(db_transaction: AsyncConnection):
         "id": source.provider_id,
         "source": str(source.root),
         "registry": None,
-        "env": json.dumps([{"name": "TEST_ENV_1", "description": "Test environment variable 1", "required": False}]),
+        "created_at": utc_now(),
+        "last_active_at": utc_now(),
+        "agent_card": {
+            "capabilities": {},
+            "defaultInputModes": ["text"],
+            "defaultOutputModes": ["text"],
+            "description": "Test agent 1",
+            "name": "Test Agent 1",
+            "protocolVersion": "0.2.5",
+            "skills": [],
+            "url": "http://localhost:8001/",
+            "version": "1.0.0",
+        },
         "auto_stop_timeout_sec": 300,
         "auto_remove": False,
     }
@@ -144,17 +176,32 @@ async def test_list_providers(db_transaction: AsyncConnection):
         "id": source2.provider_id,
         "source": str(source2.root),
         "registry": None,
-        "env": json.dumps([{"name": "TEST_ENV_2", "description": "Test environment variable 2", "required": False}]),
+        "created_at": utc_now(),
+        "last_active_at": utc_now(),
+        "agent_card": {
+            "capabilities": {},
+            "defaultInputModes": ["text"],
+            "defaultOutputModes": ["text"],
+            "description": "Test agent 2",
+            "name": "Test Agent 2",
+            "protocolVersion": "0.2.5",
+            "skills": [],
+            "url": "http://localhost:8002/",
+            "version": "1.0.0",
+        },
         "auto_stop_timeout_sec": 600,
         "auto_remove": True,
     }
 
     await db_transaction.execute(
         text(
-            "INSERT INTO providers (id, source, registry, env, auto_stop_timeout_sec, auto_remove) "
-            "VALUES (:id, :source, :registry, :env, :auto_stop_timeout_sec, :auto_remove)"
+            "INSERT INTO providers (id, source, registry, agent_card, created_at, last_active_at, auto_stop_timeout_sec, auto_remove) "
+            "VALUES (:id, :source, :registry, :agent_card, :created_at, :last_active_at, :auto_stop_timeout_sec, :auto_remove)"
         ),
-        [first_provider, second_provider],
+        [
+            {**first_provider, "agent_card": json.dumps(first_provider["agent_card"])},
+            {**second_provider, "agent_card": json.dumps(second_provider["agent_card"])},
+        ],
     )
 
     # List all providers
@@ -197,7 +244,7 @@ async def test_create_duplicate_provider(db_transaction: AsyncConnection, test_p
     duplicate_provider = Provider(
         source=NetworkProviderLocation(root="http://localhost:8000"),  # Same source, will generate same ID
         registry=None,
-        env=[EnvVar(name="DIFFERENT_ENV", description="Different environment variable")],
+        agent_card=test_provider.agent_card.model_copy(update={"name": "NEW_AGENT"}),
         auto_stop_timeout=timedelta(minutes=10),  # Different timeout
         auto_remove=False,
     )
@@ -216,7 +263,7 @@ async def test_replace_transient_provider(db_transaction: AsyncConnection, test_
     await repository.create(test_provider)
     new_provider = Provider(
         source=NetworkProviderLocation(root="http://localhost:8000"),  # Same source will generate same ID
-        env=[EnvVar(name="NEW_ENV", description="different env")],
+        agent_card=test_provider.agent_card.model_copy(update={"name": "NEW_AGENT"}),
         auto_remove=True,
     )
 
@@ -227,4 +274,4 @@ async def test_replace_transient_provider(db_transaction: AsyncConnection, test_
     result = await db_transaction.execute(text("SELECT * FROM providers WHERE id = :id"), {"id": test_provider.id})
     row = result.fetchone()
     assert row is not None
-    assert row.env[0]["name"] == "NEW_ENV"
+    assert row.agent_card["name"] == "NEW_AGENT"
