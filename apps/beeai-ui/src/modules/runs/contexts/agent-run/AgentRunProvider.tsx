@@ -118,6 +118,13 @@ export function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) 
         message.status = MessageStatus.Completed;
       });
     },
+    onRunCompleted: () => {
+      updateLastAgentMessage((message) => {
+        if (message.status !== MessageStatus.Completed) {
+          message.status = MessageStatus.Failed;
+        }
+      });
+    },
     onStop: () => {
       updateLastAgentMessage((message) => {
         message.status = MessageStatus.Aborted;
