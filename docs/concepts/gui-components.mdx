@@ -3,15 +3,17 @@ title: "GUI Components"
 description: "Customize how your agents appear and behave in the BeeAI platform interface"
 ---
 
-GUI components in the BeeAI platform define how your agents appear and behave in the graphical user interface. Through the `PlatformUIAnnotation` metadata, you can customize the visual presentation and interaction patterns for your agents.
+GUI components in the BeeAI platform define how your agents appear and behave in the graphical user interface. This customization happens through two types of metadata:
+1. **Standard ACP metadata** - recognized by any ACP-compliant system
+2. **BeeAI platform extensions** - specific to the BeeAI platform GUI
 
 <Note>
 To fully customize your agent's appearance and behavior in the interface, you'll be using metadata defined by the Agent Communication Protocol (ACP). For details on how metadata annotations work, see the [ACP metadata documentation](https://agentcommunicationprotocol.dev/core-concepts/agent-manifest#schema-metadata).
 </Note>
 
-## Configuration
+## BeeAI Platform Extensions
 
-The `PlatformUIAnnotation` is the primary configuration object that defines how your agent appears in the GUI. It's specified within your agent's metadata annotations.
+BeeAI Platform extends the standard ACP metadata with platform-specific GUI customizations through the `PlatformUIAnnotation`. This annotation is placed in the `beeai_ui` field within the agent's metadata annotations.
 
 ```python
 from acp_sdk import Annotations, Metadata
@@ -57,7 +59,7 @@ The hands-off interface (`PlatformUIType.HANDSOFF`) is designed for autonomous a
     Hands-off UI is ideal for automated workflows where there is a clear output. For example, consider a researcher agent: it receives a clearly defined input which is the research topic and then it produces a well-structured output which is the resulting research.
 </Info>
 
-## Display Properties
+## Platform-Specific Properties
 
 ### Display Name
 
@@ -101,6 +103,10 @@ PlatformUIAnnotation(
     ]
 )
 ```
+
+## Standard ACP Metadata
+
+These properties are part of the standard Agent Communication Protocol and will be recognized by any ACP-compliant system, not just BeeAI. They provide essential information about your agent that appears in the GUI.
 
 ### Tags
 
