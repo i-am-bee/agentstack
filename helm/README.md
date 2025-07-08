@@ -82,6 +82,35 @@ helm upgrade --install -f config.yaml beeai oci://ghcr.io/i-am-bee/beeai-platfor
 
 ## External Services
 
+### External PostgreSQL support
+
+If you prefer to use an existing PostgreSQL instance instead of provisioning a new one within the cluster,  
+you can disable the built-in PostgreSQL and provide the required connection details using the `externalDatabase` section.  
+Below is an example configuration:
+
+```console
+postgresql.enabled=false
+externalDatabase.host=<your-database-host>
+externalDatabase.port=<your-database-port>
+externalDatabase.database=<your-database-name>
+externalDatabase.user=<your-database-username>
+externalDatabase.password=<your-database-password>
+```
+
+If you encounter issues with installing `vector` extension during db migration, you can disable the creation by:
+```console
+initContainers.createVectorDbExtension=false
+```
+Then make sure the following SQL statements were executed in your database:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+SET maintenance_work_mem = '512MB';
+SET hnsw.ef_search = 1000;
+SET hnsw.iterative_scan = strict_order;
+SET hnsw.max_scan_tuples = 1000000;
+```
+
 ### External S3 support
 
 You may want to have beeai platform connect to an external storage streaming rather than installing seaweedfs inside
