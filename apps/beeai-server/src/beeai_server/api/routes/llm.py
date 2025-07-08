@@ -164,10 +164,7 @@ async def create_chat_completion(env_service: EnvServiceDependency, request: Cha
 
         if request.stream:
             stream = await client.chat.completions.create(**params)
-            return StreamingResponse(
-                _stream_openai_chat_completion(stream),
-                media_type="text/event-stream",
-            )
+            return StreamingResponse(_stream_openai_chat_completion(stream), media_type="text/event-stream")
         else:
             response = await client.chat.completions.create(**params)
             openai_choice = response.choices[0]
@@ -197,26 +194,22 @@ def _stream_watsonx_chat_completion(
     try:
         for chunk in model.chat_stream(messages=messages, tools=tools, **watsonx_params):
             choice = chunk["choices"][0]
-            finish_reason = choice.get("finish_reason")
-            delta = choice.get("delta", {})
-
             response_chunk = ChatCompletionStreamResponse(
                 id=completion_id,
                 created=created_time,
                 model=request.model,
                 choices=[
                     ChatCompletionStreamResponseChoice(
-                        delta=ChatCompletionStreamDelta(**delta),
-                        finish_reason=finish_reason,
+                        delta=ChatCompletionStreamDelta(**choice.get("delta", {})),
+                        finish_reason=choice.get("finish_reason"),
                     )
                 ],
             )
             yield f"data: {response_chunk.model_dump_json(exclude_none=True)}\n\n"
-            if finish_reason:
+            if choice.get("finish_reason"):
                 break
     except Exception as e:
-        error_payload = {"error": {"message": str(e), "type": type(e).__name__}}
-        yield f"data: {json.dumps(error_payload)}\n\n"
+        yield f"data: {json.dumps({'error': {'message': str(e), 'type': type(e).__name__}})}\n\n"
     finally:
         yield "data: [DONE]\n\n"
 
@@ -226,7 +219,6 @@ async def _stream_openai_chat_completion(stream: AsyncGenerator) -> AsyncGenerat
         async for chunk in stream:
             yield f"data: {chunk.model_dump_json(exclude_none=True)}\n\n"
     except Exception as e:
-        error_payload = {"error": {"message": str(e), "type": type(e).__name__}}
-        yield f"data: {json.dumps(error_payload)}\n\n"
+        yield f"data: {json.dumps({'error': {'message': str(e), 'type': type(e).__name__}})}\n\n"
     finally:
         yield "data: [DONE]\n\n"
