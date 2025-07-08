@@ -23,7 +23,5 @@ runs:
         echo "UV_PYTHON_PREFERENCE=only-system" >> $GITHUB_ENV
     
     - uses: jdx/mise-action@5083fe46898c414b2475087cc79da59e7da859e8
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         version: 2025.2.6

@@ -85,6 +85,8 @@ jobs:
           echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
           echo "latestTag=$([[ ${GITHUB_REF#refs/tags/v} =~ [a-zA-Z] ]] && echo prerelease || echo latest)" >> $GITHUB_OUTPUT
       - uses: ./.github/actions/setup
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: mise run version:check
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
