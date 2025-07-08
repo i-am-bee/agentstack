@@ -50,7 +50,3 @@ $avatar-padding-left: $spacing-04 + rem(32px);
     @include font-family(serif);
   }
 }
-
-.empty {
-  color: $text-disabled;
-}

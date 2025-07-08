@@ -17,12 +17,13 @@ import {
   type CitationTransform,
   type MessageContentTransform,
   MessageContentTransformType,
+  type UserMessage,
 } from './chat/types';
 import type { UploadFileResponse } from './files/api/types';
 import type { FileEntity } from './files/types';
 import { getFileContentUrl } from './files/utils';
 import type { SourceReference } from './sources/api/types';
-import { Role, type RunLog } from './types';
+import { Role } from './types';
 
 humanizeDuration.languages.shortEn = {
   h: () => 'h',
@@ -153,17 +154,7 @@ export function mapToMessageFiles(uploadFiles: UploadFileResponse[]) {
   return uploadFiles.map(({ id, filename }) => ({ key: id, filename, href: getFileContentUrl({ id }) }));
 }
 
-export function formatLog(log: RunLog) {
-  const { message } = log;
-
-  if (message && typeof parseJsonLikeString(message) === 'string') {
-    return message;
-  }
-
-  return JSON.stringify(log);
-}
-
-const parseJsonLikeString = (string: string): unknown | string => {
+export const parseJsonLikeString = (string: string): unknown | string => {
   try {
     const json = JSON5.parse(string);
 
@@ -175,4 +166,8 @@ const parseJsonLikeString = (string: string): unknown | string => {
 
 export function isAgentMessage(message: ChatMessage): message is AgentMessage {
   return message.role === Role.Agent || message.role.startsWith(`${Role.Agent}/`);
+}
+
+export function isUserMessage(message: ChatMessage): message is UserMessage {
+  return message.role === Role.User;
 }

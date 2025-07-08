@@ -5,18 +5,18 @@
 
 import { ElapsedTime } from '../components/ElapsedTime';
 import { StatusBar } from '../components/StatusBar';
-import { useAgent } from '../contexts/agent';
-import { useHandsOff } from '../contexts/hands-off';
+import { useAgentRun } from '../contexts/agent-run';
+import { useAgentStatus } from '../contexts/agent-status';
 
 interface Props {
   onStopClick?: () => void;
 }
 
 export function TaskStatusBar({ onStopClick }: Props) {
-  const { stats, isPending } = useHandsOff();
+  const { stats, isPending } = useAgentRun();
   const {
     status: { isNotInstalled, isStarting },
-  } = useAgent();
+  } = useAgentStatus();
 
   return stats?.startTime ? (
     <StatusBar isPending={isPending} onStopClick={onStopClick}>

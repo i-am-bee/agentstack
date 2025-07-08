@@ -17,17 +17,17 @@ import classes from './MainContentView.module.scss';
 
 export interface MainContentViewProps extends PropsWithChildren {
   spacing?: 'md' | 'lg';
+  scrollable?: boolean;
   enableToTopButton?: boolean;
   showFooter?: boolean;
-  limitHeight?: boolean;
   className?: string;
 }
 
 export function MainContentView({
   spacing = 'lg',
+  scrollable = true,
   enableToTopButton,
   showFooter,
-  limitHeight,
   className,
   children,
 }: MainContentViewProps) {
@@ -37,10 +37,17 @@ export function MainContentView({
   return (
     <div
       ref={mergeRefs([toTopRef, scrollbarRef])}
-      className={clsx(classes.root, classes[spacing], className)}
+      className={clsx(
+        classes.root,
+        {
+          [classes[spacing]]: spacing,
+          [classes.scrollable]: scrollable,
+        },
+        className,
+      )}
       {...createScrollbarStyles({ width: scrollbarWidth })}
     >
-      <div className={clsx(classes.body, limitHeight && classes.limitHeight)}>{children}</div>
+      <div className={classes.body}>{children}</div>
 
       {showButton && <ToTopButton onClick={handleToTopClick} />}
 

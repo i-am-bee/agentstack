@@ -4,56 +4,26 @@
  */
 
 'use client';
-import { Container } from '#components/layouts/Container.tsx';
-import { MainContent } from '#components/layouts/MainContent.tsx';
 import { type Agent, UiType } from '#modules/agents/api/types.ts';
 import { getAgentUiMetadata } from '#modules/agents/utils.ts';
 
-import { Chat } from '../chat/Chat';
-import { ChatProvider } from '../contexts/chat/ChatProvider';
-import { HandsOffProvider } from '../contexts/hands-off/HandsOffProvider';
-import { FileUploadProvider } from '../files/contexts/FileUploadProvider';
-import { HandsOff } from '../hands-off/HandsOff';
-import classes from './AgentRun.module.scss';
+import { ChatView } from '../chat/ChatView';
+import { HandsOffView } from '../hands-off/HandsOffView';
+import { UiNotAvailableView } from './UiNotAvailableView';
 
 interface Props {
   agent: Agent;
 }
 
 export function AgentRun({ agent }: Props) {
-  const { ui_type, display_name } = getAgentUiMetadata(agent);
-
-  const inputContentTypes = agent.input_content_types ?? [];
+  const { ui_type } = getAgentUiMetadata(agent);
 
   switch (ui_type) {
     case UiType.Chat:
-      return (
-        <FileUploadProvider key={agent.name} allowedContentTypes={inputContentTypes}>
-          <ChatProvider agent={agent}>
-            <Chat />
-          </ChatProvider>
-        </FileUploadProvider>
-      );
+      return <ChatView agent={agent} key={agent.name} />;
     case UiType.HandsOff:
-      return (
-        <FileUploadProvider key={agent.name} allowedContentTypes={inputContentTypes}>
-          <HandsOffProvider agent={agent}>
-            <HandsOff />
-          </HandsOffProvider>
-        </FileUploadProvider>
-      );
+      return <HandsOffView agent={agent} key={agent.name} />;
     default:
-      return (
-        <MainContent>
-          <Container size="sm">
-            <h1>{display_name}</h1>
-            <div className={classes.uiNotAvailable}>
-              {ui_type
-                ? `The UI requested by the agent is not available: '${ui_type}'`
-                : 'The agent doesn’t have a defined UI.'}
-            </div>
-          </Container>
-        </MainContent>
-      );
+      return <UiNotAvailableView agent={agent} />;
   }
 }

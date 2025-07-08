@@ -6,18 +6,12 @@
 import { createContext, type Dispatch, type SetStateAction } from 'react';
 
 import type { SourcesData } from '../api/types';
-import type { ActiveMessageKey, ActiveSourceKey } from './types';
+import type { ActiveSource } from './types';
 
-export const SourcesContext = createContext<SourcesContextValue>({
-  sourcesData: {},
-  activeMessageKey: null,
-  activeSourceKey: null,
-});
+export const SourcesContext = createContext<SourcesContextValue | undefined>(undefined);
 
 interface SourcesContextValue {
   sourcesData: SourcesData;
-  activeMessageKey: ActiveMessageKey;
-  activeSourceKey: ActiveSourceKey;
-  setActiveMessageKey?: Dispatch<SetStateAction<ActiveMessageKey>>;
-  setActiveSourceKey?: Dispatch<SetStateAction<ActiveSourceKey>>;
+  activeSource: ActiveSource | null;
+  setActiveSource: Dispatch<SetStateAction<ActiveSource | null>>;
 }

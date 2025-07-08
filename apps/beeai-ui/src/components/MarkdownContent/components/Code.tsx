@@ -3,28 +3,45 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import clsx from 'clsx';
 import isString from 'lodash/isString';
 import type { HTMLAttributes } from 'react';
 import type { ExtraProps } from 'react-markdown';
 
+import { CodeSnippet } from '#components/CodeSnippet/CodeSnippet.tsx';
 import { CopySnippet } from '#components/CopySnippet/CopySnippet.tsx';
 import { SyntaxHighlighter } from '#components/SyntaxHighlighter/SyntaxHighlighter.tsx';
 
-export function Code({ className, children }: HTMLAttributes<HTMLElement> & ExtraProps) {
-  const language = getLanguage(className);
+import classes from './Code.module.scss';
 
-  if (!language) {
-    return <code className={className}>{children}</code>;
-  }
+interface Props extends HTMLAttributes<HTMLElement>, ExtraProps {
+  inline?: boolean;
+  forceExpand?: boolean;
+}
+
+export function Code({ inline, forceExpand, className, children }: Props) {
+  const language = getLanguage(className);
 
   if (!isString(children)) {
     return null;
   }
 
+  if (language) {
+    return (
+      <CopySnippet>
+        <SyntaxHighlighter language={language}>{children}</SyntaxHighlighter>
+      </CopySnippet>
+    );
+  }
+
+  if (inline) {
+    return <code className={clsx(classes.inline, className)}>{children}</code>;
+  }
+
   return (
-    <CopySnippet>
-      <SyntaxHighlighter language={language}>{children}</SyntaxHighlighter>
-    </CopySnippet>
+    <CodeSnippet forceExpand={forceExpand} hideCopyButton={forceExpand}>
+      {children}
+    </CodeSnippet>
   );
 }
 

@@ -20,7 +20,7 @@ export function SidebarButton() {
         kind="ghost"
         size="sm"
         wrapperClasses={classes.button}
-        onClick={() => setNavigationOpen?.((value) => !value)}
+        onClick={() => setNavigationOpen((value) => !value)}
         label="Toggle sidebar"
         autoAlign
       >

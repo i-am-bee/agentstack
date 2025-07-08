@@ -25,30 +25,30 @@ interface Props {
 
 export function SplitPanesView({ leftPane, rightPane, mainContent, isSplit, spacing }: Props) {
   const { ref: leftPaneRef, scrollbarWidth } = useScrollbarWidth();
-  const { agentDetailOpen, navigationOpen, hideAgentDetail, setNavigationOpen, setCloseNavOnClickOutside } = useApp();
+  const { navigationOpen, activeSidePanel, setNavigationOpen, setCloseNavOnClickOutside, closeSidePanel } = useApp();
 
   useEffect(() => {
     if (isSplit) {
-      hideAgentDetail?.();
-      setNavigationOpen?.(false);
+      setNavigationOpen(false);
+      closeSidePanel();
     }
-  }, [isSplit, hideAgentDetail, setNavigationOpen]);
+  }, [isSplit, setNavigationOpen, closeSidePanel]);
 
   useEffect(() => {
     if (navigationOpen && isSplit) {
-      setCloseNavOnClickOutside?.(true);
+      setCloseNavOnClickOutside(true);
     } else {
-      setCloseNavOnClickOutside?.(false);
+      setCloseNavOnClickOutside(false);
     }
 
     return () => {
-      setCloseNavOnClickOutside?.(false);
+      setCloseNavOnClickOutside(false);
     };
   }, [isSplit, navigationOpen, setCloseNavOnClickOutside]);
 
   return (
     <AnimatePresence mode="wait">
-      {isSplit && !agentDetailOpen ? (
+      {isSplit && !activeSidePanel ? (
         <Wrapper key="split-view" className={classes.splitView} immediateExit>
           <div className={classes.leftPane} ref={leftPaneRef} {...createScrollbarStyles({ width: scrollbarWidth })}>
             <div className={classes.content}>{leftPane}</div>

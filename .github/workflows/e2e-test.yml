@@ -31,6 +31,8 @@ jobs:
           path: ~/.cache/lima
           key: lima-${{ steps.lima-actions-setup.outputs.version }}
       - uses: ./.github/actions/setup
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: mise run beeai-server:test:e2e
         env:
           # TODO: use github models

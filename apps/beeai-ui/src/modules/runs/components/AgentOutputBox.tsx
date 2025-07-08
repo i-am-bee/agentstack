@@ -4,22 +4,25 @@
  */
 
 import { CopyButton } from '@carbon/react';
+import type { PropsWithChildren } from 'react';
 
 import { DownloadButton } from '#components/DownloadButton/DownloadButton.tsx';
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 
+import type { SourceReference } from '../sources/api/types';
 import classes from './AgentOutputBox.module.scss';
 
 interface Props {
   isPending: boolean;
   text?: string;
   downloadFileName?: string;
+  sources?: SourceReference[];
 }
 
-export function AgentOutputBox({ isPending, text, downloadFileName }: Props) {
-  return text ? (
+export function AgentOutputBox({ isPending, text, downloadFileName, sources, children }: PropsWithChildren<Props>) {
+  return text || children ? (
     <div className={classes.root}>
-      {!isPending && (
+      {!isPending && text && (
         <div className={classes.actions}>
           <CopyButton kind="ghost" align="left" onClick={() => navigator.clipboard.writeText(text)} />
 
@@ -27,7 +30,9 @@ export function AgentOutputBox({ isPending, text, downloadFileName }: Props) {
         </div>
       )}
 
-      <MarkdownContent>{text}</MarkdownContent>
+      {text && <MarkdownContent sources={sources}>{text}</MarkdownContent>}
+
+      {children && <div>{children}</div>}
     </div>
   ) : null;
 }

@@ -4,6 +4,7 @@
  */
 
 import { useApp } from '#contexts/App/index.ts';
+import { SidePanelVariant } from '#contexts/App/types.ts';
 
 import type { SourceReference } from '../api/types';
 import { useSources } from '../contexts';
@@ -15,16 +16,17 @@ interface Props {
 }
 
 export function SourcesList({ sources }: Props) {
-  const { sourcesPanelOpen } = useApp();
-  const { activeSourceKey } = useSources();
+  const { activeSidePanel } = useApp();
+  const { activeSource } = useSources();
 
   return sources.length > 0 ? (
     <ul className={classes.root}>
       {sources.map((source) => {
-        const isActive = sourcesPanelOpen && source.key === activeSourceKey;
+        const { key, number } = source;
+        const isActive = activeSidePanel === SidePanelVariant.Sources && activeSource?.key === key;
 
         return (
-          <li key={source.number}>
+          <li key={number}>
             <Source source={source} isActive={isActive} />
           </li>
         );

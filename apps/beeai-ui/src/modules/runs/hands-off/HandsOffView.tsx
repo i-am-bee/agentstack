@@ -3,36 +3,42 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { PropsWithChildren } from 'react';
+import { MainContent } from '#components/layouts/MainContent.tsx';
+import type { Agent } from '#modules/agents/api/types.ts';
 
-import { Container } from '#components/layouts/Container.tsx';
-import { SplitPanesView } from '#components/SplitPanesView/SplitPanesView.tsx';
+import { useAgentRun } from '../contexts/agent-run';
+import { AgentRunProvider } from '../contexts/agent-run/AgentRunProvider';
+import { useMessages } from '../contexts/messages';
+import { FileUploadProvider } from '../files/contexts/FileUploadProvider';
+import { SourcesPanel } from '../sources/components/SourcesPanel';
+import { HandsOffLandingView } from './HandsOffLandingView';
+import { HandsOffOutputView } from './HandsOffOutputView';
 
-import { useHandsOff } from '../contexts/hands-off';
-import { FileUploadDropzone } from '../files/components/FileUploadDropzone';
-import { useFileUpload } from '../files/contexts';
-import { HandsOffText } from './HandsOffText';
-import classes from './HandsOffView.module.scss';
+interface Props {
+  agent: Agent;
+}
 
-export function HandsOffView({ children }: PropsWithChildren) {
-  const { output } = useHandsOff();
-  const { dropzone } = useFileUpload();
+export function HandsOffView({ agent }: Props) {
+  return (
+    <FileUploadProvider allowedContentTypes={agent.input_content_types ?? []}>
+      <AgentRunProvider agent={agent}>
+        <HandsOff />
+      </AgentRunProvider>
+    </FileUploadProvider>
+  );
+}
 
-  const className = classes.mainContent;
+function HandsOff() {
+  const { isPending } = useAgentRun();
+  const { messages } = useMessages();
+
+  const isIdle = !(isPending || messages?.length);
 
   return (
-    <SplitPanesView
-      mainContent={
-        <div {...(dropzone ? dropzone.getRootProps({ className }) : { className })}>
-          <Container size="sm">{children}</Container>
+    <>
+      <MainContent spacing="md">{isIdle ? <HandsOffLandingView /> : <HandsOffOutputView />}</MainContent>
 
-          {dropzone?.isDragActive && <FileUploadDropzone />}
-        </div>
-      }
-      leftPane={children}
-      rightPane={<HandsOffText />}
-      isSplit={Boolean(output)}
-      spacing="md"
-    />
+      <SourcesPanel />
+    </>
   );
 }

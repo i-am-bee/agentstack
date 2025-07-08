@@ -8,7 +8,8 @@ import type { Link } from 'mdast';
 import { visit } from 'unist-util-visit';
 
 import { CITATION_LINK_PREFIX } from '#modules/runs/sources/constants.ts';
-import type { CitationLinkProperties } from '#modules/runs/sources/types.ts';
+
+import type { CitationLinkBaseProps } from '../components/CitationLink/CitationLink';
 
 export function remarkCitationLink() {
   return (tree: Root) => {
@@ -23,7 +24,7 @@ export function remarkCitationLink() {
           hName: 'citationLink',
           hProperties: {
             keys,
-          } satisfies CitationLinkProperties,
+          } satisfies CitationLinkBaseProps,
         };
       }
     });

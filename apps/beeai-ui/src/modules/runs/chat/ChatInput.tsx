@@ -10,7 +10,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 
 import type { InputBarFormHandle } from '../components/InputBar';
 import { InputBar } from '../components/InputBar';
-import { useChat } from '../contexts/chat';
+import { useAgentRun } from '../contexts/agent-run';
 import { useFileUpload } from '../files/contexts';
 // import { ChatSettings } from './ChatSettings';
 import { ChatDefaultTools } from './constants';
@@ -23,7 +23,7 @@ export const ChatInput = memo(function ChatInput({ onMessageSubmit }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<InputBarFormHandle>(null);
 
-  const { isPending, sendMessage, onCancel } = useChat();
+  const { isPending, run, cancel } = useAgentRun();
   const { isPending: isFileUploadPending } = useFileUpload();
 
   const form = useForm<ChatFormValues>({
@@ -52,7 +52,7 @@ export const ChatInput = memo(function ChatInput({ onMessageSubmit }: Props) {
               onMessageSubmit?.();
               resetForm();
 
-              await sendMessage(input);
+              await run(input);
             })();
           }}
           isSubmitDisabled={isSubmitDisabled}
@@ -82,7 +82,7 @@ export const ChatInput = memo(function ChatInput({ onMessageSubmit }: Props) {
               hasIconOnly
               iconDescription="Cancel"
               onClick={(e) => {
-                onCancel();
+                cancel();
                 e.preventDefault();
               }}
             />

@@ -7,7 +7,8 @@ import { v4 as uuid } from 'uuid';
 
 import { isNotNull } from '#utils/helpers.ts';
 
-import type { TrajectoryMetadata } from '../api/types';
+import type { GenericEvent, TrajectoryMetadata } from '../api/types';
+import { parseJsonLikeString } from '../utils';
 
 export function hasViewableTrajectoryMetadata(trajectory: TrajectoryMetadata) {
   const nonViewableProperties = ['kind', 'key'] as NonViewableProperty[];
@@ -35,4 +36,21 @@ export function prepareTrajectories({
   ];
 
   return newTrajectories;
+}
+
+export function createTrajectoryMetadata(generic: GenericEvent['generic']) {
+  const { message: rawMessage } = generic;
+  const message =
+    rawMessage && typeof parseJsonLikeString(rawMessage) === 'string' ? rawMessage : JSON.stringify(generic);
+
+  if (!message) {
+    return null;
+  }
+
+  const trajectory = {
+    kind: 'trajectory',
+    message,
+  };
+
+  return trajectory;
 }

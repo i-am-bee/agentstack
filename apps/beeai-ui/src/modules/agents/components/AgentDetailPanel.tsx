@@ -11,6 +11,7 @@ import { SkeletonText, Tab, TabList, TabPanel, TabPanels, Tabs } from '@carbon/r
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 import { SidePanel } from '#components/SidePanel/SidePanel.tsx';
 import { useApp } from '#contexts/App/index.ts';
+import { SidePanelVariant } from '#contexts/App/types.ts';
 import { useAgentNameFromPath } from '#hooks/useAgentNameFromPath.ts';
 
 import { useAgent } from '../api/queries/useAgent';
@@ -22,7 +23,7 @@ import { AgentTools } from './AgentTools';
 export function AgentDetailPanel() {
   const agentName = useAgentNameFromPath();
   const { data: agent, isPending } = useAgent({ name: agentName ?? '' });
-  const { agentDetailOpen } = useApp();
+  const { activeSidePanel } = useApp();
 
   if (!agent) return null;
 
@@ -31,8 +32,10 @@ export function AgentDetailPanel() {
   const authorName = metadata.author?.name;
   const agentInfo = description ?? metadata.documentation;
 
+  const isOpen = activeSidePanel === SidePanelVariant.AgentDetail;
+
   return (
-    <SidePanel variant="right" isOpen={agentDetailOpen}>
+    <SidePanel variant="right" isOpen={isOpen}>
       <div className={classes.tabs}>
         <Tabs>
           <TabList>

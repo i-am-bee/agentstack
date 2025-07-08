@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export type ActiveMessageKey = string | null;
-
-export type ActiveSourceKey = string | null;
+export type ActiveSource = {
+  key: string | null;
+  messageKey: string;
+};

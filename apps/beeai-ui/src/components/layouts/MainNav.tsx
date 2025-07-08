@@ -22,7 +22,7 @@ export function MainNav() {
 
   useOnClickOutside(navRef as RefObject<HTMLDivElement>, () => {
     if (closeNavOnClickOutside) {
-      setNavigationOpen?.(false);
+      setNavigationOpen(false);
     }
   });
 

@@ -5,7 +5,7 @@
 
 import type { Agent } from '#modules/agents/api/types.ts';
 
-import type { GenericEvent, MessagePart } from './api/types';
+import type { MessagePart } from './api/types';
 
 export enum Role {
   User = 'user',
@@ -21,5 +21,3 @@ export interface RunStats {
   startTime?: number;
   endTime?: number;
 }
-
-export type RunLog = GenericEvent['generic'];

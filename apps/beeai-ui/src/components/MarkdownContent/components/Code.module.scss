@@ -1,0 +1,11 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.inline {
+  @include type-style(label-01);
+  background-color: $layer-02;
+  padding-inline: $spacing-02;
+  border-radius: $spacing-02;
+}
