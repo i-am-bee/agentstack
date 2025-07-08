@@ -16,6 +16,7 @@ from ibm_watsonx_ai.foundation_models import ModelInference
 from fastapi.concurrency import run_in_threadpool
 from beeai_server.api.dependencies import EnvServiceDependency
 
+
 router = fastapi.APIRouter()
 
 
@@ -30,9 +31,14 @@ class ToolCall(BaseModel):
     function: FunctionCall
 
 
+class ContentItem(BaseModel):
+    type: Literal["text"] = "text"
+    text: str
+
+
 class ChatCompletionMessage(BaseModel):
-    role: Literal["system", "user", "assistant", "tool"]
-    content: Optional[str] = None
+    role: Literal["system", "user", "assistant", "function", "tool"] = "assistant"
+    content: Union[str, List[ContentItem]] = ""
     tool_calls: Optional[List[ToolCall]] = None
     tool_call_id: Optional[str] = None
 
@@ -40,14 +46,14 @@ class ChatCompletionMessage(BaseModel):
 class ChatCompletionRequest(BaseModel):
     model: str
     messages: List[ChatCompletionMessage]
-    temperature: Optional[float] = None
-    top_p: Optional[float] = None
+    temperature: Optional[float] = 1.0
+    top_p: Optional[float] = 1.0
     n: Optional[int] = 1
     stream: Optional[bool] = False
     stop: Optional[Union[str, List[str]]] = None
     max_tokens: Optional[int] = None
-    presence_penalty: Optional[float] = None
-    frequency_penalty: Optional[float] = None
+    presence_penalty: Optional[float] = 0.0
+    frequency_penalty: Optional[float] = 0.0
     logit_bias: Optional[Dict[str, float]] = None
     user: Optional[str] = None
     response_format: Optional[Dict[str, Any]] = None
@@ -64,10 +70,10 @@ class ChatCompletionResponseChoice(BaseModel):
 class ChatCompletionResponse(BaseModel):
     id: str
     object: str = "chat.completion"
+    system_fingerprint: str = "beeai-llm-gateway"
     created: int
     model: str
     choices: List[ChatCompletionResponseChoice]
-    system_fingerprint: str = "beeai-llm-gateway"
 
 
 class StreamFunctionCall(BaseModel):
@@ -97,10 +103,10 @@ class ChatCompletionStreamResponseChoice(BaseModel):
 class ChatCompletionStreamResponse(BaseModel):
     id: str
     object: str = "chat.completion.chunk"
+    system_fingerprint: str = "beeai-llm-gateway"
     created: int
     model: str
     choices: List[ChatCompletionStreamResponseChoice]
-    system_fingerprint: str = "beeai-llm-gateway"
 
 
 @router.post("/chat/completions")
