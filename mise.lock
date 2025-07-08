@@ -1,15 +1,21 @@
+[tools."asdf:CrouchingMuppet/asdf-lima"]
+version = "1.1.1"
+backend = "asdf:CrouchingMuppet/asdf-lima"
+
 [tools.fd]
 version = "10.2.0"
 backend = "aqua:sharkdp/fd"
 
 [tools.fd.checksums]
 "fd-v10.2.0-aarch64-apple-darwin.tar.gz" = "sha256:ae6327ba8c9a487cd63edd8bddd97da0207887a66d61e067dfe80c1430c5ae36"
+"fd-v10.2.0-x86_64-apple-darwin.tar.gz" = "sha256:991a648a58870230af9547c1ae33e72cb5c5199a622fe5e540e162d6dba82d48"
 
 [tools.helm]
 version = "3.17.3"
 backend = "aqua:helm/helm"
 
 [tools.helm.checksums]
+"helm-v3.17.3-darwin-amd64.tar.gz" = "sha256:20ef8df4671349a6fc556a621be1170dd709c6c0cf5f7e83a2d9fb0515fd97fc"
 "helm-v3.17.3-darwin-arm64.tar.gz" = "sha256:89aec43ce07b06239f1bba4a6507236bb48ae487bc5065a8e254d3ce58a16997"
 
 [tools.kubeconform]
@@ -17,6 +23,7 @@ version = "0.6.7"
 backend = "aqua:yannh/kubeconform"
 
 [tools.kubeconform.checksums]
+"kubeconform-darwin-amd64.tar.gz" = "sha256:3b5324ac4fd38ac60a49823b4051ff42ff7eb70144f1e9741fed1d14bc4fdb4e"
 "kubeconform-darwin-arm64.tar.gz" = "sha256:cbb47d938a8d18eb5f79cb33663b2cecdee0c8ac0bf562ebcfca903df5f0802f"
 
 [tools.node]
@@ -36,7 +43,7 @@ pnpm-linux-x64 = "sha256:24fdba5caab4190d9f1b0f4e7e2a7557f534519047ac7277430e048
 pnpm-macos-arm64 = "sha256:0b396d48e9697588bfd4f3d40ed0d10d043432ecf1fe30dcdcad0f87b6d4140a"
 
 [tools.python]
-version = "3.11.11"
+version = "3.13.2"
 backend = "core:python"
 
 [tools."ubi:google/addlicense"]
@@ -45,6 +52,7 @@ backend = "ubi:google/addlicense"
 
 [tools."ubi:google/addlicense".checksums]
 addlicense-macos-aarch64 = "sha256:ce5830d1efd60c71f4b51071c12fa2be927ee13c5058f587a57be69eee1d8ab4"
+addlicense-macos-x86_64 = "sha256:9ae3255d64fce140261a1dc9bf2ac907aafbfe515fe0d641def2a852993d6cbb"
 
 [tools."ubi:telepresenceio/telepresence"]
 version = "2.22.4"
@@ -52,17 +60,19 @@ backend = "ubi:telepresenceio/telepresence"
 
 [tools."ubi:telepresenceio/telepresence".checksums]
 telepresence-macos-aarch64 = "sha256:991d2aea9bef5c08dd64432cb5b3abb5bc6c441f27351d52fe94278705edc738"
+telepresence-macos-x86_64 = "sha256:a7e224bd10456dfbd56d0ba194f145ab0b4e97946ec6c29e18de29c5a25e66d1"
 
 [tools.uv]
-version = "0.7.13"
+version = "0.7.19"
 backend = "aqua:astral-sh/uv"
 
 [tools.uv.checksums]
-"uv-aarch64-apple-darwin.tar.gz" = "sha256:721f532b73171586574298d4311a91d5ea2c802ef4db3ebafc434239330090c6"
+"uv-aarch64-apple-darwin.tar.gz" = "sha256:698d24883fd441960fb4bc153b7030b89517a295502017ff3fdbba2fb0a0aa67"
 
 [tools.yq]
 version = "4.45.4"
 backend = "aqua:mikefarah/yq"
 
 [tools.yq.checksums]
+yq_darwin_amd64 = "sha256:5580ff2c1fc80dd91f248b3e19af2431f1c95767ad0949a60176601ca5140318"
 yq_darwin_arm64 = "sha256:602dbbc116af9eb8a91d2239d0ec286eb9c90b94e76676d5268ab6ca184719b6"

@@ -1,0 +1,89 @@
+{{- $root := . }}
+{{- range $idx, $p := .Values.unmanagedProviders}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "agent.fullname" (dict "root" $root "image" $p.location) }}
+  labels:
+    app: {{ include "agent.fullname" (dict "root" $root "image" $p.location) }}
+    {{- include "beeai-platform.labels" $root | nindent 4 }}
+  {{- with $root.Values.agent.deploymentAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 8 }}
+  {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "agent.fullname" (dict "root" $root "image" $p.location) }}
+      {{- include "beeai-platform.selectorLabels" $root | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/agent/secret.yaml") $root | sha256sum }}
+      {{- with $root.Values.agent.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        app: {{ include "agent.fullname" (dict "root" $root "image" $p.location) }}
+        {{- include "beeai-platform.labels" $root | nindent 8 }}
+        {{- with $root.Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with $root.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $root.Values.agent.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: agent-container
+          {{- with $root.Values.agent.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $root.Values.agent.readinessProbe }}
+          readinessProbe:
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with $root.Values.agent.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $root.Values.agent.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: {{ $p.location }}
+          {{- if .Values.agent.imagePullPolicy }}
+          imagePullPolicy: {{ .Values.agent.imagePullPolicy }}
+          {{- end }}
+          ports:
+            - containerPort: {{ $root.Values.agent.service.port }}
+              name: http
+          env:
+            - name: HOST
+              value: 0.0.0.0
+            - name: HOME
+              value: '/tmp'
+          envFrom:
+            - secretRef:
+                name: agent-variables
+
+      {{- with $root.Values.agent.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $root.Values.agent.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $root.Values.agent.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

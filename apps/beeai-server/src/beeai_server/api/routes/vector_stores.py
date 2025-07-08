@@ -88,9 +88,10 @@ async def list_documents(
     vector_store_id: UUID,
     vector_store_service: VectorStoreServiceDependency,
     user: AuthenticatedUserDependency,
-) -> list[VectorStoreDocument]:
+) -> PaginatedResponse[VectorStoreDocument]:
     """List all documents in a vector store."""
-    return await vector_store_service.list_documents(vector_store_id=vector_store_id, user=user)
+    documents = await vector_store_service.list_documents(vector_store_id=vector_store_id, user=user)
+    return PaginatedResponse(items=documents, total_count=len(documents))
 
 
 @router.delete("/{vector_store_id}/documents/{document_id}", status_code=status.HTTP_204_NO_CONTENT)

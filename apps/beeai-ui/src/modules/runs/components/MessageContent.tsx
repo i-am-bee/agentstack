@@ -6,6 +6,7 @@
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 
 import type { ChatMessage } from '../chat/types';
+import { useAgentRun } from '../contexts/agent-run';
 import { isAgentMessage } from '../utils';
 import classes from './MessageContent.module.scss';
 
@@ -15,11 +16,14 @@ interface Props {
 
 export function MessageContent({ message }: Props) {
   const { content } = message;
+  const { isPending } = useAgentRun();
   const isAgent = isAgentMessage(message);
   const sources = (isAgent ? message.sources : null) ?? [];
 
   return content ? (
-    <MarkdownContent sources={sources}>{content}</MarkdownContent>
+    <MarkdownContent sources={sources} isPending={isPending}>
+      {content}
+    </MarkdownContent>
   ) : (
     <div className={classes.empty}>Message has no content</div>
   );

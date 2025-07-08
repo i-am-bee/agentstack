@@ -3,19 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ApiPath, ApiResponse } from '#@types/utils.ts';
+import type { AgentManifest, Metadata } from 'acp-sdk';
 
-export type AgentsListResponse = ApiResponse<'/api/v1/acp/agents'>;
+export type { AgentName } from 'acp-sdk';
 
-export type Agent = ApiResponse<'/api/v1/acp/agents/{name}'> & {
-  metadata: {
-    name?: string;
-  };
-};
+export type AgentMetadata = Metadata & { provider_id?: string };
 
-export type AgentName = Agent['name'];
-
-export type ReadAgentPath = ApiPath<'/api/v1/acp/agents/{name}'>;
+export type Agent = Exclude<AgentManifest, 'metadata'> & { metadata?: AgentMetadata | null };
 
 export interface ListAgentsParams {
   onlyUiSupported?: boolean;

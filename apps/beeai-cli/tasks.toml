@@ -49,7 +49,7 @@ outputs = { auto = true }
 description = "NOTE: Use double dash to pass extra args, like `mise beeai-cli:run -- provider list`"
 depends = ["setup:uv", "beeai-cli:build:copy-helm-chart"]
 dir = "{{cwd}}"
-run = "(rm {{config_root}}/apps/beeai-cli/src/beeai_cli/data/*.tgz 2>/dev/null || true) && cp {{config_root}}/helm/beeai-platform-*.tgz {{config_root}}/apps/beeai-cli/src/beeai_cli/data/helm-chart.tgz && uv run beeai"
+run = "uv run beeai"
 
 # build
 
@@ -57,7 +57,7 @@ run = "(rm {{config_root}}/apps/beeai-cli/src/beeai_cli/data/*.tgz 2>/dev/null |
 dir = "{{config_root}}/apps/beeai-cli"
 run = '''
 set -e
-LIMA_VERSION=$(cat .lima-version)
+LIMA_VERSION=$(yq -r '.tools["asdf:CrouchingMuppet/asdf-lima"]' ../../mise.toml)
 mkdir -p ./vendor
 echo '*' >./vendor/.gitignore
 ( test -f ./vendor/lima-$LIMA_VERSION/manylinux_2_28_x86_64/bin/limactl  || ( mkdir -p ./vendor/lima-$LIMA_VERSION/manylinux_2_28_x86_64  && curl -fsL -H "Authorization: Bearer $GITHUB_TOKEN" https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Linux-x86_64.tar.gz  | tar -xzf - -C ./vendor/lima-$LIMA_VERSION/manylinux_2_28_x86_64  )) &
@@ -68,10 +68,10 @@ wait
 '''
 
 ["beeai-cli:build:copy-helm-chart"]
-depends = ["helm:build:beeai-platform"]
+depends = ["helm:build"]
 dir = "{{config_root}}/apps/beeai-cli"
-run = "rm -f ./src/beeai_cli/data/helm-chart.tgz && cp {{config_root}}/helm/beeai-platform-*.tgz ./src/beeai_cli/data/helm-chart.tgz"
-sources = ["{{config_root}}/helm/beeai-platform-*.tgz"]
+run = "rm ./src/beeai_cli/data/helm-chart.tgz 2>/dev/null || true && cp {{config_root}}/helm/dist/beeai-platform-*.tgz ./src/beeai_cli/data/helm-chart.tgz"
+sources = ["{{config_root}}/helm/dist/beeai-platform-*.tgz"]
 outputs = ["./src/beeai_cli/data/helm-chart.tgz"]
 
 ["beeai-cli:build"]
@@ -86,8 +86,8 @@ set -euo pipefail
 rm -rf ./dist
 uv build -q --out-dir ./dist
 
-export lima_version=$(cat .lima-version)
-export version="$(yq -o toml .project.version pyproject.toml)"
+export lima_version=$(yq -r '.tools["asdf:CrouchingMuppet/asdf-lima"]' ../../mise.toml)
+export version="$(yq -o toml .project.version pyproject.toml | tr -d -)"
 export universal_wheel=$(realpath "./dist/beeai_cli-$version-py3-none-any.whl")
 
 build_wheel() {

@@ -9,15 +9,13 @@ import { isAgentUiSupported, sortAgentsByName } from '#modules/agents/utils.ts';
 
 import { listAgents } from '..';
 import { agentKeys } from '../keys';
-import type { Agent, ListAgentsParams } from '../types';
+import type { ListAgentsParams } from '../types';
 
 export function useListAgents({ onlyUiSupported, sort }: ListAgentsParams = {}) {
   const query = useQuery({
     queryKey: agentKeys.list(),
     queryFn: listAgents,
-    select: (data) => {
-      let agents = data?.agents as Agent[];
-
+    select: (agents) => {
       if (onlyUiSupported) {
         agents = agents.filter(isAgentUiSupported);
       }

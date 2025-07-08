@@ -1,4 +1,0 @@
-variables:
-  LLM_API_BASE: http://host.docker.internal:11434/v1
-  LLM_API_KEY: dummy
-  LLM_MODEL: llama3.1:8b-beeai

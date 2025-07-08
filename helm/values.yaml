@@ -1,0 +1,348 @@
+# Default values for beeai-platform.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Use host network for certain pods -- useful for local netwokring
+hostNetwork: false
+
+# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+replicaCount: 1
+
+providers: [ ]
+unmanagedProviders: [ ]
+
+# External registries in the format: [name: githubURL]
+# for example
+# github: "https://github.com/i-am-bee/beeai-platform@v0.2.14#path=agent-registry.yaml"
+externalRegistries: { }
+
+auth:
+  admin_password: ""
+  enabled: true # Warning, disable only for local deployments
+
+# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+image:
+  repository: ghcr.io/i-am-bee/beeai-platform/beeai-server
+  # This sets the pull policy for images.
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+encryptionKey: ""
+
+# This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: [ ]
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+features:
+  # Enables variable configuration - should be disabled in production (correlates with auth.enabled)
+  uiNavigation: false
+  selfRegistration: false
+
+# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: { }
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# This is for setting Kubernetes Annotations to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+podAnnotations: { }
+# This is for setting Kubernetes Labels to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+podLabels: { }
+
+podSecurityContext: { }
+# fsGroup: 2000
+
+securityContext: { }
+# capabilities:
+#   drop:
+#   - ALL
+# readOnlyRootFilesystem: true
+# runAsNonRoot: true
+# runAsUser: 1000
+initContainers:
+  createVectorDbExtension: true
+
+# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+service:
+  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  type: ClusterIP
+  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+  port: 8333
+
+# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+ingress:
+  enabled: false
+  className: ""
+  annotations: { }
+  # kubernetes.io/ingress.class: nginx
+  # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: [ ]
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  requests:
+    memory: 300Mi
+#   cpu: 100m
+# limits:
+#   memory: 300Mi
+#   cpu: 100m
+
+# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+
+# Additional volumes on the output Deployment definition.
+volumes: [ ]
+# - name: foo
+#   secret:
+#     secretName: mysecret
+#     optional: false
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts: [ ]
+# - name: foo
+#   mountPath: "/etc/foo"
+#   readOnly: true
+
+nodeSelector: { }
+
+tolerations: [ ]
+
+affinity: { }
+
+phoenix:
+  enabled: false
+  image: docker.io/arizephoenix/phoenix:version-8.9.0
+  resources: { }
+  service:
+    type: ClusterIP
+    port: 6006
+
+collector:
+  image: otel/opentelemetry-collector-contrib:0.122.1
+  livenessProbe: { }
+  readinessProbe: { }
+  resources: { }
+
+agent:
+  podAnnotations: { }
+  deploymentStrategy: RollingUpdate
+  deploymentAnnotations: { }
+  imagePullPolicy: IfNotPresent
+  podLabels: { }
+  resources: { }
+  securityContext: { }
+  podSecurityContext: { }
+  service:
+    type: ClusterIP
+    port: 8000
+  livenessProbe:
+    httpGet:
+      path: /ping
+      port: 8000
+    initialDelaySeconds: 1
+    periodSeconds: 3
+    timeoutSeconds: 2
+  readinessProbe:
+    httpGet:
+      path: /ping
+      port: 8000
+    initialDelaySeconds: 1
+    periodSeconds: 3
+    timeoutSeconds: 2
+  volumes: [ ]
+  volumeMounts: [ ]
+  nodeSelector: { }
+  tolerations: [ ]
+  affinity: { }
+
+unmanagedProviderVariables:
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector-svc:8335
+  PLATFORM_URL: http://beeai-platform-svc:8333
+
+# Variable configuration
+variables: { }
+
+## PostgreSQL chart configuration
+## ref: https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml
+## @param postgresql.enabled Switch to enable or disable the PostgreSQL helm chart
+## @param postgresql.auth.enablePostgresUser Assign a password to the "postgres" admin user. Otherwise, remote access will be blocked for this user
+## @param postgresql.auth.username Name for a custom user to create
+## @param postgresql.auth.password Password for the custom user to create
+## @param postgresql.auth.database Name for a custom database to create
+## @param postgresql.auth.existingSecret Name of existing secret to use for PostgreSQL credentials
+## @param postgresql.architecture PostgreSQL architecture (`standalone` or `replication`)
+##
+postgresql:
+  enabled: true
+  fullnameOverride: "postgresql"
+  global:
+    security:
+      allowInsecureImages: true
+  image:
+    registry: ghcr.io
+    repository: i-am-bee/bitnami/postgresql-pgvector
+    tag: 17.5.0
+  auth:
+    postgresPassword: "admin-password"
+    enablePostgresUser: true
+    username: beeai-user
+    password: "password"
+    database: beeai
+    existingSecret: ""
+    # TODO: bug - broken update password script: https://github.com/bitnami/charts/pull/34527
+    usePasswordFiles: false
+  passwordUpdateJob:
+    enabled: true
+  architecture: standalone
+  primary:
+    ## PostgreSQL Primary resource requests and limits
+    ## ref: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+    ## @param postgresql.primary.resourcesPreset Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if primary.resources is set (primary.resources is recommended for production).
+    ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
+    ##
+    resourcesPreset: "medium"
+    ## @param postgresql.primary.resources Set container requests and limits for different resources like CPU or memory (essential for production workloads)
+    ## Example:
+    ## resources:
+    ##   requests:
+    ##     cpu: 2
+    ##     memory: 512Mi
+    ##   limits:
+    ##     cpu: 3
+    ##     memory: 1024Mi
+    ##
+    resources: { }
+## External PostgreSQL configuration
+## All of these values are only used when postgresql.enabled is set to false
+## @param externalDatabase.host Database host (ignored if externalDatabase.sqlConnection is set)
+## @param externalDatabase.port Database port number (ignored if externalDatabase.sqlConnection is set)
+## @param externalDatabase.user Non-root username for Beeai (ignored if externalDatabase.sqlConnection is set)
+## @param externalDatabase.password Password for the non-root username for Beeai (ignored if externalDatabase.sqlConnection or externalDatabase.existingSecret are set)
+## @param externalDatabase.database Beeai database name (ignored if externalDatabase.sqlConnection is set)
+## @param externalDatabase.existingSecret Name of an existing secret resource containing the database credentials
+##
+externalDatabase:
+  host: ""
+  port: 5432
+  user: beeai-user
+  database: beeai
+  password: ""
+  # Required when initContainers.createVectorDbExtension is enabled
+  adminUser: ""
+  adminPassword: ""
+  existingSecret: ""
+
+## SeaweedFS chart configuration
+## ref: https://github.com/seaweedfs/seaweedfs/tree/master/k8s/charts/seaweedfs
+## @param seaweedfs.enabled Switch to enable or disable the SeaweedFS helm chart
+## @param seaweedfs.auth.existingSecret must have keys "accessKeyId" and "accessKeySecret"
+seaweedfs:
+  enabled: true
+  bucket: "beeai-files"
+  auth:
+    admin:
+      accessKeyID: "beeai-admin-user"
+      accessKeySecret: "beeai-admin-password"
+    existingSecret: ""
+  affinity: ""
+  master:
+    enabled: false
+  volume:
+    enabled: false
+  filer:
+    enabled: false
+  sftp:
+    enabled: false
+
+  ## @param s3.existingConfigSecret must be configured together with auth.admin.existingSecret, but it has
+  ##   a different format, see s3 configuration:
+  ##   https://github.com/seaweedfs/seaweedfs/tree/master/k8s/charts/seaweedfs#s3-configuration
+  s3:
+    port: 9009
+    enableAuth: true
+    existingConfigSecret: beeai-seaweedfs-default-config-secret
+
+  allInOne:
+    nodeSelector: ""
+    enabled: true
+    s3:
+      enabled: true
+    sftp:
+      enabled: false
+
+
+## @section External S3 parameters
+## All of these values are only used when redis.enabled is set to false
+## @param externalS3.host External S3 host
+## @param externalS3.port External S3 port number
+## @param externalS3.accessKeyID External S3 access key ID
+## @param externalS3.accessKeySecret External S3 access key secret
+## @param externalS3.existingSecret Name of an existing secret resource containing the S3 credentials
+## @param externalS3.existingSecretAccessKeyIDKey Name of an existing secret key containing the S3 access key ID
+## @param externalS3.existingSecretKeySecretKey Name of an existing secret key containing the S3 access key secret
+## @param externalS3.protocol External S3 protocol
+## @param externalS3.bucket External S3 bucket
+## @param externalS3.region External S3 region
+##
+externalS3:
+  host: ""
+  port: 443
+  accessKeyID: ""
+  accessKeySecret: ""
+  existingSecret: ""
+  existingSecretAccessKeyIDKey: "root-user"
+  existingSecretKeySecretKey: "root-password"
+  protocol: "https"
+  bucket: "beeai-files"
+  region: "us-east-1"
+
+docling:
+  enabled: false
+  podAnnotations: { }
+  podSecurityContext: { }
+  podLabels: { }
+  resources: { }
+  livenessProbe: { }
+  # Unfortunately, docling does not handle IO properly and does not respond to health requests while processing file
+  #    httpGet:
+  #      path: /health
+  #      port: http
+  readinessProbe:
+    initialDelaySeconds: 2
+    timeoutSeconds: 5
+    failureThreshold: 30
+    periodSeconds: 2
+    httpGet:
+      path: /health
+      port: http
+  ui:
+    enabled: true
+  service:
+    port: 15001
+  imagePullPolicy: IfNotPresent
+  image: "ghcr.io/docling-project/docling-serve-cpu:v0.16.0"

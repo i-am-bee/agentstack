@@ -4,7 +4,7 @@ requires-python = "==3.11.*"
 
 [[package]]
 name = "acp-sdk"
-version = "0.12.1"
+version = "1.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cachetools" },
@@ -22,9 +22,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "redis" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/58/dc/bdf2b2b44c509a7d581136c62e95e637193a992f6206823698bfb26b6608/acp_sdk-0.12.1.tar.gz", hash = "sha256:ed1b5fe477849515b4d98aadaf6c9af28e1db49ecb2b68ef97bc26a3745eb662", size = 29151, upload-time = "2025-06-20T06:57:41.663Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/70/27/2dc08578badd7863634bbb395a63b1539f571c3d1d2fba3c639e27603625/acp_sdk-1.0.0.tar.gz", hash = "sha256:997351cc9042eb2cf3d1bd3f53997d8d5b83afd5ae975c32c419a86de7205ad5", size = 30077, upload-time = "2025-07-01T06:08:40.172Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ef/1a/3ec197a02e2dfc616b5fb8b7ca482f78fa01cd383ba71f0dd66d3d154cf9/acp_sdk-0.12.1-py3-none-any.whl", hash = "sha256:b45ceb38d7c40c88f4292c32014564a013f485215ffe82c7432a494614a0b040", size = 31179, upload-time = "2025-06-20T06:57:39.881Z" },
+    { url = "https://files.pythonhosted.org/packages/d7/91/dce09af24c6f67a4df7fcaf898a565b0efd44de3d085894ee1c0a672ae9a/acp_sdk-1.0.0-py3-none-any.whl", hash = "sha256:837779e52f1f922f8c017b1e6a19181ef618fe996de971255cfd0251b9408180", size = 32253, upload-time = "2025-07-01T06:08:38.603Z" },
 ]
 
 [[package]]
@@ -41,7 +41,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "acp-sdk", specifier = "==0.12.1" },
+    { name = "acp-sdk", specifier = "==1.0.0" },
     { name = "aider-chat", specifier = ">=0.18.1" },
     { name = "google-generativeai", specifier = ">=0.8.4" },
     { name = "pydantic", specifier = ">=2.10.6" },

@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { MessagePart } from 'acp-sdk';
 import isString from 'lodash/isString';
 import { type PropsWithChildren, useCallback, useMemo, useState } from 'react';
 import { v4 as uuid } from 'uuid';
@@ -11,7 +12,7 @@ import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 import { useImmerWithGetter } from '#hooks/useImmerWithGetter.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
-import type { MessagePartMetadata, TrajectoryMetadata } from '#modules/runs/api/types.ts';
+import type { TrajectoryMetadata } from '#modules/runs/api/types.ts';
 import {
   type AgentMessage,
   type ChatMessage,
@@ -42,6 +43,8 @@ import { useFileUpload } from '../../files/contexts';
 import { AgentStatusProvider } from '../agent-status/AgentStatusProvider';
 import { MessagesProvider } from '../messages/MessagesProvider';
 import { AgentRunContext } from './agent-run-context';
+
+type MessagePartMetadata = NonNullable<MessagePart['metadata']>;
 
 interface Props {
   agent: Agent;
@@ -163,13 +166,17 @@ export function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) 
           updateLastAgentMessage((message) => {
             const { sources, newSource } = prepareMessageSources({ message, metadata });
 
+            message.sources = sources;
+
+            if (newSource == null) {
+              return;
+            }
+
             const citationTransformGroup = message.contentTransforms.find(
               (transform): transform is CitationTransform =>
                 transform.kind === MessageContentTransformType.Citation &&
                 transform.startIndex === newSource.startIndex,
             );
-
-            message.sources = sources;
 
             if (citationTransformGroup) {
               citationTransformGroup.sources.push(newSource);

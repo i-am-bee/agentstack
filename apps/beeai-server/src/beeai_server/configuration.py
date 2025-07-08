@@ -127,6 +127,7 @@ class DockerConfigJson(BaseModel):
 
 class ManagedProviderConfiguration(BaseModel):
     auto_remove_enabled: bool = False
+    manifest_template_dir: Path | None = None
     self_registration_use_local_network: bool = Field(
         False,
         description="Which network to use for self-registered providers - should be False when running in cluster",

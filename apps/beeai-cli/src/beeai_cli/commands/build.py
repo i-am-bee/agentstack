@@ -19,7 +19,7 @@ from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, w
 
 from beeai_cli.async_typer import AsyncTyper
 from beeai_cli.console import console
-from beeai_cli.utils import VMDriver, capture_output, extract_messages, run_command, status, verbosity
+from beeai_cli.utils import capture_output, extract_messages, run_command, status, verbosity
 
 
 async def find_free_port():
@@ -43,7 +43,6 @@ async def build(
         bool, typer.Option("--import/--no-import", is_flag=True, help="Import the image into BeeAI platform")
     ] = True,
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
-    vm_driver: typing.Annotated[VMDriver, typer.Option(hidden=True)] = None,
     verbose: typing.Annotated[bool, typer.Option("-v")] = False,
 ):
     with verbosity(verbose):
@@ -114,6 +113,6 @@ async def build(
         if import_image:
             from beeai_cli.commands.platform import import_image
 
-            await import_image(tag, vm_name=vm_name, vm_driver=vm_driver)
+            await import_image(tag, vm_name=vm_name)
 
         return tag, response["agents"]

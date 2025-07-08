@@ -4,44 +4,30 @@
 depends = ["helm:check:*"]
 
 ["helm:check:lint"]
-depends = ["helm:build:beeai-platform:dependencies"]
+depends = ["helm:build:dependencies"]
 dir = "{{config_root}}/helm"
-run = """
-#!/bin/bash
-helm lint beeai-platform \
-    --with-subcharts \
-    --set encryptionKey=dummy \
-    --set auth.enabled=false \
-    --strict
-"""
-sources = ["beeai-platform/**/*"]
+run = "helm lint . --with-subcharts --set encryptionKey=dummy --set auth.enabled=false --strict"
+sources = ["Chart.yaml", "Chart.lock", "values.yaml", ".helmignore", "charts/*", "templates/**/*"]
 outputs = { auto = true }
 
 ["helm:check:render"]
+depends = ["helm:build:dependencies"]
 dir = "{{config_root}}/helm"
-run = """
-#!/bin/bash
-helm template beeai-platform -f ../agent-registry.yaml \
-    --set encryptionKey=dummy \
-    --set auth.enabled=false | kubeconform -strict -summary
-"""
-sources = ["beeai-platform/**/*"]
+run = "helm template . --set encryptionKey=dummy --set auth.enabled=false | kubeconform -strict -summary"
+sources = ["Chart.yaml", "Chart.lock", "values.yaml", ".helmignore", "charts/*", "templates/**/*"]
 outputs = { auto = true }
 
 # build
 
 ["helm:build"]
-depends = ["helm:build:*"]
+depends = ["helm:build:dependencies"]
+dir = "{{config_root}}/helm"
+run = "rm -rf dist/ && helm package . --destination dist/"
+sources = ["Chart.yaml", "Chart.lock", "values.yaml", ".helmignore", "charts/*", "templates/**/*"]
+outputs = ["dist/beeai-platform*.tgz"]
 
-["helm:build:beeai-platform:dependencies"]
-dir = "{{config_root}}/helm/beeai-platform"
+["helm:build:dependencies"]
+dir = "{{config_root}}/helm"
 run = "helm repo add seaweedfs https://seaweedfs.github.io/seaweedfs/helm && helm dependency build"
 sources = ["Chart.yaml", "Chart.lock"]
 outputs = { auto = true }
-
-["helm:build:beeai-platform"]
-depends = ["helm:build:beeai-platform:dependencies"]
-dir = "{{config_root}}/helm"
-run = "helm package beeai-platform --app-version $(python -c \"import tomllib; print(tomllib.load(open('../apps/beeai-server/pyproject.toml', 'rb'))['project']['version'])\")"
-sources = ["beeai-platform/**/*", "../apps/beeai-server/pyproject.toml"]
-outputs = ["*.tgz"]

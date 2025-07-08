@@ -10,32 +10,32 @@ import Markdown from 'react-markdown';
 import type { SourceReference } from '#modules/runs/sources/api/types.ts';
 
 import { components, type ExtendedComponents } from './components';
-import { InlineCitations } from './components/CitationLink/InlineCitations';
+import { CitationLink } from './components/CitationLink/CitationLink';
+import { Code } from './components/Code';
 import classes from './MarkdownContent.module.scss';
+import { rehypePlugins } from './rehype';
 import { remarkPlugins } from './remark';
 
 interface Props {
+  isPending?: boolean;
   sources?: SourceReference[];
   children?: string;
   className?: string;
 }
 
-export function MarkdownContent({ sources, className, children }: Props) {
+export function MarkdownContent({ isPending, sources, className, children }: Props) {
   const extendedComponents: ExtendedComponents = useMemo(
     () => ({
       ...components,
-      citationLink: ({ keys, children }) => {
-        const filteredSources = sources?.filter(({ key }) => keys.includes(key));
-
-        return <InlineCitations sources={filteredSources}>{children}</InlineCitations>;
-      },
+      citationLink: ({ ...props }) => <CitationLink {...props} sources={sources} />,
+      code: ({ ...props }) => <Code {...props} forceExpand={isPending} />,
     }),
-    [sources],
+    [isPending, sources],
   );
 
   return (
     <div className={clsx(classes.root, className)}>
-      <Markdown remarkPlugins={remarkPlugins} components={extendedComponents}>
+      <Markdown rehypePlugins={rehypePlugins} remarkPlugins={remarkPlugins} components={extendedComponents}>
         {children}
       </Markdown>
     </div>

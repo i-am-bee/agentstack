@@ -18,6 +18,10 @@ export function prepareMessageSources({ message, metadata }: { message: AgentMes
   const { url, start_index, end_index, title, description } = metadata;
   const { sources: prevSources = [] } = message;
 
+  if (url == null || start_index == null || end_index == null) {
+    return { sources: prevSources, newSource: undefined };
+  }
+
   const key = uuid();
 
   const sources: SourceReference[] = [
@@ -38,7 +42,7 @@ export function prepareMessageSources({ message, metadata }: { message: AgentMes
       number: idx + 1,
     }));
 
-  const newSource = sources.find((source) => source.key === key)!;
+  const newSource = sources.find((source) => source.key === key);
 
   return { sources, newSource };
 }

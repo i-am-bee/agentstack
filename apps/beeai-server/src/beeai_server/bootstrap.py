@@ -59,7 +59,10 @@ async def bootstrap_dependencies(dependency_overrides: Container | None = None):
     _set_di(Configuration, get_configuration())
     _set_di(
         IProviderDeploymentManager,
-        KubernetesProviderDeploymentManager(api_factory=await setup_kubernetes_client(di[Configuration])),
+        KubernetesProviderDeploymentManager(
+            api_factory=await setup_kubernetes_client(di[Configuration]),
+            manifest_template_dir=di[Configuration].provider.manifest_template_dir,
+        ),
     )
     _set_di(
         IUnitOfWorkFactory,

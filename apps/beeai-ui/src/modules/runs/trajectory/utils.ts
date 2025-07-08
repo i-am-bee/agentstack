@@ -7,7 +7,7 @@ import { v4 as uuid } from 'uuid';
 
 import { isNotNull } from '#utils/helpers.ts';
 
-import { type GenericEvent, MetadataKind, type TrajectoryMetadata } from '../api/types';
+import type { GenericEvent, TrajectoryMetadata } from '../api/types';
 import { parseJsonLikeString } from '../utils';
 
 export function hasViewableTrajectoryMetadata(trajectory: TrajectoryMetadata) {
@@ -48,7 +48,7 @@ export function createTrajectoryMetadata(generic: GenericEvent['generic']) {
   }
 
   const trajectory = {
-    kind: MetadataKind.Trajectory,
+    kind: 'trajectory',
     message,
   };
 

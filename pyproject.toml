@@ -6,7 +6,7 @@ members = [
 
 [tool.ruff]
 line-length = 120
-target-version = "py311"
+target-version = "py313"
 lint.select = [
     "E",     # pycodestyle errors
     "W",     # pycodestyle warnings

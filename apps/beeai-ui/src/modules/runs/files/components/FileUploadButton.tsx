@@ -10,7 +10,7 @@ import { useFileUpload } from '../contexts';
 import classes from './FileUploadButton.module.scss';
 
 export function FileUploadButton() {
-  const { dropzone } = useFileUpload();
+  const { dropzone, isDisabled } = useFileUpload();
 
   if (!dropzone) {
     return null;
@@ -20,7 +20,14 @@ export function FileUploadButton() {
     <>
       <input type="file" {...dropzone.getInputProps()} />
 
-      <IconButton onClick={dropzone.open} label="File upload" kind="ghost" size="sm" wrapperClasses={classes.root}>
+      <IconButton
+        onClick={dropzone.open}
+        label="File upload"
+        kind="ghost"
+        size="sm"
+        wrapperClasses={classes.root}
+        disabled={isDisabled}
+      >
         <Attachment />
       </IconButton>
     </>

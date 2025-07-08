@@ -20,7 +20,7 @@ interface Props {
 
 export function ChatView({ agent }: Props) {
   return (
-    <FileUploadProvider>
+    <FileUploadProvider allowedContentTypes={agent.input_content_types ?? []}>
       <AgentRunProvider agent={agent}>
         <Chat />
       </AgentRunProvider>

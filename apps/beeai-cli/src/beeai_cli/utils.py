@@ -34,7 +34,6 @@ if TYPE_CHECKING:
 
 class VMDriver(str, Enum):
     lima = "lima"
-    docker = "docker"
     wsl = "wsl"
 
 
@@ -75,7 +74,7 @@ def check_json(value: Any) -> dict[str, Any]:
 DictType = TypeVar("DictType", bound=dict)
 
 
-def omit(dict: DictType, keys: Iterable[str]) -> DictType:
+def omit[DictType](dict: DictType, keys: Iterable[str]) -> DictType:
     return {key: value for key, value in dict.items() if key not in keys}
 
 

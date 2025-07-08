@@ -1,14 +1,14 @@
 [project]
 name = "beeai-cli"
-version = "0.2.14"
+version = "0.2.15-rc3"
 description = "BeeAI CLI"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
-requires-python = ">=3.11,<4.0"
+requires-python = ">=3.13,<4.0"
 dependencies = [
     "anyio~=4.9.0",
     "pydantic~=2.11.7",
-    "pydantic-settings~=2.9.1",
+    "pydantic-settings~=2.10.1",
     "requests~=2.32.4",
     "jsonschema~=4.24.0",
     "jsf~=0.11.2",
@@ -17,7 +17,7 @@ dependencies = [
     "jsonref~=1.1.0",
     "inquirerpy~=0.3.4",
     "psutil~=7.0.0",
-    "acp-sdk~=0.12.0",
+    "acp-sdk~=1.0.0",
     "tenacity~=9.1.2",
     "typer~=0.16.0",
 ]
