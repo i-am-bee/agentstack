@@ -39,6 +39,7 @@ dependencies = [
     "procrastinate==3.2.2",
     "sqlparse>=0.5.3",
     "pgvector>=0.4.1",
+    "ibm-watsonx-ai>=1.3.28",
 ]
 
 [tool.ruff]
