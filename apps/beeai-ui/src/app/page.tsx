@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { notFound, redirect } from 'next/navigation';
+import { redirect } from 'next/navigation';
 
+import EntityNotFound from '#components/EntityNotFound/EntityNotFound.tsx';
 import { listAgents } from '#modules/agents/api/index.ts';
 import { isAgentUiSupported, sortAgentsByName } from '#modules/agents/utils.ts';
 import { routes } from '#utils/router.ts';
@@ -25,5 +26,5 @@ export default async function LandingPage() {
     redirect(routes.agentRun({ name: firstAgentName }));
   }
 
-  return notFound();
+  return <EntityNotFound type="agent" message="No agents with supported UI found." showBackHomeButton={false} />;
 }

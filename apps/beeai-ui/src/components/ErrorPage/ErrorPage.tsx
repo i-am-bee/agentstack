@@ -12,7 +12,7 @@ import classes from './ErrorPage.module.scss';
 
 interface Props {
   message?: string;
-  renderButton: (props: { className: string }) => ReactNode;
+  renderButton?: (props: { className: string }) => ReactNode;
 }
 
 export function ErrorPage({ renderButton, message = 'We couldn’t find the page you are looking for.' }: Props) {
@@ -25,7 +25,7 @@ export function ErrorPage({ renderButton, message = 'We couldn’t find the page
 
         <p className={classes.description}>{message}</p>
 
-        {renderButton({ className: classes.button })}
+        {renderButton?.({ className: classes.button })}
       </Container>
     </div>
   );
