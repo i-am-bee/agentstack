@@ -98,7 +98,7 @@ export lima_version=$(yq -r '.tools["asdf:CrouchingMuppet/asdf-lima"]' ../../mis
 export version="$(yq -r '.project.version' pyproject.toml | tr -d -)"
 export universal_wheel=$(realpath "./dist/beeai_cli-$version-py3-none-any.whl")
 
-# Pin versions from uv.lock in wheel:
+# Pin versions from uv.lock in wheel
 tmpdir="$(mktemp -d)"
 unzip -q "$universal_wheel" "beeai_cli-${version}.dist-info/METADATA" -d "$tmpdir"
 insert_line=$(awk '/^Requires-Dist:/ {print FNR-1; exit}' "$tmpdir/beeai_cli-${version}.dist-info/METADATA" | cut -d: -f1)
@@ -110,7 +110,7 @@ insert_line=$(awk '/^Requires-Dist:/ {print FNR-1; exit}' "$tmpdir/beeai_cli-${v
 mv "$tmpdir/beeai_cli-${version}.dist-info/METADATA.new" "$tmpdir/beeai_cli-${version}.dist-info/METADATA"
 (cd "$tmpdir" && zip -q "$universal_wheel" "beeai_cli-${version}.dist-info/METADATA")
 
-# Make platform-specific wheels by bundling limactl:
+# Make platform-specific wheels by bundling limactl
 build_wheel() {
   wheel_tag="$1"
   hostagent_arch="$2"
@@ -125,12 +125,10 @@ build_wheel() {
   (cd "$tmpdir" && zip -q "$platform_wheel" -r .)
   rm -rf "$tmpdir"
 }
-
 build_wheel manylinux_2_28_x86_64  x86_64  &
 build_wheel manylinux_2_28_aarch64 aarch64 &
 build_wheel macosx_12_0_x86_64     x86_64  &
 build_wheel macosx_12_0_arm64      aarch64 &
-
 for job in $(jobs -p); do wait $job; done
 '''
 
