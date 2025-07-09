@@ -42,9 +42,6 @@ dependencies = [
     "ibm-watsonx-ai>=1.3.28",
 ]
 
-[tool.ruff]
-line-length = 120
-
 [project.scripts]
 beeai-server = "beeai_server:serve"
 migrate = "beeai_server:migrate"
@@ -73,7 +70,34 @@ dev = [
     "pytest-httpx>=0.35.0",
     "pytest-subtests>=0.14.1",
     "reportlab>=4.4.2",
+    "pyright>=1.1.399",
+    "ruff>=0.8.5",
 ]
 
 [tool.hatch.build.targets.wheel]
 artifacts = ["static/"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+lint.select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "UP",    # pyupgrade
+    "I",     # isort
+    "B",     # bugbear
+    "N",     # pep8-naming
+    "C4",    # Comprehensions
+    "Q",     # Quotes
+    "SIM",   # Simplify
+    "RUF",   # Ruff
+    "TID",   # tidy-imports
+    "ASYNC", # async
+# TODO: add "DTZ",   # DatetimeZ
+# TODO: add "ANN",   # annotations
+]
+lint.ignore = [
+    "E501" # line lenght (annyoing)
+]
+force-exclude = true

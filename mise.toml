@@ -1,5 +1,5 @@
 [tools]
-# Runtime
+# runtime
 "asdf:CrouchingMuppet/asdf-lima" = "1.1.1" # using lima from asdf since the aqua one fails to install in CI
 
 # Python
@@ -15,7 +15,7 @@ helm = "latest"
 kubeconform = "latest"
 "ubi:telepresenceio/telepresence" = "latest"
 
-# Misc
+# misc
 yq = "latest"
 "pipx:toml-cli" = "latest"
 fd = "latest"
@@ -45,7 +45,7 @@ includes = [
 ## grouped tasks
 
 [tasks."setup"]
-depends = ["setup:*"]
+depends = ["*:setup"]
 
 [tasks."check"]
 depends = ["*:check"]
@@ -62,39 +62,44 @@ depends = ["*:test"]
 hide = true
 depends = ["check"]
 
-## repo setup
+## common tasks
 
-[tasks."setup:mise-local-toml"]
+### setup
+
+[tasks."common:setup"]
+depends = ["common:setup:*"]
+
+[tasks."common:setup:mise-local-toml"]
 hide = true
 dir = "{{config_root}}"
 run = "test -f mise.local.toml || cp mise.local.toml-example mise.local.toml"
 sources = ["mise.local.toml-example"]
 outputs = { auto = true }
 
-[tasks."setup:git-hooks"]
+[tasks."common:setup:git-hooks"]
 hide = true
 dir = "{{config_root}}"
 run = "test ! -d .git || (printf '#!/bin/sh\n{{ mise_bin }} run git-hooks:pre-commit' >.git/hooks/pre-commit && chmod +x .git/hooks/pre-commit)"
 sources = [".git/hooks/pre-commit"]
 outputs = { auto = true }
 
-[tasks."setup:pnpm"]
+[tasks."common:setup:pnpm"]
 hide = true
 dir = "{{config_root}}"
 run = "pnpm install"
 sources = ["pnpm-lock.yaml", "pnpm-workspace.yaml", "apps/*/package.json", "docs/package.json", "agents/*/*/package.json"]
 outputs = { auto = true }
 
-[tasks."setup:uv"]
-hide = true
+### check
+
+[tasks."common:check"]
+depends = ["common:check:*"]
+
+[tasks."common:check:license"]
 dir = "{{config_root}}"
-run = "uv sync --all-extras --dev"
-sources = ["uv.lock", "pyproject.toml", "apps/*/pyproject.toml"]
-outputs = { auto = true }
+run = "addlicense -check -l apache -s=only -c '© BeeAI a Series of LF Projects, LLC' $(fd '\\.(py|[jt]sx?|html|s?css)$')"
 
-## release tasks
-
-[tasks."version:check"]
+[tasks."common:check:version"]
 dir = "{{config_root}}"
 run = """
 #!/bin/bash
@@ -128,7 +133,23 @@ if [[ "$GITHUB_REF" == refs/tags/v* && "$GITHUB_REF" != "refs/tags/v$helm_versio
 fi
 """
 
-[tasks."version:bump"]
+### fix
+
+[tasks."common:fix"]
+depends = ["common:fix:*"]
+
+[tasks."common:fix:license"]
+dir = "{{config_root}}"
+run = "addlicense -l apache -s=only -c '© BeeAI a Series of LF Projects, LLC' $(fd '\\.(py|[jt]sx?|html|s?css)$')"
+
+### test
+
+[tasks."common:test"]
+run = "true" # Empty tests in case there are no tests
+
+### release
+
+[tasks."release"]
 dir = "{{config_root}}"
 run = '''
 #!/bin/bash
@@ -162,13 +183,10 @@ done
 # Update all version fields
 yq -i ".version = \"$new_version\"" helm/Chart.yaml
 yq -i ".appVersion = \"$new_version\"' helm/Chart.yaml
-toml set 'project.version' "$new_version" --toml-path apps/beeai-cli/pyproject.toml
-toml set 'project.version' "$new_version" --toml-path apps/beeai-server/pyproject.toml
+(cd apps/beeai-cli && toml set 'project.version' "$new_version" --toml-path pyproject.toml && uv lock)
+(cd apps/beeai-server && toml set 'project.version' "$new_version" --toml-path pyproject.toml && uv lock)
 yq -i ".version = \"$new_version\"" apps/beeai-ui/package.json
 yq -i ".version = \"$new_version\"" apps/beeai-web/package.json
-
-# Update lockfile with new version
-uv lock
 
 # Confirm commit and push (default: yes)
 read -p "Commit and push? [Y/n] " confirm
@@ -182,30 +200,3 @@ if [[ "${confirm:-y}" =~ ^[Yy]$ ]]; then
   )
 fi
 '''
-
-## common tasks
-
-### check
-
-[tasks."common:check"]
-depends = ["common:check:*"]
-
-[tasks."common:check:license"]
-dir = "{{config_root}}"
-run = "addlicense -check -l apache -s=only -c '© BeeAI a Series of LF Projects, LLC' $(fd '\\.(py|[jt]sx?|html|s?css)$')"
-
-### fix
-
-[tasks."common:fix"]
-depends = ["common:fix:*"]
-
-[tasks."common:fix:license"]
-dir = "{{config_root}}"
-run = "addlicense -l apache -s=only -c '© BeeAI a Series of LF Projects, LLC' $(fd '\\.(py|[jt]sx?|html|s?css)$')"
-
-### test
-
-# Empty tests in case there are no tests
-
-[tasks."common:test"]
-run = "true"

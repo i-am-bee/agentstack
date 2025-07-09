@@ -22,9 +22,12 @@ dependencies = [
     "typer~=0.16.0",
 ]
 
-[tool.uv.sources]
-beeai-server = { workspace = true }
-beeai-sdk = { workspace = true }
+[dependency-groups]
+dev = [
+    "pyright>=1.1.399",
+    "pytest>=8.3.4",
+    "ruff>=0.8.5",
+]
 
 [project.scripts]
 beeai = "beeai_cli:app"
@@ -36,3 +39,28 @@ build-backend = "uv_build"
 
 [tool.uv.build-backend]
 source-include = ["src/beeai_cli/data"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+lint.select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "UP",    # pyupgrade
+    "I",     # isort
+    "B",     # bugbear
+    "N",     # pep8-naming
+    "C4",    # Comprehensions
+    "Q",     # Quotes
+    "SIM",   # Simplify
+    "RUF",   # Ruff
+    "TID",   # tidy-imports
+    "ASYNC", # async
+# TODO: add "DTZ",   # DatetimeZ
+# TODO: add "ANN",   # annotations
+]
+lint.ignore = [
+    "E501" # line lenght (annyoing)
+]
+force-exclude = true

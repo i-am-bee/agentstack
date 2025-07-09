@@ -1,17 +1,25 @@
+# setup
+
+["beeai-cli:setup"]
+dir = "{{config_root}}/apps/beeai-cli"
+run = "uv sync --all-extras --dev"
+sources = ["uv.lock", "pyproject.toml"]
+outputs = { auto = true }
+
 # check
 
 ["beeai-cli:check"]
 depends = ["beeai-cli:check:*"]
 
 ["beeai-cli:check:ruff-check"]
-depends = ["setup:uv"]
+depends = ["beeai-cli:setup"]
 dir = "{{config_root}}/apps/beeai-cli"
 run = "uv run python -m ruff check --quiet"
 sources = ["src/**/*.py"]
 outputs = { auto = true }
 
 ["beeai-cli:check:ruff-format"]
-depends = ["setup:uv"]
+depends = ["beeai-cli:setup"]
 dir = "{{config_root}}/apps/beeai-cli"
 run = "uv run python -m ruff format --quiet --check"
 sources = ["src/**/*.py"]
@@ -30,14 +38,14 @@ outputs = { auto = true }
 depends = ["beeai-cli:fix:*"]
 
 ["beeai-cli:fix:ruff-check"]
-depends = ["setup:uv"]
+depends = ["beeai-cli:setup"]
 dir = "{{config_root}}/apps/beeai-cli"
 run = "uv run python -m ruff check --quiet --fix"
 sources = ["src/**/*.py"]
 outputs = { auto = true }
 
 ["beeai-cli:fix:ruff-format"]
-depends = ["setup:uv"]
+depends = ["beeai-cli:setup"]
 dir = "{{config_root}}/apps/beeai-cli"
 run = "uv run python -m ruff format --quiet"
 sources = ["src/**/*.py"]
@@ -47,7 +55,7 @@ outputs = { auto = true }
 
 ["beeai-cli:run"]
 description = "NOTE: Use double dash to pass extra args, like `mise beeai-cli:run -- provider list`"
-depends = ["setup:uv", "beeai-cli:build:copy-helm-chart"]
+depends = ["beeai-cli:setup", "beeai-cli:build:copy-helm-chart"]
 dir = "{{cwd}}"
 run = "uv run beeai"
 
@@ -75,7 +83,7 @@ sources = ["{{config_root}}/helm/dist/beeai-platform-*.tgz"]
 outputs = ["./src/beeai_cli/data/helm-chart.tgz"]
 
 ["beeai-cli:build"]
-depends = ["setup:uv", "beeai-cli:build:*"]
+depends = ["beeai-cli:setup", "beeai-cli:build:*"]
 dir = "{{config_root}}/apps/beeai-cli"
 sources = ["src/**/*", "hatch_build.py", "pyproject.toml", "vendor/lima/**/*"]
 outputs = ["dist/**/*"]

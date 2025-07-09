@@ -4,35 +4,35 @@
 depends = ["beeai-web:check:*"]
 
 ["beeai-web:check:next"]
-depends = ["setup:pnpm"]
+depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm next lint"
 sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
 outputs = { auto = true }
 
 ["beeai-web:check:prettier"]
-depends = ["setup:pnpm"]
+depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm prettier --log-level silent --check src"
 sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx", "src/**/*.html", "src/**/*.css", "src/**/*.scss"]
 outputs = { auto = true }
 
 ["beeai-web:check:eslint"]
-depends = ["setup:pnpm"]
+depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm eslint src"
 sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
 outputs = { auto = true }
 
 ["beeai-web:check:tsc"]
-depends = ["setup:pnpm", "beeai-web:check:next"]
+depends = ["common:setup:pnpm", "beeai-web:check:next"]
 dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm tsc --noEmit -p tsconfig.json"
 sources = ["src/**/*.ts", "src/**/*.tsx"]
 outputs = { auto = true }
 
 ["beeai-web:check:stylelint"]
-depends = ["setup:pnpm"]
+depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm stylelint src/**/*.css src/**/*.scss"
 sources = ["src/**/*.css", "src/**/*.scss"]
@@ -44,21 +44,21 @@ outputs = { auto = true }
 depends = ["beeai-web:fix:*"]
 
 ["beeai-web:fix:prettier"]
-depends = ["setup:pnpm"]
+depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm prettier --log-level silent --write src"
 sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx", "src/**/*.html", "src/**/*.css", "src/**/*.scss"]
 outputs = { auto = true }
 
 ["beeai-web:fix:eslint"]
-depends = ["setup:pnpm"]
+depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm eslint --fix src"
 sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
 outputs = { auto = true }
 
 ["beeai-web:fix:stylelint"]
-depends = ["setup:pnpm"]
+depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm stylelint --fix=lax src/**/*.css src/**/*.scss"
 sources = ["src/**/*.css", "src/**/*.scss"]
@@ -68,14 +68,14 @@ outputs = { auto = true }
 
 ["beeai-web:run"]
 description = "NOTE: You also need to have `beeai-server` running for the backend"
-depends = ["setup:pnpm"]
+depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm dev"
 
 # build
 
 ["beeai-web:build"]
-depends = ["setup:pnpm"]
+depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm build"
 sources = ["*.json", "*.js", "index.html", "src/**/*.tsx", "src/**/*.ts"]
@@ -84,7 +84,7 @@ outputs = { auto = true }
 # preview
 
 ["beeai-web:preview"]
-depends = ["setup:pnpm"]
+depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm preview"
 
