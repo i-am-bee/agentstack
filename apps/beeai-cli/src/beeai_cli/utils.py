@@ -12,7 +12,7 @@ from contextvars import ContextVar
 from copy import deepcopy
 from enum import Enum
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, Optional, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Optional, cast
 
 import anyio
 import typer
@@ -71,18 +71,11 @@ def check_json(value: Any) -> dict[str, Any]:
         raise typer.BadParameter(f"Invalid JSON '{value}'") from e
 
 
-DictType = TypeVar("DictType", bound=dict)
-
-
-def omit[DictType](dict: DictType, keys: Iterable[str]) -> DictType:
+def omit[DictType: dict](dict: DictType, keys: Iterable[str]) -> DictType:
     return {key: value for key, value in dict.items() if key not in keys}
 
 
-T = TypeVar("T")
-V = TypeVar("V")
-
-
-def filter_dict(map: dict[str, T | V], value_to_exclude: V = None) -> dict[str, V]:
+def filter_dict[T, V](map: dict[str, T | V], value_to_exclude: V = None) -> dict[str, V]:
     """Remove entries with unwanted values (None by default) from dictionary."""
     return {filter: value for filter, value in map.items() if value is not value_to_exclude}
 

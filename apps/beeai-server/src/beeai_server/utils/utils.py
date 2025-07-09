@@ -11,25 +11,21 @@ from asyncio import CancelledError
 from collections.abc import AsyncIterable, Callable, Iterable
 from contextlib import suppress
 from datetime import UTC, datetime
-from typing import Any, TypeVar
+from typing import Any
 
 import anyio.to_thread
 
-T = TypeVar("T")
-V = TypeVar("V")
-DictType = TypeVar("DictType", bound=dict)
 
-
-def filter_dict(map: dict[str, T | V], value_to_exclude: V = None) -> dict[str, V]:
+def filter_dict[T, V](map: dict[str, T | V], value_to_exclude: V = None) -> dict[str, V]:
     """Remove entries with unwanted values (None by default) from dictionary."""
     return {filter: value for filter, value in map.items() if value is not value_to_exclude}
 
 
-def pick[DictType](dict: DictType, keys: Iterable[str]) -> DictType:
+def pick[DictType: dict](dict: DictType, keys: Iterable[str]) -> DictType:
     return {key: value for key, value in dict.items() if key in keys}
 
 
-def omit[DictType](dict: DictType, keys: Iterable[str]) -> DictType:
+def omit[DictType: dict](dict: DictType, keys: Iterable[str]) -> DictType:
     return {key: value for key, value in dict.items() if key not in keys}
 
 
@@ -60,10 +56,7 @@ def utc_now() -> datetime:
     return datetime.now(UTC)
 
 
-AnyCallableT = TypeVar("AnyCallableT", bound=Callable[..., Any])
-
-
-def async_to_sync_isolated[AnyCallableT](fn: AnyCallableT) -> AnyCallableT:
+def async_to_sync_isolated[AnyCallableT: Callable[..., Any]](fn: AnyCallableT) -> AnyCallableT:
     @functools.wraps(fn)
     def wrapped_fn(*args, **kwargs):
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:

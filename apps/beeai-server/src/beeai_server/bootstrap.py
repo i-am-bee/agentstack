@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-from typing import TypeVar
 
 import kr8s
 import procrastinate
@@ -41,13 +40,10 @@ async def setup_kubernetes_client(config: Configuration):
     return api_factory
 
 
-T = TypeVar("T")
-
-
 async def bootstrap_dependencies(dependency_overrides: Container | None = None):
     dependency_overrides = dependency_overrides or Container()
 
-    def _set_di(service: type[T], instance: T):
+    def _set_di[T](service: type[T], instance: T):
         di[service] = dependency_overrides.get(service, instance)
 
     di.clear_cache()

@@ -7,7 +7,7 @@ import re
 from contextlib import contextmanager
 from pathlib import Path
 from pprint import pprint
-from typing import Any, TypeVar
+from typing import Any
 
 import kr8s
 import pytest
@@ -121,13 +121,10 @@ async def clean_up(clean_up_fn):
         await clean_up_fn()
 
 
-T = TypeVar("T")
-
-
 @pytest.fixture()
 def override_global_dependency():
     @contextmanager
-    def override_global_dependency(cls: type[T], value: T | Any):
+    def override_global_dependency[T](cls: type[T], value: T | Any):
         orig_value = di[cls] if cls in di else None
         di[cls] = value
         try:
