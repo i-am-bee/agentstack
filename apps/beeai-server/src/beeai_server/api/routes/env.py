@@ -3,8 +3,8 @@
 
 import fastapi
 
-from beeai_server.api.dependencies import EnvServiceDependency, AdminUserDependency
-from beeai_server.api.schema.env import UpdateVariablesRequest, ListVariablesSchema
+from beeai_server.api.dependencies import AdminUserDependency, EnvServiceDependency
+from beeai_server.api.schema.env import ListVariablesSchema, UpdateVariablesRequest
 
 router = fastapi.APIRouter()
 

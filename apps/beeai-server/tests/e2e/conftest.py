@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 
 import httpx
 import pytest_asyncio

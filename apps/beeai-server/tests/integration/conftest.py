@@ -1,11 +1,11 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Callable
+from collections.abc import Callable
 
 import pytest_asyncio
-from kink import Container
 from fastapi.testclient import TestClient
+from kink import Container
 
 from beeai_server.application import app
 

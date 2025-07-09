@@ -3,10 +3,10 @@
 
 import logging
 from collections import deque
+from collections.abc import AsyncIterator, Callable, Iterable
 from contextlib import asynccontextmanager
 from datetime import datetime
 from enum import StrEnum
-from typing import Callable, Iterable, AsyncIterator
 
 import anyio
 from anyio import WouldBlock

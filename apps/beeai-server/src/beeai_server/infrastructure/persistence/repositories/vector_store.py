@@ -1,23 +1,25 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from collections.abc import AsyncIterator, Iterable
 from datetime import timedelta
-from typing import AsyncIterator, Iterable
 from uuid import UUID
 
 from kink import inject
 from sqlalchemy import (
-    Table,
+    UUID as SQL_UUID,
+)
+from sqlalchemy import (
     Column,
-    String,
     DateTime,
-    Row,
-    select,
-    UUID as SqlUUID,
     ForeignKey,
     Integer,
-    func,
     PrimaryKeyConstraint,
+    Row,
+    String,
+    Table,
+    func,
+    select,
 )
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
@@ -25,7 +27,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from beeai_server.domain.models.vector_store import VectorStore, VectorStoreDocument
 from beeai_server.domain.repositories.vector_store import IVectorStoreRepository
-from beeai_server.exceptions import EntityNotFoundError, DuplicateEntityError
+from beeai_server.exceptions import DuplicateEntityError, EntityNotFoundError
 from beeai_server.infrastructure.persistence.repositories.db_metadata import metadata
 from beeai_server.utils.utils import utc_now
 
@@ -33,7 +35,7 @@ from beeai_server.utils.utils import utc_now
 vector_stores_table = Table(
     "vector_stores",
     metadata,
-    Column("id", SqlUUID, primary_key=True),
+    Column("id", SQL_UUID, primary_key=True),
     Column("name", String(256), nullable=True),
     Column("model_id", String(256), nullable=False),
     Column("dimension", Integer, nullable=False),
@@ -189,8 +191,10 @@ class SqlAlchemyVectorStoreRepository(IVectorStoreRepository):
                 },
             )
             await self.connection.execute(query)
-        except IntegrityError:
-            raise DuplicateEntityError(entity="vector_store_document", field="id", value=str({d.id for d in documents}))
+        except IntegrityError as e:
+            raise DuplicateEntityError(
+                entity="vector_store_document", field="id", value=str({d.id for d in documents})
+            ) from e
         await self.update_last_accessed(vector_store_ids={d.vector_store_id for d in documents})
 
     async def total_usage(self, *, user_id: UUID | None = None) -> int:

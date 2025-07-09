@@ -7,7 +7,6 @@ from datetime import timedelta
 
 import anyio
 import httpx
-
 from kink import inject
 from procrastinate import Blueprint
 
@@ -15,11 +14,9 @@ from beeai_server import get_configuration
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.provider import Provider
 from beeai_server.exceptions import EntityNotFoundError
-
 from beeai_server.service_layer.services.provider import ProviderService
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
 from beeai_server.utils.utils import extract_messages
-
 
 logger = logging.getLogger(__name__)
 

@@ -1,16 +1,15 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Generic, TypeVar
+from typing import TypeVar
 from uuid import UUID
 
 from pydantic import BaseModel
 
-
 BaseModelT = TypeVar("BaseModelT", bound=BaseModel)
 
 
-class PaginatedResponse(BaseModel, Generic[BaseModelT]):
+class PaginatedResponse[BaseModelT](BaseModel):
     items: list[BaseModelT]
     total_count: int
 

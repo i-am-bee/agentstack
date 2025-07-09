@@ -4,8 +4,8 @@
 import asyncio
 
 import pytest
-from acp_sdk.client import Client
 from acp_sdk import Message, MessagePart, Session
+from acp_sdk.client import Client
 from acp_sdk.server import Server
 
 """

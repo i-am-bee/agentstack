@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from enum import StrEnum
-from typing import Optional, Literal
+from typing import Literal
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, AwareDatetime, Field
+from pydantic import AwareDatetime, BaseModel, Field
 
 from beeai_server.domain.models.common import Metadata
 from beeai_server.utils.utils import utc_now
@@ -42,7 +42,7 @@ class VectorSearchResult(BaseModel):
 
     text: str
     score: float
-    metadata: Optional[dict] = None
+    metadata: dict | None = None
 
 
 class DocumentType(StrEnum):

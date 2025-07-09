@@ -3,41 +3,39 @@
 
 import re
 import traceback
-from typing import Dict, List
 
+import fastapi
 from beeai_framework.adapters.openai.backend.embedding import OpenAIEmbeddingModel
 from beeai_framework.adapters.watsonx.backend.embedding import WatsonxEmbeddingModel
 from beeai_framework.backend.types import EmbeddingModelOutput
-import fastapi
 from pydantic import BaseModel
 
 from beeai_server.api.dependencies import EnvServiceDependency
-
 
 router = fastapi.APIRouter()
 
 
 class EmbeddingsRequest(BaseModel):
     model: str
-    input: List[str] | str
+    input: list[str] | str
 
 
 class EmbeddingsDataItem(BaseModel):
     object: str = "embedding"
     index: int
-    embedding: List[float]
+    embedding: list[float]
 
 
 class EmbeddingsResponse(BaseModel):
     object: str = "list"
     system_fingerprint: str = "beeai-embeddings-gateway"
     model: str
-    usage: Dict[str, int] = {
+    usage: dict[str, int] = {
         "prompt_tokens": int,
         "total_tokens": int,
         "completion_tokens": int,
     }
-    data: List[EmbeddingsDataItem]
+    data: list[EmbeddingsDataItem]
 
 
 @router.post("/embeddings")

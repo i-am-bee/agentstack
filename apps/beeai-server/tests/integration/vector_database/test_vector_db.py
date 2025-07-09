@@ -1,14 +1,13 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import pytest
-import pytest_asyncio
 import uuid
 from uuid import UUID
-from typing import List
 
-from sqlalchemy.ext.asyncio import AsyncConnection
+import pytest
+import pytest_asyncio
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncConnection
 
 from beeai_server.domain.models.vector_store import VectorStoreItem, VectorStoreSearchResult
 from beeai_server.infrastructure.vector_database.vector_db import VectorDatabaseRepository
@@ -29,7 +28,7 @@ async def test_collection_id(db_transaction: AsyncConnection) -> UUID:
 
 
 @pytest_asyncio.fixture
-async def sample_vector_items(test_collection_id: UUID) -> List[VectorStoreItem]:
+async def sample_vector_items(test_collection_id: UUID) -> list[VectorStoreItem]:
     """Create sample vector items for testing."""
     return [
         VectorStoreItem(
@@ -98,7 +97,7 @@ async def test_create_collection_with_unsupported_dimension(
 async def test_add_items_to_collection(
     vector_db_repository: VectorDatabaseRepository,
     test_collection_id: UUID,
-    sample_vector_items: List[VectorStoreItem],
+    sample_vector_items: list[VectorStoreItem],
     db_transaction: AsyncConnection,
 ):
     """Test adding vector items to a collection."""
@@ -157,7 +156,7 @@ async def test_add_empty_items_list(
 @pytest.mark.asyncio
 async def test_estimate_size(
     vector_db_repository: VectorDatabaseRepository,
-    sample_vector_items: List[VectorStoreItem],
+    sample_vector_items: list[VectorStoreItem],
 ):
     """Test size estimation for vector items."""
     document_info = vector_db_repository.estimate_size(sample_vector_items)
@@ -183,7 +182,7 @@ async def test_estimate_size(
 async def test_similarity_search(
     vector_db_repository: VectorDatabaseRepository,
     test_collection_id: UUID,
-    sample_vector_items: List[VectorStoreItem],
+    sample_vector_items: list[VectorStoreItem],
     db_transaction: AsyncConnection,
 ):
     """Test similarity search functionality."""
@@ -225,7 +224,7 @@ async def test_similarity_search(
 async def test_similarity_search_with_limit(
     vector_db_repository: VectorDatabaseRepository,
     test_collection_id: UUID,
-    sample_vector_items: List[VectorStoreItem],
+    sample_vector_items: list[VectorStoreItem],
     db_transaction: AsyncConnection,
 ):
     """Test similarity search with different limits."""
@@ -255,7 +254,7 @@ async def test_similarity_search_with_limit(
 async def test_delete_documents(
     vector_db_repository: VectorDatabaseRepository,
     test_collection_id: UUID,
-    sample_vector_items: List[VectorStoreItem],
+    sample_vector_items: list[VectorStoreItem],
     db_transaction: AsyncConnection,
 ):
     """Test deleting documents from collection."""
@@ -297,7 +296,7 @@ async def test_delete_documents(
 async def test_delete_multiple_documents(
     vector_db_repository: VectorDatabaseRepository,
     test_collection_id: UUID,
-    sample_vector_items: List[VectorStoreItem],
+    sample_vector_items: list[VectorStoreItem],
     db_transaction: AsyncConnection,
 ):
     """Test deleting multiple documents at once."""
@@ -322,7 +321,7 @@ async def test_delete_multiple_documents(
 async def test_delete_nonexistent_documents(
     vector_db_repository: VectorDatabaseRepository,
     test_collection_id: UUID,
-    sample_vector_items: List[VectorStoreItem],
+    sample_vector_items: list[VectorStoreItem],
     db_transaction: AsyncConnection,
 ):
     """Test deleting non-existent documents doesn't affect existing data."""
@@ -346,7 +345,7 @@ async def test_delete_nonexistent_documents(
 @pytest.mark.asyncio
 async def test_multiple_collections_same_dimension(
     vector_db_repository: VectorDatabaseRepository,
-    sample_vector_items: List[VectorStoreItem],
+    sample_vector_items: list[VectorStoreItem],
     db_transaction: AsyncConnection,
 ):
     """Test multiple collections using the same dimension share the same table."""
@@ -429,7 +428,7 @@ async def test_dimension_mapping_to_supported_dimensions(
 @pytest.mark.asyncio
 async def test_get_item_size_calculation(
     vector_db_repository: VectorDatabaseRepository,
-    sample_vector_items: List[VectorStoreItem],
+    sample_vector_items: list[VectorStoreItem],
 ):
     """Test item size calculation is consistent and reasonable."""
     item = sample_vector_items[0]

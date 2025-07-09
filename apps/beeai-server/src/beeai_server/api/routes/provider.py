@@ -2,18 +2,17 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+from uuid import UUID
+
 import fastapi
 from fastapi import HTTPException, status
 from fastapi.params import Query
-
-from beeai_server.api.schema.provider import CreateProviderRequest
-from uuid import UUID
-
-from beeai_server.domain.models.provider import ProviderWithState
-from beeai_server.api.dependencies import ProviderServiceDependency, AdminUserDependency, ConfigurationDependency
-from beeai_server.api.schema.common import PaginatedResponse
 from starlette.responses import StreamingResponse
 
+from beeai_server.api.dependencies import AdminUserDependency, ConfigurationDependency, ProviderServiceDependency
+from beeai_server.api.schema.common import PaginatedResponse
+from beeai_server.api.schema.provider import CreateProviderRequest
+from beeai_server.domain.models.provider import ProviderWithState
 from beeai_server.utils.fastapi import streaming_response
 
 router = fastapi.APIRouter()

@@ -6,29 +6,29 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from typing import AsyncIterator, Callable
+from collections.abc import AsyncIterator, Callable
 from uuid import UUID
 
+from acp_sdk import AgentManifest as AcpAgent
 from fastapi import HTTPException
 from kink import inject
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
-from acp_sdk import AgentManifest as AcpAgent
-from beeai_server.service_layer.deployment_manager import (
-    IProviderDeploymentManager,
-)
 from beeai_server.domain.models.provider import (
-    ProviderLocation,
     Provider,
-    ProviderWithState,
     ProviderDeploymentState,
+    ProviderLocation,
+    ProviderWithState,
     convert_agents_from_acp,
 )
 from beeai_server.domain.models.registry import RegistryLocation
 from beeai_server.exceptions import ManifestLoadError
+from beeai_server.service_layer.deployment_manager import (
+    IProviderDeploymentManager,
+)
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
 from beeai_server.utils.logs_container import LogsContainer
-from beeai_server.utils.utils import utc_now, cancel_task
+from beeai_server.utils.utils import cancel_task, utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +97,7 @@ class ProviderService:
 
         provider_states = await self._deployment_manager.state(provider_ids=[provider.id for provider in providers])
 
-        for provider, state in zip(providers, provider_states):
+        for provider, state in zip(providers, provider_states, strict=False):
             result_providers.append(
                 ProviderWithState(
                     **provider.model_dump(),
@@ -144,9 +144,7 @@ class ProviderService:
     async def get_provider(self, provider_id: UUID) -> ProviderWithState:
         providers = [provider for provider in await self.list_providers() if provider.id == provider_id]
         if not providers:
-            raise HTTPException(
-                status_code=HTTP_404_NOT_FOUND, detail=f"Provider with ID: {str(provider_id)} not found"
-            )
+            raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail=f"Provider with ID: {provider_id!s} not found")
         return providers[0]
 
     async def stream_logs(self, provider_id: UUID) -> Callable[..., AsyncIterator[str]]:

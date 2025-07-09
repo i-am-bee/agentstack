@@ -7,7 +7,7 @@ import re
 from contextlib import contextmanager
 from pathlib import Path
 from pprint import pprint
-from typing import TypeVar, Any
+from typing import Any, TypeVar
 
 import kr8s
 import pytest

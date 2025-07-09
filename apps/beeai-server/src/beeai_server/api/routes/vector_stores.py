@@ -6,7 +6,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, status
 
-from beeai_server.api.dependencies import VectorStoreServiceDependency, AuthenticatedUserDependency
+from beeai_server.api.dependencies import AuthenticatedUserDependency, VectorStoreServiceDependency
 from beeai_server.api.schema.common import EntityModel, PaginatedResponse
 from beeai_server.api.schema.vector_stores import (
     CreateVectorStoreRequest,
@@ -14,8 +14,8 @@ from beeai_server.api.schema.vector_stores import (
 )
 from beeai_server.domain.models.vector_store import (
     VectorStore,
-    VectorStoreItem,
     VectorStoreDocument,
+    VectorStoreItem,
     VectorStoreSearchResult,
 )
 

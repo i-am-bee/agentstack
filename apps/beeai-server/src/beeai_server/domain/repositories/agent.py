@@ -1,9 +1,11 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from collections.abc import AsyncIterator
 from datetime import timedelta
-from typing import Protocol, runtime_checkable, AsyncIterator
+from typing import Protocol, runtime_checkable
 from uuid import UUID
+
 from beeai_server.domain.models.agent import Agent, AgentRunRequest
 
 

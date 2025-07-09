@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, Final
 
 import structlog
-from structlog.dev import RichTracebackFormatter, ConsoleRenderer, DIM
+from structlog.dev import DIM, ConsoleRenderer, RichTracebackFormatter
 
 from beeai_server.configuration import LoggingConfiguration, get_configuration
 
@@ -25,10 +25,7 @@ class ContextFilterProcessor(logging.Filter):
 
     def filter(self, record: logging.LogRecord) -> bool:
         contextvars = structlog.contextvars.get_contextvars()
-        for key, value in self.filter_context_vars.items():
-            if contextvars.get(key, None) == value:
-                return True
-        return False
+        return any(contextvars.get(key, None) == value for key, value in self.filter_context_vars.items())
 
 
 class FilterDuplicates(logging.Filter):

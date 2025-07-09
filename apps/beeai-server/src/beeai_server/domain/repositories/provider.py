@@ -1,7 +1,8 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import runtime_checkable, Protocol, AsyncIterator
+from collections.abc import AsyncIterator
+from typing import Protocol, runtime_checkable
 from uuid import UUID
 
 from beeai_server.domain.models.provider import Provider

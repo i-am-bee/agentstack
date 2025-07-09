@@ -33,13 +33,12 @@ fi
 sources = ["tests/**/*.py"]
 outputs = { auto = true }
 
-# TODO: fix lint errors
-# ["beeai-server:check:ruff-check"]
-# depends = ["beeai-server:setup"]
-# dir = "{{config_root}}/apps/beeai-server"
-# run = "uv run python -m ruff check --quiet"
-# sources = ["src/**/*.py"]
-# outputs = { auto = true }
+["beeai-server:check:ruff-check"]
+depends = ["beeai-server:setup"]
+dir = "{{config_root}}/apps/beeai-server"
+run = "uv run python -m ruff check --quiet"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
 
 ["beeai-server:check:ruff-format"]
 depends = ["beeai-server:setup"]

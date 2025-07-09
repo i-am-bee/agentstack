@@ -6,7 +6,7 @@ from typing import Any
 
 import httpx
 from kink import inject
-from pydantic import ModelWrapValidatorHandler, RootModel, model_validator, PrivateAttr
+from pydantic import ModelWrapValidatorHandler, PrivateAttr, RootModel, model_validator
 
 from beeai_server.configuration import Configuration
 
@@ -40,13 +40,13 @@ class DockerImageID(RootModel):
         pattern = r"""
             # Forbid starting with http:// or https://
             ^(?!https?://)
-            
+
             # Registry (optional) - ends with slash and contains at least one dot
             ((?P<registry>[^/]+\.[^/]+)/)?
-            
+
             # Repository (required) - final component before any tag
             (?P<repository>[^:]+)
-            
+
             # Tag (optional) - everything after the colon
             (?::(?P<tag>[^:]+))?
         """

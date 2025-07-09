@@ -3,8 +3,9 @@
 
 from typing import Annotated
 
-from fastapi.security import HTTPBasicCredentials, HTTPBasic
-from fastapi import status, HTTPException
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from kink import di
 
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.user import User, UserRole
@@ -14,9 +15,6 @@ from beeai_server.service_layer.services.files import FileService
 from beeai_server.service_layer.services.provider import ProviderService
 from beeai_server.service_layer.services.users import UserService
 from beeai_server.service_layer.services.vector_stores import VectorStoreService
-from fastapi import Depends
-from kink import di
-
 
 ConfigurationDependency = Annotated[Configuration, Depends(lambda: di[Configuration])]
 ProviderServiceDependency = Annotated[ProviderService, Depends(lambda: di[ProviderService])]

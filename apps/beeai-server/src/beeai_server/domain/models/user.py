@@ -4,7 +4,7 @@
 from enum import StrEnum
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field, EmailStr, AwareDatetime
+from pydantic import AwareDatetime, BaseModel, EmailStr, Field
 
 from beeai_server.utils.utils import utc_now
 

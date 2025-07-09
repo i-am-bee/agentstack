@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
 from uuid import UUID
 
 import aioboto3
@@ -68,7 +68,7 @@ class S3ObjectStorageRepository(IObjectStorageRepository):
 
             except ClientError as e:
                 if e.response["Error"]["Code"] == "NoSuchKey":
-                    raise EntityNotFoundError(entity="file", id=file_id)
+                    raise EntityNotFoundError(entity="file", id=file_id) from e
                 raise
 
     async def delete_file(self, *, file_id: UUID) -> None:
@@ -95,7 +95,7 @@ class S3ObjectStorageRepository(IObjectStorageRepository):
 
             except ClientError as e:
                 if e.response["Error"]["Code"] == "NoSuchKey" or e.response["Error"]["Code"] == "404":
-                    raise EntityNotFoundError(entity="file", id=file_id)
+                    raise EntityNotFoundError(entity="file", id=file_id) from e
                 raise
 
     async def get_file_metadata(self, *, file_id: UUID) -> FileMetadata:
@@ -110,5 +110,5 @@ class S3ObjectStorageRepository(IObjectStorageRepository):
                 )
             except ClientError as e:
                 if e.response["Error"]["Code"] == "NoSuchKey" or e.response["Error"]["Code"] == "404":
-                    raise EntityNotFoundError(entity="file", id=file_id)
+                    raise EntityNotFoundError(entity="file", id=file_id) from e
                 raise

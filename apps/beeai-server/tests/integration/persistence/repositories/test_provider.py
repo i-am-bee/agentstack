@@ -2,18 +2,17 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import json
-
-import pytest
-import pytest_asyncio
 import uuid
 from datetime import timedelta
 
-from sqlalchemy.ext.asyncio import AsyncConnection
+import pytest
+import pytest_asyncio
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncConnection
 
 from beeai_server.configuration import Configuration
-from beeai_server.domain.models.provider import Provider, NetworkProviderLocation
 from beeai_server.domain.models.agent import EnvVar
+from beeai_server.domain.models.provider import NetworkProviderLocation, Provider
 from beeai_server.exceptions import DuplicateEntityError, EntityNotFoundError
 from beeai_server.infrastructure.persistence.repositories.provider import SqlAlchemyProviderRepository
 

@@ -98,6 +98,8 @@ lint.select = [
 # TODO: add "ANN",   # annotations
 ]
 lint.ignore = [
-    "E501" # line lenght (annyoing)
+    "E501", # line lenght (annyoing)
+    "N999", # invalid module name beeai-server (yeah, we use a dash, deal with it)
 ]
 force-exclude = true
+exclude = ["tests"]

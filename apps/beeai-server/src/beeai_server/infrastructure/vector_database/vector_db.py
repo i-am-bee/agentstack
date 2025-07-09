@@ -3,25 +3,26 @@
 
 import json
 from collections import defaultdict
-from typing import Iterable, Sequence
+from collections.abc import Iterable, Sequence
 from uuid import UUID
 
 from pgvector.sqlalchemy import HALFVEC
 from sqlalchemy import (
-    Table,
     Column,
-    MetaData,
-    Text,
+    ForeignKeyConstraint,
     Index,
+    MetaData,
+    PrimaryKeyConstraint,
     Row,
     String,
-    PrimaryKeyConstraint,
-    ForeignKeyConstraint,
+    Table,
+    Text,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID as SqlUUID, insert
+from sqlalchemy.dialects.postgresql import JSONB, insert
+from sqlalchemy.dialects.postgresql import UUID as SQL_UUID
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from beeai_server.domain.models.vector_store import VectorStoreItem, VectorStoreDocumentInfo, VectorStoreSearchResult
+from beeai_server.domain.models.vector_store import VectorStoreDocumentInfo, VectorStoreItem, VectorStoreSearchResult
 from beeai_server.domain.repositories.vector_store import IVectorDatabaseRepository
 from beeai_server.infrastructure.persistence.repositories.vector_store import (
     vector_store_documents_table,
@@ -50,8 +51,8 @@ class VectorDatabaseRepository(IVectorDatabaseRepository):
         return Table(
             table_name,
             metadata,
-            Column("id", SqlUUID),
-            Column("vector_store_id", SqlUUID, nullable=False),
+            Column("id", SQL_UUID),
+            Column("vector_store_id", SQL_UUID, nullable=False),
             Column("vector_store_document_id", String(256), nullable=False),
             PrimaryKeyConstraint("id", "vector_store_id"),
             ForeignKeyConstraint(

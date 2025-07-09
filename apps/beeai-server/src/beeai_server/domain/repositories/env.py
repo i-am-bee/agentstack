@@ -1,7 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import runtime_checkable, Protocol
+from typing import Protocol, runtime_checkable
 
 NOT_SET = object()
 

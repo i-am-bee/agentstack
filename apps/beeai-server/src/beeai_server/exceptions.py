@@ -5,11 +5,11 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 from fastapi import status
-from tenacity import retry_if_exception, retry_base
+from tenacity import retry_base, retry_if_exception
 
 if TYPE_CHECKING:
-    from beeai_server.domain.models.provider import ProviderLocation
     from beeai_server.domain.models.agent import EnvVar
+    from beeai_server.domain.models.provider import ProviderLocation
 
 
 class PlatformError(Exception):
@@ -64,7 +64,7 @@ class MissingConfigurationError(Exception):
         self.status_code = status_code
 
 
-class UsageLimitExceeded(PlatformError):
+class UsageLimitExceededError(PlatformError):
     def __init__(self, message: str, status_code: int = status.HTTP_413_REQUEST_ENTITY_TOO_LARGE):
         self.status_code = status_code
         super().__init__(message)

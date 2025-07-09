@@ -7,24 +7,22 @@ import logging
 import re
 from datetime import timedelta
 from enum import StrEnum
-
 from functools import cached_property
 from typing import Any
 from uuid import UUID
 
 import yaml
-
 from acp_sdk import AgentManifest as AcpAgent
+from httpx import AsyncClient
+from kink import di, inject
+from pydantic import BaseModel, Field, HttpUrl, ModelWrapValidatorHandler, RootModel, computed_field, model_validator
 
 from beeai_server.configuration import Configuration
 from beeai_server.domain.constants import DOCKER_MANIFEST_LABEL_NAME
-from beeai_server.domain.models.agent import EnvVar, Agent
+from beeai_server.domain.models.agent import Agent, EnvVar
 from beeai_server.domain.models.registry import RegistryLocation
 from beeai_server.exceptions import MissingConfigurationError
 from beeai_server.utils.docker import DockerImageID, get_registry_image_config_and_labels
-from httpx import AsyncClient
-from kink import inject, di
-from pydantic import BaseModel, Field, computed_field, RootModel, HttpUrl, model_validator, ModelWrapValidatorHandler
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +53,7 @@ class DockerImageProviderLocation(RootModel):
 
         _, labels = await get_registry_image_config_and_labels(self.root)
         if DOCKER_MANIFEST_LABEL_NAME not in labels:
-            raise ValueError(f"Docker image labels must contain 'beeai.dev.agent.yaml': {str(self.root)}")
+            raise ValueError(f"Docker image labels must contain 'beeai.dev.agent.yaml': {self.root!s}")
         return AgentsListResponse.model_validate(
             yaml.safe_load(base64.b64decode(labels[DOCKER_MANIFEST_LABEL_NAME]))
         ).agents
@@ -65,7 +63,7 @@ class NetworkProviderLocation(RootModel):
     root: HttpUrl
 
     @model_validator(mode="wrap")
-    def _replace_localhost_url(cls, data: Any, handler: ModelWrapValidatorHandler):
+    def _replace_localhost_url(self, data: Any, handler: ModelWrapValidatorHandler):
         configuration = di[Configuration]
         url: NetworkProviderLocation = handler(data)
         if configuration.provider.self_registration_use_local_network:

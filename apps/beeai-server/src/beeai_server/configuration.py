@@ -9,11 +9,11 @@ from functools import cache
 from pathlib import Path
 from typing import Literal
 
+from pydantic import AnyUrl, BaseModel, Field, Secret, ValidationError, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from beeai_server.domain.models.registry import RegistryLocation
-from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator, AnyUrl, Secret
-from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
 
@@ -30,13 +30,13 @@ class LoggingConfiguration(BaseModel):
         return self
 
     @field_validator("level_sqlalchemy", mode="before")
-    def level_sqlalchemy_validator(cls, v: str | int | None, info: ValidationInfo):
+    def level_sqlalchemy_validator(self, v: str | int | None, info: ValidationInfo):
         if v is not None:
-            return cls.validate_level(v)
-        return logging.INFO if cls.validate_level(info.data["level"]) == logging.DEBUG else logging.WARNING
+            return self.validate_level(v)
+        return logging.INFO if self.validate_level(info.data["level"]) == logging.DEBUG else logging.WARNING
 
     @field_validator("level", "level_uvicorn", mode="before")
-    def validate_level(cls, v: str | int | None):
+    def validate_level(self, v: str | int | None):
         return v if isinstance(v, int) else logging.getLevelNamesMapping()[v.upper()]
 
 

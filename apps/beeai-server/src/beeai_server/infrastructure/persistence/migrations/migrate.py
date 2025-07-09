@@ -7,9 +7,9 @@ from pathlib import Path
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
-from tenacity import retry, wait_fixed, stop_after_delay
+from tenacity import retry, stop_after_delay, wait_fixed
 
-from beeai_server import logger, get_configuration
+from beeai_server import get_configuration, logger
 
 migrations_path = Path(__file__).parent.resolve()
 
@@ -28,8 +28,8 @@ async def _wait_for_db():
 
 
 def migrate(wait_for_db: bool = True):
-    from alembic.config import Config
     from alembic import command
+    from alembic.config import Config
 
     if wait_for_db:
         asyncio.run(_wait_for_db())

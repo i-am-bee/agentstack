@@ -5,17 +5,18 @@ import json
 import re
 import time
 import uuid
-from typing import Any, Dict, List, Literal, Optional, Union, AsyncGenerator, Generator
+from collections.abc import AsyncGenerator, Generator
+from typing import Any, Literal
 
 import fastapi
-from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
 import openai
+from fastapi.concurrency import run_in_threadpool
+from fastapi.responses import StreamingResponse
 from ibm_watsonx_ai import Credentials
 from ibm_watsonx_ai.foundation_models import ModelInference
-from fastapi.concurrency import run_in_threadpool
-from beeai_server.api.dependencies import EnvServiceDependency
+from pydantic import BaseModel, Field
 
+from beeai_server.api.dependencies import EnvServiceDependency
 
 router = fastapi.APIRouter()
 
@@ -38,33 +39,33 @@ class ContentItem(BaseModel):
 
 class ChatCompletionMessage(BaseModel):
     role: Literal["system", "user", "assistant", "function", "tool"] = "assistant"
-    content: Union[str, List[ContentItem]] = ""
-    tool_calls: Optional[List[ToolCall]] = None
-    tool_call_id: Optional[str] = None
+    content: str | list[ContentItem] = ""
+    tool_calls: list[ToolCall] | None = None
+    tool_call_id: str | None = None
 
 
 class ChatCompletionRequest(BaseModel):
     model: str
-    messages: List[ChatCompletionMessage]
-    temperature: Optional[float] = 1.0
-    top_p: Optional[float] = 1.0
-    n: Optional[int] = 1
-    stream: Optional[bool] = False
-    stop: Optional[Union[str, List[str]]] = None
-    max_tokens: Optional[int] = None
-    presence_penalty: Optional[float] = 0.0
-    frequency_penalty: Optional[float] = 0.0
-    logit_bias: Optional[Dict[str, float]] = None
-    user: Optional[str] = None
-    response_format: Optional[Dict[str, Any]] = None
-    tools: Optional[List[Dict[str, Any]]] = None
-    tool_choice: Optional[Union[str, Dict[str, Any]]] = None
+    messages: list[ChatCompletionMessage]
+    temperature: float | None = 1.0
+    top_p: float | None = 1.0
+    n: int | None = 1
+    stream: bool | None = False
+    stop: str | list[str] | None = None
+    max_tokens: int | None = None
+    presence_penalty: float | None = 0.0
+    frequency_penalty: float | None = 0.0
+    logit_bias: dict[str, float] | None = None
+    user: str | None = None
+    response_format: dict[str, Any] | None = None
+    tools: list[dict[str, Any]] | None = None
+    tool_choice: str | dict[str, Any] | None = None
 
 
 class ChatCompletionResponseChoice(BaseModel):
     index: int = 0
     message: ChatCompletionMessage
-    finish_reason: Optional[str] = None
+    finish_reason: str | None = None
 
 
 class ChatCompletionResponse(BaseModel):
@@ -73,31 +74,31 @@ class ChatCompletionResponse(BaseModel):
     system_fingerprint: str = "beeai-llm-gateway"
     created: int
     model: str
-    choices: List[ChatCompletionResponseChoice]
+    choices: list[ChatCompletionResponseChoice]
 
 
 class StreamFunctionCall(BaseModel):
-    name: Optional[str] = None
-    arguments: Optional[str] = None
+    name: str | None = None
+    arguments: str | None = None
 
 
 class StreamToolCall(BaseModel):
     index: int
-    id: Optional[str] = None
+    id: str | None = None
     type: Literal["function"] = "function"
-    function: Optional[StreamFunctionCall] = None
+    function: StreamFunctionCall | None = None
 
 
 class ChatCompletionStreamDelta(BaseModel):
-    role: Optional[Literal["assistant"]] = None
-    content: Optional[str] = None
-    tool_calls: Optional[List[StreamToolCall]] = None
+    role: Literal["assistant"] | None = None
+    content: str | None = None
+    tool_calls: list[StreamToolCall] | None = None
 
 
 class ChatCompletionStreamResponseChoice(BaseModel):
     index: int = 0
     delta: ChatCompletionStreamDelta = Field(default_factory=ChatCompletionStreamDelta)
-    finish_reason: Optional[str] = None
+    finish_reason: str | None = None
 
 
 class ChatCompletionStreamResponse(BaseModel):
@@ -106,7 +107,7 @@ class ChatCompletionStreamResponse(BaseModel):
     system_fingerprint: str = "beeai-llm-gateway"
     created: int
     model: str
-    choices: List[ChatCompletionStreamResponseChoice]
+    choices: list[ChatCompletionStreamResponseChoice]
 
 
 @router.post("/chat/completions")
@@ -190,12 +191,12 @@ async def create_chat_completion(env_service: EnvServiceDependency, request: Cha
 
 def _stream_watsonx_chat_completion(
     model: ModelInference,
-    messages: List[Dict],
-    tools: Optional[List],
-    watsonx_params: Dict,
+    messages: list[dict],
+    tools: list | None,
+    watsonx_params: dict,
     request: ChatCompletionRequest,
-) -> Generator[str, None, None]:
-    completion_id = f"chatcmpl-{str(uuid.uuid4())}"
+) -> Generator[str]:
+    completion_id = f"chatcmpl-{uuid.uuid4()!s}"
     created_time = int(time.time())
     try:
         for chunk in model.chat_stream(messages=messages, tools=tools, **watsonx_params):
@@ -220,7 +221,7 @@ def _stream_watsonx_chat_completion(
         yield "data: [DONE]\n\n"
 
 
-async def _stream_openai_chat_completion(stream: AsyncGenerator) -> AsyncGenerator[str, None]:
+async def _stream_openai_chat_completion(stream: AsyncGenerator) -> AsyncGenerator[str]:
     try:
         async for chunk in stream:
             yield f"data: {chunk.model_dump_json(exclude_none=True)}\n\n"

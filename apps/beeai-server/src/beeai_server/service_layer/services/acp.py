@@ -2,23 +2,24 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
+from collections.abc import AsyncIterable
 from contextlib import AsyncExitStack
 from datetime import timedelta
-from typing import overload, NamedTuple, AsyncIterable
+from typing import NamedTuple, overload
 from uuid import UUID
 
 import httpx
 from acp_sdk import ACPError, Error, ErrorCode, RunCreateRequest, RunResumeRequest
 from kink import inject
-from pydantic import BaseModel, AnyUrl
+from pydantic import AnyUrl, BaseModel
 from structlog.contextvars import bind_contextvars, unbind_contextvars
 
 from beeai_server.configuration import Configuration
+from beeai_server.domain.models.agent import Agent, AgentRunRequest
+from beeai_server.domain.models.provider import Provider, ProviderDeploymentState
 from beeai_server.domain.models.user import User
-from beeai_server.service_layer.deployment_manager import IProviderDeploymentManager
-from beeai_server.domain.models.agent import AgentRunRequest, Agent
-from beeai_server.domain.models.provider import ProviderDeploymentState, Provider
 from beeai_server.exceptions import EntityNotFoundError
+from beeai_server.service_layer.deployment_manager import IProviderDeploymentManager
 from beeai_server.service_layer.services.users import UserService
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
 
@@ -198,7 +199,11 @@ class AcpProxyService:
                 finally:
                     await exit_stack.pop_all().aclose()
 
-            common = dict(status_code=resp.status_code, headers=resp.headers, media_type=resp.headers["content-type"])
+            common = {
+                "status_code": resp.status_code,
+                "headers": resp.headers,
+                "media_type": resp.headers["content-type"],
+            }
             if is_stream:
                 return AcpServerResponse(content=None, stream=stream_fn(), **common)
             else:

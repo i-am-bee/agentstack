@@ -10,8 +10,8 @@ from fastapi import APIRouter, UploadFile, status
 from fastapi.responses import StreamingResponse
 
 from beeai_server.api.dependencies import (
-    FileServiceDependency,
     AuthenticatedUserDependency,
+    FileServiceDependency,
 )
 from beeai_server.api.schema.common import EntityModel
 from beeai_server.domain.models.file import AsyncFile, File, TextExtraction

@@ -4,7 +4,7 @@
 from contextlib import suppress
 from typing import Self
 
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncConnection, AsyncTransaction
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, AsyncTransaction
 
 from beeai_server.configuration import Configuration
 from beeai_server.domain.repositories.agent import IAgentRepository
@@ -12,10 +12,10 @@ from beeai_server.domain.repositories.env import IEnvVariableRepository
 from beeai_server.domain.repositories.file import IFileRepository
 from beeai_server.domain.repositories.provider import IProviderRepository
 from beeai_server.domain.repositories.user import IUserRepository
-from beeai_server.domain.repositories.vector_store import IVectorStoreRepository, IVectorDatabaseRepository
-from beeai_server.infrastructure.persistence.repositories.file import SqlAlchemyFileRepository
+from beeai_server.domain.repositories.vector_store import IVectorDatabaseRepository, IVectorStoreRepository
 from beeai_server.infrastructure.persistence.repositories.agent import SqlAlchemyAgentRepository
 from beeai_server.infrastructure.persistence.repositories.env import SqlAlchemyEnvVariableRepository
+from beeai_server.infrastructure.persistence.repositories.file import SqlAlchemyFileRepository
 from beeai_server.infrastructure.persistence.repositories.provider import SqlAlchemyProviderRepository
 from beeai_server.infrastructure.persistence.repositories.user import SqlAlchemyUserRepository
 from beeai_server.infrastructure.persistence.repositories.vector_store import SqlAlchemyVectorStoreRepository

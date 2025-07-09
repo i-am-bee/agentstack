@@ -1,15 +1,16 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from collections.abc import AsyncIterator, Iterable, Sequence
 from datetime import timedelta
-from typing import Protocol, AsyncIterator, Iterable, Sequence
+from typing import Protocol
 from uuid import UUID
 
 from beeai_server.domain.models.vector_store import (
     VectorStore,
-    VectorStoreItem,
     VectorStoreDocument,
     VectorStoreDocumentInfo,
+    VectorStoreItem,
     VectorStoreSearchResult,
 )
 

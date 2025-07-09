@@ -5,11 +5,10 @@ import logging
 from datetime import timedelta
 
 from kink import inject
-from procrastinate import Blueprint, builtin_tasks, JobContext
+from procrastinate import Blueprint, JobContext, builtin_tasks
 
 from beeai_server.configuration import Configuration
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
-
 
 blueprint = Blueprint()
 
