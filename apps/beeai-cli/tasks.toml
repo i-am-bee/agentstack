@@ -56,7 +56,7 @@ outputs = { auto = true }
 ["beeai-cli:run"]
 description = "NOTE: Use double dash to pass extra args, like `mise beeai-cli:run -- provider list`"
 depends = ["beeai-cli:setup", "beeai-cli:build:copy-helm-chart"]
-dir = "{{cwd}}"
+dir = "{{config_root}}/apps/beeai-cli"
 run = "uv run beeai"
 
 # build

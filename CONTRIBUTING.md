@@ -43,7 +43,7 @@ Starting up the platform using the CLI (`beeai platform start`, even `mise beeai
 Build a local `ghcr.io/i-am-bee/beeai-platform/beeai-server:local` image using:
 
 ```sh
-mise beeai-server:image:build
+mise beeai-server:build
 ```
 
 Then, start the platform using:
@@ -156,7 +156,7 @@ To run BeeAI components in development mode (ensuring proper rebuilding), use th
 #### Server
 Build image and run the platform using:
 ```shell
-mise run beeai-server:image:build
+mise run beeai-server:build
 mise run beeai-cli:run -- platform start --import ghcr.io/i-am-bee/beeai-platform/beeai-server:local --set image.tag=local
 ```
 Or use development setup described in [Running and debugging individual components](#running-and-debugging-individual-components)
