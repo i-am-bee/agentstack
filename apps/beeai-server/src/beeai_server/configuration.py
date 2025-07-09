@@ -30,13 +30,15 @@ class LoggingConfiguration(BaseModel):
         return self
 
     @field_validator("level_sqlalchemy", mode="before")
-    def level_sqlalchemy_validator(self, v: str | int | None, info: ValidationInfo):
+    @classmethod
+    def level_sqlalchemy_validator(cls, v: str | int | None, info: ValidationInfo):
         if v is not None:
-            return self.validate_level(v)
-        return logging.INFO if self.validate_level(info.data["level"]) == logging.DEBUG else logging.WARNING
+            return cls.validate_level(v)
+        return logging.INFO if cls.validate_level(info.data["level"]) == logging.DEBUG else logging.WARNING
 
     @field_validator("level", "level_uvicorn", mode="before")
-    def validate_level(self, v: str | int | None):
+    @classmethod
+    def validate_level(cls, v: str | int | None):
         return v if isinstance(v, int) else logging.getLevelNamesMapping()[v.upper()]
 
 

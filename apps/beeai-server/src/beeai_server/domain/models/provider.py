@@ -63,7 +63,8 @@ class NetworkProviderLocation(RootModel):
     root: HttpUrl
 
     @model_validator(mode="wrap")
-    def _replace_localhost_url(self, data: Any, handler: ModelWrapValidatorHandler):
+    @classmethod
+    def _replace_localhost_url(cls, data: Any, handler: ModelWrapValidatorHandler):
         configuration = di[Configuration]
         url: NetworkProviderLocation = handler(data)
         if configuration.provider.self_registration_use_local_network:
