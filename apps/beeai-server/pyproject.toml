@@ -49,8 +49,11 @@ create-buckets = "beeai_server:create_buckets"
 create-vector-extension = "beeai_server:create_vector_extension"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.7.12,<0.8.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+source-include = ["src/beeai_server/static"]
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
@@ -73,9 +76,6 @@ dev = [
     "pyright>=1.1.399",
     "ruff>=0.8.5",
 ]
-
-[tool.hatch.build.targets.wheel]
-artifacts = ["static/"]
 
 [tool.ruff]
 line-length = 120

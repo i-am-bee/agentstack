@@ -96,8 +96,15 @@ run = "mkdir -p dist && uv export --no-hashes --no-emit-workspace --format requi
 sources = ["uv.lock"]
 outputs = ["dist/requirements.txt"]
 
+["beeai-server:build:static"]
+depends = ["beeai-ui:build"]
+dir = "{{config_root}}"
+run = "rm -rf apps/beeai-server/src/static 2>/dev/null || true; cp -r apps/beeai-ui/dist apps/beeai-server/src/beeai_server/static"
+sources = ["apps/beeai-ui/dist/**/*"]
+outputs = ["apps/beeai-server/src/beeai_server/static/**/*"]
+
 ["beeai-server:build:sdist"]
-depends = ["beeai-server:setup", "beeai-ui:build"]
+depends = ["beeai-server:setup", "beeai-server:build:static"]
 dir = "{{config_root}}/apps/beeai-server"
 run = "rm ./dist/*.tar.gz 2>/dev/null || true; uv build --sdist --out-dir dist"
 sources = ["pyproject.toml", "uv.lock", "src/**/*.py"]
