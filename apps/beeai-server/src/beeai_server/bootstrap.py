@@ -44,7 +44,7 @@ async def bootstrap_dependencies(dependency_overrides: Container | None = None):
     dependency_overrides = dependency_overrides or Container()
 
     def _set_di[T](service: type[T], instance: T):
-        di[service] = dependency_overrides.get(service, instance)
+        di[service] = dependency_overrides[service] if service in dependency_overrides else instance  # noqa: SIM401 (not a dict)
 
     di.clear_cache()
     di._aliases.clear()  # reset aliases
