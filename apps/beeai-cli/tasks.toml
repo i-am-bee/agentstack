@@ -91,13 +91,26 @@ run = '''
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Build sdist and wheel
 rm -rf ./dist
 uv build -q --out-dir ./dist
-
 export lima_version=$(yq -r '.tools["asdf:CrouchingMuppet/asdf-lima"]' ../../mise.toml)
 export version="$(yq -r '.project.version' pyproject.toml | tr -d -)"
 export universal_wheel=$(realpath "./dist/beeai_cli-$version-py3-none-any.whl")
 
+# Pin versions from uv.lock in wheel:
+tmpdir="$(mktemp -d)"
+unzip -q "$universal_wheel" "beeai_cli-${version}.dist-info/METADATA" -d "$tmpdir"
+insert_line=$(awk '/^Requires-Dist:/ {print FNR-1; exit}' "$tmpdir/beeai_cli-${version}.dist-info/METADATA" | cut -d: -f1)
+(
+  head -n $insert_line "$tmpdir/beeai_cli-${version}.dist-info/METADATA"
+  uv export --no-hashes --no-emit-workspace --format requirements-txt | awk '/^[[:space:]]*#/ {next} NF {print "Requires-Dist: " $0 }'
+  awk -v insert_line="$insert_line" 'NR > insert_line && $0 !~ /^Requires-Dist:/' "$tmpdir/beeai_cli-${version}.dist-info/METADATA"
+) > "$tmpdir/beeai_cli-${version}.dist-info/METADATA.new"
+mv "$tmpdir/beeai_cli-${version}.dist-info/METADATA.new" "$tmpdir/beeai_cli-${version}.dist-info/METADATA"
+(cd "$tmpdir" && zip -q "$universal_wheel" "beeai_cli-${version}.dist-info/METADATA")
+
+# Make platform-specific wheels by bundling limactl:
 build_wheel() {
   wheel_tag="$1"
   hostagent_arch="$2"

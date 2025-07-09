@@ -1,6 +1,10 @@
 version = 1
 revision = 2
 requires-python = ">=3.13, <4.0"
+resolution-markers = [
+    "sys_platform == 'win32'",
+    "sys_platform != 'win32'",
+]
 
 [[package]]
 name = "acp-sdk"
