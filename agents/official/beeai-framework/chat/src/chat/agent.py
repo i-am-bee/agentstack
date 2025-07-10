@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 import logging
 import os
+from collections import defaultdict
 from typing import override
 
 from a2a.server.agent_execution import AgentExecutor, RequestContext
@@ -21,35 +22,36 @@ from openinference.instrumentation.beeai import BeeAIInstrumentor
 
 BeeAIInstrumentor().instrument()
 ## TODO: https://github.com/phoenixframework/phoenix/issues/6224
-logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(logging.CRITICAL)
-logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(logging.CRITICAL)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(
+    logging.CRITICAL
+)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(
+    logging.CRITICAL
+)
 
 
 logger = logging.getLogger(__name__)
 SUPPORTED_CONTENT_TYPES = ["text", "text/plain"]
 
 
-def to_framework_messages(history: list[Message]) -> list[UserMessage | AssistantMessage]:
-    cur_role = None
-    cur_text = ""
-    res = []
-    for message in history:
-        if message.role == Role.agent and message.metadata["update_kind"] != "final_answer":
-            continue
-        message_text = "".join(part.root.text for part in message.parts if part.root.kind == "text")
-        if cur_role != message.role:
-            if cur_text:
-                res.append(UserMessage(cur_text) if cur_role == Role.user else AssistantMessage(cur_text))
-            cur_text = message_text
-            cur_role = message.role
-        else:
-            cur_text += message_text
-    if cur_text:
-        res.append(UserMessage(cur_text) if cur_role == Role.user else AssistantMessage(cur_text))
-    return res
+def to_framework_message(message: Message) -> UserMessage | AssistantMessage:
+    message_text = "".join(
+        part.root.text for part in message.parts if part.root.kind == "text"
+    )
+
+    if message.role == Role.agent:
+        return AssistantMessage(message_text)
+
+    if message.role == Role.user:
+        return UserMessage(message_text)
+
+    raise ValueError(f"Invalid message role: {message.role}")
 
 
 class ChatAgentExecutor(AgentExecutor):
+    # TODO: there's no expiration and cleanup
+    messages: defaultdict[str, list[UserMessage | AssistantMessage]] = defaultdict(list)
+
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
         raise NotImplementedError("Cancelling is not implemented")
 
@@ -61,22 +63,35 @@ class ChatAgentExecutor(AgentExecutor):
         """
 
         # ensure the model is pulled before running
-        os.environ["OPENAI_API_BASE"] = os.getenv("LLM_API_BASE", "http://localhost:11434/v1")
+        os.environ["OPENAI_API_BASE"] = os.getenv(
+            "LLM_API_BASE", "http://localhost:11434/v1"
+        )
         os.environ["OPENAI_API_KEY"] = os.getenv("LLM_API_KEY", "dummy")
-        llm = ChatModel.from_name(f"openai:{os.getenv('LLM_MODEL', 'llama3.1')}", ChatModelParameters(temperature=0))
+        llm = ChatModel.from_name(
+            f"openai:{os.getenv('LLM_MODEL', 'llama3.1')}",
+            ChatModelParameters(temperature=0),
+        )
 
         # Configure tools
-        tools: list[AnyTool] = [WikipediaTool(), OpenMeteoTool(), DuckDuckGoSearchTool()]
+        tools: list[AnyTool] = [
+            WikipediaTool(),
+            OpenMeteoTool(),
+            DuckDuckGoSearchTool(),
+        ]
 
         # Create agent with memory and tools
         agent = ReActAgent(llm=llm, tools=tools, memory=UnconstrainedMemory())
 
-        task = context.current_task or new_task(context.message)
+        task = new_task(context.message)
         await event_queue.enqueue_event(task)
 
-        await agent.memory.add_many(to_framework_messages(task.history))
+        self.messages[context.context_id].append(to_framework_message(context.message))
+
+        await agent.memory.add_many(self.messages[context.context_id])
         updater = TaskUpdater(event_queue, task.id, task.contextId)
         try:
+            final_answer = ""
+
             async for data, event in agent.run():
                 match (data, event.name):
                     case (ReActAgentUpdateEvent(), "partial_update"):
@@ -84,14 +99,25 @@ class ChatAgentExecutor(AgentExecutor):
                         if not isinstance(update, str):
                             update = update.get_text_content()
 
+                        if data.update.key == "final_answer":
+                            final_answer += update
+
                         metadata = {"update_kind": data.update.key}
                         await updater.update_status(
                             state=TaskState.working,
                             message=updater.new_agent_message(
-                                parts=[Part(root=TextPart(text=update))], metadata=metadata
+                                parts=[Part(root=TextPart(text=update))],
+                                metadata=metadata,
                             ),
                         )
 
+            self.messages[context.context_id].append(AssistantMessage(final_answer))
+            await updater.complete()
+
         except BaseException as e:
-            await updater.failed(message=updater.new_agent_message(parts=[Part(root=TextPart(text=str(e)))]))
+            await updater.failed(
+                message=updater.new_agent_message(
+                    parts=[Part(root=TextPart(text=str(e)))]
+                )
+            )
             logger.error(f"Agent run failed: {e}")

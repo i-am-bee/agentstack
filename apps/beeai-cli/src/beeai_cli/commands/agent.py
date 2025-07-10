@@ -290,7 +290,7 @@ async def _run_agent(
                             match task_status.state:
                                 case TaskState.completed:
                                     console.print()  # Add newline after completion
-                                    return task_id, context_id
+                                    return None, context_id
                                 case TaskState.submitted:
                                     pass
                                 case TaskState.working:
