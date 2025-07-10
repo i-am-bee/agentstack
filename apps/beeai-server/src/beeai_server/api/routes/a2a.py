@@ -25,15 +25,16 @@ def _to_fastapi(response: A2AServerResponse):
         return fastapi.responses.Response(content=response.content, **common)
 
 
-@router.post("/{provider_id}")
-async def send_request(
+@router.api_route("/{provider_id}/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"])
+async def proxy_request(
     provider_id: UUID,
     request: fastapi.requests.Request,
     a2a_proxy: A2AProxyServiceDependency,
     _: AuthenticatedUserDependency,
+    path: str = "",
 ):
     client = await a2a_proxy.get_proxy_client(provider_id=provider_id)
-    response = await a2a_proxy.send_request(client=client, method=request.method, url="/", json=await request.json())
+    response = await client.send_request(method=request.method, url=f"/{path}", content=request.stream())
     return _to_fastapi(response)
 
 

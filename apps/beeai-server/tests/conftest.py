@@ -37,7 +37,7 @@ class TestConfiguration(BaseSettings):
 
 
 @pytest.fixture(scope="session")
-def test_configuration():
+def test_configuration() -> TestConfiguration:
     return TestConfiguration()
 
 
@@ -125,7 +125,7 @@ async def clean_up(clean_up_fn):
 def override_global_dependency():
     @contextmanager
     def override_global_dependency[T](cls: type[T], value: T | Any):
-        orig_value = di[cls] if cls in di else None
+        orig_value = di[cls] if cls in di else None  # noqa: SIM401
         di[cls] = value
         try:
             yield

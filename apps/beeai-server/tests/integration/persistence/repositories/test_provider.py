@@ -11,7 +11,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from beeai_server.configuration import Configuration
-from beeai_server.domain.models.provider import Provider, NetworkProviderLocation, EnvVar
+from beeai_server.domain.models.provider import EnvVar, NetworkProviderLocation, Provider
 from beeai_server.exceptions import DuplicateEntityError, EntityNotFoundError
 from beeai_server.infrastructure.persistence.repositories.provider import SqlAlchemyProviderRepository
 

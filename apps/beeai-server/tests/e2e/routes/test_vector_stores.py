@@ -66,7 +66,7 @@ async def test_vector_stores(subtests, api_client, acp_client):
         for result in response_json["items"]:
             assert "item" in result
             assert "score" in result
-            assert isinstance(result["score"], (int, float))
+            assert isinstance(result["score"], int | float)
             assert 0.0 <= result["score"] <= 1.0
 
         # Verify the search results order based on the items in the result

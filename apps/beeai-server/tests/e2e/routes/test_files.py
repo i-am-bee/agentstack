@@ -124,10 +124,9 @@ async def test_text_extraction_pdf_workflow(subtests, api_client, test_pdf: Call
         response = await api_client.delete(f"files/{file_id}/extraction")
         response.raise_for_status()
 
-    with subtests.test("verify extraction deleted"):
-        with pytest.raises(httpx.HTTPStatusError, match="404 Not Found"):
-            response = await api_client.get(f"files/{file_id}/extraction")
-            response.raise_for_status()
+    with subtests.test("verify extraction deleted"), pytest.raises(httpx.HTTPStatusError, match="404 Not Found"):
+        response = await api_client.get(f"files/{file_id}/extraction")
+        response.raise_for_status()
 
 
 @pytest.mark.asyncio

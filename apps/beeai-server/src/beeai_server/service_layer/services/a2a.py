@@ -1,11 +1,11 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-
+import functools
 import logging
 from collections.abc import AsyncIterable
 from contextlib import AsyncExitStack
 from datetime import timedelta
-from typing import Any, NamedTuple
+from typing import NamedTuple
 from uuid import UUID
 
 import httpx
@@ -29,6 +29,43 @@ class A2AServerResponse(NamedTuple):
     media_type: str
 
 
+class ProxyClient:
+    def __init__(self, client: httpx.AsyncClient):
+        self._client = client
+
+    @functools.wraps(httpx.AsyncClient.stream)
+    async def send_request(self, **kwargs) -> A2AServerResponse:
+        exit_stack = AsyncExitStack()
+        try:
+            client = await exit_stack.enter_async_context(self._client)
+            resp: httpx.Response = await exit_stack.enter_async_context(client.stream(**kwargs))
+            is_stream = resp.headers["content-type"].startswith("text/event-stream")
+
+            async def stream_fn():
+                try:
+                    async for event in resp.stream:
+                        yield event
+                finally:
+                    await exit_stack.pop_all().aclose()
+
+            common = {
+                "status_code": resp.status_code,
+                "headers": resp.headers,
+                "media_type": resp.headers["content-type"],
+            }
+            if is_stream:
+                return A2AServerResponse(content=None, stream=stream_fn(), **common)
+            else:
+                try:
+                    await resp.aread()
+                    return A2AServerResponse(stream=None, content=resp.content, **common)
+                finally:
+                    await exit_stack.pop_all().aclose()
+        except BaseException:
+            await exit_stack.pop_all().aclose()
+            raise
+
+
 @inject
 class A2AProxyService:
     STARTUP_TIMEOUT = timedelta(minutes=5)
@@ -45,7 +82,7 @@ class A2AProxyService:
         self._user_service = user_service
         self._config = configuration
 
-    async def get_proxy_client(self, *, provider_id: UUID) -> httpx.AsyncClient:
+    async def get_proxy_client(self, *, provider_id: UUID) -> ProxyClient:
         try:
             bind_contextvars(provider=provider_id)
 
@@ -55,7 +92,7 @@ class A2AProxyService:
                 await uow.commit()
 
             if not provider.managed:
-                return httpx.AsyncClient(base_url=str(provider.source.root), timeout=None)
+                return ProxyClient(httpx.AsyncClient(base_url=str(provider.source.root), timeout=None))
 
             provider_url = await self._deploy_manager.get_provider_url(provider_id=provider.id)
             [state] = await self._deploy_manager.state(provider_ids=[provider.id])
@@ -79,39 +116,6 @@ class A2AProxyService:
                 logger.info("Waiting for provider to start up...")
                 await self._deploy_manager.wait_for_startup(provider_id=provider.id, timeout=self.STARTUP_TIMEOUT)
                 logger.info("Provider is ready...")
-            return httpx.AsyncClient(base_url=str(provider_url), timeout=None)
+            return ProxyClient(httpx.AsyncClient(base_url=str(provider_url), timeout=None))
         finally:
             unbind_contextvars("provider")
-
-    async def send_request(
-        self,
-        client: httpx.AsyncClient,
-        method: str,
-        url: str,
-        json: dict[str, Any] | None = None,
-    ):
-        exit_stack = AsyncExitStack()
-        try:
-            client = await exit_stack.enter_async_context(client)
-            resp: httpx.Response = await exit_stack.enter_async_context(client.stream(method, url, json=json))
-            is_stream = resp.headers["content-type"].startswith("text/event-stream")
-
-            async def stream_fn():
-                try:
-                    async for event in resp.stream:
-                        yield event
-                finally:
-                    await exit_stack.pop_all().aclose()
-
-            common = dict(status_code=resp.status_code, headers=resp.headers, media_type=resp.headers["content-type"])
-            if is_stream:
-                return A2AServerResponse(content=None, stream=stream_fn(), **common)
-            else:
-                try:
-                    await resp.aread()
-                    return A2AServerResponse(stream=None, content=resp.content, **common)
-                finally:
-                    await exit_stack.pop_all().aclose()
-        except BaseException:
-            await exit_stack.pop_all().aclose()
-            raise
