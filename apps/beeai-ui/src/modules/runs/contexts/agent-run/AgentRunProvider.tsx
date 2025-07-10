@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { Part } from '@a2a-js/sdk';
 import type { MessagePart } from 'acp-sdk';
-import isString from 'lodash/isString';
 import { type PropsWithChildren, useCallback, useMemo, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
@@ -20,7 +20,7 @@ import {
   MessageContentTransformType,
   MessageStatus,
 } from '#modules/runs/chat/types.ts';
-import { prepareMessageFiles } from '#modules/runs/files/utils.ts';
+// import { prepareMessageFiles } from '#modules/runs/files/utils.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
 import { SourcesProvider } from '#modules/runs/sources/contexts/SourcesProvider.tsx';
 import { extractSources, prepareMessageSources } from '#modules/runs/sources/utils.ts';
@@ -29,16 +29,16 @@ import { Role, type RunStats } from '#modules/runs/types.ts';
 import {
   applyContentTransforms,
   createCitationTransform,
-  createFileMessageParts,
-  createImageTransform,
-  createMessagePart,
+  // createFileMessageParts,
+  // createImageTransform,
+  // createMessagePart,
   extractValidUploadFiles,
   isAgentMessage,
-  isArtifactPart,
+  // isArtifactPart,
   mapToMessageFiles,
 } from '#modules/runs/utils.ts';
-import { isImageContentType } from '#utils/helpers.ts';
 
+// import { isImageContentType } from '#utils/helpers.ts';
 import { useFileUpload } from '../../files/contexts';
 import { AgentStatusProvider } from '../agent-status/AgentStatusProvider';
 import { MessagesProvider } from '../messages/MessagesProvider';
@@ -61,51 +61,62 @@ export function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) 
     onBeforeRun: () => {
       setStats({ startTime: Date.now() });
     },
-    onMessagePart: (event) => {
-      const { part } = event;
-      const { content, content_type, content_url, metadata } = part;
-
-      const isArtifact = isArtifactPart(part);
-      const hasFile = isString(content_url);
-      const hasImage = hasFile && isImageContentType(content_type);
-      const hasContentToDisplay = isString(content) && (content_type === 'text/plain' || hasImage);
-
-      if (isArtifact) {
-        if (hasFile) {
-          updateLastAgentMessage((message) => {
-            message.files = prepareMessageFiles({ files: message.files, data: part });
-          });
-        }
-      }
-
-      if (hasContentToDisplay) {
-        updateLastAgentMessage((message) => {
-          message.rawContent += content;
-        });
-      }
-
-      if (hasImage) {
-        updateLastAgentMessage((message) => {
-          message.contentTransforms.push(
-            createImageTransform({
-              imageUrl: content_url,
-              insertAt: message.rawContent.length,
-            }),
-          );
-        });
-      }
-
-      if (metadata) {
-        processMetadata(metadata as MessagePartMetadata);
-      }
-
+    onMessagePart: (content) => {
       updateLastAgentMessage((message) => {
+        message.rawContent += content;
+
         message.content = applyContentTransforms({
           rawContent: message.rawContent,
           transforms: message.contentTransforms,
         });
       });
     },
+
+    // onMessagePart: (event) => {
+    //   const { part } = event;
+    //   const { content, content_type, content_url, metadata } = part;
+
+    //   const isArtifact = isArtifactPart(part);
+    //   const hasFile = isString(content_url);
+    //   const hasImage = hasFile && isImageContentType(content_type);
+    //   const hasContentToDisplay = isString(content) && (content_type === 'text/plain' || hasImage);
+
+    //   if (isArtifact) {
+    //     if (hasFile) {
+    //       updateLastAgentMessage((message) => {
+    //         message.files = prepareMessageFiles({ files: message.files, data: part });
+    //       });
+    //     }
+    //   }
+
+    //   if (hasContentToDisplay) {
+    //     updateLastAgentMessage((message) => {
+    //       message.rawContent += content;
+    //     });
+    //   }
+
+    //   if (hasImage) {
+    //     updateLastAgentMessage((message) => {
+    //       message.contentTransforms.push(
+    //         createImageTransform({
+    //           imageUrl: content_url,
+    //           insertAt: message.rawContent.length,
+    //         }),
+    //       );
+    //     });
+    //   }
+
+    //   if (metadata) {
+    //     processMetadata(metadata as MessagePartMetadata);
+    //   }
+
+    //   updateLastAgentMessage((message) => {
+    //     message.content = applyContentTransforms({
+    //       rawContent: message.rawContent,
+    //       transforms: message.contentTransforms,
+    //     });
+    //   });
+    // },
     onGeneric: (event) => {
       const metadata = createTrajectoryMetadata(event.generic);
 
@@ -233,7 +244,8 @@ export function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) 
   const run = useCallback(
     async (input: string) => {
       const uploadFiles = extractValidUploadFiles(files);
-      const messageParts = [createMessagePart({ content: input }), ...createFileMessageParts(uploadFiles)];
+      // TODO: Implement file upload sending
+      const messageParts: Part[] = [{ kind: 'text', text: input } /*...createFileMessageParts(uploadFiles)*/];
       const userFiles = mapToMessageFiles(uploadFiles);
 
       setMessages((messages) => {

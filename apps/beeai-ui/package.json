@@ -20,6 +20,7 @@
     "#*": "./src/*"
   },
   "dependencies": {
+    "@a2a-js/sdk": "0.2.2",
     "@carbon/colors": "^11.30.0",
     "@carbon/grid": "^11.33.0",
     "@carbon/icons-react": "^11.57.0",
