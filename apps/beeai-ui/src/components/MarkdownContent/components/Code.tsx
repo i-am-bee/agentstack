@@ -39,7 +39,7 @@ export function Code({ inline, forceExpand, className, children }: Props) {
   }
 
   return (
-    <CodeSnippet forceExpand={forceExpand} hideCopyButton={forceExpand}>
+    <CodeSnippet forceExpand={forceExpand} canCopy={!forceExpand}>
       {children}
     </CodeSnippet>
   );

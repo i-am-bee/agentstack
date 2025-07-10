@@ -28,7 +28,7 @@ export function CopyButton({ contentRef, size = 'md' }: Props) {
 
     setTimeout(() => {
       setCopied(false);
-    }, 2000);
+    }, COPIED_RESET_TIMEOUT);
   }, [contentRef]);
 
   return (
@@ -37,3 +37,5 @@ export function CopyButton({ contentRef, size = 'md' }: Props) {
     </IconButton>
   );
 }
+
+const COPIED_RESET_TIMEOUT = 2000;

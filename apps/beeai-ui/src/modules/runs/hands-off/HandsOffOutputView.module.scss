@@ -19,6 +19,7 @@
 .header {
   display: flex;
   column-gap: $spacing-06;
+  max-inline-size: rem(608px);
 }
 
 .input {
