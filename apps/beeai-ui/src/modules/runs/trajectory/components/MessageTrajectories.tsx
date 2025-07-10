@@ -9,11 +9,15 @@ import { TrajectoryView } from './TrajectoryView';
 
 interface Props {
   message: AgentMessage;
+  toggleable?: boolean;
+  autoScroll?: boolean;
 }
 
-export function MessageTrajectories({ message }: Props) {
+export function MessageTrajectories({ message, toggleable = true, autoScroll }: Props) {
   const trajectories = message.trajectories ?? [];
   const hasTrajectories = trajectories.length > 0;
 
-  return hasTrajectories ? <TrajectoryView trajectories={trajectories} /> : null;
+  return hasTrajectories ? (
+    <TrajectoryView trajectories={trajectories} toggleable={toggleable} autoScroll={autoScroll} />
+  ) : null;
 }

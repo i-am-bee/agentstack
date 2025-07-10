@@ -13,16 +13,17 @@ import { MessageSources } from '../sources/components/MessageSources';
 
 interface Props {
   message: AgentMessage;
+  className?: string;
 }
 
-export function HandsOffText({ message }: Props) {
+export function HandsOffText({ message, className }: Props) {
   const { agent, isPending } = useAgentRun();
   const output = message.content;
   const { ref: autoScrollRef } = useAutoScroll([output]);
   const sources = message.sources ?? [];
 
   return output ? (
-    <div>
+    <div className={className}>
       <AgentOutputBox sources={sources} text={output} isPending={isPending} downloadFileName={`${agent.name}-output`}>
         <MessageFiles message={message} />
 

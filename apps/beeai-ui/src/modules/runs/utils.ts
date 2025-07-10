@@ -60,10 +60,11 @@ export function createMessagePart({
   };
 }
 
-export function createFileMessageParts(files: UploadFileResponse[]) {
-  const messageParts = files.map(({ id, filename }) =>
+export function createFileMessageParts(files: (UploadFileResponse & { type: string })[]) {
+  const messageParts = files.map(({ id, filename, type }) =>
     createMessagePart({
       content_url: getFileContentUrl({ id, addBase: true }),
+      content_type: type,
       name: filename,
     }),
   );
@@ -150,7 +151,9 @@ export function extractOutput(messages: Message[]) {
 }
 
 export function extractValidUploadFiles(files: FileEntity[]) {
-  const uploadFiles = files.map(({ uploadFile }) => uploadFile).filter(isNotNull);
+  const uploadFiles = files
+    .map(({ uploadFile, originalFile: { type } }) => (uploadFile ? { ...uploadFile, type } : null))
+    .filter(isNotNull);
 
   return uploadFiles;
 }

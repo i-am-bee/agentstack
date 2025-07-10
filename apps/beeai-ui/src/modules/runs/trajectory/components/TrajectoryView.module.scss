@@ -8,3 +8,7 @@
   flex-direction: column;
   row-gap: $spacing-03;
 }
+
+.bottom {
+  margin-block-start: -$spacing-03;
+}

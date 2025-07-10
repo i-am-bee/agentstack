@@ -19,10 +19,11 @@ export function HandsOffOutputView() {
   const { agent, input, isPending, cancel, clear } = useAgentRun();
   const { messages } = useMessages();
   const message = messages.find(isAgentMessage);
+  const hasOutput = Boolean(message?.content);
 
   return (
     <div className={classes.root}>
-      <Container size="md" className={classes.holder}>
+      <Container size={hasOutput ? 'md' : 'sm'} className={classes.holder}>
         <header className={classes.header}>
           <p className={classes.input}>{input}</p>
 
@@ -34,9 +35,9 @@ export function HandsOffOutputView() {
 
           {message && (
             <>
-              <HandsOffText message={message} />
+              <HandsOffText message={message} className={classes.text} />
 
-              <MessageTrajectories message={message} />
+              <MessageTrajectories message={message} toggleable={hasOutput} autoScroll={!hasOutput} />
             </>
           )}
 
