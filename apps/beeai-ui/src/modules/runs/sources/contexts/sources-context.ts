@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+'use client';
+
 import { createContext, type Dispatch, type SetStateAction } from 'react';
 
 import type { SourcesData } from '../api/types';

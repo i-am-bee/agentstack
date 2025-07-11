@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+'use client';
+
 import { Tag } from '@carbon/react';
 import type { TagBaseProps } from '@carbon/react/lib/components/Tag/Tag';
 

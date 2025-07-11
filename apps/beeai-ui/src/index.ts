@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export * from '../../beeai-web/src/modules/agents/AgentDetail';
 export * from './components/CopySnippet/CopySnippet';
 export * from './components/ErrorPage/ErrorPage';
 export * from './components/FooterNav/FooterNav';

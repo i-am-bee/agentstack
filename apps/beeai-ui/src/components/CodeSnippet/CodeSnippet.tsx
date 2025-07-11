@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+'use client';
+
 import { type HTMLAttributes, useRef } from 'react';
 
 import { CopyButton } from '#components/CopyButton/CopyButton.tsx';

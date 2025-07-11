@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+'use client';
+
 import clsx from 'clsx';
 import { type ReactElement, useRef } from 'react';
 

@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { AgentDetail, Container, TryLocallyButton } from '@i-am-bee/beeai-ui';
+import { Container, TryLocallyButton } from '@i-am-bee/beeai-ui';
 import { notFound } from 'next/navigation';
 
 import { fetchAgentsList } from '@/api/fetchAgentsList';
 import { MainContent } from '@/layouts/MainContent';
+import { AgentDetail } from '@/modules/agents/AgentDetail';
 
 interface Props {
   params: Promise<{ name: string }>;

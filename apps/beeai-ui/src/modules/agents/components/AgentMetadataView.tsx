@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+'use client';
+
 import { LogoGithub, Time } from '@carbon/icons-react';
 import { SkeletonText } from '@carbon/react';
 import clsx from 'clsx';

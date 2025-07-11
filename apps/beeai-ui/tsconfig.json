@@ -25,9 +25,7 @@
     "**/*.ts",
     "**/*.tsx",
     "next-env.d.ts",
-    ".next/types/**/*.ts",
-    "../beeai-web/src/modules/agents/AgentDetail.tsx",
-    "../beeai-web/src/modules/agents/AgentDetailSection.tsx"
+    ".next/types/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }

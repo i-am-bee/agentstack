@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+'use client';
+
 import { TagSkeleton } from '@carbon/react';
 import clsx from 'clsx';
 import type { ReactElement } from 'react';
