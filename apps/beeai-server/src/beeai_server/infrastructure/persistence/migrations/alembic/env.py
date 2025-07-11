@@ -4,10 +4,9 @@
 import asyncio
 from logging.config import fileConfig
 
+from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
-
-from alembic import context
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from beeai_server import get_configuration
@@ -27,7 +26,7 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 
-print([t for t in metadata.tables])
+print(list(metadata.tables))
 target_metadata = metadata
 
 # other values from the config, defined by the needs of env.py,

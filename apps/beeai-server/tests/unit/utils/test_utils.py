@@ -29,7 +29,7 @@ def async_json_reader(obj: dict[str, Any] | str):
         {"text": "abcde" * 100, "other_key": 42},
         {"first_key": '"text": "haha"', "text": "abcde" * 100, "other_key": 666},
         {"text": 'escape "hell\\"\\' * 1000},
-        {"text": 'escape "hell2\\n\t\r\d"\\' * 1000},
+        {"text": 'escape "hell2\\n\t\r\\d"\\' * 1000},
     ],
 )
 async def test_extract_string_value_stream(obj):

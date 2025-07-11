@@ -2,26 +2,22 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-from typing import TypeVar
-
-import procrastinate
-from anyio import Path
 
 import kr8s
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
+import procrastinate
+from anyio import Path
+from kink import Container, di
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
-from beeai_server.infrastructure.text_extraction.docling import DoclingTextExtractionBackend
-from beeai_server.jobs.procrastinate import create_app
-from beeai_server.service_layer.deployment_manager import IProviderDeploymentManager
 from beeai_server.configuration import Configuration, get_configuration
 from beeai_server.domain.repositories.file import IObjectStorageRepository, ITextExtractionBackend
 from beeai_server.infrastructure.kubernetes.provider_deployment_manager import KubernetesProviderDeploymentManager
 from beeai_server.infrastructure.object_storage.repository import S3ObjectStorageRepository
-
 from beeai_server.infrastructure.persistence.unit_of_work import SqlAlchemyUnitOfWorkFactory
+from beeai_server.infrastructure.text_extraction.docling import DoclingTextExtractionBackend
+from beeai_server.jobs.procrastinate import create_app
+from beeai_server.service_layer.deployment_manager import IProviderDeploymentManager
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
-from kink import di, Container
-
 from beeai_server.utils.utils import async_to_sync_isolated
 
 logger = logging.getLogger(__name__)
@@ -44,14 +40,11 @@ async def setup_kubernetes_client(config: Configuration):
     return api_factory
 
 
-T = TypeVar("T")
-
-
 async def bootstrap_dependencies(dependency_overrides: Container | None = None):
     dependency_overrides = dependency_overrides or Container()
 
-    def _set_di(service: type[T], instance: T):
-        di[service] = dependency_overrides[service] if service in dependency_overrides else instance
+    def _set_di[T](service: type[T], instance: T):
+        di[service] = dependency_overrides[service] if service in dependency_overrides else instance  # noqa: SIM401 (not a dict)
 
     di.clear_cache()
     di._aliases.clear()  # reset aliases

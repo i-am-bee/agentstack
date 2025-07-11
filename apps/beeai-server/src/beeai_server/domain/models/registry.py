@@ -1,12 +1,12 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import httpx
 import yaml
 from anyio import Path
-from pydantic import BaseModel, RootModel, FileUrl, HttpUrl
+from pydantic import BaseModel, FileUrl, HttpUrl, RootModel
 
 from beeai_server.utils.github import GithubUrl
 

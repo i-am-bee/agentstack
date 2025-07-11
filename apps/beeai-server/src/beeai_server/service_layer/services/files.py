@@ -3,25 +3,26 @@
 
 import logging
 from asyncio import CancelledError
-from contextlib import suppress, asynccontextmanager
-from typing import AsyncIterator, Callable, Awaitable, Annotated
-from typing_extensions import Doc
+from collections.abc import AsyncIterator, Awaitable, Callable
+from contextlib import asynccontextmanager, suppress
+from typing import Annotated
 from uuid import UUID
 
 from kink import inject
+from typing_extensions import Doc
 
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.file import (
     AsyncFile,
-    File,
-    TextExtraction,
-    ExtractionStatus,
     ExtractionMetadata,
+    ExtractionStatus,
+    File,
     FileType,
+    TextExtraction,
 )
 from beeai_server.domain.models.user import User
 from beeai_server.domain.repositories.file import IObjectStorageRepository, ITextExtractionBackend
-from beeai_server.exceptions import StorageCapacityExceededError, EntityNotFoundError
+from beeai_server.exceptions import EntityNotFoundError, StorageCapacityExceededError
 from beeai_server.service_layer.services.users import UserService
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
 
@@ -176,7 +177,7 @@ class FileService:
 
 
 def limit_size_wrapper(
-    read: Callable[[int], Awaitable[bytes]], max_size: int = None, size: int | None = None
+    read: Callable[[int], Awaitable[bytes]], max_size: int | None = None, size: int | None = None
 ) -> Callable[[int], Awaitable[bytes]]:
     current_size = 0
 

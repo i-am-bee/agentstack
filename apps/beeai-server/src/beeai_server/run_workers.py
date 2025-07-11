@@ -8,7 +8,6 @@ from contextlib import asynccontextmanager
 import procrastinate
 from kink import inject
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -29,7 +28,7 @@ async def run_workers(app: procrastinate.App):
         worker.cancel()
         try:
             await asyncio.wait_for(worker, timeout=10)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.info("Procrastinate workers did not terminate gracefully")
         except asyncio.CancelledError:
             logger.info("Procrastinate workers did terminate successfully")

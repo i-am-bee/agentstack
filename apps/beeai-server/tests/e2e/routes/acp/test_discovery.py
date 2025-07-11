@@ -4,9 +4,8 @@
 import pytest
 from acp_sdk.client import Client
 from acp_sdk.models import AgentManifest
+from acp_sdk.models.platform import AgentToolInfo, PlatformUIType
 from acp_sdk.server import Server
-from acp_sdk.models.platform import PlatformUIType, AgentToolInfo
-
 
 """
 These tests are copied from acp repository: 

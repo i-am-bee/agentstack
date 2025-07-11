@@ -48,19 +48,25 @@ export function createMessagePart({
   content_encoding = 'plain',
   content_type = 'text/plain',
   content_url,
+  name,
 }: Partial<Exclude<MessagePart, 'role'>>): MessagePart {
   return {
     content,
     content_encoding,
     content_type,
     content_url,
+    name,
     role: Role.User,
   };
 }
 
-export function createFileMessageParts(files: UploadFileResponse[]) {
-  const messageParts = files.map(({ id }) =>
-    createMessagePart({ content_url: getFileContentUrl({ id, addBase: true }) }),
+export function createFileMessageParts(files: (UploadFileResponse & { type: string })[]) {
+  const messageParts = files.map(({ id, filename, type }) =>
+    createMessagePart({
+      content_url: getFileContentUrl({ id, addBase: true }),
+      content_type: type,
+      name: filename,
+    }),
   );
 
   return messageParts;
@@ -145,7 +151,9 @@ export function extractOutput(messages: Message[]) {
 }
 
 export function extractValidUploadFiles(files: FileEntity[]) {
-  const uploadFiles = files.map(({ uploadFile }) => uploadFile).filter(isNotNull);
+  const uploadFiles = files
+    .map(({ uploadFile, originalFile: { type } }) => (uploadFile ? { ...uploadFile, type } : null))
+    .filter(isNotNull);
 
   return uploadFiles;
 }

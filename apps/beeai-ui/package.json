@@ -2,7 +2,7 @@
   "name": "@i-am-bee/beeai-ui",
   "autor": "IBM Corp.",
   "private": true,
-  "version": "0.2.15-rc3",
+  "version": "0.2.15-rc5",
   "type": "module",
   "scripts": {
     "dev": "NODE_OPTIONS=\"--no-experimental-global-navigator\" next dev",

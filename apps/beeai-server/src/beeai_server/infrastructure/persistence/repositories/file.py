@@ -1,40 +1,39 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 from uuid import UUID
 
 from kink import inject
+from sqlalchemy import (
+    JSON,
+    Column,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    Row,
+    String,
+    Table,
+    Text,
+    delete,
+    func,
+    select,
+)
+from sqlalchemy import (
+    UUID as SQL_UUID,
+)
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from beeai_server.domain.models.file import File, TextExtraction
+from beeai_server.domain.models.file import ExtractionStatus, File, FileType, TextExtraction
 from beeai_server.domain.repositories.file import IFileRepository
 from beeai_server.exceptions import EntityNotFoundError
 from beeai_server.infrastructure.persistence.repositories.db_metadata import metadata
 
-from sqlalchemy import (
-    Table,
-    Column,
-    String,
-    DateTime,
-    Row,
-    select,
-    delete,
-    UUID as SqlUUID,
-    ForeignKey,
-    Integer,
-    func,
-    Text,
-    JSON,
-    Enum,
-)
-
-from beeai_server.domain.models.file import FileType, ExtractionStatus
-
 files_table = Table(
     "files",
     metadata,
-    Column("id", SqlUUID, primary_key=True),
+    Column("id", SQL_UUID, primary_key=True),
     Column("filename", String(256), nullable=False),
     Column("file_size_bytes", Integer, nullable=True),
     Column("created_at", DateTime(timezone=True), nullable=False),
@@ -46,7 +45,7 @@ files_table = Table(
 text_extractions_table = Table(
     "text_extractions",
     metadata,
-    Column("id", SqlUUID, primary_key=True),
+    Column("id", SQL_UUID, primary_key=True),
     Column("file_id", ForeignKey("files.id", ondelete="CASCADE"), nullable=False, unique=True),
     Column("extracted_file_id", ForeignKey("files.id", ondelete="SET NULL"), nullable=True),
     Column("status", Enum(ExtractionStatus, name="extraction_status"), nullable=False),

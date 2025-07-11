@@ -46,8 +46,10 @@
 
 .link {
   @include link-mask();
-  text-decoration: none;
   color: inherit;
+  text-decoration: none;
+  display: flex;
+  min-inline-size: 0;
   &::before {
     z-index: -1;
     border-radius: calc($spacing-03 - 1px);

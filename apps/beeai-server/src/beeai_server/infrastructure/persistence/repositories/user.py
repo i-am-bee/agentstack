@@ -4,8 +4,9 @@
 from uuid import UUID
 
 from kink import inject
+from sqlalchemy import UUID as SQL_UUID
+from sqlalchemy import Column, DateTime, Enum, Row, String, Table, delete, select
 from sqlalchemy.ext.asyncio import AsyncConnection
-from sqlalchemy import Table, Column, String, DateTime, Row, select, delete, UUID as SqlUUID, Enum
 
 from beeai_server.domain.models.user import User, UserRole
 from beeai_server.domain.repositories.user import IUserRepository
@@ -15,7 +16,7 @@ from beeai_server.infrastructure.persistence.repositories.db_metadata import met
 users_table = Table(
     "users",
     metadata,
-    Column("id", SqlUUID, primary_key=True),
+    Column("id", SQL_UUID, primary_key=True),
     Column("email", String(256), nullable=False, unique=True),
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("role", Enum(UserRole), nullable=False),

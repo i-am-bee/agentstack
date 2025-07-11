@@ -8,7 +8,7 @@ from beeai_server.domain.repositories.env import IEnvVariableRepository
 from beeai_server.domain.repositories.file import IFileRepository
 from beeai_server.domain.repositories.provider import IProviderRepository
 from beeai_server.domain.repositories.user import IUserRepository
-from beeai_server.domain.repositories.vector_store import IVectorStoreRepository, IVectorDatabaseRepository
+from beeai_server.domain.repositories.vector_store import IVectorDatabaseRepository, IVectorStoreRepository
 
 
 class IUnitOfWork(Protocol):

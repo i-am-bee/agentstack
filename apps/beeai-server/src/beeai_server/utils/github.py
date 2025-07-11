@@ -7,7 +7,7 @@ from enum import StrEnum
 from typing import Any
 
 import httpx
-from pydantic import model_validator, AnyUrl, ModelWrapValidatorHandler, RootModel, BaseModel
+from pydantic import AnyUrl, BaseModel, ModelWrapValidatorHandler, RootModel, model_validator
 
 logger = logging.getLogger(__name__)
 

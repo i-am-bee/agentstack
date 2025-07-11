@@ -46,15 +46,18 @@ export function Message({ message }: Props) {
       <div className={classes.body}>
         {isPending ? (
           <Spinner />
-        ) : isError ? (
-          <ErrorMessage
-            title={isFailed ? 'Failed to generate an assistant message.' : 'Message generation has been cancelled.'}
-            subtitle={getErrorMessage(error)}
-          />
         ) : (
-          <div className={clsx(classes.content, { [classes.isUser]: isUser })}>
-            <MessageContent message={message} />
-          </div>
+          <>
+            <div className={clsx(classes.content, { [classes.isUser]: isUser })}>
+              <MessageContent message={message} />
+            </div>
+            {isError && (
+              <ErrorMessage
+                title={isFailed ? 'Failed to generate an agent message.' : 'Message generation has been cancelled.'}
+                subtitle={getErrorMessage(error)}
+              />
+            )}
+          </>
         )}
 
         <MessageFiles message={message} className={classes.files} />

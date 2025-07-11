@@ -7,9 +7,9 @@ import procrastinate
 from kink import inject
 
 from beeai_server.configuration import Configuration
-from beeai_server.jobs.tasks.file import blueprint as file_tasks
-from beeai_server.jobs.crons.provider import blueprint as provider_crons
 from beeai_server.jobs.crons.cleanup import blueprint as cleanup_crons
+from beeai_server.jobs.crons.provider import blueprint as provider_crons
+from beeai_server.jobs.tasks.file import blueprint as file_tasks
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 @inject
 def create_app(configuration: Configuration) -> procrastinate.App:
     conn_string = str(configuration.persistence.db_url.get_secret_value())
-    conn_string = re.sub("postgresql\+[a-zA-Z]+://", "postgresql://", conn_string)
+    conn_string = re.sub(r"postgresql\+[a-zA-Z]+://", "postgresql://", conn_string)
 
     def exit_app_on_db_error(*_args, **_kwargs):
         import os

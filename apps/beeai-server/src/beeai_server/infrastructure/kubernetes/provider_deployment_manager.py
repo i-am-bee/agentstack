@@ -8,24 +8,25 @@ import json
 import logging
 import re
 from asyncio import TaskGroup
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager, suppress
 from datetime import timedelta
 from enum import StrEnum
 from pathlib import Path
-from typing import Callable, Awaitable, AsyncIterator, Any, Final
+from typing import Any, Final
 from uuid import UUID
 
 import anyio
 import kr8s
 import yaml
-from httpx import HTTPError, AsyncClient
+from httpx import AsyncClient, HTTPError
 from jinja2 import Template
-from kr8s.asyncio.objects import Deployment, Service, Secret, Pod
+from kr8s.asyncio.objects import Deployment, Pod, Secret, Service
 from pydantic import HttpUrl
-from tenacity import AsyncRetrying, stop_after_delay, wait_fixed, retry_if_exception_type
+from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, wait_fixed
 
-from beeai_server.service_layer.deployment_manager import IProviderDeploymentManager, global_provider_variables
 from beeai_server.domain.models.provider import Provider, ProviderDeploymentState
+from beeai_server.service_layer.deployment_manager import IProviderDeploymentManager, global_provider_variables
 from beeai_server.utils.logs_container import LogsContainer, ProcessLogMessage, ProcessLogType
 from beeai_server.utils.utils import extract_messages
 
@@ -170,7 +171,7 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
             deploy = await Deployment.get(name=self._get_k8s_name(provider_id, TemplateKind.deploy), api=api)
             await deploy.scale(1)
 
-    async def wait_for_startup(self, *, provider_id: UUID, timeout: timedelta) -> None:
+    async def wait_for_startup(self, *, provider_id: UUID, timeout: timedelta) -> None:  # noqa: ASYNC109 (the timeout actually corresponds to kubernetes timeout)
         async with self.api() as api:
             deployment = await Deployment.get(name=self._get_k8s_name(provider_id, kind=TemplateKind.deploy), api=api)
             await deployment.wait("condition=Available", timeout=int(timeout.total_seconds()))
@@ -238,7 +239,7 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
                     await asyncio.sleep(1)
 
                 if deploy.status.get("availableReplicas", 0) == 0:
-                    async for event_stream_type, event in api.watch(
+                    async for _event_stream_type, event in api.watch(
                         kind="event",
                         # TODO: we select for only one pod, for multi-pod agents this might hold up the logs for a while
                         field_selector=f"involvedObject.name=={pods[0].name},involvedObject.kind==Pod",
@@ -248,7 +249,7 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
                         if event.raw.reason == "Started":
                             break
 
-                for attempt in range(10):
+                for _ in range(10):
                     try:
                         _ = [log async for log in pods[0].logs(tail_lines=1)]
                         break

@@ -15,8 +15,8 @@ from acp_sdk.models import (
     RunResumeResponse,
 )
 
-from beeai_server.api.schema.acp import AgentsListResponse, AgentReadResponse
 from beeai_server.api.dependencies import AcpProxyServiceDependency, AuthenticatedUserDependency
+from beeai_server.api.schema.acp import AgentReadResponse, AgentsListResponse
 from beeai_server.service_layer.services.acp import AcpServerResponse
 
 router = fastapi.APIRouter()

@@ -67,8 +67,8 @@ export function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) 
 
       const isArtifact = isArtifactPart(part);
       const hasFile = isString(content_url);
-      const hasContent = isString(content);
       const hasImage = hasFile && isImageContentType(content_type);
+      const hasContentToDisplay = isString(content) && (content_type === 'text/plain' || hasImage);
 
       if (isArtifact) {
         if (hasFile) {
@@ -78,7 +78,7 @@ export function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) 
         }
       }
 
-      if (hasContent) {
+      if (hasContentToDisplay) {
         updateLastAgentMessage((message) => {
           message.rawContent += content;
         });
@@ -116,6 +116,13 @@ export function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) 
     onMessageCompleted: () => {
       updateLastAgentMessage((message) => {
         message.status = MessageStatus.Completed;
+      });
+    },
+    onRunCompleted: () => {
+      updateLastAgentMessage((message) => {
+        if (message.status !== MessageStatus.Completed) {
+          message.status = MessageStatus.Failed;
+        }
       });
     },
     onStop: () => {

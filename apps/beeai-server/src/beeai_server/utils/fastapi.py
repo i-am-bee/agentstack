@@ -3,9 +3,9 @@
 
 from fastapi import status
 from fastapi.staticfiles import StaticFiles
-from starlette.responses import StreamingResponse, AsyncContentStream
+from starlette.responses import AsyncContentStream, StreamingResponse
 
-from beeai_server.api.schema.common import ErrorStreamResponseError, ErrorStreamResponse
+from beeai_server.api.schema.common import ErrorStreamResponse, ErrorStreamResponseError
 from beeai_server.utils.utils import extract_messages
 
 

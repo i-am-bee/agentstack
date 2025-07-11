@@ -1,8 +1,9 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+import builtins
 import logging
-from typing import List, Iterable
+from collections.abc import Iterable
 from uuid import UUID
 
 from kink import inject
@@ -11,13 +12,13 @@ from sqlalchemy import Sequence
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.user import User
 from beeai_server.domain.models.vector_store import (
-    VectorStore,
-    VectorStoreItem,
-    VectorStoreDocument,
-    VectorStoreSearchResult,
     DocumentType,
+    VectorStore,
+    VectorStoreDocument,
+    VectorStoreItem,
+    VectorStoreSearchResult,
 )
-from beeai_server.exceptions import StorageCapacityExceededError, InvalidVectorDimensionError
+from beeai_server.exceptions import InvalidVectorDimensionError, StorageCapacityExceededError
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
 
 logger = logging.getLogger(__name__)
@@ -77,7 +78,7 @@ class VectorStoreService:
             # Records in vector_database are deleted automatically by CASCADE operations in postgres
             await uow.commit()
 
-    async def add_items(self, *, vector_store_id: UUID, items: List[VectorStoreItem], user: User) -> None:
+    async def add_items(self, *, vector_store_id: UUID, items: builtins.list[VectorStoreItem], user: User) -> None:
         """Add items to a vector store."""
         async with self._uow() as uow:
             # Verify the user owns the vector store

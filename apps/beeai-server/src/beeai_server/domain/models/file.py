@@ -5,8 +5,9 @@ from collections.abc import Awaitable, Callable
 from enum import StrEnum
 from uuid import UUID, uuid4
 
-from beeai_server.utils.utils import utc_now
 from pydantic import AwareDatetime, BaseModel, Field
+
+from beeai_server.utils.utils import utc_now
 
 
 class FileType(StrEnum):

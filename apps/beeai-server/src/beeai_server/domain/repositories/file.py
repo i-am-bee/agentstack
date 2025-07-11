@@ -1,13 +1,15 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from collections.abc import AsyncIterator
+from contextlib import AbstractAsyncContextManager
 from datetime import timedelta
-from typing import runtime_checkable, Protocol, AsyncContextManager, AsyncIterator
+from typing import Protocol, runtime_checkable
 from uuid import UUID
 
 from pydantic import AnyUrl, HttpUrl
 
-from beeai_server.domain.models.file import File, AsyncFile, TextExtraction, FileMetadata, FileType
+from beeai_server.domain.models.file import AsyncFile, File, FileMetadata, FileType, TextExtraction
 
 
 class IFileRepository(Protocol):
@@ -27,7 +29,7 @@ class IFileRepository(Protocol):
 @runtime_checkable
 class IObjectStorageRepository(Protocol):
     async def upload_file(self, *, file_id: UUID, file: AsyncFile) -> int: ...
-    async def get_file(self, *, file_id: UUID) -> AsyncContextManager[AsyncFile]: ...
+    async def get_file(self, *, file_id: UUID) -> AbstractAsyncContextManager[AsyncFile]: ...
     async def delete_file(self, *, file_id: UUID) -> None: ...
     async def get_file_url(self, *, file_id: UUID) -> HttpUrl: ...
     async def get_file_metadata(self, *, file_id: UUID) -> FileMetadata: ...
@@ -35,4 +37,4 @@ class IObjectStorageRepository(Protocol):
 
 @runtime_checkable
 class ITextExtractionBackend(Protocol):
-    async def extract_text(self, *, file_url: AnyUrl, timeout: timedelta | None = None) -> AsyncFile: ...
+    async def extract_text(self, *, file_url: AnyUrl, timeout: timedelta | None = None) -> AsyncFile: ...  # noqa: ASYNC109 (the timeout actually corresponds to kubernetes timeout)

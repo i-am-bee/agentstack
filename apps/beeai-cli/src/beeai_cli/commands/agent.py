@@ -233,7 +233,7 @@ async def _run_agent(
                     )
                     break
                 case RunFailedEvent():
-                    console.print(format_error(event.run.error.code.value, event.run.error.message))
+                    console.print(format_error(str(event.run.error.code), event.run.error.message))
                 case ArtifactEvent():
                     if dump_files_path is None:
                         continue

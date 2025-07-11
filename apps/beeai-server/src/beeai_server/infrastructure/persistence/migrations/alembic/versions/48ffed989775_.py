@@ -10,18 +10,18 @@ Create Date: 2025-06-11 14:20:51.238473
 """
 
 import uuid
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 from beeai_server.utils.utils import utc_now
 
 # revision identifiers, used by Alembic.
 revision: str = "48ffed989775"
-down_revision: Union[str, None] = "f5d08cbe4ef8"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = "f5d08cbe4ef8"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 user_role_enum = sa.Enum("admin", "user", name="userrole")
 

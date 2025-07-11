@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+$max-inline-size: rem(608px);
+
 .root {
   display: flex;
   flex-direction: column;
@@ -19,6 +21,7 @@
 .header {
   display: flex;
   column-gap: $spacing-06;
+  max-inline-size: $max-inline-size;
 }
 
 .input {
@@ -33,6 +36,9 @@
   flex-direction: column;
   row-gap: $spacing-06;
   flex-grow: 1;
+  > *:not(.text) {
+    max-inline-size: $max-inline-size;
+  }
 }
 
 .statusBar {

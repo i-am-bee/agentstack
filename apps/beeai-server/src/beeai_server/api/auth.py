@@ -29,7 +29,7 @@ async def verify_token(token: str, configuration: Configuration, user_service: U
     try:
         payload = jwt.decode(token, secret_key, algorithms=["HS256"])
         return await user_service.get_user(user_id=UUID(payload["user_id"]))
-    except jwt.ExpiredSignatureError:
-        raise Exception("Token expired")
-    except jwt.InvalidTokenError:
-        raise Exception("Invalid token")
+    except jwt.ExpiredSignatureError as e:
+        raise Exception("Token expired") from e
+    except jwt.InvalidTokenError as e:
+        raise Exception("Invalid token") from e

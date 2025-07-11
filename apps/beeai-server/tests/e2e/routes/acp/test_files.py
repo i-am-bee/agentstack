@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import pytest
-from acp_sdk import MessagePart, Message
+from acp_sdk import Message, MessagePart
 from acp_sdk.client import Client
 from acp_sdk.server import Server
 from pydantic import AnyUrl

@@ -4,9 +4,8 @@
 import pytest
 import pytest_asyncio
 from cryptography.fernet import Fernet
-
-from sqlalchemy.ext.asyncio import AsyncConnection
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncConnection
 
 from beeai_server.configuration import Configuration, PersistenceConfiguration
 from beeai_server.exceptions import EntityNotFoundError

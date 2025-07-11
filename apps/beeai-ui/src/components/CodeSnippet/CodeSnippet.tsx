@@ -12,17 +12,17 @@ import classes from './CodeSnippet.module.scss';
 
 interface Props extends HTMLAttributes<HTMLElement> {
   forceExpand?: boolean;
-  hideCopyButton?: boolean;
+  canCopy?: boolean;
 }
 
-export function CodeSnippet({ forceExpand, hideCopyButton, ...props }: Props) {
+export function CodeSnippet({ forceExpand, canCopy, ...props }: Props) {
   const ref = useRef<HTMLElement>(null);
 
   const code = <code ref={ref} {...props} />;
 
   return (
     <div className={classes.root}>
-      {!hideCopyButton && (
+      {canCopy && (
         <div className={classes.copyButton}>
           <CopyButton contentRef={ref} size="sm" />
         </div>

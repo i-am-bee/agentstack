@@ -34,6 +34,10 @@ backend = "core:node"
 "node-v22.14.0-darwin-arm64.tar.gz" = "sha256:e9404633bc02a5162c5c573b1e2490f5fb44648345d64a958b17e325729a5e42"
 "node-v22.14.0-linux-x64.tar.gz" = "sha256:9d942932535988091034dc94cc5f42b6dc8784d6366df3a36c4c9ccb3996f0c2"
 
+[tools."pipx:toml-cli"]
+version = "0.7.0"
+backend = "pipx:toml-cli"
+
 [tools.pnpm]
 version = "10.4.1"
 backend = "aqua:pnpm/pnpm"
@@ -74,5 +78,4 @@ version = "4.45.4"
 backend = "aqua:mikefarah/yq"
 
 [tools.yq.checksums]
-yq_darwin_amd64 = "sha256:5580ff2c1fc80dd91f248b3e19af2431f1c95767ad0949a60176601ca5140318"
 yq_darwin_arm64 = "sha256:602dbbc116af9eb8a91d2239d0ec286eb9c90b94e76676d5268ab6ca184719b6"

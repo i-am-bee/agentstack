@@ -1,16 +1,24 @@
+# setup
+
+["beeai-server:setup"]
+dir = "{{config_root}}/apps/beeai-server"
+run = "uv sync --all-extras --dev"
+sources = ["uv.lock", "pyproject.toml"]
+outputs = { auto = true }
+
 # check
 
 ["beeai-server:check"]
 depends = ["beeai-server:check:*"]
 
 ["beeai-server:check:pytest-marks"]
-depends = ["setup:uv"]
+depends = ["beeai-server:setup"]
 dir = "{{config_root}}/apps/beeai-server"
 run = """
 #!/bin/bash
 
 # Use pytest to collect tests that are not marked with unit, integration, or e2e
-unmarked_tests=$(uv run python -m pytest --collect-only --no-header --no-summary -q -m "not (unit or integration or e2e)" tests/ 2>/dev/null)
+unmarked_tests=$(uv run pytest --collect-only --no-header --no-summary -q -m "not (unit or integration or e2e)" tests/ 2>/dev/null)
 
 if echo "$unmarked_tests" | grep "tests collected" | grep -qv "no tests collected"; then
     echo "ERROR: Found tests without required pytest marks:\n"
@@ -26,24 +34,24 @@ sources = ["tests/**/*.py"]
 outputs = { auto = true }
 
 ["beeai-server:check:ruff-check"]
-depends = ["setup:uv"]
+depends = ["beeai-server:setup"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "uv run python -m ruff check --quiet"
+run = "uv run ruff check --quiet"
 sources = ["src/**/*.py"]
 outputs = { auto = true }
 
 ["beeai-server:check:ruff-format"]
-depends = ["setup:uv"]
+depends = ["beeai-server:setup"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "uv run python -m ruff format --quiet --check"
+run = "uv run ruff format --quiet --check"
 sources = ["src/**/*.py"]
 outputs = { auto = true }
 
 # TODO: Enable and fix issues in separate PR
 # ["beeai-server:check:pyright"]
-# depends = ["setup:uv"]
+# depends = ["beeai-server:setup"]
 # dir = "{{config_root}}/apps/beeai-server"
-# run = "uv run python -m pyright"
+# run = "uv run pyright"
 # sources = ["src/**/*.py"]
 # outputs = { auto = true }
 
@@ -53,52 +61,56 @@ outputs = { auto = true }
 depends = ["beeai-server:fix:*"]
 
 ["beeai-server:fix:ruff-check"]
-depends = ["setup:uv"]
+depends = ["beeai-server:setup"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "uv run python -m ruff check --quiet --fix"
+run = "uv run ruff check --quiet --fix"
 sources = ["src/**/*.py"]
 outputs = { auto = true }
 
 ["beeai-server:fix:ruff-format"]
-depends = ["setup:uv"]
+depends = ["beeai-server:setup"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "uv run python -m ruff format --quiet"
+run = "uv run ruff format --quiet"
 sources = ["src/**/*.py"]
 outputs = { auto = true }
 
 # run
 
 ["beeai-server:run"]
-depends = ["setup:uv", "beeai-ui:build"]
+depends = ["beeai-server:setup", "beeai-ui:build"]
 dir = "{{config_root}}/apps/beeai-server"
 run = "uv run beeai-server"
 
 # build
-["beeai-server:build:requirements"]
-dir = "{{config_root}}/apps/beeai-server"
-run = "mkdir -p dist && uv export --no-hashes --no-emit-workspace --format requirements-txt > dist/requirements.txt"
-sources = ["pyproject.toml", "src/**/*.py"]
-outputs = ["dist/requirements.txt"]
 
 ["beeai-server:build"]
-depends = ["setup:uv", "beeai-ui:build", "beeai-server:build:requirements"]
-dir = "{{config_root}}/apps/beeai-server"
-run = "rm -rf ./dist/pkg && uv build --out-dir dist/pkg"
-sources = ["pyproject.toml", "src/**/*.py"]
-outputs = ["dist/pkg/**/*"]
-
-# clean
-
-["beeai-server:clean"]
-dir = "{{config_root}}/apps/beeai-server"
-run = "rm -rf ./dist"
-
-# container image
-
-["beeai-server:image:build"]
-depends = ["beeai-server:build"]
+alias = "beeai-server:image:build"
+depends = ["beeai-server:build:*"]
 dir = "{{config_root}}/apps/beeai-server"
 run = "docker build -t ghcr.io/i-am-bee/beeai-platform/beeai-server:local . --load"
+
+["beeai-server:build:requirements"]
+depends = ["beeai-server:setup"]
+dir = "{{config_root}}/apps/beeai-server"
+run = "mkdir -p dist && uv export --no-hashes --no-emit-workspace --format requirements-txt > dist/requirements.txt"
+sources = ["uv.lock"]
+outputs = ["dist/requirements.txt"]
+
+["beeai-server:build:static"]
+depends = ["beeai-ui:build"]
+dir = "{{config_root}}"
+run = "rm -rf apps/beeai-server/src/static 2>/dev/null || true; cp -r apps/beeai-ui/dist apps/beeai-server/src/beeai_server/static"
+sources = ["apps/beeai-ui/dist/**/*"]
+outputs = ["apps/beeai-server/src/beeai_server/static/**/*"]
+
+["beeai-server:build:sdist"]
+depends = ["beeai-server:setup", "beeai-server:build:static"]
+dir = "{{config_root}}/apps/beeai-server"
+run = "rm ./dist/*.tar.gz 2>/dev/null || true; uv build --sdist --out-dir dist"
+sources = ["pyproject.toml", "uv.lock", "src/**/*.py"]
+outputs = ["dist/*.tar.gz"]
+
+# migrations
 
 ["beeai-server:migrations:run"]
 dir = "{{config_root}}/apps/beeai-server"
@@ -123,9 +135,11 @@ dir = "{{config_root}}/apps/beeai-server"
 depends = ["beeai-server:dev:start"]
 run = "mise run beeai-server:migrations:alembic revision --autogenerate"
 
+# dev
+
 ["beeai-server:dev:start"]
 dir = "{{config_root}}/apps/beeai-server"
-depends = ["beeai-server:image:build"]
+depends = ["beeai-server:build"]
 run = """
 #!/bin/bash
 set -e
@@ -144,7 +158,7 @@ tele="telepresence --use .*${NAMESPACE}.*"
 ($tele list --replacements 2>/dev/null | grep -q platform) && echo "Dev environment already running" && exit
 
 # Stopping all platform deployments
-mise run beeai-server:dev:stop
+{{ mise_bin }} run beeai-server:dev:stop
 
 extra_flags=()
 
@@ -160,7 +174,7 @@ if [ '{{flag(name='phoenix')}}' = 'true' ]; then
   extra_flags+=("--set" "phoenix.enabled=true")
 fi
 
-mise run beeai-cli:run -- platform start \
+{{ mise_bin }} run beeai-cli:run -- platform start \
     --vm-name=${VM_NAME} \
     --import ghcr.io/i-am-bee/beeai-platform/beeai-server:local \
     --set image.tag=local "${extra_flags[@]}"
@@ -207,7 +221,6 @@ deactivate () {
 }
 """
 
-
 ["beeai-server:dev:stop"]
 dir = "{{config_root}}/apps/beeai-server"
 run = """
@@ -220,7 +233,7 @@ telepresence --use ".*${NAMESPACE}.*" uninstall --all-agents || true
 {% raw %}
 LIMA_HOME=~/.beeai/lima limactl list -f '{{.Name}}' 2>/dev/null | sed '/^[^a-z]*$/d' | \
     xargs -rn 1 -I"{}" \
-    mise run beeai-cli:run -- platform stop --vm-name="{}"
+    {{ mise_bin }} run beeai-cli:run -- platform stop --vm-name="{}"
 {% endraw %}
 
 telepresence --use ".*${NAMESPACE}.*" quit
@@ -230,7 +243,7 @@ telepresence --use ".*${NAMESPACE}.*" quit
 dir = "{{config_root}}/apps/beeai-server"
 run = """
 VM_NAME={{option(name="vm-name", default="beeai-local-dev")}}
-mise run beeai-cli:run -- platform delete --vm-name="$VM_NAME"
+{{ mise_bin }} run beeai-cli:run -- platform delete --vm-name="$VM_NAME"
 """
 
 ["beeai-server:dev:reconnect"]
@@ -252,36 +265,34 @@ $tele connect --namespace "$NAMESPACE"
 $tele replace beeai-platform --port 18333:8333
 """
 
-
 ["beeai-server:dev:test:start"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "mise run beeai-server:dev:start --vm-name=beeai-local-test --no-registry"
+run = "{{ mise_bin }} run beeai-server:dev:start --vm-name=beeai-local-test --no-registry"
 
 ["beeai-server:dev:test:clean"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "mise run beeai-server:dev:clean --vm-name=beeai-local-test"
+run = "{{ mise_bin }} run beeai-server:dev:clean --vm-name=beeai-local-test"
 
 ["beeai-server:dev:test:shell"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "mise run beeai-server:dev:shell --vm-name=beeai-local-test"
-
+run = "{{ mise_bin }} run beeai-server:dev:shell --vm-name=beeai-local-test"
 
 ["beeai-server:dev:test:reconnect"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "mise run beeai-server:dev:reconnect --vm-name=beeai-local-test"
+run = "{{ mise_bin }} run beeai-server:dev:reconnect --vm-name=beeai-local-test"
 
 ["beeai-server:test:e2e"]
-depends = ["beeai-server:image:build"]
+depends = ["beeai-server:build"]
 dir = "{{config_root}}/apps/beeai-server"
 run = """
 #!/bin/bash
 
-mise run beeai-server:dev:stop
-mise run beeai-cli:run -- platform delete --vm-name=${VM_NAME}
+{{ mise_bin }} run beeai-server:dev:stop
+{{ mise_bin }} run beeai-cli:run -- platform delete --vm-name=${VM_NAME}
 curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhost:8333 is already running" && exit 2
 
 VM_NAME=e2e-test-run
-mise run beeai-cli:run -- platform start -v \
+{{ mise_bin }} run beeai-cli:run -- platform start -v \
     --vm-name=${VM_NAME} \
     --import ghcr.io/i-am-bee/beeai-platform/beeai-server:local \
     --set image.tag=local \
@@ -295,7 +306,7 @@ export DB_URL="postgresql+asyncpg://beeai-user:password@localhost:5432/beeai"
 export LLM_API_BASE="${LLM_API_BASE:-http://host.docker.internal:11434/v1}"
 
 kubectl port-forward svc/postgresql 5432:5432 2>/dev/null 1>&2 &
-pytest -m e2e
+uv run pytest -m e2e
 result=$?
 
 if [ $result -ne 0 ]; then
@@ -306,22 +317,21 @@ if [ $result -ne 0 ]; then
     kubectl get event
 fi
 
-mise run beeai-cli:run -- platform delete --vm-name=${VM_NAME}
+{{ mise_bin }} run beeai-cli:run -- platform delete --vm-name=${VM_NAME}
 kill %1
 exit $result
 """
 
 ["beeai-server:test:integration"]
 dir = "{{config_root}}/apps/beeai-server"
-depends = ["beeai-server:image:build"]
+depends = ["beeai-server:build"]
 run = """
 #!/bin/bash
 VM_NAME=itegration-test-run
-mise run beeai-server:dev:start --vm-name="$VM_NAME" --no-registry
+{{ mise_bin }} run beeai-server:dev:start --vm-name="$VM_NAME" --no-registry
 export KUBECONFIG="${HOME}/.beeai/lima/${VM_NAME}/copied-from-guest/kubeconfig.yaml"
 
-pytest -m integration
+uv run pytest -m integration
 result=$?
 exit $result
 """
-

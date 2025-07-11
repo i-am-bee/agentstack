@@ -9,8 +9,8 @@ Create Date: 2025-06-19 13:58:36.996259
 
 """
 
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence, Union
 
 import sqlparse
 from alembic import op
@@ -19,9 +19,9 @@ from beeai_server import get_configuration
 
 # revision identifiers, used by Alembic.
 revision: str = "638be28ea3f9"
-down_revision: Union[str, None] = "be5ec6ff3271"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = "be5ec6ff3271"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

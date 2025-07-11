@@ -2,26 +2,27 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import datetime
+from collections.abc import AsyncIterator
 from datetime import timedelta
-from typing import AsyncIterator
 from uuid import UUID
 
-from sqlalchemy import Table, Column, String, UUID as SqlUUID, Integer, JSON, Row, Boolean
+from sqlalchemy import JSON, Boolean, Column, Integer, Row, String, Table
+from sqlalchemy import UUID as SQL_UUID
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncConnection
-from sqlalchemy.sql import select, delete
+from sqlalchemy.sql import delete, select
 
 from beeai_server.domain.models.provider import Provider
 from beeai_server.domain.repositories.provider import IProviderRepository
-from beeai_server.exceptions import EntityNotFoundError, DuplicateEntityError
-from beeai_server.infrastructure.persistence.repositories.agent import agents_table, agent_requests_table
+from beeai_server.exceptions import DuplicateEntityError, EntityNotFoundError
+from beeai_server.infrastructure.persistence.repositories.agent import agent_requests_table, agents_table
 from beeai_server.infrastructure.persistence.repositories.db_metadata import metadata
 from beeai_server.utils.utils import utc_now
 
 providers_table = Table(
     "providers",
     metadata,
-    Column("id", SqlUUID, primary_key=True),
+    Column("id", SQL_UUID, primary_key=True),
     Column("source", String(2048), nullable=False),
     Column("registry", String(2048), nullable=True),
     Column("env", JSON, nullable=False),
@@ -51,10 +52,10 @@ class SqlAlchemyProviderRepository(IProviderRepository):
             await self.connection.execute(providers_table.delete().where(providers_table.c.id == provider.id))
         try:
             await self.connection.execute(query)
-        except IntegrityError:
+        except IntegrityError as e:
             # Most likely the name field caused the duplication since it has a unique constraint
             # Extract agent name from the error message if possible
-            raise DuplicateEntityError(entity="provider", field="source", value=provider.source.root)
+            raise DuplicateEntityError(entity="provider", field="source", value=provider.source.root) from e
 
     def _to_provider(self, row: Row) -> Provider:
         return Provider.model_validate(

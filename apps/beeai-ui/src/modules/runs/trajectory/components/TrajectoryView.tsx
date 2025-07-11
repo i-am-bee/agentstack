@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 
+import { useAutoScroll } from '#hooks/useAutoScroll.ts';
 import type { TrajectoryMetadata } from '#modules/runs/api/types.ts';
 
 import { hasViewableTrajectoryMetadata } from '../utils';
@@ -14,9 +15,12 @@ import classes from './TrajectoryView.module.scss';
 
 interface Props {
   trajectories: TrajectoryMetadata[];
+  toggleable?: boolean;
+  autoScroll?: boolean;
 }
 
-export function TrajectoryView({ trajectories }: Props) {
+export function TrajectoryView({ trajectories, toggleable, autoScroll }: Props) {
+  const { ref: autoScrollRef } = useAutoScroll([trajectories.length]);
   const [isOpen, setIsOpen] = useState(false);
 
   const filteredTrajectories = trajectories.filter(hasViewableTrajectoryMetadata);
@@ -24,9 +28,11 @@ export function TrajectoryView({ trajectories }: Props) {
 
   return hasTrajectories ? (
     <div className={classes.root}>
-      <TrajectoryButton isOpen={isOpen} onClick={() => setIsOpen((state) => !state)} />
+      {toggleable && <TrajectoryButton isOpen={isOpen} onClick={() => setIsOpen((state) => !state)} />}
 
-      <TrajectoryList trajectories={filteredTrajectories} isOpen={isOpen} />
+      <TrajectoryList trajectories={filteredTrajectories} isOpen={toggleable ? isOpen : true} />
+
+      {autoScroll && <div ref={autoScrollRef} className={classes.bottom} />}
     </div>
   ) : null;
 }

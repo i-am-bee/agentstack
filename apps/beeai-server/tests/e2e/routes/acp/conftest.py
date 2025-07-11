@@ -4,28 +4,27 @@
 import asyncio
 import base64
 import time
+from collections.abc import AsyncGenerator, AsyncIterator, Iterator
 from datetime import timedelta
 from threading import Thread
-from typing import AsyncIterator, AsyncGenerator, Iterator
 
 import httpx
 import pytest
-from acp_sdk.server import Server, Context, MemoryStore
-from acp_sdk.models.platform import PlatformUIAnnotation, PlatformUIType, AgentToolInfo
-
 from acp_sdk import (
-    MessageAwaitRequest,
+    ACPError,
+    Annotations,
+    Artifact,
     AwaitResume,
     Error,
-    ACPError,
-    Artifact,
     ErrorCode,
     Message,
+    MessageAwaitRequest,
     MessagePart,
     Metadata,
     ResourceUrl,
-    Annotations,
 )
+from acp_sdk.models.platform import AgentToolInfo, PlatformUIAnnotation, PlatformUIType
+from acp_sdk.server import Context, MemoryStore, Server
 
 """
 These tests are copied from acp repository: 
@@ -107,7 +106,7 @@ def server(request: pytest.FixtureRequest, clean_up_fn, test_configuration) -> I
         )
 
     @server.agent()
-    async def artifact_producer(input: list[Message], context: Context) -> AsyncGenerator[Message | Artifact, None]:
+    async def artifact_producer(input: list[Message], context: Context) -> AsyncGenerator[Message | Artifact]:
         yield MessagePart(content="Processing with artifacts", content_type="text/plain")
         yield Artifact(name="text-result.txt", content_type="text/plain", content="This is a text artifact result")
         yield Artifact(
@@ -123,7 +122,7 @@ def server(request: pytest.FixtureRequest, clean_up_fn, test_configuration) -> I
         )
 
     @server.agent()
-    async def file_reader(input: list[Message], context: Context) -> AsyncGenerator[Message, None]:
+    async def file_reader(input: list[Message], context: Context) -> AsyncGenerator[Message]:
         for message in input:
             for part in message.parts:
                 if part.content_url:
@@ -143,7 +142,7 @@ def server(request: pytest.FixtureRequest, clean_up_fn, test_configuration) -> I
             ),
         )
     )
-    async def platform_annotations(input: list[Message], context: Context) -> AsyncGenerator[Message, None]:
+    async def platform_annotations(input: list[Message], context: Context) -> AsyncGenerator[Message]:
         yield MessagePart(content="Hello World")
 
     try:

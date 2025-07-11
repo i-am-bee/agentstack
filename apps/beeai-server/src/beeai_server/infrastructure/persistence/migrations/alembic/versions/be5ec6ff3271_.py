@@ -9,7 +9,7 @@ Create Date: 2025-06-17 12:58:21.414385
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 from alembic import op
 
@@ -17,9 +17,9 @@ from beeai_server import get_configuration
 
 # revision identifiers, used by Alembic.
 revision: str = "be5ec6ff3271"
-down_revision: Union[str, None] = "48ffed989775"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = "48ffed989775"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

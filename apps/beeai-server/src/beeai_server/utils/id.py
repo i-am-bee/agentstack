@@ -1,10 +1,10 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+import binascii
+import hashlib
 import os
 import platform
-import hashlib
-import binascii
 
 
 def generate_stable_id(length=16) -> str:

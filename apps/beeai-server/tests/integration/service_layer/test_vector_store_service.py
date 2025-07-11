@@ -1,18 +1,18 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from uuid import uuid4
+
 import pytest
 import pytest_asyncio
-from uuid import uuid4
 
 from beeai_server.bootstrap import setup_database_engine
 from beeai_server.configuration import Configuration, VectorStoresConfiguration
 from beeai_server.domain.models.user import User
-from beeai_server.domain.models.vector_store import VectorStoreItem, DocumentType
-from beeai_server.exceptions import StorageCapacityExceededError, InvalidVectorDimensionError
+from beeai_server.domain.models.vector_store import DocumentType, VectorStoreItem
+from beeai_server.exceptions import InvalidVectorDimensionError, StorageCapacityExceededError
 from beeai_server.infrastructure.persistence.unit_of_work import SqlAlchemyUnitOfWorkFactory
 from beeai_server.service_layer.services.vector_stores import VectorStoreService
-
 
 pytestmark = pytest.mark.integration
 

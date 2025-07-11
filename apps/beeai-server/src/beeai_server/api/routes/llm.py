@@ -5,26 +5,31 @@ import json
 import re
 import time
 import uuid
-from typing import Any, Dict, List, Literal, Optional, Union, AsyncGenerator
+from collections.abc import AsyncGenerator, Generator
+from typing import Any, Literal
 
 import fastapi
+import openai
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from ibm_watsonx_ai import Credentials
+from ibm_watsonx_ai.foundation_models import ModelInference
+from pydantic import BaseModel, Field
 
-from beeai_framework.adapters.openai import OpenAIChatModel
-from beeai_framework.adapters.watsonx import WatsonxChatModel
-from beeai_framework.backend import (
-    ChatModelNewTokenEvent,
-    ChatModelSuccessEvent,
-    ChatModelErrorEvent,
-    UserMessage,
-    SystemMessage,
-    AssistantMessage,
-)
 from beeai_server.api.dependencies import EnvServiceDependency
 
-
 router = fastapi.APIRouter()
+
+
+class FunctionCall(BaseModel):
+    name: str
+    arguments: str
+
+
+class ToolCall(BaseModel):
+    id: str
+    type: Literal["function"] = "function"
+    function: FunctionCall
 
 
 class ContentItem(BaseModel):
@@ -34,34 +39,33 @@ class ContentItem(BaseModel):
 
 class ChatCompletionMessage(BaseModel):
     role: Literal["system", "user", "assistant", "function", "tool"] = "assistant"
-    content: Union[str, List[ContentItem]] = ""
-
-    def get_text_content(self) -> str:
-        if isinstance(self.content, str):
-            return self.content
-        return "".join(item.text for item in self.content if item.type == "text")
+    content: str | list[ContentItem] = ""
+    tool_calls: list[ToolCall] | None = None
+    tool_call_id: str | None = None
 
 
 class ChatCompletionRequest(BaseModel):
     model: str
-    messages: List[ChatCompletionMessage]
-    temperature: Optional[float] = 1.0
-    top_p: Optional[float] = 1.0
-    n: Optional[int] = 1
-    stream: Optional[bool] = False
-    stop: Optional[Union[str, List[str]]] = None
-    max_tokens: Optional[int] = None
-    presence_penalty: Optional[float] = 0.0
-    frequency_penalty: Optional[float] = 0.0
-    logit_bias: Optional[Dict[str, float]] = None
-    user: Optional[str] = None
-    response_format: Optional[Dict[str, Any]] = None
+    messages: list[ChatCompletionMessage]
+    temperature: float | None = 1.0
+    top_p: float | None = 1.0
+    n: int | None = 1
+    stream: bool | None = False
+    stop: str | list[str] | None = None
+    max_tokens: int | None = None
+    presence_penalty: float | None = 0.0
+    frequency_penalty: float | None = 0.0
+    logit_bias: dict[str, float] | None = None
+    user: str | None = None
+    response_format: dict[str, Any] | None = None
+    tools: list[dict[str, Any]] | None = None
+    tool_choice: str | dict[str, Any] | None = None
 
 
 class ChatCompletionResponseChoice(BaseModel):
     index: int = 0
-    message: ChatCompletionMessage = ChatCompletionMessage(role="assistant", content="")
-    finish_reason: Optional[str] = None
+    message: ChatCompletionMessage
+    finish_reason: str | None = None
 
 
 class ChatCompletionResponse(BaseModel):
@@ -70,13 +74,31 @@ class ChatCompletionResponse(BaseModel):
     system_fingerprint: str = "beeai-llm-gateway"
     created: int
     model: str
-    choices: List[ChatCompletionResponseChoice]
+    choices: list[ChatCompletionResponseChoice]
+
+
+class StreamFunctionCall(BaseModel):
+    name: str | None = None
+    arguments: str | None = None
+
+
+class StreamToolCall(BaseModel):
+    index: int
+    id: str | None = None
+    type: Literal["function"] = "function"
+    function: StreamFunctionCall | None = None
+
+
+class ChatCompletionStreamDelta(BaseModel):
+    role: Literal["assistant"] | None = None
+    content: str | None = None
+    tool_calls: list[StreamToolCall] | None = None
 
 
 class ChatCompletionStreamResponseChoice(BaseModel):
     index: int = 0
-    delta: ChatCompletionMessage = ChatCompletionMessage()
-    finish_reason: Optional[str] = None
+    delta: ChatCompletionStreamDelta = Field(default_factory=ChatCompletionStreamDelta)
+    finish_reason: str | None = None
 
 
 class ChatCompletionStreamResponse(BaseModel):
@@ -85,114 +107,126 @@ class ChatCompletionStreamResponse(BaseModel):
     system_fingerprint: str = "beeai-llm-gateway"
     created: int
     model: str
-    choices: List[ChatCompletionStreamResponseChoice]
+    choices: list[ChatCompletionStreamResponseChoice]
 
 
 @router.post("/chat/completions")
-async def create_chat_completion(
-    env_service: EnvServiceDependency,
-    request: ChatCompletionRequest,
-):
+async def create_chat_completion(env_service: EnvServiceDependency, request: ChatCompletionRequest):
     env = await env_service.list_env()
+    llm_api_base = env["LLM_API_BASE"]
+    llm_model = env["LLM_MODEL"]
 
-    is_rits = re.match(r"^https://[a-z0-9.-]+\.rits\.fmaas\.res\.ibm.com/.*$", env["LLM_API_BASE"])
-    is_watsonx = re.match(r"^https://[a-z0-9.-]+\.ml\.cloud\.ibm\.com.*?$", env["LLM_API_BASE"])
+    is_rits = re.match(r"^https://[a-z0-9.-]+\.rits\.fmaas\.res\.ibm.com/.*$", llm_api_base)
+    is_watsonx = re.match(r"^https://[a-z0-9.-]+\.ml\.cloud\.ibm\.com.*?$", llm_api_base)
 
-    llm = (
-        WatsonxChatModel(
-            model_id=env["LLM_MODEL"],
-            api_key=env["LLM_API_KEY"],
-            base_url=env["LLM_API_BASE"],
+    messages = [msg.model_dump(exclude_none=True) for msg in request.messages]
+
+    if is_watsonx:
+        watsonx_params = {}
+        if isinstance(request.tool_choice, str):
+            watsonx_params["tool_choice_option"] = request.tool_choice
+        elif isinstance(request.tool_choice, dict):
+            watsonx_params["tool_choice"] = request.tool_choice
+
+        model = ModelInference(
+            model_id=llm_model,
+            credentials=Credentials(url=llm_api_base, api_key=env["LLM_API_KEY"]),
             project_id=env.get("WATSONX_PROJECT_ID"),
             space_id=env.get("WATSONX_SPACE_ID"),
+            params={
+                "temperature": request.temperature,
+                "max_new_tokens": request.max_tokens,
+                "top_p": request.top_p,
+                "presence_penalty": request.presence_penalty,
+                "frequency_penalty": request.frequency_penalty,
+                "response_format": request.response_format,
+            },
         )
-        if is_watsonx
-        else OpenAIChatModel(
-            env["LLM_MODEL"],
-            api_key=env["LLM_API_KEY"],
-            base_url=env["LLM_API_BASE"],
-            extra_headers={"RITS_API_KEY": env["LLM_API_KEY"]} if is_rits else {},
-        )
-    )
 
-    messages = [
-        UserMessage(msg.get_text_content())
-        if msg.role == "user"
-        else SystemMessage(msg.get_text_content())
-        if msg.role == "system"
-        else AssistantMessage(msg.get_text_content())
-        for msg in request.messages
-        if msg.role in ["user", "system", "assistant"]
-    ]
-
-    if request.stream:
-        return StreamingResponse(stream_chat_completion(llm, messages, request), media_type="text/event-stream")
-
-    output = await llm.create(
-        messages=messages,
-        temperature=request.temperature,
-        maxTokens=request.max_tokens,
-        response_format=request.response_format,
-    )
-
-    return ChatCompletionResponse(
-        id=f"chatcmpl-{str(uuid.uuid4())}",
-        created=int(time.time()),
-        model=request.model,
-        choices=[
-            ChatCompletionResponseChoice(
-                message=ChatCompletionMessage(content=output.get_text_content()),
-                finish_reason=output.finish_reason,
+        if request.stream:
+            return StreamingResponse(
+                _stream_watsonx_chat_completion(model, messages, request.tools, watsonx_params, request),
+                media_type="text/event-stream",
             )
-        ],
-    )
+        else:
+            response = await run_in_threadpool(model.chat, messages=messages, tools=request.tools, **watsonx_params)
+            choice = response["choices"][0]
+            return ChatCompletionResponse(
+                id=response.get("id", f"chatcmpl-{uuid.uuid4()}"),
+                created=response.get("created", int(time.time())),
+                model=request.model,
+                choices=[
+                    ChatCompletionResponseChoice(
+                        message=ChatCompletionMessage(**choice["message"]),
+                        finish_reason=choice.get("finish_reason"),
+                    )
+                ],
+            )
+    else:
+        client = openai.AsyncOpenAI(
+            api_key=env["LLM_API_KEY"],
+            base_url=llm_api_base,
+            default_headers={"RITS_API_KEY": env["LLM_API_KEY"]} if is_rits else {},
+        )
+        params = {**request.model_dump(exclude_none=True), "model": llm_model}
+
+        if request.stream:
+            stream = await client.chat.completions.create(**params)
+            return StreamingResponse(_stream_openai_chat_completion(stream), media_type="text/event-stream")
+        else:
+            response = await client.chat.completions.create(**params)
+            openai_choice = response.choices[0]
+            return ChatCompletionResponse(
+                id=response.id,
+                created=response.created,
+                model=response.model,
+                choices=[
+                    ChatCompletionResponseChoice(
+                        index=openai_choice.index,
+                        message=ChatCompletionMessage(**openai_choice.message.model_dump()),
+                        finish_reason=openai_choice.finish_reason,
+                    )
+                ],
+            )
 
 
-async def stream_chat_completion(
-    llm: OpenAIChatModel,
-    messages: List[Union[UserMessage, SystemMessage, AssistantMessage]],
+def _stream_watsonx_chat_completion(
+    model: ModelInference,
+    messages: list[dict],
+    tools: list | None,
+    watsonx_params: dict,
     request: ChatCompletionRequest,
-) -> AsyncGenerator[str, None]:
+) -> Generator[str]:
+    completion_id = f"chatcmpl-{uuid.uuid4()!s}"
+    created_time = int(time.time())
     try:
-        completion_id = f"chatcmpl-{str(uuid.uuid4())}"
-
-        async for event, _ in llm.create(
-            messages=messages,
-            stream=True,
-            temperature=request.temperature,
-            maxTokens=request.max_tokens,
-            response_format=request.response_format,
-        ):
-            if isinstance(event, ChatModelNewTokenEvent):
-                yield f"""data: {
-                    json.dumps(
-                        ChatCompletionStreamResponse(
-                            id=completion_id,
-                            created=int(time.time()),
-                            model=request.model,
-                            choices=[
-                                ChatCompletionStreamResponseChoice(
-                                    delta=ChatCompletionMessage(content=event.value.get_text_content())
-                                )
-                            ],
-                        ).model_dump()
+        for chunk in model.chat_stream(messages=messages, tools=tools, **watsonx_params):
+            choice = chunk["choices"][0]
+            response_chunk = ChatCompletionStreamResponse(
+                id=completion_id,
+                created=created_time,
+                model=request.model,
+                choices=[
+                    ChatCompletionStreamResponseChoice(
+                        delta=ChatCompletionStreamDelta(**choice.get("delta", {})),
+                        finish_reason=choice.get("finish_reason"),
                     )
-                }\n\n"""
-            elif isinstance(event, ChatModelSuccessEvent):
-                yield f"""data: {
-                    json.dumps(
-                        ChatCompletionStreamResponse(
-                            id=completion_id,
-                            created=int(time.time()),
-                            model=request.model,
-                            choices=[ChatCompletionStreamResponseChoice(finish_reason=event.value.finish_reason)],
-                        ).model_dump()
-                    )
-                }\n\n"""
-                return
-            elif isinstance(event, ChatModelErrorEvent):
-                raise event.error
+                ],
+            )
+            yield f"data: {response_chunk.model_dump_json(exclude_none=True)}\n\n"
+            if choice.get("finish_reason"):
+                break
     except Exception as e:
-        yield f"data: {json.dumps(dict(error=dict(message=str(e), type=type(e).__name__)))}\n\n"
+        yield f"data: {json.dumps({'error': {'message': str(e), 'type': type(e).__name__}})}\n\n"
+    finally:
+        yield "data: [DONE]\n\n"
+
+
+async def _stream_openai_chat_completion(stream: AsyncGenerator) -> AsyncGenerator[str]:
+    try:
+        async for chunk in stream:
+            yield f"data: {chunk.model_dump_json(exclude_none=True)}\n\n"
+    except Exception as e:
+        yield f"data: {json.dumps({'error': {'message': str(e), 'type': type(e).__name__}})}\n\n"
     finally:
         yield "data: [DONE]\n\n"

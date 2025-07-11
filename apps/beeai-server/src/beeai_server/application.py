@@ -3,48 +3,48 @@
 
 import logging
 import pathlib
+from collections.abc import Iterable
 from contextlib import asynccontextmanager
-from typing import Iterable
 
 import procrastinate
 from acp_sdk import ACPError
 from acp_sdk.server.errors import (
     acp_error_handler,
-    validation_exception_handler,
     catch_all_exception_handler,
+    validation_exception_handler,
+)
+from acp_sdk.server.errors import (
     http_exception_handler as acp_http_exception_handler,
 )
-from starlette.requests import Request
-
-from beeai_server.run_workers import run_workers
-from beeai_server.utils.fastapi import NoCacheStaticFiles
-from fastapi import FastAPI, APIRouter
-from fastapi import HTTPException
+from fastapi import APIRouter, FastAPI, HTTPException
 from fastapi.exception_handlers import http_exception_handler
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import ORJSONResponse
-from kink import inject, di, Container
+from kink import Container, di, inject
+from opentelemetry.metrics import CallbackOptions, Observation, get_meter
+from starlette.exceptions import HTTPException as StarletteHttpException
+from starlette.requests import Request
 from starlette.responses import FileResponse
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
-from starlette.exceptions import HTTPException as StarletteHttpException
-from opentelemetry.metrics import get_meter, Observation, CallbackOptions
-from fastapi.exceptions import RequestValidationError
 
-from beeai_server.telemetry import INSTRUMENTATION_NAME, shutdown_telemetry
-from beeai_server.bootstrap import bootstrap_dependencies_sync
-from beeai_server.configuration import Configuration
-from beeai_server.exceptions import (
-    ManifestLoadError,
-    DuplicateEntityError,
-    PlatformError,
-)
-from beeai_server.api.routes.provider import router as provider_router
 from beeai_server.api.routes.acp import router as acp_router
+from beeai_server.api.routes.embeddings import router as embeddings_router
 from beeai_server.api.routes.env import router as env_router
 from beeai_server.api.routes.files import router as files_router
 from beeai_server.api.routes.llm import router as llm_router
+from beeai_server.api.routes.provider import router as provider_router
 from beeai_server.api.routes.ui import router as ui_router
-from beeai_server.api.routes.embeddings import router as embeddings_router
 from beeai_server.api.routes.vector_stores import router as vector_stores_router
+from beeai_server.bootstrap import bootstrap_dependencies_sync
+from beeai_server.configuration import Configuration
+from beeai_server.exceptions import (
+    DuplicateEntityError,
+    ManifestLoadError,
+    PlatformError,
+)
+from beeai_server.run_workers import run_workers
+from beeai_server.telemetry import INSTRUMENTATION_NAME, shutdown_telemetry
+from beeai_server.utils.fastapi import NoCacheStaticFiles
 
 logger = logging.getLogger(__name__)
 

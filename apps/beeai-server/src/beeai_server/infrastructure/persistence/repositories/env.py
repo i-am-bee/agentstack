@@ -1,15 +1,15 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from cryptography.fernet import Fernet
 from kink import inject
-from sqlalchemy import Table, Column, String, Text
+from sqlalchemy import Column, String, Table, Text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from beeai_server.configuration import Configuration
-from beeai_server.domain.repositories.env import IEnvVariableRepository, NOT_SET
+from beeai_server.domain.repositories.env import NOT_SET, IEnvVariableRepository
 from beeai_server.exceptions import EntityNotFoundError
 from beeai_server.infrastructure.persistence.repositories.db_metadata import metadata
-from cryptography.fernet import Fernet
 
 variables_table = Table(
     "variables",
