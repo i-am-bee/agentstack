@@ -4,7 +4,9 @@
 
 ### Installation
 
-This project uses [Mise-en-place](https://mise.jdx.dev/) as a manager of tool versions (`python`, `uv`, `nodejs`, `pnpm` etc.), as well as a task runner and environment manager. Mise will download all the needed tools automatically -- you don't need to install them yourself.
+This project uses [Mise-en-place](https://mise.jdx.dev/) as a manager of tool versions (`python`, `uv`, `nodejs`, `pnpm`
+etc.), as well as a task runner and environment manager. Mise will download all the needed tools automatically -- you
+don't need to install them yourself.
 
 Clone this project, then run these setup steps:
 
@@ -34,33 +36,56 @@ If you want to run tools directly without the `mise x --` prefix, you need to ac
 
 ### Configuration
 
-Edit `[env]` in `mise.local.toml` in the project root ([documentation](https://mise.jdx.dev/environments/)). Run `mise setup` if you don't see the file.
+Edit `[env]` in `mise.local.toml` in the project root ([documentation](https://mise.jdx.dev/environments/)). Run
+`mise setup` if you don't see the file.
 
-### Running the platform
+### Running the platform from source
 
-Starting up the platform using the CLI (`beeai platform start`, even `mise beeai-cli:run -- platform start`) will use **published images** by default. To use local images, you need to build them and import them into the platform.
+Starting up the platform using the CLI (`beeai platform start`, even `mise beeai-cli:run -- platform start`) will use
+**published images** by default. To use local images, you need to build them and import them into the platform.
 
-Build a local `ghcr.io/i-am-bee/beeai-platform/beeai-server:local` image using:
+Instead, use:
 
-```sh
-mise beeai-server:build
+```shell
+mise beeai-platform:start
 ```
 
-Then, start the platform using:
-```sh
-mise beeai-cli:run -- platform start --import ghcr.io/i-am-bee/beeai-platform/beeai-server:local --set image.tag=local
+This will build the images (`beeai-server` and `beeai-ui`) and import them to the cluster. You can add other
+CLI arguments as you normally would when using `beeai` CLI, for example:
+
+```shell
+mise beeai-platform:start --set docling.enabled=true
+```
+
+To stop or delete the platform use
+
+```shell
+mise beeai-platform:stop
+mise beeai-platform:delete
+```
+
+For debugging and direct access to kubernetes, setup `KUBECONFIG` and other environment variables using:
+
+```shell
+# Activate environment
+eval "$(mise run beeai-platform:shell)"
+
+# Deactivate environment
+deactivate
 ```
 
 ### Running and debugging individual components
 
-It's desirable to run and debug (i.e. in an IDE) individual components against the full stack (PostgreSQL, OpenTelemetry, Arize Phoenix, ...). For this, we include [Telepresence](https://telepresence.io/) which allows rewiring a Kubernetes container to your local machine.
-
+It's desirable to run and debug (i.e. in an IDE) individual components against the full stack (PostgreSQL,
+OpenTelemetry, Arize Phoenix, ...). For this, we include [Telepresence](https://telepresence.io/) which allows rewiring
+a Kubernetes container to your local machine.
 
 ```sh
 mise run beeai-server:dev:start
 ```
 
 This will do the following:
+
 1. Create .env file if it doesn't exist yet (you can add your configuration here)
 2. Stop default platform VM ("beeai") if it exists
 3. Start a new VM named "beeai-local-dev" separate from the "beeai" VM used by default
@@ -69,43 +94,52 @@ This will do the following:
 5. Replace beeai-platform in the cluster and forward any incoming traffic to localhost
 
 After the command succeeds, you can:
-- send requests as if your machine was running inside the cluster. For example: `curl http://<service-name>:<service-port>`.
+
+- send requests as if your machine was running inside the cluster. For example:
+  `curl http://<service-name>:<service-port>`.
 - connect to postgresql using the default credentials `postgresql://beeai-user:password@postgresql:5432/beeai`
 - now you can start your server from your IDE or using `mise run beeai-server:run` on port **18333**
 - run beeai-cli using `mise beeai-cli:run -- <command>` or HTTP requests to localhost:8333 or localhost:18333
-   - localhost:8333 is port-forwarded from the cluster, so any requests will pass through the cluster networking to the beeai-platform pod, which is replaced by telepresence and forwarded back to your local machine to port 18333
-   - localhost:18333 is where your local platform should be running
+    - localhost:8333 is port-forwarded from the cluster, so any requests will pass through the cluster networking to the
+      beeai-platform pod, which is replaced by telepresence and forwarded back to your local machine to port 18333
+    - localhost:18333 is where your local platform should be running
 
 To inspect cluster using `kubectl` or `k9s` and lima using `limactl`, activate the dev environment using:
+
 ```shell
 # Activate dev environment
 eval "$(mise run beeai-server:dev:shell)"
+
 # Deactivate dev environment
 deactivate
 ```
 
 When you're done you can stop the development cluster and networking using
+
 ```shell
 mise run beeai-server:dev:stop
 ```
+
 Or delete the cluster entirely using
+
 ```shell
-mise run beeai-server:dev:clean
+mise run beeai-server:dev:delete
 ```
 
 > TIP: If you run into connection issues after sleep or longer period of inactivity
 > try `mise run beeai-server:dev:reconnect` first. You may not need to clean and restart
 > the entire VM
 
-
 #### Developing tests
 
-We use a separate VM for local development of e2e and integration tests, the setup is almost identical, 
+We use a separate VM for local development of e2e and integration tests, the setup is almost identical,
 but you need to change kubeconfig location in your .env:
+
 ```shell
 # Use for developing e2e and integration tests locally
 K8S_KUBECONFIG=~/.beeai/lima/beeai-local-test/copied-from-guest/kubeconfig.yaml
 ```
+
 and then run `beeai-server:dev:test:start`
 
 > TIP: Similarly to dev environment you can use `mise run beeai-server:dev:test:reconnect`
@@ -134,32 +168,35 @@ mise x -- telepresence quit
 </details>
 
 #### Ollama
+
 If you want to run this local setup against Ollama you must use a special option when setting up the LLM:
+
 ```
 beeai env setup --use-true-localhost
 ```
 
-### Running or creating migrations
+### Working with migrations
+
 The following commands can be used to create or run migrations in the dev environment above:
 
 - Run migrations: `mise run beeai-server:migrations:run`
 - Generate migrations: `mise run beeai-server:migrations:generate`
 - Use Alembic command directly: `mise run beeai-server:migrations:alembic`
 
-> NOTE: The dev setup will run the production image including its migrations before replacing it with your local 
-> instance.
+> NOTE: The dev setup will run the locally built image including its migrations before replacing it with your local
+> instance. If new migrations you just implemented are not working, the dev setup will not start properly and you need
+> to fix migrations first. You can activate the shell using `eval "$(mise run beeai-server:dev:shell)"` and use
+> your favorite kubernetes IDE (e.g., k9s or kubectl) to see the migration logs.
 
 ### Running individual components
 
 To run BeeAI components in development mode (ensuring proper rebuilding), use the following commands.
 
 #### Server
-Build image and run the platform using:
-```shell
-mise run beeai-server:build
-mise run beeai-cli:run -- platform start --import ghcr.io/i-am-bee/beeai-platform/beeai-server:local --set image.tag=local
-```
-Or use development setup described in [Running and debugging individual components](#running-and-debugging-individual-components)
+
+Build and run server using setup described in [Running the platform from source](#running-the-platform-from-source)
+Or use development setup described
+in [Running and debugging individual components](#running-and-debugging-individual-components)
 
 #### CLI
 

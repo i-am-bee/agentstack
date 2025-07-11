@@ -34,6 +34,7 @@ postinstall = "{{ mise_bin }} setup"
 
 [task_config]
 includes = [
+    "./tasks.toml",
     "helm/tasks.toml",
     "apps/beeai-cli/tasks.toml",
     "apps/beeai-server/tasks.toml",

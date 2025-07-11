@@ -74,6 +74,7 @@
     "@next/eslint-plugin-next": "catalog:",
     "@svgr/webpack": "catalog:",
     "@types/hast": "^3.0.4",
+    "@types/node": "^22.13.13",
     "@types/http-proxy": "^1.17.14",
     "@types/humanize-duration": "^3.27.4",
     "@types/lodash": "^4.17.16",

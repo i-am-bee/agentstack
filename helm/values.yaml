@@ -79,6 +79,7 @@ service:
   type: ClusterIP
   # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
   port: 8333
+  nodePort: 8333
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
@@ -108,12 +109,18 @@ resources:
 # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 livenessProbe:
   httpGet:
-    path: /
+    path: /healthcheck
     port: http
+  initialDelaySeconds: 5
+  failureThreshold: 5
+  periodSeconds: 5
 readinessProbe:
   httpGet:
-    path: /
+    path: /healthcheck
     port: http
+  initialDelaySeconds: 5
+  failureThreshold: 20
+  periodSeconds: 2
 
 # Additional volumes on the output Deployment definition.
 volumes: [ ]
@@ -133,6 +140,29 @@ nodeSelector: { }
 tolerations: [ ]
 
 affinity: { }
+
+ui:
+  replicaCount: 1
+  enabled: true
+  image:
+    repository: ghcr.io/i-am-bee/beeai-platform/beeai-ui
+    pullPolicy: IfNotPresent
+    tag: ""
+    resources: { }
+  service:
+    type: ClusterIP
+    port: 8334
+    nodePort: 8334
+  podAnnotations: { }
+  podSecurityContext: { }
+  securityContext: { }
+  podLabels: { }
+  resources: { }
+  nodeSelector: { }
+  tolerations: { }
+  affinity: { }
+  livenessProbe: { }
+  readinessProbe: { }
 
 phoenix:
   enabled: false

@@ -77,7 +77,7 @@ outputs = { auto = true }
 # run
 
 ["beeai-server:run"]
-depends = ["beeai-server:setup", "beeai-ui:build"]
+depends = ["beeai-server:setup"]
 dir = "{{config_root}}/apps/beeai-server"
 run = "uv run beeai-server"
 
@@ -96,15 +96,8 @@ run = "mkdir -p dist && uv export --no-hashes --no-emit-workspace --format requi
 sources = ["uv.lock"]
 outputs = ["dist/requirements.txt"]
 
-["beeai-server:build:static"]
-depends = ["beeai-ui:build"]
-dir = "{{config_root}}"
-run = "rm -rf apps/beeai-server/src/static 2>/dev/null || true; cp -r apps/beeai-ui/dist apps/beeai-server/src/beeai_server/static"
-sources = ["apps/beeai-ui/dist/**/*"]
-outputs = ["apps/beeai-server/src/beeai_server/static/**/*"]
-
 ["beeai-server:build:sdist"]
-depends = ["beeai-server:setup", "beeai-server:build:static"]
+depends = ["beeai-server:setup"]
 dir = "{{config_root}}/apps/beeai-server"
 run = "rm ./dist/*.tar.gz 2>/dev/null || true; uv build --sdist --out-dir dist"
 sources = ["pyproject.toml", "uv.lock", "src/**/*.py"]
@@ -133,176 +126,114 @@ alembic {{arg(name="alembic_vars", var=true)}}
 ["beeai-server:migrations:generate"]
 dir = "{{config_root}}/apps/beeai-server"
 depends = ["beeai-server:dev:start"]
-run = "mise run beeai-server:migrations:alembic revision --autogenerate"
+run = "{{ mise_bin }} run beeai-server:migrations:alembic revision --autogenerate"
 
 # dev
 
+["beeai-server:dev:shell"]
+dir = "{{config_root}}/apps/beeai-server"
+run = "{{ mise_bin }} run beeai-platform:shell --vm-name=beeai-local-dev"
+
 ["beeai-server:dev:start"]
 dir = "{{config_root}}/apps/beeai-server"
-depends = ["beeai-server:build"]
 run = """
 #!/bin/bash
 set -e
-
-NAMESPACE=default
 VM_NAME='{{option(name="vm-name", default="beeai-local-dev")}}'
-KUBECONFIG="${HOME}/.beeai/lima/${VM_NAME}/copied-from-guest/kubeconfig.yaml"
-LIMA_HOME=~/.beeai/lima
-
-export KUBECONFIG
-export LIMA_HOME
-
-[[ ! -f .env ]] && cp template.env .env
-
-tele="telepresence --use .*${NAMESPACE}.*"
-($tele list --replacements 2>/dev/null | grep -q platform) && echo "Dev environment already running" && exit
-
-# Stopping all platform deployments
-{{ mise_bin }} run beeai-server:dev:stop
-
-extra_flags=()
-
-if [ '{{flag(name='no-registry')}}' = 'true' ]; then
-  extra_flags+=("--set" "externalRegistries=null")
-fi
-
-if [ '{{flag(name='docling')}}' = 'true' ]; then
-  extra_flags+=("--set" "docling.enabled=true")
-fi
-
-if [ '{{flag(name='phoenix')}}' = 'true' ]; then
-  extra_flags+=("--set" "phoenix.enabled=true")
-fi
-
-{{ mise_bin }} run beeai-cli:run -- platform start \
-    --vm-name=${VM_NAME} \
-    --import ghcr.io/i-am-bee/beeai-platform/beeai-server:local \
-    --set image.tag=local "${extra_flags[@]}"
-
-$tele helm install || true
-$tele connect --namespace "$NAMESPACE"
-$tele replace beeai-platform --port 18333:8333
-"""
-
-["beeai-server:dev:shell"]
-raw = true
-shell = "echo"
-dir = "{{cwd}}"
-run = """
-if [[ -n "$__OLD_PS1" ]]; then
-  echo "Environment for 'beeai-local-dev' is already activated. To deactivate, type 'deactivate'."
-  return 0
-fi
-
-VM_NAME={{option(name="vm-name", default="beeai-local-dev")}}
-echo "Activating environment for '$VM_NAME'..."
-
-export __OLD_PS1="$PS1"
-export __OLD_LIMA_HOME="$LIMA_HOME"
-export __OLD_KUBECONFIG="$KUBECONFIG"
-
-export KUBECONFIG="${HOME}/.beeai/lima/${VM_NAME}/copied-from-guest/kubeconfig.yaml"
-export LIMA_HOME=~/.beeai/lima
-export PS1="(${VM_NAME}) ${__OLD_PS1}"
-
-deactivate () {
-  export PS1="$__OLD_PS1"
-
-  # Restore LIMA_HOME to its original state (set or unset)
-  [[ -n "$__OLD_LIMA_HOME" ]] && export LIMA_HOME="$__OLD_LIMA_HOME" || unset LIMA_HOME
-  [[ -n "$__OLD_KUBECONFIG" ]] && export KUBECONFIG="$__OLD_KUBECONFIG" || unset KUBECONFIG
-
-  # Clean up the backup values
-  unset __OLD_PS1
-  unset __OLD_LIMA_HOME
-  unset __OLD_KUBECONFIG
-  unset -f deactivate
-  echo "Environment for '$VM_NAME' deactivated."
-}
+eval "$( {{ mise_bin }} run beeai-platform:shell --vm-name="$VM_NAME" )"
+{{ mise_bin }} run beeai-server:dev:disconnect --vm-name="$VM_NAME"
+{{ mise_bin }} run beeai-platform:stop-all --except "$VM_NAME"
+{{ mise_bin }} beeai-platform:start --vm-name="$VM_NAME" {{arg(name="cli-args", var=true, default="--")}}
+{{ mise_bin }} run beeai-server:dev:connect --vm-name="$VM_NAME"
 """
 
 ["beeai-server:dev:stop"]
 dir = "{{config_root}}/apps/beeai-server"
 run = """
 #!/bin/bash
-NAMESPACE=default
-
-telepresence --use ".*${NAMESPACE}.*" uninstall --all-agents || true
-
-# Stop all lima VMs
-{% raw %}
-LIMA_HOME=~/.beeai/lima limactl list -f '{{.Name}}' 2>/dev/null | sed '/^[^a-z]*$/d' | \
-    xargs -rn 1 -I"{}" \
-    {{ mise_bin }} run beeai-cli:run -- platform stop --vm-name="{}"
-{% endraw %}
-
-telepresence --use ".*${NAMESPACE}.*" quit
+VM_NAME='{{option(name="vm-name", default="beeai-local-dev")}}'
+{{ mise_bin }} run beeai-server:dev:disconnect --vm-name="$VM_NAME"
+{{ mise_bin }} run beeai-platform:stop --vm-name=beeai-local-dev
 """
 
-["beeai-server:dev:clean"]
+["beeai-server:dev:delete"]
 dir = "{{config_root}}/apps/beeai-server"
 run = """
 VM_NAME={{option(name="vm-name", default="beeai-local-dev")}}
 {{ mise_bin }} run beeai-cli:run -- platform delete --vm-name="$VM_NAME"
 """
 
-["beeai-server:dev:reconnect"]
+["beeai-server:dev:connect"]
 dir = "{{config_root}}/apps/beeai-server"
 run = """
 #!/bin/bash
-
-VM_NAME='{{option(name="vm-name", default="beeai-local-dev")}}'
 NAMESPACE=default
-
-export KUBECONFIG="${HOME}/.beeai/lima/${VM_NAME}/copied-from-guest/kubeconfig.yaml"
+VM_NAME='{{option(name="vm-name", default="beeai-local-dev")}}'
+eval "$( {{ mise_bin }} run beeai-platform:shell --vm-name="$VM_NAME" )"
 
 tele="telepresence --use .*${NAMESPACE}.*"
-
-$tele uninstall --all-agents || true
-$tele quit
-
+$tele helm install || true
 $tele connect --namespace "$NAMESPACE"
 $tele replace beeai-platform --port 18333:8333
 """
 
+["beeai-server:dev:disconnect"]
+dir = "{{config_root}}/apps/beeai-server"
+run = """
+#!/bin/bash
+NAMESPACE=default
+VM_NAME='{{option(name="vm-name", default="beeai-local-dev")}}'
+eval "$( {{ mise_bin }} run beeai-platform:shell --vm-name="$VM_NAME" )"
+
+tele="telepresence --use .*${NAMESPACE}.*"
+$tele uninstall --all-agents || true
+$tele quit
+"""
+
+["beeai-server:dev:reconnect"]
+dir = "{{config_root}}/apps/beeai-server"
+run = """
+VM_NAME='{{option(name="vm-name", default="beeai-local-dev")}}'
+{{ mise_bin }} run beeai-server:dev:disconnect --vm-name="$VM_NAME"
+{{ mise_bin }} run beeai-server:dev:connect --vm-name="$VM_NAME"
+"""
+
 ["beeai-server:dev:test:start"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "{{ mise_bin }} run beeai-server:dev:start --vm-name=beeai-local-test --no-registry"
+run = "{{ mise_bin }} run beeai-server:dev:start --vm-name=beeai-local-test --set externalRegistries=null"
 
-["beeai-server:dev:test:clean"]
+["beeai-server:dev:test:delete"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "{{ mise_bin }} run beeai-server:dev:clean --vm-name=beeai-local-test"
+run = "{{ mise_bin }} run beeai-server:dev:delete --vm-name=beeai-local-test"
 
 ["beeai-server:dev:test:shell"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "{{ mise_bin }} run beeai-server:dev:shell --vm-name=beeai-local-test"
+run = "{{ mise_bin }} run beeai-platform:shell --vm-name=beeai-local-test"
 
 ["beeai-server:dev:test:reconnect"]
 dir = "{{config_root}}/apps/beeai-server"
 run = "{{ mise_bin }} run beeai-server:dev:reconnect --vm-name=beeai-local-test"
 
 ["beeai-server:test:e2e"]
-depends = ["beeai-server:build"]
 dir = "{{config_root}}/apps/beeai-server"
 run = """
 #!/bin/bash
 
-{{ mise_bin }} run beeai-server:dev:stop
-{{ mise_bin }} run beeai-cli:run -- platform delete --vm-name=${VM_NAME}
+{{ mise_bin }} run beeai-platform:stop-all
+{{ mise_bin }} run beeai-platform:delete --vm-name=${VM_NAME}
 curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhost:8333 is already running" && exit 2
 
 VM_NAME=e2e-test-run
-{{ mise_bin }} run beeai-cli:run -- platform start -v \
+{{ mise_bin }} run beeai-platform:start \
     --vm-name=${VM_NAME} \
-    --import ghcr.io/i-am-bee/beeai-platform/beeai-server:local \
-    --set image.tag=local \
     --set externalRegistries=null \
-    --set docling.enabled=true
+    --set docling.enabled=true \
+    --set ui.enabled=false
 
-export KUBECONFIG="${HOME}/.beeai/lima/${VM_NAME}/copied-from-guest/kubeconfig.yaml"
+eval "$( {{ mise_bin }} run beeai-platform:shell --vm-name="$VM_NAME" )"
+
 export SERVER_URL="http://localhost:8333"
 export DB_URL="postgresql+asyncpg://beeai-user:password@localhost:5432/beeai"
-
 export LLM_API_BASE="${LLM_API_BASE:-http://host.docker.internal:11434/v1}"
 
 kubectl port-forward svc/postgresql 5432:5432 2>/dev/null 1>&2 &
@@ -324,12 +255,20 @@ exit $result
 
 ["beeai-server:test:integration"]
 dir = "{{config_root}}/apps/beeai-server"
-depends = ["beeai-server:build"]
 run = """
 #!/bin/bash
 VM_NAME=itegration-test-run
-{{ mise_bin }} run beeai-server:dev:start --vm-name="$VM_NAME" --no-registry
-export KUBECONFIG="${HOME}/.beeai/lima/${VM_NAME}/copied-from-guest/kubeconfig.yaml"
+
+{{ mise_bin }} run beeai-platform:delete --vm-name="$VM_NAME"
+
+{{ mise_bin }} run beeai-platform:start \
+    --vm-name="$VM_NAME" \
+    --set externalRegistries=null \
+    --set ui.enabled=false
+
+eval "$( {{ mise_bin }} run beeai-platform:shell --vm-name="$VM_NAME" )"
+
+{{ mise_bin }} run beeai-server:dev:connect --vm-name="$VM_NAME"
 
 uv run pytest -m integration
 result=$?

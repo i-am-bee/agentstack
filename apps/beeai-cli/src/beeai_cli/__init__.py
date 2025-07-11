@@ -39,9 +39,9 @@ def show_version():
 @app.command("ui")
 async def ui():
     """Launch graphical interface."""
-    host_url = str(Configuration().host)
+    ui_url = str(Configuration().ui_url)
 
-    await launch_graphical_interface(host_url)
+    await launch_graphical_interface(ui_url)
 
 
 @app.command("playground")

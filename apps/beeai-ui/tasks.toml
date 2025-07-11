@@ -67,6 +67,12 @@ run = "pnpm dev"
 
 # build
 
+["beeai-ui:build:image"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}"
+run = "docker build -t ghcr.io/i-am-bee/beeai-platform/beeai-ui:local . -f ./apps/beeai-ui/Dockerfile --load"
+
+
 ["beeai-ui:build"]
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/beeai-ui"

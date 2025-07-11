@@ -1,0 +1,82 @@
+["beeai-platform:start"]
+depends = ["beeai-server:build"]
+dir = "{{config_root}}"
+run = """
+#!/bin/bash
+
+UI_IMPORT=""
+UI_TAG=""
+
+if [[ ! "$*" =~ 'ui.enabled=false' ]]; then
+    {{ mise_bin }} run beeai-ui:build:image
+    UI_IMPORT="--import ghcr.io/i-am-bee/beeai-platform/beeai-ui:local"
+    UI_TAG="--set ui.image.tag=local"
+fi
+
+{{ mise_bin }} run beeai-cli:run -- platform start \
+    --import "ghcr.io/i-am-bee/beeai-platform/beeai-server:local" \
+    $UI_IMPORT \
+    --set image.tag=local \
+    $UI_TAG "$@"
+"""
+
+["beeai-platform:delete"]
+run = "{{ mise_bin }} run beeai-cli:run -- platform delete"
+
+["beeai-platform:stop"]
+run = "{{ mise_bin }} run beeai-cli:run -- platform stop"
+
+
+["beeai-platform:stop-all"]
+run = """
+#!/bin/bash
+# Stop all lima VMs
+
+EXCEPT='{{option(name="except", default="")}}'
+
+{% raw %}
+TO_DELETE="$(LIMA_HOME=~/.beeai/lima limactl list -f '{{.Name}}' 2>/dev/null | sed '/^[^a-z]*$/d' | sed "/^$EXCEPT$/d")"
+{% endraw %}
+
+{% raw %}
+echo "$TO_DELETE" | xargs -rn 1 -I"{}" mise run beeai-cli:run -- platform stop --vm-name="{}"
+{% endraw %}
+"""
+
+["beeai-platform:shell"]
+raw = true
+shell = "echo"
+dir = "{{cwd}}"
+run = """
+deactivate () {
+  export PS1="$__OLD_PS1"
+
+  # Restore LIMA_HOME to its original state (set or unset)
+  [[ -n "$__OLD_LIMA_HOME" ]] && export LIMA_HOME="$__OLD_LIMA_HOME" || unset LIMA_HOME
+  [[ -n "$__OLD_KUBECONFIG" ]] && export KUBECONFIG="$__OLD_KUBECONFIG" || unset KUBECONFIG
+
+  # Clean up the backup values
+  unset __OLD_PS1
+  unset __OLD_LIMA_HOME
+  unset __OLD_KUBECONFIG
+  unset -f deactivate
+  echo "Environment for '$VM_NAME' deactivated."
+}
+
+while [[ -n "$__OLD_PS1" ]]; do
+  deactivate;
+done
+
+VM_NAME={{option(name="vm-name", default="beeai-platform")}}
+echo "Activating environment for '$VM_NAME'..."
+
+export __OLD_PS1="$PS1"
+export __OLD_LIMA_HOME="$LIMA_HOME"
+export __OLD_KUBECONFIG="$KUBECONFIG"
+
+export KUBECONFIG="${HOME}/.beeai/lima/${VM_NAME}/copied-from-guest/kubeconfig.yaml"
+export LIMA_HOME=~/.beeai/lima
+export PS1="(${VM_NAME}) ${__OLD_PS1}"
+
+"""
+

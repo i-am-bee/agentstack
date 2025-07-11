@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-import pathlib
 from collections.abc import Iterable
 from contextlib import asynccontextmanager
 
@@ -24,7 +23,6 @@ from kink import Container, di, inject
 from opentelemetry.metrics import CallbackOptions, Observation, get_meter
 from starlette.exceptions import HTTPException as StarletteHttpException
 from starlette.requests import Request
-from starlette.responses import FileResponse
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 
 from beeai_server.api.routes.acp import router as acp_router
@@ -44,7 +42,6 @@ from beeai_server.exceptions import (
 )
 from beeai_server.run_workers import run_workers
 from beeai_server.telemetry import INSTRUMENTATION_NAME, shutdown_telemetry
-from beeai_server.utils.fastapi import NoCacheStaticFiles
 
 logger = logging.getLogger(__name__)
 
@@ -92,21 +89,6 @@ def register_global_exception_handlers(app: FastAPI):
 
 
 def mount_routes(app: FastAPI):
-    static_directory = pathlib.Path(__file__).parent.joinpath("static")
-    if not static_directory.joinpath("index.html").exists():  # this check is for running locally
-        raise RuntimeError("Could not find static files -- ensure that beeai-ui is built: `mise build:beeai-ui`")
-
-    ui_app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
-    ui_app.mount("/", NoCacheStaticFiles(directory=static_directory, html=True))
-    ui_app.add_exception_handler(
-        404,
-        lambda _req, _exc: FileResponse(
-            static_directory / "index.html",
-            status_code=200,
-            headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"},
-        ),
-    )
-
     server_router = APIRouter()
     server_router.include_router(acp_router, prefix="/acp")
     server_router.include_router(provider_router, prefix="/providers", tags=["providers"])
@@ -117,9 +99,11 @@ def mount_routes(app: FastAPI):
     server_router.include_router(embeddings_router, prefix="/llm", tags=["embeddings"])
     server_router.include_router(vector_stores_router, prefix="/vector_stores", tags=["vector_stores"])
 
-    app.mount("/healthcheck", lambda: "OK")
     app.include_router(server_router, prefix="/api/v1", tags=["provider"])
-    app.mount("/", ui_app)
+
+    @app.get("/healthcheck")
+    async def healthcheck():
+        return "OK"
 
 
 def register_telemetry():

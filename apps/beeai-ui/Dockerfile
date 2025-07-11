@@ -9,14 +9,18 @@ FROM base AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-COPY . .
+COPY pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY ./apps/beeai-ui/package.json ./apps/beeai-ui/package.json
 
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV API_URL=http://beeai-platform-svc:8333
+ENV API_URL=http://localhost:8333
 
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm i --frozen-lockfile
-RUN pnpm run --filter=@i-am-bee/beeai-ui build
-RUN pnpm deploy --legacy --filter=@i-am-bee/beeai-ui --prod /prod/app
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm i --filter=@i-am-bee/beeai-ui --frozen-lockfile
+
+COPY ./apps/beeai-ui ./apps/beeai-ui
+
+RUN pnpm run -filter=@i-am-bee/beeai-ui build
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm deploy --legacy --filter=@i-am-bee/beeai-ui --prod /prod/app
 RUN cp -r apps/beeai-ui/.next /prod/app/.next
 
 FROM base AS runner
@@ -40,9 +44,9 @@ COPY --from=builder /prod/app/public ./public
 
 USER nextjs
 
-EXPOSE 3000
+EXPOSE 8334
 
-ENV PORT=3000
+ENV PORT=8334
 
 ENV HOSTNAME="0.0.0.0"
 CMD ["node", "server.js"]
