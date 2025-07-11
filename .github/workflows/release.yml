@@ -109,6 +109,20 @@ jobs:
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/beeai-server:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/beeai-server:cache,mode=max
 
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./apps/beeai-ui/Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository }}/beeai-ui:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/beeai-ui:${{ steps.version.outputs.version }}
+            ghcr.io/${{ github.repository }}/beeai-ui:${{ steps.version.outputs.latestTag }}
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/beeai-ui:cache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/beeai-ui:cache,mode=max
+
+
       - run: mise run helm:build
       - run: echo '${{ secrets.GITHUB_TOKEN }}' | helm registry login --username '${{ github.actor }}' --password-stdin ghcr.io
       - run: helm push ./helm/dist/beeai-platform-*.tgz 'oci://ghcr.io/${{ github.repository }}/beeai-platform-chart'

@@ -1,0 +1,10 @@
+# Docker
+Dockerfile
+.dockerignore
+
+# Node
+node_modules
+.next
+
+# Misc
+dist
