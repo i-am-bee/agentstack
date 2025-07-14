@@ -1,7 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""empty message
+"""add acp_session_id to agent_requests
 
 Revision ID: b8f8a7190ab9
 Revises: 638be28ea3f9

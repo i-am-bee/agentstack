@@ -1,7 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""empty message
+"""create pgvector extension and vector schema
 
 Revision ID: be5ec6ff3271
 Revises: 48ffed989775

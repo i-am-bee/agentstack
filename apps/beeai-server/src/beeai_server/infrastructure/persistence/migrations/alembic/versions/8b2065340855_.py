@@ -1,7 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""empty message
+"""add text_extractions table and file type enums
 
 Revision ID: 8b2065340855
 Revises: 246e011dd64e

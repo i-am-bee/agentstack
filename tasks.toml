@@ -3,6 +3,7 @@ depends = ["beeai-server:build"]
 dir = "{{config_root}}"
 run = """
 #!/bin/bash
+set -e
 
 UI_IMPORT=""
 UI_TAG=""

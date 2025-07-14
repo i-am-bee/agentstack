@@ -1,7 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""empty message
+"""add users and files tables
 
 Revision ID: 48ffed989775
 Revises: f5d08cbe4ef8

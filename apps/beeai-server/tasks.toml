@@ -107,17 +107,20 @@ outputs = ["dist/*.tar.gz"]
 
 ["beeai-server:migrations:run"]
 dir = "{{config_root}}/apps/beeai-server"
-depends = ["beeai-server:dev:start"]
 run = "uv run migrate"
 
 ["beeai-server:migrations:alembic"]
 dir = "{{config_root}}/apps/beeai-server"
-depends = ["beeai-server:dev:start"]
 run = """
 #!/bin/bash
 set -a
 source .env
 set +a
+
+if ! telepresence list --replacements 2>/dev/null | grep -q platform; then
+    echo "Dev env not running, use 'mise run beeai-server:dev:start' to start it..."
+    exit 1
+fi
 
 cd src/beeai_server/infrastructure/persistence/migrations
 alembic {{arg(name="alembic_vars", var=true)}}
@@ -125,7 +128,6 @@ alembic {{arg(name="alembic_vars", var=true)}}
 
 ["beeai-server:migrations:generate"]
 dir = "{{config_root}}/apps/beeai-server"
-depends = ["beeai-server:dev:start"]
 run = "{{ mise_bin }} run beeai-server:migrations:alembic revision --autogenerate"
 
 # dev

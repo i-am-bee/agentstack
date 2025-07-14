@@ -1,6 +1,8 @@
 -- Procrastinate Schema
 
-CREATE EXTENSION IF NOT EXISTS plpgsql;
+-- NOTE: this is executed as part of the migration python script
+-- (due to ibm cloud change of search_path after thiscommand)
+-- CREATE EXTENSION IF NOT EXISTS plpgsql;
 
 -- Enums
 

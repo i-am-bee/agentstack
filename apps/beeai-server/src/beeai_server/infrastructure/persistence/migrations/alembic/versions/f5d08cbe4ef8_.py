@@ -1,7 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""empty message
+"""add auto_remove column to providers
 
 Revision ID: f5d08cbe4ef8
 Revises: cb9dc6ddcd3c

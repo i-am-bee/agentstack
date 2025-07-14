@@ -1,7 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""empty message
+"""create initial core tables
 
 Revision ID: cb9dc6ddcd3c
 Revises:
