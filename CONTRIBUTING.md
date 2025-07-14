@@ -223,7 +223,6 @@ mise beeai-server:run
 Use the release script:
 
 ```shell
-mise run beeai-platform:release 0.2.15-rc6
-
+mise run release
 ```
 
