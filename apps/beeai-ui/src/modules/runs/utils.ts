@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { FilePart, Part } from '@a2a-js/sdk';
 import humanizeDuration from 'humanize-duration';
 import JSON5 from 'json5';
 import { v4 as uuid } from 'uuid';
@@ -10,7 +11,7 @@ import { v4 as uuid } from 'uuid';
 import { isNotNull } from '#utils/helpers.ts';
 import { toMarkdownCitation, toMarkdownImage } from '#utils/markdown.ts';
 
-import type { Artifact, Message, MessagePart } from './api/types';
+import type { Artifact, Message as ACPMessage, MessagePart } from './api/types';
 import {
   type AgentMessage,
   type ChatMessage,
@@ -60,14 +61,15 @@ export function createMessagePart({
   };
 }
 
-export function createFileMessageParts(files: (UploadFileResponse & { type: string })[]) {
-  const messageParts = files.map(({ id, filename, type }) =>
-    createMessagePart({
-      content_url: getFileContentUrl({ id, addBase: true }),
-      content_type: type,
+export function createFileParts(files: (UploadFileResponse & { type: string })[]): FilePart[] {
+  const messageParts: FilePart[] = files.map(({ id, filename, type }) => ({
+    kind: 'file',
+    file: {
+      uri: getFileContentUrl({ id, addBase: true }),
       name: filename,
-    }),
-  );
+      mimeType: type,
+    },
+  }));
 
   return messageParts;
 }
@@ -140,7 +142,7 @@ export function isArtifactPart(part: MessagePart): part is Artifact {
   return typeof part.name === 'string';
 }
 
-export function extractOutput(messages: Message[]) {
+export function extractOutput(messages: ACPMessage[]) {
   const output = messages
     .flatMap(({ parts }) => parts)
     .map(({ content }) => content)
@@ -178,4 +180,13 @@ export function isAgentMessage(message: ChatMessage): message is AgentMessage {
 
 export function isUserMessage(message: ChatMessage): message is UserMessage {
   return message.role === Role.User;
+}
+
+export function extractTextFromParts(parts: Part[]): string {
+  const text = parts
+    .filter((part) => part.kind === 'text')
+    .map((part) => part.text)
+    .join('\n');
+
+  return text;
 }

@@ -16,7 +16,6 @@ import {
   commands,
   CopySnippet,
   fadeProps,
-  getAgentUiMetadata,
   MarkdownContent,
   TagsList,
 } from '@i-am-bee/beeai-ui';
@@ -33,17 +32,15 @@ interface Props {
 }
 
 export function AgentDetail({ agent, buttons }: Props) {
-  const {
-    name,
-    description,
-    metadata: { documentation },
-  } = agent;
-  const { display_name } = getAgentUiMetadata(agent);
+  const { name, description } = agent;
+
+  // TODO: a2a
+  const documentation = undefined;
 
   return (
     <div className={classes.root}>
       <motion.header {...fadeInPropsWithMarginShift({ start: { from: spacing[4] } })} className={classes.header}>
-        <h1 className={classes.name}>{display_name}</h1>
+        <h1 className={classes.name}>{agent.ui.display_name}</h1>
 
         <BeeBadge agent={agent} size="lg" />
       </motion.header>

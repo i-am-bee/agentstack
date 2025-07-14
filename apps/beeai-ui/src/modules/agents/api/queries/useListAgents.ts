@@ -5,17 +5,23 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-import { isAgentUiSupported, sortAgentsByName } from '#modules/agents/utils.ts';
+import { buildAgent, isAgentUiSupported, sortAgentsByName } from '#modules/agents/utils.ts';
+import { listProviders } from '#modules/providers/api/index.ts';
 
-import { listAgents } from '..';
 import { agentKeys } from '../keys';
-import type { ListAgentsParams } from '../types';
 
-export function useListAgents({ onlyUiSupported, sort }: ListAgentsParams = {}) {
+interface Props {
+  onlyUiSupported?: boolean;
+  sort?: boolean;
+}
+
+export function useListAgents({ onlyUiSupported, sort }: Props = {}) {
   const query = useQuery({
     queryKey: agentKeys.list(),
-    queryFn: listAgents,
-    select: (agents) => {
+    queryFn: listProviders,
+    select: (response) => {
+      let agents = response?.items?.map(buildAgent) ?? [];
+
       if (onlyUiSupported) {
         agents = agents.filter(isAgentUiSupported);
       }

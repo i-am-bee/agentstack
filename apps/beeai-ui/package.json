@@ -11,6 +11,7 @@
     "#*": "./src/*"
   },
   "dependencies": {
+    "@a2a-js/sdk": "^0.2.4",
     "@bprogress/next": "^3.2.10",
     "@carbon/colors": "^11.30.0",
     "@carbon/grid": "^11.33.0",

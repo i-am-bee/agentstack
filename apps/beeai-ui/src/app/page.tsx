@@ -6,8 +6,9 @@
 import { redirect } from 'next/navigation';
 
 import EntityNotFound from '#components/EntityNotFound/EntityNotFound.tsx';
-import { listAgents } from '#modules/agents/api/index.ts';
-import { isAgentUiSupported, sortAgentsByName } from '#modules/agents/utils.ts';
+import { ErrorPage } from '#components/ErrorPage/ErrorPage.tsx';
+import { buildAgent, isAgentUiSupported, sortAgentsByName } from '#modules/agents/utils.ts';
+import { listProviders } from '#modules/providers/api/index.ts';
 import { routes } from '#utils/router.ts';
 
 // Prevent static render, the API is not available at build time
@@ -17,12 +18,16 @@ export default async function LandingPage() {
   let firstAgentName;
 
   try {
-    const response = await listAgents();
-    const agents = response?.filter(isAgentUiSupported).sort(sortAgentsByName);
+    const response = await listProviders();
+
+    const agents = response?.items?.map(buildAgent).filter(isAgentUiSupported).sort(sortAgentsByName);
 
     firstAgentName = agents?.at(0)?.name;
   } catch (err) {
     console.log(err);
+
+    // TODO: Process 503 Service unavailable
+    return <ErrorPage message={'There was an error loading agents.'} />;
   }
 
   if (firstAgentName) {

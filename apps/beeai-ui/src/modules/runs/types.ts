@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Agent } from '#modules/agents/api/types.ts';
+import type { Part } from '@a2a-js/sdk';
 
-import type { MessagePart } from './api/types';
+import type { Agent } from '#modules/agents/api/types.ts';
 
 export enum Role {
   User = 'user',
@@ -14,7 +14,7 @@ export enum Role {
 
 export interface RunAgentParams {
   agent: Agent;
-  messageParts: MessagePart[];
+  parts: Part[];
 }
 
 export interface RunStats {

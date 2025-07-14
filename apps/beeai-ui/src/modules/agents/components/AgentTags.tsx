@@ -4,7 +4,6 @@
  */
 
 'use client';
-
 import { Tag } from '@carbon/react';
 import type { TagBaseProps } from '@carbon/react/lib/components/Tag/Tag';
 
@@ -12,7 +11,6 @@ import { TagsList } from '#components/TagsList/TagsList.tsx';
 import { isNotNull } from '#utils/helpers.ts';
 
 import type { Agent } from '../api/types';
-import { getAgentStatusMetadata } from '../utils';
 
 interface Props {
   agent: Agent;
@@ -21,12 +19,7 @@ interface Props {
 }
 
 export function AgentTags({ agent, className }: Props) {
-  const { framework, license, tags } = agent.metadata;
-
-  const { avg_run_time_seconds, avg_run_tokens } = getAgentStatusMetadata({
-    agent,
-    keys: ['avg_run_time_seconds', 'avg_run_tokens'],
-  });
+  const { framework, license, tags, avg_run_time_seconds, avg_run_tokens } = agent.ui;
 
   const tagsElements = [
     framework,

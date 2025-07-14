@@ -21,7 +21,7 @@ interface Props {
 }
 
 export function BeeBadge({ agent, size }: Props) {
-  const { framework } = agent.metadata;
+  const { framework } = agent.ui;
   return (
     <>
       {framework === BEE_AI_FRAMEWORK_TAG && (

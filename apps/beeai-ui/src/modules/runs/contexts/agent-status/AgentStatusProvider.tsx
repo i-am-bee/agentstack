@@ -18,7 +18,7 @@ interface Props {
 
 export function AgentStatusProvider({ agent, isMonitorStatusEnabled, children }: PropsWithChildren<Props>) {
   const providerStatus = useMonitorProviderStatus({
-    id: agent.metadata.provider_id,
+    id: agent.provider.id,
     isEnabled: isMonitorStatusEnabled,
   });
 

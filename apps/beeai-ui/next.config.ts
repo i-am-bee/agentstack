@@ -80,6 +80,9 @@ const nextConfig: NextConfig = {
     // https://github.com/vercel/next.js/issues/64921
     cssChunking: false,
   },
+  devIndicators: {
+    position: 'bottom-right',
+  },
 };
 
 export default nextConfig;

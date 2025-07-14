@@ -7,7 +7,6 @@ import clsx from 'clsx';
 import { memo } from 'react';
 
 import { type Agent, UiType } from '../api/types';
-import { getAgentUiMetadata } from '../utils';
 import classes from './AgentGreeting.module.scss';
 
 interface Props {
@@ -16,7 +15,7 @@ interface Props {
 }
 
 export const AgentGreeting = memo(function AgentGreeting({ agent }: Props) {
-  const { display_name, user_greeting, ui_type } = getAgentUiMetadata(agent);
+  const { display_name, user_greeting, ui_type } = agent.ui;
   const defaultGreeting = ui_type ? DEFAULT_GREETINGS[ui_type] : DEFAULT_GREETINGS[UiType.Chat];
   const userGreeting = renderVariables(user_greeting ?? defaultGreeting, { name: display_name });
 

@@ -22,7 +22,7 @@ export function countOccurrences(agents: Agent[]): AgentsCountedOccurrences {
 
   const counts = agents.reduce(
     (acc, agent) => {
-      const { framework, license, programming_language } = agent.metadata;
+      const { framework, license, programming_language } = agent.ui;
 
       if (framework) {
         updateCount(acc.frameworks, framework);

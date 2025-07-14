@@ -23,8 +23,8 @@ export function useFilteredAgents({ agents, filters }: Props) {
 
     return agents
       ?.filter((agent) => {
-        const { name, description, metadata } = agent;
-        const { framework, programming_language, license, documentation } = metadata;
+        const { name, description, ui } = agent;
+        const { framework, programming_language, license, documentation } = ui;
 
         if (frameworks.length && !frameworks.includes(framework ?? '')) {
           return false;

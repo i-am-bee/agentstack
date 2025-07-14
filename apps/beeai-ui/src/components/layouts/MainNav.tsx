@@ -13,7 +13,6 @@ import { CustomNav } from '#components/CustomNav/CustomNav.tsx';
 import { SidePanel } from '#components/SidePanel/SidePanel.tsx';
 import { UserNav } from '#components/UserNav/UserNav.tsx';
 import { useApp } from '#contexts/App/index.ts';
-import { useAppConfig } from '#contexts/AppConfig/index.ts';
 import { NAV_ITEMS } from '#utils/constants.ts';
 
 import classes from './MainNav.module.scss';
@@ -23,7 +22,6 @@ type NavVariant = 'custom' | 'agents';
 export function MainNav() {
   const pathname = usePathname();
   const { navigationOpen, closeNavOnClickOutside, setNavigationOpen } = useApp();
-  const { featureFlags } = useAppConfig();
   const navRef = useRef<HTMLDivElement>(null);
   const navVariant: NavVariant = NAV_ITEMS.length ? 'custom' : 'agents';
 
@@ -49,11 +47,9 @@ export function MainNav() {
           {navVariant === 'custom' && <CustomNav items={NAV_ITEMS} />}
           {navVariant === 'agents' && <AgentsNav />}
 
-          {featureFlags?.user_navigation && (
-            <div className={classes.footer}>
-              <UserNav />
-            </div>
-          )}
+          <div className={classes.footer}>
+            <UserNav />
+          </div>
         </div>
       </SidePanel>
     </div>

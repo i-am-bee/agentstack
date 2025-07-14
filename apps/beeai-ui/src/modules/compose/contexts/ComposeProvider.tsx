@@ -15,12 +15,9 @@ import { useUpdateSearchParams } from '#hooks/useUpdateSearchParams.ts';
 import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
-import { createTrajectoryMetadata } from '#modules/runs/trajectory/utils.ts';
-import { createMessagePart, extractOutput, isArtifactPart } from '#modules/runs/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { SEQUENTIAL_WORKFLOW_AGENT_NAME, SEQUENTIAL_WORKFLOW_AGENTS_URL_PARAM } from '../sequential/constants';
-import type { ComposeMessagePart } from '../types';
 import type { ComposeStep, SequentialFormValues } from './compose-context';
 import { ComposeContext, ComposeStatus } from './compose-context';
 
@@ -42,7 +39,7 @@ export function ComposeProvider({ children }: PropsWithChildren) {
   const lastStep = steps.at(-1);
   const result = useMemo(() => lastStep?.result, [lastStep]);
 
-  let lastAgentIdx = 0;
+  // const lastAgentIdx = 0;
 
   const previousSteps = usePrevious(steps);
 
@@ -73,127 +70,116 @@ export function ComposeProvider({ children }: PropsWithChildren) {
     }
   }, [agents, replaceSteps, searchParams, steps.length]);
 
-  const { isPending, runAgent, stopAgent, reset } = useRunAgent({
-    onMessagePart: (event) => {
-      const { part } = event;
-
-      if (isArtifactPart(part)) {
-        return;
-      }
-
-      // TODO: we could probably figure out better typing
-      const { agent_idx, content } = part as ComposeMessagePart;
-      const step = getStep(agent_idx);
-
-      if (!step) {
-        return;
-      }
-
-      const updatedStep = {
-        ...step,
-        isPending: true,
-        stats: {
-          startTime: step.stats?.startTime ?? Date.now(),
-        },
-        result: `${step.result ?? ''}${content ?? ''}`,
-      };
-
-      updateStep(agent_idx, updatedStep);
-
-      if (agent_idx > 0) {
-        const stepsBefore = getValues('steps').slice(0, agent_idx);
-
-        stepsBefore.forEach((step, stepsBeforeIndex) => {
-          if (step.isPending || !step.stats?.endTime) {
-            updateStep(stepsBeforeIndex, { ...step, isPending: false, stats: { ...step.stats, endTime: Date.now() } });
-          }
-        });
-      }
-    },
-    onRunCompleted: (event) => {
-      const finalAgentIdx = steps.length - 1;
-      const output = extractOutput(
-        event.run.output.map((message) => {
-          return {
-            ...message,
-            parts: message.parts.filter((part) => (part as ComposeMessagePart).agent_idx === finalAgentIdx),
-          };
-        }),
-      );
-      const lastStep = getValues('steps').at(-1);
-
-      updateStep(finalAgentIdx, { ...lastStep!, result: output });
-    },
-    onGeneric: (event) => {
-      const { generic } = event;
-      const { agent_idx } = generic;
-
-      if (isNotNull(agent_idx)) {
-        if (agent_idx !== lastAgentIdx) {
-          const steps = getValues('steps');
-          const pendingStepIndex = steps.findIndex((step) => step.isPending);
-          const pendingStep = steps.at(pendingStepIndex);
-          if (pendingStep) {
-            const updatedStep = {
-              ...pendingStep,
-              isPending: false,
-              stats: { ...pendingStep.stats, endTime: Date.now() },
-            };
-            updateStep(pendingStepIndex, updatedStep);
-
-            const nextStepIndex = pendingStepIndex + 1;
-            const nextStep = steps.at(pendingStepIndex + 1);
-            if (nextStep) {
-              const nextUpdatedStep = {
-                ...nextStep,
-                isPending: true,
-                stats: {
-                  startTime: nextStep.stats?.startTime ?? Date.now(),
-                },
-              };
-              updateStep(nextStepIndex, nextUpdatedStep);
-            }
-          }
-        }
-
-        if (generic) {
-          const step = getStep(agent_idx);
-          const metadata = createTrajectoryMetadata(generic);
-
-          const updatedStep = {
-            ...step,
-            isPending: true,
-            stats: {
-              startTime: step.stats?.startTime ?? Date.now(),
-            },
-            logs: [...(step.logs ?? []), metadata?.message].filter(isNotNull),
-          };
-
-          updateStep(agent_idx, updatedStep);
-        }
-
-        lastAgentIdx = agent_idx;
-      }
-    },
+  const { isPending, stopAgent, reset } = useRunAgent({
     onDone: () => {
       const steps = getValues('steps');
 
       replaceSteps(
         steps.map((step) => {
           step.isPending = false;
+
           if (step.stats && !step.stats?.endTime) {
             step.stats.endTime = Date.now();
           }
+
           return step;
         }),
       );
     },
-    onRunFailed: (event) => {
-      handleError(event.run.error);
+    onFailed: (_, error) => {
+      handleError(error);
     },
+    // TODO: A2A
+    // onPart: (event) => {
+    //   const { part } = event;
+    //   if (isArtifactPart(part)) {
+    //     return;
+    //   }
+    //   // TODO: we could probably figure out better typing
+    //   const { agent_idx, content } = part as ComposeMessagePart;
+    //   const step = getStep(agent_idx);
+    //   if (!step) {
+    //     return;
+    //   }
+    //   const updatedStep = {
+    //     ...step,
+    //     isPending: true,
+    //     stats: {
+    //       startTime: step.stats?.startTime ?? Date.now(),
+    //     },
+    //     result: `${step.result ?? ''}${content ?? ''}`,
+    //   };
+    //   updateStep(agent_idx, updatedStep);
+    //   if (agent_idx > 0) {
+    //     const stepsBefore = getValues('steps').slice(0, agent_idx);
+    //     stepsBefore.forEach((step, stepsBeforeIndex) => {
+    //       if (step.isPending || !step.stats?.endTime) {
+    //         updateStep(stepsBeforeIndex, { ...step, isPending: false, stats: { ...step.stats, endTime: Date.now() } });
+    //       }
+    //     });
+    //   }
+    // },
+    // onCompleted: (event) => {
+    //   const finalAgentIdx = steps.length - 1;
+    //   const output = extractOutput(
+    //     event.run.output.map((message) => {
+    //       return {
+    //         ...message,
+    //         parts: message.parts.filter((part) => (part as ComposeMessagePart).agent_idx === finalAgentIdx),
+    //       };
+    //     }),
+    //   );
+    //   const lastStep = getValues('steps').at(-1);
+    //   updateStep(finalAgentIdx, { ...lastStep!, result: output });
+    // },
+    // onGeneric: (event) => {
+    //   const { generic } = event;
+    //   const { agent_idx } = generic;
+    //   if (isNotNull(agent_idx)) {
+    //     if (agent_idx !== lastAgentIdx) {
+    //       const steps = getValues('steps');
+    //       const pendingStepIndex = steps.findIndex((step) => step.isPending);
+    //       const pendingStep = steps.at(pendingStepIndex);
+    //       if (pendingStep) {
+    //         const updatedStep = {
+    //           ...pendingStep,
+    //           isPending: false,
+    //           stats: { ...pendingStep.stats, endTime: Date.now() },
+    //         };
+    //         updateStep(pendingStepIndex, updatedStep);
+    //         const nextStepIndex = pendingStepIndex + 1;
+    //         const nextStep = steps.at(pendingStepIndex + 1);
+    //         if (nextStep) {
+    //           const nextUpdatedStep = {
+    //             ...nextStep,
+    //             isPending: true,
+    //             stats: {
+    //               startTime: nextStep.stats?.startTime ?? Date.now(),
+    //             },
+    //           };
+    //           updateStep(nextStepIndex, nextUpdatedStep);
+    //         }
+    //       }
+    //     }
+    //     if (generic) {
+    //       const step = getStep(agent_idx);
+    //       const metadata = createTrajectoryMetadata(generic);
+    //       const updatedStep = {
+    //         ...step,
+    //         isPending: true,
+    //         stats: {
+    //           startTime: step.stats?.startTime ?? Date.now(),
+    //         },
+    //         logs: [...(step.logs ?? []), metadata?.message].filter(isNotNull),
+    //       };
+    //       updateStep(agent_idx, updatedStep);
+    //     }
+    //     lastAgentIdx = agent_idx;
+    //   }
+    // },
   });
 
-  const getStep = useCallback((idx: number) => getValues(`steps.${idx}`), [getValues]);
+  // const getStep = useCallback((idx: number) => getValues(`steps.${idx}`), [getValues]);
 
   const updateStep = useCallback(
     (idx: number, value: ComposeStep) => {
@@ -235,22 +221,23 @@ export function ComposeProvider({ children }: PropsWithChildren) {
           });
         });
 
-        await runAgent({
-          agent: sequentialAgent,
-          messageParts: [
-            createMessagePart({
-              content: JSON.stringify({
-                steps: steps.map(({ agent, instruction }) => ({ agent: agent.name, instruction })),
-              }),
-              content_type: 'application/json',
-            }),
-          ],
-        });
+        // TODO: A2A
+        // await runAgent({
+        //   agent: sequentialAgent,
+        //   parts: [
+        //     createMessagePart({
+        //       content: JSON.stringify({
+        //         steps: steps.map(({ agent, instruction }) => ({ agent: agent.name, instruction })),
+        //       }),
+        //       content_type: 'application/json',
+        //     }),
+        //   ],
+        // });
       } catch (error) {
         handleError(error);
       }
     },
-    [sequentialAgent, runAgent, updateStep, handleError],
+    [sequentialAgent, updateStep, handleError],
   );
 
   const onSubmit = useCallback(() => {

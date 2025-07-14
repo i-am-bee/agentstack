@@ -3,36 +3,36 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import uniq from 'lodash/uniq';
-
-import type { components } from '#api/schema.js';
+import { Provider } from '#modules/providers/api/types.ts';
 import { SupportedUis } from '#modules/runs/constants.ts';
-import { compareStrings, isNotNull } from '#utils/helpers.ts';
+import { compareStrings } from '#utils/helpers.ts';
 
-import type { UiType } from './api/types';
-import { type Agent, LinkType } from './api/types';
+import type { AgentExtension, AgentMetadata, UiExtension } from './api/types';
+import { type Agent, AGENT_EXTENSION_UI_KEY } from './api/types';
 
-export const getAgentsProgrammingLanguages = (agents: Agent[] | undefined) =>
-  uniq(
-    agents
-      ?.map(({ metadata: { programming_language } }) => programming_language)
-      .filter(isNotNull)
-      .flat(),
-  );
-
-export function getAgentStatusMetadata<K extends string>({ agent, keys }: { agent: Agent; keys: K[] }) {
-  const status = agent.metadata.status as Record<string, unknown> | undefined;
-
-  return Object.fromEntries(
-    keys.map((key) => [key, typeof status?.[key] === 'string' ? (status[key] as string) : null]),
-  ) as Record<K, string | null>;
-}
+export const getAgentsProgrammingLanguages = (agents: Agent[] | undefined) => {
+  // TODO: a2a
+  // return uniq(
+  //   agents
+  //     ?.map(({ metadata }) => metadata?.programming_language)
+  //     .filter(isNotNull)
+  //     .flat(),
+  // );
+  if (agents) {
+  }
+  return [];
+};
 
 export function getAgentSourceCodeUrl(agent: Agent) {
-  const { links } = agent.metadata;
-  const link = links?.find(({ type }) => type === LinkType.SourceCode);
+  // TODO: a2a
+  if (agent) {
+  }
 
-  return link?.url;
+  return null;
+  // const { links } = agent.metadata;
+  // const link = links?.find(({ type }) => type === LinkType.SourceCode);
+
+  // return link?.url;
 }
 
 export function sortAgentsByName(a: Agent, b: Agent) {
@@ -40,41 +40,50 @@ export function sortAgentsByName(a: Agent, b: Agent) {
 }
 
 export function isAgentUiSupported(agent: Agent) {
-  const { ui_type } = getAgentUiMetadata(agent);
+  const ui_type = agent.ui?.ui_type;
 
-  return ui_type && SupportedUis.includes(ui_type as UiType);
+  return ui_type && SupportedUis.includes(ui_type);
 }
 
-type AgentLinkType = components['schemas']['LinkType'];
+// TODO: a2a
+type AgentLinkType = 'homepage' | 'documentation' | 'source-code';
 
 export function getAvailableAgentLinkUrl<T extends AgentLinkType | AgentLinkType[]>(
-  metadata: components['schemas']['Metadata'],
+  metadata: AgentMetadata,
   type: T,
 ): string | undefined {
-  const typesArray = Array.isArray(type) ? type : [type];
+  // TODO: a2a
+  // const typesArray = Array.isArray(type) ? type : [type];
 
-  let url: string | undefined;
-  for (const type of typesArray) {
-    url = metadata.links?.find((link) => link.type === type)?.url;
-    if (url) {
-      break;
-    }
+  // let url: string | undefined;
+  // for (const type of typesArray) {
+  //   url = metadata.links?.find((link) => link.type === type)?.url;
+  //   if (url) {
+  //     break;
+  //   }
+  // }
+
+  // return url;
+  if (metadata && type) {
   }
-
-  return url;
+  return undefined;
 }
 
-export function getAgentUiMetadata(agent: Agent) {
-  const { name, metadata } = agent;
-  const beeai_ui = metadata.annotations?.beeai_ui;
+function isAgentUiExtension(extension: AgentExtension): extension is UiExtension {
+  return extension.uri === AGENT_EXTENSION_UI_KEY;
+}
+
+export function buildAgent(provider: Provider): Agent {
+  const { agent_card, ...providerData } = provider;
+
+  const ui = agent_card.capabilities.extensions?.find(isAgentUiExtension)?.params ?? null;
 
   return {
-    ...beeai_ui,
-    // TODO: Temporary fallback until agents with new metadata are released in the registry.
-    ui_type: beeai_ui?.ui_type ?? ((metadata?.ui as Record<string, unknown> | undefined)?.type as UiType | undefined),
-    user_greeting:
-      beeai_ui?.user_greeting ??
-      ((metadata?.ui as Record<string, unknown> | undefined)?.user_greeting as string | null | undefined),
-    display_name: beeai_ui?.display_name ?? name,
+    ...agent_card,
+    provider: { ...providerData, metadata: agent_card.provider },
+    ui: {
+      ...ui,
+      display_name: ui?.display_name ?? agent_card.name,
+    },
   };
 }

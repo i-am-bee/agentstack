@@ -5,9 +5,10 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-import { listAgents } from '..';
+import { buildAgent } from '#modules/agents/utils.ts';
+import { readProvider } from '#modules/providers/api/index.ts';
+
 import { agentKeys } from '../keys';
-import type { Agent } from '../types';
 
 interface Props {
   providerId?: string;
@@ -17,9 +18,11 @@ interface Props {
 export function useListProviderAgents({ providerId, enabled = true }: Props) {
   const query = useQuery({
     queryKey: agentKeys.list({ providerId }),
-    queryFn: listAgents,
+    queryFn: () => readProvider(providerId!),
     enabled: Boolean(enabled && providerId),
-    select: (agents) => agents.filter(({ metadata }) => metadata.provider_id === providerId) as Agent[],
+    // Retaining the Agent[] type for now to avoid unnecessary refactoring,
+    // in case the structure changes back in the future.
+    select: (provider) => (provider ? [buildAgent(provider)] : []),
   });
 
   return query;

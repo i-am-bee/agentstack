@@ -2,6 +2,7 @@
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
  * SPDX-License-Identifier: Apache-2.0
  */
+'use client';
 
 import { type PropsWithChildren, useCallback, useMemo, useState } from 'react';
 import { type FileRejection, useDropzone } from 'react-dropzone';
@@ -16,10 +17,10 @@ import { type FileEntity, FileStatus } from '../types';
 import { FileUploadContext } from './file-upload-context';
 
 interface Props {
-  allowedContentTypes: string[];
+  allowedContentTypes?: string[];
 }
 
-export function FileUploadProvider({ allowedContentTypes, children }: PropsWithChildren<Props>) {
+export function FileUploadProvider({ allowedContentTypes = [], children }: PropsWithChildren<Props>) {
   const [files, setFiles] = useState<FileEntity[]>([]);
 
   const { addToast } = useToast();

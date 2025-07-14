@@ -3,12 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ApiPath, ApiRequest, ApiResponse } from '#@types/utils.ts';
+import type { ApiPath, ApiRequest, ApiResponse, RemoveIndexSignature } from '#@types/utils.ts';
 import type { StreamErrorResponse } from '#api/types.ts';
 
-export type ProvidersList = ApiResponse<'/api/v1/providers'>;
+export type ProvidersListResponse = ApiResponse<'/api/v1/providers'>;
 
-export type Provider = ProvidersList['items'][number];
+export type Provider = RemoveIndexSignature<ProvidersListResponse['items'][number]>;
 
 export type ProviderLocation = Provider['source'];
 

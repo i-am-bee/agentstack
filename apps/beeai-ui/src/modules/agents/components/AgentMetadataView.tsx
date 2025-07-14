@@ -10,7 +10,7 @@ import { SkeletonText } from '@carbon/react';
 import clsx from 'clsx';
 
 import type { Agent } from '../api/types';
-import { getAgentSourceCodeUrl, getAgentStatusMetadata } from '../utils';
+import { getAgentSourceCodeUrl } from '../utils';
 import classes from './AgentMetadataView.module.scss';
 
 interface Props {
@@ -20,12 +20,8 @@ interface Props {
 }
 
 export function AgentMetadataView({ agent, className, showSourceCodeLink }: Props) {
-  const { license } = agent.metadata;
+  const { license, avg_run_time_seconds, avg_run_tokens } = agent.ui;
   const sourceCodeUrl = getAgentSourceCodeUrl(agent);
-  const { avg_run_time_seconds, avg_run_tokens } = getAgentStatusMetadata({
-    agent,
-    keys: ['avg_run_time_seconds', 'avg_run_tokens'],
-  });
 
   const hasSourceCodeLinkVisible = showSourceCodeLink && sourceCodeUrl;
   if (!avg_run_time_seconds || !avg_run_tokens || !license || !hasSourceCodeLinkVisible) {

@@ -2,6 +2,7 @@
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
  * SPDX-License-Identifier: Apache-2.0
  */
+'use client';
 
 import type { IconProps } from '@carbon/icons-react/lib/Icon';
 import type { ComponentType, ReactNode } from 'react';

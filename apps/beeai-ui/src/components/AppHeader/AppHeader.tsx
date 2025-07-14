@@ -4,13 +4,11 @@
  */
 
 'use client';
-
 import clsx from 'clsx';
 
 import { MainNav } from '#components/layouts/MainNav.tsx';
 import { useAgentNameFromPath } from '#hooks/useAgentNameFromPath.ts';
 import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
-import { getAgentUiMetadata } from '#modules/agents/utils.ts';
 import { NAV_ITEMS } from '#utils/constants.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
@@ -27,7 +25,7 @@ export function AppHeader({ className }: Props) {
   const agentName = useAgentNameFromPath();
 
   const { data: agent } = useAgent({ name: agentName ?? '' });
-  const { display_name } = agent ? getAgentUiMetadata(agent) : {};
+  const display_name = agent?.ui.display_name;
 
   const hasNav = NAV_ITEMS.length > 0;
   const showAgent = !hasNav && isNotNull(agent) && isNotNull(display_name);

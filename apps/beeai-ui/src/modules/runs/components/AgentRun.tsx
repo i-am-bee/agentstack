@@ -5,7 +5,6 @@
 
 'use client';
 import { type Agent, UiType } from '#modules/agents/api/types.ts';
-import { getAgentUiMetadata } from '#modules/agents/utils.ts';
 
 import { ChatView } from '../chat/ChatView';
 import { HandsOffView } from '../hands-off/HandsOffView';
@@ -16,9 +15,7 @@ interface Props {
 }
 
 export function AgentRun({ agent }: Props) {
-  const { ui_type } = getAgentUiMetadata(agent);
-
-  switch (ui_type) {
+  switch (agent.ui?.ui_type) {
     case UiType.Chat:
       return <ChatView agent={agent} key={agent.name} />;
     case UiType.HandsOff:

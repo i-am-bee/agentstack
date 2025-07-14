@@ -4,33 +4,35 @@
  */
 
 'use client';
+import { QueryClientProvider } from '@tanstack/react-query';
 import type { PropsWithChildren } from 'react';
 
 import { AppProvider } from '#contexts/App/AppProvider.tsx';
-import { AppConfigProvider } from '#contexts/AppConfig/AppConfigProvider.tsx';
 import { ModalProvider } from '#contexts/Modal/ModalProvider.tsx';
 import { ProgressBarProvider } from '#contexts/ProgressBar/ProgressBarProvider.tsx';
-import { QueryProvider } from '#contexts/QueryProvider/QueryProvider.tsx';
 import { ThemeProvider } from '#contexts/Theme/ThemeProvider.tsx';
 import { ToastProvider } from '#contexts/Toast/ToastProvider.tsx';
 import { RouteTransitionProvider } from '#contexts/TransitionContext/RouteTransitionProvider.tsx';
+import { FeatureFlags } from '#utils/feature-flags.ts';
 
-export default function Providers({ children }: PropsWithChildren) {
+interface Props {
+  featureFlags: FeatureFlags;
+}
+
+export default function Providers({ featureFlags, children }: PropsWithChildren<Props>) {
   return (
     <ToastProvider>
-      <ProgressBarProvider>
-        <ThemeProvider>
-          <RouteTransitionProvider>
-            <QueryProvider>
+      <QueryProvider>
+        <ProgressBarProvider>
+          <ThemeProvider>
+            <RouteTransitionProvider>
               <ModalProvider>
-                <AppConfigProvider>
-                  <AppProvider>{children}</AppProvider>
-                </AppConfigProvider>
+                <AppProvider featureFlags={featureFlags}>{children}</AppProvider>
               </ModalProvider>
-            </QueryProvider>
-          </RouteTransitionProvider>
-        </ThemeProvider>
-      </ProgressBarProvider>
+            </RouteTransitionProvider>
+          </ThemeProvider>
+        </ProgressBarProvider>
+      </QueryProvider>
     </ToastProvider>
   );
 }
