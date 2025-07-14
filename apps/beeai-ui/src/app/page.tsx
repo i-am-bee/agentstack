@@ -10,6 +10,9 @@ import { listAgents } from '#modules/agents/api/index.ts';
 import { isAgentUiSupported, sortAgentsByName } from '#modules/agents/utils.ts';
 import { routes } from '#utils/router.ts';
 
+// Prevent static render, the API is not available at build time
+export const dynamic = 'force-dynamic';
+
 export default async function LandingPage() {
   let firstAgentName;
 
