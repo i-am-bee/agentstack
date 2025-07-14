@@ -84,10 +84,9 @@ run = "uv run beeai-server"
 # build
 
 ["beeai-server:build"]
-alias = "beeai-server:image:build"
 depends = ["beeai-server:build:*"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "docker build -t ghcr.io/i-am-bee/beeai-platform/beeai-server:local . --load"
+run = "docker build -t ghcr.io/i-am-bee/beeai-platform/beeai-server:local --load ."
 
 ["beeai-server:build:requirements"]
 depends = ["beeai-server:setup"]

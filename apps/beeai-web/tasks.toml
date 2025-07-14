@@ -67,29 +67,28 @@ outputs = { auto = true }
 # run
 
 ["beeai-web:run"]
-description = "NOTE: You also need to have `beeai-server` running for the backend"
-depends = ["common:setup:pnpm"]
+depends = ["beeai-web:build:nextjs"]
+env.NODE_OPTIONS = "--no-experimental-global-navigator"
 dir = "{{config_root}}/apps/beeai-web"
-run = "pnpm dev"
+run = "pnpm next start"
+
+["beeai-web:run:dev"]
+depends = ["common:setup:pnpm"]
+env.NODE_OPTIONS = "--no-experimental-global-navigator"
+dir = "{{config_root}}/apps/beeai-web"
+run = "pnpm next dev"
 
 # build
 
 ["beeai-web:build"]
+depends = ["beeai-web:build:*"]
+dir = "{{config_root}}"
+run = "docker build -t ghcr.io/i-am-bee/beeai-platform/beeai-web:local -f ./apps/beeai-web/Dockerfile --load ."
+
+["beeai-web:build:nextjs"]
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/beeai-web"
-run = "pnpm build"
-sources = ["*.json", "*.js", "src/**/*.tsx", "src/**/*.ts"]
+env.NODE_OPTIONS = "--no-experimental-global-navigator"
+run = "pnpm next build"
+sources = ["*.json", "*.js", "*.mjs", "*.ts", "public/**/*", "src/**/*"]
 outputs = { auto = true }
-
-# preview
-
-["beeai-web:start"]
-depends = ["common:setup:pnpm"]
-dir = "{{config_root}}/apps/beeai-web"
-run = "pnpm start"
-
-# clean
-
-["beeai-web:clean"]
-dir = "{{config_root}}/apps/beeai-web"
-run = "rm -rf ./.next"

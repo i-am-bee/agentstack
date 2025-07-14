@@ -36,11 +36,11 @@ version = "0.7.0"
 backend = "pipx:toml-cli"
 
 [tools.pnpm]
-version = "10.13.1"
+version = "9.9.0"
 backend = "aqua:pnpm/pnpm"
 
 [tools.pnpm.checksums]
-pnpm-macos-arm64 = "sha256:831e5ce1a1b98c922088a3b93dbf1f3a9cc4d689da6a32f8e743e4aabadd2981"
+pnpm-macos-arm64 = "sha256:411d1479f07f350479370d7772db9935e60229591a7041a9ea8037bc37c1f0a2"
 
 [tools.python]
 version = "3.13.5"

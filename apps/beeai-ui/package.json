@@ -4,15 +4,6 @@
   "private": true,
   "version": "0.2.15-rc6",
   "type": "module",
-  "scripts": {
-    "dev": "NODE_OPTIONS=\"--no-experimental-global-navigator\" next dev",
-    "build": "NODE_OPTIONS=\"--no-experimental-global-navigator\" next build",
-    "start": "pnpm build && NODE_OPTIONS=\"--no-experimental-global-navigator\" next start",
-    "check": "prettier --log-level silent --check src && eslint src && tsc --noEmit -p tsconfig.json && stylelint src/**/*.css src/**/*.scss",
-    "fix": "prettier --log-level silent --write src && eslint --fix src && stylelint --fix=lax src/**/*.css src/**/*.scss",
-    "clean": "rm -rf node_modules && rm -rf dist",
-    "schema:generate": "pnpm dlx openapi-typescript 'http://localhost:8333/api/v1/openapi.json' -o ./src/api/schema.d.ts --alphabetize"
-  },
   "exports": {
     ".": "./src/index.ts"
   },
@@ -74,11 +65,11 @@
     "@next/eslint-plugin-next": "catalog:",
     "@svgr/webpack": "catalog:",
     "@types/hast": "^3.0.4",
-    "@types/node": "^22.13.13",
     "@types/http-proxy": "^1.17.14",
     "@types/humanize-duration": "^3.27.4",
     "@types/lodash": "^4.17.16",
     "@types/mdast": "^4.0.4",
+    "@types/node": "^22.13.13",
     "@types/pluralize": "^0.0.33",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
@@ -89,6 +80,7 @@
     "eslint-plugin-simple-import-sort": "catalog:",
     "globals": "catalog:",
     "keycode-js": "^3.1.0",
+    "openapi-typescript": "^7.8.0",
     "openapi-typescript-helpers": "^0.0.15",
     "prettier": "catalog:",
     "sass-embedded": "catalog:",
@@ -99,5 +91,5 @@
     "typescript": "catalog:",
     "typescript-eslint": "catalog:"
   },
-  "packageManager": "pnpm@9.9.0+sha512.60c18acd138bff695d339be6ad13f7e936eea6745660d4cc4a776d5247c540d0edee1a563695c183a66eb917ef88f2b4feb1fc25f32a7adcadc7aaf3438e99c1"
+  "packageManager": "pnpm@9.9.0"
 }

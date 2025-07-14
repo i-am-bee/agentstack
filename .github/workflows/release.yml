@@ -96,7 +96,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: mise run beeai-server:build
+      - run: mise run 'beeai-server:build:*'
       - uses: docker/build-push-action@v6
         with:
           context: ./apps/beeai-server
@@ -108,7 +108,8 @@ jobs:
             ghcr.io/${{ github.repository }}/beeai-server:${{ steps.version.outputs.latestTag }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/beeai-server:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/beeai-server:cache,mode=max
-
+      
+      - run: mise run 'beeai-ui:build:*'
       - uses: docker/build-push-action@v6
         with:
           context: .
@@ -121,7 +122,6 @@ jobs:
             ghcr.io/${{ github.repository }}/beeai-ui:${{ steps.version.outputs.latestTag }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/beeai-ui:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/beeai-ui:cache,mode=max
-
 
       - run: mise run helm:build
       - run: echo '${{ secrets.GITHUB_TOKEN }}' | helm registry login --username '${{ github.actor }}' --password-stdin ghcr.io

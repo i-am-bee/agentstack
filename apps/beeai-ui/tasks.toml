@@ -60,41 +60,34 @@ outputs = { auto = true }
 # run
 
 ["beeai-ui:run"]
-description = "NOTE: You also need to have `beeai-server` running for the backend"
-depends = ["common:setup:pnpm"]
+depends = ["beeai-ui:build:nextjs"]
+env.NODE_OPTIONS = "--no-experimental-global-navigator"
 dir = "{{config_root}}/apps/beeai-ui"
-run = "pnpm dev"
+run = "pnpm next start"
+
+["beeai-ui:run:dev"]
+depends = ["common:setup:pnpm"]
+env.NODE_OPTIONS = "--no-experimental-global-navigator"
+dir = "{{config_root}}/apps/beeai-ui"
+run = "pnpm next dev"
 
 # build
 
-["beeai-ui:build:image"]
-depends = ["common:setup:pnpm"]
-dir = "{{config_root}}"
-run = "docker build -t ghcr.io/i-am-bee/beeai-platform/beeai-ui:local . -f ./apps/beeai-ui/Dockerfile --load"
-
-
 ["beeai-ui:build"]
+depends = ["beeai-ui:build:*"]
+dir = "{{config_root}}"
+run = "docker build -t ghcr.io/i-am-bee/beeai-platform/beeai-ui:local -f ./apps/beeai-ui/Dockerfile --load ."
+
+["beeai-ui:build:nextjs"]
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/beeai-ui"
-run = "pnpm build"
-sources = ["*.json", "*.js", "src/**/*.tsx", "src/**/*.ts"]
-outputs = ["dist/**/*"]
-
-# preview
-
-["beeai-ui:start"]
-depends = ["common:setup:pnpm"]
-dir = "{{config_root}}/apps/beeai-ui"
-run = "pnpm start"
-
-# clean
-
-["beeai-ui:clean"]
-dir = "{{config_root}}/apps/beeai-ui"
-run = "rm -rf ./dist"
+env.NODE_OPTIONS = "--no-experimental-global-navigator"
+run = "pnpm next build"
+sources = ["*.json", "*.js", "*.mjs", "*.ts", "public/**/*", "src/**/*"]
+outputs = { auto = true }
 
 # schema
 
 ["beeai-ui:schema:generate"]
 dir = "{{config_root}}/apps/beeai-ui"
-run = "pnpm schema:generate"
+run = "pnpm openapi-typescript 'http://localhost:8333/api/v1/openapi.json' -o ./src/api/schema.d.ts --alphabetize"

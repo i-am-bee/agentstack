@@ -121,7 +121,7 @@ UI_IMPORT=""
 UI_TAG=""
 
 if [[ ! "$*" =~ 'ui.enabled=false' ]]; then
-    {{ mise_bin }} run beeai-ui:build:image
+    {{ mise_bin }} run beeai-ui:build
     UI_IMPORT="--import ghcr.io/i-am-bee/beeai-platform/beeai-ui:local"
     UI_TAG="--set ui.image.tag=local"
 fi
