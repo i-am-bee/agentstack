@@ -1,11 +1,11 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Switch to A2A
+"""switch to a2a protocol
 
 Revision ID: 644ccacc48f3
-Revises: 8b2065340855
-Create Date: 2025-07-07 16:42:07.098361
+Revises: 327991a3c7a7
+Create Date: 2025-07-14 16:42:07.098361
 
 """
 
@@ -16,7 +16,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "644ccacc48f3"
-down_revision: str | None = "8b2065340855"
+down_revision: str | None = "327991a3c7a7"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
