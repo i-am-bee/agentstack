@@ -3,22 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentName, RunId } from 'acp-sdk';
-import type { Input } from 'acp-sdk/client/types';
+import type { MessageSendParams } from '@a2a-js/sdk';
+import type { RunId } from 'acp-sdk';
 
+import { a2a } from '#a2a/index.ts';
 import { acp } from '#acp/index.ts';
 
-interface CreateRunStreamParams {
-  agentName: AgentName;
-  input: Input;
-  sessionId?: string;
-}
-
-export async function createRunStream({ body, signal }: { body: CreateRunStreamParams; signal?: AbortSignal }) {
-  return await acp.withSession(
-    async (session) => session.runStream(body.agentName, body.input, signal),
-    body.sessionId,
-  );
+export async function createRunStream(params: MessageSendParams) {
+  return await a2a.sendMessageStream(params);
 }
 
 export async function readRun(runId: RunId) {

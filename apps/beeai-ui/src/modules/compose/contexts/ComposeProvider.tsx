@@ -16,7 +16,7 @@ import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
 import { createTrajectoryMetadata } from '#modules/runs/trajectory/utils.ts';
-import { createMessagePart, extractOutput, isArtifactPart } from '#modules/runs/utils.ts';
+import { extractOutput } from '#modules/runs/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { SEQUENTIAL_WORKFLOW_AGENT_NAME, SEQUENTIAL_WORKFLOW_AGENTS_URL_PARAM } from '../sequential/constants';
@@ -73,43 +73,44 @@ export function ComposeProvider({ children }: PropsWithChildren) {
     }
   }, [agents, replaceSteps, searchParams, steps.length]);
 
-  const { isPending, runAgent, stopAgent, reset } = useRunAgent({
-    onMessagePart: (event) => {
-      const { part } = event;
+  const { isPending, stopAgent, reset } = useRunAgent({
+    // TODO: A2A
+    // onMessagePart: (event) => {
+    //   const { part } = event;
 
-      if (isArtifactPart(part)) {
-        return;
-      }
+    //   if (isArtifactPart(part)) {
+    //     return;
+    //   }
 
-      // TODO: we could probably figure out better typing
-      const { agent_idx, content } = part as ComposeMessagePart;
-      const step = getStep(agent_idx);
+    //   // TODO: we could probably figure out better typing
+    //   const { agent_idx, content } = part as ComposeMessagePart;
+    //   const step = getStep(agent_idx);
 
-      if (!step) {
-        return;
-      }
+    //   if (!step) {
+    //     return;
+    //   }
 
-      const updatedStep = {
-        ...step,
-        isPending: true,
-        stats: {
-          startTime: step.stats?.startTime ?? Date.now(),
-        },
-        result: `${step.result ?? ''}${content ?? ''}`,
-      };
+    //   const updatedStep = {
+    //     ...step,
+    //     isPending: true,
+    //     stats: {
+    //       startTime: step.stats?.startTime ?? Date.now(),
+    //     },
+    //     result: `${step.result ?? ''}${content ?? ''}`,
+    //   };
 
-      updateStep(agent_idx, updatedStep);
+    //   updateStep(agent_idx, updatedStep);
 
-      if (agent_idx > 0) {
-        const stepsBefore = getValues('steps').slice(0, agent_idx);
+    //   if (agent_idx > 0) {
+    //     const stepsBefore = getValues('steps').slice(0, agent_idx);
 
-        stepsBefore.forEach((step, stepsBeforeIndex) => {
-          if (step.isPending || !step.stats?.endTime) {
-            updateStep(stepsBeforeIndex, { ...step, isPending: false, stats: { ...step.stats, endTime: Date.now() } });
-          }
-        });
-      }
-    },
+    //     stepsBefore.forEach((step, stepsBeforeIndex) => {
+    //       if (step.isPending || !step.stats?.endTime) {
+    //         updateStep(stepsBeforeIndex, { ...step, isPending: false, stats: { ...step.stats, endTime: Date.now() } });
+    //       }
+    //     });
+    //   }
+    // },
     onRunCompleted: (event) => {
       const finalAgentIdx = steps.length - 1;
       const output = extractOutput(
@@ -235,22 +236,23 @@ export function ComposeProvider({ children }: PropsWithChildren) {
           });
         });
 
-        await runAgent({
-          agent: sequentialAgent,
-          messageParts: [
-            createMessagePart({
-              content: JSON.stringify({
-                steps: steps.map(({ agent, instruction }) => ({ agent: agent.name, instruction })),
-              }),
-              content_type: 'application/json',
-            }),
-          ],
-        });
+        // TODO: A2A
+        // await runAgent({
+        //   agent: sequentialAgent,
+        //   messageParts: [
+        //     createMessagePart({
+        //       content: JSON.stringify({
+        //         steps: steps.map(({ agent, instruction }) => ({ agent: agent.name, instruction })),
+        //       }),
+        //       content_type: 'application/json',
+        //     }),
+        //   ],
+        // });
       } catch (error) {
         handleError(error);
       }
     },
-    [sequentialAgent, runAgent, updateStep, handleError],
+    [sequentialAgent, updateStep, handleError],
   );
 
   const onSubmit = useCallback(() => {

@@ -6,6 +6,7 @@
 import { redirect } from 'next/navigation';
 
 import EntityNotFound from '#components/EntityNotFound/EntityNotFound.tsx';
+import { ErrorPage } from '#components/ErrorPage/ErrorPage.tsx';
 import { listAgents } from '#modules/agents/api/index.ts';
 import { isAgentUiSupported, sortAgentsByName } from '#modules/agents/utils.ts';
 import { routes } from '#utils/router.ts';
@@ -23,6 +24,8 @@ export default async function LandingPage() {
     firstAgentName = agents?.at(0)?.name;
   } catch (err) {
     console.log(err);
+    // TODO: Process 503 Service unavailable
+    return <ErrorPage message={'There was an error loading agents.'} />;
   }
 
   if (firstAgentName) {

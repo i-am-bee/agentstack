@@ -4,22 +4,20 @@
  */
 
 import { useCallback, useRef, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
 import { useCancelRun } from '../api/mutations/useCancelRun';
 import { useCreateRunStream } from '../api/mutations/useCreateRunStream';
 import type {
   GenericEvent,
-  Message,
   MessageCompletedEvent,
-  MessagePartEvent,
   RunCancelledEvent,
   RunCompletedEvent,
   RunCreatedEvent,
   RunFailedEvent,
   RunId,
-  SessionId,
 } from '../api/types';
-import { Role, type RunAgentParams } from '../types';
+import type { RunAgentParams } from '../types';
 
 interface Props {
   onBeforeRun?: () => void;
@@ -27,7 +25,7 @@ interface Props {
   onRunFailed?: (event: RunFailedEvent) => void;
   onRunCancelled?: (event: RunCancelledEvent) => void;
   onRunCompleted?: (event: RunCompletedEvent) => void;
-  onMessagePart?: (event: MessagePartEvent) => void;
+  onMessagePart?: (content: string) => void;
   onMessageCompleted?: (event: MessageCompletedEvent) => void;
   onGeneric?: (event: GenericEvent) => void;
   onDone?: () => void;
@@ -36,13 +34,13 @@ interface Props {
 
 export function useRunAgent({
   onBeforeRun,
-  onRunCreated,
-  onRunFailed,
-  onRunCancelled,
-  onRunCompleted,
   onMessagePart,
-  onMessageCompleted,
-  onGeneric,
+  // onRunCreated,
+  // onRunFailed,
+  // onRunCancelled,
+  // onRunCompleted,
+  // onMessageCompleted,
+  // onGeneric,
   onDone,
   onStop,
 }: Props = {}) {
@@ -51,7 +49,8 @@ export function useRunAgent({
   const [input, setInput] = useState<string>();
   const [isPending, setIsPending] = useState(false);
   const [runId, setRunId] = useState<RunId>();
-  const [sessionId, setSessionId] = useState<SessionId>();
+  // TODO:
+  // const [sessionId, setSessionId] = useState<SessionId>();
 
   const { mutateAsync: createRunStream } = useCreateRunStream();
   const { mutate: cancelRun } = useCancelRun();
@@ -63,11 +62,11 @@ export function useRunAgent({
   }, [onDone]);
 
   const runAgent = useCallback(
-    async ({ agent, messageParts }: RunAgentParams) => {
+    async ({ messageParts }: RunAgentParams) => {
       try {
         onBeforeRun?.();
 
-        const content = messageParts.reduce((acc, { content }) => (content ? `${acc}\n${content}` : acc), '');
+        const content = messageParts.reduce((acc, part) => (part.kind === 'text' ? `${acc}\n${part.text}` : acc), '');
 
         setIsPending(true);
         setInput(content);
@@ -76,48 +75,52 @@ export function useRunAgent({
         abortControllerRef.current = abortController;
 
         const stream = await createRunStream({
-          body: {
-            agentName: agent.name,
-            input: [
-              {
-                parts: messageParts,
-                role: Role.User,
-              } as Message,
-            ],
-            sessionId,
+          message: {
+            messageId: uuidv4(),
+            role: 'user',
+            parts: messageParts,
+            kind: 'message',
           },
-          signal: abortController.signal,
         });
 
         for await (const event of stream) {
-          switch (event.type) {
-            case 'run.created':
-              onRunCreated?.(event);
-              setRunId(event.run.run_id);
-              setSessionId(event.run.session_id ?? undefined);
-              break;
-            case 'run.failed':
-              handleDone();
-              onRunFailed?.(event);
-              break;
-            case 'run.cancelled':
-              handleDone();
-              onRunCancelled?.(event);
-              break;
-            case 'run.completed':
-              handleDone();
-              onRunCompleted?.(event);
-              break;
-            case 'message.part':
-              onMessagePart?.(event);
-              break;
-            case 'message.completed':
-              onMessageCompleted?.(event);
-              break;
-            case 'generic':
-              onGeneric?.(event);
-              break;
+          if (event.kind === 'status-update') {
+            const message = event.status.message;
+            console.log(message);
+
+            if (!message) {
+              continue;
+            }
+
+            onMessagePart?.(message.parts.map((part) => (part.kind === 'text' ? part.text : '')).join(''));
           }
+
+          // case 'run.created':
+          //   onRunCreated?.(event);
+          //   setRunId(event.run.run_id);
+          //   setSessionId(event.run.session_id ?? undefined);
+          //   break;
+          // case 'run.failed':
+          //   handleDone();
+          //   onRunFailed?.(event);
+          //   break;
+          // case 'run.cancelled':
+          //   handleDone();
+          //   onRunCancelled?.(event);
+          //   break;
+          // case 'run.completed':
+          //   handleDone();
+          //   onRunCompleted?.(event);
+          //   break;
+          // case 'message.part':
+          //   onMessagePart?.(event);
+          //   break;
+          // case 'message.completed':
+          //   onMessageCompleted?.(event);
+          //   break;
+          // case 'generic':
+          //   onGeneric?.(event);
+          //   break;
         }
       } catch (error) {
         handleDone();
@@ -125,19 +128,7 @@ export function useRunAgent({
         throw error;
       }
     },
-    [
-      onBeforeRun,
-      createRunStream,
-      sessionId,
-      onRunCreated,
-      handleDone,
-      onRunFailed,
-      onRunCancelled,
-      onRunCompleted,
-      onMessagePart,
-      onMessageCompleted,
-      onGeneric,
-    ],
+    [onBeforeRun, createRunStream, handleDone, onMessagePart],
   );
 
   const stopAgent = useCallback(() => {
@@ -161,7 +152,7 @@ export function useRunAgent({
     stopAgent();
     setInput(undefined);
     setRunId(undefined);
-    setSessionId(undefined);
+    // setSessionId(undefined);
   }, [stopAgent]);
 
   return {
