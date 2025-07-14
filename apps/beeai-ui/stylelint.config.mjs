@@ -1,4 +1,9 @@
-export default {
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+const config = {
   extends: ['stylelint-config-recommended-scss', 'stylelint-config-css-modules'],
   plugins: ['stylelint-plugin-logical-css'],
   rules: {
@@ -14,3 +19,5 @@ export default {
     ],
   },
 };
+
+export default config;

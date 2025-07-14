@@ -3,28 +3,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { NextConfig } from "next";
-import path from "path";
+import type { NextConfig } from 'next';
+import path from 'path';
 
 const nextConfig: NextConfig = {
-  output: "standalone",
-  transpilePackages: ["@i-am-bee/beeai-ui"],
+  output: 'standalone',
+  transpilePackages: ['@i-am-bee/beeai-ui'],
   sassOptions: {
     additionalData: `@use 'styles/common' as *; @use 'sass:math';`,
     // silenceDeprecations: ['mixed-decls', 'global-builtin'],
-    api: "modern",
-    implementation: "sass-embedded",
+    api: 'modern',
+    implementation: 'sass-embedded',
     quietDeps: true,
-    includePaths: [
-      path.join(__dirname, "node_modules"),
-      path.join(__dirname, "src"),
-    ],
+    includePaths: [path.join(__dirname, 'node_modules'), path.join(__dirname, 'src')],
   },
   webpack(config) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fileLoaderRule = config.module.rules.find((rule: any) =>
-      rule.test?.test?.(".svg")
-    );
+    const fileLoaderRule = config.module.rules.find((rule: any) => rule.test?.test?.('.svg'));
 
     config.module.rules.push(
       // Reapply the existing rule, but only for svg imports ending in ?url
@@ -40,12 +35,12 @@ const nextConfig: NextConfig = {
         resourceQuery: { not: [...fileLoaderRule.resourceQuery.not, /url/] }, // exclude if *.svg?url
         use: [
           {
-            loader: "@svgr/webpack",
+            loader: '@svgr/webpack',
             options: {
               svgoConfig: {
                 plugins: [
                   {
-                    name: "preset-default",
+                    name: 'preset-default',
                     params: {
                       overrides: {
                         removeViewBox: false,
@@ -57,7 +52,7 @@ const nextConfig: NextConfig = {
             },
           },
         ],
-      }
+      },
     );
 
     // Modify the file loader rule to ignore *.svg, since we have it handled now.
