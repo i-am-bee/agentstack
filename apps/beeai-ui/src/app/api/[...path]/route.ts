@@ -11,8 +11,8 @@ type RouteContext = {
   }>;
 };
 
-async function handler(req: NextRequest, context: RouteContext) {
-  const { method, headers, body, nextUrl } = req;
+async function handler(request: NextRequest, context: RouteContext) {
+  const { method, headers, body, nextUrl } = request;
   const { path } = await context.params;
   const search = nextUrl.search;
 
