@@ -1,15 +1,11 @@
 import { NextRequest } from 'next/server';
 
-async function handler(req: NextRequest, { params }: { params: { path: string[] } }) {
-  const url = new URL(process.env.API_URL!);
-  const search = req.nextUrl.search;
+async function handler({ method, headers, body, nextUrl }: NextRequest, { params }: { params: { path: string[] } }) {
   const { path } = await params;
+  const search = nextUrl.search;
 
+  const url = new URL(process.env.API_URL!);
   const targetUrl = `${url}api/${path.join('/')}${search}`;
-
-  console.log(targetUrl);
-
-  const { method, headers, body } = req;
 
   const res = await fetch(targetUrl, {
     method,
@@ -20,7 +16,6 @@ async function handler(req: NextRequest, { params }: { params: { path: string[] 
     duplex: body ? 'half' : undefined,
   });
 
-  // forward headers and stream
   return new Response(res.body, {
     status: res.status,
     headers: {
