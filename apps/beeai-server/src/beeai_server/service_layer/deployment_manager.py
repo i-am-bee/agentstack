@@ -20,6 +20,7 @@ def global_provider_variables(configuration: Configuration):
         "HOST": "0.0.0.0",
         "OTEL_EXPORTER_OTLP_ENDPOINT": str(configuration.telemetry.collector_url),
         "PLATFORM_URL": f"http://{configuration.platform_service_url}",
+        "EMBEDDING_MODEL": "dummy",
         "LLM_MODEL": "dummy",
         "LLM_API_KEY": "dummy",
         "LLM_API_BASE": f"http://{configuration.platform_service_url}/api/v1/llm",

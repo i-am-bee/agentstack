@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import re
-import traceback
 
 import fastapi
 from beeai_framework.adapters.openai.backend.embedding import OpenAIEmbeddingModel
@@ -48,7 +47,6 @@ async def create_embeddings(
     is_rits = re.match(r"^https://[a-z0-9.-]+\.rits\.fmaas\.res\.ibm.com/.*$", env["LLM_API_BASE"])
     is_watsonx = re.match(r"^https://[a-z0-9.-]+\.ml\.cloud\.ibm\.com.*?$", env["LLM_API_BASE"])
 
-    print(env)
     embeddings = (
         WatsonxEmbeddingModel(
             model_id=env["EMBEDDING_MODEL"],
@@ -66,14 +64,9 @@ async def create_embeddings(
         )
     )
 
-    output = None
-    try:
-        output: EmbeddingModelOutput = await embeddings.create(
-            values=(request.input if isinstance(request.input, list) else [request.input]),
-        )
-    except Exception as e:
-        traceback.print_exc()
-        print(e)
+    output: EmbeddingModelOutput = await embeddings.create(
+        values=(request.input if isinstance(request.input, list) else [request.input]),
+    )
 
     return EmbeddingsResponse(
         model=request.model,
