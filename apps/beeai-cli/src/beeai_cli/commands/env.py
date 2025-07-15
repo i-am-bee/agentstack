@@ -189,9 +189,15 @@ async def setup(
             watsonx_project_or_space = await inquirer.select(
                 "Use a Project or a Space?", choices=["project", "space"]
             ).execute_async()
-            watsonx_project_or_space_id = await inquirer.text(
-                message=f"Enter the {watsonx_project_or_space} id:"
-            ).execute_async()
+            if (
+                watsonx_project_or_space_id := os.environ.get(f"WATSONX_{watsonx_project_or_space.upper()}_ID")
+            ) is None or not await inquirer.confirm(
+                message=f"Use the {watsonx_project_or_space} id from environment variable 'WATSONX_{watsonx_project_or_space.upper()}_ID'?",
+                default=True,
+            ).execute_async():
+                watsonx_project_or_space_id = await inquirer.text(
+                    message=f"Enter the {watsonx_project_or_space} id:"
+                ).execute_async()
 
         if (api_key := os.environ.get(f"{provider_name.upper()}_API_KEY")) is None or not await inquirer.confirm(
             message=f"Use the API key from environment variable '{provider_name.upper()}_API_KEY'?",
