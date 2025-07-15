@@ -1,7 +1,19 @@
-import { NextRequest } from 'next/server';
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
-async function handler({ method, headers, body, nextUrl }: NextRequest, { params }: { params: { path: string[] } }) {
-  const { path } = await params;
+import type { NextRequest } from 'next/server';
+
+type RouteContext = {
+  params: Promise<{
+    path: string[];
+  }>;
+};
+
+async function handler(req: NextRequest, context: RouteContext) {
+  const { method, headers, body, nextUrl } = req;
+  const { path } = await context.params;
   const search = nextUrl.search;
 
   const url = new URL(process.env.API_URL!);
