@@ -48,7 +48,7 @@ async def list_providers(
 ) -> PaginatedResponse[ProviderWithState]:
     providers = []
     for provider in await provider_service.list_providers():
-        url = str(request.url_for(proxy_request.__name__, provider_id=provider.id))
+        url = str(request.url_for(proxy_request.__name__, provider_id=provider.id, path=""))
         new_provider = provider.model_copy(update={"agent_card": provider.agent_card.model_copy(update={"url": url})})
         providers.append(new_provider)
 
