@@ -4,13 +4,13 @@
  */
 
 import type { MessageSendParams } from '@a2a-js/sdk';
+import { A2AClient } from '@a2a-js/sdk/client';
 import type { RunId } from 'acp-sdk';
 
-import { a2a } from '#a2a/index.ts';
 import { acp } from '#acp/index.ts';
 
-export async function createRunStream(params: MessageSendParams) {
-  return await a2a.sendMessageStream(params);
+export async function createRunStream(client: A2AClient, params: MessageSendParams) {
+  return await client.sendMessageStream(params);
 }
 
 export async function readRun(runId: RunId) {

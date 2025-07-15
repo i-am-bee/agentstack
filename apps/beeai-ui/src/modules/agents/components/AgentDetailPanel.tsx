@@ -15,9 +15,7 @@ import { SidePanelVariant } from '#contexts/App/types.ts';
 import { useAgentNameFromPath } from '#hooks/useAgentNameFromPath.ts';
 
 import { useAgent } from '../api/queries/useAgent';
-import { getAvailableAgentLinkUrl } from '../utils';
 import classes from './AgentDetailPanel.module.scss';
-import { AgentTags } from './AgentTags';
 import { AgentTools } from './AgentTools';
 
 export function AgentDetailPanel() {
@@ -27,10 +25,14 @@ export function AgentDetailPanel() {
 
   if (!agent) return null;
 
-  const { description, metadata } = agent;
-  const agentUrl = getAvailableAgentLinkUrl(metadata, ['homepage', 'documentation', 'source-code']);
-  const authorName = metadata.author?.name;
-  const agentInfo = description ?? metadata.documentation;
+  // TODO: a2a
+  // const { description, metadata } = agent;
+  // const agentUrl = getAvailableAgentLinkUrl(metadata, ['homepage', 'documentation', 'source-code']);
+  // const authorName = metadata.author?.name;
+  // const agentInfo = description ?? metadata.documentation;
+  const agentInfo = agent.description;
+  const authorName = undefined;
+  const agentUrl = undefined;
 
   const isOpen = activeSidePanel === SidePanelVariant.AgentDetail;
 
@@ -57,7 +59,7 @@ export function AgentDetailPanel() {
                       </div>
                     )}
 
-                    <AgentTags agent={agent} />
+                    {/* TODO: a2a <AgentTags agent={agent} /> */}
 
                     {agentUrl && (
                       <a href={agentUrl} target="_blank" rel="noreferrer" className={classes.docsLink}>

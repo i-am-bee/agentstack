@@ -23,7 +23,7 @@ export function useDeleteProvider() {
           queryKey: agentKeys.lists(),
         },
         (data) => {
-          const agents = data?.agents.filter((agent) => agent.metadata.provider !== variables.id);
+          const agents = data?.agents.filter((agent) => agent.provider.id !== variables.id);
 
           return agents
             ? {

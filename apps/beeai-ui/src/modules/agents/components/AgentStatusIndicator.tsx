@@ -14,8 +14,7 @@ interface Props {
 }
 
 export function AgentStatusIndicator({ agent }: Props) {
-  const { provider_id } = agent.metadata;
-  const { isStarting } = useProviderStatus({ providerId: provider_id });
+  const { isStarting } = useProviderStatus({ providerId: agent.provider.id });
 
   if (isStarting) {
     return (

@@ -12,7 +12,7 @@ interface Props {
 }
 
 export function useMissingEnvs({ agent }: Props) {
-  const { data, isPending } = useProvider({ id: agent?.metadata?.provider_id });
+  const { data, isPending } = useProvider({ id: agent?.provider?.id });
   const missingEnvs = data?.missing_configuration ?? [];
 
   return { missingEnvs, isPending };

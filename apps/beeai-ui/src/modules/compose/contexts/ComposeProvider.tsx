@@ -74,6 +74,7 @@ export function ComposeProvider({ children }: PropsWithChildren) {
   }, [agents, replaceSteps, searchParams, steps.length]);
 
   const { isPending, stopAgent, reset } = useRunAgent({
+    agent: sequentialAgent!,
     // TODO: A2A
     // onMessagePart: (event) => {
     //   const { part } = event;

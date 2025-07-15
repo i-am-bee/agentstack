@@ -6,7 +6,6 @@
 import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
 
 import type { Agent } from '../api/types';
-import { getAgentUiMetadata } from '../utils';
 import classes from './AgentTools.module.scss';
 
 interface Props {
@@ -14,7 +13,7 @@ interface Props {
 }
 
 export function AgentTools({ agent }: Props) {
-  const { tools } = getAgentUiMetadata(agent);
+  const { tools } = agent.ui;
 
   return (
     <div className={classes.root}>

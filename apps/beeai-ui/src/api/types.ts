@@ -5,7 +5,12 @@
 
 import type { components } from './schema';
 
-export type ApiErrorResponse = components['schemas']['Error'];
+// TODO: a2a
+// export type ApiErrorResponse = components['schemas']['Error'];
+export type ApiErrorResponse = {
+  code: string;
+  message?: string;
+};
 
 export type ApiErrorCode = ApiErrorResponse['code'];
 

@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 server = Server()
 
 @server.agent(
-    name="Hello World",
+    name="hello",
     description="Returns hello world",
     input_content_types=["text/plain"],
     output_content_types=["text/plain", "application/json"],

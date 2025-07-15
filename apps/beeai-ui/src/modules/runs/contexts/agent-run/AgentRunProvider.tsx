@@ -4,7 +4,6 @@
  */
 
 import type { Part } from '@a2a-js/sdk';
-import type { MessagePart } from 'acp-sdk';
 import { type PropsWithChildren, useCallback, useMemo, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
@@ -12,29 +11,18 @@ import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 import { useImmerWithGetter } from '#hooks/useImmerWithGetter.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
-import type { TrajectoryMetadata } from '#modules/runs/api/types.ts';
-import {
-  type AgentMessage,
-  type ChatMessage,
-  type CitationTransform,
-  MessageContentTransformType,
-  MessageStatus,
-} from '#modules/runs/chat/types.ts';
+import { type AgentMessage, type ChatMessage, MessageStatus } from '#modules/runs/chat/types.ts';
 // import { prepareMessageFiles } from '#modules/runs/files/utils.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
 import { SourcesProvider } from '#modules/runs/sources/contexts/SourcesProvider.tsx';
-import { extractSources, prepareMessageSources } from '#modules/runs/sources/utils.ts';
-import { createTrajectoryMetadata, prepareTrajectories } from '#modules/runs/trajectory/utils.ts';
+import { extractSources } from '#modules/runs/sources/utils.ts';
 import { Role, type RunStats } from '#modules/runs/types.ts';
 import {
-  applyContentTransforms,
-  createCitationTransform,
-  // createFileMessageParts,
+  applyContentTransforms, // createFileMessageParts,
   // createImageTransform,
   // createMessagePart,
   extractValidUploadFiles,
-  isAgentMessage,
-  // isArtifactPart,
+  isAgentMessage, // isArtifactPart,
   mapToMessageFiles,
 } from '#modules/runs/utils.ts';
 
@@ -43,8 +31,6 @@ import { useFileUpload } from '../../files/contexts';
 import { AgentStatusProvider } from '../agent-status/AgentStatusProvider';
 import { MessagesProvider } from '../messages/MessagesProvider';
 import { AgentRunContext } from './agent-run-context';
-
-type MessagePartMetadata = NonNullable<MessagePart['metadata']>;
 
 interface Props {
   agent: Agent;
@@ -58,6 +44,7 @@ export function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) 
 
   const { files, clearFiles } = useFileUpload();
   const { input, isPending, runAgent, stopAgent, reset } = useRunAgent({
+    agent,
     onBeforeRun: () => {
       setStats({ startTime: Date.now() });
     },
@@ -117,25 +104,25 @@ export function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) 
     //     });
     //   });
     // },
-    onGeneric: (event) => {
-      const metadata = createTrajectoryMetadata(event.generic);
+    // onGeneric: (event) => {
+    //   const metadata = createTrajectoryMetadata(event.generic);
 
-      if (metadata) {
-        processMetadata(metadata as TrajectoryMetadata);
-      }
-    },
-    onMessageCompleted: () => {
-      updateLastAgentMessage((message) => {
-        message.status = MessageStatus.Completed;
-      });
-    },
-    onRunCompleted: () => {
-      updateLastAgentMessage((message) => {
-        if (message.status !== MessageStatus.Completed) {
-          message.status = MessageStatus.Failed;
-        }
-      });
-    },
+    //   if (metadata) {
+    //     processMetadata(metadata as TrajectoryMetadata);
+    //   }
+    // },
+    // onMessageCompleted: () => {
+    //   updateLastAgentMessage((message) => {
+    //     message.status = MessageStatus.Completed;
+    //   });
+    // },
+    // onRunCompleted: () => {
+    //   updateLastAgentMessage((message) => {
+    //     if (message.status !== MessageStatus.Completed) {
+    //       message.status = MessageStatus.Failed;
+    //     }
+    //   });
+    // },
     onStop: () => {
       updateLastAgentMessage((message) => {
         message.status = MessageStatus.Aborted;
@@ -144,24 +131,24 @@ export function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) 
     onDone: () => {
       handleDone();
     },
-    onRunFailed: (event) => {
-      const { error } = event.run;
+    // onRunFailed: (event) => {
+    //   const { error } = event.run;
 
-      handleError(error);
+    //   handleError(error);
 
-      if (error) {
-        updateLastAgentMessage((message) => {
-          message.error = error;
-          message.status = MessageStatus.Failed;
-        });
+    //   if (error) {
+    //     updateLastAgentMessage((message) => {
+    //       message.error = error;
+    //       message.status = MessageStatus.Failed;
+    //     });
 
-        const metadata = createTrajectoryMetadata({ message: error.message });
+    //     const metadata = createTrajectoryMetadata({ message: error.message });
 
-        if (metadata) {
-          processMetadata(metadata as TrajectoryMetadata);
-        }
-      }
-    },
+    //     if (metadata) {
+    //       processMetadata(metadata as TrajectoryMetadata);
+    //     }
+    //   }
+    // },
   });
 
   const updateLastAgentMessage = useCallback(
@@ -177,43 +164,43 @@ export function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) 
     [setMessages],
   );
 
-  const processMetadata = useCallback(
-    (metadata: MessagePartMetadata) => {
-      switch (metadata.kind) {
-        case 'citation':
-          updateLastAgentMessage((message) => {
-            const { sources, newSource } = prepareMessageSources({ message, metadata });
+  // const processMetadata = useCallback(
+  //   (metadata: MessagePartMetadata) => {
+  //     switch (metadata.kind) {
+  //       case 'citation':
+  //         updateLastAgentMessage((message) => {
+  //           const { sources, newSource } = prepareMessageSources({ message, metadata });
 
-            message.sources = sources;
+  //           message.sources = sources;
 
-            if (newSource == null) {
-              return;
-            }
+  //           if (newSource == null) {
+  //             return;
+  //           }
 
-            const citationTransformGroup = message.contentTransforms.find(
-              (transform): transform is CitationTransform =>
-                transform.kind === MessageContentTransformType.Citation &&
-                transform.startIndex === newSource.startIndex,
-            );
+  //           const citationTransformGroup = message.contentTransforms.find(
+  //             (transform): transform is CitationTransform =>
+  //               transform.kind === MessageContentTransformType.Citation &&
+  //               transform.startIndex === newSource.startIndex,
+  //           );
 
-            if (citationTransformGroup) {
-              citationTransformGroup.sources.push(newSource);
-            } else {
-              message.contentTransforms.push(createCitationTransform({ source: newSource }));
-            }
-          });
+  //           if (citationTransformGroup) {
+  //             citationTransformGroup.sources.push(newSource);
+  //           } else {
+  //             message.contentTransforms.push(createCitationTransform({ source: newSource }));
+  //           }
+  //         });
 
-          break;
-        case 'trajectory':
-          updateLastAgentMessage((message) => {
-            message.trajectories = prepareTrajectories({ trajectories: message.trajectories, data: metadata });
-          });
+  //         break;
+  //       case 'trajectory':
+  //         updateLastAgentMessage((message) => {
+  //           message.trajectories = prepareTrajectories({ trajectories: message.trajectories, data: metadata });
+  //         });
 
-          break;
-      }
-    },
-    [updateLastAgentMessage],
-  );
+  //         break;
+  //     }
+  //   },
+  //   [updateLastAgentMessage],
+  // );
 
   const handleDone = useCallback(() => {
     setStats((stats) => ({ ...stats, endTime: Date.now() }));

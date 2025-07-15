@@ -8,7 +8,6 @@ import clsx from 'clsx';
 import { AgentIcon } from '#modules/runs/components/AgentIcon.tsx';
 
 import { type Agent, UiType } from '../api/types';
-import { getAgentUiMetadata } from '../utils';
 import classes from './AgentHeading.module.scss';
 
 interface Props {
@@ -16,7 +15,7 @@ interface Props {
 }
 
 export function AgentHeading({ agent }: Props) {
-  const { display_name, ui_type } = getAgentUiMetadata(agent);
+  const { display_name, ui_type } = agent.ui;
 
   const isChatUi = ui_type === UiType.Chat;
   const isHandsOffUi = ui_type === UiType.HandsOff;

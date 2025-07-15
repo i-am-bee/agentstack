@@ -8,7 +8,6 @@ import clsx from 'clsx';
 import { getErrorMessage } from '#api/utils.ts';
 import { ErrorMessage } from '#components/ErrorMessage/ErrorMessage.tsx';
 import { Spinner } from '#components/Spinner/Spinner.tsx';
-import { getAgentUiMetadata } from '#modules/agents/utils.ts';
 
 import { AgentIcon } from '../components/AgentIcon';
 import { MessageContent } from '../components/MessageContent';
@@ -28,7 +27,6 @@ interface Props {
 export function Message({ message }: Props) {
   const { agent } = useAgentRun();
   const { content, error } = message;
-  const { display_name } = getAgentUiMetadata(agent);
 
   const isUser = isUserMessage(message);
   const isAgent = isAgentMessage(message);
@@ -40,7 +38,7 @@ export function Message({ message }: Props) {
     <li className={clsx(classes.root)}>
       <div className={classes.sender}>
         <div className={classes.senderIcon}>{isUser ? <UserIcon /> : <AgentIcon />}</div>
-        <div className={classes.senderName}>{isUser ? 'User' : display_name}</div>
+        <div className={classes.senderName}>{isUser ? 'User' : agent.ui.display_name}</div>
       </div>
 
       <div className={classes.body}>

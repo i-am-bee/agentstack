@@ -6,6 +6,8 @@
 import { useCallback, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
+import { Agent } from '#modules/agents/api/types.ts';
+
 import { useCancelRun } from '../api/mutations/useCancelRun';
 import { useCreateRunStream } from '../api/mutations/useCreateRunStream';
 import type {
@@ -20,6 +22,7 @@ import type {
 import type { RunAgentParams } from '../types';
 
 interface Props {
+  agent: Agent;
   onBeforeRun?: () => void;
   onRunCreated?: (event: RunCreatedEvent) => void;
   onRunFailed?: (event: RunFailedEvent) => void;
@@ -33,6 +36,7 @@ interface Props {
 }
 
 export function useRunAgent({
+  agent,
   onBeforeRun,
   onMessagePart,
   // onRunCreated,
@@ -43,7 +47,7 @@ export function useRunAgent({
   // onGeneric,
   onDone,
   onStop,
-}: Props = {}) {
+}: Props) {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const [input, setInput] = useState<string>();
@@ -52,7 +56,7 @@ export function useRunAgent({
   // TODO:
   // const [sessionId, setSessionId] = useState<SessionId>();
 
-  const { mutateAsync: createRunStream } = useCreateRunStream();
+  const { mutateAsync: createRunStream } = useCreateRunStream(agent);
   const { mutate: cancelRun } = useCancelRun();
 
   const handleDone = useCallback(() => {
@@ -86,7 +90,6 @@ export function useRunAgent({
         for await (const event of stream) {
           if (event.kind === 'status-update') {
             const message = event.status.message;
-            console.log(message);
 
             if (!message) {
               continue;

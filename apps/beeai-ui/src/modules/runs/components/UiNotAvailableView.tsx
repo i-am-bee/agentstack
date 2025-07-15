@@ -7,7 +7,6 @@ import { Container } from '#components/layouts/Container.tsx';
 import { MainContent } from '#components/layouts/MainContent.tsx';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { AgentHeading } from '#modules/agents/components/AgentHeading.tsx';
-import { getAgentUiMetadata } from '#modules/agents/utils.ts';
 
 import classes from './UiNotAvailableView.module.scss';
 
@@ -16,7 +15,7 @@ interface Props {
 }
 
 export function UiNotAvailableView({ agent }: Props) {
-  const { ui_type } = getAgentUiMetadata(agent);
+  const { ui_type } = agent.ui;
 
   return (
     <MainContent>
