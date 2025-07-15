@@ -122,7 +122,9 @@ export function useRunAgent({
       } catch (error) {
         handleDone();
 
-        throw error;
+        if (error.name !== 'AbortError') {
+          throw error;
+        }
       }
     },
     [
