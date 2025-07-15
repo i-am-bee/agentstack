@@ -1,4 +1,4 @@
-1. Get the application URL by running these commands:
+Getting started:
 {{- if .Values.ingress.enabled }}
 {{- range $host := .Values.ingress.hosts }}
   {{- range .paths }}
@@ -6,17 +6,57 @@
   {{- end }}
 {{- end }}
 {{- else if contains "NodePort" .Values.service.type }}
+
   export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "beeai-platform.fullname" . }})
   export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
   echo http://$NODE_IP:$NODE_PORT
 {{- else if contains "LoadBalancer" .Values.service.type }}
+
      NOTE: It may take a few minutes for the LoadBalancer IP to be available.
-           You can watch its status by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "beeai-platform.fullname" . }}'
-  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "beeai-platform.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+           You can watch its status by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w beeai-platform-svc'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} --beeai-platform-svc --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
   echo http://$SERVICE_IP:{{ .Values.service.port }}
 {{- else if contains "ClusterIP" .Values.service.type }}
-  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "beeai-platform.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
-  export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
-  echo "Visit http://127.0.0.1:8080 to use your application"
-  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
+
+    # port-forward the API
+    kubectl port-forward svc/beeai-platform-svc 8333:{{.Values.service.port}} &
+
+    # use the beeai CLI to setup the environment
+    {{- if .Values.auth.enabled }}
+    BEEAI__ADMIN_PASSWORD={{.Values.auth.admin_password}} beeai env setup
+    {{- else}}
+    beeai env setup
+    {{- end}}
+    {{- if .Values.ui.enabled }}
+
+    # port-forward the UI
+    kubectl port-forward svc/beeai-platform-ui-svc 8334:{{.Values.service.port}} &
+
+    # Open the UI in the browser
+    beeai ui
+    {{- end }}
+{{- end }}
+
+📄 See the documentation for more details and troubleshooting steps: https://docs.beeai.dev/deployment/kubernetes
+
+Resources:
+
+    📚 Documentation: https://docs.beeai.dev
+    🤖 Agent Catalog: https://beeai.dev/agents
+    💬 Discord Community: https://discord.gg/NradeA6ZNF
+    📝 GitHub Issues: https://github.com/i-am-bee/beeai-platform/issues
+
+Upgrade platform:
+
+    helm upgrade {{ .Release.Name }} oci://ghcr.io/i-am-bee/beeai-platform/beeai-platform-chart/beeai-platform:<version>
+
+{{- if .Values.phoenix.enabled }}
+
+Important License Notice:
+
+    When you enable Phoenix, be aware that Arize Phoenix is licensed under the Elastic License v2 (ELv2), which has
+    specific terms regarding commercial use and distribution. By enabling Phoenix, you acknowledge that you are
+    responsible for ensuring compliance with the ELv2 license terms for your specific use case. Please review the
+    Phoenix license (https://github.com/Arize-ai/phoenix/blob/main/LICENSE) before enabling this feature in
+    production environments.
 {{- end }}

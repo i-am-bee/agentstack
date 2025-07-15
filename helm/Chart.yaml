@@ -19,3 +19,9 @@ dependencies:
     name: seaweedfs
     repository: https://seaweedfs.github.io/seaweedfs/helm
     version: 4.x.x
+  - condition: phoenix.enabled
+    name: phoenix-helm
+    alias: phoenix
+    repository: oci://registry-1.docker.io/arizephoenix
+    version: 2.x.x
+

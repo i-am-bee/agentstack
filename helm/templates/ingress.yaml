@@ -35,9 +35,9 @@ spec:
             {{- end }}
             backend:
               service:
-                name: {{ include "beeai-platform.fullname" $ }}
+                name: beeai-platform-ui-svc
                 port:
-                  number: {{ $.Values.service.port }}
+                  number: {{ $.Values.ui.service.port }}
           {{- end }}
     {{- end }}
 {{- end }}

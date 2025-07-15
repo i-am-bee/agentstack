@@ -106,7 +106,7 @@ class VectorStoresConfiguration(BaseModel):
 
 
 class TelemetryConfiguration(BaseModel):
-    collector_url: AnyUrl = AnyUrl("http://otel-collector-svc:8335")
+    collector_url: AnyUrl = AnyUrl("http://otel-collector-svc:4318")
 
 
 class UIFeatureFlags(BaseModel):

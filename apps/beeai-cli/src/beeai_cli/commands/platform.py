@@ -519,6 +519,20 @@ async def start(
 
         console.print("[green]BeeAI platform started successfully![/green]")
 
+        if any("phoenix.enabled=true" in value.lower() for value in set_values_list):
+            console.print(
+                textwrap.dedent("""\
+                
+                License Notice:
+                When you enable Phoenix, be aware that Arize Phoenix is licensed under the Elastic License v2 (ELv2),
+                which has specific terms regarding commercial use and distribution. By enabling Phoenix, you acknowledge
+                that you are responsible for ensuring compliance with the ELv2 license terms for your specific use case. 
+                Please review the Phoenix license (https://github.com/Arize-ai/phoenix/blob/main/LICENSE) before enabling
+                this feature in production environments.
+                """),
+                style="dim",
+            )
+
 
 @app.command("stop")
 async def stop(

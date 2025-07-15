@@ -5,8 +5,6 @@ metadata:
   labels:
     app: otel-collector
     {{- include "beeai-platform.labels" . | nindent 4 }}
-  annotations:
-    checksum/config: {{ include (print $.Template.BasePath "/collector/config.yaml") . | sha256sum }}
 spec:
   replicas: 1
   selector:
@@ -18,6 +16,8 @@ spec:
       labels:
         app: otel-collector
         {{- include "beeai-platform.labels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/collector/config.yaml") . | sha256sum }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -50,11 +50,11 @@ spec:
             - /otelcol-contrib
             - --config
             - /config/base.yaml
-            - --set
-            - "receivers::otlp::protocols::http::endpoint=0.0.0.0:8335"
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8335
+            - containerPort: 4317
+              name: grpc
+            - containerPort: 4318
               name: http
       volumes:
         - name: otel-collector-config

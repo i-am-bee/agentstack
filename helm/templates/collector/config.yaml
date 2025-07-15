@@ -7,16 +7,23 @@ data:
     receivers:
       otlp:
         protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
           http:
-            endpoint: 0.0.0.0:4318 # overriden by the server
+            endpoint: 0.0.0.0:4318
 
     exporters:
-      debug:
-        verbosity: detailed
+      nop:
+      {{- if .Values.phoenix.enabled }}
       otlp/phoenix:
-        endpoint: phoenix-svc:8336
+        endpoint: phoenix-svc:4317
         tls:
           insecure: true
+      {{- end }}
+      {{- if .Values.collector.exporters }}
+      {{ toYaml .Values.collector.exporters | nindent 6 }}
+      {{- end }}
+
 
     processors:
       memory_limiter:
@@ -31,6 +38,9 @@ data:
             #### - crewAI exception `crewai.telemetry`
             #### Javascript format `@arizeai/openinference-instrumentation-${packageName}`
             - not(IsMatch(instrumentation_scope.name, "^openinference\\.instrumentation\\..*") or IsMatch(instrumentation_scope.name, "^@arizeai/openinference-instrumentation-.*") or instrumentation_scope.name == "crewai.telemetry")
+      {{- if .Values.collector.processors }}
+      {{ toYaml .Values.collector.processors | nindent 6 }}
+      {{- end }}
 
     extensions:
       health_check:
@@ -38,7 +48,17 @@ data:
     service:
       extensions: [ health_check ]
       pipelines:
+        {{- if .Values.phoenix.enabled }}
         traces/phoenix:
           receivers: [ otlp ]
           processors: [ memory_limiter, filter/phoenix, batch ]
           exporters: [ otlp/phoenix ]
+        {{ else }}
+        traces/nop:
+            receivers: [ otlp ]
+            processors: []
+            exporters: [ nop ]
+        {{- end }}
+        {{- if .Values.collector.pipelines }}
+        {{ toYaml .Values.collector.pipelines | nindent 8 }}
+        {{- end }}

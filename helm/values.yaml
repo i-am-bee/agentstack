@@ -165,18 +165,40 @@ ui:
   readinessProbe: { }
 
 phoenix:
+  # **Important License Notice**: Phoenix is disabled by default in BeeAI. When you enable Phoenix,
+  # be aware that Arize Phoenix is licensed under the Elastic License v2 (ELv2), which has specific terms regarding
+  # commercial use and distribution.By enabling Phoenix, you acknowledge that you are responsible for ensuring
+  # compliance with the ELv2 license terms for your specific use case. Please review the
+  # [Phoenix license](https://github.com/Arize-ai/phoenix/blob/main/LICENSE) before enabling this feature in
+  # production environments.
   enabled: false
-  image: docker.io/arizephoenix/phoenix:version-8.9.0
-  resources: { }
-  service:
-    type: ClusterIP
-    port: 6006
+  fullnameOverride: "phoenix"
+  ingress:
+    enabled: false
+  securityContext:
+    container:
+      enabled: true
+      readOnlyRootFilesystem: true
+  server:
+    workingDir: /tmp/working_dir
+  database:
+    url: "sqlite:////home/phoenix/phoenix.db"
+  persistence:
+    enabled: true
+    size: 8Gi
+  postgresql:
+    enabled: false
+  auth:
+    enableAuth: false
 
 collector:
   image: otel/opentelemetry-collector-contrib:0.122.1
   livenessProbe: { }
   readinessProbe: { }
   resources: { }
+  exporters: { }
+  processors: { }
+  pipelines: { }
 
 agent:
   podAnnotations: { }
@@ -211,7 +233,7 @@ agent:
   affinity: { }
 
 unmanagedProviderVariables:
-  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector-svc:8335
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector-svc:4318
   PLATFORM_URL: http://beeai-platform-svc:8333
 
 # Variable configuration

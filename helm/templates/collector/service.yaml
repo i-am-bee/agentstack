@@ -8,10 +8,35 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: 8335
+    - port: 4317
+      targetPort: grpc
+      protocol: TCP
+      name: grpc
+    - port: 4318
       targetPort: http
       protocol: TCP
       name: http
   selector:
     app: otel-collector
     {{- include "beeai-platform.selectorLabels" . | nindent 4 }}
+
+{{/*
+Phoenix subchart does not allow configuration of hostNetwork. This is an extra service that helps us pin the port
+*/}}
+{{- if and .Values.phoenix.enabled .Values.hostNetwork }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    {{- include "beeai-platform.labels" . | nindent 4 }}
+  name: phoenix-host-network-svc
+spec:
+  ports:
+    - port: 6006
+      targetPort: 6006
+      nodePort: 31606
+  selector:
+    app: {{ .Release.Name }} # This is the selector phoenix uses - we should be careful to have more specific selector
+  type: NodePort
+{{- end}}
