@@ -13,13 +13,23 @@
   @include type-style(body-compact-01);
 
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
+
+  @include breakpoint-up(md) {
+    justify-content: space-between;
+  }
 }
 
 .ul {
   display: flex;
   column-gap: rem(40px);
+
+  &.start {
+    @include breakpoint-down(md) {
+      display: none;
+    }
+  }
 }
 
 .link {

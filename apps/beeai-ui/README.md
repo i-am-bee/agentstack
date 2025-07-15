@@ -1,33 +1,43 @@
 # BeeAI UI
 
+## ENV
+
+See [`.env.example`](./.env.example).
+
 ## Custom navigation
 
-By default, the header displays the agent's name and a detail button.
+By default:
 
-You can override this with a custom navigation.
-To do so, add a `nav.json` file to the root of the project.
-Example:
+- The **header** displays the **current agent's name** and a detail button.
+- The **sidebar** displays the list of **agents**.
+
+You can override this by providing a custom navigation.
+To do so, set `NEXT_PUBLIC_NAV_ITEMS` as a JSON-stringified value.
+
+Example (before stringification):
 
 ```json
 [
   {
     "label": "Playground",
     "url": "/",
-    "isActive": true
+    "activePathnames": ["/", "/agents"]
   },
   {
     "label": "Cookbooks",
-    "url": "https://example.com/cookbooks",
-    "isExternal": true
+    "url": "/docs/cookbooks",
+    "isExternal": true,
+    "target": "_self"
   },
   {
     "label": "Docs",
-    "url": "https://example.com/docs",
-    "isExternal": true
+    "url": "/docs",
+    "isExternal": true,
+    "target": "_self"
   },
   {
     "label": "Download Granite",
-    "url": "https://example.com/download-granite",
+    "url": "https://huggingface.co/ibm-granite/granite-3.3-8b-instruct",
     "isExternal": true,
     "position": "end"
   }
@@ -35,7 +45,3 @@ Example:
 ```
 
 For more details, see the [schema](./src/modules/nav/schema.ts).
-
-## ENV
-
-See [`.env.example`](./.env.example).

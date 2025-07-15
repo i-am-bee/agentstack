@@ -40,7 +40,7 @@
   row-gap: $spacing-02;
 }
 
-.button {
+.button:global(.cds--btn) {
   @include reset-focus();
   justify-content: flex-start;
   align-items: center;

@@ -5,17 +5,19 @@
 
 import { Menu } from '@carbon/icons-react';
 import { IconButton } from '@carbon/react';
+import clsx from 'clsx';
 
 import { useApp } from '#contexts/App/index.ts';
-import { APP_NAME } from '#utils/constants.ts';
+import { NAV_ITEMS } from '#utils/constants.ts';
 
+import { AppName } from './AppName';
 import classes from './SidebarButton.module.scss';
 
 export function SidebarButton() {
   const { setNavigationOpen } = useApp();
 
   return (
-    <div className={classes.root}>
+    <div className={clsx(classes.root, { [classes.hasNav]: NAV_ITEMS.length > 0 })}>
       <IconButton
         kind="ghost"
         size="sm"
@@ -27,7 +29,7 @@ export function SidebarButton() {
         <Menu />
       </IconButton>
 
-      <span className={classes.label}>{APP_NAME}</span>
+      <AppName />
     </div>
   );
 }

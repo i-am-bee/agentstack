@@ -6,6 +6,8 @@
 import clsx from 'clsx';
 import { forwardRef, type PropsWithChildren } from 'react';
 
+import { NAV_ITEMS } from '#utils/constants.ts';
+
 import classes from './SidePanel.module.scss';
 
 interface Props {
@@ -26,6 +28,7 @@ export const SidePanel = forwardRef<HTMLElement, PropsWithChildren<Props>>(funct
         [classes[variant]],
         {
           [classes.isOpen]: isOpen,
+          [classes.hasNav]: NAV_ITEMS.length > 0,
         },
         className,
       )}

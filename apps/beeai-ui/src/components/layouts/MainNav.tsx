@@ -3,28 +3,40 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { type RefObject, useRef } from 'react';
+import { usePathname } from 'next/navigation';
+import { type RefObject, useEffect, useRef } from 'react';
 import { useOnClickOutside } from 'usehooks-ts';
 
 import { AgentsNav } from '#components/AgentsNav/AgentsNav.tsx';
 import { SidebarButton } from '#components/AppHeader/SidebarButton.tsx';
+import { CustomNav } from '#components/CustomNav/CustomNav.tsx';
 import { SidePanel } from '#components/SidePanel/SidePanel.tsx';
 import { UserNav } from '#components/UserNav/UserNav.tsx';
 import { useApp } from '#contexts/App/index.ts';
 import { useAppConfig } from '#contexts/AppConfig/index.ts';
+import { NAV_ITEMS } from '#utils/constants.ts';
 
 import classes from './MainNav.module.scss';
 
 export function MainNav() {
+  const pathname = usePathname();
   const { navigationOpen, closeNavOnClickOutside, setNavigationOpen } = useApp();
   const { featureFlags } = useAppConfig();
   const navRef = useRef<HTMLDivElement>(null);
+  const hasNav = NAV_ITEMS.length > 0;
 
   useOnClickOutside(navRef as RefObject<HTMLDivElement>, () => {
-    if (closeNavOnClickOutside) {
+    if (closeNavOnClickOutside || hasNav) {
       setNavigationOpen(false);
     }
   });
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: OK
+  useEffect(() => {
+    if (hasNav) {
+      setNavigationOpen(false);
+    }
+  }, [setNavigationOpen, pathname]);
 
   return (
     <div ref={navRef}>
@@ -32,7 +44,7 @@ export function MainNav() {
 
       <SidePanel variant="left" isOpen={navigationOpen}>
         <div className={classes.root}>
-          <AgentsNav />
+          {hasNav ? <CustomNav items={NAV_ITEMS} /> : <AgentsNav />}
 
           {featureFlags?.user_navigation && (
             <div className={classes.footer}>

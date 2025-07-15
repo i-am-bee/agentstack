@@ -8,15 +8,20 @@
   align-items: center;
   column-gap: $spacing-03;
   margin-inline-start: -$spacing-03;
+
+  &.hasNav {
+    @include breakpoint-up(md) {
+      margin-inline-start: 0;
+    }
+  }
 }
 
 .button {
   @include hide-popover();
-}
 
-.label {
-  font-size: rem(14px);
-  line-height: math.div(18, 14);
-  font-weight: 600;
-  color: $text-dark;
+  .hasNav & {
+    @include breakpoint-up(md) {
+      display: none;
+    }
+  }
 }

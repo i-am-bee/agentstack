@@ -36,6 +36,12 @@ $rightPanelWidth: rem(432px);
   &:not(.isOpen) {
     transition-timing-function: motion(entrance, expressive);
   }
+
+  &.hasNav {
+    @include breakpoint-up(md) {
+      display: none;
+    }
+  }
 }
 
 .content {
