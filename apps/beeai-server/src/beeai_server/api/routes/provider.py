@@ -11,6 +11,7 @@ from fastapi.requests import Request
 from starlette.responses import StreamingResponse
 
 from beeai_server.api.dependencies import AdminUserDependency, ConfigurationDependency, ProviderServiceDependency
+from beeai_server.api.routes.a2a import proxy_request
 from beeai_server.api.schema.common import PaginatedResponse
 from beeai_server.api.schema.provider import CreateProviderRequest
 from beeai_server.domain.models.provider import ProviderWithState
@@ -47,7 +48,7 @@ async def list_providers(
 ) -> PaginatedResponse[ProviderWithState]:
     providers = []
     for provider in await provider_service.list_providers():
-        url = str(request.url_for("send_request", provider_id=provider.id))
+        url = str(request.url_for(proxy_request.__name__, provider_id=provider.id))
         new_provider = provider.model_copy(update={"agent_card": provider.agent_card.model_copy(update={"url": url})})
         providers.append(new_provider)
 
