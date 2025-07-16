@@ -31,7 +31,6 @@ export function MainNav() {
     }
   });
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: OK
   useEffect(() => {
     if (hasNav) {
       setNavigationOpen(false);
