@@ -58,18 +58,13 @@ catalogs:
       specifier: ^8.28.0
       version: 8.28.0
 
-overrides:
-  '@a2a-js/sdk': file:../a2a-js
-
 importers:
-
-  .: {}
 
   apps/beeai-ui:
     dependencies:
       '@a2a-js/sdk':
-        specifier: file:../../../a2a-js
-        version: file:../a2a-js
+        specifier: ^0.2.4
+        version: 0.2.4
       '@bprogress/next':
         specifier: ^3.2.10
         version: 3.2.10(next@15.3.4(@babel/core@7.26.9)(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sass@1.85.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -417,8 +412,8 @@ importers:
 
 packages:
 
-  '@a2a-js/sdk@file:../a2a-js':
-    resolution: {directory: ../a2a-js, type: directory}
+  '@a2a-js/sdk@0.2.4':
+    resolution: {integrity: sha512-s9wEF5SUswhaAeAERA3tIBcrYEqWfkf+B3yiofxFX8+wnJMQL2l6bT6e7LZqjFf8sup0IRqFtGbckBPDLQymjw==}
     engines: {node: '>=18'}
 
   '@ampproject/remapping@2.3.0':
@@ -6078,7 +6073,7 @@ packages:
 
 snapshots:
 
-  '@a2a-js/sdk@file:../a2a-js':
+  '@a2a-js/sdk@0.2.4':
     dependencies:
       '@types/cors': 2.8.18
       '@types/express': 4.17.23
@@ -9466,7 +9461,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.0(@typescript-eslint/parser@8.28.0(eslint@9.23.0)(typescript@5.8.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.8.3)(eslint@9.23.0):
+  eslint-module-utils@2.12.0(@typescript-eslint/parser@8.28.0(eslint@9.23.0)(typescript@5.8.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.8.3(eslint-plugin-import@2.31.0)(eslint@9.23.0))(eslint@9.23.0):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
@@ -9488,7 +9483,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 9.23.0
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.0(@typescript-eslint/parser@8.28.0(eslint@9.23.0)(typescript@5.8.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.8.3)(eslint@9.23.0)
+      eslint-module-utils: 2.12.0(@typescript-eslint/parser@8.28.0(eslint@9.23.0)(typescript@5.8.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.8.3(eslint-plugin-import@2.31.0)(eslint@9.23.0))(eslint@9.23.0)
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3

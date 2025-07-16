@@ -7,8 +7,6 @@ import { Message, Part, Task, TaskArtifactUpdateEvent, TaskStatusUpdateEvent } f
 import { useCallback, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
-import { Agent } from '#modules/agents/api/types.ts';
-
 import { useCancelTask } from '../api/mutations/useCancelTask';
 import { useSendMessageStream } from '../api/mutations/useSendMessageStream';
 import type { ContextId, TaskId } from '../api/types';
@@ -16,7 +14,6 @@ import { Role, type RunAgentParams } from '../types';
 import { extractTextFromParts } from '../utils';
 
 interface Props {
-  agent: Agent;
   onStart?: () => void;
   onStop?: () => void;
   onDone?: () => void;
@@ -25,14 +22,14 @@ interface Props {
   onFailed?: (event: TaskStatusUpdateEvent, error: Error) => void;
 }
 
-export function useRunAgent({ agent, onStart, onStop, onDone, onPart, onCompleted, onFailed }: Props) {
+export function useRunAgent({ onStart, onStop, onDone, onPart, onCompleted, onFailed }: Props) {
   const [input, setInput] = useState<string>();
   const [taskId, setTaskId] = useState<TaskId>();
   const [contextId, setContextId] = useState<ContextId>();
   const [isPending, setIsPending] = useState<boolean>(false);
 
-  const { mutateAsync: sendMessageStream } = useSendMessageStream(agent);
-  const { mutate: cancelTask } = useCancelTask(agent);
+  const { mutateAsync: sendMessageStream } = useSendMessageStream();
+  const { mutate: cancelTask } = useCancelTask();
 
   const handleStart = useCallback(() => {
     setIsPending(true);

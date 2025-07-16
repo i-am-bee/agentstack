@@ -29,7 +29,7 @@ DEFAULT_LOG_LEVEL = "info"
 def main():
     """Command Line Interface to start the Airbnb Agent server."""
     host = os.getenv("HOST", "localhost")
-    port = int(os.getenv("PORT", "8000"))
+    port = int(os.getenv("PORT", "8001"))
     log_level = os.getenv("LOG_LEVEL", DEFAULT_LOG_LEVEL)
 
     async def run_server_async():

@@ -1,7 +1,0 @@
-{
-  "pnpm": {
-    "overrides": {
-      "@a2a-js/sdk": "file:../a2a-js"
-    }
-  }
-}

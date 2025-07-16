@@ -4,16 +4,13 @@
  */
 
 import { TaskIdParams } from '@a2a-js/sdk';
-import { A2AClient } from '@a2a-js/sdk/client';
 import { useMutation } from '@tanstack/react-query';
-import { useMemo } from 'react';
 
-import { Agent } from '#modules/agents/api/types.ts';
-
+import { useAgentClient } from '../../contexts/agent-client';
 import { cancelTask } from '..';
 
-export function useCancelTask(agent: Agent) {
-  const client = useMemo(() => new A2AClient(`/api/v1/a2a/${agent.provider.id}`), [agent.provider.id]);
+export function useCancelTask() {
+  const { client } = useAgentClient();
 
   const mutation = useMutation({
     mutationFn: (params: TaskIdParams) => cancelTask(client, params),

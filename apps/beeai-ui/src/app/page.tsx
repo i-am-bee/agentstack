@@ -25,6 +25,7 @@ export default async function LandingPage() {
     firstAgentName = agents?.at(0)?.name;
   } catch (err) {
     console.log(err);
+
     // TODO: Process 503 Service unavailable
     return <ErrorPage message={'There was an error loading agents.'} />;
   }

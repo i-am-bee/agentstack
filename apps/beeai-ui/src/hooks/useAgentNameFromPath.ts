@@ -8,5 +8,5 @@ import { useParams } from 'next/navigation';
 export function useAgentNameFromPath() {
   const params = useParams();
 
-  return params?.agentName ? params.agentName.toString() : null;
+  return params?.agentName ? decodeURIComponent(params.agentName.toString()) : null;
 }

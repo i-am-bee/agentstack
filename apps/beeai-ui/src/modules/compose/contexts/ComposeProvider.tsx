@@ -71,7 +71,6 @@ export function ComposeProvider({ children }: PropsWithChildren) {
   }, [agents, replaceSteps, searchParams, steps.length]);
 
   const { isPending, stopAgent, reset } = useRunAgent({
-    agent: sequentialAgent!,
     onDone: () => {
       const steps = getValues('steps');
 

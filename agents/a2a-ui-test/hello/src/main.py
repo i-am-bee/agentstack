@@ -17,7 +17,7 @@ server = Server()
     ui=BeeAIUI(
         ui_type="chat",
         user_greeting="How can I help you",
-        display_name="Chat",
+        display_name="Hello",
         tools=[
             BeeAIUITool(
                 name="Web Search (DuckDuckGo)",

@@ -2,6 +2,7 @@
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
  * SPDX-License-Identifier: Apache-2.0
  */
+'use client';
 
 import type { FilePart, Part, TextPart } from '@a2a-js/sdk';
 import { type PropsWithChildren, useCallback, useMemo, useState } from 'react';
@@ -19,6 +20,7 @@ import {
   MessageContentTransformType,
   MessageStatus,
 } from '#modules/runs/chat/types.ts';
+import { FileUploadProvider } from '#modules/runs/files/contexts/FileUploadProvider.tsx';
 import { isFileWithUri } from '#modules/runs/files/utils.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
 import { SourcesProvider } from '#modules/runs/sources/contexts/SourcesProvider.tsx';
@@ -36,6 +38,7 @@ import {
 import { isImageMimeType } from '#utils/helpers.ts';
 
 import { useFileUpload } from '../../files/contexts';
+import { AgentClientProvider } from '../agent-client/AgentClientProvider';
 import { AgentStatusProvider } from '../agent-status/AgentStatusProvider';
 import { MessagesProvider } from '../messages/MessagesProvider';
 import { AgentRunContext } from './agent-run-context';
@@ -46,7 +49,17 @@ interface Props {
   agent: Agent;
 }
 
-export function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
+export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>) {
+  return (
+    <FileUploadProvider allowedContentTypes={agent.defaultInputModes ?? []}>
+      <AgentClientProvider agent={agent}>
+        <AgentRunProvider agent={agent}>{children}</AgentRunProvider>
+      </AgentClientProvider>
+    </FileUploadProvider>
+  );
+}
+
+function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
   const [messages, getMessages, setMessages] = useImmerWithGetter<ChatMessage[]>([]);
   const [stats, setStats] = useState<RunStats>();
 
@@ -54,7 +67,6 @@ export function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) 
 
   const { files, clearFiles } = useFileUpload();
   const { input, isPending, runAgent, stopAgent, reset } = useRunAgent({
-    agent,
     onStart: () => {
       setStats({ startTime: Date.now() });
     },

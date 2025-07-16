@@ -20,7 +20,8 @@ export default async function AgentRunPage({ params }: Props) {
   let agent: Agent | undefined;
   try {
     const response = await listProviders();
-    const provider = response?.items.find(({ agent_card }) => agent_card.name === agentName);
+
+    const provider = response?.items.find(({ agent_card }) => agent_card.name === decodeURIComponent(agentName));
     if (provider) {
       agent = buildAgent(provider);
     }
