@@ -6,10 +6,10 @@
 
 import { createContext } from 'react';
 
-import type { FeatureFlags } from './api/types';
+import { FeatureFlags } from '#utils/feature-flags.ts';
 
 export const AppConfigContext = createContext<AppConfigContextValue>({} as AppConfigContextValue);
 
 interface AppConfigContextValue {
-  featureFlags?: FeatureFlags;
+  featureFlags: FeatureFlags;
 }

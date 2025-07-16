@@ -6,13 +6,16 @@
 import type { PropsWithChildren } from 'react';
 import { useMemo } from 'react';
 
-import { useReadConfig } from './api/useReadConfig';
+import { FeatureFlags } from '#utils/feature-flags.ts';
+
 import { AppConfigContext } from './app-config-context';
 
-export function AppConfigProvider({ children }: PropsWithChildren) {
-  const { data } = useReadConfig();
+interface Props {
+  featureFlags: FeatureFlags;
+}
 
-  const contextValue = useMemo(() => ({ featureFlags: data }), [data]);
+export function AppConfigProvider({ featureFlags, children }: PropsWithChildren<Props>) {
+  const contextValue = useMemo(() => ({ featureFlags }), [featureFlags]);
 
   return <AppConfigContext.Provider value={contextValue}>{children}</AppConfigContext.Provider>;
 }

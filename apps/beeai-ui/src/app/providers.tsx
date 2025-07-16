@@ -14,10 +14,15 @@ import { ProgressBarProvider } from '#contexts/ProgressBar/ProgressBarProvider.t
 import { ThemeProvider } from '#contexts/Theme/ThemeProvider.tsx';
 import { ToastProvider } from '#contexts/Toast/ToastProvider.tsx';
 import { RouteTransitionProvider } from '#contexts/TransitionContext/RouteTransitionProvider.tsx';
+import { FeatureFlags } from '#utils/feature-flags.ts';
 
 import { getQueryClient } from './get-query-client';
 
-export default function Providers({ children }: PropsWithChildren) {
+interface Props {
+  featureFlags: FeatureFlags;
+}
+
+export default function Providers({ featureFlags, children }: PropsWithChildren<Props>) {
   const queryClient = getQueryClient();
 
   return (
@@ -27,7 +32,7 @@ export default function Providers({ children }: PropsWithChildren) {
           <RouteTransitionProvider>
             <ToastProvider>
               <ModalProvider>
-                <AppConfigProvider>
+                <AppConfigProvider featureFlags={featureFlags}>
                   <AppProvider>{children}</AppProvider>
                 </AppConfigProvider>
               </ModalProvider>
