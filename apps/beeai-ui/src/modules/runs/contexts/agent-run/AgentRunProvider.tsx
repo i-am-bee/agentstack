@@ -182,11 +182,11 @@ export function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) 
       const isImage = isImageMimeType(mimeType);
       const isUriFile = isFileWithUri(file);
 
-      if (isImage && isUriFile) {
+      if (isImage) {
         updateLastAgentMessage((message) => {
           message.contentTransforms.push(
             createImageTransform({
-              imageUrl: file.uri,
+              imageUrl: isUriFile ? file.uri : file.bytes,
               insertAt: message.rawContent.length,
             }),
           );

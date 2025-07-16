@@ -87,6 +87,9 @@ export function ComposeProvider({ children }: PropsWithChildren) {
         }),
       );
     },
+    onFailed: (_, error) => {
+      handleError(error);
+    },
     // TODO: A2A
     // onPart: (event) => {
     //   const { part } = event;
@@ -174,9 +177,6 @@ export function ComposeProvider({ children }: PropsWithChildren) {
     //     }
     //     lastAgentIdx = agent_idx;
     //   }
-    // },
-    // onFailed: (event) => {
-    //   handleError(event.run.error);
     // },
   });
 
