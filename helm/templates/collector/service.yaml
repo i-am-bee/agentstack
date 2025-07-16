@@ -6,7 +6,7 @@ metadata:
     app: otel-collector
     {{- include "beeai-platform.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ .Values.collector.service.type }}
   ports:
     - port: 4317
       targetPort: grpc
@@ -19,24 +19,3 @@ spec:
   selector:
     app: otel-collector
     {{- include "beeai-platform.selectorLabels" . | nindent 4 }}
-
-{{/*
-Phoenix subchart does not allow configuration of hostNetwork. This is an extra service that helps us pin the port
-*/}}
-{{- if and .Values.phoenix.enabled .Values.hostNetwork }}
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    {{- include "beeai-platform.labels" . | nindent 4 }}
-  name: phoenix-host-network-svc
-spec:
-  ports:
-    - port: 6006
-      targetPort: 6006
-      nodePort: 31606
-  selector:
-    app: {{ .Release.Name }} # This is the selector phoenix uses - we should be careful to have more specific selector
-  type: NodePort
-{{- end}}

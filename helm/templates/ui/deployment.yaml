@@ -12,8 +12,6 @@ spec:
     matchLabels:
       app: beeai-platform-ui
       {{- include "beeai-platform.selectorLabels" . | nindent 6 }}
-  strategy:
-    type: {{ ternary "Recreate" "RollingUpdate" .Values.hostNetwork }}
   template:
     metadata:
       annotations:
@@ -27,10 +25,6 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      {{- if .Values.hostNetwork }}
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
-      {{- end }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}

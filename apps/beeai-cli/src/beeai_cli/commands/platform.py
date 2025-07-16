@@ -442,6 +442,10 @@ async def start(
                         "targetNamespace": "default",
                         "valuesContent": yaml.dump(
                             {
+                                "collector": {"service": {"type": "LoadBalancer"}},
+                                "docling": {"service": {"type": "LoadBalancer"}},
+                                "ui": {"service": {"type": "LoadBalancer"}},
+                                "phoenix": {"service": {"type": "LoadBalancer"}},
                                 "hostNetwork": True,
                                 "externalRegistries": {"public_github": str(Configuration().agent_registry)},
                                 "encryptionKey": "Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc=",  # Dummy key for local use
@@ -513,6 +517,81 @@ async def start(
             env={"LIMA_HOME": str(Configuration().lima_home)},
             cwd="/",
         )
+
+        # Set-up port forwarding for WSL
+        if _vm_driver() == VMDriver.wsl:
+            await run_command(
+                [
+                    "wsl.exe",
+                    "--user",
+                    "root",
+                    "--distribution",
+                    vm_name,
+                    "--",
+                    "tee",
+                    "/etc/systemd/system/kubectl-port-forward@.service",
+                ],
+                input=textwrap.dedent("""\
+                    [Unit]
+                    Description=Kubectl Port Forward for service %%i
+                    After=network.target
+
+                    [Service]
+                    Type=simple
+                    ExecStart=/bin/bash -c 'IFS=":" read svc port <<< "%i"; exec /usr/local/bin/kubectl port-forward --address=127.0.0.1 svc/$svc $port:$port'
+                    Restart=on-failure
+                    User=root
+
+                    [Install]
+                    WantedBy=multi-user.target
+                    """).encode(),
+                message="Installing systemd unit for port-forwarding",
+            )
+            await run_command(
+                ["wsl.exe", "--user", "root", "--distribution", vm_name, "--", "systemctl", "daemon-reexec"],
+                message="Reloading systemd",
+            )
+            services = json.loads(
+                (
+                    await run_command(
+                        [
+                            "wsl.exe",
+                            "--user",
+                            "root",
+                            "--distribution",
+                            vm_name,
+                            "--",
+                            "k3s",
+                            "kubectl",
+                            "get",
+                            "svc",
+                            "--field-selector=spec.type=LoadBalancer",
+                            "--output=json",
+                        ],
+                        message="Detecting ports to forward",
+                        env={"WSL_UTF8": "1"},
+                    )
+                ).stdout.decode()
+            )
+            for service in services["items"]:
+                name = service["metadata"]["name"]
+                ports = [item["port"] for item in service["spec"]["ports"]]
+                for port in ports:
+                    await run_command(
+                        [
+                            "wsl.exe",
+                            "--user",
+                            "root",
+                            "--distribution",
+                            vm_name,
+                            "--",
+                            "systemctl",
+                            "enable",
+                            "--now",
+                            f"kubectl-port-forward@{name}:{port}.service",
+                        ],
+                        message=f"Starting port-forward for {name}:{port}",
+                    )
 
         with console.status("Waiting for BeeAI platform to be ready...", spinner="dots"):
             await wait_for_api()
@@ -669,7 +748,7 @@ async def exec(
 ):
     """For debugging -- execute a command inside the BeeAI platform VM."""
     with verbosity(verbose, show_success_status=False):
-        command = command or ["/bin/sh"]
+        command = command or ["/bin/bash"]
         if (await _platform_status(vm_name)) != "running":
             console.print("[red]BeeAI platform is not running.[/red]")
             sys.exit(1)

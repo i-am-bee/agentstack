@@ -2,7 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-# Use host network for certain pods -- useful for local netwokring
+# Use host network for beeai-server: useful for accessing localhost (Ollama, local agents etc.)
 hostNetwork: false
 
 # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
@@ -199,6 +199,8 @@ collector:
   exporters: { }
   processors: { }
   pipelines: { }
+  service:
+    type: ClusterIP
 
 agent:
   podAnnotations: { }
@@ -396,5 +398,6 @@ docling:
     enabled: true
   service:
     port: 15001
+    type: ClusterIP
   imagePullPolicy: IfNotPresent
   image: "ghcr.io/docling-project/docling-serve-cpu:v0.16.0"
