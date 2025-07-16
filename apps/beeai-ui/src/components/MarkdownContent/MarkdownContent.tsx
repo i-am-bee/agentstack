@@ -15,6 +15,7 @@ import { Code } from './components/Code';
 import classes from './MarkdownContent.module.scss';
 import { rehypePlugins } from './rehype';
 import { remarkPlugins } from './remark';
+import { urlTransform } from './utils';
 
 interface Props {
   isPending?: boolean;
@@ -35,7 +36,12 @@ export function MarkdownContent({ isPending, sources, className, children }: Pro
 
   return (
     <div className={clsx(classes.root, className)}>
-      <Markdown rehypePlugins={rehypePlugins} remarkPlugins={remarkPlugins} components={extendedComponents}>
+      <Markdown
+        rehypePlugins={rehypePlugins}
+        remarkPlugins={remarkPlugins}
+        components={extendedComponents}
+        urlTransform={urlTransform}
+      >
         {children}
       </Markdown>
     </div>

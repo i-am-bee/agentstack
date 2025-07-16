@@ -37,7 +37,7 @@ import {
   isArtifactPart,
   mapToMessageFiles,
 } from '#modules/runs/utils.ts';
-import { isImageContentType } from '#utils/helpers.ts';
+import { ensureBase64Uri, isImageContentType } from '#utils/helpers.ts';
 
 import { useFileUpload } from '../../files/contexts';
 import { AgentStatusProvider } from '../agent-status/AgentStatusProvider';
@@ -63,17 +63,32 @@ export function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) 
     },
     onMessagePart: (event) => {
       const { part } = event;
-      const { content, content_type, content_url, metadata } = part;
+      const { content, content_type, content_url, content_encoding, metadata } = part;
 
       const isArtifact = isArtifactPart(part);
-      const hasFile = isString(content_url);
-      const hasImage = hasFile && isImageContentType(content_type);
-      const hasContentToDisplay = isString(content) && (content_type === 'text/plain' || hasImage);
+      const isImage = isImageContentType(content_type);
 
-      if (isArtifact) {
-        if (hasFile) {
+      const hasContent = isString(content);
+      const hasContentUrl = isString(content_url);
+      const hasBase64Content = hasContent && content_encoding === 'base64';
+      const hasFile = hasContentUrl || hasBase64Content;
+      const hasContentToDisplay = hasContent && content_type === 'text/plain';
+
+      const imageUrl = hasContentUrl ? content_url : hasBase64Content ? ensureBase64Uri(content, content_type) : null;
+
+      if (hasFile) {
+        if (isArtifact) {
           updateLastAgentMessage((message) => {
             message.files = prepareMessageFiles({ files: message.files, data: part });
+          });
+        } else if (isImage && imageUrl) {
+          updateLastAgentMessage((message) => {
+            message.contentTransforms.push(
+              createImageTransform({
+                imageUrl,
+                insertAt: message.rawContent.length,
+              }),
+            );
           });
         }
       }
@@ -81,17 +96,6 @@ export function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) 
       if (hasContentToDisplay) {
         updateLastAgentMessage((message) => {
           message.rawContent += content;
-        });
-      }
-
-      if (hasImage) {
-        updateLastAgentMessage((message) => {
-          message.contentTransforms.push(
-            createImageTransform({
-              imageUrl: content_url,
-              insertAt: message.rawContent.length,
-            }),
-          );
         });
       }
 

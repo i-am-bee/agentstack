@@ -26,3 +26,13 @@ export function compareStrings(a: string, b: string): number {
 export function isImageContentType(contentType: string | null | undefined): boolean {
   return Boolean(contentType?.toLowerCase().startsWith('image/'));
 }
+
+export function ensureBase64Uri(value: string, contentType?: string | null): string {
+  const pattern = /^data:[^;]+;base64,/;
+
+  if (pattern.test(value)) {
+    return value;
+  }
+
+  return `data:${contentType};base64,${value}`;
+}
