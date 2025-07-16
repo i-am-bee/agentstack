@@ -37,3 +37,7 @@ export interface GenericEvent {
     agent_idx?: number;
   };
 }
+
+export type TaskId = string;
+
+export type ContextId = string;

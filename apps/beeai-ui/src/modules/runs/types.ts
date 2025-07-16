@@ -14,7 +14,7 @@ export enum Role {
 
 export interface RunAgentParams {
   agent: Agent;
-  messageParts: Part[];
+  parts: Part[];
 }
 
 export interface RunStats {

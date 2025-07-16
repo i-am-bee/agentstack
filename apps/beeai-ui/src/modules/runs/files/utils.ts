@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { FilePart, FileWithBytes, FileWithUri } from '@a2a-js/sdk';
 import { v4 as uuid } from 'uuid';
 
 import type { Artifact } from '../api/types';
@@ -44,4 +45,12 @@ export function prepareMessageFiles({ files = [], data }: { files: MessageFile[]
     : files;
 
   return newFiles;
+}
+
+export function isFileWithBytes(file: FilePart['file']): file is FileWithBytes {
+  return 'bytes' in file;
+}
+
+export function isFileWithUri(file: FilePart['file']): file is FileWithUri {
+  return 'uri' in file;
 }

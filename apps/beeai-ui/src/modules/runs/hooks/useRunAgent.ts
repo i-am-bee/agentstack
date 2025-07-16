@@ -3,127 +3,168 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useCallback, useRef, useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import { Message, Part, Task, TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from '@a2a-js/sdk';
+import { useCallback, useState } from 'react';
+import { v4 as uuid } from 'uuid';
 
 import { Agent } from '#modules/agents/api/types.ts';
 
-import { useCancelRun } from '../api/mutations/useCancelRun';
-import { useCreateRunStream } from '../api/mutations/useCreateRunStream';
-import type {
-  GenericEvent,
-  MessageCompletedEvent,
-  RunCancelledEvent,
-  RunCompletedEvent,
-  RunCreatedEvent,
-  RunFailedEvent,
-  RunId,
-} from '../api/types';
-import type { RunAgentParams } from '../types';
+import { useCancelTask } from '../api/mutations/useCancelTask';
+import { useSendMessageStream } from '../api/mutations/useSendMessageStream';
+import type { ContextId, TaskId } from '../api/types';
+import { Role, type RunAgentParams } from '../types';
+import { extractTextFromParts } from '../utils';
 
 interface Props {
   agent: Agent;
-  onBeforeRun?: () => void;
-  onRunCreated?: (event: RunCreatedEvent) => void;
-  onRunFailed?: (event: RunFailedEvent) => void;
-  onRunCancelled?: (event: RunCancelledEvent) => void;
-  onRunCompleted?: (event: RunCompletedEvent) => void;
-  onMessagePart?: (content: string) => void;
-  onMessageCompleted?: (event: MessageCompletedEvent) => void;
-  onGeneric?: (event: GenericEvent) => void;
-  onDone?: () => void;
+  onStart?: () => void;
   onStop?: () => void;
+  onDone?: () => void;
+  onPart?: (part: Part) => void;
+  onCompleted?: (event: TaskStatusUpdateEvent) => void;
+  onFailed?: (event: TaskStatusUpdateEvent, error: Error) => void;
 }
 
-export function useRunAgent({
-  agent,
-  onBeforeRun,
-  onMessagePart,
-  // onRunCreated,
-  // onRunFailed,
-  // onRunCancelled,
-  // onRunCompleted,
-  // onMessageCompleted,
-  // onGeneric,
-  onDone,
-  onStop,
-}: Props) {
-  const abortControllerRef = useRef<AbortController | null>(null);
-
+export function useRunAgent({ agent, onStart, onStop, onDone, onPart, onCompleted, onFailed }: Props) {
   const [input, setInput] = useState<string>();
-  const [isPending, setIsPending] = useState(false);
-  const [runId, setRunId] = useState<RunId>();
-  // TODO:
-  // const [sessionId, setSessionId] = useState<SessionId>();
+  const [taskId, setTaskId] = useState<TaskId>();
+  const [contextId, setContextId] = useState<ContextId>();
+  const [isPending, setIsPending] = useState<boolean>(false);
 
-  const { mutateAsync: createRunStream } = useCreateRunStream(agent);
-  const { mutate: cancelRun } = useCancelRun();
+  const { mutateAsync: sendMessageStream } = useSendMessageStream(agent);
+  const { mutate: cancelTask } = useCancelTask(agent);
+
+  const handleStart = useCallback(() => {
+    setIsPending(true);
+
+    onStart?.();
+  }, [onStart]);
+
+  const handleStop = useCallback(() => {
+    setIsPending(false);
+    setTaskId(undefined);
+
+    onStop?.();
+  }, [onStop]);
 
   const handleDone = useCallback(() => {
     setIsPending(false);
+    setTaskId(undefined);
 
     onDone?.();
   }, [onDone]);
 
+  const handlePart = useCallback(
+    (part: Part) => {
+      onPart?.(part);
+    },
+    [onPart],
+  );
+
+  const handleCompleted = useCallback(
+    (event: TaskStatusUpdateEvent) => {
+      handleDone();
+
+      onCompleted?.(event);
+    },
+    [onCompleted, handleDone],
+  );
+
+  const handleFailed = useCallback(
+    (event: TaskStatusUpdateEvent) => {
+      handleDone();
+
+      const parts = event.status.message?.parts;
+      const errorMessage = (parts ? extractTextFromParts(parts) : '') || AGENT_ERROR_MESSAGE;
+
+      onFailed?.(event, new Error(errorMessage));
+    },
+    [onFailed, handleDone],
+  );
+
+  const handleEvent = useCallback(
+    (event: Task | Message | TaskStatusUpdateEvent | TaskArtifactUpdateEvent) => {
+      if (contextId !== event.contextId) {
+        setContextId(event.contextId);
+      }
+    },
+    [contextId],
+  );
+
+  const handleTask = useCallback(
+    (event: Task) => {
+      if (taskId !== event.id) {
+        setTaskId(event.id);
+      }
+    },
+    [taskId],
+  );
+
+  const handleStatusUpdate = useCallback(
+    (event: TaskStatusUpdateEvent) => {
+      const {
+        status: { message, state },
+      } = event;
+
+      message?.parts.forEach(handlePart);
+
+      if (event.final) {
+        handleCompleted(event);
+      }
+
+      switch (state) {
+        case 'canceled':
+          handleDone();
+
+          break;
+        case 'unknown':
+          handleDone();
+
+          break;
+        case 'failed':
+          handleFailed(event);
+
+          break;
+        case 'rejected':
+          handleFailed(event);
+
+          break;
+      }
+    },
+    [handlePart, handleCompleted, handleDone, handleFailed],
+  );
+
   const runAgent = useCallback(
-    async ({ messageParts }: RunAgentParams) => {
+    async ({ parts }: RunAgentParams) => {
+      handleStart();
+
+      setInput(extractTextFromParts(parts));
+
+      const message: Message = {
+        kind: 'message',
+        messageId: uuid(),
+        role: Role.User,
+        parts,
+        taskId,
+        contextId,
+      };
+
       try {
-        onBeforeRun?.();
-
-        const content = messageParts.reduce((acc, part) => (part.kind === 'text' ? `${acc}\n${part.text}` : acc), '');
-
-        setIsPending(true);
-        setInput(content);
-
-        const abortController = new AbortController();
-        abortControllerRef.current = abortController;
-
-        const stream = await createRunStream({
-          message: {
-            messageId: uuidv4(),
-            role: 'user',
-            parts: messageParts,
-            kind: 'message',
-          },
-        });
+        const stream = await sendMessageStream({ message });
 
         for await (const event of stream) {
-          if (event.kind === 'status-update') {
-            const message = event.status.message;
+          handleEvent(event);
 
-            if (!message) {
-              continue;
-            }
+          switch (event.kind) {
+            case 'task':
+              handleTask(event);
 
-            onMessagePart?.(message.parts.map((part) => (part.kind === 'text' ? part.text : '')).join(''));
+              break;
+            case 'status-update':
+              handleStatusUpdate(event);
+
+              break;
           }
-
-          // case 'run.created':
-          //   onRunCreated?.(event);
-          //   setRunId(event.run.run_id);
-          //   setSessionId(event.run.session_id ?? undefined);
-          //   break;
-          // case 'run.failed':
-          //   handleDone();
-          //   onRunFailed?.(event);
-          //   break;
-          // case 'run.cancelled':
-          //   handleDone();
-          //   onRunCancelled?.(event);
-          //   break;
-          // case 'run.completed':
-          //   handleDone();
-          //   onRunCompleted?.(event);
-          //   break;
-          // case 'message.part':
-          //   onMessagePart?.(event);
-          //   break;
-          // case 'message.completed':
-          //   onMessageCompleted?.(event);
-          //   break;
-          // case 'generic':
-          //   onGeneric?.(event);
-          //   break;
         }
       } catch (error) {
         handleDone();
@@ -131,7 +172,7 @@ export function useRunAgent({
         throw error;
       }
     },
-    [onBeforeRun, createRunStream, handleDone, onMessagePart],
+    [taskId, contextId, handleStart, sendMessageStream, handleEvent, handleTask, handleStatusUpdate, handleDone],
   );
 
   const stopAgent = useCallback(() => {
@@ -139,23 +180,18 @@ export function useRunAgent({
       return;
     }
 
-    setIsPending(false);
-
-    if (runId) {
-      cancelRun(runId);
+    if (taskId) {
+      cancelTask({ id: taskId });
     }
 
-    abortControllerRef.current?.abort();
-    abortControllerRef.current = null;
-
-    onStop?.();
-  }, [isPending, runId, cancelRun, onStop]);
+    handleStop();
+  }, [isPending, taskId, cancelTask, handleStop]);
 
   const reset = useCallback(() => {
     stopAgent();
+
     setInput(undefined);
-    setRunId(undefined);
-    // setSessionId(undefined);
+    setContextId(undefined);
   }, [stopAgent]);
 
   return {
@@ -166,3 +202,5 @@ export function useRunAgent({
     reset,
   };
 }
+
+const AGENT_ERROR_MESSAGE = "An error occurred. The agent didn't provide any additional details.";
