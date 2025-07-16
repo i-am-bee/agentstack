@@ -36,6 +36,7 @@ export function MainNav() {
     if (hasNav) {
       setNavigationOpen(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setNavigationOpen, pathname]);
 
   return (
