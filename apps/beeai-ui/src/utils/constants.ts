@@ -5,6 +5,8 @@
 
 import { parseNav } from '#modules/nav/parseNav.ts';
 
+export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? 'BeeAI';
 
 export const APP_FAVICON_SVG = process.env.NEXT_PUBLIC_APP_FAVICON_SVG ?? '/bee.svg';
@@ -13,7 +15,7 @@ export const PHOENIX_SERVER_TARGET = process.env.NEXT_PUBLIC_PHOENIX_SERVER_TARG
 
 export const NAV_ITEMS = parseNav(process.env.NEXT_PUBLIC_NAV_ITEMS);
 
-export const API_URL = process.env.API_URL;
+export const API_URL = process.env.API_URL ?? 'http://127.0.0.1:8333';
 
 export const PROD_MODE = process.env.NODE_ENV === 'production';
 

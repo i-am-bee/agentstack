@@ -8,7 +8,7 @@ import '../styles/style.scss';
 import type { Metadata } from 'next';
 
 import { AppLayout } from '#components/layouts/AppLayout.tsx';
-import { APP_FAVICON_SVG, APP_NAME } from '#utils/constants.ts';
+import { APP_FAVICON_SVG, APP_NAME, BASE_PATH } from '#utils/constants.ts';
 
 import Providers from './providers';
 
@@ -31,11 +31,13 @@ const darkModeScript = `
 })();
 `;
 
+const icon = `${BASE_PATH}${APP_FAVICON_SVG}`;
+
 export const metadata: Metadata = {
   title: APP_NAME,
   icons: {
-    icon: APP_FAVICON_SVG,
-    shortcut: APP_FAVICON_SVG,
+    icon: icon,
+    shortcut: icon,
   },
 };
 

@@ -5,8 +5,8 @@
 
 import { Client } from 'acp-sdk';
 
-import { API_URL } from '#utils/constants.ts';
+import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 
 export const acp = new Client({
-  baseUrl: `${API_URL ?? ''}/api/v1/acp/`,
+  baseUrl: getBaseUrl('/api/v1/acp/'),
 });

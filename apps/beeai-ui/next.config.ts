@@ -8,6 +8,7 @@ import path from 'path';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH,
   sassOptions: {
     additionalData: `@use 'styles/common' as *; @use 'sass:math';`,
     // silenceDeprecations: ['mixed-decls', 'global-builtin'],

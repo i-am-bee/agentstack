@@ -5,6 +5,8 @@
 
 import type { NextRequest } from 'next/server';
 
+import { API_URL } from '#utils/constants.ts';
+
 type RouteContext = {
   params: Promise<{
     path: string[];
@@ -16,7 +18,7 @@ async function handler(request: NextRequest, context: RouteContext) {
   const { path } = await context.params;
   const search = nextUrl.search;
 
-  const url = new URL(process.env.API_URL!);
+  const url = new URL(API_URL);
   const targetUrl = `${url}api/${path.join('/')}${search}`;
 
   const res = await fetch(targetUrl, {

@@ -5,10 +5,10 @@
 
 import createClient from 'openapi-fetch';
 
-import { API_URL } from '#utils/constants.ts';
+import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 
 import type { paths } from './schema';
 
 export const api = createClient<paths>({
-  baseUrl: API_URL,
+  baseUrl: getBaseUrl(),
 });
