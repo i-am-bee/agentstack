@@ -24,7 +24,7 @@ export function CustomNav({ items }: Props) {
     isActive: isActive(item, pathname ?? ''),
     onClick() {
       if (item.isExternal) {
-        window.open(item.url, '_blank', 'noopener,noreferrer');
+        window.open(item.url, item.target ?? '_blank', 'noopener,noreferrer');
       } else {
         router.push(item.url);
       }
