@@ -18,21 +18,23 @@ import { NAV_ITEMS } from '#utils/constants.ts';
 
 import classes from './MainNav.module.scss';
 
+type NavVariant = 'custom' | 'agents';
+
 export function MainNav() {
   const pathname = usePathname();
   const { navigationOpen, closeNavOnClickOutside, setNavigationOpen } = useApp();
   const { featureFlags } = useAppConfig();
   const navRef = useRef<HTMLDivElement>(null);
-  const hasNav = NAV_ITEMS.length > 0;
+  const navVariant: NavVariant = NAV_ITEMS.length ? 'custom' : 'agents';
 
   useOnClickOutside(navRef as RefObject<HTMLDivElement>, () => {
-    if (closeNavOnClickOutside || hasNav) {
+    if (closeNavOnClickOutside || navVariant === 'custom') {
       setNavigationOpen(false);
     }
   });
 
   useEffect(() => {
-    if (hasNav) {
+    if (navVariant === 'custom') {
       setNavigationOpen(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -44,7 +46,8 @@ export function MainNav() {
 
       <SidePanel variant="left" isOpen={navigationOpen}>
         <div className={classes.root}>
-          {hasNav ? <CustomNav items={NAV_ITEMS} /> : <AgentsNav />}
+          {navVariant === 'custom' && <CustomNav items={NAV_ITEMS} />}
+          {navVariant === 'agents' && <AgentsNav />}
 
           {featureFlags?.user_navigation && (
             <div className={classes.footer}>
