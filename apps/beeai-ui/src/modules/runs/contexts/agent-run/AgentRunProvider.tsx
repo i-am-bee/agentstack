@@ -2,6 +2,7 @@
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
  * SPDX-License-Identifier: Apache-2.0
  */
+
 'use client';
 
 import type { FilePart, Part, TextPart } from '@a2a-js/sdk';
@@ -12,7 +13,7 @@ import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 import { useImmerWithGetter } from '#hooks/useImmerWithGetter.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
-import type { MessagePart, TrajectoryMetadata } from '#modules/runs/api/types.ts';
+import type { MessagePart } from '#modules/runs/api/types.ts';
 import {
   type AgentMessage,
   type ChatMessage,
@@ -21,15 +22,16 @@ import {
   MessageStatus,
 } from '#modules/runs/chat/types.ts';
 import { FileUploadProvider } from '#modules/runs/files/contexts/FileUploadProvider.tsx';
-import { isFileWithUri } from '#modules/runs/files/utils.ts';
+import { getFileUri, prepareMessageFiles } from '#modules/runs/files/utils.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
 import { SourcesProvider } from '#modules/runs/sources/contexts/SourcesProvider.tsx';
 import { extractSources, prepareMessageSources } from '#modules/runs/sources/utils.ts';
-import { createTrajectoryMetadata, prepareTrajectories } from '#modules/runs/trajectory/utils.ts';
+import { prepareTrajectories } from '#modules/runs/trajectory/utils.ts';
 import { Role, type RunStats } from '#modules/runs/types.ts';
 import {
   applyContentTransforms,
   createCitationTransform,
+  createFileParts,
   createImageTransform,
   extractValidUploadFiles,
   isAgentMessage,
@@ -51,7 +53,7 @@ interface Props {
 
 export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>) {
   return (
-    <FileUploadProvider allowedContentTypes={agent.defaultInputModes ?? []}>
+    <FileUploadProvider allowedContentTypes={agent.defaultInputModes}>
       <AgentClientProvider agent={agent}>
         <AgentRunProvider agent={agent}>{children}</AgentRunProvider>
       </AgentClientProvider>
@@ -115,12 +117,6 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
         message.error = error;
         message.status = MessageStatus.Failed;
       });
-
-      const metadata = createTrajectoryMetadata({ message: error.message });
-
-      if (metadata) {
-        processMetadata(metadata as TrajectoryMetadata);
-      }
     },
   });
 
@@ -192,22 +188,21 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
       const { mimeType } = file;
 
       const isImage = isImageMimeType(mimeType);
-      const isUriFile = isFileWithUri(file);
 
       if (isImage) {
         updateLastAgentMessage((message) => {
           message.contentTransforms.push(
             createImageTransform({
-              imageUrl: isUriFile ? file.uri : file.bytes,
+              imageUrl: getFileUri(file),
               insertAt: message.rawContent.length,
             }),
           );
         });
+      } else {
+        updateLastAgentMessage((message) => {
+          message.files = prepareMessageFiles({ files: message.files, file });
+        });
       }
-
-      // updateLastAgentMessage((message) => {
-      //   message.files = prepareMessageFiles({ files: message.files, data: part });
-      // });
     },
     [updateLastAgentMessage],
   );
@@ -237,8 +232,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
   const run = useCallback(
     async (input: string) => {
       const uploadFiles = extractValidUploadFiles(files);
-      // TODO: Implement file upload sending
-      const parts: Part[] = [{ kind: 'text', text: input } /*...createFileMessageParts(uploadFiles)*/];
+      const parts: Part[] = [{ kind: 'text', text: input }, ...createFileParts(uploadFiles)];
       const userFiles = mapToMessageFiles(uploadFiles);
 
       setMessages((messages) => {

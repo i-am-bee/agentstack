@@ -17,10 +17,10 @@ import { type FileEntity, FileStatus } from '../types';
 import { FileUploadContext } from './file-upload-context';
 
 interface Props {
-  allowedContentTypes: string[];
+  allowedContentTypes?: string[];
 }
 
-export function FileUploadProvider({ allowedContentTypes, children }: PropsWithChildren<Props>) {
+export function FileUploadProvider({ allowedContentTypes = [], children }: PropsWithChildren<Props>) {
   const [files, setFiles] = useState<FileEntity[]>([]);
 
   const { addToast } = useToast();

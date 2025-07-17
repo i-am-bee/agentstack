@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Part } from '@a2a-js/sdk';
+import { FilePart, Part } from '@a2a-js/sdk';
 import humanizeDuration from 'humanize-duration';
 import JSON5 from 'json5';
 import { v4 as uuid } from 'uuid';
@@ -61,14 +61,15 @@ export function createMessagePart({
   };
 }
 
-export function createFileMessageParts(files: (UploadFileResponse & { type: string })[]) {
-  const messageParts = files.map(({ id, filename, type }) =>
-    createMessagePart({
-      content_url: getFileContentUrl({ id, addBase: true }),
-      content_type: type,
+export function createFileParts(files: (UploadFileResponse & { type: string })[]): FilePart[] {
+  const messageParts: FilePart[] = files.map(({ id, filename, type }) => ({
+    kind: 'file',
+    file: {
+      uri: getFileContentUrl({ id, addBase: true }),
       name: filename,
-    }),
-  );
+      mimeType: type,
+    },
+  }));
 
   return messageParts;
 }
