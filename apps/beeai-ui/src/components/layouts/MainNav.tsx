@@ -11,13 +11,11 @@ import { SidebarButton } from '#components/AppHeader/SidebarButton.tsx';
 import { SidePanel } from '#components/SidePanel/SidePanel.tsx';
 import { UserNav } from '#components/UserNav/UserNav.tsx';
 import { useApp } from '#contexts/App/index.ts';
-import { useAppConfig } from '#contexts/AppConfig/index.ts';
 
 import classes from './MainNav.module.scss';
 
 export function MainNav() {
   const { navigationOpen, closeNavOnClickOutside, setNavigationOpen } = useApp();
-  const { featureFlags } = useAppConfig();
   const navRef = useRef<HTMLDivElement>(null);
 
   useOnClickOutside(navRef as RefObject<HTMLDivElement>, () => {
@@ -34,11 +32,9 @@ export function MainNav() {
         <div className={classes.root}>
           <AgentsNav />
 
-          {featureFlags?.user_navigation && (
-            <div className={classes.footer}>
-              <UserNav />
-            </div>
-          )}
+          <div className={classes.footer}>
+            <UserNav />
+          </div>
         </div>
       </SidePanel>
     </div>

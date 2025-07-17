@@ -8,16 +8,20 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import type { PropsWithChildren } from 'react';
 
 import { AppProvider } from '#contexts/App/AppProvider.tsx';
-import { AppConfigProvider } from '#contexts/AppConfig/AppConfigProvider.tsx';
 import { ModalProvider } from '#contexts/Modal/ModalProvider.tsx';
 import { ProgressBarProvider } from '#contexts/ProgressBar/ProgressBarProvider.tsx';
 import { ThemeProvider } from '#contexts/Theme/ThemeProvider.tsx';
 import { ToastProvider } from '#contexts/Toast/ToastProvider.tsx';
 import { RouteTransitionProvider } from '#contexts/TransitionContext/RouteTransitionProvider.tsx';
+import { FeatureFlags } from '#utils/feature-flags.ts';
 
 import { getQueryClient } from './get-query-client';
 
-export default function Providers({ children }: PropsWithChildren) {
+interface Props {
+  featureFlags: FeatureFlags;
+}
+
+export default function Providers({ featureFlags, children }: PropsWithChildren<Props>) {
   const queryClient = getQueryClient();
 
   return (
@@ -27,9 +31,7 @@ export default function Providers({ children }: PropsWithChildren) {
           <RouteTransitionProvider>
             <ToastProvider>
               <ModalProvider>
-                <AppConfigProvider>
-                  <AppProvider>{children}</AppProvider>
-                </AppConfigProvider>
+                <AppProvider featureFlags={featureFlags}>{children}</AppProvider>
               </ModalProvider>
             </ToastProvider>
           </RouteTransitionProvider>

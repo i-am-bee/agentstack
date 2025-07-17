@@ -6,10 +6,16 @@
 import type { PropsWithChildren } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 
+import { FeatureFlags } from '#utils/feature-flags.ts';
+
 import { AppContext } from './app-context';
 import type { SidePanelVariant } from './types';
 
-export function AppProvider({ children }: PropsWithChildren) {
+interface Props {
+  featureFlags: FeatureFlags;
+}
+
+export function AppProvider({ featureFlags, children }: PropsWithChildren<Props>) {
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [closeNavOnClickOutside, setCloseNavOnClickOutside] = useState(false);
   const [activeSidePanel, setActiveSidePanel] = useState<SidePanelVariant | null>(null);
@@ -24,6 +30,7 @@ export function AppProvider({ children }: PropsWithChildren) {
 
   const contextValue = useMemo(
     () => ({
+      featureFlags,
       navigationOpen,
       closeNavOnClickOutside,
       activeSidePanel,
@@ -32,7 +39,7 @@ export function AppProvider({ children }: PropsWithChildren) {
       openSidePanel,
       closeSidePanel,
     }),
-    [navigationOpen, closeNavOnClickOutside, activeSidePanel, openSidePanel, closeSidePanel],
+    [featureFlags, navigationOpen, closeNavOnClickOutside, activeSidePanel, openSidePanel, closeSidePanel],
   );
 
   return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;
