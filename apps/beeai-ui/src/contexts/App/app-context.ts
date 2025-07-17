@@ -7,11 +7,14 @@
 
 import { createContext, type Dispatch, type SetStateAction } from 'react';
 
+import { FeatureFlags } from '#utils/feature-flags.ts';
+
 import type { SidePanelVariant } from './types';
 
 export const AppContext = createContext<AppContextValue | undefined>(undefined);
 
 interface AppContextValue {
+  featureFlags: FeatureFlags;
   navigationOpen: boolean;
   closeNavOnClickOutside: boolean;
   activeSidePanel: SidePanelVariant | null;

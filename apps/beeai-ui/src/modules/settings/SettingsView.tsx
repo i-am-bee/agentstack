@@ -12,7 +12,7 @@ import { Container } from '#components/layouts/Container.tsx';
 import { MainContent } from '#components/layouts/MainContent.tsx';
 import { ViewHeader } from '#components/ViewHeader/ViewHeader.tsx';
 import { ViewStack } from '#components/ViewStack/ViewStack.tsx';
-import { useAppConfig } from '#contexts/AppConfig/index.ts';
+import { useApp } from '#contexts/App/index.ts';
 import { ProvidersView } from '#modules/providers/components/ProvidersView.tsx';
 import { VariablesView } from '#modules/variables/components/VariablesView.tsx';
 import { FeatureName } from '#utils/feature-flags.ts';
@@ -20,7 +20,7 @@ import { FeatureName } from '#utils/feature-flags.ts';
 import { ThemeView } from './ThemeView';
 
 export function SettingsView() {
-  const { featureFlags } = useAppConfig();
+  const { featureFlags } = useApp();
 
   const items = useMemo(
     () => ITEMS.filter(({ featureName }) => !featureName || featureFlags[featureName]),

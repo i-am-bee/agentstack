@@ -8,7 +8,6 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import type { PropsWithChildren } from 'react';
 
 import { AppProvider } from '#contexts/App/AppProvider.tsx';
-import { AppConfigProvider } from '#contexts/AppConfig/AppConfigProvider.tsx';
 import { ModalProvider } from '#contexts/Modal/ModalProvider.tsx';
 import { ProgressBarProvider } from '#contexts/ProgressBar/ProgressBarProvider.tsx';
 import { ThemeProvider } from '#contexts/Theme/ThemeProvider.tsx';
@@ -32,9 +31,7 @@ export default function Providers({ featureFlags, children }: PropsWithChildren<
           <RouteTransitionProvider>
             <ToastProvider>
               <ModalProvider>
-                <AppConfigProvider featureFlags={featureFlags}>
-                  <AppProvider>{children}</AppProvider>
-                </AppConfigProvider>
+                <AppProvider featureFlags={featureFlags}>{children}</AppProvider>
               </ModalProvider>
             </ToastProvider>
           </RouteTransitionProvider>
