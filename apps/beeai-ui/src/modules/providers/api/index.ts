@@ -3,10 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { events } from 'fetch-event-stream';
-
 import { api } from '#api/index.ts';
-import { ensureData, ensureResponse } from '#api/utils.ts';
+import { ensureData } from '#api/utils.ts';
 
 import type { DeleteProviderPath, RegisterProviderRequest } from './types';
 
@@ -32,7 +30,5 @@ export async function registerManagedProvider({ body }: { body: RegisterProvider
   const response = await api.POST('/api/v1/providers', {
     body,
   });
-  const stream = events(ensureResponse(response));
-
-  return stream;
+  return ensureData(response);
 }

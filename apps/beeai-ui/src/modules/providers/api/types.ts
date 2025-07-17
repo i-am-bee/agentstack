@@ -6,9 +6,9 @@
 import type { ApiPath, ApiRequest, ApiResponse, RemoveIndexSignature } from '#@types/utils.ts';
 import type { StreamErrorResponse } from '#api/types.ts';
 
-export type ProvidersList = ApiResponse<'/api/v1/providers'>;
+export type ProvidersListResponse = ApiResponse<'/api/v1/providers'>;
 
-export type Provider = RemoveIndexSignature<ProvidersList['items'][number]>;
+export type Provider = RemoveIndexSignature<ProvidersListResponse['items'][number]>;
 
 export type ProviderLocation = Provider['source'];
 
