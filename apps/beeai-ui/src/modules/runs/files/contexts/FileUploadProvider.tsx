@@ -11,7 +11,7 @@ import { useToast } from '#contexts/Toast/index.ts';
 
 import { useDeleteFile } from '../api/mutations/useDeleteFile';
 import { useUploadFile } from '../api/mutations/useUploadFile';
-import { ALL_FILES_CONTENT_TYPE, MAX_FILE_SIZE, MAX_FILES } from '../constants';
+import { ALL_FILES_CONTENT_TYPE, MAX_FILE_SIZE, MAX_FILES, NO_FILES_CONTENT_TYPE } from '../constants';
 import { type FileEntity, FileStatus } from '../types';
 import { FileUploadContext } from './file-upload-context';
 
@@ -88,7 +88,7 @@ export function FileUploadProvider({ allowedContentTypes, children }: PropsWithC
     [files],
   );
 
-  const isDisabled = allowedContentTypes.includes('none');
+  const isDisabled = allowedContentTypes.includes(NO_FILES_CONTENT_TYPE) || !allowedContentTypes.length;
   const accept = isDisabled
     ? {}
     : allowedContentTypes.reduce(

@@ -12,3 +12,5 @@ export const FILE_CONTENT_URL = '/api/v1/files/{file_id}/content';
 export const FILE_CONTENT_URL_BASE = 'http://{platform_url}';
 
 export const ALL_FILES_CONTENT_TYPE = '*/*';
+
+export const NO_FILES_CONTENT_TYPE = 'none';
