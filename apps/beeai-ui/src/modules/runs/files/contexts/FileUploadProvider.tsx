@@ -88,11 +88,19 @@ export function FileUploadProvider({ allowedContentTypes, children }: PropsWithC
     [files],
   );
 
-  const isDisabled = !allowedContentTypes.length;
-  const accept = allowedContentTypes.reduce(
-    (value, mimeType) => (mimeType === ALL_FILES_CONTENT_TYPE ? value : { ...value, [mimeType]: [] }),
-    {} as Record<string, string[]>,
-  );
+  const isDisabled = allowedContentTypes.includes('none');
+  const accept = isDisabled
+    ? {}
+    : allowedContentTypes.reduce(
+        (value, mimeType) =>
+          mimeType === ALL_FILES_CONTENT_TYPE
+            ? value
+            : {
+                ...value,
+                [mimeType]: [],
+              },
+        {} as Record<string, string[]>,
+      );
 
   const dropzone = useDropzone({
     accept,
