@@ -3,10 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { FilePart, FileWithBytes, FileWithUri } from '@a2a-js/sdk';
+import { FilePart, FileWithUri } from '@a2a-js/sdk';
 import { v4 as uuid } from 'uuid';
 
-import type { Artifact } from '../api/types';
 import type { MessageFile } from '../chat/types';
 import { FILE_CONTENT_URL, FILE_CONTENT_URL_BASE } from './constants';
 
@@ -30,27 +29,40 @@ export function getFileContentUrl({ id, addBase }: { id: string; addBase?: boole
   return `${addBase ? FILE_CONTENT_URL_BASE : ''}${FILE_CONTENT_URL.replace('{file_id}', id)}`;
 }
 
-export function prepareMessageFiles({ files = [], data }: { files: MessageFile[] | undefined; data: Artifact }) {
-  const { name, content_url } = data;
+export function prepareMessageFiles({
+  files = [],
+  file,
+}: {
+  files: MessageFile[] | undefined;
+  file: FilePart['file'];
+}) {
+  const key = uuid();
+  const { name } = file;
 
-  const newFiles: MessageFile[] = content_url
-    ? [
-        ...files,
-        {
-          key: uuid(),
-          filename: name,
-          href: content_url,
-        },
-      ]
-    : files;
+  const newFiles: MessageFile[] = [
+    ...files,
+    {
+      key,
+      filename: name || key,
+      href: getFileUri(file),
+    },
+  ];
 
   return newFiles;
 }
 
-export function isFileWithBytes(file: FilePart['file']): file is FileWithBytes {
-  return 'bytes' in file;
-}
-
 export function isFileWithUri(file: FilePart['file']): file is FileWithUri {
   return 'uri' in file;
+}
+
+export function getFileUri(file: FilePart['file']): string {
+  const isUriFile = isFileWithUri(file);
+
+  if (isUriFile) {
+    return file.uri;
+  }
+
+  const { mimeType = 'text/plain', bytes } = file;
+
+  return `data:${mimeType};base64,${bytes}`;
 }
