@@ -16,7 +16,7 @@ data:
       nop:
       {{- if .Values.phoenix.enabled }}
       otlp/phoenix:
-        endpoint: phoenix-svc:4317
+        endpoint: phoenix-svc:8335
         tls:
           insecure: true
       {{- end }}
@@ -55,9 +55,9 @@ data:
           exporters: [ otlp/phoenix ]
         {{ else }}
         traces/nop:
-            receivers: [ otlp ]
-            processors: []
-            exporters: [ nop ]
+          receivers: [ otlp ]
+          processors: [ ]
+          exporters: [ nop ]
         {{- end }}
         {{- if .Values.collector.pipelines }}
         {{ toYaml .Values.collector.pipelines | nindent 8 }}

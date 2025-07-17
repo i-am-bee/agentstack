@@ -181,6 +181,7 @@ phoenix:
       readOnlyRootFilesystem: true
   server:
     workingDir: /tmp/working_dir
+    grpcPort: 8335
   database:
     url: "sqlite:////home/phoenix/phoenix.db"
   persistence:
