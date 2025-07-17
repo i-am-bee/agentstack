@@ -21,6 +21,7 @@ server = Server()
 
 
 @server.agent(
+    input_content_types=["text/plain"],
     metadata=Metadata(
         annotations=Annotations(
             beeai_ui=PlatformUIAnnotation(

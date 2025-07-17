@@ -40,6 +40,7 @@ def to_framework_message(role: str, content: str) -> beeai_framework.backend.Mes
 
 
 @server.agent(
+    input_content_types=["text/plain"],
     metadata=Metadata(
         annotations=Annotations(
             beeai_ui=PlatformUIAnnotation(
