@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { objectFromEntries } from './helpers';
 
 const featureNames = ['Variables', 'Providers'] as const;
-const featureFlagsDefaults = objectFromEntries(featureNames.map((key) => [key, false]));
+const featureFlagsDefaults = objectFromEntries(featureNames.map((key) => [key, false] as const));
 
 const featureFlagsSchema = z
   .object(objectFromEntries(featureNames.map((key) => [key, z.boolean().optional().default(false)])))
@@ -17,13 +17,16 @@ const featureFlagsSchema = z
 export type FeatureFlags = z.infer<typeof featureFlagsSchema>;
 export type FeatureName = (typeof featureNames)[number];
 
-export function parseFeatureFlags(data: unknown) {
-  const result = featureFlagsSchema.safeParse(data);
+export function parseFeatureFlags(data?: string) {
+  if (data) {
+    try {
+      const featureflags = JSON.parse(data);
+      const result = featureFlagsSchema.parse(featureflags);
 
-  if (!result.success) {
-    console.error(result.error);
-    return featureFlagsDefaults;
+      return result;
+    } catch (error) {
+      console.error(error);
+    }
   }
-
-  return result.data;
+  return featureFlagsDefaults;
 }

@@ -15,6 +15,8 @@ export const NAV_ITEMS = parseNav(process.env.NEXT_PUBLIC_NAV_ITEMS);
 
 export const API_URL = process.env.API_URL;
 
+export const FEATURE_FLAGS = process.env.FEATURE_FLAGS;
+
 export const PROD_MODE = process.env.NODE_ENV === 'production';
 
 export const GITHUB_REPO_LINK = 'https://github.com/i-am-bee/beeai';

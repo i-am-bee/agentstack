@@ -7,5 +7,6 @@ import { type NavItem, navSchema } from './schema';
 
 export function parseNav(data: unknown): NavItem[] {
   const result = navSchema.safeParse(data);
+
   return result.success ? result.data : [];
 }
