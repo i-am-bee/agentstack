@@ -1,0 +1,60 @@
+# setup
+
+["beeai-sdk:setup"]
+dir = "{{config_root}}/apps/beeai-sdk"
+run = "uv sync --all-extras --dev"
+sources = ["uv.lock", "pyproject.toml"]
+outputs = { auto = true }
+
+# check
+
+["beeai-sdk:check"]
+depends = ["beeai-sdk:check:*"]
+
+["beeai-sdk:check:ruff-check"]
+depends = ["beeai-sdk:setup"]
+dir = "{{config_root}}/apps/beeai-sdk"
+run = "uv run python -m ruff check --quiet"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+["beeai-sdk:check:ruff-format"]
+depends = ["beeai-sdk:setup"]
+dir = "{{config_root}}/apps/beeai-sdk"
+run = "uv run python -m ruff format --quiet --check"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+["beeai-sdk:check:pyright"]
+dir = "{{config_root}}/apps/beeai-sdk"
+run = "uv run python -m pyright"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+# fix
+
+["beeai-sdk:fix"]
+depends = ["beeai-sdk:fix:*"]
+
+["beeai-sdk:fix:ruff-check"]
+depends = ["beeai-sdk:setup"]
+dir = "{{config_root}}/apps/beeai-sdk"
+run = "uv run python -m ruff check --quiet --fix"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+["beeai-sdk:fix:ruff-format"]
+depends = ["beeai-sdk:setup"]
+dir = "{{config_root}}/apps/beeai-sdk"
+run = "uv run python -m ruff format --quiet"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+# build
+
+["beeai-sdk:build"]
+depends = ["beeai-sdk:setup"]
+dir = "{{config_root}}/apps/beeai-sdk"
+run = "rm ./dist/* 2>/dev/null || true; uv build --out-dir dist"
+sources = ["pyproject.toml", "uv.lock", "src/**/*.py"]
+outputs = ["dist/*"]
