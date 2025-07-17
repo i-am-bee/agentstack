@@ -8,7 +8,7 @@ import '../styles/style.scss';
 import type { Metadata } from 'next';
 
 import { AppLayout } from '#components/layouts/AppLayout.tsx';
-import { APP_FAVICON_SVG, APP_NAME, FEATURE_FLAGS } from '#utils/constants.ts';
+import { APP_FAVICON_SVG, APP_NAME } from '#utils/constants.ts';
 import { parseFeatureFlags } from '#utils/feature-flags.ts';
 
 import Providers from './providers';
@@ -53,7 +53,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: darkModeScript }} />
       </head>
       <body>
-        <Providers featureFlags={parseFeatureFlags(FEATURE_FLAGS)}>
+        <Providers featureFlags={parseFeatureFlags(process.env.FEATURE_FLAGS)}>
           <AppLayout>{children}</AppLayout>
         </Providers>
       </body>
