@@ -1,7 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Literal
 
 import fastapi
 import ibm_watsonx_ai
@@ -25,18 +24,18 @@ class EmbeddingsRequest(pydantic.BaseModel):
 
     model: str
     input: list[str] | str
-    encoding_format: Literal["float"]
+    encoding_format: str | None = None
 
 
 @router.post("/embeddings")
 async def create_embedding(env_service: EnvServiceDependency, request: EmbeddingsRequest):
     env = await env_service.list_env()
 
-    if pydantic.HttpUrl(env["LLM_API_BASE"]).host.endswith(".ml.cloud.ibm.com"):
+    if pydantic.HttpUrl(env["EMBEDDING_API_BASE"]).host.endswith(".ml.cloud.ibm.com"):
         watsonx_response = await run_in_threadpool(
             ibm_watsonx_ai.foundation_models.embeddings.Embeddings(
                 model_id=env["EMBEDDING_MODEL"],
-                credentials=ibm_watsonx_ai.Credentials(url=env["LLM_API_BASE"], api_key=env["LLM_API_KEY"]),
+                credentials=ibm_watsonx_ai.Credentials(url=env["EMBEDDING_API_BASE"], api_key=env["EMBEDDING_API_KEY"]),
                 project_id=env.get("WATSONX_PROJECT_ID"),
                 space_id=env.get("WATSONX_SPACE_ID"),
             ).generate,
@@ -61,11 +60,11 @@ async def create_embedding(env_service: EnvServiceDependency, request: Embedding
     else:
         return (
             await openai.AsyncOpenAI(
-                api_key=env["LLM_API_KEY"],
-                base_url=env["LLM_API_BASE"],
+                api_key=env["EMBEDDING_API_KEY"],
+                base_url=env["EMBEDDING_API_BASE"],
                 default_headers=(
-                    {"RITS_API_KEY": env["LLM_API_KEY"]}
-                    if pydantic.HttpUrl(env["LLM_API_BASE"]).host.endswith(".rits.fmaas.res.ibm.com")
+                    {"RITS_API_KEY": env["EMBEDDING_API_KEY"]}
+                    if pydantic.HttpUrl(env["EMBEDDING_API_BASE"]).host.endswith(".rits.fmaas.res.ibm.com")
                     else {}
                 ),
             ).embeddings.create(
