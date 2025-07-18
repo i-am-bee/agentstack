@@ -305,7 +305,14 @@ async def start(
         elif status != "running":
             await run_command(
                 {
-                    VMDriver.lima: [_limactl_exe(), "--tty=false", "start", "--memory=8", vm_name],
+                    VMDriver.lima: [
+                        _limactl_exe(),
+                        "--tty=false",
+                        "start",
+                        "--memory=8",
+                        "--mount=/tmp/beeai:w",
+                        vm_name,
+                    ],
                     VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "dbus-launch", "true"],
                 }[_vm_driver()],
                 "Starting up",
