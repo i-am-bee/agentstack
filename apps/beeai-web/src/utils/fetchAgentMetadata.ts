@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { type Agent } from '@i-am-bee/beeai-ui';
+import type { Agent } from '@i-am-bee/beeai-ui';
 
 import { DOCKER_MANIFEST_LABEL_NAME, SupportedDockerRegistries } from '@/constants';
 

@@ -4,21 +4,21 @@
  */
 
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
+import type { UIMessage } from '#modules/messages/types.ts';
+import { getMessageSources } from '#modules/messages/utils.ts';
 
-import type { ChatMessage } from '../chat/types';
 import { useAgentRun } from '../contexts/agent-run';
-import { isAgentMessage } from '../utils';
 import classes from './MessageContent.module.scss';
 
 interface Props {
-  message: ChatMessage;
+  message: UIMessage;
 }
 
 export function MessageContent({ message }: Props) {
   const { content } = message;
+  const sources = getMessageSources(message);
+
   const { isPending } = useAgentRun();
-  const isAgent = isAgentMessage(message);
-  const sources = (isAgent ? message.sources : null) ?? [];
 
   return content ? (
     <MarkdownContent sources={sources} isPending={isPending}>

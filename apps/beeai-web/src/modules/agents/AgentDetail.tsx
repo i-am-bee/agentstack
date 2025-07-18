@@ -8,8 +8,8 @@
 import { spacing } from '@carbon/layout';
 import { moderate01 } from '@carbon/motion';
 import { ButtonSkeleton, SkeletonText } from '@carbon/react';
+import type { Agent } from '@i-am-bee/beeai-ui';
 import {
-  Agent,
   AgentMetadataView,
   AgentTags,
   BeeBadge,

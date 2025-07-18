@@ -7,7 +7,7 @@
 
 import { createContext, type Dispatch, type SetStateAction } from 'react';
 
-import { FeatureFlags } from '#utils/feature-flags.ts';
+import type { FeatureFlags } from '#utils/feature-flags.ts';
 
 import type { SidePanelVariant } from './types';
 

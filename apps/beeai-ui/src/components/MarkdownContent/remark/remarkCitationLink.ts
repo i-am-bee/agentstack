@@ -7,7 +7,7 @@ import type { Root } from 'hast';
 import type { Link } from 'mdast';
 import { visit } from 'unist-util-visit';
 
-import { CITATION_LINK_PREFIX } from '#modules/runs/sources/constants.ts';
+import { CITATION_LINK_PREFIX } from '#modules/sources/types.ts';
 
 import type { CitationLinkBaseProps } from '../components/CitationLink/CitationLink';
 
@@ -17,13 +17,13 @@ export function remarkCitationLink() {
       const { url } = node;
 
       if (url.startsWith(CITATION_LINK_PREFIX)) {
-        const keys = url.slice(CITATION_LINK_PREFIX.length).split(',');
+        const items = url.slice(CITATION_LINK_PREFIX.length).split(',');
 
         node.data = {
           ...node.data,
           hName: 'citationLink',
           hProperties: {
-            keys,
+            items,
           } satisfies CitationLinkBaseProps,
         };
       }

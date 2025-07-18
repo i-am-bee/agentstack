@@ -6,21 +6,22 @@
 import clsx from 'clsx';
 
 import { Spinner } from '#components/Spinner/Spinner.tsx';
+import type { UIMessage } from '#modules/messages/types.ts';
+import { UIMessageStatus } from '#modules/messages/types.ts';
+import { checkMessageError, isAgentMessage, isUserMessage } from '#modules/messages/utils.ts';
+import { MessageSources } from '#modules/sources/components/MessageSources.tsx';
 
+import { MessageFiles } from '../../files/components/MessageFiles';
+import { MessageTrajectories } from '../../trajectories/components/MessageTrajectories';
 import { AgentIcon } from '../components/AgentIcon';
 import { MessageContent } from '../components/MessageContent';
 import { MessageError } from '../components/MessageError';
 import { useAgentRun } from '../contexts/agent-run';
-import { MessageFiles } from '../files/components/MessageFiles';
-import { MessageSources } from '../sources/components/MessageSources';
-import { MessageTrajectories } from '../trajectory/components/MessageTrajectories';
-import { isAgentMessage, isUserMessage } from '../utils';
 import classes from './Message.module.scss';
-import { type ChatMessage, MessageStatus } from './types';
 import { UserIcon } from './UserIcon';
 
 interface Props {
-  message: ChatMessage;
+  message: UIMessage;
 }
 
 export function Message({ message }: Props) {
@@ -29,8 +30,8 @@ export function Message({ message }: Props) {
 
   const isUser = isUserMessage(message);
   const isAgent = isAgentMessage(message);
-  const isPending = isAgent && message.status === MessageStatus.InProgress && !content;
-  const isError = isAgent && (message.status === MessageStatus.Failed || message.status === MessageStatus.Aborted);
+  const isPending = isAgent && message.status === UIMessageStatus.InProgress && !content;
+  const isError = isAgent && checkMessageError(message);
 
   return (
     <li className={clsx(classes.root)}>

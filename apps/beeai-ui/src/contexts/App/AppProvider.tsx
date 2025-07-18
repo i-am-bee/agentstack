@@ -6,7 +6,7 @@
 import type { PropsWithChildren } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 
-import { FeatureFlags } from '#utils/feature-flags.ts';
+import type { FeatureFlags } from '#utils/feature-flags.ts';
 
 import { AppContext } from './app-context';
 import type { SidePanelVariant } from './types';

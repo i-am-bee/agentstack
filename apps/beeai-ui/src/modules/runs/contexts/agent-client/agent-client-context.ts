@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 'use client';
-import { A2AClient } from '@a2a-js/sdk/client';
+import type { A2AClient } from '@a2a-js/sdk/client';
 import { createContext } from 'react';
 
-import { Agent } from '#modules/agents/api/types.ts';
+import type { Agent } from '#modules/agents/api/types.ts';
 
 export const AgentClientContext = createContext<AgentClientContextValue | undefined>(undefined);
 

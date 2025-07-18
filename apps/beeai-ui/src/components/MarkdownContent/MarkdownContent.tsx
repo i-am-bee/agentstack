@@ -7,7 +7,7 @@ import clsx from 'clsx';
 import { useMemo } from 'react';
 import Markdown from 'react-markdown';
 
-import type { SourceReference } from '#modules/runs/sources/api/types.ts';
+import type { UISourcePart } from '#modules/messages/types.ts';
 
 import { components, type ExtendedComponents } from './components';
 import { CitationLink } from './components/CitationLink/CitationLink';
@@ -19,7 +19,7 @@ import { urlTransform } from './utils';
 
 interface Props {
   isPending?: boolean;
-  sources?: SourceReference[];
+  sources?: UISourcePart[];
   children?: string;
   className?: string;
 }
