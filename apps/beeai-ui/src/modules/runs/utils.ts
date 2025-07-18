@@ -101,11 +101,11 @@ export function createCitationTransform({ source }: { source: SourceReference })
   return {
     key: uuid(),
     kind: MessageContentTransformType.Citation,
-    startIndex,
+    startIndex: startIndex ?? Infinity,
     sources: [source],
     apply: function ({ content, offset }) {
-      const adjustedStartIndex = startIndex + offset;
-      const adjustedEndIndex = endIndex + offset;
+      const adjustedStartIndex = isNotNull(startIndex) ? startIndex + offset : content.length;
+      const adjustedEndIndex = isNotNull(endIndex) ? endIndex + offset : content.length;
       const before = content.slice(0, adjustedStartIndex);
       const text = content.slice(adjustedStartIndex, adjustedEndIndex);
       const after = content.slice(adjustedEndIndex);

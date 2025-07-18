@@ -18,7 +18,7 @@ export function prepareMessageSources({ message, metadata }: { message: AgentMes
   const { url, start_index, end_index, title, description } = metadata;
   const { sources: prevSources = [] } = message;
 
-  if (url == null || start_index == null || end_index == null) {
+  if (url == null) {
     return { sources: prevSources, newSource: undefined };
   }
 
@@ -29,14 +29,15 @@ export function prepareMessageSources({ message, metadata }: { message: AgentMes
     {
       key,
       url,
-      startIndex: start_index,
-      endIndex: end_index,
+      startIndex: start_index ?? undefined,
+      endIndex: end_index ?? undefined,
       messageKey: message.key,
       title: title ?? undefined,
       description: description ?? undefined,
     },
   ]
-    .sort((a, b) => a.startIndex - b.startIndex)
+    // Sort items by startIndex in ascending order, placing items with undefined startIndex at the end
+    .sort((a, b) => (a.startIndex ?? Infinity) - (b.startIndex ?? Infinity))
     .map((source, idx) => ({
       ...source,
       number: idx + 1,

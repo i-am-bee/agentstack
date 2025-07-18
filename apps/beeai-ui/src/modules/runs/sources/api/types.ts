@@ -7,9 +7,9 @@ export interface SourceReference {
   key: string;
   number: number;
   url: string;
-  startIndex: number;
-  endIndex: number;
   messageKey: string;
+  startIndex?: number;
+  endIndex?: number;
   title?: string;
   description?: string;
 }
