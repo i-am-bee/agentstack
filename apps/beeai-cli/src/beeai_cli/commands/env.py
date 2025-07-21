@@ -479,7 +479,7 @@ async def _configure_embedding(env: dict[str, str]) -> dict[str, str] | None:
 
     # Load available models
     try:
-        if provider_name in ["watsonx"]:
+        if provider_name in ["Voyage", "watsonx"]:
             available_models = []
         else:
             with console.status("Loading available embedding models...", spinner="dots"):
@@ -575,7 +575,7 @@ async def _configure_embedding(env: dict[str, str]) -> dict[str, str] | None:
                         if provider_name == "watsonx"
                         else f"{api_base}/embeddings"
                     ),
-                    json={"inputs": ["Hi"]}
+                    json={"input": ["Hi"]}
                     | (
                         {"model_id": selected_model, f"{watsonx_project_or_space}_id": watsonx_project_or_space_id}
                         if provider_name == "watsonx"
