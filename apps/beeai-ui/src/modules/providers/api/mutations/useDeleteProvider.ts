@@ -9,7 +9,7 @@ import { agentKeys } from '#modules/agents/api/keys.ts';
 import { providerKeys } from '#modules/providers/api/keys.ts';
 
 import { deleteProvider } from '..';
-import { ProvidersListResponse } from '../types';
+import type { ProvidersListResponse } from '../types';
 
 export function useDeleteProvider() {
   const queryClient = useQueryClient();
