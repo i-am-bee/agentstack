@@ -22,7 +22,7 @@ def global_provider_variables(configuration: Configuration):
         "PLATFORM_URL": f"http://{configuration.platform_service_url}",
         "EMBEDDING_MODEL": "dummy",
         "EMBEDDING_API_KEY": "dummy",
-        "EMBEDDING_API_BASE": f"http://{configuration.platform_service_url}/api/v1/llm/embeddings",
+        "EMBEDDING_API_BASE": f"http://{configuration.platform_service_url}/api/v1/llm",
         "LLM_MODEL": "dummy",
         "LLM_API_KEY": "dummy",
         "LLM_API_BASE": f"http://{configuration.platform_service_url}/api/v1/llm",

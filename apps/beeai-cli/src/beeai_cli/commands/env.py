@@ -66,108 +66,101 @@ async def remove_env(
     await list_env()
 
 
-def _get_llm_providers():
-    """Get available LLM providers"""
-    return [
-        Choice(
-            name="Anthropic Claude".ljust(25),
-            value=("Anthropic", "https://api.anthropic.com/v1", "claude-3-7-sonnet-latest"),
-        ),
-        Choice(
-            name="Cerebras".ljust(25) + "🆓 has a free tier",
-            value=("Cerebras", "https://api.cerebras.ai/v1", "llama-3.3-70b"),
-        ),
-        Choice(name="Chutes".ljust(25) + "🆓 has a free tier", value=("Chutes", "https://llm.chutes.ai/v1", None)),
-        Choice(
-            name="Cohere".ljust(25) + "🆓 has a free tier",
-            value=("Cohere", "https://api.cohere.ai/compatibility/v1", "command-r-plus"),
-        ),
-        Choice(
-            name="DeepSeek",
-            value=("DeepSeek", "https://api.deepseek.com/v1", "deepseek-reasoner"),
-        ),
-        Choice(
-            name="Google Gemini".ljust(25) + "🆓 has a free tier",
-            value=("Google", "https://generativelanguage.googleapis.com/v1beta/openai", None),
-        ),
-        Choice(
-            name="Groq".ljust(25) + "🆓 has a free tier",
-            value=("Groq", "https://api.groq.com/openai/v1", "deepseek-r1-distill-llama-70b"),
-        ),
-        Choice(
-            name="IBM watsonx".ljust(25),
-            value=("watsonx", None, "ibm/granite-3-3-8b-instruct"),
-        ),
-        Choice(name="Jan".ljust(25) + "💻 local", value=("Jan", "http://localhost:1337/v1", None)),
-        Choice(
-            name="Mistral".ljust(25) + "🆓 has a free tier",
-            value=("Mistral", "https://api.mistral.ai/v1", "mistral-large-latest"),
-        ),
-        Choice(
-            name="NVIDIA NIM".ljust(25),
-            value=("NVIDIA", "https://integrate.api.nvidia.com/v1", "deepseek-ai/deepseek-r1"),
-        ),
-        Choice(
-            name="Ollama".ljust(25) + "💻 local",
-            value=("Ollama", "http://localhost:11434/v1", "granite3.3:8b"),
-        ),
-        Choice(
-            name="OpenAI".ljust(25),
-            value=("OpenAI", "https://api.openai.com/v1", "gpt-4o"),
-        ),
-        Choice(
-            name="OpenRouter".ljust(25) + "🆓 has some free models",
-            value=("OpenRouter", "https://openrouter.ai/api/v1", "deepseek/deepseek-r1-distill-llama-70b:free"),
-        ),
-        Choice(name="Perplexity".ljust(25), value=("Perplexity", "https://api.perplexity.ai", None)),
-        Choice(
-            name="together.ai".ljust(25) + "🆓 has a free tier",
-            value=("Together", "https://api.together.xyz/v1", "deepseek-ai/DeepSeek-R1"),
-        ),
-        Choice(name="Other (RITS, vLLM, ...)".ljust(25) + "🔧 provide API URL", value=("Other", None, None)),
-    ]
+LLM_PROVIDERS = [
+    Choice(
+        name="Anthropic Claude".ljust(25),
+        value=("Anthropic", "https://api.anthropic.com/v1", "claude-3-7-sonnet-latest"),
+    ),
+    Choice(
+        name="Cerebras".ljust(25) + "🆓 has a free tier",
+        value=("Cerebras", "https://api.cerebras.ai/v1", "llama-3.3-70b"),
+    ),
+    Choice(name="Chutes".ljust(25) + "🆓 has a free tier", value=("Chutes", "https://llm.chutes.ai/v1", None)),
+    Choice(
+        name="Cohere".ljust(25) + "🆓 has a free tier",
+        value=("Cohere", "https://api.cohere.ai/compatibility/v1", "command-r-plus"),
+    ),
+    Choice(
+        name="DeepSeek",
+        value=("DeepSeek", "https://api.deepseek.com/v1", "deepseek-reasoner"),
+    ),
+    Choice(
+        name="Google Gemini".ljust(25) + "🆓 has a free tier",
+        value=("Google", "https://generativelanguage.googleapis.com/v1beta/openai", None),
+    ),
+    Choice(
+        name="Groq".ljust(25) + "🆓 has a free tier",
+        value=("Groq", "https://api.groq.com/openai/v1", "deepseek-r1-distill-llama-70b"),
+    ),
+    Choice(
+        name="IBM watsonx".ljust(25),
+        value=("watsonx", None, "ibm/granite-3-3-8b-instruct"),
+    ),
+    Choice(name="Jan".ljust(25) + "💻 local", value=("Jan", "http://localhost:1337/v1", None)),
+    Choice(
+        name="Mistral".ljust(25) + "🆓 has a free tier",
+        value=("Mistral", "https://api.mistral.ai/v1", "mistral-large-latest"),
+    ),
+    Choice(
+        name="NVIDIA NIM".ljust(25),
+        value=("NVIDIA", "https://integrate.api.nvidia.com/v1", "deepseek-ai/deepseek-r1"),
+    ),
+    Choice(
+        name="Ollama".ljust(25) + "💻 local",
+        value=("Ollama", "http://localhost:11434/v1", "granite3.3:8b"),
+    ),
+    Choice(
+        name="OpenAI".ljust(25),
+        value=("OpenAI", "https://api.openai.com/v1", "gpt-4o"),
+    ),
+    Choice(
+        name="OpenRouter".ljust(25) + "🆓 has some free models",
+        value=("OpenRouter", "https://openrouter.ai/api/v1", "deepseek/deepseek-r1-distill-llama-70b:free"),
+    ),
+    Choice(name="Perplexity".ljust(25), value=("Perplexity", "https://api.perplexity.ai", None)),
+    Choice(
+        name="together.ai".ljust(25) + "🆓 has a free tier",
+        value=("Together", "https://api.together.xyz/v1", "deepseek-ai/DeepSeek-R1"),
+    ),
+    Choice(name="Other (RITS, vLLM, ...)".ljust(25) + "🔧 provide API URL", value=("Other", None, None)),
+]
 
-
-def _get_embedding_providers():
-    """Get available embedding providers"""
-    return [
-        Choice(
-            name="Voyage".ljust(25),
-            value=("Voyage", "https://api.voyageai.com/v1", "voyage-3.5"),
-        ),
-        Choice(
-            name="Cohere".ljust(25) + "🆓 has a free tier",
-            value=("Cohere", "https://api.cohere.ai/compatibility/v1", "embed-multilingual-v3.0"),
-        ),
-        Choice(
-            name="Google Gemini".ljust(25) + "🆓 has a free tier",
-            value=("Google", "https://generativelanguage.googleapis.com/v1beta/openai", "models/gemini-embedding-001"),
-        ),
-        Choice(
-            name="IBM watsonx".ljust(25),
-            value=("watsonx", None, "ibm/granite-embedding-278m-multilingual"),
-        ),
-        Choice(
-            name="Mistral".ljust(25) + "🆓 has a free tier",
-            value=("Mistral", "https://api.mistral.ai/v1", "mistral-embed"),
-        ),
-        Choice(
-            name="Ollama".ljust(25) + "💻 local",
-            value=("Ollama", "http://localhost:11434/v1", "nomic-embed-text:latest"),
-        ),
-        Choice(
-            name="OpenAI".ljust(25),
-            value=("OpenAI", "https://api.openai.com/v1", "text-embedding-3-small"),
-        ),
-        Choice(name="Other (vLLM, ...)".ljust(25) + "🔧 provide API URL", value=("Other", None, None)),
-    ]
+EMBEDDING_PROVIDERS = [
+    Choice(
+        name="Cohere".ljust(25) + "🆓 has a free tier",
+        value=("Cohere", "https://api.cohere.ai/compatibility/v1", "embed-multilingual-v3.0"),
+    ),
+    Choice(
+        name="Google Gemini".ljust(25) + "🆓 has a free tier",
+        value=("Google", "https://generativelanguage.googleapis.com/v1beta/openai", "models/gemini-embedding-001"),
+    ),
+    Choice(
+        name="IBM watsonx".ljust(25),
+        value=("watsonx", None, "ibm/granite-embedding-278m-multilingual"),
+    ),
+    Choice(
+        name="Mistral".ljust(25) + "🆓 has a free tier",
+        value=("Mistral", "https://api.mistral.ai/v1", "mistral-embed"),
+    ),
+    Choice(
+        name="Ollama".ljust(25) + "💻 local",
+        value=("Ollama", "http://localhost:11434/v1", "nomic-embed-text:latest"),
+    ),
+    Choice(
+        name="OpenAI".ljust(25),
+        value=("OpenAI", "https://api.openai.com/v1", "text-embedding-3-small"),
+    ),
+    Choice(
+        name="Voyage".ljust(25),
+        value=("Voyage", "https://api.voyageai.com/v1", "voyage-3.5"),
+    ),
+    Choice(name="Other (vLLM, ...)".ljust(25) + "🔧 provide API URL", value=("Other", None, None)),
+]
 
 
 async def _configure_llm() -> dict[str, str] | None:
-    """Configure LLM provider and return (provider_name, api_base, api_key, model, extra_config)"""
     provider_name, api_base, recommended_model = await inquirer.fuzzy(
-        message="Select LLM provider (type to search):",
-        choices=_get_llm_providers(),
+        message="Select LLM provider (type to search):", choices=LLM_PROVIDERS
     ).execute_async()
 
     extra_config = {}
@@ -300,9 +293,7 @@ async def _configure_llm() -> dict[str, str] | None:
                     message="Select a model (type to search):",
                     choices=sorted(available_models),
                 ).execute_async()
-                if available_models and len(available_models) > 1
-                else available_models[0]
-                if available_models and len(available_models) == 1
+                if available_models
                 else await inquirer.text(message="Write a model name to use:").execute_async()
             )
         )
@@ -360,15 +351,6 @@ async def _configure_llm() -> dict[str, str] | None:
     try:
         with console.status("Checking if the model works...", spinner="dots"):
             async with httpx.AsyncClient() as client:
-                if provider_name == "watsonx":
-                    watsonx_token_response = await client.post(
-                        "https://iam.cloud.ibm.com/identity/token",
-                        headers={"Content-Type": "application/x-www-form-urlencoded"},
-                        data=f"grant_type=urn:ibm:params:oauth:grant-type:apikey&apikey={api_key}",
-                        timeout=30.0,
-                    )
-                    watsonx_token_response.raise_for_status()
-                    watsonx_access_token = watsonx_token_response.json().get("access_token")
                 test_response = await client.post(
                     (
                         f"{api_base}/ml/v1/text/chat?version=2023-10-25"
@@ -393,7 +375,7 @@ async def _configure_llm() -> dict[str, str] | None:
                     headers=(
                         {"RITS_API_KEY": api_key}
                         if provider_name == "RITS"
-                        else {"Authorization": f"Bearer {watsonx_access_token}"}
+                        else {"Authorization": f"Bearer {await _get_watsonx_token(client, api_key)}"}
                         if provider_name == "watsonx"
                         else {"Authorization": f"Bearer {api_key}"}
                     ),
@@ -415,11 +397,20 @@ async def _configure_llm() -> dict[str, str] | None:
     }
 
 
+async def _get_watsonx_token(client: httpx.AsyncClient, api_key: str) -> str | None:
+    watsonx_token_response = await client.post(
+        "https://iam.cloud.ibm.com/identity/token",
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        data=f"grant_type=urn:ibm:params:oauth:grant-type:apikey&apikey={api_key}",
+        timeout=30.0,
+    )
+    watsonx_token_response.raise_for_status()
+    return watsonx_token_response.json().get("access_token")
+
+
 async def _configure_embedding(env: dict[str, str]) -> dict[str, str] | None:
-    """Configure embedding provider and return (provider_name, api_base, api_key, model, extra_config)"""
     provider_name, api_base, recommended_model = await inquirer.fuzzy(
-        message="Select embedding provider (type to search):",
-        choices=_get_embedding_providers(),
+        message="Select embedding provider (type to search):", choices=EMBEDDING_PROVIDERS
     ).execute_async()
 
     extra_config = {}
@@ -452,6 +443,8 @@ async def _configure_embedding(env: dict[str, str]) -> dict[str, str] | None:
 
     if api_base == env["LLM_API_BASE"]:
         api_key = env["LLM_API_KEY"]
+        watsonx_project_or_space = "project" if "WATSONX_PROJECT_ID" in env else "space"
+        watsonx_project_or_space_id = env.get("WATSONX_PROJECT_ID") or env.get("WATSONX_SPACE_ID")
     else:
         if provider_name == "watsonx":
             watsonx_project_or_space = await inquirer.select(
@@ -486,7 +479,7 @@ async def _configure_embedding(env: dict[str, str]) -> dict[str, str] | None:
 
     # Load available models
     try:
-        if provider_name in ["Anthropic", "watsonx"]:
+        if provider_name in ["watsonx"]:
             available_models = []
         else:
             with console.status("Loading available embedding models...", spinner="dots"):
@@ -557,9 +550,7 @@ async def _configure_embedding(env: dict[str, str]) -> dict[str, str] | None:
                     message="Select an embedding model (type to search):",
                     choices=sorted(available_models),
                 ).execute_async()
-                if available_models and len(available_models) > 1
-                else available_models[0]
-                if available_models and len(available_models) == 1
+                if available_models
                 else await inquirer.text(message="Write an embedding model name to use:").execute_async()
             )
         )
@@ -575,6 +566,35 @@ async def _configure_embedding(env: dict[str, str]) -> dict[str, str] | None:
             console.print(f"[red]Error while pulling embedding model: {e!s}[/red]")
             return None
 
+    try:
+        with console.status("Checking if the model works...", spinner="dots"):
+            async with httpx.AsyncClient() as client:
+                test_response = await client.post(
+                    (
+                        f"{api_base}/ml/v1/text/embeddings?version=2024-05-02"
+                        if provider_name == "watsonx"
+                        else f"{api_base}/embeddings"
+                    ),
+                    json={"inputs": ["Hi"]}
+                    | (
+                        {"model_id": selected_model, f"{watsonx_project_or_space}_id": watsonx_project_or_space_id}
+                        if provider_name == "watsonx"
+                        else {"model": selected_model}
+                    ),
+                    headers=(
+                        {"RITS_API_KEY": api_key}
+                        if provider_name == "RITS"
+                        else {"Authorization": f"Bearer {await _get_watsonx_token(client, api_key)}"}
+                        if provider_name == "watsonx"
+                        else {"Authorization": f"Bearer {api_key}"}
+                    ),
+                    timeout=30.0,
+                )
+                test_response.raise_for_status()
+    except Exception as e:
+        console.print(format_error("Error", f"Error during model test: {e!s}"))
+        return None
+
     return {
         "EMBEDDING_API_BASE": api_base,
         "EMBEDDING_API_KEY": api_key,
@@ -583,7 +603,7 @@ async def _configure_embedding(env: dict[str, str]) -> dict[str, str] | None:
     }
 
 
-@app.command("setup", help="Interactive setup for LLM and embedding provider environment variables")
+@app.command("setup")
 async def setup(
     use_true_localhost: typing.Annotated[bool, typer.Option(hidden=True)] = False,
     verbose: typing.Annotated[bool, typer.Option("-v")] = False,
