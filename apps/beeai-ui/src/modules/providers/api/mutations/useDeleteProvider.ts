@@ -6,10 +6,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { agentKeys } from '#modules/agents/api/keys.ts';
-import type { Agent } from '#modules/agents/api/types.ts';
 import { providerKeys } from '#modules/providers/api/keys.ts';
 
 import { deleteProvider } from '..';
+import { ProvidersListResponse } from '../types';
 
 export function useDeleteProvider() {
   const queryClient = useQueryClient();
@@ -17,25 +17,18 @@ export function useDeleteProvider() {
   const mutation = useMutation({
     mutationFn: deleteProvider,
     onSuccess: (_data, variables) => {
-      // The removal of the provider agents is basically done immediately, but it is an asynchronous operation, so instead of the classic invalidation that would return the old data, we set the correct data here.
-      queryClient.setQueriesData<{ agents: Agent[] }>(
-        {
-          queryKey: agentKeys.lists(),
-        },
-        (data) => {
-          const agents = data?.agents.filter((agent) => agent.provider.id !== variables.id);
+      queryClient.setQueryData<ProvidersListResponse>(agentKeys.lists(), (data) => {
+        if (!data) {
+          return data;
+        }
 
-          return agents
-            ? {
-                ...data,
-                agents,
-              }
-            : data;
-        },
-      );
+        const items = data?.items.filter(({ id }) => id !== variables.id) ?? [];
+
+        return { ...data, items };
+      });
     },
     meta: {
-      invalidates: [providerKeys.lists()],
+      invalidates: [providerKeys.lists(), agentKeys.lists()],
       errorToast: {
         title: 'Failed to delete provider.',
         includeErrorMessage: true,

@@ -13,12 +13,6 @@
   min-block-size: rem(92px);
 }
 
-.description {
-  font-size: rem(18px);
-  line-height: math.div(20, 18);
-  color: $text-secondary;
-}
-
 .agents {
   &,
   :global(.cds--list--unordered) {
@@ -33,4 +27,11 @@
       content: '•';
     }
   }
+}
+
+.githubInfo {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-04;
+  padding-block-end: $spacing-04;
 }

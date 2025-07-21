@@ -20,33 +20,29 @@ import pluralize from 'pluralize';
 import { useCallback, useEffect, useId, useState } from 'react';
 import { useController, useForm } from 'react-hook-form';
 
-import { ErrorMessage } from '#components/ErrorMessage/ErrorMessage.tsx';
+import { CodeSnippet } from '#components/CodeSnippet/CodeSnippet.tsx';
+import { CopySnippet } from '#components/CopySnippet/CopySnippet.tsx';
 import { Modal } from '#components/Modal/Modal.tsx';
 import type { ModalProps } from '#contexts/Modal/modal-context.ts';
 import { useImportProvider } from '#modules/providers/api/mutations/useImportProvider.ts';
-import type { RegisterProviderRequest } from '#modules/providers/api/types.ts';
+import type { Provider, RegisterProviderRequest } from '#modules/providers/api/types.ts';
 import { ProviderSourcePrefixes } from '#modules/providers/constants.ts';
 import { ProviderSource } from '#modules/providers/types.ts';
 
 import { useListProviderAgents } from '../api/queries/useListProviderAgents';
-import { useProviderStatus } from '../hooks/useProviderStatus';
 import classes from './ImportAgentsModal.module.scss';
 
-/**
- * TODO: Update to the current API capabilities is needed
- */
 export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps) {
   const id = useId();
-  const [registeredProviderId, setRegisteredProviderId] = useState<string>();
-  const { isNotInstalled, isError, isReady } = useProviderStatus({ providerId: registeredProviderId });
-  const { data: agents } = useListProviderAgents({ providerId: registeredProviderId });
+  const [registeredProvider, setRegisteredProvider] = useState<Provider>();
+  const { data: agents } = useListProviderAgents({ providerId: registeredProvider?.id });
 
   const agentsCount = agents?.length ?? 0;
 
   const { mutateAsync: importProvider, isPending } = useImportProvider({
     onSuccess: (provider) => {
       if (provider) {
-        setRegisteredProviderId(provider.id);
+        setRegisteredProvider(provider);
       }
     },
   });
@@ -60,7 +56,7 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
   } = useForm<FormValues>({
     mode: 'onChange',
     defaultValues: {
-      source: ProviderSource.GitHub,
+      source: ProviderSource.Docker,
     },
   });
 
@@ -73,8 +69,6 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
     [importProvider],
   );
 
-  const locationInputProps = INPUTS_PROPS[sourceField.value];
-
   useEffect(() => {
     setValue('location', '');
   }, [sourceField.value, setValue]);
@@ -82,18 +76,12 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
   return (
     <Modal {...modalProps}>
       <ModalHeader buttonOnClick={() => onRequestClose()}>
-        <h2>Import your agents</h2>
-
-        {isPending && (
-          <p className={classes.description}>
-            This could take a few minutes, you will be notified once your agents have been installed successfully.
-          </p>
-        )}
+        <h2>Import your agent</h2>
       </ModalHeader>
 
       <ModalBody>
         <form onSubmit={handleSubmit(onSubmit)}>
-          {!isNotInstalled && !isPending && !isReady && (
+          {!registeredProvider && (
             <div className={classes.stack}>
               <RadioButtonGroup
                 name={sourceField.name}
@@ -102,21 +90,30 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
                 onChange={sourceField.onChange}
               >
                 <RadioButton labelText="GitHub" value={ProviderSource.GitHub} />
-
                 <RadioButton labelText="Docker image" value={ProviderSource.Docker} />
               </RadioButtonGroup>
 
-              <TextInput
-                id={`${id}:location`}
-                size="lg"
-                className={classes.locationInput}
-                {...locationInputProps}
-                {...register('location', { required: true })}
-              />
+              {sourceField.value === ProviderSource.GitHub ? (
+                <div className={classes.githubInfo}>
+                  <span>Use CLI to import provider from a public Github repository URL.</span>
+                  <CopySnippet>
+                    <CodeSnippet>beeai add {`<github-url>`}</CodeSnippet>
+                  </CopySnippet>
+                </div>
+              ) : (
+                <TextInput
+                  id={`${id}:location`}
+                  size="lg"
+                  className={classes.locationInput}
+                  labelText="Docker image URL"
+                  placeholder="Type your Docker image URL"
+                  {...register('location', { required: true })}
+                />
+              )}
             </div>
           )}
 
-          {isReady && agentsCount > 0 && (
+          {registeredProvider && agentsCount > 0 && (
             <div className={classes.agents}>
               <FormLabel>
                 {agentsCount} {pluralize('agent', agentsCount)} installed
@@ -131,19 +128,15 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
               </UnorderedList>
             </div>
           )}
-
-          {isPending && <InlineLoading description="Installing agents&hellip;" />}
-
-          {isError && <ErrorMessage subtitle="Agents failed to install." />}
         </form>
       </ModalBody>
 
       <ModalFooter>
         <Button kind="ghost" onClick={() => onRequestClose()}>
-          {isPending || isReady ? 'Close' : 'Cancel'}
+          {isPending || registeredProvider ? 'Close' : 'Cancel'}
         </Button>
 
-        {!isNotInstalled && !isPending && !isReady && (
+        {!registeredProvider && (
           <Button onClick={() => handleSubmit(onSubmit)()} disabled={isPending || !isValid}>
             {isPending ? <InlineLoading description="Importing&hellip;" /> : 'Continue'}
           </Button>
@@ -154,15 +147,3 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
 }
 
 type FormValues = RegisterProviderRequest & { source: ProviderSource };
-
-const INPUTS_PROPS = {
-  [ProviderSource.Docker]: {
-    labelText: 'Docker image URL',
-    placeholder: 'Type your Docker image URL',
-  },
-  [ProviderSource.GitHub]: {
-    labelText: 'GitHub repository URL',
-    placeholder: 'Type your GitHub repository URL',
-    helperText: 'Make sure to provide a public link',
-  },
-};
