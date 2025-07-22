@@ -82,7 +82,7 @@ class LLMServiceExtension(beeai_sdk.a2a_extensions.Extension):
         """Model requests that the agent requires to be provided by the client."""
 
     class Metadata(pydantic.BaseModel):
-        llm_anwers: dict[str, LLMAnswer] = {}
+        llm_answers: dict[str, LLMAnswer] = {}
         """Provided models corresponding to the model requests."""
 
     def __init__(self, llm_asks: dict[str, LLMAsk]) -> None:

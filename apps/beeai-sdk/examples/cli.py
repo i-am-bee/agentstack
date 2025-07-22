@@ -16,6 +16,8 @@ import asyncclick.exceptions
 import httpx
 import yaml
 
+import beeai_sdk.a2a_extensions.services.llm
+
 
 @asyncclick.command()
 @asyncclick.option("--agent", default="http://127.0.0.1:10000")
@@ -30,6 +32,8 @@ async def cli(agent, context_id, history):
 
         client = a2a.client.A2AClient(httpx_client, agent_card=card)
         context_id = context_id or uuid.uuid4().hex
+
+        llm_service_extension = beeai_sdk.a2a_extensions.services.llm.LLMServiceExtension.from_agent_card(card)
 
         while True:
             print("\n\n=========  starting a new task ======== ")
@@ -48,6 +52,21 @@ async def cli(agent, context_id, history):
                     parts=[a2a.types.Part(root=a2a.types.TextPart(text=prompt))],
                     task_id=task_id,
                     context_id=context_id,
+                    metadata={
+                        llm_service_extension.URI: llm_service_extension.Metadata(
+                            llm_answers={
+                                # Demonstration only: we ignore the asks and just configure BeeAI proxy for everything
+                                key: beeai_sdk.a2a_extensions.services.llm.LLMAnswer(
+                                    api_base="http://localhost:8333/api/v1/llm/",
+                                    api_key="dummy",
+                                    api_model="dummy",
+                                )
+                                for key in llm_service_extension.llm_asks
+                            }
+                        )
+                    }
+                    if llm_service_extension is not None
+                    else None,
                 )
 
                 try:

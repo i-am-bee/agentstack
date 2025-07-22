@@ -23,6 +23,23 @@ import beeai_framework.tools.search.wikipedia
 import beeai_framework.tools.weather.openmeteo
 import uvicorn
 
+import beeai_sdk.a2a_extensions.services.llm
+
+llm_service_extension = beeai_sdk.a2a_extensions.services.llm.LLMServiceExtension(
+    llm_asks={
+        "default": beeai_sdk.a2a_extensions.services.llm.LLMAsk(
+            description="Default LLM for the agent",
+            features=beeai_sdk.a2a_extensions.services.llm.LLMFeatures(
+                streaming=True,
+                context_length=8192,
+                tool_calling=True,
+                tool_choice_support=("required", "none", "single", "auto"),
+                response_format=("text", "json_object", "json_schema"),
+            ),
+        )
+    }
+)
+
 
 class ChatAgentExecutor(a2a.server.agent_execution.AgentExecutor):
     def __init__(self):
@@ -30,6 +47,7 @@ class ChatAgentExecutor(a2a.server.agent_execution.AgentExecutor):
         self.context_memory: collections.defaultdict[str, beeai_framework.memory.UnconstrainedMemory] = (
             collections.defaultdict(beeai_framework.memory.UnconstrainedMemory)
         )
+        self.context_llm: dict[str, dict[str, beeai_sdk.a2a_extensions.services.llm.LLMAnswer]] = {}
 
     async def cancel(
         self, context: a2a.server.agent_execution.RequestContext, event_queue: a2a.server.events.EventQueue
@@ -43,11 +61,18 @@ class ChatAgentExecutor(a2a.server.agent_execution.AgentExecutor):
         if not context.message or not context.context_id:
             raise ValueError("Context must have a message and context_id")
 
+        llm_metadata = llm_service_extension.read_metadata(context.message)
+        if llm_metadata:
+            self.context_llm[context.context_id] = llm_metadata.llm_answers
+
+        if self.context_llm.get(context.context_id) is None:
+            raise ValueError("No LLM configured!")
+
         agent = beeai_framework.agents.react.ReActAgent(
             llm=beeai_framework.adapters.openai.backend.chat.OpenAIChatModel(
-                model_id=os.getenv("LLM_MODEL", "dummy"),
-                api_key=os.getenv("LLM_API_KEY", "dummy"),
-                base_url=os.getenv("LLM_API_BASE", "http://localhost:8333/api/v1/llm/"),
+                model_id=self.context_llm[context.context_id]["default"].api_model,
+                api_key=self.context_llm[context.context_id]["default"].api_key,
+                base_url=self.context_llm[context.context_id]["default"].api_base,
             ),
             tools=[
                 beeai_framework.tools.search.wikipedia.WikipediaTool(),
@@ -128,7 +153,7 @@ async def serve():
                         streaming=True,
                         push_notifications=False,
                         state_transition_history=False,
-                        extensions=[],
+                        extensions=[llm_service_extension.to_agent_card_extension(required=True)],
                     ),
                     skills=[
                         a2a.types.AgentSkill(
