@@ -24,7 +24,7 @@ export function AgentMetadataView({ agent, className, showSourceCodeLink }: Prop
   const sourceCodeUrl = getAgentSourceCodeUrl(agent);
 
   const hasSourceCodeLinkVisible = showSourceCodeLink && sourceCodeUrl;
-  if (!avg_run_time_seconds || !avg_run_tokens || !license || !hasSourceCodeLinkVisible) {
+  if (!(avg_run_time_seconds || avg_run_tokens || license || hasSourceCodeLinkVisible)) {
     return null;
   }
 

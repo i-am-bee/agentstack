@@ -3,11 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Metadata } from 'acp-sdk';
-
 import type { Provider } from '#modules/providers/api/types.ts';
-
-export type AgentMetadata = Metadata & { provider_id?: string };
 
 type AgentCard = Provider['agent_card'];
 type AgentCardProvider = AgentCard['provider'];
@@ -36,8 +32,6 @@ export interface UiExtensionParams {
   user_greeting?: string;
   display_name: string;
   tools?: AgentTool[];
-
-  // TODO: a2a added just for the sake of successful build
   avg_run_time_seconds?: string;
   avg_run_tokens?: string;
   framework?: string;
@@ -45,6 +39,9 @@ export interface UiExtensionParams {
   tags?: string[];
   documentation?: string;
   programming_language?: string;
+  links?: AgentLink[];
+  author?: AgentAuthor;
+  contributors?: AgentContributor[];
 }
 
 export const AGENT_EXTENSION_UI_KEY = 'beeai_ui';
@@ -53,9 +50,25 @@ export interface UiExtension extends AgentExtension {
   params: UiExtensionParams & { [key: string]: unknown };
 }
 
-export enum LinkType {
+export enum AgentLinkType {
   SourceCode = 'source-code',
   ContainerImage = 'container-image',
   Homepage = 'homepage',
   Documentation = 'documentation',
+}
+
+export interface AgentLink {
+  url: string;
+  type: AgentLinkType;
+}
+
+export interface AgentAuthor {
+  name?: string;
+  email?: string;
+}
+
+export interface AgentContributor extends AgentAuthor {
+  name?: string;
+  email?: string;
+  url?: string;
 }

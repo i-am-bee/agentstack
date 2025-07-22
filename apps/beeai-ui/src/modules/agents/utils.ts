@@ -3,36 +3,29 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import uniq from 'lodash/uniq';
+
 import type { Provider } from '#modules/providers/api/types.ts';
 import { SupportedUis } from '#modules/runs/constants.ts';
-import { compareStrings } from '#utils/helpers.ts';
+import { compareStrings, isNotNull } from '#utils/helpers.ts';
 
-import type { AgentExtension, AgentMetadata, UiExtension } from './api/types';
+import { type AgentExtension, AgentLinkType, type UiExtension, type UiExtensionParams } from './api/types';
 import { type Agent, AGENT_EXTENSION_UI_KEY } from './api/types';
 
 export const getAgentsProgrammingLanguages = (agents: Agent[] | undefined) => {
-  // TODO: a2a
-  // return uniq(
-  //   agents
-  //     ?.map(({ metadata }) => metadata?.programming_language)
-  //     .filter(isNotNull)
-  //     .flat(),
-  // );
-  if (agents) {
-  }
-  return [];
+  return uniq(
+    agents
+      ?.map(({ ui }) => ui.programming_language)
+      .filter(isNotNull)
+      .flat(),
+  );
 };
 
 export function getAgentSourceCodeUrl(agent: Agent) {
-  // TODO: a2a
-  if (agent) {
-  }
+  const { links } = agent.ui;
+  const link = links?.find(({ type }) => type === AgentLinkType.SourceCode);
 
-  return null;
-  // const { links } = agent.metadata;
-  // const link = links?.find(({ type }) => type === LinkType.SourceCode);
-
-  // return link?.url;
+  return link?.url;
 }
 
 export function sortAgentsByName(a: Agent, b: Agent) {
@@ -45,27 +38,19 @@ export function isAgentUiSupported(agent: Agent) {
   return ui_type && SupportedUis.includes(ui_type);
 }
 
-// TODO: a2a
-type AgentLinkType = 'homepage' | 'documentation' | 'source-code';
-
 export function getAvailableAgentLinkUrl<T extends AgentLinkType | AgentLinkType[]>(
-  metadata: AgentMetadata,
+  links: UiExtensionParams['links'],
   type: T,
 ): string | undefined {
-  // TODO: a2a
-  // const typesArray = Array.isArray(type) ? type : [type];
+  const typesArray = Array.isArray(type) ? type : [type];
 
-  // let url: string | undefined;
-  // for (const type of typesArray) {
-  //   url = metadata.links?.find((link) => link.type === type)?.url;
-  //   if (url) {
-  //     break;
-  //   }
-  // }
-
-  // return url;
-  if (metadata && type) {
+  for (const type of typesArray) {
+    const url = links?.find((link) => link.type === type)?.url;
+    if (url) {
+      return url;
+    }
   }
+
   return undefined;
 }
 
