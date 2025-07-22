@@ -7,8 +7,8 @@ import { Container } from '#components/layouts/Container.tsx';
 import { AgentGreeting } from '#modules/agents/components/AgentGreeting.tsx';
 import { AgentHeading } from '#modules/agents/components/AgentHeading.tsx';
 
+import { FileUpload } from '../../files/components/FileUpload';
 import { useAgentRun } from '../contexts/agent-run';
-import { FileUpload } from '../files/components/FileUpload';
 import { HandsOffInput } from './HandsOffInput';
 import classes from './HandsOffLandingView.module.scss';
 

@@ -7,12 +7,12 @@ import type { FormEventHandler, PropsWithChildren, ReactNode, Ref, TextareaHTMLA
 import { useImperativeHandle, useRef } from 'react';
 
 import { TextAreaAutoHeight } from '#components/TextAreaAutoHeight/TextAreaAutoHeight.tsx';
+import { useFileUpload } from '#modules/files/contexts/index.ts';
 import { dispatchInputEventOnFormTextarea, submitFormOnEnter } from '#utils/form-utils.ts';
 
-import { FileCard } from '../files/components/FileCard';
-import { FileCardsList } from '../files/components/FileCardsList';
-import { FileUploadButton } from '../files/components/FileUploadButton';
-import { useFileUpload } from '../files/contexts';
+import { FileCard } from '../../files/components/FileCard';
+import { FileCardsList } from '../../files/components/FileCardsList';
+import { FileUploadButton } from '../../files/components/FileUploadButton';
 import { AgentModel } from './AgentModel';
 import classes from './InputBar.module.scss';
 

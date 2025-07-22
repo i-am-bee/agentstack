@@ -5,16 +5,16 @@
 
 import { getErrorMessage } from '#api/utils.ts';
 import { ErrorMessage } from '#components/ErrorMessage/ErrorMessage.tsx';
-
-import { AgentMessage, MessageStatus } from '../chat/types';
+import type { UIAgentMessage } from '#modules/messages/types.ts';
+import { UIMessageStatus } from '#modules/messages/types.ts';
 
 interface Props {
-  message: AgentMessage;
+  message: UIAgentMessage;
 }
 
 export function MessageError({ message }: Props) {
   const { status, error } = message;
-  const isFailed = status === MessageStatus.Failed;
+  const isFailed = status === UIMessageStatus.Failed;
 
   return (
     <ErrorMessage

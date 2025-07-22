@@ -8,14 +8,14 @@ import type { PropsWithChildren } from 'react';
 
 import { useApp } from '#contexts/App/index.ts';
 import { SidePanelVariant } from '#contexts/App/types.ts';
-import type { SourceReference } from '#modules/runs/sources/api/types.ts';
-import { useSources } from '#modules/runs/sources/contexts/index.ts';
+import type { UISourcePart } from '#modules/messages/types.ts';
+import { useSources } from '#modules/sources/contexts/index.ts';
 
 import { InlineCitationButton } from './InlineCitationButton';
 import classes from './InlineCitations.module.scss';
 
 interface Props {
-  sources: SourceReference[] | undefined;
+  sources: UISourcePart[] | undefined;
 }
 
 export function InlineCitations({ sources = [], children }: PropsWithChildren<Props>) {
@@ -28,16 +28,16 @@ export function InlineCitations({ sources = [], children }: PropsWithChildren<Pr
 
       <span className={classes.list}>
         {sources.map((source) => {
-          const { key, messageKey } = source;
-          const isActive = activeSidePanel === SidePanelVariant.Sources && activeSource?.key === key;
+          const { id, messageId } = source;
+          const isActive = activeSidePanel === SidePanelVariant.Sources && activeSource?.id === id;
 
           return (
-            <sup key={key} className={clsx(classes.item, { [classes.isActive]: isActive })}>
+            <sup key={id} className={clsx(classes.item, { [classes.isActive]: isActive })}>
               <InlineCitationButton
                 source={source}
                 isActive={isActive}
                 onClick={() => {
-                  setActiveSource({ key, messageKey });
+                  setActiveSource({ id, messageId });
                   openSidePanel(SidePanelVariant.Sources);
                 }}
               />

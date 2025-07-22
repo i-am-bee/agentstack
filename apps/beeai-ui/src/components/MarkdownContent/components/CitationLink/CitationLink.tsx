@@ -5,20 +5,20 @@
 
 import type { PropsWithChildren } from 'react';
 
-import type { SourceReference } from '#modules/runs/sources/api/types.ts';
+import type { UISourcePart } from '#modules/messages/types.ts';
 
 import { InlineCitations } from './InlineCitations';
 
 export interface CitationLinkBaseProps extends PropsWithChildren {
-  keys: string[];
+  items: string[];
 }
 
 interface CitationLinkProps extends CitationLinkBaseProps {
-  sources: SourceReference[] | undefined;
+  sources: UISourcePart[] | undefined;
 }
 
-export function CitationLink({ sources, keys, children }: CitationLinkProps) {
-  const filteredSources = sources?.filter(({ key }) => keys.includes(key));
+export function CitationLink({ sources, items, children }: CitationLinkProps) {
+  const filteredSources = sources?.filter(({ id }) => items.includes(id));
 
   return <InlineCitations sources={filteredSources}>{children}</InlineCitations>;
 }

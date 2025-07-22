@@ -22,3 +22,7 @@
   inset-block-start: $spacing-05;
   inset-inline-end: $spacing-05;
 }
+
+.holder:empty {
+  display: none;
+}

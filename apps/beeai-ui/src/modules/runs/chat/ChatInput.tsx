@@ -9,10 +9,11 @@ import { Button } from '@carbon/react';
 import { memo, useCallback, useRef } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
+import { useFileUpload } from '#modules/files/contexts/index.ts';
+
 import type { InputBarFormHandle } from '../components/InputBar';
 import { InputBar } from '../components/InputBar';
 import { useAgentRun } from '../contexts/agent-run';
-import { useFileUpload } from '../files/contexts';
 // import { ChatSettings } from './ChatSettings';
 import { ChatDefaultTools } from './constants';
 
