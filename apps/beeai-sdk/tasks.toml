@@ -50,6 +50,13 @@ run = "uv run python -m ruff format --quiet"
 sources = ["src/**/*.py"]
 outputs = { auto = true }
 
+# test
+
+["beeai-sdk:test"]
+depends = ["beeai-sdk:setup"]
+dir = "{{config_root}}/apps/beeai-sdk"
+run = "uv run pytest"
+
 # build
 
 ["beeai-sdk:build"]

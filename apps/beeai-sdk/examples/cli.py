@@ -15,6 +15,7 @@ import asyncclick
 import asyncclick.exceptions
 import httpx
 import yaml
+from a2a.types import CancelTaskRequest, TaskIdParams
 
 import beeai_sdk.a2a_extensions.services.llm
 
@@ -22,8 +23,7 @@ import beeai_sdk.a2a_extensions.services.llm
 @asyncclick.command()
 @asyncclick.option("--base-url", default="http://127.0.0.1:10000")
 @asyncclick.option("--context-id", default="")
-@asyncclick.option("--history", default=False)
-async def cli(base_url: str, context_id: str, history: bool) -> None:
+async def cli(base_url: str, context_id: str) -> None:
     async with httpx.AsyncClient(timeout=30) as httpx_client:
         card = await a2a.client.A2ACardResolver(httpx_client, base_url=base_url).get_agent_card()
 
@@ -44,6 +44,10 @@ async def cli(base_url: str, context_id: str, history: bool) -> None:
                     prompt: str = asyncclick.prompt("\n👤 User (CTRL-D to cancel)")
                 except asyncclick.exceptions.Abort:
                     print("Exiting...")
+                    if task_id:
+                        await client.cancel_task(
+                            CancelTaskRequest(id=str(uuid.uuid4()), params=TaskIdParams(id=task_id))
+                        )
                     return
 
                 message = a2a.types.Message(
@@ -98,8 +102,6 @@ async def cli(base_url: str, context_id: str, history: bool) -> None:
                     ),
                 )
 
-                task_result = None
-                message_result = None
                 task_completed = False
 
                 if card.capabilities.streaming:
@@ -144,8 +146,6 @@ async def cli(base_url: str, context_id: str, history: bool) -> None:
                                         print(part.root.text, end="", flush=True)
                             if event.status.state == "completed":
                                 task_completed = True
-                        else:
-                            message_result = event
 
                     if task_id and not task_completed:
                         task_result_response = await client.get_task(
@@ -159,7 +159,6 @@ async def cli(base_url: str, context_id: str, history: bool) -> None:
                                 f"Error: {task_result_response.root.error}, context_id: {context_id}, task_id: {task_id}"
                             )
                             return
-                        task_result = task_result_response.root.result
                 else:
                     try:
                         event = (
@@ -172,50 +171,10 @@ async def cli(base_url: str, context_id: str, history: bool) -> None:
                         ).root.result
                         if not context_id and event and event.context_id:
                             context_id = event.context_id
-                        if isinstance(event, a2a.types.Task):
-                            if not task_id:
-                                task_id = event.id
-                            task_result = event
-                        elif isinstance(event, a2a.types.Message):
-                            message_result = event
+                        if isinstance(event, a2a.types.Task) and not task_id:
+                            task_id = event.id
                     except Exception as e:
                         print("Failed to complete the call", e)
-
-                if message_result:
-                    print(f"\n{message_result.model_dump_json(exclude_none=True)}")
-                    break
-
-                if task_result:
-                    task_content = task_result.model_dump_json(
-                        exclude={
-                            "history": {
-                                "__all__": {
-                                    "parts": {
-                                        "__all__": {"file"},
-                                    },
-                                },
-                            },
-                        },
-                        exclude_none=True,
-                    )
-                    print(f"\n{task_content}")
-
-                    state = a2a.types.TaskState(task_result.status.state)
-                    if state.name == a2a.types.TaskState.input_required.name:
-                        continue
-                    else:
-                        break
-
-                break
-
-            if history and task_id:
-                print("========= history ======== ")
-                task_response = await client.get_task(
-                    a2a.types.GetTaskRequest(
-                        id=str(uuid.uuid4()), params=a2a.types.TaskQueryParams(id=task_id, history_length=10)
-                    )
-                )
-                print(task_response.model_dump_json(include={"result": {"history": True}}))
 
 
 if __name__ == "__main__":

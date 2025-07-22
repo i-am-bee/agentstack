@@ -46,7 +46,7 @@ def main():
             allow_methods=["*"],
             allow_headers=["*"],
         )
-        config = uvicorn.Config(app=app, host=host, port=port, log_level=log_level.lower())
+        config = uvicorn_config(app=app, host=host, port=port, log_level=log_level.lower())
         await uvicorn.Server(config).serve()
 
     try:
