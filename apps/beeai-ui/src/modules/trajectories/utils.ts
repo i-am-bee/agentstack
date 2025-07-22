@@ -11,6 +11,7 @@ import { UIMessagePartKind } from '#modules/messages/types.ts';
 import { parseJsonLikeString } from '#modules/runs/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
+import { NON_VIEWABLE_TRAJECTORY_PROPERTIES } from './constants';
 import type { NonViewableTrajectoryProperty } from './types';
 
 export function processTrajectoryPart(metadata: TrajectoryMetadata): UITrajectoryPart {
@@ -27,10 +28,8 @@ export function processTrajectoryPart(metadata: TrajectoryMetadata): UITrajector
 }
 
 export function hasViewableTrajectoryParts(trajectory: UITrajectoryPart) {
-  const nonViewableProperties = ['kind', 'id'] as NonViewableTrajectoryProperty[];
-
   return Object.entries(trajectory)
-    .filter(([key]) => !nonViewableProperties.includes(key as NonViewableTrajectoryProperty))
+    .filter(([key]) => !NON_VIEWABLE_TRAJECTORY_PROPERTIES.includes(key as NonViewableTrajectoryProperty))
     .some(([, value]) => isNotNull(value));
 }
 
