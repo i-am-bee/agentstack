@@ -77,7 +77,10 @@ server = Server()
                 "name": "LLM_MODEL_STRATEGIC",
                 "description": "Strategic model to use from the specified OpenAI-compatible API.",
             },
-            {"name": "EMBEDDING_MODEL", "description": "Embedding model to use (see GPT Researcher docs for details)"},
+            {
+                "name": "GPT_RESEARCHER_EMBEDDING_MODEL",
+                "description": "Embedding model to use (see GPT Researcher docs for details)"
+            },
         ],
     )
 )
@@ -95,7 +98,7 @@ async def gpt_researcher(input: list[Message], context: Context) -> None:
     os.environ["SMART_LLM"] = f"openai:{os.getenv('LLM_MODEL_SMART', model)}"
     os.environ["STRATEGIC_LLM"] = f"openai:{os.getenv('LLM_MODEL_STRATEGIC', model)}"
 
-    embedding_model = os.getenv("EMBEDDING_MODEL")
+    embedding_model = os.getenv("GPT_RESEARCHER_EMBEDDING_MODEL")
     if embedding_model:
         os.environ["EMBEDDING"] = embedding_model
 
