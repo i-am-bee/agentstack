@@ -73,13 +73,12 @@ class ChatAgentExecutor(a2a.server.agent_execution.AgentExecutor):
 
                         if data.update.key == "final_answer":
                             final_answer += update
-
-                        await updater.update_status(
-                            state=a2a.types.TaskState.working,
-                            message=updater.new_agent_message(
-                                parts=[a2a.types.Part(root=a2a.types.TextPart(text=update))]
-                            ),
-                        )
+                            await updater.update_status(
+                                state=a2a.types.TaskState.working,
+                                message=updater.new_agent_message(
+                                    parts=[a2a.types.Part(root=a2a.types.TextPart(text=update))]
+                                ),
+                            )
             await self.context_memory[context.context_id].add(beeai_framework.backend.AssistantMessage(final_answer))
             await updater.complete()
         except BaseException as e:
@@ -91,7 +90,7 @@ class ChatAgentExecutor(a2a.server.agent_execution.AgentExecutor):
 
 async def serve():
     host = os.getenv("HOST", "127.0.0.1")
-    port = int(os.getenv("PORT", "8000"))
+    port = int(os.getenv("PORT", "10000"))
     await uvicorn.Server(
         uvicorn.Config(
             app=a2a.server.apps.A2AStarletteApplication(
@@ -120,15 +119,15 @@ async def serve():
                         - **Customizable Configuration** - Users can enable or disable specific tools for enhanced responses.
                         """
                     ),
-                    documentationUrl="https://github.com/i-am-bee/beeai-platform/blob/main/agents/official/beeai-framework/chat",
+                    documentation_url="https://github.com/i-am-bee/beeai-platform/blob/main/agents/official/beeai-framework/chat",
                     url=f"http://{host}:{port}/",
                     version="1.0.0",
-                    defaultInputModes=["text", "text/plain"],
-                    defaultOutputModes=["text", "text/plain"],
+                    default_input_modes=["text", "text/plain"],
+                    default_output_modes=["text", "text/plain"],
                     capabilities=a2a.types.AgentCapabilities(
                         streaming=True,
-                        pushNotifications=False,
-                        stateTransitionHistory=False,
+                        push_notifications=False,
+                        state_transition_history=False,
                         extensions=[],
                     ),
                     skills=[

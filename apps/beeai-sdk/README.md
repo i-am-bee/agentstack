@@ -7,13 +7,13 @@ The examples connect to the BeeAI Platform for LLM inteference.
 Run using:
 
 ```bash
-uv run examples/agents/pure-a2a.py
+uv run examples/agent.py
 ```
 
-Connect to the agent using the official [CLI sample](https://github.com/a2aproject/a2a-samples/tree/main/samples/python/hosts/cli):
+Connect to the agent using the CLI:
 
 ```bash
-uv run . --agent http://localhost:8000
+uv run examples/cli.py
 ```
 
 ## Plan
