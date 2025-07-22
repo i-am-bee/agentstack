@@ -5,7 +5,7 @@
 
 import type { Metadata } from 'acp-sdk';
 
-import { Provider } from '#modules/providers/api/types.ts';
+import type { Provider } from '#modules/providers/api/types.ts';
 
 export type AgentMetadata = Metadata & { provider_id?: string };
 

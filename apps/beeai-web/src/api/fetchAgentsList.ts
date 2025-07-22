@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Agent } from '@i-am-bee/beeai-ui';
+import type { Agent } from '@i-am-bee/beeai-ui';
 
 import { fetchAgentMetadata } from '@/utils/fetchAgentMetadata';
 import { fetchAgentRegistry } from '@/utils/fetchAgentRegistry';

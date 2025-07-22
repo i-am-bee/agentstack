@@ -8,15 +8,15 @@ import type { PropsWithChildren } from 'react';
 
 import { DownloadButton } from '#components/DownloadButton/DownloadButton.tsx';
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
+import type { UISourcePart } from '#modules/messages/types.ts';
 
-import type { SourceReference } from '../sources/api/types';
 import classes from './AgentOutputBox.module.scss';
 
 interface Props {
   isPending: boolean;
   text?: string;
   downloadFileName?: string;
-  sources?: SourceReference[];
+  sources?: UISourcePart[];
 }
 
 export function AgentOutputBox({ isPending, text, downloadFileName, sources, children }: PropsWithChildren<Props>) {
@@ -32,7 +32,7 @@ export function AgentOutputBox({ isPending, text, downloadFileName, sources, chi
 
       {text && <MarkdownContent sources={sources}>{text}</MarkdownContent>}
 
-      {children && <div>{children}</div>}
+      <div className={classes.holder}>{children}</div>
     </div>
   ) : null;
 }

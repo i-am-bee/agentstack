@@ -3,14 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Message, Part, Task, TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from '@a2a-js/sdk';
+import type { Message, Part, Task, TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from '@a2a-js/sdk';
 import { useCallback, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
-import { useCancelTask } from '../api/mutations/useCancelTask';
-import { useSendMessageStream } from '../api/mutations/useSendMessageStream';
-import type { ContextId, TaskId } from '../api/types';
-import { Role, type RunAgentParams } from '../types';
+import { useSendMessageStream } from '#modules/messages/api/mutations/useSendMessageStream.tsx';
+import { Role } from '#modules/messages/api/types.ts';
+import { useCancelTask } from '#modules/tasks/api/mutations/useCancelTask.tsx';
+import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
+
+import type { RunAgentParams } from '../types';
 import { extractTextFromParts } from '../utils';
 
 interface Props {

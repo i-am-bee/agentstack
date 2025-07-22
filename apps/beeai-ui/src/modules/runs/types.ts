@@ -7,11 +7,6 @@ import type { Part } from '@a2a-js/sdk';
 
 import type { Agent } from '#modules/agents/api/types.ts';
 
-export enum Role {
-  User = 'user',
-  Agent = 'agent',
-}
-
 export interface RunAgentParams {
   agent: Agent;
   parts: Part[];

@@ -5,7 +5,7 @@
 
 import { notFound } from 'next/navigation';
 
-import { Agent } from '#modules/agents/api/types.ts';
+import type { Agent } from '#modules/agents/api/types.ts';
 import { buildAgent } from '#modules/agents/utils.ts';
 import { listProviders } from '#modules/providers/api/index.ts';
 import { AgentRun } from '#modules/runs/components/AgentRun.tsx';

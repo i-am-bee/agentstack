@@ -8,9 +8,10 @@ import { PlayFilledAlt } from '@carbon/icons-react';
 import { Button } from '@carbon/react';
 import { useForm } from 'react-hook-form';
 
+import { useFileUpload } from '#modules/files/contexts/index.ts';
+
 import { InputBar } from '../components/InputBar';
 import { useAgentRun } from '../contexts/agent-run';
-import { useFileUpload } from '../files/contexts';
 
 export function HandsOffInput() {
   const { isPending, run } = useAgentRun();

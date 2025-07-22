@@ -3,6 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { MessagePart } from '#modules/runs/api/types.ts';
+import type { MessagePart } from 'acp-sdk';
 
 export type ComposeMessagePart = MessagePart & { agent_idx: number };

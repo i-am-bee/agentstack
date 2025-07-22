@@ -19,6 +19,8 @@ const eslintConfig = [
   ...compat.plugins('simple-import-sort'),
   {
     rules: {
+      '@typescript-eslint/consistent-type-imports': 'error',
+      '@typescript-eslint/no-import-type-side-effects': 'error',
       'simple-import-sort/imports': 'error',
       'simple-import-sort/exports': 'error',
     },
