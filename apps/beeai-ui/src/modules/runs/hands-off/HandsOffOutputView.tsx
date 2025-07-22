@@ -5,7 +5,7 @@
 
 import { Container } from '#components/layouts/Container.tsx';
 import { AgentHeading } from '#modules/agents/components/AgentHeading.tsx';
-import { isAgentMessage } from '#modules/messages/utils.ts';
+import { checkMessageContent, isAgentMessage } from '#modules/messages/utils.ts';
 
 import { useMessages } from '../../messages/contexts';
 import { MessageTrajectories } from '../../trajectories/components/MessageTrajectories';
@@ -19,7 +19,7 @@ export function HandsOffOutputView() {
   const { agent, input, isPending, cancel, clear } = useAgentRun();
   const { messages } = useMessages();
   const message = messages.find(isAgentMessage);
-  const hasOutput = Boolean(message?.content);
+  const hasOutput = message ? checkMessageContent(message) : false;
 
   return (
     <div className={classes.root}>

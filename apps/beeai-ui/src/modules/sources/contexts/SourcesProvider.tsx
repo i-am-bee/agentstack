@@ -7,16 +7,16 @@ import { type PropsWithChildren, useEffect, useMemo, useState } from 'react';
 
 import { useApp } from '#contexts/App/index.ts';
 import { SidePanelVariant } from '#contexts/App/types.ts';
-import type { SourcesData } from '#modules/sources/types.ts';
+import type { MessageSourcesMap } from '#modules/sources/types.ts';
 
 import { SourcesContext } from './sources-context';
 import type { ActiveSource } from './types';
 
 interface Props {
-  sourcesData: SourcesData;
+  sources: MessageSourcesMap;
 }
 
-export function SourcesProvider({ sourcesData, children }: PropsWithChildren<Props>) {
+export function SourcesProvider({ sources, children }: PropsWithChildren<Props>) {
   const { activeSidePanel } = useApp();
   const [activeSource, setActiveSource] = useState<ActiveSource | null>(null);
 
@@ -30,11 +30,11 @@ export function SourcesProvider({ sourcesData, children }: PropsWithChildren<Pro
 
   const contextValue = useMemo(
     () => ({
-      sourcesData,
+      sources,
       activeSource,
       setActiveSource,
     }),
-    [sourcesData, activeSource, setActiveSource],
+    [sources, activeSource, setActiveSource],
   );
 
   return <SourcesContext.Provider value={contextValue}>{children}</SourcesContext.Provider>;

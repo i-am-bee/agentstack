@@ -5,7 +5,7 @@
 
 import { useAutoScroll } from '#hooks/useAutoScroll.ts';
 import type { UIAgentMessage } from '#modules/messages/types.ts';
-import { checkMessageError, getMessageSources } from '#modules/messages/utils.ts';
+import { checkMessageError, getMessageContent, getMessageSources } from '#modules/messages/utils.ts';
 import { MessageSources } from '#modules/sources/components/MessageSources.tsx';
 
 import { MessageFiles } from '../../files/components/MessageFiles';
@@ -21,7 +21,7 @@ interface Props {
 export function HandsOffText({ message, className }: Props) {
   const { agent, isPending } = useAgentRun();
 
-  const { content } = message;
+  const content = getMessageContent(message);
   const sources = getMessageSources(message);
   const isError = checkMessageError(message);
 

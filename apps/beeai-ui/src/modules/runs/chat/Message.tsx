@@ -8,7 +8,13 @@ import clsx from 'clsx';
 import { Spinner } from '#components/Spinner/Spinner.tsx';
 import type { UIMessage } from '#modules/messages/types.ts';
 import { UIMessageStatus } from '#modules/messages/types.ts';
-import { checkMessageError, isAgentMessage, isUserMessage } from '#modules/messages/utils.ts';
+import {
+  checkMessageError,
+  getMessageContent,
+  getMessageSources,
+  isAgentMessage,
+  isUserMessage,
+} from '#modules/messages/utils.ts';
 import { MessageSources } from '#modules/sources/components/MessageSources.tsx';
 
 import { MessageFiles } from '../../files/components/MessageFiles';
@@ -26,7 +32,9 @@ interface Props {
 
 export function Message({ message }: Props) {
   const { agent } = useAgentRun();
-  const { content } = message;
+
+  const content = getMessageContent(message);
+  const sources = getMessageSources(message);
 
   const isUser = isUserMessage(message);
   const isAgent = isAgentMessage(message);
@@ -46,7 +54,7 @@ export function Message({ message }: Props) {
         ) : (
           <>
             <div className={clsx(classes.content, { [classes.isUser]: isUser })}>
-              <MessageContent message={message} />
+              <MessageContent content={content} sources={sources} />
             </div>
 
             {isError && <MessageError message={message} />}

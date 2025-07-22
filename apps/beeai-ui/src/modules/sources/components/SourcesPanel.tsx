@@ -18,10 +18,10 @@ import classes from './SourcesPanel.module.scss';
 
 export function SourcesPanel() {
   const { activeSidePanel, closeSidePanel } = useApp();
-  const { sourcesData, activeSource } = useSources();
+  const { sources: messageSourcesMap, activeSource } = useSources();
 
   const messageId = activeSource?.messageId;
-  const sources = messageId ? (sourcesData[messageId] ?? []) : [];
+  const sources = messageId ? (messageSourcesMap[messageId] ?? []) : [];
   const hasSources = sources.length > 0;
 
   const isOpen = activeSidePanel === SidePanelVariant.Sources;

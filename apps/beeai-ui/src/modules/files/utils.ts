@@ -9,6 +9,7 @@ import { v4 as uuid } from 'uuid';
 import type { FileEntity } from '#modules/files/types.ts';
 import type { UIAgentMessage, UIFilePart, UITransformPart } from '#modules/messages/types.ts';
 import { UIMessagePartKind, UITransformType } from '#modules/messages/types.ts';
+import { getMessageRawContent } from '#modules/messages/utils.ts';
 import { isImageMimeType, isNotNull } from '#utils/helpers.ts';
 import { toMarkdownImage } from '#utils/markdown.ts';
 
@@ -92,7 +93,7 @@ export function processFilePart(part: FilePart, message: UIAgentMessage): (UIFil
     return [filePart];
   }
 
-  const startIndex = message.content.length;
+  const startIndex = getMessageRawContent(message).length;
 
   const transformPart: UITransformPart = {
     kind: UIMessagePartKind.Transform,

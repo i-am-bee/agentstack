@@ -12,7 +12,7 @@ import { getMessageSources } from '#modules/messages/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
 import { toMarkdownCitation } from '#utils/markdown.ts';
 
-import type { SourcesData } from './types';
+import type { MessageSourcesMap } from './types';
 
 export function processSourcePart(
   metadata: CitationMetadata,
@@ -56,8 +56,8 @@ export function processSourcePart(
   return [sourcePart, transformPart];
 }
 
-export function extractSources(messages: UIMessage[]) {
-  const sources = messages.reduce<SourcesData>(
+export function getMessageSourcesMap(messages: UIMessage[]) {
+  const sources = messages.reduce<MessageSourcesMap>(
     (data, message) => ({
       ...data,
       [message.id]: getMessageSources(message),

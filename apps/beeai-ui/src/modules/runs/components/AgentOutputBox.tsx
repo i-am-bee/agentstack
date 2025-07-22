@@ -32,7 +32,7 @@ export function AgentOutputBox({ isPending, text, downloadFileName, sources, chi
 
       {text && <MarkdownContent sources={sources}>{text}</MarkdownContent>}
 
-      {children && <div>{children}</div>}
+      <div className={classes.holder}>{children}</div>
     </div>
   ) : null;
 }

@@ -29,13 +29,19 @@ export function isAgentMessage(message: UIMessage): message is UIAgentMessage {
   return message.role === Role.Agent;
 }
 
-export function processMessageContent(message: UIMessage) {
-  let offset = 0;
-
+export function getMessageRawContent(message: UIMessage) {
   const rawContent = message.parts.reduce(
     (content, part) => (part.kind === UIMessagePartKind.Text ? content.concat(part.text) : content),
     '',
   );
+
+  return rawContent;
+}
+
+export function getMessageContent(message: UIMessage) {
+  let offset = 0;
+
+  const rawContent = getMessageRawContent(message);
   const transformedContent = message.parts.reduce((content, part) => {
     if (part.kind === UIMessagePartKind.Transform) {
       const newContent = part.apply(content, offset);
@@ -73,6 +79,14 @@ export function checkMessageError(message: UIAgentMessage) {
   const isError = status === UIMessageStatus.Failed || status === UIMessageStatus.Aborted;
 
   return isError;
+}
+
+export function checkMessageContent(message: UIMessage) {
+  const hasContent = message.parts.some(
+    ({ kind }) => kind === UIMessagePartKind.Text || kind === UIMessagePartKind.Transform,
+  );
+
+  return hasContent;
 }
 
 export function convertUIMessageParts(uiParts: UIMessagePart[]): Part[] {

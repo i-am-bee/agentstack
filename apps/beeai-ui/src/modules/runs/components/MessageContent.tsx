@@ -4,20 +4,17 @@
  */
 
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
-import type { UIMessage } from '#modules/messages/types.ts';
-import { getMessageSources } from '#modules/messages/utils.ts';
+import type { UISourcePart } from '#modules/messages/types.ts';
 
 import { useAgentRun } from '../contexts/agent-run';
 import classes from './MessageContent.module.scss';
 
 interface Props {
-  message: UIMessage;
+  content: string;
+  sources: UISourcePart[];
 }
 
-export function MessageContent({ message }: Props) {
-  const { content } = message;
-  const sources = getMessageSources(message);
-
+export function MessageContent({ content, sources }: Props) {
   const { isPending } = useAgentRun();
 
   return content ? (

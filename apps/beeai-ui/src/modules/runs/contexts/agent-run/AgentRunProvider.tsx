@@ -20,17 +20,11 @@ import { convertFilesToUIFileParts, processFilePart } from '#modules/files/utils
 import { Role } from '#modules/messages/api/types.ts';
 import type { UIAgentMessage, UIMessage, UIMessagePart, UIUserMessage } from '#modules/messages/types.ts';
 import { UIMessagePartKind, UIMessageStatus } from '#modules/messages/types.ts';
-import {
-  convertUIMessageParts,
-  isAgentMessage,
-  processMessageContent,
-  processTextPart,
-  sortMessageParts,
-} from '#modules/messages/utils.ts';
+import { convertUIMessageParts, isAgentMessage, processTextPart, sortMessageParts } from '#modules/messages/utils.ts';
 import { useRunAgent } from '#modules/runs/hooks/useRunAgent.ts';
 import type { RunStats } from '#modules/runs/types.ts';
 import { SourcesProvider } from '#modules/sources/contexts/SourcesProvider.tsx';
-import { extractSources, processSourcePart } from '#modules/sources/utils.ts';
+import { getMessageSourcesMap, processSourcePart } from '#modules/sources/utils.ts';
 import { processTrajectoryPart } from '#modules/trajectories/utils.ts';
 
 import { MessagesProvider } from '../../../messages/contexts/MessagesProvider';
@@ -93,7 +87,6 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
 
       updateLastAgentMessage((message) => {
         message.parts = sortMessageParts(message.parts);
-        message.content = processMessageContent(message);
       });
     },
     onCompleted: () => {
@@ -200,13 +193,11 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
           id: uuid(),
           role: Role.User,
           parts,
-          content: input,
         };
         const agentMessage: UIAgentMessage = {
           id: uuid(),
           role: Role.Agent,
           parts: [],
-          content: '',
           status: UIMessageStatus.InProgress,
         };
 
@@ -224,7 +215,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
     [agent, files, setMessages, clearFiles, runAgent, handleError],
   );
 
-  const sourcesData = useMemo(() => extractSources(messages), [messages]);
+  const sources = useMemo(() => getMessageSourcesMap(messages), [messages]);
 
   const contextValue = useMemo(
     () => ({
@@ -241,7 +232,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
 
   return (
     <AgentStatusProvider agent={agent} isMonitorStatusEnabled>
-      <SourcesProvider sourcesData={sourcesData}>
+      <SourcesProvider sources={sources}>
         <MessagesProvider messages={getMessages()}>
           <AgentRunContext.Provider value={contextValue}>{children}</AgentRunContext.Provider>
         </MessagesProvider>

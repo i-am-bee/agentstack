@@ -5,8 +5,8 @@
 
 import type { UISourcePart } from '#modules/messages/types.ts';
 
-export interface SourcesData {
-  [messageKey: string]: UISourcePart[];
+export interface MessageSourcesMap {
+  [messageId: string]: UISourcePart[];
 }
 
 export const CITATION_LINK_PREFIX = 'citation:';

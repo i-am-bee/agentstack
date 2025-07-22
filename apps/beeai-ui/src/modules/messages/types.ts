@@ -9,7 +9,6 @@ export interface UIMessage {
   id: string;
   role: Role;
   parts: UIMessagePart[];
-  content: string;
   error?: Error;
 }
 
