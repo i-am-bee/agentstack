@@ -19,7 +19,7 @@ export function HandsOffOutputView() {
   const { agent, input, isPending, cancel, clear } = useAgentRun();
   const { messages } = useMessages();
   const message = messages.find(isAgentMessage);
-  const hasOutput = message ? Boolean(message.content) : false;
+  const hasOutput = Boolean(message?.content);
 
   return (
     <div className={classes.root}>
