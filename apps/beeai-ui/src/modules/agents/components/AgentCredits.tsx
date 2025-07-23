@@ -16,24 +16,24 @@ interface Props {
   contributors?: AgentContributor[];
 }
 
-export const AgentCredits = memo(function AgentCredits({ author: { name, email } = {}, contributors }: Props) {
+export const AgentCredits = memo(function AgentCredits({ author, contributors }: Props) {
   const validContributors = useMemo(
     () => contributors?.filter(({ name, email }) => Boolean(name || email)),
     [contributors],
   );
 
-  if (!name && !email && !validContributors?.length) {
+  if (!author && !validContributors?.length) {
     return null;
   }
 
   return (
     <div className={classes.root}>
       <span>
-        {!name && !email ? (
+        {!author ? (
           <em className={classes.noAuthor}>No author</em>
         ) : (
           <>
-            By <AuthorView name={name} email={email} />
+            By <AuthorView name={author.name} email={author.email} />
           </>
         )}
       </span>

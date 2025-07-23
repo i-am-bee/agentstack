@@ -12,7 +12,7 @@ export interface Agent extends Omit<AgentCard, 'provider'> {
   provider: Omit<Provider, 'agent_card'> & {
     metadata?: AgentCardProvider;
   };
-  ui: UiExtensionParams;
+  ui: UIExtensionParams;
 }
 
 export type AgentExtension = NonNullable<Agent['capabilities']['extensions']>[number];
@@ -27,7 +27,7 @@ export interface AgentTool {
   description: string;
 }
 
-export interface UiExtensionParams {
+export interface UIExtensionParams {
   ui_type?: UiType;
   user_greeting?: string;
   display_name: string;
@@ -47,7 +47,7 @@ export interface UiExtensionParams {
 export const AGENT_EXTENSION_UI_KEY = 'beeai_ui';
 export interface UiExtension extends AgentExtension {
   uri: 'beeai_ui';
-  params: UiExtensionParams & { [key: string]: unknown };
+  params: UIExtensionParams & { [key: string]: unknown };
 }
 
 export enum AgentLinkType {
@@ -63,12 +63,12 @@ export interface AgentLink {
 }
 
 export interface AgentAuthor {
-  name?: string;
+  name: string;
   email?: string;
 }
 
 export interface AgentContributor extends AgentAuthor {
-  name?: string;
+  name: string;
   email?: string;
   url?: string;
 }
