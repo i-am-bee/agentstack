@@ -24,6 +24,9 @@ interface Props {
   onFailed?: (event: TaskStatusUpdateEvent, error: Error) => void;
 }
 
+/**
+ * @deprecated use the A2A Client directly
+ */
 export function useRunAgent({ onStart, onStop, onDone, onPart, onCompleted, onFailed }: Props) {
   const [input, setInput] = useState<string>();
   const [taskId, setTaskId] = useState<TaskId>();
