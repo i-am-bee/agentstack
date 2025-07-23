@@ -32,10 +32,11 @@ interface Props {
 }
 
 export function AgentDetail({ agent, buttons }: Props) {
-  const { name, description } = agent;
-
-  // TODO: a2a
-  const documentation = undefined;
+  const {
+    name,
+    description,
+    ui: { documentation },
+  } = agent;
 
   return (
     <div className={classes.root}>

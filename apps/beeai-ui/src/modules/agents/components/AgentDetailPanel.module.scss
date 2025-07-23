@@ -18,16 +18,14 @@
   gap: $spacing-05;
 }
 
-.infoHeader {
+.mainInfo {
   display: flex;
   flex-direction: column;
-  gap: $spacing-03;
+  row-gap: $spacing-03;
 }
 
 .author {
   font-size: rem(14px);
-  line-height: math.div(18, 14);
-  color: $text-secondary;
 }
 
 .docsLink {
