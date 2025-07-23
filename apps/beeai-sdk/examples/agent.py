@@ -26,16 +26,9 @@ import uvicorn
 import beeai_sdk.a2a_extensions.services.llm
 
 llm_service_extension = beeai_sdk.a2a_extensions.services.llm.LLMServiceExtension(
-    llm_asks={
-        "default": beeai_sdk.a2a_extensions.services.llm.LLMAsk(
-            description="Default LLM for the agent",
-            features=beeai_sdk.a2a_extensions.services.llm.LLMFeatures(
-                streaming=True,
-                context_length=8192,
-                tool_calling=True,
-                tool_choice_support=("required", "none", "single", "auto"),
-                response_format=("text", "json_object", "json_schema"),
-            ),
+    llm_demands={
+        "default": beeai_sdk.a2a_extensions.services.llm.LLMDemand(
+            description="Default LLM for the agent", suggested=("openai/gpt-4o", "ollama/granite3.3:8b")
         )
     }
 )
@@ -47,7 +40,7 @@ class ChatAgentExecutor(a2a.server.agent_execution.AgentExecutor):
         self.context_memory: collections.defaultdict[str, beeai_framework.memory.UnconstrainedMemory] = (
             collections.defaultdict(beeai_framework.memory.UnconstrainedMemory)
         )
-        self.context_llm: dict[str, dict[str, beeai_sdk.a2a_extensions.services.llm.LLMAnswer]] = {}
+        self.context_llm: dict[str, dict[str, beeai_sdk.a2a_extensions.services.llm.LLMFulfillment]] = {}
 
     async def cancel(
         self, context: a2a.server.agent_execution.RequestContext, event_queue: a2a.server.events.EventQueue
@@ -61,9 +54,9 @@ class ChatAgentExecutor(a2a.server.agent_execution.AgentExecutor):
         if not context.message or not context.context_id:
             raise ValueError("Context must have a message and context_id")
 
-        llm_metadata = llm_service_extension.read_metadata(context.message)
+        llm_metadata = llm_service_extension.parse_message_metadata(context.message)
         if llm_metadata:
-            self.context_llm[context.context_id] = llm_metadata.llm_answers
+            self.context_llm[context.context_id] = llm_metadata.llm_fulfillments
 
         if self.context_llm.get(context.context_id) is None:
             raise ValueError("No LLM configured!")
@@ -153,7 +146,7 @@ async def serve():
                         streaming=True,
                         push_notifications=False,
                         state_transition_history=False,
-                        extensions=[llm_service_extension.to_agent_card_extension(required=True)],
+                        extensions=[*llm_service_extension.to_agent_card_extensions(required=True)],
                     ),
                     skills=[
                         a2a.types.AgentSkill(

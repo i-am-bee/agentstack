@@ -20,12 +20,12 @@ import beeai_sdk.a2a_extensions.services.llm
 
 
 @asyncclick.command()
-@asyncclick.option("--agent", default="http://127.0.0.1:10000")
+@asyncclick.option("--base-url", default="http://127.0.0.1:10000")
 @asyncclick.option("--context-id", default="")
 @asyncclick.option("--history", default=False)
-async def cli(agent, context_id, history):
+async def cli(base_url: str, context_id: str, history: bool) -> None:
     async with httpx.AsyncClient(timeout=30) as httpx_client:
-        card = await a2a.client.A2ACardResolver(httpx_client, agent).get_agent_card()
+        card = await a2a.client.A2ACardResolver(httpx_client, base_url=base_url).get_agent_card()
 
         print("======= Agent Card ========")
         print(yaml.dump(card.model_dump(mode="json", exclude_none=True)))
@@ -41,7 +41,7 @@ async def cli(agent, context_id, history):
 
             while True:
                 try:
-                    prompt = asyncclick.prompt("\n👤 User (CTRL-D to cancel)")
+                    prompt: str = asyncclick.prompt("\n👤 User (CTRL-D to cancel)")
                 except asyncclick.exceptions.Abort:
                     print("Exiting...")
                     return
@@ -52,25 +52,23 @@ async def cli(agent, context_id, history):
                     parts=[a2a.types.Part(root=a2a.types.TextPart(text=prompt))],
                     task_id=task_id,
                     context_id=context_id,
-                    metadata={
-                        llm_service_extension.URI: llm_service_extension.Metadata(
-                            llm_answers={
-                                # Demonstration only: we ignore the asks and just configure BeeAI proxy for everything
-                                key: beeai_sdk.a2a_extensions.services.llm.LLMAnswer(
-                                    api_base="http://localhost:8333/api/v1/llm/",
-                                    api_key="dummy",
-                                    api_model="dummy",
-                                )
-                                for key in llm_service_extension.llm_asks
-                            }
-                        )
-                    }
-                    if llm_service_extension is not None
+                    metadata=llm_service_extension.build_message_metadata(
+                        llm_fulfillments={
+                            # Demonstration only: we ignore the asks and just configure BeeAI proxy for everything
+                            key: beeai_sdk.a2a_extensions.services.llm.LLMFulfillment(
+                                api_base="http://localhost:8333/api/v1/llm/",
+                                api_key="dummy",
+                                api_model="dummy",
+                            )
+                            for key in llm_service_extension.llm_demands
+                        }
+                    )
+                    if llm_service_extension
                     else None,
                 )
 
                 try:
-                    file_path = asyncclick.prompt(
+                    file_path: str = asyncclick.prompt(
                         "Select a file path to attach? (press enter to skip)",
                         default="",
                         show_default=False,
@@ -120,7 +118,8 @@ async def cli(agent, context_id, history):
                             return
 
                         event = result.root.result
-                        context_id = event.context_id
+                        if event.context_id:
+                            context_id = event.context_id
 
                         if isinstance(event, a2a.types.Task):
                             task_id = event.id
@@ -145,7 +144,7 @@ async def cli(agent, context_id, history):
                                         print(part.root.text, end="", flush=True)
                             if event.status.state == "completed":
                                 task_completed = True
-                        elif isinstance(event, a2a.types.Message):
+                        else:
                             message_result = event
 
                     if task_id and not task_completed:
@@ -171,7 +170,7 @@ async def cli(agent, context_id, history):
                                 )
                             )
                         ).root.result
-                        if not context_id and event:
+                        if not context_id and event and event.context_id:
                             context_id = event.context_id
                         if isinstance(event, a2a.types.Task):
                             if not task_id:
