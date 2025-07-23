@@ -42,6 +42,7 @@ export interface UIExtensionParams {
   links?: AgentLink[];
   author?: AgentAuthor;
   contributors?: AgentContributor[];
+  prompt_suggestions?: string[];
 }
 
 export const AGENT_EXTENSION_UI_KEY = 'beeai_ui';

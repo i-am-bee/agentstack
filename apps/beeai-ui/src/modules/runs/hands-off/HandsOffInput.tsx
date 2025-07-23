@@ -14,7 +14,7 @@ import { InputBar } from '../components/InputBar';
 import { useAgentRun } from '../contexts/agent-run';
 
 export function HandsOffInput() {
-  const { isPending, run } = useAgentRun();
+  const { agent, isPending, run } = useAgentRun();
   const { isPending: isFileUploadPending } = useFileUpload();
 
   const form = useForm<FormValues>({
@@ -26,10 +26,14 @@ export function HandsOffInput() {
 
   const inputValue = watch('input');
 
+  const {
+    ui: { prompt_suggestions },
+  } = agent;
   const isSubmitDisabled = isPending || isFileUploadPending || !inputValue;
 
   return (
     <InputBar
+      promptSuggestions={prompt_suggestions}
       onSubmit={() => {
         handleSubmit(async ({ input }) => {
           await run(input);
