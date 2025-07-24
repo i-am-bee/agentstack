@@ -119,13 +119,7 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
                 {agentsCount} {pluralize('agent', agentsCount)} installed
               </FormLabel>
 
-              <UnorderedList>
-                {agents?.map((agent) => {
-                  const { display_name } = agent.ui;
-
-                  return <ListItem key={agent.name}>{display_name}</ListItem>;
-                })}
-              </UnorderedList>
+              <UnorderedList>{agents?.map(({ name }) => <ListItem key={name}>{name}</ListItem>)}</UnorderedList>
             </div>
           )}
         </form>

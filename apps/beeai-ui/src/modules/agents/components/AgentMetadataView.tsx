@@ -4,13 +4,11 @@
  */
 
 'use client';
-
-import { LogoGithub, Time } from '@carbon/icons-react';
+import { LogoGithub } from '@carbon/icons-react';
 import { SkeletonText } from '@carbon/react';
 import clsx from 'clsx';
 
 import type { Agent } from '../api/types';
-import { getAgentSourceCodeUrl } from '../utils';
 import classes from './AgentMetadataView.module.scss';
 
 interface Props {
@@ -20,29 +18,29 @@ interface Props {
 }
 
 export function AgentMetadataView({ agent, className, showSourceCodeLink }: Props) {
-  const { license, avg_run_time_seconds, avg_run_tokens } = agent.ui;
-  const sourceCodeUrl = getAgentSourceCodeUrl(agent);
+  const { license, source_code_url } = agent.ui;
 
-  const hasSourceCodeLinkVisible = showSourceCodeLink && sourceCodeUrl;
-  if (!(avg_run_time_seconds || avg_run_tokens || license || hasSourceCodeLinkVisible)) {
+  const hasSourceCodeLinkVisible = showSourceCodeLink && source_code_url;
+  if (!(license || hasSourceCodeLinkVisible)) {
     return null;
   }
 
   return (
     <ul className={clsx(classes.root, className)}>
+      {/* TODO: to be replaced with real metrics
       {avg_run_time_seconds && (
         <li className={classes.item}>
           <Time />
           {avg_run_time_seconds}s/run (avg)
         </li>
       )}
-      {avg_run_tokens && <li className={classes.item}>{avg_run_tokens} tokens/run (avg)</li>}
+      {avg_run_tokens && <li className={classes.item}>{avg_run_tokens} tokens/run (avg)</li>} */}
 
       {license && <li className={classes.item}>{license}</li>}
 
       {hasSourceCodeLinkVisible && (
         <li className={classes.item}>
-          <SourceCodeLink url={sourceCodeUrl} />
+          <SourceCodeLink url={source_code_url} />
         </li>
       )}
     </ul>

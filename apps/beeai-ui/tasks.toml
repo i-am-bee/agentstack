@@ -90,4 +90,4 @@ outputs = { auto = true }
 
 ["beeai-ui:schema:generate"]
 dir = "{{config_root}}/apps/beeai-ui"
-run = "pnpm openapi-typescript 'http://localhost:8333/api/v1/openapi.json' -o ./src/api/schema.d.ts --alphabetize"
+run = "pnpm dlx openapi-typescript 'http://localhost:8333/api/v1/openapi.json' -o ./src/api/schema.d.ts --alphabetize"

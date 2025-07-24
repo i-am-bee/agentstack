@@ -25,10 +25,8 @@ export function AppHeader({ className }: Props) {
   const agentName = useAgentNameFromPath();
 
   const { data: agent } = useAgent({ name: agentName ?? '' });
-  const display_name = agent?.ui.display_name;
-
   const hasNav = NAV_ITEMS.length > 0;
-  const showAgent = !hasNav && isNotNull(agent) && isNotNull(display_name);
+  const showAgent = !hasNav && isNotNull(agent);
 
   return (
     <header className={clsx(classes.root, className)}>
@@ -40,7 +38,7 @@ export function AppHeader({ className }: Props) {
 
           {showAgent && (
             <>
-              <p className={classes.agentName}>{display_name}</p>
+              <p className={classes.agentName}>{agentName}</p>
 
               <div className={classes.agentDetailButtonContainer}>
                 <AgentDetailButton />

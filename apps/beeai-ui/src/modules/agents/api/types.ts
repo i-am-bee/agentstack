@@ -17,7 +17,7 @@ export interface Agent extends Omit<AgentCard, 'provider'> {
 
 export type AgentExtension = NonNullable<Agent['capabilities']['extensions']>[number];
 
-export enum UiType {
+export enum SupportedUIType {
   Chat = 'chat',
   HandsOff = 'hands-off',
 }
@@ -28,21 +28,18 @@ export interface AgentTool {
 }
 
 export interface UIExtensionParams {
-  ui_type?: UiType;
+  ui_type?: string;
   user_greeting?: string;
-  display_name: string;
   tools?: AgentTool[];
-  avg_run_time_seconds?: string;
-  avg_run_tokens?: string;
   framework?: string;
   license?: string;
-  tags?: string[];
-  documentation?: string;
   programming_language?: string;
-  links?: AgentLink[];
-  author?: AgentAuthor;
+  homepage_url?: string;
+  source_code_url?: string;
+  container_image_url?: string;
+  author?: AgentContributor;
   contributors?: AgentContributor[];
-  prompt_suggestions?: string[];
+  starter_prompts?: string[];
 }
 
 export const AGENT_EXTENSION_UI_KEY = 'beeai_ui';
@@ -51,24 +48,7 @@ export interface UiExtension extends AgentExtension {
   params: UIExtensionParams & { [key: string]: unknown };
 }
 
-export enum AgentLinkType {
-  SourceCode = 'source-code',
-  ContainerImage = 'container-image',
-  Homepage = 'homepage',
-  Documentation = 'documentation',
-}
-
-export interface AgentLink {
-  url: string;
-  type: AgentLinkType;
-}
-
-export interface AgentAuthor {
-  name: string;
-  email?: string;
-}
-
-export interface AgentContributor extends AgentAuthor {
+export interface AgentContributor {
   name: string;
   email?: string;
   url?: string;

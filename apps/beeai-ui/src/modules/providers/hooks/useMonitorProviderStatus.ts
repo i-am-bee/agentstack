@@ -37,7 +37,7 @@ export function useMonitorProviderStatus({ id, isEnabled }: Props) {
     if (isReady) {
       agents?.forEach((agent) => {
         addToast({
-          title: `${agent.ui.display_name} has installed successfully.`,
+          title: `${agent.name} has installed successfully.`,
           kind: 'info',
           timeout: 5_000,
         });
@@ -45,7 +45,7 @@ export function useMonitorProviderStatus({ id, isEnabled }: Props) {
     } else if (isError) {
       agents?.forEach((agent) => {
         addToast({
-          title: `${agent.ui.display_name} failed to install.`,
+          title: `${agent.name} failed to install.`,
           timeout: 5_000,
         });
       });

@@ -11,6 +11,7 @@ import { TagsList } from '#components/TagsList/TagsList.tsx';
 import { isNotNull } from '#utils/helpers.ts';
 
 import type { Agent } from '../api/types';
+import { getAgentTags } from '../utils';
 
 interface Props {
   agent: Agent;
@@ -19,14 +20,15 @@ interface Props {
 }
 
 export function AgentTags({ agent, className }: Props) {
-  const { framework, license, tags, avg_run_time_seconds, avg_run_tokens } = agent.ui;
+  const { framework, license } = agent.ui;
 
   const tagsElements = [
     framework,
-    avg_run_time_seconds && `${avg_run_time_seconds}s/run (avg)`,
-    avg_run_tokens && `${avg_run_tokens} tokens/run (avg)`,
+    // TODO: to be replaced with real metrics
+    // avg_run_time_seconds && `${avg_run_time_seconds}s/run (avg)`,
+    // avg_run_tokens && `${avg_run_tokens} tokens/run (avg)`,
     license,
-    ...(tags ?? []),
+    ...getAgentTags(agent),
   ]
     .filter(isNotNull)
     .map((value) => <AgentTag key={value} name={value} />);

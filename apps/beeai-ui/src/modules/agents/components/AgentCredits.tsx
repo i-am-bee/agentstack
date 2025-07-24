@@ -8,11 +8,11 @@ import { memo, useMemo } from 'react';
 import { ExternalLink } from '#components/MarkdownContent/components/ExternalLink.tsx';
 import { Tooltip } from '#components/Tooltip/Tooltip.tsx';
 
-import type { AgentAuthor, AgentContributor } from '../api/types';
+import type { AgentContributor } from '../api/types';
 import classes from './AgentCredits.module.scss';
 
 interface Props {
-  author?: AgentAuthor;
+  author?: AgentContributor;
   contributors?: AgentContributor[];
 }
 
@@ -33,7 +33,7 @@ export const AgentCredits = memo(function AgentCredits({ author, contributors }:
           <em className={classes.noAuthor}>No author</em>
         ) : (
           <>
-            By <AuthorView name={author.name} email={author.email} />
+            By <AuthorView {...author} />
           </>
         )}
       </span>

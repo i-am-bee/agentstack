@@ -6,7 +6,7 @@
 import clsx from 'clsx';
 import { memo } from 'react';
 
-import { type Agent, UiType } from '../api/types';
+import { type Agent, SupportedUIType } from '../api/types';
 import classes from './AgentGreeting.module.scss';
 
 interface Props {
@@ -15,9 +15,12 @@ interface Props {
 }
 
 export const AgentGreeting = memo(function AgentGreeting({ agent }: Props) {
-  const { display_name, user_greeting, ui_type } = agent.ui;
-  const defaultGreeting = ui_type ? DEFAULT_GREETINGS[ui_type] : DEFAULT_GREETINGS[UiType.Chat];
-  const userGreeting = renderVariables(user_greeting ?? defaultGreeting, { name: display_name });
+  const {
+    name,
+    ui: { user_greeting, ui_type },
+  } = agent;
+  const defaultGreeting = ui_type ? DEFAULT_GREETINGS[ui_type] : DEFAULT_GREETINGS[SupportedUIType.Chat];
+  const userGreeting = renderVariables(user_greeting ?? defaultGreeting, { name });
 
   return <p className={clsx(classes.root, { [classes[`ui--${ui_type}`]]: ui_type })}>{userGreeting}</p>;
 });
@@ -27,7 +30,7 @@ function renderVariables(str: string, variables: Record<string, string>): string
 }
 
 const DEFAULT_GREETINGS = {
-  [UiType.Chat]: `Hi, I am {name}!
+  [SupportedUIType.Chat]: `Hi, I am {name}!
 How can I help you?`,
-  [UiType.HandsOff]: 'What is your task?',
+  [SupportedUIType.HandsOff]: 'What is your task?',
 };

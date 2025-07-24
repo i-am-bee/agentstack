@@ -46,7 +46,7 @@ export const ChatInput = memo(function ChatInput({ onMessageSubmit }: Props) {
   const inputValue = watch('input');
 
   const {
-    ui: { prompt_suggestions },
+    ui: { starter_prompts },
   } = agent;
   const isSubmitDisabled = isPending || isFileUploadPending || !inputValue;
 
@@ -54,7 +54,7 @@ export const ChatInput = memo(function ChatInput({ onMessageSubmit }: Props) {
     <FormProvider {...form}>
       <div ref={containerRef}>
         <InputBar
-          promptSuggestions={!messages.length ? prompt_suggestions : undefined}
+          promptSuggestions={!messages.length ? starter_prompts : undefined}
           onSubmit={() => {
             handleSubmit(async ({ input }) => {
               onMessageSubmit?.();

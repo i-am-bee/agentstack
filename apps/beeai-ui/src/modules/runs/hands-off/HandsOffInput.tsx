@@ -27,13 +27,13 @@ export function HandsOffInput() {
   const inputValue = watch('input');
 
   const {
-    ui: { prompt_suggestions },
+    ui: { starter_prompts },
   } = agent;
   const isSubmitDisabled = isPending || isFileUploadPending || !inputValue;
 
   return (
     <InputBar
-      promptSuggestions={prompt_suggestions}
+      promptSuggestions={starter_prompts}
       onSubmit={() => {
         handleSubmit(async ({ input }) => {
           await run(input);

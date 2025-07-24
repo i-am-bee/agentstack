@@ -23,7 +23,7 @@ export function AgentListOption({ agent, onClick }: Props) {
     <li className={classes.root} onClick={onClick}>
       <div className={classes.content}>
         <div className={classes.name}>
-          <span>{agent.ui.display_name}</span>
+          <span>{agent.name}</span>
 
           <BeeBadge agent={agent} />
         </div>

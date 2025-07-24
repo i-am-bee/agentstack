@@ -17,11 +17,11 @@ export function AgentsNav() {
 
   const { data: agents } = useListAgents({ onlyUiSupported: true, sort: true });
 
-  const items: NavItem[] | undefined = agents?.map(({ name, ui }) => {
+  const items: NavItem[] | undefined = agents?.map(({ name }) => {
     const route = routes.agentRun({ name });
     return {
       key: name,
-      label: ui?.display_name,
+      label: name,
       isActive: pathname === route,
       onClick: () => transitionTo(route),
     };

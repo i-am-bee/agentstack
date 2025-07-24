@@ -45,7 +45,7 @@ export function ComposeStepListItem({ idx }: Props) {
         <div className={classes.bullet}>{isPending ? <Spinner /> : <span>{idx + 1}</span>}</div>
       </div>
       <div className={classes.content}>
-        <div className={classes.name}>{agent.ui.display_name}</div>
+        <div className={classes.name}>{agent.name}</div>
 
         <div className={classes.actions}>
           {!isViewMode && (

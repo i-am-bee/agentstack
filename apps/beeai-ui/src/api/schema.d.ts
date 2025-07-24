@@ -34,19 +34,19 @@ export interface paths {
             cookie?: never;
         };
         /** Proxy Request */
-        get: operations["proxy_request_api_v1_a2a__provider_id___path__options"];
+        get: operations["proxy_request_api_v1_a2a__provider_id___path__get"];
         /** Proxy Request */
-        put: operations["proxy_request_api_v1_a2a__provider_id___path__options"];
+        put: operations["proxy_request_api_v1_a2a__provider_id___path__get"];
         /** Proxy Request */
-        post: operations["proxy_request_api_v1_a2a__provider_id___path__options"];
+        post: operations["proxy_request_api_v1_a2a__provider_id___path__get"];
         /** Proxy Request */
-        delete: operations["proxy_request_api_v1_a2a__provider_id___path__options"];
+        delete: operations["proxy_request_api_v1_a2a__provider_id___path__get"];
         /** Proxy Request */
-        options: operations["proxy_request_api_v1_a2a__provider_id___path__options"];
+        options: operations["proxy_request_api_v1_a2a__provider_id___path__get"];
         /** Proxy Request */
-        head: operations["proxy_request_api_v1_a2a__provider_id___path__options"];
+        head: operations["proxy_request_api_v1_a2a__provider_id___path__get"];
         /** Proxy Request */
-        patch: operations["proxy_request_api_v1_a2a__provider_id___path__options"];
+        patch: operations["proxy_request_api_v1_a2a__provider_id___path__get"];
         trace?: never;
     };
     "/api/v1/files": {
@@ -171,8 +171,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create Embeddings */
-        post: operations["create_embeddings_api_v1_llm_embeddings_post"];
+        /** Create Embedding */
+        post: operations["create_embedding_api_v1_llm_embeddings_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -596,6 +596,11 @@ export interface components {
              */
             type: "apiKey";
         };
+        /** Audio */
+        Audio: {
+            /** Id */
+            id: string;
+        };
         /**
          * AuthorizationCodeOAuthFlow
          * @description Configuration details for a supported OAuth Flow
@@ -794,82 +799,248 @@ export interface components {
              */
             file: string;
         };
-        /** ChatCompletionMessage */
-        ChatCompletionMessage: {
-            /**
-             * Content
-             * @default
-             */
-            content: string | components["schemas"]["ContentItem"][];
+        /** ChatCompletionAssistantMessageParam */
+        ChatCompletionAssistantMessageParam: {
+            audio?: components["schemas"]["Audio"] | null;
+            /** Content */
+            content?: string | (components["schemas"]["ChatCompletionContentPartTextParam"] | components["schemas"]["ChatCompletionContentPartRefusalParam"])[] | null;
+            function_call?: components["schemas"]["FunctionCall"] | null;
+            /** Name */
+            name?: string;
+            /** Refusal */
+            refusal?: string | null;
             /**
              * Role
-             * @default assistant
+             * @constant
+             */
+            role: "assistant";
+            /** Tool Calls */
+            tool_calls?: components["schemas"]["ChatCompletionMessageToolCallParam"][];
+        };
+        /** ChatCompletionAudioParam */
+        ChatCompletionAudioParam: {
+            /**
+             * Format
              * @enum {string}
              */
-            role: "system" | "user" | "assistant" | "function" | "tool";
-            /** Tool Call Id */
-            tool_call_id?: string | null;
-            /** Tool Calls */
-            tool_calls?: components["schemas"]["ToolCall"][] | null;
+            format: "wav" | "aac" | "mp3" | "flac" | "opus" | "pcm16";
+            /** Voice */
+            voice: string | ("alloy" | "ash" | "ballad" | "coral" | "echo" | "sage" | "shimmer" | "verse");
         };
-        /** ChatCompletionRequest */
-        ChatCompletionRequest: {
+        /** ChatCompletionContentPartImageParam */
+        ChatCompletionContentPartImageParam: {
+            image_url: components["schemas"]["ImageURL"];
             /**
-             * Frequency Penalty
-             * @default 0
+             * Type
+             * @constant
              */
-            frequency_penalty: number | null;
+            type: "image_url";
+        };
+        /** ChatCompletionContentPartInputAudioParam */
+        ChatCompletionContentPartInputAudioParam: {
+            input_audio: components["schemas"]["InputAudio"];
+            /**
+             * Type
+             * @constant
+             */
+            type: "input_audio";
+        };
+        /** ChatCompletionContentPartRefusalParam */
+        ChatCompletionContentPartRefusalParam: {
+            /** Refusal */
+            refusal: string;
+            /**
+             * Type
+             * @constant
+             */
+            type: "refusal";
+        };
+        /** ChatCompletionContentPartTextParam */
+        ChatCompletionContentPartTextParam: {
+            /** Text */
+            text: string;
+            /**
+             * Type
+             * @constant
+             */
+            type: "text";
+        };
+        /** ChatCompletionDeveloperMessageParam */
+        ChatCompletionDeveloperMessageParam: {
+            /** Content */
+            content: string | components["schemas"]["ChatCompletionContentPartTextParam"][];
+            /** Name */
+            name?: string;
+            /**
+             * Role
+             * @constant
+             */
+            role: "developer";
+        };
+        /** ChatCompletionFunctionCallOptionParam */
+        ChatCompletionFunctionCallOptionParam: {
+            /** Name */
+            name: string;
+        };
+        /** ChatCompletionFunctionMessageParam */
+        ChatCompletionFunctionMessageParam: {
+            /** Content */
+            content: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Role
+             * @constant
+             */
+            role: "function";
+        };
+        /** ChatCompletionMessageToolCallParam */
+        ChatCompletionMessageToolCallParam: {
+            function: components["schemas"]["openai__types__chat__chat_completion_message_tool_call_param__Function"];
+            /** Id */
+            id: string;
+            /**
+             * Type
+             * @constant
+             */
+            type: "function";
+        };
+        /** ChatCompletionNamedToolChoiceParam */
+        ChatCompletionNamedToolChoiceParam: {
+            function: components["schemas"]["openai__types__chat__chat_completion_named_tool_choice_param__Function"];
+            /**
+             * Type
+             * @constant
+             */
+            type: "function";
+        };
+        /** ChatCompletionPredictionContentParam */
+        ChatCompletionPredictionContentParam: {
+            /** Content */
+            content: string | components["schemas"]["ChatCompletionContentPartTextParam"][];
+            /**
+             * Type
+             * @constant
+             */
+            type: "content";
+        };
+        /**
+         * ChatCompletionRequest
+         * @description Corresponds to args to OpenAI `client.chat.completions.create(...)`
+         */
+        ChatCompletionRequest: {
+            audio?: components["schemas"]["ChatCompletionAudioParam"] | null;
+            /** Frequency Penalty */
+            frequency_penalty?: number | null;
+            /** Function Call */
+            function_call?: ("none" | "auto") | components["schemas"]["ChatCompletionFunctionCallOptionParam"] | null;
+            /** Functions */
+            functions?: components["schemas"]["openai__types__chat__completion_create_params__Function"][] | null;
             /** Logit Bias */
             logit_bias?: {
                 [key: string]: number;
             } | null;
+            /** Logprobs */
+            logprobs?: boolean | null;
+            /** Max Completion Tokens */
+            max_completion_tokens?: number | null;
             /** Max Tokens */
             max_tokens?: number | null;
             /** Messages */
-            messages: components["schemas"]["ChatCompletionMessage"][];
-            /** Model */
-            model: string;
-            /**
-             * N
-             * @default 1
-             */
-            n: number | null;
-            /**
-             * Presence Penalty
-             * @default 0
-             */
-            presence_penalty: number | null;
-            /** Response Format */
-            response_format?: {
-                [key: string]: unknown;
+            messages: (components["schemas"]["ChatCompletionDeveloperMessageParam"] | components["schemas"]["ChatCompletionSystemMessageParam"] | components["schemas"]["ChatCompletionUserMessageParam"] | components["schemas"]["ChatCompletionAssistantMessageParam"] | components["schemas"]["ChatCompletionToolMessageParam"] | components["schemas"]["ChatCompletionFunctionMessageParam"])[];
+            /** Metadata */
+            metadata?: {
+                [key: string]: string;
             } | null;
+            /** Modalities */
+            modalities?: ("text" | "audio")[] | null;
+            /** Model */
+            model: string | ("gpt-4.1" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4.1-2025-04-14" | "gpt-4.1-mini-2025-04-14" | "gpt-4.1-nano-2025-04-14" | "o4-mini" | "o4-mini-2025-04-16" | "o3" | "o3-2025-04-16" | "o3-mini" | "o3-mini-2025-01-31" | "o1" | "o1-2024-12-17" | "o1-preview" | "o1-preview-2024-09-12" | "o1-mini" | "o1-mini-2024-09-12" | "gpt-4o" | "gpt-4o-2024-11-20" | "gpt-4o-2024-08-06" | "gpt-4o-2024-05-13" | "gpt-4o-audio-preview" | "gpt-4o-audio-preview-2024-10-01" | "gpt-4o-audio-preview-2024-12-17" | "gpt-4o-audio-preview-2025-06-03" | "gpt-4o-mini-audio-preview" | "gpt-4o-mini-audio-preview-2024-12-17" | "gpt-4o-search-preview" | "gpt-4o-mini-search-preview" | "gpt-4o-search-preview-2025-03-11" | "gpt-4o-mini-search-preview-2025-03-11" | "chatgpt-4o-latest" | "codex-mini-latest" | "gpt-4o-mini" | "gpt-4o-mini-2024-07-18" | "gpt-4-turbo" | "gpt-4-turbo-2024-04-09" | "gpt-4-0125-preview" | "gpt-4-turbo-preview" | "gpt-4-1106-preview" | "gpt-4-vision-preview" | "gpt-4" | "gpt-4-0314" | "gpt-4-0613" | "gpt-4-32k" | "gpt-4-32k-0314" | "gpt-4-32k-0613" | "gpt-3.5-turbo" | "gpt-3.5-turbo-16k" | "gpt-3.5-turbo-0301" | "gpt-3.5-turbo-0613" | "gpt-3.5-turbo-1106" | "gpt-3.5-turbo-0125" | "gpt-3.5-turbo-16k-0613");
+            /** N */
+            n?: number | null;
+            /** Parallel Tool Calls */
+            parallel_tool_calls?: boolean | null;
+            prediction?: components["schemas"]["ChatCompletionPredictionContentParam"] | null;
+            /** Presence Penalty */
+            presence_penalty?: number | null;
+            /** Reasoning Effort */
+            reasoning_effort?: ("low" | "medium" | "high") | null;
+            /** Response Format */
+            response_format?: components["schemas"]["ResponseFormatText"] | components["schemas"]["ResponseFormatJSONSchema"] | components["schemas"]["ResponseFormatJSONObject"] | null;
+            /** Seed */
+            seed?: number | null;
+            /** Service Tier */
+            service_tier?: ("auto" | "default" | "flex" | "scale" | "priority") | null;
             /** Stop */
             stop?: string | string[] | null;
-            /**
-             * Stream
-             * @default false
-             */
-            stream: boolean | null;
-            /**
-             * Temperature
-             * @default 1
-             */
-            temperature: number | null;
+            /** Store */
+            store?: boolean | null;
+            /** Stream */
+            stream?: boolean | null;
+            stream_options?: components["schemas"]["ChatCompletionStreamOptionsParam"] | null;
+            /** Temperature */
+            temperature?: number | null;
             /** Tool Choice */
-            tool_choice?: string | {
-                [key: string]: unknown;
-            } | null;
+            tool_choice?: ("none" | "auto" | "required") | components["schemas"]["ChatCompletionNamedToolChoiceParam"] | null;
             /** Tools */
-            tools?: {
-                [key: string]: unknown;
-            }[] | null;
-            /**
-             * Top P
-             * @default 1
-             */
-            top_p: number | null;
+            tools?: components["schemas"]["ChatCompletionToolParam"][];
+            /** Top Logprobs */
+            top_logprobs?: number | null;
+            /** Top P */
+            top_p?: number | null;
             /** User */
             user?: string | null;
+            web_search_options?: components["schemas"]["WebSearchOptions"] | null;
+        };
+        /** ChatCompletionStreamOptionsParam */
+        ChatCompletionStreamOptionsParam: {
+            /** Include Usage */
+            include_usage?: boolean;
+        };
+        /** ChatCompletionSystemMessageParam */
+        ChatCompletionSystemMessageParam: {
+            /** Content */
+            content: string | components["schemas"]["ChatCompletionContentPartTextParam"][];
+            /** Name */
+            name?: string;
+            /**
+             * Role
+             * @constant
+             */
+            role: "system";
+        };
+        /** ChatCompletionToolMessageParam */
+        ChatCompletionToolMessageParam: {
+            /** Content */
+            content: string | components["schemas"]["ChatCompletionContentPartTextParam"][];
+            /**
+             * Role
+             * @constant
+             */
+            role: "tool";
+            /** Tool Call Id */
+            tool_call_id: string;
+        };
+        /** ChatCompletionToolParam */
+        ChatCompletionToolParam: {
+            function: components["schemas"]["FunctionDefinition"];
+            /**
+             * Type
+             * @constant
+             */
+            type: "function";
+        };
+        /** ChatCompletionUserMessageParam */
+        ChatCompletionUserMessageParam: {
+            /** Content */
+            content: string | (components["schemas"]["ChatCompletionContentPartTextParam"] | components["schemas"]["ChatCompletionContentPartImageParam"] | components["schemas"]["ChatCompletionContentPartInputAudioParam"] | components["schemas"]["File"])[];
+            /** Name */
+            name?: string;
+            /**
+             * Role
+             * @constant
+             */
+            role: "user";
         };
         /**
          * ClientCredentialsOAuthFlow
@@ -884,17 +1055,6 @@ export interface components {
             };
             /** Tokenurl */
             tokenUrl: string;
-        };
-        /** ContentItem */
-        ContentItem: {
-            /** Text */
-            text: string;
-            /**
-             * Type
-             * @default text
-             * @constant
-             */
-            type: "text";
         };
         /** CreateProviderRequest */
         CreateProviderRequest: {
@@ -929,8 +1089,13 @@ export interface components {
          * @enum {string}
          */
         DocumentType: "platform_file" | "external";
-        /** EmbeddingsRequest */
+        /**
+         * EmbeddingsRequest
+         * @description Corresponds to the arguments for OpenAI `client.embeddings.create(...)`.
+         */
         EmbeddingsRequest: {
+            /** Encoding Format */
+            encoding_format?: "float" | null;
             /** Input */
             input: string[] | string;
             /** Model */
@@ -960,6 +1125,24 @@ export interface components {
          * @enum {string}
          */
         ExtractionStatus: "pending" | "in_progress" | "completed" | "failed" | "cancelled";
+        /** File */
+        File: {
+            file: components["schemas"]["FileFile"];
+            /**
+             * Type
+             * @constant
+             */
+            type: "file";
+        };
+        /** FileFile */
+        FileFile: {
+            /** File Data */
+            file_data?: string;
+            /** File Id */
+            file_id?: string;
+            /** Filename */
+            filename?: string;
+        };
         /**
          * FileSystemRegistryLocation
          * Format: uri
@@ -976,6 +1159,19 @@ export interface components {
             arguments: string;
             /** Name */
             name: string;
+        };
+        /** FunctionDefinition */
+        FunctionDefinition: {
+            /** Description */
+            description?: string;
+            /** Name */
+            name: string;
+            /** Parameters */
+            parameters?: {
+                [key: string]: unknown;
+            };
+            /** Strict */
+            strict?: boolean | null;
         };
         /** GithubRegistryLocation */
         GithubRegistryLocation: components["schemas"]["GithubUrl"];
@@ -1004,6 +1200,16 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** ImageURL */
+        ImageURL: {
+            /**
+             * Detail
+             * @enum {string}
+             */
+            detail?: "auto" | "low" | "high";
+            /** Url */
+            url: string;
+        };
         /**
          * ImplicitOAuthFlow
          * @description Configuration details for a supported OAuth Flow
@@ -1024,6 +1230,29 @@ export interface components {
          * @enum {string}
          */
         In: "cookie" | "header" | "query";
+        /** InputAudio */
+        InputAudio: {
+            /** Data */
+            data: string;
+            /**
+             * Format
+             * @enum {string}
+             */
+            format: "wav" | "mp3";
+        };
+        /** JSONSchema */
+        JSONSchema: {
+            /** Description */
+            description?: string;
+            /** Name */
+            name: string;
+            /** Schema */
+            schema?: {
+                [key: string]: unknown;
+            };
+            /** Strict */
+            strict?: boolean | null;
+        };
         /** ListVariablesSchema */
         ListVariablesSchema: {
             /** Env */
@@ -1080,6 +1309,29 @@ export interface components {
             clientCredentials?: components["schemas"]["ClientCredentialsOAuthFlow"] | null;
             implicit?: components["schemas"]["ImplicitOAuthFlow"] | null;
             password?: components["schemas"]["PasswordOAuthFlow"] | null;
+        };
+        /** Function */
+        openai__types__chat__chat_completion_message_tool_call_param__Function: {
+            /** Arguments */
+            arguments: string;
+            /** Name */
+            name: string;
+        };
+        /** Function */
+        openai__types__chat__chat_completion_named_tool_choice_param__Function: {
+            /** Name */
+            name: string;
+        };
+        /** Function */
+        openai__types__chat__completion_create_params__Function: {
+            /** Description */
+            description?: string;
+            /** Name */
+            name: string;
+            /** Parameters */
+            parameters?: {
+                [key: string]: unknown;
+            };
         };
         /**
          * OpenIdConnectSecurityScheme
@@ -1186,6 +1438,31 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** ResponseFormatJSONObject */
+        ResponseFormatJSONObject: {
+            /**
+             * Type
+             * @constant
+             */
+            type: "json_object";
+        };
+        /** ResponseFormatJSONSchema */
+        ResponseFormatJSONSchema: {
+            json_schema: components["schemas"]["JSONSchema"];
+            /**
+             * Type
+             * @constant
+             */
+            type: "json_schema";
+        };
+        /** ResponseFormatText */
+        ResponseFormatText: {
+            /**
+             * Type
+             * @constant
+             */
+            type: "text";
+        };
         /**
          * SearchRequest
          * @description Request to search a vector store.
@@ -1207,18 +1484,6 @@ export interface components {
         "SecurityScheme-Input": components["schemas"]["APIKeySecurityScheme"] | components["schemas"]["HTTPAuthSecurityScheme"] | components["schemas"]["OAuth2SecurityScheme-Input"] | components["schemas"]["OpenIdConnectSecurityScheme"];
         /** SecurityScheme */
         "SecurityScheme-Output": components["schemas"]["APIKeySecurityScheme"] | components["schemas"]["HTTPAuthSecurityScheme"] | components["schemas"]["OAuth2SecurityScheme-Output"] | components["schemas"]["OpenIdConnectSecurityScheme"];
-        /** ToolCall */
-        ToolCall: {
-            function: components["schemas"]["FunctionCall"];
-            /** Id */
-            id: string;
-            /**
-             * Type
-             * @default function
-             * @constant
-             */
-            type: "function";
-        };
         /** UIFeatureFlags */
         UIFeatureFlags: {
             /**
@@ -1306,6 +1571,35 @@ export interface components {
             /** Usage Bytes */
             usage_bytes: number;
         };
+        /** WebSearchOptions */
+        WebSearchOptions: {
+            /**
+             * Search Context Size
+             * @enum {string}
+             */
+            search_context_size?: "low" | "medium" | "high";
+            user_location?: components["schemas"]["WebSearchOptionsUserLocation"] | null;
+        };
+        /** WebSearchOptionsUserLocation */
+        WebSearchOptionsUserLocation: {
+            approximate: components["schemas"]["WebSearchOptionsUserLocationApproximate"];
+            /**
+             * Type
+             * @constant
+             */
+            type: "approximate";
+        };
+        /** WebSearchOptionsUserLocationApproximate */
+        WebSearchOptionsUserLocationApproximate: {
+            /** City */
+            city?: string;
+            /** Country */
+            country?: string;
+            /** Region */
+            region?: string;
+            /** Timezone */
+            timezone?: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -1346,7 +1640,7 @@ export interface operations {
             };
         };
     };
-    proxy_request_api_v1_a2a__provider_id___path__options: {
+    proxy_request_api_v1_a2a__provider_id___path__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1378,7 +1672,7 @@ export interface operations {
             };
         };
     };
-    proxy_request_api_v1_a2a__provider_id___path__options: {
+    proxy_request_api_v1_a2a__provider_id___path__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1410,7 +1704,7 @@ export interface operations {
             };
         };
     };
-    proxy_request_api_v1_a2a__provider_id___path__options: {
+    proxy_request_api_v1_a2a__provider_id___path__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1442,7 +1736,7 @@ export interface operations {
             };
         };
     };
-    proxy_request_api_v1_a2a__provider_id___path__options: {
+    proxy_request_api_v1_a2a__provider_id___path__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1474,7 +1768,7 @@ export interface operations {
             };
         };
     };
-    proxy_request_api_v1_a2a__provider_id___path__options: {
+    proxy_request_api_v1_a2a__provider_id___path__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1506,7 +1800,7 @@ export interface operations {
             };
         };
     };
-    proxy_request_api_v1_a2a__provider_id___path__options: {
+    proxy_request_api_v1_a2a__provider_id___path__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1538,7 +1832,7 @@ export interface operations {
             };
         };
     };
-    proxy_request_api_v1_a2a__provider_id___path__options: {
+    proxy_request_api_v1_a2a__provider_id___path__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1849,7 +2143,7 @@ export interface operations {
             };
         };
     };
-    create_embeddings_api_v1_llm_embeddings_post: {
+    create_embedding_api_v1_llm_embeddings_post: {
         parameters: {
             query?: never;
             header?: never;

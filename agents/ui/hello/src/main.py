@@ -1,9 +1,8 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from extensions import BeeAIUI
 from sdk import Server
-from extensions import BeeAIUITool
+from extensions import BeeAIUITool, AgentDetailsContributor, BeeAIUI
 from models import CitationMetadata, TextPart, TrajectoryMetadata
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -17,7 +16,6 @@ server = Server()
     ui=BeeAIUI(
         ui_type="chat",
         user_greeting="How can I help you",
-        display_name="Hello",
         tools=[
             BeeAIUITool(
                 name="Web Search (DuckDuckGo)",
@@ -31,6 +29,17 @@ server = Server()
                 description="Provides real-time weather updates.",
             ),
         ],
+        framework="BeeAI",
+        license="GPL v3.0",
+        programming_language="Python",
+        source_code_url="https://github.com/i-am-bee/beeai-platform",
+        container_image_url='',
+        author=AgentDetailsContributor(name= 'Tomas Weiss', email="Tomas.Weiss@ibm.com", url= "https://research.ibm.com/"),
+        contributors=[
+            AgentDetailsContributor(name= 'Petr Kadlec', email="petr.kadlec@ibm.com"),
+            AgentDetailsContributor(name= 'Petr Bulánek', email="petr.bulanek@ibm.com"),
+        ],
+        starter_prompts=['Write a research report about Generative AI','Should I buy Apple stock now?','Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolor. This is what a long query would look like, 2 lines maximum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolor. This is what a long query would look like, 2 lines maximum...','What is the meaning of life?','Tell me a joke','What is the capital of France?','How do I make a cake?']
     ),
 )
 async def hello_world(input: list[TextPart]):

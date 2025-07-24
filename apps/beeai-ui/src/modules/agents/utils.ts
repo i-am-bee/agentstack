@@ -4,12 +4,13 @@
  */
 
 import uniq from 'lodash/uniq';
+import uniqWith from 'lodash/uniqWith';
 
 import type { Provider } from '#modules/providers/api/types.ts';
 import { SupportedUis } from '#modules/runs/constants.ts';
 import { compareStrings, isNotNull } from '#utils/helpers.ts';
 
-import { type Agent, AGENT_EXTENSION_UI_KEY, type AgentExtension, AgentLinkType, type UiExtension } from './api/types';
+import { type Agent, AGENT_EXTENSION_UI_KEY, type AgentExtension, type UiExtension } from './api/types';
 
 export const getAgentsProgrammingLanguages = (agents: Agent[] | undefined) => {
   return uniq(
@@ -19,13 +20,6 @@ export const getAgentsProgrammingLanguages = (agents: Agent[] | undefined) => {
       .flat(),
   );
 };
-
-export function getAgentSourceCodeUrl(agent: Agent) {
-  const { links } = agent.ui;
-  const link = links?.find(({ type }) => type === AgentLinkType.SourceCode);
-
-  return link?.url;
-}
 
 export function sortAgentsByName(a: Agent, b: Agent) {
   return compareStrings(a.name, b.name);
@@ -44,14 +38,18 @@ function isAgentUiExtension(extension: AgentExtension): extension is UiExtension
 export function buildAgent(provider: Provider): Agent {
   const { agent_card, ...providerData } = provider;
 
-  const ui = agent_card.capabilities.extensions?.find(isAgentUiExtension)?.params ?? null;
+  const ui = agent_card.capabilities.extensions?.find(isAgentUiExtension)?.params ?? {};
 
   return {
     ...agent_card,
     provider: { ...providerData, metadata: agent_card.provider },
-    ui: {
-      ...ui,
-      display_name: ui?.display_name ?? agent_card.name,
-    },
+    ui,
   };
+}
+
+export function getAgentTags(agent: Agent) {
+  return uniqWith(
+    agent.skills.flatMap(({ tags }) => tags),
+    (a, b) => a.toLocaleLowerCase() === b.toLocaleLowerCase(),
+  );
 }

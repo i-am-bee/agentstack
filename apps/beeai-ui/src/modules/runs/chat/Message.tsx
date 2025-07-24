@@ -45,7 +45,7 @@ export function Message({ message }: Props) {
     <li className={clsx(classes.root)}>
       <div className={classes.sender}>
         <div className={classes.senderIcon}>{isUser ? <UserIcon /> : <AgentIcon />}</div>
-        <div className={classes.senderName}>{isUser ? 'User' : agent.ui.display_name}</div>
+        <div className={classes.senderName}>{isUser ? 'User' : agent.name}</div>
       </div>
 
       <div className={classes.body}>
