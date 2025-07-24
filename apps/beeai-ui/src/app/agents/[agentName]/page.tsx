@@ -8,7 +8,7 @@ import { notFound } from 'next/navigation';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { buildAgent } from '#modules/agents/utils.ts';
 import { listProviders } from '#modules/providers/api/index.ts';
-import { AgentRun } from '#modules/runs/components/AgentRun.tsx';
+import { RunView } from '#modules/runs/components/RunView.tsx';
 
 interface Props {
   params: Promise<{ agentName: string }>;
@@ -33,5 +33,5 @@ export default async function AgentRunPage({ params }: Props) {
     notFound();
   }
 
-  return <AgentRun agent={agent} />;
+  return <RunView agent={agent} />;
 }

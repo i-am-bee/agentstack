@@ -14,7 +14,7 @@ interface Props {
 
 export function NewSessionButton({ onClick }: Props) {
   return (
-    <IconButton kind="tertiary" size="sm" label="New session" align="left" autoAlign onClick={onClick}>
+    <IconButton kind="tertiary" size="sm" label="New session" align="bottom" autoAlign onClick={onClick}>
       <NewSession />
     </IconButton>
   );

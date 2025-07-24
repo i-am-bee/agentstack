@@ -74,11 +74,16 @@ export function getMessageTrajectories(message: UIMessage) {
   return trajectories;
 }
 
-export function checkMessageError(message: UIAgentMessage) {
-  const { status } = message;
-  const isError = status === UIMessageStatus.Failed || status === UIMessageStatus.Aborted;
+export function checkMessageStatus(message: UIAgentMessage) {
+  const { status, error } = message;
 
-  return isError;
+  const isInProgress = status === UIMessageStatus.InProgress;
+  const isCompleted = status === UIMessageStatus.Completed;
+  const isAborted = status === UIMessageStatus.Aborted;
+  const isFailed = status === UIMessageStatus.Failed;
+  const isError = isFailed || isAborted;
+
+  return { isInProgress, isCompleted, isAborted, isFailed, isError, error };
 }
 
 export function checkMessageContent(message: UIMessage) {

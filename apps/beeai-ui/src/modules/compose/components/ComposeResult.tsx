@@ -4,7 +4,7 @@
  */
 
 import { useAutoScroll } from '#hooks/useAutoScroll.ts';
-import { AgentOutputBox } from '#modules/runs/components/AgentOutputBox.tsx';
+import { RunOutputBox } from '#modules/runs/components/RunOutputBox.tsx';
 
 import { useCompose } from '../contexts';
 import { ComposeStatus } from '../contexts/compose-context';
@@ -17,7 +17,7 @@ export function ComposeResult() {
 
   return (
     <>
-      <AgentOutputBox text={result} isPending={isPending} />
+      <RunOutputBox text={result} isPending={isPending} />
 
       <div ref={autoScrollRef} />
     </>

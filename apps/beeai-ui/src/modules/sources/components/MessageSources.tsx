@@ -42,5 +42,9 @@ export function MessageSources({ message }: Props) {
     }
   }, [isMessageActive, isPanelOpen, messageId, openSidePanel, closeSidePanel, setActiveSource]);
 
-  return hasSources ? <SourcesButton sources={sources} isActive={isActive} onClick={handleButtonClick} /> : null;
+  if (!hasSources) {
+    return null;
+  }
+
+  return <SourcesButton sources={sources} isActive={isActive} onClick={handleButtonClick} />;
 }

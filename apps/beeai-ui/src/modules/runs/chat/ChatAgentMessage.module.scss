@@ -1,0 +1,20 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  row-gap: $spacing-03;
+}
+
+.content {
+  font-size: rem(16px);
+  line-height: math.div(26, 16);
+  > div {
+    font-size: inherit;
+    line-height: inherit;
+    letter-spacing: normal;
+  }
+}

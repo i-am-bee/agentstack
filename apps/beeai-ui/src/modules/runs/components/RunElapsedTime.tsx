@@ -8,14 +8,14 @@ import { useEffect, useState } from 'react';
 
 import type { RunStats } from '../types';
 import { runDuration } from '../utils';
-import classes from './ElapsedTime.module.scss';
+import classes from './RunElapsedTime.module.scss';
 
 interface Props {
   stats?: RunStats;
   className?: string;
 }
 
-export function ElapsedTime({ stats, className }: Props) {
+export function RunElapsedTime({ stats, className }: Props) {
   const [, forceRerender] = useState(0);
 
   useEffect(() => {

@@ -4,7 +4,6 @@
  */
 
 import { Container } from '#components/layouts/Container.tsx';
-import { AgentHeading } from '#modules/agents/components/AgentHeading.tsx';
 import { checkMessageContent, isAgentMessage } from '#modules/messages/utils.ts';
 
 import { useMessages } from '../../messages/contexts';
@@ -16,7 +15,7 @@ import { HandsOffText } from './HandsOffText';
 import { TaskStatusBar } from './TaskStatusBar';
 
 export function HandsOffOutputView() {
-  const { agent, input, isPending, cancel, clear } = useAgentRun();
+  const { input, isPending, cancel, clear } = useAgentRun();
   const { messages } = useMessages();
   const message = messages.find(isAgentMessage);
   const hasOutput = message ? checkMessageContent(message) : false;
@@ -31,8 +30,6 @@ export function HandsOffOutputView() {
         </header>
 
         <div className={classes.body}>
-          <AgentHeading agent={agent} />
-
           {message && (
             <>
               <HandsOffText message={message} className={classes.text} />

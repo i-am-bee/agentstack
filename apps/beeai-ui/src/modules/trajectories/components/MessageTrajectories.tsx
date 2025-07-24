@@ -18,7 +18,9 @@ export function MessageTrajectories({ message, toggleable = true, autoScroll }: 
   const trajectories = getMessageTrajectories(message);
   const hasTrajectories = trajectories.length > 0;
 
-  return hasTrajectories ? (
-    <TrajectoryView trajectories={trajectories} toggleable={toggleable} autoScroll={autoScroll} />
-  ) : null;
+  if (!hasTrajectories) {
+    return null;
+  }
+
+  return <TrajectoryView trajectories={trajectories} toggleable={toggleable} autoScroll={autoScroll} />;
 }

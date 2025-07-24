@@ -8,9 +8,9 @@ import type { Agent } from '#modules/agents/api/types.ts';
 import { SourcesPanel } from '#modules/sources/components/SourcesPanel.tsx';
 
 import { useMessages } from '../../messages/contexts';
+import { RunLandingView } from '../components/RunLandingView';
 import { useAgentRun } from '../contexts/agent-run';
 import { AgentRunProviders } from '../contexts/agent-run/AgentRunProvider';
-import { HandsOffLandingView } from './HandsOffLandingView';
 import { HandsOffOutputView } from './HandsOffOutputView';
 
 interface Props {
@@ -33,7 +33,7 @@ function HandsOff() {
 
   return (
     <>
-      <MainContent spacing="md">{isIdle ? <HandsOffLandingView /> : <HandsOffOutputView />}</MainContent>
+      <MainContent spacing="md">{isIdle ? <RunLandingView /> : <HandsOffOutputView />}</MainContent>
 
       <SourcesPanel />
     </>

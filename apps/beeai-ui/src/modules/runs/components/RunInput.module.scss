@@ -12,11 +12,6 @@
   }
 }
 
-.files {
-  padding-block-start: rem(11px);
-  padding-inline: rem(11px);
-}
-
 .textarea {
   max-block-size: rem(192px);
   overflow-y: auto;
@@ -53,24 +48,6 @@
   display: flex;
   align-items: center;
   gap: $spacing-03;
-}
-
-.settings {
-  display: flex;
-  :global(.#{$prefix}--btn) {
-    &:hover,
-    &:active,
-    &[aria-expanded='true'] {
-      background-color: $button-primary;
-      color: $text-inverse;
-    }
-    &:not([disabled]) svg {
-      fill: currentColor;
-    }
-  }
-  [aria-owns] :global(.#{$prefix}--popover) {
-    display: none;
-  }
 }
 
 .submit {

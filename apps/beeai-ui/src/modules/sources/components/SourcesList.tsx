@@ -19,7 +19,13 @@ export function SourcesList({ sources }: Props) {
   const { activeSidePanel } = useApp();
   const { activeSource } = useSources();
 
-  return sources.length > 0 ? (
+  const hasSources = sources.length > 0;
+
+  if (!hasSources) {
+    return null;
+  }
+
+  return (
     <ul className={classes.root}>
       {sources.map((source) => {
         const { id } = source;
@@ -32,5 +38,5 @@ export function SourcesList({ sources }: Props) {
         );
       })}
     </ul>
-  ) : null;
+  );
 }

@@ -9,16 +9,18 @@ import { IconButton } from '@carbon/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Container } from '#components/layouts/Container.tsx';
+import { isAgentMessage, isUserMessage } from '#modules/messages/utils.ts';
 
 import { FileUpload } from '../../files/components/FileUpload';
 import { useMessages } from '../../messages/contexts';
 import { NewSessionButton } from '../components/NewSessionButton';
-import { StatusBar } from '../components/StatusBar';
+import { RunInput } from '../components/RunInput';
+import { RunStatusBar } from '../components/RunStatusBar';
 import { useAgentRun } from '../contexts/agent-run';
 import { useAgentStatus } from '../contexts/agent-status';
-import { ChatInput } from './ChatInput';
+import { ChatAgentMessage } from './ChatAgentMessage';
 import classes from './ChatMessagesView.module.scss';
-import { Message } from './Message';
+import { ChatUserMessage } from './ChatUserMessage';
 
 export function ChatMessagesView() {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -69,21 +71,28 @@ export function ChatMessagesView() {
   return (
     <FileUpload>
       <div className={classes.holder}>
-        <Container size="sm" asChild>
-          <header className={classes.header}>
-            <NewSessionButton onClick={clear} />
-          </header>
-        </Container>
-
         <div className={classes.scrollable} ref={scrollRef}>
-          <div className={classes.scrollRef} ref={bottomRef} />
+          <Container size="sm" className={classes.container}>
+            <header className={classes.header}>
+              <NewSessionButton onClick={clear} />
+            </header>
 
-          <Container size="sm" asChild>
             <ol className={classes.messages} aria-label="messages">
-              {messages.map((message) => (
-                <Message key={message.id} message={message} />
-              ))}
+              {messages.map((message) => {
+                const isUser = isUserMessage(message);
+                const isAgent = isAgentMessage(message);
+
+                return (
+                  <li key={message.id}>
+                    {isUser && <ChatUserMessage message={message} />}
+
+                    {isAgent && <ChatAgentMessage message={message} />}
+                  </li>
+                );
+              })}
             </ol>
+
+            <div className={classes.scrollRef} ref={bottomRef} />
           </Container>
         </div>
 
@@ -102,10 +111,10 @@ export function ChatMessagesView() {
           )}
 
           {isPending && (isNotInstalled || isStarting) ? (
-            <StatusBar isPending>Starting the agent, please bee patient&hellip;</StatusBar>
+            <RunStatusBar isPending>Starting the agent, please bee patient&hellip;</RunStatusBar>
           ) : (
-            <ChatInput
-              onMessageSubmit={() => {
+            <RunInput
+              onSubmit={() => {
                 requestAnimationFrame(() => {
                   scrollToBottom();
                 });

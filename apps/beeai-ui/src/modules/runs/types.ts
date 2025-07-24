@@ -12,6 +12,11 @@ export interface RunAgentParams {
   parts: Part[];
 }
 
+export interface RunAgentFormValues {
+  input: string;
+  tools?: string[];
+}
+
 export interface RunStats {
   startTime?: number;
   endTime?: number;

@@ -27,7 +27,11 @@ export function TrajectoryView({ trajectories, toggleable, autoScroll }: Props) 
   const filteredTrajectories = trajectories.filter(hasViewableTrajectoryParts);
   const hasTrajectories = filteredTrajectories.length > 0;
 
-  return hasTrajectories ? (
+  if (!hasTrajectories) {
+    return null;
+  }
+
+  return (
     <div className={classes.root}>
       {toggleable && <TrajectoryButton isOpen={isOpen} onClick={() => setIsOpen((state) => !state)} />}
 
@@ -35,5 +39,5 @@ export function TrajectoryView({ trajectories, toggleable, autoScroll }: Props) 
 
       {autoScroll && <div ref={autoScrollRef} className={classes.bottom} />}
     </div>
-  ) : null;
+  );
 }

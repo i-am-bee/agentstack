@@ -21,8 +21,13 @@ interface Props {
 export function InlineCitations({ sources = [], children }: PropsWithChildren<Props>) {
   const { activeSidePanel, openSidePanel } = useApp();
   const { activeSource, setActiveSource } = useSources();
+  const hasSources = sources.length > 0;
 
-  return sources.length > 0 ? (
+  if (!hasSources) {
+    return children;
+  }
+
+  return (
     <span className={classes.root}>
       <span className={classes.content}>{children}</span>
 
@@ -46,7 +51,5 @@ export function InlineCitations({ sources = [], children }: PropsWithChildren<Pr
         })}
       </span>
     </span>
-  ) : (
-    children
   );
 }

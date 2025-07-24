@@ -8,9 +8,9 @@ import type { Agent } from '#modules/agents/api/types.ts';
 import { SourcesPanel } from '#modules/sources/components/SourcesPanel.tsx';
 
 import { useMessages } from '../../messages/contexts';
+import { RunLandingView } from '../components/RunLandingView';
 import { useAgentRun } from '../contexts/agent-run';
 import { AgentRunProviders } from '../contexts/agent-run/AgentRunProvider';
-import { ChatLandingView } from './ChatLandingView';
 import { ChatMessagesView } from './ChatMessagesView';
 
 interface Props {
@@ -34,7 +34,7 @@ function Chat() {
   return (
     <>
       <MainContent spacing="md" scrollable={isIdle}>
-        {isIdle ? <ChatLandingView /> : <ChatMessagesView />}
+        {isIdle ? <RunLandingView /> : <ChatMessagesView />}
       </MainContent>
 
       <SourcesPanel />

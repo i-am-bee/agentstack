@@ -5,8 +5,8 @@
 
 .root {
   display: flex;
-  align-items: center;
-  gap: $spacing-02;
-  font-size: rem(14px);
-  color: $text-helper;
+  flex-direction: column;
+  row-gap: $spacing-06;
+  margin-block: auto;
+  padding-block-end: var(--header-height);
 }

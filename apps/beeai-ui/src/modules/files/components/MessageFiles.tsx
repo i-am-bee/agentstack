@@ -18,7 +18,11 @@ export function MessageFiles({ message, className }: Props) {
   const files = getMessageFiles(message);
   const hasFiles = files.length > 0;
 
-  return hasFiles ? (
+  if (!hasFiles) {
+    return null;
+  }
+
+  return (
     <FileCardsList className={className}>
       {files.map(({ id, filename, url }) => (
         <li key={id}>
@@ -26,5 +30,5 @@ export function MessageFiles({ message, className }: Props) {
         </li>
       ))}
     </FileCardsList>
-  ) : null;
+  );
 }

@@ -11,9 +11,9 @@ import { useEffect, useRef, useState } from 'react';
 
 import { AnimateHeightChange } from '#components/AnimateHeightChange/AnimateHeightChange.tsx';
 
-import classes from './AgentRunLogItem.module.scss';
+import classes from './RunLogItem.module.scss';
 
-export function AgentRunLogItem({ children }: PropsWithChildren) {
+export function RunLogItem({ children }: PropsWithChildren) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isClamped, setIsClamped] = useState(false);
   const contentRef = useRef<HTMLParagraphElement>(null);

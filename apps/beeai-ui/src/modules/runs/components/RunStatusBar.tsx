@@ -9,14 +9,14 @@ import type { PropsWithChildren } from 'react';
 
 import { Spinner } from '#components/Spinner/Spinner.tsx';
 
-import classes from './StatusBar.module.scss';
+import classes from './RunStatusBar.module.scss';
 
 interface Props {
   isPending?: boolean;
   onStopClick?: () => void;
 }
 
-export function StatusBar({ isPending, onStopClick, children }: PropsWithChildren<Props>) {
+export function RunStatusBar({ isPending, onStopClick, children }: PropsWithChildren<Props>) {
   return (
     <div className={classes.root}>
       <div className={classes.label}>

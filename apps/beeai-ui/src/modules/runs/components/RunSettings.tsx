@@ -23,14 +23,14 @@ import { useState } from 'react';
 
 import { fadeProps } from '#utils/fadeProps.ts';
 
-import classes from './ChatSettings.module.scss';
-import { ChatTools } from './ChatTools';
+import { ChatTools } from '../chat/ChatTools';
+import classes from './RunSettings.module.scss';
 
 interface Props {
   containerRef: RefObject<HTMLElement | null>;
 }
 
-export function ChatSettings({ containerRef }: Props) {
+export function RunSettings({ containerRef }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
   const { refs, floatingStyles, context } = useFloating({
@@ -61,43 +61,45 @@ export function ChatSettings({ containerRef }: Props) {
   const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss, role]);
 
   return (
-    <>
-      <IconButton
-        kind="ghost"
-        size="sm"
-        label="Customize Tools"
-        autoAlign
-        ref={refs.setReference}
-        {...getReferenceProps()}
-      >
-        <Settings />
-      </IconButton>
+    <div className={classes.root}>
+      <>
+        <IconButton
+          kind="ghost"
+          size="sm"
+          label="Customize Tools"
+          autoAlign
+          ref={refs.setReference}
+          {...getReferenceProps()}
+        >
+          <Settings />
+        </IconButton>
 
-      <AnimatePresence>
-        {isOpen && (
-          <FloatingPortal>
-            <FloatingFocusManager context={context}>
-              <div ref={refs.setFloating} style={floatingStyles} className={classes.root} {...getFloatingProps()}>
-                <motion.div
-                  {...fadeProps({
-                    hidden: {
-                      transform: 'translateY(1rem)',
-                    },
-                    visible: {
-                      transform: 'translateY(0)',
-                    },
-                  })}
-                >
-                  <div className={classes.content}>
-                    <ChatTools />
-                  </div>
-                </motion.div>
-              </div>
-            </FloatingFocusManager>
-          </FloatingPortal>
-        )}
-      </AnimatePresence>
-    </>
+        <AnimatePresence>
+          {isOpen && (
+            <FloatingPortal>
+              <FloatingFocusManager context={context}>
+                <div ref={refs.setFloating} style={floatingStyles} className={classes.modal} {...getFloatingProps()}>
+                  <motion.div
+                    {...fadeProps({
+                      hidden: {
+                        transform: 'translateY(1rem)',
+                      },
+                      visible: {
+                        transform: 'translateY(0)',
+                      },
+                    })}
+                  >
+                    <div className={classes.content}>
+                      <ChatTools />
+                    </div>
+                  </motion.div>
+                </div>
+              </FloatingFocusManager>
+            </FloatingPortal>
+          )}
+        </AnimatePresence>
+      </>
+    </div>
   );
 }
 

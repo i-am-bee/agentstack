@@ -6,6 +6,24 @@
 @use 'styles/common' as *;
 
 .root {
+  display: flex;
+  :global(.#{$prefix}--btn) {
+    &:hover,
+    &:active,
+    &[aria-expanded='true'] {
+      background-color: $button-primary;
+      color: $text-inverse;
+    }
+    &:not([disabled]) svg {
+      fill: currentColor;
+    }
+  }
+  [aria-owns] :global(.#{$prefix}--popover) {
+    display: none;
+  }
+}
+
+.modal {
   position: relative;
   inline-size: 100%;
   z-index: z('modal') - 1;

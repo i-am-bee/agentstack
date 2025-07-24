@@ -14,7 +14,7 @@ interface Props {
   agent: Agent;
 }
 
-export function AgentRun({ agent }: Props) {
+export function RunView({ agent }: Props) {
   switch (agent.ui?.ui_type) {
     case SupportedUIType.Chat:
       return <ChatView agent={agent} key={agent.name} />;

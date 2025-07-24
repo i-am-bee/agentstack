@@ -5,26 +5,24 @@
 
 import { Container } from '#components/layouts/Container.tsx';
 import { AgentGreeting } from '#modules/agents/components/AgentGreeting.tsx';
-import { AgentHeading } from '#modules/agents/components/AgentHeading.tsx';
 
 import { FileUpload } from '../../files/components/FileUpload';
 import { useAgentRun } from '../contexts/agent-run';
-import { ChatInput } from './ChatInput';
-import classes from './ChatLandingView.module.scss';
+import { RunInput } from './RunInput';
+import classes from './RunLandingView.module.scss';
 
-export function ChatLandingView() {
+export function RunLandingView() {
   const { agent } = useAgentRun();
+  const {
+    ui: { starter_prompts },
+  } = agent;
 
   return (
     <FileUpload>
       <Container size="sm" className={classes.root}>
-        <div className={classes.header}>
-          <AgentHeading agent={agent} />
+        <AgentGreeting agent={agent} />
 
-          <AgentGreeting agent={agent} />
-        </div>
-
-        <ChatInput />
+        <RunInput promptSuggestions={starter_prompts} />
       </Container>
     </FileUpload>
   );

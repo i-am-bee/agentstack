@@ -6,27 +6,35 @@
 .holder {
   inline-size: 100%;
   display: grid;
-  grid-template-rows: max-content 1fr max-content;
+  grid-template-rows: 1fr max-content;
   row-gap: $spacing-06;
-}
-
-.header {
-  display: flex;
-  justify-content: flex-end;
 }
 
 .scrollable {
   @include scrollbar();
   display: flex;
-  flex-direction: column-reverse;
-  padding-block: $spacing-06;
+  flex-direction: column;
   position: relative;
+}
+
+.header {
+  position: sticky;
+  inset-block-start: 0;
+  text-align: end;
+  background-color: $layer;
+  padding-block-end: $spacing-06;
+}
+
+.container {
+  position: relative;
+  flex-grow: 1;
 }
 
 .messages {
   display: flex;
   flex-direction: column;
-  row-gap: $spacing-09;
+  row-gap: $spacing-07;
+  block-size: 100%;
 }
 
 .scrollRef {
@@ -45,11 +53,21 @@
 }
 
 .toBottomButton {
+  box-shadow: $box-shadow;
   &:global(.cds--tooltip) {
     position: absolute;
-    inset-block-start: 0;
+    inset-block-end: 100%;
     inset-inline-start: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -$spacing-05);
     z-index: 1;
+  }
+}
+
+@include breakpoint-up(lg) {
+  .header {
+    margin: 0 #{-$spacing-09} #{-$spacing-07} auto;
+    max-inline-size: max-content;
+    transform: translateX(100%);
+    padding-block-end: 0;
   }
 }

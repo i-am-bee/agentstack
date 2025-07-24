@@ -6,15 +6,19 @@
 import { getErrorMessage } from '#api/utils.ts';
 import { ErrorMessage } from '#components/ErrorMessage/ErrorMessage.tsx';
 import type { UIAgentMessage } from '#modules/messages/types.ts';
-import { UIMessageStatus } from '#modules/messages/types.ts';
+
+import { checkMessageStatus } from '../utils';
 
 interface Props {
   message: UIAgentMessage;
 }
 
 export function MessageError({ message }: Props) {
-  const { status, error } = message;
-  const isFailed = status === UIMessageStatus.Failed;
+  const { isError, isFailed, error } = checkMessageStatus(message);
+
+  if (!isError) {
+    return;
+  }
 
   return (
     <ErrorMessage

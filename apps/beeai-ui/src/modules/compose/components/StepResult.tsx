@@ -8,7 +8,7 @@ import clsx from 'clsx';
 
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 import { useAutoScroll } from '#hooks/useAutoScroll.ts';
-import { AgentRunLogItem } from '#modules/runs/components/AgentRunLogItem.tsx';
+import { RunLogItem } from '#modules/runs/components/RunLogItem.tsx';
 
 import type { ComposeStep } from '../contexts/compose-context';
 import classes from './StepResult.module.scss';
@@ -55,7 +55,7 @@ function Logs({ logs }: { logs: string[] }) {
 
   return (
     <div className={classes.logs}>
-      {logs?.map((message, order) => <AgentRunLogItem key={order}>{message}</AgentRunLogItem>)}
+      {logs?.map((message, order) => <RunLogItem key={order}>{message}</RunLogItem>)}
       <div ref={autoScrollRef} />
     </div>
   );

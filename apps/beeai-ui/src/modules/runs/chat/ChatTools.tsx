@@ -10,13 +10,13 @@ import { ErrorMessage } from '#components/ErrorMessage/ErrorMessage.tsx';
 import { SkeletonItems } from '#components/SkeletonItems/SkeletonItems.tsx';
 import { useListTools } from '#modules/tools/api/queries/useListTools.ts';
 
-import type { ChatFormValues } from './ChatInput';
+import type { RunAgentFormValues } from '../types';
 import classes from './ChatTools.module.scss';
 import { ChatSupportedTools } from './constants';
 import { ToolToggle } from './ToolToggle';
 
 export function ChatTools() {
-  const { setValue, watch } = useFormContext<ChatFormValues>();
+  const { setValue, watch } = useFormContext<RunAgentFormValues>();
   const { data, isPending, error, isRefetching, refetch } = useListTools();
   const tools = data?.tools.filter(({ name }) => ChatSupportedTools.includes(name));
   const chatTools = watch('tools');

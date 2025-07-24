@@ -10,7 +10,7 @@ import { DownloadButton } from '#components/DownloadButton/DownloadButton.tsx';
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 import type { UISourcePart } from '#modules/messages/types.ts';
 
-import classes from './AgentOutputBox.module.scss';
+import classes from './RunOutputBox.module.scss';
 
 interface Props {
   isPending: boolean;
@@ -19,7 +19,7 @@ interface Props {
   sources?: UISourcePart[];
 }
 
-export function AgentOutputBox({ isPending, text, downloadFileName, sources, children }: PropsWithChildren<Props>) {
+export function RunOutputBox({ isPending, text, downloadFileName, sources, children }: PropsWithChildren<Props>) {
   return text || children ? (
     <div className={classes.root}>
       {!isPending && text && (
