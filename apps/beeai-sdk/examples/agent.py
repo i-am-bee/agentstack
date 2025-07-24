@@ -24,13 +24,23 @@ import beeai_framework.tools.weather.openmeteo
 import uvicorn
 
 import beeai_sdk.a2a_extensions.services.llm
+import beeai_sdk.a2a_extensions.ui.agent_details
+
+agent_details_extension = beeai_sdk.a2a_extensions.ui.agent_details.AgentDetailsExtension(
+    params=beeai_sdk.a2a_extensions.ui.agent_details.AgentDetails(
+        display_name="Chat",
+        ui_type="chat",
+    )
+)
 
 llm_service_extension = beeai_sdk.a2a_extensions.services.llm.LLMServiceExtension(
-    llm_demands={
-        "default": beeai_sdk.a2a_extensions.services.llm.LLMDemand(
-            description="Default LLM for the agent", suggested=("openai/gpt-4o", "ollama/granite3.3:8b")
-        )
-    }
+    params=beeai_sdk.a2a_extensions.services.llm.LLMServiceExtensionParams(
+        llm_demands={
+            "default": beeai_sdk.a2a_extensions.services.llm.LLMDemand(
+                description="Default LLM for the agent", suggested=("openai/gpt-4o", "ollama/granite3.3:8b")
+            )
+        }
+    ),
 )
 
 
@@ -42,6 +52,7 @@ class ChatAgentExecutor(a2a.server.agent_execution.AgentExecutor):
         )
         self.context_llm: dict[str, dict[str, beeai_sdk.a2a_extensions.services.llm.LLMFulfillment]] = {}
 
+    @typing.override
     async def cancel(
         self, context: a2a.server.agent_execution.RequestContext, event_queue: a2a.server.events.EventQueue
     ) -> None:

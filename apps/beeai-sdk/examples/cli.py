@@ -52,7 +52,7 @@ async def cli(base_url: str, context_id: str, history: bool) -> None:
                     parts=[a2a.types.Part(root=a2a.types.TextPart(text=prompt))],
                     task_id=task_id,
                     context_id=context_id,
-                    metadata=llm_service_extension.build_message_metadata(
+                    metadata=llm_service_extension.fulfillment_metadata(
                         llm_fulfillments={
                             # Demonstration only: we ignore the asks and just configure BeeAI proxy for everything
                             key: beeai_sdk.a2a_extensions.services.llm.LLMFulfillment(
@@ -60,7 +60,7 @@ async def cli(base_url: str, context_id: str, history: bool) -> None:
                                 api_key="dummy",
                                 api_model="dummy",
                             )
-                            for key in llm_service_extension.llm_demands
+                            for key in llm_service_extension.params.llm_demands
                         }
                     )
                     if llm_service_extension
