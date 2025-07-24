@@ -13,6 +13,11 @@ import { A2AClient } from '@a2a-js/sdk/client';
 
 import { v4 as uuid } from 'uuid';
 import { match } from 'ts-pattern';
+import { processSourcePart } from '#modules/sources/utils.ts';
+import { getExtensionData } from './extensions/getExtensionData';
+import { citationExtensionV1 } from './extensions/citation';
+
+const extractCitations = getExtensionData(citationExtensionV1);
 
 export interface ChatRun {
   subscribe: (fn: (parts: UIMessagePart[]) => void) => void;
@@ -20,7 +25,7 @@ export interface ChatRun {
 }
 
 // TODO: decouple with processFilePart in utils.ts
-function processFilePart(part: FilePart): UIFilePart {
+function processFilePart(part: FilePart): Array<UIMessagePart> {
   const { file } = part;
   const { name, mimeType } = file;
   const id = uuid();
@@ -34,7 +39,7 @@ function processFilePart(part: FilePart): UIFilePart {
     type: mimeType,
   };
 
-  return filePart;
+  return [filePart];
 }
 
 function convertFileEntityToFilePart(file: FileEntity): FilePart {
@@ -46,14 +51,23 @@ function convertFileEntityToFilePart(file: FileEntity): FilePart {
   };
 }
 
-function processTextPart(part: TextPart): UITextPart {
-  const uiPart: UITextPart = {
-    kind: UIMessagePartKind.Text,
-    id: uuid(),
-    text: part.text,
-  };
+function processTextPart(messageId: string, part: TextPart): Array<UIMessagePart> {
+  const citation = extractCitations(part.metadata);
+  if (citation) {
+    if (part.text !== '') {
+      throw new Error('Text part should be empty when citation is present');
+    }
 
-  return uiPart;
+    return processSourcePart(citation, messageId);
+  } else {
+    const textPart: UITextPart = {
+      kind: UIMessagePartKind.Text,
+      id: uuid(),
+      text: part.text,
+    };
+
+    return [textPart];
+  }
 }
 
 function handleStatusUpdate(event: TaskStatusUpdateEvent): UIMessagePart[] {
@@ -64,13 +78,15 @@ function handleStatusUpdate(event: TaskStatusUpdateEvent): UIMessagePart[] {
     return [];
   }
 
-  return message.parts.map((part) => {
-    return match(part)
-      .with({ kind: 'text' }, processTextPart)
+  return message.parts.flatMap((part) => {
+    const transformedParts = match(part)
+      .with({ kind: 'text' }, (part) => processTextPart('TODO', part))
       .with({ kind: 'file' }, processFilePart)
       .otherwise((otherPart) => {
         throw new Error(`Unsupported part - ${otherPart.kind}`);
       });
+
+    return transformedParts;
   });
 }
 

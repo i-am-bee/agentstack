@@ -3,21 +3,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { CitationMetadata } from 'acp-sdk';
 import { v4 as uuid } from 'uuid';
 
-import type { UIAgentMessage, UIMessage, UISourcePart, UITransformPart } from '#modules/messages/types.ts';
+import type { UIMessage, UISourcePart, UITransformPart } from '#modules/messages/types.ts';
 import { UIMessagePartKind, UITransformType } from '#modules/messages/types.ts';
 import { getMessageSources } from '#modules/messages/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
 import { toMarkdownCitation } from '#utils/markdown.ts';
 
 import type { MessageSourcesMap } from './types';
+import { CitationMetadata } from '#modules/runs/hooks/extensions/citation.ts';
 
-export function processSourcePart(
-  metadata: CitationMetadata,
-  message: UIAgentMessage,
-): (UISourcePart | UITransformPart)[] {
+export function processSourcePart(metadata: CitationMetadata, messageId: string): (UISourcePart | UITransformPart)[] {
   const { url, start_index, end_index, title, description } = metadata;
   const id = uuid();
 
@@ -29,7 +26,7 @@ export function processSourcePart(
     kind: UIMessagePartKind.Source,
     id,
     url,
-    messageId: message.id,
+    messageId,
     startIndex: start_index ?? undefined,
     endIndex: end_index ?? undefined,
     title: title ?? undefined,

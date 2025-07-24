@@ -10,6 +10,9 @@ import { useAgentClient } from '#modules/runs/contexts/agent-client/index.ts';
 
 import { sendMessageStream } from '..';
 
+/**
+ * @deprecated
+ */
 export function useSendMessageStream() {
   const { client } = useAgentClient();
 
