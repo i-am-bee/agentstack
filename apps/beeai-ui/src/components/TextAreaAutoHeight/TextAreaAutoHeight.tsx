@@ -49,7 +49,8 @@ export const TextAreaAutoHeight = forwardRef<HTMLTextAreaElement, Props>(functio
     updateOverflowValue();
   }, [updateOverflowValue]);
 
-  // This is necessary for the auto height to work properly. React does some optimization and ignores custom Event dispatch if the value is unchanged, which happens with react-hook-form.
+  // This is necessary for the auto height to work properly. React does some optimization and ignores custom Event dispatch
+  //  if the value is unchanged, which happens with react-hook-form.
   useEffect(() => {
     const element = textareaRef.current;
 

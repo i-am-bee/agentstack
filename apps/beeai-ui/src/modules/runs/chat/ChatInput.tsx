@@ -10,6 +10,7 @@ import { memo, useCallback, useRef } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { useFileUpload } from '#modules/files/contexts/index.ts';
+import { useMessages } from '#modules/messages/contexts/index.ts';
 
 import type { InputBarFormHandle } from '../components/InputBar';
 import { InputBar } from '../components/InputBar';
@@ -25,8 +26,9 @@ export const ChatInput = memo(function ChatInput({ onMessageSubmit }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<InputBarFormHandle>(null);
 
-  const { isPending, run, cancel } = useAgentRun();
+  const { agent, isPending, run, cancel } = useAgentRun();
   const { isPending: isFileUploadPending } = useFileUpload();
+  const { messages } = useMessages();
 
   const form = useForm<ChatFormValues>({
     mode: 'onChange',
@@ -43,12 +45,16 @@ export const ChatInput = memo(function ChatInput({ onMessageSubmit }: Props) {
 
   const inputValue = watch('input');
 
+  const {
+    ui: { prompt_suggestions },
+  } = agent;
   const isSubmitDisabled = isPending || isFileUploadPending || !inputValue;
 
   return (
     <FormProvider {...form}>
       <div ref={containerRef}>
         <InputBar
+          promptSuggestions={!messages.length ? prompt_suggestions : undefined}
           onSubmit={() => {
             handleSubmit(async ({ input }) => {
               onMessageSubmit?.();
@@ -64,6 +70,9 @@ export const ChatInput = memo(function ChatInput({ onMessageSubmit }: Props) {
           inputProps={{
             placeholder: 'Ask a question…',
             ...register('input', { required: true }),
+          }}
+          onInputChange={(value) => {
+            form.setValue('input', value, { shouldValidate: true });
           }}
         >
           {!isPending ? (

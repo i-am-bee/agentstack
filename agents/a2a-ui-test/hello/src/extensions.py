@@ -26,6 +26,7 @@ class BeeAIUI(AgentExtension):
                 "links": [{"type": "source-code", "url":"https://github.com/i-am-bee/beeai-platform"}],
                 "author": { "name": 'Tomas Weiss', "email": "Tomas.Weiss@ibm.com"},
                 "contributors": [{ "name": 'Petr Kadlec', "email": "petr.kadlec@ibm.com", "url": "https://research.ibm.com/" },{ "name": "Petr Bulánek", "email": "petr.bulanek@ibm.com" }],
-                "documentation": "This is *content* of documentation field in `beeai_ui` agent ~extension~."
+                "documentation": "This is *content* of documentation field in `beeai_ui` agent ~extension~.",
+                "prompt_suggestions":['Write a research report about Generative AI','Should I buy Apple stock now?','Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolor. This is what a long query would look like, 2 lines maximum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolor. This is what a long query would look like, 2 lines maximum...','What is the meaning of life?','Tell me a joke','What is the capital of France?','How do I make a cake?']
             }
         )

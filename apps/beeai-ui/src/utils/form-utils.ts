@@ -14,12 +14,7 @@ export function submitFormOnEnter(event: KeyboardEvent<HTMLTextAreaElement>) {
 }
 
 // Manually trigger the 'input' event to correctly resize TextAreaAutoHeight
-export function dispatchInputEventOnFormTextarea(form: HTMLFormElement) {
-  const elements = form.querySelectorAll('textarea');
-
-  elements.forEach((element) => {
-    const event = new Event('input', { bubbles: true });
-
-    element.dispatchEvent(event);
-  });
+export function dispatchInputEventOnTextarea(element: HTMLTextAreaElement) {
+  const event = new Event('input', { bubbles: true });
+  element.dispatchEvent(event);
 }
