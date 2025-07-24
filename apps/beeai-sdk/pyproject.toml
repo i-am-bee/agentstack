@@ -43,6 +43,7 @@ lint.select = [
 lint.ignore = [
     "E501", # line lenght (annyoing)
     "N999", # invalid module name beeai-server (yeah, we use a dash, deal with it)
+    "F403", # redundant with Pyright
 ]
 force-exclude = true
 exclude = ["tests"]

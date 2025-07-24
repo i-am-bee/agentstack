@@ -10,7 +10,7 @@ import typing
 import pydantic
 import pydantic.config
 
-import beeai_sdk.a2a_extensions
+from beeai_sdk.a2a_extensions.base_extension import BaseExtension
 
 
 class AgentDetailsTool(pydantic.BaseModel):
@@ -45,7 +45,7 @@ class AgentDetails(pydantic.BaseModel):
     model_config: typing.ClassVar[pydantic.config.ConfigDict] = {"extra": "ignore"}
 
 
-class AgentDetailsExtension(beeai_sdk.a2a_extensions.Extension[AgentDetails, types.NoneType]):
+class AgentDetailsExtension(BaseExtension[AgentDetails, types.NoneType]):
     URI: str = "https://a2a-extensions.beeai.dev/ui/agent_details/v1"
     Params: type[AgentDetails] = AgentDetails
     Metadata: type[types.NoneType] = types.NoneType

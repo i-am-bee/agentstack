@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import pydantic
 
-import beeai_sdk.a2a_extensions
+from beeai_sdk.a2a_extensions.base_extension import BaseExtension
 
 
 class LLMFulfillment(pydantic.BaseModel):
@@ -57,7 +57,7 @@ class LLMServiceExtensionMetadata(pydantic.BaseModel):
     """Provided models corresponding to the model requests."""
 
 
-class LLMServiceExtension(beeai_sdk.a2a_extensions.Extension[LLMServiceExtensionParams, LLMServiceExtensionMetadata]):
+class LLMServiceExtension(BaseExtension[LLMServiceExtensionParams, LLMServiceExtensionMetadata]):
     URI: str = "https://a2a-extensions.beeai.dev/services/llm/v1"
     Params: type[LLMServiceExtensionParams] = LLMServiceExtensionParams
     Metadata: type[LLMServiceExtensionMetadata] = LLMServiceExtensionMetadata
