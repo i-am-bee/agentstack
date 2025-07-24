@@ -28,7 +28,6 @@ import beeai_sdk.a2a_extensions.ui.agent_details
 
 agent_details_extension = beeai_sdk.a2a_extensions.ui.agent_details.AgentDetailsExtension(
     params=beeai_sdk.a2a_extensions.ui.agent_details.AgentDetails(
-        display_name="Chat",
         ui_type="chat",
     )
 )

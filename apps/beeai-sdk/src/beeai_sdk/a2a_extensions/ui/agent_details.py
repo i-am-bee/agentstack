@@ -20,7 +20,6 @@ class AgentDetailsTool(pydantic.BaseModel):
 
 class AgentDetailsLinks(pydantic.BaseModel):
     homepage: str | None = None
-    documentation: str | None = None
     source_code: str | None = None
     container_image: str | None = None
 
@@ -32,16 +31,12 @@ class AgentDetailsContributor(pydantic.BaseModel):
 
 
 class AgentDetails(pydantic.BaseModel):
-    display_name: str
-    ui_type: typing.Literal["chat", "hands-off"] | None = None
+    ui_type: str | None = pydantic.Field(examples=["chat", "hands-off"])
     user_greeting: str | None = None
     tools: list[AgentDetailsTool] | None = None
-    avg_run_time_seconds: float | None = None
-    avg_run_tokens: int | None = None
     framework: str | None = None
     license: str | None = None
     tags: list[str] | None = None
-    documentation: str | None = None
     programming_language: str | None = None
     links: AgentDetailsLinks | None = None
     author: AgentDetailsContributor | None = None
