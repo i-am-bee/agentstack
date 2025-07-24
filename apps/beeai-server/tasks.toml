@@ -108,6 +108,18 @@ outputs = ["dist/*.tar.gz"]
 dir = "{{config_root}}/apps/beeai-server"
 run = "uv run migrate"
 
+["beeai-server:migrations:alembic:nocheck"]
+dir = "{{config_root}}/apps/beeai-server"
+run = """
+#!/bin/bash
+set -a
+source .env
+set +a
+
+cd src/beeai_server/infrastructure/persistence/migrations
+alembic {{arg(name="alembic_vars", var=true)}}
+"""
+
 ["beeai-server:migrations:alembic"]
 dir = "{{config_root}}/apps/beeai-server"
 run = """

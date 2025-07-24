@@ -1,7 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""empty message
+"""store agent input/output content types
 
 Revision ID: 975813acde2a
 Revises: 327991a3c7a7

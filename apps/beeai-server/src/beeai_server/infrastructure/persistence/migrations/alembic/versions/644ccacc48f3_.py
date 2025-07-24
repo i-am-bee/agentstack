@@ -4,7 +4,7 @@
 """switch to a2a protocol
 
 Revision ID: 644ccacc48f3
-Revises: 327991a3c7a7
+Revises: 975813acde2a
 Create Date: 2025-07-14 16:42:07.098361
 
 """
@@ -16,7 +16,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "644ccacc48f3"
-down_revision: str | None = "327991a3c7a7"
+down_revision: str | None = "975813acde2a"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
