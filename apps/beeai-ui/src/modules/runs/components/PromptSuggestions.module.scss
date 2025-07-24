@@ -23,7 +23,7 @@
 
 .heading {
   @include type-style(label-02);
-  line-height: (22 / 14);
+  line-height: math.div(22, 14);
   color: $cool-gray-50;
 }
 
