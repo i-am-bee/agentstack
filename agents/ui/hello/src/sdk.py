@@ -53,7 +53,7 @@ def agent_decorator(
         return DecoratedAgent(
             id=name,
             name=name,
-            url="http://localhost:8000",
+            url="http://localhost:8001",
             version="1.0.0",
             description=description,
             defaultInputModes=input_content_types,
