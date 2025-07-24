@@ -18,12 +18,6 @@ class AgentDetailsTool(pydantic.BaseModel):
     description: str
 
 
-class AgentDetailsLinks(pydantic.BaseModel):
-    homepage: str | None = None
-    source_code: str | None = None
-    container_image: str | None = None
-
-
 class AgentDetailsContributor(pydantic.BaseModel):
     name: str
     email: str | None = None
@@ -36,9 +30,10 @@ class AgentDetails(pydantic.BaseModel):
     tools: list[AgentDetailsTool] | None = None
     framework: str | None = None
     license: str | None = None
-    tags: list[str] | None = None
     programming_language: str | None = None
-    links: AgentDetailsLinks | None = None
+    homepage_url: str | None = None
+    source_code_url: str | None = None
+    container_image_url: str | None = None
     author: AgentDetailsContributor | None = None
     contributors: list[AgentDetailsContributor] | None = None
 
