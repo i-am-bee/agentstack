@@ -20,6 +20,7 @@ from a2a.types import (
 )
 
 from chat.agent import SUPPORTED_CONTENT_TYPES, ChatAgentExecutor
+from starlette.middleware.cors import CORSMiddleware
 
 DEFAULT_LOG_LEVEL = "info"
 
@@ -36,7 +37,16 @@ def main():
 
         request_handler = DefaultRequestHandler(agent_executor=agent_executor, task_store=InMemoryTaskStore())
         a2a_server = A2AStarletteApplication(agent_card=get_agent_card(host, port), http_handler=request_handler)
-        config = uvicorn.Config(app=a2a_server.build(), host=host, port=port, log_level=log_level.lower())
+
+        app = a2a_server.build()
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+        config = uvicorn.Config(app=app, host=host, port=port, log_level=log_level.lower())
         await uvicorn.Server(config).serve()
 
     try:
@@ -62,8 +72,14 @@ def get_agent_card(host: str, port: int):
                     "user_greeting": "How can I help you?",
                     "display_name": "Chat",
                     "tools": [
-                        {"name": "Web Search (DuckDuckGo)", "description": "Retrieves real-time search results."},
-                        {"name": "Wikipedia Search", "description": "Fetches summaries from Wikipedia."},
+                        {
+                            "name": "Web Search (DuckDuckGo)",
+                            "description": "Retrieves real-time search results.",
+                        },
+                        {
+                            "name": "Wikipedia Search",
+                            "description": "Fetches summaries from Wikipedia.",
+                        },
                         {
                             "name": "Weather Information (OpenMeteo)",
                             "description": "Provides real-time weather updates.",

@@ -22,12 +22,8 @@ from openinference.instrumentation.beeai import BeeAIInstrumentor
 
 BeeAIInstrumentor().instrument()
 ## TODO: https://github.com/phoenixframework/phoenix/issues/6224
-logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(
-    logging.CRITICAL
-)
-logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(
-    logging.CRITICAL
-)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(logging.CRITICAL)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(logging.CRITICAL)
 
 
 logger = logging.getLogger(__name__)
@@ -35,9 +31,7 @@ SUPPORTED_CONTENT_TYPES = ["text", "text/plain"]
 
 
 def to_framework_message(message: Message) -> UserMessage | AssistantMessage:
-    message_text = "".join(
-        part.root.text for part in message.parts if part.root.kind == "text"
-    )
+    message_text = "".join(part.root.text for part in message.parts if part.root.kind == "text")
 
     if message.role == Role.agent:
         return AssistantMessage(message_text)
@@ -63,9 +57,7 @@ class ChatAgentExecutor(AgentExecutor):
         """
 
         # ensure the model is pulled before running
-        os.environ["OPENAI_API_BASE"] = os.getenv(
-            "LLM_API_BASE", "http://localhost:11434/v1"
-        )
+        os.environ["OPENAI_API_BASE"] = os.getenv("LLM_API_BASE", "http://localhost:11434/v1")
         os.environ["OPENAI_API_KEY"] = os.getenv("LLM_API_KEY", "dummy")
         llm = ChatModel.from_name(
             f"openai:{os.getenv('LLM_MODEL', 'llama3.1')}",
@@ -115,9 +107,5 @@ class ChatAgentExecutor(AgentExecutor):
             await updater.complete()
 
         except BaseException as e:
-            await updater.failed(
-                message=updater.new_agent_message(
-                    parts=[Part(root=TextPart(text=str(e)))]
-                )
-            )
+            await updater.failed(message=updater.new_agent_message(parts=[Part(root=TextPart(text=str(e)))]))
             logger.error(f"Agent run failed: {e}")

@@ -15,6 +15,9 @@ dependencies = [
     "uvicorn>=0.35.0",
 ]
 
+[tool.ruff]
+line-length = 120
+
 [project.scripts]
 server = "chat.__main__:main"
 
