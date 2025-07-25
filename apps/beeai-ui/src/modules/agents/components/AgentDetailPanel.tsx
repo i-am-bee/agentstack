@@ -16,8 +16,7 @@ import { SidePanelVariant } from '#contexts/App/types.ts';
 import { useAgentNameFromPath } from '#hooks/useAgentNameFromPath.ts';
 
 import { useAgent } from '../api/queries/useAgent';
-import { AgentLinkType } from '../api/types';
-import { getAvailableAgentLinkUrl } from '../utils';
+import { getAgentSourceCodeUrl } from '../utils';
 import { AgentCredits } from './AgentCredits';
 import classes from './AgentDetailPanel.module.scss';
 import { AgentTags } from './AgentTags';
@@ -32,13 +31,9 @@ export function AgentDetailPanel() {
 
   const {
     description,
-    ui: { documentation, links, contributors, author },
+    ui: { documentation, contributors, author },
   } = agent;
-  const agentUrl = getAvailableAgentLinkUrl(links, [
-    AgentLinkType.Homepage,
-    AgentLinkType.Documentation,
-    AgentLinkType.SourceCode,
-  ]);
+  const sourceCodeUrl = getAgentSourceCodeUrl(agent);
   const agentInfo = description ?? documentation;
 
   const isOpen = activeSidePanel === SidePanelVariant.AgentDetail;
@@ -66,9 +61,9 @@ export function AgentDetailPanel() {
 
                     <AgentTags agent={agent} />
 
-                    {agentUrl && (
-                      <ExternalLink href={agentUrl} className={classes.docsLink}>
-                        View more <ArrowUpRight />
+                    {sourceCodeUrl && (
+                      <ExternalLink href={sourceCodeUrl} className={classes.docsLink}>
+                        View source code <ArrowUpRight />
                       </ExternalLink>
                     )}
                   </>

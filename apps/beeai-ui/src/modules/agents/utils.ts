@@ -9,8 +9,7 @@ import type { Provider } from '#modules/providers/api/types.ts';
 import { SupportedUis } from '#modules/runs/constants.ts';
 import { compareStrings, isNotNull } from '#utils/helpers.ts';
 
-import { type AgentExtension, AgentLinkType, type UiExtension, type UIExtensionParams } from './api/types';
-import { type Agent, AGENT_EXTENSION_UI_KEY } from './api/types';
+import { type Agent, AGENT_EXTENSION_UI_KEY, type AgentExtension, AgentLinkType, type UiExtension } from './api/types';
 
 export const getAgentsProgrammingLanguages = (agents: Agent[] | undefined) => {
   return uniq(
@@ -36,22 +35,6 @@ export function isAgentUiSupported(agent: Agent) {
   const ui_type = agent.ui?.ui_type;
 
   return ui_type && SupportedUis.includes(ui_type);
-}
-
-export function getAvailableAgentLinkUrl<T extends AgentLinkType | AgentLinkType[]>(
-  links: UIExtensionParams['links'],
-  type: T,
-): string | undefined {
-  const typesArray = Array.isArray(type) ? type : [type];
-
-  for (const type of typesArray) {
-    const url = links?.find((link) => link.type === type)?.url;
-    if (url) {
-      return url;
-    }
-  }
-
-  return undefined;
 }
 
 function isAgentUiExtension(extension: AgentExtension): extension is UiExtension {
