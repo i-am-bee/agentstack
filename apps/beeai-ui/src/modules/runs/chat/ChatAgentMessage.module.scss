@@ -12,9 +12,4 @@
 .content {
   font-size: rem(16px);
   line-height: math.div(26, 16);
-  > div {
-    font-size: inherit;
-    line-height: inherit;
-    letter-spacing: normal;
-  }
 }

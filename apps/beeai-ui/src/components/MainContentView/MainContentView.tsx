@@ -8,6 +8,7 @@ import type { PropsWithChildren } from 'react';
 import { mergeRefs } from 'react-merge-refs';
 
 import { AppFooter } from '#components/layouts/AppFooter.tsx';
+import { useIsScrolled } from '#hooks/useIsScrolled.ts';
 import { useScrollbarWidth } from '#hooks/useScrollbarWidth.ts';
 import { useToTopButton } from '#hooks/useToTopButton.ts';
 import { createScrollbarStyles } from '#utils/createScrollbarStyles.ts';
@@ -31,12 +32,13 @@ export function MainContentView({
   className,
   children,
 }: MainContentViewProps) {
+  const { scrollElementRef, observeElementRef, isScrolled } = useIsScrolled();
   const { ref: toTopRef, showButton, handleToTopClick } = useToTopButton({ enabled: enableToTopButton });
   const { ref: scrollbarRef, scrollbarWidth } = useScrollbarWidth();
 
   return (
     <div
-      ref={mergeRefs([toTopRef, scrollbarRef])}
+      ref={mergeRefs([toTopRef, scrollbarRef, scrollElementRef])}
       className={clsx(
         classes.root,
         {
@@ -46,7 +48,10 @@ export function MainContentView({
         className,
       )}
       {...createScrollbarStyles({ width: scrollbarWidth })}
+      data-scrolled={isScrolled}
     >
+      <div className={classes.topRef} ref={observeElementRef} />
+
       <div className={classes.body}>{children}</div>
 
       {showButton && <ToTopButton onClick={handleToTopClick} />}

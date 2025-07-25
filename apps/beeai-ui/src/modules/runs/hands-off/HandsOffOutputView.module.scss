@@ -19,6 +19,35 @@ $max-inline-size: rem(608px);
 }
 
 .header {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: 50%;
+    z-index: -1;
+    inline-size: calc(100vw - var(--scrollbar-width, 0px));
+    transform: translateX(-50%);
+  }
+  &::before {
+    inset-block: -$spacing-07;
+    background-color: $background;
+  }
+  &::after {
+    inset-block-start: 100%;
+    block-size: rem(84px);
+    background-image: linear-gradient(to bottom, $background 15%, $background-transparent);
+    pointer-events: none;
+    display: none;
+    [data-scrolled='true'] & {
+      display: block;
+    }
+  }
+}
+
+.headerContainer {
   display: flex;
   column-gap: $spacing-06;
   max-inline-size: $max-inline-size;

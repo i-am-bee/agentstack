@@ -15,4 +15,18 @@
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
+  :global(.cds--tooltip-trigger__wrapper) {
+    display: flex;
+  }
+  :global(.cds--btn--icon-only) {
+    inline-size: rem(16px);
+    block-size: rem(16px);
+    min-block-size: 0;
+    border-radius: rem(4px);
+    background-color: $layer-03;
+    &:hover:not(:focus) {
+      background-color: $layer-hover-03;
+      border-color: $layer-hover-03;
+    }
+  }
 }

@@ -18,8 +18,17 @@
   font-size: rem(14px);
   line-height: math.div(22, 14);
   margin-inline-start: auto;
+  position: relative;
 }
 
 .files {
   justify-content: flex-end;
+}
+
+.moreButton {
+  position: absolute;
+  inset-inline-end: $spacing-03;
+  inset-block-end: $spacing-04;
+  padding: rem(3px) rem(4px);
+  background-color: $layer-02;
 }

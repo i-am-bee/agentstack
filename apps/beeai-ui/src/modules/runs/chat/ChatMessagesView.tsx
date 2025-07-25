@@ -6,9 +6,9 @@
 
 import { ArrowDown } from '@carbon/icons-react';
 import { IconButton } from '@carbon/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Container } from '#components/layouts/Container.tsx';
+import { useIsScrolled } from '#hooks/useIsScrolled.ts';
 import { isAgentMessage, isUserMessage } from '#modules/messages/utils.ts';
 
 import { FileUpload } from '../../files/components/FileUpload';
@@ -23,55 +23,17 @@ import classes from './ChatMessagesView.module.scss';
 import { ChatUserMessage } from './ChatUserMessage';
 
 export function ChatMessagesView() {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const [isScrolled, setIsScrolled] = useState(false);
-
+  const { scrollElementRef, observeElementRef, isScrolled, scrollToBottom } = useIsScrolled();
   const { isPending, clear } = useAgentRun();
   const { messages } = useMessages();
   const {
     status: { isNotInstalled, isStarting },
   } = useAgentStatus();
 
-  const scrollToBottom = useCallback(() => {
-    const scrollElement = scrollRef.current;
-
-    if (!scrollElement) {
-      return;
-    }
-
-    scrollElement.scrollTo({
-      top: scrollElement.scrollHeight,
-    });
-
-    setIsScrolled(false);
-  }, []);
-
-  useEffect(() => {
-    const bottomElement = bottomRef.current;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsScrolled(!entry.isIntersecting);
-      },
-      { root: scrollRef.current },
-    );
-
-    if (bottomElement) {
-      observer.observe(bottomElement);
-    }
-
-    return () => {
-      if (bottomElement) {
-        observer.unobserve(bottomElement);
-      }
-    };
-  }, []);
-
   return (
     <FileUpload>
       <div className={classes.holder}>
-        <div className={classes.scrollable} ref={scrollRef}>
+        <div className={classes.scrollable} ref={scrollElementRef}>
           <Container size="sm" className={classes.container}>
             <header className={classes.header}>
               <NewSessionButton onClick={clear} />
@@ -92,7 +54,7 @@ export function ChatMessagesView() {
               })}
             </ol>
 
-            <div className={classes.scrollRef} ref={bottomRef} />
+            <div className={classes.scrollRef} ref={observeElementRef} />
           </Container>
         </div>
 

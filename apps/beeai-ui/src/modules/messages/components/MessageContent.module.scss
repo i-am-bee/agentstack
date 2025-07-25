@@ -3,6 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+.root {
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: normal;
+}
+
 .empty {
   color: $text-disabled;
 }

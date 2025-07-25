@@ -43,7 +43,7 @@ $max-container: get-value($grid-breakpoints, 'max.width');
     inset-inline-end: $grid-margin;
 
     inset-inline-end: auto;
-    inset-inline-start: calc(50% + math.div($max-container, 2) - var(--scrollbar-width, 0));
+    inset-inline-start: calc(50% + math.div($max-container, 2) - var(--scrollbar-width, 0px));
     transform: translateX(-50%);
   }
 }

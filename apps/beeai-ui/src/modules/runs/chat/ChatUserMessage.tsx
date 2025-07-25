@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
 import { MessageFiles } from '#modules/files/components/MessageFiles.tsx';
 import { MessageContent } from '#modules/messages/components/MessageContent.tsx';
 import type { UIUserMessage } from '#modules/messages/types.ts';
@@ -17,7 +18,9 @@ export function ChatUserMessage({ message }: Props) {
   return (
     <div className={classes.root}>
       <div className={classes.content}>
-        <MessageContent message={message} />
+        <LineClampText lines={3} as="div" buttonClassName={classes.moreButton} iconButton>
+          <MessageContent message={message} />
+        </LineClampText>
       </div>
 
       <MessageFiles message={message} className={classes.files} />

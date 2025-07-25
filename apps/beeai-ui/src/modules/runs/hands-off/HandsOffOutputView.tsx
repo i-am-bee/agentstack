@@ -17,16 +17,20 @@ import { TaskStatusBar } from './TaskStatusBar';
 export function HandsOffOutputView() {
   const { input, isPending, cancel, clear } = useAgentRun();
   const { messages } = useMessages();
+
   const message = messages.find(isAgentMessage);
   const hasOutput = message ? checkMessageContent(message) : false;
+  const containerSize = hasOutput ? 'md' : 'sm';
 
   return (
     <div className={classes.root}>
-      <Container size={hasOutput ? 'md' : 'sm'} className={classes.holder}>
+      <Container size={containerSize} className={classes.holder}>
         <header className={classes.header}>
-          <p className={classes.input}>{input}</p>
+          <div className={classes.headerContainer}>
+            <p className={classes.input}>{input}</p>
 
-          <NewSessionButton onClick={clear} />
+            <NewSessionButton onClick={clear} />
+          </div>
         </header>
 
         <div className={classes.body}>

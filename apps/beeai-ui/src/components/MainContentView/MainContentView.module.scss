@@ -11,12 +11,18 @@
   flex-direction: column;
   row-gap: $spacing-07;
   min-block-size: 0;
+  position: relative;
   &.scrollable {
     @include scrollbar();
   }
   &:has(.footer) {
     padding-block-end: 0;
   }
+}
+
+.topRef {
+  position: absolute;
+  inset-block-start: 0;
 }
 
 .body {
@@ -29,6 +35,10 @@
 
 @include breakpoint-up(md) {
   .root {
+    &.md {
+      padding-block: $spacing-07;
+      row-gap: $spacing-07;
+    }
     &.lg {
       padding-block: $spacing-09;
       row-gap: $spacing-09;

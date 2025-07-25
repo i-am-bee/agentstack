@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import clsx from 'clsx';
+
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 import type { UIMessage } from '#modules/messages/types.ts';
 
@@ -21,10 +23,10 @@ export function MessageContent({ message }: Props) {
   const sources = getMessageSources(message);
 
   return content ? (
-    <MarkdownContent sources={sources} isPending={isPending}>
+    <MarkdownContent className={classes.root} sources={sources} isPending={isPending}>
       {content}
     </MarkdownContent>
   ) : (
-    <div className={classes.empty}>Message has no content</div>
+    <div className={clsx(classes.empty, classes.root)}>Message has no content</div>
   );
 }
