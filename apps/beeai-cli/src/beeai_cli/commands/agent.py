@@ -148,7 +148,7 @@ async def add_agent(
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ) -> None:
     """Install discovered agent or add public docker image or github repository [aliases: install]"""
-    agents = None
+    agent_card = None
     # Try extracting manifest locally for local images
 
     with verbosity(verbose):
@@ -160,7 +160,7 @@ async def add_agent(
         try:
             if process.returncode:
                 # If the image was not found locally, try building image
-                location, agents = await build(location, tag=None, vm_name=vm_name, import_image=True)
+                location, agent_card = await build(location, tag=None, vm_name=vm_name, import_image=True)
             else:
                 manifest = base64.b64decode(
                     json.loads(process.stdout)[0]["Config"]["Labels"]["beeai.dev.agent.json"]

@@ -52,7 +52,7 @@ async def build(
 
         await run_command(["docker", "build", context, "-t", image_id], "Building agent image")
 
-        response = None
+        agent_card = None
 
         container_id = uuid.uuid4()
 
@@ -76,7 +76,7 @@ async def build(
                                         f"http://localhost:{port}/.well-known/agent.json", timeout=1
                                     )
                                     resp.raise_for_status()
-                                    response = resp.json()
+                                    agent_card = resp.json()
                         process.terminate()
                         with suppress(ProcessLookupError):
                             process.kill()
@@ -104,7 +104,7 @@ async def build(
                 context,
                 "-t",
                 tag,
-                f"--label=beeai.dev.agent.json={base64.b64encode(json.dumps(response).encode()).decode()}",
+                f"--label=beeai.dev.agent.json={base64.b64encode(json.dumps(agent_card).encode()).decode()}",
             ],
             message="Adding agent labels to container",
             check=True,
@@ -115,4 +115,4 @@ async def build(
 
             await import_image(tag, vm_name=vm_name)
 
-        return tag, response["agents"]
+        return tag, agent_card
