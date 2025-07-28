@@ -1,5 +1,11 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { z } from 'zod';
-import { A2AExtension } from './a2aExtension';
+
+import type { A2AExtension } from './a2aExtension';
 
 const extensionKey = 'https://a2a-extensions.beeai.dev/trajectory/v1';
 const trajectoryMetadataSchemaV1 = z

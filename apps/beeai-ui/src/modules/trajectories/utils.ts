@@ -7,12 +7,12 @@ import { v4 as uuid } from 'uuid';
 
 import type { UITrajectoryPart } from '#modules/messages/types.ts';
 import { UIMessagePartKind } from '#modules/messages/types.ts';
+import type { TrajectoryMetadata } from '#modules/runs/hooks/extensions/trajectory.ts';
 import { parseJsonLikeString } from '#modules/runs/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { NON_VIEWABLE_TRAJECTORY_PROPERTIES } from './constants';
 import type { NonViewableTrajectoryProperty } from './types';
-import { TrajectoryMetadata } from '#modules/runs/hooks/extensions/trajectory.ts';
 
 export function processTrajectoryPart(metadata: TrajectoryMetadata): UITrajectoryPart {
   const { message, tool_name } = metadata;

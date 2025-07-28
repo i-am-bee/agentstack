@@ -164,7 +164,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
         pendingRun.current = undefined;
       }
     },
-    [handleError, updateLastAgentMessage, files],
+    [handleError, updateLastAgentMessage, files, conversationId, setMessages],
   );
 
   const sources = useMemo(() => getMessageSourcesMap(messages), [messages]);

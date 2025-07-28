@@ -8,11 +8,11 @@ import { v4 as uuid } from 'uuid';
 import type { UIMessage, UISourcePart, UITransformPart } from '#modules/messages/types.ts';
 import { UIMessagePartKind, UITransformType } from '#modules/messages/types.ts';
 import { getMessageSources } from '#modules/messages/utils.ts';
+import type { CitationMetadata } from '#modules/runs/hooks/extensions/citation.ts';
 import { isNotNull } from '#utils/helpers.ts';
 import { toMarkdownCitation } from '#utils/markdown.ts';
 
 import type { MessageSourcesMap } from './types';
-import { CitationMetadata } from '#modules/runs/hooks/extensions/citation.ts';
 
 export function processSourcePart(metadata: CitationMetadata, messageId: string): (UISourcePart | UITransformPart)[] {
   const { url, start_index, end_index, title, description } = metadata;

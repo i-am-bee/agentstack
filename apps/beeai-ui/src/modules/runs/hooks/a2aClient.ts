@@ -3,21 +3,22 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Role } from '#modules/messages/api/types.ts';
-import { UIFilePart, UIMessagePart, UIMessagePartKind, UITextPart } from '#modules/messages/types.ts';
-import { FileEntity } from '#modules/files/types.ts';
-import { getFileContentUrl, getFileUri } from '#modules/files/utils.ts';
-
-import { FilePart, Message, TaskStatusUpdateEvent, TextPart } from '@a2a-js/sdk';
+import type { FilePart, Message, TaskStatusUpdateEvent, TextPart } from '@a2a-js/sdk';
 import { A2AClient } from '@a2a-js/sdk/client';
-
-import { v4 as uuid } from 'uuid';
 import { match } from 'ts-pattern';
+import { v4 as uuid } from 'uuid';
+
+import type { FileEntity } from '#modules/files/types.ts';
+import { getFileContentUrl, getFileUri } from '#modules/files/utils.ts';
+import { Role } from '#modules/messages/api/types.ts';
+import type { UIFilePart, UIMessagePart, UITextPart } from '#modules/messages/types.ts';
+import { UIMessagePartKind } from '#modules/messages/types.ts';
 import { processSourcePart } from '#modules/sources/utils.ts';
-import { getExtensionData } from './extensions/getExtensionData';
-import { citationExtensionV1 } from './extensions/citation';
-import { trajectoryExtensionV1 } from './extensions/trajectory';
 import { processTrajectoryPart } from '#modules/trajectories/utils.ts';
+
+import { citationExtensionV1 } from './extensions/citation';
+import { getExtensionData } from './extensions/getExtensionData';
+import { trajectoryExtensionV1 } from './extensions/trajectory';
 
 const extractCitations = getExtensionData(citationExtensionV1);
 const extractTrajectory = getExtensionData(trajectoryExtensionV1);
@@ -122,7 +123,7 @@ export const buildA2AClient = (agentUrl: string) => {
     });
 
     // TODO: move rxjs
-    let subscribers: ((parts: UIMessagePart[]) => void)[] = [];
+    const subscribers: ((parts: UIMessagePart[]) => void)[] = [];
 
     const iterateOverStream = async () => {
       for await (const event of res) {
