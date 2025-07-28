@@ -50,6 +50,8 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
   const [input, setInput] = useState<string | undefined>(undefined);
   const [isPending, setIsPending] = useState(false);
   const [stats, setStats] = useState<RunStats>();
+
+  const pendingSubscription = useRef<(() => void) | undefined>(undefined);
   const pendingRun = useRef<ChatRun | undefined>(undefined);
 
   const errorHandler = useHandleError();
@@ -90,7 +92,8 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
   );
 
   const cancel = useCallback(async () => {
-    if (pendingRun.current) {
+    if (pendingRun.current && pendingSubscription.current) {
+      pendingSubscription.current();
       await pendingRun.current.cancel();
     } else {
       throw new Error('No run in progress');
@@ -109,7 +112,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
 
   const run = useCallback(
     async (input: string) => {
-      if (pendingRun.current) {
+      if (pendingRun.current || pendingSubscription.current) {
         throw new Error('A run is already in progress');
       }
 
@@ -134,19 +137,21 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
           messages.push(...[userMessage, agentMessage]);
         });
 
-        // TODO: use proper agent url
-        const agent = buildA2AClient('http://localhost:8001');
+        // const a2aAgentClient = buildA2AClient(agent.url);
+        const a2aAgentClient = buildA2AClient('http://localhost:8001');
 
-        const run = await agent.chat(input, files, conversationId);
+        const run = a2aAgentClient.chat(input, files, conversationId);
         pendingRun.current = run;
 
-        await run.subscribe((parts) => {
+        pendingSubscription.current = run.subscribe((parts) => {
           parts.forEach((part) => {
             updateLastAgentMessage((message) => {
               message.parts.push(part);
             });
           });
         });
+
+        await run.done;
 
         updateLastAgentMessage((message) => {
           message.status = UIMessageStatus.Completed;
@@ -162,6 +167,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
         setIsPending(false);
         setStats((stats) => ({ ...stats, endTime: Date.now() }));
         pendingRun.current = undefined;
+        pendingSubscription.current = undefined;
       }
     },
     [handleError, updateLastAgentMessage, files, conversationId, setMessages],

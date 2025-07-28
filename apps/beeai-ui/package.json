@@ -53,6 +53,7 @@
     "react-syntax-highlighter": "^15.6.1",
     "rehype-minify-whitespace": "^6.0.2",
     "remark-gfm": "^4.0.1",
+    "rxjs": "^7.8.2",
     "ts-pattern": "^5.7.1",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.0.0",

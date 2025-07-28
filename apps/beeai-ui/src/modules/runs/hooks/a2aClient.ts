@@ -5,6 +5,7 @@
 
 import type { FilePart, Message, TaskStatusUpdateEvent, TextPart } from '@a2a-js/sdk';
 import { A2AClient } from '@a2a-js/sdk/client';
+import { Subject } from 'rxjs';
 import { match } from 'ts-pattern';
 import { v4 as uuid } from 'uuid';
 
@@ -24,7 +25,8 @@ const extractCitations = getExtensionData(citationExtensionV1);
 const extractTrajectory = getExtensionData(trajectoryExtensionV1);
 
 export interface ChatRun {
-  subscribe: (fn: (parts: UIMessagePart[]) => void) => void;
+  done: Promise<void>;
+  subscribe: (fn: (parts: UIMessagePart[]) => void) => () => void;
   cancel: () => Promise<void>;
 }
 
@@ -120,37 +122,36 @@ function buildUserMessage(message: string, files: FileEntity[], contextId: strin
 export const buildA2AClient = (agentUrl: string) => {
   const client = new A2AClient(agentUrl);
 
-  const chat = async (text: string, files: FileEntity[], contextId: string) => {
+  const chat = (text: string, files: FileEntity[], contextId: string) => {
     const taskId = uuid();
-
-    const res = await client.sendMessageStream({
-      message: buildUserMessage(text, files, contextId, taskId),
-    });
-
-    // TODO: move rxjs
-    const subscribers: ((parts: UIMessagePart[]) => void)[] = [];
+    const messageSubject = new Subject<UIMessagePart[]>();
 
     const iterateOverStream = async () => {
+      const res = await client.sendMessageStream({
+        message: buildUserMessage(text, files, contextId, taskId),
+      });
+
       for await (const event of res) {
         match(event).with({ kind: 'status-update' }, (event) => {
           const messageParts = handleStatusUpdate(event);
-
-          subscribers.forEach((subscriber) => {
-            subscriber(messageParts);
-          });
+          messageSubject.next(messageParts);
         });
       }
+
+      messageSubject.complete();
     };
 
-    const done = iterateOverStream();
-
     const run: ChatRun = {
-      subscribe: (fn: (text: UIMessagePart[]) => void) => {
-        subscribers.push(fn);
+      done: iterateOverStream(),
+      subscribe: (fn) => {
+        const subscription = messageSubject.subscribe(fn);
 
-        return done;
+        return () => {
+          subscription.unsubscribe();
+        };
       },
       cancel: async () => {
+        messageSubject.complete();
         await client.cancelTask({ id: taskId });
       },
     };
