@@ -97,8 +97,9 @@ if get_configuration().provider.auto_remove_enabled:
             try:
                 timeout_sec = timedelta(seconds=30).total_seconds()
                 with anyio.fail_after(delay=timeout_sec):
-                    client = httpx.AsyncClient(base_url=str(provider.source.root), timeout=timeout_sec)
-                    await client.get("ping")
+                    async with httpx.AsyncClient(base_url=str(provider.source.root), timeout=timeout_sec) as client:
+                        resp = await client.get(".well-known/agent.json")
+                        resp.raise_for_status()
             except Exception as ex:
                 logger.error(f"Provider {provider.id} failed to respond to ping in 30 seconds: {extract_messages(ex)}")
                 with suppress(EntityNotFoundError):
