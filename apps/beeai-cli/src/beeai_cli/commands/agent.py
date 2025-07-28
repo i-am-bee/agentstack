@@ -341,7 +341,8 @@ async def _run_agent(
                                     console.print("[yellow]Task was canceled[/yellow]")
                                     return task_id, context_id
                                 case TaskState.failed:
-                                    console.print("[red]Task failed[/red]")
+                                    message = task_status.message.parts[0].root.text if task_status.message else ""
+                                    console.print(f"[red]Task failed[/red]: {message}")
                                     return task_id, context_id
                                 case TaskState.rejected:
                                     console.print("[red]Task was rejected[/red]")
