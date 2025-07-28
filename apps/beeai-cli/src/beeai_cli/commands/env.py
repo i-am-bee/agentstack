@@ -575,7 +575,7 @@ async def _configure_embedding(env: dict[str, str]) -> dict[str, str] | None:
                         if provider_name == "watsonx"
                         else f"{api_base}/embeddings"
                     ),
-                    json={"input": ["Hi"]}
+                    json={"input" + ("s" if provider_name == "watsonx" else ""): ["Hi"]}
                     | (
                         {"model_id": selected_model, f"{watsonx_project_or_space}_id": watsonx_project_or_space_id}
                         if provider_name == "watsonx"
