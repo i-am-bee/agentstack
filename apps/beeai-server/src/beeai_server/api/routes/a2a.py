@@ -6,6 +6,7 @@ from uuid import UUID
 import fastapi
 import fastapi.responses
 from a2a.types import AgentCard
+from fastapi import Request
 
 from beeai_server.api.dependencies import (
     A2AProxyServiceDependency,
@@ -40,7 +41,8 @@ async def proxy_request(
 
 @router.get("/{provider_id}/.well-known/agent.json")
 async def get_agent_card(
-    provider_id: UUID, provider_service: ProviderServiceDependency, _: AuthenticatedUserDependency
+    provider_id: UUID, request: Request, provider_service: ProviderServiceDependency, _: AuthenticatedUserDependency
 ) -> AgentCard:
     provider = await provider_service.get_provider(provider_id=provider_id)
-    return provider.agent_card.model_dump(exclude_none=True, by_alias=True)
+    url = str(request.url_for(proxy_request.__name__, provider_id=provider.id, path=""))
+    return provider.agent_card.model_copy(update={"url": url}).model_dump(exclude_none=True, by_alias=True)
