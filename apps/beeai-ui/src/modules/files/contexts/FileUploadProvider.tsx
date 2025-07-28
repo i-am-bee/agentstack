@@ -9,6 +9,7 @@ import { type FileRejection, useDropzone } from 'react-dropzone';
 import { v4 as uuid } from 'uuid';
 
 import { useToast } from '#contexts/Toast/index.ts';
+import { isMimeType } from '#utils/helpers.ts';
 
 import { useDeleteFile } from '../api/mutations/useDeleteFile';
 import { useUploadFile } from '../api/mutations/useUploadFile';
@@ -89,10 +90,12 @@ export function FileUploadProvider({ allowedContentTypes = [], children }: Props
     [files],
   );
 
-  const isDisabled = allowedContentTypes.includes(NO_FILES_CONTENT_TYPE) || !allowedContentTypes.length;
+  const validContentType = allowedContentTypes.filter(isMimeType);
+
+  const isDisabled = validContentType.includes(NO_FILES_CONTENT_TYPE) || !validContentType.length;
   const accept = isDisabled
     ? {}
-    : allowedContentTypes.reduce(
+    : validContentType.reduce(
         (value, mimeType) =>
           mimeType === ALL_FILES_CONTENT_TYPE
             ? value

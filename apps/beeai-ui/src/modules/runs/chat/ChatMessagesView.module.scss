@@ -3,11 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+$content-block-padding: $spacing-07;
+$user-message-height: rem(46px);
+$messages-row-gap: $spacing-07;
+$holder-row-gap: $spacing-06;
+$input-height: rem(88px);
+
 .holder {
   inline-size: 100%;
   display: grid;
   grid-template-rows: 1fr max-content;
-  row-gap: $spacing-06;
+  row-gap: $holder-row-gap;
 }
 
 .scrollable {
@@ -33,8 +39,15 @@
 .messages {
   display: flex;
   flex-direction: column;
-  row-gap: $spacing-07;
+  row-gap: $messages-row-gap;
   block-size: 100%;
+}
+
+.message:last-child {
+  min-block-size: calc(
+    100vh - var(--header-height) - #{2 * $content-block-padding + $user-message-height + $messages-row-gap +
+      $holder-row-gap + $input-height}
+  );
 }
 
 .scrollRef {

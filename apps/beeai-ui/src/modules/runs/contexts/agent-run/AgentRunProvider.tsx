@@ -96,11 +96,6 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
     },
     onFailed: (_, error) => {
       handleError(error);
-
-      updateLastAgentMessage((message) => {
-        message.error = error;
-        message.status = UIMessageStatus.Failed;
-      });
     },
   });
 
@@ -162,8 +157,15 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
       errorHandler(error, {
         errorToast: { title: errorCode?.toString() ?? 'Failed to run agent.', includeErrorMessage: true },
       });
+
+      if (error instanceof Error) {
+        updateLastAgentMessage((message) => {
+          message.error = error;
+          message.status = UIMessageStatus.Failed;
+        });
+      }
     },
-    [errorHandler],
+    [errorHandler, updateLastAgentMessage],
   );
 
   const cancel = useCallback(() => {

@@ -45,7 +45,7 @@ export function ChatMessagesView() {
                 const isAgent = isAgentMessage(message);
 
                 return (
-                  <li key={message.id}>
+                  <li key={message.id} className={classes.message}>
                     {isUser && <ChatUserMessage message={message} />}
 
                     {isAgent && <ChatAgentMessage message={message} />}

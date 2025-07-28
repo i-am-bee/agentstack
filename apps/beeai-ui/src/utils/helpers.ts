@@ -23,6 +23,17 @@ export function compareStrings(a: string, b: string): number {
   return a.localeCompare(b, 'en', { sensitivity: 'base' });
 }
 
+export function isMimeType(mimeType: string) {
+  return (
+    mimeType === 'audio/*' ||
+    mimeType === 'video/*' ||
+    mimeType === 'image/*' ||
+    mimeType === 'text/*' ||
+    mimeType === 'application/*' ||
+    /\w+\/[-+.\w]+/g.test(mimeType)
+  );
+}
+
 export function isImageMimeType(mimeType: string | undefined): boolean {
   return Boolean(mimeType?.toLowerCase().startsWith('image/'));
 }
