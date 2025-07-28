@@ -26,6 +26,16 @@ def _to_fastapi(response: A2AServerResponse):
         return fastapi.responses.Response(content=response.content, **common)
 
 
+@router.get("/{provider_id}/.well-known/agent.json")
+async def get_agent_card(
+    provider_id: UUID, request: Request, provider_service: ProviderServiceDependency, _: AuthenticatedUserDependency
+) -> AgentCard:
+    provider = await provider_service.get_provider(provider_id=provider_id)
+    url = str(request.url_for(proxy_request.__name__, provider_id=provider.id, path=""))
+    return provider.agent_card.model_copy(update={"url": url}).model_dump(exclude_none=True, by_alias=True)
+
+
+@router.api_route("/{provider_id}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"])
 @router.api_route("/{provider_id}/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"])
 async def proxy_request(
     provider_id: UUID,
@@ -37,12 +47,3 @@ async def proxy_request(
     client = await a2a_proxy.get_proxy_client(provider_id=provider_id)
     response = await client.send_request(method=request.method, url=f"/{path}", content=request.stream())
     return _to_fastapi(response)
-
-
-@router.get("/{provider_id}/.well-known/agent.json")
-async def get_agent_card(
-    provider_id: UUID, request: Request, provider_service: ProviderServiceDependency, _: AuthenticatedUserDependency
-) -> AgentCard:
-    provider = await provider_service.get_provider(provider_id=provider_id)
-    url = str(request.url_for(proxy_request.__name__, provider_id=provider.id, path=""))
-    return provider.agent_card.model_copy(update={"url": url}).model_dump(exclude_none=True, by_alias=True)
