@@ -16,8 +16,11 @@ import { match } from 'ts-pattern';
 import { processSourcePart } from '#modules/sources/utils.ts';
 import { getExtensionData } from './extensions/getExtensionData';
 import { citationExtensionV1 } from './extensions/citation';
+import { trajectoryExtensionV1 } from './extensions/trajectory';
+import { processTrajectoryPart } from '#modules/trajectories/utils.ts';
 
 const extractCitations = getExtensionData(citationExtensionV1);
+const extractTrajectory = getExtensionData(trajectoryExtensionV1);
 
 export interface ChatRun {
   subscribe: (fn: (parts: UIMessagePart[]) => void) => void;
@@ -46,13 +49,20 @@ function convertFileEntityToFilePart(file: FileEntity): FilePart {
   return {
     kind: 'file',
     file: {
-      uri: getFileContentUrl({ id: file.id, addBase: true }),
+      // TODO: solve properly
+      uri: getFileContentUrl({ id: file.uploadFile?.id ?? '', addBase: true }),
     },
   };
 }
 
 function processTextPart(messageId: string, part: TextPart): Array<UIMessagePart> {
   const citation = extractCitations(part.metadata);
+  const trajectory = extractTrajectory(part.metadata);
+
+  if (trajectory) {
+    return [processTrajectoryPart(trajectory)];
+  }
+
   if (citation) {
     if (part.text !== '') {
       throw new Error('Text part should be empty when citation is present');
