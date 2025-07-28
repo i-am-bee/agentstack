@@ -28,7 +28,7 @@ export interface AgentTool {
 }
 
 export interface UIExtensionParams {
-  ui_type?: string;
+  ui_type?: SupportedUIType | string;
   user_greeting?: string;
   tools?: AgentTool[];
   framework?: string;

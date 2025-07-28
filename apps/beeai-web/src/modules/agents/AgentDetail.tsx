@@ -32,16 +32,12 @@ interface Props {
 }
 
 export function AgentDetail({ agent, buttons }: Props) {
-  const {
-    name,
-    description,
-    ui: { documentation },
-  } = agent;
+  const { name, description, documentationUrl } = agent;
 
   return (
     <div className={classes.root}>
       <motion.header {...fadeInPropsWithMarginShift({ start: { from: spacing[4] } })} className={classes.header}>
-        <h1 className={classes.name}>{agent.ui.display_name}</h1>
+        <h1 className={classes.name}>{agent.name}</h1>
 
         <BeeBadge agent={agent} size="lg" />
       </motion.header>
@@ -63,7 +59,7 @@ export function AgentDetail({ agent, buttons }: Props) {
         {buttons}
       </motion.div>
 
-      {documentation && (
+      {documentationUrl && (
         <motion.hr
           {...fadeInPropsWithMarginShift({
             start: { from: spacing[7], to: spacing[6] },
@@ -71,14 +67,6 @@ export function AgentDetail({ agent, buttons }: Props) {
           })}
           className={classes.divider}
         />
-      )}
-
-      {documentation && (
-        <motion.div {...fadeInPropsWithMarginShift()}>
-          <AgentDetailSection title="Description" titleSpacing="large">
-            <MarkdownContent className={classes.documentation}>{documentation}</MarkdownContent>
-          </AgentDetailSection>
-        </motion.div>
       )}
     </div>
   );
