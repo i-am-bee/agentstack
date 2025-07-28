@@ -47,11 +47,16 @@ function processFilePart(part: FilePart): Array<UIMessagePart> {
 }
 
 function convertFileEntityToFilePart(file: FileEntity): FilePart {
+  if (!file.uploadFile) {
+    throw new Error('File upload file is not present');
+  }
+
   return {
     kind: 'file',
     file: {
-      // TODO: solve properly
-      uri: getFileContentUrl({ id: file.uploadFile?.id ?? '', addBase: true }),
+      uri: getFileContentUrl({ id: file.uploadFile.id, addBase: true }),
+      name: file.uploadFile.filename,
+      mimeType: file.originalFile.type,
     },
   };
 }
