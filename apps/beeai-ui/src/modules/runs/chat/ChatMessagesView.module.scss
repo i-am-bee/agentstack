@@ -4,6 +4,7 @@
  */
 
 $content-block-padding: $spacing-07;
+$new-session-button-height: rem(32px);
 $user-message-height: rem(46px);
 $messages-row-gap: $spacing-07;
 $holder-row-gap: $spacing-06;
@@ -29,6 +30,7 @@ $input-height: rem(88px);
   text-align: end;
   background-color: $layer;
   padding-block-end: $spacing-06;
+  z-index: 1;
 }
 
 .container {
@@ -45,8 +47,12 @@ $input-height: rem(88px);
 
 .message:last-child {
   min-block-size: calc(
-    100vh - var(--header-height) - #{2 * $content-block-padding + $user-message-height + $messages-row-gap +
-      $holder-row-gap + $input-height}
+    100vh -
+      (
+        var(--header-height) + var(--header-border-height) + #{(2 * $content-block-padding) +
+          $new-session-button-height + $user-message-height + (2 * $messages-row-gap) + $holder-row-gap +
+          $input-height + rem(48px)}
+      )
   );
 }
 
@@ -82,5 +88,15 @@ $input-height: rem(88px);
     max-inline-size: max-content;
     transform: translateX(100%);
     padding-block-end: 0;
+  }
+
+  .message:last-child {
+    min-block-size: calc(
+      100vh -
+        (
+          var(--header-height) + var(--header-border-height) + #{2 * $content-block-padding + $user-message-height +
+            $messages-row-gap + $holder-row-gap + $input-height}
+        )
+    );
   }
 }
