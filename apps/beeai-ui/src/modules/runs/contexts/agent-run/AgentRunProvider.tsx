@@ -6,27 +6,27 @@
 'use client';
 
 import { type PropsWithChildren, useCallback, useMemo, useRef, useState } from 'react';
+import { match } from 'ts-pattern';
 import { v4 as uuid } from 'uuid';
 
+import type { ChatRun } from '#api/a2a/a2aClient.ts';
+import { buildA2AClient } from '#api/a2a/a2aClient.ts';
 import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 import { useImmerWithGetter } from '#hooks/useImmerWithGetter.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { FileUploadProvider } from '#modules/files/contexts/FileUploadProvider.tsx';
 import { useFileUpload } from '#modules/files/contexts/index.ts';
-import { convertFilesToUIFileParts } from '#modules/files/utils.ts';
+import { convertFilesToUIFileParts, transformFilePart } from '#modules/files/utils.ts';
 import { Role } from '#modules/messages/api/types.ts';
 import type { UIAgentMessage, UIMessage, UIUserMessage } from '#modules/messages/types.ts';
 import { UIMessagePartKind, UIMessageStatus } from '#modules/messages/types.ts';
 import { isAgentMessage } from '#modules/messages/utils.ts';
-import type { ChatRun } from '#modules/runs/hooks/a2aClient.ts';
-import { buildA2AClient } from '#modules/runs/hooks/a2aClient.ts';
 import type { RunStats } from '#modules/runs/types.ts';
 import { SourcesProvider } from '#modules/sources/contexts/SourcesProvider.tsx';
-import { getMessageSourcesMap } from '#modules/sources/utils.ts';
+import { getMessageSourcesMap, transformSourcePart } from '#modules/sources/utils.ts';
 
 import { MessagesProvider } from '../../../messages/contexts/MessagesProvider';
-import { AgentClientProvider } from '../agent-client/AgentClientProvider';
 import { AgentStatusProvider } from '../agent-status/AgentStatusProvider';
 import { AgentRunContext } from './agent-run-context';
 
@@ -37,9 +37,7 @@ interface Props {
 export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>) {
   return (
     <FileUploadProvider allowedContentTypes={agent.defaultInputModes}>
-      <AgentClientProvider agent={agent}>
-        <AgentRunProvider agent={agent}>{children}</AgentRunProvider>
-      </AgentClientProvider>
+      <AgentRunProvider agent={agent}>{children}</AgentRunProvider>
     </FileUploadProvider>
   );
 }
@@ -56,6 +54,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
 
   const errorHandler = useHandleError();
 
+  const a2aAgentClient = useMemo(() => buildA2AClient(agent.url), [agent.url]);
   const { files, clearFiles } = useFileUpload();
 
   const updateLastAgentMessage = useCallback(
@@ -137,16 +136,28 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
           messages.push(...[userMessage, agentMessage]);
         });
 
-        // const a2aAgentClient = buildA2AClient(agent.url);
-        const a2aAgentClient = buildA2AClient('http://localhost:8001');
-
         const run = a2aAgentClient.chat(input, files, conversationId);
         pendingRun.current = run;
 
         pendingSubscription.current = run.subscribe((parts) => {
           parts.forEach((part) => {
             updateLastAgentMessage((message) => {
-              message.parts.push(part);
+              match(part)
+                .with({ kind: UIMessagePartKind.File }, (part) => {
+                  const transformedPart = transformFilePart(part, message);
+                  if (transformedPart) {
+                    message.parts.push(transformedPart);
+                  } else {
+                    message.parts.push(part);
+                  }
+                })
+                .with({ kind: UIMessagePartKind.Source }, (part) => {
+                  const transformedPart = transformSourcePart(part);
+                  message.parts.push(part, transformedPart);
+                })
+                .otherwise((part) => {
+                  message.parts.push(part);
+                });
             });
           });
         });

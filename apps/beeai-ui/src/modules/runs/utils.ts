@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Part } from '@a2a-js/sdk';
 import humanizeDuration from 'humanize-duration';
 import JSON5 from 'json5';
 
@@ -34,12 +33,3 @@ export const parseJsonLikeString = (string: string): unknown | string => {
     return string;
   }
 };
-
-export function extractTextFromParts(parts: Part[]): string {
-  const text = parts
-    .filter((part) => part.kind === 'text')
-    .map((part) => part.text)
-    .join('\n');
-
-  return text;
-}

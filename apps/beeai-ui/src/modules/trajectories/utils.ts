@@ -3,29 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { v4 as uuid } from 'uuid';
-
 import type { UITrajectoryPart } from '#modules/messages/types.ts';
-import { UIMessagePartKind } from '#modules/messages/types.ts';
-import type { TrajectoryMetadata } from '#modules/runs/hooks/extensions/trajectory.ts';
 import { parseJsonLikeString } from '#modules/runs/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { NON_VIEWABLE_TRAJECTORY_PROPERTIES } from './constants';
 import type { NonViewableTrajectoryProperty } from './types';
-
-export function processTrajectoryPart(metadata: TrajectoryMetadata): UITrajectoryPart {
-  const { message, tool_name } = metadata;
-
-  const part: UITrajectoryPart = {
-    kind: UIMessagePartKind.Trajectory,
-    id: uuid(),
-    message: message ?? undefined,
-    toolName: tool_name ?? undefined,
-  };
-
-  return part;
-}
 
 export function hasViewableTrajectoryParts(trajectory: UITrajectoryPart) {
   return Object.entries(trajectory)

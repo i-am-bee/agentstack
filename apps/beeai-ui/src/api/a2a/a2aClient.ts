@@ -3,49 +3,22 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FilePart, Message, TaskStatusUpdateEvent, TextPart } from '@a2a-js/sdk';
+import type { FilePart, Message, TaskStatusUpdateEvent } from '@a2a-js/sdk';
 import { A2AClient } from '@a2a-js/sdk/client';
 import { Subject } from 'rxjs';
 import { match } from 'ts-pattern';
 import { v4 as uuid } from 'uuid';
 
 import type { FileEntity } from '#modules/files/types.ts';
-import { getFileContentUrl, getFileUri } from '#modules/files/utils.ts';
-import { Role } from '#modules/messages/api/types.ts';
-import type { UIFilePart, UIMessagePart, UITextPart } from '#modules/messages/types.ts';
-import { UIMessagePartKind } from '#modules/messages/types.ts';
-import { processSourcePart } from '#modules/sources/utils.ts';
-import { processTrajectoryPart } from '#modules/trajectories/utils.ts';
+import { getFileContentUrl } from '#modules/files/utils.ts';
+import type { UIMessagePart } from '#modules/messages/types.ts';
 
-import { citationExtensionV1 } from './extensions/citation';
-import { getExtensionData } from './extensions/getExtensionData';
-import { trajectoryExtensionV1 } from './extensions/trajectory';
-
-const extractCitations = getExtensionData(citationExtensionV1);
-const extractTrajectory = getExtensionData(trajectoryExtensionV1);
+import { PartProcessors } from './part-processors';
 
 export interface ChatRun {
   done: Promise<void>;
   subscribe: (fn: (parts: UIMessagePart[]) => void) => () => void;
   cancel: () => Promise<void>;
-}
-
-// TODO: decouple with processFilePart in utils.ts
-function processFilePart(part: FilePart): Array<UIMessagePart> {
-  const { file } = part;
-  const { name, mimeType } = file;
-  const id = uuid();
-  const url = getFileUri(file);
-
-  const filePart: UIFilePart = {
-    kind: UIMessagePartKind.File,
-    url,
-    id,
-    filename: name || id,
-    type: mimeType,
-  };
-
-  return [filePart];
 }
 
 function convertFileEntityToFilePart(file: FileEntity): FilePart {
@@ -63,31 +36,6 @@ function convertFileEntityToFilePart(file: FileEntity): FilePart {
   };
 }
 
-function processTextPart(messageId: string, part: TextPart): Array<UIMessagePart> {
-  const citation = extractCitations(part.metadata);
-  const trajectory = extractTrajectory(part.metadata);
-
-  if (trajectory) {
-    return [processTrajectoryPart(trajectory)];
-  }
-
-  if (citation) {
-    if (part.text !== '') {
-      throw new Error('Text part should be empty when citation is present');
-    }
-
-    return processSourcePart(citation, messageId);
-  } else {
-    const textPart: UITextPart = {
-      kind: UIMessagePartKind.Text,
-      id: uuid(),
-      text: part.text,
-    };
-
-    return [textPart];
-  }
-}
-
 function handleStatusUpdate(event: TaskStatusUpdateEvent): UIMessagePart[] {
   const message = event.status.message;
 
@@ -97,8 +45,8 @@ function handleStatusUpdate(event: TaskStatusUpdateEvent): UIMessagePart[] {
 
   return message.parts.flatMap((part) => {
     const transformedParts = match(part)
-      .with({ kind: 'text' }, (part) => processTextPart(message.messageId, part))
-      .with({ kind: 'file' }, processFilePart)
+      .with({ kind: 'text' }, (part) => PartProcessors.processTextPart(message.messageId, part))
+      .with({ kind: 'file' }, PartProcessors.processFilePart)
       .otherwise((otherPart) => {
         throw new Error(`Unsupported part - ${otherPart.kind}`);
       });
@@ -114,7 +62,7 @@ function buildUserMessage(message: string, files: FileEntity[], contextId: strin
     messageId: uuid(),
     taskId,
     parts: [{ kind: 'text', text: message }, ...files.map(convertFileEntityToFilePart)],
-    role: Role.User,
+    role: 'user',
   };
 }
 

@@ -8,40 +8,21 @@ import { v4 as uuid } from 'uuid';
 import type { UIMessage, UISourcePart, UITransformPart } from '#modules/messages/types.ts';
 import { UIMessagePartKind, UITransformType } from '#modules/messages/types.ts';
 import { getMessageSources } from '#modules/messages/utils.ts';
-import type { CitationMetadata } from '#modules/runs/hooks/extensions/citation.ts';
 import { isNotNull } from '#utils/helpers.ts';
 import { toMarkdownCitation } from '#utils/markdown.ts';
 
 import type { MessageSourcesMap } from './types';
 
-export function processSourcePart(metadata: CitationMetadata, messageId: string): (UISourcePart | UITransformPart)[] {
-  const { url, start_index, end_index, title, description } = metadata;
-  const id = uuid();
-
-  if (!url) {
-    return [];
-  }
-
-  const sourcePart: UISourcePart = {
-    kind: UIMessagePartKind.Source,
-    id,
-    url,
-    messageId,
-    startIndex: start_index ?? undefined,
-    endIndex: end_index ?? undefined,
-    title: title ?? undefined,
-    description: description ?? undefined,
-  };
-
+export function transformSourcePart(uiSourcePart: UISourcePart): UITransformPart {
   const transformPart: UITransformPart = {
     kind: UIMessagePartKind.Transform,
     id: uuid(),
     type: UITransformType.Source,
-    startIndex: start_index ?? Infinity,
-    sources: [id],
+    startIndex: uiSourcePart.startIndex ?? Infinity,
+    sources: [uiSourcePart.id],
     apply: function (content, offset) {
-      const adjustedStartIndex = isNotNull(start_index) ? start_index + offset : content.length;
-      const adjustedEndIndex = isNotNull(end_index) ? end_index + offset : content.length;
+      const adjustedStartIndex = isNotNull(uiSourcePart.startIndex) ? uiSourcePart.startIndex + offset : content.length;
+      const adjustedEndIndex = isNotNull(uiSourcePart.endIndex) ? uiSourcePart.endIndex + offset : content.length;
       const before = content.slice(0, adjustedStartIndex);
       const text = content.slice(adjustedStartIndex, adjustedEndIndex);
       const after = content.slice(adjustedEndIndex);
@@ -50,7 +31,7 @@ export function processSourcePart(metadata: CitationMetadata, messageId: string)
     },
   };
 
-  return [sourcePart, transformPart];
+  return transformPart;
 }
 
 export function getMessageSourcesMap(messages: UIMessage[]) {

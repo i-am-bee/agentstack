@@ -2,8 +2,6 @@
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-
-import type { FilePart, FileWithUri } from '@a2a-js/sdk';
 import { v4 as uuid } from 'uuid';
 
 import type { FileEntity } from '#modules/files/types.ts';
@@ -35,22 +33,6 @@ export function getFileContentUrl({ id, addBase }: { id: string; addBase?: boole
   return `${addBase ? FILE_CONTENT_URL_BASE : ''}${FILE_CONTENT_URL.replace('{file_id}', id)}`;
 }
 
-export function isFileWithUri(file: FilePart['file']): file is FileWithUri {
-  return 'uri' in file;
-}
-
-export function getFileUri(file: FilePart['file']): string {
-  const isUriFile = isFileWithUri(file);
-
-  if (isUriFile) {
-    return file.uri;
-  }
-
-  const { mimeType = 'text/plain', bytes } = file;
-
-  return `data:${mimeType};base64,${bytes}`;
-}
-
 export function convertFilesToUIFileParts(files: FileEntity[]): UIFilePart[] {
   const parts: UIFilePart[] = files
     .map(({ uploadFile, originalFile: { type } }) => {
@@ -73,24 +55,11 @@ export function convertFilesToUIFileParts(files: FileEntity[]): UIFilePart[] {
   return parts;
 }
 
-export function processFilePart(part: FilePart, message: UIAgentMessage): (UIFilePart | UITransformPart)[] {
-  const { file } = part;
-  const { name, mimeType } = file;
-  const id = uuid();
-  const url = getFileUri(file);
-
-  const filePart: UIFilePart = {
-    kind: UIMessagePartKind.File,
-    url,
-    id,
-    filename: name || id,
-    type: mimeType,
-  };
-
-  const isImage = isImageMimeType(mimeType);
+export function transformFilePart(uiFilePart: UIFilePart, message: UIAgentMessage): UITransformPart | null {
+  const isImage = isImageMimeType(uiFilePart.type);
 
   if (!isImage) {
-    return [filePart];
+    return null;
   }
 
   const startIndex = getMessageRawContent(message).length;
@@ -105,9 +74,9 @@ export function processFilePart(part: FilePart, message: UIAgentMessage): (UIFil
       const before = content.slice(0, adjustedStartIndex);
       const after = content.slice(adjustedStartIndex);
 
-      return `${before}${toMarkdownImage(url)}${after}`;
+      return `${before}${toMarkdownImage(uiFilePart.url)}${after}`;
     },
   };
 
-  return [filePart, transformPart];
+  return transformPart;
 }
