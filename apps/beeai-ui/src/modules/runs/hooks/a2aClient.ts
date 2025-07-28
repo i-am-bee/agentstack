@@ -91,14 +91,13 @@ function processTextPart(messageId: string, part: TextPart): Array<UIMessagePart
 function handleStatusUpdate(event: TaskStatusUpdateEvent): UIMessagePart[] {
   const message = event.status.message;
 
-  // TODO: can we ignore this?
   if (!message) {
     return [];
   }
 
   return message.parts.flatMap((part) => {
     const transformedParts = match(part)
-      .with({ kind: 'text' }, (part) => processTextPart('TODO', part))
+      .with({ kind: 'text' }, (part) => processTextPart(message.messageId, part))
       .with({ kind: 'file' }, processFilePart)
       .otherwise((otherPart) => {
         throw new Error(`Unsupported part - ${otherPart.kind}`);
