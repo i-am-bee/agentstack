@@ -21,7 +21,7 @@ import { convertFilesToUIFileParts, transformFilePart } from '#modules/files/uti
 import { Role } from '#modules/messages/api/types.ts';
 import type { UIAgentMessage, UIMessage, UIUserMessage } from '#modules/messages/types.ts';
 import { UIMessagePartKind, UIMessageStatus } from '#modules/messages/types.ts';
-import { isAgentMessage } from '#modules/messages/utils.ts';
+import { isAgentMessage, sortMessageParts } from '#modules/messages/utils.ts';
 import type { RunStats } from '#modules/runs/types.ts';
 import { SourcesProvider } from '#modules/sources/contexts/SourcesProvider.tsx';
 import { getMessageSourcesMap, transformSourcePart } from '#modules/sources/utils.ts';
@@ -158,6 +158,8 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
                 .otherwise((part) => {
                   message.parts.push(part);
                 });
+
+              message.parts = sortMessageParts(message.parts);
             });
           });
         });
