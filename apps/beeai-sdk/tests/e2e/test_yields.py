@@ -8,6 +8,7 @@ from collections.abc import AsyncGenerator
 import pytest
 from a2a.client import A2AClient, create_text_message_object
 from a2a.types import (
+    Message,
     MessageSendParams,
     SendMessageRequest,
     SendStreamingMessageRequest,
@@ -42,7 +43,7 @@ def create_streaming_request_object(text: str | None = None, task_id: str | None
 
 @pytest.fixture
 async def sync_function_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
-    def sync_function_agent(message):
+    def sync_function_agent(message: Message):
         """Synchronous function agent that returns a string directly."""
         return f"sync_function_agent: {message.parts[0].root.text}"
 
@@ -52,7 +53,7 @@ async def sync_function_agent(create_server_with_agent) -> AsyncGenerator[tuple[
 
 @pytest.fixture
 async def sync_function_with_context_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
-    def sync_function_with_context_agent(message, context: Context):
+    def sync_function_with_context_agent(message: Message, context: Context):
         """Synchronous function agent with context that uses context.yield_sync."""
         context.yield_sync("first sync yield")
         return f"sync_function_with_context_agent: {message.parts[0].root.text}"
@@ -63,7 +64,7 @@ async def sync_function_with_context_agent(create_server_with_agent) -> AsyncGen
 
 @pytest.fixture
 async def sync_generator_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
-    def sync_generator_agent(message):
+    def sync_generator_agent(message: Message):
         """Synchronous generator agent that uses yield statements."""
         yield "sync_generator yield 1"
         yield "sync_generator yield 2"
@@ -74,7 +75,7 @@ async def sync_generator_agent(create_server_with_agent) -> AsyncGenerator[tuple
 
 @pytest.fixture
 async def sync_generator_with_context_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
-    def sync_generator_with_context_agent(message, context: Context):
+    def sync_generator_with_context_agent(message: Message, context: Context):
         """Synchronous generator agent with context using both yields and context.yield_sync."""
         yield "sync_generator_with_context yield 1"
         context.yield_sync("sync_generator_with_context context yield")
@@ -87,7 +88,7 @@ async def sync_generator_with_context_agent(create_server_with_agent) -> AsyncGe
 
 @pytest.fixture
 async def async_function_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
-    async def async_function_agent(message):
+    async def async_function_agent(message: Message):
         """Asynchronous function agent that returns a string directly."""
         await asyncio.sleep(0.01)
         return f"async_function_agent: {message.parts[0].root.text}"
@@ -98,7 +99,7 @@ async def async_function_agent(create_server_with_agent) -> AsyncGenerator[tuple
 
 @pytest.fixture
 async def async_function_with_context_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
-    async def async_function_with_context_agent(message, context: Context):
+    async def async_function_with_context_agent(message: Message, context: Context):
         """Asynchronous function agent with context that uses context.yield_async."""
         await context.yield_async("first async yield")
         await asyncio.sleep(0.01)
@@ -110,7 +111,7 @@ async def async_function_with_context_agent(create_server_with_agent) -> AsyncGe
 
 @pytest.fixture
 async def async_generator_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
-    async def async_generator_agent(message):
+    async def async_generator_agent(message: Message):
         """Asynchronous generator agent that uses yield statements."""
         yield "async_generator yield 1"
         await asyncio.sleep(0.01)
@@ -123,7 +124,7 @@ async def async_generator_agent(create_server_with_agent) -> AsyncGenerator[tupl
 
 @pytest.fixture
 async def async_generator_with_context_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
-    async def async_generator_with_context_agent(message, context: Context):
+    async def async_generator_with_context_agent(message: Message, context: Context):
         """Asynchronous generator agent with context using both yields and context.yield_async."""
         yield "async_generator_with_context yield 1"
         await context.yield_async("async_generator_with_context context yield")
@@ -137,7 +138,7 @@ async def async_generator_with_context_agent(create_server_with_agent) -> AsyncG
 
 @pytest.fixture
 async def sync_function_resume_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
-    def sync_function_resume_agent(message, context: Context):
+    def sync_function_resume_agent(message: Message, context: Context):
         """Synchronous function agent that requires input and handles resume."""
         resume_message = context.yield_sync(
             TaskStatus(
@@ -153,7 +154,7 @@ async def sync_function_resume_agent(create_server_with_agent) -> AsyncGenerator
 
 @pytest.fixture
 async def sync_generator_resume_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
-    def sync_generator_resume_agent(message, context: Context):
+    def sync_generator_resume_agent(message: Message, context: Context):
         """Synchronous generator agent that requires input and handles resume."""
         yield "sync_generator_resume_agent: starting"
         resume_message = yield TaskStatus(
@@ -167,7 +168,7 @@ async def sync_generator_resume_agent(create_server_with_agent) -> AsyncGenerato
 
 @pytest.fixture
 async def async_function_resume_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
-    async def async_function_resume_agent(message, context: Context):
+    async def async_function_resume_agent(message: Message, context: Context):
         """Asynchronous function agent that requires input and handles resume."""
         resume_message = await context.yield_async(
             TaskStatus(state=TaskState.input_required, message=create_text_message_object(content="Need input"))
@@ -180,7 +181,7 @@ async def async_function_resume_agent(create_server_with_agent) -> AsyncGenerato
 
 @pytest.fixture
 async def async_generator_resume_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
-    async def async_generator_resume_agent(message, context: Context):
+    async def async_generator_resume_agent(message: Message, context: Context):
         """Asynchronous generator agent that requires input and handles resume."""
         yield "async_generator_resume_agent: starting"
         resume_message = yield TaskStatus(

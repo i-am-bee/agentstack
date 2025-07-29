@@ -4,13 +4,13 @@
 
 from __future__ import annotations
 
-import types
 import typing
+from types import NoneType
 
 import pydantic
 import pydantic.config
 
-from beeai_sdk.a2a_extensions.base_extension import BaseExtension
+from beeai_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 
 
 class AgentDetailTool(pydantic.BaseModel):
@@ -25,7 +25,7 @@ class AgentDetailContributor(pydantic.BaseModel):
 
 
 class AgentDetail(pydantic.BaseModel):
-    ui_type: str | None = pydantic.Field(examples=["chat", "hands-off"])
+    ui_type: str | None = pydantic.Field("chat", examples=["chat", "hands-off"])
     user_greeting: str | None = None
     tools: list[AgentDetailTool] | None = None
     framework: str | None = None
@@ -40,7 +40,11 @@ class AgentDetail(pydantic.BaseModel):
     model_config: typing.ClassVar[pydantic.config.ConfigDict] = {"extra": "ignore"}
 
 
-class AgentDetailExtension(BaseExtension[AgentDetail, types.NoneType]):
-    URI: str = "https://a2a-extensions.beeai.dev/ui/agent-detail/v1"
-    Params: type[AgentDetail] = AgentDetail
-    Metadata: type[types.NoneType] = types.NoneType
+class AgentDetailsExtensionSpec(BaseExtensionSpec[AgentDetail]):
+    URI: str = "https://a2a-extensions.beeai.dev/ui/agent_details/v1"
+
+
+class AgentDetailsExtensionServer(BaseExtensionServer[AgentDetailsExtensionSpec, NoneType]): ...
+
+
+class AgentDetailsExtensionClient(BaseExtensionClient[AgentDetailsExtensionSpec, AgentDetail]): ...

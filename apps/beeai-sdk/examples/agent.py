@@ -23,32 +23,35 @@ import beeai_framework.tools.search.wikipedia
 import beeai_framework.tools.weather.openmeteo
 import uvicorn
 
-import beeai_sdk.a2a_extensions
+import beeai_sdk.a2a.extensions
+from beeai_sdk.a2a.extensions.services.llm import LLMServiceExtensionServer
 
-agent_detail_extension = beeai_sdk.a2a_extensions.AgentDetailExtension(
-    beeai_sdk.a2a_extensions.AgentDetail(
+agent_details_extension_spec = beeai_sdk.a2a.extensions.AgentDetailsExtensionSpec(
+    params=beeai_sdk.a2a.extensions.AgentDetail(
         ui_type="chat",
     )
 )
 
-citation_extension = beeai_sdk.a2a_extensions.CitationExtension()
 
-trajectory_extension = beeai_sdk.a2a_extensions.TrajectoryExtension()
-
-llm_service_extension = beeai_sdk.a2a_extensions.LLMServiceExtension(
-    params=beeai_sdk.a2a_extensions.services.llm.LLMServiceExtensionParams(
-        llm_demands={
-            "default": beeai_sdk.a2a_extensions.LLMDemand(
-                description="Default LLM for the agent", suggested=("openai/gpt-4o", "ollama/granite3.3:8b")
-            )
-        }
-    ),
+llm_extension_server = LLMServiceExtensionServer(
+    spec=beeai_sdk.a2a.extensions.LLMServiceExtensionSpec(
+        params=beeai_sdk.a2a.extensions.LLMServiceExtensionParams(
+            llm_demands={
+                "default": beeai_sdk.a2a.extensions.LLMDemand(
+                    description="Default LLM for the agent", suggested=("openai/gpt-4o", "ollama/granite3.3:8b")
+                )
+            }
+        ),
+    )
 )
 
-embedding_service_extension = beeai_sdk.a2a_extensions.EmbeddingServiceExtension(
-    params=beeai_sdk.a2a_extensions.EmbeddingServiceExtensionParams(
+citation_extension_spec = beeai_sdk.a2a.extensions.CitationExtensionSpec()
+trajectory_extension_spec = beeai_sdk.a2a.extensions.TrajectoryExtensionSpec()
+
+embedding_service_extension_spec = beeai_sdk.a2a.extensions.EmbeddingServiceExtensionSpec(
+    params=beeai_sdk.a2a.extensions.EmbeddingServiceExtensionParams(
         embedding_demands={
-            "default": beeai_sdk.a2a_extensions.EmbeddingDemand(
+            "default": beeai_sdk.a2a.extensions.EmbeddingDemand(
                 description="Default embedding for the agent", suggested=("ollama/nomic-text:8b",)
             )
         }
@@ -62,7 +65,7 @@ class ChatAgentExecutor(a2a.server.agent_execution.AgentExecutor):
         self.context_memory: collections.defaultdict[str, beeai_framework.memory.UnconstrainedMemory] = (
             collections.defaultdict(beeai_framework.memory.UnconstrainedMemory)
         )
-        self.context_llm: dict[str, dict[str, beeai_sdk.a2a_extensions.services.llm.LLMFulfillment]] = {}
+        self.context_llm: dict[str, dict[str, beeai_sdk.a2a.extensions.LLMFulfillment]] = {}
 
     @typing.override
     async def cancel(
@@ -77,7 +80,7 @@ class ChatAgentExecutor(a2a.server.agent_execution.AgentExecutor):
         if not context.message or not context.context_id:
             raise ValueError("Context must have a message and context_id")
 
-        llm_metadata = llm_service_extension.parse_message_metadata(context.message)
+        llm_metadata = llm_extension_server.parse_client_metadata(context.message)
         if llm_metadata:
             self.context_llm[context.context_id] = llm_metadata.llm_fulfillments
 
@@ -169,7 +172,13 @@ async def serve():
                         streaming=True,
                         push_notifications=False,
                         state_transition_history=False,
-                        extensions=[*llm_service_extension.to_agent_card_extensions(required=True)],
+                        extensions=[
+                            *llm_extension_server.spec.to_agent_card_extensions(required=True),
+                            *agent_details_extension_spec.to_agent_card_extensions(),
+                            *trajectory_extension_spec.to_agent_card_extensions(),
+                            *citation_extension_spec.to_agent_card_extensions(),
+                            *embedding_service_extension_spec.to_agent_card_extensions(),
+                        ],
                     ),
                     skills=[
                         a2a.types.AgentSkill(

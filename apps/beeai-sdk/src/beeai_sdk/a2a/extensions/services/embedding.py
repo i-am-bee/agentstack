@@ -3,9 +3,11 @@
 
 from __future__ import annotations
 
+from types import NoneType
+
 import pydantic
 
-from beeai_sdk.a2a_extensions.base_extension import BaseExtension
+from beeai_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 
 
 class EmbeddingFulfillment(pydantic.BaseModel):
@@ -52,17 +54,22 @@ class EmbeddingServiceExtensionParams(pydantic.BaseModel):
     """Model requests that the agent requires to be provided by the client."""
 
 
+class EmbeddingServiceExtensionSpec(BaseExtensionSpec[EmbeddingServiceExtensionParams]):
+    URI: str = "https://a2a-extensions.beeai.dev/services/embedding/v1"
+
+
 class EmbeddingServiceExtensionMetadata(pydantic.BaseModel):
     embedding_fulfillments: dict[str, EmbeddingFulfillment] = {}
     """Provided models corresponding to the model requests."""
 
 
-class EmbeddingServiceExtension(BaseExtension[EmbeddingServiceExtensionParams, EmbeddingServiceExtensionMetadata]):
-    URI: str = "https://a2a-extensions.beeai.dev/services/embedding/v1"
-    Params: type[EmbeddingServiceExtensionParams] = EmbeddingServiceExtensionParams
-    Metadata: type[EmbeddingServiceExtensionMetadata] = EmbeddingServiceExtensionMetadata
+class EmbeddingServiceExtensionServer(
+    BaseExtensionServer[EmbeddingServiceExtensionSpec, EmbeddingServiceExtensionMetadata]
+): ...
 
+
+class EmbeddingServiceExtensionClient(BaseExtensionClient[EmbeddingServiceExtensionSpec, NoneType]):
     def fulfillment_metadata(
         self, *, embedding_fulfillments: dict[str, EmbeddingFulfillment]
     ) -> dict[str, EmbeddingServiceExtensionMetadata]:
-        return {self.URI: EmbeddingServiceExtensionMetadata(embedding_fulfillments=embedding_fulfillments)}
+        return {self.spec.URI: EmbeddingServiceExtensionMetadata(embedding_fulfillments=embedding_fulfillments)}

@@ -3,9 +3,12 @@
 
 from __future__ import annotations
 
+from types import NoneType
+from typing import Self
+
 import pydantic
 
-from beeai_sdk.a2a_extensions.base_extension import BaseExtension
+from beeai_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 
 
 class LLMFulfillment(pydantic.BaseModel):
@@ -52,17 +55,30 @@ class LLMServiceExtensionParams(pydantic.BaseModel):
     """Model requests that the agent requires to be provided by the client."""
 
 
+class LLMServiceExtensionSpec(BaseExtensionSpec[LLMServiceExtensionParams]):
+    URI: str = "https://a2a-extensions.beeai.dev/services/llm/v1"
+
+    @classmethod
+    def single_demand(
+        cls, name: str | None = None, description: str | None = None, suggested: tuple[str, ...] = ()
+    ) -> Self:
+        return cls(
+            params=LLMServiceExtensionParams(
+                llm_demands={name or "default": LLMDemand(description=description, suggested=suggested)}
+            )
+        )
+
+
 class LLMServiceExtensionMetadata(pydantic.BaseModel):
     llm_fulfillments: dict[str, LLMFulfillment] = {}
     """Provided models corresponding to the model requests."""
 
 
-class LLMServiceExtension(BaseExtension[LLMServiceExtensionParams, LLMServiceExtensionMetadata]):
-    URI: str = "https://a2a-extensions.beeai.dev/services/llm/v1"
-    Params: type[LLMServiceExtensionParams] = LLMServiceExtensionParams
-    Metadata: type[LLMServiceExtensionMetadata] = LLMServiceExtensionMetadata
+class LLMServiceExtensionServer(BaseExtensionServer[LLMServiceExtensionSpec, LLMServiceExtensionMetadata]): ...
 
+
+class LLMServiceExtensionClient(BaseExtensionClient[LLMServiceExtensionSpec, NoneType]):
     def fulfillment_metadata(
         self, *, llm_fulfillments: dict[str, LLMFulfillment]
     ) -> dict[str, LLMServiceExtensionMetadata]:
-        return {self.URI: LLMServiceExtensionMetadata(llm_fulfillments=llm_fulfillments)}
+        return {self.spec.URI: LLMServiceExtensionMetadata(llm_fulfillments=llm_fulfillments)}

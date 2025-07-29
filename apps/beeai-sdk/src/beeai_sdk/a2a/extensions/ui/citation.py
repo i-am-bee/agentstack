@@ -3,11 +3,17 @@
 
 from __future__ import annotations
 
-import types
+from types import NoneType
 
 import pydantic
+from a2a.types import Part
 
-from beeai_sdk.a2a_extensions.base_extension import BaseExtension
+from beeai_sdk.a2a.extensions.base import (
+    BaseExtensionClient,
+    BaseExtensionServer,
+    NoParamsBaseExtensionSpec,
+)
+from beeai_sdk.a2a.types import AgentMessage
 
 
 class Citation(pydantic.BaseModel):
@@ -43,11 +49,11 @@ class Citation(pydantic.BaseModel):
     description: str | None = None
 
 
-class CitationExtension(BaseExtension[types.NoneType, Citation]):
+class CitationExtensionSpec(NoParamsBaseExtensionSpec):
     URI: str = "https://a2a-extensions.beeai.dev/ui/citation/v1"
-    Params: type[types.NoneType] = types.NoneType
-    Metadata: type[Citation] = Citation
 
+
+class CitationExtensionServer(BaseExtensionServer[CitationExtensionSpec, NoneType]):
     def citation_metadata(
         self,
         *,
@@ -58,7 +64,7 @@ class CitationExtension(BaseExtension[types.NoneType, Citation]):
         description: str | None = None,
     ) -> dict[str, Citation]:
         return {
-            self.URI: Citation(
+            self.spec.URI: Citation(
                 start_index=start_index,
                 end_index=end_index,
                 url=url,
@@ -66,3 +72,28 @@ class CitationExtension(BaseExtension[types.NoneType, Citation]):
                 description=description,
             )
         }
+
+    def message(
+        self,
+        text: str | None = None,
+        parts: list[Part] | None = None,
+        citation_start_index: int | None = None,
+        citation_end_index: int | None = None,
+        citation_url: str | None = None,
+        citation_title: str | None = None,
+        citation_description: str | None = None,
+    ) -> AgentMessage:
+        return AgentMessage(
+            text=text,
+            parts=parts or [],
+            metadata=self.citation_metadata(
+                start_index=citation_start_index,
+                end_index=citation_end_index,
+                url=citation_url,
+                title=citation_title,
+                description=citation_description,
+            ),
+        )
+
+
+class CitationExtensionClient(BaseExtensionClient[CitationExtensionSpec, Citation]): ...

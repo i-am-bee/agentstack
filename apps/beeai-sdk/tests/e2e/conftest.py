@@ -13,9 +13,10 @@ from a2a.client import A2AClient, create_text_message_object
 from a2a.types import Artifact, DataPart, FilePart, FileWithBytes, Message, Part, TaskState, TaskStatus, TextPart
 from tenacity import AsyncRetrying, stop_after_attempt, wait_fixed
 
+from beeai_sdk.a2a.extensions.ui.agent_details import AgentDetail
+from beeai_sdk.a2a.types import ArtifactChunk, RunYield, RunYieldResume
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import Context
-from beeai_sdk.server.types import ArtifactChunk, RunYield, RunYieldResume
 
 
 def get_free_port() -> int:
@@ -51,7 +52,7 @@ def create_server_with_agent():
     @asynccontextmanager
     async def _create_server(agent_fn):
         server = Server()
-        server.agent()(agent_fn)
+        server.agent(details=AgentDetail(ui_type="chat"))(agent_fn)
         async with run_server(server, get_free_port()) as (server, client):
             yield server, client
 

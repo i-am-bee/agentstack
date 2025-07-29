@@ -40,7 +40,6 @@ class Server:
 
     @functools.wraps(agent_decorator)
     def agent(*args, **kwargs) -> Callable:
-        """Decorator to register an agent."""
         self, other_args = args[0], args[1:]  # Must hide self due to pyright issues
         if self._agent:
             raise ValueError("Server can have only one agent.")

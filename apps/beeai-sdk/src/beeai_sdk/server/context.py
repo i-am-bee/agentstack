@@ -7,7 +7,7 @@ from a2a.server.tasks import TaskUpdater
 from a2a.types import MessageSendConfiguration, Task
 from pydantic import BaseModel, PrivateAttr
 
-from beeai_sdk.server.types import RunYield, RunYieldResume
+from beeai_sdk.a2a.types import RunYield, RunYieldResume
 
 
 class Context(BaseModel, arbitrary_types_allowed=True):

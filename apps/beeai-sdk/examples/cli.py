@@ -17,7 +17,7 @@ import httpx
 import yaml
 from a2a.types import CancelTaskRequest, TaskIdParams
 
-import beeai_sdk.a2a_extensions.services.llm
+import beeai_sdk.a2a.extensions.services.llm
 
 
 @asyncclick.command()
@@ -33,7 +33,11 @@ async def cli(base_url: str, context_id: str) -> None:
         client = a2a.client.A2AClient(httpx_client, agent_card=card)
         context_id = context_id or uuid.uuid4().hex
 
-        llm_service_extension = beeai_sdk.a2a_extensions.services.llm.LLMServiceExtension.from_agent_card(card)
+        llm_spec = beeai_sdk.a2a.extensions.LLMServiceExtensionSpec.from_agent_card(card)
+        trajectory_spec = beeai_sdk.a2a.extensions.TrajectoryExtensionSpec.from_agent_card(card)
+        trajectory_client = (
+            beeai_sdk.a2a.extensions.TrajectoryExtensionClient(trajectory_spec) if trajectory_spec else None
+        )
 
         while True:
             print("\n\n=========  starting a new task ======== ")
@@ -56,18 +60,18 @@ async def cli(base_url: str, context_id: str) -> None:
                     parts=[a2a.types.Part(root=a2a.types.TextPart(text=prompt))],
                     task_id=task_id,
                     context_id=context_id,
-                    metadata=llm_service_extension.fulfillment_metadata(
+                    metadata=beeai_sdk.a2a.extensions.LLMServiceExtensionClient(llm_spec).fulfillment_metadata(
                         llm_fulfillments={
                             # Demonstration only: we ignore the asks and just configure BeeAI proxy for everything
-                            key: beeai_sdk.a2a_extensions.services.llm.LLMFulfillment(
+                            key: beeai_sdk.a2a.extensions.services.llm.LLMFulfillment(
                                 api_base="http://localhost:8333/api/v1/llm/",
                                 api_key="dummy",
                                 api_model="dummy",
                             )
-                            for key in llm_service_extension.params.llm_demands
+                            for key in llm_spec.params.llm_demands
                         }
                     )
-                    if llm_service_extension
+                    if llm_spec
                     else None,
                 )
 
@@ -144,6 +148,10 @@ async def cli(base_url: str, context_id: str) -> None:
                                 for part in event.status.message.parts:
                                     if isinstance(part.root, a2a.types.TextPart):
                                         print(part.root.text, end="", flush=True)
+                                if trajectory_client and (
+                                    trajectory := trajectory_client.parse_server_metadata(event.status.message)
+                                ):
+                                    print(trajectory.model_dump())
                             if event.status.state == "completed":
                                 task_completed = True
 

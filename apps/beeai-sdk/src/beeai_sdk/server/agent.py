@@ -15,19 +15,23 @@ from a2a.types import (
     AgentCapabilities,
     AgentCard,
     AgentInterface,
+    AgentProvider,
     AgentSkill,
     Artifact,
     Message,
     Part,
+    SecurityScheme,
     TaskState,
     TaskStatus,
     TaskStatusUpdateEvent,
     TextPart,
 )
 
+from beeai_sdk.a2a.extensions.ui.agent_details import AgentDetail, AgentDetailsExtensionSpec
+from beeai_sdk.a2a.types import ArtifactChunk, RunYield, RunYieldResume
 from beeai_sdk.server.context import Context
+from beeai_sdk.server.dependencies import extract_dependencies
 from beeai_sdk.server.logging import logger
-from beeai_sdk.server.types import ArtifactChunk, RunYield, RunYieldResume
 from beeai_sdk.server.utils import cancel_task
 
 AgentFunction: TypeAlias = Callable[[TaskUpdater, RequestContext], AsyncGenerator[RunYield, RunYieldResume]]
@@ -46,112 +50,138 @@ def agent(
     capabilities: AgentCapabilities | None = None,
     default_input_modes: list[str] | None = None,
     default_output_modes: list[str] | None = None,
+    details: AgentDetail | None = None,
     documentation_url: str | None = None,
     icon_url: str | None = None,
     preferred_transport: str | None = None,
+    provider: AgentProvider | None = None,
+    security: list[dict[str, list[str]]] | None = None,
+    security_schemes: dict[str, SecurityScheme] | None = None,
     skills: list[AgentSkill] | None = None,
+    supports_authenticated_extended_card: bool | None = None,
     version: str | None = None,
 ) -> Callable[[Callable], Agent]:
-    """Decorator to create an agent."""
+    """
+    Create an Agent function.
+
+    :param name: A human-readable name for the agent (inferred from the function name if not provided).
+    :param description: A human-readable description of the agent, assisting users and other agents in understanding
+        its purpose (inferred from the function docstring if not provided).
+    :param additional_interfaces: A list of additional supported interfaces (transport and URL combinations).
+        A client can use any of these to communicate with the agent.
+    :param capabilities: A declaration of optional capabilities supported by the agent.
+    :param default_input_modes: Default set of supported input MIME types for all skills, which can be overridden on
+        a per-skill basis.
+    :param default_output_modes: Default set of supported output MIME types for all skills, which can be overridden on
+        a per-skill basis.
+    :param details: BeeAI SDK details extending the agent metadata
+    :param documentation_url: An optional URL to the agent's documentation.
+    :param extensions: BeeAI SDK extensions to apply to the agent.
+    :param icon_url: An optional URL to an icon for the agent.
+    :param preferred_transport: The transport protocol for the preferred endpoint. Defaults to 'JSONRPC' if not
+        specified.
+    :param provider: Information about the agent's service provider.
+    :param security: A list of security requirement objects that apply to all agent interactions. Each object lists
+        security schemes that can be used. Follows the OpenAPI 3.0 Security Requirement Object.
+    :param security_schemes: A declaration of the security schemes available to authorize requests. The key is the
+        scheme name. Follows the OpenAPI 3.0 Security Scheme Object.
+    :param skills: The set of skills, or distinct capabilities, that the agent can perform.
+    :param supports_authenticated_extended_card: If true, the agent can provide an extended agent card with additional
+        details to authenticated users. Defaults to false.
+    :param version: The agent's own version number. The format is defined by the provider.
+    """
+
+    capabilities = capabilities.model_copy(deep=True) if capabilities else AgentCapabilities(streaming=True)
+    details = details or AgentDetail()  # pyright: ignore [reportCallIssue]
 
     def decorator(fn: Callable) -> Agent:
         signature = inspect.signature(fn)
-        parameters = list(signature.parameters.values())
-
-        if len(parameters) == 0:
-            raise TypeError("The agent function must have at least 'input' argument")
-        if len(parameters) > 2:
-            raise TypeError("The agent function must have only 'input' and 'context' arguments")
-        if len(parameters) == 2 and parameters[1].name != "context":
-            raise TypeError("The second argument of the agent function must be 'context'")
-
-        has_context_param = len(parameters) == 2
+        dependencies = extract_dependencies(signature)
+        sdk_extensions = [dep.extension for dep in dependencies.values() if dep.extension]
 
         resolved_name = name or fn.__name__
         resolved_description = description or fn.__doc__ or ""
 
+        capabilities.extensions = [
+            *(capabilities.extensions or []),
+            *(AgentDetailsExtensionSpec(details).to_agent_card_extensions()),
+            *(e_card for ext in sdk_extensions for e_card in ext.spec.to_agent_card_extensions()),
+        ]
+
         card = AgentCard(
-            name=resolved_name,
-            description=resolved_description,
             additional_interfaces=additional_interfaces,
-            capabilities=capabilities or AgentCapabilities(streaming=True),
+            capabilities=capabilities,
             default_input_modes=default_input_modes or ["text"],
             default_output_modes=default_output_modes or ["text"],
+            description=resolved_description,
             documentation_url=documentation_url,
             icon_url=icon_url,
+            name=resolved_name,
             preferred_transport=preferred_transport,
-            skills=skills
-            or [
-                AgentSkill(
-                    id="default_skill",
-                    name=resolved_name,
-                    description=resolved_description,
-                    tags=["default"],
-                )
-            ],
-            version=version or "1.0.0",
+            provider=provider,
+            security=security,
+            security_schemes=security_schemes,
+            skills=skills or [],
+            supports_authenticated_extended_card=supports_authenticated_extended_card,
             url="http://localhost:10000",  # dummy url - will be replaced by server
+            version=version or "1.0.0",
         )
 
         if inspect.isasyncgenfunction(fn):
 
-            async def execute_fn(message: Message, context: Context) -> None:
+            async def execute_fn(_ctx: Context, *args, **kwargs) -> None:
                 try:
-                    gen: AsyncGenerator[RunYield, RunYieldResume] = (
-                        fn(message, context) if has_context_param else fn(message)
-                    )
+                    gen: AsyncGenerator[RunYield, RunYieldResume] = fn(*args, **kwargs)
                     value: RunYieldResume = None
                     while True:
-                        value = await context.yield_async(await gen.asend(value))
+                        value = await _ctx.yield_async(await gen.asend(value))
                 except StopAsyncIteration:
                     pass
                 except Exception as e:
-                    await context.yield_async(e)
+                    await _ctx.yield_async(e)
                 finally:
-                    context.shutdown()
+                    _ctx.shutdown()
 
         elif inspect.iscoroutinefunction(fn):
 
-            async def execute_fn(message: Message, context: Context) -> None:
+            async def execute_fn(_ctx: Context, *args, **kwargs) -> None:
                 try:
-                    await context.yield_async(await (fn(message, context) if has_context_param else fn(message)))
+                    await _ctx.yield_async(await fn(*args, **kwargs))
                 except Exception as e:
-                    await context.yield_async(e)
+                    await _ctx.yield_async(e)
                 finally:
-                    context.shutdown()
+                    _ctx.shutdown()
 
         elif inspect.isgeneratorfunction(fn):
 
-            def _execute_fn_sync(message: Message, context: Context) -> None:
+            def _execute_fn_sync(_ctx: Context, *args, **kwargs) -> None:
                 try:
-                    gen: Generator[RunYield, RunYieldResume] = (
-                        fn(message, context) if has_context_param else fn(message)
-                    )
+                    gen: Generator[RunYield, RunYieldResume] = fn(*args, **kwargs)
                     value = None
                     while True:
-                        value = context.yield_sync(gen.send(value))
+                        value = _ctx.yield_sync(gen.send(value))
                 except StopIteration:
                     pass
                 except Exception as e:
-                    context.yield_sync(e)
+                    _ctx.yield_sync(e)
                 finally:
-                    context.shutdown()
+                    _ctx.shutdown()
 
-            async def execute_fn(message: Message, context: Context) -> None:
-                await asyncio.to_thread(_execute_fn_sync, message, context)
+            async def execute_fn(_ctx: Context, *args, **kwargs) -> None:
+                await asyncio.to_thread(_execute_fn_sync, _ctx, *args, **kwargs)
 
         else:
 
-            def _execute_fn_sync(message: Message, context: Context) -> None:
+            def _execute_fn_sync(_ctx: Context, *args, **kwargs) -> None:
                 try:
-                    context.yield_sync(fn(message, context) if has_context_param else fn(message))
+                    _ctx.yield_sync(fn(*args, **kwargs))
                 except Exception as e:
-                    context.yield_sync(e)
+                    _ctx.yield_sync(e)
                 finally:
-                    context.shutdown()
+                    _ctx.shutdown()
 
-            async def execute_fn(message: Message, context: Context) -> None:
-                await asyncio.to_thread(_execute_fn_sync, message, context)
+            async def execute_fn(_ctx: Context, *args, **kwargs) -> None:
+                await asyncio.to_thread(_execute_fn_sync, _ctx, *args, **kwargs)
 
         async def agent_executor(
             task_updater: TaskUpdater, request_context: RequestContext
@@ -174,12 +204,23 @@ def agent(
             yield_queue = context._yield_queue
             yield_resume_queue = context._yield_resume_queue
 
-            task = asyncio.create_task(execute_fn(message, context))
+            kwargs = {pname: dependency(message, context) for pname, dependency in dependencies.items()}
+
+            task = asyncio.create_task(execute_fn(context, **kwargs))
             try:
                 while not task.done() or yield_queue.async_q.qsize() > 0:
                     value = yield await yield_queue.async_q.get()
                     if isinstance(value, Exception):
                         raise value
+
+                    if value:
+                        # TODO: context.call_context should be updated here
+                        # Unfortunately queue implementation does not support passing external types
+                        # (only a2a.event_queue.Event is supported:
+                        # Event = Message | Task | TaskStatusUpdateEvent | TaskArtifactUpdateEvent
+                        for ext in sdk_extensions:
+                            ext.handle_incoming_message(value, context)
+
                     await yield_resume_queue.async_q.put(value)
             except janus.AsyncQueueShutDown:
                 pass
@@ -239,9 +280,16 @@ class Executor(AgentExecutor):
                             message=task_updater.new_agent_message(parts=[yielded_value]),
                         )
                     case Message(context_id=context_id, task_id=task_id):
-                        if context_id != task_updater.context_id or task_id != task_updater.task_id:
+                        new_msg = yielded_value.model_copy(
+                            deep=True,
+                            update={
+                                "context_id": context_id or task_updater.context_id,
+                                "task_id": task_id or task_updater.task_id,
+                            },
+                        )
+                        if new_msg.context_id != task_updater.context_id or new_msg.task_id != task_updater.task_id:
                             raise ValueError("Message must have the same context_id and task_id as the task")
-                        await task_updater.update_status(TaskState.working, message=yielded_value)
+                        await task_updater.update_status(TaskState.working, message=new_msg)
                     case ArtifactChunk(
                         parts=parts, artifact_id=artifact_id, name=name, metadata=metadata, last_chunk=last_chunk
                     ):
@@ -275,6 +323,11 @@ class Executor(AgentExecutor):
                         continue
                     case TaskStatus(state=state, message=message, timestamp=timestamp):
                         await task_updater.update_status(state=state, message=message, timestamp=timestamp)
+                    case dict():
+                        await task_updater.update_status(
+                            state=TaskState.working,
+                            message=task_updater.new_agent_message(parts=[], metadata=yielded_value),
+                        )
                     case Exception() as ex:
                         raise ex
                     case _:
