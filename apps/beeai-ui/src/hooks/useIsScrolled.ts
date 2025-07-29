@@ -3,12 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
+import { useIntersectionObserver } from 'usehooks-ts';
 
 export function useIsScrolled() {
   const scrollElementRef = useRef<HTMLDivElement>(null);
-  const observeElementRef = useRef<HTMLDivElement>(null);
-  const [isScrolled, setIsScrolled] = useState(false);
+
+  const { isIntersecting, ref: observeElementRef } = useIntersectionObserver();
+  const isScrolled = !isIntersecting;
 
   const scrollToBottom = useCallback(() => {
     const scrollElement = scrollElementRef.current;
@@ -20,29 +22,6 @@ export function useIsScrolled() {
     scrollElement.scrollTo({
       top: scrollElement.scrollHeight,
     });
-
-    setIsScrolled(false);
-  }, []);
-
-  useEffect(() => {
-    const observeElement = observeElementRef.current;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsScrolled(!entry.isIntersecting);
-      },
-      { root: scrollElementRef.current },
-    );
-
-    if (observeElement) {
-      observer.observe(observeElement);
-    }
-
-    return () => {
-      if (observeElement) {
-        observer.unobserve(observeElement);
-      }
-    };
   }, []);
 
   return {

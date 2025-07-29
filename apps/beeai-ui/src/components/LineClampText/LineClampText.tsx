@@ -6,7 +6,7 @@
 import { OverflowMenuHorizontal } from '@carbon/icons-react';
 import { IconButton } from '@carbon/react';
 import clsx from 'clsx';
-import type { CSSProperties, ElementType, PropsWithChildren } from 'react';
+import type { CSSProperties, PropsWithChildren } from 'react';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useDebounceCallback } from 'usehooks-ts';
 
@@ -19,7 +19,7 @@ interface Props {
   iconButton?: boolean;
   className?: string;
   buttonClassName?: string;
-  as?: ElementType;
+  useBlockElement?: boolean;
 }
 
 export function LineClampText({
@@ -27,15 +27,20 @@ export function LineClampText({
   iconButton,
   className,
   buttonClassName,
-  as = 'span',
+  useBlockElement,
   children,
 }: PropsWithChildren<Props>) {
   const id = useId();
-  const textRef = useRef<HTMLElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showButton, setShowButton] = useState(false);
 
-  const Component = as;
+  const Component = useBlockElement ? 'div' : 'span';
+  const buttonProps = {
+    onClick: () => setIsExpanded((state) => !state),
+    'aria-controls': id,
+    'aria-expanded': isExpanded,
+  };
   const buttonLabel = isExpanded ? 'View less' : 'View more';
 
   const checkOverflow = useCallback(() => {
@@ -101,23 +106,11 @@ export function LineClampText({
       {showButton && (
         <Component className={clsx(classes.button, buttonClassName)}>
           {iconButton ? (
-            <IconButton
-              kind="tertiary"
-              onClick={() => setIsExpanded((state) => !state)}
-              aria-controls={id}
-              aria-expanded={isExpanded}
-              label={buttonLabel}
-            >
+            <IconButton {...buttonProps} kind="tertiary" label={buttonLabel}>
               <OverflowMenuHorizontal />
             </IconButton>
           ) : (
-            <ExpandButton
-              onClick={() => setIsExpanded((state) => !state)}
-              aria-controls={id}
-              aria-expanded={isExpanded}
-            >
-              {buttonLabel}
-            </ExpandButton>
+            <ExpandButton {...buttonProps}>{buttonLabel}</ExpandButton>
           )}
         </Component>
       )}

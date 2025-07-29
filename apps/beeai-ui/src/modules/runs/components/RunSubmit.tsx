@@ -6,18 +6,14 @@
 import { Send, StopFilled } from '@carbon/icons-react';
 import { Button } from '@carbon/react';
 
-import { useFileUpload } from '#modules/files/contexts/index.ts';
-
-import { useAgentRun } from '../contexts/agent-run';
-
 interface Props {
-  disabled?: boolean;
+  isPending: boolean;
+  isFileUploadPending: boolean;
+  disabled: boolean;
+  onCancel: () => void;
 }
 
-export function RunSubmit({ disabled }: Props) {
-  const { isPending, cancel } = useAgentRun();
-  const { isPending: isFileUploadPending } = useFileUpload();
-
+export function RunSubmit({ isPending, isFileUploadPending, disabled, onCancel }: Props) {
   if (isPending) {
     return (
       <Button
@@ -27,7 +23,7 @@ export function RunSubmit({ disabled }: Props) {
         hasIconOnly
         iconDescription="Cancel"
         onClick={(event) => {
-          cancel();
+          onCancel();
 
           event.preventDefault();
         }}

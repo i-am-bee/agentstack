@@ -39,6 +39,7 @@ export function RunInput({ promptSuggestions, onSubmit }: Props) {
     },
     isPending,
     run,
+    cancel,
   } = useAgentRun();
   const { isPending: isFileUploadPending, isDisabled: isFileUploadDisabled } = useFileUpload();
 
@@ -125,7 +126,12 @@ export function RunInput({ promptSuggestions, onSubmit }: Props) {
           </div>
 
           <div className={classes.submit}>
-            <RunSubmit disabled={isSubmitDisabled} />
+            <RunSubmit
+              isPending={isPending}
+              isFileUploadPending={isFileUploadPending}
+              disabled={isSubmitDisabled}
+              onCancel={cancel}
+            />
           </div>
         </div>
 

@@ -18,7 +18,7 @@ export function ChatUserMessage({ message }: Props) {
   return (
     <div className={classes.root}>
       <div className={classes.content}>
-        <LineClampText lines={3} as="div" buttonClassName={classes.moreButton} iconButton>
+        <LineClampText lines={3} buttonClassName={classes.moreButton} iconButton useBlockElement>
           <MessageContent message={message} />
         </LineClampText>
       </div>
