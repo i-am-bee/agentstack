@@ -72,7 +72,7 @@ $input-height: rem(88px);
 }
 
 .toBottomButton {
-  box-shadow: $box-shadow;
+  filter: drop-shadow($drop-shadow);
   &:global(.cds--tooltip) {
     position: absolute;
     inset-block-end: 100%;

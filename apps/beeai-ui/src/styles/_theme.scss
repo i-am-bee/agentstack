@@ -193,6 +193,7 @@ $border-radius: $spacing-03;
 $border-radius-lg: $spacing-04;
 $box-shadow-color: var(--cds-box-shadow-color);
 $box-shadow: 0px 2px 8px 0px $box-shadow-color;
+$drop-shadow: 0px 2px 8px $box-shadow-color;
 
 $button-primary: var(--cds-button-primary);
 $button-primary-color: var(--cds-button-primary-color);
