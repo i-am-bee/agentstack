@@ -145,6 +145,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
               match(part)
                 .with({ kind: UIMessagePartKind.File }, (part) => {
                   const transformedPart = transformFilePart(part, message);
+
                   if (transformedPart) {
                     message.parts.push(transformedPart);
                   } else {
@@ -153,6 +154,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
                 })
                 .with({ kind: UIMessagePartKind.Source }, (part) => {
                   const transformedPart = transformSourcePart(part);
+
                   message.parts.push(part, transformedPart);
                 })
                 .otherwise((part) => {

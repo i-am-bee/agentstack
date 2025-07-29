@@ -7,8 +7,9 @@ import { z } from 'zod';
 
 import type { A2AExtension } from './a2aExtension';
 
-const extensionKey = 'https://a2a-extensions.beeai.dev/citations/v1';
-const citationMetadataSchemaV1 = z
+const URI = 'https://a2a-extensions.beeai.dev/ui/citation/v1';
+
+const schema = z
   .object({
     url: z.string(),
     start_index: z.number(),
@@ -18,14 +19,9 @@ const citationMetadataSchemaV1 = z
   })
   .partial();
 
-export type CitationMetadata = z.infer<typeof citationMetadataSchemaV1>;
+export type CitationMetadata = z.infer<typeof schema>;
 
-export const citationExtensionV1: A2AExtension<typeof extensionKey, CitationMetadata> = {
-  getSchema: () =>
-    z
-      .object({
-        [extensionKey]: citationMetadataSchemaV1,
-      })
-      .partial(),
-  getKey: () => extensionKey,
+export const citationExtension: A2AExtension<typeof URI, CitationMetadata> = {
+  getSchema: () => z.object({ [URI]: schema }).partial(),
+  getUri: () => URI,
 };

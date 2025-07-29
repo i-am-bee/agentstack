@@ -5,13 +5,17 @@
 
 import type { A2AExtension } from './a2aExtension';
 
-export const getExtensionData =
-  <T extends string, D>(extension: A2AExtension<T, D>) =>
-  (metadata: Record<string, unknown> | undefined) => {
-    const parsed = extension.getSchema().parse(metadata || {});
-    if (parsed[extension.getKey()]) {
-      return parsed[extension.getKey()];
+export function getExtensionData<U extends string, D>(extension: A2AExtension<U, D>) {
+  const schema = extension.getSchema();
+  const uri = extension.getUri();
+
+  return function (metadata: Record<string, unknown> | undefined) {
+    const { success, data: parsed } = schema.safeParse(metadata ?? {});
+
+    if (!success) {
+      return undefined;
     }
 
-    return undefined;
+    return parsed[uri];
   };
+}

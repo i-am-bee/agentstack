@@ -13,16 +13,18 @@ import { toMarkdownCitation } from '#utils/markdown.ts';
 
 import type { MessageSourcesMap } from './types';
 
-export function transformSourcePart(uiSourcePart: UISourcePart): UITransformPart {
+export function transformSourcePart(sourcePart: UISourcePart): UITransformPart {
+  const { id, startIndex, endIndex } = sourcePart;
+
   const transformPart: UITransformPart = {
     kind: UIMessagePartKind.Transform,
     id: uuid(),
     type: UITransformType.Source,
-    startIndex: uiSourcePart.startIndex ?? Infinity,
-    sources: [uiSourcePart.id],
+    startIndex: startIndex ?? Infinity,
+    sources: [id],
     apply: function (content, offset) {
-      const adjustedStartIndex = isNotNull(uiSourcePart.startIndex) ? uiSourcePart.startIndex + offset : content.length;
-      const adjustedEndIndex = isNotNull(uiSourcePart.endIndex) ? uiSourcePart.endIndex + offset : content.length;
+      const adjustedStartIndex = isNotNull(startIndex) ? startIndex + offset : content.length;
+      const adjustedEndIndex = isNotNull(endIndex) ? endIndex + offset : content.length;
       const before = content.slice(0, adjustedStartIndex);
       const text = content.slice(adjustedStartIndex, adjustedEndIndex);
       const after = content.slice(adjustedEndIndex);

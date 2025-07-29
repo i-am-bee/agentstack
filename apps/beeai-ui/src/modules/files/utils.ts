@@ -55,8 +55,9 @@ export function convertFilesToUIFileParts(files: FileEntity[]): UIFilePart[] {
   return parts;
 }
 
-export function transformFilePart(uiFilePart: UIFilePart, message: UIAgentMessage): UITransformPart | null {
-  const isImage = isImageMimeType(uiFilePart.type);
+export function transformFilePart(filePart: UIFilePart, message: UIAgentMessage): UITransformPart | null {
+  const { url, type } = filePart;
+  const isImage = isImageMimeType(type);
 
   if (!isImage) {
     return null;
@@ -74,7 +75,7 @@ export function transformFilePart(uiFilePart: UIFilePart, message: UIAgentMessag
       const before = content.slice(0, adjustedStartIndex);
       const after = content.slice(adjustedStartIndex);
 
-      return `${before}${toMarkdownImage(uiFilePart.url)}${after}`;
+      return `${before}${toMarkdownImage(url)}${after}`;
     },
   };
 

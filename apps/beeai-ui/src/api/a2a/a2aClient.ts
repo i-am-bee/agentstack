@@ -3,17 +3,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FilePart, Message, TaskStatusUpdateEvent } from '@a2a-js/sdk';
+import type { TaskStatusUpdateEvent } from '@a2a-js/sdk';
 import { A2AClient } from '@a2a-js/sdk/client';
 import { Subject } from 'rxjs';
 import { match } from 'ts-pattern';
 import { v4 as uuid } from 'uuid';
 
 import type { FileEntity } from '#modules/files/types.ts';
-import { getFileContentUrl } from '#modules/files/utils.ts';
 import type { UIMessagePart } from '#modules/messages/types.ts';
+import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
+import { isNotNull } from '#utils/helpers.ts';
 
-import { PartProcessors } from './part-processors';
+import { processFilePart, processTextPart } from './part-processors';
+import { createUserMessage } from './utils';
 
 export interface ChatRun {
   done: Promise<void>;
@@ -21,66 +23,53 @@ export interface ChatRun {
   cancel: () => Promise<void>;
 }
 
-function convertFileEntityToFilePart(file: FileEntity): FilePart {
-  if (!file.uploadFile) {
-    throw new Error('File upload file is not present');
-  }
-
-  return {
-    kind: 'file',
-    file: {
-      uri: getFileContentUrl({ id: file.uploadFile.id, addBase: true }),
-      name: file.uploadFile.filename,
-      mimeType: file.originalFile.type,
-    },
-  };
-}
-
 function handleStatusUpdate(event: TaskStatusUpdateEvent): UIMessagePart[] {
-  const message = event.status.message;
+  const { message } = event.status;
 
   if (!message) {
     return [];
   }
 
-  return message.parts.flatMap((part) => {
-    const transformedParts = match(part)
-      .with({ kind: 'text' }, (part) => PartProcessors.processTextPart(message.messageId, part))
-      .with({ kind: 'file' }, PartProcessors.processFilePart)
-      .otherwise((otherPart) => {
-        throw new Error(`Unsupported part - ${otherPart.kind}`);
-      });
+  const parts = message.parts
+    .map((part) => {
+      const processedPart = match(part)
+        .with({ kind: 'text' }, (part) => processTextPart(part, message.messageId))
+        .with({ kind: 'file' }, processFilePart)
+        .otherwise((otherPart) => {
+          throw new Error(`Unsupported part - ${otherPart.kind}`);
+        });
 
-    return transformedParts;
-  });
+      return processedPart;
+    })
+    .filter(isNotNull);
+
+  return parts;
 }
 
-function buildUserMessage(message: string, files: FileEntity[], contextId: string, taskId: string): Message {
-  return {
-    kind: 'message',
-    contextId,
-    messageId: uuid(),
-    taskId,
-    parts: [{ kind: 'text', text: message }, ...files.map(convertFileEntityToFilePart)],
-    role: 'user',
-  };
-}
-
-export const buildA2AClient = (agentUrl: string) => {
+export const buildA2AClient = (agentId: string) => {
+  const agentUrl = `${getBaseUrl()}/api/v1/a2a/${agentId}`;
   const client = new A2AClient(agentUrl);
+
+  // HACK: the URL in the agent card is not using the nextjs proxy - we need to replace it
+  // eslint-disable-next-line
+  (client as unknown as any).agentCardPromise.then(() => {
+    // eslint-disable-next-line
+    (client as unknown as any).serviceEndpointUrl = agentUrl;
+  });
 
   const chat = (text: string, files: FileEntity[], contextId: string) => {
     const taskId = uuid();
     const messageSubject = new Subject<UIMessagePart[]>();
 
     const iterateOverStream = async () => {
-      const res = await client.sendMessageStream({
-        message: buildUserMessage(text, files, contextId, taskId),
+      const stream = client.sendMessageStream({
+        message: createUserMessage(text, files, contextId, taskId),
       });
 
-      for await (const event of res) {
+      for await (const event of stream) {
         match(event).with({ kind: 'status-update' }, (event) => {
           const messageParts = handleStatusUpdate(event);
+
           messageSubject.next(messageParts);
         });
       }

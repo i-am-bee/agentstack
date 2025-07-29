@@ -7,8 +7,9 @@ import { z } from 'zod';
 
 import type { A2AExtension } from './a2aExtension';
 
-const extensionKey = 'https://a2a-extensions.beeai.dev/trajectory/v1';
-const trajectoryMetadataSchemaV1 = z
+const URI = 'https://a2a-extensions.beeai.dev/ui/trajectory/v1';
+
+const schema = z
   .object({
     message: z.string(),
     tool_name: z.string(),
@@ -17,14 +18,9 @@ const trajectoryMetadataSchemaV1 = z
   })
   .partial();
 
-export type TrajectoryMetadata = z.infer<typeof trajectoryMetadataSchemaV1>;
+export type TrajectoryMetadata = z.infer<typeof schema>;
 
-export const trajectoryExtensionV1: A2AExtension<typeof extensionKey, TrajectoryMetadata> = {
-  getSchema: () =>
-    z
-      .object({
-        [extensionKey]: trajectoryMetadataSchemaV1,
-      })
-      .partial(),
-  getKey: () => extensionKey,
+export const trajectoryExtension: A2AExtension<typeof URI, TrajectoryMetadata> = {
+  getSchema: () => z.object({ [URI]: schema }).partial(),
+  getUri: () => URI,
 };

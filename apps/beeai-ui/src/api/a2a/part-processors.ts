@@ -6,17 +6,65 @@
 import type { FilePart, FileWithUri, TextPart } from '@a2a-js/sdk';
 import { v4 as uuid } from 'uuid';
 
-import type { UIFilePart, UIMessagePart, UISourcePart, UITextPart, UITrajectoryPart } from '#modules/messages/types.ts';
+import type { UIFilePart, UISourcePart, UITextPart, UITrajectoryPart } from '#modules/messages/types.ts';
 import { UIMessagePartKind } from '#modules/messages/types.ts';
 
 import type { CitationMetadata } from './extensions/citation';
-import { citationExtensionV1 } from './extensions/citation';
+import { citationExtension } from './extensions/citation';
 import { getExtensionData } from './extensions/getExtensionData';
 import type { TrajectoryMetadata } from './extensions/trajectory';
-import { trajectoryExtensionV1 } from './extensions/trajectory';
+import { trajectoryExtension } from './extensions/trajectory';
 
-const extractCitations = getExtensionData(citationExtensionV1);
-const extractTrajectory = getExtensionData(trajectoryExtensionV1);
+export function processTextPart(
+  part: TextPart,
+  messageId: string,
+): UITrajectoryPart | UISourcePart | UITextPart | null {
+  const { metadata, text } = part;
+
+  const trajectory = extractTrajectory(metadata);
+
+  if (trajectory) {
+    const trajectoryPart = createTrajectoryPart(trajectory);
+
+    return trajectoryPart;
+  }
+
+  const citation = extractCitation(metadata);
+
+  if (citation) {
+    if (text !== '') {
+      throw new Error('Text part should be empty when citation is present');
+    }
+
+    const sourcePart = createSourcePart(citation, messageId);
+
+    return sourcePart;
+  }
+
+  const textPart = createTextPart(text);
+
+  return textPart;
+}
+
+export function processFilePart(part: FilePart): UIFilePart {
+  const { file } = part;
+  const { name, mimeType } = file;
+  const id = uuid();
+  const url = getFileUri(file);
+
+  const filePart: UIFilePart = {
+    kind: UIMessagePartKind.File,
+    url,
+    id,
+    filename: name || id,
+    type: mimeType,
+  };
+
+  return filePart;
+}
+
+const extractCitation = getExtensionData(citationExtension);
+const extractTrajectory = getExtensionData(trajectoryExtension);
 
 function isFileWithUri(file: FilePart['file']): file is FileWithUri {
   return 'uri' in file;
@@ -34,34 +82,16 @@ function getFileUri(file: FilePart['file']): string {
   return `data:${mimeType};base64,${bytes}`;
 }
 
-function processFilePart(part: FilePart): Array<UIMessagePart> {
-  const { file } = part;
-  const { name, mimeType } = file;
-  const id = uuid();
-  const url = getFileUri(file);
-
-  const filePart: UIFilePart = {
-    kind: UIMessagePartKind.File,
-    url,
-    id,
-    filename: name || id,
-    type: mimeType,
-  };
-
-  return [filePart];
-}
-
-function processSourcePart(metadata: CitationMetadata, messageId: string): Array<UISourcePart> {
+function createSourcePart(metadata: CitationMetadata, messageId: string): UISourcePart | null {
   const { url, start_index, end_index, title, description } = metadata;
-  const id = uuid();
 
   if (!url) {
-    return [];
+    return null;
   }
 
   const sourcePart: UISourcePart = {
     kind: UIMessagePartKind.Source,
-    id,
+    id: uuid(),
     url,
     messageId,
     startIndex: start_index ?? undefined,
@@ -70,45 +100,28 @@ function processSourcePart(metadata: CitationMetadata, messageId: string): Array
     description: description ?? undefined,
   };
 
-  return [sourcePart];
+  return sourcePart;
 }
 
-function processTrajectoryPart(metadata: TrajectoryMetadata): UITrajectoryPart {
+function createTrajectoryPart(metadata: TrajectoryMetadata): UITrajectoryPart {
   const { message, tool_name } = metadata;
 
-  const part: UITrajectoryPart = {
+  const trajectoryPart: UITrajectoryPart = {
     kind: UIMessagePartKind.Trajectory,
     id: uuid(),
     message: message ?? undefined,
     toolName: tool_name ?? undefined,
   };
 
-  return part;
+  return trajectoryPart;
 }
 
-function processTextPart(messageId: string, part: TextPart): Array<UIMessagePart> {
-  const citation = extractCitations(part.metadata);
-  const trajectory = extractTrajectory(part.metadata);
+function createTextPart(text: string): UITextPart {
+  const textPart: UITextPart = {
+    kind: UIMessagePartKind.Text,
+    id: uuid(),
+    text,
+  };
 
-  if (trajectory) {
-    return [processTrajectoryPart(trajectory)];
-  }
-
-  if (citation) {
-    if (part.text !== '') {
-      throw new Error('Text part should be empty when citation is present');
-    }
-
-    return processSourcePart(citation, messageId);
-  } else {
-    const textPart: UITextPart = {
-      kind: UIMessagePartKind.Text,
-      id: uuid(),
-      text: part.text,
-    };
-
-    return [textPart];
-  }
+  return textPart;
 }
-
-export const PartProcessors = { processSourcePart, processTextPart, processFilePart, processTrajectoryPart };
