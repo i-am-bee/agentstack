@@ -1,7 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import base64
 import os
 import re
 from typing import Iterable
@@ -155,13 +154,6 @@ def next_unused_filename(name: str, existing: Iterable[str]) -> str:
         i += 1
 
     return f"{base}({i}){ext}"
-
-
-def is_base64(s: str) -> bool:
-    try:
-        return base64.b64encode(base64.b64decode(s)) == s.encode()
-    except Exception:
-        return False
 
 
 def format_size(size: int | None) -> str:

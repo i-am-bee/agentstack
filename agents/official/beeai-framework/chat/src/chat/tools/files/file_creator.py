@@ -16,31 +16,31 @@ class FileInput(BaseModel):
     content: str
 
 
-class FileGeneratorInput(BaseModel):
+class FileCreatorInput(BaseModel):
     files: list[FileInput]
 
 
-class FileGeneratorToolResult(BaseModel):
+class FileCreatorToolResult(BaseModel):
     files: list[FileChatInfo] = Field(
         ...,
-        description="List of files that have been generated.",
+        description="List of files that have been created.",
     )
 
 
-class FileGeneratorToolOutput(JSONToolOutput[FileGeneratorToolResult]):
+class FileCreatorToolOutput(JSONToolOutput[FileCreatorToolResult]):
     pass
 
 
-class FileGeneratorTool(
-    Tool[FileGeneratorInput, ToolRunOptions, FileGeneratorToolOutput]  # type: ignore
+class FileCreatorTool(
+    Tool[FileCreatorInput, ToolRunOptions, FileCreatorToolOutput]  # type: ignore
 ):
     """
     Creates a new file and writes the provided content into it.
     """
 
-    name: str = "FileGenerator"
+    name: str = "FileCreator"
     description: str = "Create a new file with the specified content."
-    input_schema: type[FileGeneratorInput] = FileGeneratorInput
+    input_schema: type[FileCreatorInput] = FileCreatorInput
 
     def __init__(
         self,
@@ -49,13 +49,13 @@ class FileGeneratorTool(
 
     def _create_emitter(self) -> Emitter:
         return Emitter.root().child(
-            namespace=["tool", "file_generator"],
+            namespace=["tool", "file_creator"],
             creator=self,
         )
 
     async def _run(
-        self, input: FileGeneratorInput, options, context
-    ) -> FileGeneratorToolOutput:
+        self, input: FileCreatorInput, options, context
+    ) -> FileCreatorToolOutput:
         files = []
         for item in input.files:
             result = await upload_file(
@@ -74,4 +74,4 @@ class FileGeneratorTool(
                     origin_type=OriginType.GENERATED,
                 )
             )
-        return FileGeneratorToolOutput(result=FileGeneratorToolResult(files=files))
+        return FileCreatorToolOutput(result=FileCreatorToolResult(files=files))

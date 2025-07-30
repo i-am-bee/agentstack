@@ -7,36 +7,46 @@ from beeai_framework.agents.experimental import (
 )
 from beeai_framework.agents.experimental.events import RequirementAgentStartEvent
 from beeai_framework.backend import AssistantMessage
-from pydantic import BaseModel, Field
+from beeai_framework.context import RunContext
+from beeai_framework.emitter import Emitter, EventMeta
 from beeai_framework.tools import (
+    StringToolOutput,
     Tool,
     ToolInputValidationError,
     ToolRunOptions,
-    StringToolOutput,
 )
-from beeai_framework.context import RunContext
-from beeai_framework.emitter import Emitter, EventMeta
+from pydantic import BaseModel, Field
 
 
 class ClarificationSchema(BaseModel):
-    thoughts: str = Field(..., description="Thoughts about the question.")
+    thoughts: str = Field(..., description="Your reasoning process and analysis of what information is needed from the user.")
     question_to_user: str = Field(
-        ..., description="Question to the user.", min_length=1
+        ..., description="The specific question or clarification request to ask the user.", min_length=1
     )
 
 
 class ClarificationTool(Tool[ClarificationSchema]):
+    """
+    An auxiliary tool that enables agents to ask clarifying questions when user requirements are unclear.
+    
+    This tool prevents agents from making assumptions or providing incomplete answers by allowing them
+    to request additional information from the user. It's particularly useful for smaller models that
+    might otherwise attempt to complete tasks with insufficient information.
+    
+    The tool captures the agent's reasoning process and formulates appropriate questions to ensure
+    better task understanding and more accurate results.
+    """
     name: str = "clarification"
     description: str = "Use when you need to clarify something from user."
 
     @property
     def state(self) -> RequirementAgentRunState:
-        """Get the state of the tool."""
+        """Get the current agent state that this tool will use for question handling."""
         return self._state
 
     @state.setter
     def state(self, state: RequirementAgentRunState) -> None:
-        """Set the state of the tool."""
+        """Set the agent state that this tool will use for question handling."""
         self._state = state
 
     @property
@@ -54,7 +64,9 @@ class ClarificationTool(Tool[ClarificationSchema]):
                 "State is not set for the ClarificationTool."
             )
 
+        # Store the clarification request in the agent state
         self._state.result = input
+        # Set the question as the agent's response to the user
         self._state.answer = AssistantMessage(input.question_to_user)  # type: ignore
 
         return StringToolOutput("Question has been sent")
@@ -67,6 +79,12 @@ class ClarificationTool(Tool[ClarificationSchema]):
 
 
 def clarification_tool_middleware(ctx: RunContext) -> None:
+    """
+    Middleware function that provides the ClarificationTool with access to the agent's state.
+    
+    This middleware enables the ClarificationTool to bypass the normal final answer flow by directly
+    setting the agent's answer when asking clarifying questions.
+    """
     assert isinstance(ctx.instance, RequirementAgent)
 
     clarification_tool = next(

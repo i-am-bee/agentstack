@@ -2,14 +2,16 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from typing import Literal
+
 from beeai_framework.agents.experimental import (
     RequirementAgent,
     RequirementAgentRunState,
 )
 from beeai_framework.agents.experimental.events import RequirementAgentStartEvent
 from beeai_framework.agents.experimental.requirements import Requirement, Rule
-from pydantic import BaseModel, Field, create_model
-
+from beeai_framework.agents.experimental.requirements.requirement import (
+    run_with_context,
+)
 from beeai_framework.context import RunContext
 from beeai_framework.emitter import Emitter, EventMeta
 from beeai_framework.tools import (
@@ -18,16 +20,14 @@ from beeai_framework.tools import (
     ToolInputValidationError,
     ToolRunOptions,
 )
-from beeai_framework.agents.experimental.requirements.requirement import (
-    run_with_context,
-)
+from pydantic import BaseModel, Field, create_model
 
 
 class ActToolInput(BaseModel):
     thought: str = Field(
-        ..., description="Precisely describe why do you want to use the tool."
+        ..., description="Provide a clear explanation of why you want to use the selected tool and what you expect to achieve."
     )
-    selected_tool: str = Field(..., description="Select the tool you want to execute.")
+    selected_tool: str = Field(..., description="The name of the tool you want to execute next.")
 
 
 class ActToolResult(BaseModel):
@@ -41,6 +41,16 @@ class ActToolOutput(JSONToolOutput[ActToolResult]):
 
 
 class ActTool(Tool[ActToolInput]):
+    """
+    An auxiliary tool that ensures correct thinking sequence by forcing deliberate tool selection.
+    
+    This tool must be used in tandem with ActAlwaysFirstRequirement. It enforces that the LLM
+    must first think about and explicitly select which tool to use before executing any other tool.
+    The selected_tool from the output is then enforced to run next.
+    
+    This pattern promotes more thoughtful and deliberate tool usage by requiring the agent to
+    explicitly state its reasoning and tool choice before execution.
+    """
     name: str = "act"
     description: str = "Use whenever you want to use any tool."
     _input_schema: type[BaseModel]
@@ -71,7 +81,7 @@ class ActTool(Tool[ActToolInput]):
                 str,
                 Field(
                     ...,
-                    description="Precisely describe why do you want to use the tool.",
+                    description="Provide a clear explanation of why you want to use the selected tool and what you expect to achieve.",
                 ),
             ),
             selected_tool=(
@@ -110,6 +120,18 @@ class ActTool(Tool[ActToolInput]):
 
 
 class ActAlwaysFirstRequirement(Requirement[RequirementAgentRunState]):
+    """
+    A requirement that enforces the ActTool to be used before any other tool execution.
+    
+    This requirement ensures that:
+    1. On the first step, only the ActTool can be executed
+    2. After ActTool execution, only the tool selected by ActTool can be executed
+    3. If ActTool encounters an error, it must be used again
+    
+    This creates a controlled execution flow where every tool usage must be preceded
+    by explicit tool selection through the ActTool, promoting more deliberate and
+    thoughtful agent behavior.
+    """
     name: str = "act_always_first"
 
     @run_with_context
@@ -157,6 +179,9 @@ class ActAlwaysFirstRequirement(Requirement[RequirementAgentRunState]):
 
 
 def act_tool_middleware(ctx: RunContext) -> None:
+    """
+    Middleware function that configures the ActTool with allowed tools at runtime.
+    """
     assert isinstance(ctx.instance, RequirementAgent)
 
     act_tool = next((t for t in ctx.instance._tools if isinstance(t, ActTool)), None)

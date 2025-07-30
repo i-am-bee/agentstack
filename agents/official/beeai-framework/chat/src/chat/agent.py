@@ -36,7 +36,7 @@ from beeai_sdk.server import Server
 from beeai_sdk.server.context import Context
 from openinference.instrumentation.beeai import BeeAIInstrumentor
 
-from chat.tools.files.file_generator import FileGeneratorTool, FileGeneratorToolOutput
+from chat.tools.files.file_creator import FileCreatorTool, FileCreatorToolOutput
 from chat.tools.files.file_reader import create_file_reader_tool_class
 from chat.tools.files.utils import FrameworkMessage, extract_files, to_framework_message
 from chat.tools.general.act import (
@@ -156,17 +156,19 @@ async def chat(message: Message, context: Context):
 
     # Configure tools
     tools = [
-        ActTool(),
+        # Auxiliary tools
+        ActTool(),  # Enforces correct thinking sequence by requiring tool selection before execution
+        ClarificationTool(),  # Allows agent to ask clarifying questions when user requirements are unclear
+        # Common tools
         WikipediaTool(),
         OpenMeteoTool(),
         DuckDuckGoSearchTool(),
-        FileGeneratorTool(),
-        ClarificationTool(),
+        FileCreatorTool(),
         CurrentTimeTool(),
     ]
 
     requirements = [
-        ActAlwaysFirstRequirement(),
+        ActAlwaysFirstRequirement(), #  Enforces the ActTool to be used before any other tool execution.
     ]
 
     file_reader_tool_class = create_file_reader_tool_class(extracted_files)
@@ -210,18 +212,20 @@ async def chat(message: Message, context: Context):
 
         last_step = event.state.steps[-1] if event.state.steps else None
         if last_step and last_step.tool is not None:
-            if isinstance(last_step.output, FileGeneratorToolOutput):
+            if isinstance(last_step.output, FileCreatorToolOutput):
                 result = last_step.output.result
                 for file_info in result.files:
                     yield Artifact(
                         artifact_id=str(uuid.uuid4()),
                         name=file_info.display_filename,
                         parts=[
-                            FilePart(
-                                file=FileWithUri(
-                                    name=file_info.display_filename,
-                                    mime_type=file_info.content_type,
-                                    uri=str(file_info.url),
+                            Part(
+                                FilePart(
+                                    file=FileWithUri(
+                                        name=file_info.display_filename,
+                                        mime_type=file_info.content_type,
+                                        uri=str(file_info.url),
+                                    )
                                 )
                             )
                         ],
