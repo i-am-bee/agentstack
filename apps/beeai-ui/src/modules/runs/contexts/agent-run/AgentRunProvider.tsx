@@ -9,8 +9,8 @@ import { type PropsWithChildren, useCallback, useMemo, useRef, useState } from '
 import { match } from 'ts-pattern';
 import { v4 as uuid } from 'uuid';
 
-import type { ChatRun } from '#api/a2a/a2aClient.ts';
-import { buildA2AClient } from '#api/a2a/a2aClient.ts';
+import { buildA2AClient } from '#api/a2a/client.ts';
+import type { ChatRun } from '#api/a2a/types.ts';
 import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 import { useImmerWithGetter } from '#hooks/useImmerWithGetter.ts';

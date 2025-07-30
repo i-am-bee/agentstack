@@ -15,13 +15,8 @@ import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { processFilePart, processTextPart } from './part-processors';
+import type { ChatRun } from './types';
 import { createUserMessage } from './utils';
-
-export interface ChatRun {
-  done: Promise<void>;
-  subscribe: (fn: (parts: UIMessagePart[]) => void) => () => void;
-  cancel: () => Promise<void>;
-}
 
 function handleStatusUpdate(event: TaskStatusUpdateEvent): UIMessagePart[] {
   const { message } = event.status;

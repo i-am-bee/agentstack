@@ -5,7 +5,7 @@
 
 import { z } from 'zod';
 
-import type { A2AExtension } from './a2aExtension';
+import type { A2AExtension } from './types';
 
 const URI = 'https://a2a-extensions.beeai.dev/ui/trajectory/v1';
 

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { A2AExtension } from './a2aExtension';
+import type { A2AExtension } from './types';
 
 export function getExtensionData<U extends string, D>(extension: A2AExtension<U, D>) {
   const schema = extension.getSchema();
