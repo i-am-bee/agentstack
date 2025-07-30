@@ -15,6 +15,8 @@ export const PHOENIX_SERVER_TARGET = process.env.NEXT_PUBLIC_PHOENIX_SERVER_TARG
 
 export const NAV_ITEMS = parseNav(process.env.NEXT_PUBLIC_NAV_ITEMS);
 
+export const FEATURE_FLAGS = process.env.NEXT_PUBLIC_FEATURE_FLAGS;
+
 export const API_URL = process.env.API_URL ?? 'http://127.0.0.1:8333';
 
 export const PROD_MODE = process.env.NODE_ENV === 'production';

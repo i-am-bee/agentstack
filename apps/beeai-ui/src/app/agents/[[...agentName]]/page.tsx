@@ -9,13 +9,17 @@ import type { Agent } from '#modules/agents/api/types.ts';
 import { buildAgent } from '#modules/agents/utils.ts';
 import { listProviders } from '#modules/providers/api/index.ts';
 import { RunView } from '#modules/runs/components/RunView.tsx';
+import { FEATURE_FLAGS } from '#utils/constants.ts';
+import { parseFeatureFlags } from '#utils/feature-flags.ts';
 
 interface Props {
   params: Promise<{ agentName: string }>;
+  searchParams: Promise<{ agentName: string }>;
 }
 
-export default async function AgentRunPage({ params }: Props) {
-  const { agentName } = await params;
+export default async function AgentRunPage({ params, searchParams }: Props) {
+  const featureFlags = parseFeatureFlags(FEATURE_FLAGS);
+  const { agentName } = await (featureFlags.QueryParamAgentRouting ? searchParams : params);
 
   let agent: Agent | undefined;
   try {
