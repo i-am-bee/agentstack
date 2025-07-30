@@ -153,8 +153,10 @@ async def chat(message: Message, context: Context):
         history=messages[context.context_id], incoming_message=message
     )
     input = to_framework_message(message)
-
+    
     # Configure tools
+    file_reader_tool_class = create_file_reader_tool_class(extracted_files) # Dynamically created tool input schema based on real provided files ensures that small LLMs can't hallucinate the input
+    
     tools = [
         # Auxiliary tools
         ActTool(),  # Enforces correct thinking sequence by requiring tool selection before execution
@@ -163,6 +165,7 @@ async def chat(message: Message, context: Context):
         WikipediaTool(),
         OpenMeteoTool(),
         DuckDuckGoSearchTool(),
+        file_reader_tool_class(),
         FileCreatorTool(),
         CurrentTimeTool(),
     ]
@@ -170,10 +173,6 @@ async def chat(message: Message, context: Context):
     requirements = [
         ActAlwaysFirstRequirement(), #  Enforces the ActTool to be used before any other tool execution.
     ]
-
-    file_reader_tool_class = create_file_reader_tool_class(extracted_files)
-    file_reader_tool = file_reader_tool_class()
-    tools.append(file_reader_tool)
 
     llm = OpenAIChatModel(
         model_id=os.getenv("LLM_MODEL", "llama3.1"),

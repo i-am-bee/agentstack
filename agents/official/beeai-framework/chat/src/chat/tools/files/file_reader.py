@@ -1,7 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Literal, List
+from typing import List, Literal
 
 from beeai_framework.emitter import Emitter
 from beeai_framework.tools import (
@@ -34,6 +34,27 @@ class FileReadInputBase(BaseModel):
 
 
 def create_file_reader_tool_class(files: list[FileChatInfo]) -> type[Tool]:
+    """
+    Dynamically creates a FileReaderTool class with a schema tailored to the provided files.
+    
+    This function generates a tool that can only read from the specific files that were provided,
+    preventing small LLMs from hallucinating non-existent filenames. The input schema is 
+    dynamically constructed using Pydantic's create_model to include only valid file options.
+    
+    Args:
+        files: List of FileChatInfo objects representing available files for reading.
+               Each file contains metadata like display_filename, content_type, and size.
+    
+    Returns:
+        A Tool class configured to read only from the provided files. The tool's input
+        schema will restrict filename selection to only the files in the provided list.
+        
+    Behavior:
+        - If files are provided: Creates a tool with Literal type constraints for filenames
+        - If no files provided: Creates a tool that returns a "no files available" message
+        - The tool validates all requested filenames against the provided file list
+        - File contents are read asynchronously and returned as a dictionary
+    """
     # 1. create a tailor-made Pydantic model
 
     if len(files):
