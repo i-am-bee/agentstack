@@ -141,7 +141,7 @@ wheels = [
 
 [[package]]
 name = "beeai-framework"
-version = "0.1.32"
+version = "0.1.31"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -154,9 +154,9 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2d/1f/a78ada8c89eb4daba40d39fd19645a2fc2d96d4fbadc7658793bbdfad432/beeai_framework-0.1.32.tar.gz", hash = "sha256:f520dc931be6de63bf76cb8f9faab14d3b6d457d14ca810444a0f5c32204271e", size = 123007, upload-time = "2025-07-23T18:04:19.86Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a8/2e/961fc3fc90294f1aa76ee28f84aee50a865b503822949baf454946ee9fe6/beeai_framework-0.1.31.tar.gz", hash = "sha256:20a912549715546a0fba4711916db8d2b0d0ae6420283f9f64b6ba1e380cb131", size = 118937, upload-time = "2025-07-18T17:19:58.673Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/69/e4/2b7eae62fb6a998187af8cc2520e1e685b74134296c80588ccb127f63a34/beeai_framework-0.1.32-py3-none-any.whl", hash = "sha256:0d7fafd39249dddf551b33dfd1430d560235fa17acd8035a2a5c83ae97842652", size = 231145, upload-time = "2025-07-23T18:04:17.902Z" },
+    { url = "https://files.pythonhosted.org/packages/eb/d5/a73e0882425e89194bb93104f93301cf8b23eef18ad8d81ecb453f70ff6a/beeai_framework-0.1.31-py3-none-any.whl", hash = "sha256:10cb7d2be9ffe4c0f1487625ac82c6a15673e9d3ce02c2bc7910c2249d7f7df2", size = 218659, upload-time = "2025-07-18T17:19:57.429Z" },
 ]
 
 [package.optional-dependencies]
@@ -244,7 +244,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = "~=0.1.29" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = "~=0.1.31" },
     { name = "beeai-sdk", git = "https://github.com/i-am-bee/beeai-platform?subdirectory=apps%2Fbeeai-sdk" },
     { name = "openinference-instrumentation-beeai", specifier = ">=0.1.6" },
     { name = "pydantic-settings", specifier = ">=2.9.0" },

@@ -6,42 +6,65 @@ import uuid
 from collections import defaultdict
 from textwrap import dedent
 
-from a2a.types import Message, Role, AgentCapabilities, AgentSkill, AgentExtension, TextPart, Part
-from beeai_framework.agents.react import ReActAgent, ReActAgentUpdateEvent
-from beeai_framework.backend import AssistantMessage, UserMessage
-from beeai_framework.backend.chat import ChatModel, ChatModelParameters
+from a2a.types import (
+    AgentCapabilities,
+    AgentExtension,
+    AgentSkill,
+    Artifact,
+    FilePart,
+    FileWithUri,
+    Message,
+    Part,
+    Role,
+    TextPart,
+)
+from beeai_framework.adapters.openai import OpenAIChatModel
+from beeai_framework.agents.experimental import (
+    RequirementAgent,
+)
+from beeai_framework.agents.experimental.events import (
+    RequirementAgentSuccessEvent,
+)
+from beeai_framework.backend.types import ChatModelParameters
 from beeai_framework.memory import UnconstrainedMemory
+from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
+from beeai_framework.tools import Tool
 from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
 from beeai_framework.tools.search.wikipedia import WikipediaTool
-from beeai_framework.tools.tool import AnyTool
 from beeai_framework.tools.weather.openmeteo import OpenMeteoTool
+from beeai_sdk.server import Server
+from beeai_sdk.server.context import Context
 from openinference.instrumentation.beeai import BeeAIInstrumentor
 
-from beeai_sdk.server.context import Context
-from beeai_sdk.server import Server
+from chat.tools.files.file_generator import FileGeneratorTool, FileGeneratorToolOutput
+from chat.tools.files.file_reader import create_file_reader_tool_class
+from chat.tools.files.utils import FrameworkMessage, extract_files, to_framework_message
+from chat.tools.general.act import (
+    ActAlwaysFirstRequirement,
+    ActTool,
+    act_tool_middleware,
+)
+from chat.tools.general.clarification import (
+    ClarificationTool,
+    clarification_tool_middleware,
+)
+from chat.tools.general.current_time import CurrentTimeTool
 
 BeeAIInstrumentor().instrument()
 ## TODO: https://github.com/phoenixframework/phoenix/issues/6224
-logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(logging.CRITICAL)
-logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(logging.CRITICAL)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(
+    logging.CRITICAL
+)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(
+    logging.CRITICAL
+)
 
 
 logger = logging.getLogger(__name__)
 SUPPORTED_CONTENT_TYPES = ["text", "text/plain"]
 
-messages: defaultdict[str, list[UserMessage | AssistantMessage]] = defaultdict(list)
-
-
-def to_framework_message(message: Message) -> UserMessage | AssistantMessage:
-    message_text = "".join(part.root.text for part in message.parts if part.root.kind == "text")
-
-    if message.role == Role.agent:
-        return AssistantMessage(message_text)
-
-    if message.role == Role.user:
-        return UserMessage(message_text)
-
-    raise ValueError(f"Invalid message role: {message.role}")
+messages: defaultdict[str, list[Message]] = defaultdict(list)
+framework_messages: defaultdict[str, list[FrameworkMessage]] = defaultdict(list)
 
 
 server = Server()
@@ -115,7 +138,9 @@ server = Server()
                 """
             ),
             tags=["chat"],
-            examples=["Please find a room in LA, CA, April 15, 2025, checkout date is april 18, 2 adults"],
+            examples=[
+                "Please find a room in LA, CA, April 15, 2025, checkout date is april 18, 2 adults"
+            ],
         )
     ],
 )
@@ -124,49 +149,100 @@ async def chat(message: Message, context: Context):
     The agent is an AI-powered conversational system with memory, supporting real-time search, Wikipedia lookups,
     and weather updates through integrated tools.
     """
-    # ensure the model is pulled before running
-    os.environ["OPENAI_API_BASE"] = os.getenv("LLM_API_BASE", "http://localhost:11434/v1")
-    os.environ["OPENAI_API_KEY"] = os.getenv("LLM_API_KEY", "dummy")
-    llm = ChatModel.from_name(
-        f"openai:{os.getenv('LLM_MODEL', 'llama3.1')}",
-        ChatModelParameters(temperature=0),
+    extracted_files = await extract_files(
+        history=messages[context.context_id], incoming_message=message
     )
+    input = to_framework_message(message)
 
     # Configure tools
-    tools: list[AnyTool] = [
+    tools = [
+        ActTool(),
         WikipediaTool(),
         OpenMeteoTool(),
         DuckDuckGoSearchTool(),
+        FileGeneratorTool(),
+        ClarificationTool(),
+        CurrentTimeTool(),
     ]
 
-    # Create agent with memory and tools
-    agent = ReActAgent(llm=llm, tools=tools, memory=UnconstrainedMemory())
+    requirements = [
+        ActAlwaysFirstRequirement(),
+    ]
 
-    messages[context.context_id].append(to_framework_message(message))
+    file_reader_tool_class = create_file_reader_tool_class(extracted_files)
+    file_reader_tool = file_reader_tool_class()
+    tools.append(file_reader_tool)
 
-    await agent.memory.add_many(messages[context.context_id])
-    final_answer = ""
+    llm = OpenAIChatModel(
+        model_id=os.getenv("LLM_MODEL", "llama3.1"),
+        api_key=os.getenv("LLM_API_KEY", "dummy"),
+        base_url=os.getenv("LLM_API_BASE", "http://localhost:11434/v1"),
+        parameters=ChatModelParameters(
+            temperature=0.0,
+        ),
+    )
 
-    async for data, event in agent.run():
-        match (data, event.name):
-            case (ReActAgentUpdateEvent(), "partial_update"):
-                update = data.update.value
-                if not isinstance(update, str):
-                    update = update.get_text_content()
+    # Create agent
+    agent = RequirementAgent(
+        llm=llm,
+        tools=tools,
+        memory=UnconstrainedMemory(),
+        requirements=requirements,
+        middlewares=[
+            GlobalTrajectoryMiddleware(included=[Tool]),
+            act_tool_middleware,
+            clarification_tool_middleware,
+        ],
+    )
 
-                if data.update.key == "final_answer":
-                    final_answer += update
+    messages[context.context_id].append(message)
+    framework_messages[context.context_id].append(input)
 
-                yield Message(
-                    message_id=str(uuid.uuid4()),
-                    task_id=context.task_id,
-                    context_id=context.context_id,
-                    role=Role.agent,
-                    parts=[Part(root=TextPart(text=update))],
-                    metadata={"update_kind": data.update.key},
-                )
+    await agent.memory.add_many(framework_messages[context.context_id])
+    final_answer = None
 
-    messages[context.context_id].append(AssistantMessage(final_answer))
+    async for event, meta in agent.run():
+        if not isinstance(
+            event,
+            RequirementAgentSuccessEvent,
+        ):
+            continue
+
+        last_step = event.state.steps[-1] if event.state.steps else None
+        if last_step and last_step.tool is not None:
+            if isinstance(last_step.output, FileGeneratorToolOutput):
+                result = last_step.output.result
+                for file_info in result.files:
+                    yield Artifact(
+                        artifact_id=str(uuid.uuid4()),
+                        name=file_info.display_filename,
+                        parts=[
+                            FilePart(
+                                file=FileWithUri(
+                                    name=file_info.display_filename,
+                                    mime_type=file_info.content_type,
+                                    uri=str(file_info.url),
+                                )
+                            )
+                        ],
+                    )
+
+        if event.state.answer is not None:
+            # Taking a final answer from the state directly instead of RequirementAgentRunOutput to be able to use the final answer provided by the clarification tool
+            final_answer = event.state.answer
+
+    if final_answer:
+        framework_messages[context.context_id].append(final_answer)
+        message = Message(
+            message_id=str(uuid.uuid4()),
+            task_id=context.task_id,
+            context_id=context.context_id,
+            role=Role.agent,
+            parts=[Part(root=TextPart(text=final_answer.text))],
+            metadata={"update_kind": "final_answer"},
+        )
+        messages[context.context_id].append(message)
+        yield message
 
 
 def serve():
