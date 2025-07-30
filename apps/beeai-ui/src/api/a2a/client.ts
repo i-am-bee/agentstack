@@ -11,6 +11,7 @@ import { v4 as uuid } from 'uuid';
 
 import type { FileEntity } from '#modules/files/types.ts';
 import type { UIMessagePart } from '#modules/messages/types.ts';
+import type { ContextId } from '#modules/tasks/api/types.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
@@ -52,14 +53,12 @@ export const buildA2AClient = (agentId: string) => {
     (client as unknown as any).serviceEndpointUrl = agentUrl;
   });
 
-  const chat = (text: string, files: FileEntity[], contextId: string) => {
+  const chat = ({ text, files, contextId }: { text: string; files: FileEntity[]; contextId: ContextId }) => {
     const taskId = uuid();
     const messageSubject = new Subject<UIMessagePart[]>();
 
     const iterateOverStream = async () => {
-      const stream = client.sendMessageStream({
-        message: createUserMessage(text, files, contextId, taskId),
-      });
+      const stream = client.sendMessageStream({ message: createUserMessage({ text, files, contextId, taskId }) });
 
       for await (const event of stream) {
         match(event).with({ kind: 'status-update' }, (event) => {

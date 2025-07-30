@@ -10,6 +10,7 @@ import type { FileEntity } from '#modules/files/types.ts';
 import { getFileContentUrl } from '#modules/files/utils.ts';
 import type { UISourcePart, UITextPart, UITrajectoryPart } from '#modules/messages/types.ts';
 import { UIMessagePartKind } from '#modules/messages/types.ts';
+import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
 
 import type { CitationMetadata } from './extensions/citation';
 import { citationExtension } from './extensions/citation';
@@ -38,7 +39,17 @@ export function convertFileToFilePart(file: FileEntity): FilePart {
   };
 }
 
-export function createUserMessage(message: string, files: FileEntity[], contextId: string, taskId: string): Message {
+export function createUserMessage({
+  text,
+  files,
+  contextId,
+  taskId,
+}: {
+  text: string;
+  files: FileEntity[];
+  contextId: ContextId;
+  taskId: TaskId;
+}): Message {
   return {
     kind: 'message',
     messageId: uuid(),
@@ -47,7 +58,7 @@ export function createUserMessage(message: string, files: FileEntity[], contextI
     parts: [
       {
         kind: 'text',
-        text: message,
+        text,
       },
       ...files.map(convertFileToFilePart),
     ],

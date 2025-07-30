@@ -45,12 +45,12 @@ export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>)
 function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
   const [conversationId, setConversationId] = useState<string>(uuid());
   const [messages, getMessages, setMessages] = useImmerWithGetter<UIMessage[]>([]);
-  const [input, setInput] = useState<string | undefined>(undefined);
+  const [input, setInput] = useState<string>();
   const [isPending, setIsPending] = useState(false);
   const [stats, setStats] = useState<RunStats>();
 
-  const pendingSubscription = useRef<(() => void) | undefined>(undefined);
-  const pendingRun = useRef<ChatRun | undefined>(undefined);
+  const pendingSubscription = useRef<() => void>(undefined);
+  const pendingRun = useRef<ChatRun>(undefined);
 
   const errorHandler = useHandleError();
 
@@ -92,12 +92,16 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
 
   const cancel = useCallback(async () => {
     if (pendingRun.current && pendingSubscription.current) {
+      updateLastAgentMessage((message) => {
+        message.status = UIMessageStatus.Aborted;
+      });
+
       pendingSubscription.current();
       await pendingRun.current.cancel();
     } else {
       throw new Error('No run in progress');
     }
-  }, []);
+  }, [updateLastAgentMessage]);
 
   const clear = useCallback(() => {
     setMessages([]);
@@ -133,10 +137,14 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
             status: UIMessageStatus.InProgress,
           };
 
-          messages.push(...[userMessage, agentMessage]);
+          messages.push(userMessage, agentMessage);
         });
 
-        const run = a2aAgentClient.chat(input, files, conversationId);
+        const run = a2aAgentClient.chat({
+          text: input,
+          files,
+          contextId: conversationId,
+        });
         pendingRun.current = run;
 
         pendingSubscription.current = run.subscribe((parts) => {
@@ -173,11 +181,6 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
         });
       } catch (error) {
         handleError(error);
-
-        updateLastAgentMessage((message) => {
-          message.error = error;
-          message.status = UIMessageStatus.Failed;
-        });
       } finally {
         setIsPending(false);
         setStats((stats) => ({ ...stats, endTime: Date.now() }));
@@ -185,7 +188,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
         pendingSubscription.current = undefined;
       }
     },
-    [handleError, updateLastAgentMessage, files, conversationId, setMessages],
+    [a2aAgentClient, files, conversationId, handleError, updateLastAgentMessage, setMessages],
   );
 
   const sources = useMemo(() => getMessageSourcesMap(messages), [messages]);
