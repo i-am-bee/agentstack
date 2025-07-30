@@ -42,8 +42,8 @@ function handleStatusUpdate(event: TaskStatusUpdateEvent): UIMessagePart[] {
   return parts;
 }
 
-export const buildA2AClient = (agentId: string) => {
-  const agentUrl = `${getBaseUrl()}/api/v1/a2a/${agentId}`;
+export const buildA2AClient = (providerId: string) => {
+  const agentUrl = `${getBaseUrl()}/api/v1/a2a/${providerId}`;
   const client = new A2AClient(agentUrl);
 
   // HACK: the URL in the agent card is not using the nextjs proxy - we need to replace it
