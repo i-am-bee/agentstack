@@ -170,7 +170,7 @@ wikipedia = [
 [[package]]
 name = "beeai-sdk"
 version = "0.1.0"
-source = { git = "https://github.com/i-am-bee/beeai-platform?subdirectory=apps%2Fbeeai-sdk#8baa08e2dadd2479ed123056333c0671ed34e1e0" }
+source = { editable = "../../../../apps/beeai-sdk" }
 dependencies = [
     { name = "a2a-sdk" },
     { name = "anyio" },
@@ -187,6 +187,34 @@ dependencies = [
     { name = "tenacity" },
     { name = "uvicorn" },
     { name = "uvloop" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "a2a-sdk", specifier = ">=0.2.16" },
+    { name = "anyio", specifier = ">=4.9.0" },
+    { name = "asyncclick", specifier = ">=8.1.8" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.31" },
+    { name = "janus", specifier = ">=2.0.0" },
+    { name = "objprint", specifier = ">=0.3.0" },
+    { name = "opentelemetry-api", specifier = ">=1.35.0" },
+    { name = "opentelemetry-exporter-otlp-proto-http", specifier = ">=1.35.0" },
+    { name = "opentelemetry-instrumentation-fastapi", specifier = ">=0.56b0" },
+    { name = "opentelemetry-sdk", specifier = ">=1.35.0" },
+    { name = "sse-starlette", specifier = ">=2.2.1" },
+    { name = "starlette", specifier = ">=0.47.2" },
+    { name = "tenacity", specifier = ">=9.1.2" },
+    { name = "uvicorn", specifier = ">=0.35.0" },
+    { name = "uvloop", specifier = ">=0.21.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pyright", specifier = ">=1.1.403" },
+    { name = "pytest", specifier = ">=8.4.1" },
+    { name = "pytest-asyncio", specifier = ">=1.1.0" },
+    { name = "pytest-httpx", specifier = ">=0.35.0" },
+    { name = "ruff", specifier = ">=0.12.3" },
 ]
 
 [[package]]
@@ -245,7 +273,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = "~=0.1.31" },
-    { name = "beeai-sdk", git = "https://github.com/i-am-bee/beeai-platform?subdirectory=apps%2Fbeeai-sdk" },
+    { name = "beeai-sdk", editable = "../../../../apps/beeai-sdk" },
     { name = "openinference-instrumentation-beeai", specifier = ">=0.1.6" },
     { name = "pydantic-settings", specifier = ">=2.9.0" },
     { name = "sqlalchemy", specifier = ">=2.0.41" },

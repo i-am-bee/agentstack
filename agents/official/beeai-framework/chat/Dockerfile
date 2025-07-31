@@ -8,8 +8,9 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 COPY --from=ghcr.io/astral-sh/uv:0.6.16 /uv /bin/
-WORKDIR /app
-COPY . .
+WORKDIR /agents/official/beeai-framework/chat
+COPY ./agents/official/beeai-framework/chat/ ./
+COPY ./apps/beeai-sdk/ /apps/beeai-sdk/
 RUN uv sync --no-cache --locked --link-mode copy
 ENV PRODUCTION_MODE=True \
     RELEASE_VERSION=${RELEASE_VERSION}

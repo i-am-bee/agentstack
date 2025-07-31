@@ -17,9 +17,10 @@ jobs:
       matrix:
         agent:
           - official/beeai-framework/chat
-          - official/sequential-workflow
-          - community/aider
-          - community/gpt-researcher
+    # TODO
+    #          - official/sequential-workflow
+    #          - community/aider
+    #          - community/gpt-researcher
     steps:
       - uses: actions/checkout@v4
       - id: version
@@ -34,7 +35,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/build-push-action@v5
         with:
-          context: ./agents/${{ matrix.agent }}
+          context: .
+          file: ./agents/${{ matrix.agent }}/Dockerfile
           push: false
           load: true
           build-args: |
@@ -108,7 +110,7 @@ jobs:
             ghcr.io/${{ github.repository }}/beeai-server:${{ steps.version.outputs.latestTag }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/beeai-server:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/beeai-server:cache,mode=max
-      
+
       - run: mise run 'beeai-ui:build:*'
       - uses: docker/build-push-action@v6
         with:

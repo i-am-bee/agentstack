@@ -19,7 +19,7 @@ dependencies = [
 line-length = 120
 
 [tool.uv.sources]
-beeai-sdk = { git = "https://github.com/i-am-bee/beeai-platform", subdirectory = "apps/beeai-sdk" }
+beeai-sdk = { path = "../../../../apps/beeai-sdk", editable = true }
 
 [project.scripts]
 server = "chat.agent:serve"

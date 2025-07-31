@@ -144,6 +144,7 @@ async def add_agent(
     location: typing.Annotated[
         str, typer.Argument(help="Agent location (public docker image, local path or github url)")
     ],
+    dockerfile: typing.Annotated[str | None, typer.Option(help="Use custom dockerfile path")] = None,
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ) -> None:
@@ -160,7 +161,7 @@ async def add_agent(
         try:
             if process.returncode:
                 # If the image was not found locally, try building image
-                location, agent_card = await build(location, tag=None, vm_name=vm_name, import_image=True)
+                location, agent_card = await build(location, dockerfile, tag=None, vm_name=vm_name, import_image=True)
             else:
                 manifest = base64.b64decode(
                     json.loads(process.stdout)[0]["Config"]["Labels"]["beeai.dev.agent.json"]

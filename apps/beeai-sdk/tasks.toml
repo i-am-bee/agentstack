@@ -52,7 +52,7 @@ outputs = { auto = true }
 
 # test
 
-["beeai-sdk:test"]
+["beeai-sdk:e2e-test"]
 depends = ["beeai-sdk:setup"]
 dir = "{{config_root}}/apps/beeai-sdk"
 run = "uv run pytest"

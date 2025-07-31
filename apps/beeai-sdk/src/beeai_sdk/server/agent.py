@@ -50,7 +50,7 @@ def agent(
     capabilities: AgentCapabilities | None = None,
     default_input_modes: list[str] | None = None,
     default_output_modes: list[str] | None = None,
-    details: AgentDetail | None = None,
+    detail: AgentDetail | None = None,
     documentation_url: str | None = None,
     icon_url: str | None = None,
     preferred_transport: str | None = None,
@@ -74,7 +74,7 @@ def agent(
         a per-skill basis.
     :param default_output_modes: Default set of supported output MIME types for all skills, which can be overridden on
         a per-skill basis.
-    :param details: BeeAI SDK details extending the agent metadata
+    :param detail: BeeAI SDK details extending the agent metadata
     :param documentation_url: An optional URL to the agent's documentation.
     :param extensions: BeeAI SDK extensions to apply to the agent.
     :param icon_url: An optional URL to an icon for the agent.
@@ -92,7 +92,7 @@ def agent(
     """
 
     capabilities = capabilities.model_copy(deep=True) if capabilities else AgentCapabilities(streaming=True)
-    details = details or AgentDetail()  # pyright: ignore [reportCallIssue]
+    detail = detail or AgentDetail()  # pyright: ignore [reportCallIssue]
 
     def decorator(fn: Callable) -> Agent:
         signature = inspect.signature(fn)
@@ -104,7 +104,7 @@ def agent(
 
         capabilities.extensions = [
             *(capabilities.extensions or []),
-            *(AgentDetailExtensionSpec(details).to_agent_card_extensions()),
+            *(AgentDetailExtensionSpec(detail).to_agent_card_extensions()),
             *(e_card for ext in sdk_extensions for e_card in ext.spec.to_agent_card_extensions()),
         ]
 

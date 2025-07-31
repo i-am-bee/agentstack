@@ -4,10 +4,8 @@
 
 from __future__ import annotations
 
-import typing
 from types import NoneType
 
-import pydantic
 import pydantic.config
 
 from beeai_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
@@ -24,7 +22,7 @@ class AgentDetailContributor(pydantic.BaseModel):
     url: str | None = None
 
 
-class AgentDetail(pydantic.BaseModel):
+class AgentDetail(pydantic.BaseModel, extra="allow"):
     ui_type: str | None = pydantic.Field("chat", examples=["chat", "hands-off"])
     user_greeting: str | None = None
     tools: list[AgentDetailTool] | None = None
@@ -36,8 +34,6 @@ class AgentDetail(pydantic.BaseModel):
     container_image_url: str | None = None
     author: AgentDetailContributor | None = None
     contributors: list[AgentDetailContributor] | None = None
-
-    model_config: typing.ClassVar[pydantic.config.ConfigDict] = {"extra": "ignore"}
 
 
 class AgentDetailExtensionSpec(BaseExtensionSpec[AgentDetail]):

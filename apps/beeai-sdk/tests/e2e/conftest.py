@@ -52,7 +52,7 @@ def create_server_with_agent():
     @asynccontextmanager
     async def _create_server(agent_fn):
         server = Server()
-        server.agent(details=AgentDetail(ui_type="chat"))(agent_fn)
+        server.agent(detail=AgentDetail(ui_type="chat"))(agent_fn)
         async with run_server(server, get_free_port()) as (server, client):
             yield server, client
 
