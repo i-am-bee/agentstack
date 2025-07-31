@@ -26,7 +26,7 @@ import uvicorn
 import beeai_sdk.a2a.extensions
 from beeai_sdk.a2a.extensions.services.llm import LLMServiceExtensionServer
 
-agent_details_extension_spec = beeai_sdk.a2a.extensions.AgentDetailExtensionSpec(
+agent_detail_extension_spec = beeai_sdk.a2a.extensions.AgentDetailExtensionSpec(
     params=beeai_sdk.a2a.extensions.AgentDetail(
         ui_type="chat",
     )
@@ -174,7 +174,7 @@ async def serve():
                         state_transition_history=False,
                         extensions=[
                             *llm_extension_server.spec.to_agent_card_extensions(required=True),
-                            *agent_details_extension_spec.to_agent_card_extensions(),
+                            *agent_detail_extension_spec.to_agent_card_extensions(),
                             *trajectory_extension_spec.to_agent_card_extensions(),
                             *citation_extension_spec.to_agent_card_extensions(),
                             *embedding_service_extension_spec.to_agent_card_extensions(),
