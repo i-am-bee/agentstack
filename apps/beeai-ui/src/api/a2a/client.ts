@@ -46,13 +46,6 @@ export const buildA2AClient = (providerId: string) => {
   const agentUrl = `${getBaseUrl()}/api/v1/a2a/${providerId}`;
   const client = new A2AClient(agentUrl);
 
-  // HACK: the URL in the agent card is not using the nextjs proxy - we need to replace it
-  // eslint-disable-next-line
-  (client as unknown as any).agentCardPromise.then(() => {
-    // eslint-disable-next-line
-    (client as unknown as any).serviceEndpointUrl = agentUrl;
-  });
-
   const chat = ({ text, files, contextId }: { text: string; files: FileEntity[]; contextId: ContextId }) => {
     const taskId = uuid();
     const messageSubject = new Subject<UIMessagePart[]>();

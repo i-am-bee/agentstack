@@ -7,6 +7,9 @@ import type { NextRequest } from 'next/server';
 
 import { API_URL } from '#utils/constants.ts';
 
+import { transformAgentManifestBody } from './body-transformers';
+import { isApiAgentManifestPath } from './utils';
+
 type RouteContext = {
   params: Promise<{
     path: string[];
@@ -30,7 +33,12 @@ async function handler(request: NextRequest, context: RouteContext) {
     duplex: body ? 'half' : undefined,
   });
 
-  return new Response(res.body, {
+  let responseBody: ReadableStream<Uint8Array<ArrayBufferLike>> | string | null = res.body;
+  if (isApiAgentManifestPath(path)) {
+    responseBody = await transformAgentManifestBody(res, path);
+  }
+
+  return new Response(responseBody, {
     status: res.status,
     headers: {
       'Content-Type': res.headers.get('Content-Type') || 'text/plain',
