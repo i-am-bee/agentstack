@@ -27,7 +27,7 @@ from a2a.types import (
     TextPart,
 )
 
-from beeai_sdk.a2a.extensions.ui.agent_details import AgentDetail, AgentDetailExtensionSpec
+from beeai_sdk.a2a.extensions.ui.agent_detail import AgentDetail, AgentDetailExtensionSpec
 from beeai_sdk.a2a.types import ArtifactChunk, RunYield, RunYieldResume
 from beeai_sdk.server.context import Context
 from beeai_sdk.server.dependencies import extract_dependencies
