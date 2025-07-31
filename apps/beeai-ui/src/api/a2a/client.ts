@@ -7,7 +7,6 @@ import type { TaskStatusUpdateEvent } from '@a2a-js/sdk';
 import { A2AClient } from '@a2a-js/sdk/client';
 import { Subject } from 'rxjs';
 import { match } from 'ts-pattern';
-import { v4 as uuid } from 'uuid';
 
 import type { FileEntity } from '#modules/files/types.ts';
 import type { UIMessagePart } from '#modules/messages/types.ts';
@@ -54,20 +53,27 @@ export const buildA2AClient = (providerId: string) => {
   });
 
   const chat = ({ text, files, contextId }: { text: string; files: FileEntity[]; contextId: ContextId }) => {
-    const taskId = uuid();
     const messageSubject = new Subject<UIMessagePart[]>();
+    let taskId: string | null = null;
 
     const iterateOverStream = async () => {
-      const stream = client.sendMessageStream({ message: createUserMessage({ text, files, contextId, taskId }) });
+      const stream = client.sendMessageStream({ message: createUserMessage({ text, files, contextId }) });
 
       for await (const event of stream) {
-        match(event).with({ kind: 'status-update' }, (event) => {
-          const messageParts = handleStatusUpdate(event);
-
-          messageSubject.next(messageParts);
-        });
+        match(event)
+          .with(
+            {
+              kind: 'task',
+            },
+            (task) => {
+              taskId = task.id;
+            },
+          )
+          .with({ kind: 'status-update' }, (event) => {
+            const messageParts = handleStatusUpdate(event);
+            messageSubject.next(messageParts);
+          });
       }
-
       messageSubject.complete();
     };
 
@@ -82,7 +88,10 @@ export const buildA2AClient = (providerId: string) => {
       },
       cancel: async () => {
         messageSubject.complete();
-        await client.cancelTask({ id: taskId });
+
+        if (taskId) {
+          await client.cancelTask({ id: taskId });
+        }
       },
     };
 
