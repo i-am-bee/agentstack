@@ -53,3 +53,10 @@ export function getAgentTags(agent: Agent) {
     (a, b) => a.toLocaleLowerCase() === b.toLocaleLowerCase(),
   );
 }
+
+export function getAgentPromptExamples(agent: Agent) {
+  return uniqWith(
+    agent.skills.flatMap(({ examples }) => examples).filter(isNotNull),
+    (a, b) => a.toLocaleLowerCase() === b.toLocaleLowerCase(),
+  );
+}

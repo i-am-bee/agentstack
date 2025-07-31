@@ -11,7 +11,10 @@
 
 .root {
   z-index: z('modal') - 1;
-  padding: 0 !important;
+
+  // use grid-margin to align with run input
+  padding-inline: var(--cds-grid-margin) !important;
+  margin-inline-start: calc(-1 * var(--cds-grid-margin));
 }
 
 .content {

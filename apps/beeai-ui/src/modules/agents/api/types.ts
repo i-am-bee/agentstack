@@ -39,7 +39,6 @@ export interface UIExtensionParams {
   container_image_url?: string;
   author?: AgentContributor;
   contributors?: AgentContributor[];
-  starter_prompts?: string[];
 }
 
 /**

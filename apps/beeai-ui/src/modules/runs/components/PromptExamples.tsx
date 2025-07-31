@@ -23,17 +23,17 @@ import { Container } from '#components/layouts/Container.tsx';
 import { Tooltip } from '#components/Tooltip/Tooltip.tsx';
 import { fadeProps } from '#utils/fadeProps.ts';
 
-import classes from './PromptSuggestions.module.scss';
+import classes from './PromptExamples.module.scss';
 
 interface Props {
   inputRef: RefObject<HTMLTextAreaElement | null>;
   isOpen: boolean;
-  suggestions: string[];
+  examples: string[];
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   onSubmit: (input: string) => void;
 }
 
-export function PromptSuggestions({ inputRef, isOpen, suggestions, setIsOpen, onSubmit }: Props) {
+export function PromptExamples({ inputRef, isOpen, examples, setIsOpen, onSubmit }: Props) {
   const { refs, floatingStyles, context, placement } = useFloating({
     placement: 'bottom-start',
     open: isOpen,
@@ -86,9 +86,9 @@ export function PromptSuggestions({ inputRef, isOpen, suggestions, setIsOpen, on
     };
   });
 
-  const visibleSuggestions = useMemo(() => suggestions.slice(0, ITEMS_MAX_LENGTH), [suggestions]);
+  const visibleExamples = useMemo(() => examples.slice(0, ITEMS_MAX_LENGTH), [examples]);
 
-  if (!suggestions.length) {
+  if (!examples.length) {
     return;
   }
 
@@ -100,7 +100,7 @@ export function PromptSuggestions({ inputRef, isOpen, suggestions, setIsOpen, on
         {isOpen && (
           <FloatingPortal>
             <div ref={refs.setFloating} style={floatingStyles} {...getFloatingProps()}>
-              <Container size="md" className={classes.root}>
+              <Container size="sm" className={classes.root}>
                 <motion.div
                   {...fadeProps({
                     hidden: {
@@ -115,9 +115,9 @@ export function PromptSuggestions({ inputRef, isOpen, suggestions, setIsOpen, on
                     <h3 className={classes.heading}>Suggested</h3>
 
                     <ul className={classes.list}>
-                      {visibleSuggestions.map((prompt, idx) => (
+                      {visibleExamples.map((prompt, idx) => (
                         <li key={idx} className={classes.item}>
-                          <SuggestionButton content={prompt} onSubmit={onSubmit} />
+                          <ExampleButton content={prompt} onSubmit={onSubmit} />
                         </li>
                       ))}
                     </ul>
@@ -132,7 +132,7 @@ export function PromptSuggestions({ inputRef, isOpen, suggestions, setIsOpen, on
   );
 }
 
-function SuggestionButton({ content, onSubmit }: { content: string; onSubmit: (input: string) => void }) {
+function ExampleButton({ content, onSubmit }: { content: string; onSubmit: (input: string) => void }) {
   const ref = useRef<HTMLSpanElement>(null);
   const [isTruncated, setIsTruncated] = useState(false);
 
@@ -191,7 +191,7 @@ function SuggestionButton({ content, onSubmit }: { content: string; onSubmit: (i
 }
 
 const OFFSET = {
-  mainAxis: 27, // Space between the input and the suggestions
+  mainAxis: 27, // Space between the input and the examples
 };
 
 const ITEMS_MAX_LENGTH = 5;

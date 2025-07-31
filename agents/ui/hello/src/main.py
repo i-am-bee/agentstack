@@ -4,7 +4,10 @@
 from sdk import Server
 from extensions import BeeAIUITool, AgentDetailContributor, BeeAIUI
 from models import CitationMetadata, TextPart, TrajectoryMetadata
-from fastapi.middleware.cors import CORSMiddleware
+from a2a.types import (
+    AgentSkill,
+    TextPart,
+)
 
 server = Server()
 
@@ -39,8 +42,23 @@ server = Server()
             AgentDetailContributor(name= 'Petr Kadlec', email="petr.kadlec@ibm.com"),
             AgentDetailContributor(name= 'Petr Bulánek', email="petr.bulanek@ibm.com"),
         ],
-        starter_prompts=['Write a research report about Generative AI','Should I buy Apple stock now?','Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolor. This is what a long query would look like, 2 lines maximum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolor. This is what a long query would look like, 2 lines maximum...','What is the meaning of life?','Tell me a joke','What is the capital of France?','How do I make a cake?']
     ),
+    skills=[
+        AgentSkill(
+            id="echo",
+            name="Echo",
+            description="This is echo skill",
+            tags=["echo"],
+            examples=['Should I buy Apple stock now?','Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolor. This is what a long query would look like, 2 lines maximum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolor. This is what a long query would look like, 2 lines maximum...','What is the meaning of life?','Tell me a joke','What is the capital of France?','How do I make a cake?']
+        ),
+        AgentSkill(
+            id="echo2",
+            name="Echo 2",
+            description="This is echo 2 skill",
+            tags=["echo"],
+            examples=['What is the meaning of life?','Tell me a joke','What is the capital of France?','How do I make a cake?']
+        )
+    ],
 )
 async def hello_world(input: list[TextPart]):
     yield TextPart(content="Hello World")

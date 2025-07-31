@@ -16,22 +16,22 @@ import { dispatchInputEventOnTextarea, submitFormOnEnter } from '#utils/form-uti
 import { ChatDefaultTools } from '../chat/constants';
 import { useAgentRun } from '../contexts/agent-run';
 import type { RunAgentFormValues } from '../types';
-import { PromptSuggestions } from './PromptSuggestions';
+import { PromptExamples } from './PromptExamples';
 import { RunFiles } from './RunFiles';
 import classes from './RunInput.module.scss';
 // import { RunSettings } from './RunSettings';
 import { RunSubmit } from './RunSubmit';
 
 interface Props {
-  promptSuggestions?: string[];
+  promptExamples?: string[];
   onSubmit?: () => void;
 }
 
-export function RunInput({ promptSuggestions, onSubmit }: Props) {
+export function RunInput({ promptExamples, onSubmit }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const [promptSuggestionsOpen, setPromptSuggestionsOpen] = useState(false);
+  const [promptExamplesOpen, setPromptExamplesOpen] = useState(false);
 
   const {
     agent: {
@@ -79,7 +79,7 @@ export function RunInput({ promptSuggestions, onSubmit }: Props) {
   const fillWithInput = useCallback(
     (value: string) => {
       setValue('input', value, { shouldValidate: true });
-      setPromptSuggestionsOpen(false);
+      setPromptExamplesOpen(false);
       dispatchInputEventAndFocus();
     },
     [setValue, dispatchInputEventAndFocus],
@@ -135,12 +135,12 @@ export function RunInput({ promptSuggestions, onSubmit }: Props) {
           </div>
         </div>
 
-        {promptSuggestions && (
-          <PromptSuggestions
+        {promptExamples && (
+          <PromptExamples
             inputRef={inputRef}
-            suggestions={promptSuggestions}
-            isOpen={promptSuggestionsOpen}
-            setIsOpen={setPromptSuggestionsOpen}
+            examples={promptExamples}
+            isOpen={promptExamplesOpen}
+            setIsOpen={setPromptExamplesOpen}
             onSubmit={fillWithInput}
           />
         )}

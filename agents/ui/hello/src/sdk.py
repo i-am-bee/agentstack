@@ -11,6 +11,7 @@ from a2a.types import (
     AgentCard,
     AgentCapabilities,
     TaskState,
+    AgentSkill,
     Role,
     Part,
     TextPart as A2ATextPart,
@@ -42,6 +43,7 @@ def agent_decorator(
     input_content_types: list[str] | None = None,
     output_content_types: list[str] | None = None,
     ui: BeeAIUI | None = None,
+    skills: list[AgentSkill] = [],
 ) -> Callable[[Callable], RunnableAgent]:
     def decorator(fn: Callable) -> RunnableAgent:
         class DecoratedAgent(RunnableAgent):
@@ -62,7 +64,7 @@ def agent_decorator(
                 streaming=True,
                 extensions=extensions,
             ),
-            skills=[],
+            skills=skills,
             tags=[],
             examples=[],
         )
@@ -123,6 +125,7 @@ class Server:
         input_content_types: list[str] | None = None,
         output_content_types: list[str] | None = None,
         ui: BeeAIUI | None = None,
+        skills: list[AgentSkill] = []
     ) -> Callable:
         def decorator(fn: Callable) -> Callable:
             runnable_agent = agent_decorator(
@@ -131,6 +134,7 @@ class Server:
                 input_content_types=input_content_types,
                 output_content_types=output_content_types,
                 ui=ui,
+                skills=skills
             )(fn)
             self.agent_card = runnable_agent
             self.agent = DefaultAgentExecutor(runnable_agent)

@@ -3,8 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { useMemo } from 'react';
+
 import { Container } from '#components/layouts/Container.tsx';
 import { AgentGreeting } from '#modules/agents/components/AgentGreeting.tsx';
+import { getAgentPromptExamples } from '#modules/agents/utils.ts';
 
 import { FileUpload } from '../../files/components/FileUpload';
 import { useAgentRun } from '../contexts/agent-run';
@@ -13,16 +16,15 @@ import classes from './RunLandingView.module.scss';
 
 export function RunLandingView() {
   const { agent } = useAgentRun();
-  const {
-    ui: { starter_prompts },
-  } = agent;
+
+  const promptExamples = useMemo(() => getAgentPromptExamples(agent), [agent]);
 
   return (
     <FileUpload>
       <Container size="sm" className={classes.root}>
         <AgentGreeting agent={agent} />
 
-        <RunInput promptSuggestions={starter_prompts} />
+        <RunInput promptExamples={promptExamples} />
       </Container>
     </FileUpload>
   );
