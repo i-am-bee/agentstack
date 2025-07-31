@@ -26,7 +26,7 @@ import uvicorn
 import beeai_sdk.a2a.extensions
 from beeai_sdk.a2a.extensions.services.llm import LLMServiceExtensionServer
 
-agent_details_extension_spec = beeai_sdk.a2a.extensions.AgentDetailsExtensionSpec(
+agent_details_extension_spec = beeai_sdk.a2a.extensions.AgentDetailExtensionSpec(
     params=beeai_sdk.a2a.extensions.AgentDetail(
         ui_type="chat",
     )

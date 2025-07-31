@@ -40,11 +40,11 @@ class AgentDetail(pydantic.BaseModel):
     model_config: typing.ClassVar[pydantic.config.ConfigDict] = {"extra": "ignore"}
 
 
-class AgentDetailsExtensionSpec(BaseExtensionSpec[AgentDetail]):
-    URI: str = "https://a2a-extensions.beeai.dev/ui/agent_details/v1"
+class AgentDetailExtensionSpec(BaseExtensionSpec[AgentDetail]):
+    URI: str = "https://a2a-extensions.beeai.dev/ui/agent_detail/v1"
 
 
-class AgentDetailsExtensionServer(BaseExtensionServer[AgentDetailsExtensionSpec, NoneType]): ...
+class AgentDetailExtensionServer(BaseExtensionServer[AgentDetailExtensionSpec, NoneType]): ...
 
 
-class AgentDetailsExtensionClient(BaseExtensionClient[AgentDetailsExtensionSpec, AgentDetail]): ...
+class AgentDetailExtensionClient(BaseExtensionClient[AgentDetailExtensionSpec, AgentDetail]): ...

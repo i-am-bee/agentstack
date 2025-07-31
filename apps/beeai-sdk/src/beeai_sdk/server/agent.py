@@ -27,7 +27,7 @@ from a2a.types import (
     TextPart,
 )
 
-from beeai_sdk.a2a.extensions.ui.agent_details import AgentDetail, AgentDetailsExtensionSpec
+from beeai_sdk.a2a.extensions.ui.agent_details import AgentDetail, AgentDetailExtensionSpec
 from beeai_sdk.a2a.types import ArtifactChunk, RunYield, RunYieldResume
 from beeai_sdk.server.context import Context
 from beeai_sdk.server.dependencies import extract_dependencies
@@ -104,7 +104,7 @@ def agent(
 
         capabilities.extensions = [
             *(capabilities.extensions or []),
-            *(AgentDetailsExtensionSpec(details).to_agent_card_extensions()),
+            *(AgentDetailExtensionSpec(details).to_agent_card_extensions()),
             *(e_card for ext in sdk_extensions for e_card in ext.spec.to_agent_card_extensions()),
         ]
 
