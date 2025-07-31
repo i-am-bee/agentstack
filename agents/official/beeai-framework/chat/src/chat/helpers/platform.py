@@ -67,8 +67,7 @@ async def read_file(
     async with httpx.AsyncClient() as client:
         resp = await client.get(str(file_url))
         content_type = resp.headers.get("Content-Type")
-        return tuple(resp.content.decode(), content_type)
-
+        return (resp.content.decode(), content_type)
 
 async def upload_file(filename: str, content_type: str, content: bytes) -> FileInfo:
     async with ApiClient() as api:

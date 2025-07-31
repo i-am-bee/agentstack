@@ -123,8 +123,8 @@ def create_file_reader_tool_class(files: list[FileChatInfo]) -> type[Tool]:
                 file_info = self.files_dict[filename]
 
                 # pull the first (only) MessagePart from the async-generator
-                content = await read_file(file_info.url)
-                if msg.content is None:
+                content, content_type = await read_file(file_info.url)
+                if content is None:
                     raise ValueError(f"File content is None for {filename}.")
                 
                 file_contents[filename] = content
