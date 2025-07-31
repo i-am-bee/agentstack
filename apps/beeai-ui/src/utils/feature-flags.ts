@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 import { objectFromEntries } from './helpers';
 
-const featureNames = ['Variables', 'Providers', 'QueryParamAgentRouting'] as const;
+const featureNames = ['Variables', 'Providers'] as const;
 const featureFlagsDefaults = objectFromEntries(featureNames.map((key) => [key, false] as const));
 
 const featureFlagsSchema = z

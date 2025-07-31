@@ -31,7 +31,6 @@ export * from './modules/agents/components/BeeBadge';
 export * from './modules/agents/providers/AgentsFiltersProvider';
 export * from './modules/agents/utils';
 export * from './modules/home/components/GettingStarted';
-export * from './modules/phoenix/api/queries/usePhoenix';
 export * from './utils/commands';
 export * from './utils/constants';
 export * from './utils/fadeProps';

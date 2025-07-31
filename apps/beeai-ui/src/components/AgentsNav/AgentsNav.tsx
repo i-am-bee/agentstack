@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 import type { NavItem } from '#components/SidePanel/Nav.tsx';
 import { Nav } from '#components/SidePanel/Nav.tsx';
@@ -13,16 +13,19 @@ import { routes } from '#utils/router.ts';
 
 export function AgentsNav() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { transitionTo } = useRouteTransition();
 
   const { data: agents } = useListAgents({ onlyUiSupported: true, sort: true });
 
   const items: NavItem[] | undefined = agents?.map(({ name }) => {
     const route = routes.agentRun({ name });
+    const fullPath = `${pathname}?${searchParams.toString()}`;
+
     return {
       key: name,
       label: name,
-      isActive: pathname === route,
+      isActive: fullPath === route,
       onClick: () => transitionTo(route),
     };
   });

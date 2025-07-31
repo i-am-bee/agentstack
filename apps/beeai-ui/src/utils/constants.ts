@@ -11,11 +11,9 @@ export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? 'BeeAI';
 
 export const APP_FAVICON_SVG = process.env.NEXT_PUBLIC_APP_FAVICON_SVG ?? '/bee.svg';
 
-export const PHOENIX_SERVER_TARGET = process.env.NEXT_PUBLIC_PHOENIX_SERVER_TARGET ?? 'http://localhost:6006';
-
 export const NAV_ITEMS = parseNav(process.env.NEXT_PUBLIC_NAV_ITEMS);
 
-export const FEATURE_FLAGS = process.env.NEXT_PUBLIC_FEATURE_FLAGS;
+export const FEATURE_FLAGS = process.env.FEATURE_FLAGS;
 
 export const API_URL = process.env.API_URL ?? 'http://127.0.0.1:8333';
 
@@ -43,12 +41,8 @@ export const INSTALL_BEEAI = 'uv tool install beeai-cli';
 
 export const TRY_LOCALLY_LINK = `${DOCUMENTATION_LINK}/introduction/quickstart`;
 
-export const TRACEABILITY_LINK = `${DOCUMENTATION_LINK}/observability/agents-traceability`;
-
 export const RUN_LINK = `${DOCUMENTATION_LINK}/how-to/run-agents`;
 
 export const COMPOSE_LINK = `${DOCUMENTATION_LINK}/how-to/compose-agents`;
 
 export const LF_PROJECTS_LINK = 'https://lfprojects.org/';
-
-export const AGENT_DISPLAY_MODEL_TEMP = 'granite-3.3-8b-instruct';
