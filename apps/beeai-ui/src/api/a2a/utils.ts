@@ -22,6 +22,15 @@ export const extractCitation = getExtensionData(citationExtension);
 
 export const extractTrajectory = getExtensionData(trajectoryExtension);
 
+export function extractTextFromMessage(message: Message | undefined) {
+  const text = message?.parts
+    .filter((part) => part.kind === 'text')
+    .map((part) => part.text)
+    .join('\n');
+
+  return text;
+}
+
 export function convertFileToFilePart(file: FileEntity): FilePart {
   const { originalFile, uploadFile } = file;
 

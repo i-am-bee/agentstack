@@ -6,7 +6,7 @@
 import type { FilePart, TextPart } from '@a2a-js/sdk';
 import { v4 as uuid } from 'uuid';
 
-import type { UIFilePart, UISourcePart, UITextPart, UITrajectoryPart } from '#modules/messages/types.ts';
+import type { UIFilePart, UIMessagePart } from '#modules/messages/types.ts';
 import { UIMessagePartKind } from '#modules/messages/types.ts';
 
 import {
@@ -18,38 +18,28 @@ import {
   getFileUri,
 } from './utils';
 
-export function processTextPart(
-  part: TextPart,
-  messageId: string,
-): UITrajectoryPart | UISourcePart | UITextPart | null {
+export function processTextPart(part: TextPart, messageId: string): UIMessagePart[] {
+  const parts: UIMessagePart[] = [];
   const { metadata, text } = part;
-
   const trajectory = extractTrajectory(metadata);
-
-  if (trajectory) {
-    const trajectoryPart = createTrajectoryPart(trajectory);
-
-    return trajectoryPart;
-  }
-
   const citation = extractCitation(metadata);
 
-  if (citation) {
-    if (text !== '') {
-      throw new Error('Text part should be empty when citation is present');
-    }
-
+  if (trajectory) {
+    parts.push(createTrajectoryPart(trajectory));
+  } else if (citation) {
     const sourcePart = createSourcePart(citation, messageId);
 
-    return sourcePart;
+    if (sourcePart) {
+      parts.push(sourcePart);
+    }
   }
 
-  const textPart = createTextPart(text);
+  parts.push(createTextPart(text));
 
-  return textPart;
+  return parts;
 }
 
-export function processFilePart(part: FilePart): UIFilePart {
+export function processFilePart(part: FilePart): UIMessagePart[] {
   const { file } = part;
   const { name, mimeType } = file;
   const id = uuid();
@@ -63,5 +53,5 @@ export function processFilePart(part: FilePart): UIFilePart {
     type: mimeType,
   };
 
-  return filePart;
+  return [filePart];
 }
