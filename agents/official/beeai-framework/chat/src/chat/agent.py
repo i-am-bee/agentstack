@@ -61,11 +61,9 @@ logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setL
 
 
 logger = logging.getLogger(__name__)
-SUPPORTED_CONTENT_TYPES = ["text", "text/plain"]
 
 messages: defaultdict[str, list[Message]] = defaultdict(list)
 framework_messages: defaultdict[str, list[FrameworkMessage]] = defaultdict(list)
-
 
 server = Server()
 
@@ -76,8 +74,8 @@ server = Server()
         "/agents/official/beeai-framework/chat"
     ),
     version="1.0.0",
-    default_input_modes=SUPPORTED_CONTENT_TYPES,
-    default_output_modes=SUPPORTED_CONTENT_TYPES,
+    default_input_modes=["text", "text/plain"],
+    default_output_modes=["text", "text/plain"],
     capabilities=AgentCapabilities(
         streaming=True,
         push_notifications=True,
@@ -153,10 +151,12 @@ async def chat(message: Message, context: Context):
         history=messages[context.context_id], incoming_message=message
     )
     input = to_framework_message(message)
-    
+
     # Configure tools
-    file_reader_tool_class = create_file_reader_tool_class(extracted_files) # Dynamically created tool input schema based on real provided files ensures that small LLMs can't hallucinate the input
-    
+    file_reader_tool_class = create_file_reader_tool_class(
+        extracted_files
+    )  # Dynamically created tool input schema based on real provided files ensures that small LLMs can't hallucinate the input
+
     tools = [
         # Auxiliary tools
         ActTool(),  # Enforces correct thinking sequence by requiring tool selection before execution
@@ -171,7 +171,7 @@ async def chat(message: Message, context: Context):
     ]
 
     requirements = [
-        ActAlwaysFirstRequirement(), #  Enforces the ActTool to be used before any other tool execution.
+        ActAlwaysFirstRequirement(),  #  Enforces the ActTool to be used before any other tool execution.
     ]
 
     llm = OpenAIChatModel(
