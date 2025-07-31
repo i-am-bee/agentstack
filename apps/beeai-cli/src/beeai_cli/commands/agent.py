@@ -88,8 +88,8 @@ class Provider(BaseModel):
 
     @computed_field
     @property
-    def ui_annotations(self) -> dict[str, str] | None:
-        ui_extension = [ext for ext in self.agent_card.capabilities.extensions or [] if ext.uri == "beeai_ui"]
+    def detail(self) -> dict[str, str] | None:
+        ui_extension = [ext for ext in self.agent_card.capabilities.extensions or [] if "ui/agent-detail" in ext.uri]
         return ui_extension[0].params if ui_extension else None
 
     @computed_field
@@ -232,11 +232,11 @@ async def _run_agent(
 
     input = (
         Message(
-            messageId=str(uuid4()),
+            message_id=str(uuid4()),
             parts=[Part(root=TextPart(text=input))],
             role=Role.user,
-            taskId=task_id,
-            contextId=context_id,
+            task_id=task_id,
+            context_id=context_id,
         )
         if isinstance(input, str)
         else input
@@ -257,7 +257,7 @@ async def _run_agent(
                     task_id = getattr(event.root.result, "taskId", None)
                     context_id = getattr(event.root.result, "contextId", None)
                     match event.root.result:
-                        case Task(id=tid, contextId=cid):
+                        case Task(id=tid, context_id=cid):
                             # Handle task creation
                             task_id = tid
                             context_id = cid
@@ -298,26 +298,24 @@ async def _run_agent(
                                     # Handle streaming content during working state
                                     if hasattr(task_status, "message") and task_status.message:
                                         message = task_status.message
-                                        update_kind = (message.metadata or {}).get("update_kind")
-                                        if update_kind and update_kind != "final_answer":
+                                        trajectory = (message.metadata or {}).get(
+                                            "https://a2a-extensions.beeai.dev/ui/trajectory/v1"
+                                        ) or {}
+                                        if update_kind := trajectory.get("title"):
                                             if update_kind != log_type:
                                                 if log_type is not None:
                                                     err_console.print()
                                                 err_console.print(f"{update_kind}: ", style="dim", end="")
                                                 log_type = update_kind
-
-                                            # Stream the content
-                                            for part in message.parts:
-                                                if hasattr(part.root, "text"):
-                                                    err_console.print(part.root.text, style="dim", end="")
+                                            err_console.print(trajectory.get("content"), style="dim", end="")
                                         else:
                                             # This is regular message content
                                             if log_type:
                                                 console.print()
                                                 log_type = None
-                                            for part in message.parts:
-                                                if hasattr(part.root, "text"):
-                                                    console.print(part.root.text, end="")
+                                        for part in message.parts:
+                                            if hasattr(part.root, "text"):
+                                                console.print(part.root.text, end="")
                                 case TaskState.input_required:
                                     if handle_input is None:
                                         raise ValueError("Agent requires input but no input handler provided")
@@ -327,11 +325,11 @@ async def _run_agent(
 
                                     # Send the user input back to the agent
                                     response_message = Message(
-                                        messageId=str(uuid4()),
+                                        message_id=str(uuid4()),
                                         parts=[Part(root=TextPart(text=user_input))],
                                         role=Role.user,
-                                        taskId=task_id,
-                                        contextId=context_id,
+                                        task_id=task_id,
+                                        context_id=context_id,
                                     )
                                     new_request = SendStreamingMessageRequest(
                                         id=str(uuid4()), params=MessageSendParams(message=response_message)
@@ -366,8 +364,8 @@ async def _run_agent(
                                     match part.root:
                                         case FilePart():
                                             match part.root.file:
-                                                case FileWithBytes(bytes=bytes):
-                                                    full_path.write_bytes(base64.b64decode(bytes))
+                                                case FileWithBytes(bytes=bytes_str):
+                                                    full_path.write_bytes(base64.b64decode(bytes_str))
                                                 case FileWithUri(uri=uri):
                                                     async with httpx.AsyncClient() as client:
                                                         resp = await client.get(uri)
@@ -584,7 +582,7 @@ def _setup_sequential_workflow(providers: list[Provider], splash_screen: Console
     prompt_agents = {
         provider.agent_card.name: provider
         for provider in providers
-        if (provider.ui_annotations or {}).get("ui_type") == UiType.hands_off
+        if (provider.detail or {}).get("ui_type") == UiType.hands_off
     }
     steps = []
 
@@ -623,7 +621,7 @@ def _setup_sequential_workflow(providers: list[Provider], splash_screen: Console
             )
         console.print(Rule(style="dim", characters="·"))
         i += 1
-        steps.append({"agent": agent, "instruction": instruction})
+        steps.append({"provider_id": prompt_agents[agent].id, "instruction": instruction})
 
     return steps
 
@@ -676,7 +674,7 @@ async def run_agent(
             f":boom: Agent is not in a ready state: {provider['state']}, {provider['last_error']}\nRetrying..."
         )
 
-    ui_annotations = provider.ui_annotations or {}
+    ui_annotations = provider.detail or {}
     ui_type = ui_annotations.get("ui_type")
     is_sequential_workflow = agent.name in {"sequential_workflow"}
 
@@ -730,11 +728,7 @@ async def run_agent(
             async with a2a_client(provider.agent_card) as client:
                 await _run_agent(
                     client,
-                    Message(
-                        messageId=str(uuid4()),
-                        parts=[Part(root=message_part)],
-                        role=Role.user,
-                    ),
+                    Message(message_id=str(uuid4()), parts=[Part(root=message_part)], role=Role.user),
                     dump_files_path=dump_files,
                     handle_input=handle_input,
                 )
@@ -806,7 +800,7 @@ async def list_agents():
                     },
                 ),
                 (provider.agent_card.description or "<none>").replace("\n", " "),
-                (provider.ui_annotations or {}).get("ui_type") or "<none>",
+                (provider.detail or {}).get("ui_type") or "<none>",
                 provider.short_location or "<none>",
                 missing_env or "<none>",
                 provider.last_error or "<none>",

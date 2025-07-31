@@ -94,7 +94,7 @@ async def build(
                         with suppress(ProcessLookupError):
                             process.kill()
 
-        context_hash = hashlib.sha256(context.encode()).hexdigest()[:6]
+        context_hash = hashlib.sha256((context + (dockerfile or "")).encode()).hexdigest()[:6]
         context_shorter = re.sub(r"https?://", "", context).replace(r".git", "")
         context_shorter = re.sub(r"[^a-zA-Z0-9_-]+", "-", context_shorter)[:32].lstrip("-") or "provider"
         tag = (tag or f"beeai.local/{context_shorter}-{context_hash}:latest").lower()

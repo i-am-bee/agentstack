@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import asyncio
+import base64
 import io
 import subprocess
 import os
@@ -11,39 +12,32 @@ from pathlib import Path
 from collections.abc import AsyncGenerator
 from textwrap import dedent
 
-from acp_sdk.models.platform import PlatformUIAnnotation, PlatformUIType
-from acp_sdk import Annotations, Message, Metadata, Link, LinkType, MessagePart, Artifact
-from acp_sdk.server import Context, Server
-from pydantic import AnyUrl
+from a2a.types import AgentSkill, FilePart, FileWithBytes, Message, Artifact, Part
 import mimetypes
+
+from beeai_sdk.a2a.extensions import AgentDetail
+from beeai_sdk.server import Server
 
 server = Server()
 
 
 @server.agent(
-    input_content_types=["none"],
-    metadata=Metadata(
-        annotations=Annotations(
-            beeai_ui=PlatformUIAnnotation(
-                ui_type=PlatformUIType.HANDSOFF,
-                user_greeting="Define your programming task.",
-                display_name="Aider",
-            ),
-        ),
-        programming_language="Python",
-        links=[
-            Link(
-                type=LinkType.SOURCE_CODE,
-                url=AnyUrl(
-                    f"https://github.com/i-am-bee/beeai-platform/blob/{os.getenv('RELEASE_VERSION', 'main')}"
-                    "/agents/community/aider"
-                ),
-            )
-        ],
+    name="Aider",
+    documentation_url=(
+        f"https://github.com/i-am-bee/beeai-platform/blob/{os.getenv('RELEASE_VERSION', 'main')}/agents/community/aider"
+    ),
+    detail=AgentDetail(
         license="Apache 2.0",
         framework="Custom",
-        documentation=dedent(
-            """\
+        ui_type="hands-off",
+        user_greeting="Define your programming task.",
+    ),
+    skills=[
+        AgentSkill(
+            name="Code",
+            id="code",
+            description=dedent(
+                """\
             > ℹ️ NOTE
             > 
             > This agent works in stateless mode at the moment. While the CLI only shows the textual output, the created files are also available through the API.
@@ -68,90 +62,64 @@ server = Server()
             - **Real-Time Feedback** – Provides continuous updates on the execution progress and returns detailed results.
             - **Error Handling** – Captures and reports errors encountered during execution, assisting with debugging.
             """
-        ),
-        use_cases=[
-            "**Program Generation from Natural Language** – Converts user requests into fully functional programs.",
-            "**Code Editing and Refactoring** – Assists developers in modifying existing codebases without manual intervention.",
-            "**Debugging Support** – Provides insights and suggestions for resolving coding errors or inefficiencies.",
-            "**Collaborative Programming** – Simulates a pair programming experience, enhancing coding efficiency and learning.",
-            "**Bash/Shell Scripting Assistance** – Automates script writing, optimization, and debugging.",
-        ],
-        env=[
-            {
-                "name": "LLM_MODEL",
-                "required": False,
-                "description": "Model to use from the specified OpenAI-compatible API.",
-            },
-            {"name": "LLM_API_BASE", "required": False, "description": "Base URL for OpenAI-compatible API endpoint"},
-            {"name": "LLM_API_KEY", "required": False, "description": "API key for OpenAI-compatible API endpoint"},
-            {
-                "name": "AIDER_REASONING_EFFORT",
-                "required": False,
-                "description": "Set the reasoning_effort API parameter for the model",
-            },
-            {
-                "name": "AIDER_VERIFY_SSL",
-                "required": False,
-                "description": "Verify the SSL cert when connecting to models (default: True)",
-            },
-            {
-                "name": "AIDER_ARCHITECT",
-                "required": False,
-                "description": "Use architect edit format for the main chat",
-            },
-            {
-                "name": "AIDER_WEAK_MODEL",
-                "required": False,
-                "description": "Specify the model to use for commit messages and chat history summarization (default depends on --model)",
-            },
-            {
-                "name": "AIDER_EDITOR_MODEL",
-                "required": False,
-                "description": "Specify the model to use for editor tasks (default depends on model)",
-            },
-            {
-                "name": "AIDER_EDITOR_EDIT_FORMAT",
-                "required": False,
-                "description": "Specify the edit format for the editor model (default: depends on editor model)",
-            },
-            {
-                "name": "AIDER_MAX_CHAT_HISTORY_TOKENS",
-                "required": False,
-                "description": "Soft limit on tokens for chat history, after which summarization begins. If unspecified, defaults to the model's max_chat_history_tokens",
-            },
-            {
-                "name": "AIDER_CACHE_PROMPTS",
-                "required": False,
-                "description": "Enable caching of prompts (default: False)",
-            },
-            {
-                "name": "AIDER_CACHE_KEEPALIVE_PINGS",
-                "required": False,
-                "description": "Number of times to ping at 5min intervals to keep prompt cache warm (default: 0)",
-            },
-            {
-                "name": "AIDER_MAP_TOKENS",
-                "required": False,
-                "description": "Suggested number of tokens to use for repo map, use 0 to disable",
-            },
-            {
-                "name": "AIDER_MAP_REFRESH",
-                "required": False,
-                "description": "Control how often the repo map is refreshed. Options: auto, always, files, manual (default: auto)",
-            },
-            {
-                "name": "AIDER_MAP_MULTIPLIER_NO_FILES",
-                "required": False,
-                "description": "Multiplier for map tokens when no files are specified (default: 2)",
-            },
-        ],
-    ),
+            ),
+            tags=["code"],
+            use_cases=[
+                "**Program Generation from Natural Language** – Converts user requests into fully functional programs.",
+                "**Code Editing and Refactoring** – Assists developers in modifying existing codebases without manual intervention.",
+                "**Debugging Support** – Provides insights and suggestions for resolving coding errors or inefficiencies.",
+                "**Collaborative Programming** – Simulates a pair programming experience, enhancing coding efficiency and learning.",
+                "**Bash/Shell Scripting Assistance** – Automates script writing, optimization, and debugging.",
+            ],
+            env=[
+                {"name": "LLM_MODEL", "description": "Model to use from the specified OpenAI-compatible API."},
+                {"name": "LLM_API_BASE", "description": "Base URL for OpenAI-compatible API endpoint"},
+                {"name": "LLM_API_KEY", "description": "API key for OpenAI-compatible API endpoint"},
+                {"name": "AIDER_REASONING_EFFORT", "description": "Set the reasoning_effort parameter for the model"},
+                {"name": "AIDER_VERIFY_SSL", "description": "Verify cert when connecting to models (default: True)"},
+                {"name": "AIDER_ARCHITECT", "description": "Use architect edit format for the main chat"},
+                {
+                    "name": "AIDER_WEAK_MODEL",
+                    "description": "Specify the model to use for commit messages and chat history summarization (default depends on --model)",
+                },
+                {
+                    "name": "AIDER_EDITOR_MODEL",
+                    "description": "Specify the model to use for editor tasks (default depends on model)",
+                },
+                {
+                    "name": "AIDER_EDITOR_EDIT_FORMAT",
+                    "description": "Specify the edit format for the editor model (default: depends on editor model)",
+                },
+                {
+                    "name": "AIDER_MAX_CHAT_HISTORY_TOKENS",
+                    "description": "Soft limit on tokens for chat history, after which summarization begins. If unspecified, defaults to the model's max_chat_history_tokens",
+                },
+                {"name": "AIDER_CACHE_PROMPTS", "description": "Enable caching of prompts (default: False)"},
+                {
+                    "name": "AIDER_CACHE_KEEPALIVE_PINGS",
+                    "description": "Number of times to ping at 5min intervals to keep prompt cache warm (default: 0)",
+                },
+                {
+                    "name": "AIDER_MAP_TOKENS",
+                    "description": "Suggested number of tokens to use for repo map, use 0 to disable",
+                },
+                {
+                    "name": "AIDER_MAP_REFRESH",
+                    "description": "Control how often the repo map is refreshed. Options: auto, always, files, manual (default: auto)",
+                },
+                {
+                    "name": "AIDER_MAP_MULTIPLIER_NO_FILES",
+                    "description": "Multiplier for map tokens when no files are specified (default: 2)",
+                },
+            ],
+        )
+    ],
 )
-async def aider(input: list[Message], context: Context) -> AsyncGenerator:
+async def aider(message: Message) -> AsyncGenerator:
     """
     An AI pair programmer that edits code in a local Git repository using natural language, executing commands and providing feedback.
     """
-    user_message = str(input[-1])
+    user_message = message.parts[-1].root.text
     with tempfile.TemporaryDirectory() as tmp_dir:
         tmp_path = Path(tmp_dir)
         try:
@@ -194,14 +162,14 @@ async def aider(input: list[Message], context: Context) -> AsyncGenerator:
                 binary_buffer.seek(binary_buffer_position)
                 text_chunk = string_reader.read()
                 if text_chunk:
-                    yield MessagePart(content=text_chunk, role="assistant")
+                    yield text_chunk
 
             stderr_bytes = await process.stderr.read()
             await process.wait()
 
             if process.returncode != 0:
                 error_text = stderr_bytes.decode(errors="ignore") if stderr_bytes else "Unknown error occurred"
-                yield MessagePart(content=f"\nAider process failed with error:\n{error_text}", role="assistant")
+                yield f"\nAider process failed with error:\n{error_text}"
                 return
 
             for file_path in tmp_path.rglob("*"):
@@ -214,16 +182,28 @@ async def aider(input: list[Message], context: Context) -> AsyncGenerator:
                         content = file_path.read_bytes()
                         relative_path = str(file_path.relative_to(tmp_path))
                         content_type, _ = mimetypes.guess_type(relative_path)
+                        import uuid
+
                         yield Artifact(
-                            name=relative_path, content=content, content_type=content_type or "application/octet-stream"
+                            artifact_id=str(uuid.uuid4()),
+                            parts=[
+                                Part(
+                                    root=FilePart(
+                                        file=FileWithBytes(
+                                            name=relative_path,
+                                            mime_type=content_type or "application/octet-stream",
+                                            bytes=base64.b64encode(content).decode("utf-8"),
+                                        )
+                                    )
+                                )
+                            ],
+                            name=relative_path,
                         )
                     except Exception as e:
-                        yield MessagePart(
-                            content=f"Error reading file {file_path.relative_to(tmp_path)}: {str(e)}", role="assistant"
-                        )
+                        yield f"Error reading file {file_path.relative_to(tmp_path)}: {str(e)}"
 
         except Exception as e:
-            yield MessagePart(content=f"An unexpected error occurred: {str(e)}", role="assistant")
+            yield f"An unexpected error occurred: {str(e)}"
 
 
 def run():

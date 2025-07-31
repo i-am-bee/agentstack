@@ -18,9 +18,12 @@ from a2a.types import (
     AgentProvider,
     AgentSkill,
     Artifact,
+    DataPart,
+    FilePart,
     Message,
     Part,
     SecurityScheme,
+    TaskArtifactUpdateEvent,
     TaskState,
     TaskStatus,
     TaskStatusUpdateEvent,
@@ -274,10 +277,10 @@ class Executor(AgentExecutor):
                             TaskState.working,
                             message=task_updater.new_agent_message(parts=[Part(root=TextPart(text=text))]),
                         )
-                    case Part():
+                    case Part(root=part) | (TextPart() | FilePart() | DataPart() as part):
                         await task_updater.update_status(
                             TaskState.working,
-                            message=task_updater.new_agent_message(parts=[yielded_value]),
+                            message=task_updater.new_agent_message(parts=[Part(root=part)]),
                         )
                     case Message(context_id=context_id, task_id=task_id):
                         new_msg = yielded_value.model_copy(
@@ -323,6 +326,23 @@ class Executor(AgentExecutor):
                         continue
                     case TaskStatus(state=state, message=message, timestamp=timestamp):
                         await task_updater.update_status(state=state, message=message, timestamp=timestamp)
+                    case TaskStatusUpdateEvent(
+                        status=TaskStatus(state=state, message=message, timestamp=timestamp), final=final
+                    ):
+                        await task_updater.update_status(state=state, message=message, timestamp=timestamp, final=final)
+                    case TaskArtifactUpdateEvent(
+                        artifact=Artifact(artifact_id=artifact_id, name=name, metadata=metadata, parts=parts),
+                        append=append,
+                        last_chunk=last_chunk,
+                    ):
+                        await task_updater.add_artifact(
+                            parts=parts,
+                            artifact_id=artifact_id,
+                            name=name,
+                            metadata=metadata,
+                            append=append,
+                            last_chunk=last_chunk,
+                        )
                     case dict():
                         await task_updater.update_status(
                             state=TaskState.working,

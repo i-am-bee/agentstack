@@ -7,7 +7,6 @@ authors = [{ name = "IBM Corp." }]
 requires-python = ">=3.11"
 dependencies = [
     "a2a-sdk>=0.2.16",
-    "beeai-framework[duckduckgo,wikipedia]>=0.1.31",
     "objprint>=0.3.0",
     "uvicorn>=0.35.0",
     "asyncclick>=8.1.8",
@@ -25,6 +24,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "beeai-framework[duckduckgo,wikipedia]>=0.1.32",
     "pyright>=1.1.403",
     "pytest>=8.4.1",
     "pytest-asyncio>=1.1.0",

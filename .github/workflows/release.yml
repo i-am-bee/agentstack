@@ -17,10 +17,9 @@ jobs:
       matrix:
         agent:
           - official/beeai-framework/chat
-    # TODO
-    #          - official/sequential-workflow
-    #          - community/aider
-    #          - community/gpt-researcher
+          - community/aider
+          - community/gpt-researcher
+          - official/sequential-workflow
     steps:
       - uses: actions/checkout@v4
       - id: version
