@@ -25,9 +25,12 @@ from pydantic import BaseModel, Field, create_model
 
 class ActToolInput(BaseModel):
     thought: str = Field(
-        ..., description="Provide a clear explanation of why you want to use the selected tool and what you expect to achieve."
+        ...,
+        description="Provide a clear explanation of why you want to use the selected tool and what you expect to achieve.",
     )
-    selected_tool: str = Field(..., description="The name of the tool you want to execute next.")
+    selected_tool: str = Field(
+        ..., description="The name of the tool you want to execute next."
+    )
 
 
 class ActToolResult(BaseModel):
@@ -43,14 +46,15 @@ class ActToolOutput(JSONToolOutput[ActToolResult]):
 class ActTool(Tool[ActToolInput]):
     """
     An auxiliary tool that ensures correct thinking sequence by forcing deliberate tool selection.
-    
+
     This tool must be used in tandem with ActAlwaysFirstRequirement. It enforces that the LLM
     must first think about and explicitly select which tool to use before executing any other tool.
     The selected_tool from the output is then enforced to run next.
-    
+
     This pattern promotes more thoughtful and deliberate tool usage by requiring the agent to
     explicitly state its reasoning and tool choice before execution.
     """
+
     name: str = "act"
     description: str = "Use whenever you want to use any tool."
     _input_schema: type[BaseModel]
@@ -122,16 +126,17 @@ class ActTool(Tool[ActToolInput]):
 class ActAlwaysFirstRequirement(Requirement[RequirementAgentRunState]):
     """
     A requirement that enforces the ActTool to be used before any other tool execution.
-    
+
     This requirement ensures that:
     1. On the first step, only the ActTool can be executed
     2. After ActTool execution, only the tool selected by ActTool can be executed
     3. If ActTool encounters an error, it must be used again
-    
+
     This creates a controlled execution flow where every tool usage must be preceded
     by explicit tool selection through the ActTool, promoting more deliberate and
     thoughtful agent behavior.
     """
+
     name: str = "act_always_first"
 
     @run_with_context
@@ -157,15 +162,18 @@ class ActAlwaysFirstRequirement(Requirement[RequirementAgentRunState]):
                     "Last step output must be an instance of ActToolOutput."
                 )
             selected_tool = last_step.output.result.selected_tool
-            return [
-                Rule(
-                    target=selected_tool,
-                    forced=True,
-                    allowed=True,
-                    prevent_stop=False,
-                    hidden=False,
-                )
-            ]
+            if selected_tool == "final_answer":
+                return []
+            else:
+                return [
+                    Rule(
+                        target=selected_tool,
+                        forced=True,
+                        allowed=True,
+                        prevent_stop=False,
+                        hidden=False,
+                    )
+                ]
 
         return [
             Rule(
