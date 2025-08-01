@@ -13,8 +13,6 @@ export const APP_FAVICON_SVG = process.env.NEXT_PUBLIC_APP_FAVICON_SVG ?? '/bee.
 
 export const NAV_ITEMS = parseNav(process.env.NEXT_PUBLIC_NAV_ITEMS);
 
-export const FEATURE_FLAGS = process.env.FEATURE_FLAGS;
-
 export const API_URL = process.env.API_URL ?? 'http://127.0.0.1:8333';
 
 export const PROD_MODE = process.env.NODE_ENV === 'production';
