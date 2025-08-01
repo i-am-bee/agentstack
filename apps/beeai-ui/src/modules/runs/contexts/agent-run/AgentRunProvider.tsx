@@ -140,6 +140,8 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
         messages.push(userMessage, agentMessage);
       });
 
+      clearFiles();
+
       try {
         const run = a2aAgentClient.chat({
           message: userMessage,
