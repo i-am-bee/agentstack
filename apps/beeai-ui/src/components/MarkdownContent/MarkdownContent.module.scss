@@ -5,6 +5,7 @@
 
 .root {
   @include type-style(body-01);
+  white-space: pre-wrap;
 
   > * + * {
     margin-block-start: rem(20px);
