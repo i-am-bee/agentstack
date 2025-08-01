@@ -12,14 +12,12 @@ interface Props {
 }
 
 export function TrajectoryItemContent({ trajectory }: Props) {
-  const { message } = trajectory;
+  const { content } = trajectory;
 
   return (
     <div className={classes.root}>
       <div className={classes.group}>
-        <p className={classes.label}>Thought</p>
-
-        <p className={classes.content}>{message}</p>
+        <p className={classes.content}>{content}</p>
       </div>
     </div>
   );

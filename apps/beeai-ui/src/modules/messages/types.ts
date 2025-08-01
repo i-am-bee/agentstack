@@ -53,8 +53,8 @@ export type UISourcePart = {
 export type UITrajectoryPart = {
   kind: UIMessagePartKind.Trajectory;
   id: string;
-  message?: string;
-  toolName?: string;
+  title?: string;
+  content?: string;
 };
 
 export type UITransformPart = {

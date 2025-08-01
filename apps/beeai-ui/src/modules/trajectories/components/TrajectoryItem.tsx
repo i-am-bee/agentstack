@@ -21,9 +21,9 @@ interface Props {
 export function TrajectoryItem({ trajectory }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { toolName, message } = trajectory;
+  const { title, content } = trajectory;
 
-  const isToggleable = isNotNull(message);
+  const isToggleable = isNotNull(content);
 
   return (
     <div className={clsx(classes.root, { [classes.isOpen]: isOpen })}>
@@ -40,17 +40,17 @@ export function TrajectoryItem({ trajectory }: Props) {
           </IconButton>
         )}
 
-        {toolName && (
+        {title && (
           <h3 className={classes.name}>
             {/* <span className={classes.icon}>
             <Icon />
           </span> */}
 
-            <span>{toolName}</span>
+            <span>{title}</span>
           </h3>
         )}
 
-        {message && <div className={classes.message}>{message}</div>}
+        {content && <div className={classes.message}>{content}</div>}
       </header>
 
       {isToggleable && (

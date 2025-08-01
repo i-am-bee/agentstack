@@ -113,13 +113,13 @@ export function createSourcePart(metadata: CitationMetadata, messageId: string):
 }
 
 export function createTrajectoryPart(metadata: TrajectoryMetadata): UITrajectoryPart {
-  const { message, tool_name } = metadata;
+  const { title, content } = metadata;
 
   const trajectoryPart: UITrajectoryPart = {
     kind: UIMessagePartKind.Trajectory,
     id: uuid(),
-    message: message ?? undefined,
-    toolName: tool_name ?? undefined,
+    title,
+    content,
   };
 
   return trajectoryPart;

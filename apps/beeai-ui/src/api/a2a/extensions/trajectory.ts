@@ -11,10 +11,8 @@ const URI = 'https://a2a-extensions.beeai.dev/ui/trajectory/v1';
 
 const schema = z
   .object({
-    message: z.string(),
-    tool_name: z.string(),
-    tool_input: z.record(z.string(), z.unknown()),
-    tool_outpyut: z.record(z.string(), z.unknown()),
+    title: z.string(),
+    content: z.string(),
   })
   .partial();
 

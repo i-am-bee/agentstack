@@ -15,7 +15,7 @@ import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { AGENT_ERROR_MESSAGE } from './constants';
-import { processFilePart, processTextPart } from './part-processors';
+import { processFilePart, processMessageMetadata, processTextPart } from './part-processors';
 import type { ChatRun } from './types';
 import { createUserMessage, extractTextFromMessage } from './utils';
 
@@ -32,10 +32,12 @@ function handleStatusUpdate(event: TaskStatusUpdateEvent): UIMessagePart[] {
     return [];
   }
 
-  const parts = message.parts
+  const metadataParts = processMessageMetadata(message);
+
+  const contentParts = message.parts
     .flatMap((part) => {
       const processedParts = match(part)
-        .with({ kind: 'text' }, (part) => processTextPart(part, message.messageId))
+        .with({ kind: 'text' }, (part) => processTextPart(part))
         .with({ kind: 'file' }, processFilePart)
         .otherwise((otherPart) => {
           console.warn(`Unsupported part - ${otherPart.kind}`);
@@ -47,7 +49,7 @@ function handleStatusUpdate(event: TaskStatusUpdateEvent): UIMessagePart[] {
     })
     .filter(isNotNull);
 
-  return parts;
+  return [...metadataParts, ...contentParts];
 }
 
 export const buildA2AClient = (providerId: string) => {

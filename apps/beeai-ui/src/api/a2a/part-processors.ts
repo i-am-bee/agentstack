@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FilePart, TextPart } from '@a2a-js/sdk';
+import type { FilePart, Message, TextPart } from '@a2a-js/sdk';
 import { v4 as uuid } from 'uuid';
 
 import type { UIFilePart, UIMessagePart } from '#modules/messages/types.ts';
@@ -18,25 +18,25 @@ import {
   getFileUri,
 } from './utils';
 
-export function processTextPart(part: TextPart, messageId: string): UIMessagePart[] {
-  const parts: UIMessagePart[] = [];
-  const { metadata, text } = part;
-  const trajectory = extractTrajectory(metadata);
-  const citation = extractCitation(metadata);
+export function processMessageMetadata(message: Message): UIMessagePart[] {
+  const trajectory = extractTrajectory(message.metadata);
+  const citation = extractCitation(message.metadata);
 
   if (trajectory) {
-    parts.push(createTrajectoryPart(trajectory));
+    return [createTrajectoryPart(trajectory)];
   } else if (citation) {
-    const sourcePart = createSourcePart(citation, messageId);
+    const sourcePart = createSourcePart(citation, message.messageId);
 
     if (sourcePart) {
-      parts.push(sourcePart);
+      return [sourcePart];
     }
   }
 
-  parts.push(createTextPart(text));
+  return [];
+}
 
-  return parts;
+export function processTextPart({ text }: TextPart): UIMessagePart[] {
+  return [createTextPart(text)];
 }
 
 export function processFilePart(part: FilePart): UIMessagePart[] {
