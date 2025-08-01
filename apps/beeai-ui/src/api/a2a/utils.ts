@@ -3,14 +3,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FilePart, FileWithUri, Message } from '@a2a-js/sdk';
+import type { FilePart, FileWithUri, Message, Part, TextPart } from '@a2a-js/sdk';
 import { v4 as uuid } from 'uuid';
 
-import type { FileEntity } from '#modules/files/types.ts';
 import { getFileContentUrl } from '#modules/files/utils.ts';
-import type { UISourcePart, UITextPart, UITrajectoryPart } from '#modules/messages/types.ts';
+import type {
+  UIMessagePart,
+  UISourcePart,
+  UITextPart,
+  UITrajectoryPart,
+  UIUserMessage,
+} from '#modules/messages/types.ts';
 import { UIMessagePartKind } from '#modules/messages/types.ts';
 import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
+import { isNotNull } from '#utils/helpers.ts';
 
 import type { CitationMetadata } from './extensions/citation';
 import { citationExtension } from './extensions/citation';
@@ -31,47 +37,51 @@ export function extractTextFromMessage(message: Message | undefined) {
   return text;
 }
 
-export function convertFileToFilePart(file: FileEntity): FilePart {
-  const { originalFile, uploadFile } = file;
+export function convertMessageParts(uiParts: UIMessagePart[]): Part[] {
+  const parts: Part[] = uiParts
+    .map((part) => {
+      switch (part.kind) {
+        case UIMessagePartKind.Text:
+          const { text } = part;
 
-  if (!uploadFile) {
-    throw new Error('File upload file is not present');
-  }
+          return {
+            kind: 'text',
+            text,
+          } as TextPart;
+        case UIMessagePartKind.File:
+          const { id, filename, type } = part;
 
-  return {
-    kind: 'file',
-    file: {
-      uri: getFileContentUrl({ id: uploadFile.id, addBase: true }),
-      name: uploadFile.filename,
-      mimeType: originalFile.type,
-    },
-  };
+          return {
+            kind: 'file',
+            file: {
+              uri: getFileContentUrl({ id, addBase: true }),
+              name: filename,
+              mimeType: type,
+            },
+          } as FilePart;
+      }
+    })
+    .filter(isNotNull);
+
+  return parts;
 }
 
 export function createUserMessage({
-  text,
-  files,
-  taskId,
+  message,
   contextId,
+  taskId,
 }: {
-  text: string;
-  files: FileEntity[];
+  message: UIUserMessage;
   contextId: ContextId;
   taskId?: TaskId;
 }): Message {
   return {
     kind: 'message',
-    messageId: uuid(),
+    role: 'user',
+    messageId: message.id,
     contextId,
     taskId,
-    parts: [
-      {
-        kind: 'text',
-        text,
-      },
-      ...files.map(convertFileToFilePart),
-    ],
-    role: 'user',
+    parts: convertMessageParts(message.parts),
   };
 }
 
@@ -91,10 +101,10 @@ export function getFileUri(file: FilePart['file']): string {
   return `data:${mimeType};base64,${bytes}`;
 }
 
-export function createSourcePart(metadata: CitationMetadata, messageId: string): UISourcePart | null {
+export function createSourcePart(metadata: CitationMetadata, messageId: string | undefined): UISourcePart | null {
   const { url, start_index, end_index, title, description } = metadata;
 
-  if (!url) {
+  if (!url || !messageId) {
     return null;
   }
 

@@ -8,9 +8,8 @@ import { A2AClient } from '@a2a-js/sdk/client';
 import { Subject } from 'rxjs';
 import { match } from 'ts-pattern';
 
-import type { FileEntity } from '#modules/files/types.ts';
-import type { UIMessagePart } from '#modules/messages/types.ts';
-import type { ContextId } from '#modules/tasks/api/types.ts';
+import type { UIMessagePart, UIUserMessage } from '#modules/messages/types.ts';
+import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
@@ -56,26 +55,24 @@ export const buildA2AClient = (providerId: string) => {
   const agentUrl = `${getBaseUrl()}/api/v1/a2a/${providerId}`;
   const client = new A2AClient(agentUrl);
 
-  const chat = ({ text, files, contextId }: { text: string; files: FileEntity[]; contextId: ContextId }) => {
-    const messageSubject = new Subject<UIMessagePart[]>();
+  const chat = ({ message, contextId }: { message: UIUserMessage; contextId: ContextId }) => {
+    const messageSubject = new Subject<{ parts: UIMessagePart[]; taskId: TaskId }>();
     let taskId: string | null = null;
 
     const iterateOverStream = async () => {
-      const stream = client.sendMessageStream({ message: createUserMessage({ text, files, contextId }) });
+      const stream = client.sendMessageStream({ message: createUserMessage({ message, contextId }) });
 
       for await (const event of stream) {
         match(event)
-          .with(
-            {
-              kind: 'task',
-            },
-            (task) => {
-              taskId = task.id;
-            },
-          )
+          .with({ kind: 'task' }, (task) => {
+            taskId = task.id;
+          })
           .with({ kind: 'status-update' }, (event) => {
+            taskId = event.taskId;
+
             const messageParts = handleStatusUpdate(event);
-            messageSubject.next(messageParts);
+
+            messageSubject.next({ parts: messageParts, taskId });
           });
       }
       messageSubject.complete();

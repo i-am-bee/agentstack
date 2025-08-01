@@ -11,6 +11,7 @@ import { v4 as uuid } from 'uuid';
 
 import { buildA2AClient } from '#api/a2a/client.ts';
 import type { ChatRun } from '#api/a2a/types.ts';
+import { createTextPart } from '#api/a2a/utils.ts';
 import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 import { useImmerWithGetter } from '#hooks/useImmerWithGetter.ts';
@@ -123,31 +124,34 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
       setIsPending(true);
       setStats({ startTime: Date.now() });
 
+      const userMessage: UIUserMessage = {
+        id: uuid(),
+        role: Role.User,
+        parts: [createTextPart(input), ...convertFilesToUIFileParts(files)],
+      };
+      const agentMessage: UIAgentMessage = {
+        id: uuid(),
+        role: Role.Agent,
+        parts: [],
+        status: UIMessageStatus.InProgress,
+      };
+
+      setMessages((messages) => {
+        messages.push(userMessage, agentMessage);
+      });
+
       try {
-        setMessages((messages) => {
-          const userMessage: UIUserMessage = {
-            id: uuid(),
-            role: Role.User,
-            parts: [{ kind: UIMessagePartKind.Text, id: uuid(), text: input }, ...convertFilesToUIFileParts(files)],
-          };
-          const agentMessage: UIAgentMessage = {
-            id: uuid(),
-            role: Role.Agent,
-            parts: [],
-            status: UIMessageStatus.InProgress,
-          };
-
-          messages.push(userMessage, agentMessage);
-        });
-
         const run = a2aAgentClient.chat({
-          text: input,
-          files,
+          message: userMessage,
           contextId: conversationId,
         });
         pendingRun.current = run;
 
-        pendingSubscription.current = run.subscribe((parts) => {
+        pendingSubscription.current = run.subscribe(({ parts, taskId }) => {
+          updateLastAgentMessage((message) => {
+            message.id = taskId;
+          });
+
           parts.forEach((part) => {
             updateLastAgentMessage((message) => {
               match(part)

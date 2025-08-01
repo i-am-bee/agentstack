@@ -25,7 +25,7 @@ export function processMessageMetadata(message: Message): UIMessagePart[] {
   if (trajectory) {
     return [createTrajectoryPart(trajectory)];
   } else if (citation) {
-    const sourcePart = createSourcePart(citation, message.messageId);
+    const sourcePart = createSourcePart(citation, message.taskId);
 
     if (sourcePart) {
       return [sourcePart];
