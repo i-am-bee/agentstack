@@ -9,10 +9,11 @@ import anyio
 import httpx
 from kink import inject
 from procrastinate import Blueprint
+from pydantic import RootModel
 
 from beeai_server import get_configuration
 from beeai_server.configuration import Configuration
-from beeai_server.domain.models.provider import Provider
+from beeai_server.domain.models.provider import ProviderLocation
 from beeai_server.exceptions import EntityNotFoundError
 from beeai_server.service_layer.services.provider import ProviderService
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
@@ -45,9 +46,7 @@ async def check_registry(timestamp: int, configuration: Configuration, provider_
     for registry in configuration.agent_registry.locations.values():
         for provider_location in await registry.load():
             try:
-                provider_id = Provider(
-                    source=provider_location, env=[]
-                ).id  # dummy object to calculate ID from location
+                provider_id = RootModel[ProviderLocation](root=provider_location).root.provider_id
                 desired_providers[provider_id] = provider_location
                 registry_by_provider_id[provider_id] = registry
             except ValueError as e:
