@@ -51,12 +51,20 @@ function handleStatusUpdate(event: TaskStatusUpdateEvent): UIMessagePart[] {
   return [...metadataParts, ...contentParts];
 }
 
-export const buildA2AClient = (providerId: string) => {
+export type ExtendableUIMessagePart<Custom = never> = UIMessagePart | Custom;
+
+export const buildA2AClient = <P extends ExtendableUIMessagePart = UIMessagePart>({
+  providerId,
+  customStatusUpdateHandler,
+}: {
+  providerId: string;
+  customStatusUpdateHandler?: (event: TaskStatusUpdateEvent) => P[];
+}) => {
   const agentUrl = `${getBaseUrl()}/api/v1/a2a/${providerId}`;
   const client = new A2AClient(agentUrl);
 
   const chat = ({ message, contextId }: { message: UIUserMessage; contextId: ContextId }) => {
-    const messageSubject = new Subject<{ parts: UIMessagePart[]; taskId: TaskId }>();
+    const messageSubject = new Subject<{ parts: P[]; taskId: TaskId }>();
     let taskId: string | null = null;
 
     const iterateOverStream = async () => {
@@ -70,7 +78,11 @@ export const buildA2AClient = (providerId: string) => {
           .with({ kind: 'status-update' }, (event) => {
             taskId = event.taskId;
 
-            const messageParts = handleStatusUpdate(event);
+            const messageParts: P[] = handleStatusUpdate(event) as P[];
+            if (customStatusUpdateHandler) {
+              const customParts = customStatusUpdateHandler(event);
+              messageParts.push(...customParts);
+            }
 
             messageSubject.next({ parts: messageParts, taskId });
           });
@@ -78,7 +90,7 @@ export const buildA2AClient = (providerId: string) => {
       messageSubject.complete();
     };
 
-    const run: ChatRun = {
+    const run: ChatRun<P> = {
       done: iterateOverStream(),
       subscribe: (fn) => {
         const subscription = messageSubject.subscribe(fn);

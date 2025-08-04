@@ -6,8 +6,8 @@
 import type { UIMessagePart } from '#modules/messages/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 
-export interface ChatRun {
+export interface ChatRun<P extends UIMessagePart = never> {
   done: Promise<void>;
-  subscribe: (fn: (data: { parts: UIMessagePart[]; taskId: TaskId }) => void) => () => void;
+  subscribe: (fn: (data: { parts: (UIMessagePart | P)[]; taskId: TaskId }) => void) => () => void;
   cancel: () => Promise<void>;
 }

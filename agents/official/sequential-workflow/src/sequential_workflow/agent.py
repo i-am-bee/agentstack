@@ -137,12 +137,12 @@ async def sequential_workflow(steps_message: Message) -> AsyncIterator:
                 client = A2AClient(httpx_client=http_client, agent_card=agent_card)
                 agent_name = agent_card.name
 
-                yield {
+                yield {"beeai-sequential-workflow" : {
                     "agent_name": agent_name,
                     "provider_id": step.provider_id,
                     "agent_idx": idx,
                     "message": f"✅ Agent {agent_name}[{idx}] started processing",
-                }
+                }}
 
                 message = Message(
                     role=Role.user,

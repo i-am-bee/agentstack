@@ -21,7 +21,7 @@ export interface UIAgentMessage extends UIMessage {
   status: UIMessageStatus;
 }
 
-export type UIMessagePart = UITextPart | UIFilePart | UISourcePart | UITrajectoryPart | UITransformPart;
+export type UIMessagePart = UITextPart | UIFilePart | UIDataPart | UISourcePart | UITrajectoryPart | UITransformPart;
 
 export type UITextPart = {
   kind: UIMessagePartKind.Text;
@@ -72,9 +72,15 @@ export type UITransformPart = {
     }
 );
 
+export type UIDataPart = {
+  kind: UIMessagePartKind.Data;
+  data: Record<string, unknown>;
+};
+
 export enum UIMessagePartKind {
   Text = 'text',
   File = 'file',
+  Data = 'data',
   Source = 'source',
   Trajectory = 'trajectory',
   Transform = 'transform',

@@ -5,17 +5,25 @@
 
 import { useSearchParams } from 'next/navigation';
 import type { PropsWithChildren } from 'react';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
+import { match } from 'ts-pattern';
+import { v4 as uuid } from 'uuid';
 
+import { buildA2AClient } from '#api/a2a/client.ts';
+import type { ChatRun } from '#api/a2a/types.ts';
 import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 import { usePrevious } from '#hooks/usePrevious.ts';
 import { useUpdateSearchParams } from '#hooks/useUpdateSearchParams.ts';
 import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
+import { Role } from '#modules/messages/api/types.ts';
+import { UIMessagePartKind, type UIUserMessage } from '#modules/messages/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
+import type { UIComposePart } from '../a2a/types';
+import { createSequentailInputDataPart, handleTaskStatusUpdate } from '../a2a/utils';
 import { SEQUENTIAL_WORKFLOW_AGENT_NAME, SEQUENTIAL_WORKFLOW_AGENTS_URL_PARAM } from '../sequential/constants';
 import type { ComposeStep, SequentialFormValues } from './compose-context';
 import { ComposeContext, ComposeStatus } from './compose-context';
@@ -28,12 +36,25 @@ export function ComposeProvider({ children }: PropsWithChildren) {
 
   const errorHandler = useHandleError();
 
+  const pendingSubscription = useRef<() => void>(undefined);
+  const pendingRun = useRef<ChatRun<UIComposePart>>(undefined);
+
   const { handleSubmit, getValues, setValue, watch } = useFormContext<SequentialFormValues>();
   const stepsFields = useFieldArray<SequentialFormValues>({ name: 'steps' });
   const { replace: replaceSteps } = stepsFields;
   const steps = watch('steps');
 
   const { data: sequentialAgent } = useAgent({ name: SEQUENTIAL_WORKFLOW_AGENT_NAME });
+
+  const a2aAgentClient = useMemo(
+    () =>
+      sequentialAgent &&
+      buildA2AClient<UIComposePart>({
+        providerId: sequentialAgent.provider.id,
+        customStatusUpdateHandler: handleTaskStatusUpdate,
+      }),
+    [sequentialAgent],
+  );
 
   const lastStep = steps.at(-1);
   const result = useMemo(() => lastStep?.result, [lastStep]);
@@ -178,13 +199,25 @@ export function ComposeProvider({ children }: PropsWithChildren) {
   // },
   // });
 
-  // const getStep = useCallback((idx: number) => getValues(`steps.${idx}`), [getValues]);
+  // const getActiveStep = useCallback(() => getValues(`steps`).findLast(({ isPending }) => isPending), [getValues]);
 
   const updateStep = useCallback(
     (idx: number, value: ComposeStep) => {
       setValue(`steps.${idx}`, value);
     },
     [setValue],
+  );
+
+  const updateActiveStep = useCallback(
+    (updater: (step: ComposeStep) => ComposeStep) => {
+      const steps = getValues(`steps`);
+      const activeStepIdx = steps.findLastIndex(({ isPending }) => isPending);
+      if (activeStepIdx != -1) {
+        const activeStep = steps.at(activeStepIdx);
+        setValue(`steps.${activeStepIdx}`, updater(activeStep!));
+      }
+    },
+    [getValues, setValue],
   );
 
   const handleError = useCallback(
@@ -198,10 +231,29 @@ export function ComposeProvider({ children }: PropsWithChildren) {
     [errorHandler],
   );
 
+  const onDone = useCallback(() => {
+    const steps = getValues('steps');
+
+    replaceSteps(
+      steps.map((step) => {
+        step.isPending = false;
+
+        if (step.stats && !step.stats?.endTime) {
+          step.stats.endTime = Date.now();
+        }
+
+        return step;
+      }),
+    );
+  }, [getValues, replaceSteps]);
+
   const send = useCallback(
     async (steps: ComposeStep[]) => {
       try {
-        if (!sequentialAgent) {
+        if (pendingRun.current || pendingSubscription.current) {
+          throw new Error('A run is already in progress');
+        }
+        if (!a2aAgentClient) {
           throw new Error(`'${SEQUENTIAL_WORKFLOW_AGENT_NAME}' agent is not available.`);
         }
 
@@ -220,23 +272,50 @@ export function ComposeProvider({ children }: PropsWithChildren) {
           });
         });
 
-        // TODO: A2A
-        // await runAgent({
-        //   agent: sequentialAgent,
-        //   parts: [
-        //     createMessagePart({
-        //       content: JSON.stringify({
-        //         steps: steps.map(({ agent, instruction }) => ({ agent: agent.name, instruction })),
-        //       }),
-        //       content_type: 'application/json',
-        //     }),
-        //   ],
-        // });
+        const userMessage: UIUserMessage = {
+          id: uuid(),
+          role: Role.User,
+          parts: [createSequentailInputDataPart(steps)],
+        };
+
+        const run = a2aAgentClient.chat({
+          message: userMessage,
+          contextId: uuid(),
+        });
+        pendingRun.current = run;
+
+        pendingSubscription.current = run.subscribe(({ parts }) => {
+          parts.forEach((part) => {
+            console.log({ part });
+
+            match(part).with({ kind: UIMessagePartKind.Text }, (part) => {
+              updateActiveStep((step) => {
+                return {
+                  ...step,
+                  isPending: true,
+                  stats: {
+                    startTime: step.stats?.startTime ?? Date.now(),
+                  },
+                  result: `${step.result ?? ''}${part.text ?? ''}`,
+                };
+              });
+            });
+            // .with({ kind: UIComposePartKind.SequentialWorkflow }, (part) => {
+            //   const activeStep = getActiveStep();
+            // });
+          });
+        });
+
+        await run.done;
       } catch (error) {
         handleError(error);
+      } finally {
+        onDone();
+        pendingRun.current = undefined;
+        pendingSubscription.current = undefined;
       }
     },
-    [sequentialAgent, updateStep, handleError],
+    [a2aAgentClient, updateStep, handleError, onDone],
   );
 
   const onSubmit = useCallback(() => {
@@ -266,7 +345,7 @@ export function ComposeProvider({ children }: PropsWithChildren) {
     replaceSteps([]);
   }, [replaceSteps]);
 
-  const isPending = false;
+  const isPending = useMemo(() => steps.some((step) => step.isPending), [steps]);
 
   const value = useMemo(
     () => ({

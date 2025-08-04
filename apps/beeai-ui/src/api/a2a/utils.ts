@@ -59,6 +59,8 @@ export function convertMessageParts(uiParts: UIMessagePart[]): Part[] {
               mimeType: type,
             },
           } as FilePart;
+        case UIMessagePartKind.Data:
+          return part;
       }
     })
     .filter(isNotNull);

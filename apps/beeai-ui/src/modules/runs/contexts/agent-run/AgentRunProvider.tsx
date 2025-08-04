@@ -55,7 +55,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
 
   const errorHandler = useHandleError();
 
-  const a2aAgentClient = useMemo(() => buildA2AClient(agent.provider.id), [agent.provider.id]);
+  const a2aAgentClient = useMemo(() => buildA2AClient({ providerId: agent.provider.id }), [agent.provider.id]);
   const { files, clearFiles } = useFileUpload();
 
   const updateLastAgentMessage = useCallback(
