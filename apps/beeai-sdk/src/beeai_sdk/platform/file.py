@@ -38,13 +38,14 @@ class File(pydantic.BaseModel):
         *,
         filename: str,
         content: typing.BinaryIO | bytes,
+        content_type: str = "application/octet-stream",
         client: httpx.AsyncClient | None = None,
     ) -> File:
         return pydantic.TypeAdapter(File).validate_python(
             (
                 await (client or get_client()).post(
                     url="/api/v1/files",
-                    files={filename: content},
+                    files={"file": (filename, content, content_type)},
                 )
             )
             .raise_for_status()

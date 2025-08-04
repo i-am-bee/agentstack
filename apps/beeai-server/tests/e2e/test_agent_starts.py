@@ -22,9 +22,9 @@ from a2a.types import (
 async def test_agent(subtests, setup_real_llm, api_client, a2a_client_factory):
     agent_image = "ghcr.io/i-am-bee/beeai-platform-agent-starter/my-agent-a2a:latest"
     with subtests.test("add chat agent"):
-        response = await api_client.post("providers", json={"location": agent_image})
+        response = await api_client.post("api/v1/providers", json={"location": agent_image})
         response.raise_for_status()
-        providers_response = await api_client.get("providers")
+        providers_response = await api_client.get("api/v1/providers")
         providers_response.raise_for_status()
         providers = providers_response.json()
         assert len(providers["items"]) == 1

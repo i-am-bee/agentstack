@@ -16,9 +16,7 @@ logger = logging.getLogger(__name__)
 
 @pytest_asyncio.fixture()
 async def api_client(test_configuration) -> AsyncIterator[httpx.AsyncClient]:
-    async with httpx.AsyncClient(
-        base_url=f"{test_configuration.server_url.rstrip('/')}/api/v1", timeout=None
-    ) as client:
+    async with httpx.AsyncClient(base_url=test_configuration.server_url, timeout=None) as client:
         yield client
 
 

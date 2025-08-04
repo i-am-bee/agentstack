@@ -1,11 +1,12 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 from collections.abc import Callable
+from datetime import timedelta
 from io import BytesIO
 
 import httpx
 import pytest
-from asyncpg.pgproto.pgproto import timedelta
+from beeai_sdk.platform.file import File
 from tenacity import AsyncRetrying, stop_after_delay, wait_fixed
 
 pytestmark = pytest.mark.e2e
@@ -15,29 +16,23 @@ pytestmark = pytest.mark.e2e
 @pytest.mark.usefixtures("clean_up")
 async def test_files(subtests, setup_real_llm, api_client):
     with subtests.test("upload file"):
-        response = await api_client.post(
-            "files", files={"file": ("test.txt", '{"hello": "world"}', "application/json")}
+        file = await File.create(
+            filename="test.txt", content=b'{"hello": "world"}', content_type="application/json", client=api_client
         )
-        response.raise_for_status()
-        file_id = response.json()["id"]
+        file_id = file.id
 
     with subtests.test("get file metadata"):
-        response = await api_client.get(f"files/{file_id}")
-        response.raise_for_status()
-        assert response.json()["id"] == file_id
+        retrieved_file = await File.get(file_id, client=api_client)
+        assert retrieved_file.id == file_id
 
     with subtests.test("get file content"):
-        response = await api_client.get(f"files/{file_id}/content")
-        response.raise_for_status()
-        assert response.json() == {"hello": "world"}
-        assert response.headers["Content-Type"] == "application/json"
+        content = await retrieved_file.content(client=api_client)
+        assert content == '{"hello": "world"}'
 
     with subtests.test("delete file"):
-        response = await api_client.delete(f"files/{file_id}")
-        response.raise_for_status()
+        await File.delete(file_id, client=api_client)
         with pytest.raises(httpx.HTTPStatusError, match="404 Not Found"):
-            response = await api_client.get(f"files/{file_id}")
-            response.raise_for_status()
+            await File.get(file_id, client=api_client)
 
 
 @pytest.fixture
@@ -68,65 +63,52 @@ async def test_text_extraction_pdf_workflow(subtests, api_client, test_pdf: Call
     """Test complete PDF text extraction workflow: upload -> extract -> wait -> verify"""
 
     # Create a simple PDF-like content for testing
-    # In a real scenario, you would use a proper PDF file
-
-    file_id = None
     pdf = test_pdf(
         "Test of sirens\n" * 100 + "\nBeeai is the future of AI\n\nThere is no better platform than the beeai platform."
     )
 
     with subtests.test("upload PDF file"):
-        response = await api_client.post("files", files={"file": ("test_document.pdf", pdf, "application/pdf")})
-        response.raise_for_status()
-        file_data = response.json()
-        file_id = file_data["id"]
-        assert file_data["filename"] == "test_document.pdf"
-        assert file_data["file_type"] == "user_upload"
+        file = await File.create(
+            filename="test_document.pdf", content=pdf, content_type="application/pdf", client=api_client
+        )
+        assert file.filename == "test_document.pdf"
+        assert file.file_type == "user_upload"
 
     with subtests.test("create text extraction"):
-        response = await api_client.post(f"files/{file_id}/extraction")
-        response.raise_for_status()
-        extraction_data = response.json()
-        assert extraction_data["file_id"] == file_id
-        assert extraction_data["status"] in ["pending", "in_progress", "completed"]
+        extraction = await file.create_extraction(client=api_client)
+        assert extraction.file_id == file.id
+        assert extraction.status in ["pending", "in_progress", "completed"]
 
     with subtests.test("check extraction status"):
-        response = await api_client.get(f"files/{file_id}/extraction")
-        response.raise_for_status()
-        extraction_data = response.json()
-        assert extraction_data["file_id"] == file_id
+        extraction = await file.get_extraction(client=api_client)
+        assert extraction.file_id == file.id
 
     async for attempt in AsyncRetrying(stop=stop_after_delay(timedelta(seconds=40)), wait=wait_fixed(1)):
         with attempt:
-            response = await api_client.get(f"files/{file_id}/extraction")
-            response.raise_for_status()
-            extraction_data = response.json()
-            final_status = extraction_data["status"]
+            extraction = await file.get_extraction(client=api_client)
+            final_status = extraction.status
             if final_status not in ["completed", "failed"]:
                 raise ValueError("not completed")
 
-    assert final_status == "completed", (
-        f"Expected completed status, got {final_status}: {extraction_data['error_message']}"
-    )
-    assert extraction_data["extracted_file_id"] is not None
-    assert extraction_data["finished_at"] is not None
+    assert final_status == "completed", f"Expected completed status, got {final_status}: {extraction.error_message}"
+    assert extraction.extracted_file_id is not None
+    assert extraction.finished_at is not None
 
     with subtests.test("verify extracted text content"):
-        response = await api_client.get(f"files/{file_id}/text_content")
-        response.raise_for_status()
+        content = await file.text_content(client=api_client)
 
         # Check that we get some text content back
-        content = response.text
         assert len(content) > 0, "No text content was extracted"
         assert "Beeai is the future of AI" in content
 
     with subtests.test("delete extraction"):
-        response = await api_client.delete(f"files/{file_id}/extraction")
-        response.raise_for_status()
+        await file.delete_extraction(client=api_client)
 
-    with subtests.test("verify extraction deleted"), pytest.raises(httpx.HTTPStatusError, match="404 Not Found"):
-        response = await api_client.get(f"files/{file_id}/extraction")
-        response.raise_for_status()
+    with (
+        subtests.test("verify extraction deleted"),
+        pytest.raises(httpx.HTTPStatusError, match="404 Not Found"),
+    ):
+        await file.get_extraction(client=api_client)
 
 
 @pytest.mark.asyncio
@@ -135,26 +117,19 @@ async def test_text_extraction_plain_text_workflow(subtests, setup_real_llm, api
     """Test text extraction for plain text files (should be immediate)"""
 
     text_content = "This is a sample text document with some content for testing text extraction."
-    file_id = None
 
     with subtests.test("upload text file"):
-        response = await api_client.post("files", files={"file": ("test_document.txt", text_content, "text/plain")})
-        response.raise_for_status()
-        file_data = response.json()
-        file_id = file_data["id"]
-        assert file_data["filename"] == "test_document.txt"
+        file = await File.create(
+            filename="test_document.txt", content=text_content.encode(), content_type="text/plain", client=api_client
+        )
+        assert file.filename == "test_document.txt"
 
     with subtests.test("create text extraction for plain text"):
-        response = await api_client.post(f"files/{file_id}/extraction")
-        response.raise_for_status()
-        extraction_data = response.json()
-        assert extraction_data["file_id"] == file_id
+        extraction = await file.create_extraction(client=api_client)
+        assert extraction.file_id == file.id
         # Plain text files should be completed immediately
-        assert extraction_data["status"] == "completed"
+        assert extraction.status == "completed"
 
     with subtests.test("verify immediate text content access"):
-        response = await api_client.get(f"files/{file_id}/text_content")
-        response.raise_for_status()
-
-        extracted_content = response.text
+        extracted_content = await file.text_content(client=api_client)
         assert extracted_content == text_content

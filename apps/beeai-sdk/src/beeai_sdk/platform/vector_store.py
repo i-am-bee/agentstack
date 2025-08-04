@@ -4,8 +4,8 @@
 from __future__ import annotations
 
 import typing
+import uuid
 from textwrap import dedent
-from uuid import UUID, uuid4
 
 import httpx
 import pydantic
@@ -45,13 +45,16 @@ class VectorStoreStats(pydantic.BaseModel):
     num_documents: int
 
 
-class VectorStoreDocumentInfo(pydantic.BaseModel):
+class VectorStoreDocument(pydantic.BaseModel):
     id: str
+    vector_store_id: str
+    file_id: str | None = None
     usage_bytes: int | None = None
+    created_at: pydantic.AwareDatetime
 
 
 class VectorStoreItem(pydantic.BaseModel):
-    id: UUID = pydantic.Field(default_factory=uuid4)
+    id: str = pydantic.Field(default_factory=lambda: uuid.uuid4().hex)
     document_id: str
     document_type: typing.Literal["platform_file", "external"] = "platform_file"
     model_id: str | typing.Literal["platform"] = "platform"
@@ -66,13 +69,13 @@ class VectorStoreSearchResult(pydantic.BaseModel):
 
 
 class VectorStore(pydantic.BaseModel):
-    id: UUID
+    id: str
     name: str | None = None
     model_id: str
     dimension: int
     created_at: pydantic.AwareDatetime
     last_active_at: pydantic.AwareDatetime
-    created_by: UUID
+    created_by: str
     stats: VectorStoreStats | None = None
 
     @staticmethod
@@ -168,10 +171,10 @@ class VectorStore(pydantic.BaseModel):
         /,
         *,
         client: httpx.AsyncClient | None = None,
-    ) -> list[VectorStoreItem]:
+    ) -> list[VectorStoreDocument]:
         # `self` has a weird type so that you can call both `instance.list_documents()` to list documents in an instance, or `VectorStore.list_documents("123")`
         vector_store_id = self if isinstance(self, str) else self.id
-        return pydantic.TypeAdapter(list[VectorStoreItem]).validate_python(
+        return pydantic.TypeAdapter(list[VectorStoreDocument]).validate_python(
             (await (client or get_client()).get(url=f"/api/v1/vector_stores/{vector_store_id}/documents"))
             .raise_for_status()
             .json()["items"]
