@@ -49,6 +49,10 @@ class Citation(pydantic.BaseModel):
     description: str | None = None
 
 
+class CitationMetadata(pydantic.BaseModel):
+    citations: list[Citation] = pydantic.Field(default_factory=list)
+
+
 class CitationExtensionSpec(NoParamsBaseExtensionSpec):
     URI: str = "https://a2a-extensions.beeai.dev/ui/citation/v1"
 
@@ -57,43 +61,22 @@ class CitationExtensionServer(BaseExtensionServer[CitationExtensionSpec, NoneTyp
     def citation_metadata(
         self,
         *,
-        start_index: int | None = None,
-        end_index: int | None = None,
-        url: str | None = None,
-        title: str | None = None,
-        description: str | None = None,
-    ) -> dict[str, Citation]:
-        return {
-            self.spec.URI: Citation(
-                start_index=start_index,
-                end_index=end_index,
-                url=url,
-                title=title,
-                description=description,
-            )
-        }
+        citations: list[Citation],
+    ) -> dict[str, CitationMetadata]:
+        return {self.spec.URI: CitationMetadata(citations=citations)}
 
     def message(
         self,
         text: str | None = None,
         parts: list[Part] | None = None,
-        citation_start_index: int | None = None,
-        citation_end_index: int | None = None,
-        citation_url: str | None = None,
-        citation_title: str | None = None,
-        citation_description: str | None = None,
+        *,
+        citations: list[Citation],
     ) -> AgentMessage:
         return AgentMessage(
             text=text,
             parts=parts or [],
-            metadata=self.citation_metadata(
-                start_index=citation_start_index,
-                end_index=citation_end_index,
-                url=citation_url,
-                title=citation_title,
-                description=citation_description,
-            ),
+            metadata=self.citation_metadata(citations=citations),
         )
 
 
-class CitationExtensionClient(BaseExtensionClient[CitationExtensionSpec, Citation]): ...
+class CitationExtensionClient(BaseExtensionClient[CitationExtensionSpec, CitationMetadata]): ...
