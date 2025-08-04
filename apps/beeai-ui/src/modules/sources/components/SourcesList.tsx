@@ -8,6 +8,7 @@ import { SidePanelVariant } from '#contexts/App/types.ts';
 import type { UISourcePart } from '#modules/messages/types.ts';
 
 import { useSources } from '../contexts';
+import { isSourceActive } from '../utils';
 import { Source } from './Source';
 import classes from './SourcesList.module.scss';
 
@@ -29,7 +30,7 @@ export function SourcesList({ sources }: Props) {
     <ul className={classes.root}>
       {sources.map((source) => {
         const { id } = source;
-        const isActive = activeSidePanel === SidePanelVariant.Sources && activeSource?.id === id;
+        const isActive = activeSidePanel === SidePanelVariant.Sources && isSourceActive(source, activeSource);
 
         return (
           <li key={id}>

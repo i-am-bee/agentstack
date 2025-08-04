@@ -13,6 +13,7 @@ import { useApp } from '#contexts/App/index.ts';
 import { SidePanelVariant } from '#contexts/App/types.ts';
 
 import { useSources } from '../contexts';
+import { getUniqueSources } from '../utils';
 import { SourcesList } from './SourcesList';
 import classes from './SourcesPanel.module.scss';
 
@@ -21,7 +22,7 @@ export function SourcesPanel() {
   const { sources: messageSourcesMap, activeSource } = useSources();
 
   const messageId = activeSource?.messageId;
-  const sources = messageId ? (messageSourcesMap[messageId] ?? []) : [];
+  const sources = getUniqueSources(messageId ? (messageSourcesMap[messageId] ?? []) : []);
   const hasSources = sources.length > 0;
 
   const isOpen = activeSidePanel === SidePanelVariant.Sources;

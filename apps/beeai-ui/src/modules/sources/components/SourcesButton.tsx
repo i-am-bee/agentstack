@@ -9,6 +9,7 @@ import pluralize from 'pluralize';
 
 import type { UISourcePart } from '#modules/messages/types.ts';
 
+import { getUniqueSources } from '../utils';
 import classes from './SourcesButton.module.scss';
 
 interface Props {
@@ -18,7 +19,7 @@ interface Props {
 }
 
 export function SourcesButton({ sources, isActive, onClick }: Props) {
-  const count = sources.length;
+  const count = getUniqueSources(sources).length;
 
   return (
     <Button kind="tertiary" className={clsx(classes.root, { [classes.isActive]: isActive })} onClick={onClick}>

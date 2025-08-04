@@ -4,6 +4,6 @@
  */
 
 export type ActiveSource = {
-  id: string | null;
+  number: number | null;
   messageId: string;
 };

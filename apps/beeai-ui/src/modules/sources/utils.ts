@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import uniqBy from 'lodash/uniqBy';
 import { v4 as uuid } from 'uuid';
 
 import type { UIMessage, UISourcePart, UITransformPart } from '#modules/messages/types.ts';
@@ -11,6 +12,7 @@ import { getMessageSources } from '#modules/messages/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
 import { toMarkdownCitation } from '#utils/markdown.ts';
 
+import type { ActiveSource } from './contexts/types';
 import type { MessageSourcesMap } from './types';
 
 export function transformSourcePart(sourcePart: UISourcePart): UITransformPart {
@@ -46,4 +48,14 @@ export function getMessageSourcesMap(messages: UIMessage[]) {
   );
 
   return sources;
+}
+
+export function isSourceActive(source: UISourcePart, activeSource: ActiveSource | null) {
+  const { messageId, number } = source;
+
+  return activeSource?.messageId === messageId && isNotNull(number) && activeSource?.number === number;
+}
+
+export function getUniqueSources(sources: UISourcePart[]) {
+  return uniqBy(sources, 'number');
 }

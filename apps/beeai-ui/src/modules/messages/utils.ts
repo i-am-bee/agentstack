@@ -97,13 +97,25 @@ export function sortMessageParts(parts: UIMessagePart[]): UIMessagePart[] {
     [[], [], []],
   );
 
+  const sourceMap = new Map<string, number>();
+  let numberCounter = 1;
+
   // Sort sources by startIndex in ascending order and place items with undefined startIndex at the end
   const sortedSourceParts = sourceParts
     .sort((a, b) => (a.startIndex ?? Infinity) - (b.startIndex ?? Infinity))
-    .map((source, idx) => ({
-      ...source,
-      number: idx + 1,
-    }));
+    .map((source) => {
+      const { url, title } = source;
+      const key = `${url}${title ?? ''}`;
+
+      if (!sourceMap.has(key)) {
+        sourceMap.set(key, numberCounter++);
+      }
+
+      return {
+        ...source,
+        number: sourceMap.get(key) ?? null,
+      };
+    });
 
   // Sort transforms by startIndex in ascending order and group items with the same startIndex into one
   const sortedTransformParts = transformParts

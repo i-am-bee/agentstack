@@ -10,6 +10,7 @@ import { useApp } from '#contexts/App/index.ts';
 import { SidePanelVariant } from '#contexts/App/types.ts';
 import type { UISourcePart } from '#modules/messages/types.ts';
 import { useSources } from '#modules/sources/contexts/index.ts';
+import { isSourceActive } from '#modules/sources/utils.ts';
 
 import { InlineCitationButton } from './InlineCitationButton';
 import classes from './InlineCitations.module.scss';
@@ -33,8 +34,8 @@ export function InlineCitations({ sources = [], children }: PropsWithChildren<Pr
 
       <span className={classes.list}>
         {sources.map((source) => {
-          const { id, messageId } = source;
-          const isActive = activeSidePanel === SidePanelVariant.Sources && activeSource?.id === id;
+          const { id, messageId, number } = source;
+          const isActive = activeSidePanel === SidePanelVariant.Sources && isSourceActive(source, activeSource);
 
           return (
             <sup key={id} className={clsx(classes.item, { [classes.isActive]: isActive })}>
@@ -42,7 +43,7 @@ export function InlineCitations({ sources = [], children }: PropsWithChildren<Pr
                 source={source}
                 isActive={isActive}
                 onClick={() => {
-                  setActiveSource({ id, messageId });
+                  setActiveSource({ number, messageId });
                   openSidePanel(SidePanelVariant.Sources);
                 }}
               />

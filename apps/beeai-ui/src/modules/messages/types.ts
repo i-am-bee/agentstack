@@ -42,7 +42,7 @@ export type UISourcePart = {
   id: string;
   url: string;
   messageId: string;
-  number?: number;
+  number: number | null;
   startIndex?: number;
   endIndex?: number;
   title?: string;
