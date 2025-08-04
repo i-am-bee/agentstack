@@ -18,7 +18,7 @@ import { UIMessagePartKind } from '#modules/messages/types.ts';
 import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
-import type { CitationMetadata } from './extensions/citation';
+import type { Citation } from './extensions/citation';
 import { citationExtension } from './extensions/citation';
 import type { TrajectoryMetadata } from './extensions/trajectory';
 import { trajectoryExtension } from './extensions/trajectory';
@@ -101,8 +101,8 @@ export function getFileUri(file: FilePart['file']): string {
   return `data:${mimeType};base64,${bytes}`;
 }
 
-export function createSourcePart(metadata: CitationMetadata, messageId: string | undefined): UISourcePart | null {
-  const { url, start_index, end_index, title, description } = metadata;
+export function createSourcePart(citation: Citation, messageId: string | undefined): UISourcePart | null {
+  const { url, start_index, end_index, title, description } = citation;
 
   if (!url || !messageId) {
     return null;

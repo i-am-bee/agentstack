@@ -8,6 +8,7 @@ import { v4 as uuid } from 'uuid';
 
 import type { UIFilePart, UIMessagePart } from '#modules/messages/types.ts';
 import { UIMessagePartKind } from '#modules/messages/types.ts';
+import { isNotNull } from '#utils/helpers.ts';
 
 import {
   createSourcePart,
@@ -20,16 +21,14 @@ import {
 
 export function processMessageMetadata(message: Message): UIMessagePart[] {
   const trajectory = extractTrajectory(message.metadata);
-  const citation = extractCitation(message.metadata);
+  const citations = extractCitation(message.metadata)?.citations;
 
   if (trajectory) {
     return [createTrajectoryPart(trajectory)];
-  } else if (citation) {
-    const sourcePart = createSourcePart(citation, message.taskId);
+  } else if (citations) {
+    const sourceParts = citations.map((citation) => createSourcePart(citation, message.taskId)).filter(isNotNull);
 
-    if (sourcePart) {
-      return [sourcePart];
-    }
+    return [...sourceParts];
   }
 
   return [];
