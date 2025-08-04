@@ -2,11 +2,13 @@
 # SPDX-License-Identifier: Apache-2.0
 import logging
 import os
+from typing import Annotated
 import uuid
 from collections import defaultdict
 from textwrap import dedent
 
 from a2a.types import (
+    AgentCapabilities,
     AgentSkill,
     Artifact,
     FilePart,
@@ -21,6 +23,7 @@ from beeai_framework.agents.experimental import (
 from beeai_framework.agents.experimental.events import (
     RequirementAgentSuccessEvent,
 )
+from beeai_framework.agents.experimental.utils._tool import FinalAnswerTool
 from beeai_framework.backend.types import ChatModelParameters
 from beeai_framework.memory import UnconstrainedMemory
 from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
@@ -29,10 +32,19 @@ from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
 from beeai_framework.tools.search.wikipedia import WikipediaTool
 from beeai_framework.tools.weather.openmeteo import OpenMeteoTool
 
-from beeai_sdk.a2a.extensions import AgentDetail, AgentDetailTool
+from beeai_sdk.a2a.extensions import (
+    AgentDetail,
+    AgentDetailTool,
+    CitationExtensionServer,
+    CitationExtensionSpec,
+    TrajectoryExtensionServer,
+    TrajectoryExtensionSpec,
+)
 from beeai_sdk.a2a.types import AgentMessage
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import Context
+from chat.helpers.citations import extract_citations
+from chat.helpers.trajectory import TrajectoryContent
 from openinference.instrumentation.beeai import BeeAIInstrumentor
 
 from chat.tools.files.file_creator import FileCreatorTool, FileCreatorToolOutput
@@ -51,9 +63,12 @@ from chat.tools.general.current_time import CurrentTimeTool
 
 BeeAIInstrumentor().instrument()
 ## TODO: https://github.com/phoenixframework/phoenix/issues/6224
-logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(logging.CRITICAL)
-logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(logging.CRITICAL)
-
+logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(
+    logging.CRITICAL
+)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(
+    logging.CRITICAL
+)
 
 logger = logging.getLogger(__name__)
 
@@ -76,9 +91,17 @@ server = Server()
         ui_type="chat",
         user_greeting="How can I help you?",
         tools=[
-            AgentDetailTool(name="Web Search (DuckDuckGo)", description="Retrieves real-time search results."),
-            AgentDetailTool(name="Wikipedia Search", description="Fetches summaries from Wikipedia."),
-            AgentDetailTool(name="Weather Information (OpenMeteo)", description="Provides real-time weather updates."),
+            AgentDetailTool(
+                name="Web Search (DuckDuckGo)",
+                description="Retrieves real-time search results.",
+            ),
+            AgentDetailTool(
+                name="Wikipedia Search", description="Fetches summaries from Wikipedia."
+            ),
+            AgentDetailTool(
+                name="Weather Information (OpenMeteo)",
+                description="Provides real-time weather updates.",
+            ),
         ],
         framework="BeeAI",
     ),
@@ -114,22 +137,43 @@ server = Server()
                 """
             ),
             tags=["chat"],
-            examples=["Please find a room in LA, CA, April 15, 2025, checkout date is april 18, 2 adults"],
+            examples=[
+                "Please find a room in LA, CA, April 15, 2025, checkout date is april 18, 2 adults"
+            ],
         )
     ],
 )
-async def chat(message: Message, context: Context):
+async def chat(
+    message: Message,
+    context: Context,
+    trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
+    citation: Annotated[CitationExtensionServer, CitationExtensionSpec()],
+):
     """
     The agent is an AI-powered conversational system with memory, supporting real-time search, Wikipedia lookups,
     and weather updates through integrated tools.
     """
-    extracted_files = await extract_files(history=messages[context.context_id], incoming_message=message)
+    extracted_files = await extract_files(
+        history=messages[context.context_id], incoming_message=message
+    )
     input = to_framework_message(message)
 
     # Configure tools
     file_reader_tool_class = create_file_reader_tool_class(
         extracted_files
     )  # Dynamically created tool input schema based on real provided files ensures that small LLMs can't hallucinate the input
+
+    FinalAnswerTool.description = """Assemble and send the final answer to the user. When using information gathered from other tools that provided URL addresses, you MUST properly cite them using markdown citation format: [description](URL).
+
+Citation Requirements:
+- Use descriptive text that summarizes the source content
+- Include the exact URL provided by the tool
+- Place citations inline where the information is referenced
+
+Examples:
+- According to [OpenAI's latest announcement](https://example.com/gpt5), GPT-5 will be released next year.
+- Recent studies show [AI adoption has increased by 67%](https://example.com/ai-study) in enterprise environments.
+- Weather data indicates [temperatures will reach 25°C tomorrow](https://weather.example.com/forecast).""" # type: ignore
 
     tools = [
         # Auxiliary tools
@@ -180,6 +224,16 @@ async def chat(message: Message, context: Context):
 
         last_step = event.state.steps[-1] if event.state.steps else None
         if last_step and last_step.tool is not None:
+            trajectory_content = TrajectoryContent(
+                input=last_step.input,
+                output=last_step.output,
+                error=last_step.error,
+            )
+            yield trajectory.trajectory_metadata(
+                title=last_step.tool.name,
+                content=trajectory_content.model_dump_json(),
+            )
+
             if isinstance(last_step.output, FileCreatorToolOutput):
                 result = last_step.output.result
                 for file_info in result.files:
@@ -205,7 +259,15 @@ async def chat(message: Message, context: Context):
 
     if final_answer:
         framework_messages[context.context_id].append(final_answer)
-        message = AgentMessage(text=final_answer.text)
+
+        citations, clean_text = extract_citations(final_answer.text)
+
+        message = AgentMessage(
+            text=clean_text,
+            metadata=(
+                citation.citation_metadata(citations=citations) if citations else None
+            ),
+        )
         messages[context.context_id].append(message)
         yield message
 
