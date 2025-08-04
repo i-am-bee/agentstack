@@ -34,6 +34,7 @@ async def cli(base_url: str, context_id: str) -> None:
         context_id = context_id or uuid.uuid4().hex
 
         llm_spec = beeai_sdk.a2a.extensions.LLMServiceExtensionSpec.from_agent_card(card)
+        mcp_spec = beeai_sdk.a2a.extensions.MCPServiceExtensionSpec.from_agent_card(card)
         trajectory_spec = beeai_sdk.a2a.extensions.TrajectoryExtensionSpec.from_agent_card(card)
         trajectory_client = (
             beeai_sdk.a2a.extensions.TrajectoryExtensionClient(trajectory_spec) if trajectory_spec else None
@@ -60,19 +61,36 @@ async def cli(base_url: str, context_id: str) -> None:
                     parts=[a2a.types.Part(root=a2a.types.TextPart(text=prompt))],
                     task_id=task_id,
                     context_id=context_id,
-                    metadata=beeai_sdk.a2a.extensions.LLMServiceExtensionClient(llm_spec).fulfillment_metadata(
-                        llm_fulfillments={
-                            # Demonstration only: we ignore the asks and just configure BeeAI proxy for everything
-                            key: beeai_sdk.a2a.extensions.services.llm.LLMFulfillment(
-                                api_base="http://localhost:8333/api/v1/llm/",
-                                api_key="dummy",
-                                api_model="dummy",
-                            )
-                            for key in llm_spec.params.llm_demands
-                        }
+                    metadata=(
+                        beeai_sdk.a2a.extensions.LLMServiceExtensionClient(llm_spec).fulfillment_metadata(
+                            llm_fulfillments={
+                                # Demonstration only: we ignore the asks and just configure BeeAI proxy for everything
+                                key: beeai_sdk.a2a.extensions.services.llm.LLMFulfillment(
+                                    api_base="http://localhost:8333/api/v1/llm/",
+                                    api_key="dummy",
+                                    api_model="dummy",
+                                )
+                                for key in llm_spec.params.llm_demands
+                            }
+                        )
+                        if llm_spec
+                        else {}
                     )
-                    if llm_spec
-                    else None,
+                    | (
+                        beeai_sdk.a2a.extensions.MCPServiceExtensionClient(mcp_spec).fulfillment_metadata(
+                            mcp_fulfillments={
+                                # Demonstration only: we ignore the asks and just configure BeeAI proxy for everything
+                                key: beeai_sdk.a2a.extensions.services.mcp.MCPFulfillment(
+                                    transport=beeai_sdk.a2a.extensions.services.mcp.StreamableHTTPTransport(
+                                        url="http://localhost:8333/mcp",
+                                    ),
+                                )
+                                for key in mcp_spec.params.mcp_demands
+                            }
+                        )
+                        if mcp_spec
+                        else {}
+                    ),
                 )
 
                 try:

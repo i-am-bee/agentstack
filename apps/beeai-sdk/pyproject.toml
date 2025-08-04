@@ -20,7 +20,8 @@ dependencies = [
     "tenacity>=9.1.2",
     "janus>=2.0.0",
     "uvloop>=0.21.0",
-    "httpx", # version determined by a2a-sdk
+    "httpx",                                          # version determined by a2a-sdk
+    "mcp>=1.12.3",
 ]
 
 [dependency-groups]
@@ -41,18 +42,18 @@ build-backend = "uv_build"
 line-length = 120
 target-version = "py311"
 lint.select = [
-    "E", # pycodestyle errors
-    "W", # pycodestyle warnings
-    "F", # pyflakes
-    "UP", # pyupgrade
-    "I", # isort
-    "B", # bugbear
-    "N", # pep8-naming
-    "C4", # Comprehensions
-    "Q", # Quotes
-    "SIM", # Simplify
-    "RUF", # Ruff
-    "TID", # tidy-imports
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "UP",    # pyupgrade
+    "I",     # isort
+    "B",     # bugbear
+    "N",     # pep8-naming
+    "C4",    # Comprehensions
+    "Q",     # Quotes
+    "SIM",   # Simplify
+    "RUF",   # Ruff
+    "TID",   # tidy-imports
     "ASYNC", # async
     # TODO: add "DTZ",   # DatetimeZ
     # TODO: add "ANN",   # annotations

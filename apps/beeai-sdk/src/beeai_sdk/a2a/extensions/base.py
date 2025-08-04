@@ -133,7 +133,7 @@ class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromCl
 
     def parse_client_metadata(self, message: a2a.types.Message) -> MetadataFromClientT | None:
         """
-        Client should use this method to retrieve extension-associated metadata from a message.
+        Server should use this method to retrieve extension-associated metadata from a message.
         """
         return (
             None
