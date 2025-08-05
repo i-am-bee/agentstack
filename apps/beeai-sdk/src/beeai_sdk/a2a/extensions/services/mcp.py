@@ -49,7 +49,7 @@ class MCPDemand(pydantic.BaseModel):
     Identifiers of servers recommended to be used. Usually corresponds to MCP StreamableHTTP URIs.
     """
 
-    allowed_transports: list[TRANSPORT_TYPES] = pydantic.Field(default_factory=lambda: ["streamable_http", "stdio"])
+    allowed_transports: list[TRANSPORT_TYPES] = pydantic.Field(default_factory=lambda: ["streamable_http"])
     """
     Transports allowed for the server. Specifying other transports will result in rejection.
     """
@@ -80,7 +80,7 @@ class MCPServiceExtensionSpec(BaseExtensionSpec[MCPServiceExtensionParams]):
                     name: MCPDemand(
                         description=description,
                         suggested=suggested,
-                        allowed_transports=allowed_transports or ["streamable_http", "stdio"],
+                        allowed_transports=allowed_transports or ["streamable_http"],
                     )
                 }
             )
