@@ -1,6 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+import httpx
 import pytest
 from beeai_sdk.platform.vector_store import VectorStore, VectorStoreItem
 
@@ -60,7 +61,7 @@ async def test_vector_stores(subtests, api_client):
         for result in search_results:
             assert hasattr(result, "item")
             assert hasattr(result, "score")
-            assert isinstance(result.score, (int, float))
+            assert isinstance(result.score, int | float)
             assert 0.0 <= result.score <= 1.0
 
         # Verify the search results order based on the items in the result
@@ -103,9 +104,11 @@ async def test_vector_store_deletion(subtests, api_client):
     with subtests.test("delete vector store"):
         await vector_store.delete(client=api_client)
 
-    with subtests.test("verify vector store is deleted"):
-        with pytest.raises(Exception):  # Should raise an exception for 404
-            await VectorStore.get(str(vector_store_id), client=api_client)
+    with (
+        subtests.test("verify vector store is deleted"),
+        pytest.raises(httpx.HTTPStatusError, match="404 Not Found"),
+    ):
+        await VectorStore.get(str(vector_store_id), client=api_client)
 
 
 @pytest.mark.asyncio
