@@ -7,9 +7,33 @@
   display: flex;
   flex-direction: column;
   row-gap: $spacing-03;
+  position: relative;
+  z-index: 1;
+  &::before {
+    content: '';
+    inline-size: calc(100vw - var(--scrollbar-width));
+    position: absolute;
+    inset-block: -$spacing-05;
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+    background-color: $layer-hover-01;
+    z-index: -1;
+    transition: opacity $duration-fast-02;
+  }
+
+  &:not(:has(.actions))::before {
+    opacity: 0;
+  }
 }
 
 .content {
   font-size: rem(16px);
   line-height: math.div(26, 16);
+}
+
+.actions {
+  position: absolute;
+  inset-block-end: 100%;
+  inset-inline-start: 100%;
+  margin-inline-start: $spacing-09;
 }

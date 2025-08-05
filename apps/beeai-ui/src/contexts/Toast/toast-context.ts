@@ -27,6 +27,7 @@ export interface Toast {
   title?: string;
   apiError?: string;
   icon?: ComponentType<IconProps>;
+  inlineIcon?: boolean;
 }
 
 export interface ToastContextValue {

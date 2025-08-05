@@ -49,14 +49,17 @@ export function ToastProvider({ children }: PropsWithChildren) {
           </div>
         )}
 
-        {toasts.map(({ key, icon: Icon, caption, title, subtitle, apiError, ...toast }) => (
+        {toasts.map(({ key, icon: Icon, caption, title, subtitle, apiError, inlineIcon, ...toast }) => (
           <ToastNotification
             key={key}
             {...toast}
             onClose={() => {
               setToasts((existing) => existing.filter((toast) => toast.key !== key));
             }}
-            className={clsx({ 'cds--toast-notification--custom-icon': Icon })}
+            className={clsx({
+              'cds--toast-notification--custom-icon': Icon,
+              'cds--toast-notification--inline-icon': inlineIcon,
+            })}
           >
             {Icon && <Icon className="cds--toast-notification__icon" />}
 

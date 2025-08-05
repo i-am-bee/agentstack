@@ -58,7 +58,7 @@ export function ChatMessagesView() {
           </Container>
         </div>
 
-        <Container size="sm" className={classes.bottom}>
+        <div className={classes.bottom}>
           {isScrolled && (
             <IconButton
               label="Scroll to bottom"
@@ -72,18 +72,22 @@ export function ChatMessagesView() {
             </IconButton>
           )}
 
-          {isPending && (isNotInstalled || isStarting) ? (
-            <RunStatusBar isPending>Starting the agent, please bee patient&hellip;</RunStatusBar>
-          ) : (
-            <RunInput
-              onSubmit={() => {
-                requestAnimationFrame(() => {
-                  scrollToBottom();
-                });
-              }}
-            />
-          )}
-        </Container>
+          <div className={classes.bottomHolder}>
+            <Container size="sm" className={classes.bottomContainer}>
+              {isPending && (isNotInstalled || isStarting) ? (
+                <RunStatusBar isPending>Starting the agent, please bee patient&hellip;</RunStatusBar>
+              ) : (
+                <RunInput
+                  onSubmit={() => {
+                    requestAnimationFrame(() => {
+                      scrollToBottom();
+                    });
+                  }}
+                />
+              )}
+            </Container>
+          </div>
+        </div>
       </div>
     </FileUpload>
   );

@@ -42,6 +42,7 @@
     "openapi-fetch": "^0.13.5",
     "pluralize": "^8.0.0",
     "react": "^19.0.0",
+    "react-aria": "^3.42.0",
     "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.8",
     "react-error-boundary": "^5.0.0",

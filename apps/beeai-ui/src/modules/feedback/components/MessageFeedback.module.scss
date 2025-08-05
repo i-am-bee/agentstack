@@ -1,0 +1,22 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.ref {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.dialog {
+  inline-size: rem(288px);
+  z-index: z('modal') - 1;
+}
+
+.isVoted {
+  &:global(.cds--btn) {
+    background-color: $text-dark;
+    color: $text-inverse;
+  }
+}

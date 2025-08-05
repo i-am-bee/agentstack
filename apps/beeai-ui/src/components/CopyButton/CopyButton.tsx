@@ -9,10 +9,12 @@ import { type RefObject, useCallback, useState } from 'react';
 
 interface Props {
   contentRef: RefObject<HTMLElement | null>;
+  kind?: IconButtonProps['kind'];
   size?: IconButtonProps['size'];
+  wrapperClasses?: IconButtonProps['wrapperClasses'];
 }
 
-export function CopyButton({ contentRef, size = 'md' }: Props) {
+export function CopyButton({ contentRef, kind = 'ghost', size = 'md', wrapperClasses }: Props) {
   const [copied, setCopied] = useState(false);
 
   const handleClick = useCallback(() => {
@@ -32,7 +34,14 @@ export function CopyButton({ contentRef, size = 'md' }: Props) {
   }, [contentRef]);
 
   return (
-    <IconButton label="Copy" kind="ghost" size={size} onClick={handleClick} disabled={copied}>
+    <IconButton
+      label="Copy"
+      kind={kind}
+      size={size}
+      onClick={handleClick}
+      disabled={copied}
+      wrapperClasses={wrapperClasses}
+    >
       {copied ? <Checkmark /> : <Copy />}
     </IconButton>
   );

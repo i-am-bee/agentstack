@@ -78,7 +78,8 @@
 @forward 'tabs';
 @forward '@carbon/styles/scss/components/tag';
 @forward 'tag';
-// @forward '@carbon/styles/scss/components/text-area';
+@forward '@carbon/styles/scss/components/text-area';
+@forward 'text-area';
 // @forward '@carbon/styles/scss/components/text-input';
 @forward 'input';
 // @forward '@carbon/styles/scss/components/tile';

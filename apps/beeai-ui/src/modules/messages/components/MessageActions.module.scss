@@ -1,0 +1,29 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.root {
+  display: flex;
+  background-color: $layer-01;
+  border-radius: $border-radius;
+}
+
+.button {
+  &:focus-within {
+    z-index: 1;
+  }
+  ~ .button {
+    margin-inline-start: -1px;
+  }
+
+  &:not(:first-child) :global(.cds--btn) {
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+  }
+
+  &:not(:last-child) :global(.cds--btn) {
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+  }
+}

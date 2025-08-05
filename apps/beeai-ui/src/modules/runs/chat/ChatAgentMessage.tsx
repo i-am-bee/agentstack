@@ -3,8 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import clsx from 'clsx';
+import { useRef, useState } from 'react';
+import { useFocusWithin, useHover } from 'react-aria';
+
 import { Spinner } from '#components/Spinner/Spinner.tsx';
 import { MessageFiles } from '#modules/files/components/MessageFiles.tsx';
+import { MessageActions } from '#modules/messages/components/MessageActions.tsx';
 import { MessageContent } from '#modules/messages/components/MessageContent.tsx';
 import { MessageError } from '#modules/messages/components/MessageError.tsx';
 import type { UIAgentMessage } from '#modules/messages/types.ts';
@@ -19,17 +24,25 @@ interface Props {
 }
 
 export function ChatAgentMessage({ message }: Props) {
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const [isFocusWithin, setFocusWithin] = useState(false);
+
+  const { hoverProps, isHovered } = useHover({});
+  const { focusWithinProps } = useFocusWithin({ onFocusWithinChange: setFocusWithin });
+
   const hasContent = checkMessageContent(message);
   const { isInProgress } = checkMessageStatus(message);
   const isPending = isInProgress && !hasContent;
+  const showActions = !isPending && (isHovered || isFocusWithin);
 
   return (
-    <div className={classes.root}>
+    <div {...hoverProps} {...focusWithinProps} className={clsx(classes.root, { [classes.showActions]: showActions })}>
       {isPending ? (
-        <Spinner />
+        <Spinner center />
       ) : (
         <>
-          <div className={classes.content}>
+          <div className={classes.content} ref={contentRef}>
             <MessageContent message={message} />
           </div>
 
@@ -42,6 +55,8 @@ export function ChatAgentMessage({ message }: Props) {
       <MessageSources message={message} />
 
       <MessageTrajectories message={message} />
+
+      <MessageActions message={message} className={classes.actions} contentRef={contentRef} isVisible={showActions} />
     </div>
   );
 }
