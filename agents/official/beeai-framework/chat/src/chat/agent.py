@@ -8,7 +8,6 @@ from collections import defaultdict
 from textwrap import dedent
 
 from a2a.types import (
-    AgentCapabilities,
     AgentSkill,
     Artifact,
     FilePart,
@@ -63,12 +62,8 @@ from chat.tools.general.current_time import CurrentTimeTool
 
 BeeAIInstrumentor().instrument()
 ## TODO: https://github.com/phoenixframework/phoenix/issues/6224
-logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(
-    logging.CRITICAL
-)
-logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(
-    logging.CRITICAL
-)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(logging.CRITICAL)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(logging.CRITICAL)
 
 logger = logging.getLogger(__name__)
 
@@ -95,9 +90,7 @@ server = Server()
                 name="Web Search (DuckDuckGo)",
                 description="Retrieves real-time search results.",
             ),
-            AgentDetailTool(
-                name="Wikipedia Search", description="Fetches summaries from Wikipedia."
-            ),
+            AgentDetailTool(name="Wikipedia Search", description="Fetches summaries from Wikipedia."),
             AgentDetailTool(
                 name="Weather Information (OpenMeteo)",
                 description="Provides real-time weather updates.",
@@ -137,9 +130,7 @@ server = Server()
                 """
             ),
             tags=["chat"],
-            examples=[
-                "Please find a room in LA, CA, April 15, 2025, checkout date is april 18, 2 adults"
-            ],
+            examples=["Please find a room in LA, CA, April 15, 2025, checkout date is april 18, 2 adults"],
         )
     ],
 )
@@ -153,9 +144,7 @@ async def chat(
     The agent is an AI-powered conversational system with memory, supporting real-time search, Wikipedia lookups,
     and weather updates through integrated tools.
     """
-    extracted_files = await extract_files(
-        history=messages[context.context_id], incoming_message=message
-    )
+    extracted_files = await extract_files(history=messages[context.context_id], incoming_message=message)
     input = to_framework_message(message)
 
     # Configure tools
@@ -173,7 +162,7 @@ Citation Requirements:
 Examples:
 - According to [OpenAI's latest announcement](https://example.com/gpt5), GPT-5 will be released next year.
 - Recent studies show [AI adoption has increased by 67%](https://example.com/ai-study) in enterprise environments.
-- Weather data indicates [temperatures will reach 25°C tomorrow](https://weather.example.com/forecast).""" # type: ignore
+- Weather data indicates [temperatures will reach 25°C tomorrow](https://weather.example.com/forecast)."""  # type: ignore
 
     tools = [
         # Auxiliary tools
@@ -264,16 +253,14 @@ Examples:
 
         message = AgentMessage(
             text=clean_text,
-            metadata=(
-                citation.citation_metadata(citations=citations) if citations else None
-            ),
+            metadata=(citation.citation_metadata(citations=citations) if citations else None),
         )
         messages[context.context_id].append(message)
         yield message
 
 
 def serve():
-    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)), configure_telemetry=True)
 
 
 if __name__ == "__main__":
