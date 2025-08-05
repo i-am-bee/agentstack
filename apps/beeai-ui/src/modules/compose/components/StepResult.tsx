@@ -5,12 +5,16 @@
 
 import { Accordion, AccordionItem } from '@carbon/react';
 import clsx from 'clsx';
+import { useMemo } from 'react';
 
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 import { useAutoScroll } from '#hooks/useAutoScroll.ts';
-import { RunLogItem } from '#modules/runs/components/RunLogItem.tsx';
+import type { UITrajectoryPart } from '#modules/messages/types.ts';
+import { getMessageRawContent, getMessageTrajectories } from '#modules/messages/utils.ts';
+import { TrajectoryList } from '#modules/trajectories/components/TrajectoryList.tsx';
+import { hasViewableTrajectoryParts } from '#modules/trajectories/utils.ts';
 
-import type { ComposeStep } from '../contexts/compose-context';
+import { ComposeStatus, type ComposeStep } from '../contexts/compose-context';
 import classes from './StepResult.module.scss';
 
 interface Props {
@@ -18,21 +22,20 @@ interface Props {
 }
 
 export function StepResult({ step }: Props) {
-  const { isPending, logs, stats, result } = step;
+  const { status, stats, result } = step;
 
-  const isFinished = Boolean(!isPending && result);
+  const isFinished = status === ComposeStatus.Completed;
+  const isPending = status === ComposeStatus.InProgress;
+
+  const rawContent = useMemo(() => result && getMessageRawContent(result), [result]);
 
   if (!(isPending || stats || result)) return null;
+
+  const trajectories = result && getMessageTrajectories(result).filter(hasViewableTrajectoryParts);
 
   return (
     <div className={clsx(classes.root, { [classes.finished]: isFinished, [classes.pending]: isPending })}>
       <Accordion>
-        {logs?.length ? (
-          <AccordionItem title="Logs" open={!isFinished ? isPending : undefined} className={classes.logsGroup}>
-            <Logs logs={logs} />
-          </AccordionItem>
-        ) : null}
-
         {isFinished && (
           <AccordionItem
             className={clsx(classes.resultGroup, { [classes.empty]: !result })}
@@ -42,20 +45,25 @@ export function StepResult({ step }: Props) {
               </div>
             }
           >
-            <MarkdownContent>{result}</MarkdownContent>
+            <MarkdownContent>{rawContent}</MarkdownContent>
           </AccordionItem>
         )}
+        {trajectories?.length ? (
+          <AccordionItem title="How did I get this answer?" open={!isFinished ? isPending : undefined}>
+            <Trajectories trajectories={trajectories} />
+          </AccordionItem>
+        ) : null}
       </Accordion>
     </div>
   );
 }
 
-function Logs({ logs }: { logs: string[] }) {
-  const { ref: autoScrollRef } = useAutoScroll([logs.length]);
+function Trajectories({ trajectories }: { trajectories: UITrajectoryPart[] }) {
+  const { ref: autoScrollRef } = useAutoScroll([trajectories.length]);
 
   return (
-    <div className={classes.logs}>
-      {logs?.map((message, order) => <RunLogItem key={order}>{message}</RunLogItem>)}
+    <div className={classes.trajectories}>
+      <TrajectoryList trajectories={trajectories} isOpen />
       <div ref={autoScrollRef} />
     </div>
   );

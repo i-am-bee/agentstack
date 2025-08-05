@@ -4,9 +4,7 @@
  */
 
 'use client';
-
 import { type PropsWithChildren, useCallback, useMemo, useRef, useState } from 'react';
-import { match } from 'ts-pattern';
 import { v4 as uuid } from 'uuid';
 
 import { buildA2AClient } from '#api/a2a/client.ts';
@@ -18,14 +16,14 @@ import { useImmerWithGetter } from '#hooks/useImmerWithGetter.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { FileUploadProvider } from '#modules/files/contexts/FileUploadProvider.tsx';
 import { useFileUpload } from '#modules/files/contexts/index.ts';
-import { convertFilesToUIFileParts, transformFilePart } from '#modules/files/utils.ts';
+import { convertFilesToUIFileParts } from '#modules/files/utils.ts';
 import { Role } from '#modules/messages/api/types.ts';
 import type { UIAgentMessage, UIMessage, UIUserMessage } from '#modules/messages/types.ts';
-import { UIMessagePartKind, UIMessageStatus } from '#modules/messages/types.ts';
-import { isAgentMessage, sortMessageParts } from '#modules/messages/utils.ts';
+import { UIMessageStatus } from '#modules/messages/types.ts';
+import { isAgentMessage, processMessagePart } from '#modules/messages/utils.ts';
 import type { RunStats } from '#modules/runs/types.ts';
 import { SourcesProvider } from '#modules/sources/contexts/SourcesProvider.tsx';
-import { getMessageSourcesMap, transformSourcePart } from '#modules/sources/utils.ts';
+import { getMessageSourcesMap } from '#modules/sources/utils.ts';
 
 import { MessagesProvider } from '../../../messages/contexts/MessagesProvider';
 import { AgentStatusProvider } from '../agent-status/AgentStatusProvider';
@@ -156,26 +154,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
 
           parts.forEach((part) => {
             updateLastAgentMessage((message) => {
-              match(part)
-                .with({ kind: UIMessagePartKind.File }, (part) => {
-                  const transformedPart = transformFilePart(part, message);
-
-                  if (transformedPart) {
-                    message.parts.push(transformedPart);
-                  } else {
-                    message.parts.push(part);
-                  }
-                })
-                .with({ kind: UIMessagePartKind.Source }, (part) => {
-                  const transformedPart = transformSourcePart(part);
-
-                  message.parts.push(part, transformedPart);
-                })
-                .otherwise((part) => {
-                  message.parts.push(part);
-                });
-
-              message.parts = sortMessageParts(message.parts);
+              processMessagePart(part, message);
             });
           });
         });

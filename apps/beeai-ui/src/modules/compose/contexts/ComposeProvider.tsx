@@ -19,10 +19,11 @@ import { useUpdateSearchParams } from '#hooks/useUpdateSearchParams.ts';
 import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
 import { Role } from '#modules/messages/api/types.ts';
-import { UIMessagePartKind, type UIUserMessage } from '#modules/messages/types.ts';
+import { UIMessagePartKind, UIMessageStatus, type UIUserMessage } from '#modules/messages/types.ts';
+import { getMessageRawContent, processMessagePart } from '#modules/messages/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
-import type { UIComposePart } from '../a2a/types';
+import { type UIComposePart, UIComposePartKind } from '../a2a/types';
 import { createSequentailInputDataPart, handleTaskStatusUpdate } from '../a2a/utils';
 import { SEQUENTIAL_WORKFLOW_AGENT_NAME, SEQUENTIAL_WORKFLOW_AGENTS_URL_PARAM } from '../sequential/constants';
 import type { ComposeStep, SequentialFormValues } from './compose-context';
@@ -51,15 +52,13 @@ export function ComposeProvider({ children }: PropsWithChildren) {
       sequentialAgent &&
       buildA2AClient<UIComposePart>({
         providerId: sequentialAgent.provider.id,
-        customStatusUpdateHandler: handleTaskStatusUpdate,
+        onStatusUpdate: handleTaskStatusUpdate,
       }),
     [sequentialAgent],
   );
 
   const lastStep = steps.at(-1);
-  const result = useMemo(() => lastStep?.result, [lastStep]);
-
-  // const lastAgentIdx = 0;
+  const result = useMemo(() => (lastStep?.result ? getMessageRawContent(lastStep.result) : undefined), [lastStep]);
 
   const previousSteps = usePrevious(steps);
 
@@ -83,139 +82,26 @@ export function ComposeProvider({ children }: PropsWithChildren) {
         agentNames
           .map((name) => {
             const agent = agents.find((agent) => name === agent.name);
-            return agent ? { agent, instruction: '' } : null;
+            return agent ? { agent, instruction: '', status: ComposeStatus.Ready } : null;
           })
           .filter(isNotNull),
       );
     }
   }, [agents, replaceSteps, searchParams, steps.length]);
 
-  // const { isPending, stopAgent, reset } = useRunAgent({
-  //   onDone: () => {
-  //     const steps = getValues('steps');
-
-  //     replaceSteps(
-  //       steps.map((step) => {
-  //         step.isPending = false;
-
-  //         if (step.stats && !step.stats?.endTime) {
-  //           step.stats.endTime = Date.now();
-  //         }
-
-  //         return step;
-  //       }),
-  //     );
-  //   },
-  //   onFailed: (_, error) => {
-  //     handleError(error);
-  //   },
-  // TODO: A2A
-  // onPart: (event) => {
-  //   const { part } = event;
-  //   if (isArtifactPart(part)) {
-  //     return;
-  //   }
-  //   // TODO: we could probably figure out better typing
-  //   const { agent_idx, content } = part as ComposeMessagePart;
-  //   const step = getStep(agent_idx);
-  //   if (!step) {
-  //     return;
-  //   }
-  //   const updatedStep = {
-  //     ...step,
-  //     isPending: true,
-  //     stats: {
-  //       startTime: step.stats?.startTime ?? Date.now(),
-  //     },
-  //     result: `${step.result ?? ''}${content ?? ''}`,
-  //   };
-  //   updateStep(agent_idx, updatedStep);
-  //   if (agent_idx > 0) {
-  //     const stepsBefore = getValues('steps').slice(0, agent_idx);
-  //     stepsBefore.forEach((step, stepsBeforeIndex) => {
-  //       if (step.isPending || !step.stats?.endTime) {
-  //         updateStep(stepsBeforeIndex, { ...step, isPending: false, stats: { ...step.stats, endTime: Date.now() } });
-  //       }
-  //     });
-  //   }
-  // },
-  // onCompleted: (event) => {
-  //   const finalAgentIdx = steps.length - 1;
-  //   const output = extractOutput(
-  //     event.run.output.map((message) => {
-  //       return {
-  //         ...message,
-  //         parts: message.parts.filter((part) => (part as ComposeMessagePart).agent_idx === finalAgentIdx),
-  //       };
-  //     }),
-  //   );
-  //   const lastStep = getValues('steps').at(-1);
-  //   updateStep(finalAgentIdx, { ...lastStep!, result: output });
-  // },
-  // onGeneric: (event) => {
-  //   const { generic } = event;
-  //   const { agent_idx } = generic;
-  //   if (isNotNull(agent_idx)) {
-  //     if (agent_idx !== lastAgentIdx) {
-  //       const steps = getValues('steps');
-  //       const pendingStepIndex = steps.findIndex((step) => step.isPending);
-  //       const pendingStep = steps.at(pendingStepIndex);
-  //       if (pendingStep) {
-  //         const updatedStep = {
-  //           ...pendingStep,
-  //           isPending: false,
-  //           stats: { ...pendingStep.stats, endTime: Date.now() },
-  //         };
-  //         updateStep(pendingStepIndex, updatedStep);
-  //         const nextStepIndex = pendingStepIndex + 1;
-  //         const nextStep = steps.at(pendingStepIndex + 1);
-  //         if (nextStep) {
-  //           const nextUpdatedStep = {
-  //             ...nextStep,
-  //             isPending: true,
-  //             stats: {
-  //               startTime: nextStep.stats?.startTime ?? Date.now(),
-  //             },
-  //           };
-  //           updateStep(nextStepIndex, nextUpdatedStep);
-  //         }
-  //       }
-  //     }
-  //     if (generic) {
-  //       const step = getStep(agent_idx);
-  //       const metadata = createTrajectoryMetadata(generic);
-  //       const updatedStep = {
-  //         ...step,
-  //         isPending: true,
-  //         stats: {
-  //           startTime: step.stats?.startTime ?? Date.now(),
-  //         },
-  //         logs: [...(step.logs ?? []), metadata?.message].filter(isNotNull),
-  //       };
-  //       updateStep(agent_idx, updatedStep);
-  //     }
-  //     lastAgentIdx = agent_idx;
-  //   }
-  // },
-  // });
-
-  // const getActiveStep = useCallback(() => getValues(`steps`).findLast(({ isPending }) => isPending), [getValues]);
+  const getActiveStepIdx = useCallback(() => {
+    const steps = getValues(`steps`);
+    return steps.findLastIndex(({ status }) => status === ComposeStatus.InProgress);
+  }, [getValues]);
 
   const updateStep = useCallback(
-    (idx: number, value: ComposeStep) => {
-      setValue(`steps.${idx}`, value);
-    },
-    [setValue],
-  );
-
-  const updateActiveStep = useCallback(
-    (updater: (step: ComposeStep) => ComposeStep) => {
-      const steps = getValues(`steps`);
-      const activeStepIdx = steps.findLastIndex(({ isPending }) => isPending);
-      if (activeStepIdx != -1) {
-        const activeStep = steps.at(activeStepIdx);
-        setValue(`steps.${activeStepIdx}`, updater(activeStep!));
+    (idx: number, updater: ComposeStep | ((step: ComposeStep) => ComposeStep)) => {
+      const step = getValues(`steps`).at(idx);
+      if (!step) {
+        throw new Error(`Unexpected step at index ${idx}.`);
       }
+
+      setValue(`steps.${idx}`, typeof updater === 'function' ? updater(step) : updater);
     },
     [getValues, setValue],
   );
@@ -236,13 +122,11 @@ export function ComposeProvider({ children }: PropsWithChildren) {
 
     replaceSteps(
       steps.map((step) => {
-        step.isPending = false;
-
-        if (step.stats && !step.stats?.endTime) {
-          step.stats.endTime = Date.now();
-        }
-
-        return step;
+        return {
+          ...step,
+          status: ComposeStatus.Completed,
+          stats: { ...step.stats, endTime: step.stats?.endTime ?? Date.now() },
+        };
       }),
     );
   }, [getValues, replaceSteps]);
@@ -261,8 +145,7 @@ export function ComposeProvider({ children }: PropsWithChildren) {
           updateStep(idx, {
             ...step,
             result: undefined,
-            isPending: idx === 0,
-            logs: [],
+            status: idx === 0 ? ComposeStatus.InProgress : ComposeStatus.Ready,
             stats:
               idx === 0
                 ? {
@@ -286,23 +169,40 @@ export function ComposeProvider({ children }: PropsWithChildren) {
 
         pendingSubscription.current = run.subscribe(({ parts }) => {
           parts.forEach((part) => {
-            console.log({ part });
+            match(part)
+              .with({ kind: UIComposePartKind.SequentialWorkflow }, ({ agentIdx }) => {
+                const activeStepIdx = getActiveStepIdx();
 
-            match(part).with({ kind: UIMessagePartKind.Text }, (part) => {
-              updateActiveStep((step) => {
-                return {
-                  ...step,
-                  isPending: true,
-                  stats: {
-                    startTime: step.stats?.startTime ?? Date.now(),
-                  },
-                  result: `${step.result ?? ''}${part.text ?? ''}`,
+                if (activeStepIdx !== agentIdx) {
+                  updateStep(activeStepIdx, (step) => ({
+                    ...step,
+                    status: ComposeStatus.Completed,
+                    stats: { ...step.stats, endTime: Date.now() },
+                  }));
+
+                  updateStep(agentIdx, (step) => ({
+                    ...step,
+                    status: ComposeStatus.InProgress,
+                    stats: {
+                      startTime: step.stats?.startTime ?? Date.now(),
+                    },
+                  }));
+                }
+              })
+              .otherwise((part) => {
+                const activeStepIdx = getActiveStepIdx();
+
+                const step = getValues(`steps.${activeStepIdx}`);
+                const result = step.result ?? {
+                  id: uuid(),
+                  role: Role.Agent,
+                  parts: [],
+                  status: UIMessageStatus.InProgress,
                 };
+                processMessagePart(part, result);
+
+                updateStep(activeStepIdx, { ...step, result });
               });
-            });
-            // .with({ kind: UIComposePartKind.SequentialWorkflow }, (part) => {
-            //   const activeStep = getActiveStep();
-            // });
           });
         });
 
@@ -315,7 +215,7 @@ export function ComposeProvider({ children }: PropsWithChildren) {
         pendingSubscription.current = undefined;
       }
     },
-    [a2aAgentClient, updateStep, handleError, onDone],
+    [a2aAgentClient, updateStep, getActiveStepIdx, getValues, handleError, onDone],
   );
 
   const onSubmit = useCallback(() => {
@@ -324,40 +224,54 @@ export function ComposeProvider({ children }: PropsWithChildren) {
     })();
   }, [handleSubmit, send]);
 
-  const handleCancel = useCallback(() => {
-    const steps = getValues('steps');
-    replaceSteps(
-      steps.map((step) => ({
-        ...step,
-        stats: {
-          ...step.stats,
-          endTime: step.stats?.endTime ?? Date.now(),
-        },
-        isPending: false,
-      })),
-    );
+  const handleCancel = useCallback(async () => {
+    if (pendingRun.current && pendingSubscription.current) {
+      const steps = getValues('steps');
 
-    // stopAgent();
+      const hasContent = steps.some(({ result }) =>
+        Boolean(result?.parts.some((part) => part.kind !== UIMessagePartKind.Text)),
+      );
+
+      replaceSteps(
+        steps.map(({ stats, result, ...step }) => ({
+          ...step,
+          ...(hasContent
+            ? {
+                result,
+                stats: {
+                  ...stats,
+                  endTime: stats?.endTime ?? Date.now(),
+                },
+              }
+            : {
+                status: ComposeStatus.Ready,
+              }),
+        })),
+      );
+
+      pendingSubscription.current();
+      await pendingRun.current.cancel();
+    } else {
+      throw new Error('No run in progress');
+    }
   }, [getValues, replaceSteps]);
 
   const handleReset = useCallback(() => {
-    // reset();
     replaceSteps([]);
   }, [replaceSteps]);
 
-  const isPending = useMemo(() => steps.some((step) => step.isPending), [steps]);
-
-  const value = useMemo(
-    () => ({
+  const value = useMemo(() => {
+    const isPending = steps.some(({ status }) => status === ComposeStatus.InProgress);
+    const isCompleted = !isPending && steps.every(({ status }) => status === ComposeStatus.Completed);
+    return {
       result,
-      status: isPending ? ComposeStatus.InProgress : result ? ComposeStatus.Completed : ComposeStatus.Ready,
+      status: isPending ? ComposeStatus.InProgress : isCompleted ? ComposeStatus.Completed : ComposeStatus.Ready,
       stepsFields,
       onSubmit,
       onCancel: handleCancel,
       onReset: handleReset,
-    }),
-    [result, isPending, stepsFields, onSubmit, handleCancel, handleReset],
-  );
+    };
+  }, [steps, result, stepsFields, onSubmit, handleCancel, handleReset]);
 
   return <ComposeContext.Provider value={value}>{children}</ComposeContext.Provider>;
 }

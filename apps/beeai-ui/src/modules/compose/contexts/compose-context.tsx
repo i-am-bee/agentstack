@@ -8,6 +8,7 @@ import { createContext } from 'react';
 import type { UseFieldArrayReturn } from 'react-hook-form';
 
 import type { Agent } from '#modules/agents/api/types.ts';
+import type { UIAgentMessage } from '#modules/messages/types.ts';
 import type { RunStats } from '#modules/runs/types.ts';
 
 export const ComposeContext = createContext<ComposeContextValue | null>(null);
@@ -29,9 +30,8 @@ interface ComposeContextValue {
 export interface ComposeStep {
   agent: Agent;
   instruction: string;
-  result?: string;
-  isPending?: boolean;
-  logs?: string[];
+  result?: UIAgentMessage;
+  status: ComposeStatus;
   stats?: RunStats;
 }
 

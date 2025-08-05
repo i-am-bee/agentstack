@@ -137,7 +137,8 @@ async def sequential_workflow(steps_message: Message) -> AsyncIterator:
                 client = A2AClient(httpx_client=http_client, agent_card=agent_card)
                 agent_name = agent_card.name
 
-                yield {"beeai-sequential-workflow" : {
+                yield {
+                  "beeai-sequential-workflow" : {
                     "agent_name": agent_name,
                     "provider_id": step.provider_id,
                     "agent_idx": idx,
@@ -182,7 +183,6 @@ async def sequential_workflow(steps_message: Message) -> AsyncIterator:
                     "agent_idx": idx,
                     "message": f"✅ Agent {agent_name}[{idx}] finished successfully",
                 }
-        yield previous_output
     except Exception as e:
         step_msg = f"{agent_name}[{idx}] - " if current_step else ""
         raise RuntimeError(f"{step_msg}{extract_messages(e)}")

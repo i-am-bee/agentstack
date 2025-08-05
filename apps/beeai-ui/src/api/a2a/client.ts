@@ -15,7 +15,7 @@ import { isNotNull } from '#utils/helpers.ts';
 
 import { AGENT_ERROR_MESSAGE } from './constants';
 import { processFilePart, processMessageMetadata, processTextPart } from './part-processors';
-import type { ChatRun } from './types';
+import type { A2AClientStatusUpdateHandlerParams, ChatRun } from './types';
 import { createUserMessage, extractTextFromMessage } from './utils';
 
 function handleStatusUpdate(event: TaskStatusUpdateEvent): UIMessagePart[] {
@@ -51,20 +51,20 @@ function handleStatusUpdate(event: TaskStatusUpdateEvent): UIMessagePart[] {
   return [...metadataParts, ...contentParts];
 }
 
-export type ExtendableUIMessagePart<Custom = never> = UIMessagePart | Custom;
-
-export const buildA2AClient = <P extends ExtendableUIMessagePart = UIMessagePart>({
-  providerId,
-  customStatusUpdateHandler,
-}: {
+interface CreateA2AClientParams<UIGenericPart = never> {
   providerId: string;
-  customStatusUpdateHandler?: (event: TaskStatusUpdateEvent) => P[];
-}) => {
+  onStatusUpdate?: (params: A2AClientStatusUpdateHandlerParams) => (UIMessagePart | UIGenericPart)[];
+}
+
+export const buildA2AClient = <UIGenericPart = never>({
+  providerId,
+  onStatusUpdate,
+}: CreateA2AClientParams<UIGenericPart>) => {
   const agentUrl = `${getBaseUrl()}/api/v1/a2a/${providerId}`;
   const client = new A2AClient(agentUrl);
 
   const chat = ({ message, contextId }: { message: UIUserMessage; contextId: ContextId }) => {
-    const messageSubject = new Subject<{ parts: P[]; taskId: TaskId }>();
+    const messageSubject = new Subject<{ parts: (UIMessagePart | UIGenericPart)[]; taskId: TaskId }>();
     let taskId: string | null = null;
 
     const iterateOverStream = async () => {
@@ -78,11 +78,9 @@ export const buildA2AClient = <P extends ExtendableUIMessagePart = UIMessagePart
           .with({ kind: 'status-update' }, (event) => {
             taskId = event.taskId;
 
-            const messageParts: P[] = handleStatusUpdate(event) as P[];
-            if (customStatusUpdateHandler) {
-              const customParts = customStatusUpdateHandler(event);
-              messageParts.push(...customParts);
-            }
+            const messageParts: (UIMessagePart | UIGenericPart)[] = onStatusUpdate
+              ? onStatusUpdate({ event, nativeHandler: handleStatusUpdate })
+              : handleStatusUpdate(event);
 
             messageSubject.next({ parts: messageParts, taskId });
           });
@@ -90,7 +88,7 @@ export const buildA2AClient = <P extends ExtendableUIMessagePart = UIMessagePart
       messageSubject.complete();
     };
 
-    const run: ChatRun<P> = {
+    const run: ChatRun<UIGenericPart> = {
       done: iterateOverStream(),
       subscribe: (fn) => {
         const subscription = messageSubject.subscribe(fn);

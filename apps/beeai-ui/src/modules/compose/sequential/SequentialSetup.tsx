@@ -51,7 +51,14 @@ export function SequentialSetup() {
           {result ? (
             <>
               <h1>Sequential workflow</h1>
-              <IconButton kind="tertiary" size="sm" label="New session" autoAlign onClick={() => onReset()}>
+              <IconButton
+                kind="tertiary"
+                size="sm"
+                label="New session"
+                autoAlign
+                onClick={() => onReset()}
+                align="left"
+              >
                 <NewSession />
               </IconButton>
             </>
@@ -72,7 +79,7 @@ export function SequentialSetup() {
             <AddAgentButton
               isDisabled={isPending}
               onSelectAgent={(agent: Agent) => {
-                append({ agent, instruction: '' });
+                append({ agent, instruction: '', status: ComposeStatus.Ready });
               }}
             />
           )}
