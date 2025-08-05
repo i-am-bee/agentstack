@@ -14,7 +14,10 @@ from mcp.client.streamable_http import streamablehttp_client
 
 from beeai_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 
-TRANSPORT_TYPES = Literal["streamable_http", "stdio"]
+_TRANSPORT_TYPES = Literal["streamable_http", "stdio"]
+
+_DEFAULT_DEMAND_NAME = "default"
+_DEFAULT_ALLOWED_TRANSPORTS: list[_TRANSPORT_TYPES] = ["streamable_http"]
 
 
 class StdioTransport(pydantic.BaseModel):
@@ -49,7 +52,7 @@ class MCPDemand(pydantic.BaseModel):
     Identifiers of servers recommended to be used. Usually corresponds to MCP StreamableHTTP URIs.
     """
 
-    allowed_transports: list[TRANSPORT_TYPES] = pydantic.Field(default_factory=lambda: ["streamable_http"])
+    allowed_transports: list[_TRANSPORT_TYPES] = pydantic.Field(default_factory=lambda: _DEFAULT_ALLOWED_TRANSPORTS)
     """
     Transports allowed for the server. Specifying other transports will result in rejection.
     """
@@ -58,9 +61,6 @@ class MCPDemand(pydantic.BaseModel):
 class MCPServiceExtensionParams(pydantic.BaseModel):
     mcp_demands: dict[str, MCPDemand]
     """Server requests that the agent requires to be provided by the client."""
-
-
-_DEFAULT_DEMAND_NAME = "default"
 
 
 class MCPServiceExtensionSpec(BaseExtensionSpec[MCPServiceExtensionParams]):
@@ -72,7 +72,7 @@ class MCPServiceExtensionSpec(BaseExtensionSpec[MCPServiceExtensionParams]):
         name: str = _DEFAULT_DEMAND_NAME,
         description: str | None = None,
         suggested: tuple[str, ...] = (),
-        allowed_transports: list[TRANSPORT_TYPES] | None = None,
+        allowed_transports: list[_TRANSPORT_TYPES] | None = None,
     ) -> Self:
         return cls(
             params=MCPServiceExtensionParams(
@@ -80,7 +80,7 @@ class MCPServiceExtensionSpec(BaseExtensionSpec[MCPServiceExtensionParams]):
                     name: MCPDemand(
                         description=description,
                         suggested=suggested,
-                        allowed_transports=allowed_transports or ["streamable_http"],
+                        allowed_transports=allowed_transports or _DEFAULT_ALLOWED_TRANSPORTS,
                     )
                 }
             )
