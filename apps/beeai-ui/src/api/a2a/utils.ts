@@ -3,7 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FilePart, FileWithUri, Message, Part, TextPart } from '@a2a-js/sdk';
+import type {
+  FilePart,
+  FileWithUri,
+  Message,
+  Part,
+  TaskArtifactUpdateEvent,
+  TaskStatusUpdateEvent,
+  TextPart,
+} from '@a2a-js/sdk';
 import { v4 as uuid } from 'uuid';
 
 import { getFileContentUrl } from '#modules/files/utils.ts';
@@ -144,4 +152,10 @@ export function createTextPart(text: string): UITextPart {
   };
 
   return textPart;
+}
+
+export function isArtifactUpdateEvent(
+  event: TaskStatusUpdateEvent | TaskArtifactUpdateEvent,
+): event is TaskArtifactUpdateEvent {
+  return event.kind === 'artifact-update';
 }

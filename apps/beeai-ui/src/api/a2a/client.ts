@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { TaskStatusUpdateEvent } from '@a2a-js/sdk';
+import type { TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from '@a2a-js/sdk';
 import { A2AClient } from '@a2a-js/sdk/client';
 import { Subject } from 'rxjs';
 import { match } from 'ts-pattern';
@@ -11,12 +11,11 @@ import { match } from 'ts-pattern';
 import type { UIMessagePart, UIUserMessage } from '#modules/messages/types.ts';
 import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
-import { isNotNull } from '#utils/helpers.ts';
 
 import { AGENT_ERROR_MESSAGE } from './constants';
-import { processFilePart, processMessageMetadata, processTextPart } from './part-processors';
+import { processMessageMetadata, processParts } from './part-processors';
 import type { ChatRun } from './types';
-import { createUserMessage, extractTextFromMessage } from './utils';
+import { createUserMessage, extractTextFromMessage, isArtifactUpdateEvent } from './utils';
 
 function handleStatusUpdate(event: TaskStatusUpdateEvent): UIMessagePart[] {
   const { message, state } = event.status;
@@ -32,23 +31,17 @@ function handleStatusUpdate(event: TaskStatusUpdateEvent): UIMessagePart[] {
   }
 
   const metadataParts = processMessageMetadata(message);
-
-  const contentParts = message.parts
-    .flatMap((part) => {
-      const processedParts = match(part)
-        .with({ kind: 'text' }, (part) => processTextPart(part))
-        .with({ kind: 'file' }, processFilePart)
-        .otherwise((otherPart) => {
-          console.warn(`Unsupported part - ${otherPart.kind}`);
-
-          return null;
-        });
-
-      return processedParts;
-    })
-    .filter(isNotNull);
+  const contentParts = processParts(message.parts);
 
   return [...metadataParts, ...contentParts];
+}
+
+function handleArtifactUpdate(event: TaskArtifactUpdateEvent): UIMessagePart[] {
+  const { artifact } = event;
+
+  const contentParts = processParts(artifact.parts);
+
+  return contentParts;
 }
 
 export const buildA2AClient = (providerId: string) => {
@@ -67,12 +60,12 @@ export const buildA2AClient = (providerId: string) => {
           .with({ kind: 'task' }, (task) => {
             taskId = task.id;
           })
-          .with({ kind: 'status-update' }, (event) => {
+          .with({ kind: 'status-update' }, { kind: 'artifact-update' }, (event) => {
             taskId = event.taskId;
 
-            const messageParts = handleStatusUpdate(event);
+            const parts = isArtifactUpdateEvent(event) ? handleArtifactUpdate(event) : handleStatusUpdate(event);
 
-            messageSubject.next({ parts: messageParts, taskId });
+            messageSubject.next({ parts, taskId });
           });
       }
       messageSubject.complete();
