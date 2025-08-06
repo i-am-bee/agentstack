@@ -11,7 +11,7 @@ import pytest
 import pytest_asyncio
 from a2a.client import A2AClient
 from a2a.types import AgentCard
-from beeai_sdk.platform import Variables, with_client
+from beeai_sdk.platform import Variables, use_platform_client
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ async def a2a_client_factory() -> Callable[[AgentCard | dict[str, Any]], AsyncIt
 
 @pytest_asyncio.fixture()
 async def setup_platform_client(test_configuration) -> AsyncIterator[None]:
-    async with with_client(base_url=test_configuration.server_url, timeout=None):
+    async with use_platform_client(base_url=test_configuration.server_url, timeout=None):
         yield None
 
 

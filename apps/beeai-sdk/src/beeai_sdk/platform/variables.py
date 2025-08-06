@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import httpx
 
-from beeai_sdk.platform.context import get_client
+from beeai_sdk.platform.context import get_platform_client
 
 
 class Variables(dict[str, str]):
@@ -21,7 +21,7 @@ class Variables(dict[str, str]):
         ...or as an instance method: variables.save()
         """
         _ = (
-            await (client or get_client()).put(
+            await (client or get_platform_client()).put(
                 url="/api/v1/variables",
                 json={"env": self},
             )
@@ -35,7 +35,7 @@ class Variables(dict[str, str]):
         ...or as an instance method to update the instance: variables.load()
         """
         new_variables: dict[str, str] = (
-            (await (client or get_client()).get(url="/api/v1/variables")).raise_for_status().json()
+            (await (client or get_platform_client()).get(url="/api/v1/variables")).raise_for_status().json()
         )
         if isinstance(self, Variables):
             self.clear()

@@ -8,7 +8,7 @@ import httpx
 import pydantic
 from a2a.types import AgentCard
 
-from beeai_sdk.platform.context import get_client
+from beeai_sdk.platform.context import get_platform_client
 
 
 class ProviderErrorMessage(pydantic.BaseModel):
@@ -44,7 +44,7 @@ class Provider(pydantic.BaseModel):
     ) -> "Provider":
         return pydantic.TypeAdapter(Provider).validate_python(
             (
-                await (client or get_client()).post(
+                await (client or get_platform_client()).post(
                     url="/api/v1/providers",
                     json={
                         "location": location,
@@ -66,7 +66,7 @@ class Provider(pydantic.BaseModel):
     ) -> "Provider":
         return pydantic.TypeAdapter(Provider).validate_python(
             (
-                await (client or get_client()).post(
+                await (client or get_platform_client()).post(
                     url="/api/v1/providers/preview",
                     json={
                         "location": location,
@@ -82,7 +82,9 @@ class Provider(pydantic.BaseModel):
         # `self` has a weird type so that you can call both `instance.get()` to update an instance, or `Provider.get("123")` to obtain a new instance
         provider_id = self if isinstance(self, str) else self.id
         result = pydantic.TypeAdapter(Provider).validate_json(
-            (await (client or get_client()).get(url=f"/api/v1/providers/{provider_id}")).raise_for_status().content
+            (await (client or get_platform_client()).get(url=f"/api/v1/providers/{provider_id}"))
+            .raise_for_status()
+            .content
         )
         if isinstance(self, Provider):
             self.__dict__.update(result.__dict__)
@@ -92,10 +94,10 @@ class Provider(pydantic.BaseModel):
     async def delete(self: "Provider | str", /, *, client: httpx.AsyncClient | None = None) -> None:
         # `self` has a weird type so that you can call both `instance.delete()` or `Provider.delete("123")`
         provider_id = self if isinstance(self, str) else self.id
-        _ = (await (client or get_client()).delete(f"/api/v1/providers/{provider_id}")).raise_for_status()
+        _ = (await (client or get_platform_client()).delete(f"/api/v1/providers/{provider_id}")).raise_for_status()
 
     @staticmethod
     async def list(*, client: httpx.AsyncClient | None = None) -> list["Provider"]:
         return pydantic.TypeAdapter(list[Provider]).validate_python(
-            (await (client or get_client()).get(url="/api/v1/providers")).raise_for_status().json()["items"]
+            (await (client or get_platform_client()).get(url="/api/v1/providers")).raise_for_status().json()["items"]
         )

@@ -8,7 +8,7 @@ import typing
 import httpx
 import pydantic
 
-from beeai_sdk.platform.context import get_client
+from beeai_sdk.platform.context import get_platform_client
 
 
 class Extraction(pydantic.BaseModel):
@@ -43,7 +43,7 @@ class File(pydantic.BaseModel):
     ) -> File:
         return pydantic.TypeAdapter(File).validate_python(
             (
-                await (client or get_client()).post(
+                await (client or get_platform_client()).post(
                     url="/api/v1/files",
                     files={"file": (filename, content, content_type)},
                 )
@@ -60,7 +60,7 @@ class File(pydantic.BaseModel):
         # `self` has a weird type so that you can call both `instance.get()` to update an instance, or `File.get("123")` to obtain a new instance
         file_id = self if isinstance(self, str) else self.id
         return pydantic.TypeAdapter(File).validate_python(
-            (await (client or get_client()).get(url=f"/api/v1/files/{file_id}")).raise_for_status().json()
+            (await (client or get_platform_client()).get(url=f"/api/v1/files/{file_id}")).raise_for_status().json()
         )
 
     async def delete(
@@ -70,7 +70,7 @@ class File(pydantic.BaseModel):
     ) -> None:
         # `self` has a weird type so that you can call both `instance.delete()` or `File.delete("123")`
         file_id = self if isinstance(self, str) else self.id
-        _ = (await (client or get_client()).delete(url=f"/api/v1/files/{file_id}")).raise_for_status()
+        _ = (await (client or get_platform_client()).delete(url=f"/api/v1/files/{file_id}")).raise_for_status()
 
     async def content(
         self: File | str,
@@ -79,7 +79,11 @@ class File(pydantic.BaseModel):
     ) -> str:
         # `self` has a weird type so that you can call both `instance.content()` to get content of an instance, or `File.content("123")`
         file_id = self if isinstance(self, str) else self.id
-        return (await (client or get_client()).get(url=f"/api/v1/files/{file_id}/content")).raise_for_status().text
+        return (
+            (await (client or get_platform_client()).get(url=f"/api/v1/files/{file_id}/content"))
+            .raise_for_status()
+            .text
+        )
 
     async def text_content(
         self: File | str,
@@ -88,7 +92,11 @@ class File(pydantic.BaseModel):
     ) -> str:
         # `self` has a weird type so that you can call both `instance.text_content()` to get text content of an instance, or `File.text_content("123")`
         file_id = self if isinstance(self, str) else self.id
-        return (await (client or get_client()).get(url=f"/api/v1/files/{file_id}/text_content")).raise_for_status().text
+        return (
+            (await (client or get_platform_client()).get(url=f"/api/v1/files/{file_id}/text_content"))
+            .raise_for_status()
+            .text
+        )
 
     async def create_extraction(
         self: File | str,
@@ -99,7 +107,7 @@ class File(pydantic.BaseModel):
         file_id = self if isinstance(self, str) else self.id
         return pydantic.TypeAdapter(Extraction).validate_python(
             (
-                await (client or get_client()).post(
+                await (client or get_platform_client()).post(
                     url=f"/api/v1/files/{file_id}/extraction",
                 )
             )
@@ -116,7 +124,7 @@ class File(pydantic.BaseModel):
         file_id = self if isinstance(self, str) else self.id
         return pydantic.TypeAdapter(Extraction).validate_python(
             (
-                await (client or get_client()).get(
+                await (client or get_platform_client()).get(
                     url=f"/api/v1/files/{file_id}/extraction",
                 )
             )
@@ -131,4 +139,6 @@ class File(pydantic.BaseModel):
     ) -> None:
         # `self` has a weird type so that you can call both `instance.delete_extraction()` or `File.delete_extraction("123", "456")`
         file_id = self if isinstance(self, str) else self.id
-        _ = (await (client or get_client()).delete(url=f"/api/v1/files/{file_id}/extraction")).raise_for_status()
+        _ = (
+            await (client or get_platform_client()).delete(url=f"/api/v1/files/{file_id}/extraction")
+        ).raise_for_status()

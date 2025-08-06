@@ -10,7 +10,7 @@ from textwrap import dedent
 import httpx
 import pydantic
 
-from beeai_sdk.platform.context import get_client
+from beeai_sdk.platform.context import get_platform_client
 
 
 def validate_metadata(metadata: dict[str, str]) -> dict[str, str]:
@@ -88,7 +88,7 @@ class VectorStore(pydantic.BaseModel):
     ) -> VectorStore:
         return pydantic.TypeAdapter(VectorStore).validate_json(
             (
-                await (client or get_client()).post(
+                await (client or get_platform_client()).post(
                     url="/api/v1/vector_stores",
                     json={"name": name, "dimension": dimension, "model_id": model_id},
                 )
@@ -107,7 +107,7 @@ class VectorStore(pydantic.BaseModel):
         vector_store_id = self if isinstance(self, str) else self.id
         result = pydantic.TypeAdapter(VectorStore).validate_json(
             (
-                await (client or get_client()).get(
+                await (client or get_platform_client()).get(
                     url=f"/api/v1/vector_stores/{vector_store_id}",
                 )
             )
@@ -128,7 +128,7 @@ class VectorStore(pydantic.BaseModel):
         # `self` has a weird type so that you can call both `instance.delete()` or `VectorStore.delete("123")`
         vector_store_id = self if isinstance(self, str) else self.id
         _ = (
-            await (client or get_client()).delete(
+            await (client or get_platform_client()).delete(
                 url=f"/api/v1/vector_stores/{vector_store_id}",
             )
         ).raise_for_status()
@@ -139,7 +139,7 @@ class VectorStore(pydantic.BaseModel):
         # `self` has a weird type so that you can call both `instance.add_documents()` or `VectorStore.add_documents("123", items)`
         vector_store_id = self if isinstance(self, str) else self.id
         _ = (
-            await (client or get_client()).put(
+            await (client or get_platform_client()).put(
                 url=f"/api/v1/vector_stores/{vector_store_id}",
                 json=[item.model_dump(mode="json") for item in items],
             )
@@ -157,7 +157,7 @@ class VectorStore(pydantic.BaseModel):
         vector_store_id = self if isinstance(self, str) else self.id
         return pydantic.TypeAdapter(list[VectorStoreSearchResult]).validate_python(
             (
-                await (client or get_client()).post(
+                await (client or get_platform_client()).post(
                     url=f"/api/v1/vector_stores/{vector_store_id}/search",
                     json={"query_vector": query_vector, "limit": limit},
                 )
@@ -175,7 +175,7 @@ class VectorStore(pydantic.BaseModel):
         # `self` has a weird type so that you can call both `instance.list_documents()` to list documents in an instance, or `VectorStore.list_documents("123")`
         vector_store_id = self if isinstance(self, str) else self.id
         return pydantic.TypeAdapter(list[VectorStoreDocument]).validate_python(
-            (await (client or get_client()).get(url=f"/api/v1/vector_stores/{vector_store_id}/documents"))
+            (await (client or get_platform_client()).get(url=f"/api/v1/vector_stores/{vector_store_id}/documents"))
             .raise_for_status()
             .json()["items"]
         )
@@ -190,7 +190,7 @@ class VectorStore(pydantic.BaseModel):
         # `self` has a weird type so that you can call both `instance.delete_document()` or `VectorStore.delete_document("123", "456")`
         vector_store_id = self if isinstance(self, str) else self.id
         _ = (
-            await (client or get_client()).delete(
+            await (client or get_platform_client()).delete(
                 url=f"/api/v1/vector_stores/{vector_store_id}/documents/{document_id}",
             )
         ).raise_for_status()
