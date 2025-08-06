@@ -137,9 +137,6 @@ importers:
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
-      lottie-react:
-        specifier: ^2.4.1
-        version: 2.4.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       mdast-util-to-hast:
         specifier: ^13.2.0
         version: 13.2.0
@@ -330,6 +327,9 @@ importers:
       framer-motion:
         specifier: '*'
         version: 12.6.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      lottie-react:
+        specifier: '*'
+        version: 2.4.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       next:
         specifier: '*'
         version: 15.3.3(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sass@1.85.0)

@@ -6,7 +6,7 @@
 import { LogoGithub } from '@carbon/icons-react';
 import { Button } from '@carbon/react';
 
-import { GITHUB_REPO_LINK } from '#utils/constants.ts';
+import { GITHUB_REPO_LINK } from '@/constants';
 
 import classes from './GitHubButton.module.scss';
 
@@ -14,7 +14,7 @@ export function GitHubButton() {
   return (
     <Button as="a" href={GITHUB_REPO_LINK} target="_blank" rel="noreferrer" size="md" className={classes.root}>
       <LogoGithub />
-      <span>GitHub</span>
+      <span>Hack with us on GitHub</span>
     </Button>
   );
 }

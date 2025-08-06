@@ -10,10 +10,27 @@
   border-block-end: 1px solid $border-subtle-00;
 }
 
-.holder {
+.nav {
+  display: contents;
+}
+
+.logo {
   display: flex;
-  column-gap: $gap;
-  justify-content: space-between;
+  block-size: $spacing-09;
   align-items: center;
-  block-size: rem(48px);
+  font-size: rem(14px);
+  line-height: math.div(18, 14);
+  color: $text-dark;
+  text-decoration: none;
+}
+
+.navItems {
+  grid-column: 2 / 8;
+}
+
+.right {
+  grid-column: 8 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }

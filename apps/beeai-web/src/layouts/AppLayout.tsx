@@ -3,21 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { GitHubLink } from '@i-am-bee/beeai-ui';
 import type { PropsWithChildren } from 'react';
 
 import { AppHeader } from './AppHeader';
 import classes from './AppLayout.module.scss';
-import { Navigation } from './Navigation';
 
 export default function AppLayout({ children }: PropsWithChildren) {
   return (
     <div className={classes.root}>
-      <AppHeader className={classes.header}>
-        <Navigation />
-
-        <GitHubLink />
-      </AppHeader>
+      <AppHeader className={classes.header} />
 
       <main className={classes.main} data-route-transition>
         {children}

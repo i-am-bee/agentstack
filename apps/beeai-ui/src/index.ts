@@ -6,7 +6,6 @@
 export * from './components/CopySnippet/CopySnippet';
 export * from './components/ErrorPage/ErrorPage';
 export * from './components/FooterNav/FooterNav';
-export * from './components/GitHubLink/GitHubLink';
 export * from './components/layouts/AppFooter';
 export * from './components/layouts/Container';
 export type * from './components/MainContentView/MainContentView';
@@ -30,7 +29,6 @@ export * from './modules/agents/components/AgentTags';
 export * from './modules/agents/components/BeeBadge';
 export * from './modules/agents/providers/AgentsFiltersProvider';
 export * from './modules/agents/utils';
-export * from './modules/home/components/GettingStarted';
 export * from './utils/commands';
 export * from './utils/constants';
 export * from './utils/fadeProps';

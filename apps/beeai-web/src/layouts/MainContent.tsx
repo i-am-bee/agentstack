@@ -7,11 +7,7 @@
 
 import type { MainContentViewProps } from '@i-am-bee/beeai-ui';
 import { MainContentView } from '@i-am-bee/beeai-ui';
-import { usePathname } from 'next/navigation';
 
 export function MainContent({ ...props }: MainContentViewProps) {
-  const pathname = usePathname();
-  const isAgentsRoute = pathname === '/agents';
-
-  return <MainContentView enableToTopButton={isAgentsRoute} showFooter {...props} />;
+  return <MainContentView showFooter {...props} />;
 }

@@ -17,10 +17,6 @@ export const API_URL = process.env.API_URL ?? 'http://127.0.0.1:8333';
 
 export const PROD_MODE = process.env.NODE_ENV === 'production';
 
-export const GITHUB_REPO_LINK = 'https://github.com/i-am-bee/beeai';
-
-export const FRAMEWORK_GITHUB_REPO_LINK = 'https://github.com/i-am-bee/beeai-framework';
-
 export const DISCORD_LINK = 'https://discord.gg/NradeA6ZNF';
 
 export const YOUTUBE_LINK = 'https://www.youtube.com/@BeeAIAgents';
@@ -30,8 +26,6 @@ export const BLUESKY_LINK = 'https://bsky.app/profile/beeaiagents.bsky.social';
 export const GET_SUPPORT_LINK = 'https://github.com/i-am-bee/beeai-platform/discussions/categories/q-a';
 
 export const DOCUMENTATION_LINK = 'https://docs.beeai.dev';
-
-export const ACP_DOCUMENTATION_LINK = 'https://agentcommunicationprotocol.dev/introduction/welcome';
 
 export const BEE_AI_FRAMEWORK_TAG = 'BeeAI';
 

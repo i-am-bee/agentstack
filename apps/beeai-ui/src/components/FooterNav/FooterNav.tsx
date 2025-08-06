@@ -7,13 +7,7 @@ import { LogoDiscord, LogoYoutube } from '@carbon/icons-react';
 import clsx from 'clsx';
 
 import LogoBluesky from '#svgs/LogoBluesky.svg';
-import {
-  ACP_DOCUMENTATION_LINK,
-  BLUESKY_LINK,
-  DISCORD_LINK,
-  FRAMEWORK_GITHUB_REPO_LINK,
-  YOUTUBE_LINK,
-} from '#utils/constants.ts';
+import { BLUESKY_LINK, DISCORD_LINK, YOUTUBE_LINK } from '#utils/constants.ts';
 
 import classes from './FooterNav.module.scss';
 
@@ -24,16 +18,6 @@ interface Props {
 export function FooterNav({ className }: Props) {
   return (
     <nav className={clsx(classes.root, className)}>
-      <ul className={classes.nav}>
-        {NAV_ITEMS.map(({ label, href }) => (
-          <li key={label} className={classes.item}>
-            <a href={href} target="_blank" rel="noreferrer" aria-label={label} className={classes.link}>
-              {label}
-            </a>
-          </li>
-        ))}
-      </ul>
-      <hr />
       <ul className={clsx(classes.nav, classes.navSocial)}>
         {SOCIAL_NAV_ITEMS.map(({ label, href, Icon }) => (
           <li key={label} className={classes.item}>
@@ -46,16 +30,6 @@ export function FooterNav({ className }: Props) {
     </nav>
   );
 }
-const NAV_ITEMS = [
-  {
-    label: 'BeeAI Framework',
-    href: FRAMEWORK_GITHUB_REPO_LINK,
-  },
-  {
-    label: 'ACP',
-    href: ACP_DOCUMENTATION_LINK,
-  },
-];
 
 const SOCIAL_NAV_ITEMS = [
   {
