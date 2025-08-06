@@ -9,8 +9,8 @@ pytestmark = pytest.mark.e2e
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("clean_up")
-async def test_vector_stores(subtests, api_client):
+@pytest.mark.usefixtures("clean_up", "setup_platform_client")
+async def test_vector_stores(subtests):
     items = [
         VectorStoreItem(
             document_id="doc_001",
@@ -43,19 +43,22 @@ async def test_vector_stores(subtests, api_client):
             name="test-vector-store",
             dimension=128,
             model_id="custom_model_id",
-            client=api_client,
         )
 
     with subtests.test("upload vectors"):
-        await vector_store.add_documents(items, client=api_client)
+        await vector_store.add_documents(
+            items,
+        )
 
     with subtests.test("verify usage_bytes updated after upload"):
-        await vector_store.get(client=api_client)
+        await vector_store.get()
         usage_bytes = vector_store.stats.usage_bytes if vector_store.stats else 0
         assert usage_bytes > 0, "Usage bytes should be greater than 0 after uploading vectors"
 
     with subtests.test("search vectors"):
-        search_results = await vector_store.search(query_vector=[1.0] * 127 + [1.0], client=api_client)
+        search_results = await vector_store.search(
+            query_vector=[1.0] * 127 + [1.0],
+        )
 
         # Check that each result has the new structure with item and score
         for result in search_results:
@@ -71,8 +74,8 @@ async def test_vector_stores(subtests, api_client):
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("clean_up")
-async def test_vector_store_deletion(subtests, api_client):
+@pytest.mark.usefixtures("clean_up", "setup_platform_client")
+async def test_vector_store_deletion(subtests):
     """Test vector store deletion functionality"""
     items = [
         VectorStoreItem(
@@ -86,34 +89,33 @@ async def test_vector_store_deletion(subtests, api_client):
     ]
 
     with subtests.test("create vector store for deletion test"):
-        vector_store = await VectorStore.create(
-            name="test-deletion-store",
-            dimension=128,
-            model_id="custom_model_id",
-            client=api_client,
-        )
+        vector_store = await VectorStore.create(name="test-deletion-store", dimension=128, model_id="custom_model_id")
         vector_store_id = vector_store.id
 
     with subtests.test("add items to vector store"):
-        await vector_store.add_documents(items, client=api_client)
+        await vector_store.add_documents(
+            items,
+        )
 
     with subtests.test("verify vector store exists before deletion"):
-        await vector_store.get(client=api_client)
+        await vector_store.get()
         assert vector_store.id == vector_store_id
 
     with subtests.test("delete vector store"):
-        await vector_store.delete(client=api_client)
+        await vector_store.delete()
 
     with (
         subtests.test("verify vector store is deleted"),
         pytest.raises(httpx.HTTPStatusError, match="404 Not Found"),
     ):
-        await VectorStore.get(str(vector_store_id), client=api_client)
+        await VectorStore.get(
+            str(vector_store_id),
+        )
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("clean_up")
-async def test_document_deletion(subtests, api_client):
+@pytest.mark.usefixtures("clean_up", "setup_platform_client")
+async def test_document_deletion(subtests):
     """Test individual document deletion functionality"""
     initial_items = [
         VectorStoreItem(
@@ -143,36 +145,41 @@ async def test_document_deletion(subtests, api_client):
     ]
 
     with subtests.test("create vector store"):
-        vector_store = await VectorStore.create(
-            name="test-doc-deletion",
-            dimension=128,
-            model_id="custom_model_id",
-            client=api_client,
-        )
+        vector_store = await VectorStore.create(name="test-doc-deletion", dimension=128, model_id="custom_model_id")
 
     with subtests.test("add initial documents"):
-        await vector_store.add_documents(initial_items, client=api_client)
+        await vector_store.add_documents(
+            initial_items,
+        )
 
     with subtests.test("verify all documents exist via search and track usage_bytes"):
-        search_results = await vector_store.search(query_vector=[1.0] * 128, limit=10, client=api_client)
+        search_results = await vector_store.search(
+            query_vector=[1.0] * 128,
+            limit=10,
+        )
         assert len(search_results) == 3
 
-        await vector_store.get(client=api_client)
+        await vector_store.get()
         usage_bytes_before_deletion = vector_store.stats.usage_bytes if vector_store.stats else 0
         assert usage_bytes_before_deletion > 0, "Usage bytes should be greater than 0 after adding documents"
 
     with subtests.test("delete specific document"):
-        await vector_store.delete_document("doc_002", client=api_client)
+        await vector_store.delete_document(
+            "doc_002",
+        )
 
     with subtests.test("verify document was deleted and usage_bytes decreased"):
-        search_results = await vector_store.search(query_vector=[1.0] * 128, limit=10, client=api_client)
+        search_results = await vector_store.search(
+            query_vector=[1.0] * 128,
+            limit=10,
+        )
         assert len(search_results) == 2
         document_ids = [result.item.document_id for result in search_results]
         assert "doc_002" not in document_ids
         assert "doc_001" in document_ids
         assert "doc_003" in document_ids
 
-        await vector_store.get(client=api_client)
+        await vector_store.get()
         usage_bytes_after_deletion = vector_store.stats.usage_bytes if vector_store.stats else 0
         assert usage_bytes_after_deletion < usage_bytes_before_deletion, (
             "Usage bytes should decrease after deleting a document"
@@ -180,8 +187,8 @@ async def test_document_deletion(subtests, api_client):
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("clean_up")
-async def test_adding_items_to_existing_documents(subtests, api_client):
+@pytest.mark.usefixtures("clean_up", "setup_platform_client")
+async def test_adding_items_to_existing_documents(subtests):
     """Test adding new items to existing documents in vector store"""
     initial_items = [
         VectorStoreItem(
@@ -222,37 +229,42 @@ async def test_adding_items_to_existing_documents(subtests, api_client):
     ]
 
     with subtests.test("create vector store"):
-        vector_store = await VectorStore.create(
-            name="test-add-items",
-            dimension=128,
-            model_id="custom_model_id",
-            client=api_client,
-        )
+        vector_store = await VectorStore.create(name="test-add-items", dimension=128, model_id="custom_model_id")
 
     with subtests.test("verify initial vector store usage_bytes is 0"):
-        await vector_store.get(client=api_client)
+        await vector_store.get()
         initial_usage_bytes = vector_store.stats.usage_bytes if vector_store.stats else 0
         assert initial_usage_bytes == 0
 
     with subtests.test("add initial items"):
-        await vector_store.add_documents(initial_items, client=api_client)
+        await vector_store.add_documents(
+            initial_items,
+        )
 
     with subtests.test("verify initial items count and usage_bytes updated"):
-        search_results = await vector_store.search(query_vector=[1.0] * 128, limit=10, client=api_client)
+        search_results = await vector_store.search(
+            query_vector=[1.0] * 128,
+            limit=10,
+        )
         assert len(search_results) == 2
 
-        await vector_store.get(client=api_client)
+        await vector_store.get()
         usage_bytes_after_initial = vector_store.stats.usage_bytes if vector_store.stats else 0
         assert usage_bytes_after_initial > 0, "Usage bytes should be greater than 0 after adding items"
 
     with subtests.test("add additional items to existing and new documents"):
-        await vector_store.add_documents(additional_items, client=api_client)
+        await vector_store.add_documents(
+            additional_items,
+        )
 
     with subtests.test("verify all items are present and usage_bytes increased"):
-        search_results = await vector_store.search(query_vector=[1.0] * 128, limit=10, client=api_client)
+        search_results = await vector_store.search(
+            query_vector=[1.0] * 128,
+            limit=10,
+        )
         assert len(search_results) == 4
 
-        await vector_store.get(client=api_client)
+        await vector_store.get()
         usage_bytes_after_additional = vector_store.stats.usage_bytes if vector_store.stats else 0
         assert usage_bytes_after_additional > usage_bytes_after_initial, (
             "Usage bytes should increase after adding more items"
@@ -271,8 +283,8 @@ async def test_adding_items_to_existing_documents(subtests, api_client):
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("clean_up")
-async def test_document_listing(subtests, api_client):
+@pytest.mark.usefixtures("clean_up", "setup_platform_client")
+async def test_document_listing(subtests):
     """Test listing documents in a vector store"""
     items = [
         VectorStoreItem(
@@ -302,15 +314,12 @@ async def test_document_listing(subtests, api_client):
     ]
 
     with subtests.test("create vector store"):
-        vector_store = await VectorStore.create(
-            name="test-doc-listing",
-            dimension=128,
-            model_id="custom_model_id",
-            client=api_client,
-        )
+        vector_store = await VectorStore.create(name="test-doc-listing", dimension=128, model_id="custom_model_id")
 
     with subtests.test("add items to vector store"):
-        await vector_store.add_documents(items, client=api_client)
+        await vector_store.add_documents(
+            items,
+        )
 
     with subtests.test("list documents in vector store"):
-        assert {doc.id for doc in await vector_store.list_documents(client=api_client)} == {"doc_001", "doc_002"}
+        assert {doc.id for doc in await vector_store.list_documents()} == {"doc_001", "doc_002"}

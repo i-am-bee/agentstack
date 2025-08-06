@@ -13,26 +13,28 @@ pytestmark = pytest.mark.e2e
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("clean_up")
-async def test_files(subtests, setup_real_llm, api_client):
+@pytest.mark.usefixtures("clean_up", "setup_platform_client", "setup_real_llm")
+async def test_files(subtests):
     with subtests.test("upload file"):
         file = await File.create(
-            filename="test.txt", content=b'{"hello": "world"}', content_type="application/json", client=api_client
+            filename="test.txt",
+            content=b'{"hello": "world"}',
+            content_type="application/json",
         )
         file_id = file.id
 
     with subtests.test("get file metadata"):
-        retrieved_file = await File.get(file_id, client=api_client)
+        retrieved_file = await File.get(file_id)
         assert retrieved_file.id == file_id
 
     with subtests.test("get file content"):
-        content = await retrieved_file.content(client=api_client)
+        content = await retrieved_file.content()
         assert content == '{"hello": "world"}'
 
     with subtests.test("delete file"):
-        await File.delete(file_id, client=api_client)
+        await File.delete(file_id)
         with pytest.raises(httpx.HTTPStatusError, match="404 Not Found"):
-            await File.get(file_id, client=api_client)
+            _ = await File.get(self=file_id)
 
 
 @pytest.fixture
@@ -58,8 +60,8 @@ def test_pdf() -> Callable[[str], BytesIO]:
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("clean_up")
-async def test_text_extraction_pdf_workflow(subtests, api_client, test_pdf: Callable[[str], BytesIO]):
+@pytest.mark.usefixtures("clean_up", "setup_platform_client")
+async def test_text_extraction_pdf_workflow(subtests, test_configuration, test_pdf: Callable[[str], BytesIO]):
     """Test complete PDF text extraction workflow: upload -> extract -> wait -> verify"""
 
     # Create a simple PDF-like content for testing
@@ -69,23 +71,25 @@ async def test_text_extraction_pdf_workflow(subtests, api_client, test_pdf: Call
 
     with subtests.test("upload PDF file"):
         file = await File.create(
-            filename="test_document.pdf", content=pdf, content_type="application/pdf", client=api_client
+            filename="test_document.pdf",
+            content=pdf,
+            content_type="application/pdf",
         )
         assert file.filename == "test_document.pdf"
         assert file.file_type == "user_upload"
 
     with subtests.test("create text extraction"):
-        extraction = await file.create_extraction(client=api_client)
+        extraction = await file.create_extraction()
         assert extraction.file_id == file.id
         assert extraction.status in ["pending", "in_progress", "completed"]
 
     with subtests.test("check extraction status"):
-        extraction = await file.get_extraction(client=api_client)
+        extraction = await file.get_extraction()
         assert extraction.file_id == file.id
 
     async for attempt in AsyncRetrying(stop=stop_after_delay(timedelta(seconds=40)), wait=wait_fixed(1)):
         with attempt:
-            extraction = await file.get_extraction(client=api_client)
+            extraction = await file.get_extraction()
             final_status = extraction.status
             if final_status not in ["completed", "failed"]:
                 raise ValueError("not completed")
@@ -95,41 +99,42 @@ async def test_text_extraction_pdf_workflow(subtests, api_client, test_pdf: Call
     assert extraction.finished_at is not None
 
     with subtests.test("verify extracted text content"):
-        content = await file.text_content(client=api_client)
+        content = await file.text_content()
 
         # Check that we get some text content back
         assert len(content) > 0, "No text content was extracted"
         assert "Beeai is the future of AI" in content
 
     with subtests.test("delete extraction"):
-        await file.delete_extraction(client=api_client)
+        await file.delete_extraction()
 
     with (
         subtests.test("verify extraction deleted"),
         pytest.raises(httpx.HTTPStatusError, match="404 Not Found"),
     ):
-        await file.get_extraction(client=api_client)
+        _ = await file.get_extraction()
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("clean_up")
-async def test_text_extraction_plain_text_workflow(subtests, setup_real_llm, api_client):
+@pytest.mark.usefixtures("clean_up", "setup_real_llm", "setup_platform_client")
+async def test_text_extraction_plain_text_workflow(subtests):
     """Test text extraction for plain text files (should be immediate)"""
-
     text_content = "This is a sample text document with some content for testing text extraction."
 
     with subtests.test("upload text file"):
         file = await File.create(
-            filename="test_document.txt", content=text_content.encode(), content_type="text/plain", client=api_client
+            filename="test_document.txt",
+            content=text_content.encode(),
+            content_type="text/plain",
         )
         assert file.filename == "test_document.txt"
 
     with subtests.test("create text extraction for plain text"):
-        extraction = await file.create_extraction(client=api_client)
+        extraction = await file.create_extraction()
         assert extraction.file_id == file.id
         # Plain text files should be completed immediately
         assert extraction.status == "completed"
 
     with subtests.test("verify immediate text content access"):
-        extracted_content = await file.text_content(client=api_client)
+        extracted_content = await file.text_content()
         assert extracted_content == text_content

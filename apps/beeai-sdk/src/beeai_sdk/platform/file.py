@@ -8,7 +8,7 @@ import typing
 import httpx
 import pydantic
 
-from beeai_sdk.platform import get_client
+from beeai_sdk.platform.context import get_client
 
 
 class Extraction(pydantic.BaseModel):

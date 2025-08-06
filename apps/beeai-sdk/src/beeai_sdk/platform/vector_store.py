@@ -10,7 +10,7 @@ from textwrap import dedent
 import httpx
 import pydantic
 
-from beeai_sdk.platform import get_client
+from beeai_sdk.platform.context import get_client
 
 
 def validate_metadata(metadata: dict[str, str]) -> dict[str, str]:

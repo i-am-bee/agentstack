@@ -4,28 +4,41 @@
 from __future__ import annotations
 
 import httpx
-import pydantic
 
-from beeai_sdk.platform import get_client
+from beeai_sdk.platform.context import get_client
 
 
-class Variables(pydantic.BaseModel):
-    env: dict[str, str] = pydantic.Field(default_factory=dict)
-
+class Variables(dict[str, str]):
     async def save(
-        self,
+        self: Variables | dict[str, str],
         *,
         client: httpx.AsyncClient | None = None,
     ) -> None:
+        """
+        Save variables to the BeeAI platform. Does not delete keys unless explicitly set to None.
+
+        Can be used as a class method: Variables.save({"key": "value", ...})
+        ...or as an instance method: variables.save()
+        """
         _ = (
             await (client or get_client()).put(
                 url="/api/v1/variables",
-                json={"env": self.env},
+                json={"env": self},
             )
         ).raise_for_status()
 
-    @staticmethod
-    async def get(*, client: httpx.AsyncClient | None = None) -> Variables:
-        return pydantic.TypeAdapter(Variables).validate_json(
-            (await (client or get_client()).get(url="/api/v1/variables")).raise_for_status().content
+    async def load(self: Variables | None = None, *, client: httpx.AsyncClient | None = None) -> Variables:
+        """
+        Load variables from the BeeAI platform.
+
+        Can be used as a class method: variables = Variables.load()
+        ...or as an instance method to update the instance: variables.load()
+        """
+        new_variables: dict[str, str] = (
+            (await (client or get_client()).get(url="/api/v1/variables")).raise_for_status().json()
         )
+        if isinstance(self, Variables):
+            self.clear()
+            self.update(new_variables)
+            return self
+        return Variables(new_variables)
