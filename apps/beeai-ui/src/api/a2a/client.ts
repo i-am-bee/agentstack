@@ -15,10 +15,13 @@ import { isNotNull } from '#utils/helpers.ts';
 
 import { AGENT_ERROR_MESSAGE } from './constants';
 import { processFilePart, processMessageMetadata, processTextPart } from './part-processors';
-import type { A2AClientStatusUpdateHandlerParams, ChatRun } from './types';
+import type { ChatRun } from './types';
 import { createUserMessage, extractTextFromMessage } from './utils';
 
-function handleStatusUpdate(event: TaskStatusUpdateEvent): UIMessagePart[] {
+function handleStatusUpdate<UIGenericPart = never>(
+  event: TaskStatusUpdateEvent,
+  onStatusUpdate?: (event: TaskStatusUpdateEvent) => UIGenericPart[],
+): (UIMessagePart | UIGenericPart)[] {
   const { message, state } = event.status;
 
   if (state === 'failed' || state === 'rejected') {
@@ -48,12 +51,14 @@ function handleStatusUpdate(event: TaskStatusUpdateEvent): UIMessagePart[] {
     })
     .filter(isNotNull);
 
-  return [...metadataParts, ...contentParts];
+  const genericParts = onStatusUpdate?.(event) || [];
+
+  return [...metadataParts, ...contentParts, ...genericParts];
 }
 
 interface CreateA2AClientParams<UIGenericPart = never> {
   providerId: string;
-  onStatusUpdate?: (params: A2AClientStatusUpdateHandlerParams) => (UIMessagePart | UIGenericPart)[];
+  onStatusUpdate?: (event: TaskStatusUpdateEvent) => UIGenericPart[];
 }
 
 export const buildA2AClient = <UIGenericPart = never>({
@@ -78,9 +83,7 @@ export const buildA2AClient = <UIGenericPart = never>({
           .with({ kind: 'status-update' }, (event) => {
             taskId = event.taskId;
 
-            const messageParts: (UIMessagePart | UIGenericPart)[] = onStatusUpdate
-              ? onStatusUpdate({ event, nativeHandler: handleStatusUpdate })
-              : handleStatusUpdate(event);
+            const messageParts: (UIMessagePart | UIGenericPart)[] = handleStatusUpdate(event, onStatusUpdate);
 
             messageSubject.next({ parts: messageParts, taskId });
           });

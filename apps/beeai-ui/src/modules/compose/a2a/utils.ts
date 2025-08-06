@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { TaskStatusUpdateEvent } from '@a2a-js/sdk';
+
 import { getExtensionData } from '#api/a2a/extensions/utils.ts';
-import type { A2AClientStatusUpdateHandlerParams } from '#api/a2a/types.ts';
 import type { UIDataPart } from '#modules/messages/types.ts';
 import { UIMessagePartKind } from '#modules/messages/types.ts';
 
@@ -18,7 +19,6 @@ export function createSequentailInputDataPart(steps: ComposeStep[]): UIDataPart 
   return {
     kind: UIMessagePartKind.Data,
     data: {
-      input: '',
       steps: steps.map((step) => ({
         provider_id: step.agent.provider.id,
         instruction: step.instruction,
@@ -27,9 +27,8 @@ export function createSequentailInputDataPart(steps: ComposeStep[]): UIDataPart 
   };
 }
 
-export function handleTaskStatusUpdate({ event, nativeHandler }: A2AClientStatusUpdateHandlerParams) {
-  const message = event.status.message;
-  const metadata = message?.metadata;
+export function handleTaskStatusUpdate(event: TaskStatusUpdateEvent) {
+  const metadata = event.status.message?.metadata;
 
   const sequentialMetadata = extractSequentialWorkflowData(metadata);
 
@@ -41,5 +40,5 @@ export function handleTaskStatusUpdate({ event, nativeHandler }: A2AClientStatus
     }
   }
 
-  return nativeHandler(event);
+  return [];
 }
