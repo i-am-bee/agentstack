@@ -23,7 +23,7 @@ class CurrentTimeTool(Tool[CurrentTimeToolInput]):
     def input_schema(self) -> type[CurrentTimeToolInput]:
         return CurrentTimeToolInput
 
-    def _run(
+    async def _run(
         self,
         input: CurrentTimeToolInput,
         options: ToolRunOptions | None,

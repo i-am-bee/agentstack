@@ -22,12 +22,15 @@ from beeai_framework.agents.experimental import (
 from beeai_framework.agents.experimental.events import (
     RequirementAgentSuccessEvent,
 )
+from beeai_framework.agents.experimental.utils._tool import FinalAnswerTool
 from beeai_framework.backend.types import ChatModelParameters
 from beeai_framework.memory import UnconstrainedMemory
 from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
 from beeai_framework.tools import Tool
+from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
 from beeai_framework.tools.search.wikipedia import WikipediaTool
 
+from beeai_framework.tools.weather import OpenMeteoTool
 from beeai_sdk.a2a.extensions import (
     AgentDetail,
     AgentDetailTool,
@@ -39,11 +42,12 @@ from beeai_sdk.a2a.extensions import (
 from beeai_sdk.a2a.types import AgentMessage
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import Context
+from chat.tools.general.current_time import CurrentTimeTool
 from chat.helpers.citations import extract_citations
 from chat.helpers.trajectory import TrajectoryContent
 from openinference.instrumentation.beeai import BeeAIInstrumentor
 
-from chat.tools.files.file_creator import FileCreatorToolOutput
+from chat.tools.files.file_creator import FileCreatorTool, FileCreatorToolOutput
 from chat.tools.files.file_reader import create_file_reader_tool_class
 from chat.tools.files.utils import FrameworkMessage, extract_files, to_framework_message
 from chat.tools.general.act import (
@@ -83,13 +87,36 @@ server = Server()
         user_greeting="How can I help you?",
         tools=[
             AgentDetailTool(
-                name="Web Search (DuckDuckGo)",
-                description="Retrieves real-time search results.",
+                name="Act Tool",
+                description="Auxiliary tool that ensures thoughtful tool selection by requiring explicit reasoning and tool choice before executing any other tool.",
             ),
-            AgentDetailTool(name="Wikipedia Search", description="Fetches summaries from Wikipedia."),
+            AgentDetailTool(
+                name="Clarification Tool", 
+                description="Enables the agent to ask clarifying questions when user requirements are unclear, preventing assumptions and ensuring accurate task completion.",
+            ),
+            AgentDetailTool(
+                name="Wikipedia Search", 
+                description="Fetches summaries and information from Wikipedia articles.",
+            ),
             AgentDetailTool(
                 name="Weather Information (OpenMeteo)",
-                description="Provides real-time weather updates.",
+                description="Provides real-time weather updates and forecasts.",
+            ),
+            AgentDetailTool(
+                name="Web Search (DuckDuckGo)",
+                description="Retrieves real-time search results from the web.",
+            ),
+            AgentDetailTool(
+                name="File Reader",
+                description="Reads and returns content from uploaded or generated files.",
+            ),
+            AgentDetailTool(
+                name="File Creator",
+                description="Creates new files with specified content and metadata, uploading them to the platform for download or further processing.",
+            ),
+            AgentDetailTool(
+                name="Current Time",
+                description="Provides current date and time information.",
             ),
         ],
         framework="BeeAI",
@@ -148,17 +175,17 @@ async def chat(
         extracted_files
     )  # Dynamically created tool input schema based on real provided files ensures that small LLMs can't hallucinate the input
 
-    #     FinalAnswerTool.description = """Assemble and send the final answer to the user. When using information gathered from other tools that provided URL addresses, you MUST properly cite them using markdown citation format: [description](URL).
+    FinalAnswerTool.description = """Assemble and send the final answer to the user. When using information gathered from other tools that provided URL addresses, you MUST properly cite them using markdown citation format: [description](URL).
 
-    # Citation Requirements:
-    # - Use descriptive text that summarizes the source content
-    # - Include the exact URL provided by the tool
-    # - Place citations inline where the information is referenced
+# Citation Requirements:
+- Use descriptive text that summarizes the source content
+- Include the exact URL provided by the tool
+- Place citations inline where the information is referenced
 
-    # Examples:
-    # - According to [OpenAI's latest announcement](https://example.com/gpt5), GPT-5 will be released next year.
-    # - Recent studies show [AI adoption has increased by 67%](https://example.com/ai-study) in enterprise environments.
-    # - Weather data indicates [temperatures will reach 25°C tomorrow](https://weather.example.com/forecast).""" # type: ignore
+# Examples:
+- According to [OpenAI's latest announcement](https://example.com/gpt5), GPT-5 will be released next year.
+- Recent studies show [AI adoption has increased by 67%](https://example.com/ai-study) in enterprise environments.
+- Weather data indicates [temperatures will reach 25°C tomorrow](https://weather.example.com/forecast).""" # type: ignore
 
     tools = [
         # Auxiliary tools
@@ -166,11 +193,11 @@ async def chat(
         ClarificationTool(),  # Allows agent to ask clarifying questions when user requirements are unclear
         # Common tools
         WikipediaTool(),
-        # OpenMeteoTool(),
-        # DuckDuckGoSearchTool(),
-        # file_reader_tool_class(),
-        # FileCreatorTool(),
-        # CurrentTimeTool(),
+        OpenMeteoTool(),
+        DuckDuckGoSearchTool(),
+        file_reader_tool_class(),
+        FileCreatorTool(),
+        CurrentTimeTool(),
     ]
 
     requirements = [
