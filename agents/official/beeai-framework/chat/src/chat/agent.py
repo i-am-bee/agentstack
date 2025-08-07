@@ -15,6 +15,7 @@ from a2a.types import (
     Message,
     Part,
 )
+from beeai_framework.adapters.ollama import OllamaChatModel
 from beeai_framework.adapters.openai import OpenAIChatModel
 from beeai_framework.agents.experimental import (
     RequirementAgent,
@@ -23,6 +24,7 @@ from beeai_framework.agents.experimental.events import (
     RequirementAgentSuccessEvent,
 )
 from beeai_framework.agents.experimental.utils._tool import FinalAnswerTool
+from beeai_framework.backend import ChatModel
 from beeai_framework.backend.types import ChatModelParameters
 from beeai_framework.memory import UnconstrainedMemory
 from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
@@ -62,8 +64,12 @@ from chat.tools.general.clarification import (
 
 BeeAIInstrumentor().instrument()
 ## TODO: https://github.com/phoenixframework/phoenix/issues/6224
-logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(logging.CRITICAL)
-logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(logging.CRITICAL)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(
+    logging.CRITICAL
+)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(
+    logging.CRITICAL
+)
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +80,7 @@ server = Server()
 
 
 @server.agent(
-    name="Chat",
+    name="Chat NEW",
     documentation_url=(
         f"https://github.com/i-am-bee/beeai-platform/blob/{os.getenv('RELEASE_VERSION', 'main')}"
         "/agents/official/beeai-framework/chat"
@@ -91,11 +97,11 @@ server = Server()
                 description="Auxiliary tool that ensures thoughtful tool selection by requiring explicit reasoning and tool choice before executing any other tool.",
             ),
             AgentDetailTool(
-                name="Clarification Tool", 
+                name="Clarification Tool",
                 description="Enables the agent to ask clarifying questions when user requirements are unclear, preventing assumptions and ensuring accurate task completion.",
             ),
             AgentDetailTool(
-                name="Wikipedia Search", 
+                name="Wikipedia Search",
                 description="Fetches summaries and information from Wikipedia articles.",
             ),
             AgentDetailTool(
@@ -153,11 +159,13 @@ server = Server()
                 """
             ),
             tags=["chat"],
-            examples=["Please find a room in LA, CA, April 15, 2025, checkout date is april 18, 2 adults"],
+            examples=[
+                "Please find a room in LA, CA, April 15, 2025, checkout date is april 18, 2 adults"
+            ],
         )
     ],
 )
-async def chat(
+async def chat_new(
     message: Message,
     context: Context,
     trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
@@ -167,7 +175,9 @@ async def chat(
     The agent is an AI-powered conversational system with memory, supporting real-time search, Wikipedia lookups,
     and weather updates through integrated tools.
     """
-    extracted_files = await extract_files(history=messages[context.context_id], incoming_message=message)
+    extracted_files = await extract_files(
+        history=messages[context.context_id], incoming_message=message
+    )
     input = to_framework_message(message)
 
     # Configure tools
@@ -185,7 +195,7 @@ async def chat(
 # Examples:
 - According to [OpenAI's latest announcement](https://example.com/gpt5), GPT-5 will be released next year.
 - Recent studies show [AI adoption has increased by 67%](https://example.com/ai-study) in enterprise environments.
-- Weather data indicates [temperatures will reach 25°C tomorrow](https://weather.example.com/forecast).""" # type: ignore
+- Weather data indicates [temperatures will reach 25°C tomorrow](https://weather.example.com/forecast)."""  # type: ignore
 
     tools = [
         # Auxiliary tools
@@ -219,7 +229,7 @@ async def chat(
         memory=UnconstrainedMemory(),
         requirements=requirements,
         middlewares=[
-            GlobalTrajectoryMiddleware(included=[Tool]),
+            GlobalTrajectoryMiddleware(included=[Tool]),  # ChatModel,
             act_tool_middleware,
             clarification_tool_middleware,
         ],
@@ -277,14 +287,20 @@ async def chat(
 
         message = AgentMessage(
             text=clean_text,
-            metadata=(citation.citation_metadata(citations=citations) if citations else None),
+            metadata=(
+                citation.citation_metadata(citations=citations) if citations else None
+            ),
         )
         messages[context.context_id].append(message)
         yield message
 
 
 def serve():
-    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)), configure_telemetry=True)
+    server.run(
+        host=os.getenv("HOST", "127.0.0.1"),
+        port=int(os.getenv("PORT", 8000)),
+        configure_telemetry=True,
+    )
 
 
 if __name__ == "__main__":

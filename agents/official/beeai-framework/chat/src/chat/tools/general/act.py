@@ -15,6 +15,7 @@ from beeai_framework.agents.experimental.requirements.requirement import (
 from beeai_framework.context import RunContext
 from beeai_framework.emitter import Emitter, EventMeta
 from beeai_framework.tools import (
+    AnyTool,
     JSONToolOutput,
     Tool,
     ToolInputValidationError,
@@ -139,9 +140,16 @@ class ActAlwaysFirstRequirement(Requirement[RequirementAgentRunState]):
 
     name: str = "act_always_first"
 
+    tools: list[AnyTool] = []
+
+    async def init(self, *, tools: list[AnyTool], ctx: RunContext) -> None:
+        self.tools = tools
+        await super().init(tools=tools, ctx=ctx)
+
     @run_with_context
     async def run(self, state: RequirementAgentRunState, ctx: RunContext) -> list[Rule]:
         last_step = state.steps[-1] if state.steps else None
+        
         if last_step and last_step.tool and last_step.tool.name == "act":
             assert isinstance(last_step.tool, ActTool)
             if last_step.error is not None:
@@ -172,6 +180,18 @@ class ActAlwaysFirstRequirement(Requirement[RequirementAgentRunState]):
                 )
             ]
 
+        # Hide all tools except ActTool on the first step
+        rules = [
+            Rule(
+                target=t.name,
+                hidden=True,
+                allowed=False,
+                prevent_stop=False,
+                forced=False,
+            )
+            for t in self.tools
+            if not isinstance(t, ActTool)
+        ]
         return [
             Rule(
                 target="act",
@@ -179,7 +199,8 @@ class ActAlwaysFirstRequirement(Requirement[RequirementAgentRunState]):
                 allowed=True,
                 prevent_stop=False,
                 hidden=False,
-            )
+            ),
+            *rules,
         ]
 
 
