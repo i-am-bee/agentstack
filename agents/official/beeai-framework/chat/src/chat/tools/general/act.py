@@ -143,8 +143,8 @@ class ActAlwaysFirstRequirement(Requirement[RequirementAgentRunState]):
     tools: list[AnyTool] = []
 
     async def init(self, *, tools: list[AnyTool], ctx: RunContext) -> None:
-        self.tools = tools
         await super().init(tools=tools, ctx=ctx)
+        self.tools = tools
 
     @run_with_context
     async def run(self, state: RequirementAgentRunState, ctx: RunContext) -> list[Rule]:
