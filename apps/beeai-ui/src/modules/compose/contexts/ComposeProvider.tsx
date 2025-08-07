@@ -20,11 +20,11 @@ import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
 import { Role } from '#modules/messages/api/types.ts';
 import { UIMessagePartKind, UIMessageStatus, type UIUserMessage } from '#modules/messages/types.ts';
-import { getMessageRawContent, processMessagePart } from '#modules/messages/utils.ts';
+import { addTranformedMessagePart, getMessageRawContent } from '#modules/messages/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { type UIComposePart, UIComposePartKind } from '../a2a/types';
-import { createSequentailInputDataPart, handleTaskStatusUpdate } from '../a2a/utils';
+import { createSequentialInputDataPart, handleTaskStatusUpdate } from '../a2a/utils';
 import { SEQUENTIAL_WORKFLOW_AGENT_NAME, SEQUENTIAL_WORKFLOW_AGENTS_URL_PARAM } from '../sequential/constants';
 import type { ComposeStep, SequentialFormValues } from './compose-context';
 import { ComposeContext, ComposeStatus } from './compose-context';
@@ -158,7 +158,7 @@ export function ComposeProvider({ children }: PropsWithChildren) {
         const userMessage: UIUserMessage = {
           id: uuid(),
           role: Role.User,
-          parts: [createSequentailInputDataPart(steps)],
+          parts: [createSequentialInputDataPart(steps)],
         };
 
         const run = a2aAgentClient.chat({
@@ -199,7 +199,9 @@ export function ComposeProvider({ children }: PropsWithChildren) {
                   parts: [],
                   status: UIMessageStatus.InProgress,
                 };
-                processMessagePart(part, result);
+
+                const updatedParts = addTranformedMessagePart(part, result);
+                result.parts = updatedParts;
 
                 updateStep(activeStepIdx, { ...step, result });
               });
@@ -261,11 +263,16 @@ export function ComposeProvider({ children }: PropsWithChildren) {
   }, [replaceSteps]);
 
   const value = useMemo(() => {
-    const isPending = steps.some(({ status }) => status === ComposeStatus.InProgress);
-    const isCompleted = !isPending && steps.every(({ status }) => status === ComposeStatus.Completed);
+    let status = ComposeStatus.Ready;
+    if (steps.some(({ status }) => status === ComposeStatus.InProgress)) {
+      status = ComposeStatus.InProgress;
+    } else if (steps.length && steps.every(({ status }) => status === ComposeStatus.Completed)) {
+      status = ComposeStatus.Completed;
+    }
+
     return {
       result,
-      status: isPending ? ComposeStatus.InProgress : isCompleted ? ComposeStatus.Completed : ComposeStatus.Ready,
+      status,
       stepsFields,
       onSubmit,
       onCancel: handleCancel,

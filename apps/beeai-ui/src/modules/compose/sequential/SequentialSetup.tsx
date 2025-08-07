@@ -4,14 +4,14 @@
  */
 
 import { ArrowLeft, PlayFilledAlt, StopOutlineFilled } from '@carbon/icons-react';
-import { Button, IconButton } from '@carbon/react';
+import { Button } from '@carbon/react';
 import clsx from 'clsx';
 import { useFormState } from 'react-hook-form';
 
 import { TransitionLink } from '#components/TransitionLink/TransitionLink.tsx';
 import { VersionTag } from '#components/VersionTag/VersionTag.tsx';
 import type { Agent } from '#modules/agents/api/types.ts';
-import NewSession from '#modules/runs/components/NewSession.svg';
+import { NewSessionButton } from '#modules/runs/components/NewSessionButton.tsx';
 import { routes } from '#utils/router.ts';
 
 import { AddAgentButton } from '../components/AddAgentButton';
@@ -51,16 +51,7 @@ export function SequentialSetup() {
           {result ? (
             <>
               <h1>Sequential workflow</h1>
-              <IconButton
-                kind="tertiary"
-                size="sm"
-                label="New session"
-                autoAlign
-                onClick={() => onReset()}
-                align="left"
-              >
-                <NewSession />
-              </IconButton>
+              <NewSessionButton onClick={() => onReset()} />
             </>
           ) : (
             <h1>

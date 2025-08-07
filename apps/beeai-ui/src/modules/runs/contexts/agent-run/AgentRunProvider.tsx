@@ -20,7 +20,7 @@ import { convertFilesToUIFileParts } from '#modules/files/utils.ts';
 import { Role } from '#modules/messages/api/types.ts';
 import type { UIAgentMessage, UIMessage, UIUserMessage } from '#modules/messages/types.ts';
 import { UIMessageStatus } from '#modules/messages/types.ts';
-import { isAgentMessage, processMessagePart } from '#modules/messages/utils.ts';
+import { addTranformedMessagePart, isAgentMessage } from '#modules/messages/utils.ts';
 import type { RunStats } from '#modules/runs/types.ts';
 import { SourcesProvider } from '#modules/sources/contexts/SourcesProvider.tsx';
 import { getMessageSourcesMap } from '#modules/sources/utils.ts';
@@ -154,7 +154,8 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
 
           parts.forEach((part) => {
             updateLastAgentMessage((message) => {
-              processMessagePart(part, message);
+              const updatedParts = addTranformedMessagePart(part, message);
+              message.parts = updatedParts;
             });
           });
         });

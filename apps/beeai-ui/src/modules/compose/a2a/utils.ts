@@ -15,7 +15,7 @@ import { UIComposePartKind } from './types';
 
 export const extractSequentialWorkflowData = getExtensionData(sequentialWorkflowExtension);
 
-export function createSequentailInputDataPart(steps: ComposeStep[]): UIDataPart {
+export function createSequentialInputDataPart(steps: ComposeStep[]): UIDataPart {
   return {
     kind: UIMessagePartKind.Data,
     data: {

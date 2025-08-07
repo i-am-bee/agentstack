@@ -147,25 +147,27 @@ export function sortMessageParts(parts: UIMessagePart[]): UIMessagePart[] {
   return [...otherParts, ...sortedSourceParts, ...sortedTransformParts];
 }
 
-export function processMessagePart(part: UIMessagePart, message: UIAgentMessage) {
+export function addTranformedMessagePart(part: UIMessagePart, message: UIAgentMessage) {
+  const newParts = [...message.parts];
+
   match(part)
     .with({ kind: UIMessagePartKind.File }, (part) => {
       const transformedPart = transformFilePart(part, message);
 
       if (transformedPart) {
-        message.parts.push(transformedPart);
+        newParts.push(transformedPart);
       } else {
-        message.parts.push(part);
+        newParts.push(part);
       }
     })
     .with({ kind: UIMessagePartKind.Source }, (part) => {
       const transformedPart = transformSourcePart(part);
 
-      message.parts.push(part, transformedPart);
+      newParts.push(part, transformedPart);
     })
     .otherwise((part) => {
-      message.parts.push(part);
+      newParts.push(part);
     });
 
-  message.parts = sortMessageParts(message.parts);
+  return sortMessageParts(newParts);
 }
