@@ -152,17 +152,17 @@ async def chat(
         extracted_files
     )  # Dynamically created tool input schema based on real provided files ensures that small LLMs can't hallucinate the input
 
-    FinalAnswerTool.description = """Assemble and send the final answer to the user. When using information gathered from other tools that provided URL addresses, you MUST properly cite them using markdown citation format: [description](URL).
+    #     FinalAnswerTool.description = """Assemble and send the final answer to the user. When using information gathered from other tools that provided URL addresses, you MUST properly cite them using markdown citation format: [description](URL).
 
-Citation Requirements:
-- Use descriptive text that summarizes the source content
-- Include the exact URL provided by the tool
-- Place citations inline where the information is referenced
+    # Citation Requirements:
+    # - Use descriptive text that summarizes the source content
+    # - Include the exact URL provided by the tool
+    # - Place citations inline where the information is referenced
 
-Examples:
-- According to [OpenAI's latest announcement](https://example.com/gpt5), GPT-5 will be released next year.
-- Recent studies show [AI adoption has increased by 67%](https://example.com/ai-study) in enterprise environments.
-- Weather data indicates [temperatures will reach 25°C tomorrow](https://weather.example.com/forecast)."""  # type: ignore
+    # Examples:
+    # - According to [OpenAI's latest announcement](https://example.com/gpt5), GPT-5 will be released next year.
+    # - Recent studies show [AI adoption has increased by 67%](https://example.com/ai-study) in enterprise environments.
+    # - Weather data indicates [temperatures will reach 25°C tomorrow](https://weather.example.com/forecast).""" # type: ignore
 
     tools = [
         # Auxiliary tools
@@ -170,11 +170,11 @@ Examples:
         ClarificationTool(),  # Allows agent to ask clarifying questions when user requirements are unclear
         # Common tools
         WikipediaTool(),
-        OpenMeteoTool(),
-        DuckDuckGoSearchTool(),
-        file_reader_tool_class(),
-        FileCreatorTool(),
-        CurrentTimeTool(),
+        # OpenMeteoTool(),
+        # DuckDuckGoSearchTool(),
+        # file_reader_tool_class(),
+        # FileCreatorTool(),
+        # CurrentTimeTool(),
     ]
 
     requirements = [
