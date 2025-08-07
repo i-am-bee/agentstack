@@ -46,7 +46,8 @@ features:
 # this requires passing an admin password to certain endpoints, you can disable auth for insecure deployments
 auth:
   enabled: true
-  admin_password: "my-secret-password"
+  adminPassword: "my-secret-password"
+  jwtSecretKey: "my-secret-key"
 ```
 
 ### Step 2: Install the Chart
@@ -105,7 +106,8 @@ For development/testing environments with authentication:
 # config.yaml
 auth:
   enabled: true
-  admin_password: "use-a-strong-password-here"
+  adminPassword: "use-a-strong-password-here"
+  jwtSecretKey: "use-a-strong-key-here"
 
 # Generate a secure encryption key
 encryptionKey: "your-32-byte-base64-encoded-key"

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from collections.abc import AsyncIterator, Iterable
-from datetime import timedelta
+from typing import cast
 from uuid import UUID
 
 from kink import inject
@@ -42,6 +42,7 @@ vector_stores_table = Table(
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("last_active_at", DateTime(timezone=True), nullable=False),
     Column("created_by", ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
+    Column("context_id", ForeignKey("contexts.id", ondelete="CASCADE"), nullable=True),
 )
 
 vector_store_documents_table = Table(
@@ -70,6 +71,7 @@ class SqlAlchemyVectorStoreRepository(IVectorStoreRepository):
             "created_at": row.created_at,
             "last_active_at": row.last_active_at,
             "created_by": row.created_by,
+            "context_id": row.context_id,
             "stats": {
                 "usage_bytes": row.total_usage_bytes,
                 "num_documents": row.num_documents,
@@ -88,7 +90,7 @@ class SqlAlchemyVectorStoreRepository(IVectorStoreRepository):
             }
         )
 
-    async def create(self, *, vector_store: VectorStore) -> VectorStore:
+    async def create(self, *, vector_store: VectorStore) -> None:
         query = vector_stores_table.insert().values(
             id=vector_store.id,
             model_id=vector_store.model_id,
@@ -97,10 +99,11 @@ class SqlAlchemyVectorStoreRepository(IVectorStoreRepository):
             created_at=vector_store.created_at,
             last_active_at=vector_store.last_active_at,
             created_by=vector_store.created_by,
+            context_id=vector_store.context_id,
         )
         await self.connection.execute(query)
 
-    async def list(self, *, user_id: UUID | None = None) -> AsyncIterator[VectorStore]:
+    async def list(self, *, user_id: UUID | None = None, context_id: UUID | None = None) -> AsyncIterator[VectorStore]:
         query = select(
             vector_stores_table,
             func.coalesce(func.sum(vector_store_documents_table.c.usage_bytes), 0).label("total_usage_bytes"),
@@ -112,6 +115,8 @@ class SqlAlchemyVectorStoreRepository(IVectorStoreRepository):
 
         if user_id:
             query = query.where(vector_stores_table.c.created_by == user_id)
+        if context_id:
+            query = query.where(vector_stores_table.c.context_id == context_id)
 
         # Group by all columns of the vector_stores_table to collapse the joined rows
         query = query.group_by(*vector_stores_table.c)
@@ -119,7 +124,9 @@ class SqlAlchemyVectorStoreRepository(IVectorStoreRepository):
         async for row in await self.connection.stream(query):
             yield self._to_vector_store(row)
 
-    async def get(self, *, vector_store_id: UUID, user_id: UUID | None = None) -> VectorStore:
+    async def get(
+        self, *, vector_store_id: UUID, user_id: UUID | None = None, context_id: UUID | None = None
+    ) -> VectorStore:
         # Select all columns from the main table
         query = (
             select(
@@ -136,6 +143,8 @@ class SqlAlchemyVectorStoreRepository(IVectorStoreRepository):
 
         if user_id:
             query = query.where(vector_stores_table.c.created_by == user_id)
+        if context_id:
+            query = query.where(vector_stores_table.c.context_id == context_id)
 
         # Group by all columns of the vector_stores_table to collapse the joined rows
         query = query.group_by(*vector_stores_table.c)
@@ -146,13 +155,26 @@ class SqlAlchemyVectorStoreRepository(IVectorStoreRepository):
 
         return self._to_vector_store(row)
 
-    async def delete(self, *, vector_store_id: UUID, user_id: UUID | None = None) -> None:
-        query = vector_stores_table.delete().where(vector_stores_table.c.id == vector_store_id)
+    async def delete(
+        self, *, vector_store_id: UUID | None = None, user_id: UUID | None = None, context_id: UUID | None = None
+    ) -> int:
+        query = vector_stores_table.delete()
 
-        if user_id:
-            query = query.where(vector_stores_table.c.created_by == user_id)
+        conditions = []
+        if vector_store_id is not None:
+            conditions.append(vector_stores_table.c.id == vector_store_id)
+        if context_id is not None:
+            conditions.append(vector_stores_table.c.context_id == context_id)
+        if user_id is not None:
+            conditions.append(vector_stores_table.c.created_by == user_id)
 
-        await self.connection.execute(query)
+        if not conditions:
+            raise ValueError("At least one filter parameter must be provided")
+
+        for condition in conditions:
+            query = query.where(condition)
+        result = await self.connection.execute(query)
+        return result.rowcount
 
     async def update_last_accessed(self, *, vector_store_ids: Iterable[UUID]) -> None:
         query = (
@@ -200,45 +222,24 @@ class SqlAlchemyVectorStoreRepository(IVectorStoreRepository):
     async def total_usage(self, *, user_id: UUID | None = None) -> int:
         query = select(func.coalesce(func.sum(vector_store_documents_table.c.usage_bytes), 0))
         if user_id:
-            query = query.join(vector_stores_table.c.id == vector_store_documents_table.c.vector_store_id).where(
-                vector_store_documents_table.c.created_by == user_id
-            )
-        return await self.connection.scalar(query)
+            query = query.join(
+                vector_stores_table,
+                vector_stores_table.c.id == vector_store_documents_table.c.vector_store_id,
+            ).where(vector_stores_table.c.created_by == user_id)
+        return cast(int, await self.connection.scalar(query))
 
-    async def list_documents(
-        self, *, vector_store_id: UUID, user_id: UUID | None = None
-    ) -> AsyncIterator[VectorStoreDocument]:
+    async def list_documents(self, *, vector_store_id: UUID) -> AsyncIterator[VectorStoreDocument]:
         query = select(vector_store_documents_table).where(
             vector_store_documents_table.c.vector_store_id == vector_store_id
         )
-        if user_id:
-            query = query.join(
-                vector_stores_table, vector_stores_table.c.id == vector_store_documents_table.c.vector_store_id
-            ).where(vector_stores_table.c.created_by == user_id)
-
         async for row in await self.connection.stream(query):
             yield self._to_vector_store_document(row)
 
-    async def remove_documents(
-        self, *, vector_store_id: UUID, document_ids: Iterable[str], user_id: UUID | None = None
-    ) -> int:
+    async def remove_documents(self, *, vector_store_id: UUID, document_ids: Iterable[str]) -> int:
         query = vector_store_documents_table.delete().where(
             (vector_store_documents_table.c.vector_store_id == vector_store_id)
             & (vector_store_documents_table.c.id.in_(document_ids))
         )
 
-        if user_id:
-            query = query.where(
-                vector_store_documents_table.c.vector_store_id.in_(
-                    select(vector_stores_table.c.id).where(vector_stores_table.c.created_by == user_id)
-                )
-            )
-        result = await self.connection.execute(query)
-        return result.rowcount
-
-    async def delete_expired(self, *, active_threshold: timedelta) -> int:
-        # Calculate the expiration date
-        expiration_date = utc_now() - active_threshold
-        query = vector_stores_table.delete().where(vector_stores_table.c.last_active_at < expiration_date)
         result = await self.connection.execute(query)
         return result.rowcount

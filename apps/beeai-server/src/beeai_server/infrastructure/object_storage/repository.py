@@ -3,10 +3,12 @@
 
 import logging
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import AbstractAsyncContextManager, asynccontextmanager
+from typing import Any
 from uuid import UUID
 
 import aioboto3
+import aioboto3.s3.inject
 from botocore.exceptions import ClientError
 from kink import inject
 from pydantic import HttpUrl
@@ -26,9 +28,9 @@ class S3ObjectStorageRepository(IObjectStorageRepository):
     def __init__(self, configuration: Configuration):
         self.config = configuration.object_storage
 
-    def _get_client(self):
+    def _get_client(self) -> AbstractAsyncContextManager[Any]:
         session = aioboto3.Session()
-        return session.client(
+        return session.client(  # pyright: ignore [reportReturnType]
             "s3",
             endpoint_url=str(self.config.endpoint_url),
             aws_access_key_id=self.config.access_key_id.get_secret_value(),
@@ -71,15 +73,30 @@ class S3ObjectStorageRepository(IObjectStorageRepository):
                     raise EntityNotFoundError(entity="file", id=file_id) from e
                 raise
 
-    async def delete_file(self, *, file_id: UUID) -> None:
-        object_key = self._get_object_key(file_id)
+    async def delete_files(self, *, file_ids: list[UUID]) -> None:
+        if not file_ids:
+            return
 
         async with self._get_client() as client:
-            try:
-                await client.delete_object(Bucket=self.config.bucket_name, Key=object_key)
-            except ClientError as e:
-                logger.error(f"Error deleting file {file_id}: {e}")
-                raise
+            # S3 delete_objects supports up to 1000 objects per request
+            chunk_size = 1000
+            for i in range(0, len(file_ids), chunk_size):
+                chunk = file_ids[i : i + chunk_size]
+                objects_to_delete = [{"Key": self._get_object_key(file_id)} for file_id in chunk]
+
+                try:
+                    response = await client.delete_objects(
+                        Bucket=self.config.bucket_name, Delete={"Objects": objects_to_delete}
+                    )
+
+                    # Raise if there are any errors from the bulk delete
+                    if response.get("Errors"):
+                        error_messages = [f"{error['Key']}: {error['Message']}" for error in response["Errors"]]
+                        raise RuntimeError(f"Failed to delete some files: {'; '.join(error_messages)}")
+
+                except ClientError as e:
+                    logger.error(f"Error bulk deleting files: {e}")
+                    raise
 
     async def get_file_url(self, *, file_id: UUID) -> HttpUrl:
         object_key = self._get_object_key(file_id)

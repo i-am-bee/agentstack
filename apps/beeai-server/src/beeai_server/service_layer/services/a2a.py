@@ -5,10 +5,11 @@ import logging
 from collections.abc import AsyncIterable
 from contextlib import AsyncExitStack
 from datetime import timedelta
-from typing import NamedTuple
+from typing import Any, NamedTuple, cast
 from uuid import UUID
 
 import httpx
+from httpx import AsyncByteStream
 from kink import inject
 from structlog.contextvars import bind_contextvars, unbind_contextvars
 
@@ -34,16 +35,18 @@ class ProxyClient:
         self._client = client
 
     @functools.wraps(httpx.AsyncClient.stream)
-    async def send_request(self, **kwargs) -> A2AServerResponse:
+    async def send_request(*args, **kwargs) -> A2AServerResponse:
+        self = args[0]  # extract self for type checking
+        rest_args: tuple[Any, ...] = args[1:]
         exit_stack = AsyncExitStack()
         try:
             client = await exit_stack.enter_async_context(self._client)
-            resp: httpx.Response = await exit_stack.enter_async_context(client.stream(**kwargs))
+            resp: httpx.Response = await exit_stack.enter_async_context(client.stream(*rest_args, **kwargs))
             is_stream = resp.headers["content-type"].startswith("text/event-stream")
 
             async def stream_fn():
                 try:
-                    async for event in resp.stream:
+                    async for event in cast(AsyncByteStream, resp.stream):
                         yield event
                 finally:
                     await exit_stack.pop_all().aclose()

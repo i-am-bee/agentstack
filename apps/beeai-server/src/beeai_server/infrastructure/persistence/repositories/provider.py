@@ -83,9 +83,10 @@ class SqlAlchemyProviderRepository(IProviderRepository):
         query = providers_table.update().where(providers_table.c.id == provider_id).values(last_active_at=utc_now())
         await self.connection.execute(query)
 
-    async def delete(self, *, provider_id: UUID) -> None:
+    async def delete(self, *, provider_id: UUID) -> int:
         query = delete(providers_table).where(providers_table.c.id == provider_id)
-        await self.connection.execute(query)
+        result = await self.connection.execute(query)
+        return result.rowcount
 
     async def list(self, *, auto_remove_filter: bool | None = None) -> AsyncIterator[Provider]:
         query = providers_table.select()

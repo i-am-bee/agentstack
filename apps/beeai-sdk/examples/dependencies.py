@@ -25,6 +25,7 @@ async def dependent_agent(
     llm: Annotated[LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand()],
 ) -> AsyncGenerator[RunYield, Message]:
     """Awaits a user message"""
+
     yield trajectory.trajectory_metadata(title="context_param", content=str(context))
     yield trajectory.trajectory_metadata(title="message_param", content=str(message.model_dump()))
     yield trajectory.message(trajectory_title="llm_param", trajectory_content=str(llm.data))

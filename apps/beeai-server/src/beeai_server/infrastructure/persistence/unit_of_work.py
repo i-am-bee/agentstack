@@ -7,12 +7,14 @@ from typing import Self
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, AsyncTransaction
 
 from beeai_server.configuration import Configuration
+from beeai_server.domain.repositories.context import IContextRepository
 from beeai_server.domain.repositories.env import IEnvVariableRepository
 from beeai_server.domain.repositories.file import IFileRepository
 from beeai_server.domain.repositories.provider import IProviderRepository
 from beeai_server.domain.repositories.user import IUserRepository
 from beeai_server.domain.repositories.user_feedback import IUserFeedbackRepository
 from beeai_server.domain.repositories.vector_store import IVectorDatabaseRepository, IVectorStoreRepository
+from beeai_server.infrastructure.persistence.repositories.context import ContextRepository
 from beeai_server.infrastructure.persistence.repositories.env import SqlAlchemyEnvVariableRepository
 from beeai_server.infrastructure.persistence.repositories.file import SqlAlchemyFileRepository
 from beeai_server.infrastructure.persistence.repositories.provider import SqlAlchemyProviderRepository
@@ -30,6 +32,7 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
     """
 
     providers: IProviderRepository
+    contexts: IContextRepository
     env: IEnvVariableRepository
     files: IFileRepository
     users: IUserRepository
@@ -51,6 +54,7 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
             self._transaction = await self._connection.begin()
 
             self.providers = SqlAlchemyProviderRepository(self._connection)
+            self.contexts = ContextRepository(self._connection)
             self.env = SqlAlchemyEnvVariableRepository(self._connection, configuration=self._config)
             self.files = SqlAlchemyFileRepository(self._connection)
             self.users = SqlAlchemyUserRepository(self._connection)

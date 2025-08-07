@@ -3,16 +3,14 @@
 
 from __future__ import annotations
 
-import httpx
-
-from beeai_sdk.platform.context import get_platform_client
+from beeai_sdk.platform.client import PlatformClient, get_platform_client
 
 
 class Variables(dict[str, str]):
     async def save(
         self: Variables | dict[str, str],
         *,
-        client: httpx.AsyncClient | None = None,
+        client: PlatformClient | None = None,
     ) -> None:
         """
         Save variables to the BeeAI platform. Does not delete keys unless explicitly set to None.
@@ -27,7 +25,7 @@ class Variables(dict[str, str]):
             )
         ).raise_for_status()
 
-    async def load(self: Variables | None = None, *, client: httpx.AsyncClient | None = None) -> Variables:
+    async def load(self: Variables | None = None, *, client: PlatformClient | None = None) -> Variables:
         """
         Load variables from the BeeAI platform.
 

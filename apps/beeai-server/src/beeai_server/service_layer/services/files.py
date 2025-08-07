@@ -64,6 +64,7 @@ class FileService:
                     file=extracted_file,
                     user=user,
                     file_type=FileType.extracted_text,
+                    context_id=file.context_id,
                     parent_file_id=file_id,
                 )
             extraction.set_completed(extracted_file_id=extracted_db_file.id)
@@ -90,9 +91,16 @@ class FileService:
         file: AsyncFile,
         user: User,
         file_type: FileType = FileType.user_upload,
+        context_id: UUID | None = None,
         parent_file_id: UUID | None = None,
     ) -> File:
-        db_file = File(filename=file.filename, created_by=user.id, file_type=file_type, parent_file_id=parent_file_id)
+        db_file = File(
+            filename=file.filename,
+            created_by=user.id,
+            file_type=file_type,
+            parent_file_id=parent_file_id,
+            context_id=context_id,
+        )
         try:
             async with self._uow() as uow:
                 total_usage = await uow.files.total_usage(user_id=user.id)
@@ -108,37 +116,40 @@ class FileService:
             # If the file was uploaded and then the commit failed, delete the file from the object storage.
             if db_file.file_size_bytes is not None:
                 with suppress(Exception):
-                    await self._object_storage.delete_file(file_id=db_file.id)
+                    await self._object_storage.delete_files(file_ids=[db_file.id])
             raise
 
-    async def get(self, *, file_id: UUID, user: User) -> File:
+    async def get(self, *, file_id: UUID, user: User, context_id: UUID | None = None) -> File:
         async with self._uow() as uow:
-            return await uow.files.get(file_id=file_id, user_id=user.id)
+            return await uow.files.get(file_id=file_id, user_id=user.id, context_id=context_id)
 
     @asynccontextmanager
-    async def get_content(self, *, file_id: UUID, user: User) -> AsyncIterator[AsyncFile]:
+    async def get_content(
+        self, *, file_id: UUID, user: User, context_id: UUID | None = None
+    ) -> AsyncIterator[AsyncFile]:
         async with self._uow() as uow:
-            await uow.files.get(file_id=file_id, user_id=user.id)  # check if the user owns the file
+            # check if the user owns the file
+            await uow.files.get(file_id=file_id, user_id=user.id, context_id=context_id)
             async with self._object_storage.get_file(file_id=file_id) as file:
                 yield file
 
-    async def get_extraction(self, *, file_id: UUID, user: User) -> TextExtraction:
+    async def get_extraction(self, *, file_id: UUID, user: User, context_id: UUID | None = None) -> TextExtraction:
         async with self._uow() as uow:
-            return await uow.files.get_extraction_by_file_id(file_id=file_id, user_id=user.id)
+            return await uow.files.get_extraction_by_file_id(file_id=file_id, user_id=user.id, context_id=context_id)
 
-    async def delete(self, *, file_id: UUID, user: User) -> None:
+    async def delete(self, *, file_id: UUID, user: User, context_id: UUID | None = None) -> None:
         async with self._uow() as uow:
-            await uow.files.delete(file_id=file_id, user_id=user.id)
-            await self._object_storage.delete_file(file_id=file_id)
-            await uow.commit()
+            if await uow.files.delete(file_id=file_id, user_id=user.id, context_id=context_id):
+                await self._object_storage.delete_files(file_ids=[file_id])
+                await uow.commit()
 
-    async def create_extraction(self, *, file_id: UUID, user: User) -> TextExtraction:
+    async def create_extraction(self, *, file_id: UUID, user: User, context_id: UUID | None = None) -> TextExtraction:
         async with self._uow() as uow:
             # Check user permissions
-            await uow.files.get(file_id=file_id, user_id=user.id, file_type=FileType.user_upload)
+            await uow.files.get(file_id=file_id, user_id=user.id, context_id=context_id, file_type=FileType.user_upload)
             try:
                 # Check if extraction already exists
-                extraction = await uow.files.get_extraction_by_file_id(file_id=file_id, user_id=user.id)
+                extraction = await uow.files.get_extraction_by_file_id(file_id=file_id)
                 match extraction.status:
                     case ExtractionStatus.completed | ExtractionStatus.pending | ExtractionStatus.in_progress:
                         return extraction
@@ -153,7 +164,7 @@ class FileService:
                 if file_metadata.content_type in {"text/plain", "text/markdown"}:
                     extraction.set_completed(
                         extracted_file_id=file_id,  # Point to itself since it's already text
-                        metadata=ExtractionMetadata(backend="in-place").model_dump(mode="json"),
+                        metadata=ExtractionMetadata(backend="in-place"),
                     )
                 await uow.files.create_extraction(extraction=extraction)
             if extraction.status == ExtractionStatus.pending:
@@ -164,12 +175,14 @@ class FileService:
             await uow.commit()
             return extraction
 
-    async def delete_extraction(self, *, file_id: UUID, user: User) -> None:
+    async def delete_extraction(self, *, file_id: UUID, user: User, context_id: UUID | None = None) -> None:
         async with self._uow() as uow:
-            extraction = await uow.files.get_extraction_by_file_id(file_id=file_id, user_id=user.id)
+            extraction = await uow.files.get_extraction_by_file_id(
+                file_id=file_id, user_id=user.id, context_id=context_id
+            )
 
             if extraction.extracted_file_id:
-                await self._object_storage.delete_file(file_id=extraction.extracted_file_id)
+                await self._object_storage.delete_files(file_ids=[extraction.extracted_file_id])
                 await uow.files.delete(file_id=extraction.extracted_file_id)
 
             await uow.files.delete_extraction(extraction_id=extraction.id)
