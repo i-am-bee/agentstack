@@ -9,5 +9,5 @@ import type { MainContentViewProps } from '@i-am-bee/beeai-ui';
 import { MainContentView } from '@i-am-bee/beeai-ui';
 
 export function MainContent({ ...props }: MainContentViewProps) {
-  return <MainContentView showFooter {...props} />;
+  return <MainContentView showFooter enableToTopButton={false} {...props} />;
 }

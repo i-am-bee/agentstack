@@ -12,3 +12,9 @@
 .content {
   grid-column: 2 / -2;
 }
+
+@include breakpoint-down(lg) {
+  .grid {
+    grid-gap: 0;
+  }
+}

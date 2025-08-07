@@ -41,6 +41,8 @@ $light: map.merge(
 
     support-error-30: rgba($red-60, 0.3),
     text-dark: $black,
+    text-muted: $cool-gray-70,
+    text-muted-inverse: $cool-gray-40,
     text-placeholder: $cool-gray-40,
     text-helper: $cool-gray-60,
     box-shadow-color: rgba(193, 199, 205, 0.45),
@@ -84,6 +86,8 @@ $dark: map.merge(
 
     support-error-30: rgba($red-50, 0.3),
     text-dark: $white,
+    text-muted: $cool-gray-40,
+    text-muted-inverse: $cool-gray-70,
     text-placeholder: $cool-gray-60,
     text-helper: $cool-gray-50,
     box-shadow-color: rgba($cool-gray-30, 0.3),
@@ -188,6 +192,8 @@ $background-hover-50: var(--cds-background-hover-50);
 $background-transparent: var(--cds-background-transparent);
 
 $text-dark: var(--cds-text-dark);
+$text-muted: var(--cds-text-muted);
+$text-muted-inverse: var(--cds-text-muted-inverse);
 
 $border-radius: $spacing-03;
 $border-radius-lg: $spacing-04;

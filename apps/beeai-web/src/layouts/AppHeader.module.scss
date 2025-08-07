@@ -8,8 +8,10 @@
   inset-block-start: 0;
   background-color: $background;
   border-block-end: 1px solid $border-subtle-00;
+  z-index: 100;
 }
 
+.content,
 .nav {
   display: contents;
 }
@@ -25,12 +27,39 @@
 }
 
 .navItems {
-  grid-column: 2 / 8;
+  grid-column: 2 / 10;
 }
 
 .right {
-  grid-column: 8 / -1;
+  grid-column: 10 / -1;
   display: flex;
   align-items: center;
   justify-content: flex-end;
+}
+
+button.toggleMenuBtn {
+  display: none;
+}
+
+@include breakpoint-down(lg) {
+  .nav {
+    grid-column: 1 / 10;
+    display: flex;
+    gap: $spacing-07;
+  }
+}
+@include breakpoint-down(md) {
+  button.toggleMenuBtn {
+    display: flex;
+  }
+
+  .content {
+    grid-column: 1 / 16;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .navItems {
+    display: none;
+  }
 }

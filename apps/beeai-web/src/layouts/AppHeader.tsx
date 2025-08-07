@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 'use client';
-
 import { ArrowUpRight } from '@carbon/icons-react';
+import { HeaderMenuButton, HeaderMenuItem, HeaderSideNavItems, SideNav, SideNavItems } from '@carbon/react';
 import { DOCUMENTATION_LINK, MainNav } from '@i-am-bee/beeai-ui';
 import clsx from 'clsx';
 import Link from 'next/link';
+import { useState } from 'react';
 
 import { FRAMEWORK_DOCS_LINK } from '@/constants';
 
@@ -20,21 +21,44 @@ interface Props {
 }
 
 export function AppHeader({ className }: Props) {
+  const [isSideNavExpanded, setSideNavExpanded] = useState(false);
+
   return (
     <header className={clsx(classes.root, className)}>
       <LayoutContainer asGrid>
-        <nav className={classes.nav}>
-          <Link href="/" className={classes.logo}>
-            <strong>BeeAI</strong>
-          </Link>
+        <div className={classes.content}>
+          <nav className={classes.nav}>
+            <HeaderMenuButton
+              aria-label="Open menu"
+              onClick={() => setSideNavExpanded((expanded) => !expanded)}
+              isActive={isSideNavExpanded}
+              className={classes.toggleMenuBtn}
+            />
 
-          <div className={classes.navItems}>
-            <MainNav items={items} />
+            <Link href="/" className={classes.logo}>
+              <strong>BeeAI</strong>
+            </Link>
+
+            <div className={classes.navItems}>
+              <MainNav items={items} />
+            </div>
+
+            <SideNav isPersistent={false} expanded={isSideNavExpanded}>
+              <SideNavItems>
+                <HeaderSideNavItems>
+                  {items.map(({ label, href }, idx) => (
+                    <HeaderMenuItem href={href} target="_blank" key={idx}>
+                      {label}
+                    </HeaderMenuItem>
+                  ))}
+                </HeaderSideNavItems>
+              </SideNavItems>
+            </SideNav>
+          </nav>
+
+          <div className={classes.right}>
+            <SocialLinks />
           </div>
-        </nav>
-
-        <div className={classes.right}>
-          <SocialLinks />
         </div>
       </LayoutContainer>
     </header>

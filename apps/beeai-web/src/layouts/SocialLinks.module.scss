@@ -15,8 +15,16 @@
     color: $text-dark;
     font-size: rem(14px);
     line-height: math.div(18, 14);
+    block-size: rem(24px);
+
     &:hover {
       color: $background-inverse;
+    }
+  }
+
+  @include breakpoint-down(md) {
+    span {
+      display: none;
     }
   }
 }

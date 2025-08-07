@@ -4,22 +4,34 @@
  */
 
 'use client';
-
 import { LayoutContainer } from '@/layouts/LayoutContainer';
-import BeeLogo from '@/svgs/LogoBeeAI.svg';
 
-import { GitHubButton } from './GitHubButton';
+import BeeCollage from './assets/bee-collage.svg';
+import { GitHubButton } from './components/GitHubButton';
+import { LogoBeeAI } from './components/LogoBeeAI';
 import classes from './Introduction.module.scss';
 
 export function Introduction() {
   return (
     <LayoutContainer>
       <div className={classes.root}>
-        <div className={classes.logo}>
-          <BeeLogo />
+        <div>
+          <div className={classes.logo}>
+            {/* <BeeLogo /> */}
+            <LogoBeeAI />
+          </div>
+          <h1>
+            Enterprise AI Agent
+            <br />
+            Development,
+            <br />
+            Simplified
+          </h1>
+          <GitHubButton />
         </div>
-        <h1>Enterprise AI Agent Development, Simplified</h1>
-        <GitHubButton />
+        <div className={classes.collage}>
+          <BeeCollage />
+        </div>
       </div>
     </LayoutContainer>
   );

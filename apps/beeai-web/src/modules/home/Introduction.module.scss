@@ -4,13 +4,37 @@
  */
 
 .root {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding-block-start: rem(143px);
+
   h1 {
-    font-size: 3vw;
+    font-size: rem(64px);
     font-weight: 300;
+    white-space: nowrap;
   }
 }
 
-.logo svg {
-  fill: $text-primary;
-  inline-size: rem(109px);
+.collage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  svg {
+    path {
+      fill: currentColor;
+    }
+  }
+}
+
+@include breakpoint-down(lg) {
+  .root {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-10;
+    padding-block-start: rem(100px);
+
+    h1 {
+      font-size: 9vw;
+    }
+  }
 }

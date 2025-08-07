@@ -9,7 +9,6 @@
   padding-block: $spacing-07;
   display: flex;
   flex-direction: column;
-  row-gap: $spacing-07;
   min-block-size: 0;
   position: relative;
   &.scrollable {
@@ -37,11 +36,9 @@
   .root {
     &.md {
       padding-block: $spacing-07;
-      row-gap: $spacing-07;
     }
     &.lg {
       padding-block: $spacing-09;
-      row-gap: $spacing-09;
     }
 
     &:has(.footer) {
