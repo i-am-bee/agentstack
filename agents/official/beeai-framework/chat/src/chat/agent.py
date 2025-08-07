@@ -22,14 +22,11 @@ from beeai_framework.agents.experimental import (
 from beeai_framework.agents.experimental.events import (
     RequirementAgentSuccessEvent,
 )
-from beeai_framework.agents.experimental.utils._tool import FinalAnswerTool
 from beeai_framework.backend.types import ChatModelParameters
 from beeai_framework.memory import UnconstrainedMemory
 from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
 from beeai_framework.tools import Tool
-from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
 from beeai_framework.tools.search.wikipedia import WikipediaTool
-from beeai_framework.tools.weather.openmeteo import OpenMeteoTool
 
 from beeai_sdk.a2a.extensions import (
     AgentDetail,
@@ -46,7 +43,7 @@ from chat.helpers.citations import extract_citations
 from chat.helpers.trajectory import TrajectoryContent
 from openinference.instrumentation.beeai import BeeAIInstrumentor
 
-from chat.tools.files.file_creator import FileCreatorTool, FileCreatorToolOutput
+from chat.tools.files.file_creator import FileCreatorToolOutput
 from chat.tools.files.file_reader import create_file_reader_tool_class
 from chat.tools.files.utils import FrameworkMessage, extract_files, to_framework_message
 from chat.tools.general.act import (
@@ -58,7 +55,6 @@ from chat.tools.general.clarification import (
     ClarificationTool,
     clarification_tool_middleware,
 )
-from chat.tools.general.current_time import CurrentTimeTool
 
 BeeAIInstrumentor().instrument()
 ## TODO: https://github.com/phoenixframework/phoenix/issues/6224
@@ -186,6 +182,7 @@ async def chat(
         api_key=os.getenv("LLM_API_KEY", "dummy"),
         base_url=os.getenv("LLM_API_BASE", "http://localhost:11434/v1"),
         parameters=ChatModelParameters(temperature=0.0),
+        tool_choice_support=set(),
     )
 
     # Create agent
