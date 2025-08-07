@@ -9,7 +9,7 @@ from beeai_server.api.schema.user_feedback import InsertUserFeedbackRequest
 router = fastapi.APIRouter()
 
 
-@router.put("", status_code=fastapi.status.HTTP_201_CREATED)
+@router.post("", status_code=fastapi.status.HTTP_201_CREATED)
 async def user_feedback(
     request: InsertUserFeedbackRequest,
     user_feedback_service: UserFeedbackServiceDependency,

@@ -117,7 +117,7 @@ source .env
 set +a
 
 cd src/beeai_server/infrastructure/persistence/migrations
-alembic {{arg(name="alembic_vars", var=true)}}
+uv run alembic {{arg(name="alembic_vars", var=true)}}
 """
 
 ["beeai-server:migrations:alembic"]
@@ -134,7 +134,7 @@ if ! telepresence list --replacements 2>/dev/null | grep -q platform; then
 fi
 
 cd src/beeai_server/infrastructure/persistence/migrations
-alembic {{arg(name="alembic_vars", var=true)}}
+uv run alembic {{arg(name="alembic_vars", var=true)}}
 """
 
 ["beeai-server:migrations:generate"]
