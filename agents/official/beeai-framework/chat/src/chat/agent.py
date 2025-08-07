@@ -80,7 +80,7 @@ server = Server()
 
 
 @server.agent(
-    name="Chat NEW",
+    name="Chat",
     documentation_url=(
         f"https://github.com/i-am-bee/beeai-platform/blob/{os.getenv('RELEASE_VERSION', 'main')}"
         "/agents/official/beeai-framework/chat"
@@ -165,7 +165,7 @@ server = Server()
         )
     ],
 )
-async def chat_new(
+async def chat(
     message: Message,
     context: Context,
     trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
