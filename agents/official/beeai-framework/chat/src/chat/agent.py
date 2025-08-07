@@ -15,7 +15,6 @@ from a2a.types import (
     Message,
     Part,
 )
-from beeai_framework.adapters.ollama import OllamaChatModel
 from beeai_framework.adapters.openai import OpenAIChatModel
 from beeai_framework.agents.experimental import (
     RequirementAgent,
@@ -24,8 +23,8 @@ from beeai_framework.agents.experimental.events import (
     RequirementAgentSuccessEvent,
 )
 from beeai_framework.agents.experimental.utils._tool import FinalAnswerTool
-from beeai_framework.backend import ChatModel
 from beeai_framework.backend.types import ChatModelParameters
+from beeai_framework.emitter import EventMeta
 from beeai_framework.memory import UnconstrainedMemory
 from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
 from beeai_framework.tools import Tool
@@ -60,6 +59,11 @@ from chat.tools.general.act import (
 from chat.tools.general.clarification import (
     ClarificationTool,
     clarification_tool_middleware,
+)
+
+# Temporary instrument fix
+EventMeta.to_json_safe = lambda self: self.model_dump(
+    exclude_none=True, exclude={"context"}
 )
 
 BeeAIInstrumentor().instrument()
