@@ -15,7 +15,7 @@ import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 import { AGENT_ERROR_MESSAGE } from './constants';
 import { processMessageMetadata, processParts } from './part-processors';
 import type { ChatRun } from './types';
-import { createUserMessage, extractTextFromMessage, isArtifactUpdateEvent } from './utils';
+import { createUserMessage, extractTextFromMessage } from './utils';
 
 function handleStatusUpdate(event: TaskStatusUpdateEvent): UIMessagePart[] {
   const { message, state } = event.status;
@@ -60,10 +60,17 @@ export const buildA2AClient = (providerId: string) => {
           .with({ kind: 'task' }, (task) => {
             taskId = task.id;
           })
-          .with({ kind: 'status-update' }, { kind: 'artifact-update' }, (event) => {
+          .with({ kind: 'status-update' }, (event) => {
             taskId = event.taskId;
 
-            const parts = isArtifactUpdateEvent(event) ? handleArtifactUpdate(event) : handleStatusUpdate(event);
+            const parts = handleStatusUpdate(event);
+
+            messageSubject.next({ parts, taskId });
+          })
+          .with({ kind: 'artifact-update' }, (event) => {
+            taskId = event.taskId;
+
+            const parts = handleArtifactUpdate(event);
 
             messageSubject.next({ parts, taskId });
           });
