@@ -32,6 +32,7 @@ from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
 from beeai_framework.tools.search.wikipedia import WikipediaTool
 
 from beeai_framework.tools.weather import OpenMeteoTool
+
 from beeai_sdk.a2a.extensions import (
     AgentDetail,
     AgentDetailTool,
@@ -62,9 +63,7 @@ from chat.tools.general.clarification import (
 )
 
 # Temporary instrument fix
-EventMeta.to_json_safe = lambda self: self.model_dump(
-    exclude_none=True, exclude={"context"}
-)
+EventMeta.model_fields["context"].exclude = True
 
 BeeAIInstrumentor().instrument()
 ## TODO: https://github.com/phoenixframework/phoenix/issues/6224
