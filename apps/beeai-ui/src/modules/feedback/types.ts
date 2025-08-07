@@ -4,9 +4,9 @@
  */
 
 export interface FeedbackForm {
+  vote?: FeedbackVote;
   categories?: FeedbackCategory[];
   comment?: string;
-  vote?: FeedbackVote;
 }
 
 export type FeedbackCategory = {

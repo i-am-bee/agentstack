@@ -23,11 +23,9 @@ interface Props {
   onOpenChange: (formOpen: boolean) => void;
 }
 
-export function MessageFeedback({ buttonWrapperClasses, onOpenChange }: Props) {
+export function MessageFeedback({ message, buttonWrapperClasses, onOpenChange }: Props) {
   const { formOpen, currentVote, getVoteUpProps, getVoteDownProps, getDialogProps, getFormProps, positionRef } =
-    useFeedback({
-      onOpenChange,
-    });
+    useFeedback({ message, onOpenChange });
 
   const isVoteUp = currentVote === FeedbackVote.Up;
   const isVoteDown = currentVote === FeedbackVote.Down;

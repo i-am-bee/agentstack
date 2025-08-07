@@ -10,19 +10,26 @@ import type { SubmitErrorHandler, SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 
 import { useToast } from '#contexts/Toast/index.ts';
+import type { UIAgentMessage } from '#modules/messages/types.ts';
+import { useAgentRun } from '#modules/runs/contexts/agent-run/index.ts';
 
+import { useSendFeedback } from '../api/mutations/useSendFeedback';
+import { createSendFeedbackPayload } from '../api/utils';
 import { FEEDBACK_DIALOG_OFFSET, FEEDBACK_FORM_DEFAULTS } from '../constants';
 import type { FeedbackForm } from '../types';
 import { FeedbackVote } from '../types';
 
 interface Props {
+  message: UIAgentMessage;
   onOpenChange: (formOpen: boolean) => void;
 }
 
-export function useFeedback({ onOpenChange }: Props) {
+export function useFeedback({ message, onOpenChange }: Props) {
   const [formOpen, setFormOpen] = useState(false);
 
   const { addToast } = useToast();
+  const { mutateAsync: sendFeedback } = useSendFeedback();
+  const { agent, contextId } = useAgentRun();
 
   const { refs, floatingStyles, context } = useFloating({
     placement: 'right-start',
@@ -65,7 +72,7 @@ export function useFeedback({ onOpenChange }: Props) {
   const onSubmit: (params?: { shouldCloseFrom?: boolean }) => SubmitHandler<FeedbackForm> = useCallback(
     ({ shouldCloseFrom } = {}) =>
       async (values) => {
-        console.log(values);
+        await sendFeedback(createSendFeedbackPayload({ agent, message, values, contextId }));
 
         addToast({
           kind: 'info',
@@ -80,7 +87,7 @@ export function useFeedback({ onOpenChange }: Props) {
           closeForm();
         }
       },
-    [addToast, closeForm],
+    [agent, message, contextId, sendFeedback, addToast, closeForm],
   );
 
   const onError: SubmitErrorHandler<FeedbackForm> = useCallback(

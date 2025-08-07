@@ -9,6 +9,29 @@
  */
 
 export interface paths {
+    "/api/v1/a2a/{provider_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Proxy Request */
+        get: operations["proxy_request_api_v1_a2a__provider_id__put"];
+        /** Proxy Request */
+        put: operations["proxy_request_api_v1_a2a__provider_id__put"];
+        /** Proxy Request */
+        post: operations["proxy_request_api_v1_a2a__provider_id__put"];
+        /** Proxy Request */
+        delete: operations["proxy_request_api_v1_a2a__provider_id__put"];
+        /** Proxy Request */
+        options: operations["proxy_request_api_v1_a2a__provider_id__put"];
+        /** Proxy Request */
+        head: operations["proxy_request_api_v1_a2a__provider_id__put"];
+        /** Proxy Request */
+        patch: operations["proxy_request_api_v1_a2a__provider_id__put"];
+        trace?: never;
+    };
     "/api/v1/a2a/{provider_id}/.well-known/agent.json": {
         parameters: {
             query?: never;
@@ -34,19 +57,19 @@ export interface paths {
             cookie?: never;
         };
         /** Proxy Request */
-        get: operations["proxy_request_api_v1_a2a__provider_id___path__get"];
+        get: operations["proxy_request_api_v1_a2a__provider_id___path__put"];
         /** Proxy Request */
-        put: operations["proxy_request_api_v1_a2a__provider_id___path__get"];
+        put: operations["proxy_request_api_v1_a2a__provider_id___path__put"];
         /** Proxy Request */
-        post: operations["proxy_request_api_v1_a2a__provider_id___path__get"];
+        post: operations["proxy_request_api_v1_a2a__provider_id___path__put"];
         /** Proxy Request */
-        delete: operations["proxy_request_api_v1_a2a__provider_id___path__get"];
+        delete: operations["proxy_request_api_v1_a2a__provider_id___path__put"];
         /** Proxy Request */
-        options: operations["proxy_request_api_v1_a2a__provider_id___path__get"];
+        options: operations["proxy_request_api_v1_a2a__provider_id___path__put"];
         /** Proxy Request */
-        head: operations["proxy_request_api_v1_a2a__provider_id___path__get"];
+        head: operations["proxy_request_api_v1_a2a__provider_id___path__put"];
         /** Proxy Request */
-        patch: operations["proxy_request_api_v1_a2a__provider_id___path__get"];
+        patch: operations["proxy_request_api_v1_a2a__provider_id___path__put"];
         trace?: never;
     };
     "/api/v1/files": {
@@ -266,6 +289,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/user_feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** User Feedback */
+        post: operations["user_feedback_api_v1_user_feedback_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/variables": {
         parameters: {
             query?: never;
@@ -426,11 +466,9 @@ export interface components {
         };
         /**
          * AgentCard
-         * @description An AgentCard conveys key information:
-         *     - Overall details (version, name, description, uses)
-         *     - Skills: A set of capabilities the agent can perform
-         *     - Default modalities/content types supported by the agent.
-         *     - Authentication requirements
+         * @description The AgentCard is a self-describing manifest for an agent. It provides essential
+         *     metadata including the agent's identity, capabilities, skills, supported
+         *     communication methods, and security requirements.
          */
         "AgentCard-Input": {
             /** Additionalinterfaces */
@@ -452,7 +490,7 @@ export interface components {
             preferredTransport?: string | null;
             /**
              * Protocolversion
-             * @default 0.2.5
+             * @default 0.2.6
              */
             protocolVersion: string | null;
             provider?: components["schemas"]["AgentProvider"] | null;
@@ -475,11 +513,9 @@ export interface components {
         };
         /**
          * AgentCard
-         * @description An AgentCard conveys key information:
-         *     - Overall details (version, name, description, uses)
-         *     - Skills: A set of capabilities the agent can perform
-         *     - Default modalities/content types supported by the agent.
-         *     - Authentication requirements
+         * @description The AgentCard is a self-describing manifest for an agent. It provides essential
+         *     metadata including the agent's identity, capabilities, skills, supported
+         *     communication methods, and security requirements.
          */
         "AgentCard-Output": {
             /** Additionalinterfaces */
@@ -501,7 +537,7 @@ export interface components {
             preferredTransport?: string | null;
             /**
              * Protocolversion
-             * @default 0.2.5
+             * @default 0.2.6
              */
             protocolVersion: string | null;
             provider?: components["schemas"]["AgentProvider"] | null;
@@ -524,7 +560,7 @@ export interface components {
         };
         /**
          * AgentExtension
-         * @description A declaration of an extension supported by an Agent.
+         * @description A declaration of a protocol extension supported by an Agent.
          */
         AgentExtension: {
             /** Description */
@@ -540,8 +576,7 @@ export interface components {
         };
         /**
          * AgentInterface
-         * @description AgentInterface provides a declaration of a combination of the
-         *     target url and the supported transport to interact with the agent.
+         * @description Declares a combination of a target URL and a transport protocol for interacting with the agent.
          */
         AgentInterface: {
             /** Transport */
@@ -561,7 +596,7 @@ export interface components {
         };
         /**
          * AgentSkill
-         * @description Represents a unit of capability that an agent can perform.
+         * @description Represents a distinct capability or function that an agent can perform.
          */
         AgentSkill: {
             /** Description */
@@ -581,7 +616,7 @@ export interface components {
         };
         /**
          * APIKeySecurityScheme
-         * @description API Key security scheme.
+         * @description Defines a security scheme using an API key.
          */
         APIKeySecurityScheme: {
             /** Description */
@@ -603,7 +638,7 @@ export interface components {
         };
         /**
          * AuthorizationCodeOAuthFlow
-         * @description Configuration details for a supported OAuth Flow
+         * @description Defines configuration details for the OAuth 2.0 Authorization Code flow.
          */
         AuthorizationCodeOAuthFlow: {
             /** Authorizationurl */
@@ -1044,7 +1079,7 @@ export interface components {
         };
         /**
          * ClientCredentialsOAuthFlow
-         * @description Configuration details for a supported OAuth Flow
+         * @description Defines configuration details for the OAuth 2.0 Client Credentials flow.
          */
         ClientCredentialsOAuthFlow: {
             /** Refreshurl */
@@ -1179,7 +1214,7 @@ export interface components {
         GithubUrl: string;
         /**
          * HTTPAuthSecurityScheme
-         * @description HTTP Authentication security scheme.
+         * @description Defines a security scheme using HTTP authentication.
          */
         HTTPAuthSecurityScheme: {
             /** Bearerformat */
@@ -1212,7 +1247,7 @@ export interface components {
         };
         /**
          * ImplicitOAuthFlow
-         * @description Configuration details for a supported OAuth Flow
+         * @description Defines configuration details for the OAuth 2.0 Implicit flow.
          */
         ImplicitOAuthFlow: {
             /** Authorizationurl */
@@ -1226,7 +1261,7 @@ export interface components {
         };
         /**
          * In
-         * @description The location of the API key. Valid values are "query", "header", or "cookie".
+         * @description The location of the API key.
          * @enum {string}
          */
         In: "cookie" | "header" | "query";
@@ -1239,6 +1274,38 @@ export interface components {
              * @enum {string}
              */
             format: "wav" | "mp3";
+        };
+        /**
+         * InsertUserFeedbackRequest
+         * @description Request to create a user feedback.
+         */
+        InsertUserFeedbackRequest: {
+            /** Comment */
+            comment?: string | null;
+            /** Comment Tags */
+            comment_tags?: string[] | null;
+            /**
+             * Context Id
+             * Format: uuid
+             */
+            context_id: string;
+            /** Message */
+            message: string;
+            /**
+             * Provider Id
+             * Format: uuid
+             */
+            provider_id: string;
+            /**
+             * Rating
+             * @description Rating thats either 1 or -1
+             */
+            rating: number;
+            /**
+             * Task Id
+             * Format: uuid
+             */
+            task_id: string;
         };
         /** JSONSchema */
         JSONSchema: {
@@ -1272,7 +1339,7 @@ export interface components {
         NetworkRegistryLocation: string;
         /**
          * OAuth2SecurityScheme
-         * @description OAuth2.0 security scheme configuration.
+         * @description Defines a security scheme using OAuth 2.0.
          */
         "OAuth2SecurityScheme-Input": {
             /** Description */
@@ -1287,7 +1354,7 @@ export interface components {
         };
         /**
          * OAuth2SecurityScheme
-         * @description OAuth2.0 security scheme configuration.
+         * @description Defines a security scheme using OAuth 2.0.
          */
         "OAuth2SecurityScheme-Output": {
             /** Description */
@@ -1302,7 +1369,7 @@ export interface components {
         };
         /**
          * OAuthFlows
-         * @description Allows configuration of the supported OAuth Flows
+         * @description Defines the configuration for the supported OAuth 2.0 flows.
          */
         OAuthFlows: {
             authorizationCode?: components["schemas"]["AuthorizationCodeOAuthFlow"] | null;
@@ -1335,7 +1402,7 @@ export interface components {
         };
         /**
          * OpenIdConnectSecurityScheme
-         * @description OpenID Connect security scheme configuration.
+         * @description Defines a security scheme using OpenID Connect.
          */
         OpenIdConnectSecurityScheme: {
             /** Description */
@@ -1372,7 +1439,7 @@ export interface components {
         };
         /**
          * PasswordOAuthFlow
-         * @description Configuration details for a supported OAuth Flow
+         * @description Defines configuration details for the OAuth 2.0 Resource Owner Password flow.
          */
         PasswordOAuthFlow: {
             /** Refreshurl */
@@ -1609,6 +1676,237 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    proxy_request_api_v1_a2a__provider_id__put: {
+        parameters: {
+            query?: {
+                path?: string;
+            };
+            header?: never;
+            path: {
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    proxy_request_api_v1_a2a__provider_id__put: {
+        parameters: {
+            query?: {
+                path?: string;
+            };
+            header?: never;
+            path: {
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    proxy_request_api_v1_a2a__provider_id__put: {
+        parameters: {
+            query?: {
+                path?: string;
+            };
+            header?: never;
+            path: {
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    proxy_request_api_v1_a2a__provider_id__put: {
+        parameters: {
+            query?: {
+                path?: string;
+            };
+            header?: never;
+            path: {
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    proxy_request_api_v1_a2a__provider_id__put: {
+        parameters: {
+            query?: {
+                path?: string;
+            };
+            header?: never;
+            path: {
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    proxy_request_api_v1_a2a__provider_id__put: {
+        parameters: {
+            query?: {
+                path?: string;
+            };
+            header?: never;
+            path: {
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    proxy_request_api_v1_a2a__provider_id__put: {
+        parameters: {
+            query?: {
+                path?: string;
+            };
+            header?: never;
+            path: {
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_agent_card_api_v1_a2a__provider_id___well_known_agent_json_get: {
         parameters: {
             query?: never;
@@ -1640,7 +1938,7 @@ export interface operations {
             };
         };
     };
-    proxy_request_api_v1_a2a__provider_id___path__get: {
+    proxy_request_api_v1_a2a__provider_id___path__put: {
         parameters: {
             query?: never;
             header?: never;
@@ -1672,7 +1970,7 @@ export interface operations {
             };
         };
     };
-    proxy_request_api_v1_a2a__provider_id___path__get: {
+    proxy_request_api_v1_a2a__provider_id___path__put: {
         parameters: {
             query?: never;
             header?: never;
@@ -1704,7 +2002,7 @@ export interface operations {
             };
         };
     };
-    proxy_request_api_v1_a2a__provider_id___path__get: {
+    proxy_request_api_v1_a2a__provider_id___path__put: {
         parameters: {
             query?: never;
             header?: never;
@@ -1736,7 +2034,7 @@ export interface operations {
             };
         };
     };
-    proxy_request_api_v1_a2a__provider_id___path__get: {
+    proxy_request_api_v1_a2a__provider_id___path__put: {
         parameters: {
             query?: never;
             header?: never;
@@ -1768,7 +2066,7 @@ export interface operations {
             };
         };
     };
-    proxy_request_api_v1_a2a__provider_id___path__get: {
+    proxy_request_api_v1_a2a__provider_id___path__put: {
         parameters: {
             query?: never;
             header?: never;
@@ -1800,7 +2098,7 @@ export interface operations {
             };
         };
     };
-    proxy_request_api_v1_a2a__provider_id___path__get: {
+    proxy_request_api_v1_a2a__provider_id___path__put: {
         parameters: {
             query?: never;
             header?: never;
@@ -1832,7 +2130,7 @@ export interface operations {
             };
         };
     };
-    proxy_request_api_v1_a2a__provider_id___path__get: {
+    proxy_request_api_v1_a2a__provider_id___path__put: {
         parameters: {
             query?: never;
             header?: never;
@@ -2369,6 +2667,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UIFeatureFlags"];
+                };
+            };
+        };
+    };
+    user_feedback_api_v1_user_feedback_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InsertUserFeedbackRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
