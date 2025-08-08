@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import pytest
-import pytest_asyncio
 from cryptography.fernet import Fernet
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
@@ -14,7 +13,7 @@ from beeai_server.infrastructure.persistence.repositories.env import SqlAlchemyE
 pytestmark = pytest.mark.integration
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 def encryption_config() -> Configuration:
     """Create a test configuration with an encryption key."""
     # Generate a new Fernet key for testing

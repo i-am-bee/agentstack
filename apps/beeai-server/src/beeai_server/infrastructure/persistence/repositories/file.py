@@ -62,7 +62,7 @@ class SqlAlchemyFileRepository(IFileRepository):
     def __init__(self, connection: AsyncConnection):
         self.connection = connection
 
-    async def create(self, file: File) -> None:
+    async def create(self, *, file: File) -> None:
         query = files_table.insert().values(
             id=file.id,
             filename=file.filename,
@@ -134,6 +134,8 @@ class SqlAlchemyFileRepository(IFileRepository):
         for condition in conditions:
             query = query.where(condition)
         result = await self.connection.execute(query)
+        if not result.rowcount:
+            raise EntityNotFoundError("file", file_id or "file to delete")
         return result.rowcount
 
     async def list(self, *, user_id: UUID | None = None, context_id: UUID | None = None) -> AsyncIterator[File]:
@@ -162,6 +164,7 @@ class SqlAlchemyFileRepository(IFileRepository):
         )
 
     async def create_extraction(self, *, extraction: TextExtraction) -> None:
+        extraction_metadata = extraction.extraction_metadata
         query = text_extractions_table.insert().values(
             id=extraction.id,
             file_id=extraction.file_id,
@@ -169,7 +172,7 @@ class SqlAlchemyFileRepository(IFileRepository):
             status=extraction.status,
             job_id=extraction.job_id,
             error_message=extraction.error_message,
-            extraction_metadata=extraction.extraction_metadata.model_dump(mode="json"),
+            extraction_metadata=extraction_metadata and extraction_metadata.model_dump(mode="json"),
             started_at=extraction.started_at,
             finished_at=extraction.finished_at,
             created_at=extraction.created_at,
@@ -211,4 +214,6 @@ class SqlAlchemyFileRepository(IFileRepository):
     async def delete_extraction(self, *, extraction_id: UUID) -> int:
         query = text_extractions_table.delete().where(text_extractions_table.c.id == extraction_id)
         result = await self.connection.execute(query)
+        if not result.rowcount:
+            raise EntityNotFoundError(entity="text_extraction", id=extraction_id)
         return result.rowcount

@@ -43,7 +43,7 @@ from beeai_sdk.a2a.extensions import (
 )
 from beeai_sdk.a2a.types import AgentMessage
 from beeai_sdk.server import Server
-from beeai_sdk.server.context import Context
+from beeai_sdk.server.context import RunContext
 from chat.tools.general.current_time import CurrentTimeTool
 from chat.helpers.citations import extract_citations
 from chat.helpers.trajectory import TrajectoryContent
@@ -174,7 +174,7 @@ server = Server()
 )
 async def chat(
     message: Message,
-    context: Context,
+    context: RunContext,
     trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
     citation: Annotated[CitationExtensionServer, CitationExtensionSpec()],
 ):

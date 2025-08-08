@@ -69,7 +69,7 @@ class ContextRepository(IContextRepository):
         result = await self._connection.execute(query)
         row = result.fetchone()
         if row is None:
-            raise EntityNotFoundError("Context", context_id)
+            raise EntityNotFoundError("context", context_id)
         return self._row_to_context(row)
 
     async def delete(self, *, context_id: UUID, user_id: UUID | None = None) -> int:
@@ -78,6 +78,8 @@ class ContextRepository(IContextRepository):
             query = query.where(contexts_table.c.created_by == user_id)
 
         result = await self._connection.execute(query)
+        if not result.rowcount:
+            raise EntityNotFoundError("context", context_id)
         return result.rowcount
 
     async def update_last_active(self, *, context_id: UUID) -> None:

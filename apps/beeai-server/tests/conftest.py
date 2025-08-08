@@ -11,7 +11,6 @@ from typing import Any
 
 import kr8s
 import pytest
-import pytest_asyncio
 from kink import di
 from pydantic import Secret, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -70,12 +69,12 @@ def pytest_sessionstart(session):
     asyncio.run(_get_kr8s_client())
 
 
-@pytest_asyncio.fixture()
+@pytest.fixture()
 async def kr8s_client():
     return await _get_kr8s_client()
 
 
-@pytest_asyncio.fixture()
+@pytest.fixture()
 async def db_transaction(test_configuration):
     """Auto-rollback connection"""
     engine = create_async_engine(test_configuration.db_url)
@@ -112,7 +111,7 @@ def clean_up_fn(test_configuration):
     return _fn
 
 
-@pytest_asyncio.fixture()
+@pytest.fixture()
 async def clean_up(clean_up_fn):
     """Truncate all tables after each test."""
     try:

@@ -10,7 +10,7 @@ from pydantic import BaseModel, PrivateAttr
 from beeai_sdk.a2a.types import RunYield, RunYieldResume
 
 
-class Context(BaseModel, arbitrary_types_allowed=True):
+class RunContext(BaseModel, arbitrary_types_allowed=True):
     configuration: MessageSendConfiguration | None = None
     task_updater: TaskUpdater
     task_id: str

@@ -16,7 +16,7 @@ from tenacity import AsyncRetrying, stop_after_attempt, wait_fixed
 from beeai_sdk.a2a.extensions.ui.agent_detail import AgentDetail
 from beeai_sdk.a2a.types import ArtifactChunk, RunYield, RunYieldResume
 from beeai_sdk.server import Server
-from beeai_sdk.server.context import Context
+from beeai_sdk.server.context import RunContext
 
 
 def get_free_port() -> int:
@@ -61,7 +61,7 @@ def create_server_with_agent():
 
 @pytest.fixture
 async def echo(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
-    async def echo(message: Message, context: Context) -> AsyncGenerator[str, Message]:
+    async def echo(message: Message, context: RunContext) -> AsyncGenerator[str, Message]:
         for part in message.parts:
             if hasattr(part.root, "text"):
                 yield part.root.text
@@ -72,7 +72,7 @@ async def echo(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClie
 
 @pytest.fixture
 async def slow_echo(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
-    async def slow_echo(message: Message, context: Context) -> AsyncGenerator[str, Message]:
+    async def slow_echo(message: Message, context: RunContext) -> AsyncGenerator[str, Message]:
         # Slower version with delay
         for part in message.parts:
             if hasattr(part.root, "text"):
@@ -85,7 +85,7 @@ async def slow_echo(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2
 
 @pytest.fixture
 async def awaiter(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
-    async def awaiter(message: Message, context: Context) -> AsyncGenerator[TaskStatus | str, Message]:
+    async def awaiter(message: Message, context: RunContext) -> AsyncGenerator[TaskStatus | str, Message]:
         # Agent that requires input
         yield "Processing initial message..."
         resume_message = yield TaskStatus(
@@ -100,7 +100,7 @@ async def awaiter(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AC
 
 @pytest.fixture
 async def failer(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
-    async def failer(message: Message, context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
+    async def failer(message: Message, context: RunContext) -> AsyncGenerator[RunYield, RunYieldResume]:
         # Agent that raises an error
         yield ValueError("Wrong question buddy!")
 
@@ -110,7 +110,7 @@ async def failer(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2ACl
 
 @pytest.fixture
 async def raiser(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
-    async def raiser(message: Message, context: Context) -> AsyncGenerator[str, Message]:
+    async def raiser(message: Message, context: RunContext) -> AsyncGenerator[str, Message]:
         # Another failing agent
         raise RuntimeError("Wrong question buddy!")
 
@@ -120,7 +120,7 @@ async def raiser(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2ACl
 
 @pytest.fixture
 async def artifact_producer(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
-    async def artifact_producer(message: Message, context: Context) -> AsyncGenerator[str | Artifact, Message]:
+    async def artifact_producer(message: Message, context: RunContext) -> AsyncGenerator[str | Artifact, Message]:
         # Agent producing artifacts
         yield "Processing with artifacts"
 
@@ -158,7 +158,7 @@ async def artifact_producer(create_server_with_agent) -> AsyncGenerator[tuple[Se
 @pytest.fixture
 async def chunked_artifact_producer(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
     async def chunked_artifact_producer(
-        message: Message, context: Context
+        message: Message, context: RunContext
     ) -> AsyncGenerator[str | ArtifactChunk, Message]:
         # Agent producing chunked artifacts
         yield "Processing chunked artifacts"

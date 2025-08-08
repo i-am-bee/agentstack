@@ -174,6 +174,8 @@ class SqlAlchemyVectorStoreRepository(IVectorStoreRepository):
         for condition in conditions:
             query = query.where(condition)
         result = await self.connection.execute(query)
+        if not result.rowcount:
+            raise EntityNotFoundError("vector_store", vector_store_id or "vector_store to delete")
         return result.rowcount
 
     async def update_last_accessed(self, *, vector_store_ids: Iterable[UUID]) -> None:

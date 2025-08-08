@@ -1,9 +1,10 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-
+import contextlib
 import os
 import ssl
 import typing
+from collections.abc import AsyncIterator
 
 import httpx
 from httpx import URL, AsyncBaseTransport
@@ -71,6 +72,25 @@ class PlatformClient(httpx.AsyncClient):
             self.headers["Authorization"] = f"Bearer {auth_token}"
 
 
-get_platform_client, use_platform_client = resource_context(factory=PlatformClient, default_factory=PlatformClient)
+get_platform_client, set_platform_client = resource_context(factory=PlatformClient, default_factory=PlatformClient)
 
-__all__ = ["PlatformClient", "get_platform_client", "use_platform_client"]
+P = typing.ParamSpec("P")
+T = typing.TypeVar("T", bound=PlatformClient)
+
+
+def wrap_context(
+    context: typing.Callable[P, contextlib.AbstractContextManager[T]],
+) -> typing.Callable[P, contextlib.AbstractAsyncContextManager[T]]:
+    @contextlib.asynccontextmanager
+    async def use_async_resource(*args: P.args, **kwargs: P.kwargs) -> AsyncIterator[T]:
+        with context(*args, **kwargs) as resource:
+            async with resource:
+                yield resource
+
+    return use_async_resource
+
+
+use_platform_client = wrap_context(set_platform_client)
+
+
+__all__ = ["PlatformClient", "get_platform_client", "set_platform_client", "use_platform_client"]

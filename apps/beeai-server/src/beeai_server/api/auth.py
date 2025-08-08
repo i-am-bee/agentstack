@@ -18,12 +18,19 @@ ROLE_PERMISSIONS: dict[UserRole, Permissions] = {
         files={"*"},
         vector_stores={"*"},
         llm={"*"},
+        feedback={"write"},
         embeddings={"*"},
         a2a_proxy={"*"},
         providers={"read", "write"},  # TODO provider ownership
     ),
     UserRole.user: Permissions(
-        files={"*"}, vector_stores={"*"}, llm={"*"}, embeddings={"*"}, a2a_proxy={"*"}, providers={"read"}
+        files={"*"},
+        vector_stores={"*"},
+        llm={"*"},
+        embeddings={"*"},
+        a2a_proxy={"*"},
+        feedback={"write"},
+        providers={"read"},
     ),
 }
 
@@ -63,16 +70,11 @@ def issue_internal_jwt(
 def verify_internal_jwt(token: str, configuration: Configuration) -> ParsedToken:
     assert configuration.auth.jwt_secret_key
     secret_key = configuration.auth.jwt_secret_key.get_secret_value()
-    try:
-        payload = jwt.decode(token, secret_key, algorithms=["HS256"])
-        return ParsedToken(
-            global_permissions=Permissions.model_validate(payload["permissions"]["global"]),
-            context_permissions=Permissions.model_validate(payload["permissions"]["context"]),
-            context_id=UUID(payload["context_id"]),
-            user_id=UUID(payload["user_id"]),
-            raw=payload,
-        )
-    except jwt.ExpiredSignatureError as e:
-        raise Exception("Token expired") from e
-    except jwt.InvalidTokenError as e:
-        raise Exception("Invalid token") from e
+    payload = jwt.decode(token, secret_key, algorithms=["HS256"])
+    return ParsedToken(
+        global_permissions=Permissions.model_validate(payload["permissions"]["global"]),
+        context_permissions=Permissions.model_validate(payload["permissions"]["context"]),
+        context_id=UUID(payload["context_id"]),
+        user_id=UUID(payload["user_id"]),
+        raw=payload,
+    )

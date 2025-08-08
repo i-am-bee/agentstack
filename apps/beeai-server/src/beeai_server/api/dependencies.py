@@ -95,7 +95,7 @@ class RequiresContextPermissions(Permissions):
         context_id: Annotated[UUID | None, Query()] = None,
     ) -> AuthorizedUser:
         # check if context_id matches token
-        if context_id and context_id != user.context_id:
+        if user.context_id and context_id and user.context_id != context_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Token context id does not match request token id: {context_id}",
@@ -103,6 +103,9 @@ class RequiresContextPermissions(Permissions):
 
         # check permissions if in context
         if context_id and (user.context_permissions | user.global_permissions).check(self):
+            if not user.context_id:
+                # user did not use context token to sign in but set the context_id query param, so we set it explicitly:
+                user.context_id = context_id
             return user
 
         # check permissions if outside of context

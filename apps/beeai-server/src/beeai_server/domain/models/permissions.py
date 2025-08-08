@@ -26,6 +26,7 @@ class Permissions(BaseModel):
     #       https://docs.pydantic.dev/latest/concepts/serialization/#serializing-with-duck-typing
 
     files: SerializeAsAny[set[Literal["read", "write", "extract", "*"]]] = set()
+    feedback: SerializeAsAny[set[Literal["write"]]] = set()
     vector_stores: SerializeAsAny[set[Literal["read", "write", "extract", "*"]]] = set()
     llm: SerializeAsAny[set[Literal["*"] | ResourceIdPermission]] = set()
     embeddings: SerializeAsAny[set[Literal["*"] | ResourceIdPermission]] = set()

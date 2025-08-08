@@ -86,6 +86,8 @@ class SqlAlchemyProviderRepository(IProviderRepository):
     async def delete(self, *, provider_id: UUID) -> int:
         query = delete(providers_table).where(providers_table.c.id == provider_id)
         result = await self.connection.execute(query)
+        if not result.rowcount:
+            raise EntityNotFoundError(entity="provider", id=provider_id)
         return result.rowcount
 
     async def list(self, *, auto_remove_filter: bool | None = None) -> AsyncIterator[Provider]:

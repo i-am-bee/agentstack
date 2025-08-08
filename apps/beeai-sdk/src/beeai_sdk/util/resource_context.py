@@ -17,18 +17,17 @@ T = typing.TypeVar("T")
 def resource_context(
     factory: typing.Callable[P, T],
     default_factory: typing.Callable[[], T],
-) -> tuple[typing.Callable[[], T], typing.Callable[P, contextlib.AbstractAsyncContextManager[T]]]:
+) -> tuple[typing.Callable[[], T], typing.Callable[P, contextlib.AbstractContextManager[T]]]:
     contextvar: contextvars.ContextVar[T] = contextvars.ContextVar(f"resource_context({factory.__name__})")
 
     def use_resource(*args: P.args, **kwargs: P.kwargs):
-        @contextlib.asynccontextmanager
-        async def manager():
+        @contextlib.contextmanager
+        def manager():
             resource = factory(*args, **kwargs)
             token = contextvar.set(resource)
             try:
                 yield resource
             finally:
-                _ = await getattr(resource, "aclose", noop)()
                 contextvar.reset(token)
 
         return manager()

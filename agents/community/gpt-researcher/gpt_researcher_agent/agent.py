@@ -12,7 +12,7 @@ from gpt_researcher import GPTResearcher
 from beeai_sdk.a2a.extensions import TrajectoryExtensionServer, TrajectoryExtensionSpec, AgentDetail
 from beeai_sdk.a2a.types import RunYield
 from beeai_sdk.server import Server
-from beeai_sdk.server.context import Context
+from beeai_sdk.server.context import RunContext
 
 server = Server()
 
@@ -59,7 +59,7 @@ server = Server()
     ],
 )
 async def gpt_researcher(
-    message: Message, context: Context, trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()]
+    message: Message, context: RunContext, trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()]
 ) -> AsyncGenerator[RunYield, None]:
     """
     The agent conducts in-depth local and web research using a language model to generate comprehensive reports with

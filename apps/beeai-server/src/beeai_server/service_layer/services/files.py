@@ -181,7 +181,7 @@ class FileService:
                 file_id=file_id, user_id=user.id, context_id=context_id
             )
 
-            if extraction.extracted_file_id:
+            if extraction.extracted_file_id and extraction.extracted_file_id != file_id:
                 await self._object_storage.delete_files(file_ids=[extraction.extracted_file_id])
                 await uow.files.delete(file_id=extraction.extracted_file_id)
 

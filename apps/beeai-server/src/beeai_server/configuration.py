@@ -119,14 +119,6 @@ class TelemetryConfiguration(BaseModel):
     collector_url: AnyUrl = AnyUrl("http://otel-collector-svc:4318")
 
 
-class UIFeatureFlags(BaseModel):
-    user_navigation: bool = Field(default=True)
-
-
-class FeatureFlagsConfiguration(BaseModel):
-    ui: UIFeatureFlags = UIFeatureFlags()
-
-
 class DockerConfigJsonAuth(BaseModel, extra="allow"):
     auth: Secret[str] | None = None
     username: str | None = None
@@ -178,7 +170,6 @@ class Configuration(BaseSettings):
     k8s_kubeconfig: Path | None = None
 
     provider: ManagedProviderConfiguration = Field(default_factory=ManagedProviderConfiguration)
-    feature_flags: FeatureFlagsConfiguration = Field(default_factory=FeatureFlagsConfiguration)
 
     platform_service_url: str = "beeai-platform-svc:8333"
     port: int = 8333
