@@ -18,15 +18,15 @@ import { UIMessagePartKind } from '#modules/messages/types.ts';
 import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
-import type { Citation } from './extensions/citation';
-import { citationExtension } from './extensions/citation';
-import type { TrajectoryMetadata } from './extensions/trajectory';
-import { trajectoryExtension } from './extensions/trajectory';
-import { getExtensionData } from './extensions/utils';
+import type { Citation } from './extensions/ui/citation';
+import { citationExtension } from './extensions/ui/citation';
+import type { TrajectoryMetadata } from './extensions/ui/trajectory';
+import { trajectoryExtension } from './extensions/ui/trajectory';
+import { extractUiExtensionData } from './extensions/utils';
 
-export const extractCitation = getExtensionData(citationExtension);
+export const extractCitation = extractUiExtensionData(citationExtension);
 
-export const extractTrajectory = getExtensionData(trajectoryExtension);
+export const extractTrajectory = extractUiExtensionData(trajectoryExtension);
 
 export function extractTextFromMessage(message: Message | undefined) {
   const text = message?.parts
@@ -72,10 +72,12 @@ export function createUserMessage({
   message,
   contextId,
   taskId,
+  metadata,
 }: {
   message: UIUserMessage;
   contextId: ContextId;
   taskId?: TaskId;
+  metadata?: Record<string, unknown>;
 }): Message {
   return {
     kind: 'message',
@@ -84,6 +86,7 @@ export function createUserMessage({
     contextId,
     taskId,
     parts: convertMessageParts(message.parts),
+    metadata,
   };
 }
 

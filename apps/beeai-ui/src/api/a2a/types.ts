@@ -3,11 +3,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { UIMessagePart } from '#modules/messages/types.ts';
-import type { TaskId } from '#modules/tasks/api/types.ts';
+import type { UIMessagePart, UIUserMessage } from '#modules/messages/types.ts';
+import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
+
+import type { MCPDemand, MCPFulfillment } from './extensions/services/mcp';
+
+export interface ChatParams {
+  message: UIUserMessage;
+  contextId: ContextId;
+  fulfillments: Fulfillments;
+}
 
 export interface ChatRun<UIGenericPart = never> {
   done: Promise<void>;
   subscribe: (fn: (data: { parts: (UIMessagePart | UIGenericPart)[]; taskId: TaskId }) => void) => () => void;
   cancel: () => Promise<void>;
+}
+
+export interface Fulfillments {
+  mcp: (demand: MCPDemand) => Promise<MCPFulfillment>;
 }

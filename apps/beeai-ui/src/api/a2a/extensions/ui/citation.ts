@@ -5,7 +5,7 @@
 
 import { z } from 'zod';
 
-import type { A2AExtension } from './types';
+import type { A2AUiExtension } from '../types';
 
 const URI = 'https://a2a-extensions.beeai.dev/ui/citation/v1';
 
@@ -27,7 +27,7 @@ export type CitationMetadata = z.infer<typeof schema>;
 
 export type Citation = z.infer<typeof citationSchema>;
 
-export const citationExtension: A2AExtension<typeof URI, CitationMetadata> = {
-  getSchema: () => z.object({ [URI]: schema }).partial(),
+export const citationExtension: A2AUiExtension<typeof URI, CitationMetadata> = {
+  getMessageMetadataSchema: () => z.object({ [URI]: schema }).partial(),
   getUri: () => URI,
 };

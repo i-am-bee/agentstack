@@ -3,19 +3,24 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from '@a2a-js/sdk';
+import type { AgentExtension, TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from '@a2a-js/sdk';
 import { A2AClient } from '@a2a-js/sdk/client';
 import { Subject } from 'rxjs';
 import { match } from 'ts-pattern';
 
-import type { UIMessagePart, UIUserMessage } from '#modules/messages/types.ts';
-import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
+import type { UIMessagePart } from '#modules/messages/types.ts';
+import type { TaskId } from '#modules/tasks/api/types.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 
 import { AGENT_ERROR_MESSAGE } from './constants';
+import { mcpExtension } from './extensions/services/mcp';
+import { extractServiceExtensionDemands, fulfillServiceExtensionDemand } from './extensions/utils';
 import { processMessageMetadata, processParts } from './part-processors';
-import type { ChatRun } from './types';
+import type { ChatParams, ChatRun } from './types';
 import { createUserMessage, extractTextFromMessage } from './utils';
+
+const mcpExtensionExtractor = extractServiceExtensionDemands(mcpExtension);
+const fulFillMcpDemand = fulfillServiceExtensionDemand(mcpExtension);
 
 function handleStatusUpdate<UIGenericPart = never>(
   event: TaskStatusUpdateEvent,
@@ -51,22 +56,33 @@ function handleArtifactUpdate(event: TaskArtifactUpdateEvent): UIMessagePart[] {
 
 interface CreateA2AClientParams<UIGenericPart = never> {
   providerId: string;
+  extensions: AgentExtension[];
   onStatusUpdate?: (event: TaskStatusUpdateEvent) => UIGenericPart[];
 }
 
 export const buildA2AClient = <UIGenericPart = never>({
   providerId,
+  extensions,
   onStatusUpdate,
 }: CreateA2AClientParams<UIGenericPart>) => {
+  const mcpDemands = mcpExtensionExtractor(extensions);
+
   const agentUrl = `${getBaseUrl()}/api/v1/a2a/${providerId}`;
   const client = new A2AClient(agentUrl);
 
-  const chat = ({ message, contextId }: { message: UIUserMessage; contextId: ContextId }) => {
+  const chat = ({ message, contextId, fulfillments }: ChatParams) => {
     const messageSubject = new Subject<{ parts: (UIMessagePart | UIGenericPart)[]; taskId: TaskId }>();
+
     let taskId: string | null = null;
 
     const iterateOverStream = async () => {
-      const stream = client.sendMessageStream({ message: createUserMessage({ message, contextId }) });
+      let metadata = {};
+
+      if (mcpDemands) {
+        metadata = fulFillMcpDemand(metadata, await fulfillments.mcp(mcpDemands));
+      }
+
+      const stream = client.sendMessageStream({ message: createUserMessage({ message, contextId, metadata }) });
 
       for await (const event of stream) {
         match(event)
