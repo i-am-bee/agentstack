@@ -6,13 +6,13 @@ import functools
 import json
 import os
 import subprocess
+import sys
 from collections.abc import AsyncIterable, Iterable
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
 from copy import deepcopy
-from enum import Enum
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any
 
 import anyio
 import typer
@@ -30,11 +30,6 @@ from beeai_cli.console import console, err_console
 if TYPE_CHECKING:
     from prompt_toolkit.completion import Completer
     from prompt_toolkit.validation import Validator
-
-
-class VMDriver(str, Enum):
-    lima = "lima"
-    wsl = "wsl"
 
 
 def format_model(value: BaseModel | list[BaseModel]) -> str:
@@ -120,9 +115,9 @@ prompt_session = None
 
 def prompt_user(
     prompt: str | None = None,
-    completer: Optional["Completer"] = None,
+    completer: "Completer | None" = None,
     placeholder: str | None = None,
-    validator: Optional["Validator"] = None,
+    validator: "Validator | None" = None,
     open_autocomplete_by_default=False,
 ) -> str:
     global prompt_session
@@ -181,12 +176,11 @@ async def capture_output(process: anyio.abc.Process, stream_contents: list | Non
 async def run_command(
     command: list[str],
     message: str,
-    env: dict | None = None,
+    env: dict[str, str] | None = None,
     cwd: str = ".",
     check: bool = True,
-    ignore_missing: bool = False,
     input: bytes | None = None,
-) -> subprocess.CompletedProcess:
+) -> subprocess.CompletedProcess[bytes]:
     """Helper function to run a subprocess command and handle common errors."""
     env = env or {}
     try:
@@ -204,17 +198,16 @@ async def run_command(
 
                 output, errors = stream_contents
                 if check and process.returncode != 0:
-                    raise subprocess.CalledProcessError(cast(int, process.returncode), command, output, errors)
+                    raise subprocess.CalledProcessError(process.returncode or 0, command, output, errors)
 
                 if SHOW_SUCCESS_STATUS.get():
                     console.print(f"{message} [[green]DONE[/green]]")
-                return subprocess.CompletedProcess(command, cast(int, process.returncode), output, errors)
+                return subprocess.CompletedProcess(command, process.returncode or 0, output, errors)
     except FileNotFoundError:
-        if ignore_missing:
-            return None
         console.print(f"{message} [[red]ERROR[/red]]")
         tool_name = command[0]
         console.print(f"[red]Error: {tool_name} is not installed. Please install {tool_name} first.[/red]")
+        sys.exit(1)
     except subprocess.CalledProcessError as e:
         console.print(f"{message} [[red]ERROR[/red]]")
         err_console.print(f"[red]Exit code: {e.returncode} [/red]")

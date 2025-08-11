@@ -1,8 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import asyncio
-import contextlib
 import enum
 import re
 import urllib
@@ -48,17 +46,6 @@ def server_process_status(
         pass
 
     return ProcessStatus.not_running
-
-
-async def wait_for_api(initial_delay_seconds=5, wait: timedelta = timedelta(minutes=20)):
-    await asyncio.sleep(initial_delay_seconds)
-    start_time = datetime.now()
-    while datetime.now() - start_time < wait:
-        await asyncio.sleep(1)
-        with contextlib.suppress(httpx.HTTPError, ConnectionError):
-            await api_request("get", "providers")
-            return True
-    raise ConnectionError(f"Server did not start in {wait}. Please check your internet connection.")
 
 
 async def api_request(

@@ -418,7 +418,7 @@ forge:
     DATABASE_URL: "sqlite:////data/forge.db"
   storage:
     storage: 256Mi
-    storageClass: null
+    storageClass: local-path
   volumeMounts:
     - name: forge-storage
       mountPath: /data
