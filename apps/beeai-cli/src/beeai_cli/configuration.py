@@ -20,7 +20,7 @@ def version():
 @functools.cache
 class Configuration(pydantic_settings.BaseSettings):
     model_config = pydantic_settings.SettingsConfigDict(
-        env_file=None, env_prefix="BEEAI__", env_nested_delimiter="__", extra="allow"
+        env_file=".env", env_prefix="BEEAI__", env_nested_delimiter="__", extra="allow"
     )
     host: pydantic.AnyUrl = "http://localhost:8333"
     ui_url: pydantic.AnyUrl = "http://localhost:8334"
@@ -31,7 +31,7 @@ class Configuration(pydantic_settings.BaseSettings):
         f"https://github.com/i-am-bee/beeai-platform@v{version()}#path=agent-registry.yaml"
     )
     admin_password: SecretStr | None = None
-
+    oidc_enabled: bool = False
     @property
     def lima_home(self) -> pathlib.Path:
         return self.home / "lima"
