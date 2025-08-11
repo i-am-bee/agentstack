@@ -207,3 +207,9 @@ mise.local.toml
 
 # Ruff
 .ruff_cache/
+
+# misc
+/dnc/
+
+# vscode
+.vscode/

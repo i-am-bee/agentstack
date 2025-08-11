@@ -10,12 +10,14 @@ from beeai_server.configuration import Configuration
 from beeai_server.domain.repositories.env import IEnvVariableRepository
 from beeai_server.domain.repositories.file import IFileRepository
 from beeai_server.domain.repositories.provider import IProviderRepository
+from beeai_server.domain.repositories.token import ITokenPasscodeRepository
 from beeai_server.domain.repositories.user import IUserRepository
 from beeai_server.domain.repositories.user_feedback import IUserFeedbackRepository
 from beeai_server.domain.repositories.vector_store import IVectorDatabaseRepository, IVectorStoreRepository
 from beeai_server.infrastructure.persistence.repositories.env import SqlAlchemyEnvVariableRepository
 from beeai_server.infrastructure.persistence.repositories.file import SqlAlchemyFileRepository
 from beeai_server.infrastructure.persistence.repositories.provider import SqlAlchemyProviderRepository
+from beeai_server.infrastructure.persistence.repositories.token import SqlAlchemyTokenPasscodeRepository
 from beeai_server.infrastructure.persistence.repositories.user import SqlAlchemyUserRepository
 from beeai_server.infrastructure.persistence.repositories.user_feedback import SqlAlchemyUserFeedbackRepository
 from beeai_server.infrastructure.persistence.repositories.vector_store import SqlAlchemyVectorStoreRepository
@@ -36,6 +38,7 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
     vector_stores: IVectorStoreRepository
     vector_database: IVectorDatabaseRepository
     user_feedback: IUserFeedbackRepository
+    tokens: ITokenPasscodeRepository
 
     def __init__(self, engine: AsyncEngine, config: Configuration) -> None:
         self._engine: AsyncEngine = engine
@@ -59,6 +62,7 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
                 self._connection, schema_name=self._config.persistence.vector_db_schema
             )
             self.user_feedback = SqlAlchemyUserFeedbackRepository(self._connection)
+            self.tokens = SqlAlchemyTokenPasscodeRepository(self._connection, configuration=self._config)
 
         except Exception as e:
             if self._connection:

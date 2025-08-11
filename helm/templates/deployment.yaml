@@ -56,6 +56,8 @@ spec:
           env:
             - name: AUTH__DISABLE_AUTH
               value: "true"
+            - name: OIDC__DISABLE_OIDC
+              value: "true"
             - name: LOGGING__LEVEL_SQLALCHEMY
               value: INFO
             - name: PERSISTENCE__ENCRYPTION_KEY
@@ -81,6 +83,8 @@ spec:
           env:
             - name: AUTH__DISABLE_AUTH
               value: "true"
+            - name: OIDC__DISABLE_OIDC
+              value: "true"
             - name: LOGGING__LEVEL_SQLALCHEMY
               value: INFO
             - name: PERSISTENCE__ENCRYPTION_KEY
@@ -104,6 +108,8 @@ spec:
           {{- end }}
           env:
             - name: AUTH__DISABLE_AUTH
+              value: "true"
+            - name: OIDC__DISABLE_OIDC
               value: "true"
             - name: PERSISTENCE__ENCRYPTION_KEY
               value: "dummy"
@@ -157,19 +163,19 @@ spec:
               value: {{ .Values.docling.enabled | quote }}
             - name: AGENT_REGISTRY__SYNC_PERIOD_SEC
               value: "30"
-            {{- range $idx, $secret := .Values.imagePullSecrets }}
+          {{- range $idx, $secret := .Values.imagePullSecrets }}
             - name: OCI_REGISTRY_DOCKER_CONFIG_JSON__{{ $idx }}
               valueFrom:
                 secretKeyRef:
                   name: {{ $secret.name }}
                   key: ".dockerconfigjson"
-            {{- end }}
+          {{- end }}
             - name: AGENT_REGISTRY__LOCATIONS__FILE
               value: file:///app/config/registry.yaml
-            {{- range $name, $location := .Values.externalRegistries }}
+          {{- range $name, $location := .Values.externalRegistries }}
             - name: AGENT_REGISTRY__LOCATIONS__{{ $name | upper }}
               value: {{ $location }}
-            {{- end }}
+          {{- end }}
             - name: PERSISTENCE__ENCRYPTION_KEY
               valueFrom:
                 secretKeyRef:
@@ -180,19 +186,34 @@ spec:
                 secretKeyRef:
                   key: sqlConnection
                   name: {{ include "beeai.databaseSecretName" . }}
-            - name: AUTH__ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: adminPassword
-                  name: beeai-platform-secret
-            {{- if not .Values.auth.enabled }}
+          {{- if not .Values.auth.enabled }}
             - name: AUTH__DISABLE_AUTH
               value: "true"
-            {{- end }}
-            {{- if .Values.features.selfRegistration }}
+          {{- end }}
+          {{- if .Values.oidc.enabled }}
+          {{- if .Values.oidc.admin_emails }}
+            - name: OIDC__ADMIN_EMAILS
+              value: {{ .Values.oidc.admin_emails | quote }}
+          {{- end }}
+            - name: OIDC__CLIENT_ID
+              value: {{ required "Missing required value: oidc.client_id" .Values.oidc.client_id | quote }}
+            - name: OIDC__ISSUER
+              value: {{ required "Missing required value: oidc.issuer" .Values.oidc.issuer | quote }}
+            - name: OIDC__JWKS_URL
+              value: {{ required "Missing required value: oidc.jwks_url" .Values.oidc.jwks_url | quote }}
+            - name: OIDC__CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: clientSecret
+                  name: beeai-platform-secret
+          {{- else }}
+            - name: OIDC__DISABLE_OIDC
+              value: "true"
+          {{- end }}
+          {{- if .Values.features.selfRegistration }}
             - name: PROVIDER__AUTO_REMOVE_ENABLED
               value: "true"
-            {{- end }}
+          {{- end }}
             - name: PROVIDER__MANIFEST_TEMPLATE_DIR
               value: /app/templates
             # Object Storage Configuration
@@ -221,9 +242,9 @@ spec:
             - name: beeai-platform-manifest-templates
               mountPath: /app/templates
               readOnly: true
-            {{- with .Values.volumeMounts }}
+          {{- with .Values.volumeMounts }}
               {{- toYaml . | nindent 12 }}
-            {{- end }}
+          {{- end }}
       volumes:
         - name: beeai-platform-providers
           configMap:

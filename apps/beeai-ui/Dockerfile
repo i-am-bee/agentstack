@@ -8,4 +8,4 @@ ENV NEXT_TELEMETRY_DISABLED=1 \
     PORT=8334 \
     HOSTNAME="0.0.0.0"
 CMD ["node", "/workspace/apps/beeai-ui/server.js"]
-EXPOSE 8334
+# EXPOSE 8334

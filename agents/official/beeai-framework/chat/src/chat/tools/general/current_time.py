@@ -1,11 +1,11 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from datetime import datetime
+
 from beeai_framework.context import RunContext
 from beeai_framework.emitter import Emitter
 from beeai_framework.tools import StringToolOutput, Tool, ToolRunOptions
-from datetime import datetime
-
 from pydantic import BaseModel
 
 
@@ -15,9 +15,7 @@ class CurrentTimeToolInput(BaseModel):
 
 class CurrentTimeTool(Tool[CurrentTimeToolInput]):
     name: str = "current_time"
-    description: str = (
-        "Get current date and time. ALWAYS Use first for questions about recent events or temporal references like 'last', 'today', 'this year'."
-    )
+    description: str = "Get current date and time. ALWAYS Use first for questions about recent events or temporal references like 'last', 'today', 'this year'."
 
     @property
     def input_schema(self) -> type[CurrentTimeToolInput]:

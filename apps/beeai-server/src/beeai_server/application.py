@@ -1,7 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-
 import logging
+import secrets
 from collections.abc import Iterable
 from contextlib import asynccontextmanager
 
@@ -11,10 +11,13 @@ from fastapi.exception_handlers import http_exception_handler
 from fastapi.responses import ORJSONResponse
 from kink import Container, di, inject
 from opentelemetry.metrics import CallbackOptions, Observation, get_meter
+from starlette.middleware import Middleware
+from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 
 from beeai_server.api.routes.a2a import router as a2a_router
+from beeai_server.api.routes.auth import router as auth_router
 from beeai_server.api.routes.embeddings import router as embeddings_router
 from beeai_server.api.routes.env import router as env_router
 from beeai_server.api.routes.files import router as files_router
@@ -34,6 +37,8 @@ from beeai_server.run_workers import run_workers
 from beeai_server.telemetry import INSTRUMENTATION_NAME, shutdown_telemetry
 
 logger = logging.getLogger(__name__)
+SESSION_KEY = secrets.token_hex(16)
+middleware = [Middleware(SessionMiddleware, secret_key=SESSION_KEY, https_only=True, session_cookie="session")]
 
 
 def extract_messages(exc):
@@ -74,6 +79,7 @@ def register_global_exception_handlers(app: FastAPI):
 
 def mount_routes(app: FastAPI):
     server_router = APIRouter()
+    server_router.include_router(auth_router, prefix="", tags=["auth"])
     server_router.include_router(a2a_router, prefix="/a2a")
     server_router.include_router(provider_router, prefix="/providers", tags=["providers"])
     server_router.include_router(env_router, prefix="/variables", tags=["variables"])
@@ -144,6 +150,7 @@ def app(*, dependency_overrides: Container | None = None) -> FastAPI:
         docs_url="/api/v1/docs",
         openapi_url="/api/v1/openapi.json",
         servers=[{"url": f"http://localhost:{configuration.port}"}],
+        middleware=middleware,
     )
 
     logger.info("Mounting routes...")

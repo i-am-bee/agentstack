@@ -38,9 +38,13 @@ dependencies = [
     "procrastinate==3.3.0",
     "sqlparse>=0.5.3",
     "pgvector>=0.4.1",
+    "authlib==1.5.2",
+    "itsdangerous==2.2.0",
     "ibm-watsonx-ai>=1.3.28",
     "psycopg[binary]>=3.2.9",
     "openai>=1.97.0",
+    "authlib==1.5.2",
+    "itsdangerous==2.2.0",
 ]
 
 [dependency-groups]

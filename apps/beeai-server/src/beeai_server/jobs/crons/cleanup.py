@@ -39,3 +39,13 @@ async def remove_old_jobs(context: JobContext, timestamp: int):
         remove_cancelled=True,
         remove_aborted=True,
     )
+
+
+@blueprint.periodic(cron="*/2 * * * *")
+@blueprint.task(queueing_lock="remove_expired_passcodes", queue="cron:cleanup")
+@inject
+async def remove_expired_passcodes(configuration: Configuration, uow: IUnitOfWorkFactory, timestamp: int) -> None:
+    async with uow() as uow:
+        deleted_count = await uow.tokens.delete_expired()
+        await uow.commit()
+    logger.info(f"Deleted {deleted_count} expired passcodes")

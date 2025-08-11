@@ -10,9 +10,9 @@ from fastapi import Request
 
 from beeai_server.api.dependencies import (
     A2AProxyServiceDependency,
-    AuthenticatedUserDependency,
     ProviderServiceDependency,
 )
+from beeai_server.auth.dependencies import AuthenticatedUserDependency
 from beeai_server.service_layer.services.a2a import A2AServerResponse
 
 router = fastapi.APIRouter()

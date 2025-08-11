@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
+
 import httpx
 from pydantic import AnyUrl, BaseModel, parse_obj_as
 
@@ -62,18 +63,20 @@ async def get_file_info(file_id: str) -> FileInfo | None:
 
 async def read_file(
     file_url: AnyUrl,
-) -> tuple[str,str]:
+) -> tuple[str, str]:
     print(f"Reading file from {file_url}...")
     async with httpx.AsyncClient() as client:
         resp = await client.get(str(file_url))
         content_type = resp.headers.get("Content-Type")
         return (resp.content.decode(), content_type)
 
+
 async def upload_file(filename: str, content_type: str, content: bytes) -> FileInfo:
     async with ApiClient() as api:
         files = {"file": (filename, content, content_type)}
         response = await api.post("/files", files=files)
-        return FileInfo.model_validate(response.json()) 
+        return FileInfo.model_validate(response.json())
+
 
 def get_file_url(file_id: str) -> AnyUrl:
     full_url = f"{ApiClient.get_api_base_url()}/files/{file_id}/content"

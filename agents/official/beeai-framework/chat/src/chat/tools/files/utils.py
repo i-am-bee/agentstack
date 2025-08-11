@@ -15,9 +15,7 @@ FrameworkMessage = UserMessage | AssistantMessage
 
 
 def to_framework_message(message: Message) -> FrameworkMessage:
-    message_text = "".join(
-        part.root.text for part in message.parts if part.root.kind == "text"
-    )
+    message_text = "".join(part.root.text for part in message.parts if part.root.kind == "text")
 
     if message.role == Role.agent:
         return AssistantMessage(message_text)
@@ -60,9 +58,7 @@ async def extract_files(
         if not isinstance(part.file, FileWithUri):
             continue
 
-        url = part.file.uri.replace(
-            "{platform_url}", os.getenv("PLATFORM_URL", "127.0.0.1:8333")
-        )
+        url = part.file.uri.replace("{platform_url}", os.getenv("PLATFORM_URL", "127.0.0.1:8333"))
         if url and url not in seen:
             fileInfo = await get_file_chat_info(
                 url,

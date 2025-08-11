@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 import logging
 import os
-from typing import Annotated
 import uuid
 from collections import defaultdict
 from textwrap import dedent
+from typing import Annotated
 
 from a2a.types import (
     AgentSkill,
@@ -30,9 +30,7 @@ from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
 from beeai_framework.tools import Tool
 from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
 from beeai_framework.tools.search.wikipedia import WikipediaTool
-
 from beeai_framework.tools.weather import OpenMeteoTool
-
 from beeai_sdk.a2a.extensions import (
     AgentDetail,
     AgentDetailTool,
@@ -44,11 +42,9 @@ from beeai_sdk.a2a.extensions import (
 from beeai_sdk.a2a.types import AgentMessage
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import Context
-from chat.tools.general.current_time import CurrentTimeTool
+
 from chat.helpers.citations import extract_citations
 from chat.helpers.trajectory import TrajectoryContent
-from openinference.instrumentation.beeai import BeeAIInstrumentor
-
 from chat.tools.files.file_creator import FileCreatorTool, FileCreatorToolOutput
 from chat.tools.files.file_reader import create_file_reader_tool_class
 from chat.tools.files.utils import FrameworkMessage, extract_files, to_framework_message
@@ -61,6 +57,7 @@ from chat.tools.general.clarification import (
     ClarificationTool,
     clarification_tool_middleware,
 )
+from chat.tools.general.current_time import CurrentTimeTool
 
 # Temporary instrument fix
 EventMeta.model_fields["context"].exclude = True

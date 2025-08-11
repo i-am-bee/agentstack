@@ -19,7 +19,9 @@ from pydantic import BaseModel, Field
 
 
 class ClarificationSchema(BaseModel):
-    thoughts: str = Field(..., description="Your reasoning process and analysis of what information is needed from the user.")
+    thoughts: str = Field(
+        ..., description="Your reasoning process and analysis of what information is needed from the user."
+    )
     question_to_user: str = Field(
         ..., description="The specific question or clarification request to ask the user.", min_length=1
     )
@@ -28,14 +30,15 @@ class ClarificationSchema(BaseModel):
 class ClarificationTool(Tool[ClarificationSchema]):
     """
     An auxiliary tool that enables agents to ask clarifying questions when user requirements are unclear.
-    
+
     This tool prevents agents from making assumptions or providing incomplete answers by allowing them
     to request additional information from the user. It's particularly useful for smaller models that
     might otherwise attempt to complete tasks with insufficient information.
-    
+
     The tool captures the agent's reasoning process and formulates appropriate questions to ensure
     better task understanding and more accurate results.
     """
+
     name: str = "clarification"
     description: str = "Use when you need to clarify something from user."
 
@@ -60,9 +63,7 @@ class ClarificationTool(Tool[ClarificationSchema]):
         context: RunContext,
     ) -> StringToolOutput:
         if not self._state:
-            raise ToolInputValidationError(
-                "State is not set for the ClarificationTool."
-            )
+            raise ToolInputValidationError("State is not set for the ClarificationTool.")
 
         # Store the clarification request in the agent state
         self._state.result = input
@@ -81,15 +82,13 @@ class ClarificationTool(Tool[ClarificationSchema]):
 def clarification_tool_middleware(ctx: RunContext) -> None:
     """
     Middleware function that provides the ClarificationTool with access to the agent's state.
-    
+
     This middleware enables the ClarificationTool to bypass the normal final answer flow by directly
     setting the agent's answer when asking clarifying questions.
     """
     assert isinstance(ctx.instance, RequirementAgent)
 
-    clarification_tool = next(
-        (t for t in ctx.instance._tools if isinstance(t, ClarificationTool)), None
-    )
+    clarification_tool = next((t for t in ctx.instance._tools if isinstance(t, ClarificationTool)), None)
     if clarification_tool is None:
         raise ValueError("ClarificationTool is not found in the agent's tools.")
 

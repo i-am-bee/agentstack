@@ -3,16 +3,14 @@
 
 import os
 from textwrap import dedent
-from typing import Any, Annotated, AsyncGenerator
+from typing import Annotated, Any, AsyncGenerator
 
 from a2a.types import AgentSkill, Message
-from gpt_researcher import GPTResearcher
-
-
-from beeai_sdk.a2a.extensions import TrajectoryExtensionServer, TrajectoryExtensionSpec, AgentDetail
+from beeai_sdk.a2a.extensions import AgentDetail, TrajectoryExtensionServer, TrajectoryExtensionSpec
 from beeai_sdk.a2a.types import RunYield
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import Context
+from gpt_researcher import GPTResearcher
 
 server = Server()
 

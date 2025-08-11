@@ -23,6 +23,9 @@
         "name": "next"
       }
     ],
+    "paths": {
+      "auth": ["./auth"]
+    },
     "strictNullChecks": true
   },
   "include": [

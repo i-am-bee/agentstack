@@ -17,8 +17,9 @@ unmanagedProviders: [ ]
 externalRegistries: { }
 
 auth:
+  enabled: true
   admin_password: ""
-  enabled: true # Warning, disable only for local deployments
+
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
@@ -52,13 +53,14 @@ serviceAccount:
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
-
+# helm now allows creating a crds folder which will skip schema validation
 # This is for setting Kubernetes Annotations to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
 podAnnotations: { }
 # This is for setting Kubernetes Labels to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
-podLabels: { }
+podLabels:
+  istio.io/dataplane-mode: ambient
 
 podSecurityContext: { }
 # fsGroup: 2000
@@ -73,13 +75,27 @@ securityContext: { }
 initContainers:
   createVectorDbExtension: true
 
+oidc:
+  enabled: true
+  admin_emails: <array_of_admin_emails_comma_seperated>
+  client_id: <your_idp_client_id>
+  client_secret: <your_idp_client_secret>
+  issuer: <your_idp_issuer>
+  jwks_url: <your_idp_jwks_url>
+  nextauth_trust_host: true
+  nextauth_url: https://beeai-platform.api.testing:8336
+  nextauth_redirect_proxy_url: https://beeai-platform.api.testing:8336
+  nextauth_secret: <your_auth_secret>
+
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
   # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
   type: ClusterIP
   # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+  portName: http
   port: 8333
-  nodePort: 8333
+  # nodePort: 8333
+
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
@@ -113,27 +129,48 @@ livenessProbe:
     port: http
   initialDelaySeconds: 5
   failureThreshold: 5
-  periodSeconds: 5
+  periodSeconds: 30
 readinessProbe:
   httpGet:
     path: /healthcheck
     port: http
   initialDelaySeconds: 5
   failureThreshold: 20
-  periodSeconds: 2
+  periodSeconds: 30
 
 # Additional volumes on the output Deployment definition.
-volumes: [ ]
+volumes:
+- name: secrets
+  projected:
+    sources:
+      - secret:
+          name: ingestion-svc-tls
+          items:
+            - key: tls.crt
+              path: ingestion.pem
+            - key: tls.key
+              path: ingestion.key
+    defaultMode: 420
+
+- name: jwks
+  persistentVolumeClaim:
+    claimName: beeai-jwks
+
 # - name: foo
 #   secret:
 #     secretName: mysecret
 #     optional: false
 
 # Additional volumeMounts on the output Deployment definition.
-volumeMounts: [ ]
-# - name: foo
-#   mountPath: "/etc/foo"
-#   readOnly: true
+volumeMounts:
+- name: secrets
+  readOnly: true
+  mountPath: /etc/config
+- name: jwks
+  mountPath: /jwks
+
+storage:
+  storage_class: local-path
 
 nodeSelector: { }
 

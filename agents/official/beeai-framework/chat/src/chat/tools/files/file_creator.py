@@ -53,9 +53,7 @@ class FileCreatorTool(
             creator=self,
         )
 
-    async def _run(
-        self, input: FileCreatorInput, options, context
-    ) -> FileCreatorToolOutput:
+    async def _run(self, input: FileCreatorInput, options, context) -> FileCreatorToolOutput:
         files = []
         for item in input.files:
             result = await upload_file(

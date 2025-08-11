@@ -74,6 +74,38 @@ eval "$(mise run beeai-platform:shell)"
 deactivate
 ```
 
+### Enabling or disabling auth flows for beeai_cli
+
+- Copy the apps/beeai-cli/.env.template as .env
+- To turn on oauth on platform startup set `BEEAI__OIDC_ENABLED=True` in the .env file.
+- Add an entry to /etc/hosts on your local system:
+```
+# Added by BEEAI-PLATFORM
+127.0.0.1        beeai-platform.api.testing
+```
+
+- Update OAuth credentials in helm/values.yaml under:
+
+```YAML
+oidc:
+  enabled: true
+  discovery_url: <your_oidc_discovery_endpoint_here>
+  client_id: <your_client_id_here>
+  client_secret: <your_oidc_client_secret>
+  issuer: <your_issuer>
+  jwks_url: <your_jwks_endpoint_here>
+  nextauth_trust_host: true
+  nextauth_url: "https://beeai-platform.api.testing:8336"
+  nextauth_redirect_proxy_url: "https://beeai-platform.api.testing:8336"
+  nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>
+```
+
+This branch enables istio by default, and creates a gateway & routes for `https://beeai-platform.api.testing:8336/` .  The intent being that tokens returned by OAuth routes are receieved in the browser over HTTPS rather than plain text HTTP to prevent unauthorized use of tokens.
+
+The default namespace is labeled istio.io/dataplane-mode=ambient so all intra pod trafic is via ztunnel with the exception of the beeai-platform pod due to it's use of the hostNetwork (istio can not bring a hostNetwork enabled pod into the mesh).
+
+
+
 ### Running and debugging individual components
 
 It's desirable to run and debug (i.e. in an IDE) individual components against the full stack (PostgreSQL,

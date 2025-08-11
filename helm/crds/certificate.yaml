@@ -1,0 +1,32 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: beeai-platform-tls
+  namespace: istio-system
+spec:
+  commonName: beeai-platform
+  dnsNames:
+    - beeai-platform
+    - beeai-platform.testing
+    - beeai-platform.api.testing
+  issuerRef:
+    kind: Issuer
+    name: istio-system-issuer
+  secretName: beeai-platform-tls
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ingestion-svc
+  namespace: default
+spec:
+  commonName: 
+  dnsNames:
+    - ingestion-svc
+    - ingestion-svc.default
+    - ingestion-svc.default.svc
+    - ingestion-svc.default.svc.cluster.local
+  issuerRef:
+    kind: Issuer
+    name: default-issuer
+  secretName: ingestion-svc-tls

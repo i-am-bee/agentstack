@@ -5,6 +5,7 @@ import logging
 from copy import deepcopy
 
 import beeai_cli.commands.agent
+import beeai_cli.commands.auth
 import beeai_cli.commands.build
 import beeai_cli.commands.env
 import beeai_cli.commands.platform
@@ -18,6 +19,7 @@ app.add_typer(beeai_cli.commands.env.app, name="env", no_args_is_help=True, help
 app.add_typer(beeai_cli.commands.agent.app, name="agent", no_args_is_help=True, help="Manage agents.")
 app.add_typer(beeai_cli.commands.platform.app, name="platform", no_args_is_help=True, help="Manage BeeAI platform.")
 app.add_typer(beeai_cli.commands.build.app, name="", no_args_is_help=True, help="Build agent images.")
+app.add_typer(beeai_cli.commands.auth.app, name="", no_args_is_help=True, help="Beeai login.")
 
 
 agent_alias = deepcopy(beeai_cli.commands.agent.app)

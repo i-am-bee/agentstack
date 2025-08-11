@@ -16,10 +16,11 @@ import httpx
 import psutil
 from a2a.client import A2AClient
 from a2a.types import AgentCard
-from httpx import BasicAuth, HTTPStatusError
+from httpx import HTTPStatusError
 from httpx._types import RequestFiles
 
 from beeai_cli.configuration import Configuration
+from beeai_cli.token_store import load_token
 
 config = Configuration()
 BASE_URL = str(config.host).rstrip("/")
@@ -50,20 +51,38 @@ def server_process_status(
     return ProcessStatus.not_running
 
 
+async def set_auth_header():
+    token = await load_token()
+    if not token:
+        raise RuntimeError("No token found. Please run `beeai login` first.")
+    if not token.get("id_token"):
+        raise RuntimeError("No id token found. Please run `beeai login` first.")
+    return f"Bearer {token['id_token']}"
+
+
 async def wait_for_api(initial_delay_seconds=5, wait: timedelta = timedelta(minutes=20)):
     await asyncio.sleep(initial_delay_seconds)
     start_time = datetime.now()
     while datetime.now() - start_time < wait:
         await asyncio.sleep(1)
         with contextlib.suppress(httpx.HTTPError, ConnectionError):
-            await api_request("get", "providers")
+            await api_request("get", "providers", use_auth=False)
             return True
     raise ConnectionError(f"Server did not start in {wait}. Please check your internet connection.")
 
 
 async def api_request(
-    method: str, path: str, json: dict | None = None, files: RequestFiles | None = None
+    method: str,
+    path: str,
+    json: dict | None = None,
+    files: RequestFiles | None = None,
+    params: dict | None = None,
+    use_auth: bool = True,
 ) -> dict | None:
+    headers = {}
+    if config.oidc_enabled and use_auth:
+        headers["Authorization"] = await set_auth_header()
+
     """Make an API request to the server."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
@@ -71,8 +90,9 @@ async def api_request(
             urllib.parse.urljoin(API_BASE_URL, path),
             json=json,
             files=files,
+            params=params,
             timeout=60,
-            auth=BasicAuth("beeai-admin", config.admin_password.get_secret_value()) if config.admin_password else None,
+            headers=headers,
         )
         if response.is_error:
             try:
@@ -89,8 +109,16 @@ async def api_request(
 
 
 async def api_stream(
-    method: str, path: str, json: dict | None = None, params: dict[str, Any] | None = None
+    method: str,
+    path: str,
+    json: dict | None = None,
+    params: dict[str, Any] | None = None,
+    use_auth: bool = True,
 ) -> AsyncIterator[dict[str, Any]]:
+    headers = {}
+    if config.oidc_enabled and use_auth:
+        headers["Authorization"] = await set_auth_header()
+
     """Make a streaming API request to the server."""
     import json as jsonlib
 
@@ -102,6 +130,7 @@ async def api_stream(
             json=json,
             params=params,
             timeout=timedelta(hours=1).total_seconds(),
+            headers=headers,
         ) as response,
     ):
         response: httpx.Response
@@ -118,6 +147,9 @@ async def api_stream(
 
 
 @asynccontextmanager
-async def a2a_client(agent_card: AgentCard) -> AsyncIterator[A2AClient]:
-    async with httpx.AsyncClient() as httpx_client:
+async def a2a_client(agent_card: AgentCard, use_auth: bool = True) -> AsyncIterator[A2AClient]:
+    headers = {}
+    if config.oidc_enabled and use_auth:
+        headers["Authorization"] = await set_auth_header()
+    async with httpx.AsyncClient(headers=headers) as httpx_client:
         yield A2AClient(httpx_client=httpx_client, agent_card=agent_card)

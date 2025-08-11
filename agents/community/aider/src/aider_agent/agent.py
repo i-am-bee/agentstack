@@ -4,17 +4,16 @@
 import asyncio
 import base64
 import io
-import subprocess
+import mimetypes
 import os
+import subprocess
 import sys
 import tempfile
-from pathlib import Path
 from collections.abc import AsyncGenerator
+from pathlib import Path
 from textwrap import dedent
 
-from a2a.types import AgentSkill, FilePart, FileWithBytes, Message, Artifact, Part
-import mimetypes
-
+from a2a.types import AgentSkill, Artifact, FilePart, FileWithBytes, Message, Part
 from beeai_sdk.a2a.extensions import AgentDetail
 from beeai_sdk.server import Server
 

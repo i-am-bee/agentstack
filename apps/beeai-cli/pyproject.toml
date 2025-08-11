@@ -21,6 +21,7 @@ dependencies = [
     "tenacity~=9.1.2",
     "typer~=0.16.0",
     "pyyaml>=6.0.2",
+    "aiofiles"
 ]
 
 [dependency-groups]

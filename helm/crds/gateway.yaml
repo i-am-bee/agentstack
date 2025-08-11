@@ -1,0 +1,22 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: beeai-gateway
+  namespace: istio-system
+spec:
+  gatewayClassName: istio
+  listeners:
+  - name: https
+    hostname: "beeai-platform.api.testing"
+    port: 8336
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: beeai-platform-tls 
+    allowedRoutes:
+      namespaces:
+        from: Selector
+        selector:
+          matchLabels:
+            kubernetes.io/metadata.name: default

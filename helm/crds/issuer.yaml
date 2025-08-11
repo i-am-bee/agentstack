@@ -1,0 +1,23 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  labels:
+    app.kubernetes.io/instance: default-issuer
+    app.kubernetes.io/managed-by: cert-manager-controller
+    app.kubernetes.io/name: Issuer
+  name: default-issuer
+  namespace: default
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  labels:
+    app.kubernetes.io/instance: istio-system-issuer
+    app.kubernetes.io/managed-by: cert-manager-controller
+    app.kubernetes.io/name: Issuer
+  name: istio-system-issuer
+  namespace: istio-system
+spec:
+  selfSigned: {}
