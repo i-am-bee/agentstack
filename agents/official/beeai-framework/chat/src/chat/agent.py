@@ -138,27 +138,31 @@ server = Server()
                 """\
                 The agent is an AI-powered conversational system designed to process user messages, maintain context,
                 and generate intelligent responses. Built on the **BeeAI framework**, it leverages memory and external
-                tools to enhance interactions. It supports real-time web search, Wikipedia lookups, and weather updates,
-                making it a versatile assistant for various applications.
-            
+                tools to enhance interactions. It supports real-time web search, Wikipedia lookups, file manipulations,
+                and weather updates, making it a versatile assistant for various applications.
+
                 ## How It Works
                 The agent processes incoming messages and maintains a conversation history using an **unconstrained
                 memory module**. It utilizes a language model (`CHAT_MODEL`) to generate responses and can optionally
-                integrate external tools for additional functionality.
-            
+                integrate external tools for additional functionality. The agent is basically a ReAct agent built on 
+                top of a Requirement agent. It uses auxiliary tools like Act Tool and Clarification Tool to enhance its
+                capabilities for smaller models.
+
                 It supports:
                 - **Web Search (DuckDuckGo)** – Retrieves real-time search results.
                 - **Wikipedia Search** – Fetches summaries from Wikipedia.
                 - **Weather Information (OpenMeteo)** – Provides real-time weather updates.
-            
+                - **File Reader** – Reads and returns content from uploaded files.
+                - **File Creator** – Creates new files with specified content and metadata.
+                - **Current Time** – Provides current date and time information.
+
                 The agent also includes an **event-based streaming mechanism**, allowing it to send partial responses
                 to clients as they are generated.
             
                 ## Key Features
                 - **Conversational AI** – Handles multi-turn conversations with memory.
-                - **Tool Integration** – Supports real-time search, Wikipedia lookups, and weather updates.
+                - **Tool Integration** – Supports real-time search, Wikipedia lookups, files manipulations, and weather updates.
                 - **Event-Based Streaming** – Can send partial updates to clients as responses are generated.
-                - **Customizable Configuration** – Users can enable or disable specific tools for enhanced responses.
                 """
             ),
             tags=["chat"],
