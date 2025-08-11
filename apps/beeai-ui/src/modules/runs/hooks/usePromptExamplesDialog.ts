@@ -15,8 +15,6 @@ import {
   useRole,
 } from '@floating-ui/react';
 
-import { PROMPT_EXAMPLES_DIALOG_OFFSET } from '../constants';
-
 interface Props {
   open: UseFloatingOptions['open'];
   onOpenChange: UseFloatingOptions['onOpenChange'];
@@ -29,7 +27,7 @@ export function usePromptExamplesDialog({ open, onOpenChange, outsidePressDismis
     open,
     onOpenChange,
     whileElementsMounted: autoUpdate,
-    middleware: [offset(PROMPT_EXAMPLES_DIALOG_OFFSET), flip()],
+    middleware: [offset(OFFSET), flip()],
   });
 
   const click = useClick(context);
@@ -46,3 +44,7 @@ export function usePromptExamplesDialog({ open, onOpenChange, outsidePressDismis
     getFloatingProps,
   };
 }
+
+const OFFSET = {
+  mainAxis: 27, // Space between the input and the examples
+};

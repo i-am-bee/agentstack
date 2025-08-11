@@ -16,8 +16,6 @@ import {
 import type { RefObject } from 'react';
 import { useState } from 'react';
 
-import { RUN_SETTINGS_DIALOG_OFFSET } from '../constants';
-
 interface Props {
   containerRef: RefObject<HTMLElement | null>;
 }
@@ -31,7 +29,7 @@ export function useRunSettingsDialog({ containerRef }: Props) {
     onOpenChange: setIsOpen,
     whileElementsMounted: autoUpdate,
     middleware: [
-      offset(RUN_SETTINGS_DIALOG_OFFSET),
+      offset(OFFSET),
       size({
         apply({ elements }) {
           const container = containerRef.current;
@@ -61,3 +59,8 @@ export function useRunSettingsDialog({ containerRef }: Props) {
     getFloatingProps,
   };
 }
+
+const OFFSET = {
+  mainAxis: 56,
+  crossAxis: -12,
+};
