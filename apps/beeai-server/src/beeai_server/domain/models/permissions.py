@@ -32,6 +32,9 @@ class Permissions(BaseModel):
     providers: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()  # write includes "show logs" permission
     variables: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
     contexts: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
+    mcp_providers: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
+    mcp_tools: SerializeAsAny[set[Literal["read", "*"]]] = set()
+    mcp_proxy: SerializeAsAny[set[Literal["*"]]] = set()
 
     allow_all: bool = Field(False, description="Admin override", init=False, exclude=True)
 

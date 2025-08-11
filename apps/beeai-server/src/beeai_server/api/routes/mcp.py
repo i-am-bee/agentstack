@@ -1,69 +1,88 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import fastapi
+from typing import Annotated
 
-from beeai_server.api.dependencies import AdminUserDependency, AuthenticatedUserDependency, McpServiceDependency
+import fastapi
+from fastapi import Depends
+
+from beeai_server.api.dependencies import McpServiceDependency, RequiresPermissions
 from beeai_server.api.schema.mcp import CreateMcpProviderRequest, CreateToolkitRequest, McpProvider, Tool, Toolkit
 from beeai_server.api.utils import to_fastapi
+from beeai_server.domain.models.permissions import AuthorizedUser
 
 router = fastapi.APIRouter()
 
 
-@router.post("/providers", response_model=McpProvider)
+@router.post("/providers")
 async def create_provider(
     request: CreateMcpProviderRequest,
     mcp_service: McpServiceDependency,
-    _: AdminUserDependency,
-):
-    provider = await mcp_service.create_provider(
-        name=request.name, location=request.location, transport=request.transport
-    )
-    return provider
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(mcp_providers={"write"}))],
+) -> McpProvider:
+    return await mcp_service.create_provider(name=request.name, location=request.location, transport=request.transport)
 
 
-@router.get("/providers", response_model=list[McpProvider])
-async def list_providers(mcp_service: McpServiceDependency, _: AdminUserDependency):
-    providers = await mcp_service.list_providers()
-    return providers
+@router.get("/providers")
+async def list_providers(
+    mcp_service: McpServiceDependency,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(mcp_providers={"read"}))],
+) -> list[McpProvider]:
+    return await mcp_service.list_providers()
 
 
-@router.get("/providers/{provider_id}", response_model=McpProvider)
-async def read_provider(provider_id: str, mcp_service: McpServiceDependency, _: AdminUserDependency):
-    provider = await mcp_service.read_provider(provider_id=provider_id)
-    return provider
+@router.get("/providers/{provider_id}")
+async def read_provider(
+    provider_id: str,
+    mcp_service: McpServiceDependency,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(mcp_providers={"read"}))],
+) -> McpProvider:
+    return await mcp_service.read_provider(provider_id=provider_id)
 
 
 @router.delete("/providers/{provider_id}", status_code=fastapi.status.HTTP_204_NO_CONTENT)
-async def delete_provider(provider_id: str, mcp_service: McpServiceDependency, _: AdminUserDependency):
+async def delete_provider(
+    provider_id: str,
+    mcp_service: McpServiceDependency,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(mcp_providers={"write"}))],
+) -> None:
     await mcp_service.delete_provider(provider_id=provider_id)
 
 
-@router.get("/tools", response_model=list[Tool])
-async def list_tools(mcp_service: McpServiceDependency, user: AuthenticatedUserDependency):
-    tools = await mcp_service.list_tools()
-    return tools
+@router.get("/tools")
+async def list_tools(
+    mcp_service: McpServiceDependency,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(mcp_tools={"read"}))],
+) -> list[Tool]:
+    return await mcp_service.list_tools()
 
 
-@router.get("/tools/{tool_id}", response_model=Tool)
-async def read_tool(tool_id: str, mcp_service: McpServiceDependency, user: AuthenticatedUserDependency):
-    tool = await mcp_service.read_tool(tool_id=tool_id)
-    return tool
+@router.get("/tools/{tool_id}")
+async def read_tool(
+    tool_id: str,
+    mcp_service: McpServiceDependency,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(mcp_tools={"read"}))],
+) -> Tool:
+    return await mcp_service.read_tool(tool_id=tool_id)
 
 
-@router.post("/toolkits", response_model=Toolkit)
+@router.post("/toolkits")
 async def create_toolkit(
-    request: CreateToolkitRequest, mcp_service: McpServiceDependency, user: AuthenticatedUserDependency
-):
-    toolkit = await mcp_service.create_toolkit(tools=request.tools)
-    return toolkit
+    request: CreateToolkitRequest,
+    mcp_service: McpServiceDependency,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(mcp_providers={"write"}))],
+) -> Toolkit:
+    return await mcp_service.create_toolkit(tools=request.tools)
 
 
 @router.post("/toolkits/{toolkit_id}/mcp")
 @router.get("/toolkits/{toolkit_id}/mcp")
 async def mcp_toolkit(
-    toolkit_id: str, request: fastapi.Request, mcp_service: McpServiceDependency, user: AuthenticatedUserDependency
-) -> None:
+    toolkit_id: str,
+    request: fastapi.Request,
+    mcp_service: McpServiceDependency,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(mcp_proxy={"*"}))],
+):
     # TODO Redirect to Forge once it supports spec auth
     response = await mcp_service.streamable_http_proxy(request, toolkit_id=toolkit_id)
     return to_fastapi(response)
@@ -71,7 +90,11 @@ async def mcp_toolkit(
 
 @router.post("")
 @router.get("")
-async def mcp(request: fastapi.Request, mcp_service: McpServiceDependency, _: AdminUserDependency) -> None:
+async def mcp(
+    request: fastapi.Request,
+    mcp_service: McpServiceDependency,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(mcp_proxy={"*"}))],
+):
     # TODO Redirect to Forge once it supports spec auth
     response = await mcp_service.streamable_http_proxy(request, toolkit_id=None)
     return to_fastapi(response)

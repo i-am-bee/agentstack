@@ -14,15 +14,6 @@ from beeai_server.utils.utils import utc_now
 
 ROLE_PERMISSIONS: dict[UserRole, Permissions] = {
     UserRole.admin: Permissions.all(),
-    UserRole.developer: Permissions(
-        files={"*"},
-        vector_stores={"*"},
-        llm={"*"},
-        feedback={"write"},
-        embeddings={"*"},
-        a2a_proxy={"*"},
-        providers={"read", "write"},  # TODO provider ownership
-    ),
     UserRole.user: Permissions(
         files={"*"},
         vector_stores={"*"},
@@ -31,8 +22,16 @@ ROLE_PERMISSIONS: dict[UserRole, Permissions] = {
         a2a_proxy={"*"},
         feedback={"write"},
         providers={"read"},
+        contexts={"*"},
+        mcp_providers={"read"},
+        mcp_tools={"read"},
+        mcp_proxy={"*"},
     ),
 }
+ROLE_PERMISSIONS[UserRole.developer] = ROLE_PERMISSIONS[UserRole.user] | Permissions(
+    providers={"read", "write"},  # TODO provider ownership
+    mcp_providers={"read", "write"},
+)
 
 
 class ParsedToken(BaseModel):
