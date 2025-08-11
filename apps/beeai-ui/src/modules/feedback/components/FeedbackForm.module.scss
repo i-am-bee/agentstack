@@ -42,6 +42,7 @@
 .category {
   &:global(.cds--tag) {
     border-color: $text-primary;
+    color: $text-primary;
     &.isSelected {
       background-color: $text-primary;
       color: $text-inverse;
