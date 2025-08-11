@@ -20,9 +20,12 @@ class ResourceIdPermission(pydantic.BaseModel):
     id: str
 
 
-class Permissions(pydantic.BaseModel):
+class ContextPermissions(pydantic.BaseModel):
     files: set[Literal["read", "write", "extract", "*"]] = set()
     vector_stores: set[Literal["read", "write", "extract", "*"]] = set()
+
+
+class Permissions(ContextPermissions):
     llm: set[Literal["*"] | ResourceIdPermission] = set()
     embeddings: set[Literal["*"] | ResourceIdPermission] = set()
     a2a_proxy: set[Literal["*"]] = set()
@@ -78,7 +81,7 @@ class Context(pydantic.BaseModel):
         *,
         client: PlatformClient | None = None,
         grant_global_permissions: Permissions | None = None,
-        grant_context_permissions: Permissions | None = None,
+        grant_context_permissions: ContextPermissions | None = None,
     ) -> ContextToken:
         """
         Generate token for agent authentication

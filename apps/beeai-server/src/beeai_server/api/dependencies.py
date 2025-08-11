@@ -55,7 +55,7 @@ async def authorized_user(
                 user=user,
                 global_permissions=parsed_token.global_permissions,
                 context_permissions=parsed_token.context_permissions,
-                context_id=parsed_token.context_id,
+                token_context_id=parsed_token.context_id,
             )
         except PyJWTError:
             raise NotImplementedError("Oauth is not implemented yet.") from None
@@ -68,7 +68,6 @@ async def authorized_user(
             user=user,
             global_permissions=ROLE_PERMISSIONS[user.role],
             context_permissions=ROLE_PERMISSIONS[user.role],
-            context_id=None,
         )
 
     user = await user_service.get_user_by_email("user@beeai.dev")
@@ -76,7 +75,6 @@ async def authorized_user(
         user=user,
         global_permissions=ROLE_PERMISSIONS[user.role],
         context_permissions=ROLE_PERMISSIONS[user.role],
-        context_id=None,
     )
 
 
@@ -95,17 +93,15 @@ class RequiresContextPermissions(Permissions):
         context_id: Annotated[UUID | None, Query()] = None,
     ) -> AuthorizedUser:
         # check if context_id matches token
-        if user.context_id and context_id and user.context_id != context_id:
+        if user.token_context_id and context_id and user.token_context_id != context_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Token context id does not match request token id: {context_id}",
             )
+        user.context_id = context_id
 
         # check permissions if in context
         if context_id and (user.context_permissions | user.global_permissions).check(self):
-            if not user.context_id:
-                # user did not use context token to sign in but set the context_id query param, so we set it explicitly:
-                user.context_id = context_id
             return user
 
         # check permissions if outside of context

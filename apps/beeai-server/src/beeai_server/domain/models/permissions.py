@@ -1,12 +1,10 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from functools import cached_property
 from typing import Literal, Self
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
-from pydantic.fields import computed_field
 
 from beeai_server.domain.models.user import User
 
@@ -40,7 +38,7 @@ class Permissions(BaseModel):
     @model_validator(mode="after")
     def freeze(self):
         self.model_config["frozen"] = False
-        for key, value in self.model_dump().items():
+        for key, value in self.model_dump(serialize_as_any=True).items():
             if isinstance(value, set):
                 setattr(self, key, frozenset(value))
         self.model_config["frozen"] = True
@@ -55,9 +53,9 @@ class Permissions(BaseModel):
         if self.allow_all:
             return True
 
-        my_permissions = self.model_dump()
-        for key, required_permissions in required.model_dump().items():
-            if "*" in my_permissions[key] or set(required_permissions).issubset(set(my_permissions[key])):
+        my_permissions = self.model_dump(serialize_as_any=True)
+        for key, required_permissions in required.model_dump(serialize_as_any=True).items():
+            if "*" in my_permissions[key] or required_permissions.issubset(my_permissions[key]):
                 continue
             return False
 
@@ -71,11 +69,11 @@ class Permissions(BaseModel):
             return type(self).all()
 
         result = {}
-        my_permissions = self.model_dump()
-        for key, other_set in self.model_dump().items():
+        my_permissions = self.model_dump(serialize_as_any=True)
+        for key, other_set in other.model_dump(serialize_as_any=True).items():
             result[key] = my_permissions[key].union(other_set)
             if "*" in result[key]:
-                result[key] = "*"
+                result[key] = {"*"}
         return type(self).model_validate(result)
 
 
@@ -84,10 +82,4 @@ class AuthorizedUser(BaseModel):
     global_permissions: Permissions
     context_permissions: Permissions
     context_id: UUID | None = None
-
-    @computed_field
-    @cached_property
-    def active_permissions(self) -> Permissions:
-        if self.context_id:
-            return self.global_permissions | self.context_permissions
-        return self.global_permissions
+    token_context_id: UUID | None = None

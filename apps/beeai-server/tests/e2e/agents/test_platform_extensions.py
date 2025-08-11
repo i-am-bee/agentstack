@@ -15,7 +15,7 @@ from beeai_sdk.a2a.extensions.services.platform import (
 )
 from beeai_sdk.a2a.types import RunYield
 from beeai_sdk.platform import File
-from beeai_sdk.platform.context import Context, Permissions
+from beeai_sdk.platform.context import Context, ContextPermissions
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import RunContext
 
@@ -43,8 +43,8 @@ async def file_reader_writer(create_server_with_agent) -> AsyncGenerator[tuple[S
 @pytest.mark.parametrize(
     "permissions, should_fail",
     [
-        (Permissions(files={"read", "write"}), False),
-        (Permissions(files={"read"}), True),
+        (ContextPermissions(files={"read", "write"}), False),
+        (ContextPermissions(files={"read"}), True),
     ],
 )
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")

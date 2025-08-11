@@ -13,7 +13,7 @@ from beeai_server.api.dependencies import ConfigurationDependency, ContextServic
 from beeai_server.api.schema.common import EntityModel, PaginatedResponse
 from beeai_server.api.schema.contexts import ContextTokenCreateRequest, ContextTokenResponse
 from beeai_server.domain.models.context import Context
-from beeai_server.domain.models.permissions import AuthorizedUser
+from beeai_server.domain.models.permissions import AuthorizedUser, Permissions
 
 logger = logging.getLogger(__name__)
 
@@ -63,18 +63,26 @@ async def generate_context_token(
     configuration: ConfigurationDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(contexts={"write"}))],
 ) -> ContextTokenResponse:
-    if not user.active_permissions.check(request.grant_global_permissions | request.grant_context_permissions):
-        raise fastapi.HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Attempted to grant permissions you don't have",
-        )
+    global_grant = Permissions.model_validate(request.grant_global_permissions.model_dump(serialize_as_any=True))
+    context_grant = Permissions.model_validate(request.grant_context_permissions.model_dump(serialize_as_any=True))
+
+    if user.token_context_id:
+        raise fastapi.HTTPException(status.HTTP_403_FORBIDDEN, "Context tokens cannot be used to generate other tokens")
+
+    if (global_grant | context_grant).check(Permissions(contexts={"write"})):
+        raise fastapi.HTTPException(status.HTTP_403_FORBIDDEN, "Cannot grant permissions to generate a token")
+
+    if not user.global_permissions.check(global_grant | context_grant):
+        raise fastapi.HTTPException(status.HTTP_400_BAD_REQUEST, "Attempted to grant permissions you don't have")
+
     # Verify user has access to this context
     await context_service.get(context_id=context_id, user=user.user)
+
     token, expires_at = issue_internal_jwt(
         user_id=user.user.id,
         context_id=context_id,
-        global_permissions=request.grant_global_permissions,
-        context_permissions=request.grant_context_permissions,
+        global_permissions=global_grant,
+        context_permissions=context_grant,
         configuration=configuration,
     )
     return ContextTokenResponse(token=token, expires_at=expires_at)
