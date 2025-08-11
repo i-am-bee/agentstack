@@ -5,25 +5,14 @@
 
 import { Settings } from '@carbon/icons-react';
 import { IconButton } from '@carbon/react';
-import {
-  autoUpdate,
-  FloatingFocusManager,
-  FloatingPortal,
-  offset,
-  size,
-  useClick,
-  useDismiss,
-  useFloating,
-  useInteractions,
-  useRole,
-} from '@floating-ui/react';
+import { FloatingFocusManager, FloatingPortal } from '@floating-ui/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { RefObject } from 'react';
-import { useState } from 'react';
 
 import { fadeProps } from '#utils/fadeProps.ts';
 
 import { ChatTools } from '../chat/ChatTools';
+import { useRunSettingsDialog } from '../hooks/useRunSettingsDialog';
 import classes from './RunSettings.module.scss';
 
 interface Props {
@@ -31,34 +20,9 @@ interface Props {
 }
 
 export function RunSettings({ containerRef }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const { refs, floatingStyles, context } = useFloating({
-    placement: 'top-start',
-    open: isOpen,
-    onOpenChange: setIsOpen,
-    whileElementsMounted: autoUpdate,
-    middleware: [
-      offset(OFFSET),
-      size({
-        apply({ elements }) {
-          const container = containerRef.current;
-
-          if (container) {
-            Object.assign(elements.floating.style, {
-              maxWidth: `${container.offsetWidth}px`,
-            });
-          }
-        },
-      }),
-    ],
+  const { isOpen, refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useRunSettingsDialog({
+    containerRef,
   });
-
-  const click = useClick(context);
-  const dismiss = useDismiss(context);
-  const role = useRole(context, { role: 'dialog' });
-
-  const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss, role]);
 
   return (
     <div className={classes.root}>
@@ -102,8 +66,3 @@ export function RunSettings({ containerRef }: Props) {
     </div>
   );
 }
-
-const OFFSET = {
-  mainAxis: 56,
-  crossAxis: -12,
-};

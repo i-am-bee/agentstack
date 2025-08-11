@@ -3,17 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
-  autoUpdate,
-  flip,
-  FloatingPortal,
-  offset,
-  useClick,
-  useDismiss,
-  useFloating,
-  useInteractions,
-  useRole,
-} from '@floating-ui/react';
+import { FloatingPortal } from '@floating-ui/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import debounce from 'lodash/debounce';
 import type { Dispatch, RefObject, SetStateAction } from 'react';
@@ -23,6 +13,7 @@ import { Container } from '#components/layouts/Container.tsx';
 import { Tooltip } from '#components/Tooltip/Tooltip.tsx';
 import { fadeProps } from '#utils/fadeProps.ts';
 
+import { usePromptExamplesDialog } from '../hooks/usePromptExamplesDialog';
 import classes from './PromptExamples.module.scss';
 
 interface Props {
@@ -34,21 +25,11 @@ interface Props {
 }
 
 export function PromptExamples({ inputRef, isOpen, examples, setIsOpen, onSubmit }: Props) {
-  const { refs, floatingStyles, context, placement } = useFloating({
-    placement: 'bottom-start',
+  const { refs, floatingStyles, placement, getReferenceProps, getFloatingProps } = usePromptExamplesDialog({
     open: isOpen,
     onOpenChange: setIsOpen,
-    whileElementsMounted: autoUpdate,
-    middleware: [offset(OFFSET), flip()],
+    outsidePressDismiss: (event) => event.target !== inputRef.current,
   });
-
-  const click = useClick(context);
-  const dismiss = useDismiss(context, {
-    outsidePress: (event) => event.target !== inputRef.current,
-  });
-  const role = useRole(context, { role: 'dialog' });
-
-  const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss, role]);
 
   const handleInputClick = (event: MouseEvent) => {
     if (isOpen) {
@@ -189,9 +170,5 @@ function ExampleButton({ content, onSubmit }: { content: string; onSubmit: (inpu
     buttonContent
   );
 }
-
-const OFFSET = {
-  mainAxis: 27, // Space between the input and the examples
-};
 
 const ITEMS_MAX_LENGTH = 5;

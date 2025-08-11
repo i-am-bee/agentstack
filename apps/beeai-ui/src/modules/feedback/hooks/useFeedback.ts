@@ -4,7 +4,6 @@
  */
 
 import { CheckmarkFilled } from '@carbon/icons-react';
-import { autoUpdate, flip, offset, useDismiss, useFloating, useInteractions, useRole } from '@floating-ui/react';
 import { useCallback, useMemo, useState } from 'react';
 import type { SubmitErrorHandler, SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
@@ -15,9 +14,10 @@ import { useAgentRun } from '#modules/runs/contexts/agent-run/index.ts';
 
 import { useSendFeedback } from '../api/mutations/useSendFeedback';
 import { createSendFeedbackPayload } from '../api/utils';
-import { FEEDBACK_DIALOG_OFFSET, FEEDBACK_FORM_DEFAULTS } from '../constants';
+import { FEEDBACK_FORM_DEFAULTS } from '../constants';
 import type { FeedbackForm } from '../types';
 import { FeedbackVote } from '../types';
+import { useFeedbackDialog } from './useFeedbackDialog';
 
 interface Props {
   message: UIAgentMessage;
@@ -30,9 +30,7 @@ export function useFeedback({ message, onOpenChange }: Props) {
   const { addToast } = useToast();
   const { mutateAsync: sendFeedback } = useSendFeedback();
   const { agent, contextId } = useAgentRun();
-
-  const { refs, floatingStyles, context } = useFloating({
-    placement: 'right-start',
+  const { refs, floatingStyles, getReferenceProps, getFloatingProps } = useFeedbackDialog({
     open: formOpen,
     onOpenChange: (nextOpen) => {
       if (nextOpen) {
@@ -41,14 +39,7 @@ export function useFeedback({ message, onOpenChange }: Props) {
         closeForm();
       }
     },
-    whileElementsMounted: autoUpdate,
-    middleware: [offset(FEEDBACK_DIALOG_OFFSET), flip()],
   });
-
-  const dismiss = useDismiss(context);
-  const role = useRole(context, { role: 'dialog' });
-
-  const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role]);
 
   const form = useForm<FeedbackForm>({
     defaultValues: FEEDBACK_FORM_DEFAULTS,
