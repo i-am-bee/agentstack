@@ -48,16 +48,17 @@ export function SequentialSetup() {
     >
       <div className={classes.content}>
         <div className={classes.header}>
-          {result ? (
-            <>
-              <h1>Sequential workflow</h1>
-              <NewSessionButton onClick={() => onReset()} />
-            </>
-          ) : (
-            <h1>
-              Compose playground <VersionTag>alpha</VersionTag>
-            </h1>
-          )}
+          <h1>
+            {result ? (
+              'Sequential workflow'
+            ) : (
+              <>
+                Compose playground <VersionTag>alpha</VersionTag>
+              </>
+            )}
+          </h1>
+
+          {isCompleted && <NewSessionButton onClick={() => onReset()} />}
         </div>
 
         <h2 className={classes.label}>Sequence</h2>
