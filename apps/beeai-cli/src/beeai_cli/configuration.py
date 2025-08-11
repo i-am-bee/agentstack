@@ -32,6 +32,7 @@ class Configuration(pydantic_settings.BaseSettings):
     )
     admin_password: SecretStr | None = None
     oidc_enabled: bool = False
+
     @property
     def lima_home(self) -> pathlib.Path:
         return self.home / "lima"
