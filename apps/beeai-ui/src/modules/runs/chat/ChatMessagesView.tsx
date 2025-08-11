@@ -40,21 +40,22 @@ export function ChatMessagesView() {
             </header>
 
             <ol className={classes.messages} aria-label="messages">
-              {messages.map((message) => {
+              {messages.map((message, idx) => {
                 const isUser = isUserMessage(message);
                 const isAgent = isAgentMessage(message);
+                const isLast = idx == messages.length - 1;
 
                 return (
                   <li key={message.id} className={classes.message}>
                     {isUser && <ChatUserMessage message={message} />}
 
                     {isAgent && <ChatAgentMessage message={message} />}
+
+                    {isLast && <div ref={observeElementRef} />}
                   </li>
                 );
               })}
             </ol>
-
-            <div className={classes.scrollRef} ref={observeElementRef} />
           </Container>
         </div>
 
