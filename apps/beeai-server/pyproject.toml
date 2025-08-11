@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [{ name = "IBM Corp." }]
 requires-python = ">=3.13,<4.0"
 dependencies = [
-    "a2a-sdk>=0.2.11",
+    "a2a-sdk~=0.2.11",
     "aiohttp>=3.11.11",
     "anyio>=4.9.0",
     "asgiref>=3.8.1",
@@ -43,6 +43,22 @@ dependencies = [
     "openai>=1.97.0",
 ]
 
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.25.3",
+    "pytest-env>=1.1.5",
+    "pytest-httpx>=0.35.0",
+    "pytest-subtests>=0.14.1",
+    "reportlab>=4.4.2",
+    "pyright>=1.1.399",
+    "ruff>=0.8.5",
+    "beeai-sdk",
+]
+
+[tool.uv.sources]
+beeai-sdk = { path = "../beeai-sdk", editable = true }
+
 [project.scripts]
 beeai-server = "beeai_server:serve"
 migrate = "beeai_server:migrate"
@@ -64,18 +80,6 @@ env = [
     # Dummy encryption key
     "PERSISTENCE__ENCRYPTION_KEY=3YwblH4IiFObl0igcHFqd-9BxV7csrrCrunaVotMda8=",
     "AUTH__DISABLE_AUTH=true",
-]
-
-[dependency-groups]
-dev = [
-    "pytest>=8.3.4",
-    "pytest-asyncio>=0.25.3",
-    "pytest-env>=1.1.5",
-    "pytest-httpx>=0.35.0",
-    "pytest-subtests>=0.14.1",
-    "reportlab>=4.4.2",
-    "pyright>=1.1.399",
-    "ruff>=0.8.5",
 ]
 
 [tool.ruff]

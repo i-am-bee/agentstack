@@ -11,11 +11,13 @@ from beeai_server.domain.repositories.env import IEnvVariableRepository
 from beeai_server.domain.repositories.file import IFileRepository
 from beeai_server.domain.repositories.provider import IProviderRepository
 from beeai_server.domain.repositories.user import IUserRepository
+from beeai_server.domain.repositories.user_feedback import IUserFeedbackRepository
 from beeai_server.domain.repositories.vector_store import IVectorDatabaseRepository, IVectorStoreRepository
 from beeai_server.infrastructure.persistence.repositories.env import SqlAlchemyEnvVariableRepository
 from beeai_server.infrastructure.persistence.repositories.file import SqlAlchemyFileRepository
 from beeai_server.infrastructure.persistence.repositories.provider import SqlAlchemyProviderRepository
 from beeai_server.infrastructure.persistence.repositories.user import SqlAlchemyUserRepository
+from beeai_server.infrastructure.persistence.repositories.user_feedback import SqlAlchemyUserFeedbackRepository
 from beeai_server.infrastructure.persistence.repositories.vector_store import SqlAlchemyVectorStoreRepository
 from beeai_server.infrastructure.vector_database.vector_db import VectorDatabaseRepository
 from beeai_server.service_layer.unit_of_work import IUnitOfWork, IUnitOfWorkFactory
@@ -33,6 +35,7 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
     users: IUserRepository
     vector_stores: IVectorStoreRepository
     vector_database: IVectorDatabaseRepository
+    user_feedback: IUserFeedbackRepository
 
     def __init__(self, engine: AsyncEngine, config: Configuration) -> None:
         self._engine: AsyncEngine = engine
@@ -55,6 +58,7 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
             self.vector_database = VectorDatabaseRepository(
                 self._connection, schema_name=self._config.persistence.vector_db_schema
             )
+            self.user_feedback = SqlAlchemyUserFeedbackRepository(self._connection)
 
         except Exception as e:
             if self._connection:

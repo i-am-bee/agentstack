@@ -38,7 +38,7 @@ class FileCreatorTool(
     Creates a new file and writes the provided content into it.
     """
 
-    name: str = "FileCreator"
+    name: str = "file_creator"
     description: str = "Create a new file with the specified content."
     input_schema: type[FileCreatorInput] = FileCreatorInput
 

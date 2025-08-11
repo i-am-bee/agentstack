@@ -24,12 +24,14 @@ from beeai_framework.agents.experimental.events import (
 )
 from beeai_framework.agents.experimental.utils._tool import FinalAnswerTool
 from beeai_framework.backend.types import ChatModelParameters
+from beeai_framework.emitter import EventMeta
 from beeai_framework.memory import UnconstrainedMemory
 from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
 from beeai_framework.tools import Tool
 from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
 from beeai_framework.tools.search.wikipedia import WikipediaTool
-from beeai_framework.tools.weather.openmeteo import OpenMeteoTool
+
+from beeai_framework.tools.weather import OpenMeteoTool
 
 from beeai_sdk.a2a.extensions import (
     AgentDetail,
@@ -42,6 +44,7 @@ from beeai_sdk.a2a.extensions import (
 from beeai_sdk.a2a.types import AgentMessage
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import Context
+from chat.tools.general.current_time import CurrentTimeTool
 from chat.helpers.citations import extract_citations
 from chat.helpers.trajectory import TrajectoryContent
 from openinference.instrumentation.beeai import BeeAIInstrumentor
@@ -58,12 +61,18 @@ from chat.tools.general.clarification import (
     ClarificationTool,
     clarification_tool_middleware,
 )
-from chat.tools.general.current_time import CurrentTimeTool
+
+# Temporary instrument fix
+EventMeta.model_fields["context"].exclude = True
 
 BeeAIInstrumentor().instrument()
 ## TODO: https://github.com/phoenixframework/phoenix/issues/6224
-logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(logging.CRITICAL)
-logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(logging.CRITICAL)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(
+    logging.CRITICAL
+)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(
+    logging.CRITICAL
+)
 
 logger = logging.getLogger(__name__)
 
@@ -87,13 +96,36 @@ server = Server()
         user_greeting="How can I help you?",
         tools=[
             AgentDetailTool(
-                name="Web Search (DuckDuckGo)",
-                description="Retrieves real-time search results.",
+                name="Act Tool",
+                description="Auxiliary tool that ensures thoughtful tool selection by requiring explicit reasoning and tool choice before executing any other tool.",
             ),
-            AgentDetailTool(name="Wikipedia Search", description="Fetches summaries from Wikipedia."),
+            AgentDetailTool(
+                name="Clarification Tool",
+                description="Enables the agent to ask clarifying questions when user requirements are unclear, preventing assumptions and ensuring accurate task completion.",
+            ),
+            AgentDetailTool(
+                name="Wikipedia Search",
+                description="Fetches summaries and information from Wikipedia articles.",
+            ),
             AgentDetailTool(
                 name="Weather Information (OpenMeteo)",
-                description="Provides real-time weather updates.",
+                description="Provides real-time weather updates and forecasts.",
+            ),
+            AgentDetailTool(
+                name="Web Search (DuckDuckGo)",
+                description="Retrieves real-time search results from the web.",
+            ),
+            AgentDetailTool(
+                name="File Reader",
+                description="Reads and returns content from uploaded or generated files.",
+            ),
+            AgentDetailTool(
+                name="File Creator",
+                description="Creates new files with specified content and metadata, uploading them to the platform for download or further processing.",
+            ),
+            AgentDetailTool(
+                name="Current Time",
+                description="Provides current date and time information.",
             ),
         ],
         framework="BeeAI",
@@ -130,7 +162,9 @@ server = Server()
                 """
             ),
             tags=["chat"],
-            examples=["Please find a room in LA, CA, April 15, 2025, checkout date is april 18, 2 adults"],
+            examples=[
+                "Please find a room in LA, CA, April 15, 2025, checkout date is april 18, 2 adults"
+            ],
         )
     ],
 )
@@ -144,7 +178,9 @@ async def chat(
     The agent is an AI-powered conversational system with memory, supporting real-time search, Wikipedia lookups,
     and weather updates through integrated tools.
     """
-    extracted_files = await extract_files(history=messages[context.context_id], incoming_message=message)
+    extracted_files = await extract_files(
+        history=messages[context.context_id], incoming_message=message
+    )
     input = to_framework_message(message)
 
     # Configure tools
@@ -154,12 +190,12 @@ async def chat(
 
     FinalAnswerTool.description = """Assemble and send the final answer to the user. When using information gathered from other tools that provided URL addresses, you MUST properly cite them using markdown citation format: [description](URL).
 
-Citation Requirements:
+# Citation Requirements:
 - Use descriptive text that summarizes the source content
 - Include the exact URL provided by the tool
 - Place citations inline where the information is referenced
 
-Examples:
+# Examples:
 - According to [OpenAI's latest announcement](https://example.com/gpt5), GPT-5 will be released next year.
 - Recent studies show [AI adoption has increased by 67%](https://example.com/ai-study) in enterprise environments.
 - Weather data indicates [temperatures will reach 25°C tomorrow](https://weather.example.com/forecast)."""  # type: ignore
@@ -186,6 +222,7 @@ Examples:
         api_key=os.getenv("LLM_API_KEY", "dummy"),
         base_url=os.getenv("LLM_API_BASE", "http://localhost:11434/v1"),
         parameters=ChatModelParameters(temperature=0.0),
+        tool_choice_support=set(),
     )
 
     # Create agent
@@ -195,7 +232,7 @@ Examples:
         memory=UnconstrainedMemory(),
         requirements=requirements,
         middlewares=[
-            GlobalTrajectoryMiddleware(included=[Tool]),
+            GlobalTrajectoryMiddleware(included=[Tool]),  # ChatModel,
             act_tool_middleware,
             clarification_tool_middleware,
         ],
@@ -253,14 +290,20 @@ Examples:
 
         message = AgentMessage(
             text=clean_text,
-            metadata=(citation.citation_metadata(citations=citations) if citations else None),
+            metadata=(
+                citation.citation_metadata(citations=citations) if citations else None
+            ),
         )
         messages[context.context_id].append(message)
         yield message
 
 
 def serve():
-    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)), configure_telemetry=True)
+    server.run(
+        host=os.getenv("HOST", "127.0.0.1"),
+        port=int(os.getenv("PORT", 8000)),
+        configure_telemetry=True,
+    )
 
 
 if __name__ == "__main__":

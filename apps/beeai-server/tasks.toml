@@ -91,7 +91,7 @@ run = "docker build -t ghcr.io/i-am-bee/beeai-platform/beeai-server:local --load
 ["beeai-server:build:requirements"]
 depends = ["beeai-server:setup"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "mkdir -p dist && uv export --no-hashes --no-emit-workspace --format requirements-txt > dist/requirements.txt"
+run = "mkdir -p dist && uv export --no-hashes --no-emit-workspace --no-dev --format requirements-txt > dist/requirements.txt"
 sources = ["uv.lock"]
 outputs = ["dist/requirements.txt"]
 
@@ -117,7 +117,7 @@ source .env
 set +a
 
 cd src/beeai_server/infrastructure/persistence/migrations
-alembic {{arg(name="alembic_vars", var=true)}}
+uv run alembic {{arg(name="alembic_vars", var=true)}}
 """
 
 ["beeai-server:migrations:alembic"]
@@ -134,7 +134,7 @@ if ! telepresence list --replacements 2>/dev/null | grep -q platform; then
 fi
 
 cd src/beeai_server/infrastructure/persistence/migrations
-alembic {{arg(name="alembic_vars", var=true)}}
+uv run alembic {{arg(name="alembic_vars", var=true)}}
 """
 
 ["beeai-server:migrations:generate"]
@@ -231,12 +231,12 @@ run = "{{ mise_bin }} run beeai-server:dev:reconnect --vm-name=beeai-local-test"
 dir = "{{config_root}}/apps/beeai-server"
 run = """
 #!/bin/bash
+VM_NAME=e2e-test-run
 
 {{ mise_bin }} run beeai-platform:stop-all
 {{ mise_bin }} run beeai-platform:delete --vm-name=${VM_NAME}
 curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhost:8333 is already running" && exit 2
 
-VM_NAME=e2e-test-run
 {{ mise_bin }} run beeai-platform:start \
     --vm-name=${VM_NAME} \
     --set externalRegistries=null \

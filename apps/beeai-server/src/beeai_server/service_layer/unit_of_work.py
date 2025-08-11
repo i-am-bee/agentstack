@@ -7,6 +7,7 @@ from beeai_server.domain.repositories.env import IEnvVariableRepository
 from beeai_server.domain.repositories.file import IFileRepository
 from beeai_server.domain.repositories.provider import IProviderRepository
 from beeai_server.domain.repositories.user import IUserRepository
+from beeai_server.domain.repositories.user_feedback import IUserFeedbackRepository
 from beeai_server.domain.repositories.vector_store import IVectorDatabaseRepository, IVectorStoreRepository
 
 
@@ -17,6 +18,7 @@ class IUnitOfWork(Protocol):
     users: IUserRepository
     vector_stores: IVectorStoreRepository
     vector_database: IVectorDatabaseRepository
+    user_feedback: IUserFeedbackRepository
 
     async def __aenter__(self) -> Self: ...
     async def __aexit__(self, exc_type, exc, tb) -> None: ...

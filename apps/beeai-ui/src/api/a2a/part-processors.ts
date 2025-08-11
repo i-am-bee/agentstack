@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FilePart, Message, TextPart } from '@a2a-js/sdk';
+import type { FilePart, Message, Part, TextPart } from '@a2a-js/sdk';
+import { match } from 'ts-pattern';
 import { v4 as uuid } from 'uuid';
 
 import type { UIFilePart, UIMessagePart } from '#modules/messages/types.ts';
@@ -53,4 +54,23 @@ export function processFilePart(part: FilePart): UIMessagePart[] {
   };
 
   return [filePart];
+}
+
+export function processParts(parts: Part[]): UIMessagePart[] {
+  const processedParts = parts
+    .flatMap((part) => {
+      const processedParts = match(part)
+        .with({ kind: 'text' }, (part) => processTextPart(part))
+        .with({ kind: 'file' }, processFilePart)
+        .otherwise((otherPart) => {
+          console.warn(`Unsupported part - ${otherPart.kind}`);
+
+          return null;
+        });
+
+      return processedParts;
+    })
+    .filter(isNotNull);
+
+  return processedParts;
 }

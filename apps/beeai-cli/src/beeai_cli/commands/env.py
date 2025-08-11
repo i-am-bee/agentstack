@@ -86,7 +86,7 @@ LLM_PROVIDERS = [
     ),
     Choice(
         name="Google Gemini".ljust(25) + "🆓 has a free tier",
-        value=("Gemini", "https://generativelanguage.googleapis.com/v1beta/openai", None),
+        value=("Gemini", "https://generativelanguage.googleapis.com/v1beta/openai", "models/gemini-2.5-pro"),
     ),
     Choice(
         name="Groq".ljust(25) + "🆓 has a free tier",
@@ -314,13 +314,13 @@ async def _configure_llm() -> dict[str, str] | None:
             num_ctx := await inquirer.select(
                 message="Larger context window helps agents see more information at once at the cost of memory consumption, as long as the model supports it. Set a larger context window?",
                 choices=[
-                    Choice(name="2k  ⚠️  some agents won't work", value=2048),
-                    Choice(name="4k  ⚠️  some agents won't work", value=4096),
+                    Choice(name="2k    ⚠️  some agents won't work", value=2048),
+                    Choice(name="4k    ⚠️  some agents won't work", value=4096),
                     Choice(name="8k", value=8192),
                     Choice(name="16k", value=16384),
-                    Choice(name="32k", value=32768),
-                    Choice(name="64k", value=65536),
-                    Choice(name="128k", value=131072),
+                    Choice(name="32k   ⚠️  may be too large for common computers", value=32768),
+                    Choice(name="64k   ⚠️  may be too large for common computers", value=65536),
+                    Choice(name="128k  ⚠️  may be too large for common computers", value=131072),
                 ],
             ).execute_async()
         )
@@ -387,6 +387,14 @@ async def _configure_llm() -> dict[str, str] | None:
             return None
     except Exception as e:
         console.print(format_error("Error", f"Error during model test: {e!s}"))
+        if provider_name == "Ollama":
+            console.print(
+                "💡 [yellow]HINT[/yellow]: Try setting up the model with 2k context window first, to see if it works."
+            )
+        if not available_models:
+            console.print(
+                f"💡 [yellow]HINT[/yellow]: Check {provider_name} documentation if you typed in the correct model name."
+            )
         return None
 
     return {
@@ -551,7 +559,9 @@ async def _configure_embedding(env: dict[str, str]) -> dict[str, str] | None:
                     choices=sorted(available_models),
                 ).execute_async()
                 if available_models
-                else await inquirer.text(message="Write an embedding model name to use:").execute_async()
+                else await inquirer.text(
+                    message=f"This provider does not provide a list of models through the API. Please manually find available models in the {provider_name} documentation and paste the name of your chosen model in the correct format here:"
+                ).execute_async()
             )
         )
 
