@@ -4,23 +4,21 @@
  */
 
 'use client';
-import { LogoPython, Plug, Rocket, SettingsAdjust, Unlocked } from '@carbon/icons-react';
-import Image from 'next/image';
+import { LogoPython, Plug, Rocket, SettingsAdjust, Unlocked, WorkflowAutomation } from '@carbon/icons-react';
 
 import { FRAMEWORK_QUICKSTART_LINK } from '@/constants';
 import { LayoutContainer } from '@/layouts/LayoutContainer';
 
-import screenshotsImage from './assets/framework.png';
-import LinuxFoundation from './assets/linux-foundation.svg';
+import FrameworkGraphics from './assets/framework.svg';
 import { FeaturesList } from './components/FeaturesList';
 import { HeadlineWithLink } from './components/HeadlineWithLink';
 import classes from './Framework.module.scss';
 
 export function Framework() {
   return (
-    <div className={classes.root}>
+    <section className={classes.root}>
       <LayoutContainer>
-        <div className={classes.intro}>
+        <div className={classes.info}>
           <HeadlineWithLink
             title="Framework"
             description="Build production-ready AI agents with enterprise-grade reliability, built-in caching, memory optimization,
@@ -29,8 +27,8 @@ export function Framework() {
             inverse
           />
 
-          <div className={classes.introImage}>
-            <Image src={screenshotsImage.src} width={1500} height={1280} alt="BeeAI UI & CLI" />
+          <div className={classes.graphics}>
+            <FrameworkGraphics />
           </div>
         </div>
 
@@ -38,7 +36,7 @@ export function Framework() {
           <FeaturesList items={FEATURES_ITEMS} />
         </div>
       </LayoutContainer>
-    </div>
+    </section>
   );
 }
 
@@ -53,10 +51,11 @@ const FEATURES_ITEMS = [
     ),
   },
   {
-    icon: LinuxFoundation,
+    icon: WorkflowAutomation,
     content: (
       <>
-        <strong>Linux Foundation governance</strong> ensures long-term stability and community-driven development
+        <strong>Workflow Orchestration</strong> connects agents seamlessly, passing tasks between them while maintaining
+        context. Ensures reliable execution from simple to complex multi-agent processes.
       </>
     ),
   },

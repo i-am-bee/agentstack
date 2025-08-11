@@ -19,9 +19,18 @@
     margin-block-start: $spacing-05;
   }
 
-  a {
+  :global(.cds--btn) {
     inline-size: rem(208px);
     margin-block-start: $spacing-06;
+    font-size: rem(16px);
+    padding-block: 0;
+    align-items: center;
+
+    svg {
+      inline-size: rem(24px);
+      block-size: rem(24px);
+      margin-block-start: rem(-1px); // vertical position correction
+    }
   }
 }
 

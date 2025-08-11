@@ -31,7 +31,7 @@ export function MainNav({ items }: Props) {
   );
 }
 
-interface MainNavItem {
+export interface MainNavItem {
   label: ReactNode;
   href: string;
   Icon?: CarbonIconType;

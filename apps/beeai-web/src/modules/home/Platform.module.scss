@@ -9,20 +9,48 @@
   background-color: $layer-02;
 }
 
-.intro {
+.info {
   display: grid;
   align-items: center;
   gap: $spacing-10;
-  grid-template-columns: 40% 60%;
+  grid-template-columns: minmax(0, 40%) 1fr;
 }
 
-.introImage {
+.infoLeft {
+  max-inline-size: rem(440px);
+}
+
+.graphics {
+  inline-size: 125%;
+  max-inline-size: rem(860px);
+  position: relative;
+
   img {
-    inline-size: 120%;
-    max-inline-size: rem(820px);
+    inline-size: 100%;
     block-size: auto;
-    border-radius: rem(8px);
-    box-shadow: $box-shadow;
+  }
+  svg {
+    position: absolute;
+    inset: 0;
+    fill: $text-primary;
+
+    :global(.fill-disabled) {
+      fill: $button-disabled;
+    }
+    :global(.fill-layer-03) {
+      fill: $layer-03;
+    }
+    :global(.stroke-layer-03) {
+      stroke: $layer-03;
+      fill: none;
+    }
+    :global(.spinner) {
+      fill: none;
+      stroke-width: 3px;
+      :global(.stroke-blue) {
+        stroke: $background-brand;
+      }
+    }
   }
 }
 
@@ -36,7 +64,7 @@
 }
 
 @include breakpoint-down(md) {
-  .intro {
+  .info {
     display: flex;
     flex-direction: column;
   }

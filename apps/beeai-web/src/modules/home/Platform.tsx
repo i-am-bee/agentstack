@@ -11,23 +11,29 @@ import { PLATFORM_QUICKSTART_LINK } from '@/constants';
 import { LayoutContainer } from '@/layouts/LayoutContainer';
 
 import screenshotsImage from './assets/platform.png';
+import UploaderSvg from './assets/platform-uploader.svg';
 import { FeaturesList } from './components/FeaturesList';
 import { HeadlineWithLink } from './components/HeadlineWithLink';
 import classes from './Platform.module.scss';
 
 export function Platform() {
   return (
-    <div className={classes.root}>
+    <section className={classes.root}>
       <LayoutContainer>
-        <div className={classes.intro}>
-          <HeadlineWithLink
-            title="Platform"
-            description="Deploy any AI agent with a custom web interface in minutes."
-            buttonProps={{ url: PLATFORM_QUICKSTART_LINK }}
-          />
+        <div className={classes.info}>
+          <div className={classes.infoLeft}>
+            <HeadlineWithLink
+              title="Platform"
+              description="Deploy any AI agent with a custom web interface in minutes."
+              buttonProps={{ url: PLATFORM_QUICKSTART_LINK }}
+            />
+          </div>
 
-          <div className={classes.introImage}>
-            <Image src={screenshotsImage.src} width={1532} height={1126} alt="BeeAI UI & CLI" />
+          <div>
+            <div className={classes.graphics}>
+              <Image src={screenshotsImage.src} width={1532} height={1126} alt="BeeAI UI & CLI" />
+              <UploaderSvg />
+            </div>
           </div>
         </div>
 
@@ -35,7 +41,7 @@ export function Platform() {
           <FeaturesList items={FEATURES_ITEMS} />
         </div>
       </LayoutContainer>
-    </div>
+    </section>
   );
 }
 
@@ -60,7 +66,7 @@ const FEATURES_ITEMS = [
     icon: Unlocked,
     content: (
       <>
-        Test agents with OpenAI, Anthropic, or <strong>10+ LLM providers</strong>
+        <strong>No vendor lock-in</strong> - works with 10+ LLM providers out of the box
       </>
     ),
   },

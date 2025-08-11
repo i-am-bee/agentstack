@@ -4,9 +4,14 @@
  */
 
 .root {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  padding-block-start: rem(143px);
+  display: flex;
+  flex-direction: column;
+  margin-block-start: rem(143px);
+
+  section {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
 
   h1 {
     font-size: rem(64px);
@@ -18,23 +23,48 @@
 .collage {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
+
   svg {
+    inline-size: 90%;
     path {
       fill: currentColor;
     }
   }
 }
 
+section.info {
+  margin-block-start: rem(220px);
+  p {
+    grid-column: 1 / span 2;
+    font-size: rem(32px);
+  }
+}
+
 @include breakpoint-down(lg) {
   .root {
-    display: flex;
-    flex-direction: column;
-    gap: $spacing-10;
-    padding-block-start: rem(100px);
+    section {
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-10;
+    }
 
     h1 {
       font-size: 9vw;
     }
+
+    .collage {
+      justify-content: center;
+
+      svg {
+        max-inline-size: rem(540px);
+      }
+    }
+  }
+}
+
+@include breakpoint-down(sm) {
+  .root {
+    margin-block-start: rem(50px);
   }
 }

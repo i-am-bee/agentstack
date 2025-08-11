@@ -32,6 +32,12 @@ $light: map.merge(
     layer-accent-02: $cool-gray-20,
     layer-accent-03: $cool-gray-30,
 
+    layer-inverse: $black,
+    layer-inverse-00: $cool-gray-100,
+    layer-inverse-01: $cool-gray-90,
+    layer-inverse-02: $cool-gray-80,
+    layer-inverse-03: $cool-gray-70,
+
     border-subtle-00: $cool-gray-20,
     border-interactive: $black,
 
@@ -76,6 +82,12 @@ $dark: map.merge(
     layer-accent-01: $cool-gray-90,
     layer-accent-02: $cool-gray-80,
     layer-accent-03: $cool-gray-70,
+
+    layer-inverse: $white,
+    layer-inverse-00: $cool-gray-10,
+    layer-inverse-01: $cool-gray-10,
+    layer-inverse-02: $cool-gray-20,
+    layer-inverse-03: $cool-gray-30,
 
     border-subtle-00: $cool-gray-80,
     border-interactive: $white,
@@ -190,6 +202,11 @@ $gap: $grid-margin;
 
 $background-hover-50: var(--cds-background-hover-50);
 $background-transparent: var(--cds-background-transparent);
+$layer-inverse: var(--cds-layer-inverse);
+$layer-inverse-00: var(--cds-layer-inverse-00);
+$layer-inverse-01: var(--cds-layer-inverse-01);
+$layer-inverse-02: var(--cds-layer-inverse-02);
+$layer-inverse-03: var(--cds-layer-inverse-03);
 
 $text-dark: var(--cds-text-dark);
 $text-muted: var(--cds-text-muted);

@@ -12,9 +12,16 @@ import classes from './GitHubButton.module.scss';
 
 export function GitHubButton() {
   return (
-    <Button as="a" href={GITHUB_REPO_LINK} target="_blank" rel="noreferrer" size="md" className={classes.root}>
-      <LogoGithub />
-      <span>Hack with us on GitHub</span>
+    <Button
+      as="a"
+      href={GITHUB_REPO_LINK}
+      target="_blank"
+      rel="noreferrer"
+      size="lg"
+      className={classes.root}
+      renderIcon={LogoGithub}
+    >
+      Hack with us on GitHub
     </Button>
   );
 }

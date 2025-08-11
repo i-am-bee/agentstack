@@ -4,7 +4,7 @@
  */
 'use client';
 import { ArrowUpRight } from '@carbon/icons-react';
-import { HeaderMenuButton, HeaderMenuItem, HeaderSideNavItems, SideNav, SideNavItems } from '@carbon/react';
+import { HeaderMenuButton } from '@carbon/react';
 import { DOCUMENTATION_LINK, MainNav } from '@i-am-bee/beeai-ui';
 import clsx from 'clsx';
 import Link from 'next/link';
@@ -14,6 +14,7 @@ import { FRAMEWORK_DOCS_LINK } from '@/constants';
 
 import classes from './AppHeader.module.scss';
 import { LayoutContainer } from './LayoutContainer';
+import { MobileSideNav } from './MobileSideNav';
 import { SocialLinks } from './SocialLinks';
 
 interface Props {
@@ -43,17 +44,7 @@ export function AppHeader({ className }: Props) {
               <MainNav items={items} />
             </div>
 
-            <SideNav isPersistent={false} expanded={isSideNavExpanded}>
-              <SideNavItems>
-                <HeaderSideNavItems>
-                  {items.map(({ label, href }, idx) => (
-                    <HeaderMenuItem href={href} target="_blank" key={idx}>
-                      {label}
-                    </HeaderMenuItem>
-                  ))}
-                </HeaderSideNavItems>
-              </SideNavItems>
-            </SideNav>
+            <MobileSideNav items={items} isExpanded={isSideNavExpanded} />
           </nav>
 
           <div className={classes.right}>

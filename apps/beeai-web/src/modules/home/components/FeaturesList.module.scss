@@ -28,3 +28,10 @@
     }
   }
 }
+
+@include breakpoint-down(md) {
+  .root {
+    display: flex;
+    flex-direction: column;
+  }
+}
