@@ -429,6 +429,629 @@ async def start(
         for image in import_images:
             await import_image(image, vm_name=vm_name)
 
+        # OIDC specific tasks
+        if Configuration().oidc_enabled:
+            # install helm
+            await run_command(
+                [
+                    *{
+                        VMDriver.lima: [_limactl_exe(), "shell", "--tty=false", vm_name, "--"],
+                        VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                    }[_vm_driver()],
+                    "sh",
+                    "-c",
+                    "curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash"
+                ],
+                "Installing helm",
+                env={"LIMA_HOME": str(Configuration().lima_home)},
+                cwd="/",
+            )
+            # helm repo add istio https://istio-release.storage.googleapis.com/charts
+            await run_command(
+                [
+                    *{
+                        VMDriver.lima: [_limactl_exe(), "shell", "--tty=false", vm_name, "--"],
+                        VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                    }[_vm_driver()],
+                    "helm",
+                    "repo",
+                    "add",
+                    "istio",
+                    "https://istio-release.storage.googleapis.com/charts",
+                ],
+                "Adding istio charts to helm repo",
+                env={"LIMA_HOME": str(Configuration().lima_home)},
+                cwd="/",
+            )
+            # helm repo update
+            await run_command(
+                [
+                    *{
+                        VMDriver.lima: [_limactl_exe(), "shell", "--tty=false", vm_name, "--"],
+                        VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                    }[_vm_driver()],
+                    "helm",
+                    "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+                    "repo",
+                    "update",
+                ],
+                "Running helm repo update",
+                env={"LIMA_HOME": str(Configuration().lima_home)},
+                cwd="/",
+            )
+            # helm install istio-base istio/base -n istio-system --create-namespace --wait
+            await run_command(
+                [
+                    *{
+                        VMDriver.lima: [_limactl_exe(), "shell", "--tty=false", vm_name, "--"],
+                        VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                    }[_vm_driver()],
+                    "helm",
+                    "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+                    "install",
+                    "istio-base",
+                    "istio/base",
+                    "-n",
+                    "istio-system",
+                    "--create-namespace",
+                    "--wait",
+                ],
+                "Installing istio-base",
+                env={"LIMA_HOME": str(Configuration().lima_home)},
+                cwd="/",
+            )
+            # dpwnload gateway crds
+            await run_command(
+                {
+                    VMDriver.lima: [_limactl_exe(), "--tty=false", "shell", vm_name, "--"],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[_vm_driver()]
+                + [
+                    "/bin/sh",
+                    "-c",
+                    f"{'sudo' if _vm_driver() == VMDriver.lima else ''} k3s kubectl get crd gateways.gateway.networking.k8s.io &> /dev/null",
+                ],
+                "Downloading gateway crds...",
+                env={"LIMA_HOME": str(Configuration().lima_home)},
+                cwd="/",
+            )
+            # install gateway crds
+            await run_command(
+                {
+                    VMDriver.lima: [_limactl_exe(), "--tty=false", "shell", vm_name, "--"],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[_vm_driver()]
+                + [
+                    "/bin/sh",
+                    "-c",
+                    f"{'sudo' if _vm_driver() == VMDriver.lima else ''} k3s kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.3.0/standard-install.yaml",
+                ],
+                "Installing gateway crds...",
+                env={"LIMA_HOME": str(Configuration().lima_home)},
+                cwd="/",
+            )
+            # helm install istiod istio/istiod --namespace istio-system --set profile=ambient --wait
+            await run_command(
+                [
+                    *{
+                        VMDriver.lima: [_limactl_exe(), "shell", "--tty=false", vm_name, "--"],
+                        VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                    }[_vm_driver()],
+                    "helm",
+                    "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+                    "install",
+                    "istiod",
+                    "istio/istiod",
+                    "-n",
+                    "istio-system",
+                    "--set",
+                    "profile=ambient",
+                    "--wait",
+                ],
+                "Installing istiod",
+                env={"LIMA_HOME": str(Configuration().lima_home)},
+                cwd="/",
+            )
+            # helm install istio-cni istio/cni -n istio-system --set profile=ambient --wait
+            await run_command(
+                [
+                    *{
+                        VMDriver.lima: [_limactl_exe(), "shell", "--tty=false", vm_name, "--"],
+                        VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                    }[_vm_driver()],
+                    "helm",
+                    "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+                    "install",
+                    "istio-cni",
+                    "istio/cni",
+                    "-n",
+                    "istio-system",
+                    "--set",
+                    "profile=ambient",
+                    "--wait",
+                ],
+                "Installing istio-cni",
+                env={"LIMA_HOME": str(Configuration().lima_home)},
+                cwd="/",
+            )
+            # helm install ztunnel istio/ztunnel -n istio-system --wait
+            await run_command(
+                [
+                    *{
+                        VMDriver.lima: [_limactl_exe(), "shell", "--tty=false", vm_name, "--"],
+                        VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                    }[_vm_driver()],
+                    "helm",
+                    "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+                    "install",
+                    "ztunnel",
+                    "istio/ztunnel",
+                    "-n",
+                    "istio-system",
+                    "--set",
+                    "profile=ambient",
+                    "--wait",
+                ],
+                "Installing ztunnel",
+                env={"LIMA_HOME": str(Configuration().lima_home)},
+                cwd="/",
+            )
+
+            # install certificate manager
+            await run_command(
+                {
+                    VMDriver.lima: [_limactl_exe(), "--tty=false", "shell", vm_name, "--"],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[_vm_driver()]
+                + [
+                    "/bin/sh",
+                    "-c",
+                    f"{'sudo' if _vm_driver() == VMDriver.lima else ''} k3s kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.18.2/cert-manager.yaml",
+                ],
+                "Installing certificate manager...(used to auto-generate cert for gateway ingress)",
+                env={"LIMA_HOME": str(Configuration().lima_home)},
+                cwd="/",
+            )
+            await run_command(
+            [
+                *{
+                    VMDriver.lima: [_limactl_exe(), "shell", "--tty=false", vm_name, "--"],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[_vm_driver()],
+                "k3s",
+                "kubectl",
+                "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+                "-n",
+                "cert-manager",
+                "wait",
+                "--for=create",
+                "--timeout=5m",
+                "deployment",
+                "cert-manager"
+            ],
+            "Waiting for certmanager deployments to be created",
+            env={"LIMA_HOME": str(Configuration().lima_home)},
+            cwd="/",
+            )
+
+            await run_command(
+            [
+                *{
+                    VMDriver.lima: [_limactl_exe(), "shell", "--tty=false", vm_name, "--"],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[_vm_driver()],
+                "k3s",
+                "kubectl",
+                "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+                "-n",
+                "cert-manager",
+                "wait",
+                "--for=condition=Available",
+                "--timeout=5m",
+                "--all",
+                "deployment",
+            ],
+            "Waiting for certmanager deployments to be available",
+            env={"LIMA_HOME": str(Configuration().lima_home)},
+            cwd="/",
+            )
+
+            # now label the namespace
+            # kubectl label namespace default istio.io/dataplane-mode=ambient
+            await run_command(
+                {
+                    VMDriver.lima: [_limactl_exe(), "--tty=false", "shell", vm_name, "--"],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[_vm_driver()]
+                + [
+                    "/bin/sh",
+                    "-c",
+                    f"{'sudo' if _vm_driver() == VMDriver.lima else ''} k3s kubectl label namespace default istio.io/dataplane-mode=ambient",
+                ],
+                "Labeling the default namespace...",
+                env={"LIMA_HOME": str(Configuration().lima_home)},
+                cwd="/",
+            )
+            # install the crds
+            await run_command(
+            [
+                *{
+                    VMDriver.lima: [_limactl_exe(), "shell", vm_name, "--"],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[_vm_driver()],
+                "k3s",
+                "kubectl",
+                "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+                "apply",
+                "--server-side",
+                "-f",
+                "-",
+            ],
+            "Applying certificate issuer",
+            input=yaml.dump(
+                {
+                    "apiVersion": "cert-manager.io/v1",
+                    "kind": "Issuer",
+                    "metadata": {
+                        "labels": {
+                            "app.kubernetes.io/instance": "default-issuer",
+                            "app.kubernetes.io/managed-by": "cert-manager-controller",
+                            "app.kubernetes.io/name": "Issuer"
+                        },
+                        "name": "default-issuer",
+                        "namespace": "default",
+                    },
+                    "spec": {
+                        "selfSigned": {}
+                    },
+                }
+            ).encode("utf-8"),
+            env={"LIMA_HOME": str(Configuration().lima_home)},
+            cwd="/",
+            )
+            await run_command(
+            [
+                *{
+                    VMDriver.lima: [_limactl_exe(), "shell", vm_name, "--"],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[_vm_driver()],
+                "k3s",
+                "kubectl",
+                "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+                "apply",
+                "--server-side",
+                "-f",
+                "-",
+            ],
+            "Applying certificate issuer",
+            input=yaml.dump(
+                {
+                    "apiVersion": "cert-manager.io/v1",
+                    "kind": "Issuer",
+                    "metadata": {
+                        "labels": {
+                            "app.kubernetes.io/instance": "istio-system-issuer",
+                            "app.kubernetes.io/managed-by": "cert-manager-controller",
+                            "app.kubernetes.io/name": "Issuer"
+                        },
+                        "name": "istio-system-issuer",
+                        "namespace": "istio-system",
+                    },
+                    "spec": {
+                        "selfSigned": {}
+                    },
+                }
+            ).encode("utf-8"),
+            env={"LIMA_HOME": str(Configuration().lima_home)},
+            cwd="/",
+            )
+            # 
+            await run_command(
+            [
+                *{
+                    VMDriver.lima: [_limactl_exe(), "shell", vm_name, "--"],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[_vm_driver()],
+                "k3s",
+                "kubectl",
+                "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+                "apply",
+                "--server-side",
+                "-f",
+                "-",
+            ],
+            "Applying gateway tls certificate",
+            input=yaml.dump(
+                {
+                    "apiVersion": "cert-manager.io/v1",
+                    "kind": "Certificate",
+                    "metadata": {
+                        "name": "beeai-platform-tls",
+                        "namespace": "istio-system",
+                    },
+                    "spec": {
+                        "commonName": "beeai-platform",
+                        "dnsNames": [
+                          "beeai-platform",
+                          "beeai-platform.testing",
+                          "beeai-platform.api.testing",
+                        ],
+                        "issuerRef": {
+                            "kind": "Issuer",
+                            "name": "istio-system-issuer",
+                        },
+                        "secretName": "beeai-platform-tls",
+                    },
+                }
+            ).encode("utf-8"),
+            env={"LIMA_HOME": str(Configuration().lima_home)},
+            cwd="/",
+            )
+            await run_command(
+            [
+                *{
+                    VMDriver.lima: [_limactl_exe(), "shell", vm_name, "--"],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[_vm_driver()],
+                "k3s",
+                "kubectl",
+                "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+                "apply",
+                "--server-side",
+                "-f",
+                "-",
+            ],
+            "Applying ingestion-svc tls certificate",
+            input=yaml.dump(
+                {
+                    "apiVersion": "cert-manager.io/v1",
+                    "kind": "Certificate",
+                    "metadata": {
+                        "name": "ingestion-svc",
+                        "namespace": "default",
+                    },
+                    "spec": {
+                        "commonName": "ingestion-svc",
+                        "dnsNames": [
+                          "ingestion-svc",
+                          "ingestion-svc.default",
+                          "ingestion-svc.default.svc",
+                          "ingestion-svc.default.svc.cluster.local"
+                        ],
+                        "issuerRef": {
+                            "kind": "Issuer",
+                            "name": "default-issuer",
+                        },
+                        "secretName": "ingestion-svc-tls",
+                    },
+                }
+            ).encode("utf-8"),
+            env={"LIMA_HOME": str(Configuration().lima_home)},
+            cwd="/",
+            )
+            await run_command(
+            [
+                *{
+                    VMDriver.lima: [_limactl_exe(), "shell", vm_name, "--"],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[_vm_driver()],
+                "k3s",
+                "kubectl",
+                "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+                "apply",
+                "--server-side",
+                "-f",
+                "-",
+            ],
+            "Applying gateway CRD",
+            input=yaml.dump(
+                {
+                    "apiVersion": "gateway.networking.k8s.io/v1",
+                    "kind": "Gateway",
+                    "metadata": {
+                        "name": "beeai-gateway",
+                        "namespace": "istio-system",
+                    },
+                    "spec": {
+                        "gatewayClassName": "istio",
+                        "listeners": [
+                            { "name":"https",
+                              "hostname": "beeai-platform.api.testing",
+                              "port": 8336,
+                              "protocol": "HTTPS",
+                              "tls": {
+                                  "mode": "Terminate",
+                                  "certificateRefs": [
+                                      { "name": "beeai-platform-tls" }
+                                  ]
+                              },
+                              "allowedRoutes": {
+                                  "namespaces": {
+                                      "from": "Selector"
+                                  }
+                              }
+                            }
+                        ]
+                    },
+                }
+            ).encode("utf-8"),
+            env={"LIMA_HOME": str(Configuration().lima_home)},
+            cwd="/",
+            )
+            await run_command(
+            [
+                *{
+                    VMDriver.lima: [_limactl_exe(), "shell", vm_name, "--"],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[_vm_driver()],
+                "k3s",
+                "kubectl",
+                "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+                "apply",
+                "--server-side",
+                "-f",
+                "-",
+            ],
+            "Applying HTTPRoute CRD",
+            input=yaml.dump(
+                {
+                    "apiVersion": "gateway.networking.k8s.io/v1",
+                    "kind": "HTTPRoute",
+                    "metadata": {
+                        "name": "beeai-platform-api"
+                    },
+                    "spec": {
+                        "parentRefs": [
+                            {
+                                "name": "beeai-gateway",
+                                "namespace": "istio-system"
+                            }
+                        ],
+                        "hostnames": [
+                            "beeai-platform.api.testing"
+                        ],
+                        "rules": [
+                            {
+                                "matches": [
+                                    {
+                                        "path": {
+                                            "type": "PathPrefix",
+                                            "value": "/api/v1"
+                                        }
+                                    }
+                                ],
+                                "backendRefs": [
+                                    {
+                                        "name": "beeai-platform-svc",
+                                        "port": 8333
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            ).encode("utf-8"),
+            env={"LIMA_HOME": str(Configuration().lima_home)},
+            cwd="/",
+        )
+            await run_command(
+            [
+                *{
+                    VMDriver.lima: [_limactl_exe(), "shell", vm_name, "--"],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[_vm_driver()],
+                "k3s",
+                "kubectl",
+                "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+                "apply",
+                "--server-side",
+                "-f",
+                "-",
+            ],
+            "Applying HTTPRoute CRD",
+            input=yaml.dump(
+                    {
+                        "apiVersion": "gateway.networking.k8s.io/v1",
+                        "kind": "HTTPRoute",
+                        "metadata": {
+                            "name": "beeai-platform-ui"
+                        },
+                        "spec": {
+                            "parentRefs": [
+                                {
+                                    "name": "beeai-gateway",
+                                    "namespace": "istio-system"
+                                }
+                            ],
+                            "hostnames": [
+                                "beeai-platform.testing",
+                                "beeai-platform.api.testing"
+                            ],
+                            "rules": [
+                                {
+                                    "matches": [
+                                        {
+                                            "path": {
+                                                "type": "PathPrefix",
+                                                "value": "/"
+                                            }
+                                        }
+                                    ],
+                                    "backendRefs": [
+                                        {
+                                            "name": "beeai-platform-ui-svc",
+                                            "port": 8334
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+            ).encode("utf-8"),
+            env={"LIMA_HOME": str(Configuration().lima_home)},
+            cwd="/",
+        )
+            # install istioctl
+            await run_command(
+                {
+                    VMDriver.lima: [_limactl_exe(), "--tty=false", "shell", vm_name, "--"],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[_vm_driver()]
+                + [
+                    "/bin/sh",
+                    "-c",
+                    f"{'sudo' if _vm_driver() == VMDriver.lima else ''} curl -L https://istio.io/downloadIstio | {'sudo' if _vm_driver() == VMDriver.lima else ''} sh -",
+                ],
+                "Installing istioctl...",
+                env={"LIMA_HOME": str(Configuration().lima_home)},
+                cwd="/",
+            )
+            await run_command(
+                {
+                    VMDriver.lima: [_limactl_exe(), "--tty=false", "shell", vm_name, "--"],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[_vm_driver()]
+                + [
+                    "/bin/sh",
+                    "-c",
+                    f"{'sudo' if _vm_driver() == VMDriver.lima else ''} k3s kubectl apply -f /istio-1.26.3/samples/addons/prometheus.yaml",
+                ],
+                "Installing prometheus...",
+                env={"LIMA_HOME": str(Configuration().lima_home)},
+                cwd="/",
+            )
+            await run_command(
+                {
+                    VMDriver.lima: [_limactl_exe(), "--tty=false", "shell", vm_name, "--"],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[_vm_driver()]
+                + [
+                    "/bin/sh",
+                    "-c",
+                    f"{'sudo' if _vm_driver() == VMDriver.lima else ''} k3s kubectl apply -f /istio-1.26.3/samples/addons/kiali.yaml",
+                ],
+                "Installing Kiali...",
+                env={"LIMA_HOME": str(Configuration().lima_home)},
+                cwd="/",
+            )
+            # now expose Kiali via node port
+            await run_command(
+                {
+                    VMDriver.lima: [_limactl_exe(), "--tty=false", "shell", vm_name, "--"],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[_vm_driver()]
+                + [
+                    "/bin/sh",
+                    "-c",
+                    f"{'sudo' if _vm_driver() == VMDriver.lima else ''} k3s kubectl -n istio-system expose deployment kiali --protocol=TCP --port=20001 --target-port=20001 --type=NodePort --name=kiali-external",
+                ],
+                "Exposing Kiali service...",
+                env={"LIMA_HOME": str(Configuration().lima_home)},
+                cwd="/",
+            )
+
+        # end if odic.enabled
+
         # Deploy HelmChart
         await run_command(
             [
@@ -528,7 +1151,7 @@ async def start(
                 "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
                 "wait",
                 "--for=condition=Available",
-                "--timeout=1h",
+                "--timeout=5m",
                 "--all",
                 "deployment",
             ],
