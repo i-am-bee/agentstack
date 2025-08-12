@@ -24,7 +24,7 @@ server = Server()
         "/agents/community/gpt-researcher"
     ),
     detail=AgentDetail(
-        ui_type="hands-off",
+        interaction_mode="single-turn",
         user_greeting="What topic do you want to research?",
         use_cases=[
             "**Comprehensive Research** – Generates detailed reports using information from multiple sources.",

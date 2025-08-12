@@ -28,7 +28,7 @@ from beeai_sdk.a2a.extensions.services.llm import LLMServiceExtensionServer
 
 agent_detail_extension_spec = beeai_sdk.a2a.extensions.AgentDetailExtensionSpec(
     params=beeai_sdk.a2a.extensions.AgentDetail(
-        ui_type="chat",
+        interaction_mode="multi-turn",
     )
 )
 

@@ -26,9 +26,9 @@ export function sortAgentsByName(a: Agent, b: Agent) {
 }
 
 export function isAgentUiSupported(agent: Agent) {
-  const ui_type = agent.ui?.ui_type;
+  const interaction_mode = agent.ui?.interaction_mode;
 
-  return ui_type && SupportedUis.includes(ui_type);
+  return interaction_mode && SupportedUis.includes(interaction_mode);
 }
 
 function isAgentUiExtension(extension: AgentExtension): extension is UiExtension {
