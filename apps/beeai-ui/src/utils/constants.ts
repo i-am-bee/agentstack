@@ -29,8 +29,6 @@ export const DOCUMENTATION_LINK = 'https://docs.beeai.dev';
 
 export const BEE_AI_FRAMEWORK_TAG = 'BeeAI';
 
-export const INSTALL_BEEAI = 'uv tool install beeai-cli';
-
 export const TRY_LOCALLY_LINK = `${DOCUMENTATION_LINK}/introduction/quickstart`;
 
 export const RUN_LINK = `${DOCUMENTATION_LINK}/how-to/run-agents`;
