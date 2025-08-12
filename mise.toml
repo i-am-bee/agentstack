@@ -1,6 +1,6 @@
 [tools]
 # runtime
-"asdf:CrouchingMuppet/asdf-lima" = "1.1.1" # using lima from asdf since the aqua one fails to install in CI
+"asdf:CrouchingMuppet/asdf-lima" = "1.2.1" # using lima from asdf since the aqua one fails to install in CI
 
 # Python
 python = "3.13"

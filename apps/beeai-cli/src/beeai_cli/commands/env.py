@@ -314,8 +314,8 @@ async def _configure_llm() -> dict[str, str] | None:
             num_ctx := await inquirer.select(
                 message="Larger context window helps agents see more information at once at the cost of memory consumption, as long as the model supports it. Set a larger context window?",
                 choices=[
-                    Choice(name="2k    ⚠️  some agents won't work", value=2048),
-                    Choice(name="4k    ⚠️  some agents won't work", value=4096),
+                    Choice(name="2k    ⚠️  too small for most agents", value=2048),
+                    Choice(name="4k    ⚠️  too small for most agents", value=4096),
                     Choice(name="8k", value=8192),
                     Choice(name="16k", value=16384),
                     Choice(name="32k   ⚠️  may be too large for common computers", value=32768),
