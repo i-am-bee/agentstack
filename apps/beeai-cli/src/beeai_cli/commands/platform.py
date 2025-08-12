@@ -951,6 +951,22 @@ async def start(
                 env={"LIMA_HOME": str(Configuration().lima_home)},
                 cwd="/",
             )
+            istio_dir = (await run_command(
+                {
+                    VMDriver.lima: [_limactl_exe(), "--tty=false", "shell", vm_name, "--"],
+                    VMDriver.wsl: ["wsl.exe", "--user", "root", "--distribution", vm_name, "--"],
+                }[_vm_driver()]
+                + [
+                    "/bin/sh",
+                    "-c",
+                    "ls -lahF | grep istio | awk '{print $9}'",
+                ],
+                "Checking for istio install folder...",
+                env={"LIMA_HOME": str(Configuration().lima_home)},
+                cwd="/",
+            )
+            ).stdout.decode().strip()
+
             await run_command(
                 {
                     VMDriver.lima: [_limactl_exe(), "--tty=false", "shell", vm_name, "--"],
@@ -959,7 +975,7 @@ async def start(
                 + [
                     "/bin/sh",
                     "-c",
-                    f"{'sudo' if _vm_driver() == VMDriver.lima else ''} k3s kubectl apply -f /istio-1.26.3/samples/addons/prometheus.yaml",
+                    f"{'sudo' if _vm_driver() == VMDriver.lima else ''} k3s kubectl apply -f /{istio_dir}samples/addons/prometheus.yaml",
                 ],
                 "Installing prometheus...",
                 env={"LIMA_HOME": str(Configuration().lima_home)},
@@ -973,7 +989,7 @@ async def start(
                 + [
                     "/bin/sh",
                     "-c",
-                    f"{'sudo' if _vm_driver() == VMDriver.lima else ''} k3s kubectl apply -f /istio-1.26.3/samples/addons/kiali.yaml",
+                    f"{'sudo' if _vm_driver() == VMDriver.lima else ''} k3s kubectl apply -f /{istio_dir}samples/addons/kiali.yaml",
                 ],
                 "Installing Kiali...",
                 env={"LIMA_HOME": str(Configuration().lima_home)},
