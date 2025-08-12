@@ -7,6 +7,7 @@
     "@carbon/icons-react": "*",
     "@tanstack/react-query": "*",
     "framer-motion": "*",
+    "lottie-react": "*",
     "next": "*",
     "react": "*",
     "react-dom": "*",

@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-@use '@i-am-bee/beeai-ui/src/styles/style';
-
-@use '@carbon/styles/scss/components/ui-shell';
+.itemContent {
+  display: flex;
+  align-items: center;
+  gap: $spacing-02;
+}

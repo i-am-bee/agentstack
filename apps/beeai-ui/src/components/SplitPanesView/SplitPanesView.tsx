@@ -7,8 +7,8 @@ import { moderate02 } from '@carbon/motion';
 import { AnimatePresence, motion } from 'framer-motion';
 import { type PropsWithChildren, type ReactNode, useEffect } from 'react';
 
+import type { MainContentProps } from '#components/layouts/MainContent.tsx';
 import { MainContent } from '#components/layouts/MainContent.tsx';
-import type { MainContentViewProps } from '#components/MainContentView/MainContentView.tsx';
 import { useApp } from '#contexts/App/index.ts';
 import { useScrollbarWidth } from '#hooks/useScrollbarWidth.ts';
 import { createScrollbarStyles } from '#utils/createScrollbarStyles.ts';
@@ -20,7 +20,7 @@ interface Props {
   rightPane: ReactNode;
   mainContent?: ReactNode;
   isSplit?: boolean;
-  spacing?: MainContentViewProps['spacing'];
+  spacing?: MainContentProps['spacing'];
 }
 
 export function SplitPanesView({ leftPane, rightPane, mainContent, isSplit, spacing }: Props) {

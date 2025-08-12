@@ -27,6 +27,7 @@ $item-inline-padding: $spacing-04;
   line-height: math.div(18, 14);
   color: $text-dark;
   text-decoration: none;
+  white-space: nowrap;
 
   &:hover {
     color: $background-inverse;
