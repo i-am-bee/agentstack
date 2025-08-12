@@ -430,7 +430,7 @@ async def start(
             await import_image(image, vm_name=vm_name)
 
         # OIDC specific tasks
-        if Configuration().oidc_enabled:
+        if any("oidc.enabled=true" in value.lower() for value in set_values_list):
             # install helm
             await run_command(
                 [
