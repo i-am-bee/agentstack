@@ -32,12 +32,12 @@ class GlobalPermissionGrant(BaseModel):
 
 
 class ContextTokenCreateRequest(BaseModel):
-    grant_global_permissions: ContextPermissionsGrant = Field(
-        default=ContextPermissionsGrant(),
+    grant_global_permissions: GlobalPermissionGrant = Field(
+        default=GlobalPermissionGrant(),
         description="Global permissions granted by the token. Must be subset of the users permissions",
     )
-    grant_context_permissions: GlobalPermissionGrant = Field(
-        default=GlobalPermissionGrant(),
+    grant_context_permissions: ContextPermissionsGrant = Field(
+        default=ContextPermissionsGrant(),
         description="Context permissions granted by the token. Must be subset of the users permissions",
     )
 

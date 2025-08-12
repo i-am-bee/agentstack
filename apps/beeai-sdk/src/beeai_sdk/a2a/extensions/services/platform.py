@@ -21,6 +21,7 @@ from beeai_sdk.a2a.extensions.base import (
 from beeai_sdk.a2a.extensions.exceptions import ExtensionError
 from beeai_sdk.platform import use_platform_client
 from beeai_sdk.platform.client import PlatformClient
+from beeai_sdk.server.context import RunContext
 
 
 class PlatformApiExtensionMetadata(pydantic.BaseModel):
@@ -84,6 +85,11 @@ class PlatformApiExtensionServer(BaseExtensionServer[PlatformApiExtensionSpec, P
                 raise self._lifecycle_task_exception
         self._initialized = True
 
+    def handle_incoming_message(self, message: a2a.types.Message, context: RunContext):
+        super().handle_incoming_message(message, context)
+        if self.data:
+            self.data.base_url = self.data.base_url or HttpUrl(os.getenv("PLATFORM_URL", "http://127.0.0.1:8333"))
+
     def __del__(self):
         self._should_exit.set()
 
@@ -91,9 +97,12 @@ class PlatformApiExtensionServer(BaseExtensionServer[PlatformApiExtensionSpec, P
     async def use_client(self) -> AsyncIterator[PlatformClient]:
         if not self.data:
             raise ExtensionError(self.spec, "Platform extension metadata was not provided")
-        base_url = str(self.data.base_url or os.getenv("PLATFORM_URL", "http://127.0.0.1:8333"))
         auth_token = self.data.auth_token.get_secret_value()
-        async with use_platform_client(context_id=self.context_id, base_url=base_url, auth_token=auth_token) as client:
+        async with use_platform_client(
+            context_id=self.context_id,
+            base_url=str(self.data.base_url),
+            auth_token=auth_token,
+        ) as client:
             yield client
 
 

@@ -54,11 +54,14 @@ def issue_internal_jwt(
     now = utc_now()
     expires_at = now + timedelta(minutes=20)
     payload = {
-        "user_id": str(user_id),
         "context_id": str(context_id),
+        "sub": str(user_id),
         "exp": expires_at,
         "iat": now,
-        "permissions": {
+        "iss": "beeai-server",
+        "aud": "beeai-server",  # the token is for ourselves, noone else should consume it
+        "resource": [f"context:{context_id}"],
+        "scope": {
             "global": global_permissions.model_dump(mode="json"),
             "context": context_permissions.model_dump(mode="json"),
         },
@@ -69,11 +72,12 @@ def issue_internal_jwt(
 def verify_internal_jwt(token: str, configuration: Configuration) -> ParsedToken:
     assert configuration.auth.jwt_secret_key
     secret_key = configuration.auth.jwt_secret_key.get_secret_value()
-    payload = jwt.decode(token, secret_key, algorithms=["HS256"])
+    payload = jwt.decode(token, secret_key, algorithms=["HS256"], audience="beeai-server", issuer="beeai-server")
+    context_id = UUID(payload["resource"][0].replace("context:", ""))
     return ParsedToken(
-        global_permissions=Permissions.model_validate(payload["permissions"]["global"]),
-        context_permissions=Permissions.model_validate(payload["permissions"]["context"]),
-        context_id=UUID(payload["context_id"]),
-        user_id=UUID(payload["user_id"]),
+        global_permissions=Permissions.model_validate(payload["scope"]["global"]),
+        context_permissions=Permissions.model_validate(payload["scope"]["context"]),
+        context_id=context_id,
+        user_id=UUID(payload["sub"]),
         raw=payload,
     )
