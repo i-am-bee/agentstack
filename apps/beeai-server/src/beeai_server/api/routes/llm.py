@@ -3,7 +3,7 @@
 
 import json
 from collections.abc import AsyncGenerator, Generator
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 import fastapi
 import ibm_watsonx_ai
@@ -11,10 +11,12 @@ import ibm_watsonx_ai.foundation_models
 import openai
 import openai.types.chat
 import pydantic
+from fastapi import Depends
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import StreamingResponse
 
-from beeai_server.api.dependencies import EnvServiceDependency
+from beeai_server.api.dependencies import EnvServiceDependency, RequiresPermissions
+from beeai_server.domain.models.permissions import AuthorizedUser
 
 router = fastapi.APIRouter()
 
@@ -62,10 +64,16 @@ class ChatCompletionRequest(pydantic.BaseModel):
 
 
 @router.post("/chat/completions")
-async def create_chat_completion(env_service: EnvServiceDependency, request: ChatCompletionRequest):
+async def create_chat_completion(
+    env_service: EnvServiceDependency,
+    request: ChatCompletionRequest,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(llm={"*"}))],
+):
     env = await env_service.list_env()
 
-    if pydantic.HttpUrl(env["LLM_API_BASE"]).host.endswith(".ml.cloud.ibm.com"):
+    backend_url = pydantic.HttpUrl(env["LLM_API_BASE"])
+    assert backend_url.host
+    if backend_url.host.endswith(".ml.cloud.ibm.com"):
         model = ibm_watsonx_ai.foundation_models.ModelInference(
             model_id=env["LLM_MODEL"],
             credentials=ibm_watsonx_ai.Credentials(url=env["LLM_API_BASE"], api_key=env["LLM_API_KEY"]),
@@ -226,7 +234,7 @@ def _stream_watsonx(stream: Generator) -> Generator[str, Any]:
         yield "data: [DONE]\n\n"
 
 
-async def _stream_openai(stream: AsyncGenerator) -> AsyncGenerator[str, Any, None]:
+async def _stream_openai(stream: AsyncGenerator) -> AsyncGenerator[str, Any]:
     try:
         async for chunk in stream:
             yield f"data: {json.dumps(chunk.model_dump(mode='json') | {'beeai_proxy_version': BEEAI_PROXY_VERSION})}\n\n"

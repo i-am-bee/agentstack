@@ -185,6 +185,11 @@ spec:
                 secretKeyRef:
                   key: adminPassword
                   name: beeai-platform-secret
+            - name: AUTH__JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: jwtSecretKey
+                  name: beeai-platform-secret
             {{- if not .Values.auth.enabled }}
             - name: AUTH__DISABLE_AUTH
               value: "true"

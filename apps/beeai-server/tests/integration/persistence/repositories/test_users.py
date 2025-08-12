@@ -4,7 +4,6 @@
 import uuid
 
 import pytest
-import pytest_asyncio
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
@@ -15,7 +14,7 @@ from beeai_server.infrastructure.persistence.repositories.user import SqlAlchemy
 pytestmark = pytest.mark.integration
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def test_user() -> User:
     """Create a test user for use in tests."""
     return User(
@@ -24,7 +23,7 @@ async def test_user() -> User:
     )
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def test_admin() -> User:
     """Create a test admin user for use in tests."""
     return User(

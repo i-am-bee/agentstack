@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from collections.abc import AsyncIterator
+from typing import cast
 from uuid import UUID
 
 from kink import inject
@@ -16,7 +17,6 @@ from sqlalchemy import (
     String,
     Table,
     Text,
-    delete,
     func,
     select,
 )
@@ -38,6 +38,7 @@ files_table = Table(
     Column("created_by", ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
     Column("file_type", Enum(FileType, name="file_type"), nullable=False),
     Column("parent_file_id", ForeignKey("files.id", ondelete="CASCADE"), nullable=True),
+    Column("context_id", ForeignKey("contexts.id", ondelete="CASCADE"), nullable=True),
 )
 
 text_extractions_table = Table(
@@ -61,7 +62,7 @@ class SqlAlchemyFileRepository(IFileRepository):
     def __init__(self, connection: AsyncConnection):
         self.connection = connection
 
-    async def create(self, file: File) -> None:
+    async def create(self, *, file: File) -> None:
         query = files_table.insert().values(
             id=file.id,
             filename=file.filename,
@@ -70,6 +71,7 @@ class SqlAlchemyFileRepository(IFileRepository):
             file_size_bytes=file.file_size_bytes,
             file_type=file.file_type,
             parent_file_id=file.parent_file_id,
+            context_id=file.context_id,
         )
         await self.connection.execute(query)
 
@@ -83,6 +85,7 @@ class SqlAlchemyFileRepository(IFileRepository):
                 "file_size_bytes": row.file_size_bytes,
                 "file_type": row.file_type,
                 "parent_file_id": row.parent_file_id,
+                "context_id": row.context_id,
             }
         )
 
@@ -90,12 +93,21 @@ class SqlAlchemyFileRepository(IFileRepository):
         query = select(func.coalesce(func.sum(files_table.c.file_size_bytes), 0))
         if user_id:
             query = query.where(files_table.c.created_by == user_id)
-        return await self.connection.scalar(query)
+        return cast(int, await self.connection.scalar(query))
 
-    async def get(self, *, file_id: UUID, user_id: UUID | None = None, file_type: FileType | None = None) -> File:
-        query = select(files_table).where(files_table.c.id == file_id)
+    async def get(
+        self,
+        *,
+        file_id: UUID,
+        user_id: UUID | None = None,
+        context_id: UUID | None = None,
+        file_type: FileType | None = None,
+    ) -> File:
+        query = files_table.select().where(files_table.c.id == file_id)
         if user_id:
             query = query.where(files_table.c.created_by == user_id)
+        if context_id:
+            query = query.where(files_table.c.context_id == context_id)
         if file_type:
             query = query.where(files_table.c.file_type == file_type)
         result = await self.connection.execute(query)
@@ -103,16 +115,35 @@ class SqlAlchemyFileRepository(IFileRepository):
             raise EntityNotFoundError(entity="file", id=file_id)
         return self._to_file(row)
 
-    async def delete(self, *, file_id: UUID, user_id: UUID | None = None) -> None:
-        query = delete(files_table).where(files_table.c.id == file_id)
-        if user_id:
-            query = query.where(files_table.c.created_by == user_id)
-        await self.connection.execute(query)
+    async def delete(
+        self, *, file_id: UUID | None = None, user_id: UUID | None = None, context_id: UUID | None = None
+    ) -> int:
+        query = files_table.delete()
 
-    async def list(self, *, user_id: UUID | None = None) -> AsyncIterator[File]:
+        conditions = []
+        if file_id is not None:
+            conditions.append(files_table.c.id == file_id)
+        if context_id is not None:
+            conditions.append(files_table.c.context_id == context_id)
+        if user_id is not None:
+            conditions.append(files_table.c.created_by == user_id)
+
+        if not conditions:
+            raise ValueError("At least one filter parameter must be provided")
+
+        for condition in conditions:
+            query = query.where(condition)
+        result = await self.connection.execute(query)
+        if not result.rowcount:
+            raise EntityNotFoundError("file", file_id or "file to delete")
+        return result.rowcount
+
+    async def list(self, *, user_id: UUID | None = None, context_id: UUID | None = None) -> AsyncIterator[File]:
         query = files_table.select().where(files_table.c.file_type == FileType.user_upload)
         if user_id:
             query = query.where(files_table.c.created_by == user_id)
+        if context_id:
+            query = query.where(files_table.c.context_id == context_id)
         async for row in await self.connection.stream(query):
             yield self._to_file(row)
 
@@ -133,6 +164,7 @@ class SqlAlchemyFileRepository(IFileRepository):
         )
 
     async def create_extraction(self, *, extraction: TextExtraction) -> None:
+        extraction_metadata = extraction.extraction_metadata
         query = text_extractions_table.insert().values(
             id=extraction.id,
             file_id=extraction.file_id,
@@ -140,19 +172,23 @@ class SqlAlchemyFileRepository(IFileRepository):
             status=extraction.status,
             job_id=extraction.job_id,
             error_message=extraction.error_message,
-            extraction_metadata=extraction.extraction_metadata,
+            extraction_metadata=extraction_metadata and extraction_metadata.model_dump(mode="json"),
             started_at=extraction.started_at,
             finished_at=extraction.finished_at,
             created_at=extraction.created_at,
         )
         await self.connection.execute(query)
 
-    async def get_extraction_by_file_id(self, *, file_id: UUID, user_id: UUID | None = None) -> TextExtraction:
-        query = select(text_extractions_table).where(text_extractions_table.c.file_id == file_id)
+    async def get_extraction_by_file_id(
+        self, *, file_id: UUID, user_id: UUID | None = None, context_id: UUID | None = None
+    ) -> TextExtraction:
+        query = text_extractions_table.select().where(text_extractions_table.c.file_id == file_id)
+        if context_id or user_id:
+            query = query.join(files_table, text_extractions_table.c.file_id == files_table.c.id)
+        if context_id:
+            query = query.where(files_table.c.context_id == context_id)
         if user_id:
-            query = query.join(files_table, text_extractions_table.c.file_id == files_table.c.id).where(
-                files_table.c.created_by == user_id
-            )
+            query = query.where(files_table.c.created_by == user_id)
 
         result = await self.connection.execute(query)
         if not (row := result.fetchone()):
@@ -175,6 +211,9 @@ class SqlAlchemyFileRepository(IFileRepository):
         )
         await self.connection.execute(query)
 
-    async def delete_extraction(self, *, extraction_id: UUID) -> None:
+    async def delete_extraction(self, *, extraction_id: UUID) -> int:
         query = text_extractions_table.delete().where(text_extractions_table.c.id == extraction_id)
-        await self.connection.execute(query)
+        result = await self.connection.execute(query)
+        if not result.rowcount:
+            raise EntityNotFoundError(entity="text_extraction", id=extraction_id)
+        return result.rowcount

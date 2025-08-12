@@ -90,10 +90,10 @@ class VectorDatabaseRepository(IVectorDatabaseRepository):
         table = self._get_table(supported_dimension)
         await self.connection.run_sync(table.create, checkfirst=True)
 
-    async def delete_collection(self, collection_id: UUID, dimension: int):
+    async def delete_collection(self, collection_id: UUID, dimension: int) -> None:
         supported_dimension = self._get_supported_dimension(dimension)
         table = self._get_table(supported_dimension)
-        await table.delete().where(table.c.vector_store_id == collection_id)
+        await self.connection.run_sync(table.drop, checkfirst=True)
 
     def _get_item_size(self, item: VectorStoreItem) -> int:
         """Approximate size of a single item in bytes."""
@@ -135,14 +135,14 @@ class VectorDatabaseRepository(IVectorDatabaseRepository):
         )
         await self.connection.execute(query)
 
-    async def delete_documents(self, collection_id: UUID, dimension: int, vector_store_document_ids: Iterable[str]):
+    async def delete_documents(self, collection_id: UUID, dimension: int, document_ids: Iterable[str]) -> int:
         supported_dimension = self._get_supported_dimension(dimension)
         table = self._get_table(supported_dimension)
         query = table.delete().where(
-            (table.c.vector_store_id == collection_id)
-            & (table.c.vector_store_document_id.in_(vector_store_document_ids))
+            (table.c.vector_store_id == collection_id) & (table.c.vector_store_document_id.in_(document_ids))
         )
-        return await self.connection.execute(query)
+        result = await self.connection.execute(query)
+        return result.rowcount
 
     def _to_item(self, row: Row) -> VectorStoreItem:
         return VectorStoreItem(

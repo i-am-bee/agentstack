@@ -48,6 +48,7 @@ class File(BaseModel):
     created_by: UUID
     file_type: FileType = FileType.user_upload
     parent_file_id: UUID | None = None
+    context_id: UUID | None = None
 
 
 class TextExtraction(BaseModel):

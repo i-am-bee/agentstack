@@ -5,7 +5,7 @@ from uuid import UUID
 
 from kink import inject
 from sqlalchemy import UUID as SQL_UUID
-from sqlalchemy import Column, DateTime, Enum, Row, String, Table, delete, select
+from sqlalchemy import Column, DateTime, Enum, Row, String, Table
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from beeai_server.domain.models.user import User, UserRole
@@ -48,22 +48,25 @@ class SqlAlchemyUserRepository(IUserRepository):
         )
 
     async def get(self, *, user_id: UUID) -> User:
-        query = select(users_table).where(users_table.c.id == user_id)
+        query = users_table.select().where(users_table.c.id == user_id)
         result = await self.connection.execute(query)
         if not (row := result.fetchone()):
             raise EntityNotFoundError(entity="user", id=user_id)
         return self._to_user(row)
 
     async def get_by_email(self, *, email: str) -> User:
-        query = select(users_table).where(users_table.c.email == email)
+        query = users_table.select().where(users_table.c.email == email)
         result = await self.connection.execute(query)
         if not (row := result.fetchone()):
             raise EntityNotFoundError(entity="user", id=email)
         return self._to_user(row)
 
-    async def delete(self, *, user_id: UUID) -> None:
-        query = delete(users_table).where(users_table.c.id == user_id)
-        await self.connection.execute(query)
+    async def delete(self, *, user_id: UUID) -> int:
+        query = users_table.delete().where(users_table.c.id == user_id)
+        result = await self.connection.execute(query)
+        if not result.rowcount:
+            raise EntityNotFoundError(entity="user", id=user_id)
+        return result.rowcount
 
     async def list(self):
         query = users_table.select()

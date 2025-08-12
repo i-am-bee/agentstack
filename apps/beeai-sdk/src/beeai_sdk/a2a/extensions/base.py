@@ -16,7 +16,7 @@ MetadataFromServerT = typing.TypeVar("MetadataFromServerT")
 
 
 if typing.TYPE_CHECKING:
-    from beeai_sdk.server.context import Context
+    from beeai_sdk.server.context import RunContext
 
 
 def _get_generic_args(cls: type, base_class: type) -> tuple[typing.Any, ...]:
@@ -141,13 +141,17 @@ class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromCl
             else pydantic.TypeAdapter(self.MetadataFromClient).validate_python(message.metadata[self.spec.URI])
         )
 
-    def handle_incoming_message(self, message: a2a.types.Message, context: Context):
+    def handle_incoming_message(self, message: a2a.types.Message, context: RunContext):
         if self._metadata_from_client is None:
             self._metadata_from_client = self.parse_client_metadata(message)
 
-    def __call__(self, message: a2a.types.Message, context: Context) -> typing.Self:
+    def __call__(self, message: a2a.types.Message, context: RunContext) -> typing.Self:
         self.handle_incoming_message(message, context)
         return self
+
+    async def initialize(self):
+        """Called when entering the agent context after the first message was parsed (__call__ was already called)"""
+        pass
 
 
 class BaseExtensionClient(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromServerT]):

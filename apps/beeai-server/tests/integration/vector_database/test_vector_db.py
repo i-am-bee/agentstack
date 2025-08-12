@@ -5,7 +5,6 @@ import uuid
 from uuid import UUID
 
 import pytest
-import pytest_asyncio
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
@@ -15,19 +14,19 @@ from beeai_server.infrastructure.vector_database.vector_db import VectorDatabase
 pytestmark = pytest.mark.integration
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def vector_db_repository(db_transaction: AsyncConnection) -> VectorDatabaseRepository:
     """Create a VectorDatabaseRepository instance for testing."""
     return VectorDatabaseRepository(connection=db_transaction, schema_name="vector_db")
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def test_collection_id(db_transaction: AsyncConnection) -> UUID:
     """Generate a test collection ID."""
     return uuid.uuid4()
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def sample_vector_items(test_collection_id: UUID) -> list[VectorStoreItem]:
     """Create sample vector items for testing."""
     return [

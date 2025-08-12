@@ -172,7 +172,7 @@ def create_test_server(free_port: int, app: A2AStarletteApplication, test_config
         while not server_instance.started:
             time.sleep(0.1)
 
-        with Client(base_url=f"{test_configuration.server_url}/api/v1") as client:
+        with Client(base_url=f"{test_configuration.server_url}/api/v1", auth=("admin", "test-password")) as client:
             for _attempt in range(20):
                 resp = client.post(
                     "providers",

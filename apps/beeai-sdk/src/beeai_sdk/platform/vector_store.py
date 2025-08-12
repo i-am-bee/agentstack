@@ -5,39 +5,12 @@ from __future__ import annotations
 
 import typing
 import uuid
-from textwrap import dedent
+from typing import Literal
 
-import httpx
 import pydantic
 
-from beeai_sdk.platform.context import get_platform_client
-
-
-def validate_metadata(metadata: dict[str, str]) -> dict[str, str]:
-    if len(metadata) > 16:
-        raise ValueError("Metadata must be less than 16 keys.")
-    if any(len(v) > 64 for v in metadata):
-        raise ValueError("Metadata keys must be less than 64 characters.")
-    if any(len(v) > 512 for v in metadata.values()):
-        raise ValueError("Metadata values must be less than 512 characters.")
-    return metadata
-
-
-Metadata = typing.Annotated[
-    dict[str, str],
-    pydantic.Field(
-        description=dedent(
-            """
-            Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional
-            information about the object in a structured format, and querying for objects via API or the dashboard.
-
-            Keys are strings with a maximum length of 64 characters. Values are strings with a maximum length of
-            512 characters.
-            """,
-        )
-    ),
-    pydantic.AfterValidator(validate_metadata),
-]
+from beeai_sdk.platform.client import PlatformClient, get_platform_client
+from beeai_sdk.platform.types import Metadata
 
 
 class VectorStoreStats(pydantic.BaseModel):
@@ -84,13 +57,17 @@ class VectorStore(pydantic.BaseModel):
         name: str,
         dimension: int,
         model_id: str,
-        client: httpx.AsyncClient | None = None,
+        client: PlatformClient | None = None,
+        context_id: str | None | Literal["auto"] = "auto",
     ) -> VectorStore:
+        platform_client = client or get_platform_client()
+        context_id = platform_client.context_id if context_id == "auto" else context_id
         return pydantic.TypeAdapter(VectorStore).validate_json(
             (
-                await (client or get_platform_client()).post(
+                await platform_client.post(
                     url="/api/v1/vector_stores",
                     json={"name": name, "dimension": dimension, "model_id": model_id},
+                    params=context_id and {"context_id": context_id},
                 )
             )
             .raise_for_status()
@@ -101,14 +78,18 @@ class VectorStore(pydantic.BaseModel):
         self: VectorStore | str,
         /,
         *,
-        client: httpx.AsyncClient | None = None,
+        client: PlatformClient | None = None,
+        context_id: str | None | Literal["auto"] = "auto",
     ) -> VectorStore:
         # `self` has a weird type so that you can call both `instance.get()` to update an instance, or `VectorStore.get("123")` to obtain a new instance
         vector_store_id = self if isinstance(self, str) else self.id
+        platform_client = client or get_platform_client()
+        context_id = platform_client.context_id if context_id == "auto" else context_id
         result = pydantic.TypeAdapter(VectorStore).validate_json(
             (
-                await (client or get_platform_client()).get(
+                await platform_client.get(
                     url=f"/api/v1/vector_stores/{vector_store_id}",
+                    params=context_id and {"context_id": context_id},
                 )
             )
             .raise_for_status()
@@ -123,25 +104,37 @@ class VectorStore(pydantic.BaseModel):
         self: VectorStore | str,
         /,
         *,
-        client: httpx.AsyncClient | None = None,
+        client: PlatformClient | None = None,
+        context_id: str | None | Literal["auto"] = "auto",
     ) -> None:
         # `self` has a weird type so that you can call both `instance.delete()` or `VectorStore.delete("123")`
         vector_store_id = self if isinstance(self, str) else self.id
+        platform_client = client or get_platform_client()
+        context_id = platform_client.context_id if context_id == "auto" else context_id
         _ = (
-            await (client or get_platform_client()).delete(
+            await platform_client.delete(
                 url=f"/api/v1/vector_stores/{vector_store_id}",
+                params=context_id and {"context_id": context_id},
             )
         ).raise_for_status()
 
     async def add_documents(
-        self: VectorStore | str, /, items: list[VectorStoreItem], *, client: httpx.AsyncClient | None = None
+        self: VectorStore | str,
+        /,
+        items: list[VectorStoreItem],
+        *,
+        client: PlatformClient | None = None,
+        context_id: str | None | Literal["auto"] = "auto",
     ) -> None:
         # `self` has a weird type so that you can call both `instance.add_documents()` or `VectorStore.add_documents("123", items)`
         vector_store_id = self if isinstance(self, str) else self.id
+        platform_client = client or get_platform_client()
+        context_id = platform_client.context_id if context_id == "auto" else context_id
         _ = (
-            await (client or get_platform_client()).put(
+            await platform_client.put(
                 url=f"/api/v1/vector_stores/{vector_store_id}",
                 json=[item.model_dump(mode="json") for item in items],
+                params=context_id and {"context_id": context_id},
             )
         ).raise_for_status()
 
@@ -151,15 +144,19 @@ class VectorStore(pydantic.BaseModel):
         query_vector: list[float],
         *,
         limit: int = 10,
-        client: httpx.AsyncClient | None = None,
+        client: PlatformClient | None = None,
+        context_id: str | None | Literal["auto"] = "auto",
     ) -> list[VectorStoreSearchResult]:
         # `self` has a weird type so that you can call both `instance.search()` to search within an instance, or `VectorStore.search("123", query_vector)`
         vector_store_id = self if isinstance(self, str) else self.id
+        platform_client = client or get_platform_client()
+        context_id = platform_client.context_id if context_id == "auto" else context_id
         return pydantic.TypeAdapter(list[VectorStoreSearchResult]).validate_python(
             (
-                await (client or get_platform_client()).post(
+                await platform_client.post(
                     url=f"/api/v1/vector_stores/{vector_store_id}/search",
                     json={"query_vector": query_vector, "limit": limit},
+                    params=context_id and {"context_id": context_id},
                 )
             )
             .raise_for_status()
@@ -170,12 +167,20 @@ class VectorStore(pydantic.BaseModel):
         self: VectorStore | str,
         /,
         *,
-        client: httpx.AsyncClient | None = None,
+        client: PlatformClient | None = None,
+        context_id: str | None | Literal["auto"] = "auto",
     ) -> list[VectorStoreDocument]:
         # `self` has a weird type so that you can call both `instance.list_documents()` to list documents in an instance, or `VectorStore.list_documents("123")`
         vector_store_id = self if isinstance(self, str) else self.id
+        platform_client = client or get_platform_client()
+        context_id = platform_client.context_id if context_id == "auto" else context_id
         return pydantic.TypeAdapter(list[VectorStoreDocument]).validate_python(
-            (await (client or get_platform_client()).get(url=f"/api/v1/vector_stores/{vector_store_id}/documents"))
+            (
+                await platform_client.get(
+                    url=f"/api/v1/vector_stores/{vector_store_id}/documents",
+                    params=context_id and {"context_id": context_id},
+                )
+            )
             .raise_for_status()
             .json()["items"]
         )
@@ -185,12 +190,16 @@ class VectorStore(pydantic.BaseModel):
         /,
         document_id: str,
         *,
-        client: httpx.AsyncClient | None = None,
+        client: PlatformClient | None = None,
+        context_id: str | None | Literal["auto"] = "auto",
     ) -> None:
         # `self` has a weird type so that you can call both `instance.delete_document()` or `VectorStore.delete_document("123", "456")`
         vector_store_id = self if isinstance(self, str) else self.id
+        platform_client = client or get_platform_client()
+        context_id = platform_client.context_id if context_id == "auto" else context_id
         _ = (
-            await (client or get_platform_client()).delete(
+            await platform_client.delete(
                 url=f"/api/v1/vector_stores/{vector_store_id}/documents/{document_id}",
+                params=context_id and {"context_id": context_id},
             )
         ).raise_for_status()

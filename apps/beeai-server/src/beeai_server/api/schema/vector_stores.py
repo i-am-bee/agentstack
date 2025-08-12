@@ -16,5 +16,5 @@ class CreateVectorStoreRequest(BaseModel):
 class SearchRequest(BaseModel):
     """Request to search a vector store."""
 
-    query_vector: list[float] = Field(None, description="Vector to search for")
+    query_vector: list[float] = Field(description="Vector to search for")
     limit: int = Field(5, description="Maximum number of results to return", le=10)

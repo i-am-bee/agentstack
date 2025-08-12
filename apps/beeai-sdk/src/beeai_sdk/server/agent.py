@@ -32,7 +32,7 @@ from a2a.types import (
 
 from beeai_sdk.a2a.extensions.ui.agent_detail import AgentDetail, AgentDetailExtensionSpec
 from beeai_sdk.a2a.types import ArtifactChunk, RunYield, RunYieldResume
-from beeai_sdk.server.context import Context
+from beeai_sdk.server.context import RunContext
 from beeai_sdk.server.dependencies import extract_dependencies
 from beeai_sdk.server.logging import logger
 from beeai_sdk.server.utils import cancel_task
@@ -132,7 +132,7 @@ def agent(
 
         if inspect.isasyncgenfunction(fn):
 
-            async def execute_fn(_ctx: Context, *args, **kwargs) -> None:
+            async def execute_fn(_ctx: RunContext, *args, **kwargs) -> None:
                 try:
                     gen: AsyncGenerator[RunYield, RunYieldResume] = fn(*args, **kwargs)
                     value: RunYieldResume = None
@@ -147,7 +147,7 @@ def agent(
 
         elif inspect.iscoroutinefunction(fn):
 
-            async def execute_fn(_ctx: Context, *args, **kwargs) -> None:
+            async def execute_fn(_ctx: RunContext, *args, **kwargs) -> None:
                 try:
                     await _ctx.yield_async(await fn(*args, **kwargs))
                 except Exception as e:
@@ -157,7 +157,7 @@ def agent(
 
         elif inspect.isgeneratorfunction(fn):
 
-            def _execute_fn_sync(_ctx: Context, *args, **kwargs) -> None:
+            def _execute_fn_sync(_ctx: RunContext, *args, **kwargs) -> None:
                 try:
                     gen: Generator[RunYield, RunYieldResume] = fn(*args, **kwargs)
                     value = None
@@ -170,12 +170,12 @@ def agent(
                 finally:
                     _ctx.shutdown()
 
-            async def execute_fn(_ctx: Context, *args, **kwargs) -> None:
+            async def execute_fn(_ctx: RunContext, *args, **kwargs) -> None:
                 await asyncio.to_thread(_execute_fn_sync, _ctx, *args, **kwargs)
 
         else:
 
-            def _execute_fn_sync(_ctx: Context, *args, **kwargs) -> None:
+            def _execute_fn_sync(_ctx: RunContext, *args, **kwargs) -> None:
                 try:
                     _ctx.yield_sync(fn(*args, **kwargs))
                 except Exception as e:
@@ -183,7 +183,7 @@ def agent(
                 finally:
                     _ctx.shutdown()
 
-            async def execute_fn(_ctx: Context, *args, **kwargs) -> None:
+            async def execute_fn(_ctx: RunContext, *args, **kwargs) -> None:
                 await asyncio.to_thread(_execute_fn_sync, _ctx, *args, **kwargs)
 
         async def agent_executor(
@@ -194,7 +194,7 @@ def agent(
             # These are incorrectly typed in a2a
             assert request_context.task_id
             assert request_context.context_id
-            context = Context(
+            context = RunContext(
                 configuration=request_context.configuration,
                 context_id=request_context.context_id,
                 task_id=request_context.task_id,
@@ -207,7 +207,11 @@ def agent(
             yield_queue = context._yield_queue
             yield_resume_queue = context._yield_resume_queue
 
+            # call dependencies with the first message
             kwargs = {pname: dependency(message, context) for pname, dependency in dependencies.items()}
+
+            # initialize dependencies
+            await asyncio.gather(*(d.initialize() for d in dependencies.values()))
 
             task = asyncio.create_task(execute_fn(context, **kwargs))
             try:

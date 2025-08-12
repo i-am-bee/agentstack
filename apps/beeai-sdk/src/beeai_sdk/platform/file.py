@@ -4,11 +4,11 @@
 from __future__ import annotations
 
 import typing
+from typing import Literal
 
-import httpx
 import pydantic
 
-from beeai_sdk.platform.context import get_platform_client
+from beeai_sdk.platform.client import PlatformClient, get_platform_client
 
 
 class Extraction(pydantic.BaseModel):
@@ -39,13 +39,17 @@ class File(pydantic.BaseModel):
         filename: str,
         content: typing.BinaryIO | bytes,
         content_type: str = "application/octet-stream",
-        client: httpx.AsyncClient | None = None,
+        client: PlatformClient | None = None,
+        context_id: str | None | Literal["auto"] = "auto",
     ) -> File:
+        platform_client = client or get_platform_client()
+        context_id = platform_client.context_id if context_id == "auto" else context_id
         return pydantic.TypeAdapter(File).validate_python(
             (
-                await (client or get_platform_client()).post(
+                await platform_client.post(
                     url="/api/v1/files",
                     files={"file": (filename, content, content_type)},
+                    params=context_id and {"context_id": context_id},
                 )
             )
             .raise_for_status()
@@ -55,32 +59,56 @@ class File(pydantic.BaseModel):
     async def get(
         self: File | str,
         *,
-        client: httpx.AsyncClient | None = None,
+        client: PlatformClient | None = None,
+        context_id: str | None | Literal["auto"] = "auto",
     ) -> File:
         # `self` has a weird type so that you can call both `instance.get()` to update an instance, or `File.get("123")` to obtain a new instance
         file_id = self if isinstance(self, str) else self.id
+        platform_client = client or get_platform_client()
+        context_id = platform_client.context_id if context_id == "auto" else context_id
         return pydantic.TypeAdapter(File).validate_python(
-            (await (client or get_platform_client()).get(url=f"/api/v1/files/{file_id}")).raise_for_status().json()
+            (
+                await platform_client.get(
+                    url=f"/api/v1/files/{file_id}",
+                    params=context_id and {"context_id": context_id},
+                )
+            )
+            .raise_for_status()
+            .json()
         )
 
     async def delete(
         self: File | str,
         *,
-        client: httpx.AsyncClient | None = None,
+        client: PlatformClient | None = None,
+        context_id: str | None | Literal["auto"] = "auto",
     ) -> None:
         # `self` has a weird type so that you can call both `instance.delete()` or `File.delete("123")`
         file_id = self if isinstance(self, str) else self.id
-        _ = (await (client or get_platform_client()).delete(url=f"/api/v1/files/{file_id}")).raise_for_status()
+        platform_client = client or get_platform_client()
+        context_id = platform_client.context_id if context_id == "auto" else context_id
+        _ = (
+            await platform_client.delete(
+                url=f"/api/v1/files/{file_id}", params=context_id and {"context_id": context_id}
+            )
+        ).raise_for_status()
 
     async def content(
         self: File | str,
         *,
-        client: httpx.AsyncClient | None = None,
+        client: PlatformClient | None = None,
+        context_id: str | None | Literal["auto"] = "auto",
     ) -> str:
         # `self` has a weird type so that you can call both `instance.content()` to get content of an instance, or `File.content("123")`
         file_id = self if isinstance(self, str) else self.id
+        platform_client = client or get_platform_client()
+        context_id = platform_client.context_id if context_id == "auto" else context_id
         return (
-            (await (client or get_platform_client()).get(url=f"/api/v1/files/{file_id}/content"))
+            (
+                await platform_client.get(
+                    url=f"/api/v1/files/{file_id}/content", params=context_id and {"context_id": context_id}
+                )
+            )
             .raise_for_status()
             .text
         )
@@ -88,12 +116,20 @@ class File(pydantic.BaseModel):
     async def text_content(
         self: File | str,
         *,
-        client: httpx.AsyncClient | None = None,
+        client: PlatformClient | None = None,
+        context_id: str | None | Literal["auto"] = "auto",
     ) -> str:
         # `self` has a weird type so that you can call both `instance.text_content()` to get text content of an instance, or `File.text_content("123")`
         file_id = self if isinstance(self, str) else self.id
+        platform_client = client or get_platform_client()
+        context_id = platform_client.context_id if context_id == "auto" else context_id
         return (
-            (await (client or get_platform_client()).get(url=f"/api/v1/files/{file_id}/text_content"))
+            (
+                await platform_client.get(
+                    url=f"/api/v1/files/{file_id}/text_content",
+                    params=context_id and {"context_id": context_id},
+                )
+            )
             .raise_for_status()
             .text
         )
@@ -101,14 +137,18 @@ class File(pydantic.BaseModel):
     async def create_extraction(
         self: File | str,
         *,
-        client: httpx.AsyncClient | None = None,
+        client: PlatformClient | None = None,
+        context_id: str | None | Literal["auto"] = "auto",
     ) -> Extraction:
         # `self` has a weird type so that you can call both `instance.create_extraction()` to create an extraction for an instance, or `File.create_extraction("123")`
         file_id = self if isinstance(self, str) else self.id
+        platform_client = client or get_platform_client()
+        context_id = platform_client.context_id if context_id == "auto" else context_id
         return pydantic.TypeAdapter(Extraction).validate_python(
             (
-                await (client or get_platform_client()).post(
+                await platform_client.post(
                     url=f"/api/v1/files/{file_id}/extraction",
+                    params=context_id and {"context_id": context_id},
                 )
             )
             .raise_for_status()
@@ -118,14 +158,18 @@ class File(pydantic.BaseModel):
     async def get_extraction(
         self: File | str,
         *,
-        client: httpx.AsyncClient | None = None,
+        client: PlatformClient | None = None,
+        context_id: str | None | Literal["auto"] = "auto",
     ) -> Extraction:
         # `self` has a weird type so that you can call both `instance.get_extraction()` to get an extraction of an instance, or `File.get_extraction("123", "456")`
         file_id = self if isinstance(self, str) else self.id
+        platform_client = client or get_platform_client()
+        context_id = platform_client.context_id if context_id == "auto" else context_id
         return pydantic.TypeAdapter(Extraction).validate_python(
             (
-                await (client or get_platform_client()).get(
+                await platform_client.get(
                     url=f"/api/v1/files/{file_id}/extraction",
+                    params=context_id and {"context_id": context_id},
                 )
             )
             .raise_for_status()
@@ -135,10 +179,16 @@ class File(pydantic.BaseModel):
     async def delete_extraction(
         self: File | str,
         *,
-        client: httpx.AsyncClient | None = None,
+        client: PlatformClient | None = None,
+        context_id: str | None | Literal["auto"] = "auto",
     ) -> None:
         # `self` has a weird type so that you can call both `instance.delete_extraction()` or `File.delete_extraction("123", "456")`
         file_id = self if isinstance(self, str) else self.id
+        platform_client = client or get_platform_client()
+        context_id = platform_client.context_id if context_id == "auto" else context_id
         _ = (
-            await (client or get_platform_client()).delete(url=f"/api/v1/files/{file_id}/extraction")
+            await platform_client.delete(
+                url=f"/api/v1/files/{file_id}/extraction",
+                params=context_id and {"context_id": context_id},
+            )
         ).raise_for_status()

@@ -1,19 +1,23 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-
-
+from typing import Annotated
 from uuid import UUID
 
 import fastapi
 from fastapi import HTTPException, status
-from fastapi.params import Query
+from fastapi.params import Depends, Query
 from fastapi.requests import Request
 from starlette.responses import StreamingResponse
 
-from beeai_server.api.dependencies import AdminUserDependency, ConfigurationDependency, ProviderServiceDependency
+from beeai_server.api.dependencies import (
+    ConfigurationDependency,
+    ProviderServiceDependency,
+    RequiresPermissions,
+)
 from beeai_server.api.routes.a2a import proxy_request
 from beeai_server.api.schema.common import PaginatedResponse
 from beeai_server.api.schema.provider import CreateProviderRequest
+from beeai_server.domain.models.permissions import AuthorizedUser
 from beeai_server.domain.models.provider import ProviderWithState
 from beeai_server.utils.fastapi import streaming_response
 
@@ -22,11 +26,11 @@ router = fastapi.APIRouter()
 
 @router.post("")
 async def create_provider(
-    _: AdminUserDependency,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"write"}))],
     request: CreateProviderRequest,
     provider_service: ProviderServiceDependency,
     configuration: ConfigurationDependency,
-    auto_remove: bool = Query(default=False),
+    auto_remove: Annotated[bool, Query()] = False,
 ) -> ProviderWithState:
     if auto_remove and not configuration.provider.auto_remove_enabled:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Auto remove functionality is disabled")
@@ -37,14 +41,18 @@ async def create_provider(
 
 @router.post("/preview")
 async def preview_provider(
-    request: CreateProviderRequest, provider_service: ProviderServiceDependency
+    request: CreateProviderRequest,
+    provider_service: ProviderServiceDependency,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions())],
 ) -> ProviderWithState:
     return await provider_service.preview_provider(location=request.location, agent_card=request.agent_card)
 
 
 @router.get("")
 async def list_providers(
-    provider_service: ProviderServiceDependency, request: Request
+    provider_service: ProviderServiceDependency,
+    request: Request,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}), use_cache=False)],
 ) -> PaginatedResponse[ProviderWithState]:
     providers = []
     for provider in await provider_service.list_providers():
@@ -56,22 +64,26 @@ async def list_providers(
 
 
 @router.get("/{id}")
-async def get_provider(id: UUID, provider_service: ProviderServiceDependency) -> ProviderWithState:
+async def get_provider(
+    id: UUID,
+    provider_service: ProviderServiceDependency,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}))],
+) -> ProviderWithState:
     return await provider_service.get_provider(provider_id=id)
 
 
 @router.delete("/{id}", status_code=fastapi.status.HTTP_204_NO_CONTENT)
 async def delete_provider(
-    _: AdminUserDependency,
     id: UUID,
     provider_service: ProviderServiceDependency,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"write"}))],
 ) -> None:
     await provider_service.delete_provider(provider_id=id)
 
 
 @router.get("/{id}/logs", status_code=fastapi.status.HTTP_204_NO_CONTENT)
 async def stream_logs(
-    _: AdminUserDependency,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"write"}))],
     id: UUID,
     provider_service: ProviderServiceDependency,
 ) -> StreamingResponse:
