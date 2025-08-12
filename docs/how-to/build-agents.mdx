@@ -6,10 +6,7 @@ description: "Bring agents from any framework into BeeAI"
 This guide shows you how to wrap existing agents from any framework to work with the BeeAI Platform. You'll learn to use the ACP SDK to create a standardized interface for your agent.
 
 <Tip>
-  If you're building new agents from scratch, check out the [BeeAI
-  Framework](https://github.com/i-am-bee/beeai-framework) with its [native
-  platform
-  integration](https://github.com/i-am-bee/beeai-framework/blob/main/python/docs/integrations.md#beeai-platform-integration).
+If you're building new agents from scratch, check out the [BeeAI Framework](https://github.com/i-am-bee/beeai-framework) with its [native platform integration](https://github.com/i-am-bee/beeai-framework/blob/main/python/docs/integrations.md#beeai-platform-integration).
 </Tip>
 
 ## Prerequisites
@@ -74,7 +71,6 @@ my-agent/
 ```
 
 **Important files:**
-
 - `agent.py` - Where you implement your agent's behavior
 - `pyproject.toml` - Add new Python dependencies here
 
@@ -85,14 +81,15 @@ my-agent/
 Navigate to [src/beeai_agents/agent.py](https://github.com/i-am-bee/beeai-platform-agent-starter/blob/main/src/beeai_agents/agent.py) and replace the example with your agent implementation.
 
 **Tips for Wrapping Agents:**
-
 - The function name becomes the agent ID (override with `name=`)
 - The docstring becomes the description
 - Use `input[-1]` to get the latest user message
 - Send output with `yield MessagePart(content="...")`
 - Multiple agents? Just add more decorated functions.
 
-<Tip>Each `@server.agent` function defines a new agent service.</Tip>
+<Tip>
+Each `@server.agent` function defines a new agent service.
+</Tip>
 
 Here are examples of wrapping popular agent frameworks:
 
@@ -177,7 +174,6 @@ async def my_custom_agent(...):
 ```
 
 #### Configure UI Annotations in Metadata
-
 UI annotations allow you to customize how your agent appears and behaves in the BeeAI platform. These annotations are part of the ACP (Agent Communication Protocol) metadata and provide rich information about your agent's capabilities and user experience.
 
 The `beeai_ui` annotation is defined within the `PlatformUIAnnotation` model and contains properties that control:
@@ -187,7 +183,6 @@ The `beeai_ui` annotation is defined within the `PlatformUIAnnotation` model and
 - **Tool Information**: List of tools that agent is using
 
 **Available UI Types:**
-
 - `"hands-off"`: One-shot tasks (summarization, analysis, generation)
 - `"chat"`: Conversational interactions
 
