@@ -25,11 +25,11 @@ export function TrajectoryItemContent({ trajectory }: Props) {
   return (
     <div className={classes.root}>
       <div className={classes.group}>
-        <p className={classes.content}>
+        <div className={classes.content}>
           <CodeSnippet canCopy withBorder>
             {parsed}
           </CodeSnippet>
-        </p>
+        </div>
       </div>
     </div>
   );
