@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import inspect
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Callable
+from contextlib import asynccontextmanager
 from inspect import isclass
 from typing import Annotated, Any, Generic, get_args, get_origin
 
@@ -40,9 +41,13 @@ class Depends(Generic[ExtensionSpecT, MetadataFromClientT]):
     def __call__(self, message: Message, context: RunContext) -> Any:
         return self._dependency_callable(message, context)
 
-    async def initialize(self):
+    @asynccontextmanager
+    async def lifespan(self) -> AsyncIterator[None]:
         if self.extension:
-            await self.extension.initialize()
+            async with self.extension.lifespan():
+                yield
+        else:
+            yield
 
 
 def extract_dependencies(sign: inspect.Signature) -> dict[str, Depends]:

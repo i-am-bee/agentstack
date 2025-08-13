@@ -17,14 +17,12 @@ from beeai_sdk.a2a.types import RunYield
 from beeai_sdk.platform import File
 from beeai_sdk.platform.context import Context, ContextPermissions
 from beeai_sdk.server import Server
-from beeai_sdk.server.context import RunContext
 
 
 @pytest.fixture
 async def file_reader_writer(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
     async def file_reader_writer(
         message: Message,
-        context: RunContext,
         ext: Annotated[
             PlatformApiExtensionServer, PlatformApiExtensionSpec(PlatformApiExtensionParams(auto_use=False))
         ],

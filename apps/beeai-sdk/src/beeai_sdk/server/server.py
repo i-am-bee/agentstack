@@ -38,7 +38,7 @@ class Server:
     def __init__(self) -> None:
         self._agent: Agent | None = None
         self.server: uvicorn.Server | None = None
-        self._self_registration_client: httpx.AsyncClient | None = None
+        self._self_registration_client_factory: Callable[[], httpx.AsyncClient] | None = None
 
     @functools.wraps(agent_decorator)
     def agent(*args, **kwargs) -> Callable:
@@ -111,14 +111,16 @@ class Server:
         headers: list[tuple[str, str]] | None = None,
         factory: bool = False,
         h11_max_incomplete_event_size: int | None = None,
-        self_registration_client: httpx.AsyncClient | None = None,
+        self_registration_client_factory: Callable[[], httpx.AsyncClient] | None = None,
     ) -> None:
         if self.server:
             raise RuntimeError("The server is already running")
         if not self._agent:
             raise ValueError("Agent is not registered")
 
-        self._self_registration_client = self_registration_client
+        self._self_registration_client = (
+            self_registration_client_factory() if self_registration_client_factory else None
+        )
 
         # This is a global loop-bound event that would break the application
         # if it's run a second time in a different loop

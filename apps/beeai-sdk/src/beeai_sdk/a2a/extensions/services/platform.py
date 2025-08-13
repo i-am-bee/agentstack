@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -49,11 +48,6 @@ class PlatformApiExtensionSpec(BaseExtensionSpec[PlatformApiExtensionParams]):
 
 class PlatformApiExtensionServer(BaseExtensionServer[PlatformApiExtensionSpec, PlatformApiExtensionMetadata]):
     context_id: str | None = None
-    _should_exit: asyncio.Event = asyncio.Event()
-    _wait_for_startup: asyncio.Event = asyncio.Event()
-    _lifecycle_task: asyncio.Task | None = None
-    _lifecycle_task_exception: Exception | None = None
-    _initialized: bool = False
 
     def parse_client_metadata(self, message: a2a.types.Message) -> PlatformApiExtensionMetadata | None:
         self.context_id = message.context_id
@@ -61,37 +55,19 @@ class PlatformApiExtensionServer(BaseExtensionServer[PlatformApiExtensionSpec, P
         # if different IDs are passed, api requests to platform using this token will fail
         return super().parse_client_metadata(message)
 
-    async def managed_platform_client_lifespan(self):
-        try:
-            async with self.use_client():
-                self._wait_for_startup.set()
-                await self._should_exit.wait()
-        except Exception as e:
-            self._lifecycle_task_exception = e
-            raise
-        finally:
-            self._wait_for_startup.set()
-
-    async def initialize(self):
+    @asynccontextmanager
+    async def lifespan(self) -> AsyncIterator[None]:
         """Called when entering the agent context after the first message was parsed (__call__ was already called)"""
-        if self._initialized:
-            raise ExtensionError(self.spec, "Platform extension was already initialized")
-
         if self.data and self.spec.params.auto_use:
-            self._lifecycle_task = asyncio.create_task(self.managed_platform_client_lifespan())
-            self._lifecycle_task.add_done_callback(lambda *_args: None)
-            await self._wait_for_startup.wait()
-            if self._lifecycle_task_exception:
-                raise self._lifecycle_task_exception
-        self._initialized = True
+            async with self.use_client():
+                yield
+        else:
+            yield
 
     def handle_incoming_message(self, message: a2a.types.Message, context: RunContext):
         super().handle_incoming_message(message, context)
         if self.data:
             self.data.base_url = self.data.base_url or HttpUrl(os.getenv("PLATFORM_URL", "http://127.0.0.1:8333"))
-
-    def __del__(self):
-        self._should_exit.set()
 
     @asynccontextmanager
     async def use_client(self) -> AsyncIterator[PlatformClient]:
