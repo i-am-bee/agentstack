@@ -24,11 +24,11 @@
           "/build-agents/hello-world",
           "/build-agents/agent-details",
           "/build-agents/messages",
-          "/build-agents/extensions",
           "/build-agents/files",
           "/build-agents/gui-components",
           "/build-agents/mcp",
-          "/build-agents/rag"
+          "/build-agents/rag",
+          "/build-agents/extensions"
         ]
       },
       {

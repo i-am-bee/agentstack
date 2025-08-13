@@ -3,247 +3,139 @@ title: "GUI Components"
 description: "Customize how your agents appear and behave in the BeeAI platform interface"
 ---
 
-GUI components in the BeeAI platform define how your agents appear and behave in the graphical user interface. This customization happens through two types of metadata:
-1. **Standard ACP metadata** - recognized by any ACP-compliant system
-2. **BeeAI platform extensions** - specific to the BeeAI platform GUI
+Your agent can leverage certain features of the platform to achieve the best possible user experience. When you yield specific content types from your agent, the BeeAI platform automatically renders them with appropriate visual representations.
 
-<Note>
-To fully customize your agent's appearance and behavior in the interface, you'll be using metadata defined by the Agent Communication Protocol (ACP). For details on how metadata annotations work, see the [ACP metadata documentation](https://agentcommunicationprotocol.dev/core-concepts/agent-manifest#schema-metadata).
-</Note>
+## Markdown Support
 
-## BeeAI Platform Extensions
-
-BeeAI Platform extends the standard ACP metadata with platform-specific GUI customizations through the `PlatformUIAnnotation`. This annotation is placed in the `beeai_ui` field within the agent's metadata annotations.
+When you yield text content, the BeeAI platform automatically renders it as Markdown, providing rich formatting capabilities.
 
 ```python
-from acp_sdk import Annotations, Metadata
-from acp_sdk.models.platform import PlatformUIAnnotation, PlatformUIType, AgentToolInfo
+yield "This text can be **bold** or _italic_"
+```
 
-@server.agent(
-    metadata=Metadata(
-        annotations=Annotations(
-            beeai_ui=PlatformUIAnnotation(
-                ui_type=PlatformUIType.CHAT,
-                user_greeting="Hello! I'm your AI assistant. How can I help you today?",
-                display_name="My Custom Agent",
-                tools=[
-                    AgentToolInfo(name="Weather", description="Get current weather information"),
-                    AgentToolInfo(name="Wikipedia", description="Search Wikipedia articles"),
-                ]
-            )
-        )
+### Supported Markdown Features
+
+- **Headers, lists, and text formatting** - Create structured content with headings, bullet points, and emphasis
+- **Code blocks with syntax highlighting** - Display code snippets with proper syntax highlighting
+- **Tables and structured data** - Present data in organized table formats
+- **Links and images** - Include hyperlinks and visual content
+
+## File Attachments
+
+When you yield a `FilePart`, the GUI renders it as an attachment to the conversation, making it easy for users to access and download files.
+
+```python
+yield FilePart(file=FileWithUri(uri="https://www.ibm.com/us-en", mime_type="text/html", name="IBM Website"))
+```
+
+## GUI Extensions
+
+The BeeAI platform leverages the A2A extensions concept, which allows you to easily extend message metadata in specific formats that the GUI can render in specialized ways.
+
+GUI extensions are simple to use. You just need to inject the extension into your agent's function signature:
+
+```python
+import os
+from typing import Annotated
+
+from a2a.types import (
+    Message,
+)
+from beeai_sdk.server import Server
+from beeai_sdk.server.context import Context
+from beeai_sdk.a2a.extensions import TrajectoryExtensionServer, TrajectoryExtensionSpec
+
+server = Server()
+
+@server.agent()
+async def example_agent(
+    input: Message, context: Context, trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()]
+):
+    """Polite agent that greets the user"""
+
+    yield trajectory.trajectory_metadata(
+        title="What did I do?",
+        content="User greeted me, I should reply with a greeting.",
     )
-)
+    yield "Hello there!"
+
+
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+
+if __name__ == "__main__":
+    run()
 ```
 
-## UI Types
+## Available Extensions
 
-The platform supports two primary UI types, each optimized for different interaction patterns:
-
-### Chat UI
-
-The chat interface (`PlatformUIType.CHAT`) provides a conversational experience.
-
-<Info>
-    Chat UI is best suited for conversational agents, customer support bots, and multi-turn dialogues.
-</Info>
-
-### Hands-off UI
-
-The hands-off interface (`PlatformUIType.HANDSOFF`) is designed for autonomous agents that work independently:
-
-- **Task Execution**: Focus on agent actions rather than conversation
-- **Result Display**: Clear presentation of final outcomes
-
-<Info>
-    Hands-off UI is ideal for automated workflows where there is a clear output. For example, consider a researcher agent: it receives a clearly defined input which is the research topic and then it produces a well-structured output which is the resulting research.
-</Info>
-
-## Platform-Specific Properties
-
-### Display Name
-
-Override the default agent name shown in the UI:
-
-```python
-PlatformUIAnnotation(
-    display_name="Customer Support Assistant"
-)
-```
-
-### User Greeting
-
-Set a welcoming message displayed when users first interact with your agent:
-
-```python
-PlatformUIAnnotation(
-    user_greeting="Welcome! I'm here to help you with your questions."
-)
-```
-
-### Tool Information
-
-Define the tools your agent can use, providing clear descriptions for users:
-
-```python
-PlatformUIAnnotation(
-    tools=[
-        AgentToolInfo(
-            name="Search Engine",
-            description="Search the web for current information"
-        ),
-        AgentToolInfo(
-            name="Calculator",
-            description="Perform mathematical calculations"
-        ),
-        AgentToolInfo(
-            name="File Processor",
-            description="Read and analyze uploaded files"
-        )
-    ]
-)
-```
-
-## Standard ACP Metadata
-
-These properties are part of the standard Agent Communication Protocol and will be recognized by any ACP-compliant system, not just BeeAI. They provide essential information about your agent that appears in the GUI.
-
-### Tags
-
-Custom tags help categorize and filter agents:
-
-```python
-metadata=Metadata(
-    tags=["Research", "Data Analysis", "Educational"]
-)
-```
-
-### Framework Badge
-
-Shows which framework the agent is built with, with special styling for BeeAI agents:
-
-```python
-metadata=Metadata(
-    framework="BeeAI"  # Displays with special BeeAI badge
-)
-```
-
-### License
-
-Shows the agent's license information:
-
-```python
-metadata=Metadata(
-    license="Apache 2.0"
-)
-```
-
-### Programming Language
-
-Displays the primary programming language:
-
-```python
-metadata=Metadata(
-    programming_language="Python"
-)
-```
-
-### Author Information
-
-Shows agent author details:
-
-```python
-metadata=Metadata(
-    author={
-        "name": "John Smith",
-        "email": "jsmith@example.com",
-        "url": "https://example.com"
-    }
-)
-```
-
-## Advanced Features
-
-### Dynamic Content Rendering
-
-The platform automatically renders various content types within your agent responses:
-
-#### Markdown Support
-- Headers, lists, and text formatting
-- Code blocks with syntax highlighting
-- Tables and structured data
-- Links and references
-= Images
+The BeeAI platform currently supports two types of GUI extensions:
 
 ### Trajectory Visualization
 
-The platform provides built-in trajectory visualization to show the step-by-step process of agent execution:
+The platform provides built-in trajectory visualization to show the step-by-step process of agent execution. This helps users understand how your agent processes information and makes decisions.
+
+<Steps>
+<Step title="Inject the extension">
+Add the trajectory extension to your agent's function signature:
 
 ```python
-from acp_sdk import MessagePart
-from acp_sdk.models.models import TrajectoryMetadata
+from beeai_sdk.a2a.extensions import TrajectoryExtensionServer, TrajectoryExtensionSpec
 
-# Show trajectory steps during agent execution
-yield MessagePart(metadata=TrajectoryMetadata(
-    message="Processing user request with Trajectory Agent...",
-    tool_name="Think"  # Optional: specify which tool is being used
-))
-
-yield MessagePart(metadata=TrajectoryMetadata(
-    message="Step 1: Analyzing the problem",
-    tool_name="Think"
-))
-
-yield MessagePart(metadata=TrajectoryMetadata(
-    message="Step 2: Searching for relevant information",
-    tool_name="Wikipedia"
-))
+@server.agent()
+async def example_agent(
+    input: Message, context: Context, trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()]
+):
 ```
 
-<Info>
-    Trajectory metadata creates a visual timeline in the UI, helping users understand the agent's reasoning process and tool usage.
-</Info>
+</Step>
 
-### File Upload Support
-
-The platform automatically handles file uploads and makes them available to agents through `content_url`:
+<Step title="Yield trajectory metadata">
+Use the injected `trajectory` reference to yield trajectory information:
 
 ```python
-import httpx
-
-async def file_processing_agent(input: list[Message], context: Context):
-    # Check for uploaded files
-    for part in input[-1].parts:
-        if part.content_url:
-            yield MessagePart(content="📁 Processing uploaded file...")
-            
-            try:
-                # Download file content
-                async with httpx.AsyncClient() as client:
-                    response = await client.get(str(part.content_url))
-                    content = response.content.decode('utf-8')
-                    
-                    # Process the file content
-                    # ... your processing logic here
-                    
-            except Exception as e:
-                yield MessagePart(content=f"❌ Error processing file: {str(e)}")
-```
-
-### Citation and Sources
-
-For agents that reference external sources, the platform provides built-in citation components:
-
-```python
-# Citations are automatically rendered when included in message metadata
-MessagePart(
-    content="According to recent studies...",
-    metadata=CitationMetadata(
-        url="https://example.com/study",
-        title="Recent Research Study",
-        description="Comprehensive analysis of the topic",
-        start_index=0,
-        end_index=25
-    )
+yield trajectory.trajectory_metadata(
+    title="What did I do?",
+    content="User greeted me, I should reply with a greeting.",
 )
 ```
+
+</Step>
+</Steps>
+
+### Sources & Citations
+
+For agents that reference external sources, the platform provides built-in citation components that help users verify information and access source materials.
+
+<Steps>
+<Step title="Inject the citation extension">
+Add the citation extension to your agent's function signature:
+
+```python
+from beeai_sdk.a2a.extensions import CitationExtensionServer, CitationExtensionSpec
+
+@server.agent()
+async def example_agent(
+    input: Message, context: Context, citation: Annotated[CitationExtensionServer, CitationExtensionSpec()]
+):
+```
+
+</Step>
+
+<Step title="Yield citation information">
+Use the injected `citation` reference to provide source information:
+
+```python
+yield citation.message(
+    text="According to recent studies...",
+    citation_start_index=0,
+    citation_end_index=10,
+    citation_url="https://www.ibm.com/us-en",
+    citation_title="IBM Research",
+    citation_description="The study from 1997 demonstrates...",
+)
+```
+
+</Step>
+</Steps>
