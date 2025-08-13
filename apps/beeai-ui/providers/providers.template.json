@@ -1,0 +1,14 @@
+[
+    {
+      "name": "w3id",
+      "id": "w3id",
+      "type": "oidc",
+      "class": "IBM",
+      "client_id": "<oidcr_client_id>",
+      "client_secret": "<oidc_client_secret>",
+      "issuer": "<oidc_issuer>",
+      "jwks_url": "<oidc_jwks",
+      "nextauth_url": "http://localhost:8334",
+      "nextauth_redirect_proxy_url": "http://localhost:8334"
+    }
+]

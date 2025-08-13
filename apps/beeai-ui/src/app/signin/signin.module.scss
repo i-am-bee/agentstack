@@ -1,0 +1,56 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.bannerBackground {
+  background-image: url('/BeeAI-Banner.svg');
+  background-size: cover;
+  background-position: 50% 50%;
+  background-repeat: no-repeat no-repeat;
+  resize: both;
+  width: 100%;
+  margin-bottom: 16px;
+  margin-left: 0px;
+  height: 100%;
+}
+
+.buttonList {
+  margin: 16px;
+  position: relative;
+  align-content: center;
+  left: 1rem;
+}
+
+.buttonEntry {
+  min-height: 48px;
+  height: 48px;
+}
+
+.beeButton {
+  margin-right: 16px;
+}
+
+.loginWrapper {
+  background-color: var(--cds-layer-01, #f4f4f4);
+  box-sizing: content-box;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  padding-left: 4rem;
+  padding-right: 6rem;
+  padding-top: 8.875rem;
+  width: 31.25rem;
+  height: 100%;
+}
+
+.loginMain {
+  font-size: 2rem;
+  .bolded {
+    font-weight: 600;
+  }
+}
+
+.beeaiLogin {
+  margin: 16px;
+}

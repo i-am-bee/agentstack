@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+export * from './app/signin/page';
+export * from './auth';
 export * from './components/ErrorPage/ErrorPage';
 export * from './components/layouts/Container';
 export * from './components/layouts/MainContent';

@@ -61,7 +61,28 @@ spec:
           env:
             - name: API_URL
               value: "http://beeai-platform-svc:{{.Values.service.port}}"
+          {{- if .Values.oidc.enabled }}
+            - name: OIDC__PROVIDERS_PATH
+              value: {{ .Values.oidc.providers_path }}
+            - name: NEXTAUTH_URL
+              value: {{ .Values.oidc.nextauth_url }}
+            - name: NEXTAUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: authSecret
+                  name: beeai-next-auth
+          {{- else}}
+            - name: NEXT__DISABLE_OIDC
+              value: "true"
+          {{- end }}
+          volumeMounts:
+            {{- with .Values.ui.volumeMounts }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
       volumes:
+        {{- with .Values.ui.volumes }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       {{- with .Values.ui.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

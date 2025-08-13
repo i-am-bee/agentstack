@@ -19,6 +19,9 @@
         "name": "next"
       }
     ],
+    "paths": {
+      "auth": ["./auth"]
+    },
     "strictNullChecks": true
   },
   "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],

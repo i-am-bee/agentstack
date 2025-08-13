@@ -73,6 +73,29 @@ securityContext: { }
 initContainers:
   createVectorDbExtension: true
 
+oidc:
+  enabled: true
+  discovery_url: "https://preprod.login.w3.ibm.com/oidc/endpoint/default/.well-known/openid-configuration"
+  admin_emails: "habeck@us.ibm.com"
+  nextauth_trust_host: true
+  nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
+  providers_path: "/providers"
+  nextauth_url: "http://localhost:8334"
+  nextauth_providers: [
+    {
+      "name": "w3id",
+      "id": "w3id",
+      "type": "oidc",
+      "class": "IBM",
+      "client_id": "<oidc_client_id>",
+      "client_secret": "oidc_client_secret",
+      "issuer": "oidc_issuer",
+      "jwks_url": "oidc_jwks_url",
+      "nextauth_url": "http://localhost:8334",
+      "nextauth_redirect_proxy_url": "http://localhost:8334"
+    }
+  ]
+
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
   # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
@@ -113,14 +136,14 @@ livenessProbe:
     port: http
   initialDelaySeconds: 5
   failureThreshold: 5
-  periodSeconds: 5
+  periodSeconds: 30
 readinessProbe:
   httpGet:
     path: /healthcheck
     port: http
   initialDelaySeconds: 5
   failureThreshold: 20
-  periodSeconds: 2
+  periodSeconds: 5
 
 # Additional volumes on the output Deployment definition.
 volumes: [ ]
@@ -163,6 +186,14 @@ ui:
   affinity: { }
   livenessProbe: { }
   readinessProbe: { }
+  volumeMounts:
+    - name: providers
+      readOnly: true
+      mountPath: "/providers"
+  volumes:
+    - name: providers
+      secret:
+        secretName: odic-providers
 
 phoenix:
   # **Important License Notice**: Phoenix is disabled by default in BeeAI. When you enable Phoenix,

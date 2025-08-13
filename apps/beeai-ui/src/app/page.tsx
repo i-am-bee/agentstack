@@ -4,7 +4,9 @@
  */
 
 import { redirect } from 'next/navigation';
+import { connection } from 'next/server';
 
+import { auth } from '#auth.ts';
 import EntityNotFound from '#components/EntityNotFound/EntityNotFound.tsx';
 import { ErrorPage } from '#components/ErrorPage/ErrorPage.tsx';
 import { buildAgent, isAgentUiSupported, sortAgentsByName } from '#modules/agents/utils.ts';
@@ -16,7 +18,15 @@ export const dynamic = 'force-dynamic';
 
 export default async function LandingPage() {
   let firstAgentName;
-
+  const session = await auth();
+  const isOidcDisabled = process.env.NEXT__DISABLE_OIDC === 'true';
+  if (!session?.user) {
+    await connection();
+    // only force login if oidc is enabled.
+    if (!isOidcDisabled) {
+      redirect(routes.login());
+    }
+  }
   try {
     const response = await listProviders();
 

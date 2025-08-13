@@ -54,7 +54,7 @@ This will build the images (`beeai-server` and `beeai-ui`) and import them to th
 CLI arguments as you normally would when using `beeai` CLI, for example:
 
 ```shell
-mise beeai-platform:start --set docling.enabled=true
+mise beeai-platform:start --set docling.enabled=true --set oidc.enabled=true
 ```
 
 To stop or delete the platform use
@@ -73,6 +73,77 @@ eval "$(mise run beeai-platform:shell)"
 # Deactivate environment
 deactivate
 ```
+
+### Enabling or disabling auth flows for beeai_ui
+
+## Disabling authentication in the UI
+
+Authentication is disabled by default.
+
+## Enabling
+
+- Update OAuth credentials and settings helm/values.yaml under:
+
+```YAML
+oidc:
+  enabled: true
+  discovery_url: "<oidc_discovery_endpoint"
+  admin_emails: "a comma separated list of email addresses"
+  nextauth_trust_host: true
+  nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
+  providers_path: "/providers"
+  nextauth_url: "http://localhost:8334"
+  nextauth_providers: [
+    {
+      "name": "w3id",
+      "id": "w3id",
+      "type": "oidc",
+      "class": "IBM",
+      "client_id": "<oidc_client_id>",
+      "client_secret": "<oidc_client_secret>",
+      "issuer": "<oidc_issuer>",
+      "jwks_url": "<oidc_jwks_endpoint>",
+      "nextauth_url": "http://localhost:8334",
+      "nextauth_redirect_proxy_url": "http://localhost:8334"
+    },
+    {
+      "name": "IBMiD",
+      "id": "IBMiD",
+      "type": "oidc",
+      "class": "IBM",
+      "client_id": "<oidc_client_id>",
+      "client_secret": "<oidc_client_secret>",
+      "issuer": "<oidc_issuer>",
+      "jwks_url": "<oidc_jwks_endpoint>",
+      "nextauth_url": "http://localhost:8334",
+      "nextauth_redirect_proxy_url": "http://localhost:8334"
+    }
+  ]
+```
+Note: the `class` in the prviders entry must be a valid provider supported by next-auth. see: https://github.com/nextauthjs/next-auth-example/blob/main/auth.ts
+
+- When debugging the ui component (See debugging individual components), copy the env.example as .env and update the following oidc specific values:
+
+```JavaScript
+NEXTAUTH_SECRET="<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
+NEXTAUTH_URL="http://localhost:8334"
+```
+
+Optionaly add:
+```JavaScript
+NEXTAUTH_DEBUG="true"
+```
+
+To start the platform with odic enabled:
+
+```bash
+  mise beeai-platform:start --set oidc.enabled=true  
+```
+
+### To deploy the helm chart to OpenShift:
+
+- Update values.yaml so that the `nextauth_url` and the `nextauth_redirect_proxy_url` values reflect the URL for the route created for the `beeai-platform-ui-svc`.
+- Ensure that the oidc.nextauth_providers array entries in values.yaml have valid/appropriate values
 
 ### Running and debugging individual components
 
