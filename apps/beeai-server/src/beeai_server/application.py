@@ -134,8 +134,7 @@ def app(*, dependency_overrides: Container | None = None) -> FastAPI:
             register_telemetry()
             async with procrastinate_app.open_async(), run_workers(app=procrastinate_app), mcp_service:
                 try:
-                    async with mcp_service:
-                        yield
+                    yield
                 finally:
                     shutdown_telemetry()
         except Exception as e:
