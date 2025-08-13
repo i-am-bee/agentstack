@@ -9,7 +9,6 @@ from a2a.client.helpers import create_text_message_object
 from a2a.types import Message, MessageSendParams, SendMessageRequest, TaskState
 from beeai_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionClient,
-    PlatformApiExtensionParams,
     PlatformApiExtensionServer,
     PlatformApiExtensionSpec,
 )
@@ -23,14 +22,11 @@ from beeai_sdk.server import Server
 async def file_reader_writer(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
     async def file_reader_writer(
         message: Message,
-        ext: Annotated[
-            PlatformApiExtensionServer, PlatformApiExtensionSpec(PlatformApiExtensionParams(auto_use=False))
-        ],
+        _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
     ) -> AsyncIterator[RunYield]:
-        async with ext.use_client():
-            yield await File.content(message.parts[0].root.text)
-            file = await File.create(filename="1.txt", content=message.context_id.encode(), content_type="text/plain")
-            yield file.id
+        yield await File.content(message.parts[0].root.text)
+        file = await File.create(filename="1.txt", content=message.context_id.encode(), content_type="text/plain")
+        yield file.id
 
     async with create_server_with_agent(file_reader_writer) as (server, test_client):
         yield server, test_client

@@ -207,6 +207,9 @@ def agent(
                 call_context=request_context.call_context,
             )
 
+            # call dependencies with the first message
+            kwargs = {pname: dependency(message, context) for pname, dependency in dependencies.items()}
+
             # initialize dependencies
             async with AsyncExitStack() as stack:
                 for d in dependencies.values():
@@ -215,9 +218,6 @@ def agent(
                 async def agent_generator():
                     yield_queue = context._yield_queue
                     yield_resume_queue = context._yield_resume_queue
-
-                    # call dependencies with the first message
-                    kwargs = {pname: dependency(message, context) for pname, dependency in dependencies.items()}
 
                     task = asyncio.create_task(execute_fn(context, **kwargs))
                     try:
