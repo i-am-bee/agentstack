@@ -4,16 +4,6 @@
  */
 
 .root {
-  padding-inline: $spacing-02;
-}
-
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-03;
-}
-
-.item {
   display: flex;
   flex-direction: column;
   gap: $spacing-02;
@@ -33,12 +23,14 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .name {
   @include type-style('body-compact-01');
   @include line-clamp();
   color: $text-dark;
+  flex-grow: 1;
 }
 
 .description {
@@ -57,9 +49,27 @@
   }
 }
 
-.empty {
-  font-size: rem(14px);
-  line-height: math.div(20, 14);
-  letter-spacing: $letter-spacing;
-  color: $text-placeholder;
+.tag {
+  margin-block-start: $spacing-02;
+}
+
+.options {
+  &:global(.cds--overflow-menu-options) {
+    inline-size: rem(154px);
+    transform: translate(0, $spacing-04);
+    padding: $spacing-03;
+    row-gap: 0;
+
+    :global(.cds--overflow-menu-options__option) {
+      block-size: rem(26px);
+    }
+
+    :global(.cds--overflow-menu-options__option--danger .cds--overflow-menu-options__btn) {
+      color: $support-error;
+      &:hover,
+      &:focus {
+        color: $text-inverse;
+      }
+    }
+  }
 }

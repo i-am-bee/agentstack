@@ -1,0 +1,13 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.root {
+  &:global(.cds--tag.cds--tag--operational) {
+    background-color: $layer-01;
+    &:hover {
+      background-color: $layer-hover-01;
+    }
+  }
+}
