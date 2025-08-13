@@ -2,11 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 from collections.abc import AsyncGenerator, AsyncIterator
 from typing import Annotated
+from uuid import uuid4
 
 import pytest
 from a2a.client import A2AClient
-from a2a.client.helpers import create_text_message_object
-from a2a.types import Message, MessageSendParams, SendMessageRequest, TaskState
+from a2a.types import FilePart, Message, MessageSendParams, Role, SendMessageRequest, TaskState
 from beeai_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionClient,
     PlatformApiExtensionServer,
@@ -16,6 +16,7 @@ from beeai_sdk.a2a.types import RunYield
 from beeai_sdk.platform import File
 from beeai_sdk.platform.context import Context, ContextPermissions
 from beeai_sdk.server import Server
+from beeai_sdk.util.file import load_file
 
 
 @pytest.fixture
@@ -24,9 +25,15 @@ async def file_reader_writer(create_server_with_agent) -> AsyncGenerator[tuple[S
         message: Message,
         _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
     ) -> AsyncIterator[RunYield]:
-        yield await File.content(message.parts[0].root.text)
+        for part in message.parts:
+            match part.root:
+                case FilePart():
+                    async with load_file(part.root, stream=True) as file:
+                        async for chunk in file.aiter_text(chunk_size=5):
+                            yield chunk
+
         file = await File.create(filename="1.txt", content=message.context_id.encode(), content_type="text/plain")
-        yield file.id
+        yield file.to_file_part()
 
     async with create_server_with_agent(file_reader_writer) as (server, test_client):
         yield server, test_client
@@ -50,15 +57,18 @@ async def test_platform_api_extension(subtests, file_reader_writer, permissions,
     token = await context.generate_token(grant_context_permissions=permissions)
 
     # upload test file
-    file = await File.create(
-        filename="test_file", content=b"Hello world", content_type="text/plain", context_id=context.id
-    )
+    file = await File.create(filename="f.txt", content=b"0123456789", content_type="text/plain", context_id=context.id)
 
     # create message with auth credentials
-    message = create_text_message_object(content=file.id)
-    message.context_id = context.id
     api_extension_client = PlatformApiExtensionClient(PlatformApiExtensionSpec())
-    message.metadata = api_extension_client.api_auth_metadata(auth_token=token.token, expires_at=token.expires_at)
+
+    message = Message(
+        role=Role.user,
+        parts=[file.to_file_part()],
+        message_id=str(uuid4()),
+        context_id=context.id,
+        metadata=api_extension_client.api_auth_metadata(auth_token=token.token, expires_at=token.expires_at),
+    )
 
     # send message
     resp = await client.send_message(SendMessageRequest(id=1, params=MessageSendParams(message=message)))
@@ -73,8 +83,11 @@ async def test_platform_api_extension(subtests, file_reader_writer, permissions,
 
         # check that first message is the content of the first_file
         first_message_text = resp.root.result.history[1].parts[0].root.text
-        assert first_message_text == "Hello world"
+        assert first_message_text == "01234"
+
+        second_message_text = resp.root.result.history[2].parts[0].root.text
+        assert second_message_text == "56789"
 
         # check that the agent uploaded a new file with correct context_id as content
-        file_id = resp.root.result.history[2].parts[0].root.text
-        assert await File.content(file_id) == context.id
+        async with load_file(resp.root.result.history[3].parts[0].root) as file:
+            assert file.text == context.id

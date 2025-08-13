@@ -11,6 +11,7 @@ from a2a.types import (
     Part,
     Role,
     TaskArtifactUpdateEvent,
+    TaskState,
     TaskStatus,
     TaskStatusUpdateEvent,
     TextPart,
@@ -49,6 +50,23 @@ class AgentMessage(Message):
         self.parts = self.parts or []
         if self.parts and self.text is not None:
             raise ValueError("Message cannot have both parts and text")
+        if self.text is not None:
+            self.parts = [Part(root=TextPart(text=self.text))]  # pyright: ignore [reportIncompatibleVariableOverride]
+        return self
+
+
+msg = AgentMessage(parts=[Part(root=TextPart(text="Hello, world!"))])
+
+
+class InputRequired(TaskStatus):
+    message: Message | None = None
+    state: Literal[TaskState.input_required] = TaskState.input_required  # pyright: ignore [reportIncompatibleVariableOverride]
+    text: str | None = None
+
+    @model_validator(mode="after")
+    def text_message_validate(self):
+        if self.message and self.text is not None:
+            raise ValueError(" cannot have both parts and text")
         if self.text is not None:
             self.parts = [Part(root=TextPart(text=self.text))]  # pyright: ignore [reportIncompatibleVariableOverride]
         return self

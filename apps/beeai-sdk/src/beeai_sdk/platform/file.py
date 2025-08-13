@@ -4,11 +4,15 @@
 from __future__ import annotations
 
 import typing
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from typing import Literal
 
 import pydantic
+from a2a.types import FilePart, FileWithUri
 
 from beeai_sdk.platform.client import PlatformClient, get_platform_client
+from beeai_sdk.util.file import LoadedFile, LoadedFileWithUri
 
 
 class Extraction(pydantic.BaseModel):
@@ -93,46 +97,47 @@ class File(pydantic.BaseModel):
             )
         ).raise_for_status()
 
-    async def content(
+    @asynccontextmanager
+    async def load_content(
         self: File | str,
         *,
         client: PlatformClient | None = None,
         context_id: str | None | Literal["auto"] = "auto",
-    ) -> str:
-        # `self` has a weird type so that you can call both `instance.content()` to get content of an instance, or `File.content("123")`
+    ) -> AsyncIterator[LoadedFile]:
+        # `self` has a weird type so that you can call both `instance.load_content()` to create an extraction for an instance, or `File.load_content("123")`
         file_id = self if isinstance(self, str) else self.id
         platform_client = client or get_platform_client()
         context_id = platform_client.context_id if context_id == "auto" else context_id
-        return (
-            (
-                await platform_client.get(
-                    url=f"/api/v1/files/{file_id}/content", params=context_id and {"context_id": context_id}
-                )
-            )
-            .raise_for_status()
-            .text
-        )
 
-    async def text_content(
+        file = await File.get(file_id)  # get metadata
+
+        async with platform_client.stream(
+            "GET", url=f"/api/v1/files/{file_id}/content", params=context_id and {"context_id": context_id}
+        ) as response:
+            response.raise_for_status()
+            yield LoadedFileWithUri(response=response, filename=file.filename)
+
+    @asynccontextmanager
+    async def load_text_content(
         self: File | str,
         *,
         client: PlatformClient | None = None,
         context_id: str | None | Literal["auto"] = "auto",
-    ) -> str:
-        # `self` has a weird type so that you can call both `instance.text_content()` to get text content of an instance, or `File.text_content("123")`
+    ) -> AsyncIterator[LoadedFile]:
+        # `self` has a weird type so that you can call both `instance.load_text_content()` to create an extraction for an instance, or `File.load_text_content("123")`
         file_id = self if isinstance(self, str) else self.id
         platform_client = client or get_platform_client()
         context_id = platform_client.context_id if context_id == "auto" else context_id
-        return (
-            (
-                await platform_client.get(
-                    url=f"/api/v1/files/{file_id}/text_content",
-                    params=context_id and {"context_id": context_id},
-                )
-            )
-            .raise_for_status()
-            .text
-        )
+
+        file = await File.get(file_id)  # get metadata
+
+        async with platform_client.stream(
+            "GET",
+            url=f"/api/v1/files/{file_id}/text_content",
+            params=context_id and {"context_id": context_id},
+        ) as response:
+            response.raise_for_status()
+            yield LoadedFileWithUri(response=response, filename=file.filename)
 
     async def create_extraction(
         self: File | str,
@@ -192,3 +197,6 @@ class File(pydantic.BaseModel):
                 params=context_id and {"context_id": context_id},
             )
         ).raise_for_status()
+
+    def to_file_part(self: File) -> FilePart:
+        return FilePart(file=FileWithUri(name=self.filename, uri=f"beeai://{self.id}"))

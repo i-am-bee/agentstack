@@ -9,8 +9,17 @@ from contextlib import asynccontextmanager, closing
 
 import httpx
 import pytest
-from a2a.client import A2AClient, create_text_message_object
-from a2a.types import Artifact, DataPart, FilePart, FileWithBytes, Message, Part, TaskState, TaskStatus, TextPart
+from a2a.client import A2AClient
+from a2a.types import (
+    Artifact,
+    DataPart,
+    FilePart,
+    FileWithBytes,
+    Message,
+    Part,
+    TaskStatus,
+    TextPart,
+)
 from tenacity import AsyncRetrying, stop_after_attempt, wait_fixed
 
 from beeai_sdk.a2a.extensions.ui.agent_detail import AgentDetail
@@ -88,10 +97,7 @@ async def awaiter(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AC
     async def awaiter(message: Message, context: RunContext) -> AsyncGenerator[TaskStatus | str, Message]:
         # Agent that requires input
         yield "Processing initial message..."
-        resume_message = yield TaskStatus(
-            state=TaskState.input_required,
-            message=create_text_message_object(content="Please provide additional input"),
-        )
+        resume_message = yield FilePart(file=FileWithBytes(bytes="", mime_type="text/plain"))
         yield f"Received resume: {resume_message.parts[0].root.text if resume_message.parts else 'empty'}"
 
     async with create_server_with_agent(awaiter) as (server, test_client):

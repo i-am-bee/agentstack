@@ -31,8 +31,8 @@ async def test_files(subtests):
         assert retrieved_file.id == file_id
 
     with subtests.test("get file content"):
-        content = await retrieved_file.content()
-        assert content == '{"hello": "world"}'
+        async with retrieved_file.load_content() as loaded_file:
+            assert loaded_file.text == '{"hello": "world"}'
 
     with subtests.test("delete file"):
         await File.delete(file_id)
@@ -102,11 +102,10 @@ async def test_text_extraction_pdf_workflow(subtests, test_configuration, test_p
     assert extraction.finished_at is not None
 
     with subtests.test("verify extracted text content"):
-        content = await file.text_content()
-
-        # Check that we get some text content back
-        assert len(content) > 0, "No text content was extracted"
-        assert "Beeai is the future of AI" in content
+        async with file.load_text_content() as text_content:
+            # Check that we get some text content back
+            assert len(text_content.text) > 0, "No text content was extracted"
+            assert "Beeai is the future of AI" in text_content.text
 
     with subtests.test("delete extraction"):
         await file.delete_extraction()
@@ -139,8 +138,8 @@ async def test_text_extraction_plain_text_workflow(subtests):
         assert extraction.status == "completed"
 
     with subtests.test("verify immediate text content access"):
-        extracted_content = await file.text_content()
-        assert extracted_content == text_content
+        async with file.load_text_content() as loaded_text_content:
+            assert loaded_text_content.text == text_content
 
 
 @pytest.mark.asyncio
@@ -187,8 +186,8 @@ async def test_context_scoped_file_access(subtests):
             retrieved_file = await File.get(file_id_1, client=client_1)
             assert retrieved_file.id == file_id_1
 
-            content = await File.content(file_id_1, client=client_1)
-            assert content == "1"
+            async with File.load_content(file_id_1, client=client_1) as loaded_file:
+                assert loaded_file.text == "1"
 
         # Verify file cannot be accessed from different context using wrong client
         with (
@@ -201,7 +200,8 @@ async def test_context_scoped_file_access(subtests):
             subtests.test("cannot access context 1 file content using context 2 client"),
             pytest.raises(httpx.HTTPStatusError, match="404 Not Found|403 Forbidden"),
         ):
-            await File.content(file_id_1, client=client_2)
+            async with File.load_content(file_id_1, client=client_2) as content:
+                ...
 
         # Verify file cannot be deleted from different context using wrong client
         with (
@@ -280,8 +280,8 @@ async def test_file_extraction_context_isolation(subtests, test_configuration):
             assert extraction.file_id == file_id
 
         with subtests.test("access text content in context 1"):
-            content = await File.text_content(file_id, client=client_1)
-            assert content == "Test content for extraction"
+            async with File.load_text_content(file_id, client=client_1) as loaded_content:
+                assert loaded_content.text == "Test content for extraction"
 
         # Verify extraction cannot be accessed from context 2
         with (
@@ -294,7 +294,8 @@ async def test_file_extraction_context_isolation(subtests, test_configuration):
             subtests.test("cannot access text content from context 2"),
             pytest.raises(httpx.HTTPStatusError, match="404 Not Found|403 Forbidden"),
         ):
-            await File.text_content(file_id, client=client_2)
+            async with File.load_text_content(file_id, client=client_2):
+                ...
 
         # Verify extraction cannot be created from wrong context
         with (
