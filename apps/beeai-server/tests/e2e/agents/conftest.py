@@ -17,17 +17,19 @@ async def run_server(server: Server, port: int) -> AsyncGenerator[tuple[Server, 
     async with asyncio.TaskGroup() as tg:
         tg.create_task(
             asyncio.to_thread(
-                server.run, port=port, self_registration_client=httpx.AsyncClient(auth=("admin", "test-password"))
+                server.run,
+                port=port,
+                self_registration_client_factory=lambda: httpx.AsyncClient(auth=("admin", "test-password")),
             )
         )
 
         try:
-            async with httpx.AsyncClient(timeout=None) as httpx_client:
-                async for attempt in AsyncRetrying(stop=stop_after_attempt(10), wait=wait_fixed(0.1), reraise=True):
-                    with attempt:
-                        if not server.server or not server.server.started:
-                            raise ConnectionError("Server hasn't started yet")
-                        base_url = f"http://localhost:{port}"
+            async for attempt in AsyncRetrying(stop=stop_after_attempt(10), wait=wait_fixed(0.1), reraise=True):
+                with attempt:
+                    if not server.server or not server.server.started:
+                        raise ConnectionError("Server hasn't started yet")
+                    base_url = f"http://localhost:{port}"
+                    async with httpx.AsyncClient(timeout=None) as httpx_client:
                         client = await A2AClient.get_client_from_agent_card_url(
                             httpx_client=httpx_client, base_url=base_url
                         )

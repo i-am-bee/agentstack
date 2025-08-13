@@ -4,7 +4,8 @@
 import asyncio
 import inspect
 from asyncio import CancelledError
-from collections.abc import AsyncGenerator, Callable, Generator
+from collections.abc import AsyncGenerator, AsyncIterator, Callable, Generator
+from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
 from typing import NamedTuple, TypeAlias, cast
 
 import janus
@@ -37,12 +38,13 @@ from beeai_sdk.server.dependencies import extract_dependencies
 from beeai_sdk.server.logging import logger
 from beeai_sdk.server.utils import cancel_task
 
-AgentFunction: TypeAlias = Callable[[TaskUpdater, RequestContext], AsyncGenerator[RunYield, RunYieldResume]]
+AgentFunction: TypeAlias = Callable[[], AsyncGenerator[RunYield, RunYieldResume]]
+AgentFunctionFactory: TypeAlias = Callable[[TaskUpdater, RequestContext], AbstractAsyncContextManager[AgentFunction]]
 
 
 class Agent(NamedTuple):
     card: AgentCard
-    execute: AgentFunction
+    execute: AgentFunctionFactory
 
 
 def agent(
@@ -186,9 +188,10 @@ def agent(
             async def execute_fn(_ctx: RunContext, *args, **kwargs) -> None:
                 await asyncio.to_thread(_execute_fn_sync, _ctx, *args, **kwargs)
 
-        async def agent_executor(
+        @asynccontextmanager
+        async def agent_executor_lifespan(
             task_updater: TaskUpdater, request_context: RequestContext
-        ) -> AsyncGenerator[RunYield, RunYieldResume]:
+        ) -> AsyncIterator[AgentFunction]:
             message = request_context.message
             assert message  # this is only executed in the context of SendMessage request
             # These are incorrectly typed in a2a
@@ -204,44 +207,51 @@ def agent(
                 call_context=request_context.call_context,
             )
 
-            yield_queue = context._yield_queue
-            yield_resume_queue = context._yield_resume_queue
-
-            # call dependencies with the first message
-            kwargs = {pname: dependency(message, context) for pname, dependency in dependencies.items()}
-
             # initialize dependencies
-            await asyncio.gather(*(d.initialize() for d in dependencies.values()))
+            async with AsyncExitStack() as stack:
+                for d in dependencies.values():
+                    await stack.enter_async_context(d.lifespan())
 
-            task = asyncio.create_task(execute_fn(context, **kwargs))
-            try:
-                while not task.done() or yield_queue.async_q.qsize() > 0:
-                    value = yield await yield_queue.async_q.get()
-                    if isinstance(value, Exception):
-                        raise value
+                async def agent_generator():
+                    yield_queue = context._yield_queue
+                    yield_resume_queue = context._yield_resume_queue
 
-                    if value:
-                        # TODO: context.call_context should be updated here
-                        # Unfortunately queue implementation does not support passing external types
-                        # (only a2a.event_queue.Event is supported:
-                        # Event = Message | Task | TaskStatusUpdateEvent | TaskArtifactUpdateEvent
-                        for ext in sdk_extensions:
-                            ext.handle_incoming_message(value, context)
+                    # call dependencies with the first message
+                    kwargs = {pname: dependency(message, context) for pname, dependency in dependencies.items()}
 
-                    await yield_resume_queue.async_q.put(value)
-            except janus.AsyncQueueShutDown:
-                pass
-            finally:
-                await cancel_task(task)
+                    task = asyncio.create_task(execute_fn(context, **kwargs))
+                    try:
+                        while not task.done() or yield_queue.async_q.qsize() > 0:
+                            value = yield await yield_queue.async_q.get()
+                            if isinstance(value, Exception):
+                                raise value
 
-        return Agent(card=card, execute=agent_executor)
+                            if value:
+                                # TODO: context.call_context should be updated here
+                                # Unfortunately queue implementation does not support passing external types
+                                # (only a2a.event_queue.Event is supported:
+                                # Event = Message | Task | TaskStatusUpdateEvent | TaskArtifactUpdateEvent
+                                for ext in sdk_extensions:
+                                    ext.handle_incoming_message(value, context)
+
+                            await yield_resume_queue.async_q.put(value)
+                    except janus.AsyncQueueShutDown:
+                        pass
+                    except GeneratorExit:
+                        return
+                    finally:
+                        await cancel_task(task)
+
+                yield agent_generator
+
+        return Agent(card=card, execute=agent_executor_lifespan)
 
     return decorator
 
 
 class Executor(AgentExecutor):
-    def __init__(self, execute_fn: AgentFunction, queue_manager: QueueManager) -> None:
-        self._execute_fn = execute_fn
+    def __init__(self, execute_fn: AgentFunctionFactory, queue_manager: QueueManager) -> None:
+        self._agent_executor_span = execute_fn
         self._queue_manager = queue_manager
         self._running_tasks: dict[str, asyncio.Task] = {}
         self._cancel_queues: dict[str, EventQueue] = {}
@@ -258,10 +268,10 @@ class Executor(AgentExecutor):
             await self._queue_manager.close(f"_cancel_{task_id}")
             self._cancel_queues.pop(task_id)
 
-    async def _run_generator(
+    async def _run_agent_function(
         self,
         *,
-        gen: AsyncGenerator[RunYield, RunYieldResume],
+        context: RequestContext,
         task_updater: TaskUpdater,
         resume_queue: EventQueue,
     ) -> None:
@@ -269,105 +279,110 @@ class Executor(AgentExecutor):
         assert current_task
         cancellation_task = asyncio.create_task(self._watch_for_cancellation(task_updater.task_id, current_task))
 
-        try:
-            await task_updater.start_work()
-            value: RunYieldResume = None
-            opened_artifacts: set[str] = set()
-            while True:
-                yielded_value = await gen.asend(value)
-                match yielded_value:
-                    case str(text):
-                        await task_updater.update_status(
-                            TaskState.working,
-                            message=task_updater.new_agent_message(parts=[Part(root=TextPart(text=text))]),
-                        )
-                    case Part(root=part) | (TextPart() | FilePart() | DataPart() as part):
-                        await task_updater.update_status(
-                            TaskState.working,
-                            message=task_updater.new_agent_message(parts=[Part(root=part)]),
-                        )
-                    case Message(context_id=context_id, task_id=task_id):
-                        new_msg = yielded_value.model_copy(
-                            deep=True,
-                            update={
-                                "context_id": context_id or task_updater.context_id,
-                                "task_id": task_id or task_updater.task_id,
-                            },
-                        )
-                        if new_msg.context_id != task_updater.context_id or new_msg.task_id != task_updater.task_id:
-                            raise ValueError("Message must have the same context_id and task_id as the task")
-                        await task_updater.update_status(TaskState.working, message=new_msg)
-                    case ArtifactChunk(
-                        parts=parts, artifact_id=artifact_id, name=name, metadata=metadata, last_chunk=last_chunk
-                    ):
-                        await task_updater.add_artifact(
-                            parts=parts,
-                            artifact_id=artifact_id,
-                            name=name,
-                            metadata=metadata,
-                            append=artifact_id in opened_artifacts,
-                            last_chunk=last_chunk,
-                        )
-                        opened_artifacts.add(artifact_id)
-                    case Artifact(parts=parts, artifact_id=artifact_id, name=name, metadata=metadata):
-                        await task_updater.add_artifact(
-                            parts=parts,
-                            artifact_id=artifact_id,
-                            name=name,
-                            metadata=metadata,
-                            last_chunk=True,
-                            append=False,
-                        )
-                    case TaskStatus(state=TaskState.input_required, message=message, timestamp=timestamp):
-                        await task_updater.requires_input(message=message, final=True)
-                        value = cast(RunYieldResume, await resume_queue.dequeue_event())
-                        resume_queue.task_done()
-                        continue
-                    case TaskStatus(state=TaskState.auth_required, message=message, timestamp=timestamp):
-                        await task_updater.requires_auth(message=message, final=True)
-                        value = cast(RunYieldResume, await resume_queue.dequeue_event())
-                        resume_queue.task_done()
-                        continue
-                    case TaskStatus(state=state, message=message, timestamp=timestamp):
-                        await task_updater.update_status(state=state, message=message, timestamp=timestamp)
-                    case TaskStatusUpdateEvent(
-                        status=TaskStatus(state=state, message=message, timestamp=timestamp), final=final
-                    ):
-                        await task_updater.update_status(state=state, message=message, timestamp=timestamp, final=final)
-                    case TaskArtifactUpdateEvent(
-                        artifact=Artifact(artifact_id=artifact_id, name=name, metadata=metadata, parts=parts),
-                        append=append,
-                        last_chunk=last_chunk,
-                    ):
-                        await task_updater.add_artifact(
-                            parts=parts,
-                            artifact_id=artifact_id,
-                            name=name,
-                            metadata=metadata,
+        async with self._agent_executor_span(task_updater, context) as execute_fn:
+            agent_generator_fn = execute_fn()
+
+            try:
+                await task_updater.start_work()
+                value: RunYieldResume = None
+                opened_artifacts: set[str] = set()
+                while True:
+                    yielded_value = await agent_generator_fn.asend(value)
+                    match yielded_value:
+                        case str(text):
+                            await task_updater.update_status(
+                                TaskState.working,
+                                message=task_updater.new_agent_message(parts=[Part(root=TextPart(text=text))]),
+                            )
+                        case Part(root=part) | (TextPart() | FilePart() | DataPart() as part):
+                            await task_updater.update_status(
+                                TaskState.working,
+                                message=task_updater.new_agent_message(parts=[Part(root=part)]),
+                            )
+                        case Message(context_id=context_id, task_id=task_id):
+                            new_msg = yielded_value.model_copy(
+                                deep=True,
+                                update={
+                                    "context_id": context_id or task_updater.context_id,
+                                    "task_id": task_id or task_updater.task_id,
+                                },
+                            )
+                            if new_msg.context_id != task_updater.context_id or new_msg.task_id != task_updater.task_id:
+                                raise ValueError("Message must have the same context_id and task_id as the task")
+                            await task_updater.update_status(TaskState.working, message=new_msg)
+                        case ArtifactChunk(
+                            parts=parts, artifact_id=artifact_id, name=name, metadata=metadata, last_chunk=last_chunk
+                        ):
+                            await task_updater.add_artifact(
+                                parts=parts,
+                                artifact_id=artifact_id,
+                                name=name,
+                                metadata=metadata,
+                                append=artifact_id in opened_artifacts,
+                                last_chunk=last_chunk,
+                            )
+                            opened_artifacts.add(artifact_id)
+                        case Artifact(parts=parts, artifact_id=artifact_id, name=name, metadata=metadata):
+                            await task_updater.add_artifact(
+                                parts=parts,
+                                artifact_id=artifact_id,
+                                name=name,
+                                metadata=metadata,
+                                last_chunk=True,
+                                append=False,
+                            )
+                        case TaskStatus(state=TaskState.input_required, message=message, timestamp=timestamp):
+                            await task_updater.requires_input(message=message, final=True)
+                            value = cast(RunYieldResume, await resume_queue.dequeue_event())
+                            resume_queue.task_done()
+                            continue
+                        case TaskStatus(state=TaskState.auth_required, message=message, timestamp=timestamp):
+                            await task_updater.requires_auth(message=message, final=True)
+                            value = cast(RunYieldResume, await resume_queue.dequeue_event())
+                            resume_queue.task_done()
+                            continue
+                        case TaskStatus(state=state, message=message, timestamp=timestamp):
+                            await task_updater.update_status(state=state, message=message, timestamp=timestamp)
+                        case TaskStatusUpdateEvent(
+                            status=TaskStatus(state=state, message=message, timestamp=timestamp), final=final
+                        ):
+                            await task_updater.update_status(
+                                state=state, message=message, timestamp=timestamp, final=final
+                            )
+                        case TaskArtifactUpdateEvent(
+                            artifact=Artifact(artifact_id=artifact_id, name=name, metadata=metadata, parts=parts),
                             append=append,
                             last_chunk=last_chunk,
-                        )
-                    case dict():
-                        await task_updater.update_status(
-                            state=TaskState.working,
-                            message=task_updater.new_agent_message(parts=[], metadata=yielded_value),
-                        )
-                    case Exception() as ex:
-                        raise ex
-                    case _:
-                        raise ValueError(f"Invalid value yielded from agent: {type(yielded_value)}")
-                value = None
-        except StopAsyncIteration:
-            await task_updater.complete()
-        except CancelledError:
-            await task_updater.cancel()
-        except Exception as ex:
-            logger.error("Error when executing agent", exc_info=ex)
-            await task_updater.failed(task_updater.new_agent_message(parts=[Part(root=TextPart(text=str(ex)))]))
-        finally:
-            await self._queue_manager.close(f"_event_{task_updater.task_id}")
-            await self._queue_manager.close(f"_resume_{task_updater.task_id}")
-            await cancel_task(cancellation_task)
+                        ):
+                            await task_updater.add_artifact(
+                                parts=parts,
+                                artifact_id=artifact_id,
+                                name=name,
+                                metadata=metadata,
+                                append=append,
+                                last_chunk=last_chunk,
+                            )
+                        case dict():
+                            await task_updater.update_status(
+                                state=TaskState.working,
+                                message=task_updater.new_agent_message(parts=[], metadata=yielded_value),
+                            )
+                        case Exception() as ex:
+                            raise ex
+                        case _:
+                            raise ValueError(f"Invalid value yielded from agent: {type(yielded_value)}")
+                    value = None
+            except StopAsyncIteration:
+                await task_updater.complete()
+            except CancelledError:
+                await task_updater.cancel()
+            except Exception as ex:
+                logger.error("Error when executing agent", exc_info=ex)
+                await task_updater.failed(task_updater.new_agent_message(parts=[Part(root=TextPart(text=str(ex)))]))
+            finally:
+                await self._queue_manager.close(f"_event_{task_updater.task_id}")
+                await self._queue_manager.close(f"_resume_{task_updater.task_id}")
+                await cancel_task(cancellation_task)
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         assert context.message  # this is only executed in the context of SendMessage request
@@ -391,8 +406,9 @@ class Executor(AgentExecutor):
                 await resume_queue.enqueue_event(context.message)
             else:
                 task_updater = TaskUpdater(long_running_event_queue, context.task_id, context.context_id)
-                generator = self._execute_fn(task_updater, context)
-                run_generator = self._run_generator(gen=generator, task_updater=task_updater, resume_queue=resume_queue)
+                run_generator = self._run_agent_function(
+                    context=context, task_updater=task_updater, resume_queue=resume_queue
+                )
                 self._running_tasks[context.task_id] = asyncio.create_task(run_generator)
                 self._running_tasks[context.task_id].add_done_callback(
                     lambda _: self._running_tasks.pop(context.task_id)  # pyright: ignore [reportArgumentType]
