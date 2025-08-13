@@ -86,7 +86,14 @@ class BaseDriver(abc.ABC):
 
         rendered_yaml = (
             await self.run_in_vm(
-                ["helm", "template", "beeai", "/tmp/beeai/chart.tgz", "--values=/tmp/beeai/values.yaml"],
+                [
+                    "helm",
+                    "template",
+                    "beeai",
+                    "/tmp/beeai/chart.tgz",
+                    "--values=/tmp/beeai/values.yaml",
+                    *(f"--set={value}" for value in set_values_list),
+                ],
                 "Rendering Helm chart",
             )
         ).stdout.decode()
@@ -121,8 +128,8 @@ class BaseDriver(abc.ABC):
                 "--timeout=1h0m0s",
                 "--wait",
                 "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
-            ]
-            + [f"--set={value}" for value in set_values_list],
+                *(f"--set={value}" for value in set_values_list),
+            ],
             "Deploying BeeAI platform with Helm",
         )
 
