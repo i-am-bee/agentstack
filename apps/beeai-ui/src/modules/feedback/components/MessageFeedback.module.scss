@@ -9,9 +9,12 @@
   pointer-events: none;
 }
 
+.dialogHolder {
+  z-index: z('modal') - 1;
+}
+
 .dialog {
   inline-size: rem(288px);
-  z-index: z('modal') - 1;
 }
 
 .isVoted {

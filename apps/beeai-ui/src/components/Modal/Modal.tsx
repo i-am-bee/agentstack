@@ -68,7 +68,7 @@ type Props = {
 /**
  * Wrapper around carbon ComposedModal component that's not mounted when modal is not open
  */
-export function Modal({ isOpen, onAfterClose, rootClassName, ...props }: Props) {
+export function Modal({ isOpen, onAfterClose, onRequestClose, rootClassName, ...props }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
   const [visible, setVisible] = useState(false);
@@ -113,7 +113,13 @@ export function Modal({ isOpen, onAfterClose, rootClassName, ...props }: Props) 
           }}
           className={clsx(classes.root, rootClassName)}
         >
-          <ComposedModal ref={ref} {...props} open={visible} className={clsx(classes.modal, props.className)} />
+          <ComposedModal
+            ref={ref}
+            {...props}
+            onClose={onRequestClose}
+            open={visible}
+            className={clsx(classes.modal, props.className)}
+          />
         </motion.div>
       )}
     </AnimatePresence>

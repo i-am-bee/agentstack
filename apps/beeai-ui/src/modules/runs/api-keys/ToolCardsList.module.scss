@@ -1,0 +1,24 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.root {
+  --grid-columns: 1;
+
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+  gap: $spacing-03;
+}
+
+@include breakpoint-up(md) {
+  .root {
+    --grid-columns: 2;
+  }
+}
+
+@include breakpoint-up(lg) {
+  .root {
+    --grid-columns: 3;
+  }
+}

@@ -35,6 +35,7 @@ export function MessageFeedback({ message, buttonWrapperClasses, onOpenChange }:
       <IconButton
         size="sm"
         kind="tertiary"
+        align="bottom"
         label="I like this response"
         wrapperClasses={buttonWrapperClasses}
         className={clsx({ [classes.isVoted]: isVoteUp })}
@@ -46,6 +47,7 @@ export function MessageFeedback({ message, buttonWrapperClasses, onOpenChange }:
       <IconButton
         size="sm"
         kind="tertiary"
+        align="bottom"
         label="I dislike this response"
         wrapperClasses={buttonWrapperClasses}
         className={clsx({ [classes.isVoted]: isVoteDown })}
@@ -59,7 +61,7 @@ export function MessageFeedback({ message, buttonWrapperClasses, onOpenChange }:
       <AnimatePresence>
         {formOpen && (
           <FloatingPortal>
-            <div {...getDialogProps()}>
+            <div {...getDialogProps()} className={classes.dialogHolder}>
               <motion.div {...fadeProps()} className={classes.dialog}>
                 <FeedbackForm {...getFormProps()} />
               </motion.div>
