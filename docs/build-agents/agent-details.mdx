@@ -1,4 +1,71 @@
 ---
 title: "Agent Details"
-description: "TODO"
+description: "Configure how your agent appears and behaves in the BeeAI Platform UI"
 ---
+
+The BeeAI Platform displays agents in both the GUI and CLI. When building your agent, you can configure certain attributes that affect how it appears and behaves in the user interface. The `@server.agent` decorator accepts an `AgentDetails` parameter that controls the visual representation and behavior in the UI.
+
+You can customize various aspects of your agent's presentation, such as:
+- The type of user interface the agent uses
+- Metadata about tools the agent provides
+- Author and contributor information
+- License and source code details
+- Custom user greetings
+
+## Basic Configuration
+
+Configuring agent details is straightforward. Import `AgentDetail` and use it in the decorator. Most fields are self-explanatory:
+
+```python
+import os
+
+from a2a.types import (
+    Message,
+)
+from beeai_sdk.server import Server
+from beeai_sdk.server.context import Context
+from beeai_sdk.a2a.extensions import AgentDetail, AgentDetailContributor, AgentDetailTool
+
+server = Server()
+
+@server.agent(
+    detail=AgentDetail(
+        ui_type="chat",
+        user_greeting="Welcome! I'm here to help you with your tasks.",
+        license="Apache 2.0",
+        programming_language="Python",
+        framework="BeeAI",
+        tools=[
+            AgentDetailTool(
+                name="Weather",
+                description="Get the weather for a given location",
+            ),
+        ],
+        homepage_url="https://github.com/beeai-dev/beeai-agents",
+        source_code_url="https://github.com/beeai-dev/beeai-agents",
+        container_image_url="ghcr.io/beeai-dev/beeai-agents:latest",
+        author=AgentDetailContributor(
+            name="BeeAI",
+            email="info@beeai.dev",
+            url="https://beeai.dev",
+        ),
+        contributors=[
+            AgentDetailContributor(
+                name="Another Person",
+                email="another@beeai.dev",
+                url="https://beeai.dev",
+            ),
+        ]
+    )
+)
+async def example_agent(input: Message, context: Context):
+    """An example agent with detailed configuration"""
+    yield "Hello World!"
+
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+
+if __name__ == "__main__":
+    run()
+```

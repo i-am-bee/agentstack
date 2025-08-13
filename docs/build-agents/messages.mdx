@@ -1,4 +1,127 @@
 ---
 title: "Messages"
-description: "TODO"
+description: "Understand how the main communication unit works when building your own agent"
 ---
+
+In the Hello World example, you used `yield` with `AgentMessage` to send textual data to the agent consumer. This concept has two important parts:
+
+1. **Yielding data**: You can yield data from your agent implementation, which gets sent to the client
+2. **AgentMessage wrapper**: `AgentMessage` is a convenience wrapper around [A2A](https://github.com/a2aproject/A2A) `Message` that simplifies common use cases. Think of responding with text to the client.
+
+## BeeAI SDK Message Types
+
+The BeeAI SDK simplifies development by allowing you to yield different types of data. You can use convenient SDK constructs or direct A2A components.
+
+### Convenience Wrappers
+
+#### AgentMessage
+The most common way to respond with text. It's a convenience wrapper around A2A `Message` that makes it easy to create responses:
+
+```python
+yield AgentMessage(text="This is my text", metadata={"foo": "bar"})
+```
+
+#### Plain strings
+Simple strings are automatically converted to textual A2A `Message` objects:
+
+```python
+yield "Hello, world!"
+```
+
+#### Plain dict
+Dictionaries send an empty A2A `Message` and supply the dictionary content as message metadata:
+
+```python
+yield {"status": "processing", "progress": 50}
+```
+
+### Direct A2A Components
+
+For more advanced use cases, you can yield direct A2A protocol components.
+
+<Tip>
+Feel free to check the A2A [Key Concepts](https://a2a-protocol.org/latest/topics/key-concepts/#fundamental-communication-elements) page to understand all the structures thoroughly.
+</Tip>
+
+#### Message
+The basic communication unit in the A2A protocol, representing a single turn in a conversation.
+
+```python
+import uuid
+from a2a.types import ( Message, TextPart )
+
+yield Message(role="agent", message_id=str(uuid.uuid4()), parts=[TextPart(text="Hello from the agent!")])
+```
+
+#### Part
+The fundamental unit of content. For example, a `TextPart` contains text data. A `Message` consists of multiple `Part` objects. Can be any of `TextPart`, `FilePart`, or `DataPart`.
+
+```python
+from a2a.types import ( TextPart )
+
+yield TextPart(text="Hello from the agent!")
+```
+
+#### Artifact
+Tangible outputs produced by the agent, such as documents, files, or other generated content.
+
+```python
+import uuid
+from a2a.types import Artifact, FilePart, FileWithUri
+
+yield Artifact(
+    artifact_id=str(uuid.uuid4()),
+    parts=[FilePart(file=FileWithUri(uri="https://www.ibm.com/us-en", mime_type="text/html", name="IBM Website"))],
+)
+```
+
+#### TaskStatus
+A stateful unit of work that can annotate a transaction spanning multiple messages. The task state can change over time as the agent progresses.
+
+```python
+import uuid
+from a2a.types import TaskStatus, TextPart, Message, TaskState
+
+yield TaskStatus(
+    message=Message(message_id=str(uuid.uuid4()), role="agent", parts=[TextPart(text="Please provide some input.")]),
+    state=TaskState.input_required,
+)
+```
+
+#### TaskStatusUpdateEvent
+Similar to `TaskStatus` but designed for streaming updates. Use this when you need to provide progressive status updates, such as when streaming content to the client.
+
+```python
+import uuid
+from a2a.types import Message, TextPart, TaskStatusUpdateEvent, TaskState, TaskStatus
+
+yield TaskStatusUpdateEvent(
+    contextId=str(uuid.uuid4()),
+    taskId=str(uuid.uuid4()),
+    final=False,
+    status=TaskStatus(
+        message=Message(
+            message_id=str(uuid.uuid4()), role="agent", parts=[TextPart(text="Please provide some input.")]
+        ),
+        state=TaskState.input_required,
+    ),
+)
+```
+
+#### TaskArtifactUpdateEvent
+Similar to `Artifact` but designed for artifact generation updates. Use this when progressively generating artifacts and want to provide updates on the generation progress.
+
+```python
+import uuid
+from a2a.types import Message, TaskArtifactUpdateEvent, Artifact, FilePart, FileWithUri
+
+yield TaskArtifactUpdateEvent(
+    contextId=str(uuid.uuid4()),
+    taskId=str(uuid.uuid4()),
+    last_chunk=False,
+    artifact=Artifact(
+        artifact_id=str(uuid.uuid4()),
+        parts=[FilePart(file=FileWithUri(uri="https://www.ibm.com/us-en", mime_type="text/html", name="IBM Website"))],
+    )
+)
+```
