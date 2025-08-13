@@ -69,7 +69,7 @@ async def remove_env(
 LLM_PROVIDERS = [
     Choice(
         name="Anthropic Claude".ljust(25),
-        value=("Anthropic", "https://api.anthropic.com/v1", "claude-3-7-sonnet-latest"),
+        value=("Anthropic", "https://api.anthropic.com/v1", "claude-sonnet-4-0"),
     ),
     Choice(
         name="Cerebras".ljust(25) + "🆓 has a free tier",
@@ -89,6 +89,10 @@ LLM_PROVIDERS = [
         value=("Gemini", "https://generativelanguage.googleapis.com/v1beta/openai", "models/gemini-2.5-pro"),
     ),
     Choice(
+        name="GitHub Models".ljust(25) + "🆓 has a free tier",
+        value=("GitHub", "https://models.github.ai/inference", "openai/gpt-4o"),
+    ),
+    Choice(
         name="Groq".ljust(25) + "🆓 has a free tier",
         value=("Groq", "https://api.groq.com/openai/v1", "deepseek-r1-distill-llama-70b"),
     ),
@@ -100,6 +104,10 @@ LLM_PROVIDERS = [
     Choice(
         name="Mistral".ljust(25) + "🆓 has a free tier",
         value=("Mistral", "https://api.mistral.ai/v1", "mistral-large-latest"),
+    ),
+    Choice(
+        name="Moonshot AI".ljust(25),
+        value=("Moonshot", "https://api.moonshot.ai/v1", "kimi-latest"),
     ),
     Choice(
         name="NVIDIA NIM".ljust(25),
