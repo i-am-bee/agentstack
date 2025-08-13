@@ -12,6 +12,7 @@ import { getAgentPromptExamples } from '#modules/agents/utils.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 import { routes } from '#utils/router.ts';
 
+// import { Canvas } from '#modules/canvas/components/Canvas.tsx';
 import { FileUpload } from '../../files/components/FileUpload';
 import { useAgentRun } from '../contexts/agent-run';
 import { SecretsModalPortal } from '../secrets/SecretsModalPortal';
@@ -45,6 +46,8 @@ export function RunLandingView() {
         </AgentRunHeader>
 
         <RunInput promptExamples={promptExamples} onMessageSent={handleMessageSent} />
+
+        {/* <Canvas /> */}
       </Container>
       <SecretsModalPortal />
     </FileUpload>
