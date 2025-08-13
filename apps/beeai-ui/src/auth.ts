@@ -9,17 +9,17 @@ import type { Provider } from 'next-auth/providers';
 import Credentials from 'next-auth/providers/credentials';
 
 let provider_list: {
-  id: string,
-  name: string,
-  type: 'oidc',
-  issuer: string,
-  client_id: string,
-  client_secret: string,
-  nextauth_redirect_proxy_url: string,
+  id: string;
+  name: string;
+  type: 'oidc';
+  issuer: string;
+  client_id: string;
+  client_secret: string;
+  nextauth_redirect_proxy_url: string;
 }[] = [];
 if (!process.env.NEXT__DISABLE_OIDC) {
-   const rootPath = process.env.OIDC__PROVIDERS_PATH || './providers'
-   provider_list = JSON.parse(await readFile(`${rootPath}/providers.json`, "utf8"));
+  const rootPath = process.env.OIDC__PROVIDERS_PATH || './providers';
+  provider_list = JSON.parse(await readFile(`${rootPath}/providers.json`, 'utf8'));
 }
 import IBM from '#app/auth/providers/ibm.ts';
 
@@ -53,29 +53,31 @@ const providers: Provider[] = [
         email: 'test@example.com',
       };
     },
-  })
+  }),
 ];
 
 if (process.env.NEXTAUTH_SECRET) {
   for (const prov of provider_list) {
-      providers.push(IBM({
-      id: prov.id,
-      name: prov.name,
-      type: prov.type,
-      issuer: prov.issuer,
-      clientId: prov.client_id,
-      clientSecret: prov.client_secret,
-      redirectProxyUrl: prov.nextauth_redirect_proxy_url,
-      account(account) {
-        const refresh_token_expires_at = Math.floor(Date.now() / 1000) + Number(account.refresh_token_expires_in);
-        return {
-          access_token: account.access_token,
-          expires_at: account.expires_at,
-          refresh_token: account.refresh_token,
-          refresh_token_expires_at,
-        };
-      },
-    }))
+    providers.push(
+      IBM({
+        id: prov.id,
+        name: prov.name,
+        type: prov.type,
+        issuer: prov.issuer,
+        clientId: prov.client_id,
+        clientSecret: prov.client_secret,
+        redirectProxyUrl: prov.nextauth_redirect_proxy_url,
+        account(account) {
+          const refresh_token_expires_at = Math.floor(Date.now() / 1000) + Number(account.refresh_token_expires_in);
+          return {
+            access_token: account.access_token,
+            expires_at: account.expires_at,
+            refresh_token: account.refresh_token,
+            refresh_token_expires_at,
+          };
+        },
+      }),
+    );
   }
 }
 
