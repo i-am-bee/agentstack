@@ -1,6 +1,6 @@
 FROM python:3.13-alpine3.21 AS builder
 WORKDIR /app
-COPY --from=ghcr.io/astral-sh/uv:0.6.2 /uv /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.8.9 /uv /bin/
 COPY pyproject.toml dist/requirements.txt ./
 RUN uv pip install --system -r requirements.txt
 COPY dist/*.tar.gz ./
