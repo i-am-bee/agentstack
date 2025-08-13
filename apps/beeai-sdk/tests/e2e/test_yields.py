@@ -3,20 +3,28 @@
 
 import asyncio
 import uuid
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, AsyncIterator
 
 import pytest
 from a2a.client import A2AClient, create_text_message_object
 from a2a.types import (
+    Artifact,
+    DataPart,
+    FilePart,
+    FileWithBytes,
     Message,
     MessageSendParams,
+    Role,
     SendMessageRequest,
     SendStreamingMessageRequest,
+    TaskArtifactUpdateEvent,
     TaskState,
     TaskStatus,
     TaskStatusUpdateEvent,
+    TextPart,
 )
 
+from beeai_sdk.a2a.types import RunYield
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import RunContext
 
@@ -404,3 +412,35 @@ async def test_async_generator_streaming(async_generator_agent):
     # Should see multiple working state messages for each yield
     working_events = [e for e in status_events if e.root.result.status.state == TaskState.working]
     assert len(working_events) >= 2  # At least 2 yields from the generator
+
+
+async def test_yield_of_all_types(create_server_with_agent):
+    async def yielder_of_all_types_agent(message: Message, context: RunContext) -> AsyncIterator[RunYield]:
+        """Synchronous function agent that returns a string directly."""
+        text_part = TextPart(text="text")
+        message = Message(parts=[text_part], role=Role.agent, message_id=str(uuid.uuid4()))
+        yield message
+        yield text_part
+        yield TaskStatus(message=message, state=TaskState.working)
+        yield Artifact(artifact_id=str(uuid.uuid4()), parts=[text_part])
+        yield FilePart(file=FileWithBytes(bytes="0", name="test.txt"))
+        yield DataPart(data={"a": 1})
+        yield TaskStatusUpdateEvent(
+            status=TaskStatus(state=TaskState.working, message=message),
+            task_id=context.task_id,
+            context_id=context.context_id,
+            final=False,
+        )
+        yield TaskArtifactUpdateEvent(
+            artifact=Artifact(artifact_id=str(uuid.uuid4()), parts=[text_part]),
+            context_id=context.context_id,
+            task_id=context.task_id,
+        )
+        yield "text"
+        yield {"metadata": "lol"}
+
+    async with create_server_with_agent(yielder_of_all_types_agent) as (server, client):
+        resp = await client.send_message(request=create_send_request_object("hello"))
+        assert resp.root.result.status.state == TaskState.completed
+        assert len(resp.root.result.history) == 9
+        assert len(resp.root.result.artifacts) == 2

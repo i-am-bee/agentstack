@@ -28,7 +28,6 @@ RunYield: TypeAlias = (
     | TaskStatusUpdateEvent
     | TaskArtifactUpdateEvent
     | str
-    | None
     | dict
     | Exception
 )
