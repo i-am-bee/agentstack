@@ -4,9 +4,8 @@
  */
 
 import { LogoDiscord, LogoGithub } from '@carbon/icons-react';
-import { DISCORD_LINK } from '@i-am-bee/beeai-ui';
 
-import { GITHUB_REPO_LINK } from '@/constants';
+import { DISCORD_LINK, GITHUB_REPO_LINK } from '@/constants';
 
 import classes from './SocialLinks.module.scss';
 

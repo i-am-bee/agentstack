@@ -6,8 +6,8 @@
 import { LogoDiscord, LogoYoutube } from '@carbon/icons-react';
 import clsx from 'clsx';
 
-import LogoBluesky from '#svgs/LogoBluesky.svg';
-import { BLUESKY_LINK, DISCORD_LINK, YOUTUBE_LINK } from '#utils/constants.ts';
+import { BLUESKY_LINK, DISCORD_LINK, YOUTUBE_LINK } from '@/constants';
+import LogoBluesky from '@/svgs/LogoBluesky.svg';
 
 import classes from './FooterNav.module.scss';
 

@@ -8,7 +8,6 @@ import clsx from 'clsx';
 import type { PropsWithChildren } from 'react';
 import { mergeRefs } from 'react-merge-refs';
 
-import { AppFooter } from '#components/layouts/AppFooter.tsx';
 import { useIsScrolled } from '#hooks/useIsScrolled.ts';
 import { useScrollbarWidth } from '#hooks/useScrollbarWidth.ts';
 import { createScrollbarStyles } from '#utils/createScrollbarStyles.ts';
@@ -18,11 +17,10 @@ import classes from './MainContent.module.scss';
 export interface MainContentProps extends PropsWithChildren {
   spacing?: 'md' | 'lg';
   scrollable?: boolean;
-  showFooter?: boolean;
   className?: string;
 }
 
-export function MainContent({ spacing = 'lg', scrollable = true, showFooter, className, children }: MainContentProps) {
+export function MainContent({ spacing = 'lg', scrollable = true, className, children }: MainContentProps) {
   const { scrollElementRef, observeElementRef, isScrolled } = useIsScrolled();
   const { ref: scrollbarRef, scrollbarWidth } = useScrollbarWidth();
 
@@ -43,8 +41,6 @@ export function MainContent({ spacing = 'lg', scrollable = true, showFooter, cla
       <div className={classes.topRef} ref={observeElementRef} />
 
       <div className={classes.body}>{children}</div>
-
-      {showFooter && <AppFooter className={classes.footer} />}
     </div>
   );
 }

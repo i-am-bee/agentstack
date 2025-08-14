@@ -4,11 +4,6 @@
  */
 
 .root {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: $spacing-07;
-  row-gap: $spacing-08;
-
   li {
     display: flex;
     flex-direction: column;
@@ -25,13 +20,15 @@
       font-size: rem(20px);
       line-height: math.div(26, 20);
       text-wrap: pretty;
+      max-inline-size: rem(369px);
     }
   }
 }
 
 @include breakpoint-down(md) {
   .root {
-    display: flex;
-    flex-direction: column;
+    li span {
+      max-inline-size: 100%;
+    }
   }
 }

@@ -5,20 +5,25 @@
 
 'use client';
 import { LogoPython, Plug, Rocket, SettingsAdjust, Unlocked, WorkflowAutomation } from '@carbon/icons-react';
+import { Theme, useTheme } from '@i-am-bee/beeai-ui';
 
 import { FRAMEWORK_QUICKSTART_LINK } from '@/constants';
 import { LayoutContainer } from '@/layouts/LayoutContainer';
 
-import FrameworkGraphics from './assets/framework.svg';
+import FrameworkGraphicsDark from './assets/framework-diagram-dark.svg';
+import FrameworkGraphicsLight from './assets/framework-diagram-light.svg';
 import { FeaturesList } from './components/FeaturesList';
 import { HeadlineWithLink } from './components/HeadlineWithLink';
+import { TwoColumnGrid } from './components/TwoColumnGrid';
 import classes from './Framework.module.scss';
 
 export function Framework() {
+  const { theme } = useTheme();
+
   return (
-    <section className={classes.root}>
-      <LayoutContainer>
-        <div className={classes.info}>
+    <section className={classes.root} id="framework">
+      <LayoutContainer asGrid>
+        <TwoColumnGrid className={classes.info}>
           <HeadlineWithLink
             title="Framework"
             description="Build production-ready AI agents with enterprise-grade reliability, built-in caching, memory optimization,
@@ -28,9 +33,9 @@ export function Framework() {
           />
 
           <div className={classes.graphics}>
-            <FrameworkGraphics />
+            {theme === Theme.Light ? <FrameworkGraphicsLight /> : <FrameworkGraphicsDark />}
           </div>
-        </div>
+        </TwoColumnGrid>
 
         <div className={classes.features}>
           <FeaturesList items={FEATURES_ITEMS} />
@@ -46,7 +51,7 @@ const FEATURES_ITEMS = [
     content: (
       <>
         <strong>Production-ready from day one</strong> with built-in caching, memory optimization, resource management
-        and real-time monitoring with OpenTelemetry integration
+        and real-time monitoring with OpenTelemetry integration.
       </>
     ),
   },
@@ -63,7 +68,7 @@ const FEATURES_ITEMS = [
     icon: LogoPython,
     content: (
       <>
-        <strong>Python and TypeScript support</strong> with complete feature parity
+        <strong>Python and TypeScript support</strong> with complete feature parity.
       </>
     ),
   },
@@ -71,7 +76,7 @@ const FEATURES_ITEMS = [
     icon: Unlocked,
     content: (
       <>
-        <strong>No vendor lock-in</strong> - works with 10+ LLM providers out of the box
+        <strong>No vendor lock-in</strong> - works with 10+ LLM providers, out-of-the-box.
       </>
     ),
   },
@@ -79,8 +84,7 @@ const FEATURES_ITEMS = [
     icon: SettingsAdjust,
     content: (
       <>
-        Maintain complete{' '}
-        <strong>control over agent behavior, performance optimization, and resource allocation</strong>
+        <strong>Complete control over agent behavior</strong>, performance optimization, and resource allocation.
       </>
     ),
   },
@@ -88,8 +92,8 @@ const FEATURES_ITEMS = [
     icon: Plug,
     content: (
       <>
-        <strong>Integrates into your existing stack</strong> with MCP (Model Context Protocol) compatibility, custom
-        tool development support, and seamless tool integration
+        <strong>Existing stack integration</strong> with MCP compatibility, custom tool development support, and
+        seamless tool integration.
       </>
     ),
   },

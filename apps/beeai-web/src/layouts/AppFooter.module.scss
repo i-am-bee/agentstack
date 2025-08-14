@@ -5,12 +5,13 @@
 
 $max-container: get-value($grid-breakpoints, 'max.width');
 
-.holder {
+.root {
+  grid-column: 2 / -2;
   display: flex;
   column-gap: $gap;
   justify-content: space-between;
   align-items: flex-end;
-  padding-block: $spacing-05 $spacing-06;
+  padding-block: rem(54px);
 }
 
 .copyright {

@@ -7,11 +7,13 @@
 
 import { ArrowRight } from '@carbon/icons-react';
 import { Button } from '@carbon/react';
-import { ErrorPage, MainContent, TransitionLink } from '@i-am-bee/beeai-ui';
+import { ErrorPage, TransitionLink } from '@i-am-bee/beeai-ui';
+
+import { MainContentView } from '@/layouts/MainContentView';
 
 export default function NotFoundPage() {
   return (
-    <MainContent>
+    <MainContentView>
       <ErrorPage
         renderButton={({ className }) => (
           <Button as={TransitionLink} href="/" renderIcon={ArrowRight} className={className}>
@@ -19,6 +21,6 @@ export default function NotFoundPage() {
           </Button>
         )}
       />
-    </MainContent>
+    </MainContentView>
   );
 }
