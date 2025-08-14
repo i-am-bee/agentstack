@@ -5,7 +5,7 @@
 
 'use client';
 import clsx from 'clsx';
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren, ReactNode } from 'react';
 import { mergeRefs } from 'react-merge-refs';
 
 import { useIsScrolled } from '#hooks/useIsScrolled.ts';
@@ -18,9 +18,10 @@ export interface MainContentProps extends PropsWithChildren {
   spacing?: 'md' | 'lg';
   scrollable?: boolean;
   className?: string;
+  footer?: ReactNode;
 }
 
-export function MainContent({ spacing = 'lg', scrollable = true, className, children }: MainContentProps) {
+export function MainContent({ spacing = 'lg', scrollable = true, className, footer, children }: MainContentProps) {
   const { scrollElementRef, observeElementRef, isScrolled } = useIsScrolled();
   const { ref: scrollbarRef, scrollbarWidth } = useScrollbarWidth();
 
@@ -32,6 +33,7 @@ export function MainContent({ spacing = 'lg', scrollable = true, className, chil
         {
           [classes[spacing]]: spacing,
           [classes.scrollable]: scrollable,
+          [classes.hasFooter]: Boolean(footer),
         },
         className,
       )}
@@ -41,6 +43,8 @@ export function MainContent({ spacing = 'lg', scrollable = true, className, chil
       <div className={classes.topRef} ref={observeElementRef} />
 
       <div className={classes.body}>{children}</div>
+
+      {footer}
     </div>
   );
 }
