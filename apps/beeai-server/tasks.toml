@@ -241,7 +241,11 @@ curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhos
     --vm-name=${VM_NAME} \
     --set externalRegistries=null \
     --set docling.enabled=true \
-    --set ui.enabled=false
+    --set ui.enabled=false \
+    --set auth.enabled="true" \
+    --set auth.adminPassword="test-password" \
+    --set auth.jwtSecretKey="test-secret-key"
+
 
 eval "$( {{ mise_bin }} run beeai-platform:shell --vm-name="$VM_NAME" )"
 

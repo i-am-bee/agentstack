@@ -1,14 +1,11 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-
 import logging
-from datetime import timedelta
 
 from kink import inject
 from procrastinate import Blueprint, JobContext, builtin_tasks
 
-from beeai_server.configuration import Configuration
-from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
+from beeai_server.service_layer.services.contexts import ContextService
 
 blueprint = Blueprint()
 
@@ -18,15 +15,10 @@ logger = logging.getLogger(__name__)
 @blueprint.periodic(cron="5 * * * *")
 @blueprint.task(queueing_lock="cleanup_expired_vector_stores", queue="cron:cleanup")
 @inject
-async def cleanup_expired_vector_stores(configuration: Configuration, uow: IUnitOfWorkFactory, timestamp: int) -> None:
-    """Delete vector stores that haven't been accessed for a specified number of days."""
-    async with uow() as uow:
-        deleted_count = await uow.vector_stores.delete_expired(
-            active_threshold=timedelta(days=configuration.vector_stores.expire_after_days)
-        )
-        # Records in vector_database are deleted automatically by CASCADE operations in postgres
-        await uow.commit()
-    logger.info(f"Deleted {deleted_count} expired vector stores")
+async def cleanup_expired_context_resources(timestamp: int, context: ContextService) -> None:
+    """Delete resources of contexts that haven't been used for several days."""
+    deleted_stats = await context.expire_resources()
+    logger.info(f"Deleted: {deleted_stats}")
 
 
 @blueprint.periodic(cron="*/10 * * * *")

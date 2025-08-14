@@ -40,6 +40,7 @@ from a2a.types import (
     TextPart,
     UnsupportedOperationError,
 )
+from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from a2a.utils.errors import MethodNotImplementedError
 from fastapi import FastAPI
 from httpx import Client
@@ -172,7 +173,7 @@ def create_test_server(free_port: int, app: A2AStarletteApplication, test_config
         while not server_instance.started:
             time.sleep(0.1)
 
-        with Client(base_url=f"{test_configuration.server_url}/api/v1") as client:
+        with Client(base_url=f"{test_configuration.server_url}/api/v1", auth=("admin", "test-password")) as client:
             for _attempt in range(20):
                 resp = client.post(
                     "providers",
@@ -214,7 +215,7 @@ def client(create_test_server, test_configuration):
 
 def test_agent_card_endpoint(client: Client, agent_card: AgentCard):
     """Test the agent card endpoint returns expected data."""
-    response = client.get("/.well-known/agent.json")
+    response = client.get(AGENT_CARD_WELL_KNOWN_PATH)
     assert response.status_code == 200
     data = response.json()
     assert data["name"] == agent_card.name
@@ -227,7 +228,7 @@ def test_authenticated_extended_agent_card_endpoint_not_supported(
 ):
     """Test extended card endpoint returns 404 if not supported by main card."""
     # Ensure supportsAuthenticatedExtendedCard is False or None
-    agent_card.supportsAuthenticatedExtendedCard = False
+    agent_card.supports_authenticated_extended_card = False
     app_instance = A2AStarletteApplication(agent_card, handler)
     # The route should not even be added if supportsAuthenticatedExtendedCard is false
     # So, building the app and trying to hit it should result in 404 from Starlette itself
@@ -241,7 +242,7 @@ def test_authenticated_extended_agent_card_endpoint_not_supported_fastapi(
 ):
     """Test extended card endpoint returns 404 if not supported by main card."""
     # Ensure supportsAuthenticatedExtendedCard is False or None
-    agent_card.supportsAuthenticatedExtendedCard = False
+    agent_card.supports_authenticated_extended_card = False
     app_instance = A2AFastAPIApplication(agent_card, handler)
     # The route should not even be added if supportsAuthenticatedExtendedCard is false
     # So, building the app and trying to hit it should result in 404 from FastAPI itself
@@ -257,7 +258,7 @@ def test_authenticated_extended_agent_card_endpoint_supported_with_specific_exte
     handler: mock.AsyncMock,
 ):
     """Test extended card endpoint returns the specific extended card when provided."""
-    agent_card.supportsAuthenticatedExtendedCard = True  # Main card must support it
+    agent_card.supports_authenticated_extended_card = True  # Main card must support it
     print(agent_card)
     app_instance = A2AStarletteApplication(agent_card, handler, extended_agent_card=extended_agent_card_fixture)
     client = create_test_server(app_instance.build())
@@ -279,7 +280,7 @@ def test_authenticated_extended_agent_card_endpoint_supported_with_specific_exte
     handler: mock.AsyncMock,
 ):
     """Test extended card endpoint returns the specific extended card when provided."""
-    agent_card.supportsAuthenticatedExtendedCard = True  # Main card must support it
+    agent_card.supports_authenticated_extended_card = True  # Main card must support it
     app_instance = A2AFastAPIApplication(agent_card, handler, extended_agent_card=extended_agent_card_fixture)
     client = create_test_server(app_instance.build())
 
@@ -361,7 +362,7 @@ def test_starlette_build_with_extra_routes(create_test_server, app: A2AStarlette
     assert response.json() == {"message": "Hello"}
 
     # Ensure default routes still work
-    response = client.get("/.well-known/agent.json")
+    response = client.get(AGENT_CARD_WELL_KNOWN_PATH)
     assert response.status_code == 200
     data = response.json()
     assert data["name"] == agent_card.name
@@ -383,7 +384,7 @@ def test_fastapi_build_with_extra_routes(create_test_server, app: A2AFastAPIAppl
     assert response.json() == {"message": "Hello"}
 
     # Ensure default routes still work
-    response = client.get("/.well-known/agent.json")
+    response = client.get(AGENT_CARD_WELL_KNOWN_PATH)
     assert response.status_code == 200
     data = response.json()
     assert data["name"] == agent_card.name

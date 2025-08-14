@@ -17,7 +17,7 @@ server = Server()
     input_content_types=["text/plain"],
     output_content_types=["text/plain", "application/json"],
     ui=BeeAIUI(
-        ui_type="chat",
+        interaction_mode="multi-turn",
         user_greeting="How can I help you",
         tools=[
             BeeAIUITool(

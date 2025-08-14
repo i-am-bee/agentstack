@@ -14,23 +14,20 @@ from uuid import uuid4
 
 import httpx
 import jsonref
-from a2a.client import A2AClient
+from a2a.client import Client
 from a2a.types import (
     AgentCard,
     DataPart,
     FilePart,
     FileWithBytes,
     FileWithUri,
-    JSONRPCErrorResponse,
     Message,
-    MessageSendParams,
     Part,
     Role,
-    SendStreamingMessageRequest,
-    SendStreamingMessageSuccessResponse,
     Task,
     TaskArtifactUpdateEvent,
     TaskState,
+    TaskStatus,
     TaskStatusUpdateEvent,
     TextPart,
 )
@@ -65,7 +62,6 @@ from rich.table import Column
 from beeai_cli.api import a2a_client, api_request, api_stream
 from beeai_cli.async_typer import AsyncTyper, console, create_table, err_console
 from beeai_cli.utils import (
-    format_error,
     generate_schema_example,
     omit,
     prompt_user,
@@ -76,9 +72,9 @@ from beeai_cli.utils import (
 )
 
 
-class UiType(StrEnum):
-    chat = "chat"
-    hands_off = "hands-off"
+class InteractionMode(StrEnum):
+    single_turn = "single-turn"
+    multi_turn = "multi-turn"
 
 
 class Provider(BaseModel):
@@ -219,7 +215,7 @@ async def stream_logs(
 
 
 async def _run_agent(
-    client: A2AClient,
+    client: Client,
     input: str | Message,
     dump_files_path: Path | None = None,
     handle_input: Callable[[], str] | None = None,
@@ -244,148 +240,136 @@ async def _run_agent(
 
     log_type = None
 
-    request = SendStreamingMessageRequest(id=str(uuid4()), params=MessageSendParams(message=input))
-    stream = client.send_message_streaming(request)
+    stream = client.send_message(input)
 
     while True:
         async for event in stream:
             if not status_stopped:
                 status_stopped = True
                 status.stop()
-            match event.root:
-                case SendStreamingMessageSuccessResponse():
-                    task_id = getattr(event.root.result, "taskId", None)
-                    context_id = getattr(event.root.result, "contextId", None)
-                    match event.root.result:
-                        case Task(id=tid, context_id=cid):
-                            # Handle task creation
-                            task_id = tid
-                            context_id = cid
-                        case Message():
-                            # Handle message response - check for update_kind metadata
-                            message = event.root.result
-                            update_kind = None
+            match event:
+                case Message() as message:
+                    # Handle message response - check for update_kind metadata
+                    update_kind = None
 
-                            # Check for update_kind in message metadata
-                            if update_kind := (message.metadata or {}).get("update_kind"):
-                                # This is a streaming update with a specific type
-                                if update_kind != log_type:
-                                    if log_type is not None:
-                                        err_console.print()
-                                    err_console.print(f"{update_kind}: ", style="dim", end="")
-                                    log_type = update_kind
+                    # Check for update_kind in message metadata
+                    if update_kind := (message.metadata or {}).get("update_kind"):
+                        # This is a streaming update with a specific type
+                        if update_kind != log_type:
+                            if log_type is not None:
+                                err_console.print()
+                            err_console.print(f"{update_kind}: ", style="dim", end="")
+                            log_type = update_kind
 
-                                # Stream the content
-                                for part in message.parts:
-                                    if hasattr(part.root, "text"):
-                                        err_console.print(part.root.text, style="dim", end="")
-                            else:
-                                # This is regular message content
-                                if log_type:
-                                    console.print()
-                                    log_type = None
+                        # Stream the content
+                        for part in message.parts:
+                            if hasattr(part.root, "text"):
+                                err_console.print(part.root.text, style="dim", end="")
+                    else:
+                        # This is regular message content
+                        if log_type:
+                            console.print()
+                            log_type = None
+                        for part in message.parts:
+                            if hasattr(part.root, "text"):
+                                console.print(part.root.text, end="")
+                case Task(id=tid, context_id=cid), None:  # Handle task creation
+                    task_id, context_id = tid, cid
+                case Task(id=tid, context_id=cid), TaskStatusUpdateEvent(
+                    status=TaskStatus(state=state, message=message)
+                ):
+                    task_id, context_id = tid, cid
+                    match state:
+                        case TaskState.completed:
+                            console.print()  # Add newline after completion
+                            return None, context_id
+                        case TaskState.submitted:
+                            pass
+                        case TaskState.working:
+                            # Handle streaming content during working state
+                            if message:
+                                trajectory = (message.metadata or {}).get(
+                                    "https://a2a-extensions.beeai.dev/ui/trajectory/v1"
+                                ) or {}
+                                if update_kind := trajectory.get("title"):
+                                    if update_kind != log_type:
+                                        if log_type is not None:
+                                            err_console.print()
+                                        err_console.print(f"{update_kind}: ", style="dim", end="")
+                                        log_type = update_kind
+                                    err_console.print(trajectory.get("content"), style="dim", end="")
+                                else:
+                                    # This is regular message content
+                                    if log_type:
+                                        console.print()
+                                        log_type = None
                                 for part in message.parts:
                                     if hasattr(part.root, "text"):
                                         console.print(part.root.text, end="")
-                        case TaskStatusUpdateEvent(status=task_status):
-                            match task_status.state:
-                                case TaskState.completed:
-                                    console.print()  # Add newline after completion
-                                    return None, context_id
-                                case TaskState.submitted:
-                                    pass
-                                case TaskState.working:
-                                    # Handle streaming content during working state
-                                    if hasattr(task_status, "message") and task_status.message:
-                                        message = task_status.message
-                                        trajectory = (message.metadata or {}).get(
-                                            "https://a2a-extensions.beeai.dev/ui/trajectory/v1"
-                                        ) or {}
-                                        if update_kind := trajectory.get("title"):
-                                            if update_kind != log_type:
-                                                if log_type is not None:
-                                                    err_console.print()
-                                                err_console.print(f"{update_kind}: ", style="dim", end="")
-                                                log_type = update_kind
-                                            err_console.print(trajectory.get("content"), style="dim", end="")
-                                        else:
-                                            # This is regular message content
-                                            if log_type:
-                                                console.print()
-                                                log_type = None
-                                        for part in message.parts:
-                                            if hasattr(part.root, "text"):
-                                                console.print(part.root.text, end="")
-                                case TaskState.input_required:
-                                    if handle_input is None:
-                                        raise ValueError("Agent requires input but no input handler provided")
+                        case TaskState.input_required:
+                            if handle_input is None:
+                                raise ValueError("Agent requires input but no input handler provided")
 
-                                    text = ""
-                                    for part in task_status.message.parts if task_status.message else []:
-                                        if isinstance(part.root, TextPart):
-                                            text = part.root.text
-                                    console.print(f"\n[bold]Agent requires your input[/bold]: {text}\n")
-                                    user_input = handle_input()
+                            text = ""
+                            for part in message.parts if message else []:
+                                if isinstance(part.root, TextPart):
+                                    text = part.root.text
+                            console.print(f"\n[bold]Agent requires your input[/bold]: {text}\n")
+                            user_input = handle_input()
 
-                                    # Send the user input back to the agent
-                                    response_message = Message(
-                                        message_id=str(uuid4()),
-                                        parts=[Part(root=TextPart(text=user_input))],
-                                        role=Role.user,
-                                        task_id=task_id,
-                                        context_id=context_id,
-                                    )
-                                    new_request = SendStreamingMessageRequest(
-                                        id=str(uuid4()), params=MessageSendParams(message=response_message)
-                                    )
-                                    stream = client.send_message_streaming(new_request)
-                                    break
-                                case TaskState.canceled:
-                                    console.print("[yellow]Task was canceled[/yellow]")
-                                    return task_id, context_id
-                                case TaskState.failed:
-                                    message = task_status.message.parts[0].root.text if task_status.message else ""
-                                    console.print(f"[red]Task failed[/red]: {message}")
-                                    return task_id, context_id
-                                case TaskState.rejected:
-                                    console.print("[red]Task was rejected[/red]")
-                                    return task_id, context_id
-                                case TaskState.auth_required:
-                                    console.print("[yellow]Authentication required[/yellow]")
-                                    return task_id, context_id
-                                case TaskState.unknown:
-                                    console.print("[yellow]Unknown task status[/yellow]")
-                        case TaskArtifactUpdateEvent():
-                            artifact = event.root.result.artifact
-                            if dump_files_path is None:
-                                continue
-                            dump_files_path.mkdir(parents=True, exist_ok=True)
-                            full_path = dump_files_path / artifact.name.lstrip("/")
-                            full_path.resolve().relative_to(dump_files_path.resolve())
-                            full_path.parent.mkdir(parents=True, exist_ok=True)
-                            try:
-                                for part in artifact.parts[:1]:
-                                    match part.root:
-                                        case FilePart():
-                                            match part.root.file:
-                                                case FileWithBytes(bytes=bytes_str):
-                                                    full_path.write_bytes(base64.b64decode(bytes_str))
-                                                case FileWithUri(uri=uri):
-                                                    async with httpx.AsyncClient() as client:
-                                                        resp = await client.get(uri)
-                                                        full_path.write_bytes(base64.b64decode(resp.content))
-                                            console.print(f"📁 Saved {full_path}")
-                                        case TextPart(text=text):
-                                            full_path.write_text(text)
-                                        case _:
-                                            console.print(f"⚠️ Artifact part {type(part).__name__} is not supported")
-                                if len(artifact.parts) > 1:
-                                    console.print("⚠️ Artifact with more than 1 part are not supported.")
-                            except ValueError:
-                                console.print(f"⚠️ Skipping artifact {artifact.name} - outside dump directory")
-                case JSONRPCErrorResponse():
-                    console.print(format_error(str(type(event.root.error)), event.root.error.message))
-                    return task_id, context_id
+                            # Send the user input back to the agent
+                            response_message = Message(
+                                message_id=str(uuid4()),
+                                parts=[Part(root=TextPart(text=user_input))],
+                                role=Role.user,
+                                task_id=task_id,
+                                context_id=context_id,
+                            )
+                            stream = client.send_message(response_message)
+                            break
+                        case TaskState.canceled:
+                            console.print("[yellow]Task was canceled[/yellow]")
+                            return task_id, context_id
+                        case TaskState.failed:
+                            message = message.parts[0].root.text if message else ""
+                            console.print(f"[red]Task failed[/red]: {message}")
+                            return task_id, context_id
+                        case TaskState.rejected:
+                            console.print("[red]Task was rejected[/red]")
+                            return task_id, context_id
+                        case TaskState.auth_required:
+                            console.print("[yellow]Authentication required[/yellow]")
+                            return task_id, context_id
+                        case TaskState.unknown:
+                            console.print("[yellow]Unknown task status[/yellow]")
+                case Task(id=tid, context_id=cid), TaskArtifactUpdateEvent(artifact=artifact):
+                    task_id, context_id = tid, cid
+                    if dump_files_path is None:
+                        continue
+                    dump_files_path.mkdir(parents=True, exist_ok=True)
+                    full_path = dump_files_path / (artifact.name or "unnamed").lstrip("/")
+                    full_path.resolve().relative_to(dump_files_path.resolve())
+                    full_path.parent.mkdir(parents=True, exist_ok=True)
+                    try:
+                        for part in artifact.parts[:1]:
+                            match part.root:
+                                case FilePart():
+                                    match part.root.file:
+                                        case FileWithBytes(bytes=bytes_str):
+                                            full_path.write_bytes(base64.b64decode(bytes_str))
+                                        case FileWithUri(uri=uri):  # TODO process platform file uri
+                                            async with httpx.AsyncClient() as httpx_client:
+                                                resp = await httpx_client.get(uri)
+                                                full_path.write_bytes(base64.b64decode(resp.content))
+                                    console.print(f"📁 Saved {full_path}")
+                                case TextPart(text=text):
+                                    full_path.write_text(text)
+                                case _:
+                                    console.print(f"⚠️ Artifact part {type(part).__name__} is not supported")
+                        if len(artifact.parts) > 1:
+                            console.print("⚠️ Artifact with more than 1 part are not supported.")
+                    except ValueError:
+                        console.print(f"⚠️ Skipping artifact {artifact.name} - outside dump directory")
         else:
             # Stream ended normally
             break
@@ -586,7 +570,7 @@ def _setup_sequential_workflow(providers: list[Provider], splash_screen: Console
     prompt_agents = {
         provider.agent_card.name: provider
         for provider in providers
-        if (provider.detail or {}).get("ui_type") == UiType.hands_off
+        if (provider.detail or {}).get("interaction_mode") == InteractionMode.single_turn
     }
     steps = []
 
@@ -679,13 +663,16 @@ async def run_agent(
         )
 
     ui_annotations = provider.detail or {}
-    ui_type = ui_annotations.get("ui_type")
+    interaction_mode = ui_annotations.get("interaction_mode")
     is_sequential_workflow = agent.name in {"sequential_workflow"}
 
     user_greeting = ui_annotations.get("user_greeting", None) or "How can I help you?"
 
     if not input:
-        if ui_type not in {UiType.chat, UiType.hands_off} and not is_sequential_workflow:
+        if (
+            interaction_mode not in {InteractionMode.multi_turn, InteractionMode.single_turn}
+            and not is_sequential_workflow
+        ):
             err_console.print(
                 f"💥 [red][b]Error[/red][/b]: Agent {agent.name} does not use any supported UIs.\n"
                 f"Please use the agent according to the following examples and schema:"
@@ -700,7 +687,7 @@ async def run_agent(
 
         handle_input = _create_input_handler([], splash_screen=splash_screen)
 
-        if ui_type == UiType.chat:
+        if interaction_mode == InteractionMode.multi_turn:
             console.print(f"{user_greeting}\n")
             input = handle_input()
             async with a2a_client(provider.agent_card) as client:
@@ -718,7 +705,7 @@ async def run_agent(
                     console.print()
                     input = handle_input()
 
-        elif ui_type == UiType.hands_off:
+        elif interaction_mode == InteractionMode.single_turn:
             user_greeting = ui_annotations.get("user_greeting", None) or "Enter your instructions."
             console.print(f"{user_greeting}\n")
             input = handle_input()
@@ -779,7 +766,7 @@ async def list_agents():
         Column("Name", style="yellow"),
         Column("State", width=len("starting")),
         Column("Description", ratio=2),
-        Column("UI"),
+        Column("Interaction"),
         Column("Location", max_width=min(max(max_provider_len, len("Location")), 70)),
         Column("Missing Env", max_width=50),
         Column("Last Error", max_width=min(max(max_error_len, len("Last Error")), 50)),
@@ -804,7 +791,7 @@ async def list_agents():
                     },
                 ),
                 (provider.agent_card.description or "<none>").replace("\n", " "),
-                (provider.detail or {}).get("ui_type") or "<none>",
+                (provider.detail or {}).get("interaction_mode") or "<none>",
                 provider.short_location or "<none>",
                 missing_env or "<none>",
                 provider.last_error or "<none>",

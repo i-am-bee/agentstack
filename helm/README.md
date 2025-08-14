@@ -29,7 +29,8 @@ features:
 # this requires passing an admin password to certain endpoints, you can disable auth for insecure deployments
 auth:
   enabled: true
-  admin_password: "my-secret-password"
+  adminPassword: "my-secret-password"
+  jwtSecretKey: "my-secret-key"
 ```
 
 Then install the chart using

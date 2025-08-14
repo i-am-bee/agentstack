@@ -24,12 +24,16 @@ export function runDuration(ms: number) {
   return duration;
 }
 
-export const parseJsonLikeString = (string: string): unknown | string => {
+export function parseJsonLikeString(string: string): string {
   try {
     const json = JSON5.parse(string);
 
-    return json;
+    if (typeof json === 'string') {
+      return json;
+    }
+
+    return JSON.stringify(json, null, 2);
   } catch {
     return string;
   }
-};
+}

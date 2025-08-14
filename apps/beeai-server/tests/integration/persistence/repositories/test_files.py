@@ -5,7 +5,6 @@ import uuid
 from typing import Any
 
 import pytest
-import pytest_asyncio
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
@@ -29,7 +28,7 @@ async def create_user(db_transaction: AsyncConnection, user_id: uuid.UUID):
     )
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def test_user_id(db_transaction) -> uuid.UUID:
     """Create a test user for use in tests."""
     user_id = uuid.uuid4()
@@ -37,7 +36,7 @@ async def test_user_id(db_transaction) -> uuid.UUID:
     return user_id
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def test_file(test_user_id: uuid.UUID) -> File:
     """Create a test file for use in tests."""
     return File(
@@ -58,7 +57,7 @@ def db_file_for(user_id: uuid.UUID, filename: str = "test_file.txt", file_size_b
     }
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def db_test_file(db_transaction: AsyncConnection, test_user_id: uuid.UUID) -> dict[str, Any]:
     # Create file data
     file_data = db_file_for(test_user_id)
@@ -79,7 +78,7 @@ async def test_create_file(db_transaction: AsyncConnection, test_file: File):
     repository = SqlAlchemyFileRepository(connection=db_transaction)
 
     # Create file
-    await repository.create(test_file)
+    await repository.create(file=test_file)
 
     # Verify file was created
     result = await db_transaction.execute(text("SELECT * FROM files WHERE id = :id"), {"id": test_file.id})
@@ -143,7 +142,7 @@ async def test_delete_file(db_transaction: AsyncConnection, test_file: File):
     repository = SqlAlchemyFileRepository(connection=db_transaction)
 
     # Create file
-    await repository.create(test_file)
+    await repository.create(file=test_file)
 
     # Verify file was created
     result = await db_transaction.execute(text("SELECT * FROM files WHERE id = :id"), {"id": test_file.id})
@@ -163,7 +162,7 @@ async def test_delete_file_by_user(db_transaction: AsyncConnection, test_file: F
     repository = SqlAlchemyFileRepository(connection=db_transaction)
 
     # Create file
-    await repository.create(test_file)
+    await repository.create(file=test_file)
 
     # Verify file was created
     result = await db_transaction.execute(text("SELECT * FROM files WHERE id = :id"), {"id": test_file.id})
@@ -171,7 +170,8 @@ async def test_delete_file_by_user(db_transaction: AsyncConnection, test_file: F
 
     # Try to delete file with wrong user
     other_user_id = uuid.uuid4()
-    await repository.delete(file_id=test_file.id, user_id=other_user_id)
+    with pytest.raises(EntityNotFoundError):
+        await repository.delete(file_id=test_file.id, user_id=other_user_id)
 
     # Verify file still exists (wrong user couldn't delete it)
     result = await db_transaction.execute(text("SELECT * FROM files WHERE id = :id"), {"id": test_file.id})

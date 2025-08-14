@@ -1,6 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-from typing import Literal
+from typing import Annotated, Literal
 
 import fastapi
 import ibm_watsonx_ai
@@ -8,9 +8,11 @@ import ibm_watsonx_ai.foundation_models.embeddings
 import openai
 import openai.types
 import pydantic
+from fastapi import Depends
 from fastapi.concurrency import run_in_threadpool
 
-from beeai_server.api.dependencies import EnvServiceDependency
+from beeai_server.api.dependencies import EnvServiceDependency, RequiresPermissions
+from beeai_server.domain.models.permissions import AuthorizedUser
 
 router = fastapi.APIRouter()
 
@@ -28,9 +30,14 @@ class EmbeddingsRequest(pydantic.BaseModel):
 
 
 @router.post("/embeddings")
-async def create_embedding(env_service: EnvServiceDependency, request: EmbeddingsRequest):
+async def create_embedding(
+    env_service: EnvServiceDependency,
+    request: EmbeddingsRequest,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(embeddings={"*"}))],
+):
     env = await env_service.list_env()
     backend_url = pydantic.HttpUrl(env["EMBEDDING_API_BASE"])
+    assert backend_url.host
 
     if backend_url.host.endswith("api.voyageai.com"):
         # Voyage does not support 'float' value: https://docs.voyageai.com/reference/embeddings-api

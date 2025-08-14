@@ -1,7 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from collections.abc import AsyncIterable
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import timedelta
 
@@ -20,7 +20,7 @@ class DoclingTextExtractionBackend(ITextExtractionBackend):
         self._enabled = config.enabled
 
     @asynccontextmanager
-    async def extract_text(self, *, file_url: AnyUrl, timeout: timedelta | None = None) -> AsyncIterable[AsyncFile]:  # noqa: ASYNC109 (the timeout actually corresponds to docling timeout)
+    async def extract_text(self, *, file_url: AnyUrl, timeout: timedelta | None = None) -> AsyncIterator[AsyncFile]:  # noqa: ASYNC109
         if not self._enabled:
             raise RuntimeError(
                 "Docling extraction backend is not enabled, please check the documentation how to enable it"

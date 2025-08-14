@@ -43,7 +43,7 @@ from beeai_sdk.a2a.extensions import (
 )
 from beeai_sdk.a2a.types import AgentMessage
 from beeai_sdk.server import Server
-from beeai_sdk.server.context import Context
+from beeai_sdk.server.context import RunContext
 from chat.tools.general.current_time import CurrentTimeTool
 from chat.helpers.citations import extract_citations
 from chat.helpers.trajectory import TrajectoryContent
@@ -67,12 +67,8 @@ EventMeta.model_fields["context"].exclude = True
 
 BeeAIInstrumentor().instrument()
 ## TODO: https://github.com/phoenixframework/phoenix/issues/6224
-logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(
-    logging.CRITICAL
-)
-logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(
-    logging.CRITICAL
-)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(logging.CRITICAL)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(logging.CRITICAL)
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +88,7 @@ server = Server()
     default_input_modes=["text", "text/plain"],
     default_output_modes=["text", "text/plain"],
     detail=AgentDetail(
-        ui_type="chat",
+        interaction_mode="multi-turn",
         user_greeting="How can I help you?",
         tools=[
             AgentDetailTool(
@@ -166,15 +162,13 @@ server = Server()
                 """
             ),
             tags=["chat"],
-            examples=[
-                "Please find a room in LA, CA, April 15, 2025, checkout date is april 18, 2 adults"
-            ],
+            examples=["Please find a room in LA, CA, April 15, 2025, checkout date is april 18, 2 adults"],
         )
     ],
 )
 async def chat(
     message: Message,
-    context: Context,
+    context: RunContext,
     trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
     citation: Annotated[CitationExtensionServer, CitationExtensionSpec()],
 ):
@@ -182,9 +176,7 @@ async def chat(
     The agent is an AI-powered conversational system with memory, supporting real-time search, Wikipedia lookups,
     and weather updates through integrated tools.
     """
-    extracted_files = await extract_files(
-        history=messages[context.context_id], incoming_message=message
-    )
+    extracted_files = await extract_files(history=messages[context.context_id], incoming_message=message)
     input = to_framework_message(message)
 
     # Configure tools
@@ -294,9 +286,7 @@ async def chat(
 
         message = AgentMessage(
             text=clean_text,
-            metadata=(
-                citation.citation_metadata(citations=citations) if citations else None
-            ),
+            metadata=(citation.citation_metadata(citations=citations) if citations else None),
         )
         messages[context.context_id].append(message)
         yield message

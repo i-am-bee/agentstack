@@ -7,7 +7,7 @@ import clsx from 'clsx';
 
 import { AgentIcon } from '#modules/runs/components/AgentIcon.tsx';
 
-import { type Agent, SupportedUIType } from '../api/types';
+import { type Agent, InteractionMode } from '../api/types';
 import classes from './AgentHeading.module.scss';
 
 interface Props {
@@ -17,14 +17,14 @@ interface Props {
 export function AgentHeading({ agent }: Props) {
   const {
     name,
-    ui: { ui_type },
+    ui: { interaction_mode },
   } = agent;
 
-  const isChatUi = ui_type === SupportedUIType.Chat;
-  const isHandsOffUi = ui_type === SupportedUIType.HandsOff;
+  const isChatUi = interaction_mode === InteractionMode.MultiTurn;
+  const isHandsOffUi = interaction_mode === InteractionMode.SingleTurn;
 
   return (
-    <h1 className={clsx(classes.root, { [classes[`ui--${ui_type}`]]: ui_type })}>
+    <h1 className={clsx(classes.root, { [classes[`ui--${interaction_mode}`]]: interaction_mode })}>
       <AgentIcon size={isChatUi ? 'xl' : undefined} inverted={isHandsOffUi} />
 
       <span className={classes.name}>{name}</span>

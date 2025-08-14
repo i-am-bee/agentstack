@@ -23,7 +23,7 @@ Getting started:
 
     # use the beeai CLI to setup the environment
     {{- if .Values.auth.enabled }}
-    BEEAI__ADMIN_PASSWORD={{.Values.auth.admin_password}} beeai env setup
+    BEEAI__ADMIN_PASSWORD={{.Values.auth.adminPassword}} beeai env setup
     {{- else}}
     beeai env setup
     {{- end}}

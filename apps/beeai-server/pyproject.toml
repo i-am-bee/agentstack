@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [{ name = "IBM Corp." }]
 requires-python = ">=3.13,<4.0"
 dependencies = [
-    "a2a-sdk~=0.2.11",
+    "a2a-sdk~=0.3.1",
     "aiohttp>=3.11.11",
     "anyio>=4.9.0",
     "asgiref>=3.8.1",
@@ -73,6 +73,7 @@ build-backend = "uv_build"
 source-include = ["src/beeai_server/static"]
 
 [tool.pytest.ini_options]
+asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 markers = ["e2e", "unit", "integration"]
 addopts = "-v --strict-markers"
@@ -106,3 +107,8 @@ lint.ignore = [
     "E501", # line lenght (annyoing)
     "N999", # invalid module name beeai-server (yeah, we use a dash, deal with it)
 ]
+
+[tool.pyright]
+ignore = ["tests/**"]
+venvPath = "."
+venv = ".venv"

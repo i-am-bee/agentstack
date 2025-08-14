@@ -1,18 +1,21 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from typing import Annotated
 from uuid import UUID
 
 import fastapi
 import fastapi.responses
 from a2a.types import AgentCard
-from fastapi import Request
+from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
+from fastapi import Depends, Request
 
 from beeai_server.api.dependencies import (
     A2AProxyServiceDependency,
-    AuthenticatedUserDependency,
     ProviderServiceDependency,
+    RequiresPermissions,
 )
+from beeai_server.domain.models.permissions import AuthorizedUser
 from beeai_server.service_layer.services.a2a import A2AServerResponse
 
 router = fastapi.APIRouter()
@@ -26,13 +29,16 @@ def _to_fastapi(response: A2AServerResponse):
         return fastapi.responses.Response(content=response.content, **common)
 
 
-@router.get("/{provider_id}/.well-known/agent.json")
+@router.get("/{provider_id}" + AGENT_CARD_WELL_KNOWN_PATH)
 async def get_agent_card(
-    provider_id: UUID, request: Request, provider_service: ProviderServiceDependency, _: AuthenticatedUserDependency
+    provider_id: UUID,
+    request: Request,
+    provider_service: ProviderServiceDependency,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}))],
 ) -> AgentCard:
     provider = await provider_service.get_provider(provider_id=provider_id)
     url = str(request.url_for(proxy_request.__name__, provider_id=provider.id, path=""))
-    return provider.agent_card.model_copy(update={"url": url}).model_dump(exclude_none=True, by_alias=True)
+    return provider.agent_card.model_copy(update={"url": url})
 
 
 @router.api_route("/{provider_id}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"])
@@ -41,7 +47,7 @@ async def proxy_request(
     provider_id: UUID,
     request: fastapi.requests.Request,
     a2a_proxy: A2AProxyServiceDependency,
-    _: AuthenticatedUserDependency,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(a2a_proxy={"*"}))],
     path: str = "",
 ):
     client = await a2a_proxy.get_proxy_client(provider_id=provider_id)

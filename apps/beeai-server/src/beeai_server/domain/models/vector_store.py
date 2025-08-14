@@ -27,6 +27,7 @@ class VectorStore(BaseModel):
     last_active_at: AwareDatetime = Field(default_factory=utc_now)
     created_by: UUID
     stats: VectorStoreStats | None = None
+    context_id: UUID | None = None
 
 
 class VectorStoreDocument(BaseModel):
@@ -52,7 +53,7 @@ class DocumentType(StrEnum):
 
 class VectorStoreDocumentInfo(BaseModel):
     id: str
-    usage_bytes: int | None = None
+    usage_bytes: int = None
 
 
 class VectorStoreItem(BaseModel):

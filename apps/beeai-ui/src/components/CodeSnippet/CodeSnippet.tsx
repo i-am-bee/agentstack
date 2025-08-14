@@ -5,6 +5,7 @@
 
 'use client';
 
+import clsx from 'clsx';
 import { type HTMLAttributes, useRef } from 'react';
 
 import { CopyButton } from '#components/CopyButton/CopyButton.tsx';
@@ -15,18 +16,23 @@ import classes from './CodeSnippet.module.scss';
 interface Props extends HTMLAttributes<HTMLElement> {
   forceExpand?: boolean;
   canCopy?: boolean;
+  withBorder?: boolean;
 }
 
-export function CodeSnippet({ forceExpand, canCopy, ...props }: Props) {
+export function CodeSnippet({ forceExpand, canCopy, withBorder, ...props }: Props) {
   const ref = useRef<HTMLElement>(null);
 
-  const code = <code ref={ref} {...props} />;
+  const code = (
+    <pre>
+      <code ref={ref} {...props} />
+    </pre>
+  );
 
   return (
-    <div className={classes.root}>
+    <div className={clsx(classes.root, { [classes.withBorder]: withBorder })}>
       {canCopy && (
         <div className={classes.copyButton}>
-          <CopyButton contentRef={ref} size="sm" />
+          <CopyButton contentRef={ref} size="sm" align="bottom" />
         </div>
       )}
 

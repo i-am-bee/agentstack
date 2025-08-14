@@ -5,7 +5,6 @@ import asyncio
 import collections
 import os
 import textwrap
-import typing
 
 import a2a.server.agent_execution
 import a2a.server.apps
@@ -28,7 +27,7 @@ from beeai_sdk.a2a.extensions.services.llm import LLMServiceExtensionServer
 
 agent_detail_extension_spec = beeai_sdk.a2a.extensions.AgentDetailExtensionSpec(
     params=beeai_sdk.a2a.extensions.AgentDetail(
-        ui_type="chat",
+        interaction_mode="multi-turn",
     )
 )
 
@@ -67,13 +66,11 @@ class ChatAgentExecutor(a2a.server.agent_execution.AgentExecutor):
         )
         self.context_llm: dict[str, dict[str, beeai_sdk.a2a.extensions.LLMFulfillment]] = {}
 
-    @typing.override
     async def cancel(
         self, context: a2a.server.agent_execution.RequestContext, event_queue: a2a.server.events.EventQueue
     ) -> None:
         raise NotImplementedError("Cancelling is not implemented")
 
-    @typing.override
     async def execute(
         self, context: a2a.server.agent_execution.RequestContext, event_queue: a2a.server.events.EventQueue
     ):

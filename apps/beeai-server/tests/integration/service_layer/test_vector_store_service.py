@@ -4,7 +4,6 @@
 from uuid import uuid4
 
 import pytest
-import pytest_asyncio
 
 from beeai_server.bootstrap import setup_database_engine
 from beeai_server.configuration import Configuration, VectorStoresConfiguration
@@ -17,30 +16,30 @@ from beeai_server.service_layer.services.vector_stores import VectorStoreService
 pytestmark = pytest.mark.integration
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def low_limit_config():
     """Create a configuration with a very low storage limit for testing."""
     return Configuration(vector_stores=VectorStoresConfiguration(storage_limit_per_user_bytes=2000))
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def uow_factory(low_limit_config, clean_up):
     return SqlAlchemyUnitOfWorkFactory(setup_database_engine(low_limit_config), low_limit_config)
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def vector_store_service(uow_factory, low_limit_config):
     """Create a VectorStoreService with real transaction behavior."""
     return VectorStoreService(uow_factory, low_limit_config)
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def test_user(uow_factory) -> User:
     async with uow_factory() as uow:
         return await uow.users.get_by_email(email="user@beeai.dev")
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def large_vector_items():
     """Create vector items that will exceed the storage limit."""
     # Create items with large text content and embeddings to quickly exceed 1000 bytes

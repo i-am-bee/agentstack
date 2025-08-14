@@ -10,7 +10,7 @@ import type { Provider } from '#modules/providers/api/types.ts';
 import { SupportedUis } from '#modules/runs/constants.ts';
 import { compareStrings, isNotNull } from '#utils/helpers.ts';
 
-import { type Agent, AGENT_EXTENSION_UI_KEY, type AgentExtension, type UiExtension } from './api/types';
+import { type Agent, AGENT_EXTENSION_URI, type AgentExtension, type UiExtension } from './api/types';
 
 export const getAgentsProgrammingLanguages = (agents: Agent[] | undefined) => {
   return uniq(
@@ -26,13 +26,13 @@ export function sortAgentsByName(a: Agent, b: Agent) {
 }
 
 export function isAgentUiSupported(agent: Agent) {
-  const ui_type = agent.ui?.ui_type;
+  const interaction_mode = agent.ui?.interaction_mode;
 
-  return ui_type && SupportedUis.includes(ui_type);
+  return interaction_mode && SupportedUis.includes(interaction_mode);
 }
 
 function isAgentUiExtension(extension: AgentExtension): extension is UiExtension {
-  return extension.uri === AGENT_EXTENSION_UI_KEY;
+  return extension.uri === AGENT_EXTENSION_URI;
 }
 
 export function buildAgent(provider: Provider): Agent {

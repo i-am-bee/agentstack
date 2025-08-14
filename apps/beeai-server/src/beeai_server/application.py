@@ -15,13 +15,13 @@ from starlette.requests import Request
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 
 from beeai_server.api.routes.a2a import router as a2a_router
+from beeai_server.api.routes.contexts import router as contexts_router
 from beeai_server.api.routes.embeddings import router as embeddings_router
 from beeai_server.api.routes.env import router as env_router
 from beeai_server.api.routes.files import router as files_router
 from beeai_server.api.routes.llm import router as llm_router
 from beeai_server.api.routes.mcp import router as mcp_router
 from beeai_server.api.routes.provider import router as provider_router
-from beeai_server.api.routes.ui import router as ui_router
 from beeai_server.api.routes.user_feedback import router as user_feedback_router
 from beeai_server.api.routes.vector_stores import router as vector_stores_router
 from beeai_server.bootstrap import bootstrap_dependencies_sync
@@ -81,8 +81,8 @@ def mount_routes(app: FastAPI):
     server_router.include_router(provider_router, prefix="/providers", tags=["providers"])
     server_router.include_router(env_router, prefix="/variables", tags=["variables"])
     server_router.include_router(files_router, prefix="/files", tags=["files"])
+    server_router.include_router(contexts_router, prefix="/contexts", tags=["embeddings"])
     server_router.include_router(llm_router, prefix="/llm", tags=["llm"])
-    server_router.include_router(ui_router, prefix="/ui", tags=["ui"])
     server_router.include_router(embeddings_router, prefix="/llm", tags=["embeddings"])
     server_router.include_router(vector_stores_router, prefix="/vector_stores", tags=["vector_stores"])
     server_router.include_router(user_feedback_router, prefix="/user_feedback", tags=["user_feedback"])

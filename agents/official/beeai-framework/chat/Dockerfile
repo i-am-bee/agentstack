@@ -1,13 +1,6 @@
 FROM python:3.13-slim-bookworm
 ARG RELEASE_VERSION="main"
-
-# TODO: temporary git for beeai-sdk git dependency
-RUN apt-get update && \
-    apt-get install -y git && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-COPY --from=ghcr.io/astral-sh/uv:0.6.16 /uv /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.8.9 /uv /bin/
 WORKDIR /agents/official/beeai-framework/chat
 COPY ./agents/official/beeai-framework/chat/ ./
 COPY ./apps/beeai-sdk/ /apps/beeai-sdk/

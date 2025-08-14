@@ -6,7 +6,6 @@ import uuid
 from datetime import timedelta
 
 import pytest
-import pytest_asyncio
 from a2a.types import AgentCapabilities, AgentCard
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
@@ -27,7 +26,7 @@ def set_di_configuration(override_global_dependency):
         yield
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def test_provider(set_di_configuration) -> Provider:
     """Create a test provider for use in tests."""
     return Provider(

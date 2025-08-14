@@ -7,6 +7,7 @@ from datetime import timedelta
 
 import anyio
 import httpx
+from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from kink import inject
 from procrastinate import Blueprint
 from pydantic import RootModel
@@ -97,7 +98,7 @@ if get_configuration().provider.auto_remove_enabled:
                 timeout_sec = timedelta(seconds=30).total_seconds()
                 with anyio.fail_after(delay=timeout_sec):
                     async with httpx.AsyncClient(base_url=str(provider.source.root), timeout=timeout_sec) as client:
-                        resp = await client.get(".well-known/agent.json")
+                        resp = await client.get(AGENT_CARD_WELL_KNOWN_PATH)
                         resp.raise_for_status()
             except Exception as ex:
                 logger.error(f"Provider {provider.id} failed to respond to ping in 30 seconds: {extract_messages(ex)}")

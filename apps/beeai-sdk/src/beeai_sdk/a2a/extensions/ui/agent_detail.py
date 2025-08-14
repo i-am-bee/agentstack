@@ -23,7 +23,7 @@ class AgentDetailContributor(pydantic.BaseModel):
 
 
 class AgentDetail(pydantic.BaseModel, extra="allow"):
-    ui_type: str | None = pydantic.Field("chat", examples=["chat", "hands-off"])
+    interaction_mode: str | None = pydantic.Field("multi-turn", examples=["multi-turn", "single-turn"])
     user_greeting: str | None = None
     tools: list[AgentDetailTool] | None = None
     framework: str | None = None

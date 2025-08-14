@@ -15,7 +15,7 @@ interface Props {
 }
 
 export function UiNotAvailableView({ agent }: Props) {
-  const { ui_type } = agent.ui;
+  const { interaction_mode } = agent.ui;
 
   return (
     <MainContent>
@@ -23,8 +23,8 @@ export function UiNotAvailableView({ agent }: Props) {
         <AgentHeading agent={agent} />
 
         <p className={classes.description}>
-          {ui_type
-            ? `The UI type requested by the agent is not available: '${ui_type}'`
+          {interaction_mode
+            ? `The UI type requested by the agent is not available: '${interaction_mode}'`
             : 'The agent doesn’t have a defined UI type.'}
         </p>
       </Container>

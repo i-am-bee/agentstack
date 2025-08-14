@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import inspect
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Callable
+from contextlib import asynccontextmanager
 from inspect import isclass
 from typing import Annotated, Any, Generic, get_args, get_origin
 
@@ -12,7 +13,7 @@ from typing_extensions import Doc
 
 from beeai_sdk.a2a.extensions import BaseExtensionSpec
 from beeai_sdk.a2a.extensions.base import BaseExtensionServer, ExtensionSpecT, MetadataFromClientT
-from beeai_sdk.server.context import Context
+from beeai_sdk.server.context import RunContext
 
 fastapi.Depends()
 
@@ -24,7 +25,7 @@ class Depends(Generic[ExtensionSpecT, MetadataFromClientT]):
     def __init__(
         self,
         dependency: Annotated[
-            Callable[[Message, Context], Any] | BaseExtensionServer[ExtensionSpecT, MetadataFromClientT],
+            Callable[[Message, RunContext], Any] | BaseExtensionServer[ExtensionSpecT, MetadataFromClientT],
             Doc(
                 """
                 A "dependable" callable (like a function).
@@ -37,8 +38,16 @@ class Depends(Generic[ExtensionSpecT, MetadataFromClientT]):
         if isinstance(dependency, BaseExtensionServer):
             self.extension = dependency
 
-    def __call__(self, message: Message, context: Context) -> Any:
+    def __call__(self, message: Message, context: RunContext) -> Any:
         return self._dependency_callable(message, context)
+
+    @asynccontextmanager
+    async def lifespan(self) -> AsyncIterator[None]:
+        if self.extension:
+            async with self.extension.lifespan():
+                yield
+        else:
+            yield
 
 
 def extract_dependencies(sign: inspect.Signature) -> dict[str, Depends]:
@@ -64,7 +73,7 @@ def extract_dependencies(sign: inspect.Signature) -> dict[str, Depends]:
             if param.annotation == Message:
                 dependencies[name] = Depends(lambda message, _context: message)
             # context: Context
-            elif param.annotation == Context:
+            elif param.annotation == RunContext:
                 dependencies[name] = Depends(lambda _message, context: context)
             # extension: BaseExtensionServer = BaseExtensionSpec()
             # TODO: this does not get past linters, should we enable it or somehow fix the typing?

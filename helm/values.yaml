@@ -17,7 +17,10 @@ unmanagedProviders: [ ]
 externalRegistries: { }
 
 auth:
-  admin_password: ""
+  # admin_password: "" - deprecated, use adminPassword instead
+
+  adminPassword: ""
+  jwtSecretKey: ""
   enabled: true # Warning, disable only for local deployments
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
@@ -231,14 +234,14 @@ agent:
     port: 8000
   livenessProbe:
     httpGet:
-      path: /.well-known/agent.json
+      path: /.well-known/agent-card.json
       port: 8000
     initialDelaySeconds: 1
     periodSeconds: 3
     timeoutSeconds: 2
   readinessProbe:
     httpGet:
-      path: /.well-known/agent.json
+      path: /.well-known/agent-card.json
       port: 8000
     initialDelaySeconds: 1
     periodSeconds: 3
@@ -419,7 +422,7 @@ docling:
 
 ## MCP Context Forge configuration
 forge:
-  image: ghcr.io/i-am-bee/mcp-context-forge:0.5.1
+  image: ghcr.io/i-am-bee/mcp-context-forge:0.5.2
   service:
     type: ClusterIP
     port: 4444
@@ -432,7 +435,7 @@ forge:
     DATABASE_URL: "sqlite:////data/forge.db"
   storage:
     storage: 256Mi
-    storageClass: null
+    storageClass: local-path
   volumeMounts:
     - name: forge-storage
       mountPath: /data

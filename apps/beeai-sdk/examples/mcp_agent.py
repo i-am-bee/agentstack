@@ -10,7 +10,7 @@ from mcp import ClientSession
 from beeai_sdk.a2a.extensions.services.mcp import MCPServiceExtensionServer, MCPServiceExtensionSpec
 from beeai_sdk.a2a.types import RunYield
 from beeai_sdk.server import Server
-from beeai_sdk.server.context import Context
+from beeai_sdk.server.context import RunContext
 
 server = Server()
 
@@ -18,7 +18,7 @@ server = Server()
 @server.agent()
 async def mcp_agent(
     message: Message,
-    context: Context,
+    context: RunContext,
     mcp: Annotated[
         MCPServiceExtensionServer,
         MCPServiceExtensionSpec.single_demand(),

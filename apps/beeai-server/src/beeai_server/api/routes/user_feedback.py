@@ -1,10 +1,17 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import fastapi
+from typing import Annotated
 
-from beeai_server.api.dependencies import AuthenticatedUserDependency, UserFeedbackServiceDependency
+import fastapi
+from fastapi import Depends
+
+from beeai_server.api.dependencies import (
+    RequiresPermissions,
+    UserFeedbackServiceDependency,
+)
 from beeai_server.api.schema.user_feedback import InsertUserFeedbackRequest
+from beeai_server.domain.models.permissions import AuthorizedUser
 
 router = fastapi.APIRouter()
 
@@ -13,7 +20,7 @@ router = fastapi.APIRouter()
 async def user_feedback(
     request: InsertUserFeedbackRequest,
     user_feedback_service: UserFeedbackServiceDependency,
-    user: AuthenticatedUserDependency,
+    user: Annotated[AuthorizedUser, Depends(RequiresPermissions(feedback={"write"}))],
 ) -> None:
     await user_feedback_service.create_user_feedback(
         provider_id=request.provider_id,
@@ -23,5 +30,5 @@ async def user_feedback(
         comment=request.comment,
         comment_tags=request.comment_tags,
         message=request.message,
-        user=user,
+        user=user.user,
     )

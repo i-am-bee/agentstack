@@ -67,15 +67,20 @@ class AgentRegistryConfiguration(BaseModel):
 
 
 class AuthConfiguration(BaseModel):
-    admin_password: Secret[str] | None = Field(default=None)
+    admin_password: Secret[str] | None = None
+    jwt_secret_key: Secret[str] | None = None
     disable_auth: bool = False
 
     @model_validator(mode="after")
     def validate_auth(self):
         if self.disable_auth:
             logger.critical("Authentication is disabled! This is suitable only for local (desktop) deployment.")
+            self.admin_password = self.admin_password or Secret("dummy-admin-password")
+            self.jwt_secret_key = self.jwt_secret_key or Secret("dummy-secret-key")
             return self
-        if self.admin_password is None:
+        if not self.jwt_secret_key:
+            raise ValueError("JWT secret key must be provided if authentication is enabled")
+        if not self.admin_password:
             raise ValueError("Admin password must be provided if authentication is enabled")
         return self
 
@@ -100,27 +105,18 @@ class ObjectStorageConfiguration(BaseModel):
 class PersistenceConfiguration(BaseModel):
     db_url: Secret[AnyUrl] = Secret(AnyUrl("postgresql+asyncpg://beeai-user:password@postgresql:5432/beeai"))
     encryption_key: Secret[str] | None = None
-    finished_requests_remove_after_sec: int = timedelta(minutes=30).total_seconds()
-    stale_requests_remove_after_sec: int = timedelta(hours=1).total_seconds()
-    vector_db_schema: str = Field("vector_db", pattern=r"^[a-zA-Z0-9_]+$")
-    procrastinate_schema: str = Field("procrastinate", pattern=r"^[a-zA-Z0-9_]+$")
+    finished_requests_remove_after_sec: int = int(timedelta(minutes=30).total_seconds())
+    stale_requests_remove_after_sec: int = int(timedelta(hours=1).total_seconds())
+    vector_db_schema: str = Field(default="vector_db", pattern=r"^[a-zA-Z0-9_]+$")
+    procrastinate_schema: str = Field(default="procrastinate", pattern=r"^[a-zA-Z0-9_]+$")
 
 
 class VectorStoresConfiguration(BaseModel):
-    expire_after_days: int = 7  # Number of days after which a vector store is considered expired
     storage_limit_per_user_bytes: int = 1 * (1024 * 1024 * 1024)  # 1GiB
 
 
 class TelemetryConfiguration(BaseModel):
     collector_url: AnyUrl = AnyUrl("http://otel-collector-svc:4318")
-
-
-class UIFeatureFlags(BaseModel):
-    user_navigation: bool = Field(default=True)
-
-
-class FeatureFlagsConfiguration(BaseModel):
-    ui: UIFeatureFlags = UIFeatureFlags()
 
 
 class DockerConfigJsonAuth(BaseModel, extra="allow"):
@@ -137,7 +133,7 @@ class ManagedProviderConfiguration(BaseModel):
     auto_remove_enabled: bool = False
     manifest_template_dir: Path | None = None
     self_registration_use_local_network: bool = Field(
-        False,
+        default=False,
         description="Which network to use for self-registered providers - should be False when running in cluster",
     )
 
@@ -146,7 +142,11 @@ class DoclingExtractionConfiguration(BaseModel):
     backend: Literal["docling"] = "docling"
     enabled: bool = False
     docling_service_url: str = "http://docling-serve:15001"
-    processing_timeout_sec: int = timedelta(minutes=5).total_seconds()
+    processing_timeout_sec: int = int(timedelta(minutes=5).total_seconds())
+
+
+class ContextConfiguration(BaseModel):
+    resource_expire_after_days: int = 7  # Expires files and vector_stores attached to a context
 
 
 class Configuration(BaseSettings):
@@ -165,11 +165,11 @@ class Configuration(BaseSettings):
     object_storage: ObjectStorageConfiguration = Field(default_factory=ObjectStorageConfiguration)
     vector_stores: VectorStoresConfiguration = Field(default_factory=VectorStoresConfiguration)
     text_extraction: DoclingExtractionConfiguration = Field(default_factory=DoclingExtractionConfiguration)
+    context: ContextConfiguration = Field(default_factory=ContextConfiguration)
     k8s_namespace: str | None = None
     k8s_kubeconfig: Path | None = None
 
     provider: ManagedProviderConfiguration = Field(default_factory=ManagedProviderConfiguration)
-    feature_flags: FeatureFlagsConfiguration = Field(default_factory=FeatureFlagsConfiguration)
 
     platform_service_url: str = "beeai-platform-svc:8333"
     port: int = 8333

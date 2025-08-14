@@ -12,6 +12,7 @@ from ssl import CERT_NONE
 from typing import IO, Any
 from urllib.parse import urljoin
 
+import httpx
 import uvicorn
 import uvicorn.config as uvicorn_config
 from a2a.server.agent_execution import RequestContextBuilder
@@ -21,7 +22,6 @@ from a2a.types import AgentExtension
 from fastapi import FastAPI
 from fastapi.applications import AppType
 from httpx import AsyncClient, HTTPError, HTTPStatusError
-from sse_starlette.sse import AppStatus
 from starlette.types import Lifespan
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_attempt, wait_exponential
 
@@ -37,6 +37,7 @@ class Server:
     def __init__(self) -> None:
         self._agent: Agent | None = None
         self.server: uvicorn.Server | None = None
+        self._self_registration_client_factory: Callable[[], httpx.AsyncClient] | None = None
 
     @functools.wraps(agent_decorator)
     def agent(*args, **kwargs) -> Callable:
@@ -109,16 +110,16 @@ class Server:
         headers: list[tuple[str, str]] | None = None,
         factory: bool = False,
         h11_max_incomplete_event_size: int | None = None,
+        self_registration_client_factory: Callable[[], httpx.AsyncClient] | None = None,
     ) -> None:
         if self.server:
             raise RuntimeError("The server is already running")
         if not self._agent:
             raise ValueError("Agent is not registered")
 
-        # This is a global loop-bound event that would break the application
-        # if it's run a second time in a different loop
-        # https://github.com/sysid/sse-starlette/issues/140
-        AppStatus.should_exit_event = None
+        self._self_registration_client = (
+            self_registration_client_factory() if self_registration_client_factory else None
+        )
 
         if headers is None:
             headers = [("server", "a2a")]
@@ -237,23 +238,26 @@ class Server:
         logger.info("Registering agent to the beeai platform")
         try:
             envs = {}
-            async with AsyncClient(base_url=urljoin(url, "/api/v1/")) as client:
+            async with self._self_registration_client or AsyncClient() as client:
                 async for attempt in AsyncRetrying(
                     stop=stop_after_attempt(10),
                     wait=wait_exponential(max=10),
                     retry=retry_if_exception_type(HTTPError),
                     reraise=True,
                 ):
+                    base_url = "" if str(client.base_url) else urljoin(url, "/api/v1/")
                     with attempt:
-                        resp = await client.get("providers")
+                        resp = await client.get(urljoin(base_url, "providers"))
                         resp.raise_for_status()
 
-                        resp = await client.post("providers", json=request_data, params={"auto_remove": True})
+                        resp = await client.post(
+                            urljoin(base_url, "providers"), json=request_data, params={"auto_remove": True}
+                        )
                         resp.raise_for_status()
 
                         logger.debug("Agent registered to the beeai server.")
 
-                        env_resp = await client.get("variables")
+                        env_resp = await client.get(urljoin(base_url, "variables"))
                         envs_request = env_resp.raise_for_status().json()
 
                         envs = envs_request.get("env")

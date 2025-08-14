@@ -8,7 +8,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
 
 import { TextAreaAutoHeight } from '#components/TextAreaAutoHeight/TextAreaAutoHeight.tsx';
-import { SupportedUIType } from '#modules/agents/api/types.ts';
+import { InteractionMode } from '#modules/agents/api/types.ts';
 import { FileUploadButton } from '#modules/files/components/FileUploadButton.tsx';
 import { useFileUpload } from '#modules/files/contexts/index.ts';
 import { dispatchInputEventOnTextarea, submitFormOnEnter } from '#utils/form-utils.ts';
@@ -35,7 +35,7 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
 
   const {
     agent: {
-      ui: { ui_type: uiType },
+      ui: { interaction_mode },
     },
     isPending,
     run,
@@ -43,7 +43,7 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
   } = useAgentRun();
   const { isPending: isFileUploadPending, isDisabled: isFileUploadDisabled } = useFileUpload();
 
-  const isChatUi = uiType === SupportedUIType.Chat;
+  const isChatUi = interaction_mode === InteractionMode.MultiTurn;
 
   const form = useForm<RunAgentFormValues>({
     mode: 'onChange',

@@ -6,14 +6,14 @@ from __future__ import annotations
 from types import NoneType
 
 import pydantic
-from a2a.types import Part
+from a2a.types import DataPart, FilePart, Part, TextPart
 
 from beeai_sdk.a2a.extensions.base import (
     BaseExtensionClient,
     BaseExtensionServer,
     NoParamsBaseExtensionSpec,
 )
-from beeai_sdk.a2a.types import AgentMessage
+from beeai_sdk.a2a.types import AgentMessage, Metadata
 
 
 class Trajectory(pydantic.BaseModel):
@@ -45,13 +45,13 @@ class TrajectoryExtensionSpec(NoParamsBaseExtensionSpec):
 
 
 class TrajectoryExtensionServer(BaseExtensionServer[TrajectoryExtensionSpec, NoneType]):
-    def trajectory_metadata(self, *, title: str | None = None, content: str | None = None) -> dict[str, Trajectory]:
-        return {self.spec.URI: Trajectory(title=title, content=content)}
+    def trajectory_metadata(self, *, title: str | None = None, content: str | None = None) -> Metadata[str, Trajectory]:
+        return Metadata({self.spec.URI: Trajectory(title=title, content=content)})
 
     def message(
         self,
         text: str | None = None,
-        parts: list[Part] | None = None,
+        parts: list[Part | TextPart | FilePart | DataPart] | None = None,
         trajectory_title: str | None = None,
         trajectory_content: str | None = None,
     ) -> AgentMessage:

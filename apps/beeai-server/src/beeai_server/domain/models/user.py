@@ -11,6 +11,7 @@ from beeai_server.utils.utils import utc_now
 
 class UserRole(StrEnum):
     admin = "admin"
+    developer = "developer"
     user = "user"
 
 

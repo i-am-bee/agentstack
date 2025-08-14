@@ -6,29 +6,28 @@ from textwrap import dedent
 from typing import Any, AsyncIterator
 import uuid
 
-from a2a.client import A2AClient
+from a2a.client import ClientConfig, ClientFactory
 from a2a.types import (
     AgentCard,
     AgentSkill,
     Artifact,
     DataPart,
     Message,
-    MessageSendParams,
     Role,
-    SendStreamingMessageRequest,
     TaskArtifactUpdateEvent,
     TaskStatusUpdateEvent,
     TextPart,
     Part,
     TaskStatus,
-    SendStreamingMessageSuccessResponse,
-    JSONRPCErrorResponse,
     TaskState,
+    Task,
 )
 import yaml
 from pydantic import Field, BaseModel
 
+import httpx
 from beeai_sdk.a2a.extensions import AgentDetail
+from beeai_sdk.platform import Metadata
 from beeai_sdk.server import Server
 
 
@@ -67,7 +66,7 @@ server = Server()
     detail=AgentDetail(
         license="Apache 2.0",
         framework="ACP",
-        ui_type="playground",
+        interaction_mode="playground",
         use_cases=[
             "**Complex Text Processing**: Ideal for tasks that require multiple stages of processing, such as summarization followed by sentiment analysis.",
             "**Automated Workflows**: Suitable for automated content processing pipelines that leverage multiple AI models.",
@@ -117,7 +116,6 @@ async def sequential_workflow(steps_message: Message) -> AsyncIterator:
 
     base_url = f"{os.getenv('PLATFORM_URL', 'http://localhost:8333').rstrip('/')}/api/v1/"
     current_step = None
-    import httpx
 
     async with httpx.AsyncClient(base_url=base_url) as client:
         providers = await client.get("providers")
@@ -134,31 +132,30 @@ async def sequential_workflow(steps_message: Message) -> AsyncIterator:
             current_step = step
             async with httpx.AsyncClient() as http_client:
                 agent_card = AgentCard.model_validate(providers_by_id[step.provider_id]["agent_card"])
-                client = A2AClient(httpx_client=http_client, agent_card=agent_card)
+                client = ClientFactory(ClientConfig(httpx_client=http_client)).create(card=agent_card)
                 agent_name = agent_card.name
 
-                yield {
-                  "beeai-sequential-workflow" : {
-                    "agent_name": agent_name,
-                    "provider_id": step.provider_id,
-                    "agent_idx": idx,
-                    "message": f"✅ Agent {agent_name}[{idx}] started processing",
-                }}
+                yield Metadata(
+                    {
+                        "beeai-sequential-workflow": {
+                            "agent_name": agent_name,
+                            "provider_id": step.provider_id,
+                            "agent_idx": idx,
+                            "message": f"✅ Agent {agent_name}[{idx}] started processing",
+                        }
+                    }
+                )
 
                 message = Message(
                     role=Role.user,
                     message_id=str(uuid.uuid4()),
                     parts=[Part(root=TextPart(text=format_agent_input(step.instruction, previous_output)))],
                 )
-                previous_output = ""
-                async for event in client.send_message_streaming(
-                    SendStreamingMessageRequest(id=str(uuid.uuid4()), params=MessageSendParams(message=message)),
-                ):
-                    match event.root:
-                        case SendStreamingMessageSuccessResponse(
-                            result=TaskStatusUpdateEvent(
-                                status=TaskStatus(message=Message(parts=parts, metadata=metadata))
-                            )
+                previous_output = ""  # TODO
+                async for event in client.send_message(message):
+                    match event:
+                        case Task(), (
+                            TaskStatusUpdateEvent(status=TaskStatus(message=Message(parts=parts, metadata=metadata)))
                             | TaskArtifactUpdateEvent(artifact=Artifact(parts=parts, metadata=metadata))
                         ):
                             for part in parts:
@@ -167,22 +164,21 @@ async def sequential_workflow(steps_message: Message) -> AsyncIterator:
                                         previous_output += text
                                     case DataPart(data=data):
                                         previous_output += yaml.dump(data, allow_unicode=True)
-                            yield event.root.result
-                        case SendStreamingMessageSuccessResponse(
-                            result=TaskStatusUpdateEvent(status=TaskStatus(state=TaskState.failed, message=message))
-                        ):
+                            yield event[1]
+                        case Task(), TaskStatusUpdateEvent(status=TaskStatus(state=TaskState.failed, message=message)):
                             parts = message.parts if message else []
                             text_part = [part.root for part in parts if isinstance(part.root, TextPart)]
                             raise RuntimeError(text_part[0].text if text_part else "Unknown error")
-
-                        case JSONRPCErrorResponse(error=error):
-                            raise RuntimeError(error.message)
-                yield {
-                    "provider_id": step.provider_id,
-                    "agent_name": agent_name,
-                    "agent_idx": idx,
-                    "message": f"✅ Agent {agent_name}[{idx}] finished successfully",
-                }
+                yield Metadata(
+                    {
+                        "beeai-sequential-workflow": {
+                            "provider_id": step.provider_id,
+                            "agent_name": agent_name,
+                            "agent_idx": idx,
+                            "message": f"✅ Agent {agent_name}[{idx}] finished successfully",
+                        }
+                    }
+                )
     except Exception as e:
         step_msg = f"{agent_name}[{idx}] - " if current_step else ""
         raise RuntimeError(f"{step_msg}{extract_messages(e)}")
