@@ -8,6 +8,8 @@ import NextAuth, { type DefaultSession } from 'next-auth';
 import type { Provider } from 'next-auth/providers';
 import Credentials from 'next-auth/providers/credentials';
 
+import { ProviderList } from '#app/auth/providers/providerlist.ts';
+
 let provider_list: {
   id: string;
   name: string;
@@ -28,7 +30,6 @@ if (!process.env.NEXT__DISABLE_OIDC) {
     console.error(parse_err);
   }
 }
-import IBM from '#app/auth/providers/ibm.ts';
 
 declare module 'next-auth' {
   /**
@@ -64,9 +65,11 @@ const providers: Provider[] = [
 ];
 
 if (process.env.NEXTAUTH_SECRET) {
+  const pList = new ProviderList();
   for (const prov of provider_list) {
+    const pClass = pList.getProviderByName(prov.name);
     providers.push(
-      IBM({
+      pClass({
         id: prov.id,
         name: prov.name,
         type: prov.type,
