@@ -12,6 +12,7 @@ import pydantic
 from mcp.client.stdio import StdioServerParameters, stdio_client
 from mcp.client.streamable_http import streamablehttp_client
 
+from beeai_sdk.a2a.extensions.auth.oauth.oauth import OAuthExtensionServer
 from beeai_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 
 _TRANSPORT_TYPES = Literal["streamable_http", "stdio"]
@@ -31,7 +32,7 @@ class StdioTransport(pydantic.BaseModel):
 class StreamableHTTPTransport(pydantic.BaseModel):
     type: Literal["streamable_http"] = "streamable_http"
 
-    url: str
+    url: pydantic.AnyHttpUrl
 
 
 MCPTransport = Annotated[StdioTransport | StreamableHTTPTransport, pydantic.Field(discriminator="type")]
@@ -104,6 +105,12 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
                     raise ValueError(f'Transport "{fulfillment.transport.type}" not allowed for demand "{name}"')
         return metadata
 
+    def _get_oauth_server(self):
+        for dependency in self._dependencies.values():
+            if isinstance(dependency, OAuthExtensionServer):
+                return dependency
+        return None
+
     @asynccontextmanager
     async def create_client(self, demand: str = _DEFAULT_DEMAND_NAME):
         fulfillment = self.data.mcp_fulfillments.get(demand) if self.data else None
@@ -122,7 +129,15 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
             ):
                 yield (read, write)
         elif isinstance(transport, StreamableHTTPTransport):
-            async with streamablehttp_client(url=transport.url) as (read, write, _):
+            oauth = self._get_oauth_server()
+            async with streamablehttp_client(
+                url=str(transport.url),
+                auth=await oauth.create_httpx_auth(resource_url=transport.url) if oauth else None,
+            ) as (
+                read,
+                write,
+                _,
+            ):
                 yield (read, write)
         else:
             raise NotImplementedError("Unsupported transport")

@@ -214,7 +214,7 @@ def agent(
                 dependency_args = {}
                 for pname, depends in dependencies.items():
                     # call dependencies with the first message and initialize their lifespan
-                    dependency_args[pname] = await stack.enter_async_context(depends(message, context))
+                    dependency_args[pname] = await stack.enter_async_context(depends(message, context, dependency_args))
 
                 async def agent_generator():
                     yield_queue = context._yield_queue

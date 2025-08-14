@@ -16,6 +16,7 @@ import asyncclick.exceptions
 import httpx
 import yaml
 from a2a.types import CancelTaskRequest, TaskIdParams
+from pydantic import AnyHttpUrl
 
 import beeai_sdk.a2a.extensions.services.llm
 
@@ -82,7 +83,7 @@ async def cli(base_url: str, context_id: str) -> None:
                                 # Demonstration only: we ignore the asks and just configure BeeAI proxy for everything
                                 key: beeai_sdk.a2a.extensions.services.mcp.MCPFulfillment(
                                     transport=beeai_sdk.a2a.extensions.services.mcp.StreamableHTTPTransport(
-                                        url="http://localhost:8333/mcp",
+                                        url=AnyHttpUrl("http://localhost:8333/mcp"),
                                     ),
                                 )
                                 for key in mcp_spec.params.mcp_demands
