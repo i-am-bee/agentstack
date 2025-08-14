@@ -77,7 +77,12 @@ if (process.env.NEXTAUTH_SECRET) {
         clientId: prov.client_id,
         clientSecret: prov.client_secret,
         redirectProxyUrl: prov.nextauth_redirect_proxy_url,
-        account(account) {
+        account(account: {
+          refresh_token_expires_in: string;
+          access_token: string;
+          expires_at: string;
+          refresh_token: string;
+        }) {
           const refresh_token_expires_at = Math.floor(Date.now() / 1000) + Number(account.refresh_token_expires_in);
           return {
             access_token: account.access_token,
