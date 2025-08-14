@@ -7,11 +7,9 @@ from uuid import uuid4
 import pytest
 from a2a.types import (
     Message,
-    MessageSendParams,
     Part,
     Role,
-    SendMessageRequest,
-    SendMessageSuccessResponse,
+    TaskState,
     TextPart,
 )
 from beeai_sdk.platform import Provider
@@ -19,8 +17,9 @@ from beeai_sdk.platform import Provider
 
 @pytest.mark.e2e
 @pytest.mark.asyncio
+@pytest.mark.skip("TODO: temporary skip until beeai-sdk with 0.3.0 is at least merged to main")
 @pytest.mark.usefixtures("clean_up", "setup_real_llm", "setup_platform_client")
-async def test_agent(subtests, a2a_client_factory):
+async def test_agent(subtests, a2a_client_factory, get_final_task_from_stream):
     agent_image = "ghcr.io/i-am-bee/beeai-platform-agent-starter/my-agent-a2a:latest"
     with subtests.test("add chat agent"):
         _ = await Provider.create(location=agent_image)
@@ -37,31 +36,22 @@ async def test_agent(subtests, a2a_client_factory):
                     parts=[Part(root=TextPart(text="Repeat this exactly: 'hello world'"))],
                     role=Role.user,
                 )
-                response = await a2a_client.send_message(
-                    SendMessageRequest(id=str(uuid4()), params=MessageSendParams(message=message))
-                )
+                response = await get_final_task_from_stream(a2a_client.send_message(message))
 
                 # Verify response
-                assert isinstance(response.root, SendMessageSuccessResponse)
-                assert "hello world" in response.root.result.parts[0].root.text
+                assert response.status.state == TaskState.completed
+                assert "hello world" in response.history[-1].parts[0].root.text
 
                 # Run 3 requests in parallel (test that each request waits)
                 run_results = await asyncio.gather(
-                    *(
-                        a2a_client.send_message(
-                            SendMessageRequest(id=str(uuid4()), params=MessageSendParams(message=message))
-                        )
-                        for _ in range(num_parallel)
-                    )
+                    *(get_final_task_from_stream(a2a_client.send_message(message)) for _ in range(num_parallel))
                 )
 
                 for response in run_results:
-                    assert isinstance(response.root, SendMessageSuccessResponse)
-                    assert "hello world" in response.root.result.parts[0].root.text
+                    assert response.status.state == TaskState.completed
+                    assert "hello world" in response.history[-1].parts[0].root.text
 
             with subtests.test("run chat agent for the second time"):
-                response = await a2a_client.send_message(
-                    SendMessageRequest(id=str(uuid4()), params=MessageSendParams(message=message))
-                )
-                assert isinstance(response.root, SendMessageSuccessResponse)
-                assert "hello world" in response.root.result.parts[0].root.text
+                response = await get_final_task_from_stream(a2a_client.send_message(message))
+                assert response.status.state == TaskState.completed
+                assert "hello world" in response.history[-1].parts[0].root.text

@@ -19,6 +19,7 @@ from uuid import UUID
 import anyio
 import kr8s
 import yaml
+from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from httpx import AsyncClient, HTTPError
 from jinja2 import Template
 from kr8s.asyncio.objects import Deployment, Pod, Secret, Service
@@ -187,7 +188,7 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
                     async with AsyncClient(
                         base_url=str(await self.get_provider_url(provider_id=provider_id))
                     ) as client:
-                        resp = await client.get(".well-known/agent.json", timeout=2)
+                        resp = await client.get(AGENT_CARD_WELL_KNOWN_PATH, timeout=2)
                         resp.raise_for_status()
 
     async def state(self, *, provider_ids: list[UUID]) -> list[ProviderDeploymentState]:

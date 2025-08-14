@@ -6,7 +6,7 @@ from __future__ import annotations
 from types import NoneType
 
 import pydantic
-from a2a.types import Part
+from a2a.types import DataPart, FilePart, Part, TextPart
 
 from beeai_sdk.a2a.extensions.base import (
     BaseExtensionClient,
@@ -68,7 +68,7 @@ class CitationExtensionServer(BaseExtensionServer[CitationExtensionSpec, NoneTyp
     def message(
         self,
         text: str | None = None,
-        parts: list[Part] | None = None,
+        parts: list[Part | TextPart | FilePart | DataPart] | None = None,
         *,
         citations: list[Citation],
     ) -> AgentMessage:

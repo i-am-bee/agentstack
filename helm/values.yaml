@@ -220,14 +220,14 @@ agent:
     port: 8000
   livenessProbe:
     httpGet:
-      path: /.well-known/agent.json
+      path: /.well-known/agent-card.json
       port: 8000
     initialDelaySeconds: 1
     periodSeconds: 3
     timeoutSeconds: 2
   readinessProbe:
     httpGet:
-      path: /.well-known/agent.json
+      path: /.well-known/agent-card.json
       port: 8000
     initialDelaySeconds: 1
     periodSeconds: 3

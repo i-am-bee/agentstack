@@ -6,7 +6,7 @@ from __future__ import annotations
 from types import NoneType
 
 import pydantic
-from a2a.types import Part
+from a2a.types import DataPart, FilePart, Part, TextPart
 
 from beeai_sdk.a2a.extensions.base import (
     BaseExtensionClient,
@@ -51,7 +51,7 @@ class TrajectoryExtensionServer(BaseExtensionServer[TrajectoryExtensionSpec, Non
     def message(
         self,
         text: str | None = None,
-        parts: list[Part] | None = None,
+        parts: list[Part | TextPart | FilePart | DataPart] | None = None,
         trajectory_title: str | None = None,
         trajectory_content: str | None = None,
     ) -> AgentMessage:

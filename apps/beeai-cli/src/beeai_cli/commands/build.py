@@ -5,6 +5,7 @@ import base64
 import hashlib
 import json
 import re
+import sys
 import typing
 import uuid
 from contextlib import suppress
@@ -13,6 +14,7 @@ from datetime import timedelta
 import anyio
 import anyio.abc
 import typer
+from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from anyio import open_process
 from httpx import AsyncClient, HTTPError
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, wait_fixed
@@ -78,7 +80,7 @@ async def build(
                             with attempt:
                                 async with AsyncClient() as client:
                                     resp = await client.get(
-                                        f"http://localhost:{port}/.well-known/agent.json", timeout=1
+                                        f"http://localhost:{port}{AGENT_CARD_WELL_KNOWN_PATH}", timeout=1
                                     )
                                     resp.raise_for_status()
                                     agent_card = resp.json()
@@ -117,8 +119,12 @@ async def build(
         )
         console.print(f"✅ Successfully built agent: {tag}")
         if import_image:
-            from beeai_cli.commands.platform import import_image
+            from beeai_cli.commands.platform import get_driver
 
-            await import_image(tag, vm_name=vm_name)
+            driver = get_driver(vm_name=vm_name)
+            if (await driver.status()) != "running":
+                console.print("[red]BeeAI platform is not running.[/red]")
+                sys.exit(1)
+            await driver.import_image(tag)
 
         return tag, agent_card

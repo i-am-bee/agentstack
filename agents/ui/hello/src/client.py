@@ -5,10 +5,9 @@ from collections.abc import AsyncGenerator
 import httpx
 from a2a.client import A2ACardResolver, A2AClient
 from a2a.types import (
-    SendStreamingMessageRequest,
-    MessageSendParams,
     TaskStatusUpdateEvent,
     SendStreamingMessageSuccessResponse,
+    Message,
 )
 from pydantic import BaseModel
 
@@ -45,16 +44,14 @@ async def run_stream() -> AsyncGenerator[str, str]:
         card = await resolver.get_agent_card()
         client = A2AClient(httpx_client, agent_card=card)
 
-        result_generator = client.send_message_streaming(
-            SendStreamingMessageRequest(
-                id="foobar",
-                params=MessageSendParams(
-                    message={
-                        "role": "user",
-                        "parts": [{"kind": "text", "text": "How are you??"}],
-                        "messageId": "bazbar",
-                    }
-                ),
+        # TODO not working after a2a 0.3.0 update
+        result_generator = client.send_message(
+            Message.model_validate(
+                {
+                    "role": "user",
+                    "parts": [{"kind": "text", "text": "How are you??"}],
+                    "messageId": "bazbar",
+                }
             )
         )
         async for result in result_generator:

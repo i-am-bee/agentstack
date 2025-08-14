@@ -281,6 +281,17 @@ class Executor(AgentExecutor):
         assert current_task
         cancellation_task = asyncio.create_task(self._watch_for_cancellation(task_updater.task_id, current_task))
 
+        def with_context(message: Message | None = None) -> Message | None:
+            if message is None:
+                return None
+            if message.task_id and message.task_id != task_updater.task_id:
+                raise ValueError("Message must have the same task_id as the task")
+            if message.context_id and message.context_id != task_updater.context_id:
+                raise ValueError("Message must have the same context_id as the task")
+            return message.model_copy(
+                deep=True, update={"context_id": task_updater.context_id, "task_id": task_updater.task_id}
+            )
+
         async with self._agent_executor_span(task_updater, context) as execute_fn:
             agent_generator_fn = execute_fn()
 
@@ -306,22 +317,13 @@ class Executor(AgentExecutor):
                                 TaskState.working,
                                 message=task_updater.new_agent_message(parts=[Part(root=FilePart(file=file))]),
                             )
-                        case Message(context_id=context_id, task_id=task_id):
-                            new_msg = yielded_value.model_copy(
-                                deep=True,
-                                update={
-                                    "context_id": context_id or task_updater.context_id,
-                                    "task_id": task_id or task_updater.task_id,
-                                },
-                            )
-                            if new_msg.context_id != task_updater.context_id or new_msg.task_id != task_updater.task_id:
-                                raise ValueError("Message must have the same context_id and task_id as the task")
-                            await task_updater.update_status(TaskState.working, message=new_msg)
+                        case Message() as message:
+                            await task_updater.update_status(TaskState.working, message=with_context(message))
                         case ArtifactChunk(
                             parts=parts, artifact_id=artifact_id, name=name, metadata=metadata, last_chunk=last_chunk
                         ):
                             await task_updater.add_artifact(
-                                parts=parts,
+                                parts=cast(list[Part], parts),
                                 artifact_id=artifact_id,
                                 name=name,
                                 metadata=metadata,
@@ -339,22 +341,24 @@ class Executor(AgentExecutor):
                                 append=False,
                             )
                         case TaskStatus(state=TaskState.input_required, message=message, timestamp=timestamp):
-                            await task_updater.requires_input(message=message, final=True)
+                            await task_updater.requires_input(message=with_context(message), final=True)
                             value = cast(RunYieldResume, await resume_queue.dequeue_event())
                             resume_queue.task_done()
                             continue
                         case TaskStatus(state=TaskState.auth_required, message=message, timestamp=timestamp):
-                            await task_updater.requires_auth(message=message, final=True)
+                            await task_updater.requires_auth(message=with_context(message), final=True)
                             value = cast(RunYieldResume, await resume_queue.dequeue_event())
                             resume_queue.task_done()
                             continue
                         case TaskStatus(state=state, message=message, timestamp=timestamp):
-                            await task_updater.update_status(state=state, message=message, timestamp=timestamp)
+                            await task_updater.update_status(
+                                state=state, message=with_context(message), timestamp=timestamp
+                            )
                         case TaskStatusUpdateEvent(
                             status=TaskStatus(state=state, message=message, timestamp=timestamp), final=final
                         ):
                             await task_updater.update_status(
-                                state=state, message=message, timestamp=timestamp, final=final
+                                state=state, message=with_context(message), timestamp=timestamp, final=final
                             )
                         case TaskArtifactUpdateEvent(
                             artifact=Artifact(artifact_id=artifact_id, name=name, metadata=metadata, parts=parts),

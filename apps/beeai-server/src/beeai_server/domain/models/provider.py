@@ -12,6 +12,7 @@ from typing import Any
 from uuid import UUID
 
 from a2a.types import AgentCard
+from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from httpx import AsyncClient
 from kink import di, inject
 from pydantic import (
@@ -90,7 +91,7 @@ class NetworkProviderLocation(RootModel):
 
         async with AsyncClient() as client:
             try:
-                response = await client.get(f"{str(self.root).rstrip('/')}/.well-known/agent.json", timeout=1)
+                response = await client.get(f"{str(self.root).rstrip('/')}{AGENT_CARD_WELL_KNOWN_PATH}", timeout=1)
                 response.raise_for_status()
                 return AgentCard.model_validate(response.json())
             except Exception as ex:

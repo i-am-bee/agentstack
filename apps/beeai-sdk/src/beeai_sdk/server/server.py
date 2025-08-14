@@ -22,7 +22,6 @@ from a2a.types import AgentExtension
 from fastapi import FastAPI
 from fastapi.applications import AppType
 from httpx import AsyncClient, HTTPError, HTTPStatusError
-from sse_starlette.sse import AppStatus
 from starlette.types import Lifespan
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_attempt, wait_exponential
 
@@ -121,11 +120,6 @@ class Server:
         self._self_registration_client = (
             self_registration_client_factory() if self_registration_client_factory else None
         )
-
-        # This is a global loop-bound event that would break the application
-        # if it's run a second time in a different loop
-        # https://github.com/sysid/sse-starlette/issues/140
-        AppStatus.should_exit_event = None
 
         if headers is None:
             headers = [("server", "a2a")]

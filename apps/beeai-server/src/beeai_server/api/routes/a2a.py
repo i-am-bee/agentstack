@@ -7,6 +7,7 @@ from uuid import UUID
 import fastapi
 import fastapi.responses
 from a2a.types import AgentCard
+from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from fastapi import Depends, Request
 
 from beeai_server.api.dependencies import (
@@ -28,7 +29,7 @@ def _to_fastapi(response: A2AServerResponse):
         return fastapi.responses.Response(content=response.content, **common)
 
 
-@router.get("/{provider_id}/.well-known/agent.json")
+@router.get("/{provider_id}" + AGENT_CARD_WELL_KNOWN_PATH)
 async def get_agent_card(
     provider_id: UUID,
     request: Request,
