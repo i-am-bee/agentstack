@@ -11,10 +11,11 @@ interface Props {
   contentRef: RefObject<HTMLElement | null>;
   kind?: IconButtonProps['kind'];
   size?: IconButtonProps['size'];
+  align?: IconButtonProps['align'];
   wrapperClasses?: IconButtonProps['wrapperClasses'];
 }
 
-export function CopyButton({ contentRef, kind = 'ghost', size = 'md', wrapperClasses }: Props) {
+export function CopyButton({ contentRef, kind = 'ghost', size = 'md', align, wrapperClasses }: Props) {
   const [copied, setCopied] = useState(false);
 
   const handleClick = useCallback(() => {
@@ -38,6 +39,7 @@ export function CopyButton({ contentRef, kind = 'ghost', size = 'md', wrapperCla
       label="Copy"
       kind={kind}
       size={size}
+      align={align}
       onClick={handleClick}
       disabled={copied}
       wrapperClasses={wrapperClasses}

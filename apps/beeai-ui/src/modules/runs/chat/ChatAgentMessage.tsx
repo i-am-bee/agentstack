@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import clsx from 'clsx';
 import { useRef, useState } from 'react';
 import { useFocusWithin, useHover } from 'react-aria';
 
@@ -37,7 +36,7 @@ export function ChatAgentMessage({ message }: Props) {
   const showActions = !isPending && (isHovered || isFocusWithin);
 
   return (
-    <div {...hoverProps} {...focusWithinProps} className={clsx(classes.root, { [classes.showActions]: showActions })}>
+    <div {...hoverProps} {...focusWithinProps} className={classes.root}>
       {isPending ? (
         <Spinner center />
       ) : (

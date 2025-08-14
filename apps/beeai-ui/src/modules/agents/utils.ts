@@ -10,7 +10,7 @@ import type { Provider } from '#modules/providers/api/types.ts';
 import { SupportedUis } from '#modules/runs/constants.ts';
 import { compareStrings, isNotNull } from '#utils/helpers.ts';
 
-import { type Agent, AGENT_EXTENSION_UI_KEY, type AgentExtension, type UiExtension } from './api/types';
+import { type Agent, AGENT_EXTENSION_URI, type AgentExtension, type UiExtension } from './api/types';
 
 export const getAgentsProgrammingLanguages = (agents: Agent[] | undefined) => {
   return uniq(
@@ -32,7 +32,7 @@ export function isAgentUiSupported(agent: Agent) {
 }
 
 function isAgentUiExtension(extension: AgentExtension): extension is UiExtension {
-  return extension.uri === AGENT_EXTENSION_UI_KEY;
+  return extension.uri === AGENT_EXTENSION_URI;
 }
 
 export function buildAgent(provider: Provider): Agent {

@@ -22,6 +22,5 @@
 }
 
 .content {
-  @include type-style(body-01);
   margin-block-start: -$spacing-02;
 }

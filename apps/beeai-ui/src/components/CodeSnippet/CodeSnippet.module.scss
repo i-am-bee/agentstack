@@ -9,6 +9,10 @@
   padding: $spacing-05;
   border-radius: $border-radius;
   position: relative;
+
+  &.withBorder {
+    border: 1px solid $border-subtle-00;
+  }
 }
 
 .copyButton {

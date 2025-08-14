@@ -41,12 +41,9 @@ export interface UIExtensionParams {
   contributors?: AgentContributor[];
 }
 
-/**
- * TODO: figure out how this play with A2AClient to keep that colocated and properly encapsulated
- */
-export const AGENT_EXTENSION_UI_KEY = 'https://a2a-extensions.beeai.dev/ui/agent-detail/v1';
+export const AGENT_EXTENSION_URI = 'https://a2a-extensions.beeai.dev/ui/agent-detail/v1';
 export interface UiExtension extends AgentExtension {
-  uri: 'https://a2a-extensions.beeai.dev/ui/agent-detail/v1';
+  uri: typeof AGENT_EXTENSION_URI;
   params: UIExtensionParams & { [key: string]: unknown };
 }
 
