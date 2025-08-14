@@ -6,6 +6,7 @@
 'use client';
 import { LogoPython, Plug, Rocket, SettingsAdjust, Unlocked, WorkflowAutomation } from '@carbon/icons-react';
 import { Theme, useTheme } from '@i-am-bee/beeai-ui';
+import { useIsClient } from 'usehooks-ts';
 
 import { FRAMEWORK_QUICKSTART_LINK } from '@/constants';
 import { LayoutContainer } from '@/layouts/LayoutContainer';
@@ -19,6 +20,7 @@ import classes from './Framework.module.scss';
 
 export function Framework() {
   const { theme } = useTheme();
+  const isClient = useIsClient();
 
   return (
     <section className={classes.root} id="framework">
@@ -32,9 +34,11 @@ export function Framework() {
             inverse
           />
 
-          <div className={classes.graphics}>
-            {theme === Theme.Light ? <FrameworkGraphicsLight /> : <FrameworkGraphicsDark />}
-          </div>
+          {isClient && (
+            <div className={classes.graphics}>
+              {theme === Theme.Light ? <FrameworkGraphicsLight /> : <FrameworkGraphicsDark />}
+            </div>
+          )}
         </TwoColumnGrid>
 
         <div className={classes.features}>
