@@ -48,7 +48,7 @@ declare module 'next-auth/jwt' {
     id_token?: string;
   }
 }
-// TODO: the providers env vars should come from a secret whos data is JSON and mounted in fs and loaded via import as json
+// The providers come from a secret "oidc-providers" whos data is JSON and mounted in fs and loaded via import as json
 const providers: Provider[] = [
   Credentials({
     credentials: { password: { label: 'Password', type: 'password' } },
