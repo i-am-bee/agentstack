@@ -200,7 +200,7 @@ async def test_context_scoped_file_access(subtests):
             subtests.test("cannot access context 1 file content using context 2 client"),
             pytest.raises(httpx.HTTPStatusError, match="404 Not Found|403 Forbidden"),
         ):
-            async with File.load_content(file_id_1, client=client_2) as content:
+            async with File.load_content(file_id_1, client=client_2):
                 ...
 
         # Verify file cannot be deleted from different context using wrong client

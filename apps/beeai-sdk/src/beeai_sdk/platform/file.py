@@ -101,6 +101,7 @@ class File(pydantic.BaseModel):
     async def load_content(
         self: File | str,
         *,
+        stream: bool = False,
         client: PlatformClient | None = None,
         context_id: str | None | Literal["auto"] = "auto",
     ) -> AsyncIterator[LoadedFile]:
@@ -109,18 +110,21 @@ class File(pydantic.BaseModel):
         platform_client = client or get_platform_client()
         context_id = platform_client.context_id if context_id == "auto" else context_id
 
-        file = await File.get(file_id)  # get metadata
+        file = await File.get(file_id, client=client, context_id=context_id) if isinstance(self, str) else self
 
         async with platform_client.stream(
             "GET", url=f"/api/v1/files/{file_id}/content", params=context_id and {"context_id": context_id}
         ) as response:
             response.raise_for_status()
+            if not stream:
+                await response.aread()
             yield LoadedFileWithUri(response=response, filename=file.filename)
 
     @asynccontextmanager
     async def load_text_content(
         self: File | str,
         *,
+        stream: bool = False,
         client: PlatformClient | None = None,
         context_id: str | None | Literal["auto"] = "auto",
     ) -> AsyncIterator[LoadedFile]:
@@ -129,7 +133,7 @@ class File(pydantic.BaseModel):
         platform_client = client or get_platform_client()
         context_id = platform_client.context_id if context_id == "auto" else context_id
 
-        file = await File.get(file_id)  # get metadata
+        file = await File.get(file_id, client=client, context_id=context_id) if isinstance(self, str) else self
 
         async with platform_client.stream(
             "GET",
@@ -137,6 +141,8 @@ class File(pydantic.BaseModel):
             params=context_id and {"context_id": context_id},
         ) as response:
             response.raise_for_status()
+            if not stream:
+                await response.aread()
             yield LoadedFileWithUri(response=response, filename=file.filename)
 
     async def create_extraction(

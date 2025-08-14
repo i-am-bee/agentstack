@@ -236,14 +236,12 @@ async def load_file(
                     file_id = url.host
                     assert file_id
 
-                    async with File.load_content(file_id) as file:
+                    async with File.load_content(file_id, stream=stream) as file:
                         # override filename and content_type from part
                         if filename:
                             file.filename = filename
                         if content_type:
                             file.content_type = content_type
-                        if not stream:
-                            await file.aread()
                         yield file
                 case HttpUrl():
                     async with AsyncExitStack() as stack:

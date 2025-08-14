@@ -23,7 +23,7 @@ from a2a.types import (
 from tenacity import AsyncRetrying, stop_after_attempt, wait_fixed
 
 from beeai_sdk.a2a.extensions.ui.agent_detail import AgentDetail
-from beeai_sdk.a2a.types import ArtifactChunk, RunYield, RunYieldResume
+from beeai_sdk.a2a.types import ArtifactChunk, InputRequired, RunYield, RunYieldResume
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import RunContext
 
@@ -97,7 +97,7 @@ async def awaiter(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AC
     async def awaiter(message: Message, context: RunContext) -> AsyncGenerator[TaskStatus | str, Message]:
         # Agent that requires input
         yield "Processing initial message..."
-        resume_message = yield FilePart(file=FileWithBytes(bytes="", mime_type="text/plain"))
+        resume_message = yield InputRequired(text="need input")
         yield f"Received resume: {resume_message.parts[0].root.text if resume_message.parts else 'empty'}"
 
     async with create_server_with_agent(awaiter) as (server, test_client):

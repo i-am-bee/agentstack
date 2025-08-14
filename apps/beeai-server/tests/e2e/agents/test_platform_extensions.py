@@ -27,9 +27,9 @@ async def file_reader_writer(create_server_with_agent) -> AsyncGenerator[tuple[S
     ) -> AsyncIterator[RunYield]:
         for part in message.parts:
             match part.root:
-                case FilePart():
-                    async with load_file(part.root, stream=True) as file:
-                        async for chunk in file.aiter_text(chunk_size=5):
+                case FilePart() as fp:
+                    async with load_file(fp, stream=True) as open_file:
+                        async for chunk in open_file.aiter_text(chunk_size=5):
                             yield chunk
 
         file = await File.create(filename="1.txt", content=message.context_id.encode(), content_type="text/plain")

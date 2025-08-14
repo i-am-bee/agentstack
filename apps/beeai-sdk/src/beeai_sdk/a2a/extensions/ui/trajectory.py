@@ -13,7 +13,7 @@ from beeai_sdk.a2a.extensions.base import (
     BaseExtensionServer,
     NoParamsBaseExtensionSpec,
 )
-from beeai_sdk.a2a.types import AgentMessage
+from beeai_sdk.a2a.types import AgentMessage, Metadata
 
 
 class Trajectory(pydantic.BaseModel):
@@ -45,8 +45,8 @@ class TrajectoryExtensionSpec(NoParamsBaseExtensionSpec):
 
 
 class TrajectoryExtensionServer(BaseExtensionServer[TrajectoryExtensionSpec, NoneType]):
-    def trajectory_metadata(self, *, title: str | None = None, content: str | None = None) -> dict[str, Trajectory]:
-        return {self.spec.URI: Trajectory(title=title, content=content)}
+    def trajectory_metadata(self, *, title: str | None = None, content: str | None = None) -> Metadata[str, Trajectory]:
+        return Metadata({self.spec.URI: Trajectory(title=title, content=content)})
 
     def message(
         self,

@@ -13,7 +13,7 @@ from beeai_sdk.a2a.extensions.base import (
     BaseExtensionServer,
     NoParamsBaseExtensionSpec,
 )
-from beeai_sdk.a2a.types import AgentMessage
+from beeai_sdk.a2a.types import AgentMessage, Metadata
 
 
 class Citation(pydantic.BaseModel):
@@ -62,8 +62,8 @@ class CitationExtensionServer(BaseExtensionServer[CitationExtensionSpec, NoneTyp
         self,
         *,
         citations: list[Citation],
-    ) -> dict[str, CitationMetadata]:
-        return {self.spec.URI: CitationMetadata(citations=citations)}
+    ) -> Metadata[str, CitationMetadata]:
+        return Metadata({self.spec.URI: CitationMetadata(citations=citations)})
 
     def message(
         self,
