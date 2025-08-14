@@ -79,15 +79,26 @@ initContainers:
 
 oidc:
   enabled: true
-  admin_emails: <array_of_admin_emails_comma_seperated>
-  client_id: <your_idp_client_id>
-  client_secret: <your_idp_client_secret>
-  issuer: <your_idp_issuer>
-  jwks_url: <your_idp_jwks_url>
+  discovery_url: "<odic_discovery_url>"
+  admin_emails: "<commana_separated_list_of_email_addresses>"
   nextauth_trust_host: true
-  nextauth_url: https://beeai-platform.api.testing:8336
-  nextauth_redirect_proxy_url: https://beeai-platform.api.testing:8336
-  nextauth_secret: <your_auth_secret>
+  nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
+  providers_path: "/providers"
+  nextauth_url: "http://localhost:8334"
+  nextauth_providers: [
+    {
+      "name": "w3id",
+      "id": "w3id",
+      "type": "oidc",
+      "class": "IBM",
+      "client_id": "<oidc_client_id>",
+      "client_secret": "<oidc_client_secret>",
+      "issuer": "<oidc_issuer>",
+      "jwks_url": "<oidc_jwks_url>",
+      "nextauth_url": "http://localhost:8334",
+      "nextauth_redirect_proxy_url": "http://localhost:8334"
+    }
+  ]
 
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
