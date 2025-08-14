@@ -3,10 +3,12 @@
 
 import abc
 import importlib.resources
+import shlex
 import typing
 from subprocess import CompletedProcess
 
 import anyio
+import pydantic
 import yaml
 
 from beeai_cli.configuration import Configuration
@@ -28,7 +30,7 @@ class BaseDriver(abc.ABC):
     ) -> CompletedProcess[bytes]: ...
 
     @abc.abstractmethod
-    async def status(self) -> str | None: ...
+    async def status(self) -> typing.Literal["running"] | str | None: ...
 
     @abc.abstractmethod
     async def create_vm(self) -> None: ...
@@ -84,26 +86,23 @@ class BaseDriver(abc.ABC):
             ).encode("utf-8"),
         )
 
-        rendered_yaml = (
+        images_str = (
             await self.run_in_vm(
                 [
-                    "helm",
-                    "template",
-                    "beeai",
-                    "/tmp/beeai/chart.tgz",
-                    "--values=/tmp/beeai/values.yaml",
-                    *(f"--set={value}" for value in set_values_list),
+                    "/bin/bash",
+                    "-c",
+                    "helm template beeai /tmp/beeai/chart.tgz --values=/tmp/beeai/values.yaml "
+                    + " ".join(shlex.quote(f"--set={value}") for value in set_values_list)
+                    + " | sed -n '/^\\s*image:/{ /{{/!{ s/.*image:\\s*//p } }'",
                 ],
-                "Rendering Helm chart",
+                "Listing necessary images",
             )
         ).stdout.decode()
         for image in import_images or []:
             await self.import_image(image)
-        for image in {
-            typing.cast(str, yaml.safe_load(line.strip().removeprefix("image:").strip()))
-            for line in rendered_yaml.splitlines()
-            if line.strip().startswith("image:") and "{{" not in line
-        } - set(import_images or []):
+        for image in {typing.cast(str, yaml.safe_load(line)) for line in images_str.splitlines()} - set(
+            import_images or []
+        ):
             await self.run_in_vm(
                 [
                     "k3s",
@@ -125,7 +124,7 @@ class BaseDriver(abc.ABC):
                 "--namespace=default",
                 "--create-namespace",
                 "--values=/tmp/beeai/values.yaml",
-                "--timeout=1h0m0s",
+                "--timeout=1m",
                 "--wait",
                 "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
                 *(f"--set={value}" for value in set_values_list),
@@ -149,3 +148,27 @@ class BaseDriver(abc.ABC):
                 )
             ).stdout.decode()
         )
+
+    async def version(self) -> str | None:
+        if (await self.status()) != "running":
+            return None
+        HelmStatus = typing.TypedDict("HelmStatus", {"status": str, "app_version": str})
+        helm_status = pydantic.TypeAdapter(list[HelmStatus]).validate_json(
+            (
+                await self.run_in_vm(
+                    [
+                        "/usr/local/bin/helm",
+                        "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+                        "ls",
+                        "--namespace=default",
+                        "--filter=^beeai$",
+                        "-o",
+                        "json",
+                    ],
+                    "Getting BeeAI platform version",
+                )
+            ).stdout
+        )
+        if helm_status[0]["status"] != "deployed":
+            return None
+        return helm_status[0]["app_version"]

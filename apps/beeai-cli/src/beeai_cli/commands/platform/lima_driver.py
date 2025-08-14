@@ -49,7 +49,7 @@ class LimaDriver(BaseDriver):
         )
 
     @typing.override
-    async def status(self) -> str | None:
+    async def status(self) -> typing.Literal["running"] | str | None:
         try:
             result = await run_command(
                 [self.limactl_exe, "--tty=false", "list", "--format=json"],

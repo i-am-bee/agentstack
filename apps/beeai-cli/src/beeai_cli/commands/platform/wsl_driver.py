@@ -32,7 +32,7 @@ class WSLDriver(BaseDriver):
         )
 
     @typing.override
-    async def status(self) -> str | None:
+    async def status(self) -> typing.Literal["running"] | str | None:
         try:
             for status, cmd in [("running", ["--running"]), ("stopped", [])]:
                 result = await run_command(
