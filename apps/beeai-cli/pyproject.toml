@@ -17,7 +17,7 @@ dependencies = [
     "jsonref~=1.1.0",
     "inquirerpy~=0.3.4",
     "psutil~=7.0.0",
-    "a2a-sdk>=0.2.16",
+    "a2a-sdk~=0.3.1",
     "tenacity~=9.1.2",
     "typer~=0.16.0",
     "pyyaml>=6.0.2",
@@ -45,24 +45,24 @@ source-include = ["src/beeai_cli/data"]
 line-length = 120
 target-version = "py313"
 lint.select = [
-    "E",     # pycodestyle errors
-    "W",     # pycodestyle warnings
-    "F",     # pyflakes
-    "UP",    # pyupgrade
-    "I",     # isort
-    "B",     # bugbear
-    "N",     # pep8-naming
-    "C4",    # Comprehensions
-    "Q",     # Quotes
-    "SIM",   # Simplify
-    "RUF",   # Ruff
-    "TID",   # tidy-imports
+    "E", # pycodestyle errors
+    "W", # pycodestyle warnings
+    "F", # pyflakes
+    "UP", # pyupgrade
+    "I", # isort
+    "B", # bugbear
+    "N", # pep8-naming
+    "C4", # Comprehensions
+    "Q", # Quotes
+    "SIM", # Simplify
+    "RUF", # Ruff
+    "TID", # tidy-imports
     "ASYNC", # async
-# TODO: add "DTZ",   # DatetimeZ
-# TODO: add "ANN",   # annotations
+    # TODO: add "DTZ",   # DatetimeZ
+    # TODO: add "ANN",   # annotations
 ]
 lint.ignore = [
-    "E501",  # line lenght (annyoing)
+    "E501", # line lenght (annyoing)
     "UP013", # update TypedDict to longer syntax -- not necessary
 ]
 force-exclude = true
@@ -72,3 +72,5 @@ force-exclude = true
 include = ["."]
 typeCheckingMode = "recommended"
 reportUnusedCallResult = false
+venvPath = "."
+venv = ".venv"

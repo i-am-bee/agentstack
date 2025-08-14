@@ -7,13 +7,15 @@ from contextlib import asynccontextmanager
 
 import httpx
 import pytest
-from a2a.client import A2AClient
+from a2a.client import Client, ClientFactory
+from a2a.types import AgentCard
+from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from beeai_sdk.server import Server
 from tenacity import AsyncRetrying, stop_after_attempt, wait_fixed
 
 
 @asynccontextmanager
-async def run_server(server: Server, port: int) -> AsyncGenerator[tuple[Server, A2AClient]]:
+async def run_server(server: Server, port: int) -> AsyncGenerator[tuple[Server, Client]]:
     async with asyncio.TaskGroup() as tg:
         tg.create_task(
             asyncio.to_thread(
@@ -30,9 +32,12 @@ async def run_server(server: Server, port: int) -> AsyncGenerator[tuple[Server, 
                         raise ConnectionError("Server hasn't started yet")
                     base_url = f"http://localhost:{port}"
                     async with httpx.AsyncClient(timeout=None) as httpx_client:
-                        client = await A2AClient.get_client_from_agent_card_url(
-                            httpx_client=httpx_client, base_url=base_url
-                        )
+                        from a2a.client import ClientConfig
+
+                        card_resp = await httpx_client.get(base_url + AGENT_CARD_WELL_KNOWN_PATH)
+                        card_resp.raise_for_status()
+                        card = AgentCard.model_validate(card_resp.json())
+                        client = ClientFactory(ClientConfig(httpx_client=httpx_client)).create(card)
                         yield server, client
         finally:
             server.should_exit = True

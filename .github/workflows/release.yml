@@ -51,7 +51,7 @@ jobs:
           success=0
           for i in {1..30}; do
             echo "Extracting manifest: attempt $i"
-            response=$(curl http://localhost:8000/.well-known/agent.json 2>/dev/null) && success=1 && break
+            response=$(curl http://localhost:8000/.well-known/agent-card.json 2>/dev/null) && success=1 && break
             sleep 0.5
           done
           [[ "$success" == 1 ]] || (echo "Failed to discover agents" && exit 1)

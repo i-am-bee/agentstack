@@ -12,7 +12,7 @@ from typing import Any
 
 import httpx
 import psutil
-from a2a.client import A2AClient
+from a2a.client import Client, ClientConfig, ClientFactory
 from a2a.types import AgentCard
 from httpx import BasicAuth, HTTPStatusError
 from httpx._types import RequestFiles
@@ -105,6 +105,6 @@ async def api_stream(
 
 
 @asynccontextmanager
-async def a2a_client(agent_card: AgentCard) -> AsyncIterator[A2AClient]:
+async def a2a_client(agent_card: AgentCard) -> AsyncIterator[Client]:
     async with httpx.AsyncClient() as httpx_client:
-        yield A2AClient(httpx_client=httpx_client, agent_card=agent_card)
+        yield ClientFactory(ClientConfig(httpx_client=httpx_client)).create(card=agent_card)

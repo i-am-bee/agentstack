@@ -1,6 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+import logging
 from typing import Annotated
 from uuid import UUID
 
@@ -35,6 +36,8 @@ UserServiceDependency = Annotated[UserService, Depends(lambda: di[UserService])]
 VectorStoreServiceDependency = Annotated[VectorStoreService, Depends(lambda: di[VectorStoreService])]
 UserFeedbackServiceDependency = Annotated[UserFeedbackService, Depends(lambda: di[UserFeedbackService])]
 
+logger = logging.getLogger(__name__)
+
 
 async def authorized_user(
     user_service: UserServiceDependency,
@@ -58,7 +61,10 @@ async def authorized_user(
                 token_context_id=parsed_token.context_id,
             )
         except PyJWTError:
-            raise NotImplementedError("Oauth is not implemented yet.") from None
+            if not configuration.auth.disable_auth:
+                raise NotImplementedError("Oauth is not implemented yet.") from None
+            # TODO: update agents
+            logger.warning("Bearer token is invalid, agent is not probably not using llm extension correctly")
 
     if configuration.auth.disable_auth or (
         basic_auth and basic_auth.password == configuration.auth.admin_password.get_secret_value()

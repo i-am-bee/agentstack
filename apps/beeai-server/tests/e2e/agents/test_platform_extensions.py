@@ -5,8 +5,8 @@ from typing import Annotated
 from uuid import uuid4
 
 import pytest
-from a2a.client import A2AClient
-from a2a.types import FilePart, Message, MessageSendParams, Role, SendMessageRequest, TaskState
+from a2a.client import Client
+from a2a.types import FilePart, Message, Role, TaskState
 from beeai_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionClient,
     PlatformApiExtensionServer,
@@ -20,7 +20,7 @@ from beeai_sdk.util.file import load_file
 
 
 @pytest.fixture
-async def file_reader_writer(create_server_with_agent) -> AsyncGenerator[tuple[Server, A2AClient]]:
+async def file_reader_writer(create_server_with_agent) -> AsyncGenerator[tuple[Server, Client]]:
     async def file_reader_writer(
         message: Message,
         _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
@@ -49,7 +49,7 @@ async def file_reader_writer(create_server_with_agent) -> AsyncGenerator[tuple[S
     ],
 )
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
-async def test_platform_api_extension(subtests, file_reader_writer, permissions, should_fail):
+async def test_platform_api_extension(file_reader_writer, permissions, should_fail, get_final_task_from_stream):
     server, client = file_reader_writer
 
     # create context and token
@@ -71,23 +71,21 @@ async def test_platform_api_extension(subtests, file_reader_writer, permissions,
     )
 
     # send message
-    resp = await client.send_message(SendMessageRequest(id=1, params=MessageSendParams(message=message)))
+    task = await get_final_task_from_stream(client.send_message(message))
 
     if should_fail:
-        assert resp.root.result.status.state == TaskState.failed
-        assert "403 Forbidden" in resp.root.result.status.message.parts[0].root.text
+        assert task.status.state == TaskState.failed
+        assert "403 Forbidden" in task.status.message.parts[0].root.text
     else:
-        assert resp.root.result.status.state == TaskState.completed, (
-            f"Fail: {resp.root.result.status.message.parts[0].root.text}"
-        )
+        assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
 
         # check that first message is the content of the first_file
-        first_message_text = resp.root.result.history[1].parts[0].root.text
+        first_message_text = task.history[0].parts[0].root.text
         assert first_message_text == "01234"
 
-        second_message_text = resp.root.result.history[2].parts[0].root.text
+        second_message_text = task.history[1].parts[0].root.text
         assert second_message_text == "56789"
 
         # check that the agent uploaded a new file with correct context_id as content
-        async with load_file(resp.root.result.history[3].parts[0].root) as file:
+        async with load_file(task.history[2].parts[0].root) as file:
             assert file.text == context.id

@@ -127,7 +127,8 @@ async def cli(base_url: str, context_id: str) -> None:
                 task_completed = False
 
                 if card.capabilities.streaming:
-                    response_stream = client.send_message_streaming(
+                    # TODO Update to new A2A client streaming
+                    response_stream = client.send_message(
                         a2a.types.SendStreamingMessageRequest(
                             id=str(uuid.uuid4()),
                             params=payload,
