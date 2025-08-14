@@ -3,9 +3,9 @@
 
 from collections.abc import AsyncGenerator
 
-from a2a.client import create_text_message_object
-from a2a.types import Message, TaskState, TaskStatus
+from a2a.types import Message, TaskStatus
 
+from beeai_sdk.a2a.types import AuthRequired
 from beeai_sdk.server import Server
 
 server = Server()
@@ -16,9 +16,8 @@ async def awaiter_agent(message: Message) -> AsyncGenerator[TaskStatus | Message
     """Awaits a user message"""
     yield f"got initial message: {message.parts[0].root.text}\n"
     yield "second message\n"
-    message = yield TaskStatus(
-        message=create_text_message_object(content="give me auth\n"), state=TaskState.auth_required
-    )
+
+    message = yield AuthRequired(text="can I do this?")
     yield f"got follow up message {message.message_id}: {message.parts[0].root.text}"
 
 

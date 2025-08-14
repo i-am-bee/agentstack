@@ -24,7 +24,7 @@ from a2a.types import (
     TextPart,
 )
 
-from beeai_sdk.a2a.types import RunYield
+from beeai_sdk.a2a.types import AgentMessage, InputRequired, Metadata, RunYield
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import RunContext
 
@@ -165,9 +165,7 @@ async def sync_generator_resume_agent(create_server_with_agent) -> AsyncGenerato
     def sync_generator_resume_agent(message: Message, context: RunContext):
         """Synchronous generator agent that requires input and handles resume."""
         yield "sync_generator_resume_agent: starting"
-        resume_message = yield TaskStatus(
-            state=TaskState.input_required, message=create_text_message_object(content="Need input")
-        )
+        resume_message = yield InputRequired(text="Need input")
         yield f"sync_generator_resume_agent: received {resume_message.parts[0].root.text}"
 
     async with create_server_with_agent(sync_generator_resume_agent) as (server, client):
@@ -192,9 +190,7 @@ async def async_generator_resume_agent(create_server_with_agent) -> AsyncGenerat
     async def async_generator_resume_agent(message: Message, context: RunContext):
         """Asynchronous generator agent that requires input and handles resume."""
         yield "async_generator_resume_agent: starting"
-        resume_message = yield TaskStatus(
-            state=TaskState.input_required, message=create_text_message_object(content="Need input")
-        )
+        resume_message = yield InputRequired(text="Need input")
         yield f"async_generator_resume_agent: received {resume_message.parts[0].root.text}"
 
     async with create_server_with_agent(async_generator_resume_agent) as (server, client):
@@ -414,6 +410,29 @@ async def test_async_generator_streaming(async_generator_agent):
     assert len(working_events) >= 2  # At least 2 yields from the generator
 
 
+async def test_yield_dict_vs_metadata(create_server_with_agent):
+    async def yielder_of_meta_data() -> AsyncIterator[RunYield]:
+        yield {"data": "this should be datapart"}
+        yield Metadata({"metadata": "this should be metadata"})
+        yield AgentMessage(
+            metadata=Metadata({"metadata": "this class still behaves as dict"})
+            | {"metadata2": "and can be used in union"}
+        )
+
+    async with create_server_with_agent(yielder_of_meta_data) as (server, client):
+        resp = await client.send_message(request=create_send_request_object("hello"))
+        assert resp.root.result.status.state == TaskState.completed
+        assert resp.root.result.history[1].parts[0].root.data == {"data": "this should be datapart"}
+        assert resp.root.result.history[2].metadata == {"metadata": "this should be metadata"}
+        assert resp.root.result.history[3].metadata == {
+            "metadata": "this class still behaves as dict",
+            "metadata2": "and can be used in union",
+        }
+        assert not resp.root.result.history[1].metadata
+        assert not resp.root.result.history[2].parts
+        assert not resp.root.result.history[3].parts
+
+
 async def test_yield_of_all_types(create_server_with_agent):
     async def yielder_of_all_types_agent(message: Message, context: RunContext) -> AsyncIterator[RunYield]:
         """Synchronous function agent that returns a string directly."""
@@ -437,10 +456,11 @@ async def test_yield_of_all_types(create_server_with_agent):
             task_id=context.task_id,
         )
         yield "text"
-        yield {"metadata": "lol"}
+        yield {"data": "this is important"}
+        yield Metadata({"metadata": "this, not so much"})
 
     async with create_server_with_agent(yielder_of_all_types_agent) as (server, client):
         resp = await client.send_message(request=create_send_request_object("hello"))
         assert resp.root.result.status.state == TaskState.completed
-        assert len(resp.root.result.history) == 9
+        assert len(resp.root.result.history) == 10
         assert len(resp.root.result.artifacts) == 2

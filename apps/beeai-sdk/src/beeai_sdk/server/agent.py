@@ -21,6 +21,8 @@ from a2a.types import (
     Artifact,
     DataPart,
     FilePart,
+    FileWithBytes,
+    FileWithUri,
     Message,
     Part,
     SecurityScheme,
@@ -32,7 +34,7 @@ from a2a.types import (
 )
 
 from beeai_sdk.a2a.extensions.ui.agent_detail import AgentDetail, AgentDetailExtensionSpec
-from beeai_sdk.a2a.types import ArtifactChunk, RunYield, RunYieldResume
+from beeai_sdk.a2a.types import ArtifactChunk, Metadata, RunYield, RunYieldResume
 from beeai_sdk.server.context import RunContext
 from beeai_sdk.server.dependencies import extract_dependencies
 from beeai_sdk.server.logging import logger
@@ -299,6 +301,11 @@ class Executor(AgentExecutor):
                                 TaskState.working,
                                 message=task_updater.new_agent_message(parts=[Part(root=part)]),
                             )
+                        case FileWithBytes() | FileWithUri() as file:
+                            await task_updater.update_status(
+                                TaskState.working,
+                                message=task_updater.new_agent_message(parts=[Part(root=FilePart(file=file))]),
+                            )
                         case Message(context_id=context_id, task_id=task_id):
                             new_msg = yielded_value.model_copy(
                                 deep=True,
@@ -362,10 +369,15 @@ class Executor(AgentExecutor):
                                 append=append,
                                 last_chunk=last_chunk,
                             )
-                        case dict():
+                        case Metadata() as metadata:
                             await task_updater.update_status(
                                 state=TaskState.working,
-                                message=task_updater.new_agent_message(parts=[], metadata=yielded_value),
+                                message=task_updater.new_agent_message(parts=[], metadata=metadata),
+                            )
+                        case dict() as data:
+                            await task_updater.update_status(
+                                state=TaskState.working,
+                                message=task_updater.new_agent_message(parts=[Part(root=DataPart(data=data))]),
                             )
                         case Exception() as ex:
                             raise ex
