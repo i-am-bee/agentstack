@@ -1,1 +1,3 @@
 /.next/
+# do not commit the provider credentials to the repo
+providers.json
