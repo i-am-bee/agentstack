@@ -87,7 +87,7 @@ Authentication is disabled by default.
 ```YAML
 oidc:
   enabled: true
-  discovery_url: "<oidc_discovery_endpoint"
+  discovery_url: "<oidc_discovery_endpoint>"
   admin_emails: "a comma separated list of email addresses"
   nextauth_trust_host: true
   nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
@@ -120,7 +120,7 @@ oidc:
     }
   ]
 ```
-Note: the `class` in the prviders entry must be a valid provider supported by next-auth. see: https://github.com/nextauthjs/next-auth-example/blob/main/auth.ts
+Note: the `class` in the providers entry must be a valid provider supported by next-auth. see: https://github.com/nextauthjs/next-auth-example/blob/main/auth.ts
 
 - When debugging the ui component (See debugging individual components), copy the env.example as .env and update the following oidc specific values:
 
@@ -129,15 +129,15 @@ NEXTAUTH_SECRET="<To generate a random string, you can use the Auth.js CLI: npx 
 NEXTAUTH_URL="http://localhost:8334"
 ```
 
-Optionaly add:
+Optionally add:
 ```JavaScript
 NEXTAUTH_DEBUG="true"
 ```
 
-To start the platform with odic enabled:
+To start the platform with oidc enabled:
 
 ```bash
-  mise beeai-platform:start --set oidc.enabled=true  
+mise beeai-platform:start --set oidc.enabled=true
 ```
 
 ### To deploy the helm chart to OpenShift:

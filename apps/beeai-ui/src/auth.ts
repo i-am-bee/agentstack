@@ -19,7 +19,14 @@ let provider_list: {
 }[] = [];
 if (!process.env.NEXT__DISABLE_OIDC) {
   const rootPath = process.env.OIDC__PROVIDERS_PATH || './providers';
-  provider_list = JSON.parse(await readFile(`${rootPath}/providers.json`, 'utf8'));
+  try {
+    provider_list = JSON.parse(await readFile(`${rootPath}/providers.json`, 'utf8'));
+  } catch (parse_err) {
+    console.warn(
+      `Unable to parse provider list: ${rootPath}/providers.json.  Missing, not found, or invalid JSON. error: `,
+    );
+    console.error(parse_err);
+  }
 }
 import IBM from '#app/auth/providers/ibm.ts';
 

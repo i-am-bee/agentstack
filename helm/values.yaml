@@ -91,9 +91,9 @@ oidc:
       "type": "oidc",
       "class": "IBM",
       "client_id": "<oidc_client_id>",
-      "client_secret": "oidc_client_secret",
-      "issuer": "oidc_issuer",
-      "jwks_url": "oidc_jwks_url",
+      "client_secret": "<oidc_client_secret>",
+      "issuer": "<oidc_issuer>",
+      "jwks_url": "<oidc_jwks_url>",
       "nextauth_url": "http://localhost:8334",
       "nextauth_redirect_proxy_url": "http://localhost:8334"
     }
@@ -196,7 +196,7 @@ ui:
   volumes:
     - name: providers
       secret:
-        secretName: odic-providers
+        secretName: oidc-providers
 
 phoenix:
   # **Important License Notice**: Phoenix is disabled by default in BeeAI. When you enable Phoenix,

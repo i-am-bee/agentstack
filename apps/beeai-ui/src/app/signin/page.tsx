@@ -28,19 +28,6 @@ export default async function SignInPage(props: SigninPageProps) {
           <span className={classes.bolded}>BeeAI</span>
         </div>
         <div className={classes.buttonList}>
-          <form
-            action={async (formData) => {
-              'use server';
-              try {
-                await signIn('credentials', formData);
-              } catch (error) {
-                if (error instanceof AuthError) {
-                  return redirect(`${SIGNIN_ERROR_URL}?error=${error.type}`);
-                }
-                throw error;
-              }
-            }}
-          ></form>
           {Object.values(providerMap).map((provider) => (
             <form
               key={provider.id}
