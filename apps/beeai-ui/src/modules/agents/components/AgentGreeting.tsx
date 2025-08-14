@@ -6,7 +6,7 @@
 import clsx from 'clsx';
 import { memo } from 'react';
 
-import { type Agent, SupportedUIType } from '../api/types';
+import { type Agent, InteractionMode } from '../api/types';
 import classes from './AgentGreeting.module.scss';
 
 interface Props {
@@ -17,12 +17,16 @@ interface Props {
 export const AgentGreeting = memo(function AgentGreeting({ agent }: Props) {
   const {
     name,
-    ui: { user_greeting, ui_type },
+    ui: { user_greeting, interaction_mode },
   } = agent;
-  const defaultGreeting = ui_type ? DEFAULT_GREETINGS[ui_type] : DEFAULT_GREETINGS[SupportedUIType.Chat];
+  const defaultGreeting = interaction_mode
+    ? DEFAULT_GREETINGS[interaction_mode]
+    : DEFAULT_GREETINGS[InteractionMode.MultiTurn];
   const userGreeting = renderVariables(user_greeting ?? defaultGreeting, { name });
 
-  return <p className={clsx(classes.root, { [classes[`ui--${ui_type}`]]: ui_type })}>{userGreeting}</p>;
+  return (
+    <p className={clsx(classes.root, { [classes[`ui--${interaction_mode}`]]: interaction_mode })}>{userGreeting}</p>
+  );
 });
 
 function renderVariables(str: string, variables: Record<string, string>): string {
@@ -30,7 +34,7 @@ function renderVariables(str: string, variables: Record<string, string>): string
 }
 
 const DEFAULT_GREETINGS = {
-  [SupportedUIType.Chat]: `Hi, I am {name}!
+  [InteractionMode.MultiTurn]: `Hi, I am {name}!
 How can I help you?`,
-  [SupportedUIType.HandsOff]: 'What is your task?',
+  [InteractionMode.SingleTurn]: 'What is your task?',
 };

@@ -76,9 +76,9 @@ from beeai_cli.utils import (
 )
 
 
-class UiType(StrEnum):
-    chat = "chat"
-    hands_off = "hands-off"
+class InteractionMode(StrEnum):
+    single_turn = "single-turn"
+    multi_turn = "multi-turn"
 
 
 class Provider(BaseModel):
@@ -586,7 +586,7 @@ def _setup_sequential_workflow(providers: list[Provider], splash_screen: Console
     prompt_agents = {
         provider.agent_card.name: provider
         for provider in providers
-        if (provider.detail or {}).get("ui_type") == UiType.hands_off
+        if (provider.detail or {}).get("interaction_mode") == InteractionMode.single_turn
     }
     steps = []
 
@@ -679,13 +679,16 @@ async def run_agent(
         )
 
     ui_annotations = provider.detail or {}
-    ui_type = ui_annotations.get("ui_type")
+    interaction_mode = ui_annotations.get("interaction_mode")
     is_sequential_workflow = agent.name in {"sequential_workflow"}
 
     user_greeting = ui_annotations.get("user_greeting", None) or "How can I help you?"
 
     if not input:
-        if ui_type not in {UiType.chat, UiType.hands_off} and not is_sequential_workflow:
+        if (
+            interaction_mode not in {InteractionMode.multi_turn, InteractionMode.single_turn}
+            and not is_sequential_workflow
+        ):
             err_console.print(
                 f"💥 [red][b]Error[/red][/b]: Agent {agent.name} does not use any supported UIs.\n"
                 f"Please use the agent according to the following examples and schema:"
@@ -700,7 +703,7 @@ async def run_agent(
 
         handle_input = _create_input_handler([], splash_screen=splash_screen)
 
-        if ui_type == UiType.chat:
+        if interaction_mode == InteractionMode.multi_turn:
             console.print(f"{user_greeting}\n")
             input = handle_input()
             async with a2a_client(provider.agent_card) as client:
@@ -718,7 +721,7 @@ async def run_agent(
                     console.print()
                     input = handle_input()
 
-        elif ui_type == UiType.hands_off:
+        elif interaction_mode == InteractionMode.single_turn:
             user_greeting = ui_annotations.get("user_greeting", None) or "Enter your instructions."
             console.print(f"{user_greeting}\n")
             input = handle_input()
@@ -779,7 +782,7 @@ async def list_agents():
         Column("Name", style="yellow"),
         Column("State", width=len("starting")),
         Column("Description", ratio=2),
-        Column("UI"),
+        Column("Interaction"),
         Column("Location", max_width=min(max(max_provider_len, len("Location")), 70)),
         Column("Missing Env", max_width=50),
         Column("Last Error", max_width=min(max(max_error_len, len("Last Error")), 50)),
@@ -804,7 +807,7 @@ async def list_agents():
                     },
                 ),
                 (provider.agent_card.description or "<none>").replace("\n", " "),
-                (provider.detail or {}).get("ui_type") or "<none>",
+                (provider.detail or {}).get("interaction_mode") or "<none>",
                 provider.short_location or "<none>",
                 missing_env or "<none>",
                 provider.last_error or "<none>",

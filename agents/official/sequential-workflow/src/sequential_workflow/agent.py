@@ -67,7 +67,7 @@ server = Server()
     detail=AgentDetail(
         license="Apache 2.0",
         framework="ACP",
-        ui_type="playground",
+        interaction_mode="playground",
         use_cases=[
             "**Complex Text Processing**: Ideal for tasks that require multiple stages of processing, such as summarization followed by sentiment analysis.",
             "**Automated Workflows**: Suitable for automated content processing pipelines that leverage multiple AI models.",
@@ -138,12 +138,13 @@ async def sequential_workflow(steps_message: Message) -> AsyncIterator:
                 agent_name = agent_card.name
 
                 yield {
-                  "beeai-sequential-workflow" : {
-                    "agent_name": agent_name,
-                    "provider_id": step.provider_id,
-                    "agent_idx": idx,
-                    "message": f"✅ Agent {agent_name}[{idx}] started processing",
-                }}
+                    "beeai-sequential-workflow": {
+                        "agent_name": agent_name,
+                        "provider_id": step.provider_id,
+                        "agent_idx": idx,
+                        "message": f"✅ Agent {agent_name}[{idx}] started processing",
+                    }
+                }
 
                 message = Message(
                     role=Role.user,

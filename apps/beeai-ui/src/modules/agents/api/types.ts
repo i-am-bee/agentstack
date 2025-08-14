@@ -17,9 +17,9 @@ export interface Agent extends Omit<AgentCard, 'provider'> {
 
 export type AgentExtension = NonNullable<Agent['capabilities']['extensions']>[number];
 
-export enum SupportedUIType {
-  Chat = 'chat',
-  HandsOff = 'hands-off',
+export enum InteractionMode {
+  MultiTurn = 'multi-turn',
+  SingleTurn = 'single-turn',
 }
 
 export interface AgentTool {
@@ -28,7 +28,7 @@ export interface AgentTool {
 }
 
 export interface UIExtensionParams {
-  ui_type?: SupportedUIType | string;
+  interaction_mode?: InteractionMode | string;
   user_greeting?: string;
   tools?: AgentTool[];
   framework?: string;

@@ -29,7 +29,7 @@ server = Server()
     detail=AgentDetail(
         license="Apache 2.0",
         framework="Custom",
-        ui_type="hands-off",
+        interaction_mode="single-turn",
         user_greeting="Define your programming task.",
     ),
     skills=[

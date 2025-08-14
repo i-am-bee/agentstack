@@ -3,6 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { SupportedUIType } from '#modules/agents/api/types.ts';
+import { InteractionMode } from '#modules/agents/api/types.ts';
 
-export const SupportedUis: string[] = [SupportedUIType.Chat, SupportedUIType.HandsOff];
+export const SupportedUis: string[] = [InteractionMode.MultiTurn, InteractionMode.SingleTurn];
