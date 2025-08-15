@@ -436,5 +436,5 @@ async def install_security(driver):
             "-c",
             "k3s kubectl -n istio-system expose deployment kiali --protocol=TCP --port=20001 --target-port=20001 --type=NodePort --name=kiali-external",
         ],
-        "Exposing Kiali service...",
+        "Exposing Kiali service",
     )
