@@ -12,6 +12,7 @@ from beeai_sdk.platform.types import Metadata
 
 
 class ContextToken(pydantic.BaseModel):
+    context_id: str
     token: pydantic.Secret[str]
     expires_at: pydantic.AwareDatetime | None = None
 
@@ -93,7 +94,7 @@ class Context(pydantic.BaseModel):
         context_id = self if isinstance(self, str) else self.id
         grant_global_permissions = grant_global_permissions or Permissions()
         grant_context_permissions = grant_context_permissions or Permissions()
-        return pydantic.TypeAdapter(ContextToken).validate_python(
+        token_response = (
             (
                 await (client or get_platform_client()).post(
                     url=f"/api/v1/contexts/{context_id}/token",
@@ -106,3 +107,4 @@ class Context(pydantic.BaseModel):
             .raise_for_status()
             .json()
         )
+        return pydantic.TypeAdapter(ContextToken).validate_python({**token_response, "context_id": context_id})

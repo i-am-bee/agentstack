@@ -8,7 +8,7 @@ from beeai_sdk.platform.client import PlatformClient, get_platform_client
 
 class Variables(dict[str, str]):
     async def save(
-        self: Variables | dict[str, str],
+        self: Variables | dict[str, str | None] | dict[str, str],
         *,
         client: PlatformClient | None = None,
     ) -> None:
@@ -33,7 +33,7 @@ class Variables(dict[str, str]):
         ...or as an instance method to update the instance: variables.load()
         """
         new_variables: dict[str, str] = (
-            (await (client or get_platform_client()).get(url="/api/v1/variables")).raise_for_status().json()
+            (await (client or get_platform_client()).get(url="/api/v1/variables")).raise_for_status().json()["env"]
         )
         if isinstance(self, Variables):
             self.clear()

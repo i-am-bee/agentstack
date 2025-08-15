@@ -72,9 +72,7 @@ lint.ignore = [
 force-exclude = true
 
 [tool.pyright]
-# https://github.com/microsoft/pyright/blob/main/docs/configuration.md
-include = ["."]
-typeCheckingMode = "recommended"
 reportUnusedCallResult = false
+ignore = ["tests/**", "examples/cli.py"]
 venvPath = "."
 venv = ".venv"
