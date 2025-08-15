@@ -74,32 +74,71 @@ eval "$(mise run beeai-platform:shell)"
 deactivate
 ```
 
-### Enabling or disabling auth flows for beeai_cli
+### Enabling or disabling security
 
-- Copy the apps/beeai-cli/.env.template as .env
-- To turn on oauth on platform startup set `BEEAI__OIDC_ENABLED=True` in the .env file.
-- Add an entry to /etc/hosts on your local system:
-```
-# Added by BEEAI-PLATFORM
-127.0.0.1        beeai-platform.api.testing
-```
+## Disabling security
 
-- Update OAuth credentials in helm/values.yaml under:
+Authentication, and authorization are disabled by default.
+Security add-ons (TLS, Cert-Manager, Istio, and Kiali) are disabled by default
+
+## Enabling
+
+- Update OAuth credentials and settings helm/values.yaml under:
 
 ```YAML
 oidc:
   enabled: true
-  discovery_url: <your_oidc_discovery_endpoint_here>
-  client_id: <your_client_id_here>
-  client_secret: <your_oidc_client_secret>
-  issuer: <your_issuer>
-  jwks_url: <your_jwks_endpoint_here>
+  discovery_url: "<oidc_discovery_endpoint>"
+  admin_emails: "a comma separated list of email addresses"
   nextauth_trust_host: true
-  nextauth_url: "https://beeai-platform.api.testing:8336"
-  nextauth_redirect_proxy_url: "https://beeai-platform.api.testing:8336"
-  nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>
-```
+  nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
+  providers_path: "/providers"
+  nextauth_url: "http://localhost:8334"
+  nextauth_providers: [
+    {
+      "name": "w3id",
+      "id": "w3id",
+      "type": "oidc",
+      "class": "IBM",
+      "client_id": "<oidc_client_id>",
+      "client_secret": "<oidc_client_secret>",
+      "issuer": "<oidc_issuer>",
+      "jwks_url": "<oidc_jwks_endpoint>",
+      "nextauth_url": "http://localhost:8334",
+      "nextauth_redirect_proxy_url": "http://localhost:8334"
+    },
+    {
+      "name": "IBMiD",
+      "id": "IBMiD",
+      "type": "oidc",
+      "class": "IBM",
+      "client_id": "<oidc_client_id>",
+      "client_secret": "<oidc_client_secret>",
+      "issuer": "<oidc_issuer>",
+      "jwks_url": "<oidc_jwks_endpoint>",
+      "nextauth_url": "http://localhost:8334",
+      "nextauth_redirect_proxy_url": "http://localhost:8334"
+    }
+  ]
+  ```
 
+When the platform is started with  `--set oidc.enabled=true`, the platform will install istio in ambient mode, create a gateway, add routes for `https://beeai.localhost:8336/` and install the Kiali console.  The intent being that tokens returned by OAuth routes are receieved in the browser over HTTPS rather than plain text HTTP to prevent unauthorized use of tokens.   It is strongly recommended that you access the UI via the TLS connection `https://beeai.localhost:8336/`, and configure your OIDC provider to use `https://beeai.localhost:8336/` as one of the allowed redirect urls.  In practice when deploying the beeai images to a cloud cluster, change the nextauth_url, and nextauth_redirect_proxy_url values accordingly.   Some OIDC providers only allow valid top level domain names in the redirect urls.
+
+The default namespace is labeled istio.io/dataplane-mode=ambient so all intra pod trafic is via ztunnel with the exception of the beeai-platform pod due to it's use of the hostNetwork (istio can not bring a hostNetwork enabled pod into the mesh).
+
+The port for the Kiali console can be found by shelling into the VM and running the following kuberneties command:
+```bash
+limactl shell --workdir / beeai-platform
+habeck@lima-beeai-platform:/$ kubectl -n istio-system get svc | grep "kiali-external" | awk '{print $5}' | cut -d ':' -f2 | cut -d '/' -f1 
+30431
+```
+Using the output from the above command navigate to `http://localhost:30431/kiali/console`
+
+Example of starting the platform with istio enabled:
+
+```bash
+mise beeai-platform:start --set oidc.enabled=true
+```
 
 ### Running and debugging individual components
 
