@@ -45,13 +45,13 @@ async def install_security(driver):
     )
 
     await driver.run_in_vm(
-        ["/bin/sh", "-c", "k3s kubectl get crd gateways.gateway.networking.k8s.io &> /dev/null"],
+        ["/bin/bash", "-c", "k3s kubectl get crd gateways.gateway.networking.k8s.io &> /dev/null"],
         "Downloading gateway CRDS",
     )
 
     await driver.run_in_vm(
         [
-            "/bin/sh",
+            "/bin/bash",
             "-c",
             "k3s kubectl get crd gateways.gateway.networking.k8s.io &> /dev/null",
         ],
