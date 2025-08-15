@@ -115,9 +115,7 @@ class BaseDriver(abc.ABC):
                 f"Pulling image {image}",
             )
 
-        # conditional check to install istio of odic.enabled=
         if any("oidc.enabled=true" in value.lower() for value in set_values_list):
-            print("oidc.enabled=true")
             await install_security(self)
 
         await self.run_in_vm(
