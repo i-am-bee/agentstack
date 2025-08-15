@@ -5,7 +5,7 @@
 
 import type { TaskStatusUpdateEvent } from '@a2a-js/sdk';
 
-import { getExtensionData } from '#api/a2a/extensions/utils.ts';
+import { extractUiExtensionData } from '#api/a2a/extensions/utils.ts';
 import type { UIDataPart } from '#modules/messages/types.ts';
 import { UIMessagePartKind } from '#modules/messages/types.ts';
 
@@ -13,7 +13,7 @@ import type { ComposeStep } from '../contexts/compose-context';
 import { sequentialWorkflowExtension } from './extensions/sequential-workflow';
 import { UIComposePartKind } from './types';
 
-export const extractSequentialWorkflowData = getExtensionData(sequentialWorkflowExtension);
+export const extractSequentialWorkflowData = extractUiExtensionData(sequentialWorkflowExtension);
 
 export function createSequentialInputDataPart(steps: ComposeStep[]): UIDataPart {
   return {

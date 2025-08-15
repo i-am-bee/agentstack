@@ -15,8 +15,8 @@ import typing
 
 import httpx
 import typer
+from beeai_sdk.platform import Provider
 
-from beeai_cli.api import api_request
 from beeai_cli.async_typer import AsyncTyper
 from beeai_cli.commands.platform.base_driver import BaseDriver
 from beeai_cli.commands.platform.lima_driver import LimaDriver
@@ -87,7 +87,7 @@ async def start(
             while datetime.datetime.now() - start_time < timeout:
                 await asyncio.sleep(1)
                 with contextlib.suppress(httpx.HTTPError, ConnectionError):
-                    await api_request("get", "providers")
+                    await Provider.list()
                     break
             else:
                 raise ConnectionError(f"Server did not start in {timeout}. Please check your internet connection.")

@@ -4,18 +4,18 @@
 from collections.abc import AsyncGenerator
 from typing import Annotated
 
-from a2a.types import Message, TaskState
+from a2a.types import Message
 
 from beeai_sdk.a2a.extensions import LLMServiceExtensionServer, LLMServiceExtensionSpec
+from beeai_sdk.a2a.extensions.services.platform import (
+    PlatformApiExtensionServer,
+    PlatformApiExtensionSpec,
+)
 from beeai_sdk.a2a.extensions.ui.trajectory import TrajectoryExtensionServer, TrajectoryExtensionSpec
 from beeai_sdk.a2a.types import AuthRequired, RunYield
 from beeai_sdk.platform import File
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import RunContext
-from src.beeai_sdk.a2a.extensions.services.platform import (
-    PlatformApiExtensionServer,
-    PlatformApiExtensionSpec,
-)
 
 server = Server()
 
@@ -37,7 +37,7 @@ async def dependent_agent(
     yield trajectory.trajectory_metadata(title="message_param", content=str(message.model_dump()))
     yield trajectory.message(trajectory_title="llm_param", trajectory_content=str(llm.data))
 
-    message = yield AuthRequired(text="give me auth", state=TaskState.auth_required)
+    message = yield AuthRequired(text="give me auth")
     yield trajectory.message(trajectory_title="follow up message", trajectory_content=str(message))
 
 

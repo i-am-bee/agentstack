@@ -5,7 +5,7 @@
 
 import { z } from 'zod';
 
-import type { A2AExtension } from '#api/a2a/extensions/types.ts';
+import type { A2AUiExtension } from '#api/a2a/extensions/types.ts';
 
 const URI = 'beeai-sequential-workflow';
 
@@ -20,7 +20,7 @@ const schema = z
 
 export type SequentialWorkflowMetadata = z.infer<typeof schema>;
 
-export const sequentialWorkflowExtension: A2AExtension<typeof URI, SequentialWorkflowMetadata> = {
-  getSchema: () => z.object({ [URI]: schema }).partial(),
+export const sequentialWorkflowExtension: A2AUiExtension<typeof URI, SequentialWorkflowMetadata> = {
+  getMessageMetadataSchema: () => z.object({ [URI]: schema }).partial(),
   getUri: () => URI,
 };

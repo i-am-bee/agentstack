@@ -61,7 +61,7 @@ async def build(
 
         agent_card = None
 
-        container_id = uuid.uuid4()
+        container_id = str(uuid.uuid4())
 
         with status("Extracting agent metadata"):
             async with (

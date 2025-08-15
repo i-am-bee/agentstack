@@ -83,7 +83,7 @@ sources = ["{{config_root}}/helm/dist/beeai-platform-*.tgz"]
 outputs = ["./src/beeai_cli/data/helm-chart.tgz"]
 
 ["beeai-cli:build"]
-depends = ["beeai-cli:setup", "beeai-cli:build:*"]
+depends = ["beeai-cli:setup", "beeai-cli:build:*", "beeai-sdk:build"]
 dir = "{{config_root}}/apps/beeai-cli"
 sources = ["src/**/*", "hatch_build.py", "pyproject.toml", "vendor/lima/**/*"]
 outputs = ["dist/**/*"]
@@ -104,14 +104,20 @@ unzip -q "$universal_wheel" "beeai_cli-${version}.dist-info/METADATA" -d "$tmpdi
 insert_line=$(awk '/^Requires-Dist:/ {print FNR-1; exit}' "$tmpdir/beeai_cli-${version}.dist-info/METADATA" | cut -d: -f1)
 (
   head -n $insert_line "$tmpdir/beeai_cli-${version}.dist-info/METADATA"
-  uv export --no-hashes --no-emit-workspace --format requirements-txt | awk '/^[[:space:]]*#/ {next} NF {print "Requires-Dist: " $0 }'
+  uv export --no-editable --no-hashes --no-emit-workspace --format requirements-txt | sed '/^[[:space:]]*#/d' | while IFS= read -r dep; do
+    if [[ "$dep" =~ ^[a-zA-Z] ]]; then
+      echo "Requires-Dist: $dep"
+    else
+      echo "Requires-Dist: $(yq -r '.project.name' "$dep/pyproject.toml")==$(yq -r '.project.version' "$dep/pyproject.toml" | tr -d '-')"
+    fi
+  done
   awk -v insert_line="$insert_line" 'NR > insert_line && $0 !~ /^Requires-Dist:/' "$tmpdir/beeai_cli-${version}.dist-info/METADATA"
 ) > "$tmpdir/beeai_cli-${version}.dist-info/METADATA.new"
 mv "$tmpdir/beeai_cli-${version}.dist-info/METADATA.new" "$tmpdir/beeai_cli-${version}.dist-info/METADATA"
 (cd "$tmpdir" && zip -q "$universal_wheel" "beeai_cli-${version}.dist-info/METADATA")
 
 # Verify that the wheel works
-if [[ "$(uv tool run --quiet --isolated --with "$universal_wheel" -- beeai version)" != "beeai-cli version: $version" ]]; then
+if ! uv tool run --isolated --from "$universal_wheel" --with ../beeai-sdk/dist/beeai_sdk-*-py3-none-any.whl -- beeai version; then
   echo "Failed to install $universal_wheel"
   exit 1
 fi

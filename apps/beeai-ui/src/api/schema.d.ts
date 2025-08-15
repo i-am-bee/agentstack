@@ -564,13 +564,13 @@ export interface components {
          */
         AgentExtension: {
             /** Description */
-            description?: string | null;
+            description?: string;
             /** Params */
             params?: {
                 [key: string]: unknown;
-            } | null;
+            };
             /** Required */
-            required?: boolean | null;
+            required?: boolean;
             /** Uri */
             uri: string;
         };

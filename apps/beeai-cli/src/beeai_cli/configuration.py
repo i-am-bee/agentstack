@@ -5,10 +5,13 @@ import functools
 import importlib.metadata
 import pathlib
 import re
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 import pydantic
 import pydantic_settings
-from pydantic import SecretStr
+from beeai_sdk.platform import PlatformClient, use_platform_client
+from pydantic import HttpUrl, SecretStr
 
 
 @functools.cache
@@ -22,12 +25,12 @@ class Configuration(pydantic_settings.BaseSettings):
     model_config = pydantic_settings.SettingsConfigDict(
         env_file=None, env_prefix="BEEAI__", env_nested_delimiter="__", extra="allow"
     )
-    host: pydantic.AnyUrl = "http://localhost:8333"
-    ui_url: pydantic.AnyUrl = "http://localhost:8334"
+    host: pydantic.AnyUrl = HttpUrl("http://localhost:8333")
+    ui_url: pydantic.AnyUrl = HttpUrl("http://localhost:8334")
     playground: str = "playground"
     debug: bool = False
     home: pathlib.Path = pathlib.Path.home() / ".beeai"
-    agent_registry: pydantic.AnyUrl = (
+    agent_registry: pydantic.AnyUrl = HttpUrl(
         f"https://github.com/i-am-bee/beeai-platform@v{version()}#path=agent-registry.yaml"
     )
     admin_password: SecretStr | None = None
@@ -35,3 +38,9 @@ class Configuration(pydantic_settings.BaseSettings):
     @property
     def lima_home(self) -> pathlib.Path:
         return self.home / "lima"
+
+    @asynccontextmanager
+    async def use_platform_client(self) -> AsyncIterator[PlatformClient]:
+        auth = ("admin", self.admin_password.get_secret_value()) if self.admin_password else None
+        async with use_platform_client(auth=auth, base_url=str(self.host)) as client:
+            yield client

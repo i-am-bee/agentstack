@@ -109,7 +109,7 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
         fulfillment = self.data.mcp_fulfillments.get(demand) if self.data else None
 
         if not fulfillment:
-            raise ValueError(f'No fullfillment for demand "{demand}"')
+            raise ValueError(f'No fulfillment for demand "{demand}"')
 
         transport = fulfillment.transport
 

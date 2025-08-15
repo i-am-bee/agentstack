@@ -34,4 +34,4 @@ async def mcp_agent(
 
 
 if __name__ == "__main__":
-    server.run(self_registration=False)
+    server.run()
