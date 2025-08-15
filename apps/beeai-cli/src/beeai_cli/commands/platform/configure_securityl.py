@@ -109,7 +109,7 @@ async def install_security(driver):
             "values.global.platform=k3s",
             "--wait",
         ],
-        "Installing istio-cni",
+        "Installing istio-ztunnel",
     )
 
     await driver.run_in_vm(
