@@ -427,7 +427,7 @@ async def install_security(driver):
             "-c",
             f"export PATH=/{istio_dir}/bin:$PATH && k3s kubectl apply -f /{istio_dir}samples/addons/kiali.yaml",
         ],
-        "Installing Kiali...",
+        "Installing Kiali",
     )
 
     await driver.run_in_vm(
