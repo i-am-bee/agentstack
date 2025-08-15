@@ -28,6 +28,8 @@ from beeai_sdk.a2a.types import AgentArtifact, ArtifactChunk, InputRequired, Run
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import RunContext
 
+pytestmark = pytest.mark.e2e
+
 
 def get_free_port() -> int:
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:

@@ -28,6 +28,8 @@ from beeai_sdk.a2a.types import AgentArtifact, AgentMessage, InputRequired, Meta
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import RunContext
 
+pytestmark = pytest.mark.e2e
+
 
 async def get_final_task_from_stream(stream: AsyncIterator[ClientEvent | Message]) -> Task:
     """Helper to extract the final task from a client.send_message stream."""

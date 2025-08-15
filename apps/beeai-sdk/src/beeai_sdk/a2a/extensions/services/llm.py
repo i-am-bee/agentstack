@@ -3,12 +3,18 @@
 
 from __future__ import annotations
 
+import re
 from types import NoneType
-from typing import Self
+from typing import TYPE_CHECKING, Self
 
 import pydantic
 
 from beeai_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
+
+if TYPE_CHECKING:
+    from a2a.types import Message
+
+    from beeai_sdk.server.context import RunContext
 
 
 class LLMFulfillment(pydantic.BaseModel):
@@ -74,7 +80,17 @@ class LLMServiceExtensionMetadata(pydantic.BaseModel):
     """Provided models corresponding to the model requests."""
 
 
-class LLMServiceExtensionServer(BaseExtensionServer[LLMServiceExtensionSpec, LLMServiceExtensionMetadata]): ...
+class LLMServiceExtensionServer(BaseExtensionServer[LLMServiceExtensionSpec, LLMServiceExtensionMetadata]):
+    def handle_incoming_message(self, message: Message, context: RunContext):
+        from beeai_sdk.platform import get_platform_client
+
+        super().handle_incoming_message(message, context)
+        if not self.data:
+            return
+
+        for fullfilment in self.data.llm_fulfillments.values():
+            platform_url = str(get_platform_client().base_url)
+            fullfilment.api_base = re.sub("{platform_url}", platform_url, fullfilment.api_base)
 
 
 class LLMServiceExtensionClient(BaseExtensionClient[LLMServiceExtensionSpec, NoneType]):

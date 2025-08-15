@@ -4,6 +4,7 @@
 import uuid
 from collections.abc import AsyncIterator
 
+import pytest
 from a2a.client import Client, ClientEvent, create_text_message_object
 from a2a.types import (
     Message,
@@ -19,6 +20,8 @@ from a2a.types import (
 )
 
 from beeai_sdk.server import Server
+
+pytestmark = pytest.mark.e2e
 
 input_text = "Hello"
 

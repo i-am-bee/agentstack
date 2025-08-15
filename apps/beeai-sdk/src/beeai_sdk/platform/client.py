@@ -1,10 +1,12 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
+import asyncio
 import contextlib
 import os
 import ssl
 import typing
 from collections.abc import AsyncIterator
+from types import TracebackType
 
 import httpx
 from httpx import URL, AsyncBaseTransport
@@ -70,6 +72,27 @@ class PlatformClient(httpx.AsyncClient):
         self.context_id = context_id
         if auth_token:
             self.headers["Authorization"] = f"Bearer {auth_token}"
+        self._ref_count = 0
+        self._context_manager_lock = asyncio.Lock()
+
+    async def __aenter__(self) -> typing.Self:
+        async with self._context_manager_lock:
+            self._ref_count += 1
+            if self._ref_count == 1:
+                await super().__aenter__()
+            return self
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None = None,
+        exc_value: BaseException | None = None,
+        traceback: TracebackType | None = None,
+    ) -> None:
+        async with self._context_manager_lock:
+            self._ref_count -= 1
+            if self._ref_count == 0:
+                await super().__aexit__(exc_type, exc_value, traceback)
+                self._resource = None
 
 
 get_platform_client, set_platform_client = resource_context(factory=PlatformClient, default_factory=PlatformClient)

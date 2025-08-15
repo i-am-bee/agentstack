@@ -60,19 +60,19 @@ class VectorStore(pydantic.BaseModel):
         client: PlatformClient | None = None,
         context_id: str | None | Literal["auto"] = "auto",
     ) -> VectorStore:
-        platform_client = client or get_platform_client()
-        context_id = platform_client.context_id if context_id == "auto" else context_id
-        return pydantic.TypeAdapter(VectorStore).validate_json(
-            (
-                await platform_client.post(
-                    url="/api/v1/vector_stores",
-                    json={"name": name, "dimension": dimension, "model_id": model_id},
-                    params=context_id and {"context_id": context_id},
+        async with client or get_platform_client() as platform_client:
+            context_id = platform_client.context_id if context_id == "auto" else context_id
+            return pydantic.TypeAdapter(VectorStore).validate_json(
+                (
+                    await platform_client.post(
+                        url="/api/v1/vector_stores",
+                        json={"name": name, "dimension": dimension, "model_id": model_id},
+                        params=context_id and {"context_id": context_id},
+                    )
                 )
+                .raise_for_status()
+                .content
             )
-            .raise_for_status()
-            .content
-        )
 
     async def get(
         self: VectorStore | str,
@@ -83,18 +83,18 @@ class VectorStore(pydantic.BaseModel):
     ) -> VectorStore:
         # `self` has a weird type so that you can call both `instance.get()` to update an instance, or `VectorStore.get("123")` to obtain a new instance
         vector_store_id = self if isinstance(self, str) else self.id
-        platform_client = client or get_platform_client()
-        context_id = platform_client.context_id if context_id == "auto" else context_id
-        result = pydantic.TypeAdapter(VectorStore).validate_json(
-            (
-                await platform_client.get(
-                    url=f"/api/v1/vector_stores/{vector_store_id}",
-                    params=context_id and {"context_id": context_id},
+        async with client or get_platform_client() as platform_client:
+            context_id = platform_client.context_id if context_id == "auto" else context_id
+            result = pydantic.TypeAdapter(VectorStore).validate_json(
+                (
+                    await platform_client.get(
+                        url=f"/api/v1/vector_stores/{vector_store_id}",
+                        params=context_id and {"context_id": context_id},
+                    )
                 )
+                .raise_for_status()
+                .content
             )
-            .raise_for_status()
-            .content
-        )
         if isinstance(self, VectorStore):
             self.__dict__.update(result.__dict__)
             return self
@@ -109,14 +109,14 @@ class VectorStore(pydantic.BaseModel):
     ) -> None:
         # `self` has a weird type so that you can call both `instance.delete()` or `VectorStore.delete("123")`
         vector_store_id = self if isinstance(self, str) else self.id
-        platform_client = client or get_platform_client()
-        context_id = platform_client.context_id if context_id == "auto" else context_id
-        _ = (
-            await platform_client.delete(
-                url=f"/api/v1/vector_stores/{vector_store_id}",
-                params=context_id and {"context_id": context_id},
-            )
-        ).raise_for_status()
+        async with client or get_platform_client() as platform_client:
+            context_id = platform_client.context_id if context_id == "auto" else context_id
+            _ = (
+                await platform_client.delete(
+                    url=f"/api/v1/vector_stores/{vector_store_id}",
+                    params=context_id and {"context_id": context_id},
+                )
+            ).raise_for_status()
 
     async def add_documents(
         self: VectorStore | str,
@@ -128,15 +128,15 @@ class VectorStore(pydantic.BaseModel):
     ) -> None:
         # `self` has a weird type so that you can call both `instance.add_documents()` or `VectorStore.add_documents("123", items)`
         vector_store_id = self if isinstance(self, str) else self.id
-        platform_client = client or get_platform_client()
-        context_id = platform_client.context_id if context_id == "auto" else context_id
-        _ = (
-            await platform_client.put(
-                url=f"/api/v1/vector_stores/{vector_store_id}",
-                json=[item.model_dump(mode="json") for item in items],
-                params=context_id and {"context_id": context_id},
-            )
-        ).raise_for_status()
+        async with client or get_platform_client() as platform_client:
+            context_id = platform_client.context_id if context_id == "auto" else context_id
+            _ = (
+                await platform_client.put(
+                    url=f"/api/v1/vector_stores/{vector_store_id}",
+                    json=[item.model_dump(mode="json") for item in items],
+                    params=context_id and {"context_id": context_id},
+                )
+            ).raise_for_status()
 
     async def search(
         self: VectorStore | str,
@@ -149,19 +149,19 @@ class VectorStore(pydantic.BaseModel):
     ) -> list[VectorStoreSearchResult]:
         # `self` has a weird type so that you can call both `instance.search()` to search within an instance, or `VectorStore.search("123", query_vector)`
         vector_store_id = self if isinstance(self, str) else self.id
-        platform_client = client or get_platform_client()
-        context_id = platform_client.context_id if context_id == "auto" else context_id
-        return pydantic.TypeAdapter(list[VectorStoreSearchResult]).validate_python(
-            (
-                await platform_client.post(
-                    url=f"/api/v1/vector_stores/{vector_store_id}/search",
-                    json={"query_vector": query_vector, "limit": limit},
-                    params=context_id and {"context_id": context_id},
+        async with client or get_platform_client() as platform_client:
+            context_id = platform_client.context_id if context_id == "auto" else context_id
+            return pydantic.TypeAdapter(list[VectorStoreSearchResult]).validate_python(
+                (
+                    await platform_client.post(
+                        url=f"/api/v1/vector_stores/{vector_store_id}/search",
+                        json={"query_vector": query_vector, "limit": limit},
+                        params=context_id and {"context_id": context_id},
+                    )
                 )
+                .raise_for_status()
+                .json()["items"]
             )
-            .raise_for_status()
-            .json()["items"]
-        )
 
     async def list_documents(
         self: VectorStore | str,
@@ -172,18 +172,18 @@ class VectorStore(pydantic.BaseModel):
     ) -> list[VectorStoreDocument]:
         # `self` has a weird type so that you can call both `instance.list_documents()` to list documents in an instance, or `VectorStore.list_documents("123")`
         vector_store_id = self if isinstance(self, str) else self.id
-        platform_client = client or get_platform_client()
-        context_id = platform_client.context_id if context_id == "auto" else context_id
-        return pydantic.TypeAdapter(list[VectorStoreDocument]).validate_python(
-            (
-                await platform_client.get(
-                    url=f"/api/v1/vector_stores/{vector_store_id}/documents",
-                    params=context_id and {"context_id": context_id},
+        async with client or get_platform_client() as platform_client:
+            context_id = platform_client.context_id if context_id == "auto" else context_id
+            return pydantic.TypeAdapter(list[VectorStoreDocument]).validate_python(
+                (
+                    await platform_client.get(
+                        url=f"/api/v1/vector_stores/{vector_store_id}/documents",
+                        params=context_id and {"context_id": context_id},
+                    )
                 )
+                .raise_for_status()
+                .json()["items"]
             )
-            .raise_for_status()
-            .json()["items"]
-        )
 
     async def delete_document(
         self: VectorStore | str,
@@ -195,11 +195,11 @@ class VectorStore(pydantic.BaseModel):
     ) -> None:
         # `self` has a weird type so that you can call both `instance.delete_document()` or `VectorStore.delete_document("123", "456")`
         vector_store_id = self if isinstance(self, str) else self.id
-        platform_client = client or get_platform_client()
-        context_id = platform_client.context_id if context_id == "auto" else context_id
-        _ = (
-            await platform_client.delete(
-                url=f"/api/v1/vector_stores/{vector_store_id}/documents/{document_id}",
-                params=context_id and {"context_id": context_id},
-            )
-        ).raise_for_status()
+        async with client or get_platform_client() as platform_client:
+            context_id = platform_client.context_id if context_id == "auto" else context_id
+            _ = (
+                await platform_client.delete(
+                    url=f"/api/v1/vector_stores/{vector_store_id}/documents/{document_id}",
+                    params=context_id and {"context_id": context_id},
+                )
+            ).raise_for_status()

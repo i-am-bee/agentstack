@@ -32,7 +32,13 @@ from a2a.types import (
     TaskStatusUpdateEvent,
     TextPart,
 )
-from beeai_sdk.a2a.extensions import TrajectoryExtensionClient, TrajectoryExtensionSpec
+from beeai_sdk.a2a.extensions import (
+    LLMFulfillment,
+    LLMServiceExtensionClient,
+    LLMServiceExtensionSpec,
+    TrajectoryExtensionClient,
+    TrajectoryExtensionSpec,
+)
 from beeai_sdk.platform import Provider
 from beeai_sdk.platform.context import Context, ContextPermissions, ContextToken, Permissions
 from pydantic import BaseModel
@@ -218,6 +224,7 @@ async def stream_logs(
 async def _run_agent(
     client: Client,
     input: str | Message,
+    agent_card: AgentCard,
     context_token: ContextToken,
     dump_files_path: Path | None = None,
     handle_input: Callable[[], str] | None = None,
@@ -227,6 +234,27 @@ async def _run_agent(
     console_status.start()
     console_status_stopped = False
 
+    log_type = None
+
+    trajectory_spec = TrajectoryExtensionSpec.from_agent_card(agent_card)
+    trajectory_extension = TrajectoryExtensionClient(trajectory_spec) if trajectory_spec else None
+    llm_spec = LLMServiceExtensionSpec.from_agent_card(agent_card)
+
+    metadata = (
+        LLMServiceExtensionClient(llm_spec).fulfillment_metadata(
+            llm_fulfillments={
+                key: LLMFulfillment(
+                    api_base="{platform_url}/api/v1/llm/",
+                    api_key=context_token.token.get_secret_value(),
+                    api_model="dummy",
+                )
+                for key in llm_spec.params.llm_demands
+            }
+        )
+        if llm_spec
+        else {}
+    )
+
     input = (
         Message(
             message_id=str(uuid4()),
@@ -234,13 +262,11 @@ async def _run_agent(
             role=Role.user,
             task_id=task_id,
             context_id=context_token.context_id,
+            metadata=metadata,
         )
         if isinstance(input, str)
         else input
     )
-
-    log_type = None
-    trajectory_extension = TrajectoryExtensionClient(TrajectoryExtensionSpec())
 
     stream = client.send_message(input)
 
@@ -275,7 +301,7 @@ async def _run_agent(
                 ):
                     # Handle streaming content during working state
                     if message:
-                        if trajectory := trajectory_extension.parse_server_metadata(message):
+                        if trajectory_extension and (trajectory := trajectory_extension.parse_server_metadata(message)):
                             if update_kind := trajectory.title:
                                 if update_kind != log_type:
                                     if log_type is not None:
@@ -680,6 +706,7 @@ async def run_agent(
                     await _run_agent(
                         client,
                         input,
+                        agent_card=agent,
                         context_token=context_token,
                         dump_files_path=dump_files,
                         handle_input=handle_input,
@@ -695,6 +722,7 @@ async def run_agent(
                 await _run_agent(
                     client,
                     input,
+                    agent_card=agent,
                     context_token=context_token,
                     dump_files_path=dump_files,
                     handle_input=handle_input,
@@ -707,6 +735,7 @@ async def run_agent(
                 await _run_agent(
                     client,
                     Message(message_id=str(uuid4()), parts=[Part(root=message_part)], role=Role.user),
+                    agent_card=agent,
                     context_token=context_token,
                     dump_files_path=dump_files,
                     handle_input=handle_input,
@@ -717,6 +746,7 @@ async def run_agent(
             await _run_agent(
                 client,
                 input,
+                agent_card=agent,
                 context_token=context_token,
                 dump_files_path=dump_files,
                 handle_input=handle_input,
