@@ -5,6 +5,8 @@ import typing
 
 import yaml
 
+from beeai_cli.console import console
+
 if typing.TYPE_CHECKING:
     from beeai_cli.commands.platform.base_driver import BaseDriver
 
@@ -431,4 +433,25 @@ async def install_security(driver: "BaseDriver"):
             "k3s kubectl -n istio-system expose deployment kiali --protocol=TCP --port=20001 --target-port=20001 --type=NodePort --name=kiali-external",
         ],
         "Exposing Kiali service",
+    )
+    kiali_port = (
+        (
+            await driver.run_in_vm(
+                [
+                    "/bin/sh",
+                    "-c",
+                    "kubectl -n istio-system get svc | grep 'kiali-external' | awk '{print $5}' | cut -d ':' -f2 | cut -d '/' -f1",
+                ],
+                "Retrieving exposted Kaili port",
+            )
+        )
+        .stdout.decode()
+        .strip()
+    )
+    console.print(f"The Kiali console is available at http://localhost:{kiali_port}")
+    console.print(
+        "The beeai-ui is available at https://beeai.localhost:8336 (TLS gateway), and http://localhost:8334 (insecure)"
+    )
+    console.print(
+        "The beeai-platform api docs are availabel at https://beeai.localhost:8336/api/v1/docs (TLS gateway) and http://localhost:8333/api/v1/docs"
     )
