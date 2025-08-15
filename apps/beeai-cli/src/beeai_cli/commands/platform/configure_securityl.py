@@ -418,7 +418,7 @@ async def install_security(driver):
             "-c",
             f"export PATH=/{istio_dir}/bin:$PATH && k3s kubectl apply -f /{istio_dir}samples/addons/prometheus.yaml",
         ],
-        "Installing prometheus...",
+        "Installing Prometheus",
     )
 
     await driver.run_in_vm(
