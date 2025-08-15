@@ -3,7 +3,7 @@
 
 import os
 import httpx
-from pydantic import AnyUrl, BaseModel, parse_obj_as
+from pydantic import AnyUrl, BaseModel, TypeAdapter
 
 
 class FileInfo(BaseModel):
@@ -14,6 +14,7 @@ class FileInfo(BaseModel):
     created_by: str
     file_type: str
     parent_file_id: str | None = None
+
 
 class ApiClient:
     API_VERSION = "/api/v1"
@@ -46,7 +47,7 @@ class ApiClient:
         response = await self._client.post(endpoint, **kwargs)
         response.raise_for_status()
         return response
-    
+
     async def put(self, endpoint: str, **kwargs) -> httpx.Response:
         if not self._client:
             raise RuntimeError(
@@ -81,4 +82,4 @@ async def upload_file(filename: str, content_type: str, content: bytes) -> FileI
 
 def get_file_url(file_id: str) -> AnyUrl:
     full_url = f"{ApiClient.get_api_base_url()}/files/{file_id}/content"
-    return parse_obj_as(AnyUrl, full_url)
+    return TypeAdapter(AnyUrl).validate_python(full_url)

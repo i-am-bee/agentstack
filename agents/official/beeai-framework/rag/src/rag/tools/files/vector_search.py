@@ -6,10 +6,10 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any, Final
 
+from beeai_framework.context import RunContext
 import httpx
 from beeai_framework.emitter import Emitter
 from beeai_framework.tools import Tool, ToolError, ToolOutput, ToolRunOptions
-from beeai_framework.tools.tool import RunContext
 from pydantic import BaseModel, Field
 from rag.helpers.platform import ApiClient
 
@@ -84,12 +84,12 @@ class VectorSearchTool(Tool[VectorSearchToolInput, ToolRunOptions, VectorSearchT
     vector similarity search to find the most relevant content for a given query.
     """
 
-    name = "vector_search"
-    description = (
+    name: str = "vector_search"
+    description: str = (
         "Search for relevant documents and information from uploaded files using semantic search. "
         "This tool finds the most relevant content based on meaning rather than exact keyword matching."
     )
-    input_schema = VectorSearchToolInput
+    input_schema:type[VectorSearchToolInput] = VectorSearchToolInput
 
     def __init__(self, vector_store_id: str | None = None, limit: int = 5) -> None:
         super().__init__()

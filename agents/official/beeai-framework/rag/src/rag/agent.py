@@ -10,14 +10,14 @@ import uuid
 from a2a.types import AgentSkill, Artifact, FilePart, FileWithUri, Message, Part
 from beeai_framework.adapters.openai import OpenAIChatModel
 from beeai_framework.agents.experimental import RequirementAgent
-from beeai_framework.agents.experimental.events import RequirementAgentSuccessEvent
+
 from beeai_framework.backend import ChatModelParameters
+from beeai_framework.emitter import EmitterOptions
 from beeai_framework.memory import UnconstrainedMemory
 from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
 from beeai_framework.tools import Tool
 from beeai_sdk.a2a.extensions import (
     AgentDetail,
-    AgentDetailTool,
     CitationExtensionServer,
     CitationExtensionSpec,
     TrajectoryExtensionServer,
@@ -27,14 +27,17 @@ from beeai_framework.agents.experimental.utils._tool import FinalAnswerTool
 from beeai_sdk.a2a.types import AgentMessage
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import Context
-from openai.types import vector_store
 from openinference.instrumentation.beeai import BeeAIInstrumentor
 from rag.helpers.citations import extract_citations
-from rag.helpers.platform import ApiClient
-from rag.helpers.trajectory import TrajectoryContent
-from rag.helpers.vectore_store import create_vector_store, embed_all_files
-from rag.tools.files.file_creator import FileCreatorTool, FileCreatorToolOutput
-from rag.tools.files.file_reader import create_file_reader_tool_class
+from rag.helpers.platform import ApiClient, get_file_url
+from rag.helpers.trajectory import ToolCallTrajectoryEvent
+from rag.helpers.event_binder import EventBinder
+from rag.helpers.vectore_store import (
+    create_vector_store,
+    embed_all_files,
+    CreateVectorStoreEvent,
+)
+from rag.tools.files.file_creator import FileCreatorToolOutput
 from rag.tools.files.utils import FrameworkMessage, extract_files, to_framework_message
 from rag.tools.files.vector_search import VectorSearchTool
 from rag.tools.general.act import (
@@ -62,7 +65,7 @@ logger = logging.getLogger(__name__)
 
 messages: defaultdict[str, list[Message]] = defaultdict(list)
 framework_messages: defaultdict[str, list[FrameworkMessage]] = defaultdict(list)
-vector_store_id: str | None = None # TODO: Implement vector store ID management
+vector_store_id: str | None = None  # TODO: Implement vector store ID management
 
 server = Server()
 
@@ -103,11 +106,6 @@ async def rag(
     )
     input = to_framework_message(message)
 
-    # Configure tools
-    file_reader_tool_class = create_file_reader_tool_class(
-        extracted_files
-    )  # Dynamically created tool input schema based on real provided files ensures that small LLMs can't hallucinate the input
-
     FinalAnswerTool.description = """Assemble and send the final answer to the user. When using information gathered from other tools that provided URL addresses, you MUST properly cite them using markdown citation format: [description](URL).
 
 # Citation Requirements:
@@ -124,9 +122,6 @@ async def rag(
         # Auxiliary tools
         ActTool(),  # Enforces correct thinking sequence by requiring tool selection before execution
         ClarificationTool(),  # Allows agent to ask clarifying questions when user requirements are unclear
-        # Common tools
-        file_reader_tool_class(),
-        FileCreatorTool(),
         CurrentTimeTool(),
     ]
 
@@ -134,10 +129,23 @@ async def rag(
         async with ApiClient() as client:
             global vector_store_id
             if vector_store_id is None:
+                start_event = CreateVectorStoreEvent(phase="start")
+                yield start_event.metadata(trajectory)
                 vector_store_id = await create_vector_store(client)
-            yield "Processing files...\n\n"
+                yield CreateVectorStoreEvent(
+                    vector_store_id=vector_store_id,
+                    parent_id=start_event.id,
+                    phase="end",
+                ).metadata(trajectory)
+
             tools.append(VectorSearchTool(vector_store_id=vector_store_id))
-            await embed_all_files(client, extracted_files, vector_store_id)
+            async for item in embed_all_files(
+                client,
+                all_files=extracted_files,
+                vector_store_id=vector_store_id,
+                trajectory=trajectory,
+            ):
+                yield item
 
     requirements = [
         ActAlwaysFirstRequirement(),  #  Enforces the ActTool to be used before any other tool execution.
@@ -169,45 +177,138 @@ async def rag(
 
     await agent.memory.add_many(framework_messages[context.context_id])
     final_answer = None
+    event_binder = EventBinder()
 
-    async for event, meta in agent.run():
-        if not isinstance(event, RequirementAgentSuccessEvent):
-            continue
+async def handle_tool_start(event, meta):
+        print(f"Handle tool start")
+        # Store the start event ID using EventBinder
+        event_binder.set_start_event_id(meta)
 
-        last_step = event.state.steps[-1] if event.state.steps else None
-        if last_step and last_step.tool is not None:
-            trajectory_content = TrajectoryContent(
-                input=last_step.input,
-                output=last_step.output,
-                error=last_step.error,
-            )
-            yield trajectory.trajectory_metadata(
-                title=last_step.tool.name,
-                content=trajectory_content.model_dump_json(),
-            )
+        event_id = event_binder.get_event_id(meta)
+        print(f"event_id: {event_id}")
+        print(f"meta.trace.id: {meta.trace.id}")
+        tool_start_event = ToolCallTrajectoryEvent(
+            id=event_id,
+            kind=meta.creator.name,
+            phase="start",
+            input=event.input,
+            output=None,
+            error=None,
+        )
+        await context.yield_async(tool_start_event.metadata(trajectory))
 
-            if isinstance(last_step.output, FileCreatorToolOutput):
-                result = last_step.output.result
-                for file_info in result.files:
-                    yield Artifact(
-                        artifact_id=str(uuid.uuid4()),
-                        name=file_info.display_filename,
-                        parts=[
-                            Part(
-                                root=FilePart(
-                                    file=FileWithUri(
-                                        name=file_info.display_filename,
-                                        mime_type=file_info.content_type,
-                                        uri=str(file_info.url),
-                                    )
+    async def handle_tool_success(event, meta):
+        print(f"Handle tool success")
+        # Get the corresponding start event ID using EventBinder
+        start_event_id = event_binder.get_start_event_id(meta)
+
+        event_id = event_binder.get_event_id(meta)
+        print(f"event_id: {event_id}")
+        print(f"start_event_id: {start_event_id}")
+        print(f"meta.trace.id: {meta.trace.id}")
+        tool_end_event = ToolCallTrajectoryEvent(
+            kind=meta.creator.name,
+            phase="end",
+            parent_id=start_event_id,  # Use the start event ID from EventBinder
+            input=event.input,
+            output=event.output,
+            # error=event.error,
+        )
+        await context.yield_async(tool_end_event.metadata(trajectory))
+
+        if isinstance(event.output, FileCreatorToolOutput):
+            result = event.output.result
+            for file_info in result.files:
+                artifact = Artifact(
+                    artifact_id=str(uuid.uuid4()),
+                    name=file_info.display_filename,
+                    parts=[
+                        Part(
+                            root=FilePart(
+                                file=FileWithUri(
+                                    name=file_info.display_filename,
+                                    mime_type=file_info.content_type,
+                                    uri=str(file_info.url),
                                 )
                             )
-                        ],
-                    )
+                        )
+                    ],
+                )
 
-        if event.state.answer is not None:
-            # Taking a final answer from the state directly instead of RequirementAgentRunOutput to be able to use the final answer provided by the clarification tool
-            final_answer = event.state.answer
+                await context.yield_async(artifact)
+
+    response = (
+        await agent.run()
+        .on(
+            lambda event: event.name == "start" and isinstance(event.creator, Tool),
+            handle_tool_start,
+            EmitterOptions(match_nested=True),
+        )
+        .on(
+            lambda event: event.name == "success" and isinstance(event.creator, Tool),
+            handle_tool_success,
+            EmitterOptions(match_nested=True),
+        )
+    )
+
+    # async for event, meta in agent.run():
+    #     match event:
+    #         # case RequirementAgentStartEvent():
+    #             # Agent starts processing - no specific tool info yet
+    #             # last_step = event.state.steps[-1] if event.state.steps else None
+    #             # if last_step and last_step.tool is not None:
+    #             #     # Create start event for this tool
+    #             #     tool_start_event = ToolCallTrajectoryEvent(
+    #             #         kind=last_step.tool.name,
+    #             #         phase="start",
+    #             #         input=last_step.input,
+    #             #         output=None,
+    #             #         error=None,
+    #             #     )
+    #             #     tool_start_events[last_step.id] = tool_start_event
+    #             #     yield tool_start_event.metadata(trajectory)
+
+    #         case RequirementAgentSuccessEvent():
+    #             last_step = event.state.steps[-1] if event.state.steps else None
+    #             if last_step and last_step.tool is not None:
+    #                 # Create end event that references the start event
+    #                 yield ToolCallTrajectoryEvent(
+    #                     kind=last_step.tool.name,
+    #                     phase="end",
+    #                     parent_event_id=tool_start_events.get(last_step.id),
+    #                     input=last_step.input,
+    #                     output=last_step.output,
+    #                     error=last_step.error,
+    #                 ).metadata(trajectory)
+
+    #                 if isinstance(last_step.output, FileCreatorToolOutput):
+    #                     result = last_step.output.result
+    #                     for file_info in result.files:
+    #                         yield Artifact(
+    #                             artifact_id=str(uuid.uuid4()),
+    #                             name=file_info.display_filename,
+    #                             parts=[
+    #                                 Part(
+    #                                     root=FilePart(
+    #                                         file=FileWithUri(
+    #                                             name=file_info.display_filename,
+    #                                             mime_type=file_info.content_type,
+    #                                             uri=str(file_info.url),
+    #                                         )
+    #                                     )
+    #                                 )
+    #                             ],
+    #                         )
+
+    #             if event.state.answer is not None:
+    #                 # Taking a final answer from the state directly instead of RequirementAgentRunOutput to be able to use the final answer provided by the clarification tool
+    #                 final_answer = event.state.answer
+
+    #         case _:
+    #             # Handle other event types or ignore
+    #             continue
+
+    final_answer = response.answer
 
     if final_answer:
         framework_messages[context.context_id].append(final_answer)
