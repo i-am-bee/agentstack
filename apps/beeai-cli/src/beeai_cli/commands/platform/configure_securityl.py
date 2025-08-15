@@ -1,10 +1,15 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+import typing
+
 import yaml
 
+if typing.TYPE_CHECKING:
+    from beeai_cli.commands.platform.base_driver import BaseDriver
 
-async def install_security(driver):
+
+async def install_security(driver: "BaseDriver"):
     """
     Setup istio and install gateway with TLS enabled.
     """
@@ -116,41 +121,31 @@ async def install_security(driver):
         [
             "/bin/sh",
             "-c",
-            "k3s kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.18.2/cert-manager.yaml",
+            "curl -LO https://cert-manager.io/public-keys/cert-manager-keyring-2021-09-20-1020CF3C033D4F35BAE1C19E1226061C665DF13E.gpg",
+        ],
+        "Downloading cert-manager gpg keyring",
+    )
+
+    await driver.run_in_vm(
+        [
+            "helm",
+            "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+            "install",
+            "cert-manager",
+            "oci://quay.io/jetstack/charts/cert-manager",
+            "--version",
+            "v1.18.2",
+            "--namespace",
+            "cert-manager",
+            "--create-namespace",
+            "--verify",
+            "--keyring",
+            "./cert-manager-keyring-2021-09-20-1020CF3C033D4F35BAE1C19E1226061C665DF13E.gpg",
+            "--set",
+            "crds.enabled=true",
+            "--wait",
         ],
         "Installing certificate manager...(used to auto-generate cert for gateway ingress)",
-    )
-
-    await driver.run_in_vm(
-        [
-            "k3s",
-            "kubectl",
-            "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
-            "-n",
-            "cert-manager",
-            "wait",
-            "--for=create",
-            "--timeout=5m",
-            "deployment",
-            "cert-manager",
-        ],
-        "Waiting for certmanager deployments to be created",
-    )
-
-    await driver.run_in_vm(
-        [
-            "k3s",
-            "kubectl",
-            "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
-            "-n",
-            "cert-manager",
-            "wait",
-            "--for=condition=Available",
-            "--timeout=5m",
-            "--all",
-            "deployment",
-        ],
-        "Waiting for certmanager deployments to be available",
     )
 
     await driver.run_in_vm(
@@ -240,11 +235,10 @@ async def install_security(driver):
                     "namespace": "istio-system",
                 },
                 "spec": {
-                    "commonName": "beeai-platform",
+                    "commonName": "beeai",
                     "dnsNames": [
-                        "beeai-platform",
-                        "beeai-platform.testing",
-                        "beeai-platform.api.testing",
+                        "beeai",
+                        "beeai.localhost",
                     ],
                     "issuerRef": {
                         "kind": "Issuer",
@@ -317,7 +311,7 @@ async def install_security(driver):
                     "listeners": [
                         {
                             "name": "https",
-                            "hostname": "beeai-platform.api.testing",
+                            "hostname": "beeai.localhost",
                             "port": 8336,
                             "protocol": "HTTPS",
                             "tls": {"mode": "Terminate", "certificateRefs": [{"name": "beeai-platform-tls"}]},
@@ -346,7 +340,7 @@ async def install_security(driver):
                 "metadata": {"name": "beeai-platform-api"},
                 "spec": {
                     "parentRefs": [{"name": "beeai-gateway", "namespace": "istio-system"}],
-                    "hostnames": ["beeai-platform.api.testing"],
+                    "hostnames": ["beeai.localhost"],
                     "rules": [
                         {
                             "matches": [{"path": {"type": "PathPrefix", "value": "/api/v1"}}],
@@ -376,7 +370,7 @@ async def install_security(driver):
                 "metadata": {"name": "beeai-platform-ui"},
                 "spec": {
                     "parentRefs": [{"name": "beeai-gateway", "namespace": "istio-system"}],
-                    "hostnames": ["beeai-platform.testing", "beeai-platform.api.testing"],
+                    "hostnames": ["beeai-platform.testing", "beeai.localhost"],
                     "rules": [
                         {
                             "matches": [{"path": {"type": "PathPrefix", "value": "/"}}],
