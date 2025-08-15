@@ -405,7 +405,7 @@ async def install_security(driver):
                     "-c",
                     "ls -lahF | grep istio | awk '{print $9}'",
                 ],
-                "Checking for istio install folder...",
+                "Checking for istio install folder",
             )
         )
         .stdout.decode()
