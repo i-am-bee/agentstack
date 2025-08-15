@@ -60,7 +60,7 @@ async def install_security(driver: "BaseDriver"):
         [
             "/bin/bash",
             "-c",
-            "k3s kubectl get crd gateways.gateway.networking.k8s.io &> /dev/null",
+            "kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.3.0/standard-install.yaml",
         ],
         "installing gateway CRDS",
     )
