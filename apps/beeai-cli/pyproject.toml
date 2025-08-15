@@ -21,6 +21,7 @@ dependencies = [
     "tenacity~=9.1.2",
     "typer~=0.16.0",
     "pyyaml>=6.0.2",
+    "beeai-sdk"
 ]
 
 [dependency-groups]
@@ -29,6 +30,9 @@ dev = [
     "pytest>=8.3.4",
     "ruff>=0.8.5",
 ]
+
+[tool.uv.sources]
+beeai-sdk = { path = "../beeai-sdk" }
 
 [project.scripts]
 beeai = "beeai_cli:app"
