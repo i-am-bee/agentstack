@@ -74,11 +74,12 @@ eval "$(mise run beeai-platform:shell)"
 deactivate
 ```
 
-### Enabling or disabling auth flows for beeai_ui
+### Enabling or disabling security
 
-## Disabling authentication in the UI
+## Disabling security
 
-Authentication is disabled by default.
+Authentication, and authorization are disabled by default.
+Security add-ons (TLS, Cert-Manager, Istio, and Kiali) are disabled by default
 
 ## Enabling
 
@@ -86,7 +87,7 @@ Authentication is disabled by default.
 
 ```YAML
 oidc:
-  enabled: true
+  enabled: false
   discovery_url: "<oidc_discovery_endpoint>"
   admin_emails: "a comma separated list of email addresses"
   nextauth_trust_host: true
@@ -134,7 +135,19 @@ Optionally add:
 NEXTAUTH_DEBUG="true"
 ```
 
-To start the platform with oidc enabled:
+When the platform is started with  `--set oidc.enabled=true`, the platform will install istio in ambient mode, create a gateway, add routes for `https://beeai.localhost:8336/` and install the Kiali console.  The intent being that tokens returned by OAuth routes are receieved in the browser over HTTPS rather than plain text HTTP to prevent unauthorized use of tokens.   It is strongly recommended that you access the UI via the TLS connection `https://beeai.localhost:8336/`, and configure your OIDC provider to use `https://beeai.localhost:8336/` as one of the allowed redirect urls.  In practice when deploying the beeai images to a cloud cluster, change the nextauth_url, and nextauth_redirect_proxy_url values accordingly.   Some OIDC providers only allow valid top level domain names in the redirect urls.
+
+The default namespace is labeled istio.io/dataplane-mode=ambient so all intra pod trafic is via ztunnel with the exception of the beeai-platform pod due to it's use of the hostNetwork (istio can not bring a hostNetwork enabled pod into the mesh).
+
+The port for the Kiali console can be found by shelling into the VM and running the following kuberneties command:
+```bash
+limactl shell --workdir / beeai-platform
+habeck@lima-beeai-platform:/$ kubectl -n istio-system get svc | grep "kiali-external" | awk '{print $5}' | cut -d ':' -f2 | cut -d '/' -f1 
+30431
+```
+Using the output from the above command navigate to `http://localhost:30431/kiali/console`
+
+Example of starting the platform with istio enabled:
 
 ```bash
 mise beeai-platform:start --set oidc.enabled=true
@@ -142,6 +155,11 @@ mise beeai-platform:start --set oidc.enabled=true
 
 ### To deploy the helm chart to OpenShift:
 
+- Update values.yaml so that oidc.enabled is true.  e.g.:
+```yaml
+  odic:
+    enabled: true
+```
 - Update values.yaml so that the `nextauth_url` and the `nextauth_redirect_proxy_url` values reflect the URL for the route created for the `beeai-platform-ui-svc`.
 - Ensure that the oidc.nextauth_providers array entries in values.yaml have valid/appropriate values
 
