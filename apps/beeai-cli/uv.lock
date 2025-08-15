@@ -104,7 +104,7 @@ dev = [
 requires-dist = [
     { name = "a2a-sdk", specifier = "~=0.3.1" },
     { name = "anyio", specifier = "~=4.9.0" },
-    { name = "beeai-sdk", directory = "../beeai-sdk" },
+    { name = "beeai-sdk", editable = "../beeai-sdk" },
     { name = "gnureadline", marker = "sys_platform != 'win32'", specifier = "~=8.2.13" },
     { name = "inquirerpy", specifier = "~=0.3.4" },
     { name = "jsf", specifier = "~=0.11.2" },
@@ -130,7 +130,7 @@ dev = [
 [[package]]
 name = "beeai-sdk"
 version = "0.3.0rc7"
-source = { directory = "../beeai-sdk" }
+source = { editable = "../beeai-sdk" }
 dependencies = [
     { name = "a2a-sdk" },
     { name = "anyio" },

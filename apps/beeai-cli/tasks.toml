@@ -104,7 +104,7 @@ unzip -q "$universal_wheel" "beeai_cli-${version}.dist-info/METADATA" -d "$tmpdi
 insert_line=$(awk '/^Requires-Dist:/ {print FNR-1; exit}' "$tmpdir/beeai_cli-${version}.dist-info/METADATA" | cut -d: -f1)
 (
   head -n $insert_line "$tmpdir/beeai_cli-${version}.dist-info/METADATA"
-  uv export --no-hashes --no-emit-workspace --format requirements-txt | awk -v version="$version" '/^[[:space:]]*#/ {next} NF {if ($0 ~ /^(\.\.?\/|\/|~\/)/) {split($0, parts, "/"); package_name = parts[length(parts)]; print "Requires-Dist: " package_name "==" version} else {print "Requires-Dist: " $0}}'
+  uv export --no-editable --no-hashes --no-emit-workspace --format requirements-txt | awk -v version="$version" '/^[[:space:]]*#/ {next} NF {if ($0 ~ /^(\.\.?\/|\/|~\/)/) {split($0, parts, "/"); package_name = parts[length(parts)]; print "Requires-Dist: " package_name "==" version} else {print "Requires-Dist: " $0}}'
   awk -v insert_line="$insert_line" 'NR > insert_line && $0 !~ /^Requires-Dist:/' "$tmpdir/beeai_cli-${version}.dist-info/METADATA"
 ) > "$tmpdir/beeai_cli-${version}.dist-info/METADATA.new"
 mv "$tmpdir/beeai_cli-${version}.dist-info/METADATA.new" "$tmpdir/beeai_cli-${version}.dist-info/METADATA"
