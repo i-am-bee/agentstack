@@ -388,31 +388,7 @@ async def install_security(driver: "BaseDriver"):
         [
             "/bin/sh",
             "-c",
-            "curl -L https://istio.io/downloadIstio | sh -",
-        ],
-        "Installing istioctl",
-    )
-
-    istio_dir = (
-        (
-            await driver.run_in_vm(
-                [
-                    "/bin/sh",
-                    "-c",
-                    "ls -lahF | grep istio | awk '{print $9}'",
-                ],
-                "Checking for istio install folder",
-            )
-        )
-        .stdout.decode()
-        .strip()
-    )
-
-    await driver.run_in_vm(
-        [
-            "/bin/sh",
-            "-c",
-            f"k3s kubectl apply -f /{istio_dir}samples/addons/prometheus.yaml",
+            "k3s kubectl apply -f https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/addons/prometheus.yaml",
         ],
         "Installing Prometheus",
     )
@@ -421,7 +397,7 @@ async def install_security(driver: "BaseDriver"):
         [
             "/bin/sh",
             "-c",
-            f"k3s kubectl apply -f /{istio_dir}samples/addons/kiali.yaml",
+            "k3s kubectl apply -f https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/addons/kiali.yaml",
         ],
         "Installing Kiali",
     )
