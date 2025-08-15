@@ -52,6 +52,7 @@ export function ComposeProvider({ children }: PropsWithChildren) {
       sequentialAgent &&
       buildA2AClient<UIComposePart>({
         providerId: sequentialAgent.provider.id,
+        extensions: sequentialAgent.capabilities.extensions ?? [],
         onStatusUpdate: handleTaskStatusUpdate,
       }),
     [sequentialAgent],
@@ -164,6 +165,11 @@ export function ComposeProvider({ children }: PropsWithChildren) {
         const run = a2aAgentClient.chat({
           message: userMessage,
           contextId: uuid(),
+          fulfillments: {
+            mcp: async () => {
+              throw new Error('MCP fulfillment not implemented');
+            },
+          },
         });
         pendingRun.current = run;
 

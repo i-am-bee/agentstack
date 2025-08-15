@@ -53,7 +53,10 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
 
   const errorHandler = useHandleError();
 
-  const a2aAgentClient = useMemo(() => buildA2AClient({ providerId: agent.provider.id }), [agent.provider.id]);
+  const a2aAgentClient = useMemo(
+    () => buildA2AClient({ providerId: agent.provider.id, extensions: agent.capabilities.extensions ?? [] }),
+    [agent.provider.id, agent.capabilities.extensions],
+  );
   const { files, clearFiles } = useFileUpload();
 
   const updateLastAgentMessage = useCallback(
@@ -141,7 +144,15 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
       clearFiles();
 
       try {
-        const run = a2aAgentClient.chat({ message: userMessage, contextId });
+        const run = a2aAgentClient.chat({
+          message: userMessage,
+          contextId,
+          fulfillments: {
+            mcp: async () => {
+              throw new Error('MCP fulfillment not implemented');
+            },
+          },
+        });
         pendingRun.current = run;
 
         pendingSubscription.current = run.subscribe(({ parts, taskId }) => {

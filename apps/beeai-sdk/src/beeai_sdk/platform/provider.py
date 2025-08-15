@@ -41,20 +41,21 @@ class Provider(pydantic.BaseModel):
         auto_remove: bool = False,
         client: PlatformClient | None = None,
     ) -> "Provider":
-        return pydantic.TypeAdapter(Provider).validate_python(
-            (
-                await (client or get_platform_client()).post(
-                    url="/api/v1/providers",
-                    json={
-                        "location": location,
-                        "agent_card": agent_card.model_dump(mode="json") if agent_card else None,
-                    },
-                    params={"auto_remove": auto_remove},
+        async with client or get_platform_client() as client:
+            return pydantic.TypeAdapter(Provider).validate_python(
+                (
+                    await client.post(
+                        url="/api/v1/providers",
+                        json={
+                            "location": location,
+                            "agent_card": agent_card.model_dump(mode="json") if agent_card else None,
+                        },
+                        params={"auto_remove": auto_remove},
+                    )
                 )
+                .raise_for_status()
+                .json()
             )
-            .raise_for_status()
-            .json()
-        )
 
     @staticmethod
     async def preview(
@@ -63,28 +64,28 @@ class Provider(pydantic.BaseModel):
         agent_card: AgentCard | None = None,
         client: PlatformClient | None = None,
     ) -> "Provider":
-        return pydantic.TypeAdapter(Provider).validate_python(
-            (
-                await (client or get_platform_client()).post(
-                    url="/api/v1/providers/preview",
-                    json={
-                        "location": location,
-                        "agent_card": agent_card.model_dump(mode="json") if agent_card else None,
-                    },
+        async with client or get_platform_client() as client:
+            return pydantic.TypeAdapter(Provider).validate_python(
+                (
+                    await client.post(
+                        url="/api/v1/providers/preview",
+                        json={
+                            "location": location,
+                            "agent_card": agent_card.model_dump(mode="json") if agent_card else None,
+                        },
+                    )
                 )
+                .raise_for_status()
+                .json()
             )
-            .raise_for_status()
-            .json()
-        )
 
     async def get(self: "Provider | str", /, *, client: PlatformClient | None = None) -> "Provider":
         # `self` has a weird type so that you can call both `instance.get()` to update an instance, or `Provider.get("123")` to obtain a new instance
         provider_id = self if isinstance(self, str) else self.id
-        result = pydantic.TypeAdapter(Provider).validate_json(
-            (await (client or get_platform_client()).get(url=f"/api/v1/providers/{provider_id}"))
-            .raise_for_status()
-            .content
-        )
+        async with client or get_platform_client() as client:
+            result = pydantic.TypeAdapter(Provider).validate_json(
+                (await client.get(url=f"/api/v1/providers/{provider_id}")).raise_for_status().content
+            )
         if isinstance(self, Provider):
             self.__dict__.update(result.__dict__)
             return self
@@ -93,10 +94,12 @@ class Provider(pydantic.BaseModel):
     async def delete(self: "Provider | str", /, *, client: PlatformClient | None = None) -> None:
         # `self` has a weird type so that you can call both `instance.delete()` or `Provider.delete("123")`
         provider_id = self if isinstance(self, str) else self.id
-        _ = (await (client or get_platform_client()).delete(f"/api/v1/providers/{provider_id}")).raise_for_status()
+        async with client or get_platform_client() as client:
+            _ = (await client.delete(f"/api/v1/providers/{provider_id}")).raise_for_status()
 
     @staticmethod
     async def list(*, client: PlatformClient | None = None) -> list["Provider"]:
-        return pydantic.TypeAdapter(list[Provider]).validate_python(
-            (await (client or get_platform_client()).get(url="/api/v1/providers")).raise_for_status().json()["items"]
-        )
+        async with client or get_platform_client() as client:
+            return pydantic.TypeAdapter(list[Provider]).validate_python(
+                (await client.get(url="/api/v1/providers")).raise_for_status().json()["items"]
+            )

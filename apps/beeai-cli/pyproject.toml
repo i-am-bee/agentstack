@@ -21,6 +21,7 @@ dependencies = [
     "tenacity~=9.1.2",
     "typer~=0.16.0",
     "pyyaml>=6.0.2",
+    "beeai-sdk"
 ]
 
 [dependency-groups]
@@ -29,6 +30,9 @@ dev = [
     "pytest>=8.3.4",
     "ruff>=0.8.5",
 ]
+
+[tool.uv.sources]
+beeai-sdk = { path = "../beeai-sdk", editable = true }
 
 [project.scripts]
 beeai = "beeai_cli:app"
@@ -68,9 +72,7 @@ lint.ignore = [
 force-exclude = true
 
 [tool.pyright]
-# https://github.com/microsoft/pyright/blob/main/docs/configuration.md
-include = ["."]
-typeCheckingMode = "recommended"
 reportUnusedCallResult = false
+ignore = ["tests/**", "examples/cli.py"]
 venvPath = "."
 venv = ".venv"

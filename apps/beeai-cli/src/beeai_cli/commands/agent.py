@@ -10,6 +10,7 @@ import re
 import sys
 import typing
 from enum import StrEnum
+from textwrap import dedent
 from uuid import uuid4
 
 import httpx
@@ -31,7 +32,16 @@ from a2a.types import (
     TaskStatusUpdateEvent,
     TextPart,
 )
-from pydantic import BaseModel, computed_field
+from beeai_sdk.a2a.extensions import (
+    LLMFulfillment,
+    LLMServiceExtensionClient,
+    LLMServiceExtensionSpec,
+    TrajectoryExtensionClient,
+    TrajectoryExtensionSpec,
+)
+from beeai_sdk.platform import Provider
+from beeai_sdk.platform.context import Context, ContextPermissions, ContextToken, Permissions
+from pydantic import BaseModel
 from rich.box import HORIZONTALS
 from rich.console import ConsoleRenderable, Group, NewLine
 from rich.panel import Panel
@@ -40,6 +50,7 @@ from rich.text import Text
 
 from beeai_cli.commands.build import build
 from beeai_cli.commands.env import ensure_llm_env
+from beeai_cli.configuration import Configuration
 
 if sys.platform != "win32":
     try:
@@ -59,7 +70,7 @@ import typer
 from rich.markdown import Markdown
 from rich.table import Column
 
-from beeai_cli.api import a2a_client, api_request, api_stream
+from beeai_cli.api import a2a_client, api_stream
 from beeai_cli.async_typer import AsyncTyper, console, create_table, err_console
 from beeai_cli.utils import (
     generate_schema_example,
@@ -77,28 +88,21 @@ class InteractionMode(StrEnum):
     multi_turn = "multi-turn"
 
 
-class Provider(BaseModel):
-    agent_card: AgentCard
-    id: str
-    metadata: dict[str, Any]
-
-    @computed_field
-    @property
-    def detail(self) -> dict[str, str] | None:
-        ui_extension = [ext for ext in self.agent_card.capabilities.extensions or [] if "ui/agent-detail" in ext.uri]
+class ProviderUtils(BaseModel):
+    @staticmethod
+    def detail(provider: Provider) -> dict[str, str] | None:
+        ui_extension = [
+            ext for ext in provider.agent_card.capabilities.extensions or [] if "ui/agent-detail" in ext.uri
+        ]
         return ui_extension[0].params if ui_extension else None
 
-    @computed_field
-    @property
-    def last_error(self) -> str | None:
-        return (
-            (self.metadata.get("last_error") or {}).get("message", None) if self.metadata["state"] != "ready" else None
-        )
+    @staticmethod
+    def last_error(provider: Provider) -> str | None:
+        return provider.last_error.message if provider.last_error and provider.state != "ready" else None
 
-    @computed_field
-    @property
-    def short_location(self) -> str:
-        return re.sub(r"[a-z]*.io/i-am-bee/beeai-platform/", "", self.metadata["source"]).lower()
+    @staticmethod
+    def short_location(provider: Provider) -> str:
+        return re.sub(r"[a-z]*.io/i-am-bee/beeai-platform/", "", provider.source).lower()
 
 
 app = AsyncTyper()
@@ -115,6 +119,8 @@ processing_messages = [
     "Bee right back...",
     "Extracting knowledge nectar...",
 ]
+
+configuration = Configuration()
 
 
 def _print_log(line, ansi_mode=False):
@@ -147,7 +153,6 @@ async def add_agent(
     """Install discovered agent or add public docker image or github repository [aliases: install]"""
     agent_card = None
     # Try extracting manifest locally for local images
-
     with verbosity(verbose):
         process = await run_command(["docker", "inspect", location], check=False, message="Inspecting docker images.")
         from subprocess import CalledProcessError
@@ -169,7 +174,8 @@ async def add_agent(
             console.print("Attempting to use remote image...")
         try:
             with status("Registering agent to platform"):
-                await api_request("POST", "providers", json={"location": location, "agent_card": agent_card})
+                async with configuration.use_platform_client():
+                    await Provider.create(location=location, agent_card=AgentCard.model_validate(agent_card))
             console.print("Registering agent to platform [[green]DONE[/green]]")
         except Exception as e:
             raise ExceptionGroup("Error occured", [*errors, e]) from e
@@ -180,7 +186,7 @@ def select_provider(search_path: str, providers: list[Provider]):
     search_path = search_path.lower()
     provider_candidates = {p.id: p for p in providers if search_path in p.id.lower()}
     provider_candidates.update({p.id: p for p in providers if search_path in p.agent_card.name.lower()})
-    provider_candidates.update({p.id: p for p in providers if search_path in p.short_location})
+    provider_candidates.update({p.id: p for p in providers if search_path in ProviderUtils.short_location(p)})
     if len(provider_candidates) != 1:
         provider_candidates = [f"  - {c}" for c in provider_candidates]
         remove_providers_detail = ":\n" + "\n".join(provider_candidates) if provider_candidates else ""
@@ -197,8 +203,9 @@ async def uninstall_agent(
 ) -> None:
     """Remove agent"""
     with console.status("Uninstalling agent (may take a few minutes)...", spinner="dots"):
-        remove_provider = select_provider(search_path, await get_providers()).id
-        await api_request("delete", f"providers/{remove_provider}")
+        async with configuration.use_platform_client():
+            remove_provider = select_provider(search_path, await Provider.list()).id
+            await Provider.delete(remove_provider)
     await list_agents()
 
 
@@ -209,7 +216,7 @@ async def stream_logs(
     ],
 ):
     """Stream agent provider logs"""
-    provider = select_provider(search_path, await get_providers()).id
+    provider = select_provider(search_path, await Provider.list()).id
     async for message in api_stream("get", f"providers/{provider}/logs"):
         _print_log(message)
 
@@ -217,14 +224,36 @@ async def stream_logs(
 async def _run_agent(
     client: Client,
     input: str | Message,
+    agent_card: AgentCard,
+    context_token: ContextToken,
     dump_files_path: Path | None = None,
     handle_input: Callable[[], str] | None = None,
     task_id: str | None = None,
-    context_id: str | None = None,
-) -> tuple[str | None, str | None]:
-    status = console.status(random.choice(processing_messages), spinner="dots")
-    status.start()
-    status_stopped = False
+) -> None:
+    console_status = console.status(random.choice(processing_messages), spinner="dots")
+    console_status.start()
+    console_status_stopped = False
+
+    log_type = None
+
+    trajectory_spec = TrajectoryExtensionSpec.from_agent_card(agent_card)
+    trajectory_extension = TrajectoryExtensionClient(trajectory_spec) if trajectory_spec else None
+    llm_spec = LLMServiceExtensionSpec.from_agent_card(agent_card)
+
+    metadata = (
+        LLMServiceExtensionClient(llm_spec).fulfillment_metadata(
+            llm_fulfillments={
+                key: LLMFulfillment(
+                    api_base="{platform_url}/api/v1/llm/",
+                    api_key=context_token.token.get_secret_value(),
+                    api_model="dummy",
+                )
+                for key in llm_spec.params.llm_demands
+            }
+        )
+        if llm_spec
+        else {}
+    )
 
     input = (
         Message(
@@ -232,118 +261,104 @@ async def _run_agent(
             parts=[Part(root=TextPart(text=input))],
             role=Role.user,
             task_id=task_id,
-            context_id=context_id,
+            context_id=context_token.context_id,
+            metadata=metadata,
         )
         if isinstance(input, str)
         else input
     )
 
-    log_type = None
-
     stream = client.send_message(input)
 
     while True:
         async for event in stream:
-            if not status_stopped:
-                status_stopped = True
-                status.stop()
+            if not console_status_stopped:
+                console_status_stopped = True
+                console_status.stop()
             match event:
-                case Message() as message:
-                    # Handle message response - check for update_kind metadata
-                    update_kind = None
-
-                    # Check for update_kind in message metadata
-                    if update_kind := (message.metadata or {}).get("update_kind"):
-                        # This is a streaming update with a specific type
-                        if update_kind != log_type:
-                            if log_type is not None:
-                                err_console.print()
-                            err_console.print(f"{update_kind}: ", style="dim", end="")
-                            log_type = update_kind
-
-                        # Stream the content
-                        for part in message.parts:
-                            if hasattr(part.root, "text"):
-                                err_console.print(part.root.text, style="dim", end="")
-                    else:
-                        # This is regular message content
-                        if log_type:
-                            console.print()
-                            log_type = None
-                        for part in message.parts:
-                            if hasattr(part.root, "text"):
-                                console.print(part.root.text, end="")
-                case Task(id=tid, context_id=cid), None:  # Handle task creation
-                    task_id, context_id = tid, cid
-                case Task(id=tid, context_id=cid), TaskStatusUpdateEvent(
-                    status=TaskStatus(state=state, message=message)
+                case Message(task_id=task_id) as message:
+                    console.print(
+                        dedent(
+                            """\
+                            ⚠️  [yellow]Warning[/yellow]:
+                            Receiving message event outside of task is not supported.
+                            Please use beeai-sdk for writing your agents or ensure you always create a task first
+                            using TaskUpdater() from a2a SDK: see https://a2a-protocol.org/v0.3.0/topics/life-of-a-task
+                            """
+                        )
+                    )
+                    # Basic fallback
+                    for part in message.parts:
+                        if isinstance(part.root, TextPart):
+                            console.print(part.root.text)
+                case Task(id=task_id), TaskStatusUpdateEvent(
+                    status=TaskStatus(state=TaskState.completed, message=message)
                 ):
-                    task_id, context_id = tid, cid
-                    match state:
-                        case TaskState.completed:
-                            console.print()  # Add newline after completion
-                            return None, context_id
-                        case TaskState.submitted:
-                            pass
-                        case TaskState.working:
-                            # Handle streaming content during working state
-                            if message:
-                                trajectory = (message.metadata or {}).get(
-                                    "https://a2a-extensions.beeai.dev/ui/trajectory/v1"
-                                ) or {}
-                                if update_kind := trajectory.get("title"):
-                                    if update_kind != log_type:
-                                        if log_type is not None:
-                                            err_console.print()
-                                        err_console.print(f"{update_kind}: ", style="dim", end="")
-                                        log_type = update_kind
-                                    err_console.print(trajectory.get("content"), style="dim", end="")
-                                else:
-                                    # This is regular message content
-                                    if log_type:
-                                        console.print()
-                                        log_type = None
-                                for part in message.parts:
-                                    if hasattr(part.root, "text"):
-                                        console.print(part.root.text, end="")
-                        case TaskState.input_required:
-                            if handle_input is None:
-                                raise ValueError("Agent requires input but no input handler provided")
+                    console.print()  # Add newline after completion
+                    return
+                case Task(id=task_id), TaskStatusUpdateEvent(
+                    status=TaskStatus(state=TaskState.working, message=message)
+                ):
+                    # Handle streaming content during working state
+                    if message:
+                        if trajectory_extension and (trajectory := trajectory_extension.parse_server_metadata(message)):
+                            if update_kind := trajectory.title:
+                                if update_kind != log_type:
+                                    if log_type is not None:
+                                        err_console.print()
+                                    err_console.print(f"{update_kind}: ", style="dim", end="")
+                                    log_type = update_kind
+                                err_console.print(trajectory.content or "", style="dim", end="")
+                        else:
+                            # This is regular message content
+                            if log_type:
+                                console.print()
+                                log_type = None
+                        for part in message.parts:
+                            if isinstance(part.root, TextPart):
+                                console.print(part.root.text, end="")
+                case Task(id=task_id), TaskStatusUpdateEvent(
+                    status=TaskStatus(state=TaskState.input_required, message=message)
+                ):
+                    if handle_input is None:
+                        raise ValueError("Agent requires input but no input handler provided")
 
-                            text = ""
-                            for part in message.parts if message else []:
-                                if isinstance(part.root, TextPart):
-                                    text = part.root.text
-                            console.print(f"\n[bold]Agent requires your input[/bold]: {text}\n")
-                            user_input = handle_input()
+                    text = ""
+                    for part in message.parts if message else []:
+                        if isinstance(part.root, TextPart):
+                            text = part.root.text
+                    console.print(f"\n[bold]Agent requires your input[/bold]: {text}\n")
+                    user_input = handle_input()
+                    stream = client.send_message(
+                        Message(
+                            message_id=str(uuid4()),
+                            parts=[Part(root=TextPart(text=user_input))],
+                            role=Role.user,
+                            task_id=task_id,
+                            context_id=context_token.context_id,
+                        )
+                    )
+                    break
+                case Task(id=task_id), TaskStatusUpdateEvent(
+                    status=TaskStatus(
+                        state=TaskState.canceled | TaskState.failed | TaskState.rejected as status,
+                        message=message,
+                    )
+                ):
+                    error = ""
+                    if message and message.parts and isinstance(message.parts[0].root, TextPart):
+                        error = message.parts[0].root.text
+                    console.print(f"[red]Task {status}[/red]: {error}")
+                    return
+                case Task(id=task_id), TaskStatusUpdateEvent(
+                    status=TaskStatus(state=TaskState.auth_required, message=message)
+                ):
+                    console.print("[yellow]Authentication required[/yellow]")
+                    return
+                case Task(id=task_id), TaskStatusUpdateEvent(status=TaskStatus(state=state, message=message)):
+                    console.print(f"[yellow]Unknown task status: {state}[/yellow]")
 
-                            # Send the user input back to the agent
-                            response_message = Message(
-                                message_id=str(uuid4()),
-                                parts=[Part(root=TextPart(text=user_input))],
-                                role=Role.user,
-                                task_id=task_id,
-                                context_id=context_id,
-                            )
-                            stream = client.send_message(response_message)
-                            break
-                        case TaskState.canceled:
-                            console.print("[yellow]Task was canceled[/yellow]")
-                            return task_id, context_id
-                        case TaskState.failed:
-                            message = message.parts[0].root.text if message else ""
-                            console.print(f"[red]Task failed[/red]: {message}")
-                            return task_id, context_id
-                        case TaskState.rejected:
-                            console.print("[red]Task was rejected[/red]")
-                            return task_id, context_id
-                        case TaskState.auth_required:
-                            console.print("[yellow]Authentication required[/yellow]")
-                            return task_id, context_id
-                        case TaskState.unknown:
-                            console.print("[yellow]Unknown task status[/yellow]")
-                case Task(id=tid, context_id=cid), TaskArtifactUpdateEvent(artifact=artifact):
-                    task_id, context_id = tid, cid
+                case Task(id=task_id), TaskArtifactUpdateEvent(artifact=artifact):
                     if dump_files_path is None:
                         continue
                     dump_files_path.mkdir(parents=True, exist_ok=True)
@@ -371,9 +386,7 @@ async def _run_agent(
                     except ValueError:
                         console.print(f"⚠️ Skipping artifact {artifact.name} - outside dump directory")
         else:
-            # Stream ended normally
-            break
-    return task_id, context_id
+            break  # Stream ended normally
 
 
 class InteractiveCommand(abc.ABC):
@@ -396,7 +409,7 @@ class Quit(InteractiveCommand):
 
     command = "q"
 
-    def handle(self, *_any):
+    def handle(self, args_str: str | None = None):
         sys.exit(0)
 
 
@@ -406,21 +419,21 @@ class ShowConfig(InteractiveCommand):
     command = "show-config"
 
     def __init__(self, config_schema: dict[str, Any] | None, config: dict[str, Any]):
-        self.config_schema = config_schema
+        self.config_schema = config_schema or {}
         self.config = config
 
     @property
     def enabled(self) -> bool:
         return bool(self.config_schema)
 
-    def handle(self, *_any):
+    def handle(self, args_str: str | None = None):
         with create_table(Column("Key", ratio=1), Column("Type", ratio=3), Column("Example", ratio=2)) as schema_table:
             for prop, schema in self.config_schema["properties"].items():
                 required_schema = remove_nullable(schema)
                 schema_table.add_row(
                     prop,
                     json.dumps(required_schema),
-                    json.dumps(generate_schema_example(required_schema)),
+                    json.dumps(generate_schema_example(required_schema)),  # pyright: ignore [reportArgumentType]
                 )
 
         renderables = [
@@ -455,7 +468,7 @@ class Set(InteractiveCommand):
     command = "set"
 
     def __init__(self, config_schema: dict[str, Any] | None, config: dict[str, Any]):
-        self.config_schema = config_schema
+        self.config_schema = config_schema or {}
         self.config = config
 
     @property
@@ -501,7 +514,7 @@ class Help(InteractiveCommand):
         self.splash_screen = splash_screen
         self.commands = [self, *commands]
 
-    def handle(self, *_any):
+    def handle(self, args_str: str | None = None):
         if self.splash_screen:
             console.print(self.splash_screen)
         if self.config_command:
@@ -520,7 +533,7 @@ def _create_input_handler(
     optional: bool = False,
     placeholder: str | None = None,
     splash_screen: ConsoleRenderable | None = None,
-) -> Callable:
+) -> Callable[[], str]:
     choice = choice or []
     commands = [cmd for cmd in commands if cmd.enabled]
     commands = [Quit(), *commands]
@@ -538,7 +551,7 @@ def _create_input_handler(
             return True
         return text in valid_options if choice else bool(text)
 
-    def handler():
+    def handler() -> str:
         from prompt_toolkit.completion import NestedCompleter
         from prompt_toolkit.validation import Validator
 
@@ -570,7 +583,7 @@ def _setup_sequential_workflow(providers: list[Provider], splash_screen: Console
     prompt_agents = {
         provider.agent_card.name: provider
         for provider in providers
-        if (provider.detail or {}).get("interaction_mode") == InteractionMode.single_turn
+        if (ProviderUtils.detail(provider) or {}).get("interaction_mode") == InteractionMode.single_turn
     }
     steps = []
 
@@ -628,10 +641,6 @@ def _get_config_schema(schema: dict[str, Any] | None) -> dict[str, Any] | None:
     return schema
 
 
-async def get_provider(provider_id: str):
-    return await api_request("GET", f"providers/{provider_id}")
-
-
 @app.command("run")
 async def run_agent(
     search_path: typing.Annotated[
@@ -649,24 +658,32 @@ async def run_agent(
     ] = None,
 ) -> None:
     """Run an agent."""
+    async with configuration.use_platform_client():
+        providers = await Provider.list()
+        context = await Context.create()
+        context_token = await context.generate_token(
+            grant_global_permissions=Permissions(llm={"*"}, embeddings={"*"}, a2a_proxy={"*"}),
+            grant_context_permissions=ContextPermissions(files={"*"}, vector_stores={"*"}),
+        )
+
     await ensure_llm_env()
 
-    providers = await get_providers()
     provider = select_provider(search_path, providers=providers)
     agent = provider.agent_card
 
-    if provider.metadata["state"] == "missing":
+    if provider.state == "missing":
         console.print("Starting provider (this might take a while)...")
-    if provider.metadata["state"] not in {"ready", "running", "starting", "missing"}:
-        err_console.print(
-            f":boom: Agent is not in a ready state: {provider['state']}, {provider['last_error']}\nRetrying..."
-        )
+    if provider.state not in {"ready", "running", "starting", "missing"}:
+        err_console.print(f":boom: Agent is not in a ready state: {provider.state}, {provider.last_error}\nRetrying...")
 
-    ui_annotations = provider.detail or {}
+    ui_annotations = ProviderUtils.detail(provider) or {}
     interaction_mode = ui_annotations.get("interaction_mode")
     is_sequential_workflow = agent.name in {"sequential_workflow"}
 
     user_greeting = ui_annotations.get("user_greeting", None) or "How can I help you?"
+
+    splash_screen = Group(Markdown(f"# {agent.name}  \n{agent.description}"), NewLine())
+    handle_input = _create_input_handler([], splash_screen=splash_screen)
 
     if not input:
         if (
@@ -680,38 +697,36 @@ async def run_agent(
             err_console.print(_render_examples(agent))
             exit(1)
 
-        splash_screen = Group(
-            Markdown(f"# {agent.name}  \n{agent.description}"),
-            NewLine(),
-        )
-
-        handle_input = _create_input_handler([], splash_screen=splash_screen)
-
         if interaction_mode == InteractionMode.multi_turn:
             console.print(f"{user_greeting}\n")
             input = handle_input()
             async with a2a_client(provider.agent_card) as client:
-                task_id, context_id = None, None
                 while True:
                     console.print()
-                    task_id, context_id = await _run_agent(
+                    await _run_agent(
                         client,
                         input,
+                        agent_card=agent,
+                        context_token=context_token,
                         dump_files_path=dump_files,
                         handle_input=handle_input,
-                        task_id=task_id,
-                        context_id=context_id,
                     )
                     console.print()
                     input = handle_input()
-
         elif interaction_mode == InteractionMode.single_turn:
             user_greeting = ui_annotations.get("user_greeting", None) or "Enter your instructions."
             console.print(f"{user_greeting}\n")
             input = handle_input()
             console.print()
             async with a2a_client(provider.agent_card) as client:
-                await _run_agent(client, input, dump_files_path=dump_files, handle_input=handle_input)
+                await _run_agent(
+                    client,
+                    input,
+                    agent_card=agent,
+                    context_token=context_token,
+                    dump_files_path=dump_files,
+                    handle_input=handle_input,
+                )
         elif is_sequential_workflow:
             workflow_steps = _setup_sequential_workflow(providers, splash_screen=splash_screen)
             console.print()
@@ -720,13 +735,22 @@ async def run_agent(
                 await _run_agent(
                     client,
                     Message(message_id=str(uuid4()), parts=[Part(root=message_part)], role=Role.user),
+                    agent_card=agent,
+                    context_token=context_token,
                     dump_files_path=dump_files,
                     handle_input=handle_input,
                 )
 
     else:
         async with a2a_client(provider.agent_card) as client:
-            await _run_agent(client, input, dump_files_path=dump_files)
+            await _run_agent(
+                client,
+                input,
+                agent_card=agent,
+                context_token=context_token,
+                dump_files_path=dump_files,
+                handle_input=handle_input,
+            )
 
 
 def render_enum(value: str, colors: dict[str, str]) -> str:
@@ -735,29 +759,19 @@ def render_enum(value: str, colors: dict[str, str]) -> str:
     return value
 
 
-async def get_providers() -> list[Provider]:
-    return [
-        Provider(
-            agent_card=provider["agent_card"],
-            id=provider["id"],
-            metadata=omit(provider, {"agent_card"}),
-        )
-        for provider in (await api_request("GET", "providers"))["items"]
-    ]
-
-
 @app.command("list")
 async def list_agents():
     """List agents."""
-    providers = await get_providers()
-    max_provider_len = max(len(p.short_location) for p in providers) if providers else 0
-    max_error_len = max(len(p.last_error or "") for p in providers) if providers else 0
+    async with configuration.use_platform_client():
+        providers = await Provider.list()
+    max_provider_len = max(len(ProviderUtils.short_location(p)) for p in providers) if providers else 0
+    max_error_len = max(len(ProviderUtils.last_error(p) or "") for p in providers) if providers else 0
 
     def _sort_fn(provider: Provider):
         state = {"missing": "1"}
         return (
-            str(state.get(provider.metadata["state"], 0)) + f"_{provider.agent_card.name}"
-            if "registry" in provider
+            str(state.get(provider.state, 0)) + f"_{provider.agent_card.name}"
+            if provider.registry
             else provider.agent_card.name
         )
 
@@ -775,8 +789,8 @@ async def list_agents():
         for provider in sorted(providers, key=_sort_fn):
             state = None
             missing_env = None
-            state = provider.metadata["state"]
-            missing_env = ",".join(var["name"] for var in provider.metadata["missing_configuration"])
+            state = provider.state
+            missing_env = ",".join(var.name for var in provider.missing_configuration)
             table.add_row(
                 provider.id[:8],
                 provider.agent_card.name,
@@ -791,10 +805,10 @@ async def list_agents():
                     },
                 ),
                 (provider.agent_card.description or "<none>").replace("\n", " "),
-                (provider.detail or {}).get("interaction_mode") or "<none>",
-                provider.short_location or "<none>",
+                (ProviderUtils.detail(provider) or {}).get("interaction_mode") or "<none>",
+                ProviderUtils.short_location(provider) or "<none>",
                 missing_env or "<none>",
-                provider.last_error or "<none>",
+                ProviderUtils.last_error(provider) or "<none>",
             )
     console.print(table)
 
@@ -841,7 +855,7 @@ async def agent_detail(
     ],
 ):
     """Show agent details."""
-    provider = select_provider(search_path, await get_providers())
+    provider = select_provider(search_path, await Provider.list())
     agent = provider.agent_card
 
     basic_info = f"# {agent.name}\n{agent.description}"
@@ -862,7 +876,7 @@ async def agent_detail(
     console.print(table)
 
     with create_table(Column("Key", ratio=1), Column("Value", ratio=5), title="Provider") as table:
-        for key, value in omit(provider, {"image_id", "manifest", "source", "registry"}).items():
+        for key, value in provider.model_dump(exclude={"image_id", "manifest", "source", "registry"}).items():
             table.add_row(key, str(value))
     console.print()
     console.print(table)
