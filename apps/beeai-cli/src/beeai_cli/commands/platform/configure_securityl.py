@@ -159,7 +159,7 @@ async def install_security(driver):
             "-c",
             "k3s kubectl label namespace default istio.io/dataplane-mode=ambient",
         ],
-        "Labeling the default namespace...",
+        "Labeling the default namespace",
     )
 
     await driver.run_in_vm(
