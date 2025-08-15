@@ -394,7 +394,7 @@ async def install_security(driver):
             "-c",
             "curl -L https://istio.io/downloadIstio | sh -",
         ],
-        "Installing istioctl...",
+        "Installing istioctl",
     )
 
     istio_dir = (
