@@ -1,7 +1,7 @@
 [project]
-name = "chat"
+name = "rag"
 version = "0.1.0"
-description = "AI-powered conversational system with memory and tools."
+description = "TBD"
 authors = [
     { name = "IBM Corp." },
 ]
@@ -11,6 +11,8 @@ dependencies = [
     "beeai-sdk",
     "openinference-instrumentation-beeai>=0.1.8",
     "pydantic-settings>=2.9.0",
+    "tenacity>=9.1.2",
+    "langchain-text-splitters>=0.3.0",
     "uvicorn>=0.35.0",
 ]
 
@@ -21,7 +23,7 @@ line-length = 120
 beeai-sdk = { path = "../../../../apps/beeai-sdk", editable = true }
 
 [project.scripts]
-server = "chat.agent:serve"
+server = "rag.agent:serve"
 
 [build-system]
 requires = [
