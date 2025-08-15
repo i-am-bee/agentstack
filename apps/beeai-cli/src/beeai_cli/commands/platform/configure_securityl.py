@@ -412,7 +412,7 @@ async def install_security(driver: "BaseDriver"):
         [
             "/bin/sh",
             "-c",
-            f"export PATH=/{istio_dir}/bin:$PATH && k3s kubectl apply -f /{istio_dir}samples/addons/prometheus.yaml",
+            f"k3s kubectl apply -f /{istio_dir}samples/addons/prometheus.yaml",
         ],
         "Installing Prometheus",
     )
@@ -421,7 +421,7 @@ async def install_security(driver: "BaseDriver"):
         [
             "/bin/sh",
             "-c",
-            f"export PATH=/{istio_dir}/bin:$PATH && k3s kubectl apply -f /{istio_dir}samples/addons/kiali.yaml",
+            f"k3s kubectl apply -f /{istio_dir}samples/addons/kiali.yaml",
         ],
         "Installing Kiali",
     )
@@ -453,5 +453,5 @@ async def install_security(driver: "BaseDriver"):
         "The beeai-ui is available at https://beeai.localhost:8336 (TLS gateway), and http://localhost:8334 (insecure)"
     )
     console.print(
-        "The beeai-platform api docs are availabel at https://beeai.localhost:8336/api/v1/docs (TLS gateway) and http://localhost:8333/api/v1/docs"
+        "The beeai-platform api docs are availabel at https://beeai.localhost:8336/api/v1/docs (TLS gateway) and http://localhost:8333/api/v1/docs  (insecure)"
     )
