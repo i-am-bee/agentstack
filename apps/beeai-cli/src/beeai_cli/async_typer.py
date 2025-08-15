@@ -40,6 +40,7 @@ def create_table(*args, no_wrap: bool = True, **kwargs) -> Iterator[Table]:
     for column in table.columns:
         column.no_wrap = no_wrap
         column.overflow = "ellipsis"
+        assert isinstance(column.header, str)
         column.header = column.header.upper()
 
     if not table.rows:

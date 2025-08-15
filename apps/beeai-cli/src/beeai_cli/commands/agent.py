@@ -74,7 +74,6 @@ from beeai_cli.api import a2a_client, api_stream
 from beeai_cli.async_typer import AsyncTyper, console, create_table, err_console
 from beeai_cli.utils import (
     generate_schema_example,
-    omit,
     prompt_user,
     remove_nullable,
     run_command,
@@ -869,7 +868,7 @@ async def agent_detail(
     console.print(_render_examples(agent))
 
     with create_table(Column("Key", ratio=1), Column("Value", ratio=5), title="Extra information") as table:
-        for key, value in omit(agent.model_dump(), {"description", "examples"}).items():
+        for key, value in agent.model_dump(exclude={"description", "examples"}).items():
             if value:
                 table.add_row(key, str(value))
     console.print()
