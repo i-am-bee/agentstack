@@ -83,45 +83,6 @@ Security add-ons (TLS, Cert-Manager, Istio, and Kiali) are disabled by default
 
 ## Enabling
 
-- Update OAuth credentials and settings helm/values.yaml under:
-
-```YAML
-oidc:
-  enabled: true
-  discovery_url: "<oidc_discovery_endpoint>"
-  admin_emails: "a comma separated list of email addresses"
-  nextauth_trust_host: true
-  nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
-  providers_path: "/providers"
-  nextauth_url: "http://localhost:8334"
-  nextauth_providers: [
-    {
-      "name": "w3id",
-      "id": "w3id",
-      "type": "oidc",
-      "class": "IBM",
-      "client_id": "<oidc_client_id>",
-      "client_secret": "<oidc_client_secret>",
-      "issuer": "<oidc_issuer>",
-      "jwks_url": "<oidc_jwks_endpoint>",
-      "nextauth_url": "http://localhost:8334",
-      "nextauth_redirect_proxy_url": "http://localhost:8334"
-    },
-    {
-      "name": "IBMiD",
-      "id": "IBMiD",
-      "type": "oidc",
-      "class": "IBM",
-      "client_id": "<oidc_client_id>",
-      "client_secret": "<oidc_client_secret>",
-      "issuer": "<oidc_issuer>",
-      "jwks_url": "<oidc_jwks_endpoint>",
-      "nextauth_url": "http://localhost:8334",
-      "nextauth_redirect_proxy_url": "http://localhost:8334"
-    }
-  ]
-  ```
-
 When the platform is started with  `--set oidc.enabled=true`, the platform will install istio in ambient mode, create a gateway, add routes for `https://beeai.localhost:8336/` and install the Kiali console.  The intent being that tokens returned by OAuth routes are receieved in the browser over HTTPS rather than plain text HTTP to prevent unauthorized use of tokens.   It is strongly recommended that you access the UI via the TLS connection `https://beeai.localhost:8336/`, and configure your OIDC provider to use `https://beeai.localhost:8336/` as one of the allowed redirect urls.  In practice when deploying the beeai images to a cloud cluster, change the nextauth_url, and nextauth_redirect_proxy_url values accordingly.   Some OIDC providers only allow valid top level domain names in the redirect urls.
 
 The default namespace is labeled istio.io/dataplane-mode=ambient so all intra pod trafic is via ztunnel with the exception of the beeai-platform pod due to it's use of the hostNetwork (istio can not bring a hostNetwork enabled pod into the mesh).
