@@ -21,6 +21,7 @@ import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
 import { Role } from '#modules/messages/api/types.ts';
 import { UIMessagePartKind, UIMessageStatus, type UIUserMessage } from '#modules/messages/types.ts';
 import { addTranformedMessagePart, getMessageRawContent } from '#modules/messages/utils.ts';
+import { useGetPlatformContext, WithPlatformContext } from '#modules/platform-context/with-platform-context.tsx';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { type UIComposePart, UIComposePartKind } from '../a2a/types';
@@ -30,6 +31,15 @@ import type { ComposeStep, SequentialFormValues } from './compose-context';
 import { ComposeContext, ComposeStatus } from './compose-context';
 
 export function ComposeProvider({ children }: PropsWithChildren) {
+  return (
+    <WithPlatformContext>
+      <ComposeProviderWithContext>{children}</ComposeProviderWithContext>
+    </WithPlatformContext>
+  );
+}
+
+function ComposeProviderWithContext({ children }: PropsWithChildren) {
+  const { contextId, getFullfilments } = useGetPlatformContext();
   const { data: agents } = useListAgents({ onlyUiSupported: true, sort: true });
 
   const searchParams = useSearchParams();
@@ -155,6 +165,7 @@ export function ComposeProvider({ children }: PropsWithChildren) {
                 : undefined,
           });
         });
+        const fulfillments = await getFullfilments();
 
         const userMessage: UIUserMessage = {
           id: uuid(),
@@ -164,15 +175,8 @@ export function ComposeProvider({ children }: PropsWithChildren) {
 
         const run = a2aAgentClient.chat({
           message: userMessage,
-          contextId: uuid(),
-          fulfillments: {
-            mcp: async () => {
-              throw new Error('MCP fulfillment not implemented');
-            },
-            llm: async () => {
-              throw new Error('LLM fulfillment not implemented');
-            },
-          },
+          contextId,
+          fulfillments,
         });
         pendingRun.current = run;
 
@@ -226,7 +230,7 @@ export function ComposeProvider({ children }: PropsWithChildren) {
         pendingSubscription.current = undefined;
       }
     },
-    [a2aAgentClient, updateStep, getActiveStepIdx, getValues, handleError, onDone],
+    [a2aAgentClient, updateStep, getActiveStepIdx, getValues, handleError, onDone, getFullfilments, contextId],
   );
 
   const onSubmit = useCallback(() => {

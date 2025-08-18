@@ -45,7 +45,7 @@ export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>)
 }
 
 function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
-  const { contextId, resetContext, getPlatformToken } = useGetPlatformContext();
+  const { contextId, resetContext, getFullfilments } = useGetPlatformContext();
   const [messages, getMessages, setMessages] = useImmerWithGetter<UIMessage[]>([]);
   const [input, setInput] = useState<string>();
   const [isPending, setIsPending] = useState(false);
@@ -136,7 +136,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
       setIsPending(true);
       setStats({ startTime: Date.now() });
 
-      const platformToken = await getPlatformToken();
+      const fulfillments = await getFullfilments();
 
       const userMessage: UIUserMessage = {
         id: uuid(),
@@ -160,23 +160,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
         const run = a2aAgentClient.chat({
           message: userMessage,
           contextId,
-          fulfillments: {
-            mcp: async () => {
-              throw new Error('MCP fulfillment not implemented');
-            },
-            llm: async () => {
-              return {
-                llm_fulfillments: {
-                  default: {
-                    identifier: 'llm_proxy',
-                    api_base: '{platform_url}/api/v1/llm/',
-                    api_key: platformToken,
-                    api_model: 'dummy',
-                  },
-                },
-              };
-            },
-          },
+          fulfillments,
         });
         pendingRun.current = run;
 
@@ -207,7 +191,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
         pendingSubscription.current = undefined;
       }
     },
-    [a2aAgentClient, files, contextId, handleError, updateLastAgentMessage, setMessages, clearFiles, getPlatformToken],
+    [a2aAgentClient, files, contextId, handleError, updateLastAgentMessage, setMessages, clearFiles, getFullfilments],
   );
 
   const sources = useMemo(() => getMessageSourcesMap(messages), [messages]);

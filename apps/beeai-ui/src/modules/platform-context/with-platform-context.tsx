@@ -7,13 +7,17 @@ import type { PropsWithChildren } from 'react';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import React from 'react';
 
+import type { Fulfillments } from '#api/a2a/types.ts';
+
 import { useCreateContext } from './api/mutations/useCreateContext';
 import { useCreateContextToken } from './api/mutations/useCreateContextToken';
+import { buildFullfilments } from './build-fulfillments';
 
 interface PlatformContext {
   contextId: string;
   resetContext: () => void;
   getPlatformToken: () => Promise<string>;
+  getFullfilments: () => Promise<Fulfillments>;
 }
 
 const PlatformContextWrapper = React.createContext<PlatformContext | null>(null);
@@ -79,7 +83,12 @@ export function WithPlatformContext({ children }: PropsWithChildren) {
     }
 
     return contextToken.token;
-  }, [contextId]);
+  }, [contextId, createContextToken]);
+
+  const getFullfilments = useCallback(async () => {
+    const platformToken = await getPlatformToken();
+    return buildFullfilments(platformToken);
+  }, [getPlatformToken]);
 
   useEffect(() => {
     createContext().then(setContext);
@@ -91,7 +100,14 @@ export function WithPlatformContext({ children }: PropsWithChildren) {
   }
 
   return (
-    <PlatformContextWrapper.Provider value={{ contextId, resetContext, getPlatformToken }}>
+    <PlatformContextWrapper.Provider
+      value={{
+        contextId,
+        resetContext,
+        getPlatformToken,
+        getFullfilments,
+      }}
+    >
       {children}
     </PlatformContextWrapper.Provider>
   );
