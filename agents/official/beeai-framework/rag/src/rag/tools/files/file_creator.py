@@ -2,12 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+import typing
 from beeai_framework.emitter import Emitter
 from beeai_framework.tools import JSONToolOutput, Tool, ToolRunOptions
+from beeai_sdk.platform import File
 from pydantic import BaseModel, Field
-
-from rag.helpers.platform import get_file_url, upload_file
-from rag.tools.files.model import FileChatInfo, OriginType
 
 
 class FileInput(BaseModel):
@@ -21,7 +20,7 @@ class FileCreatorInput(BaseModel):
 
 
 class FileCreatorToolResult(BaseModel):
-    files: list[FileChatInfo] = Field(
+    files: list[File] = Field(
         ...,
         description="List of files that have been created.",
     )
@@ -56,22 +55,12 @@ class FileCreatorTool(
     async def _run(
         self, input: FileCreatorInput, options, context
     ) -> FileCreatorToolOutput:
-        files = []
+        files: list[FileCreatorFile] = []
         for item in input.files:
-            result = await upload_file(
+            file = await File.create(
                 filename=item.filename,
                 content_type=item.content_type,
                 content=item.content.encode(),
             )
-            files.append(
-                FileChatInfo(
-                    id=result.id,
-                    url=get_file_url(result.id),
-                    content_type=item.content_type,
-                    display_filename=item.filename,
-                    filename=item.filename,
-                    file_size_bytes=result.file_size_bytes,
-                    origin_type=OriginType.GENERATED,
-                )
-            )
+            files.append(file)
         return FileCreatorToolOutput(result=FileCreatorToolResult(files=files))

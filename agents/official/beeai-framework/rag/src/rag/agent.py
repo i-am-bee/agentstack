@@ -23,10 +23,14 @@ from beeai_sdk.a2a.extensions import (
     TrajectoryExtensionServer,
     TrajectoryExtensionSpec,
 )
+from beeai_sdk.a2a.extensions.services.platform import (
+    PlatformApiExtensionServer,
+    PlatformApiExtensionSpec,
+)
 from beeai_framework.agents.experimental.utils._tool import FinalAnswerTool
 from beeai_sdk.a2a.types import AgentMessage
 from beeai_sdk.server import Server
-from beeai_sdk.server.context import Context
+from beeai_sdk.server.context import RunContext
 from openinference.instrumentation.beeai import BeeAIInstrumentor
 from rag.helpers.citations import extract_citations
 from rag.helpers.platform import ApiClient, get_file_url
@@ -37,7 +41,8 @@ from rag.helpers.vectore_store import (
     embed_all_files,
     CreateVectorStoreEvent,
 )
-from rag.tools.files.file_creator import FileCreatorToolOutput
+from rag.tools.files.file_creator import FileCreatorTool, FileCreatorToolOutput
+from rag.tools.files.file_reader import create_file_reader_tool_class
 from rag.tools.files.utils import FrameworkMessage, extract_files, to_framework_message
 from rag.tools.files.vector_search import VectorSearchTool
 from rag.tools.general.act import (
@@ -77,10 +82,26 @@ server = Server()
         "/agents/official/beeai-framework/rag"
     ),
     version="1.0.0",
-    default_input_modes=["text/plain", "application/pdf"],
+    default_input_modes=[
+        "text/plain",
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",  # DOCX
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",  # XLSX
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",  # PPTX
+        "text/markdown",  # Markdown
+        "text/asciidoc",  # AsciiDoc
+        "text/html",  # HTML
+        "application/xhtml+xml",  # XHTML
+        "text/csv",  # CSV
+        "image/png",  # PNG
+        "image/jpeg",  # JPEG
+        "image/tiff",  # TIFF
+        "image/bmp",  # BMP
+        "image/webp",  # WEBP
+    ],
     default_output_modes=["text/plain"],
     detail=AgentDetail(
-        ui_type="chat",
+        interaction_mode="multi-turn",
         user_greeting="What would you like to read?",
         tools=[],
         framework="BeeAI",
@@ -96,9 +117,10 @@ server = Server()
 )
 async def rag(
     message: Message,
-    context: Context,
+    context: RunContext,
     trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
     citation: Annotated[CitationExtensionServer, CitationExtensionSpec()],
+    _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
 ):
 
     extracted_files = await extract_files(
@@ -106,32 +128,49 @@ async def rag(
     )
     input = to_framework_message(message)
 
-    FinalAnswerTool.description = """Assemble and send the final answer to the user. When using information gathered from other tools that provided URL addresses, you MUST properly cite them using markdown citation format: [description](URL).
+    # Configure tools
+    file_reader_tool_class = create_file_reader_tool_class(
+        extracted_files
+    )  # Dynamically created tool input schema based on real provided files ensures that small LLMs can't hallucinate the input
 
-# Citation Requirements:
-- Use descriptive text that summarizes the source content
-- Include the exact URL provided by the tool
+    FinalAnswerTool.description = """Assemble and send the final answer to the user. When using information from documents found through search tools, you MUST cite them using markdown citation format: [filename](URL).
+
+# CRITICAL Citation Requirements:
+- ALWAYS use markdown format [filename](URL) for document references
+- When vector_search or file_reader tools provide URLs, use them in citations
+- Use the actual filename (e.g., "Doc1_Mastabas_Administration.pdf") not document IDs
 - Place citations inline where the information is referenced
+- Do NOT create separate "Citations:" sections - embed citations directly in text
 
 # Examples:
-- According to [OpenAI's latest announcement](https://example.com/gpt5), GPT-5 will be released next year.
-- Recent studies show [AI adoption has increased by 67%](https://example.com/ai-study) in enterprise environments.
-- Weather data indicates [temperatures will reach 25°C tomorrow](https://weather.example.com/forecast)."""  # type: ignore
+- According to [quarterly-report.pdf](https://platform.com/files/123/content), revenue increased by 15%.
+- The analysis in [customer-data.xlsx](https://platform.com/files/456/content) shows improved satisfaction scores.
+- Based on findings in [research-paper.pdf](https://platform.com/files/789/content), the hypothesis is supported.
+
+# WRONG Format (avoid this):
+"Based on the document..." followed by separate "Citations: - Doc1_file.pdf"
+
+# CORRECT Format (use this):
+"Based on [Doc1_file.pdf](https://platform.com/files/123/content), the findings show..."
+"""  # type: ignore
 
     tools = [
         # Auxiliary tools
         ActTool(),  # Enforces correct thinking sequence by requiring tool selection before execution
         ClarificationTool(),  # Allows agent to ask clarifying questions when user requirements are unclear
         CurrentTimeTool(),
+        file_reader_tool_class(),
+        FileCreatorTool(),
     ]
 
     if extracted_files:
-        async with ApiClient() as client:
+        async with ApiClient() as client:  # FIXME: API Client will be redundant when create_embedding is implemented properly with openai client
             global vector_store_id
             if vector_store_id is None:
                 start_event = CreateVectorStoreEvent(phase="start")
                 yield start_event.metadata(trajectory)
-                vector_store_id = await create_vector_store(client)
+                vector_store = await create_vector_store(client)
+                vector_store_id = vector_store.id
                 yield CreateVectorStoreEvent(
                     vector_store_id=vector_store_id,
                     parent_id=start_event.id,
@@ -159,11 +198,31 @@ async def rag(
         tool_choice_support=set(),
     )
 
+    # Build dynamic instructions based on available files
+    base_instructions = (
+        "You are a helpful assistant that answers questions about uploaded documents. "
+        "Choose the appropriate tool based on the task:\n"
+        "- Use 'file_reader' ONLY for: summarizing entire files or documents when the user explicitly "
+        "requests a complete summary or overview of the whole file\n"
+        "- Use 'vector_search' for: finding specific information within documents, answering questions "
+        "about particular topics or concepts, research queries, and any targeted information retrieval\n"
+        "Always search or read relevant information first, then provide a comprehensive response."
+    )
+
+    if extracted_files:
+        files_info = "\n\nAvailable files:\n"
+        for file in extracted_files:
+            files_info += f"- ID: {file.id}, Filename: {file.filename}, Url: {get_file_url(file.id)}\n" # FIXME: URL should come from SDK
+        instructions = base_instructions + files_info
+    else:
+        instructions = base_instructions
+
     # Create agent
     agent = RequirementAgent(
         llm=llm,
         tools=tools,
         memory=UnconstrainedMemory(),
+        instructions=instructions,
         requirements=requirements,
         middlewares=[
             GlobalTrajectoryMiddleware(included=[Tool]),  # ChatModel,
@@ -179,7 +238,7 @@ async def rag(
     final_answer = None
     event_binder = EventBinder()
 
-async def handle_tool_start(event, meta):
+    async def handle_tool_start(event, meta):
         print(f"Handle tool start")
         # Store the start event ID using EventBinder
         event_binder.set_start_event_id(meta)
@@ -218,17 +277,19 @@ async def handle_tool_start(event, meta):
 
         if isinstance(event.output, FileCreatorToolOutput):
             result = event.output.result
-            for file_info in result.files:
+            for file in result.files:
                 artifact = Artifact(
-                    artifact_id=str(uuid.uuid4()),
-                    name=file_info.display_filename,
+                    artifact_id=str(file.id),
+                    name=file.filename,
                     parts=[
                         Part(
                             root=FilePart(
                                 file=FileWithUri(
-                                    name=file_info.display_filename,
-                                    mime_type=file_info.content_type,
-                                    uri=str(file_info.url),
+                                    name=file.filename,
+                                    # mime_type=file.content_type, FIXME: File content type should come from sdk
+                                    uri=get_file_url(
+                                        file.id
+                                    ),  # FIXME: File url should come from sdk
                                 )
                             )
                         )
@@ -250,63 +311,6 @@ async def handle_tool_start(event, meta):
             EmitterOptions(match_nested=True),
         )
     )
-
-    # async for event, meta in agent.run():
-    #     match event:
-    #         # case RequirementAgentStartEvent():
-    #             # Agent starts processing - no specific tool info yet
-    #             # last_step = event.state.steps[-1] if event.state.steps else None
-    #             # if last_step and last_step.tool is not None:
-    #             #     # Create start event for this tool
-    #             #     tool_start_event = ToolCallTrajectoryEvent(
-    #             #         kind=last_step.tool.name,
-    #             #         phase="start",
-    #             #         input=last_step.input,
-    #             #         output=None,
-    #             #         error=None,
-    #             #     )
-    #             #     tool_start_events[last_step.id] = tool_start_event
-    #             #     yield tool_start_event.metadata(trajectory)
-
-    #         case RequirementAgentSuccessEvent():
-    #             last_step = event.state.steps[-1] if event.state.steps else None
-    #             if last_step and last_step.tool is not None:
-    #                 # Create end event that references the start event
-    #                 yield ToolCallTrajectoryEvent(
-    #                     kind=last_step.tool.name,
-    #                     phase="end",
-    #                     parent_event_id=tool_start_events.get(last_step.id),
-    #                     input=last_step.input,
-    #                     output=last_step.output,
-    #                     error=last_step.error,
-    #                 ).metadata(trajectory)
-
-    #                 if isinstance(last_step.output, FileCreatorToolOutput):
-    #                     result = last_step.output.result
-    #                     for file_info in result.files:
-    #                         yield Artifact(
-    #                             artifact_id=str(uuid.uuid4()),
-    #                             name=file_info.display_filename,
-    #                             parts=[
-    #                                 Part(
-    #                                     root=FilePart(
-    #                                         file=FileWithUri(
-    #                                             name=file_info.display_filename,
-    #                                             mime_type=file_info.content_type,
-    #                                             uri=str(file_info.url),
-    #                                         )
-    #                                     )
-    #                                 )
-    #                             ],
-    #                         )
-
-    #             if event.state.answer is not None:
-    #                 # Taking a final answer from the state directly instead of RequirementAgentRunOutput to be able to use the final answer provided by the clarification tool
-    #                 final_answer = event.state.answer
-
-    #         case _:
-    #             # Handle other event types or ignore
-    #             continue
 
     final_answer = response.answer
 

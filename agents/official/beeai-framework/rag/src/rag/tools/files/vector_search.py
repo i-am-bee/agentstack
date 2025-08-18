@@ -7,11 +7,14 @@ from contextlib import asynccontextmanager
 from typing import Any, Final
 
 from beeai_framework.context import RunContext
+from beeai_sdk.platform import VectorStore
 import httpx
 from beeai_framework.emitter import Emitter
 from beeai_framework.tools import Tool, ToolError, ToolOutput, ToolRunOptions
 from pydantic import BaseModel, Field
+from rag.helpers.embedding import create_embedding
 from rag.helpers.platform import ApiClient
+
 
 class VectorSearchToolInput(BaseModel):
     """Input schema for vector search tool."""
@@ -24,12 +27,16 @@ class VectorSearchToolResult(BaseModel):
 
     text: str = Field(description="The text content of the document chunk.")
     score: float = Field(description="Similarity score between 0.0 and 1.0.")
-    metadata: dict[str, Any] = Field(description="Additional metadata for the document.")
+    metadata: dict[str, Any] = Field(
+        description="Additional metadata for the document."
+    )
 
     @property
     def title(self) -> str:
         """Get title from metadata or use truncated text."""
-        if "file_id" in self.metadata:
+        if "filename" in self.metadata:
+            return f"{self.metadata['filename']} (chunk {self.metadata.get('chunk_index', 0)})"
+        elif "file_id" in self.metadata:
             return f"Document {self.metadata['file_id']} (chunk {self.metadata.get('chunk_index', 0)})"
         return self.text[:100] + "..." if len(self.text) > 100 else self.text
 
@@ -76,7 +83,9 @@ class VectorSearchToolOutput(ToolOutput):
         return [result.url for result in self.results if result.url]
 
 
-class VectorSearchTool(Tool[VectorSearchToolInput, ToolRunOptions, VectorSearchToolOutput]):
+class VectorSearchTool(
+    Tool[VectorSearchToolInput, ToolRunOptions, VectorSearchToolOutput]
+):
     """
     Vector search tool for retrieving relevant documents from a vector database.
 
@@ -86,10 +95,32 @@ class VectorSearchTool(Tool[VectorSearchToolInput, ToolRunOptions, VectorSearchT
 
     name: str = "vector_search"
     description: str = (
-        "Search for relevant documents and information from uploaded files using semantic search. "
-        "This tool finds the most relevant content based on meaning rather than exact keyword matching."
+        "Search for relevant information across multiple uploaded documents using semantic search. "
+        "Use this tool for: research questions, content discovery across multiple files, "
+        "and finding specific topics or concepts within documents. "
+        "This tool finds the most relevant content based on meaning rather than exact keyword matching.\n\n"
+        "# How to Create Effective Vector Search Queries:\n\n"
+        "1. **Use Natural Language**: Write queries as you would ask a human expert\n"
+        "   - Good: 'What are the benefits of renewable energy sources?'\n"
+        "   - Poor: 'renewable energy benefits'\n\n"
+        "2. **Be Specific and Descriptive**: Include context and specific terms\n"
+        "   - Good: 'How does machine learning improve customer recommendation systems?'\n"
+        "   - Poor: 'ML recommendations'\n\n"
+        "3. **Ask Questions**: Frame queries as questions when looking for explanations\n"
+        "   - Good: 'What factors contribute to employee satisfaction in remote work?'\n"
+        "   - Poor: 'employee satisfaction factors'\n\n"
+        "4. **Include Domain-Specific Terms**: Use technical vocabulary from the documents\n"
+        "   - Good: 'API authentication methods and security best practices'\n"
+        "   - Poor: 'security'\n\n"
+        "5. **Search for Relationships**: Look for connections between concepts\n"
+        "   - Good: 'Relationship between customer retention and pricing strategies'\n"
+        "   - Poor: 'customer retention'\n\n"
+        "6. **Use Multiple Searches**: Break complex questions into focused searches\n"
+        "   - First: 'Cloud migration benefits and challenges'\n"
+        "   - Then: 'Cost analysis of cloud vs on-premise infrastructure'\n"
+        "   - Finally: 'Implementation timeline for cloud adoption'"
     )
-    input_schema:type[VectorSearchToolInput] = VectorSearchToolInput
+    input_schema: type[VectorSearchToolInput] = VectorSearchToolInput
 
     def __init__(self, vector_store_id: str | None = None, limit: int = 5) -> None:
         super().__init__()
@@ -109,30 +140,27 @@ class VectorSearchTool(Tool[VectorSearchToolInput, ToolRunOptions, VectorSearchT
         try:
             async with ApiClient() as client:
                 # Generate embedding for the query
-                embed_response = await client.post(
-                    "llm/embeddings", json={"model": "text-embedding-model", "input": input.query}
-                )
-                embed_response.raise_for_status()
-                embeddings_data = embed_response.json()
-                query_embedding = embeddings_data["data"][0]["embedding"]
+                embed_response = await create_embedding(
+                    client, input.query
+                )  # FIXME: Remove api client after full migration to SDK functions
+                query_embedding = embed_response["data"][0]["embedding"]
 
                 # Perform vector search
-                search_response = await client.post(
-                    f"vector_stores/{self.vector_store_id}/search",
-                    json={"query_vector": query_embedding, "limit": self.limit},
+                search_results = await VectorStore.search(
+                    self.vector_store_id, query_vector=query_embedding, limit=self.limit
                 )
-                search_response.raise_for_status()
-                search_data = search_response.json()
 
                 # Convert results to tool output format
                 results = []
-                for item in search_data.get("items", []):
-                    result_data = item.get("item", {})
-                    score = item.get("score", 0.0)
+                for result in search_results:
+                    result_data = result.item
+                    score = result.score
 
                     results.append(
                         VectorSearchToolResult(
-                            text=result_data.get("text", ""), score=score, metadata=result_data.get("metadata", {})
+                            text=result_data.text,
+                            score=score,
+                            metadata=result_data.metadata or {},
                         )
                     )
                 return VectorSearchToolOutput(results)

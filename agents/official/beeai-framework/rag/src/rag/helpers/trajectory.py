@@ -3,9 +3,8 @@
 
 import uuid
 from typing import Any, Literal
-from beeai_framework.emitter import EventMeta
 from beeai_framework.errors import FrameworkError
-from beeai_framework.tools import ToolOutput, ToolStartEvent
+from beeai_framework.tools import ToolOutput
 from beeai_sdk.a2a.extensions.ui.trajectory import TrajectoryExtensionServer
 from pydantic import BaseModel, Field, InstanceOf, field_serializer
 

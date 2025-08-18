@@ -6,16 +6,7 @@ import httpx
 from pydantic import AnyUrl, BaseModel, TypeAdapter
 
 
-class FileInfo(BaseModel):
-    id: str
-    filename: str
-    file_size_bytes: int
-    created_at: str
-    created_by: str
-    file_type: str
-    parent_file_id: str | None = None
-
-
+# FIXME: Remove after full transition to SDK
 class ApiClient:
     API_VERSION = "/api/v1"
 
@@ -67,19 +58,7 @@ class ApiClient:
         return response
 
 
-async def get_file_info(file_id: str) -> FileInfo | None:
-    async with ApiClient() as api:
-        response = await api.get(f"/files/{file_id}")
-        return FileInfo.model_validate(response.json())
-
-
-async def upload_file(filename: str, content_type: str, content: bytes) -> FileInfo:
-    async with ApiClient() as api:
-        files = {"file": (filename, content, content_type)}
-        response = await api.post("/files", files=files)
-        return FileInfo.model_validate(response.json())
-
-
 def get_file_url(file_id: str) -> AnyUrl:
     full_url = f"{ApiClient.get_api_base_url()}/files/{file_id}/content"
     return TypeAdapter(AnyUrl).validate_python(full_url)
+
