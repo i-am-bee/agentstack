@@ -76,7 +76,7 @@ export class ProviderList {
     'zoom',
   ];
   constructor() {
-    function getPrvoiderFromName(name: string) {
+    function getProviderFromName(name: string) {
       switch (name.toLocaleLowerCase()) {
         case 'w3id':
           return IBM;
@@ -151,7 +151,7 @@ export class ProviderList {
       }
     }
     for (const provName of ProviderList.providerNames) {
-      this.providerMap.set(provName, getPrvoiderFromName(provName));
+      this.providerMap.set(provName, getProviderFromName(provName));
     }
   }
   public getProviderByName(name: string) {
