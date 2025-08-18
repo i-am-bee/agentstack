@@ -5,13 +5,11 @@ import typing
 
 import yaml
 
-from beeai_cli.console import console
-
 if typing.TYPE_CHECKING:
     from beeai_cli.commands.platform.base_driver import BaseDriver
 
 
-async def install_security(driver: "BaseDriver"):
+async def install(driver: "BaseDriver"):
     # Gateway API
     await driver.run_in_vm(
         [
@@ -65,7 +63,7 @@ async def install_security(driver: "BaseDriver"):
                 "--set=values.global.platform=k3s",
                 "--wait",
             ],
-            f"Installing Istio {component}",
+            f"Installing Istio ({component})",
         )
     await driver.run_in_vm(
         ["k3s", "kubectl", "label", "namespace", "default", "istio.io/dataplane-mode=ambient"],
@@ -168,7 +166,7 @@ async def install_security(driver: "BaseDriver"):
     for resource in resources:
         await driver.run_in_vm(
             ["k3s", "kubectl", "apply", "-f", "-"],
-            f"Applying {resource['kind']} {resource['metadata']['name']}",
+            f"Applying {resource['metadata']['name']} ({resource['kind']})",
             input=yaml.dump(resource, sort_keys=False).encode("utf-8"),
         )
 
@@ -200,12 +198,4 @@ async def install_security(driver: "BaseDriver"):
             "--name=kiali-external",
         ],
         "Exposing Kiali service",
-    )
-
-    console.print("Kiali Console: [cyan]http://localhost:20001[/cyan]")
-    console.print(
-        "BeeAI UI: [cyan]https://beeai.localhost:8336[/cyan] (secure) or [cyan]http://localhost:8334[/cyan] (insecure)"
-    )
-    console.print(
-        "BeeAI API Docs: [cyan]https://beeai.localhost:8336/api/v1/docs[/cyan] (secure) or [cyan]http://localhost:8333/api/v1/docs[/cyan] (insecure)"
     )
