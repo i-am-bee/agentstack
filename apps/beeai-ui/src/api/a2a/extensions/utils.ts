@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentExtension } from '@a2a-js/sdk';
+import type { AgentExtension } from '#api/types.ts';
 
 import type { A2AServiceExtension, A2AUiExtension } from './types';
 

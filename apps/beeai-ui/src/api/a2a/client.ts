@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentExtension, TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from '@a2a-js/sdk';
+import type { TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from '@a2a-js/sdk';
 import { A2AClient } from '@a2a-js/sdk/client';
 import { Subject } from 'rxjs';
 import { match } from 'ts-pattern';
 
+import type { AgentExtension } from '#api/types.ts';
 import type { UIMessagePart } from '#modules/messages/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';

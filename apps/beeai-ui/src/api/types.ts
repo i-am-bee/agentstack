@@ -16,6 +16,8 @@ export type AcpErrorResponse = { error: ApiErrorResponse };
 
 export type ApiValidationErrorResponse = components['schemas']['HTTPValidationError'];
 
+export type AgentExtension = components['schemas']['AgentExtension'];
+
 export type HttpErrorResponse = {
   detail?: string;
 };

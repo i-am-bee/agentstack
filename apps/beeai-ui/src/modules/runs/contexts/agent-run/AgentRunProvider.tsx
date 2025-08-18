@@ -21,6 +21,7 @@ import { Role } from '#modules/messages/api/types.ts';
 import type { UIAgentMessage, UIMessage, UIUserMessage } from '#modules/messages/types.ts';
 import { UIMessageStatus } from '#modules/messages/types.ts';
 import { addTranformedMessagePart, isAgentMessage } from '#modules/messages/utils.ts';
+import { useCreateContext } from '#modules/runs/api/mutations/useCreateContext.ts';
 import type { RunStats } from '#modules/runs/types.ts';
 import { SourcesProvider } from '#modules/sources/contexts/SourcesProvider.tsx';
 import { getMessageSourcesMap } from '#modules/sources/utils.ts';
@@ -34,15 +35,50 @@ interface Props {
 }
 
 export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>) {
+  const [contextId, setContextId] = useState<string | null>(null);
+  const { mutateAsync: createContext } = useCreateContext();
+
+  const setContext = useCallback(
+    (context: Awaited<ReturnType<typeof createContext>>) => {
+      if (!context) {
+        throw new Error(`Context has not been created`);
+      }
+
+      setContextId(context.id);
+    },
+    [setContextId],
+  );
+
+  const resetContext = useCallback(() => {
+    setContextId(null);
+
+    createContext().then(setContext);
+  }, [createContext, setContext]);
+
+  useEffect(() => {
+    createContext().then(setContext);
+  }, [createContext, setContext]);
+
+  if (contextId === null) {
+    // TODO: visual?
+    return null;
+  }
+
   return (
     <FileUploadProvider allowedContentTypes={agent.defaultInputModes}>
-      <AgentRunProvider agent={agent}>{children}</AgentRunProvider>
+      <AgentRunProvider agent={agent} contextId={contextId} onReset={resetContext}>
+        {children}
+      </AgentRunProvider>
     </FileUploadProvider>
   );
 }
 
-function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
-  const [contextId, setContextId] = useState<string | null>(null);
+function AgentRunProvider({
+  agent,
+  children,
+  contextId,
+  onReset,
+}: PropsWithChildren<Props & { contextId: string; onReset: () => void }>) {
   const [messages, getMessages, setMessages] = useImmerWithGetter<UIMessage[]>([]);
   const [input, setInput] = useState<string>();
   const [isPending, setIsPending] = useState(false);
@@ -53,16 +89,12 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
 
   const errorHandler = useHandleError();
 
-  useEffect(() => {
-    (async () => {
-      const context = await fetch('/api/v1/contexts', { method: 'POST' });
-      const contextData = await context.json();
-      setContextId(contextData.id as string);
-    })();
-  }, [setContextId]);
-
   const a2aAgentClient = useMemo(
-    () => buildA2AClient({ providerId: agent.provider.id, extensions: agent.capabilities.extensions ?? [] }),
+    () =>
+      buildA2AClient({
+        providerId: agent.provider.id,
+        extensions: agent.capabilities.extensions ?? [],
+      }),
     [agent.provider.id, agent.capabilities.extensions],
   );
   const { files, clearFiles } = useFileUpload();
@@ -117,11 +149,11 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
     setMessages([]);
     setStats(undefined);
     clearFiles();
-    setContextId(uuid());
+    onReset();
     setIsPending(false);
     setInput(undefined);
     pendingRun.current = undefined;
-  }, [setMessages, clearFiles, setContextId]);
+  }, [setMessages, clearFiles, onReset]);
 
   const run = useCallback(
     async (input: string) => {
