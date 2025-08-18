@@ -74,32 +74,39 @@ eval "$(mise run beeai-platform:shell)"
 deactivate
 ```
 
-### Enabling or disabling security
+### OAuth/OIDC authentication for local testing
 
-## Disabling security
+By default, authentication and authorization are disabled.
 
-Authentication, and authorization are disabled by default.
-Security add-ons (TLS, Cert-Manager, Istio, and Kiali) are disabled by default
-
-## Enabling
-
-When the platform is started with  `--set oidc.enabled=true`, the platform will install istio in ambient mode, create a gateway, add routes for `https://beeai.localhost:8336/` and install the Kiali console.  The intent being that tokens returned by OAuth routes are receieved in the browser over HTTPS rather than plain text HTTP to prevent unauthorized use of tokens.   It is strongly recommended that you access the UI via the TLS connection `https://beeai.localhost:8336/`, and configure your OIDC provider to use `https://beeai.localhost:8336/` as one of the allowed redirect urls.  In practice when deploying the beeai images to a cloud cluster, change the nextauth_url, and nextauth_redirect_proxy_url values accordingly.   Some OIDC providers only allow valid top level domain names in the redirect urls.
-
-The default namespace is labeled istio.io/dataplane-mode=ambient so all intra pod trafic is via ztunnel with the exception of the beeai-platform pod due to it's use of the hostNetwork (istio can not bring a hostNetwork enabled pod into the mesh).
-
-The port for the Kiali console can be found by shelling into the VM and running the following kuberneties command:
-```bash
-limactl shell --workdir / beeai-platform
-habeck@lima-beeai-platform:/$ kubectl -n istio-system get svc | grep "kiali-external" | awk '{print $5}' | cut -d ':' -f2 | cut -d '/' -f1 
-30431
-```
-Using the output from the above command navigate to `http://localhost:30431/kiali/console`
-
-Example of starting the platform with istio enabled:
+Starting the platform with OIDC enabled:
 
 ```bash
 mise beeai-platform:start --set oidc.enabled=true
 ```
+
+This does the following:
+- Installs Istio in ambient mode.  
+- Creates a gateway and routes for `https://beeai.localhost:8336/`.  
+- Installs the Kiali console.  
+
+**Why TLS is used:**  
+OAuth tokens are returned to the browser only over HTTPS to avoid leakage over plain HTTP. Always access the UI via `https://beeai.localhost:8336/`.
+
+**OIDC configuration:**  
+Configure your OIDC provider to allow `https://beeai.localhost:8336/` as a redirect URI.  
+When deploying to a cloud cluster, adjust `nextauth_url` and `nextauth_redirect_proxy_url` to match your domain. Some providers require a valid top-level domain for redirect URIs.
+
+**Istio details:**  
+The default namespace is labeled `istio.io/dataplane-mode=ambient`. This ensures all intra-pod traffic is routed through `ztunnel`, except the `beeai-platform` pod, which uses `hostNetwork` and is not compatible with the Istio mesh.
+
+**Available endpoints:**
+
+| Service        | HTTPS                                      | HTTP                                |
+| -------------- | ------------------------------------------ | ----------------------------------- |
+| Kiali Console  | –                                          | `http://localhost:20001`            |
+| BeeAI UI       | `https://beeai.localhost:8336`             | `http://localhost:8334`             |
+| BeeAI API Docs | `https://beeai.localhost:8336/api/v1/docs` | `http://localhost:8333/api/v1/docs` |
+
 
 ### Running and debugging individual components
 
