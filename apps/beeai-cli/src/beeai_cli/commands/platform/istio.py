@@ -60,7 +60,7 @@ async def install(driver: "BaseDriver"):
                 "istio-system",
                 "--create-namespace",
                 "--set=profile=ambient",
-                "--set=values.global.platform=k3s",
+                "--set=global.platform=k3s",
                 "--wait",
             ],
             f"Installing Istio ({component})",
