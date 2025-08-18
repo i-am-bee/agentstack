@@ -12,45 +12,7 @@ if typing.TYPE_CHECKING:
 
 
 async def install_security(driver: "BaseDriver"):
-    """
-    Setup istio and install gateway with TLS enabled.
-    """
-
-    await driver.run_in_vm(
-        [
-            "helm",
-            "repo",
-            "add",
-            "istio",
-            "https://istio-release.storage.googleapis.com/charts",
-        ],
-        "Adding Istio repo to Helm",
-    )
-
-    await driver.run_in_vm(
-        [
-            "helm",
-            "repo",
-            "update",
-        ],
-        "Updating Helm repos",
-    )
-
-    await driver.run_in_vm(
-        [
-            "helm",
-            "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
-            "install",
-            "istio-base",
-            "istio/base",
-            "-n",
-            "istio-system",
-            "--create-namespace",
-            "--wait",
-        ],
-        "Installing istio-base",
-    )
-
+    # Gateway API
     await driver.run_in_vm(
         [
             "k3s",
@@ -62,69 +24,7 @@ async def install_security(driver: "BaseDriver"):
         "Installing gateway CRDs",
     )
 
-    await driver.run_in_vm(
-        [
-            "helm",
-            "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
-            "install",
-            "istiod",
-            "istio/istiod",
-            "-n",
-            "istio-system",
-            "--set",
-            "profile=ambient",
-            "--set",
-            "values.global.platform=k3s",
-            "--wait",
-        ],
-        "Installing istiod",
-    )
-
-    await driver.run_in_vm(
-        [
-            "helm",
-            "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
-            "install",
-            "istio-cni",
-            "istio/cni",
-            "-n",
-            "istio-system",
-            "--set",
-            "profile=ambient",
-            "--set",
-            "values.global.platform=k3s",
-            "--wait",
-        ],
-        "Installing istio-cni",
-    )
-
-    await driver.run_in_vm(
-        [
-            "helm",
-            "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
-            "install",
-            "ztunnel",
-            "istio/ztunnel",
-            "-n",
-            "istio-system",
-            "--set",
-            "profile=ambient",
-            "--set",
-            "values.global.platform=k3s",
-            "--wait",
-        ],
-        "Installing istio-ztunnel",
-    )
-
-    await driver.run_in_vm(
-        [
-            "curl",
-            "-LO",
-            "https://cert-manager.io/public-keys/cert-manager-keyring-2021-09-20-1020CF3C033D4F35BAE1C19E1226061C665DF13E.gpg",
-        ],
-        "Downloading cert-manager GPG keyring",
-    )
-
+    # Cert Manager
     await driver.run_in_vm(
         [
             "helm",
@@ -137,9 +37,6 @@ async def install_security(driver: "BaseDriver"):
             "--namespace",
             "cert-manager",
             "--create-namespace",
-            "--verify",
-            "--keyring",
-            "./cert-manager-keyring-2021-09-20-1020CF3C033D4F35BAE1C19E1226061C665DF13E.gpg",
             "--set",
             "crds.enabled=true",
             "--wait",
@@ -147,244 +44,146 @@ async def install_security(driver: "BaseDriver"):
         "Installing cert-manager",
     )
 
+    # Istio
+    await driver.run_in_vm(
+        ["helm", "repo", "add", "istio", "https://istio-release.storage.googleapis.com/charts"],
+        "Adding Istio repo to Helm",
+    )
+    await driver.run_in_vm(["helm", "repo", "update"], "Updating Helm repos")
+    for component in ["base", "istiod", "cni", "ztunnel"]:
+        await driver.run_in_vm(
+            [
+                "helm",
+                "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+                "install",
+                f"istio-{component}",
+                f"istio/{component}",
+                "--namespace",
+                "istio-system",
+                "--create-namespace",
+                "--set=profile=ambient",
+                "--set=values.global.platform=k3s",
+                "--wait",
+            ],
+            f"Installing Istio {component}",
+        )
     await driver.run_in_vm(
         ["k3s", "kubectl", "label", "namespace", "default", "istio.io/dataplane-mode=ambient"],
         "Labeling the default namespace",
     )
 
-    await driver.run_in_vm(
-        [
-            "k3s",
-            "kubectl",
-            "apply",
-            "-f",
-            "-",
-        ],
-        "Applying default-issuer",
-        input=yaml.dump(
-            {
-                "apiVersion": "cert-manager.io/v1",
-                "kind": "Issuer",
-                "metadata": {
-                    "labels": {
-                        "app.kubernetes.io/instance": "default-issuer",
-                        "app.kubernetes.io/managed-by": "cert-manager-controller",
-                        "app.kubernetes.io/name": "Issuer",
-                    },
-                    "name": "default-issuer",
-                    "namespace": "default",
-                },
-                "spec": {"selfSigned": {}},
-            }
-        ).encode("utf-8"),
+    # Configuration
+    Resource = typing.TypedDict(
+        "Resource", {"apiVersion": str, "kind": str, "metadata": dict[str, str], "spec": dict[str, typing.Any]}
     )
+    resources: list[Resource] = [
+        {
+            "apiVersion": "cert-manager.io/v1",
+            "kind": "Issuer",
+            "metadata": {"name": "default-issuer", "namespace": "default"},
+            "spec": {"selfSigned": {}},
+        },
+        {
+            "apiVersion": "cert-manager.io/v1",
+            "kind": "Issuer",
+            "metadata": {"name": "istio-system-issuer", "namespace": "istio-system"},
+            "spec": {"selfSigned": {}},
+        },
+        {
+            "apiVersion": "cert-manager.io/v1",
+            "kind": "Certificate",
+            "metadata": {"name": "beeai-platform-tls", "namespace": "istio-system"},
+            "spec": {
+                "secretName": "beeai-platform-tls",
+                "commonName": "beeai",
+                "dnsNames": ["beeai", "beeai.localhost"],
+                "issuerRef": {"name": "istio-system-issuer", "kind": "Issuer"},
+            },
+        },
+        {
+            "apiVersion": "cert-manager.io/v1",
+            "kind": "Certificate",
+            "metadata": {"name": "ingestion-svc", "namespace": "default"},
+            "spec": {
+                "secretName": "ingestion-svc-tls",
+                "commonName": "ingestion-svc",
+                "dnsNames": [
+                    "ingestion-svc",
+                    "ingestion-svc.default",
+                    "ingestion-svc.default.svc",
+                    "ingestion-svc.default.svc.cluster.local",
+                ],
+                "issuerRef": {"name": "default-issuer", "kind": "Issuer"},
+            },
+        },
+        {
+            "apiVersion": "gateway.networking.k8s.io/v1",
+            "kind": "Gateway",
+            "metadata": {"name": "beeai-gateway", "namespace": "istio-system"},
+            "spec": {
+                "gatewayClassName": "istio",
+                "listeners": [
+                    {
+                        "name": "https",
+                        "hostname": "beeai.localhost",
+                        "port": 8336,
+                        "protocol": "HTTPS",
+                        "tls": {"mode": "Terminate", "certificateRefs": [{"name": "beeai-platform-tls"}]},
+                        "allowedRoutes": {"namespaces": {"from": "Selector"}},
+                    }
+                ],
+            },
+        },
+        {
+            "apiVersion": "gateway.networking.k8s.io/v1",
+            "kind": "HTTPRoute",
+            "metadata": {"name": "beeai-platform-api"},
+            "spec": {
+                "parentRefs": [{"name": "beeai-gateway", "namespace": "istio-system"}],
+                "hostnames": ["beeai.localhost"],
+                "rules": [
+                    {
+                        "matches": [{"path": {"type": "PathPrefix", "value": "/api/v1"}}],
+                        "backendRefs": [{"name": "beeai-platform-svc", "port": 8333}],
+                    }
+                ],
+            },
+        },
+        {
+            "apiVersion": "gateway.networking.k8s.io/v1",
+            "kind": "HTTPRoute",
+            "metadata": {"name": "beeai-platform-ui"},
+            "spec": {
+                "parentRefs": [{"name": "beeai-gateway", "namespace": "istio-system"}],
+                "hostnames": ["beeai-platform.testing", "beeai.localhost"],
+                "rules": [
+                    {
+                        "matches": [{"path": {"type": "PathPrefix", "value": "/"}}],
+                        "backendRefs": [{"name": "beeai-platform-ui-svc", "port": 8334}],
+                    }
+                ],
+            },
+        },
+    ]
+    for resource in resources:
+        await driver.run_in_vm(
+            ["k3s", "kubectl", "apply", "-f", "-"],
+            f"Applying {resource['kind']} {resource['metadata']['name']}",
+            input=yaml.dump(resource, sort_keys=False).encode("utf-8"),
+        )
 
-    await driver.run_in_vm(
-        [
-            "k3s",
-            "kubectl",
-            "apply",
-            "-f",
-            "-",
-        ],
-        "Applying istio-system-issuer",
-        input=yaml.dump(
-            {
-                "apiVersion": "cert-manager.io/v1",
-                "kind": "Issuer",
-                "metadata": {
-                    "labels": {
-                        "app.kubernetes.io/instance": "istio-system-issuer",
-                        "app.kubernetes.io/managed-by": "cert-manager-controller",
-                        "app.kubernetes.io/name": "Issuer",
-                    },
-                    "name": "istio-system-issuer",
-                    "namespace": "istio-system",
-                },
-                "spec": {"selfSigned": {}},
-            }
-        ).encode("utf-8"),
-    )
-
-    await driver.run_in_vm(
-        [
-            "k3s",
-            "kubectl",
-            "apply",
-            "-f",
-            "-",
-        ],
-        "Applying gateway tls certificate",
-        input=yaml.dump(
-            {
-                "apiVersion": "cert-manager.io/v1",
-                "kind": "Certificate",
-                "metadata": {
-                    "name": "beeai-platform-tls",
-                    "namespace": "istio-system",
-                },
-                "spec": {
-                    "commonName": "beeai",
-                    "dnsNames": [
-                        "beeai",
-                        "beeai.localhost",
-                    ],
-                    "issuerRef": {
-                        "kind": "Issuer",
-                        "name": "istio-system-issuer",
-                    },
-                    "secretName": "beeai-platform-tls",
-                },
-            }
-        ).encode("utf-8"),
-    )
-
-    await driver.run_in_vm(
-        [
-            "k3s",
-            "kubectl",
-            "apply",
-            "-f",
-            "-",
-        ],
-        "Applying ingestion-svc TLS certificate",
-        input=yaml.dump(
-            {
-                "apiVersion": "cert-manager.io/v1",
-                "kind": "Certificate",
-                "metadata": {
-                    "name": "ingestion-svc",
-                    "namespace": "default",
-                },
-                "spec": {
-                    "commonName": "ingestion-svc",
-                    "dnsNames": [
-                        "ingestion-svc",
-                        "ingestion-svc.default",
-                        "ingestion-svc.default.svc",
-                        "ingestion-svc.default.svc.cluster.local",
-                    ],
-                    "issuerRef": {
-                        "kind": "Issuer",
-                        "name": "default-issuer",
-                    },
-                    "secretName": "ingestion-svc-tls",
-                },
-            }
-        ).encode("utf-8"),
-    )
-
-    await driver.run_in_vm(
-        [
-            "k3s",
-            "kubectl",
-            "apply",
-            "-f",
-            "-",
-        ],
-        "Applying gateway CRD",
-        input=yaml.dump(
-            {
-                "apiVersion": "gateway.networking.k8s.io/v1",
-                "kind": "Gateway",
-                "metadata": {
-                    "name": "beeai-gateway",
-                    "namespace": "istio-system",
-                },
-                "spec": {
-                    "gatewayClassName": "istio",
-                    "listeners": [
-                        {
-                            "name": "https",
-                            "hostname": "beeai.localhost",
-                            "port": 8336,
-                            "protocol": "HTTPS",
-                            "tls": {"mode": "Terminate", "certificateRefs": [{"name": "beeai-platform-tls"}]},
-                            "allowedRoutes": {"namespaces": {"from": "Selector"}},
-                        }
-                    ],
-                },
-            }
-        ).encode("utf-8"),
-    )
-    await driver.run_in_vm(
-        [
-            "k3s",
-            "kubectl",
-            "apply",
-            "-f",
-            "-",
-        ],
-        "Applying HTTPRoute CRD",
-        input=yaml.dump(
-            {
-                "apiVersion": "gateway.networking.k8s.io/v1",
-                "kind": "HTTPRoute",
-                "metadata": {"name": "beeai-platform-api"},
-                "spec": {
-                    "parentRefs": [{"name": "beeai-gateway", "namespace": "istio-system"}],
-                    "hostnames": ["beeai.localhost"],
-                    "rules": [
-                        {
-                            "matches": [{"path": {"type": "PathPrefix", "value": "/api/v1"}}],
-                            "backendRefs": [{"name": "beeai-platform-svc", "port": 8333}],
-                        }
-                    ],
-                },
-            }
-        ).encode("utf-8"),
-    )
-
-    await driver.run_in_vm(
-        [
-            "k3s",
-            "kubectl",
-            "apply",
-            "-f",
-            "-",
-        ],
-        "Applying HTTPRoute CRD",
-        input=yaml.dump(
-            {
-                "apiVersion": "gateway.networking.k8s.io/v1",
-                "kind": "HTTPRoute",
-                "metadata": {"name": "beeai-platform-ui"},
-                "spec": {
-                    "parentRefs": [{"name": "beeai-gateway", "namespace": "istio-system"}],
-                    "hostnames": ["beeai-platform.testing", "beeai.localhost"],
-                    "rules": [
-                        {
-                            "matches": [{"path": {"type": "PathPrefix", "value": "/"}}],
-                            "backendRefs": [{"name": "beeai-platform-ui-svc", "port": 8334}],
-                        }
-                    ],
-                },
-            }
-        ).encode("utf-8"),
-    )
-
-    await driver.run_in_vm(
-        [
-            "k3s",
-            "kubectl",
-            "apply",
-            "-f",
-            "https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/addons/prometheus.yaml",
-        ],
-        "Installing Prometheus",
-    )
-
-    await driver.run_in_vm(
-        [
-            "k3s",
-            "kubectl",
-            "apply",
-            "-f",
-            "https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/addons/kiali.yaml",
-        ],
-        "Installing Kiali",
-    )
-
+    # Extra services
+    for addon in ["prometheus", "kiali"]:
+        await driver.run_in_vm(
+            [
+                "k3s",
+                "kubectl",
+                "apply",
+                "-f",
+                f"https://raw.githubusercontent.com/istio/istio/master/samples/addons/{addon}.yaml",
+            ],
+            f"Installing {addon.capitalize()}",
+        )
     await driver.run_in_vm(
         [
             "k3s",
@@ -402,10 +201,11 @@ async def install_security(driver: "BaseDriver"):
         ],
         "Exposing Kiali service",
     )
-    console.print("The Kiali console is available at http://localhost:20001")
+
+    console.print("Kiali Console: [cyan]http://localhost:20001[/cyan]")
     console.print(
-        "The beeai-ui is available at https://beeai.localhost:8336 (TLS gateway), and http://localhost:8334 (insecure)"
+        "BeeAI UI: [cyan]https://beeai.localhost:8336[/cyan] (secure) or [cyan]http://localhost:8334[/cyan] (insecure)"
     )
     console.print(
-        "The beeai-platform api docs are available at https://beeai.localhost:8336/api/v1/docs (TLS gateway) and http://localhost:8333/api/v1/docs (insecure)"
+        "BeeAI API Docs: [cyan]https://beeai.localhost:8336/api/v1/docs[/cyan] (secure) or [cyan]http://localhost:8333/api/v1/docs[/cyan] (insecure)"
     )
