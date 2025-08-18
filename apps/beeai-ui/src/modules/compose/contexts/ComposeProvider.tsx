@@ -169,6 +169,9 @@ export function ComposeProvider({ children }: PropsWithChildren) {
             mcp: async () => {
               throw new Error('MCP fulfillment not implemented');
             },
+            llm: async () => {
+              throw new Error('LLM fulfillment not implemented');
+            },
           },
         });
         pendingRun.current = run;

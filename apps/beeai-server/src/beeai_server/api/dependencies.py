@@ -54,12 +54,14 @@ async def authorized_user(
         try:
             parsed_token = verify_internal_jwt(bearer_auth.credentials, configuration=configuration)
             user = await user_service.get_user(parsed_token.user_id)
-            return AuthorizedUser(
+            token = AuthorizedUser(
                 user=user,
                 global_permissions=parsed_token.global_permissions,
                 context_permissions=parsed_token.context_permissions,
                 token_context_id=parsed_token.context_id,
             )
+            logger.info("Token is valid!")
+            return token
         except PyJWTError:
             if not configuration.auth.disable_auth:
                 raise NotImplementedError("Oauth is not implemented yet.") from None

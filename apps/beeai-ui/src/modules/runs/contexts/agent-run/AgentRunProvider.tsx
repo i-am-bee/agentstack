@@ -4,7 +4,7 @@
  */
 
 'use client';
-import { type PropsWithChildren, useCallback, useMemo, useRef, useState } from 'react';
+import { type PropsWithChildren, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
 import { buildA2AClient } from '#api/a2a/client.ts';
@@ -42,7 +42,7 @@ export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>)
 }
 
 function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
-  const [contextId, setContextId] = useState<string>(uuid());
+  const [contextId, setContextId] = useState<string | null>(null);
   const [messages, getMessages, setMessages] = useImmerWithGetter<UIMessage[]>([]);
   const [input, setInput] = useState<string>();
   const [isPending, setIsPending] = useState(false);
@@ -52,6 +52,14 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
   const pendingRun = useRef<ChatRun>(undefined);
 
   const errorHandler = useHandleError();
+
+  useEffect(() => {
+    (async () => {
+      const context = await fetch('/api/v1/contexts', { method: 'POST' });
+      const contextData = await context.json();
+      setContextId(contextData.id as string);
+    })();
+  }, [setContextId]);
 
   const a2aAgentClient = useMemo(
     () => buildA2AClient({ providerId: agent.provider.id, extensions: agent.capabilities.extensions ?? [] }),
@@ -117,6 +125,10 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
 
   const run = useCallback(
     async (input: string) => {
+      if (contextId === null) {
+        throw new Error('Context ID is not set');
+      }
+
       if (pendingRun.current || pendingSubscription.current) {
         throw new Error('A run is already in progress');
       }
@@ -124,6 +136,22 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
       setInput(input);
       setIsPending(true);
       setStats({ startTime: Date.now() });
+
+      const token = await fetch(`/api/v1/contexts/${contextId}/token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          grant_global_permissions: {
+            llm: ['*'],
+          },
+          grant_context_permissions: {
+            llm: ['*'],
+          },
+        }),
+      });
+      const tokenData = await token.json();
 
       const userMessage: UIUserMessage = {
         id: uuid(),
@@ -150,6 +178,18 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
           fulfillments: {
             mcp: async () => {
               throw new Error('MCP fulfillment not implemented');
+            },
+            llm: async () => {
+              return {
+                llm_fulfillments: {
+                  default: {
+                    identifier: 'llm_proxy',
+                    api_base: '{platform_url}/api/v1/llm/',
+                    api_key: tokenData.token,
+                    api_model: 'dummy',
+                  },
+                },
+              };
             },
           },
         });
@@ -187,8 +227,12 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
 
   const sources = useMemo(() => getMessageSourcesMap(messages), [messages]);
 
-  const contextValue = useMemo(
-    () => ({
+  const contextValue = useMemo(() => {
+    if (contextId === null) {
+      return null;
+    }
+
+    return {
       agent,
       isPending,
       input,
@@ -197,15 +241,14 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
       run,
       cancel,
       clear,
-    }),
-    [agent, isPending, input, stats, contextId, run, cancel, clear],
-  );
+    };
+  }, [agent, isPending, input, stats, contextId, run, cancel, clear]);
 
   return (
     <AgentStatusProvider agent={agent} isMonitorStatusEnabled>
       <SourcesProvider sources={sources}>
         <MessagesProvider messages={getMessages()}>
-          <AgentRunContext.Provider value={contextValue}>{children}</AgentRunContext.Provider>
+          {contextValue && <AgentRunContext.Provider value={contextValue}>{children}</AgentRunContext.Provider>}
         </MessagesProvider>
       </SourcesProvider>
     </AgentStatusProvider>
