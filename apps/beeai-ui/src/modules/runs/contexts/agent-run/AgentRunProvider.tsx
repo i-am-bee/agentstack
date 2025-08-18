@@ -22,6 +22,7 @@ import type { UIAgentMessage, UIMessage, UIUserMessage } from '#modules/messages
 import { UIMessageStatus } from '#modules/messages/types.ts';
 import { addTranformedMessagePart, isAgentMessage } from '#modules/messages/utils.ts';
 import { useCreateContext } from '#modules/runs/api/mutations/useCreateContext.ts';
+import { useCreateContextToken } from '#modules/runs/api/mutations/useCreateContextToken.ts';
 import type { RunStats } from '#modules/runs/types.ts';
 import { SourcesProvider } from '#modules/sources/contexts/SourcesProvider.tsx';
 import { getMessageSourcesMap } from '#modules/sources/utils.ts';
@@ -79,6 +80,7 @@ function AgentRunProvider({
   contextId,
   onReset,
 }: PropsWithChildren<Props & { contextId: string; onReset: () => void }>) {
+  const { mutateAsync: createContextToken } = useCreateContextToken();
   const [messages, getMessages, setMessages] = useImmerWithGetter<UIMessage[]>([]);
   const [input, setInput] = useState<string>();
   const [isPending, setIsPending] = useState(false);
@@ -169,21 +171,28 @@ function AgentRunProvider({
       setIsPending(true);
       setStats({ startTime: Date.now() });
 
-      const token = await fetch(`/api/v1/contexts/${contextId}/token`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const contextToken = await createContextToken({
+        contextId,
+        globalPermissionGrant: {
+          llm: ['*'],
+          a2a_proxy: [],
+          contexts: [],
+          embeddings: [],
+          feedback: [],
+          files: [],
+          providers: [],
+          variables: [],
+          vector_stores: [],
         },
-        body: JSON.stringify({
-          grant_global_permissions: {
-            llm: ['*'],
-          },
-          grant_context_permissions: {
-            llm: ['*'],
-          },
-        }),
+        contextPermissionGrant: {
+          files: [],
+          vector_stores: [],
+        },
       });
-      const tokenData = await token.json();
+
+      if (!contextToken) {
+        throw new Error('Could not generate context token');
+      }
 
       const userMessage: UIUserMessage = {
         id: uuid(),
@@ -217,7 +226,7 @@ function AgentRunProvider({
                   default: {
                     identifier: 'llm_proxy',
                     api_base: '{platform_url}/api/v1/llm/',
-                    api_key: tokenData.token,
+                    api_key: contextToken.token,
                     api_model: 'dummy',
                   },
                 },
@@ -254,7 +263,16 @@ function AgentRunProvider({
         pendingSubscription.current = undefined;
       }
     },
-    [a2aAgentClient, files, contextId, handleError, updateLastAgentMessage, setMessages, clearFiles],
+    [
+      a2aAgentClient,
+      files,
+      contextId,
+      handleError,
+      updateLastAgentMessage,
+      setMessages,
+      clearFiles,
+      createContextToken,
+    ],
   );
 
   const sources = useMemo(() => getMessageSourcesMap(messages), [messages]);
