@@ -129,7 +129,7 @@ async def install_security(driver: "BaseDriver"):
                         "port": 8336,
                         "protocol": "HTTPS",
                         "tls": {"mode": "Terminate", "certificateRefs": [{"name": "beeai-platform-tls"}]},
-                        "allowedRoutes": {"namespaces": {"from": "Selector"}},
+                        "allowedRoutes": {"namespaces": {"from": "All"}},
                     }
                 ],
             },
