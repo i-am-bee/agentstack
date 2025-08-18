@@ -232,13 +232,13 @@ async def rag(
     event_binder = EventBinder()
 
     async def handle_tool_start(event, meta):
-        print("Handle tool start")
+        logger.info("Handle tool start")
         # Store the start event ID using EventBinder
         event_binder.set_start_event_id(meta)
 
         event_id = event_binder.get_event_id(meta)
-        print(f"event_id: {event_id}")
-        print(f"meta.trace.id: {meta.trace.id}")
+        logger.info(f"event_id: {event_id}")
+        logger.info(f"meta.trace.id: {meta.trace.id}")
         tool_start_event = ToolCallTrajectoryEvent(
             id=event_id,
             kind=meta.creator.name,
@@ -250,14 +250,14 @@ async def rag(
         await context.yield_async(tool_start_event.metadata(trajectory))
 
     async def handle_tool_success(event, meta):
-        print("Handle tool success")
+        logger.info("Handle tool success")
         # Get the corresponding start event ID using EventBinder
         start_event_id = event_binder.get_start_event_id(meta)
 
         event_id = event_binder.get_event_id(meta)
-        print(f"event_id: {event_id}")
-        print(f"start_event_id: {start_event_id}")
-        print(f"meta.trace.id: {meta.trace.id}")
+        logger.info(f"event_id: {event_id}")
+        logger.info(f"start_event_id: {start_event_id}")
+        logger.info(f"meta.trace.id: {meta.trace.id}")
         tool_end_event = ToolCallTrajectoryEvent(
             kind=meta.creator.name,
             phase="end",
@@ -315,14 +315,16 @@ def _get_clients(
     llm = OpenAIChatModel(
         model_id=llm_conf.api_model if llm_conf else os.getenv("LLM_MODEL", "llama3.1"),
         api_key=llm_conf.api_key if llm_conf else os.getenv("LLM_API_KEY", "dummy"),
-        base_url=llm_conf.api_base_url if llm_conf else os.getenv("LLM_API_BASE", "http://localhost:11434/v1"),
+        base_url=llm_conf.api_base if llm_conf else os.getenv("LLM_API_BASE", "http://localhost:11434/v1"),
         parameters=ChatModelParameters(temperature=0.0),
         tool_choice_support=set(),
     )
 
     embedding_client = AsyncOpenAI(
-        api_key=llm_conf.api_key if llm_conf else os.getenv("EMBEDDING_API_KEY", "dummy"),
-        base_url=llm_conf.api_base_url if llm_conf else os.getenv("EMBEDDING_API_BASE", "http://localhost:11434/v1"),
+        api_key=embedding_conf.api_key if embedding_conf else os.getenv("EMBEDDING_API_KEY", "dummy"),
+        base_url=embedding_conf.api_base
+        if embedding_conf
+        else os.getenv("EMBEDDING_API_BASE", "http://localhost:11434/v1"),
     )
     embedding = functools.partial(
         embedding_client.embeddings.create,
