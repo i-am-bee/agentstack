@@ -130,6 +130,9 @@ class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromCl
     def data(self):
         return self._metadata_from_client
 
+    def __bool__(self):
+        return bool(self.data)
+
     def __init__(self, spec: ExtensionSpecT) -> None:
         self.spec = spec
 

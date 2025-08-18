@@ -12,7 +12,7 @@ import pydantic
 from a2a.types import FilePart, FileWithUri
 
 from beeai_sdk.platform.client import PlatformClient, get_platform_client
-from beeai_sdk.util.file import LoadedFile, LoadedFileWithUri
+from beeai_sdk.util.file import LoadedFile, LoadedFileWithUri, PlatformFileUrl
 
 
 class Extraction(pydantic.BaseModel):
@@ -36,6 +36,10 @@ class File(pydantic.BaseModel):
     created_by: str
     file_type: typing.Literal["user_upload", "extracted_text"]
     parent_file_id: str | None = None
+
+    @property
+    def url(self) -> PlatformFileUrl:
+        return PlatformFileUrl(f"beeai://{self.id}")
 
     @staticmethod
     async def create(
