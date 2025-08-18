@@ -77,7 +77,7 @@ initContainers:
   createVectorDbExtension: true
 
 oidc:
-  enabled: true
+  enabled: false
   discovery_url: "https://preprod.login.w3.ibm.com/oidc/endpoint/default/.well-known/openid-configuration"
   admin_emails: "habeck@us.ibm.com"
   nextauth_trust_host: true
@@ -182,7 +182,8 @@ ui:
   podAnnotations: { }
   podSecurityContext: { }
   securityContext: { }
-  podLabels: { }
+  podLabels:
+    istio.io/dataplane-mode: ambient
   resources: { }
   nodeSelector: { }
   tolerations: { }

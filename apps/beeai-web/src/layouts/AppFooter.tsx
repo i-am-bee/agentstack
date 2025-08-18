@@ -3,21 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { LF_PROJECTS_LINK } from '#utils/constants.ts';
+import { LF_PROJECTS_LINK } from '@i-am-bee/beeai-ui';
 
-import { FooterNav } from '../FooterNav/FooterNav';
+import { FooterNav } from '../components/FooterNav/FooterNav';
 import classes from './AppFooter.module.scss';
-import { Container } from './Container';
+import { LayoutContainer } from './LayoutContainer';
 
-interface Props {
-  className?: string;
-}
-
-export function AppFooter({ className }: Props) {
+export function AppFooter() {
   return (
-    <footer className={className}>
-      <Container size="max">
-        <div className={classes.holder}>
+    <footer>
+      <LayoutContainer asGrid>
+        <div className={classes.root}>
           <p className={classes.copyright}>
             Copyright © BeeAI a Series of LF Projects, LLC
             <br />
@@ -30,7 +26,7 @@ export function AppFooter({ className }: Props) {
 
           <FooterNav className={classes.communityNav} />
         </div>
-      </Container>
+      </LayoutContainer>
     </footer>
   );
 }

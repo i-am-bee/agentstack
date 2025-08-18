@@ -75,5 +75,8 @@
 }
 
 .panel {
-  overflow: hidden;
+  .root:not(.isOpen) &,
+  .root.isAnimating & {
+    overflow: hidden;
+  }
 }

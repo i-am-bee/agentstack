@@ -11,6 +11,7 @@ import anyio
 import pydantic
 import yaml
 
+import beeai_cli.commands.platform.istio
 from beeai_cli.configuration import Configuration
 
 
@@ -113,6 +114,9 @@ class BaseDriver(abc.ABC):
                 ],
                 f"Pulling image {image}",
             )
+
+        if any("oidc.enabled=true" in value.lower() for value in set_values_list):
+            await beeai_cli.commands.platform.istio.install(driver=self)
 
         await self.run_in_vm(
             [

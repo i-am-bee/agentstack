@@ -38,6 +38,10 @@
   text-decoration: none;
   font-size: rem(12px);
   &:hover {
-    color: $layer-hover-01;
+    color: $text-muted;
+  }
+  svg {
+    inline-size: rem(24px);
+    block-size: rem(24px);
   }
 }

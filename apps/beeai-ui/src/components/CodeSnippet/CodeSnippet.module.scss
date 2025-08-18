@@ -23,3 +23,10 @@
     background-color: $layer-03;
   }
 }
+
+.content {
+  pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+}

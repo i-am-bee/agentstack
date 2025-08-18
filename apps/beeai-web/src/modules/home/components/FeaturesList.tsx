@@ -7,6 +7,7 @@ import clsx from 'clsx';
 import type { ComponentType, PropsWithChildren, ReactNode } from 'react';
 
 import classes from './FeaturesList.module.scss';
+import { TwoColumnGrid } from './TwoColumnGrid';
 
 interface FeatureItem {
   icon: ComponentType;
@@ -20,13 +21,13 @@ interface Props {
 
 export function FeaturesList({ className, items }: PropsWithChildren<Props>) {
   return (
-    <ul className={clsx(classes.root, className)}>
+    <TwoColumnGrid className={clsx(classes.root, className)} as="ul">
       {items.map(({ icon: Icon, content }, idx) => (
         <li key={idx}>
           <Icon />
           <span>{content}</span>
         </li>
       ))}
-    </ul>
+    </TwoColumnGrid>
   );
 }
