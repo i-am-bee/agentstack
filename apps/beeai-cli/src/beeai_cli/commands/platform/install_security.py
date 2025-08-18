@@ -24,16 +24,16 @@ async def install_security(driver: "BaseDriver"):
             "istio",
             "https://istio-release.storage.googleapis.com/charts",
         ],
-        "Adding istio charts to helm repo",
+        "Adding Istio repo to Helm",
     )
+
     await driver.run_in_vm(
         [
             "helm",
-            "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
             "repo",
             "update",
         ],
-        "Running helm repo update",
+        "Updating Helm repos",
     )
 
     await driver.run_in_vm(
@@ -52,17 +52,14 @@ async def install_security(driver: "BaseDriver"):
     )
 
     await driver.run_in_vm(
-        ["/bin/bash", "-c", "k3s kubectl get crd gateways.gateway.networking.k8s.io &> /dev/null"],
-        "Downloading gateway CRDS",
-    )
-
-    await driver.run_in_vm(
         [
-            "/bin/bash",
-            "-c",
-            "kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.3.0/standard-install.yaml",
+            "k3s",
+            "kubectl",
+            "apply",
+            "-f",
+            "https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.3.0/standard-install.yaml",
         ],
-        "installing gateway CRDS",
+        "Installing gateway CRDs",
     )
 
     await driver.run_in_vm(
@@ -121,11 +118,11 @@ async def install_security(driver: "BaseDriver"):
 
     await driver.run_in_vm(
         [
-            "/bin/sh",
-            "-c",
-            "curl -LO https://cert-manager.io/public-keys/cert-manager-keyring-2021-09-20-1020CF3C033D4F35BAE1C19E1226061C665DF13E.gpg",
+            "curl",
+            "-LO",
+            "https://cert-manager.io/public-keys/cert-manager-keyring-2021-09-20-1020CF3C033D4F35BAE1C19E1226061C665DF13E.gpg",
         ],
-        "Downloading cert-manager gpg keyring",
+        "Downloading cert-manager GPG keyring",
     )
 
     await driver.run_in_vm(
@@ -147,15 +144,11 @@ async def install_security(driver: "BaseDriver"):
             "crds.enabled=true",
             "--wait",
         ],
-        "Installing certificate manager...(used to auto-generate cert for gateway ingress)",
+        "Installing cert-manager",
     )
 
     await driver.run_in_vm(
-        [
-            "/bin/sh",
-            "-c",
-            "k3s kubectl label namespace default istio.io/dataplane-mode=ambient",
-        ],
+        ["k3s", "kubectl", "label", "namespace", "default", "istio.io/dataplane-mode=ambient"],
         "Labeling the default namespace",
     )
 
@@ -163,13 +156,11 @@ async def install_security(driver: "BaseDriver"):
         [
             "k3s",
             "kubectl",
-            "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
             "apply",
-            "--server-side",
             "-f",
             "-",
         ],
-        "Applying certificate issuer",
+        "Applying default-issuer",
         input=yaml.dump(
             {
                 "apiVersion": "cert-manager.io/v1",
@@ -192,13 +183,11 @@ async def install_security(driver: "BaseDriver"):
         [
             "k3s",
             "kubectl",
-            "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
             "apply",
-            "--server-side",
             "-f",
             "-",
         ],
-        "Applying certificate issuer",
+        "Applying istio-system-issuer",
         input=yaml.dump(
             {
                 "apiVersion": "cert-manager.io/v1",
@@ -221,9 +210,7 @@ async def install_security(driver: "BaseDriver"):
         [
             "k3s",
             "kubectl",
-            "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
             "apply",
-            "--server-side",
             "-f",
             "-",
         ],
@@ -256,13 +243,11 @@ async def install_security(driver: "BaseDriver"):
         [
             "k3s",
             "kubectl",
-            "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
             "apply",
-            "--server-side",
             "-f",
             "-",
         ],
-        "Applying ingestion-svc tls certificate",
+        "Applying ingestion-svc TLS certificate",
         input=yaml.dump(
             {
                 "apiVersion": "cert-manager.io/v1",
@@ -293,9 +278,7 @@ async def install_security(driver: "BaseDriver"):
         [
             "k3s",
             "kubectl",
-            "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
             "apply",
-            "--server-side",
             "-f",
             "-",
         ],
@@ -328,9 +311,7 @@ async def install_security(driver: "BaseDriver"):
         [
             "k3s",
             "kubectl",
-            "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
             "apply",
-            "--server-side",
             "-f",
             "-",
         ],
@@ -358,9 +339,7 @@ async def install_security(driver: "BaseDriver"):
         [
             "k3s",
             "kubectl",
-            "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
             "apply",
-            "--server-side",
             "-f",
             "-",
         ],
@@ -386,48 +365,47 @@ async def install_security(driver: "BaseDriver"):
 
     await driver.run_in_vm(
         [
-            "/bin/sh",
-            "-c",
-            "k3s kubectl apply -f https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/addons/prometheus.yaml",
+            "k3s",
+            "kubectl",
+            "apply",
+            "-f",
+            "https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/addons/prometheus.yaml",
         ],
         "Installing Prometheus",
     )
 
     await driver.run_in_vm(
         [
-            "/bin/sh",
-            "-c",
-            "k3s kubectl apply -f https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/addons/kiali.yaml",
+            "k3s",
+            "kubectl",
+            "apply",
+            "-f",
+            "https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/addons/kiali.yaml",
         ],
         "Installing Kiali",
     )
 
     await driver.run_in_vm(
         [
-            "/bin/sh",
-            "-c",
-            "k3s kubectl -n istio-system expose deployment kiali --protocol=TCP --port=20001 --target-port=20001 --type=NodePort --name=kiali-external",
+            "k3s",
+            "kubectl",
+            "-n",
+            "istio-system",
+            "expose",
+            "deployment",
+            "kiali",
+            "--protocol=TCP",
+            "--port=20001",
+            "--target-port=20001",
+            "--type=LoadBalancer",
+            "--name=kiali-external",
         ],
         "Exposing Kiali service",
     )
-    kiali_port = (
-        (
-            await driver.run_in_vm(
-                [
-                    "/bin/sh",
-                    "-c",
-                    "kubectl -n istio-system get svc | grep 'kiali-external' | awk '{print $5}' | cut -d ':' -f2 | cut -d '/' -f1",
-                ],
-                "Retrieving exposted Kaili port",
-            )
-        )
-        .stdout.decode()
-        .strip()
-    )
-    console.print(f"The Kiali console is available at http://localhost:{kiali_port}")
+    console.print("The Kiali console is available at http://localhost:20001")
     console.print(
         "The beeai-ui is available at https://beeai.localhost:8336 (TLS gateway), and http://localhost:8334 (insecure)"
     )
     console.print(
-        "The beeai-platform api docs are availabel at https://beeai.localhost:8336/api/v1/docs (TLS gateway) and http://localhost:8333/api/v1/docs  (insecure)"
+        "The beeai-platform api docs are available at https://beeai.localhost:8336/api/v1/docs (TLS gateway) and http://localhost:8333/api/v1/docs (insecure)"
     )

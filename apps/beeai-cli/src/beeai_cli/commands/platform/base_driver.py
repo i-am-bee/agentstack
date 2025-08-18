@@ -11,7 +11,7 @@ import anyio
 import pydantic
 import yaml
 
-from beeai_cli.commands.platform.configure_securityl import install_security
+from beeai_cli.commands.platform.install_security import install_security
 from beeai_cli.configuration import Configuration
 
 
