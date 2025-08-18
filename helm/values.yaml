@@ -120,14 +120,14 @@ livenessProbe:
     port: http
   initialDelaySeconds: 5
   failureThreshold: 5
-  periodSeconds: 30
+  periodSeconds: 5
 readinessProbe:
   httpGet:
     path: /healthcheck
     port: http
   initialDelaySeconds: 5
   failureThreshold: 20
-  periodSeconds: 5
+  periodSeconds: 2
 
 # Additional volumes on the output Deployment definition.
 volumes: [ ]
