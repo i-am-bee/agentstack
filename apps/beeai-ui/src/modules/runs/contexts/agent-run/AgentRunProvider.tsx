@@ -4,7 +4,7 @@
  */
 
 'use client';
-import { type PropsWithChildren, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type PropsWithChildren, useCallback, useMemo, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
 import { buildA2AClient } from '#api/a2a/client.ts';
@@ -21,8 +21,7 @@ import { Role } from '#modules/messages/api/types.ts';
 import type { UIAgentMessage, UIMessage, UIUserMessage } from '#modules/messages/types.ts';
 import { UIMessageStatus } from '#modules/messages/types.ts';
 import { addTranformedMessagePart, isAgentMessage } from '#modules/messages/utils.ts';
-import { useCreateContext } from '#modules/runs/api/mutations/useCreateContext.ts';
-import { useCreateContextToken } from '#modules/runs/api/mutations/useCreateContextToken.ts';
+import { useGetPlatformContext, WithPlatformContext } from '#modules/platform-context/with-platform-context.tsx';
 import type { RunStats } from '#modules/runs/types.ts';
 import { SourcesProvider } from '#modules/sources/contexts/SourcesProvider.tsx';
 import { getMessageSourcesMap } from '#modules/sources/utils.ts';
@@ -36,51 +35,17 @@ interface Props {
 }
 
 export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>) {
-  const [contextId, setContextId] = useState<string | null>(null);
-  const { mutateAsync: createContext } = useCreateContext();
-
-  const setContext = useCallback(
-    (context: Awaited<ReturnType<typeof createContext>>) => {
-      if (!context) {
-        throw new Error(`Context has not been created`);
-      }
-
-      setContextId(context.id);
-    },
-    [setContextId],
-  );
-
-  const resetContext = useCallback(() => {
-    setContextId(null);
-
-    createContext().then(setContext);
-  }, [createContext, setContext]);
-
-  useEffect(() => {
-    createContext().then(setContext);
-  }, [createContext, setContext]);
-
-  if (contextId === null) {
-    // TODO: visual?
-    return null;
-  }
-
   return (
-    <FileUploadProvider allowedContentTypes={agent.defaultInputModes}>
-      <AgentRunProvider agent={agent} contextId={contextId} onReset={resetContext}>
-        {children}
-      </AgentRunProvider>
-    </FileUploadProvider>
+    <WithPlatformContext>
+      <FileUploadProvider allowedContentTypes={agent.defaultInputModes}>
+        <AgentRunProvider agent={agent}>{children}</AgentRunProvider>
+      </FileUploadProvider>
+    </WithPlatformContext>
   );
 }
 
-function AgentRunProvider({
-  agent,
-  children,
-  contextId,
-  onReset,
-}: PropsWithChildren<Props & { contextId: string; onReset: () => void }>) {
-  const { mutateAsync: createContextToken } = useCreateContextToken();
+function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
+  const { contextId, resetContext, getPlatformToken } = useGetPlatformContext();
   const [messages, getMessages, setMessages] = useImmerWithGetter<UIMessage[]>([]);
   const [input, setInput] = useState<string>();
   const [isPending, setIsPending] = useState(false);
@@ -151,11 +116,11 @@ function AgentRunProvider({
     setMessages([]);
     setStats(undefined);
     clearFiles();
-    onReset();
+    resetContext();
     setIsPending(false);
     setInput(undefined);
     pendingRun.current = undefined;
-  }, [setMessages, clearFiles, onReset]);
+  }, [setMessages, clearFiles, resetContext]);
 
   const run = useCallback(
     async (input: string) => {
@@ -171,28 +136,7 @@ function AgentRunProvider({
       setIsPending(true);
       setStats({ startTime: Date.now() });
 
-      const contextToken = await createContextToken({
-        contextId,
-        globalPermissionGrant: {
-          llm: ['*'],
-          a2a_proxy: [],
-          contexts: [],
-          embeddings: [],
-          feedback: [],
-          files: [],
-          providers: [],
-          variables: [],
-          vector_stores: [],
-        },
-        contextPermissionGrant: {
-          files: [],
-          vector_stores: [],
-        },
-      });
-
-      if (!contextToken) {
-        throw new Error('Could not generate context token');
-      }
+      const platformToken = await getPlatformToken();
 
       const userMessage: UIUserMessage = {
         id: uuid(),
@@ -226,7 +170,7 @@ function AgentRunProvider({
                   default: {
                     identifier: 'llm_proxy',
                     api_base: '{platform_url}/api/v1/llm/',
-                    api_key: contextToken.token,
+                    api_key: platformToken,
                     api_model: 'dummy',
                   },
                 },
@@ -263,16 +207,7 @@ function AgentRunProvider({
         pendingSubscription.current = undefined;
       }
     },
-    [
-      a2aAgentClient,
-      files,
-      contextId,
-      handleError,
-      updateLastAgentMessage,
-      setMessages,
-      clearFiles,
-      createContextToken,
-    ],
+    [a2aAgentClient, files, contextId, handleError, updateLastAgentMessage, setMessages, clearFiles, getPlatformToken],
   );
 
   const sources = useMemo(() => getMessageSourcesMap(messages), [messages]);
