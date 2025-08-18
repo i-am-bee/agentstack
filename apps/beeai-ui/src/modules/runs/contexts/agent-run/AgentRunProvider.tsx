@@ -213,10 +213,6 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
   const sources = useMemo(() => getMessageSourcesMap(messages), [messages]);
 
   const contextValue = useMemo(() => {
-    if (contextId === null) {
-      return null;
-    }
-
     return {
       agent,
       isPending,
@@ -233,7 +229,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
     <AgentStatusProvider agent={agent} isMonitorStatusEnabled>
       <SourcesProvider sources={sources}>
         <MessagesProvider messages={getMessages()}>
-          {contextValue && <AgentRunContext.Provider value={contextValue}>{children}</AgentRunContext.Provider>}
+          <AgentRunContext.Provider value={contextValue}>{children}</AgentRunContext.Provider>
         </MessagesProvider>
       </SourcesProvider>
     </AgentStatusProvider>
