@@ -108,7 +108,6 @@ export const providerMap = providers
   .filter((provider) => provider.id !== 'credentials');
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  debug: Boolean(process.env.NEXTAUTH_DEBUG || false),
   providers,
   pages: {
     signIn: '/signin',
@@ -116,7 +115,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   basePath: '/auth',
   session: { strategy: 'jwt' },
   trustHost: true,
-  // redirectProxyUrl: process.env.NEXTAUTH_REDIRECT_PROXY_URL,
   useSecureCookies: true,
   jwt: {
     async encode(params: JWTEncodeParams<JWT>): Promise<string> {
@@ -142,10 +140,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
   callbacks: {
+    // middleware callback
     authorized({ request, auth }) {
+      // essentially return !!auth
+      const isOidcDisabled = process.env.NEXT__DISABLE_OIDC === 'true';
+      if (isOidcDisabled) {
+        return true;
+      }
       const { pathname } = request.nextUrl;
-      if (pathname === '/middleware-example') return !!auth;
-      return true;
+      if (pathname === '/') return !!auth;
+      return !!auth;
     },
     jwt({ token, account, trigger, session }) {
       if (trigger === 'update') {

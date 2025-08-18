@@ -83,7 +83,7 @@ oidc:
   nextauth_trust_host: true
   nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
   providers_path: "/providers"
-  nextauth_url: "http://localhost:8334"
+  nextauth_url: "https://beeai.localhost:8336"
   nextauth_providers: [
     {
       "name": "w3id",
@@ -94,8 +94,8 @@ oidc:
       "client_secret": "<oidc_client_secret>",
       "issuer": "<oidc_issuer>",
       "jwks_url": "<oidc_jwks_url>",
-      "nextauth_url": "http://localhost:8334",
-      "nextauth_redirect_proxy_url": "http://localhost:8334"
+      "nextauth_url": "https://beeai.localhost:8336",
+      "nextauth_redirect_proxy_url": "https://beeai.localhost:8336"
     }
   ]
 
