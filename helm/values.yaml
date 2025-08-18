@@ -61,8 +61,7 @@ serviceAccount:
 podAnnotations: { }
 # This is for setting Kubernetes Labels to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
-podLabels:
-  istio.io/dataplane-mode: ambient
+podLabels: { }
 
 podSecurityContext: { }
 # fsGroup: 2000
