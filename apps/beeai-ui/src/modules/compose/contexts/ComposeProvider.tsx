@@ -21,7 +21,8 @@ import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
 import { Role } from '#modules/messages/api/types.ts';
 import { UIMessagePartKind, UIMessageStatus, type UIUserMessage } from '#modules/messages/types.ts';
 import { addTranformedMessagePart, getMessageRawContent } from '#modules/messages/utils.ts';
-import { useGetPlatformContext, WithPlatformContext } from '#modules/platform-context/with-platform-context.tsx';
+import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
+import { PlatformContextProvider } from '#modules/platform-context/contexts/PlatformContextProvider.tsx';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { type UIComposePart, UIComposePartKind } from '../a2a/types';
@@ -32,14 +33,14 @@ import { ComposeContext, ComposeStatus } from './compose-context';
 
 export function ComposeProvider({ children }: PropsWithChildren) {
   return (
-    <WithPlatformContext>
+    <PlatformContextProvider>
       <ComposeProviderWithContext>{children}</ComposeProviderWithContext>
-    </WithPlatformContext>
+    </PlatformContextProvider>
   );
 }
 
 function ComposeProviderWithContext({ children }: PropsWithChildren) {
-  const { contextId, getFullfilments } = useGetPlatformContext();
+  const { getContextId, getFullfilments } = usePlatformContext();
   const { data: agents } = useListAgents({ onlyUiSupported: true, sort: true });
 
   const searchParams = useSearchParams();
@@ -152,6 +153,8 @@ function ComposeProviderWithContext({ children }: PropsWithChildren) {
           throw new Error(`'${SEQUENTIAL_WORKFLOW_AGENT_NAME}' agent is not available.`);
         }
 
+        const contextId = getContextId();
+
         steps.forEach((step, idx) => {
           updateStep(idx, {
             ...step,
@@ -230,7 +233,7 @@ function ComposeProviderWithContext({ children }: PropsWithChildren) {
         pendingSubscription.current = undefined;
       }
     },
-    [a2aAgentClient, updateStep, getActiveStepIdx, getValues, handleError, onDone, getFullfilments, contextId],
+    [a2aAgentClient, getContextId, getFullfilments, updateStep, getActiveStepIdx, getValues, handleError, onDone],
   );
 
   const onSubmit = useCallback(() => {

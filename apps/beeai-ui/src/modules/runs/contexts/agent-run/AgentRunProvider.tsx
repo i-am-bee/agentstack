@@ -21,7 +21,8 @@ import { Role } from '#modules/messages/api/types.ts';
 import type { UIAgentMessage, UIMessage, UIUserMessage } from '#modules/messages/types.ts';
 import { UIMessageStatus } from '#modules/messages/types.ts';
 import { addTranformedMessagePart, isAgentMessage } from '#modules/messages/utils.ts';
-import { useGetPlatformContext, WithPlatformContext } from '#modules/platform-context/with-platform-context.tsx';
+import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
+import { PlatformContextProvider } from '#modules/platform-context/contexts/PlatformContextProvider.tsx';
 import type { RunStats } from '#modules/runs/types.ts';
 import { SourcesProvider } from '#modules/sources/contexts/SourcesProvider.tsx';
 import { getMessageSourcesMap } from '#modules/sources/utils.ts';
@@ -36,16 +37,16 @@ interface Props {
 
 export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>) {
   return (
-    <WithPlatformContext>
+    <PlatformContextProvider>
       <FileUploadProvider allowedContentTypes={agent.defaultInputModes}>
         <AgentRunProvider agent={agent}>{children}</AgentRunProvider>
       </FileUploadProvider>
-    </WithPlatformContext>
+    </PlatformContextProvider>
   );
 }
 
 function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
-  const { contextId, resetContext, getFullfilments } = useGetPlatformContext();
+  const { getContextId, resetContext, getFullfilments } = usePlatformContext();
   const [messages, getMessages, setMessages] = useImmerWithGetter<UIMessage[]>([]);
   const [input, setInput] = useState<string>();
   const [isPending, setIsPending] = useState(false);
@@ -124,9 +125,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
 
   const run = useCallback(
     async (input: string) => {
-      if (contextId === null) {
-        throw new Error('Context ID is not set');
-      }
+      const contextId = getContextId();
 
       if (pendingRun.current || pendingSubscription.current) {
         throw new Error('A run is already in progress');
@@ -191,7 +190,16 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
         pendingSubscription.current = undefined;
       }
     },
-    [a2aAgentClient, files, contextId, handleError, updateLastAgentMessage, setMessages, clearFiles, getFullfilments],
+    [
+      getContextId,
+      getFullfilments,
+      files,
+      setMessages,
+      clearFiles,
+      a2aAgentClient,
+      updateLastAgentMessage,
+      handleError,
+    ],
   );
 
   const sources = useMemo(() => getMessageSourcesMap(messages), [messages]);
@@ -202,12 +210,11 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
       isPending,
       input,
       stats,
-      contextId,
       run,
       cancel,
       clear,
     };
-  }, [agent, isPending, input, stats, contextId, run, cancel, clear]);
+  }, [agent, isPending, input, stats, run, cancel, clear]);
 
   return (
     <AgentStatusProvider agent={agent} isMonitorStatusEnabled>

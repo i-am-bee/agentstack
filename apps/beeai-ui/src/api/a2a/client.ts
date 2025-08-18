@@ -22,7 +22,7 @@ import type { ChatParams, ChatRun } from './types';
 import { createUserMessage, extractTextFromMessage } from './utils';
 
 const mcpExtensionExtractor = extractServiceExtensionDemands(mcpExtension);
-const fulFillMcpDemand = fulfillServiceExtensionDemand(mcpExtension);
+const fulfillMcpDemand = fulfillServiceExtensionDemand(mcpExtension);
 const llmExtensionExtractor = extractServiceExtensionDemands(llmExtension);
 const fulfillLlmDemand = fulfillServiceExtensionDemand(llmExtension);
 
@@ -84,7 +84,7 @@ export const buildA2AClient = <UIGenericPart = never>({
       let metadata = {};
 
       if (mcpDemands) {
-        metadata = fulFillMcpDemand(metadata, await fulfillments.mcp(mcpDemands));
+        metadata = fulfillMcpDemand(metadata, await fulfillments.mcp(mcpDemands));
       }
 
       if (llmDemands) {

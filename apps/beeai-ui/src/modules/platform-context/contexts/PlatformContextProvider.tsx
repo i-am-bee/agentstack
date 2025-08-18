@@ -3,36 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { PropsWithChildren } from 'react';
-import { useCallback, useContext, useEffect, useState } from 'react';
-import React from 'react';
+import { type PropsWithChildren, useCallback, useEffect, useState } from 'react';
 
-import type { Fulfillments } from '#api/a2a/types.ts';
-
-import { useCreateContext } from './api/mutations/useCreateContext';
-import { useCreateContextToken } from './api/mutations/useCreateContextToken';
+import { useCreateContext } from '../api/mutations/useCreateContext';
+import { useCreateContextToken } from '../api/mutations/useCreateContextToken';
 import { buildFullfilments } from './build-fulfillments';
+import { PlatformContext } from './platform-context';
 
-interface PlatformContext {
-  contextId: string;
-  resetContext: () => void;
-  getPlatformToken: () => Promise<string>;
-  getFullfilments: () => Promise<Fulfillments>;
-}
-
-const PlatformContextWrapper = React.createContext<PlatformContext | null>(null);
-
-export const useGetPlatformContext = () => {
-  const context = useContext(PlatformContextWrapper);
-
-  if (!context) {
-    throw new Error('useGetContext must be used within a WithPlatformContext');
-  }
-
-  return context;
-};
-
-export function WithPlatformContext({ children }: PropsWithChildren) {
+export function PlatformContextProvider({ children }: PropsWithChildren) {
   const [contextId, setContextId] = useState<string | null>(null);
   const { mutateAsync: createContext } = useCreateContext();
   const { mutateAsync: createContextToken } = useCreateContextToken();
@@ -94,21 +72,25 @@ export function WithPlatformContext({ children }: PropsWithChildren) {
     createContext().then(setContext);
   }, [createContext, setContext]);
 
-  if (contextId === null) {
-    // TODO: visual?
-    return null;
-  }
+  const getContextId = useCallback(() => {
+    if (!contextId) {
+      throw new Error('Context ID is not set');
+    }
+
+    return contextId;
+  }, [contextId]);
 
   return (
-    <PlatformContextWrapper.Provider
+    <PlatformContext.Provider
       value={{
         contextId,
+        getContextId,
         resetContext,
         getPlatformToken,
         getFullfilments,
       }}
     >
       {children}
-    </PlatformContextWrapper.Provider>
+    </PlatformContext.Provider>
   );
 }
