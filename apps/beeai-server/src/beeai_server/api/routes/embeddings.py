@@ -51,6 +51,7 @@ async def create_embedding(
     assert backend_url.host
 
     if backend_url.host.endswith("api.voyageai.com"):
+        # Voyage does not support 'float' value: https://docs.voyageai.com/reference/embeddings-api
         request.encoding_format = None if request.encoding_format == "float" else request.encoding_format
 
     if backend_url.host.endswith(".ml.cloud.ibm.com"):
@@ -63,7 +64,6 @@ async def create_embedding(
             ).generate,
             inputs=[request.input] if isinstance(request.input, str) else request.input,
         )
-
         return openai.types.CreateEmbeddingResponse(
             object="list",
             model=watsonx_response["model_id"],
