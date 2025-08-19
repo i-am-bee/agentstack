@@ -18,3 +18,9 @@ export const FRAMEWORK_DOCS_LINK = 'https://framework.beeai.dev';
 export const FRAMEWORK_QUICKSTART_LINK = 'https://framework.beeai.dev/introduction/quickstart';
 
 export const PLATFORM_QUICKSTART_LINK = 'https://docs.beeai.dev/introduction/quickstart';
+
+export const DISCORD_LINK = 'https://discord.gg/NradeA6ZNF';
+
+export const YOUTUBE_LINK = 'https://www.youtube.com/@BeeAIAgents';
+
+export const BLUESKY_LINK = 'https://bsky.app/profile/beeaiagents.bsky.social';

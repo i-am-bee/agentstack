@@ -3,7 +3,9 @@
 
 from __future__ import annotations
 
+import re
 from types import NoneType
+from typing import Self
 
 import pydantic
 
@@ -57,6 +59,16 @@ class EmbeddingServiceExtensionParams(pydantic.BaseModel):
 class EmbeddingServiceExtensionSpec(BaseExtensionSpec[EmbeddingServiceExtensionParams]):
     URI: str = "https://a2a-extensions.beeai.dev/services/embedding/v1"
 
+    @classmethod
+    def single_demand(
+        cls, name: str | None = None, description: str | None = None, suggested: tuple[str, ...] = ()
+    ) -> Self:
+        return cls(
+            params=EmbeddingServiceExtensionParams(
+                embedding_demands={name or "default": EmbeddingDemand(description=description, suggested=suggested)}
+            )
+        )
+
 
 class EmbeddingServiceExtensionMetadata(pydantic.BaseModel):
     embedding_fulfillments: dict[str, EmbeddingFulfillment] = {}
@@ -65,7 +77,17 @@ class EmbeddingServiceExtensionMetadata(pydantic.BaseModel):
 
 class EmbeddingServiceExtensionServer(
     BaseExtensionServer[EmbeddingServiceExtensionSpec, EmbeddingServiceExtensionMetadata]
-): ...
+):
+    def handle_incoming_message(self, message, context):
+        from beeai_sdk.platform import get_platform_client
+
+        super().handle_incoming_message(message, context)
+        if not self.data:
+            return
+
+        for fullfilment in self.data.embedding_fulfillments.values():
+            platform_url = str(get_platform_client().base_url)
+            fullfilment.api_base = re.sub("{platform_url}", platform_url, fullfilment.api_base)
 
 
 class EmbeddingServiceExtensionClient(BaseExtensionClient[EmbeddingServiceExtensionSpec, NoneType]):

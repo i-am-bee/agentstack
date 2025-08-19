@@ -8,15 +8,15 @@
   flex-direction: column;
 
   h2 {
-    @include font-family(serif);
-    font-size: rem(36px);
-    line-height: math.div(44, 36);
+    font-size: rem(40px);
+    line-height: math.div(48, 40);
+    font-weight: 600;
   }
 
   p {
-    color: $text-muted;
     font-size: rem(20px);
     margin-block-start: $spacing-05;
+    max-inline-size: rem(380px);
   }
 
   :global(.cds--btn) {
@@ -35,9 +35,6 @@
 }
 
 .inverse {
-  p {
-    color: $text-muted-inverse;
-  }
   a {
     background-color: $background;
     color: $text-primary;

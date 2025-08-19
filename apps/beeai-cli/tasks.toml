@@ -25,12 +25,11 @@ run = "uv run python -m ruff format --quiet --check"
 sources = ["src/**/*.py"]
 outputs = { auto = true }
 
-# TODO: Enable and fix issues in separate PR
-# ["beeai-cli:check:pyright"]
-# dir = "{{config_root}}/apps/beeai-cli"
-# run = "uv run python -m pyright"
-# sources = ["src/**/*.py"]
-# outputs = { auto = true }
+["beeai-cli:check:pyright"]
+dir = "{{config_root}}/apps/beeai-cli"
+run = "uv run python -m pyright"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
 
 # fix
 

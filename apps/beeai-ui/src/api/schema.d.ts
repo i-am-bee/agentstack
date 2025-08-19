@@ -9,4055 +9,4172 @@
  */
 
 export interface paths {
-    "/api/v1/a2a/{provider_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Proxy Request */
-        get: operations["proxy_request_api_v1_a2a__provider_id__options"];
-        /** Proxy Request */
-        put: operations["proxy_request_api_v1_a2a__provider_id__options"];
-        /** Proxy Request */
-        post: operations["proxy_request_api_v1_a2a__provider_id__options"];
-        /** Proxy Request */
-        delete: operations["proxy_request_api_v1_a2a__provider_id__options"];
-        /** Proxy Request */
-        options: operations["proxy_request_api_v1_a2a__provider_id__options"];
-        /** Proxy Request */
-        head: operations["proxy_request_api_v1_a2a__provider_id__options"];
-        /** Proxy Request */
-        patch: operations["proxy_request_api_v1_a2a__provider_id__options"];
-        trace?: never;
+  '/api/v1/a2a/{provider_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/a2a/{provider_id}/.well-known/agent-card.json": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Agent Card */
-        get: operations["get_agent_card_api_v1_a2a__provider_id___well_known_agent_card_json_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Proxy Request */
+    get: operations['proxy_request_api_v1_a2a__provider_id__delete'];
+    /** Proxy Request */
+    put: operations['proxy_request_api_v1_a2a__provider_id__delete'];
+    /** Proxy Request */
+    post: operations['proxy_request_api_v1_a2a__provider_id__delete'];
+    /** Proxy Request */
+    delete: operations['proxy_request_api_v1_a2a__provider_id__delete'];
+    /** Proxy Request */
+    options: operations['proxy_request_api_v1_a2a__provider_id__delete'];
+    /** Proxy Request */
+    head: operations['proxy_request_api_v1_a2a__provider_id__delete'];
+    /** Proxy Request */
+    patch: operations['proxy_request_api_v1_a2a__provider_id__delete'];
+    trace?: never;
+  };
+  '/api/v1/a2a/{provider_id}/.well-known/agent-card.json': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/a2a/{provider_id}/{path}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Proxy Request */
-        get: operations["proxy_request_api_v1_a2a__provider_id___path__options"];
-        /** Proxy Request */
-        put: operations["proxy_request_api_v1_a2a__provider_id___path__options"];
-        /** Proxy Request */
-        post: operations["proxy_request_api_v1_a2a__provider_id___path__options"];
-        /** Proxy Request */
-        delete: operations["proxy_request_api_v1_a2a__provider_id___path__options"];
-        /** Proxy Request */
-        options: operations["proxy_request_api_v1_a2a__provider_id___path__options"];
-        /** Proxy Request */
-        head: operations["proxy_request_api_v1_a2a__provider_id___path__options"];
-        /** Proxy Request */
-        patch: operations["proxy_request_api_v1_a2a__provider_id___path__options"];
-        trace?: never;
+    /** Get Agent Card */
+    get: operations['get_agent_card_api_v1_a2a__provider_id___well_known_agent_card_json_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/a2a/{provider_id}/{path}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/contexts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Contexts */
-        get: operations["list_contexts_api_v1_contexts_get"];
-        put?: never;
-        /** Create Context */
-        post: operations["create_context_api_v1_contexts_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Proxy Request */
+    get: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
+    /** Proxy Request */
+    put: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
+    /** Proxy Request */
+    post: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
+    /** Proxy Request */
+    delete: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
+    /** Proxy Request */
+    options: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
+    /** Proxy Request */
+    head: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
+    /** Proxy Request */
+    patch: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
+    trace?: never;
+  };
+  '/api/v1/contexts': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/contexts/{context_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Context */
-        get: operations["get_context_api_v1_contexts__context_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete Context */
-        delete: operations["delete_context_api_v1_contexts__context_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List Contexts */
+    get: operations['list_contexts_api_v1_contexts_get'];
+    put?: never;
+    /** Create Context */
+    post: operations['create_context_api_v1_contexts_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/contexts/{context_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/contexts/{context_id}/token": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Generate Context Token */
-        post: operations["generate_context_token_api_v1_contexts__context_id__token_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get Context */
+    get: operations['get_context_api_v1_contexts__context_id__get'];
+    put?: never;
+    post?: never;
+    /** Delete Context */
+    delete: operations['delete_context_api_v1_contexts__context_id__delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/contexts/{context_id}/token': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/files": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Upload File */
-        post: operations["upload_file_api_v1_files_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Generate Context Token */
+    post: operations['generate_context_token_api_v1_contexts__context_id__token_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/files': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/files/{file_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get File */
-        get: operations["get_file_api_v1_files__file_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete File */
-        delete: operations["delete_file_api_v1_files__file_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Upload File */
+    post: operations['upload_file_api_v1_files_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/files/{file_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/files/{file_id}/content": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get File Content */
-        get: operations["get_file_content_api_v1_files__file_id__content_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get File */
+    get: operations['get_file_api_v1_files__file_id__get'];
+    put?: never;
+    post?: never;
+    /** Delete File */
+    delete: operations['delete_file_api_v1_files__file_id__delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/files/{file_id}/content': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/files/{file_id}/extraction": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Text Extraction */
-        get: operations["get_text_extraction_api_v1_files__file_id__extraction_get"];
-        put?: never;
-        /**
-         * Create Text Extraction
-         * @description Create or return text extraction for a file.
-         *
-         *     - If extraction is completed, returns existing result
-         *     - If extraction failed, retries the extraction
-         *     - If extraction is pending/in-progress, returns current status
-         *     - If no extraction exists, creates a new one
-         */
-        post: operations["create_text_extraction_api_v1_files__file_id__extraction_post"];
-        /** Delete Text Extraction */
-        delete: operations["delete_text_extraction_api_v1_files__file_id__extraction_delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get File Content */
+    get: operations['get_file_content_api_v1_files__file_id__content_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/files/{file_id}/extraction': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/files/{file_id}/text_content": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Text File Content */
-        get: operations["get_text_file_content_api_v1_files__file_id__text_content_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get Text Extraction */
+    get: operations['get_text_extraction_api_v1_files__file_id__extraction_get'];
+    put?: never;
+    /**
+     * Create Text Extraction
+     * @description Create or return text extraction for a file.
+     *
+     *     - If extraction is completed, returns existing result
+     *     - If extraction failed, retries the extraction
+     *     - If extraction is pending/in-progress, returns current status
+     *     - If no extraction exists, creates a new one
+     */
+    post: operations['create_text_extraction_api_v1_files__file_id__extraction_post'];
+    /** Delete Text Extraction */
+    delete: operations['delete_text_extraction_api_v1_files__file_id__extraction_delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/files/{file_id}/text_content': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/llm/chat/completions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create Chat Completion */
-        post: operations["create_chat_completion_api_v1_llm_chat_completions_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get Text File Content */
+    get: operations['get_text_file_content_api_v1_files__file_id__text_content_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/llm/chat/completions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/llm/embeddings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create Embedding */
-        post: operations["create_embedding_api_v1_llm_embeddings_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Create Chat Completion */
+    post: operations['create_chat_completion_api_v1_llm_chat_completions_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/llm/embeddings': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/mcp": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Mcp */
-        get: operations["mcp_api_v1_mcp_get"];
-        put?: never;
-        /** Mcp */
-        post: operations["mcp_api_v1_mcp_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Create Embedding */
+    post: operations['create_embedding_api_v1_llm_embeddings_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/mcp': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/mcp/providers": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Providers */
-        get: operations["list_providers_api_v1_mcp_providers_get"];
-        put?: never;
-        /** Create Provider */
-        post: operations["create_provider_api_v1_mcp_providers_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Mcp */
+    get: operations['mcp_api_v1_mcp_get'];
+    put?: never;
+    /** Mcp */
+    post: operations['mcp_api_v1_mcp_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/mcp/providers': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/mcp/providers/{provider_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read Provider */
-        get: operations["read_provider_api_v1_mcp_providers__provider_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete Provider */
-        delete: operations["delete_provider_api_v1_mcp_providers__provider_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List Providers */
+    get: operations['list_providers_api_v1_mcp_providers_get'];
+    put?: never;
+    /** Create Provider */
+    post: operations['create_provider_api_v1_mcp_providers_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/mcp/providers/{provider_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/mcp/toolkits": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create Toolkit */
-        post: operations["create_toolkit_api_v1_mcp_toolkits_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Read Provider */
+    get: operations['read_provider_api_v1_mcp_providers__provider_id__get'];
+    put?: never;
+    post?: never;
+    /** Delete Provider */
+    delete: operations['delete_provider_api_v1_mcp_providers__provider_id__delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/mcp/toolkits': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/mcp/toolkits/{toolkit_id}/mcp": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Mcp Toolkit */
-        get: operations["mcp_toolkit_api_v1_mcp_toolkits__toolkit_id__mcp_get"];
-        put?: never;
-        /** Mcp Toolkit */
-        post: operations["mcp_toolkit_api_v1_mcp_toolkits__toolkit_id__mcp_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Create Toolkit */
+    post: operations['create_toolkit_api_v1_mcp_toolkits_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/mcp/toolkits/{toolkit_id}/mcp': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/mcp/tools": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Tools */
-        get: operations["list_tools_api_v1_mcp_tools_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Mcp Toolkit */
+    get: operations['mcp_toolkit_api_v1_mcp_toolkits__toolkit_id__mcp_get'];
+    put?: never;
+    /** Mcp Toolkit */
+    post: operations['mcp_toolkit_api_v1_mcp_toolkits__toolkit_id__mcp_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/mcp/tools': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/mcp/tools/{tool_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read Tool */
-        get: operations["read_tool_api_v1_mcp_tools__tool_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List Tools */
+    get: operations['list_tools_api_v1_mcp_tools_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/mcp/tools/{tool_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/providers": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Providers */
-        get: operations["list_providers_api_v1_providers_get"];
-        put?: never;
-        /** Create Provider */
-        post: operations["create_provider_api_v1_providers_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Read Tool */
+    get: operations['read_tool_api_v1_mcp_tools__tool_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/providers': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/providers/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Provider */
-        get: operations["get_provider_api_v1_providers__id__get"];
-        put?: never;
-        post?: never;
-        /** Delete Provider */
-        delete: operations["delete_provider_api_v1_providers__id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List Providers */
+    get: operations['list_providers_api_v1_providers_get'];
+    put?: never;
+    /** Create Provider */
+    post: operations['create_provider_api_v1_providers_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/providers/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/providers/{id}/logs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Stream Logs */
-        get: operations["stream_logs_api_v1_providers__id__logs_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get Provider */
+    get: operations['get_provider_api_v1_providers__id__get'];
+    put?: never;
+    post?: never;
+    /** Delete Provider */
+    delete: operations['delete_provider_api_v1_providers__id__delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/providers/{id}/logs': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/providers/preview": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Preview Provider */
-        post: operations["preview_provider_api_v1_providers_preview_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Stream Logs */
+    get: operations['stream_logs_api_v1_providers__id__logs_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/providers/preview': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/user_feedback": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** User Feedback */
-        post: operations["user_feedback_api_v1_user_feedback_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Preview Provider */
+    post: operations['preview_provider_api_v1_providers_preview_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/user_feedback': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/variables": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Variables */
-        get: operations["list_variables_api_v1_variables_get"];
-        /** Update Variables */
-        put: operations["update_variables_api_v1_variables_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** User Feedback */
+    post: operations['user_feedback_api_v1_user_feedback_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/variables': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/vector_stores": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create Vector Store
-         * @description Create a new vector store.
-         */
-        post: operations["create_vector_store_api_v1_vector_stores_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List Variables */
+    get: operations['list_variables_api_v1_variables_get'];
+    /** Update Variables */
+    put: operations['update_variables_api_v1_variables_put'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/vector_stores': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/vector_stores/{vector_store_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Vector Store
-         * @description Get a vector store by ID.
-         */
-        get: operations["get_vector_store_api_v1_vector_stores__vector_store_id__get"];
-        /** Add Items */
-        put: operations["add_items_api_v1_vector_stores__vector_store_id__put"];
-        post?: never;
-        /**
-         * Delete Vector Store
-         * @description Delete a vector store by ID.
-         */
-        delete: operations["delete_vector_store_api_v1_vector_stores__vector_store_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Create Vector Store
+     * @description Create a new vector store.
+     */
+    post: operations['create_vector_store_api_v1_vector_stores_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/vector_stores/{vector_store_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/vector_stores/{vector_store_id}/documents": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List Documents
-         * @description List all documents in a vector store.
-         */
-        get: operations["list_documents_api_v1_vector_stores__vector_store_id__documents_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Get Vector Store
+     * @description Get a vector store by ID.
+     */
+    get: operations['get_vector_store_api_v1_vector_stores__vector_store_id__get'];
+    /** Add Items */
+    put: operations['add_items_api_v1_vector_stores__vector_store_id__put'];
+    post?: never;
+    /**
+     * Delete Vector Store
+     * @description Delete a vector store by ID.
+     */
+    delete: operations['delete_vector_store_api_v1_vector_stores__vector_store_id__delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/vector_stores/{vector_store_id}/documents': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/vector_stores/{vector_store_id}/documents/{document_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Delete Document
-         * @description Delete a document by ID.
-         */
-        delete: operations["delete_document_api_v1_vector_stores__vector_store_id__documents__document_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * List Documents
+     * @description List all documents in a vector store.
+     */
+    get: operations['list_documents_api_v1_vector_stores__vector_store_id__documents_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/vector_stores/{vector_store_id}/documents/{document_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/vector_stores/{vector_store_id}/search": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Search With Vector
-         * @description Search a vector store using either text or a vector.
-         */
-        post: operations["search_with_vector_api_v1_vector_stores__vector_store_id__search_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    post?: never;
+    /**
+     * Delete Document
+     * @description Delete a document by ID.
+     */
+    delete: operations['delete_document_api_v1_vector_stores__vector_store_id__documents__document_id__delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/vector_stores/{vector_store_id}/search': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/healthcheck": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Healthcheck */
-        get: operations["healthcheck_healthcheck_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Search With Vector
+     * @description Search a vector store using either text or a vector.
+     */
+    post: operations['search_with_vector_api_v1_vector_stores__vector_store_id__search_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/healthcheck': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    /** Healthcheck */
+    get: operations['healthcheck_healthcheck_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        /**
-         * AgentCapabilities
-         * @description Defines optional capabilities supported by an agent.
-         */
-        AgentCapabilities: {
-            /** Extensions */
-            extensions?: components["schemas"]["AgentExtension"][] | null;
-            /** Pushnotifications */
-            pushNotifications?: boolean | null;
-            /** Statetransitionhistory */
-            stateTransitionHistory?: boolean | null;
-            /** Streaming */
-            streaming?: boolean | null;
-        };
-        /**
-         * AgentCard
-         * @description The AgentCard is a self-describing manifest for an agent. It provides essential
-         *     metadata including the agent's identity, capabilities, skills, supported
-         *     communication methods, and security requirements.
-         */
-        "AgentCard-Input": {
-            /** Additionalinterfaces */
-            additionalInterfaces?: components["schemas"]["AgentInterface"][] | null;
-            capabilities: components["schemas"]["AgentCapabilities"];
-            /** Defaultinputmodes */
-            defaultInputModes: string[];
-            /** Defaultoutputmodes */
-            defaultOutputModes: string[];
-            /**
-             * Description
-             * @example Agent that helps users with recipes and cooking.
-             */
-            description: string;
-            /** Documentationurl */
-            documentationUrl?: string | null;
-            /** Iconurl */
-            iconUrl?: string | null;
-            /**
-             * Name
-             * @example Recipe Agent
-             */
-            name: string;
-            /**
-             * Preferredtransport
-             * @default JSONRPC
-             * @example JSONRPC
-             * @example GRPC
-             * @example HTTP+JSON
-             */
-            preferredTransport: string | null;
-            /**
-             * Protocolversion
-             * @default 0.3.0
-             */
-            protocolVersion: string | null;
-            provider?: components["schemas"]["AgentProvider"] | null;
-            /**
-             * Security
-             * @example [
-             *       {
-             *         "oauth": [
-             *           "read"
-             *         ]
-             *       },
-             *       {
-             *         "api-key": [],
-             *         "mtls": []
-             *       }
-             *     ]
-             */
-            security?: {
-                [key: string]: string[];
-            }[] | null;
-            /** Securityschemes */
-            securitySchemes?: {
-                [key: string]: components["schemas"]["SecurityScheme-Input"];
-            } | null;
-            /** Signatures */
-            signatures?: components["schemas"]["AgentCardSignature"][] | null;
-            /** Skills */
-            skills: components["schemas"]["AgentSkill"][];
-            /** Supportsauthenticatedextendedcard */
-            supportsAuthenticatedExtendedCard?: boolean | null;
-            /**
-             * Url
-             * @example https://api.example.com/a2a/v1
-             */
-            url: string;
-            /**
-             * Version
-             * @example 1.0.0
-             */
-            version: string;
-        };
-        /**
-         * AgentCard
-         * @description The AgentCard is a self-describing manifest for an agent. It provides essential
-         *     metadata including the agent's identity, capabilities, skills, supported
-         *     communication methods, and security requirements.
-         */
-        "AgentCard-Output": {
-            /** Additionalinterfaces */
-            additionalInterfaces?: components["schemas"]["AgentInterface"][] | null;
-            capabilities: components["schemas"]["AgentCapabilities"];
-            /** Defaultinputmodes */
-            defaultInputModes: string[];
-            /** Defaultoutputmodes */
-            defaultOutputModes: string[];
-            /**
-             * Description
-             * @example Agent that helps users with recipes and cooking.
-             */
-            description: string;
-            /** Documentationurl */
-            documentationUrl?: string | null;
-            /** Iconurl */
-            iconUrl?: string | null;
-            /**
-             * Name
-             * @example Recipe Agent
-             */
-            name: string;
-            /**
-             * Preferredtransport
-             * @default JSONRPC
-             * @example JSONRPC
-             * @example GRPC
-             * @example HTTP+JSON
-             */
-            preferredTransport: string | null;
-            /**
-             * Protocolversion
-             * @default 0.3.0
-             */
-            protocolVersion: string | null;
-            provider?: components["schemas"]["AgentProvider"] | null;
-            /**
-             * Security
-             * @example [
-             *       {
-             *         "oauth": [
-             *           "read"
-             *         ]
-             *       },
-             *       {
-             *         "api-key": [],
-             *         "mtls": []
-             *       }
-             *     ]
-             */
-            security?: {
-                [key: string]: string[];
-            }[] | null;
-            /** Securityschemes */
-            securitySchemes?: {
-                [key: string]: components["schemas"]["SecurityScheme-Output"];
-            } | null;
-            /** Signatures */
-            signatures?: components["schemas"]["AgentCardSignature"][] | null;
-            /** Skills */
-            skills: components["schemas"]["AgentSkill"][];
-            /** Supportsauthenticatedextendedcard */
-            supportsAuthenticatedExtendedCard?: boolean | null;
-            /**
-             * Url
-             * @example https://api.example.com/a2a/v1
-             */
-            url: string;
-            /**
-             * Version
-             * @example 1.0.0
-             */
-            version: string;
-        };
-        /**
-         * AgentCardSignature
-         * @description AgentCardSignature represents a JWS signature of an AgentCard.
-         *     This follows the JSON format of an RFC 7515 JSON Web Signature (JWS).
-         */
-        AgentCardSignature: {
-            /** Header */
-            header?: {
-                [key: string]: unknown;
-            } | null;
-            /** Protected */
-            protected: string;
-            /** Signature */
-            signature: string;
-        };
-        /**
-         * AgentExtension
-         * @description A declaration of a protocol extension supported by an Agent.
-         */
-        AgentExtension: {
-            /** Description */
-            description?: string | null;
-            /** Params */
-            params?: {
-                [key: string]: unknown;
-            } | null;
-            /** Required */
-            required?: boolean | null;
-            /** Uri */
-            uri: string;
-        };
-        /**
-         * AgentInterface
-         * @description Declares a combination of a target URL and a transport protocol for interacting with the agent.
-         *     This allows agents to expose the same functionality over multiple transport mechanisms.
-         */
-        AgentInterface: {
-            /**
-             * Transport
-             * @example JSONRPC
-             * @example GRPC
-             * @example HTTP+JSON
-             */
-            transport: string;
-            /**
-             * Url
-             * @example https://api.example.com/a2a/v1
-             * @example https://grpc.example.com/a2a
-             * @example https://rest.example.com/v1
-             */
-            url: string;
-        };
-        /**
-         * AgentProvider
-         * @description Represents the service provider of an agent.
-         */
-        AgentProvider: {
-            /** Organization */
-            organization: string;
-            /** Url */
-            url: string;
-        };
-        /**
-         * AgentSkill
-         * @description Represents a distinct capability or function that an agent can perform.
-         */
-        AgentSkill: {
-            /** Description */
-            description: string;
-            /**
-             * Examples
-             * @example [
-             *       "I need a recipe for bread"
-             *     ]
-             */
-            examples?: string[] | null;
-            /** Id */
-            id: string;
-            /** Inputmodes */
-            inputModes?: string[] | null;
-            /** Name */
-            name: string;
-            /** Outputmodes */
-            outputModes?: string[] | null;
-            /**
-             * Security
-             * @example [
-             *       {
-             *         "google": [
-             *           "oidc"
-             *         ]
-             *       }
-             *     ]
-             */
-            security?: {
-                [key: string]: string[];
-            }[] | null;
-            /**
-             * Tags
-             * @example [
-             *       "cooking",
-             *       "customer support",
-             *       "billing"
-             *     ]
-             */
-            tags: string[];
-        };
-        /**
-         * APIKeySecurityScheme
-         * @description Defines a security scheme using an API key.
-         */
-        APIKeySecurityScheme: {
-            /** Description */
-            description?: string | null;
-            in: components["schemas"]["In"];
-            /** Name */
-            name: string;
-            /**
-             * Type
-             * @default apiKey
-             * @constant
-             */
-            type: "apiKey";
-        };
-        /** Audio */
-        Audio: {
-            /** Id */
-            id: string;
-        };
-        /**
-         * AuthorizationCodeOAuthFlow
-         * @description Defines configuration details for the OAuth 2.0 Authorization Code flow.
-         */
-        AuthorizationCodeOAuthFlow: {
-            /** Authorizationurl */
-            authorizationUrl: string;
-            /** Refreshurl */
-            refreshUrl?: string | null;
-            /** Scopes */
-            scopes: {
-                [key: string]: string;
-            };
-            /** Tokenurl */
-            tokenUrl: string;
-        };
-        /** FileResponse */
-        beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__1: {
-            /** Context Id */
-            context_id?: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /**
-             * Created By
-             * Format: uuid
-             */
-            created_by: string;
-            /** File Size Bytes */
-            file_size_bytes?: number | null;
-            /** @default user_upload */
-            file_type: components["schemas"]["FileType"];
-            /** Filename */
-            filename: string;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Parent File Id */
-            parent_file_id?: string | null;
-        };
-        /** FileResponse */
-        beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__2: {
-            /** Context Id */
-            context_id?: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /**
-             * Created By
-             * Format: uuid
-             */
-            created_by: string;
-            /** File Size Bytes */
-            file_size_bytes?: number | null;
-            /** @default user_upload */
-            file_type: components["schemas"]["FileType"];
-            /** Filename */
-            filename: string;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Parent File Id */
-            parent_file_id?: string | null;
-        };
-        /** TextExtractionResponse */
-        beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__3: {
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /** Error Message */
-            error_message?: string | null;
-            /** Extracted File Id */
-            extracted_file_id?: string | null;
-            extraction_metadata?: components["schemas"]["ExtractionMetadata"] | null;
-            /**
-             * File Id
-             * Format: uuid
-             */
-            file_id: string;
-            /** Finished At */
-            finished_at?: string | null;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Job Id */
-            job_id?: string | null;
-            /** Started At */
-            started_at?: string | null;
-            /** @default pending */
-            status: components["schemas"]["ExtractionStatus"];
-        };
-        /** TextExtractionResponse */
-        beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__4: {
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /** Error Message */
-            error_message?: string | null;
-            /** Extracted File Id */
-            extracted_file_id?: string | null;
-            extraction_metadata?: components["schemas"]["ExtractionMetadata"] | null;
-            /**
-             * File Id
-             * Format: uuid
-             */
-            file_id: string;
-            /** Finished At */
-            finished_at?: string | null;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Job Id */
-            job_id?: string | null;
-            /** Started At */
-            started_at?: string | null;
-            /** @default pending */
-            status: components["schemas"]["ExtractionStatus"];
-        };
-        /** ContextResponse */
-        beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__5: {
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /**
-             * Created By
-             * Format: uuid
-             */
-            created_by: string;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /**
-             * Last Active At
-             * Format: date-time
-             */
-            last_active_at?: string;
-            /** Metadata */
-            metadata?: {
-                [key: string]: string;
-            } | null;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at?: string;
-        };
-        /** ContextResponse */
-        beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__6: {
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /**
-             * Created By
-             * Format: uuid
-             */
-            created_by: string;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /**
-             * Last Active At
-             * Format: date-time
-             */
-            last_active_at?: string;
-            /** Metadata */
-            metadata?: {
-                [key: string]: string;
-            } | null;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at?: string;
-        };
-        /** VectorStoreResponse */
-        beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__7: {
-            /** Context Id */
-            context_id?: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /**
-             * Created By
-             * Format: uuid
-             */
-            created_by: string;
-            /** Dimension */
-            dimension: number;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /**
-             * Last Active At
-             * Format: date-time
-             */
-            last_active_at?: string;
-            /** Model Id */
-            model_id: string;
-            /** Name */
-            name?: string | null;
-            stats?: components["schemas"]["VectorStoreStats"] | null;
-        };
-        /** VectorStoreResponse */
-        beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__8: {
-            /** Context Id */
-            context_id?: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /**
-             * Created By
-             * Format: uuid
-             */
-            created_by: string;
-            /** Dimension */
-            dimension: number;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /**
-             * Last Active At
-             * Format: date-time
-             */
-            last_active_at?: string;
-            /** Model Id */
-            model_id: string;
-            /** Name */
-            name?: string | null;
-            stats?: components["schemas"]["VectorStoreStats"] | null;
-        };
-        /** Body_upload_file_api_v1_files_post */
-        Body_upload_file_api_v1_files_post: {
-            /**
-             * File
-             * Format: binary
-             */
-            file: string;
-        };
-        /** ChatCompletionAllowedToolChoiceParam */
-        ChatCompletionAllowedToolChoiceParam: {
-            allowed_tools: components["schemas"]["ChatCompletionAllowedToolsParam"];
-            /**
-             * Type
-             * @constant
-             */
-            type: "allowed_tools";
-        };
-        /** ChatCompletionAllowedToolsParam */
-        ChatCompletionAllowedToolsParam: {
-            /**
-             * Mode
-             * @enum {string}
-             */
-            mode: "auto" | "required";
-            /** Tools */
-            tools: {
-                [key: string]: unknown;
-            }[];
-        };
-        /** ChatCompletionAssistantMessageParam */
-        ChatCompletionAssistantMessageParam: {
-            audio?: components["schemas"]["Audio"] | null;
-            /** Content */
-            content?: string | (components["schemas"]["ChatCompletionContentPartTextParam"] | components["schemas"]["ChatCompletionContentPartRefusalParam"])[] | null;
-            function_call?: components["schemas"]["FunctionCall"] | null;
-            /** Name */
-            name?: string;
-            /** Refusal */
-            refusal?: string | null;
-            /**
-             * Role
-             * @constant
-             */
-            role: "assistant";
-            /** Tool Calls */
-            tool_calls?: (components["schemas"]["ChatCompletionMessageFunctionToolCallParam"] | components["schemas"]["ChatCompletionMessageCustomToolCallParam"])[];
-        };
-        /** ChatCompletionAudioParam */
-        ChatCompletionAudioParam: {
-            /**
-             * Format
-             * @enum {string}
-             */
-            format: "wav" | "aac" | "mp3" | "flac" | "opus" | "pcm16";
-            /** Voice */
-            voice: string | ("alloy" | "ash" | "ballad" | "coral" | "echo" | "sage" | "shimmer" | "verse");
-        };
-        /** ChatCompletionContentPartImageParam */
-        ChatCompletionContentPartImageParam: {
-            image_url: components["schemas"]["ImageURL"];
-            /**
-             * Type
-             * @constant
-             */
-            type: "image_url";
-        };
-        /** ChatCompletionContentPartInputAudioParam */
-        ChatCompletionContentPartInputAudioParam: {
-            input_audio: components["schemas"]["InputAudio"];
-            /**
-             * Type
-             * @constant
-             */
-            type: "input_audio";
-        };
-        /** ChatCompletionContentPartRefusalParam */
-        ChatCompletionContentPartRefusalParam: {
-            /** Refusal */
-            refusal: string;
-            /**
-             * Type
-             * @constant
-             */
-            type: "refusal";
-        };
-        /** ChatCompletionContentPartTextParam */
-        ChatCompletionContentPartTextParam: {
-            /** Text */
-            text: string;
-            /**
-             * Type
-             * @constant
-             */
-            type: "text";
-        };
-        /** ChatCompletionDeveloperMessageParam */
-        ChatCompletionDeveloperMessageParam: {
-            /** Content */
-            content: string | components["schemas"]["ChatCompletionContentPartTextParam"][];
-            /** Name */
-            name?: string;
-            /**
-             * Role
-             * @constant
-             */
-            role: "developer";
-        };
-        /** ChatCompletionFunctionCallOptionParam */
-        ChatCompletionFunctionCallOptionParam: {
-            /** Name */
-            name: string;
-        };
-        /** ChatCompletionFunctionMessageParam */
-        ChatCompletionFunctionMessageParam: {
-            /** Content */
-            content: string | null;
-            /** Name */
-            name: string;
-            /**
-             * Role
-             * @constant
-             */
-            role: "function";
-        };
-        /** ChatCompletionFunctionToolParam */
-        ChatCompletionFunctionToolParam: {
-            function: components["schemas"]["FunctionDefinition"];
-            /**
-             * Type
-             * @constant
-             */
-            type: "function";
-        };
-        /** ChatCompletionMessageCustomToolCallParam */
-        ChatCompletionMessageCustomToolCallParam: {
-            custom: components["schemas"]["openai__types__chat__chat_completion_message_custom_tool_call_param__Custom"];
-            /** Id */
-            id: string;
-            /**
-             * Type
-             * @constant
-             */
-            type: "custom";
-        };
-        /** ChatCompletionMessageFunctionToolCallParam */
-        ChatCompletionMessageFunctionToolCallParam: {
-            function: components["schemas"]["openai__types__chat__chat_completion_message_function_tool_call_param__Function"];
-            /** Id */
-            id: string;
-            /**
-             * Type
-             * @constant
-             */
-            type: "function";
-        };
-        /** ChatCompletionNamedToolChoiceCustomParam */
-        ChatCompletionNamedToolChoiceCustomParam: {
-            custom: components["schemas"]["openai__types__chat__chat_completion_named_tool_choice_custom_param__Custom"];
-            /**
-             * Type
-             * @constant
-             */
-            type: "custom";
-        };
-        /** ChatCompletionNamedToolChoiceParam */
-        ChatCompletionNamedToolChoiceParam: {
-            function: components["schemas"]["openai__types__chat__chat_completion_named_tool_choice_param__Function"];
-            /**
-             * Type
-             * @constant
-             */
-            type: "function";
-        };
-        /** ChatCompletionPredictionContentParam */
-        ChatCompletionPredictionContentParam: {
-            /** Content */
-            content: string | components["schemas"]["ChatCompletionContentPartTextParam"][];
-            /**
-             * Type
-             * @constant
-             */
-            type: "content";
-        };
-        /**
-         * ChatCompletionRequest
-         * @description Corresponds to args to OpenAI `client.chat.completions.create(...)`
-         */
-        ChatCompletionRequest: {
-            audio?: components["schemas"]["ChatCompletionAudioParam"] | null;
-            /** Frequency Penalty */
-            frequency_penalty?: number | null;
-            /** Function Call */
-            function_call?: ("none" | "auto") | components["schemas"]["ChatCompletionFunctionCallOptionParam"] | null;
-            /** Functions */
-            functions?: components["schemas"]["openai__types__chat__completion_create_params__Function"][] | null;
-            /** Logit Bias */
-            logit_bias?: {
-                [key: string]: number;
-            } | null;
-            /** Logprobs */
-            logprobs?: boolean | null;
-            /** Max Completion Tokens */
-            max_completion_tokens?: number | null;
-            /** Max Tokens */
-            max_tokens?: number | null;
-            /** Messages */
-            messages: (components["schemas"]["ChatCompletionDeveloperMessageParam"] | components["schemas"]["ChatCompletionSystemMessageParam"] | components["schemas"]["ChatCompletionUserMessageParam"] | components["schemas"]["ChatCompletionAssistantMessageParam"] | components["schemas"]["ChatCompletionToolMessageParam"] | components["schemas"]["ChatCompletionFunctionMessageParam"])[];
-            /** Metadata */
-            metadata?: {
-                [key: string]: string;
-            } | null;
-            /** Modalities */
-            modalities?: ("text" | "audio")[] | null;
-            /** Model */
-            model: string | ("gpt-5" | "gpt-5-mini" | "gpt-5-nano" | "gpt-5-2025-08-07" | "gpt-5-mini-2025-08-07" | "gpt-5-nano-2025-08-07" | "gpt-5-chat-latest" | "gpt-4.1" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4.1-2025-04-14" | "gpt-4.1-mini-2025-04-14" | "gpt-4.1-nano-2025-04-14" | "o4-mini" | "o4-mini-2025-04-16" | "o3" | "o3-2025-04-16" | "o3-mini" | "o3-mini-2025-01-31" | "o1" | "o1-2024-12-17" | "o1-preview" | "o1-preview-2024-09-12" | "o1-mini" | "o1-mini-2024-09-12" | "gpt-4o" | "gpt-4o-2024-11-20" | "gpt-4o-2024-08-06" | "gpt-4o-2024-05-13" | "gpt-4o-audio-preview" | "gpt-4o-audio-preview-2024-10-01" | "gpt-4o-audio-preview-2024-12-17" | "gpt-4o-audio-preview-2025-06-03" | "gpt-4o-mini-audio-preview" | "gpt-4o-mini-audio-preview-2024-12-17" | "gpt-4o-search-preview" | "gpt-4o-mini-search-preview" | "gpt-4o-search-preview-2025-03-11" | "gpt-4o-mini-search-preview-2025-03-11" | "chatgpt-4o-latest" | "codex-mini-latest" | "gpt-4o-mini" | "gpt-4o-mini-2024-07-18" | "gpt-4-turbo" | "gpt-4-turbo-2024-04-09" | "gpt-4-0125-preview" | "gpt-4-turbo-preview" | "gpt-4-1106-preview" | "gpt-4-vision-preview" | "gpt-4" | "gpt-4-0314" | "gpt-4-0613" | "gpt-4-32k" | "gpt-4-32k-0314" | "gpt-4-32k-0613" | "gpt-3.5-turbo" | "gpt-3.5-turbo-16k" | "gpt-3.5-turbo-0301" | "gpt-3.5-turbo-0613" | "gpt-3.5-turbo-1106" | "gpt-3.5-turbo-0125" | "gpt-3.5-turbo-16k-0613");
-            /** N */
-            n?: number | null;
-            /** Parallel Tool Calls */
-            parallel_tool_calls?: boolean | null;
-            prediction?: components["schemas"]["ChatCompletionPredictionContentParam"] | null;
-            /** Presence Penalty */
-            presence_penalty?: number | null;
-            /** Reasoning Effort */
-            reasoning_effort?: ("minimal" | "low" | "medium" | "high") | null;
-            /** Response Format */
-            response_format?: components["schemas"]["ResponseFormatText"] | components["schemas"]["ResponseFormatJSONSchema"] | components["schemas"]["ResponseFormatJSONObject"] | null;
-            /** Seed */
-            seed?: number | null;
-            /** Service Tier */
-            service_tier?: ("auto" | "default" | "flex" | "scale" | "priority") | null;
-            /** Stop */
-            stop?: string | string[] | null;
-            /** Store */
-            store?: boolean | null;
-            /** Stream */
-            stream?: boolean | null;
-            stream_options?: components["schemas"]["ChatCompletionStreamOptionsParam"] | null;
-            /** Temperature */
-            temperature?: number | null;
-            /** Tool Choice */
-            tool_choice?: ("none" | "auto" | "required") | components["schemas"]["ChatCompletionAllowedToolChoiceParam"] | components["schemas"]["ChatCompletionNamedToolChoiceParam"] | components["schemas"]["ChatCompletionNamedToolChoiceCustomParam"] | null;
-            /** Tools */
-            tools?: components["schemas"]["ChatCompletionFunctionToolParam"][];
-            /** Top Logprobs */
-            top_logprobs?: number | null;
-            /** Top P */
-            top_p?: number | null;
-            /** User */
-            user?: string | null;
-            web_search_options?: components["schemas"]["WebSearchOptions"] | null;
-        };
-        /** ChatCompletionStreamOptionsParam */
-        ChatCompletionStreamOptionsParam: {
-            /** Include Obfuscation */
-            include_obfuscation?: boolean;
-            /** Include Usage */
-            include_usage?: boolean;
-        };
-        /** ChatCompletionSystemMessageParam */
-        ChatCompletionSystemMessageParam: {
-            /** Content */
-            content: string | components["schemas"]["ChatCompletionContentPartTextParam"][];
-            /** Name */
-            name?: string;
-            /**
-             * Role
-             * @constant
-             */
-            role: "system";
-        };
-        /** ChatCompletionToolMessageParam */
-        ChatCompletionToolMessageParam: {
-            /** Content */
-            content: string | components["schemas"]["ChatCompletionContentPartTextParam"][];
-            /**
-             * Role
-             * @constant
-             */
-            role: "tool";
-            /** Tool Call Id */
-            tool_call_id: string;
-        };
-        /** ChatCompletionUserMessageParam */
-        ChatCompletionUserMessageParam: {
-            /** Content */
-            content: string | (components["schemas"]["ChatCompletionContentPartTextParam"] | components["schemas"]["ChatCompletionContentPartImageParam"] | components["schemas"]["ChatCompletionContentPartInputAudioParam"] | components["schemas"]["File"])[];
-            /** Name */
-            name?: string;
-            /**
-             * Role
-             * @constant
-             */
-            role: "user";
-        };
-        /**
-         * ClientCredentialsOAuthFlow
-         * @description Defines configuration details for the OAuth 2.0 Client Credentials flow.
-         */
-        ClientCredentialsOAuthFlow: {
-            /** Refreshurl */
-            refreshUrl?: string | null;
-            /** Scopes */
-            scopes: {
-                [key: string]: string;
-            };
-            /** Tokenurl */
-            tokenUrl: string;
-        };
-        /**
-         * Context
-         * @description A context that groups files and vector stores for LLM proxy token generation.
-         */
-        Context: {
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /**
-             * Created By
-             * Format: uuid
-             */
-            created_by: string;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id?: string;
-            /**
-             * Last Active At
-             * Format: date-time
-             */
-            last_active_at?: string;
-            /** Metadata */
-            metadata?: {
-                [key: string]: string;
-            } | null;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at?: string;
-        };
-        /** ContextPermissionsGrant */
-        ContextPermissionsGrant: {
-            /**
-             * Files
-             * @default []
-             */
-            files: ("read" | "write" | "extract" | "*")[];
-            /**
-             * Vector Stores
-             * @default []
-             */
-            vector_stores: ("read" | "write" | "extract" | "*")[];
-        };
-        /** ContextTokenCreateRequest */
-        ContextTokenCreateRequest: {
-            /**
-             * @description Context permissions granted by the token. Must be subset of the users permissions
-             * @default {
-             *       "files": [],
-             *       "vector_stores": []
-             *     }
-             */
-            grant_context_permissions: components["schemas"]["ContextPermissionsGrant"];
-            /**
-             * @description Global permissions granted by the token. Must be subset of the users permissions
-             * @default {
-             *       "files": [],
-             *       "feedback": [],
-             *       "vector_stores": [],
-             *       "llm": [],
-             *       "embeddings": [],
-             *       "a2a_proxy": [],
-             *       "providers": [],
-             *       "variables": [],
-             *       "contexts": []
-             *     }
-             */
-            grant_global_permissions: components["schemas"]["GlobalPermissionGrant"];
-        };
-        /**
-         * ContextTokenResponse
-         * @description Response schema for context token generation.
-         */
-        ContextTokenResponse: {
-            /** Expires At */
-            expires_at: string | null;
-            /** Token */
-            token: string;
-        };
-        /** CreateMcpProviderRequest */
-        CreateMcpProviderRequest: {
-            location: components["schemas"]["McpProviderLocation"];
-            /** Name */
-            name: string;
-            transport: components["schemas"]["McpProviderTransport"];
-        };
-        /** CreateProviderRequest */
-        CreateProviderRequest: {
-            agent_card?: components["schemas"]["AgentCard-Input"] | null;
-            /** Location */
-            location: components["schemas"]["DockerImageProviderLocation"] | components["schemas"]["NetworkProviderLocation"];
-        };
-        /** CreateToolkitRequest */
-        CreateToolkitRequest: {
-            /** Tools */
-            tools: string[];
-        };
-        /**
-         * CreateVectorStoreRequest
-         * @description Request to create a new vector store.
-         */
-        CreateVectorStoreRequest: {
-            /**
-             * Dimension
-             * @description Dimension of the vectors to be stored
-             */
-            dimension: number;
-            /** Model Id */
-            model_id: string;
-            /**
-             * Name
-             * @description Name of the vector store
-             */
-            name: string;
-        };
-        /** DockerImageID */
-        DockerImageID: string;
-        /** DockerImageProviderLocation */
-        DockerImageProviderLocation: components["schemas"]["DockerImageID"];
-        /**
-         * DocumentType
-         * @enum {string}
-         */
-        DocumentType: "platform_file" | "external";
-        /**
-         * EmbeddingsRequest
-         * @description Corresponds to the arguments for OpenAI `client.embeddings.create(...)`.
-         */
-        EmbeddingsRequest: {
-            /** Encoding Format */
-            encoding_format?: "float" | null;
-            /** Input */
-            input: string[] | string;
-            /** Model */
-            model: string;
-        };
-        /** EnvVar */
-        EnvVar: {
-            /** Description */
-            description?: string | null;
-            /** Name */
-            name: string;
-            /**
-             * Required
-             * @default false
-             */
-            required: boolean;
-        };
-        /** ExtractionMetadata */
-        ExtractionMetadata: {
-            /** Backend */
-            backend: string;
-        } & {
-            [key: string]: unknown;
-        };
-        /**
-         * ExtractionStatus
-         * @enum {string}
-         */
-        ExtractionStatus: "pending" | "in_progress" | "completed" | "failed" | "cancelled";
-        /** File */
-        File: {
-            file: components["schemas"]["FileFile"];
-            /**
-             * Type
-             * @constant
-             */
-            type: "file";
-        };
-        /** FileFile */
-        FileFile: {
-            /** File Data */
-            file_data?: string;
-            /** File Id */
-            file_id?: string;
-            /** Filename */
-            filename?: string;
-        };
-        /**
-         * FileSystemRegistryLocation
-         * Format: uri
-         */
-        FileSystemRegistryLocation: string;
-        /**
-         * FileType
-         * @enum {string}
-         */
-        FileType: "user_upload" | "extracted_text";
-        /** FunctionCall */
-        FunctionCall: {
-            /** Arguments */
-            arguments: string;
-            /** Name */
-            name: string;
-        };
-        /** FunctionDefinition */
-        FunctionDefinition: {
-            /** Description */
-            description?: string;
-            /** Name */
-            name: string;
-            /** Parameters */
-            parameters?: {
-                [key: string]: unknown;
-            };
-            /** Strict */
-            strict?: boolean | null;
-        };
-        /** GithubRegistryLocation */
-        GithubRegistryLocation: components["schemas"]["GithubUrl"];
-        /** GithubUrl */
-        GithubUrl: string;
-        /** GlobalPermissionGrant */
-        GlobalPermissionGrant: {
-            /**
-             * A2A Proxy
-             * @default []
-             */
-            a2a_proxy: "*"[];
-            /**
-             * Contexts
-             * @default []
-             */
-            contexts: ("read" | "write" | "*")[];
-            /**
-             * Embeddings
-             * @default []
-             */
-            embeddings: ("*" | components["schemas"]["ResourceIdPermission"])[];
-            /**
-             * Feedback
-             * @default []
-             */
-            feedback: "write"[];
-            /**
-             * Files
-             * @default []
-             */
-            files: ("read" | "write" | "extract" | "*")[];
-            /**
-             * Llm
-             * @default []
-             */
-            llm: ("*" | components["schemas"]["ResourceIdPermission"])[];
-            /**
-             * Providers
-             * @default []
-             */
-            providers: ("read" | "write" | "*")[];
-            /**
-             * Variables
-             * @default []
-             */
-            variables: ("read" | "write" | "*")[];
-            /**
-             * Vector Stores
-             * @default []
-             */
-            vector_stores: ("read" | "write" | "extract" | "*")[];
-        };
-        /**
-         * HTTPAuthSecurityScheme
-         * @description Defines a security scheme using HTTP authentication.
-         */
-        HTTPAuthSecurityScheme: {
-            /** Bearerformat */
-            bearerFormat?: string | null;
-            /** Description */
-            description?: string | null;
-            /** Scheme */
-            scheme: string;
-            /**
-             * Type
-             * @default http
-             * @constant
-             */
-            type: "http";
-        };
-        /** HTTPValidationError */
-        HTTPValidationError: {
-            /** Detail */
-            detail?: components["schemas"]["ValidationError"][];
-        };
-        /** ImageURL */
-        ImageURL: {
-            /**
-             * Detail
-             * @enum {string}
-             */
-            detail?: "auto" | "low" | "high";
-            /** Url */
-            url: string;
-        };
-        /**
-         * ImplicitOAuthFlow
-         * @description Defines configuration details for the OAuth 2.0 Implicit flow.
-         */
-        ImplicitOAuthFlow: {
-            /** Authorizationurl */
-            authorizationUrl: string;
-            /** Refreshurl */
-            refreshUrl?: string | null;
-            /** Scopes */
-            scopes: {
-                [key: string]: string;
-            };
-        };
-        /**
-         * In
-         * @description The location of the API key.
-         * @enum {string}
-         */
-        In: "cookie" | "header" | "query";
-        /** InputAudio */
-        InputAudio: {
-            /** Data */
-            data: string;
-            /**
-             * Format
-             * @enum {string}
-             */
-            format: "wav" | "mp3";
-        };
-        /**
-         * InsertUserFeedbackRequest
-         * @description Request to create a user feedback.
-         */
-        InsertUserFeedbackRequest: {
-            /** Comment */
-            comment?: string | null;
-            /** Comment Tags */
-            comment_tags?: string[] | null;
-            /**
-             * Context Id
-             * Format: uuid
-             */
-            context_id: string;
-            /** Message */
-            message: string;
-            /**
-             * Provider Id
-             * Format: uuid
-             */
-            provider_id: string;
-            /**
-             * Rating
-             * @description Rating thats either 1 or -1
-             */
-            rating: number;
-            /**
-             * Task Id
-             * Format: uuid
-             */
-            task_id: string;
-        };
-        /** JSONSchema */
-        JSONSchema: {
-            /** Description */
-            description?: string;
-            /** Name */
-            name: string;
-            /** Schema */
-            schema?: {
-                [key: string]: unknown;
-            };
-            /** Strict */
-            strict?: boolean | null;
-        };
-        /** ListVariablesSchema */
-        ListVariablesSchema: {
-            /** Env */
-            env: {
-                [key: string]: string;
-            };
-        };
-        /** McpProvider */
-        McpProvider: {
-            /** Id */
-            id: string;
-            location: components["schemas"]["McpProviderLocation"];
-            /** Name */
-            name: string;
-            state: components["schemas"]["McpProviderDeploymentState"];
-            transport: components["schemas"]["McpProviderTransport"];
-        };
-        /**
-         * McpProviderDeploymentState
-         * @enum {string}
-         */
-        McpProviderDeploymentState: "missing" | "starting" | "ready" | "running" | "error";
-        /**
-         * McpProviderLocation
-         * Format: uri
-         */
-        McpProviderLocation: string;
-        /**
-         * McpProviderTransport
-         * @enum {string}
-         */
-        McpProviderTransport: "sse" | "streamable_http";
-        /**
-         * MutualTLSSecurityScheme
-         * @description Defines a security scheme using mTLS authentication.
-         */
-        MutualTLSSecurityScheme: {
-            /** Description */
-            description?: string | null;
-            /**
-             * Type
-             * @default mutualTLS
-             * @constant
-             */
-            type: "mutualTLS";
-        };
-        /**
-         * NetworkProviderLocation
-         * Format: uri
-         */
-        NetworkProviderLocation: string;
-        /**
-         * NetworkRegistryLocation
-         * Format: uri
-         */
-        NetworkRegistryLocation: string;
-        /**
-         * OAuth2SecurityScheme
-         * @description Defines a security scheme using OAuth 2.0.
-         */
-        "OAuth2SecurityScheme-Input": {
-            /** Description */
-            description?: string | null;
-            flows: components["schemas"]["OAuthFlows"];
-            /** Oauth2Metadataurl */
-            oauth2MetadataUrl?: string | null;
-            /**
-             * Type
-             * @default oauth2
-             * @constant
-             */
-            type: "oauth2";
-        };
-        /**
-         * OAuth2SecurityScheme
-         * @description Defines a security scheme using OAuth 2.0.
-         */
-        "OAuth2SecurityScheme-Output": {
-            /** Description */
-            description?: string | null;
-            flows: components["schemas"]["OAuthFlows"];
-            /** Oauth2Metadataurl */
-            oauth2MetadataUrl?: string | null;
-            /**
-             * Type
-             * @default oauth2
-             * @constant
-             */
-            type: "oauth2";
-        };
-        /**
-         * OAuthFlows
-         * @description Defines the configuration for the supported OAuth 2.0 flows.
-         */
-        OAuthFlows: {
-            authorizationCode?: components["schemas"]["AuthorizationCodeOAuthFlow"] | null;
-            clientCredentials?: components["schemas"]["ClientCredentialsOAuthFlow"] | null;
-            implicit?: components["schemas"]["ImplicitOAuthFlow"] | null;
-            password?: components["schemas"]["PasswordOAuthFlow"] | null;
-        };
-        /** Custom */
-        openai__types__chat__chat_completion_message_custom_tool_call_param__Custom: {
-            /** Input */
-            input: string;
-            /** Name */
-            name: string;
-        };
-        /** Function */
-        openai__types__chat__chat_completion_message_function_tool_call_param__Function: {
-            /** Arguments */
-            arguments: string;
-            /** Name */
-            name: string;
-        };
-        /** Custom */
-        openai__types__chat__chat_completion_named_tool_choice_custom_param__Custom: {
-            /** Name */
-            name: string;
-        };
-        /** Function */
-        openai__types__chat__chat_completion_named_tool_choice_param__Function: {
-            /** Name */
-            name: string;
-        };
-        /** Function */
-        openai__types__chat__completion_create_params__Function: {
-            /** Description */
-            description?: string;
-            /** Name */
-            name: string;
-            /** Parameters */
-            parameters?: {
-                [key: string]: unknown;
-            };
-        };
-        /**
-         * OpenIdConnectSecurityScheme
-         * @description Defines a security scheme using OpenID Connect.
-         */
-        OpenIdConnectSecurityScheme: {
-            /** Description */
-            description?: string | null;
-            /** Openidconnecturl */
-            openIdConnectUrl: string;
-            /**
-             * Type
-             * @default openIdConnect
-             * @constant
-             */
-            type: "openIdConnect";
-        };
-        /** PaginatedResponse[Context] */
-        PaginatedResponse_Context_: {
-            /** Items */
-            items: components["schemas"]["Context"][];
-            /** Total Count */
-            total_count: number;
-        };
-        /** PaginatedResponse[ProviderWithState] */
-        PaginatedResponse_ProviderWithState_: {
-            /** Items */
-            items: components["schemas"]["ProviderWithState"][];
-            /** Total Count */
-            total_count: number;
-        };
-        /** PaginatedResponse[VectorStoreDocument] */
-        PaginatedResponse_VectorStoreDocument_: {
-            /** Items */
-            items: components["schemas"]["VectorStoreDocument"][];
-            /** Total Count */
-            total_count: number;
-        };
-        /** PaginatedResponse[VectorStoreSearchResult] */
-        PaginatedResponse_VectorStoreSearchResult_: {
-            /** Items */
-            items: components["schemas"]["VectorStoreSearchResult"][];
-            /** Total Count */
-            total_count: number;
-        };
-        /**
-         * PasswordOAuthFlow
-         * @description Defines configuration details for the OAuth 2.0 Resource Owner Password flow.
-         */
-        PasswordOAuthFlow: {
-            /** Refreshurl */
-            refreshUrl?: string | null;
-            /** Scopes */
-            scopes: {
-                [key: string]: string;
-            };
-            /** Tokenurl */
-            tokenUrl: string;
-        };
-        /**
-         * ProviderDeploymentState
-         * @enum {string}
-         */
-        ProviderDeploymentState: "missing" | "starting" | "ready" | "running" | "error";
-        /** ProviderErrorMessage */
-        ProviderErrorMessage: {
-            /** Message */
-            message: string;
-        };
-        /** ProviderWithState */
-        ProviderWithState: {
-            agent_card: components["schemas"]["AgentCard-Output"];
-            /**
-             * Auto Remove
-             * @default false
-             */
-            auto_remove: boolean;
-            /**
-             * Auto Stop Timeout
-             * Format: duration
-             * @default PT5M
-             */
-            auto_stop_timeout: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /** Env */
-            readonly env: components["schemas"]["EnvVar"][];
-            /**
-             * Id
-             * Format: uuid
-             */
-            readonly id: string;
-            /**
-             * Last Active At
-             * Format: date-time
-             */
-            last_active_at?: string;
-            last_error?: components["schemas"]["ProviderErrorMessage"] | null;
-            /** Managed */
-            readonly managed: boolean;
-            /** Missing Configuration */
-            missing_configuration?: components["schemas"]["EnvVar"][];
-            /** Registry */
-            registry?: components["schemas"]["GithubRegistryLocation"] | components["schemas"]["NetworkRegistryLocation"] | components["schemas"]["FileSystemRegistryLocation"] | null;
-            /** Source */
-            source: components["schemas"]["DockerImageProviderLocation"] | components["schemas"]["NetworkProviderLocation"];
-            state: components["schemas"]["ProviderDeploymentState"];
-        } & {
-            [key: string]: unknown;
-        };
-        /** ResourceIdPermission */
-        ResourceIdPermission: {
-            /** Id */
-            id: string;
-        };
-        /** ResponseFormatJSONObject */
-        ResponseFormatJSONObject: {
-            /**
-             * Type
-             * @constant
-             */
-            type: "json_object";
-        };
-        /** ResponseFormatJSONSchema */
-        ResponseFormatJSONSchema: {
-            json_schema: components["schemas"]["JSONSchema"];
-            /**
-             * Type
-             * @constant
-             */
-            type: "json_schema";
-        };
-        /** ResponseFormatText */
-        ResponseFormatText: {
-            /**
-             * Type
-             * @constant
-             */
-            type: "text";
-        };
-        /**
-         * SearchRequest
-         * @description Request to search a vector store.
-         */
-        SearchRequest: {
-            /**
-             * Limit
-             * @description Maximum number of results to return
-             * @default 5
-             */
-            limit: number;
-            /**
-             * Query Vector
-             * @description Vector to search for
-             */
-            query_vector: number[];
-        };
-        /** SecurityScheme */
-        "SecurityScheme-Input": components["schemas"]["APIKeySecurityScheme"] | components["schemas"]["HTTPAuthSecurityScheme"] | components["schemas"]["OAuth2SecurityScheme-Input"] | components["schemas"]["OpenIdConnectSecurityScheme"] | components["schemas"]["MutualTLSSecurityScheme"];
-        /** SecurityScheme */
-        "SecurityScheme-Output": components["schemas"]["APIKeySecurityScheme"] | components["schemas"]["HTTPAuthSecurityScheme"] | components["schemas"]["OAuth2SecurityScheme-Output"] | components["schemas"]["OpenIdConnectSecurityScheme"] | components["schemas"]["MutualTLSSecurityScheme"];
-        /** Tool */
-        Tool: {
-            /** Description */
-            description?: string | null;
-            /** Id */
-            id: string;
-            /** Name */
-            name: string;
-        };
-        /** Toolkit */
-        Toolkit: {
-            /**
-             * Expires At
-             * Format: date-time
-             */
-            expires_at: string;
-            /** Id */
-            id: string;
-            location: components["schemas"]["McpProviderLocation"];
-            transport: components["schemas"]["McpProviderTransport"];
-        };
-        /** UpdateVariablesRequest */
-        UpdateVariablesRequest: {
-            /** Env */
-            env: {
-                [key: string]: string | null;
-            };
-        };
-        /** ValidationError */
-        ValidationError: {
-            /** Location */
-            loc: (string | number)[];
-            /** Message */
-            msg: string;
-            /** Error Type */
-            type: string;
-        };
-        /** VectorStoreDocument */
-        VectorStoreDocument: {
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /** File Id */
-            file_id?: string | null;
-            /** Id */
-            id: string;
-            /** Usage Bytes */
-            usage_bytes?: number | null;
-            /**
-             * Vector Store Id
-             * Format: uuid
-             */
-            vector_store_id: string;
-        };
-        /**
-         * VectorStoreItem
-         * @description A single item in a vector store, containing text content and its vector embedding.
-         */
-        VectorStoreItem: {
-            /** Document Id */
-            document_id: string;
-            /** @default platform_file */
-            document_type: components["schemas"]["DocumentType"];
-            /** Embedding */
-            embedding: number[];
-            /**
-             * Id
-             * Format: uuid
-             */
-            id?: string;
-            /** Metadata */
-            metadata?: {
-                [key: string]: string;
-            } | null;
-            /**
-             * Model Id
-             * @default platform
-             */
-            model_id: string | "platform";
-            /** Text */
-            text: string;
-        };
-        /**
-         * VectorStoreSearchResult
-         * @description Result of a vector store search operation containing full item data and similarity score.
-         */
-        VectorStoreSearchResult: {
-            item: components["schemas"]["VectorStoreItem"];
-            /** Score */
-            score: number;
-        };
-        /** VectorStoreStats */
-        VectorStoreStats: {
-            /** Num Documents */
-            num_documents: number;
-            /** Usage Bytes */
-            usage_bytes: number;
-        };
-        /** WebSearchOptions */
-        WebSearchOptions: {
-            /**
-             * Search Context Size
-             * @enum {string}
-             */
-            search_context_size?: "low" | "medium" | "high";
-            user_location?: components["schemas"]["WebSearchOptionsUserLocation"] | null;
-        };
-        /** WebSearchOptionsUserLocation */
-        WebSearchOptionsUserLocation: {
-            approximate: components["schemas"]["WebSearchOptionsUserLocationApproximate"];
-            /**
-             * Type
-             * @constant
-             */
-            type: "approximate";
-        };
-        /** WebSearchOptionsUserLocationApproximate */
-        WebSearchOptionsUserLocationApproximate: {
-            /** City */
-            city?: string;
-            /** Country */
-            country?: string;
-            /** Region */
-            region?: string;
-            /** Timezone */
-            timezone?: string;
-        };
+  schemas: {
+    /**
+     * AgentCapabilities
+     * @description Defines optional capabilities supported by an agent.
+     */
+    AgentCapabilities: {
+      /** Extensions */
+      extensions?: components['schemas']['AgentExtension'][] | null;
+      /** Pushnotifications */
+      pushNotifications?: boolean | null;
+      /** Statetransitionhistory */
+      stateTransitionHistory?: boolean | null;
+      /** Streaming */
+      streaming?: boolean | null;
     };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+    /**
+     * AgentCard
+     * @description The AgentCard is a self-describing manifest for an agent. It provides essential
+     *     metadata including the agent's identity, capabilities, skills, supported
+     *     communication methods, and security requirements.
+     */
+    'AgentCard-Input': {
+      /** Additionalinterfaces */
+      additionalInterfaces?: components['schemas']['AgentInterface'][] | null;
+      capabilities: components['schemas']['AgentCapabilities'];
+      /** Defaultinputmodes */
+      defaultInputModes: string[];
+      /** Defaultoutputmodes */
+      defaultOutputModes: string[];
+      /**
+       * Description
+       * @example Agent that helps users with recipes and cooking.
+       */
+      description: string;
+      /** Documentationurl */
+      documentationUrl?: string | null;
+      /** Iconurl */
+      iconUrl?: string | null;
+      /**
+       * Name
+       * @example Recipe Agent
+       */
+      name: string;
+      /**
+       * Preferredtransport
+       * @default JSONRPC
+       * @example JSONRPC
+       * @example GRPC
+       * @example HTTP+JSON
+       */
+      preferredTransport: string | null;
+      /**
+       * Protocolversion
+       * @default 0.3.0
+       */
+      protocolVersion: string | null;
+      provider?: components['schemas']['AgentProvider'] | null;
+      /**
+       * Security
+       * @example [
+       *       {
+       *         "oauth": [
+       *           "read"
+       *         ]
+       *       },
+       *       {
+       *         "api-key": [],
+       *         "mtls": []
+       *       }
+       *     ]
+       */
+      security?:
+        | {
+            [key: string]: string[];
+          }[]
+        | null;
+      /** Securityschemes */
+      securitySchemes?: {
+        [key: string]: components['schemas']['SecurityScheme-Input'];
+      } | null;
+      /** Signatures */
+      signatures?: components['schemas']['AgentCardSignature'][] | null;
+      /** Skills */
+      skills: components['schemas']['AgentSkill'][];
+      /** Supportsauthenticatedextendedcard */
+      supportsAuthenticatedExtendedCard?: boolean | null;
+      /**
+       * Url
+       * @example https://api.example.com/a2a/v1
+       */
+      url: string;
+      /**
+       * Version
+       * @example 1.0.0
+       */
+      version: string;
+    };
+    /**
+     * AgentCard
+     * @description The AgentCard is a self-describing manifest for an agent. It provides essential
+     *     metadata including the agent's identity, capabilities, skills, supported
+     *     communication methods, and security requirements.
+     */
+    'AgentCard-Output': {
+      /** Additionalinterfaces */
+      additionalInterfaces?: components['schemas']['AgentInterface'][] | null;
+      capabilities: components['schemas']['AgentCapabilities'];
+      /** Defaultinputmodes */
+      defaultInputModes: string[];
+      /** Defaultoutputmodes */
+      defaultOutputModes: string[];
+      /**
+       * Description
+       * @example Agent that helps users with recipes and cooking.
+       */
+      description: string;
+      /** Documentationurl */
+      documentationUrl?: string | null;
+      /** Iconurl */
+      iconUrl?: string | null;
+      /**
+       * Name
+       * @example Recipe Agent
+       */
+      name: string;
+      /**
+       * Preferredtransport
+       * @default JSONRPC
+       * @example JSONRPC
+       * @example GRPC
+       * @example HTTP+JSON
+       */
+      preferredTransport: string | null;
+      /**
+       * Protocolversion
+       * @default 0.3.0
+       */
+      protocolVersion: string | null;
+      provider?: components['schemas']['AgentProvider'] | null;
+      /**
+       * Security
+       * @example [
+       *       {
+       *         "oauth": [
+       *           "read"
+       *         ]
+       *       },
+       *       {
+       *         "api-key": [],
+       *         "mtls": []
+       *       }
+       *     ]
+       */
+      security?:
+        | {
+            [key: string]: string[];
+          }[]
+        | null;
+      /** Securityschemes */
+      securitySchemes?: {
+        [key: string]: components['schemas']['SecurityScheme-Output'];
+      } | null;
+      /** Signatures */
+      signatures?: components['schemas']['AgentCardSignature'][] | null;
+      /** Skills */
+      skills: components['schemas']['AgentSkill'][];
+      /** Supportsauthenticatedextendedcard */
+      supportsAuthenticatedExtendedCard?: boolean | null;
+      /**
+       * Url
+       * @example https://api.example.com/a2a/v1
+       */
+      url: string;
+      /**
+       * Version
+       * @example 1.0.0
+       */
+      version: string;
+    };
+    /**
+     * AgentCardSignature
+     * @description AgentCardSignature represents a JWS signature of an AgentCard.
+     *     This follows the JSON format of an RFC 7515 JSON Web Signature (JWS).
+     */
+    AgentCardSignature: {
+      /** Header */
+      header?: {
+        [key: string]: unknown;
+      } | null;
+      /** Protected */
+      protected: string;
+      /** Signature */
+      signature: string;
+    };
+    /**
+     * AgentExtension
+     * @description A declaration of a protocol extension supported by an Agent.
+     */
+    AgentExtension: {
+      /** Description */
+      description?: string | null;
+      /** Params */
+      params?: {
+        [key: string]: unknown;
+      } | null;
+      /** Required */
+      required?: boolean | null;
+      /** Uri */
+      uri: string;
+    };
+    /**
+     * AgentInterface
+     * @description Declares a combination of a target URL and a transport protocol for interacting with the agent.
+     *     This allows agents to expose the same functionality over multiple transport mechanisms.
+     */
+    AgentInterface: {
+      /**
+       * Transport
+       * @example JSONRPC
+       * @example GRPC
+       * @example HTTP+JSON
+       */
+      transport: string;
+      /**
+       * Url
+       * @example https://api.example.com/a2a/v1
+       * @example https://grpc.example.com/a2a
+       * @example https://rest.example.com/v1
+       */
+      url: string;
+    };
+    /**
+     * AgentProvider
+     * @description Represents the service provider of an agent.
+     */
+    AgentProvider: {
+      /** Organization */
+      organization: string;
+      /** Url */
+      url: string;
+    };
+    /**
+     * AgentSkill
+     * @description Represents a distinct capability or function that an agent can perform.
+     */
+    AgentSkill: {
+      /** Description */
+      description: string;
+      /**
+       * Examples
+       * @example [
+       *       "I need a recipe for bread"
+       *     ]
+       */
+      examples?: string[] | null;
+      /** Id */
+      id: string;
+      /** Inputmodes */
+      inputModes?: string[] | null;
+      /** Name */
+      name: string;
+      /** Outputmodes */
+      outputModes?: string[] | null;
+      /**
+       * Security
+       * @example [
+       *       {
+       *         "google": [
+       *           "oidc"
+       *         ]
+       *       }
+       *     ]
+       */
+      security?:
+        | {
+            [key: string]: string[];
+          }[]
+        | null;
+      /**
+       * Tags
+       * @example [
+       *       "cooking",
+       *       "customer support",
+       *       "billing"
+       *     ]
+       */
+      tags: string[];
+    };
+    /**
+     * APIKeySecurityScheme
+     * @description Defines a security scheme using an API key.
+     */
+    APIKeySecurityScheme: {
+      /** Description */
+      description?: string | null;
+      in: components['schemas']['In'];
+      /** Name */
+      name: string;
+      /**
+       * Type
+       * @default apiKey
+       * @constant
+       */
+      type: 'apiKey';
+    };
+    /** Audio */
+    Audio: {
+      /** Id */
+      id: string;
+    };
+    /**
+     * AuthorizationCodeOAuthFlow
+     * @description Defines configuration details for the OAuth 2.0 Authorization Code flow.
+     */
+    AuthorizationCodeOAuthFlow: {
+      /** Authorizationurl */
+      authorizationUrl: string;
+      /** Refreshurl */
+      refreshUrl?: string | null;
+      /** Scopes */
+      scopes: {
+        [key: string]: string;
+      };
+      /** Tokenurl */
+      tokenUrl: string;
+    };
+    /** FileResponse */
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__1: {
+      /** Context Id */
+      context_id?: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      /** File Size Bytes */
+      file_size_bytes?: number | null;
+      /** @default user_upload */
+      file_type: components['schemas']['FileType'];
+      /** Filename */
+      filename: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Parent File Id */
+      parent_file_id?: string | null;
+    };
+    /** FileResponse */
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__2: {
+      /** Context Id */
+      context_id?: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      /** File Size Bytes */
+      file_size_bytes?: number | null;
+      /** @default user_upload */
+      file_type: components['schemas']['FileType'];
+      /** Filename */
+      filename: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Parent File Id */
+      parent_file_id?: string | null;
+    };
+    /** TextExtractionResponse */
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__3: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /** Error Message */
+      error_message?: string | null;
+      /** Extracted File Id */
+      extracted_file_id?: string | null;
+      extraction_metadata?: components['schemas']['ExtractionMetadata'] | null;
+      /**
+       * File Id
+       * Format: uuid
+       */
+      file_id: string;
+      /** Finished At */
+      finished_at?: string | null;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Job Id */
+      job_id?: string | null;
+      /** Started At */
+      started_at?: string | null;
+      /** @default pending */
+      status: components['schemas']['ExtractionStatus'];
+    };
+    /** TextExtractionResponse */
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__4: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /** Error Message */
+      error_message?: string | null;
+      /** Extracted File Id */
+      extracted_file_id?: string | null;
+      extraction_metadata?: components['schemas']['ExtractionMetadata'] | null;
+      /**
+       * File Id
+       * Format: uuid
+       */
+      file_id: string;
+      /** Finished At */
+      finished_at?: string | null;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Job Id */
+      job_id?: string | null;
+      /** Started At */
+      started_at?: string | null;
+      /** @default pending */
+      status: components['schemas']['ExtractionStatus'];
+    };
+    /** ContextResponse */
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__5: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Last Active At
+       * Format: date-time
+       */
+      last_active_at?: string;
+      /** Metadata */
+      metadata?: {
+        [key: string]: string;
+      } | null;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at?: string;
+    };
+    /** ContextResponse */
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__6: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Last Active At
+       * Format: date-time
+       */
+      last_active_at?: string;
+      /** Metadata */
+      metadata?: {
+        [key: string]: string;
+      } | null;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at?: string;
+    };
+    /** VectorStoreResponse */
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__7: {
+      /** Context Id */
+      context_id?: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      /** Dimension */
+      dimension: number;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Last Active At
+       * Format: date-time
+       */
+      last_active_at?: string;
+      /** Model Id */
+      model_id: string;
+      /** Name */
+      name?: string | null;
+      stats?: components['schemas']['VectorStoreStats'] | null;
+    };
+    /** VectorStoreResponse */
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__8: {
+      /** Context Id */
+      context_id?: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      /** Dimension */
+      dimension: number;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Last Active At
+       * Format: date-time
+       */
+      last_active_at?: string;
+      /** Model Id */
+      model_id: string;
+      /** Name */
+      name?: string | null;
+      stats?: components['schemas']['VectorStoreStats'] | null;
+    };
+    /** Body_upload_file_api_v1_files_post */
+    Body_upload_file_api_v1_files_post: {
+      /**
+       * File
+       * Format: binary
+       */
+      file: string;
+    };
+    /** ChatCompletionAllowedToolChoiceParam */
+    ChatCompletionAllowedToolChoiceParam: {
+      allowed_tools: components['schemas']['ChatCompletionAllowedToolsParam'];
+      /**
+       * Type
+       * @constant
+       */
+      type: 'allowed_tools';
+    };
+    /** ChatCompletionAllowedToolsParam */
+    ChatCompletionAllowedToolsParam: {
+      /**
+       * Mode
+       * @enum {string}
+       */
+      mode: 'auto' | 'required';
+      /** Tools */
+      tools: {
+        [key: string]: unknown;
+      }[];
+    };
+    /** ChatCompletionAssistantMessageParam */
+    ChatCompletionAssistantMessageParam: {
+      audio?: components['schemas']['Audio'] | null;
+      /** Content */
+      content?:
+        | string
+        | (
+            | components['schemas']['ChatCompletionContentPartTextParam']
+            | components['schemas']['ChatCompletionContentPartRefusalParam']
+          )[]
+        | null;
+      function_call?: components['schemas']['FunctionCall'] | null;
+      /** Name */
+      name?: string;
+      /** Refusal */
+      refusal?: string | null;
+      /**
+       * Role
+       * @constant
+       */
+      role: 'assistant';
+      /** Tool Calls */
+      tool_calls?: (
+        | components['schemas']['ChatCompletionMessageFunctionToolCallParam']
+        | components['schemas']['ChatCompletionMessageCustomToolCallParam']
+      )[];
+    };
+    /** ChatCompletionAudioParam */
+    ChatCompletionAudioParam: {
+      /**
+       * Format
+       * @enum {string}
+       */
+      format: 'wav' | 'aac' | 'mp3' | 'flac' | 'opus' | 'pcm16';
+      /** Voice */
+      voice: string | ('alloy' | 'ash' | 'ballad' | 'coral' | 'echo' | 'sage' | 'shimmer' | 'verse');
+    };
+    /** ChatCompletionContentPartImageParam */
+    ChatCompletionContentPartImageParam: {
+      image_url: components['schemas']['ImageURL'];
+      /**
+       * Type
+       * @constant
+       */
+      type: 'image_url';
+    };
+    /** ChatCompletionContentPartInputAudioParam */
+    ChatCompletionContentPartInputAudioParam: {
+      input_audio: components['schemas']['InputAudio'];
+      /**
+       * Type
+       * @constant
+       */
+      type: 'input_audio';
+    };
+    /** ChatCompletionContentPartRefusalParam */
+    ChatCompletionContentPartRefusalParam: {
+      /** Refusal */
+      refusal: string;
+      /**
+       * Type
+       * @constant
+       */
+      type: 'refusal';
+    };
+    /** ChatCompletionContentPartTextParam */
+    ChatCompletionContentPartTextParam: {
+      /** Text */
+      text: string;
+      /**
+       * Type
+       * @constant
+       */
+      type: 'text';
+    };
+    /** ChatCompletionDeveloperMessageParam */
+    ChatCompletionDeveloperMessageParam: {
+      /** Content */
+      content: string | components['schemas']['ChatCompletionContentPartTextParam'][];
+      /** Name */
+      name?: string;
+      /**
+       * Role
+       * @constant
+       */
+      role: 'developer';
+    };
+    /** ChatCompletionFunctionCallOptionParam */
+    ChatCompletionFunctionCallOptionParam: {
+      /** Name */
+      name: string;
+    };
+    /** ChatCompletionFunctionMessageParam */
+    ChatCompletionFunctionMessageParam: {
+      /** Content */
+      content: string | null;
+      /** Name */
+      name: string;
+      /**
+       * Role
+       * @constant
+       */
+      role: 'function';
+    };
+    /** ChatCompletionFunctionToolParam */
+    ChatCompletionFunctionToolParam: {
+      function: components['schemas']['FunctionDefinition'];
+      /**
+       * Type
+       * @constant
+       */
+      type: 'function';
+    };
+    /** ChatCompletionMessageCustomToolCallParam */
+    ChatCompletionMessageCustomToolCallParam: {
+      custom: components['schemas']['openai__types__chat__chat_completion_message_custom_tool_call_param__Custom'];
+      /** Id */
+      id: string;
+      /**
+       * Type
+       * @constant
+       */
+      type: 'custom';
+    };
+    /** ChatCompletionMessageFunctionToolCallParam */
+    ChatCompletionMessageFunctionToolCallParam: {
+      function: components['schemas']['openai__types__chat__chat_completion_message_function_tool_call_param__Function'];
+      /** Id */
+      id: string;
+      /**
+       * Type
+       * @constant
+       */
+      type: 'function';
+    };
+    /** ChatCompletionNamedToolChoiceCustomParam */
+    ChatCompletionNamedToolChoiceCustomParam: {
+      custom: components['schemas']['openai__types__chat__chat_completion_named_tool_choice_custom_param__Custom'];
+      /**
+       * Type
+       * @constant
+       */
+      type: 'custom';
+    };
+    /** ChatCompletionNamedToolChoiceParam */
+    ChatCompletionNamedToolChoiceParam: {
+      function: components['schemas']['openai__types__chat__chat_completion_named_tool_choice_param__Function'];
+      /**
+       * Type
+       * @constant
+       */
+      type: 'function';
+    };
+    /** ChatCompletionPredictionContentParam */
+    ChatCompletionPredictionContentParam: {
+      /** Content */
+      content: string | components['schemas']['ChatCompletionContentPartTextParam'][];
+      /**
+       * Type
+       * @constant
+       */
+      type: 'content';
+    };
+    /**
+     * ChatCompletionRequest
+     * @description Corresponds to args to OpenAI `client.chat.completions.create(...)`
+     */
+    ChatCompletionRequest: {
+      audio?: components['schemas']['ChatCompletionAudioParam'] | null;
+      /** Frequency Penalty */
+      frequency_penalty?: number | null;
+      /** Function Call */
+      function_call?: ('none' | 'auto') | components['schemas']['ChatCompletionFunctionCallOptionParam'] | null;
+      /** Functions */
+      functions?: components['schemas']['openai__types__chat__completion_create_params__Function'][] | null;
+      /** Logit Bias */
+      logit_bias?: {
+        [key: string]: number;
+      } | null;
+      /** Logprobs */
+      logprobs?: boolean | null;
+      /** Max Completion Tokens */
+      max_completion_tokens?: number | null;
+      /** Max Tokens */
+      max_tokens?: number | null;
+      /** Messages */
+      messages: (
+        | components['schemas']['ChatCompletionDeveloperMessageParam']
+        | components['schemas']['ChatCompletionSystemMessageParam']
+        | components['schemas']['ChatCompletionUserMessageParam']
+        | components['schemas']['ChatCompletionAssistantMessageParam']
+        | components['schemas']['ChatCompletionToolMessageParam']
+        | components['schemas']['ChatCompletionFunctionMessageParam']
+      )[];
+      /** Metadata */
+      metadata?: {
+        [key: string]: string;
+      } | null;
+      /** Modalities */
+      modalities?: ('text' | 'audio')[] | null;
+      /** Model */
+      model:
+        | string
+        | (
+            | 'gpt-5'
+            | 'gpt-5-mini'
+            | 'gpt-5-nano'
+            | 'gpt-5-2025-08-07'
+            | 'gpt-5-mini-2025-08-07'
+            | 'gpt-5-nano-2025-08-07'
+            | 'gpt-5-chat-latest'
+            | 'gpt-4.1'
+            | 'gpt-4.1-mini'
+            | 'gpt-4.1-nano'
+            | 'gpt-4.1-2025-04-14'
+            | 'gpt-4.1-mini-2025-04-14'
+            | 'gpt-4.1-nano-2025-04-14'
+            | 'o4-mini'
+            | 'o4-mini-2025-04-16'
+            | 'o3'
+            | 'o3-2025-04-16'
+            | 'o3-mini'
+            | 'o3-mini-2025-01-31'
+            | 'o1'
+            | 'o1-2024-12-17'
+            | 'o1-preview'
+            | 'o1-preview-2024-09-12'
+            | 'o1-mini'
+            | 'o1-mini-2024-09-12'
+            | 'gpt-4o'
+            | 'gpt-4o-2024-11-20'
+            | 'gpt-4o-2024-08-06'
+            | 'gpt-4o-2024-05-13'
+            | 'gpt-4o-audio-preview'
+            | 'gpt-4o-audio-preview-2024-10-01'
+            | 'gpt-4o-audio-preview-2024-12-17'
+            | 'gpt-4o-audio-preview-2025-06-03'
+            | 'gpt-4o-mini-audio-preview'
+            | 'gpt-4o-mini-audio-preview-2024-12-17'
+            | 'gpt-4o-search-preview'
+            | 'gpt-4o-mini-search-preview'
+            | 'gpt-4o-search-preview-2025-03-11'
+            | 'gpt-4o-mini-search-preview-2025-03-11'
+            | 'chatgpt-4o-latest'
+            | 'codex-mini-latest'
+            | 'gpt-4o-mini'
+            | 'gpt-4o-mini-2024-07-18'
+            | 'gpt-4-turbo'
+            | 'gpt-4-turbo-2024-04-09'
+            | 'gpt-4-0125-preview'
+            | 'gpt-4-turbo-preview'
+            | 'gpt-4-1106-preview'
+            | 'gpt-4-vision-preview'
+            | 'gpt-4'
+            | 'gpt-4-0314'
+            | 'gpt-4-0613'
+            | 'gpt-4-32k'
+            | 'gpt-4-32k-0314'
+            | 'gpt-4-32k-0613'
+            | 'gpt-3.5-turbo'
+            | 'gpt-3.5-turbo-16k'
+            | 'gpt-3.5-turbo-0301'
+            | 'gpt-3.5-turbo-0613'
+            | 'gpt-3.5-turbo-1106'
+            | 'gpt-3.5-turbo-0125'
+            | 'gpt-3.5-turbo-16k-0613'
+          );
+      /** N */
+      n?: number | null;
+      /** Parallel Tool Calls */
+      parallel_tool_calls?: boolean | null;
+      prediction?: components['schemas']['ChatCompletionPredictionContentParam'] | null;
+      /** Presence Penalty */
+      presence_penalty?: number | null;
+      /** Reasoning Effort */
+      reasoning_effort?: ('minimal' | 'low' | 'medium' | 'high') | null;
+      /** Response Format */
+      response_format?:
+        | components['schemas']['ResponseFormatText']
+        | components['schemas']['ResponseFormatJSONSchema']
+        | components['schemas']['ResponseFormatJSONObject']
+        | null;
+      /** Seed */
+      seed?: number | null;
+      /** Service Tier */
+      service_tier?: ('auto' | 'default' | 'flex' | 'scale' | 'priority') | null;
+      /** Stop */
+      stop?: string | string[] | null;
+      /** Store */
+      store?: boolean | null;
+      /** Stream */
+      stream?: boolean | null;
+      stream_options?: components['schemas']['ChatCompletionStreamOptionsParam'] | null;
+      /** Temperature */
+      temperature?: number | null;
+      /** Tool Choice */
+      tool_choice?:
+        | ('none' | 'auto' | 'required')
+        | components['schemas']['ChatCompletionAllowedToolChoiceParam']
+        | components['schemas']['ChatCompletionNamedToolChoiceParam']
+        | components['schemas']['ChatCompletionNamedToolChoiceCustomParam']
+        | null;
+      /** Tools */
+      tools?: components['schemas']['ChatCompletionFunctionToolParam'][];
+      /** Top Logprobs */
+      top_logprobs?: number | null;
+      /** Top P */
+      top_p?: number | null;
+      /** User */
+      user?: string | null;
+      web_search_options?: components['schemas']['WebSearchOptions'] | null;
+    };
+    /** ChatCompletionStreamOptionsParam */
+    ChatCompletionStreamOptionsParam: {
+      /** Include Obfuscation */
+      include_obfuscation?: boolean;
+      /** Include Usage */
+      include_usage?: boolean;
+    };
+    /** ChatCompletionSystemMessageParam */
+    ChatCompletionSystemMessageParam: {
+      /** Content */
+      content: string | components['schemas']['ChatCompletionContentPartTextParam'][];
+      /** Name */
+      name?: string;
+      /**
+       * Role
+       * @constant
+       */
+      role: 'system';
+    };
+    /** ChatCompletionToolMessageParam */
+    ChatCompletionToolMessageParam: {
+      /** Content */
+      content: string | components['schemas']['ChatCompletionContentPartTextParam'][];
+      /**
+       * Role
+       * @constant
+       */
+      role: 'tool';
+      /** Tool Call Id */
+      tool_call_id: string;
+    };
+    /** ChatCompletionUserMessageParam */
+    ChatCompletionUserMessageParam: {
+      /** Content */
+      content:
+        | string
+        | (
+            | components['schemas']['ChatCompletionContentPartTextParam']
+            | components['schemas']['ChatCompletionContentPartImageParam']
+            | components['schemas']['ChatCompletionContentPartInputAudioParam']
+            | components['schemas']['File']
+          )[];
+      /** Name */
+      name?: string;
+      /**
+       * Role
+       * @constant
+       */
+      role: 'user';
+    };
+    /**
+     * ClientCredentialsOAuthFlow
+     * @description Defines configuration details for the OAuth 2.0 Client Credentials flow.
+     */
+    ClientCredentialsOAuthFlow: {
+      /** Refreshurl */
+      refreshUrl?: string | null;
+      /** Scopes */
+      scopes: {
+        [key: string]: string;
+      };
+      /** Tokenurl */
+      tokenUrl: string;
+    };
+    /**
+     * Context
+     * @description A context that groups files and vector stores for LLM proxy token generation.
+     */
+    Context: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id?: string;
+      /**
+       * Last Active At
+       * Format: date-time
+       */
+      last_active_at?: string;
+      /** Metadata */
+      metadata?: {
+        [key: string]: string;
+      } | null;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at?: string;
+    };
+    /** ContextPermissionsGrant */
+    ContextPermissionsGrant: {
+      /**
+       * Files
+       * @default []
+       */
+      files: ('read' | 'write' | 'extract' | '*')[];
+      /**
+       * Vector Stores
+       * @default []
+       */
+      vector_stores: ('read' | 'write' | 'extract' | '*')[];
+    };
+    /** ContextTokenCreateRequest */
+    ContextTokenCreateRequest: {
+      /**
+       * @description Context permissions granted by the token. Must be subset of the users permissions
+       * @default {
+       *       "files": [],
+       *       "vector_stores": []
+       *     }
+       */
+      grant_context_permissions: components['schemas']['ContextPermissionsGrant'];
+      /**
+       * @description Global permissions granted by the token. Must be subset of the users permissions
+       * @default {
+       *       "files": [],
+       *       "feedback": [],
+       *       "vector_stores": [],
+       *       "llm": [],
+       *       "embeddings": [],
+       *       "a2a_proxy": [],
+       *       "providers": [],
+       *       "variables": [],
+       *       "contexts": []
+       *     }
+       */
+      grant_global_permissions: components['schemas']['GlobalPermissionGrant'];
+    };
+    /**
+     * ContextTokenResponse
+     * @description Response schema for context token generation.
+     */
+    ContextTokenResponse: {
+      /** Expires At */
+      expires_at: string | null;
+      /** Token */
+      token: string;
+    };
+    /** CreateMcpProviderRequest */
+    CreateMcpProviderRequest: {
+      location: components['schemas']['McpProviderLocation'];
+      /** Name */
+      name: string;
+      transport: components['schemas']['McpProviderTransport'];
+    };
+    /** CreateProviderRequest */
+    CreateProviderRequest: {
+      agent_card?: components['schemas']['AgentCard-Input'] | null;
+      /** Location */
+      location: components['schemas']['DockerImageProviderLocation'] | components['schemas']['NetworkProviderLocation'];
+    };
+    /** CreateToolkitRequest */
+    CreateToolkitRequest: {
+      /** Tools */
+      tools: string[];
+    };
+    /**
+     * CreateVectorStoreRequest
+     * @description Request to create a new vector store.
+     */
+    CreateVectorStoreRequest: {
+      /**
+       * Dimension
+       * @description Dimension of the vectors to be stored
+       */
+      dimension: number;
+      /** Model Id */
+      model_id: string;
+      /**
+       * Name
+       * @description Name of the vector store
+       */
+      name: string;
+    };
+    /** DockerImageID */
+    DockerImageID: string;
+    /** DockerImageProviderLocation */
+    DockerImageProviderLocation: components['schemas']['DockerImageID'];
+    /**
+     * DocumentType
+     * @enum {string}
+     */
+    DocumentType: 'platform_file' | 'external';
+    /**
+     * EmbeddingsRequest
+     * @description Corresponds to the arguments for OpenAI `client.embeddings.create(...)`.
+     */
+    EmbeddingsRequest: {
+      /** Encoding Format */
+      encoding_format?: 'float' | null;
+      /** Input */
+      input: string[] | string;
+      /** Model */
+      model: string;
+    };
+    /** EnvVar */
+    EnvVar: {
+      /** Description */
+      description?: string | null;
+      /** Name */
+      name: string;
+      /**
+       * Required
+       * @default false
+       */
+      required: boolean;
+    };
+    /** ExtractionMetadata */
+    ExtractionMetadata: {
+      /** Backend */
+      backend: string;
+    } & {
+      [key: string]: unknown;
+    };
+    /**
+     * ExtractionStatus
+     * @enum {string}
+     */
+    ExtractionStatus: 'pending' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
+    /** File */
+    File: {
+      file: components['schemas']['FileFile'];
+      /**
+       * Type
+       * @constant
+       */
+      type: 'file';
+    };
+    /** FileFile */
+    FileFile: {
+      /** File Data */
+      file_data?: string;
+      /** File Id */
+      file_id?: string;
+      /** Filename */
+      filename?: string;
+    };
+    /**
+     * FileSystemRegistryLocation
+     * Format: uri
+     */
+    FileSystemRegistryLocation: string;
+    /**
+     * FileType
+     * @enum {string}
+     */
+    FileType: 'user_upload' | 'extracted_text';
+    /** FunctionCall */
+    FunctionCall: {
+      /** Arguments */
+      arguments: string;
+      /** Name */
+      name: string;
+    };
+    /** FunctionDefinition */
+    FunctionDefinition: {
+      /** Description */
+      description?: string;
+      /** Name */
+      name: string;
+      /** Parameters */
+      parameters?: {
+        [key: string]: unknown;
+      };
+      /** Strict */
+      strict?: boolean | null;
+    };
+    /** GithubRegistryLocation */
+    GithubRegistryLocation: components['schemas']['GithubUrl'];
+    /** GithubUrl */
+    GithubUrl: string;
+    /** GlobalPermissionGrant */
+    GlobalPermissionGrant: {
+      /**
+       * A2A Proxy
+       * @default []
+       */
+      a2a_proxy: '*'[];
+      /**
+       * Contexts
+       * @default []
+       */
+      contexts: ('read' | 'write' | '*')[];
+      /**
+       * Embeddings
+       * @default []
+       */
+      embeddings: ('*' | components['schemas']['ResourceIdPermission'])[];
+      /**
+       * Feedback
+       * @default []
+       */
+      feedback: 'write'[];
+      /**
+       * Files
+       * @default []
+       */
+      files: ('read' | 'write' | 'extract' | '*')[];
+      /**
+       * Llm
+       * @default []
+       */
+      llm: ('*' | components['schemas']['ResourceIdPermission'])[];
+      /**
+       * Providers
+       * @default []
+       */
+      providers: ('read' | 'write' | '*')[];
+      /**
+       * Variables
+       * @default []
+       */
+      variables: ('read' | 'write' | '*')[];
+      /**
+       * Vector Stores
+       * @default []
+       */
+      vector_stores: ('read' | 'write' | 'extract' | '*')[];
+    };
+    /**
+     * HTTPAuthSecurityScheme
+     * @description Defines a security scheme using HTTP authentication.
+     */
+    HTTPAuthSecurityScheme: {
+      /** Bearerformat */
+      bearerFormat?: string | null;
+      /** Description */
+      description?: string | null;
+      /** Scheme */
+      scheme: string;
+      /**
+       * Type
+       * @default http
+       * @constant
+       */
+      type: 'http';
+    };
+    /** HTTPValidationError */
+    HTTPValidationError: {
+      /** Detail */
+      detail?: components['schemas']['ValidationError'][];
+    };
+    /** ImageURL */
+    ImageURL: {
+      /**
+       * Detail
+       * @enum {string}
+       */
+      detail?: 'auto' | 'low' | 'high';
+      /** Url */
+      url: string;
+    };
+    /**
+     * ImplicitOAuthFlow
+     * @description Defines configuration details for the OAuth 2.0 Implicit flow.
+     */
+    ImplicitOAuthFlow: {
+      /** Authorizationurl */
+      authorizationUrl: string;
+      /** Refreshurl */
+      refreshUrl?: string | null;
+      /** Scopes */
+      scopes: {
+        [key: string]: string;
+      };
+    };
+    /**
+     * In
+     * @description The location of the API key.
+     * @enum {string}
+     */
+    In: 'cookie' | 'header' | 'query';
+    /** InputAudio */
+    InputAudio: {
+      /** Data */
+      data: string;
+      /**
+       * Format
+       * @enum {string}
+       */
+      format: 'wav' | 'mp3';
+    };
+    /**
+     * InsertUserFeedbackRequest
+     * @description Request to create a user feedback.
+     */
+    InsertUserFeedbackRequest: {
+      /** Comment */
+      comment?: string | null;
+      /** Comment Tags */
+      comment_tags?: string[] | null;
+      /**
+       * Context Id
+       * Format: uuid
+       */
+      context_id: string;
+      /** Message */
+      message: string;
+      /**
+       * Provider Id
+       * Format: uuid
+       */
+      provider_id: string;
+      /**
+       * Rating
+       * @description Rating thats either 1 or -1
+       */
+      rating: number;
+      /**
+       * Task Id
+       * Format: uuid
+       */
+      task_id: string;
+    };
+    /** JSONSchema */
+    JSONSchema: {
+      /** Description */
+      description?: string;
+      /** Name */
+      name: string;
+      /** Schema */
+      schema?: {
+        [key: string]: unknown;
+      };
+      /** Strict */
+      strict?: boolean | null;
+    };
+    /** ListVariablesSchema */
+    ListVariablesSchema: {
+      /** Env */
+      env: {
+        [key: string]: string;
+      };
+    };
+    /** McpProvider */
+    McpProvider: {
+      /** Id */
+      id: string;
+      location: components['schemas']['McpProviderLocation'];
+      /** Name */
+      name: string;
+      state: components['schemas']['McpProviderDeploymentState'];
+      transport: components['schemas']['McpProviderTransport'];
+    };
+    /**
+     * McpProviderDeploymentState
+     * @enum {string}
+     */
+    McpProviderDeploymentState: 'missing' | 'starting' | 'ready' | 'running' | 'error';
+    /**
+     * McpProviderLocation
+     * Format: uri
+     */
+    McpProviderLocation: string;
+    /**
+     * McpProviderTransport
+     * @enum {string}
+     */
+    McpProviderTransport: 'sse' | 'streamable_http';
+    /**
+     * MutualTLSSecurityScheme
+     * @description Defines a security scheme using mTLS authentication.
+     */
+    MutualTLSSecurityScheme: {
+      /** Description */
+      description?: string | null;
+      /**
+       * Type
+       * @default mutualTLS
+       * @constant
+       */
+      type: 'mutualTLS';
+    };
+    /**
+     * NetworkProviderLocation
+     * Format: uri
+     */
+    NetworkProviderLocation: string;
+    /**
+     * NetworkRegistryLocation
+     * Format: uri
+     */
+    NetworkRegistryLocation: string;
+    /**
+     * OAuth2SecurityScheme
+     * @description Defines a security scheme using OAuth 2.0.
+     */
+    'OAuth2SecurityScheme-Input': {
+      /** Description */
+      description?: string | null;
+      flows: components['schemas']['OAuthFlows'];
+      /** Oauth2Metadataurl */
+      oauth2MetadataUrl?: string | null;
+      /**
+       * Type
+       * @default oauth2
+       * @constant
+       */
+      type: 'oauth2';
+    };
+    /**
+     * OAuth2SecurityScheme
+     * @description Defines a security scheme using OAuth 2.0.
+     */
+    'OAuth2SecurityScheme-Output': {
+      /** Description */
+      description?: string | null;
+      flows: components['schemas']['OAuthFlows'];
+      /** Oauth2Metadataurl */
+      oauth2MetadataUrl?: string | null;
+      /**
+       * Type
+       * @default oauth2
+       * @constant
+       */
+      type: 'oauth2';
+    };
+    /**
+     * OAuthFlows
+     * @description Defines the configuration for the supported OAuth 2.0 flows.
+     */
+    OAuthFlows: {
+      authorizationCode?: components['schemas']['AuthorizationCodeOAuthFlow'] | null;
+      clientCredentials?: components['schemas']['ClientCredentialsOAuthFlow'] | null;
+      implicit?: components['schemas']['ImplicitOAuthFlow'] | null;
+      password?: components['schemas']['PasswordOAuthFlow'] | null;
+    };
+    /** Custom */
+    openai__types__chat__chat_completion_message_custom_tool_call_param__Custom: {
+      /** Input */
+      input: string;
+      /** Name */
+      name: string;
+    };
+    /** Function */
+    openai__types__chat__chat_completion_message_function_tool_call_param__Function: {
+      /** Arguments */
+      arguments: string;
+      /** Name */
+      name: string;
+    };
+    /** Custom */
+    openai__types__chat__chat_completion_named_tool_choice_custom_param__Custom: {
+      /** Name */
+      name: string;
+    };
+    /** Function */
+    openai__types__chat__chat_completion_named_tool_choice_param__Function: {
+      /** Name */
+      name: string;
+    };
+    /** Function */
+    openai__types__chat__completion_create_params__Function: {
+      /** Description */
+      description?: string;
+      /** Name */
+      name: string;
+      /** Parameters */
+      parameters?: {
+        [key: string]: unknown;
+      };
+    };
+    /**
+     * OpenIdConnectSecurityScheme
+     * @description Defines a security scheme using OpenID Connect.
+     */
+    OpenIdConnectSecurityScheme: {
+      /** Description */
+      description?: string | null;
+      /** Openidconnecturl */
+      openIdConnectUrl: string;
+      /**
+       * Type
+       * @default openIdConnect
+       * @constant
+       */
+      type: 'openIdConnect';
+    };
+    /** PaginatedResponse[Context] */
+    PaginatedResponse_Context_: {
+      /** Items */
+      items: components['schemas']['Context'][];
+      /** Total Count */
+      total_count: number;
+    };
+    /** PaginatedResponse[ProviderWithState] */
+    PaginatedResponse_ProviderWithState_: {
+      /** Items */
+      items: components['schemas']['ProviderWithState'][];
+      /** Total Count */
+      total_count: number;
+    };
+    /** PaginatedResponse[VectorStoreDocument] */
+    PaginatedResponse_VectorStoreDocument_: {
+      /** Items */
+      items: components['schemas']['VectorStoreDocument'][];
+      /** Total Count */
+      total_count: number;
+    };
+    /** PaginatedResponse[VectorStoreSearchResult] */
+    PaginatedResponse_VectorStoreSearchResult_: {
+      /** Items */
+      items: components['schemas']['VectorStoreSearchResult'][];
+      /** Total Count */
+      total_count: number;
+    };
+    /**
+     * PasswordOAuthFlow
+     * @description Defines configuration details for the OAuth 2.0 Resource Owner Password flow.
+     */
+    PasswordOAuthFlow: {
+      /** Refreshurl */
+      refreshUrl?: string | null;
+      /** Scopes */
+      scopes: {
+        [key: string]: string;
+      };
+      /** Tokenurl */
+      tokenUrl: string;
+    };
+    /**
+     * ProviderDeploymentState
+     * @enum {string}
+     */
+    ProviderDeploymentState: 'missing' | 'starting' | 'ready' | 'running' | 'error';
+    /** ProviderErrorMessage */
+    ProviderErrorMessage: {
+      /** Message */
+      message: string;
+    };
+    /** ProviderWithState */
+    ProviderWithState: {
+      agent_card: components['schemas']['AgentCard-Output'];
+      /**
+       * Auto Remove
+       * @default false
+       */
+      auto_remove: boolean;
+      /**
+       * Auto Stop Timeout
+       * Format: duration
+       * @default PT5M
+       */
+      auto_stop_timeout: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /** Env */
+      readonly env: components['schemas']['EnvVar'][];
+      /**
+       * Id
+       * Format: uuid
+       */
+      readonly id: string;
+      /**
+       * Last Active At
+       * Format: date-time
+       */
+      last_active_at?: string;
+      last_error?: components['schemas']['ProviderErrorMessage'] | null;
+      /** Managed */
+      readonly managed: boolean;
+      /** Missing Configuration */
+      missing_configuration?: components['schemas']['EnvVar'][];
+      /** Registry */
+      registry?:
+        | components['schemas']['GithubRegistryLocation']
+        | components['schemas']['NetworkRegistryLocation']
+        | components['schemas']['FileSystemRegistryLocation']
+        | null;
+      /** Source */
+      source: components['schemas']['DockerImageProviderLocation'] | components['schemas']['NetworkProviderLocation'];
+      state: components['schemas']['ProviderDeploymentState'];
+    } & {
+      [key: string]: unknown;
+    };
+    /** ResourceIdPermission */
+    ResourceIdPermission: {
+      /** Id */
+      id: string;
+    };
+    /** ResponseFormatJSONObject */
+    ResponseFormatJSONObject: {
+      /**
+       * Type
+       * @constant
+       */
+      type: 'json_object';
+    };
+    /** ResponseFormatJSONSchema */
+    ResponseFormatJSONSchema: {
+      json_schema: components['schemas']['JSONSchema'];
+      /**
+       * Type
+       * @constant
+       */
+      type: 'json_schema';
+    };
+    /** ResponseFormatText */
+    ResponseFormatText: {
+      /**
+       * Type
+       * @constant
+       */
+      type: 'text';
+    };
+    /**
+     * SearchRequest
+     * @description Request to search a vector store.
+     */
+    SearchRequest: {
+      /**
+       * Limit
+       * @description Maximum number of results to return
+       * @default 5
+       */
+      limit: number;
+      /**
+       * Query Vector
+       * @description Vector to search for
+       */
+      query_vector: number[];
+    };
+    /** SecurityScheme */
+    'SecurityScheme-Input':
+      | components['schemas']['APIKeySecurityScheme']
+      | components['schemas']['HTTPAuthSecurityScheme']
+      | components['schemas']['OAuth2SecurityScheme-Input']
+      | components['schemas']['OpenIdConnectSecurityScheme']
+      | components['schemas']['MutualTLSSecurityScheme'];
+    /** SecurityScheme */
+    'SecurityScheme-Output':
+      | components['schemas']['APIKeySecurityScheme']
+      | components['schemas']['HTTPAuthSecurityScheme']
+      | components['schemas']['OAuth2SecurityScheme-Output']
+      | components['schemas']['OpenIdConnectSecurityScheme']
+      | components['schemas']['MutualTLSSecurityScheme'];
+    /** Tool */
+    Tool: {
+      /** Description */
+      description?: string | null;
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+    };
+    /** Toolkit */
+    Toolkit: {
+      /**
+       * Expires At
+       * Format: date-time
+       */
+      expires_at: string;
+      /** Id */
+      id: string;
+      location: components['schemas']['McpProviderLocation'];
+      transport: components['schemas']['McpProviderTransport'];
+    };
+    /** UpdateVariablesRequest */
+    UpdateVariablesRequest: {
+      /** Env */
+      env: {
+        [key: string]: string | null;
+      };
+    };
+    /** ValidationError */
+    ValidationError: {
+      /** Location */
+      loc: (string | number)[];
+      /** Message */
+      msg: string;
+      /** Error Type */
+      type: string;
+    };
+    /** VectorStoreDocument */
+    VectorStoreDocument: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /** File Id */
+      file_id?: string | null;
+      /** Id */
+      id: string;
+      /** Usage Bytes */
+      usage_bytes?: number | null;
+      /**
+       * Vector Store Id
+       * Format: uuid
+       */
+      vector_store_id: string;
+    };
+    /**
+     * VectorStoreItem
+     * @description A single item in a vector store, containing text content and its vector embedding.
+     */
+    VectorStoreItem: {
+      /** Document Id */
+      document_id: string;
+      /** @default platform_file */
+      document_type: components['schemas']['DocumentType'];
+      /** Embedding */
+      embedding: number[];
+      /**
+       * Id
+       * Format: uuid
+       */
+      id?: string;
+      /** Metadata */
+      metadata?: {
+        [key: string]: string;
+      } | null;
+      /**
+       * Model Id
+       * @default platform
+       */
+      model_id: string | 'platform';
+      /** Text */
+      text: string;
+    };
+    /**
+     * VectorStoreSearchResult
+     * @description Result of a vector store search operation containing full item data and similarity score.
+     */
+    VectorStoreSearchResult: {
+      item: components['schemas']['VectorStoreItem'];
+      /** Score */
+      score: number;
+    };
+    /** VectorStoreStats */
+    VectorStoreStats: {
+      /** Num Documents */
+      num_documents: number;
+      /** Usage Bytes */
+      usage_bytes: number;
+    };
+    /** WebSearchOptions */
+    WebSearchOptions: {
+      /**
+       * Search Context Size
+       * @enum {string}
+       */
+      search_context_size?: 'low' | 'medium' | 'high';
+      user_location?: components['schemas']['WebSearchOptionsUserLocation'] | null;
+    };
+    /** WebSearchOptionsUserLocation */
+    WebSearchOptionsUserLocation: {
+      approximate: components['schemas']['WebSearchOptionsUserLocationApproximate'];
+      /**
+       * Type
+       * @constant
+       */
+      type: 'approximate';
+    };
+    /** WebSearchOptionsUserLocationApproximate */
+    WebSearchOptionsUserLocationApproximate: {
+      /** City */
+      city?: string;
+      /** Country */
+      country?: string;
+      /** Region */
+      region?: string;
+      /** Timezone */
+      timezone?: string;
+    };
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    proxy_request_api_v1_a2a__provider_id__options: {
-        parameters: {
-            query?: {
-                path?: string;
-            };
-            header?: never;
-            path: {
-                provider_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  proxy_request_api_v1_a2a__provider_id__delete: {
+    parameters: {
+      query?: {
+        path?: string;
+      };
+      header?: never;
+      path: {
+        provider_id: string;
+      };
+      cookie?: never;
     };
-    proxy_request_api_v1_a2a__provider_id__options: {
-        parameters: {
-            query?: {
-                path?: string;
-            };
-            header?: never;
-            path: {
-                provider_id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': unknown;
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    proxy_request_api_v1_a2a__provider_id__options: {
-        parameters: {
-            query?: {
-                path?: string;
-            };
-            header?: never;
-            path: {
-                provider_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  proxy_request_api_v1_a2a__provider_id__delete: {
+    parameters: {
+      query?: {
+        path?: string;
+      };
+      header?: never;
+      path: {
+        provider_id: string;
+      };
+      cookie?: never;
     };
-    proxy_request_api_v1_a2a__provider_id__options: {
-        parameters: {
-            query?: {
-                path?: string;
-            };
-            header?: never;
-            path: {
-                provider_id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': unknown;
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    proxy_request_api_v1_a2a__provider_id__options: {
-        parameters: {
-            query?: {
-                path?: string;
-            };
-            header?: never;
-            path: {
-                provider_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  proxy_request_api_v1_a2a__provider_id__delete: {
+    parameters: {
+      query?: {
+        path?: string;
+      };
+      header?: never;
+      path: {
+        provider_id: string;
+      };
+      cookie?: never;
     };
-    proxy_request_api_v1_a2a__provider_id__options: {
-        parameters: {
-            query?: {
-                path?: string;
-            };
-            header?: never;
-            path: {
-                provider_id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': unknown;
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    proxy_request_api_v1_a2a__provider_id__options: {
-        parameters: {
-            query?: {
-                path?: string;
-            };
-            header?: never;
-            path: {
-                provider_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  proxy_request_api_v1_a2a__provider_id__delete: {
+    parameters: {
+      query?: {
+        path?: string;
+      };
+      header?: never;
+      path: {
+        provider_id: string;
+      };
+      cookie?: never;
     };
-    get_agent_card_api_v1_a2a__provider_id___well_known_agent_card_json_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                provider_id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AgentCard-Output"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': unknown;
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    proxy_request_api_v1_a2a__provider_id___path__options: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                path: string;
-                provider_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  proxy_request_api_v1_a2a__provider_id__delete: {
+    parameters: {
+      query?: {
+        path?: string;
+      };
+      header?: never;
+      path: {
+        provider_id: string;
+      };
+      cookie?: never;
     };
-    proxy_request_api_v1_a2a__provider_id___path__options: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                path: string;
-                provider_id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': unknown;
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    proxy_request_api_v1_a2a__provider_id___path__options: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                path: string;
-                provider_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  proxy_request_api_v1_a2a__provider_id__delete: {
+    parameters: {
+      query?: {
+        path?: string;
+      };
+      header?: never;
+      path: {
+        provider_id: string;
+      };
+      cookie?: never;
     };
-    proxy_request_api_v1_a2a__provider_id___path__options: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                path: string;
-                provider_id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': unknown;
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    proxy_request_api_v1_a2a__provider_id___path__options: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                path: string;
-                provider_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  proxy_request_api_v1_a2a__provider_id__delete: {
+    parameters: {
+      query?: {
+        path?: string;
+      };
+      header?: never;
+      path: {
+        provider_id: string;
+      };
+      cookie?: never;
     };
-    proxy_request_api_v1_a2a__provider_id___path__options: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                path: string;
-                provider_id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': unknown;
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    proxy_request_api_v1_a2a__provider_id___path__options: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                path: string;
-                provider_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  get_agent_card_api_v1_a2a__provider_id___well_known_agent_card_json_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        provider_id: string;
+      };
+      cookie?: never;
     };
-    list_contexts_api_v1_contexts_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedResponse_Context_"];
-                };
-            };
+        content: {
+          'application/json': components['schemas']['AgentCard-Output'];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    create_context_api_v1_contexts_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__5"];
-                };
-            };
-        };
+  };
+  proxy_request_api_v1_a2a__provider_id___path__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        path: string;
+        provider_id: string;
+      };
+      cookie?: never;
     };
-    get_context_api_v1_contexts__context_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                context_id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__6"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': unknown;
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    delete_context_api_v1_contexts__context_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                context_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  proxy_request_api_v1_a2a__provider_id___path__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        path: string;
+        provider_id: string;
+      };
+      cookie?: never;
     };
-    generate_context_token_api_v1_contexts__context_id__token_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                context_id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ContextTokenCreateRequest"];
-            };
+        content: {
+          'application/json': unknown;
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ContextTokenResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    upload_file_api_v1_files_post: {
-        parameters: {
-            query?: {
-                context_id?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["Body_upload_file_api_v1_files_post"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__1"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  proxy_request_api_v1_a2a__provider_id___path__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        path: string;
+        provider_id: string;
+      };
+      cookie?: never;
     };
-    get_file_api_v1_files__file_id__get: {
-        parameters: {
-            query?: {
-                context_id?: string | null;
-            };
-            header?: never;
-            path: {
-                file_id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__2"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': unknown;
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    delete_file_api_v1_files__file_id__delete: {
-        parameters: {
-            query?: {
-                context_id?: string | null;
-            };
-            header?: never;
-            path: {
-                file_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  proxy_request_api_v1_a2a__provider_id___path__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        path: string;
+        provider_id: string;
+      };
+      cookie?: never;
     };
-    get_file_content_api_v1_files__file_id__content_get: {
-        parameters: {
-            query?: {
-                context_id?: string | null;
-            };
-            header?: never;
-            path: {
-                file_id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': unknown;
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    get_text_extraction_api_v1_files__file_id__extraction_get: {
-        parameters: {
-            query?: {
-                context_id?: string | null;
-            };
-            header?: never;
-            path: {
-                file_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__4"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  proxy_request_api_v1_a2a__provider_id___path__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        path: string;
+        provider_id: string;
+      };
+      cookie?: never;
     };
-    create_text_extraction_api_v1_files__file_id__extraction_post: {
-        parameters: {
-            query?: {
-                context_id?: string | null;
-            };
-            header?: never;
-            path: {
-                file_id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__3"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': unknown;
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    delete_text_extraction_api_v1_files__file_id__extraction_delete: {
-        parameters: {
-            query?: {
-                context_id?: string | null;
-            };
-            header?: never;
-            path: {
-                file_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  proxy_request_api_v1_a2a__provider_id___path__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        path: string;
+        provider_id: string;
+      };
+      cookie?: never;
     };
-    get_text_file_content_api_v1_files__file_id__text_content_get: {
-        parameters: {
-            query?: {
-                context_id?: string | null;
-            };
-            header?: never;
-            path: {
-                file_id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': unknown;
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    create_chat_completion_api_v1_llm_chat_completions_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ChatCompletionRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  proxy_request_api_v1_a2a__provider_id___path__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        path: string;
+        provider_id: string;
+      };
+      cookie?: never;
     };
-    create_embedding_api_v1_llm_embeddings_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EmbeddingsRequest"];
-            };
+        content: {
+          'application/json': unknown;
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    mcp_api_v1_mcp_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
+  };
+  list_contexts_api_v1_contexts_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    mcp_api_v1_mcp_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
+        content: {
+          'application/json': components['schemas']['PaginatedResponse_Context_'];
         };
+      };
     };
-    list_providers_api_v1_mcp_providers_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["McpProvider"][];
-                };
-            };
-        };
+  };
+  create_context_api_v1_contexts_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    create_provider_api_v1_mcp_providers_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateMcpProviderRequest"];
-            };
+        content: {
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__5'];
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["McpProvider"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+      };
     };
-    read_provider_api_v1_mcp_providers__provider_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                provider_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["McpProvider"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  get_context_api_v1_contexts__context_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        context_id: string;
+      };
+      cookie?: never;
     };
-    delete_provider_api_v1_mcp_providers__provider_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                provider_id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__6'];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    create_toolkit_api_v1_mcp_toolkits_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateToolkitRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Toolkit"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  delete_context_api_v1_contexts__context_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        context_id: string;
+      };
+      cookie?: never;
     };
-    mcp_toolkit_api_v1_mcp_toolkits__toolkit_id__mcp_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                toolkit_id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    mcp_toolkit_api_v1_mcp_toolkits__toolkit_id__mcp_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                toolkit_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  generate_context_token_api_v1_contexts__context_id__token_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        context_id: string;
+      };
+      cookie?: never;
     };
-    list_tools_api_v1_mcp_tools_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Tool"][];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ContextTokenCreateRequest'];
+      };
     };
-    read_tool_api_v1_mcp_tools__tool_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                tool_id: string;
-            };
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Tool"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': components['schemas']['ContextTokenResponse'];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    list_providers_api_v1_providers_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedResponse_ProviderWithState_"];
-                };
-            };
-        };
+  };
+  upload_file_api_v1_files_post: {
+    parameters: {
+      query?: {
+        context_id?: string | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    create_provider_api_v1_providers_post: {
-        parameters: {
-            query?: {
-                auto_remove?: boolean;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateProviderRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProviderWithState"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        'multipart/form-data': components['schemas']['Body_upload_file_api_v1_files_post'];
+      };
     };
-    get_provider_api_v1_providers__id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProviderWithState"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__1'];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    delete_provider_api_v1_providers__id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  get_file_api_v1_files__file_id__get: {
+    parameters: {
+      query?: {
+        context_id?: string | null;
+      };
+      header?: never;
+      path: {
+        file_id: string;
+      };
+      cookie?: never;
     };
-    stream_logs_api_v1_providers__id__logs_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__2'];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    preview_provider_api_v1_providers_preview_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateProviderRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProviderWithState"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  delete_file_api_v1_files__file_id__delete: {
+    parameters: {
+      query?: {
+        context_id?: string | null;
+      };
+      header?: never;
+      path: {
+        file_id: string;
+      };
+      cookie?: never;
     };
-    user_feedback_api_v1_user_feedback_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["InsertUserFeedbackRequest"];
-            };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
         };
+      };
     };
-    list_variables_api_v1_variables_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ListVariablesSchema"];
-                };
-            };
-        };
+  };
+  get_file_content_api_v1_files__file_id__content_get: {
+    parameters: {
+      query?: {
+        context_id?: string | null;
+      };
+      header?: never;
+      path: {
+        file_id: string;
+      };
+      cookie?: never;
     };
-    update_variables_api_v1_variables_put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateVariablesRequest"];
-            };
+        content: {
+          'application/json': unknown;
         };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    create_vector_store_api_v1_vector_stores_post: {
-        parameters: {
-            query?: {
-                context_id?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateVectorStoreRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__7"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  get_text_extraction_api_v1_files__file_id__extraction_get: {
+    parameters: {
+      query?: {
+        context_id?: string | null;
+      };
+      header?: never;
+      path: {
+        file_id: string;
+      };
+      cookie?: never;
     };
-    get_vector_store_api_v1_vector_stores__vector_store_id__get: {
-        parameters: {
-            query?: {
-                context_id?: string | null;
-            };
-            header?: never;
-            path: {
-                vector_store_id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__8"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__4'];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    add_items_api_v1_vector_stores__vector_store_id__put: {
-        parameters: {
-            query?: {
-                context_id?: string | null;
-            };
-            header?: never;
-            path: {
-                vector_store_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["VectorStoreItem"][];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  create_text_extraction_api_v1_files__file_id__extraction_post: {
+    parameters: {
+      query?: {
+        context_id?: string | null;
+      };
+      header?: never;
+      path: {
+        file_id: string;
+      };
+      cookie?: never;
     };
-    delete_vector_store_api_v1_vector_stores__vector_store_id__delete: {
-        parameters: {
-            query?: {
-                context_id?: string | null;
-            };
-            header?: never;
-            path: {
-                vector_store_id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__3'];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    list_documents_api_v1_vector_stores__vector_store_id__documents_get: {
-        parameters: {
-            query?: {
-                context_id?: string | null;
-            };
-            header?: never;
-            path: {
-                vector_store_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedResponse_VectorStoreDocument_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  delete_text_extraction_api_v1_files__file_id__extraction_delete: {
+    parameters: {
+      query?: {
+        context_id?: string | null;
+      };
+      header?: never;
+      path: {
+        file_id: string;
+      };
+      cookie?: never;
     };
-    delete_document_api_v1_vector_stores__vector_store_id__documents__document_id__delete: {
-        parameters: {
-            query?: {
-                context_id?: string | null;
-            };
-            header?: never;
-            path: {
-                document_id: string;
-                vector_store_id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    search_with_vector_api_v1_vector_stores__vector_store_id__search_post: {
-        parameters: {
-            query?: {
-                context_id?: string | null;
-            };
-            header?: never;
-            path: {
-                vector_store_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SearchRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedResponse_VectorStoreSearchResult_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  get_text_file_content_api_v1_files__file_id__text_content_get: {
+    parameters: {
+      query?: {
+        context_id?: string | null;
+      };
+      header?: never;
+      path: {
+        file_id: string;
+      };
+      cookie?: never;
     };
-    healthcheck_healthcheck_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
+        content: {
+          'application/json': unknown;
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
+  };
+  create_chat_completion_api_v1_llm_chat_completions_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ChatCompletionRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  create_embedding_api_v1_llm_embeddings_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['EmbeddingsRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  mcp_api_v1_mcp_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+    };
+  };
+  mcp_api_v1_mcp_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+    };
+  };
+  list_providers_api_v1_mcp_providers_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['McpProvider'][];
+        };
+      };
+    };
+  };
+  create_provider_api_v1_mcp_providers_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateMcpProviderRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['McpProvider'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  read_provider_api_v1_mcp_providers__provider_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        provider_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['McpProvider'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  delete_provider_api_v1_mcp_providers__provider_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        provider_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  create_toolkit_api_v1_mcp_toolkits_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateToolkitRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Toolkit'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  mcp_toolkit_api_v1_mcp_toolkits__toolkit_id__mcp_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        toolkit_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  mcp_toolkit_api_v1_mcp_toolkits__toolkit_id__mcp_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        toolkit_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_tools_api_v1_mcp_tools_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Tool'][];
+        };
+      };
+    };
+  };
+  read_tool_api_v1_mcp_tools__tool_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        tool_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Tool'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_providers_api_v1_providers_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PaginatedResponse_ProviderWithState_'];
+        };
+      };
+    };
+  };
+  create_provider_api_v1_providers_post: {
+    parameters: {
+      query?: {
+        auto_remove?: boolean;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateProviderRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ProviderWithState'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_provider_api_v1_providers__id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ProviderWithState'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  delete_provider_api_v1_providers__id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  stream_logs_api_v1_providers__id__logs_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  preview_provider_api_v1_providers_preview_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateProviderRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ProviderWithState'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  user_feedback_api_v1_user_feedback_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['InsertUserFeedbackRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_variables_api_v1_variables_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ListVariablesSchema'];
+        };
+      };
+    };
+  };
+  update_variables_api_v1_variables_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateVariablesRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  create_vector_store_api_v1_vector_stores_post: {
+    parameters: {
+      query?: {
+        context_id?: string | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateVectorStoreRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__7'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_vector_store_api_v1_vector_stores__vector_store_id__get: {
+    parameters: {
+      query?: {
+        context_id?: string | null;
+      };
+      header?: never;
+      path: {
+        vector_store_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__8'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  add_items_api_v1_vector_stores__vector_store_id__put: {
+    parameters: {
+      query?: {
+        context_id?: string | null;
+      };
+      header?: never;
+      path: {
+        vector_store_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['VectorStoreItem'][];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  delete_vector_store_api_v1_vector_stores__vector_store_id__delete: {
+    parameters: {
+      query?: {
+        context_id?: string | null;
+      };
+      header?: never;
+      path: {
+        vector_store_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_documents_api_v1_vector_stores__vector_store_id__documents_get: {
+    parameters: {
+      query?: {
+        context_id?: string | null;
+      };
+      header?: never;
+      path: {
+        vector_store_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PaginatedResponse_VectorStoreDocument_'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  delete_document_api_v1_vector_stores__vector_store_id__documents__document_id__delete: {
+    parameters: {
+      query?: {
+        context_id?: string | null;
+      };
+      header?: never;
+      path: {
+        document_id: string;
+        vector_store_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  search_with_vector_api_v1_vector_stores__vector_store_id__search_post: {
+    parameters: {
+      query?: {
+        context_id?: string | null;
+      };
+      header?: never;
+      path: {
+        vector_store_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SearchRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PaginatedResponse_VectorStoreSearchResult_'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  healthcheck_healthcheck_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+    };
+  };
 }

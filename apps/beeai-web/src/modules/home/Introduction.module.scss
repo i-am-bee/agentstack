@@ -6,63 +6,55 @@
 .root {
   display: flex;
   flex-direction: column;
-  margin-block-start: rem(144px);
+  margin-block-start: rem(103px);
+}
 
-  section {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
+.headline {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-08;
 
   h1 {
-    font-size: rem(64px);
-    font-weight: 300;
+    font-size: rem(80px);
+    line-height: math.div(90, 80);
+    font-weight: 100;
     white-space: nowrap;
+    margin: 0;
   }
 }
 
-.collage {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-
-  svg {
-    inline-size: 90%;
-    path {
-      fill: currentColor;
-    }
-  }
+.info {
+  margin-block-start: rem(105px);
+  background-color: $green-10;
+  color: $black;
+  padding-block: $spacing-08;
 }
-
-section.info {
-  margin-block-start: rem(220px);
+.infoContent {
+  grid-column: 3 / -3;
   p {
-    grid-column: 1 / span 2;
-    font-size: rem(32px);
+    font-size: rem(20px);
+    line-height: math.div(28, 20);
+    max-inline-size: rem(845px);
+
+    a {
+      font-weight: 600;
+      color: $black;
+    }
   }
 }
 
 @include breakpoint-down(lg) {
   .root {
-    section {
-      display: flex;
-      flex-direction: column;
-      gap: $spacing-10;
-    }
-
     h1 {
-      font-size: 9vw;
-    }
-
-    .collage {
-      justify-content: center;
-
-      svg {
-        max-inline-size: rem(540px);
-      }
+      font-size: 7vw;
     }
   }
 }
-
+@include breakpoint-down(md) {
+  .infoContent {
+    grid-column: 2 / -2;
+  }
+}
 @include breakpoint-down(sm) {
   .root {
     margin-block-start: rem(50px);

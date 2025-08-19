@@ -13,24 +13,26 @@ import typing
 import anyio
 import httpx
 import typer
+from beeai_sdk.platform import Variables
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
 from InquirerPy.validator import EmptyInputValidator
 from rich.table import Column
 
-from beeai_cli.api import api_request
 from beeai_cli.async_typer import AsyncTyper, console, create_table
 from beeai_cli.configuration import Configuration
 from beeai_cli.utils import format_error, parse_env_var, run_command, verbosity
 
 app = AsyncTyper()
+configuration = Configuration()
 
 
 @functools.cache
-def _ollama_exe():
+def _ollama_exe() -> str:
     for exe in ("ollama", "ollama.exe"):
         if shutil.which(exe):
             return exe
+    raise RuntimeError("Ollama executable not found")
 
 
 @app.command("add")
@@ -39,11 +41,8 @@ async def add(
 ) -> None:
     """Store environment variables"""
     env_vars = dict(parse_env_var(var) for var in env)
-    await api_request(
-        "put",
-        "variables",
-        json={**({"env": env_vars} if env_vars else {})},
-    )
+    async with configuration.use_platform_client():
+        await Variables.save(env_vars)
     await list_env()
 
 
@@ -51,9 +50,10 @@ async def add(
 async def list_env():
     """List stored environment variables"""
     # TODO: extract server schemas to a separate package
-    resp = await api_request("get", "variables")
+    async with configuration.use_platform_client():
+        variables = await Variables.load()
     with create_table(Column("name", style="yellow"), Column("value", ratio=1)) as table:
-        for name, value in sorted(resp["env"].items()):
+        for name, value in sorted(variables.items()):
             table.add_row(name, value)
     console.print(table)
 
@@ -62,7 +62,8 @@ async def list_env():
 async def remove_env(
     env: typing.Annotated[list[str], typer.Argument(help="Environment variable(s) to remove")],
 ):
-    await api_request("put", "variables", json={**({"env": dict.fromkeys(env)})})
+    async with configuration.use_platform_client():
+        await Variables.save(dict.fromkeys(env))
     await list_env()
 
 
@@ -166,17 +167,24 @@ EMBEDDING_PROVIDERS = [
 ]
 
 
-async def _configure_llm() -> dict[str, str] | None:
-    provider_name, api_base, recommended_model = await inquirer.fuzzy(
+async def _configure_llm() -> dict[str, str | None] | None:
+    provider_name: str
+    api_base: str
+    recommended_model: str
+    selected_model: str
+    provider_name, api_base, recommended_model = await inquirer.fuzzy(  # type: ignore
         message="Select LLM provider (type to search):", choices=LLM_PROVIDERS
     ).execute_async()
 
-    extra_config = {}
+    watsonx_project_or_space: str = ""
+    watsonx_project_or_space_id: str = ""
+
+    extra_config: dict[str, str | None] = {}
 
     if provider_name == "Other":
-        api_base = await inquirer.text(
+        api_base: str = await inquirer.text(  # type: ignore
             message="Enter the base URL of your API (OpenAI-compatible):",
-            validate=lambda url: (url.startswith(("http://", "https://")) or "URL must start with http:// or https://"),
+            validate=lambda url: (url.startswith(("http://", "https://")) or "URL must start with http:// or https://"),  # type: ignore
             transformer=lambda url: url.rstrip("/"),
         ).execute_async()
         if re.match(r"^https://[a-z0-9.-]+\.rits\.fmaas\.res\.ibm\.com/.*$", api_base):
@@ -185,29 +193,29 @@ async def _configure_llm() -> dict[str, str] | None:
                 api_base = api_base.removesuffix("/") + "/v1"
 
     if provider_name == "watsonx":
-        api_base = f"""https://{
-            await inquirer.select(
-                message="Select IBM Cloud region:",
-                choices=[
-                    Choice(name="us-south", value="us-south"),
-                    Choice(name="ca-tor", value="ca-tor"),
-                    Choice(name="eu-gb", value="eu-gb"),
-                    Choice(name="eu-de", value="eu-de"),
-                    Choice(name="jp-tok", value="jp-tok"),
-                    Choice(name="au-syd", value="au-syd"),
-                ],
-            ).execute_async()
-        }.ml.cloud.ibm.com"""
-        watsonx_project_or_space = await inquirer.select(
+        region: str = await inquirer.select(  # type: ignore
+            message="Select IBM Cloud region:",
+            choices=[
+                Choice(name="us-south", value="us-south"),
+                Choice(name="ca-tor", value="ca-tor"),
+                Choice(name="eu-gb", value="eu-gb"),
+                Choice(name="eu-de", value="eu-de"),
+                Choice(name="jp-tok", value="jp-tok"),
+                Choice(name="au-syd", value="au-syd"),
+            ],
+        ).execute_async()
+        api_base: str = f"""https://{region}.ml.cloud.ibm.com"""
+        watsonx_project_or_space: str = await inquirer.select(  # type:ignore
             "Use a Project or a Space?", choices=["project", "space"]
         ).execute_async()
         if (
-            watsonx_project_or_space_id := os.environ.get(f"WATSONX_{watsonx_project_or_space.upper()}_ID")
-        ) is None or not await inquirer.confirm(
-            message=f"Use the {watsonx_project_or_space} id from environment variable 'WATSONX_{watsonx_project_or_space.upper()}_ID'?",
-            default=True,
-        ).execute_async():
-            watsonx_project_or_space_id = await inquirer.text(
+            not (watsonx_project_or_space_id := os.environ.get(f"WATSONX_{watsonx_project_or_space.upper()}_ID", ""))
+            or not await inquirer.confirm(  # type:ignore
+                message=f"Use the {watsonx_project_or_space} id from environment variable 'WATSONX_{watsonx_project_or_space.upper()}_ID'?",
+                default=True,
+            ).execute_async()
+        ):
+            watsonx_project_or_space_id = await inquirer.text(  # type:ignore
                 message=f"Enter the {watsonx_project_or_space} id:"
             ).execute_async()
 
@@ -216,14 +224,14 @@ async def _configure_llm() -> dict[str, str] | None:
             "WATSONX_SPACE_ID": (watsonx_project_or_space_id if watsonx_project_or_space == "space" else None),
         }
 
-    if (api_key := os.environ.get(f"{provider_name.upper()}_API_KEY")) is None or not await inquirer.confirm(
+    if (api_key := os.environ.get(f"{provider_name.upper()}_API_KEY")) is None or not await inquirer.confirm(  # type: ignore
         message=f"Use the API key from environment variable '{provider_name.upper()}_API_KEY'?",
         default=True,
     ).execute_async():
-        api_key = (
+        api_key: str = (
             "dummy"
             if provider_name in ["Ollama", "Jan"]
-            else await inquirer.secret(message="Enter API key:", validate=EmptyInputValidator()).execute_async()
+            else await inquirer.secret(message="Enter API key:", validate=EmptyInputValidator()).execute_async()  # type: ignore
         )
 
     try:
@@ -272,7 +280,7 @@ async def _configure_llm() -> dict[str, str] | None:
         available_models = [model for model in available_models if not model.endswith("-beeai")]
 
     if provider_name == "Ollama" and not available_models:
-        if await inquirer.confirm(
+        if await inquirer.confirm(  # type: ignore
             message=f"There are no locally available models in Ollama. Do you want to pull the recommended model '{recommended_model}'?",
             default=True,
         ).execute_async():
@@ -286,7 +294,7 @@ async def _configure_llm() -> dict[str, str] | None:
             if (
                 recommended_model
                 and (not available_models or recommended_model in available_models or provider_name == "Ollama")
-                and await inquirer.confirm(
+                and await inquirer.confirm(  # type: ignore
                     message=f"Do you want to use the recommended model '{recommended_model}'?"
                     + (
                         " It will be pulled from Ollama now."
@@ -297,12 +305,12 @@ async def _configure_llm() -> dict[str, str] | None:
                 ).execute_async()
             )
             else (
-                await inquirer.fuzzy(
+                await inquirer.fuzzy(  # type: ignore
                     message="Select a model (type to search):",
                     choices=sorted(available_models),
                 ).execute_async()
                 if available_models
-                else await inquirer.text(message="Write a model name to use:").execute_async()
+                else await inquirer.text(message="Write a model name to use:").execute_async()  # type: ignore
             )
         )
 
@@ -317,9 +325,10 @@ async def _configure_llm() -> dict[str, str] | None:
             console.print(f"[red]Error while pulling model: {e!s}[/red]")
             return None
 
+    num_ctx: int
     if provider_name == "Ollama" and (
         (
-            num_ctx := await inquirer.select(
+            num_ctx := await inquirer.select(  # type: ignore
                 message="Larger context window helps agents see more information at once at the cost of memory consumption, as long as the model supports it. Set a larger context window?",
                 choices=[
                     Choice(name="2k    ⚠️  too small for most agents", value=2048),
@@ -417,24 +426,31 @@ async def _get_watsonx_token(client: httpx.AsyncClient, api_key: str) -> str | N
     watsonx_token_response = await client.post(
         "https://iam.cloud.ibm.com/identity/token",
         headers={"Content-Type": "application/x-www-form-urlencoded"},
-        data=f"grant_type=urn:ibm:params:oauth:grant-type:apikey&apikey={api_key}",
+        data=f"grant_type=urn:ibm:params:oauth:grant-type:apikey&apikey={api_key}",  # pyright: ignore [reportArgumentType]
         timeout=30.0,
     )
     watsonx_token_response.raise_for_status()
     return watsonx_token_response.json().get("access_token")
 
 
-async def _configure_embedding(env: dict[str, str]) -> dict[str, str] | None:
-    provider_name, api_base, recommended_model = await inquirer.fuzzy(
+async def _configure_embedding(env: dict[str, str | None]) -> dict[str, str | None] | None:
+    api_base: str
+    api_key: str
+    provider_name: str
+    selected_model: str
+    recommended_model: str
+    watsonx_project_or_space: str = ""
+    watsonx_project_or_space_id: str = ""
+    provider_name, api_base, recommended_model = await inquirer.fuzzy(  # type: ignore
         message="Select embedding provider (type to search):", choices=EMBEDDING_PROVIDERS
     ).execute_async()
 
-    extra_config = {}
+    extra_config: dict[str, str | None] = {}
 
     if provider_name == "Other":
-        api_base: str = await inquirer.text(
+        api_base = await inquirer.text(  # type: ignore
             message="Enter the base URL of your embedding API (OpenAI-compatible):",
-            validate=lambda url: (url.startswith(("http://", "https://")) or "URL must start with http:// or https://"),
+            validate=lambda url: (url.startswith(("http://", "https://")) or "URL must start with http:// or https://"),  # type: ignore
             transformer=lambda url: url.rstrip("/"),
         ).execute_async()
         if re.match(r"^https://[a-z0-9.-]+\.rits\.fmaas\.res\.ibm\.com/.*$", api_base):
@@ -444,7 +460,7 @@ async def _configure_embedding(env: dict[str, str]) -> dict[str, str] | None:
 
     if provider_name == "watsonx":
         api_base = f"""https://{
-            await inquirer.select(
+            await inquirer.select(  # type: ignore
                 message="Select IBM Cloud region:",
                 choices=[
                     Choice(name="us-south", value="us-south"),
@@ -458,21 +474,25 @@ async def _configure_embedding(env: dict[str, str]) -> dict[str, str] | None:
         }.ml.cloud.ibm.com"""
 
     if api_base == env["LLM_API_BASE"]:
-        api_key = env["LLM_API_KEY"]
+        api_key = env.get("LLM_API_KEY") or ""
+        assert api_key
         watsonx_project_or_space = "project" if "WATSONX_PROJECT_ID" in env else "space"
-        watsonx_project_or_space_id = env.get("WATSONX_PROJECT_ID") or env.get("WATSONX_SPACE_ID")
+        watsonx_project_or_space_id = env.get("WATSONX_PROJECT_ID") or env.get("WATSONX_SPACE_ID") or ""
     else:
         if provider_name == "watsonx":
-            watsonx_project_or_space = await inquirer.select(
+            watsonx_project_or_space = await inquirer.select(  # type: ignore
                 "Use a Project or a Space?", choices=["project", "space"]
             ).execute_async()
             if (
-                watsonx_project_or_space_id := os.environ.get(f"WATSONX_{watsonx_project_or_space.upper()}_ID")
-            ) is None or not await inquirer.confirm(
-                message=f"Use the {watsonx_project_or_space} id from environment variable 'WATSONX_{watsonx_project_or_space.upper()}_ID'?",
-                default=True,
-            ).execute_async():
-                watsonx_project_or_space_id = await inquirer.text(
+                not (
+                    watsonx_project_or_space_id := os.environ.get(f"WATSONX_{watsonx_project_or_space.upper()}_ID", "")
+                )
+                or not await inquirer.confirm(  # type: ignore
+                    message=f"Use the {watsonx_project_or_space} id from environment variable 'WATSONX_{watsonx_project_or_space.upper()}_ID'?",
+                    default=True,
+                ).execute_async()
+            ):
+                watsonx_project_or_space_id = await inquirer.text(  # type: ignore
                     message=f"Enter the {watsonx_project_or_space} id:"
                 ).execute_async()
 
@@ -481,14 +501,14 @@ async def _configure_embedding(env: dict[str, str]) -> dict[str, str] | None:
                 "WATSONX_SPACE_ID": (watsonx_project_or_space_id if watsonx_project_or_space == "space" else None),
             }
 
-        if (api_key := os.environ.get(f"{provider_name.upper()}_API_KEY")) is None or not await inquirer.confirm(
+        if (api_key := os.environ.get(f"{provider_name.upper()}_API_KEY")) is None or not await inquirer.confirm(  # type: ignore
             message=f"Use the API key from environment variable '{provider_name.upper()}_API_KEY'?",
             default=True,
         ).execute_async():
             api_key = (
                 "dummy"
                 if provider_name in ["Ollama", "Jan"]
-                else await inquirer.secret(
+                else await inquirer.secret(  # type: ignore
                     message="Enter API key for embedding:", validate=EmptyInputValidator()
                 ).execute_async()
             )
@@ -537,7 +557,7 @@ async def _configure_embedding(env: dict[str, str]) -> dict[str, str] | None:
         available_models = [model for model in available_models if not model.endswith("-beeai")]
 
     if provider_name == "Ollama" and not available_models:
-        if await inquirer.confirm(
+        if await inquirer.confirm(  # type: ignore
             message=f"There are no locally available models in Ollama. Do you want to pull the recommended embedding model '{recommended_model}'?",
             default=True,
         ).execute_async():
@@ -551,7 +571,7 @@ async def _configure_embedding(env: dict[str, str]) -> dict[str, str] | None:
             if (
                 recommended_model
                 and (not available_models or recommended_model in available_models or provider_name == "Ollama")
-                and await inquirer.confirm(
+                and await inquirer.confirm(  # type: ignore
                     message=f"Do you want to use the recommended embedding model '{recommended_model}'?"
                     + (
                         " It will be pulled from Ollama now."
@@ -562,12 +582,12 @@ async def _configure_embedding(env: dict[str, str]) -> dict[str, str] | None:
                 ).execute_async()
             )
             else (
-                await inquirer.fuzzy(
+                await inquirer.fuzzy(  # type: ignore
                     message="Select an embedding model (type to search):",
                     choices=sorted(available_models),
                 ).execute_async()
                 if available_models
-                else await inquirer.text(
+                else await inquirer.text(  # type: ignore
                     message=f"This provider does not provide a list of models through the API. Please manually find available models in the {provider_name} documentation and paste the name of your chosen model in the correct format here:"
                 ).execute_async()
             )
@@ -636,7 +656,7 @@ async def setup(
         if not (llm_env := await _configure_llm()):
             return False
         embedding_env = {}
-        if await inquirer.confirm(
+        if await inquirer.confirm(  # type: ignore
             message="Do you want to configure an embedding provider?", default=True
         ).execute_async():
             console.print("[bold]Setting up embedding provider...[/bold]")
@@ -646,10 +666,12 @@ async def setup(
         env = {**llm_env, **embedding_env}
         if not use_true_localhost:
             for key in ["LLM_API_BASE", "EMBEDDING_API_BASE"] & env.keys():
-                env[key] = re.sub(r"localhost|127\.0\.0\.1", "host.docker.internal", env[key])
+                if value := env[key]:
+                    env[key] = re.sub(r"localhost|127\.0\.0\.1", "host.docker.internal", value)
 
         with console.status("Saving configuration...", spinner="dots"):
-            await api_request("put", "variables", json={"env": env})
+            async with configuration.use_platform_client():
+                await Variables.save(env)
 
         console.print(
             "\n[bold green]You're all set![/bold green] (You can re-run this setup anytime with [blue]beeai env setup[/blue])"
@@ -659,7 +681,8 @@ async def setup(
 
 async def ensure_llm_env():
     try:
-        env = (await api_request("get", "variables"))["env"]
+        async with configuration.use_platform_client():
+            env = await Variables.load()
     except httpx.HTTPStatusError:
         return  # Skip for non-conforming servers (like when running directly against an agent provider)
     if all(required_variable in env for required_variable in ["LLM_MODEL", "LLM_API_KEY", "LLM_API_BASE"]):

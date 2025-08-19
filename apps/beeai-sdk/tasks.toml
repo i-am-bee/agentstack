@@ -31,6 +31,29 @@ run = "uv run python -m pyright"
 sources = ["src/**/*.py"]
 outputs = { auto = true }
 
+
+["beeai-sdk:check:pytest-marks"]
+depends = ["beeai-sdk:setup"]
+dir = "{{config_root}}/apps/beeai-sdk"
+run = """
+#!/bin/bash
+
+# Use pytest to collect tests that are not marked with unit, integration, or e2e
+unmarked_tests=$(uv run pytest --collect-only --no-header --no-summary -q -m "not (unit or integration or e2e)" tests/ 2>/dev/null)
+
+if echo "$unmarked_tests" | grep "tests collected" | grep -qv "no tests collected"; then
+    echo "ERROR: Found tests without required pytest marks:\n"
+    echo "$unmarked_tests" | grep 'tests collected'
+    echo ""
+    echo "All tests must be marked with @pytest.mark.unit, @pytest.mark.integration, or @pytest.mark.e2e"
+    exit 1
+else
+    echo "✓ All tests have pytest marks"
+fi
+"""
+sources = ["tests/**/*.py"]
+outputs = { auto = true }
+
 # fix
 
 ["beeai-sdk:fix"]

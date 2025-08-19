@@ -7,7 +7,7 @@ import json
 import os
 import subprocess
 import sys
-from collections.abc import AsyncIterable, Iterable
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
 from copy import deepcopy
@@ -15,6 +15,7 @@ from io import BytesIO
 from typing import TYPE_CHECKING, Any
 
 import anyio
+import anyio.abc
 import typer
 import yaml
 from anyio import create_task_group
@@ -23,6 +24,7 @@ from jsf import JSF
 from prompt_toolkit import PromptSession
 from prompt_toolkit.shortcuts import CompleteStyle
 from pydantic import BaseModel
+from rich.console import Capture
 from rich.text import Text
 
 from beeai_cli.console import console, err_console
@@ -66,20 +68,13 @@ def check_json(value: Any) -> dict[str, Any]:
         raise typer.BadParameter(f"Invalid JSON '{value}'") from e
 
 
-def omit[DictType: dict](dict: DictType, keys: Iterable[str]) -> DictType:
-    return {key: value for key, value in dict.items() if key not in keys}
-
-
-def filter_dict[T, V](map: dict[str, T | V], value_to_exclude: V = None) -> dict[str, V]:
-    """Remove entries with unwanted values (None by default) from dictionary."""
-    return {filter: value for filter, value in map.items() if value is not value_to_exclude}
-
-
 @functools.cache
 def generate_schema_example(json_schema: dict[str, Any]) -> dict[str, Any]:
     json_schema = deepcopy(remove_nullable(json_schema))
 
     def _make_fakes_better(schema: dict[str, Any] | None):
+        if not schema:
+            return
         match schema["type"]:
             case "array":
                 schema["maxItems"] = 3
@@ -156,7 +151,7 @@ def prompt_user(
 
 
 @asynccontextmanager
-async def capture_output(process: anyio.abc.Process, stream_contents: list | None = None) -> AsyncIterable[TaskGroup]:
+async def capture_output(process: anyio.abc.Process, stream_contents: list | None = None) -> AsyncIterator[TaskGroup]:
     async def receive_logs(stream: ByteReceiveStream, index=0):
         buffer = BytesIO()
         async for chunk in stream:
@@ -244,6 +239,7 @@ def verbosity(verbose: bool, show_success_status: bool = True):
     IN_VERBOSITY_CONTEXT.set(True)
     token = VERBOSE.set(verbose)
     token_command_status = SHOW_SUCCESS_STATUS.set(show_success_status)
+    capture: Capture | None = None
     try:
         with err_console.capture() if not verbose else contextlib.nullcontext() as capture:
             yield

@@ -5,15 +5,12 @@
 
 .root {
   padding-block-start: rem(104px);
-  padding-block-end: rem(96px);
+  padding-block-end: rem(160px);
   background-color: $layer-02;
 }
 
 .info {
-  display: grid;
   align-items: center;
-  gap: $spacing-10;
-  grid-template-columns: minmax(0, 40%) 1fr;
 }
 
 .infoLeft {
@@ -29,29 +26,6 @@
     inline-size: 100%;
     block-size: auto;
   }
-  svg {
-    position: absolute;
-    inset: 0;
-    fill: $text-primary;
-
-    :global(.fill-disabled) {
-      fill: $button-disabled;
-    }
-    :global(.fill-layer-03) {
-      fill: $layer-03;
-    }
-    :global(.stroke-layer-03) {
-      stroke: $layer-03;
-      fill: none;
-    }
-    :global(.spinner) {
-      fill: none;
-      stroke-width: 3px;
-      :global(.stroke-blue) {
-        stroke: $background-brand;
-      }
-    }
-  }
 }
 
 .features {
@@ -64,8 +38,12 @@
 }
 
 @include breakpoint-down(md) {
+  .root {
+    padding-block-end: rem(116px);
+  }
   .info {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
   }
 }

@@ -264,6 +264,9 @@ class Server:
                         os.environ["LLM_MODEL"] = "dummy"
                         os.environ["LLM_API_KEY"] = "dummy"
                         os.environ["LLM_API_BASE"] = f"{url.rstrip('/')}/api/v1/llm"
+                        os.environ["EMBEDDING_MODEL"] = "dummy"
+                        os.environ["EMBEDDING_API_KEY"] = "dummy"
+                        os.environ["EMBEDDING_API_BASE"] = f"{url.rstrip('/')}/api/v1/llm"
 
                 for extension in self._agent.card.capabilities.extensions or []:
                     # TODO - env extension?

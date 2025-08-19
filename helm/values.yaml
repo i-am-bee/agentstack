@@ -76,6 +76,9 @@ securityContext: { }
 initContainers:
   createVectorDbExtension: true
 
+oidc:
+  enabled: false
+
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
   # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
@@ -159,7 +162,8 @@ ui:
   podAnnotations: { }
   podSecurityContext: { }
   securityContext: { }
-  podLabels: { }
+  podLabels:
+    istio.io/dataplane-mode: ambient
   resources: { }
   nodeSelector: { }
   tolerations: { }

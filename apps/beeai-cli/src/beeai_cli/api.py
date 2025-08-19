@@ -62,6 +62,7 @@ async def api_request(
             auth=BasicAuth("beeai-admin", config.admin_password.get_secret_value()) if config.admin_password else None,
         )
         if response.is_error:
+            error = ""
             try:
                 error = response.json()
                 error = error.get("detail", str(error))
@@ -93,6 +94,7 @@ async def api_stream(
     ):
         response: httpx.Response
         if response.is_error:
+            error = ""
             try:
                 [error] = [jsonlib.loads(message) async for message in response.aiter_text()]
                 error = error.get("detail", str(error))

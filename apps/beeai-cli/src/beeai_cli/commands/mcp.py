@@ -44,6 +44,7 @@ async def list_providers():
     """List MCP servers."""
 
     providers = await api_request("GET", "mcp/providers")
+    assert providers
     with create_table(
         Column("Name"),
         Column("Location"),
@@ -79,6 +80,7 @@ async def list_tools() -> None:
     """List tools."""
 
     tools = await api_request("GET", "mcp/tools")
+    assert tools
     with create_table(
         Column("Name"),
         Column("Description", max_width=30),
@@ -100,8 +102,10 @@ async def toolkit(
 ) -> None:
     """Create a toolkit."""
 
-    tools = await _get_tools_by_names(tools)
-    toolkit = await api_request("POST", "mcp/toolkits", json={"tools": [tool["id"] for tool in tools]})
+    api_tools = await _get_tools_by_names(tools)
+    assert api_tools
+    toolkit = await api_request("POST", "mcp/toolkits", json={"tools": [tool["id"] for tool in api_tools]})
+    assert toolkit
     with create_table(Column("Location"), Column("Transport"), Column("Expiration")) as table:
         table.add_row(toolkit["location"], toolkit["transport"], toolkit["expires_at"])
     console.print()
@@ -110,6 +114,7 @@ async def toolkit(
 
 async def _get_provider_by_name(name: str):
     providers = await api_request("GET", "mcp/providers")
+    assert providers
 
     for provider in providers:
         if provider["name"] == name:
@@ -118,8 +123,9 @@ async def _get_provider_by_name(name: str):
     raise ValueError(f"Provider {name} not found")
 
 
-async def _get_tools_by_names(names: list[str]):
+async def _get_tools_by_names(names: list[str]) -> list[dict[str, typing.Any]]:
     all_tools = await api_request("GET", "mcp/tools")
+    assert all_tools
 
     tools = []
     for name in names:

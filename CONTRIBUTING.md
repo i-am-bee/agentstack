@@ -74,6 +74,40 @@ eval "$(mise run beeai-platform:shell)"
 deactivate
 ```
 
+### OAuth/OIDC authentication for local testing
+
+By default, authentication and authorization are disabled.
+
+Starting the platform with OIDC enabled:
+
+```bash
+mise beeai-platform:start --set oidc.enabled=true
+```
+
+This does the following:
+- Installs Istio in ambient mode.  
+- Creates a gateway and routes for `https://beeai.localhost:8336/`.  
+- Installs the Kiali console.  
+
+**Why TLS is used:**  
+OAuth tokens are returned to the browser only over HTTPS to avoid leakage over plain HTTP. Always access the UI via `https://beeai.localhost:8336/`.
+
+**OIDC configuration:**  
+Configure your OIDC provider to allow `https://beeai.localhost:8336/` as a redirect URI.  
+When deploying to a cloud cluster, adjust `nextauth_url` and `nextauth_redirect_proxy_url` to match your domain. Some providers require a valid top-level domain for redirect URIs.
+
+**Istio details:**  
+The default namespace is labeled `istio.io/dataplane-mode=ambient`. This ensures all intra-pod traffic is routed through `ztunnel`, except the `beeai-platform` pod, which uses `hostNetwork` and is not compatible with the Istio mesh.
+
+**Available endpoints:**
+
+| Service        | HTTPS                                      | HTTP                                |
+| -------------- | ------------------------------------------ | ----------------------------------- |
+| Kiali Console  | –                                          | `http://localhost:20001`            |
+| BeeAI UI       | `https://beeai.localhost:8336`             | `http://localhost:8334`             |
+| BeeAI API Docs | `https://beeai.localhost:8336/api/v1/docs` | `http://localhost:8333/api/v1/docs` |
+
+
 ### Running and debugging individual components
 
 It's desirable to run and debug (i.e. in an IDE) individual components against the full stack (PostgreSQL,
