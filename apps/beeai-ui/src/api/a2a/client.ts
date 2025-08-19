@@ -75,7 +75,7 @@ export const buildA2AClient = <UIGenericPart = never>({
   const agentUrl = `${getBaseUrl()}/api/v1/a2a/${providerId}`;
   const client = new A2AClient(agentUrl, {
     // TODO: workaround until the a2a-js bug is resolved https://github.com/a2aproject/a2a-js/issues/116
-    fetchImpl: typeof window !== 'undefined' ? window.fetch.bind(window) : null,
+    ...(typeof window !== 'undefined' && { fetchImpl: window.fetch.bind(window) }),
   });
 
   const chat = ({ message, contextId, fulfillments }: ChatParams) => {
