@@ -17,7 +17,7 @@ dependencies = [
     "jsonref~=1.1.0",
     "inquirerpy~=0.3.4",
     "psutil~=7.0.0",
-    "a2a-sdk~=0.3.1",
+    "a2a-sdk", # version determined by beeai-sdk
     "tenacity~=9.1.2",
     "typer~=0.16.0",
     "pyyaml>=6.0.2",
