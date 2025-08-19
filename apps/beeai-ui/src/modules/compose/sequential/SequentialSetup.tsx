@@ -11,6 +11,7 @@ import { useFormState } from 'react-hook-form';
 import { TransitionLink } from '#components/TransitionLink/TransitionLink.tsx';
 import { VersionTag } from '#components/VersionTag/VersionTag.tsx';
 import type { Agent } from '#modules/agents/api/types.ts';
+import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 import { NewSessionButton } from '#modules/runs/components/NewSessionButton.tsx';
 import { routes } from '#utils/router.ts';
 
@@ -29,6 +30,7 @@ export function SequentialSetup() {
     status,
     stepsFields: { append, fields },
   } = useCompose();
+  const { contextId } = usePlatformContext();
   const { isValid } = useFormState<SequentialFormValues>();
 
   const isReady = status === ComposeStatus.Ready;
@@ -91,7 +93,7 @@ export function SequentialSetup() {
               kind="primary"
               size="md"
               iconDescription="Send"
-              disabled={isPending || !isValid || !fields.length}
+              disabled={isPending || !isValid || !fields.length || !contextId}
             >
               Run
             </Button>
