@@ -1,5 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
+import base64
+import struct
 from typing import Annotated, Literal
 
 import fastapi
@@ -10,6 +12,7 @@ import openai.types
 import pydantic
 from fastapi import Depends
 from fastapi.concurrency import run_in_threadpool
+from openai.types.create_embedding_response import CreateEmbeddingResponse
 
 from beeai_server.api.dependencies import EnvServiceDependency, RequiresPermissions
 from beeai_server.domain.models.permissions import AuthorizedUser
@@ -26,7 +29,11 @@ class EmbeddingsRequest(pydantic.BaseModel):
 
     model: str
     input: list[str] | str
-    encoding_format: Literal["float"] | None = None
+    encoding_format: Literal["float", "base64"] | None = None
+
+
+class MultiformatEmbedding(openai.types.Embedding):
+    embedding: str | list[float]
 
 
 @router.post("/embeddings")
@@ -40,7 +47,6 @@ async def create_embedding(
     assert backend_url.host
 
     if backend_url.host.endswith("api.voyageai.com"):
-        # Voyage does not support 'float' value: https://docs.voyageai.com/reference/embeddings-api
         request.encoding_format = None if request.encoding_format == "float" else request.encoding_format
 
     if backend_url.host.endswith(".ml.cloud.ibm.com"):
@@ -53,14 +59,21 @@ async def create_embedding(
             ).generate,
             inputs=[request.input] if isinstance(request.input, str) else request.input,
         )
+
         return openai.types.CreateEmbeddingResponse(
             object="list",
             model=watsonx_response["model_id"],
             data=[
-                openai.types.Embedding(
+                MultiformatEmbedding(
                     object="embedding",
                     index=i,
-                    embedding=result["embedding"],
+                    embedding=(
+                        base64.b64encode(struct.pack(f"<{len(result['embedding'])}f", *result["embedding"])).decode(
+                            "utf-8"
+                        )
+                        if request.encoding_format == "base64"
+                        else result["embedding"]
+                    ),
                 )
                 for i, result in enumerate(watsonx_response.get("results", []))
             ],
@@ -70,16 +83,24 @@ async def create_embedding(
             ),
         ).model_dump(mode="json") | {"beeai_proxy_version": BEEAI_PROXY_VERSION}
     else:
-        return (
-            await openai.AsyncOpenAI(
-                api_key=env["EMBEDDING_API_KEY"],
-                base_url=str(backend_url),
-                default_headers=(
-                    {"RITS_API_KEY": env["EMBEDDING_API_KEY"]}
-                    if backend_url.host.endswith(".rits.fmaas.res.ibm.com")
-                    else {}
-                ),
-            ).embeddings.create(
-                **(request.model_dump(mode="json", exclude_none=True) | {"model": env["EMBEDDING_MODEL"]})
-            )
-        ).model_dump(mode="json") | {"beeai_proxy_version": BEEAI_PROXY_VERSION}
+        result: CreateEmbeddingResponse = await openai.AsyncOpenAI(
+            api_key=env["EMBEDDING_API_KEY"],
+            base_url=str(backend_url),
+            default_headers=(
+                {"RITS_API_KEY": env["EMBEDDING_API_KEY"]}
+                if backend_url.host.endswith(".rits.fmaas.res.ibm.com")
+                else {}
+            ),
+        ).embeddings.create(**(request.model_dump(mode="json", exclude_none=True) | {"model": env["EMBEDDING_MODEL"]}))
+        if request.encoding_format == "base64":
+            result.data = [
+                MultiformatEmbedding(
+                    object="embedding",
+                    index=embedding.index,
+                    embedding=base64.b64encode(
+                        struct.pack(f"<{len(embedding.embedding)}f", *embedding.embedding)
+                    ).decode("utf-8"),
+                )
+                for embedding in result.data
+            ]
+        return result.model_dump(mode="json") | {"beeai_proxy_version": BEEAI_PROXY_VERSION}
