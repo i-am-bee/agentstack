@@ -18,8 +18,8 @@
     font-size: rem(80px);
     line-height: math.div(90, 80);
     font-weight: 100;
-    white-space: nowrap;
     margin: 0;
+    max-inline-size: rem(860px);
   }
 }
 
@@ -43,16 +43,12 @@
   }
 }
 
-@include breakpoint-down(lg) {
-  .root {
-    h1 {
-      font-size: 7vw;
-    }
-  }
-}
 @include breakpoint-down(md) {
   .infoContent {
     grid-column: 2 / -2;
+  }
+  .headline h1 {
+    font-size: 13vw;
   }
 }
 @include breakpoint-down(sm) {

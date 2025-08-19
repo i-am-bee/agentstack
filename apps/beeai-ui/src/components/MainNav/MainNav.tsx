@@ -43,24 +43,29 @@ export interface MainNavItem {
 }
 
 function MainNavItem({ item: { label, href, Icon, isExternal, isActive, disabled } }: { item: MainNavItem }) {
-  const linkProps = isExternal ? { target: '_blank', rel: 'noreferrer' } : null;
+  const linkProps = { href, className: classes.link };
+  const content = (
+    <>
+      {label}
+
+      {Icon && <Icon />}
+    </>
+  );
 
   return (
     <li className={clsx({ [classes.active]: isActive })}>
       {disabled ? (
         <Tooltip asChild content={disabled.tooltip}>
           <Button kind="ghost" disabled className={classes.link}>
-            {label}
-
-            {Icon && <Icon />}
+            {content}
           </Button>
         </Tooltip>
+      ) : isExternal ? (
+        <a {...linkProps} target="_blank" rel="noreferrer">
+          {content}
+        </a>
       ) : (
-        <TransitionLink {...linkProps} href={href} className={classes.link}>
-          {label}
-
-          {Icon && <Icon />}
-        </TransitionLink>
+        <TransitionLink {...linkProps}>{content}</TransitionLink>
       )}
     </li>
   );
