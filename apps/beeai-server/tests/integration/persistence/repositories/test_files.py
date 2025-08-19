@@ -42,6 +42,7 @@ async def test_file(test_user_id: uuid.UUID) -> File:
     return File(
         filename="test_file.txt",
         file_size_bytes=1024,
+        content_type="text/plain",
         created_by=test_user_id,
     )
 
@@ -50,6 +51,7 @@ def db_file_for(user_id: uuid.UUID, filename: str = "test_file.txt", file_size_b
     return {
         "id": uuid.uuid4(),
         "filename": filename,
+        "content_type": "text/plain",
         "file_size_bytes": file_size_bytes,
         "file_type": "user_upload",
         "created_at": utc_now(),
@@ -64,8 +66,8 @@ async def db_test_file(db_transaction: AsyncConnection, test_user_id: uuid.UUID)
     # Insert file directly into database
     await db_transaction.execute(
         text(
-            "INSERT INTO files (id, filename, file_size_bytes, file_type, created_at, created_by) "
-            "VALUES (:id, :filename, :file_size_bytes, :file_type, :created_at, :created_by)"
+            "INSERT INTO files (id, filename, content_type, file_size_bytes, file_type, created_at, created_by) "
+            "VALUES (:id, :filename, :content_type, :file_size_bytes, :file_type, :created_at, :created_by)"
         ),
         file_data,
     )
@@ -102,6 +104,7 @@ async def test_get_file(db_transaction: AsyncConnection, db_test_file: dict[str,
     # Verify file
     assert file.id == db_test_file["id"]
     assert file.filename == db_test_file["filename"]
+    assert file.content_type == db_test_file["content_type"]
     assert file.file_size_bytes == db_test_file["file_size_bytes"]
     assert str(file.created_by) == str(db_test_file["created_by"])
 
@@ -117,6 +120,7 @@ async def test_get_file_by_user(db_transaction: AsyncConnection, db_test_file: d
     # Verify file
     assert file.id == db_test_file["id"]
     assert file.filename == db_test_file["filename"]
+    assert file.content_type == db_test_file["content_type"]
     assert file.file_size_bytes == db_test_file["file_size_bytes"]
     assert str(file.created_by) == str(db_test_file["created_by"])
 
@@ -207,8 +211,8 @@ async def test_list_files(db_transaction: AsyncConnection, test_user_id: uuid.UU
     for file_data in user_files + other_user_files:
         await db_transaction.execute(
             text(
-                "INSERT INTO files (id, filename, file_size_bytes, file_type, created_at, created_by) "
-                "VALUES (:id, :filename, :file_size_bytes, :file_type, :created_at, :created_by)"
+                "INSERT INTO files (id, filename, content_type, file_size_bytes, file_type, created_at, created_by) "
+                "VALUES (:id, :filename, :content_type, :file_size_bytes, :file_type, :created_at, :created_by)"
             ),
             file_data,
         )
@@ -223,6 +227,7 @@ async def test_list_files(db_transaction: AsyncConnection, test_user_id: uuid.UU
     for file_data in user_files:
         assert file_data["id"] in user_files_list
         assert user_files_list[file_data["id"]].filename == file_data["filename"]
+        assert user_files_list[file_data["id"]].content_type == file_data["content_type"]
         assert user_files_list[file_data["id"]].file_size_bytes == file_data["file_size_bytes"]
         assert str(user_files_list[file_data["id"]].created_by) == str(file_data["created_by"])
 
@@ -258,8 +263,8 @@ async def test_total_usage(db_transaction: AsyncConnection, test_user_id: uuid.U
     for file_data in user_files + other_user_files:
         await db_transaction.execute(
             text(
-                "INSERT INTO files (id, filename, file_size_bytes, file_type, created_at, created_by) "
-                "VALUES (:id, :filename, :file_size_bytes, :file_type, :created_at, :created_by)"
+                "INSERT INTO files (id, filename, content_type, file_size_bytes, file_type, created_at, created_by) "
+                "VALUES (:id, :filename, :content_type, :file_size_bytes, :file_type, :created_at, :created_by)"
             ),
             file_data,
         )

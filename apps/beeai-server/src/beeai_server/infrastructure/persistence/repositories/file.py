@@ -33,6 +33,7 @@ files_table = Table(
     metadata,
     Column("id", SQL_UUID, primary_key=True),
     Column("filename", String(256), nullable=False),
+    Column("content_type", String(256), nullable=False),
     Column("file_size_bytes", Integer, nullable=True),
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("created_by", ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
@@ -66,6 +67,7 @@ class SqlAlchemyFileRepository(IFileRepository):
         query = files_table.insert().values(
             id=file.id,
             filename=file.filename,
+            content_type=file.content_type,
             created_at=file.created_at,
             created_by=file.created_by,
             file_size_bytes=file.file_size_bytes,
@@ -80,6 +82,7 @@ class SqlAlchemyFileRepository(IFileRepository):
             {
                 "id": row.id,
                 "filename": row.filename,
+                "content_type": row.content_type,
                 "created_at": row.created_at,
                 "created_by": row.created_by,
                 "file_size_bytes": row.file_size_bytes,

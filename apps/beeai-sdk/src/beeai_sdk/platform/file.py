@@ -31,6 +31,7 @@ class Extraction(pydantic.BaseModel):
 class File(pydantic.BaseModel):
     id: str
     filename: str
+    content_type: str
     file_size_bytes: int
     created_at: pydantic.AwareDatetime
     created_by: str
@@ -122,7 +123,7 @@ class File(pydantic.BaseModel):
                 response.raise_for_status()
                 if not stream:
                     await response.aread()
-                yield LoadedFileWithUri(response=response, filename=file.filename)
+                yield LoadedFileWithUri(response=response, content_type=file.content_type, filename=file.filename)
 
     @asynccontextmanager
     async def load_text_content(
@@ -147,7 +148,7 @@ class File(pydantic.BaseModel):
                 response.raise_for_status()
                 if not stream:
                     await response.aread()
-                yield LoadedFileWithUri(response=response, filename=file.filename)
+                yield LoadedFileWithUri(response=response, content_type=file.content_type, filename=file.filename)
 
     async def create_extraction(
         self: File | str,

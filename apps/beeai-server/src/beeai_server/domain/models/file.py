@@ -43,6 +43,7 @@ class AsyncFile(BaseModel):
 class File(BaseModel):
     id: UUID = Field(default_factory=uuid4)
     filename: str
+    content_type: str = Field(max_length=256)
     file_size_bytes: int | None = None
     created_at: AwareDatetime = Field(default_factory=utc_now)
     created_by: UUID
