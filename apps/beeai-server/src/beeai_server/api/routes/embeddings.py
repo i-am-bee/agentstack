@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 import base64
 import struct
-from typing import Annotated, Literal
+import typing
 
 import fastapi
 import ibm_watsonx_ai
@@ -29,18 +29,22 @@ class EmbeddingsRequest(pydantic.BaseModel):
 
     model: str
     input: list[str] | str
-    encoding_format: Literal["float", "base64"] | None = None
+    encoding_format: typing.Literal["float", "base64"] | None = None
 
 
 class MultiformatEmbedding(openai.types.Embedding):
     embedding: str | list[float]
 
 
+def _float_list_to_base64(embedding: list[float]) -> str:
+    return base64.b64encode(struct.pack(f"<{len(embedding)}f", *embedding)).decode("utf-8")
+
+
 @router.post("/embeddings")
 async def create_embedding(
     env_service: EnvServiceDependency,
     request: EmbeddingsRequest,
-    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(embeddings={"*"}))],
+    _: typing.Annotated[AuthorizedUser, Depends(RequiresPermissions(embeddings={"*"}))],
 ):
     env = await env_service.list_env()
     backend_url = pydantic.HttpUrl(env["EMBEDDING_API_BASE"])
@@ -68,11 +72,9 @@ async def create_embedding(
                     object="embedding",
                     index=i,
                     embedding=(
-                        base64.b64encode(struct.pack(f"<{len(result['embedding'])}f", *result["embedding"])).decode(
-                            "utf-8"
-                        )
+                        _float_list_to_base64(result["embedding"])
                         if request.encoding_format == "base64"
-                        else result["embedding"]
+                        else typing.cast(list[float], result["embedding"])
                     ),
                 )
                 for i, result in enumerate(watsonx_response.get("results", []))
@@ -92,14 +94,14 @@ async def create_embedding(
                 else {}
             ),
         ).embeddings.create(**(request.model_dump(mode="json", exclude_none=True) | {"model": env["EMBEDDING_MODEL"]}))
-        if request.encoding_format == "base64":
+        # Despite the typing, OpenAI library does return str embeddings when base64 is requested
+        # However, some providers, like Ollama, silently don't support base64, so we have to convert
+        if request.encoding_format == "base64" and isinstance(result.data[0].embedding, list):
             result.data = [
                 MultiformatEmbedding(
                     object="embedding",
                     index=embedding.index,
-                    embedding=base64.b64encode(
-                        struct.pack(f"<{len(embedding.embedding)}f", *embedding.embedding)
-                    ).decode("utf-8"),
+                    embedding=_float_list_to_base64(embedding.embedding),
                 )
                 for embedding in result.data
             ]
