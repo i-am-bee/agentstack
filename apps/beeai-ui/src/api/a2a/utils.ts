@@ -101,7 +101,7 @@ export function getFileUrl(file: FilePart['file']): string {
   if (isUriFile) {
     const url = file.uri;
     if (url.startsWith(PLATFORM_FILE_CONTENT_URL_BASE)) {
-      const fileId = url.substring(PLATFORM_FILE_CONTENT_URL_BASE.length);
+      const fileId = url.replace(PLATFORM_FILE_CONTENT_URL_BASE, '');
       return getFileContentUrl(fileId);
     }
     return url;
