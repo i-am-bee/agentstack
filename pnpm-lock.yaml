@@ -63,8 +63,8 @@ importers:
   apps/beeai-ui:
     dependencies:
       '@a2a-js/sdk':
-        specifier: ^0.3.1
-        version: 0.3.1(express@4.21.2)
+        specifier: ^0.3.2
+        version: 0.3.2(express@4.21.2)
       '@bprogress/next':
         specifier: ^3.2.10
         version: 3.2.10(next@15.3.4(@babel/core@7.26.9)(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sass@1.85.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -427,8 +427,8 @@ importers:
 
 packages:
 
-  '@a2a-js/sdk@0.3.1':
-    resolution: {integrity: sha512-U0Si7N05hgsl1BUAOMzEmBbpXCs+ba7McAv1FUTfv6eiw0ubE7d9iyjmE/8RS7dsMD/F7Yf3yoWFqr08YawROw==}
+  '@a2a-js/sdk@0.3.2':
+    resolution: {integrity: sha512-maqxdZ/xeuSRywObfBTvwXbXvkDMmKVkiY8K9rCHDwm0QYUJuu512GnNrwuxkKTwXpNyByzEPg3RYfBveRl96w==}
     engines: {node: '>=18'}
     peerDependencies:
       express: ^4.21.2
@@ -6681,7 +6681,7 @@ packages:
 
 snapshots:
 
-  '@a2a-js/sdk@0.3.1(express@4.21.2)':
+  '@a2a-js/sdk@0.3.2(express@4.21.2)':
     dependencies:
       uuid: 11.1.0
     optionalDependencies:
