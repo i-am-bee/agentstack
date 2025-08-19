@@ -48,7 +48,7 @@
     grid-column: 2 / -2;
   }
   .headline h1 {
-    font-size: clamp(3rem, 13vw, rem(80px));
+    font-size: clamp(rem(48px), 13vw, rem(80px));
   }
 }
 @include breakpoint-down(sm) {
