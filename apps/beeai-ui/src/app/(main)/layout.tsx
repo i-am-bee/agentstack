@@ -3,15 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import '../styles/style.scss';
+import '#styles/style.scss';
 
 import type { Metadata } from 'next';
 
 import { AppLayout } from '#components/layouts/AppLayout.tsx';
+import Providers from '#providers.tsx';
 import { APP_FAVICON_SVG, APP_NAME, BASE_PATH } from '#utils/constants.ts';
 import { parseFeatureFlags } from '#utils/feature-flags.ts';
-
-import Providers from './providers';
 
 const darkModeScript = `
 (() => {
