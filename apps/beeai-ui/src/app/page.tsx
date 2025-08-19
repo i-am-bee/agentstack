@@ -11,6 +11,7 @@ import EntityNotFound from '#components/EntityNotFound/EntityNotFound.tsx';
 import { ErrorPage } from '#components/ErrorPage/ErrorPage.tsx';
 import { buildAgent, isAgentUiSupported, sortAgentsByName } from '#modules/agents/utils.ts';
 import { listProviders } from '#modules/providers/api/index.ts';
+import { OIDC_ENABLED } from '#utils/constants.ts';
 import { routes } from '#utils/router.ts';
 
 // Prevent static render, the API is not available at build time
@@ -18,12 +19,11 @@ export const dynamic = 'force-dynamic';
 
 export default async function LandingPage() {
   let firstAgentName;
-  const session = await auth();
-  const isOidcDisabled = process.env.NEXT__DISABLE_OIDC === 'true';
-  if (!session?.user) {
-    await connection();
-    // only force login if oidc is enabled.
-    if (!isOidcDisabled) {
+  if (OIDC_ENABLED) {
+    const session = await auth();
+    if (!session?.user) {
+      await connection();
+      // only force login if oidc is enabled.
       redirect(routes.login());
     }
   }

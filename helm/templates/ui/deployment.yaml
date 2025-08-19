@@ -71,9 +71,11 @@ spec:
                 secretKeyRef:
                   key: authSecret
                   name: beeai-next-auth
-          {{- else}}
-            - name: NEXT__DISABLE_OIDC
+            - name: OIDC_ENABLED
               value: "true"
+          {{- else}}
+            - name: OIDC_ENABLED
+              value: "false"
           {{- end }}
           volumeMounts:
             {{- with .Values.ui.volumeMounts }}

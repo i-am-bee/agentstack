@@ -9,6 +9,7 @@ import type { Provider } from 'next-auth/providers';
 import Credentials from 'next-auth/providers/credentials';
 
 import { ProviderList } from '#app/auth/providers/providerlist.ts';
+import { OIDC_ENABLED } from '#utils/constants.ts';
 
 let provider_list: {
   id: string;
@@ -19,7 +20,7 @@ let provider_list: {
   client_secret: string;
   nextauth_redirect_proxy_url: string;
 }[] = [];
-if (!process.env.NEXT__DISABLE_OIDC) {
+if (OIDC_ENABLED) {
   const rootPath = process.env.OIDC__PROVIDERS_PATH || './providers';
   try {
     provider_list = JSON.parse(await readFile(`${rootPath}/providers.json`, 'utf8'));
@@ -143,8 +144,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     // middleware callback
     authorized({ request, auth }) {
       // essentially return !!auth
-      const isOidcDisabled = process.env.NEXT__DISABLE_OIDC === 'true';
-      if (isOidcDisabled) {
+      const isOidcEnabled = process.env.OIDC_ENABLED === 'true';
+      if (!isOidcEnabled) {
         return true;
       }
       const { pathname } = request.nextUrl;
