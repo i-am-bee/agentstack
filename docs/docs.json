@@ -25,6 +25,7 @@
           "/build-agents/llm-access",
           "/build-agents/agent-details",
           "/build-agents/messages",
+          "/build-agents/files",
           "/build-agents/gui-components"
         ]
       },

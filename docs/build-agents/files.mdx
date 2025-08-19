@@ -1,4 +1,119 @@
 ---
 title: "Files"
-description: "TODO"
+description: "Learn how to handle file uploads from users and generate downloadable files as outputs in your agents."
 ---
+
+One of the most common use cases for AI agents is working with files. Your agent should be able to read files from user uploads and generate new files as outputs. The BeeAI platform makes this seamless through the A2A protocol's `FilePart`.
+
+## Quickstart
+
+<Steps>
+<Step title="Enable file uploads in your agent (optional)">
+Add the `default_input_modes` parameter to your agent decorator only if you want users to upload files to your agent. This specifies which file types users can upload.
+</Step>
+
+<Step title="Inject the Platform API extension">
+Import and use the `PlatformApiExtensionServer` to access file creation capabilities. This extension provides your agent with the proper context and authentication needed to use the BeeAI platform API for creating and managing files. If not provided, your agent will receive unauthorized responses when working with files.
+</Step>
+
+<Step title="Process uploaded files">
+Iterate through message parts to find `FilePart` objects and load their content using `load_file` helper.
+</Step>
+
+<Step title="Generate new files">
+Use the `File.create()` method to generate new files and yield them as `FilePart` objects.
+</Step>
+</Steps>
+
+## Example of File Processing
+
+Here's how to build an agent that can accept and modify files:
+
+```python
+import os
+
+from typing import Annotated
+
+from beeai_sdk.server import Server
+from beeai_sdk.a2a.types import Message
+from beeai_sdk.a2a.extensions.services.platform import (
+    PlatformApiExtensionServer,
+    PlatformApiExtensionSpec,
+)
+from beeai_sdk.platform import File
+from beeai_sdk.util.file import load_file
+
+
+server = Server()
+
+
+@server.agent(
+    default_input_modes=["text/plain"]
+)
+async def example_agent(
+    input: Message,
+    _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
+):
+    """Agent that can accept and modify files"""
+
+    for file_part in input.parts:
+        file_part_root = file_part.root
+
+        if file_part_root.kind == "file":
+            async with load_file(file_part_root) as loaded_content:
+                new_file = await File.create(
+                    filename=f"processed_{file_part_root.file.name}",
+                    content_type=file_part_root.file.mime_type,
+                    content=loaded_content.text.encode(),
+                )
+                yield new_file.to_file_part()
+
+    yield "File Processing Done"
+
+
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+
+if __name__ == "__main__":
+    run()
+```
+
+## How to work with files
+
+Here's what you need to know to add file processing capabilities to your agent:
+
+**Enable file uploads**: Add `default_input_modes` to your agent decorator with a list of MIME types you want to accept (e.g., `["text/plain", "application/pdf", "image/jpeg"]`).
+
+**Access the Platform API**: Import and use `PlatformApiExtensionServer` to get access to file manipulation capabilities.
+
+**Process message parts**: Iterate through `input.parts` to find FilePart objects that represent uploaded files.
+
+**Load file content**: Use `load_file()` with an async context manager to safely access file content.
+
+**Create new files**: Use `File.create()` to generate new files with custom names, content types, and content.
+
+**Yield file outputs**: The `File` object created by the SDK can be easily converted to a `FilePart` using the `to_file_part()` method and then yielded as agent outputs.
+
+## File Upload Configuration
+
+The `default_input_modes` parameter controls which file types users can upload:
+
+```python
+@server.agent(
+    default_input_modes=[
+        "text/plain",           # Plain text files
+        "application/pdf",      # PDF documents
+        "image/jpeg",           # JPEG images
+        "image/png",            # PNG images
+        "application/json",     # JSON files
+        "text/csv"              # CSV files
+    ]
+)
+```
+
+Common MIME types you might want to support:
+- **Text files**: `text/plain`, `text/markdown`, `text/csv`
+- **Documents**: `application/pdf`, `application/msword`, `application/vnd.openxmlformats-officedocument.wordprocessingml.document`
+- **Images**: `image/jpeg`, `image/png`, `image/gif`, `image/svg+xml`
+- **Data**: `application/json`, `application/xml`, `text/xml`
