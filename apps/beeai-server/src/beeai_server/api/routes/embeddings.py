@@ -96,7 +96,7 @@ async def create_embedding(
         ).embeddings.create(**(request.model_dump(mode="json", exclude_none=True) | {"model": env["EMBEDDING_MODEL"]}))
         # Despite the typing, OpenAI library does return str embeddings when base64 is requested
         # However, some providers, like Ollama, silently don't support base64, so we have to convert
-        if request.encoding_format == "base64" and isinstance(result.data[0].embedding, list):
+        if request.encoding_format == "base64" and result.data and isinstance(result.data[0].embedding, list):
             result.data = [
                 MultiformatEmbedding(
                     object="embedding",
