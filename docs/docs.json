@@ -22,6 +22,7 @@
         "group": "Build Your Own Agent",
         "pages": [
           "/build-agents/hello-world",
+          "/build-agents/llm-access",
           "/build-agents/agent-details",
           "/build-agents/messages",
           "/build-agents/gui-components"

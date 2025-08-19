@@ -1,0 +1,119 @@
+---
+title: "LLM Access"
+description: "Learn how to request and use LLM access within your agent"
+---
+
+When building AI agents, one of the first requirements you might have is to connect your agent to a Large Language Model (LLM). Fortunately, the BeeAI platform helps with this by providing built-in OpenAI-compatible LLM inference.
+
+The platform's OpenAI endpoints are model and provider agnostic, serving as a proxy to whatever is configured.
+
+For you as an agent builder, the usage is extremely simple because we've wrapped the usage into a Service Extension.
+
+<Tip>
+Service Extensions are a type of [A2A Extension](https://a2a-protocol.org/latest/topics/extensions/) that allows you to easily "inject dependencies" into your agent. This follows the inversion of control principle where your agent defines what it needs, and the platform (in this case, BeeAI) is responsible for providing those dependencies.
+</Tip>
+
+## Quickstart
+
+<Steps>
+<Step title="Add LLM service extension to your agent">
+Import the necessary components and add the LLM service extension to your agent function.
+</Step>
+
+<Step title="Configure your LLM request">
+Specify which model your agent prefer and how you want to access it.
+</Step>
+
+<Step title="Use the LLM in your agent">
+Access the LLM configuration and use it with your preferred LLM client.
+</Step>
+</Steps>
+
+## Example of LLM Access
+
+Here's how to add LLM inference capabilities to your agent:
+
+```python
+import os
+from typing import Annotated
+
+from a2a.types import Message
+from a2a.utils.message import get_message_text
+from beeai_sdk.server import Server
+from beeai_sdk.a2a.types import AgentMessage
+from beeai_sdk.a2a.extensions import LLMServiceExtensionServer, LLMServiceExtensionSpec
+
+server = Server()
+
+@server.agent()
+async def example_agent(
+    input: Message,
+    llm: Annotated[
+        LLMServiceExtensionServer,
+        LLMServiceExtensionSpec.single_demand(suggested=("ibm/granite-3-3-8b-instruct",))
+    ],
+):
+    """Agent that uses LLM inference to respond to user input"""
+    
+    # Extract the user's message
+    user_message = get_message_text(input)
+    
+    # Get LLM configuration
+    # Single demand is resolved to default (unless specified otherwise)
+    llm_config = llm.data.llm_fulfillments.get("default")
+    
+    # Use the LLM configuration with your preferred client
+    # The platform provides OpenAI-compatible endpoints
+    api_model = llm_config.api_model
+    api_key = llm_config.api_key
+    api_base = llm_config.api_base
+
+    yield AgentMessage(text=f"LLM access configured for model: {api_model}")
+
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+if __name__ == "__main__":
+    run()
+```
+
+## How to request LLM access
+
+Here's what you need to know to add LLM inference capabilities to your agent:
+
+**Import the extension**: Import `LLMServiceExtensionServer` and `LLMServiceExtensionSpec` from `beeai_sdk.a2a.extensions`.
+
+**Add the LLM parameter**: Add a third parameter to your agent function with the `Annotated` type hint for LLM access.
+
+**Specify your model requirements**: Use `LLMServiceExtensionSpec.single_demand()` to request a single model (multiple models will be supported in the future).
+
+**Suggest a preferred model**: Pass a tuple of suggested model names to help the platform choose the best available option.
+
+**Access LLM configuration**: Use `llm.data.llm_fulfillments.get("default")` to get the LLM configuration details.
+
+**Use with your LLM client**: The platform provides `api_model`, `api_key`, and `api_base` that work with OpenAI-compatible clients.
+
+## Understanding LLM Configuration
+
+The platform automatically provides you with:
+
+- **`api_model`**: The specific model identifier that was allocated to your request
+- **`api_key`**: Authentication key for the LLM service
+- **`api_base`**: The base URL for the OpenAI-compatible API endpoint
+
+These credentials work with any OpenAI-compatible client library, making it easy to integrate with popular frameworks like:
+- BeeAI Framework
+- LangChain
+- LlamaIndex
+- OpenAI Python client
+- Custom implementations
+
+## Model Selection
+
+When you specify a suggested model like `"ibm/granite-3-3-8b-instruct"`, the platform will:
+
+1. Check if the requested model is available in your configured environment
+2. Allocate the best available model that matches your requirements
+3. Provide you with the exact model identifier and endpoint details
+
+The platform handles the complexity of model provisioning and endpoint management, so you can focus on building your agent logic.
