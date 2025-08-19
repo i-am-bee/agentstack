@@ -56,7 +56,7 @@ async def extract_files(history: list[Message], incoming_message: Message) -> li
                         file_ids.append(url.file_id)
 
     # TODO: N+1 query issue, add bulk endpoint
-    return await asyncio.gather(*(File.get(file_id) for file_id in seen))
+    return await asyncio.gather(*(File.get(file_id) for file_id in file_ids))
 
 
 def format_size(size: int | None) -> str:

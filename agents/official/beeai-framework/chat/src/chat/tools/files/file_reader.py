@@ -4,15 +4,11 @@
 from typing import List, Literal
 
 from beeai_framework.emitter import Emitter
-from beeai_framework.tools import (
-    JSONToolOutput,
-    Tool,
-    ToolRunOptions,
-)
+from beeai_framework.tools import JSONToolOutput, Tool, ToolRunOptions
+from chat.tools.files.model import FileChatInfo
 from pydantic import BaseModel, Field, create_model
 
-from chat.helpers.platform import read_file
-from chat.tools.files.model import FileChatInfo
+from beeai_sdk.platform import File
 from chat.tools.files.utils import format_size
 
 
@@ -33,22 +29,24 @@ class FileReadInputBase(BaseModel):
     filenames: List[str]
 
 
-def create_file_reader_tool_class(files: list[FileChatInfo]) -> type[Tool]:
+def create_file_reader_tool_class(
+    files: list[FileChatInfo],
+) -> type[Tool[BaseModel, ToolRunOptions, FileReaderToolOutput]]:
     """
     Dynamically creates a FileReaderTool class with a schema tailored to the provided files.
-    
+
     This function generates a tool that can only read from the specific files that were provided,
-    preventing small LLMs from hallucinating non-existent filenames. The input schema is 
+    preventing small LLMs from hallucinating non-existent filenames. The input schema is
     dynamically constructed using Pydantic's create_model to include only valid file options.
-    
+
     Args:
         files: List of FileChatInfo objects representing available files for reading.
                Each file contains metadata like display_filename, content_type, and size.
-    
+
     Returns:
         A Tool class configured to read only from the provided files. The tool's input
         schema will restrict filename selection to only the files in the provided list.
-        
+
     Behavior:
         - If files are provided: Creates a tool with Literal type constraints for filenames
         - If no files provided: Creates a tool that returns a "no files available" message
@@ -59,7 +57,7 @@ def create_file_reader_tool_class(files: list[FileChatInfo]) -> type[Tool]:
 
     if len(files):
         file_descriptions = "\n".join(
-            f"- `{file.display_filename}`[{file.origin_type.value}]: {file.content_type or 'unknown type'}, {format_size(file.file_size_bytes)}"
+            f"- `{file.file.filename}`[{file.origin_type}]: {file.file.content_type}, {format_size(file.file.file_size_bytes)}"
             for file in files
         )
 
@@ -98,46 +96,36 @@ def create_file_reader_tool_class(files: list[FileChatInfo]) -> type[Tool]:
             self.files = files
             self.files_dict = {file.display_filename: file for file in files}
 
-        async def _run(
-            self, input: FileReadInputBase, options, context
-        ) -> FileReaderToolOutput:
-
+        async def _run(self, input: FileReadInputBase, options, context) -> FileReaderToolOutput:
             if len(input.filenames) == 1 and input.filenames[0] == "__None__":
                 return FileReaderToolOutput(
-                    result=FileReaderToolResult(
-                        file_contents={"__None__": "There are no files to read at the moment."}
-                    )
+                    result=FileReaderToolResult(file_contents={"__None__": "There are no files to read at the moment."})
                 )
 
             file_contents = {}
-            
+
             for filename in input.filenames:
                 # validate that the filename is one of the provided files
                 if filename not in self.files_dict:
                     raise ValueError(
-                        f"Invalid file name: {filename}. "
-                        f"Expected one of: {', '.join(self.files_dict.keys())}."
+                        f"Invalid file name: {filename}. Expected one of: {', '.join(self.files_dict.keys())}."
                     )
 
                 # get the FileInfo object for the requested file
                 file_info = self.files_dict[filename]
 
                 # pull the first (only) MessagePart from the async-generator
-                content, content_type = await read_file(file_info.url)
+                async with File.load_content(file_info.file.id) as file:
+                    content = file.text
                 if content is None:
                     raise ValueError(f"File content is None for {filename}.")
-                
+
                 file_contents[filename] = content
 
             # wrap it in the expected output object
-            return FileReaderToolOutput(
-                result=FileReaderToolResult(file_contents=file_contents)
-            )
+            return FileReaderToolOutput(result=FileReaderToolResult(file_contents=file_contents))
 
         def _create_emitter(self) -> Emitter:
-            return Emitter.root().child(
-                namespace=["tool", "file_reader"],
-                creator=self,
-            )
+            return Emitter.root().child(namespace=["tool", "file_reader"], creator=self)
 
-    return _FileReaderTool  # type: ignore[return-value]
+    return _FileReaderTool

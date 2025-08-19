@@ -273,9 +273,9 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = "~=0.1.35" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = "~=0.1.36" },
     { name = "beeai-sdk", editable = "../../../../apps/beeai-sdk" },
-    { name = "openinference-instrumentation-beeai", specifier = ">=0.1.7" },
+    { name = "openinference-instrumentation-beeai", specifier = ">=0.1.8" },
     { name = "pydantic-settings", specifier = ">=2.9.0" },
     { name = "uvicorn", specifier = ">=0.35.0" },
 ]

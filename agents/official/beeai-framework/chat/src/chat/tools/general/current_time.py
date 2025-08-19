@@ -15,9 +15,7 @@ class CurrentTimeToolInput(BaseModel):
 
 class CurrentTimeTool(Tool[CurrentTimeToolInput]):
     name: str = "current_time"
-    description: str = (
-        "Get current date and time. ALWAYS Use first for questions about recent events or temporal references like 'last', 'today', 'this year'."
-    )
+    description: str = "Get current date and time. ALWAYS Use first for questions about recent events or temporal references like 'last', 'today', 'this year'."
 
     @property
     def input_schema(self) -> type[CurrentTimeToolInput]:
@@ -33,7 +31,4 @@ class CurrentTimeTool(Tool[CurrentTimeToolInput]):
         return StringToolOutput(current_time_readable)
 
     def _create_emitter(self) -> Emitter:
-        return Emitter.root().child(
-            namespace=["tool", "current_time"],
-            creator=self,
-        )
+        return Emitter.root().child(namespace=["tool", "current_time"], creator=self)

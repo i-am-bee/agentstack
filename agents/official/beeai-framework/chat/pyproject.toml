@@ -28,3 +28,7 @@ requires = [
     "hatchling",
 ]
 build-backend = "hatchling.build"
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"

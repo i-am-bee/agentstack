@@ -3,17 +3,12 @@
 import logging
 import os
 from typing import Annotated
-import uuid
 from collections import defaultdict
 from textwrap import dedent
 
 from a2a.types import (
     AgentSkill,
-    Artifact,
-    FilePart,
-    FileWithUri,
     Message,
-    Part,
 )
 from beeai_framework.adapters.openai import OpenAIChatModel
 from beeai_framework.agents.experimental import (
@@ -40,8 +35,11 @@ from beeai_sdk.a2a.extensions import (
     CitationExtensionSpec,
     TrajectoryExtensionServer,
     TrajectoryExtensionSpec,
+    LLMServiceExtensionServer,
+    LLMServiceExtensionSpec,
 )
-from beeai_sdk.a2a.types import AgentMessage
+from beeai_sdk.a2a.extensions.services.platform import PlatformApiExtensionServer, PlatformApiExtensionSpec
+from beeai_sdk.a2a.types import AgentMessage, AgentArtifact
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import RunContext
 from chat.tools.general.current_time import CurrentTimeTool
@@ -79,7 +77,7 @@ server = Server()
 
 
 @server.agent(
-    name="Chat",
+    name="Chat NEW",
     documentation_url=(
         f"https://github.com/i-am-bee/beeai-platform/blob/{os.getenv('RELEASE_VERSION', 'main')}"
         "/agents/official/beeai-framework/chat"
@@ -166,11 +164,13 @@ server = Server()
         )
     ],
 )
-async def chat(
+async def chat_new(
     message: Message,
     context: RunContext,
     trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
     citation: Annotated[CitationExtensionServer, CitationExtensionSpec()],
+    llm_ext: Annotated[LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand()],
+    _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
 ):
     """
     The agent is an AI-powered conversational system with memory, supporting real-time search, Wikipedia lookups,
@@ -184,17 +184,19 @@ async def chat(
         extracted_files
     )  # Dynamically created tool input schema based on real provided files ensures that small LLMs can't hallucinate the input
 
-    FinalAnswerTool.description = """Assemble and send the final answer to the user. When using information gathered from other tools that provided URL addresses, you MUST properly cite them using markdown citation format: [description](URL).
+    FinalAnswerTool.description = dedent("""\
+        Assemble and send the final answer to the user. When using information gathered from other tools that provided URL addresses, you MUST properly cite them using markdown citation format: [description](URL).
 
-# Citation Requirements:
-- Use descriptive text that summarizes the source content
-- Include the exact URL provided by the tool
-- Place citations inline where the information is referenced
+        # Citation Requirements:
+        - Use descriptive text that summarizes the source content
+        - Include the exact URL provided by the tool
+        - Place citations inline where the information is referenced
 
-# Examples:
-- According to [OpenAI's latest announcement](https://example.com/gpt5), GPT-5 will be released next year.
-- Recent studies show [AI adoption has increased by 67%](https://example.com/ai-study) in enterprise environments.
-- Weather data indicates [temperatures will reach 25°C tomorrow](https://weather.example.com/forecast)."""  # type: ignore
+        # Examples:
+        - According to [OpenAI's latest announcement](https://example.com/gpt5), GPT-5 will be released next year.
+        - Recent studies show [AI adoption has increased by 67%](https://example.com/ai-study) in enterprise environments.
+        - Weather data indicates [temperatures will reach 25°C tomorrow](https://weather.example.com/forecast).
+        """)  # type: ignore
 
     tools = [
         # Auxiliary tools
@@ -213,13 +215,68 @@ async def chat(
         ActAlwaysFirstRequirement(),  #  Enforces the ActTool to be used before any other tool execution.
     ]
 
+    llm_conf = None
+    if llm_ext and llm_ext.data:
+        [llm_conf] = llm_ext.data.llm_fulfillments.values()
+
     llm = OpenAIChatModel(
-        model_id=os.getenv("LLM_MODEL", "llama3.1"),
-        api_key=os.getenv("LLM_API_KEY", "dummy"),
-        base_url=os.getenv("LLM_API_BASE", "http://localhost:11434/v1"),
+        model_id=llm_conf.api_model if llm_conf else os.getenv("LLM_MODEL", "llama3.1"),
+        api_key=llm_conf.api_key if llm_conf else os.getenv("LLM_API_KEY", "dummy"),
+        base_url=llm_conf.api_base if llm_conf else os.getenv("LLM_API_BASE", "http://localhost:11434/v1"),
         parameters=ChatModelParameters(temperature=0.0),
         tool_choice_support=set(),
     )
+
+    # Build dynamic instructions based on available files
+    base_instructions = dedent(
+        """\
+        You are a helpful AI assistant built on the BeeAI framework. You have access to various tools and capabilities to assist users effectively.
+
+        ## Core Behavior Guidelines:
+        - Always be helpful, accurate, and concise in your responses
+        - Use the Act Tool before executing any other tools to ensure thoughtful reasoning
+        - When user requirements are unclear, use the Clarification Tool to ask specific questions
+        - Maintain conversation context and refer to previous messages when relevant
+
+        ## Tool Usage:
+        - **Act Tool**: Required before using any other tool - explain your reasoning and tool choice
+        - **Clarification Tool**: Ask clarifying questions when user intent is ambiguous
+        - **Web Search (DuckDuckGo)**: For real-time information, current events, and general web searches
+        - **Wikipedia Search**: For encyclopedic information and factual summaries
+        - **Weather Tool (OpenMeteo)**: For current weather conditions and forecasts
+        - **File Reader**: To read content from uploaded files (when available)
+        - **File Creator**: To create new files with specific content and metadata
+        - **Current Time**: For date and time information
+
+        ## Citation Requirements:
+        When using information from tools that provide URLs, you MUST cite sources using markdown format:
+        - Format: [descriptive text](URL)
+        - Place citations inline where information is referenced
+        - Use descriptive text that summarizes the source content
+
+        ## File Handling:
+        - When files are available, reference them by ID and filename
+        - Read file contents when users ask about uploaded documents
+        - Create files when users need downloadable content
+        {file_context}
+
+        ## Response Quality:
+        - Provide comprehensive, well-structured answers
+        - Break down complex topics into digestible sections
+        - Use appropriate formatting (headers, lists, code blocks) when helpful
+        - Always complete tasks fully before providing final answers
+        """
+    )
+
+    if extracted_files:
+        files_context = "\n\n## Currently Available Files:"
+        files_context += "\nThe user has uploaded the following files that you can access using the File Reader tool:"
+        for file in extracted_files:
+            files_context += f"\n- **{file.filename}** (ID: {file.id}) - Available at: {file.url}"
+        files_context += "\n\nWhen referencing these files, use their ID with the File Reader tool to access their content."
+        instructions = base_instructions.format(file_context=files_context)
+    else:
+        instructions = base_instructions.format(file_context="")
 
     # Create agent
     agent = RequirementAgent(
@@ -259,21 +316,9 @@ async def chat(
             if isinstance(last_step.output, FileCreatorToolOutput):
                 result = last_step.output.result
                 for file_info in result.files:
-                    yield Artifact(
-                        artifact_id=str(uuid.uuid4()),
-                        name=file_info.display_filename,
-                        parts=[
-                            Part(
-                                root=FilePart(
-                                    file=FileWithUri(
-                                        name=file_info.display_filename,
-                                        mime_type=file_info.content_type,
-                                        uri=str(file_info.url),
-                                    )
-                                )
-                            )
-                        ],
-                    )
+                    part = file_info.file.to_file_part()
+                    part.file.name = file_info.display_filename
+                    yield AgentArtifact(name=file_info.display_filename, parts=[part])
 
         if event.state.answer is not None:
             # Taking a final answer from the state directly instead of RequirementAgentRunOutput to be able to use the final answer provided by the clarification tool
