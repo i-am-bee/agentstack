@@ -11,7 +11,7 @@ import { getMessageRawContent } from '#modules/messages/utils.ts';
 import { isImageMimeType, isNotNull } from '#utils/helpers.ts';
 import { toMarkdownImage } from '#utils/markdown.ts';
 
-import { FILE_CONTENT_URL, FILE_CONTENT_URL_BASE } from './constants';
+import { FILE_CONTENT_URL } from './constants';
 
 export function parseFilename(filename: string) {
   const lastDotIndex = filename.lastIndexOf('.');
@@ -29,8 +29,8 @@ export function parseFilename(filename: string) {
   };
 }
 
-export function getFileContentUrl({ id, addBase }: { id: string; addBase?: boolean }) {
-  return `${addBase ? FILE_CONTENT_URL_BASE : ''}${FILE_CONTENT_URL.replace('{file_id}', id)}`;
+export function getFileContentUrl(id: string) {
+  return FILE_CONTENT_URL.replace('{file_id}', id);
 }
 
 export function convertFilesToUIFileParts(files: FileEntity[]): UIFilePart[] {
@@ -47,7 +47,7 @@ export function convertFilesToUIFileParts(files: FileEntity[]): UIFilePart[] {
         id,
         filename,
         type,
-        url: getFileContentUrl({ id }),
+        url: getFileContentUrl(id),
       } as UIFilePart;
     })
     .filter(isNotNull);

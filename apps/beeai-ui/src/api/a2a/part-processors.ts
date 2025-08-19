@@ -17,7 +17,7 @@ import {
   createTrajectoryPart,
   extractCitation,
   extractTrajectory,
-  getFileUri,
+  getFileUrl,
 } from './utils';
 
 export function processMessageMetadata(message: Message): UIMessagePart[] {
@@ -43,7 +43,7 @@ export function processFilePart(part: FilePart): UIMessagePart[] {
   const { file } = part;
   const { name, mimeType } = file;
   const id = uuid();
-  const url = getFileUri(file);
+  const url = getFileUrl(file);
 
   const filePart: UIFilePart = {
     kind: UIMessagePartKind.File,

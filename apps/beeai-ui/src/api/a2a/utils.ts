@@ -18,6 +18,7 @@ import { UIMessagePartKind } from '#modules/messages/types.ts';
 import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
+import { PLATFORM_FILE_CONTENT_URL_BASE } from './constants';
 import type { Citation } from './extensions/ui/citation';
 import { citationExtension } from './extensions/ui/citation';
 import type { TrajectoryMetadata } from './extensions/ui/trajectory';
@@ -54,7 +55,7 @@ export function convertMessageParts(uiParts: UIMessagePart[]): Part[] {
           return {
             kind: 'file',
             file: {
-              uri: getFileContentUrl({ id, addBase: true }),
+              uri: `${PLATFORM_FILE_CONTENT_URL_BASE}${id}`,
               name: filename,
               mimeType: type,
             },
@@ -94,11 +95,16 @@ export function isFileWithUri(file: FilePart['file']): file is FileWithUri {
   return 'uri' in file;
 }
 
-export function getFileUri(file: FilePart['file']): string {
+export function getFileUrl(file: FilePart['file']): string {
   const isUriFile = isFileWithUri(file);
 
   if (isUriFile) {
-    return file.uri;
+    const url = file.uri;
+    if (url.startsWith(PLATFORM_FILE_CONTENT_URL_BASE)) {
+      const fileId = url.substring(PLATFORM_FILE_CONTENT_URL_BASE.length);
+      return getFileContentUrl(fileId);
+    }
+    return url;
   }
 
   const { mimeType = 'text/plain', bytes } = file;
