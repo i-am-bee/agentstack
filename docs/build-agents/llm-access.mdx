@@ -13,6 +13,10 @@ For you as an agent builder, the usage is extremely simple because we've wrapped
 Service Extensions are a type of [A2A Extension](https://a2a-protocol.org/latest/topics/extensions/) that allows you to easily "inject dependencies" into your agent. This follows the inversion of control principle where your agent defines what it needs, and the platform (in this case, BeeAI) is responsible for providing those dependencies.
 </Tip>
 
+<Warning>
+Service extensions are optional by definition, so you should always check if they exist before using them.
+</Warning>
+
 ## Quickstart
 
 <Steps>
@@ -25,7 +29,7 @@ Specify which model your agent prefer and how you want to access it.
 </Step>
 
 <Step title="Use the LLM in your agent">
-Access the LLM configuration and use it with your preferred LLM client.
+Access the optionally provided LLM configuration and use it with your preferred LLM client.
 </Step>
 </Steps>
 
@@ -54,21 +58,22 @@ async def example_agent(
     ],
 ):
     """Agent that uses LLM inference to respond to user input"""
-    
-    # Extract the user's message
-    user_message = get_message_text(input)
-    
-    # Get LLM configuration
-    # Single demand is resolved to default (unless specified otherwise)
-    llm_config = llm.data.llm_fulfillments.get("default")
-    
-    # Use the LLM configuration with your preferred client
-    # The platform provides OpenAI-compatible endpoints
-    api_model = llm_config.api_model
-    api_key = llm_config.api_key
-    api_base = llm_config.api_base
 
-    yield AgentMessage(text=f"LLM access configured for model: {api_model}")
+    if llm:
+        # Extract the user's message
+        user_message = get_message_text(input)
+        
+        # Get LLM configuration
+        # Single demand is resolved to default (unless specified otherwise)
+        llm_config = llm.data.llm_fulfillments.get("default")
+        
+        # Use the LLM configuration with your preferred client
+        # The platform provides OpenAI-compatible endpoints
+        api_model = llm_config.api_model
+        api_key = llm_config.api_key
+        api_base = llm_config.api_base
+
+        yield AgentMessage(text=f"LLM access configured for model: {api_model}")
 
 def run():
     server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
@@ -88,6 +93,8 @@ Here's what you need to know to add LLM inference capabilities to your agent:
 **Specify your model requirements**: Use `LLMServiceExtensionSpec.single_demand()` to request a single model (multiple models will be supported in the future).
 
 **Suggest a preferred model**: Pass a tuple of suggested model names to help the platform choose the best available option.
+
+**Check if the extension exists**: Always verify that the LLM extension is provided before using it, as service extensions are optional.
 
 **Access LLM configuration**: Use `llm.data.llm_fulfillments.get("default")` to get the LLM configuration details.
 
