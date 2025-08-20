@@ -35,5 +35,6 @@
   color: $text-primary;
   text-decoration: none;
   max-inline-size: max-content;
+
   @include type-style('body-01');
 }

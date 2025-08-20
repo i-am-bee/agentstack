@@ -24,6 +24,8 @@
   }
   &:focus-visible {
     @include focus-outline('outline');
+
+    /* stylelint-disable-next-line no-duplicate-selectors */
     & {
       outline-offset: 0;
       border-radius: $spacing-02;

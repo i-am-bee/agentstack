@@ -27,6 +27,7 @@
   line-height: math.div(18, 14);
   font-weight: 600;
   letter-spacing: $letter-spacing;
+
   @at-root a#{&} {
     @include link-mask();
     color: inherit;

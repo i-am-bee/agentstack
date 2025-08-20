@@ -155,7 +155,6 @@ $dark: map.merge(
     ),
   )
 );
-
 @use '@carbon/styles/scss/components/tag/tokens' as tag-tokens with (
   $tag-color-cool-gray: (
     fallback: $black,
@@ -186,7 +185,6 @@ $dark: map.merge(
     ),
   )
 );
-
 @use '@carbon/styles/scss/components/notification/tokens' as notification-tokens with (
   $notification-background-error: (
     fallback: $red-10,

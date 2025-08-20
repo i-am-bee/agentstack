@@ -51,6 +51,7 @@
     font-size: clamp(rem(48px), 13vw, rem(80px));
   }
 }
+
 @include breakpoint-down(sm) {
   .root {
     margin-block-start: rem(50px);

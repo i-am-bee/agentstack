@@ -10,6 +10,7 @@
 
 @mixin line-clamp($lines: 1) {
   overflow: hidden;
+
   @if ($lines == 1) {
     white-space: nowrap;
     text-overflow: ellipsis;

@@ -77,6 +77,7 @@ $divider-height: 1px;
   &:focus-visible {
     border-radius: inherit;
   }
+
   @at-root a#{&}::before {
     display: none;
   }

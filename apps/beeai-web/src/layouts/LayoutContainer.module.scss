@@ -6,7 +6,7 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(16, minmax(0, 1fr));
-  grid-gap: $spacing-07;
+  gap: $spacing-07;
 }
 
 .content {
@@ -15,7 +15,7 @@
 
 @include breakpoint-down(lg) {
   .grid {
-    grid-gap: 0;
+    gap: 0;
   }
 }
 

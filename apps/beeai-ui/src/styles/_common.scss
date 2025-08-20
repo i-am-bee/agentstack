@@ -4,7 +4,6 @@
  */
 
 @use 'breakpoints' as *;
-
 @forward '@carbon/styles/scss/config' with (
   $font-display: swap,
   $grid-breakpoints: $breakpoints
