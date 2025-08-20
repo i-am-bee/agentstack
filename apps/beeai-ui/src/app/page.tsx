@@ -15,14 +15,14 @@ import { routes } from '#utils/router.ts';
 export const dynamic = 'force-dynamic';
 
 export default async function LandingPage() {
-  let firstAgentName;
+  let firstAgentProviderId;
 
   try {
     const response = await listProviders();
 
     const agents = response?.items?.map(buildAgent).filter(isAgentUiSupported).sort(sortAgentsByName);
 
-    firstAgentName = agents?.at(0)?.name;
+    firstAgentProviderId = agents?.at(0)?.provider.id;
   } catch (err) {
     console.log(err);
 
@@ -30,8 +30,8 @@ export default async function LandingPage() {
     return <ErrorPage message={'There was an error loading agents.'} />;
   }
 
-  if (firstAgentName) {
-    redirect(routes.agentRun({ name: firstAgentName }));
+  if (firstAgentProviderId) {
+    redirect(routes.agentRun({ p: firstAgentProviderId }));
   }
 
   return <EntityNotFound type="agent" message="No agents with supported UI found." showBackHomeButton={false} />;

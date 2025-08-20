@@ -12,7 +12,7 @@ import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx
 import { SidePanel } from '#components/SidePanel/SidePanel.tsx';
 import { useApp } from '#contexts/App/index.ts';
 import { SidePanelVariant } from '#contexts/App/types.ts';
-import { useAgentNameFromPath } from '#hooks/useAgentNameFromPath.ts';
+import { useCurrentAgentName } from '#hooks/useCurrentAgentName.ts';
 
 import { useAgent } from '../api/queries/useAgent';
 import { AgentCredits } from './AgentCredits';
@@ -21,7 +21,7 @@ import { AgentTags } from './AgentTags';
 import { AgentTools } from './AgentTools';
 
 export function AgentDetailPanel() {
-  const agentName = useAgentNameFromPath();
+  const agentName = useCurrentAgentName();
   const { data: agent, isPending } = useAgent({ name: agentName ?? '' });
   const { activeSidePanel } = useApp();
 

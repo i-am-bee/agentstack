@@ -7,7 +7,7 @@
 import clsx from 'clsx';
 
 import { MainNav } from '#components/layouts/MainNav.tsx';
-import { useAgentNameFromPath } from '#hooks/useAgentNameFromPath.ts';
+import { useCurrentAgentName } from '#hooks/useCurrentAgentName.ts';
 import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
 import { NAV_ITEMS } from '#utils/constants.ts';
 import { isNotNull } from '#utils/helpers.ts';
@@ -22,7 +22,7 @@ interface Props {
 }
 
 export function AppHeader({ className }: Props) {
-  const agentName = useAgentNameFromPath();
+  const agentName = useCurrentAgentName();
 
   const { data: agent } = useAgent({ name: agentName ?? '' });
   const hasNav = NAV_ITEMS.length > 0;

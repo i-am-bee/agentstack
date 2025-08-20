@@ -11,17 +11,17 @@ import { listProviders } from '#modules/providers/api/index.ts';
 import { RunView } from '#modules/runs/components/RunView.tsx';
 
 interface Props {
-  searchParams: Promise<{ agent: string }>;
+  searchParams: Promise<{ p: string }>;
 }
 
 export default async function AgentRunPage({ searchParams }: Props) {
-  const { agent: agentName } = await searchParams;
+  const { p: providerId } = await searchParams;
 
   let agent: Agent | undefined;
   try {
     const response = await listProviders();
 
-    const provider = response?.items.find(({ agent_card }) => agent_card.name === decodeURIComponent(agentName));
+    const provider = response?.items.find(({ id }) => id === providerId);
     if (provider) {
       agent = buildAgent(provider);
     }
