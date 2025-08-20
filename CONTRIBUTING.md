@@ -145,11 +145,13 @@ oidc:
 ```
 
 Note: the `class` in the providers entry must be a valid provider supported by next-auth. see: https://github.com/nextauthjs/next-auth-example/blob/main/auth.ts
+
 - When debugging the ui component (See debugging individual components), copy the env.example as .env and update the following oidc specific values:
 
 ```JavaScript
 NEXTAUTH_SECRET="<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
 NEXTAUTH_URL="https://localhost:3000"
+OIDC_ENABLED=true
 ```
 
 Optionally add:
