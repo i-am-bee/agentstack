@@ -1,4 +1,4 @@
-FROM python:3.11-slim-bookworm
+FROM python:3.12-slim-bookworm
 ARG RELEASE_VERSION="main"
 COPY --from=ghcr.io/astral-sh/uv:0.8.9 /uv /bin/
 WORKDIR /agents/community/aider

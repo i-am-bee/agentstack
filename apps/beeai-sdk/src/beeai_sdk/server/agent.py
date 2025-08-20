@@ -283,10 +283,12 @@ class Executor(AgentExecutor):
         def with_context(message: Message | None = None) -> Message | None:
             if message is None:
                 return None
-            if message.task_id and message.task_id != task_updater.task_id:
-                raise ValueError("Message must have the same task_id as the task")
-            if message.context_id and message.context_id != task_updater.context_id:
-                raise ValueError("Message must have the same context_id as the task")
+            # Note: This check would require extra handling in agents just forwarding messages from other agents
+            # Instead, we just silently replace it.
+            # if message.task_id and message.task_id != task_updater.task_id:
+            #     raise ValueError("Message must have the same task_id as the task")
+            # if message.context_id and message.context_id != task_updater.context_id:
+            #     raise ValueError("Message must have the same context_id as the task")
             return message.model_copy(
                 deep=True, update={"context_id": task_updater.context_id, "task_id": task_updater.task_id}
             )

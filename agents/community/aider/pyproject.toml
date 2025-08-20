@@ -6,9 +6,9 @@ authors = [
     { name = "IBM Corp." },
 ]
 readme = "README.md"
-requires-python = ">=3.11,<3.12"
+requires-python = ">=3.12,<3.13"
 dependencies = [
-    "aider-chat>=0.18.1",
+    "aider-chat>=0.86.1",
     "pydantic-settings>=2.7.1",
     "pydantic>=2.10.6",
     "google-generativeai>=0.8.4",
@@ -34,3 +34,7 @@ line-length = 120
 
 [tool.uv.sources]
 beeai-sdk = { path = "../../../apps/beeai-sdk", editable = true }
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"

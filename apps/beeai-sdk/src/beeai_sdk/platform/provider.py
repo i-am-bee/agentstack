@@ -2,9 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import typing
+from contextlib import asynccontextmanager
 from datetime import timedelta
 
 import pydantic
+from a2a.client import ClientConfig, ClientFactory
 from a2a.types import AgentCard
 
 from beeai_sdk.platform.client import PlatformClient, get_platform_client
@@ -56,6 +58,11 @@ class Provider(pydantic.BaseModel):
                 .raise_for_status()
                 .json()
             )
+
+    @asynccontextmanager
+    async def a2a_client(self, client: PlatformClient | None = None):
+        async with client or get_platform_client() as client:
+            yield ClientFactory(ClientConfig(httpx_client=client)).create(card=self.agent_card)
 
     @staticmethod
     async def preview(

@@ -8,8 +8,17 @@ from typing import Any, Annotated, AsyncGenerator
 from a2a.types import AgentSkill, Message
 from gpt_researcher import GPTResearcher
 
+from gpt_researcher_agent.env_patch import with_local_env
 
-from beeai_sdk.a2a.extensions import TrajectoryExtensionServer, TrajectoryExtensionSpec, AgentDetail
+from beeai_sdk.a2a.extensions import (
+    TrajectoryExtensionServer,
+    TrajectoryExtensionSpec,
+    AgentDetail,
+    LLMServiceExtensionServer,
+    LLMServiceExtensionSpec,
+    EmbeddingServiceExtensionServer,
+    EmbeddingServiceExtensionSpec,
+)
 from beeai_sdk.a2a.types import RunYield
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import RunContext
@@ -18,21 +27,12 @@ server = Server()
 
 
 @server.agent(
-    name="GPT Researcher",
+    name="GPT Researcher 2",
     documentation_url=(
         f"https://github.com/i-am-bee/beeai-platform/blob/{os.getenv('RELEASE_VERSION', 'main')}"
         "/agents/community/gpt-researcher"
     ),
-    detail=AgentDetail(
-        interaction_mode="single-turn",
-        user_greeting="What topic do you want to research?",
-        use_cases=[
-            "**Comprehensive Research** – Generates detailed reports using information from multiple sources.",
-            "**Bias Reduction** – Cross-references data from various platforms to minimize misinformation and bias.",
-            "**High Performance** – Utilizes parallelized processes for efficient and swift report generation.",
-            "**Customizable** – Offers customization options to tailor research for specific domains or tasks.",
-        ],
-    ),
+    detail=AgentDetail(interaction_mode="single-turn", user_greeting="What topic do you want to research?"),
     skills=[
         AgentSkill(
             id="deep_research",
@@ -59,37 +59,58 @@ server = Server()
     ],
 )
 async def gpt_researcher(
-    message: Message, context: RunContext, trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()]
+    message: Message,
+    context: RunContext,
+    trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
+    llm_ext: Annotated[LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand()],
+    embedding_ext: Annotated[EmbeddingServiceExtensionServer, EmbeddingServiceExtensionSpec.single_demand()],
 ) -> AsyncGenerator[RunYield, None]:
     """
     The agent conducts in-depth local and web research using a language model to generate comprehensive reports with
     citations, aimed at delivering factual, unbiased information.
     """
-    os.environ["RETRIEVER"] = "duckduckgo"
-    os.environ["OPENAI_BASE_URL"] = os.getenv("LLM_API_BASE", "http://localhost:11434/v1")
-    os.environ["OPENAI_API_KEY"] = os.getenv("LLM_API_KEY", "dummy")
-    model = os.getenv("LLM_MODEL", "llama3.1")
-    os.environ["LLM_MODEL"] = model
+    # Set up local environment for this request
 
-    class CustomLogsHandler:
-        async def send_json(self, data: dict[str, Any]) -> None:
-            if "output" not in data:
-                return
-            match data.get("type"):
-                case "logs":
-                    await context.yield_async(
-                        trajectory.trajectory_metadata(title="log", content=f"{data['output']}\n")
-                    )
-                case "report":
-                    await context.yield_async(data["output"])
+    llm_conf, embedding_conf = None, None
+    if llm_ext and llm_ext.data:
+        [llm_conf] = llm_ext.data.llm_fulfillments.values()
 
-    if not message.parts or not (query := message.parts[-1].root.text):
-        yield "Please enter a topic or query."
-        return
+    if embedding_ext and embedding_ext.data:
+        [embedding_conf] = embedding_ext.data.embedding_fulfillments.values()
 
-    researcher = GPTResearcher(query=query, report_type="research_report", websocket=CustomLogsHandler())
-    await researcher.conduct_research()
-    await researcher.write_report()
+    model = llm_conf.api_model if llm_conf else os.getenv("LLM_MODEL", "dummy")
+    embedding_model = embedding_conf.api_model if embedding_conf else os.getenv("EMBEDDING_MODEL", "dummy")
+
+    env = {
+        "RETRIEVER": "duckduckgo",
+        "OPENAI_BASE_URL": llm_conf.api_base if llm_conf else os.getenv("LLM_API_BASE", "http://localhost:11434/v1"),
+        "OPENAI_API_KEY": llm_conf.api_key if llm_conf else os.getenv("LLM_API_KEY", "dummy"),
+        "LLM_MODEL": model,
+        "EMBEDDING": f"openai:{embedding_model}",
+        "FAST_LLM": f"openai:{model}",
+        "SMART_LLM": f"openai:{model}",
+    }
+    with with_local_env(env):
+
+        class CustomLogsHandler:
+            async def send_json(self, data: dict[str, Any]) -> None:
+                if "output" not in data:
+                    return
+                match data.get("type"):
+                    case "logs":
+                        await context.yield_async(
+                            trajectory.trajectory_metadata(title="log", content=f"{data['output']}\n")
+                        )
+                    case "report":
+                        await context.yield_async(data["output"])
+
+        if not message.parts or not (query := message.parts[-1].root.text):
+            yield "Please enter a topic or query."
+            return
+
+        researcher = GPTResearcher(query=query, report_type="research_report", websocket=CustomLogsHandler())
+        await researcher.conduct_research()
+        await researcher.write_report()
 
 
 def run():

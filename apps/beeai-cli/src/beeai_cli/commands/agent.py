@@ -33,6 +33,9 @@ from a2a.types import (
     TextPart,
 )
 from beeai_sdk.a2a.extensions import (
+    EmbeddingFulfillment,
+    EmbeddingServiceExtensionClient,
+    EmbeddingServiceExtensionSpec,
     LLMFulfillment,
     LLMServiceExtensionClient,
     LLMServiceExtensionSpec,
@@ -222,7 +225,7 @@ async def stream_logs(
 
 async def _run_agent(
     client: Client,
-    input: str | Message,
+    input: str | DataPart,
     agent_card: AgentCard,
     context_token: ContextToken,
     dump_files_path: Path | None = None,
@@ -238,6 +241,7 @@ async def _run_agent(
     trajectory_spec = TrajectoryExtensionSpec.from_agent_card(agent_card)
     trajectory_extension = TrajectoryExtensionClient(trajectory_spec) if trajectory_spec else None
     llm_spec = LLMServiceExtensionSpec.from_agent_card(agent_card)
+    embedding_spec = EmbeddingServiceExtensionSpec.from_agent_card(agent_card)
 
     metadata = (
         LLMServiceExtensionClient(llm_spec).fulfillment_metadata(
@@ -252,22 +256,31 @@ async def _run_agent(
         )
         if llm_spec
         else {}
-    )
-
-    input = (
-        Message(
-            message_id=str(uuid4()),
-            parts=[Part(root=TextPart(text=input))],
-            role=Role.user,
-            task_id=task_id,
-            context_id=context_token.context_id,
-            metadata=metadata,
+    ) | (
+        EmbeddingServiceExtensionClient(embedding_spec).fulfillment_metadata(
+            embedding_fulfillments={
+                key: EmbeddingFulfillment(
+                    api_base="{platform_url}/api/v1/llm/",
+                    api_key=context_token.token.get_secret_value(),
+                    api_model="dummy",
+                )
+                for key in embedding_spec.params.embedding_demands
+            }
         )
-        if isinstance(input, str)
-        else input
+        if embedding_spec
+        else {}
     )
 
-    stream = client.send_message(input)
+    msg = Message(
+        message_id=str(uuid4()),
+        parts=[Part(root=TextPart(text=input) if isinstance(input, str) else input)],
+        role=Role.user,
+        task_id=task_id,
+        context_id=context_token.context_id,
+        metadata=metadata,
+    )
+
+    stream = client.send_message(msg)
 
     while True:
         async for event in stream:
@@ -733,7 +746,7 @@ async def run_agent(
             async with a2a_client(provider.agent_card) as client:
                 await _run_agent(
                     client,
-                    Message(message_id=str(uuid4()), parts=[Part(root=message_part)], role=Role.user),
+                    message_part,
                     agent_card=agent,
                     context_token=context_token,
                     dump_files_path=dump_files,

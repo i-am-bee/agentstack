@@ -164,7 +164,7 @@ server = Server()
         )
     ],
 )
-async def chat_new(
+async def chat(
     message: Message,
     context: RunContext,
     trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
