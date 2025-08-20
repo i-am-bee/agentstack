@@ -17,7 +17,7 @@ export function AgentsNav() {
   const { data: agents } = useListAgents({ onlyUiSupported: true, sort: true });
 
   const items: NavItem[] | undefined = agents?.map(({ name, provider: { id } }) => {
-    const route = routes.agentRun({ p: id });
+    const route = routes.agentRun({ providerId: id });
 
     return {
       key: id,

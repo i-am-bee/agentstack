@@ -31,7 +31,7 @@ export default async function LandingPage() {
   }
 
   if (firstAgentProviderId) {
-    redirect(routes.agentRun({ p: firstAgentProviderId }));
+    redirect(routes.agentRun({ providerId: firstAgentProviderId }));
   }
 
   return <EntityNotFound type="agent" message="No agents with supported UI found." showBackHomeButton={false} />;
