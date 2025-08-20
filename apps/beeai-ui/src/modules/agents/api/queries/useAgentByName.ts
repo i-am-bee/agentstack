@@ -10,14 +10,12 @@ import { listProviders } from '#modules/providers/api/index.ts';
 
 import { agentKeys } from '../keys';
 
-export function useAgent({ providerId }: { providerId: string }) {
+export function useAgentByName({ name }: { name: string }) {
   return useQuery({
     queryKey: agentKeys.list(),
-    // TODO: We could read agent via its provider id, but currently we are loading
-    // all the providers anyway, so we can reuse the data here
     queryFn: listProviders,
     select: (response) => {
-      const agentProvider = response?.items.find(({ id }) => id === providerId);
+      const agentProvider = response?.items.find(({ agent_card }) => agent_card.name === name);
       return agentProvider ? buildAgent(agentProvider) : undefined;
     },
   });

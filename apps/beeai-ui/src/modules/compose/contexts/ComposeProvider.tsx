@@ -16,7 +16,7 @@ import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 import { usePrevious } from '#hooks/usePrevious.ts';
 import { useUpdateSearchParams } from '#hooks/useUpdateSearchParams.ts';
-import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
+import { useAgentByName } from '#modules/agents/api/queries/useAgentByName.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
 import { Role } from '#modules/messages/api/types.ts';
 import { UIMessagePartKind, UIMessageStatus, type UIUserMessage } from '#modules/messages/types.ts';
@@ -56,7 +56,7 @@ function ComposeProviderWithContext({ children }: PropsWithChildren) {
   const { replace: replaceSteps } = stepsFields;
   const steps = watch('steps');
 
-  const { data: sequentialAgent } = useAgent({ name: SEQUENTIAL_WORKFLOW_AGENT_NAME });
+  const { data: sequentialAgent } = useAgentByName({ name: SEQUENTIAL_WORKFLOW_AGENT_NAME });
 
   const a2aAgentClient = useMemo(
     () =>

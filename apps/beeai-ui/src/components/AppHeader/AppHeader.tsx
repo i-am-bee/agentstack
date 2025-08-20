@@ -7,7 +7,7 @@
 import clsx from 'clsx';
 
 import { MainNav } from '#components/layouts/MainNav.tsx';
-import { useCurrentAgentName } from '#hooks/useCurrentAgentName.ts';
+import { useProviderIdFromUrl } from '#hooks/useProviderIdFromUrl.ts';
 import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
 import { NAV_ITEMS } from '#utils/constants.ts';
 import { isNotNull } from '#utils/helpers.ts';
@@ -22,9 +22,9 @@ interface Props {
 }
 
 export function AppHeader({ className }: Props) {
-  const agentName = useCurrentAgentName();
+  const providerId = useProviderIdFromUrl();
 
-  const { data: agent } = useAgent({ name: agentName ?? '' });
+  const { data: agent } = useAgent({ providerId: providerId ?? '' });
   const hasNav = NAV_ITEMS.length > 0;
   const showAgent = !hasNav && isNotNull(agent);
 
@@ -38,7 +38,7 @@ export function AppHeader({ className }: Props) {
 
           {showAgent && (
             <>
-              <p className={classes.agentName}>{agentName}</p>
+              <p className={classes.agentName}>{agent.name}</p>
 
               <div className={classes.agentDetailButtonContainer}>
                 <AgentDetailButton />
