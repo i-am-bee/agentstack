@@ -3,16 +3,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentExtension, TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from '@a2a-js/sdk';
+import type { TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from '@a2a-js/sdk';
 import { A2AClient } from '@a2a-js/sdk/client';
 import { Subject } from 'rxjs';
 import { match } from 'ts-pattern';
 
+import type { AgentExtension } from '#modules/agents/api/types.ts';
 import type { UIMessagePart } from '#modules/messages/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 
 import { AGENT_ERROR_MESSAGE } from './constants';
+import { llmExtension } from './extensions/services/llm';
 import { mcpExtension } from './extensions/services/mcp';
 import { extractServiceExtensionDemands, fulfillServiceExtensionDemand } from './extensions/utils';
 import { processMessageMetadata, processParts } from './part-processors';
@@ -20,7 +22,9 @@ import type { ChatParams, ChatRun } from './types';
 import { createUserMessage, extractTextFromMessage } from './utils';
 
 const mcpExtensionExtractor = extractServiceExtensionDemands(mcpExtension);
-const fulFillMcpDemand = fulfillServiceExtensionDemand(mcpExtension);
+const fulfillMcpDemand = fulfillServiceExtensionDemand(mcpExtension);
+const llmExtensionExtractor = extractServiceExtensionDemands(llmExtension);
+const fulfillLlmDemand = fulfillServiceExtensionDemand(llmExtension);
 
 function handleStatusUpdate<UIGenericPart = never>(
   event: TaskStatusUpdateEvent,
@@ -66,9 +70,13 @@ export const buildA2AClient = <UIGenericPart = never>({
   onStatusUpdate,
 }: CreateA2AClientParams<UIGenericPart>) => {
   const mcpDemands = mcpExtensionExtractor(extensions);
+  const llmDemands = llmExtensionExtractor(extensions);
 
   const agentUrl = `${getBaseUrl()}/api/v1/a2a/${providerId}`;
-  const client = new A2AClient(agentUrl);
+  const client = new A2AClient(agentUrl, {
+    // TODO: workaround until the a2a-js bug is resolved https://github.com/a2aproject/a2a-js/issues/116
+    ...(typeof window !== 'undefined' && { fetchImpl: window.fetch.bind(window) }),
+  });
 
   const chat = ({ message, contextId, fulfillments }: ChatParams) => {
     const messageSubject = new Subject<{ parts: (UIMessagePart | UIGenericPart)[]; taskId: TaskId }>();
@@ -79,7 +87,11 @@ export const buildA2AClient = <UIGenericPart = never>({
       let metadata = {};
 
       if (mcpDemands) {
-        metadata = fulFillMcpDemand(metadata, await fulfillments.mcp(mcpDemands));
+        metadata = fulfillMcpDemand(metadata, await fulfillments.mcp(mcpDemands));
+      }
+
+      if (llmDemands) {
+        metadata = fulfillLlmDemand(metadata, await fulfillments.llm(llmDemands));
       }
 
       const stream = client.sendMessageStream({ message: createUserMessage({ message, contextId, metadata }) });

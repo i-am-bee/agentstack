@@ -16,11 +16,13 @@ import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 import { usePrevious } from '#hooks/usePrevious.ts';
 import { useUpdateSearchParams } from '#hooks/useUpdateSearchParams.ts';
-import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
+import { useAgentByName } from '#modules/agents/api/queries/useAgentByName.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
 import { Role } from '#modules/messages/api/types.ts';
 import { UIMessagePartKind, UIMessageStatus, type UIUserMessage } from '#modules/messages/types.ts';
 import { addTranformedMessagePart, getMessageRawContent } from '#modules/messages/utils.ts';
+import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
+import { PlatformContextProvider } from '#modules/platform-context/contexts/PlatformContextProvider.tsx';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { type UIComposePart, UIComposePartKind } from '../a2a/types';
@@ -30,6 +32,15 @@ import type { ComposeStep, SequentialFormValues } from './compose-context';
 import { ComposeContext, ComposeStatus } from './compose-context';
 
 export function ComposeProvider({ children }: PropsWithChildren) {
+  return (
+    <PlatformContextProvider>
+      <ComposeProviderWithContext>{children}</ComposeProviderWithContext>
+    </PlatformContextProvider>
+  );
+}
+
+function ComposeProviderWithContext({ children }: PropsWithChildren) {
+  const { getContextId, getFullfilments } = usePlatformContext();
   const { data: agents } = useListAgents({ onlyUiSupported: true, sort: true });
 
   const searchParams = useSearchParams();
@@ -45,7 +56,7 @@ export function ComposeProvider({ children }: PropsWithChildren) {
   const { replace: replaceSteps } = stepsFields;
   const steps = watch('steps');
 
-  const { data: sequentialAgent } = useAgent({ name: SEQUENTIAL_WORKFLOW_AGENT_NAME });
+  const { data: sequentialAgent } = useAgentByName({ name: SEQUENTIAL_WORKFLOW_AGENT_NAME });
 
   const a2aAgentClient = useMemo(
     () =>
@@ -142,6 +153,8 @@ export function ComposeProvider({ children }: PropsWithChildren) {
           throw new Error(`'${SEQUENTIAL_WORKFLOW_AGENT_NAME}' agent is not available.`);
         }
 
+        const contextId = getContextId();
+
         steps.forEach((step, idx) => {
           updateStep(idx, {
             ...step,
@@ -155,6 +168,7 @@ export function ComposeProvider({ children }: PropsWithChildren) {
                 : undefined,
           });
         });
+        const fulfillments = await getFullfilments();
 
         const userMessage: UIUserMessage = {
           id: uuid(),
@@ -164,12 +178,8 @@ export function ComposeProvider({ children }: PropsWithChildren) {
 
         const run = a2aAgentClient.chat({
           message: userMessage,
-          contextId: uuid(),
-          fulfillments: {
-            mcp: async () => {
-              throw new Error('MCP fulfillment not implemented');
-            },
-          },
+          contextId,
+          fulfillments,
         });
         pendingRun.current = run;
 
@@ -223,7 +233,7 @@ export function ComposeProvider({ children }: PropsWithChildren) {
         pendingSubscription.current = undefined;
       }
     },
-    [a2aAgentClient, updateStep, getActiveStepIdx, getValues, handleError, onDone],
+    [a2aAgentClient, getContextId, getFullfilments, updateStep, getActiveStepIdx, getValues, handleError, onDone],
   );
 
   const onSubmit = useCallback(() => {

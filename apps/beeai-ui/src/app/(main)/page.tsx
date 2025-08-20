@@ -18,7 +18,7 @@ import { routes } from '#utils/router.ts';
 export const dynamic = 'force-dynamic';
 
 export default async function LandingPage() {
-  let firstAgentName;
+  let firstAgentProviderId;
   if (OIDC_ENABLED) {
     const session = await auth();
     if (!session?.user) {
@@ -32,7 +32,7 @@ export default async function LandingPage() {
 
     const agents = response?.items?.map(buildAgent).filter(isAgentUiSupported).sort(sortAgentsByName);
 
-    firstAgentName = agents?.at(0)?.name;
+    firstAgentProviderId = agents?.at(0)?.provider.id;
   } catch (err) {
     console.log(err);
 
@@ -40,8 +40,8 @@ export default async function LandingPage() {
     return <ErrorPage message={'There was an error loading agents.'} />;
   }
 
-  if (firstAgentName) {
-    redirect(routes.agentRun({ name: firstAgentName }));
+  if (firstAgentProviderId) {
+    redirect(routes.agentRun({ providerId: firstAgentProviderId }));
   }
 
   return <EntityNotFound type="agent" message="No agents with supported UI found." showBackHomeButton={false} />;

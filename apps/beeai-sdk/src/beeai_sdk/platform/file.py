@@ -12,7 +12,7 @@ import pydantic
 from a2a.types import FilePart, FileWithUri
 
 from beeai_sdk.platform.client import PlatformClient, get_platform_client
-from beeai_sdk.util.file import LoadedFile, LoadedFileWithUri
+from beeai_sdk.util.file import LoadedFile, LoadedFileWithUri, PlatformFileUrl
 
 
 class Extraction(pydantic.BaseModel):
@@ -31,11 +31,16 @@ class Extraction(pydantic.BaseModel):
 class File(pydantic.BaseModel):
     id: str
     filename: str
+    content_type: str
     file_size_bytes: int
     created_at: pydantic.AwareDatetime
     created_by: str
     file_type: typing.Literal["user_upload", "extracted_text"]
     parent_file_id: str | None = None
+
+    @property
+    def url(self) -> PlatformFileUrl:
+        return PlatformFileUrl(f"beeai://{self.id}")
 
     @staticmethod
     async def create(
@@ -118,7 +123,7 @@ class File(pydantic.BaseModel):
                 response.raise_for_status()
                 if not stream:
                     await response.aread()
-                yield LoadedFileWithUri(response=response, filename=file.filename)
+                yield LoadedFileWithUri(response=response, content_type=file.content_type, filename=file.filename)
 
     @asynccontextmanager
     async def load_text_content(
@@ -143,7 +148,7 @@ class File(pydantic.BaseModel):
                 response.raise_for_status()
                 if not stream:
                     await response.aread()
-                yield LoadedFileWithUri(response=response, filename=file.filename)
+                yield LoadedFileWithUri(response=response, content_type=file.content_type, filename=file.filename)
 
     async def create_extraction(
         self: File | str,

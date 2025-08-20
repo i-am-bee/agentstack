@@ -25,7 +25,7 @@
   @include type-style(label-01);
 
   white-space: pre-wrap;
-  word-break: break-word;
+  overflow-wrap: break-word;
   padding: rem(11px) rem(15px);
   flex-grow: 1;
 

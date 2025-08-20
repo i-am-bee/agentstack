@@ -6,6 +6,7 @@
 import type { UIMessagePart, UIUserMessage } from '#modules/messages/types.ts';
 import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
 
+import type { LLMDemand, LLMFulfillment } from './extensions/services/llm';
 import type { MCPDemand, MCPFulfillment } from './extensions/services/mcp';
 
 export interface ChatParams {
@@ -22,4 +23,5 @@ export interface ChatRun<UIGenericPart = never> {
 
 export interface Fulfillments {
   mcp: (demand: MCPDemand) => Promise<MCPFulfillment>;
+  llm: (demand: LLMDemand) => Promise<LLMFulfillment>;
 }

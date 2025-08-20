@@ -99,6 +99,7 @@ class FileService:
             created_by=user.id,
             file_type=file_type,
             parent_file_id=parent_file_id,
+            content_type=file.content_type,
             context_id=context_id,
         )
         try:

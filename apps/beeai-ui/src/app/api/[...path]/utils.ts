@@ -7,4 +7,4 @@ export function isApiAgentManifestPath(path: string[]) {
   return AGENT_MANIFEST_PATH_REGEX.test(path.join('/'));
 }
 
-const AGENT_MANIFEST_PATH_REGEX = /v1\/a2a\/.*\/\.well-known\/agent\.json/;
+const AGENT_MANIFEST_PATH_REGEX = /v1\/a2a\/.*\/\.well-known\/agent\-card\.json/;

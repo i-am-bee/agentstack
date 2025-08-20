@@ -5,18 +5,14 @@
 
 import {
   Button,
-  FormLabel,
   InlineLoading,
-  ListItem,
   ModalBody,
   ModalFooter,
   ModalHeader,
   RadioButton,
   RadioButtonGroup,
   TextInput,
-  UnorderedList,
 } from '@carbon/react';
-import pluralize from 'pluralize';
 import { useCallback, useEffect, useId, useState } from 'react';
 import { useController, useForm } from 'react-hook-form';
 
@@ -29,15 +25,13 @@ import type { Provider, RegisterProviderRequest } from '#modules/providers/api/t
 import { ProviderSourcePrefixes } from '#modules/providers/constants.ts';
 import { ProviderSource } from '#modules/providers/types.ts';
 
-import { useListProviderAgents } from '../api/queries/useListProviderAgents';
+import { useAgent } from '../api/queries/useAgent';
 import classes from './ImportAgentsModal.module.scss';
 
 export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps) {
   const id = useId();
   const [registeredProvider, setRegisteredProvider] = useState<Provider>();
-  const { data: agents } = useListProviderAgents({ providerId: registeredProvider?.id });
-
-  const agentsCount = agents?.length ?? 0;
+  const { data: agent } = useAgent({ providerId: registeredProvider?.id ?? '' });
 
   const { mutateAsync: importProvider, isPending } = useImportProvider({
     onSuccess: (provider) => {
@@ -113,14 +107,10 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
             </div>
           )}
 
-          {registeredProvider && agentsCount > 0 && (
-            <div className={classes.agents}>
-              <FormLabel>
-                {agentsCount} {pluralize('agent', agentsCount)} installed
-              </FormLabel>
-
-              <UnorderedList>{agents?.map(({ name }) => <ListItem key={name}>{name}</ListItem>)}</UnorderedList>
-            </div>
+          {registeredProvider && agent && (
+            <p className={classes.agents}>
+              <strong>{agent.name}</strong> agent installed successfully.
+            </p>
           )}
         </form>
       </ModalBody>

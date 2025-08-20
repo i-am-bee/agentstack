@@ -8,7 +8,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { useToast } from '#contexts/Toast/index.ts';
 import { TaskType, useTasks } from '#hooks/useTasks.ts';
-import { useListProviderAgents } from '#modules/agents/api/queries/useListProviderAgents.ts';
+import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
 import { useProviderStatus } from '#modules/agents/hooks/useProviderStatus.ts';
 
 import { providerKeys } from '../api/keys';
@@ -25,7 +25,7 @@ export function useMonitorProviderStatus({ id, isEnabled }: Props) {
   const { addTask, removeTask } = useTasks();
 
   const { refetch: refetchStatus, ...agentStatusReturn } = useProviderStatus({ providerId: id });
-  const { data: agents } = useListProviderAgents({ providerId: id });
+  const { data: agent } = useAgent({ providerId: id ?? '' });
 
   const { isStarting, isNotInstalled } = agentStatusReturn;
 
@@ -34,21 +34,19 @@ export function useMonitorProviderStatus({ id, isEnabled }: Props) {
   const checkProvider = useCallback(async () => {
     const { isReady, isError } = await refetchStatus();
 
-    if (isReady) {
-      agents?.forEach((agent) => {
+    if (agent) {
+      if (isReady) {
         addToast({
           title: `${agent.name} has installed successfully.`,
           kind: 'info',
           timeout: 5_000,
         });
-      });
-    } else if (isError) {
-      agents?.forEach((agent) => {
+      } else if (isError) {
         addToast({
           title: `${agent.name} failed to install.`,
           timeout: 5_000,
         });
-      });
+      }
     }
 
     if (isReady || isError) {
@@ -60,7 +58,7 @@ export function useMonitorProviderStatus({ id, isEnabled }: Props) {
 
       setIsDone(true);
     }
-  }, [refetchStatus, agents, addToast, queryClient, id, removeTask]);
+  }, [refetchStatus, agent, addToast, queryClient, id, removeTask]);
 
   useEffect(() => {
     if (id && shouldMonitorStatus) {

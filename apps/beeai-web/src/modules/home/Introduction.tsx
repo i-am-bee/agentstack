@@ -17,11 +17,7 @@ export function Introduction() {
         <section className={classes.root}>
           <div className={classes.headline}>
             <h1>
-              <LogoBeeAI /> the enterprise
-              <br />
-              AI agent development,
-              <br />
-              simplified.
+              <LogoBeeAI /> the enterprise AI agent development, simplified.
             </h1>
             <GitHubButton />
           </div>

@@ -104,7 +104,7 @@ def agent(
     def decorator(fn: Callable) -> Agent:
         signature = inspect.signature(fn)
         dependencies = extract_dependencies(signature)
-        sdk_extensions = [dep.extension for dep in dependencies.values() if dep.extension]
+        sdk_extensions = [dep.extension for dep in dependencies.values() if dep.extension is not None]
 
         resolved_name = name or fn.__name__
         resolved_description = description or fn.__doc__ or ""
@@ -209,19 +209,18 @@ def agent(
                 call_context=request_context.call_context,
             )
 
-            # call dependencies with the first message
-            kwargs = {pname: dependency(message, context) for pname, dependency in dependencies.items()}
-
             # initialize dependencies
             async with AsyncExitStack() as stack:
-                for d in dependencies.values():
-                    await stack.enter_async_context(d.lifespan())
+                dependency_args = {}
+                for pname, depends in dependencies.items():
+                    # call dependencies with the first message and initialize their lifespan
+                    dependency_args[pname] = await stack.enter_async_context(depends(message, context))
 
                 async def agent_generator():
                     yield_queue = context._yield_queue
                     yield_resume_queue = context._yield_resume_queue
 
-                    task = asyncio.create_task(execute_fn(context, **kwargs))
+                    task = asyncio.create_task(execute_fn(context, **dependency_args))
                     try:
                         while not task.done() or yield_queue.async_q.qsize() > 0:
                             value = yield await yield_queue.async_q.get()
@@ -284,10 +283,12 @@ class Executor(AgentExecutor):
         def with_context(message: Message | None = None) -> Message | None:
             if message is None:
                 return None
-            if message.task_id and message.task_id != task_updater.task_id:
-                raise ValueError("Message must have the same task_id as the task")
-            if message.context_id and message.context_id != task_updater.context_id:
-                raise ValueError("Message must have the same context_id as the task")
+            # Note: This check would require extra handling in agents just forwarding messages from other agents
+            # Instead, we just silently replace it.
+            # if message.task_id and message.task_id != task_updater.task_id:
+            #     raise ValueError("Message must have the same task_id as the task")
+            # if message.context_id and message.context_id != task_updater.context_id:
+            #     raise ValueError("Message must have the same context_id as the task")
             return message.model_copy(
                 deep=True, update={"context_id": task_updater.context_id, "task_id": task_updater.task_id}
             )

@@ -20,6 +20,7 @@ $sizes: (
   margin-inline: auto;
   padding-inline: $grid-margin;
   inline-size: 100%;
+
   @each $size, $width in $sizes {
     &.#{$size} {
       max-inline-size: calc($width + 2 * $grid-margin);

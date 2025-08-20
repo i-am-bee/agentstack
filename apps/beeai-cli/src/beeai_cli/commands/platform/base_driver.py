@@ -10,6 +10,7 @@ from subprocess import CompletedProcess
 import anyio
 import pydantic
 import yaml
+from tenacity import AsyncRetrying, stop_after_attempt
 
 import beeai_cli.commands.platform.istio
 from beeai_cli.configuration import Configuration
@@ -104,16 +105,19 @@ class BaseDriver(abc.ABC):
         for image in {typing.cast(str, yaml.safe_load(line)) for line in images_str.splitlines()} - set(
             import_images or []
         ):
-            await self.run_in_vm(
-                [
-                    "k3s",
-                    "ctr",
-                    "image",
-                    "pull",
-                    image if "." in image.split("/")[0] else f"docker.io/{image}",
-                ],
-                f"Pulling image {image}",
-            )
+            async for attempt in AsyncRetrying(stop=stop_after_attempt(5)):
+                with attempt:
+                    attempt_num = attempt.retry_state.attempt_number
+                    await self.run_in_vm(
+                        [
+                            "k3s",
+                            "ctr",
+                            "image",
+                            "pull",
+                            image if "." in image.split("/")[0] else f"docker.io/{image}",
+                        ],
+                        f"Pulling image {image}" + (f" (attempt {attempt_num})" if attempt_num > 1 else ""),
+                    )
 
         if any("oidc.enabled=true" in value.lower() for value in set_values_list):
             await beeai_cli.commands.platform.istio.install(driver=self)

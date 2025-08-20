@@ -2,18 +2,16 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
 from typing import Any, Final
 
 from beeai_framework.context import RunContext
+
 from beeai_sdk.platform import VectorStore
 import httpx
 from beeai_framework.emitter import Emitter
 from beeai_framework.tools import Tool, ToolError, ToolOutput, ToolRunOptions
 from pydantic import BaseModel, Field
-from rag.helpers.embedding import create_embedding
-from rag.helpers.platform import ApiClient
+from rag.helpers.vectore_store import EmbeddingFunction
 
 
 class VectorSearchToolInput(BaseModel):
@@ -27,9 +25,7 @@ class VectorSearchToolResult(BaseModel):
 
     text: str = Field(description="The text content of the document chunk.")
     score: float = Field(description="Similarity score between 0.0 and 1.0.")
-    metadata: dict[str, Any] = Field(
-        description="Additional metadata for the document."
-    )
+    metadata: dict[str, Any] = Field(description="Additional metadata for the document.")
 
     @property
     def title(self) -> str:
@@ -83,9 +79,7 @@ class VectorSearchToolOutput(ToolOutput):
         return [result.url for result in self.results if result.url]
 
 
-class VectorSearchTool(
-    Tool[VectorSearchToolInput, ToolRunOptions, VectorSearchToolOutput]
-):
+class VectorSearchTool(Tool[VectorSearchToolInput, ToolRunOptions, VectorSearchToolOutput]):
     """
     Vector search tool for retrieving relevant documents from a vector database.
 
@@ -122,8 +116,14 @@ class VectorSearchTool(
     )
     input_schema: type[VectorSearchToolInput] = VectorSearchToolInput
 
-    def __init__(self, vector_store_id: str | None = None, limit: int = 5) -> None:
+    def __init__(
+        self,
+        embedding_function: EmbeddingFunction,
+        vector_store_id: str,
+        limit: int = 5,
+    ) -> None:
         super().__init__()
+        self.embedding_function = embedding_function
         self.vector_store_id = vector_store_id
         self.limit = limit
 
@@ -138,32 +138,28 @@ class VectorSearchTool(
         context: RunContext,
     ) -> VectorSearchToolOutput:
         try:
-            async with ApiClient() as client:
-                # Generate embedding for the query
-                embed_response = await create_embedding(
-                    client, input.query
-                )  # FIXME: Remove api client after full migration to SDK functions
-                query_embedding = embed_response["data"][0]["embedding"]
+            embed_response = await self.embedding_function(input=input.query)
+            query_embedding = embed_response.data[0].embedding
 
-                # Perform vector search
-                search_results = await VectorStore.search(
-                    self.vector_store_id, query_vector=query_embedding, limit=self.limit
-                )
+            # Perform vector search
+            search_results = await VectorStore.search(
+                self.vector_store_id, query_vector=query_embedding, limit=self.limit
+            )
 
-                # Convert results to tool output format
-                results = []
-                for result in search_results:
-                    result_data = result.item
-                    score = result.score
+            # Convert results to tool output format
+            results = []
+            for result in search_results:
+                result_data = result.item
+                score = result.score
 
-                    results.append(
-                        VectorSearchToolResult(
-                            text=result_data.text,
-                            score=score,
-                            metadata=result_data.metadata or {},
-                        )
+                results.append(
+                    VectorSearchToolResult(
+                        text=result_data.text,
+                        score=score,
+                        metadata=result_data.metadata or {},
                     )
-                return VectorSearchToolOutput(results)
+                )
+            return VectorSearchToolOutput(results)
         except httpx.HTTPError as e:
             raise ToolError(f"HTTP error during vector search: {e}") from e
         except Exception as e:
@@ -171,4 +167,6 @@ class VectorSearchTool(
 
     def clone(self) -> "VectorSearchTool":
         """Create a copy of this tool."""
-        return VectorSearchTool(vector_store_id=self.vector_store_id)
+        return VectorSearchTool(
+            embedding_function=self.embedding_function, vector_store_id=self.vector_store_id, limit=self.limit
+        )

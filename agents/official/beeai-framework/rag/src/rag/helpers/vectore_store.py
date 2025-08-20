@@ -1,19 +1,18 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 import asyncio
-import os
 import uuid
 
 from asyncio import TaskGroup
 from datetime import timedelta
-from typing import Any, AsyncGenerator
+from typing import Any, AsyncGenerator, Protocol
+
+from openai.types import CreateEmbeddingResponse
 
 from beeai_sdk.a2a.extensions import TrajectoryExtensionServer
 from beeai_sdk.platform import File, VectorStore
 from beeai_sdk.platform.vector_store import VectorStoreItem
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from rag.helpers.embedding import create_embedding
-from rag.helpers.platform import ApiClient, get_file_url
 from rag.helpers.trajectory import TrajectoryEvent
 from tenacity import (
     AsyncRetrying,
@@ -38,6 +37,10 @@ class CreateVectorStoreEvent(TrajectoryEvent):
     vector_store_id: str | None = None
 
 
+class EmbeddingFunction(Protocol):
+    async def __call__(self, *, input: str | list[str]) -> CreateEmbeddingResponse: ...
+
+
 async def extract_file(file: File) -> None:
     file_id = file.id
     extraction = await file.create_extraction()
@@ -52,18 +55,12 @@ async def extract_file(file: File) -> None:
             extraction = await file.get_extraction()
             final_status = extraction.status
             if final_status == "failed":
-                raise RuntimeError(
-                    f"Extraction for file {file_id} has failed: {extraction.model_dump_json()}"
-                )
+                raise RuntimeError(f"Extraction for file {file_id} has failed: {extraction.model_dump_json()}")
             if final_status != "completed":
                 raise TimeoutError("Text extraction is not finished yet")
 
 
-async def chunk_and_embed(
-    client: ApiClient,
-    file: File,
-    vector_store_id: str,
-):
+async def chunk_and_embed(embedding_function: EmbeddingFunction, file: File, vector_store_id: str):
     """
     Extract text from file, chunk it using RecursiveCharacterTextSplitter,
     generate embeddings, and store in vector database.
@@ -91,26 +88,24 @@ async def chunk_and_embed(
     if not chunks:
         return
 
-    embedding = await create_embedding(client=client, input=chunks, model=model_id)
+    embedding = await embedding_function(input=chunks)
 
     vector_items = []
-    for i, (chunk, embedding_data) in enumerate(
-        zip(chunks, embedding["data"], strict=False)
-    ):
+    for i, (chunk, embedding_data) in enumerate(zip(chunks, embedding.data, strict=False)):
         vector_items.append(
             VectorStoreItem(
                 document_id=file.id,
                 document_type="platform_file",
-                model_id=embedding["model"],
+                model_id=embedding.model,
                 text=chunk,
-                embedding=embedding_data["embedding"],
+                embedding=embedding_data.embedding,
                 metadata={
                     "file_id": file.id,
                     "filename": file.filename,
                     "chunk_index": str(i),
                     "chunk_id": str(uuid.uuid4()),
                     "total_chunks": str(len(chunks)),
-                    "url": str(get_file_url(file.id)),
+                    "url": str(file.url),
                 },
             ),
         )
@@ -119,7 +114,7 @@ async def chunk_and_embed(
 
 
 async def embed_all_files(
-    client: ApiClient,
+    embedding_function: EmbeddingFunction,
     all_files: list[File],
     vector_store_id: str,
     trajectory: TrajectoryExtensionServer,
@@ -129,9 +124,7 @@ async def embed_all_files(
         return
 
     documents = await VectorStore.list_documents(vector_store_id)
-    document_ids = {
-        document.file_id for document in documents if document.file_id is not None
-    }
+    document_ids = {document.file_id for document in documents if document.file_id is not None}
     to_embed = [file for file in all_files if file.id not in document_ids]
 
     if not to_embed:
@@ -161,10 +154,8 @@ async def embed_all_files(
         embedding_start_event = FileEmbeddingEvent(file=file, phase="start")
         await event_queue.put(embedding_start_event.metadata(trajectory))
 
-        await chunk_and_embed(client, file, vector_store_id)
-        embedding_end_event = FileEmbeddingEvent(
-            parent_id=embedding_start_event.id, file=file, phase="end"
-        )
+        await chunk_and_embed(embedding_function, file, vector_store_id)
+        embedding_end_event = FileEmbeddingEvent(parent_id=embedding_start_event.id, file=file, phase="end")
         await event_queue.put(embedding_end_event.metadata(trajectory))
 
     # Create event queue for real-time event dispatch
@@ -172,10 +163,7 @@ async def embed_all_files(
 
     async with TaskGroup() as tg:
         # Create pipelined tasks
-        tasks = [
-            tg.create_task(extract_and_embed_pipeline(file, event_queue))
-            for file in to_embed
-        ]
+        tasks = [tg.create_task(extract_and_embed_pipeline(file, event_queue)) for file in to_embed]
 
         # Monitor for events while tasks are running
         completed_tasks = 0
@@ -194,13 +182,11 @@ async def embed_all_files(
                         completed_tasks += 1
 
 
-async def create_vector_store(client: ApiClient) -> VectorStore:
+async def create_vector_store(embedding_function: EmbeddingFunction) -> VectorStore:
     """Create a new vector store and return its ID."""
-
-    embedding_response = await create_embedding(client)
-    vector_store = await VectorStore.create(
+    embedding_response = await embedding_function(input="test")
+    return await VectorStore.create(
         name="rag-vector-store",
-        dimension=len(embedding_response["data"][0]["embedding"]),
-        model_id=embedding_response["model"],
+        dimension=len(embedding_response.data[0].embedding),
+        model_id=embedding_response.model,
     )
-    return vector_store

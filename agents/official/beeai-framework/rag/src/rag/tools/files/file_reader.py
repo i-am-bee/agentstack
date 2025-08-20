@@ -41,7 +41,7 @@ def create_file_reader_tool_class(files: list[File]) -> type[Tool]:
     dynamically constructed using Pydantic's create_model to include only valid file options.
 
     Args:
-        files: List of File objects representing available files for reading.               
+        files: List of File objects representing available files for reading.
 
     Returns:
         A Tool class configured to read only from the provided files. The tool's input
@@ -57,19 +57,14 @@ def create_file_reader_tool_class(files: list[File]) -> type[Tool]:
 
     if len(files):
         file_descriptions = "\n".join(
-            f"- `{file.filename}`[{file.file_type}]: {format_size(file.file_size_bytes)}"
-            for file in files
+            f"- `{file.filename}`[{file.file_type}]: {format_size(file.file_size_bytes)}" for file in files
         )
 
-        description = (
-            f"Select one or more of the provided files:\n\n{file_descriptions}"
-        )
+        description = f"Select one or more of the provided files:\n\n{file_descriptions}"
         literal = Literal[tuple(file.filename for file in files)]
     else:
         literal = Literal["__None__"]
-        description = (
-            "There aren't any generated or attached file to read at the moment."
-        )
+        description = "There aren't any generated or attached file to read at the moment."
 
     FileReadInput = create_model(
         "FileReadInput",
@@ -100,17 +95,10 @@ def create_file_reader_tool_class(files: list[File]) -> type[Tool]:
             self.files = files
             self.files_dict = {file.filename: file for file in files}
 
-        async def _run(
-            self, input: FileReadInputBase, options, context
-        ) -> FileReaderToolOutput:
-
+        async def _run(self, input: FileReadInputBase, options, context) -> FileReaderToolOutput:
             if len(input.filenames) == 1 and input.filenames[0] == "__None__":
                 return FileReaderToolOutput(
-                    result=FileReaderToolResult(
-                        file_contents={
-                            "__None__": "There are no files to read at the moment."
-                        }
-                    )
+                    result=FileReaderToolResult(file_contents={"__None__": "There are no files to read at the moment."})
                 )
 
             file_contents = {}
@@ -119,8 +107,7 @@ def create_file_reader_tool_class(files: list[File]) -> type[Tool]:
                 # validate that the filename is one of the provided files
                 if filename not in self.files_dict:
                     raise ValueError(
-                        f"Invalid file name: {filename}. "
-                        f"Expected one of: {', '.join(self.files_dict.keys())}."
+                        f"Invalid file name: {filename}. Expected one of: {', '.join(self.files_dict.keys())}."
                     )
 
                 # get the FileInfo object for the requested file
@@ -137,9 +124,7 @@ def create_file_reader_tool_class(files: list[File]) -> type[Tool]:
                 file_contents[filename] = content
 
             # wrap it in the expected output object
-            return FileReaderToolOutput(
-                result=FileReaderToolResult(file_contents=file_contents)
-            )
+            return FileReaderToolOutput(result=FileReaderToolResult(file_contents=file_contents))
 
         def _create_emitter(self) -> Emitter:
             return Emitter.root().child(

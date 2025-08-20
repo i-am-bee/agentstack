@@ -3,12 +3,10 @@
 
 import os
 from textwrap import dedent
-from typing import Any, AsyncIterator
+from typing import Any, AsyncIterator, Annotated
 import uuid
 
-from a2a.client import ClientConfig, ClientFactory
 from a2a.types import (
-    AgentCard,
     AgentSkill,
     Artifact,
     DataPart,
@@ -26,8 +24,24 @@ import yaml
 from pydantic import Field, BaseModel
 
 import httpx
-from beeai_sdk.a2a.extensions import AgentDetail
-from beeai_sdk.platform import Metadata
+from beeai_sdk.a2a.extensions import (
+    AgentDetail,
+    EmbeddingServiceExtensionClient,
+    LLMServiceExtensionClient,
+    EmbeddingServiceExtensionSpec,
+    LLMServiceExtensionSpec,
+    EmbeddingServiceExtensionServer,
+    LLMServiceExtensionServer,
+    TrajectoryExtensionServer,
+    TrajectoryExtensionSpec,
+)
+from beeai_sdk.a2a.extensions.services.platform import (
+    PlatformApiExtensionServer,
+    PlatformApiExtensionSpec,
+    PlatformApiExtensionClient,
+)
+from beeai_sdk.a2a.types import RunYield
+from beeai_sdk.platform import Metadata, Provider
 from beeai_sdk.server import Server
 
 
@@ -102,7 +116,13 @@ server = Server()
         )
     ],
 )
-async def sequential_workflow(steps_message: Message) -> AsyncIterator:
+async def sequential_workflow(
+    steps_message: Message,
+    embedding_ext: Annotated[EmbeddingServiceExtensionServer, EmbeddingServiceExtensionSpec.single_demand()],
+    llm_ext: Annotated[LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand()],
+    platform_ext: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
+    trajectory_ext: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
+) -> AsyncIterator[RunYield]:
     """
     The agent orchestrates a sequence of text-processing AI agents, managing the flow of information and instructions
     between them.
@@ -118,11 +138,24 @@ async def sequential_workflow(steps_message: Message) -> AsyncIterator:
     current_step = None
 
     async with httpx.AsyncClient(base_url=base_url) as client:
-        providers = await client.get("providers")
-        providers.raise_for_status()
-        providers_by_id = {p["id"]: p for p in providers.json()["items"]}
+        providers = await Provider.list()
+        providers_by_id: dict[str, Provider] = {p.id: p for p in providers}
         if missing_providers := ({step.provider_id for step in steps} - providers_by_id.keys()):
             raise ValueError(f"The following providers are missing in the platform: {missing_providers}")
+
+    ext_metadata = (
+        (
+            PlatformApiExtensionClient(platform_ext.spec).api_auth_metadata(**platform_ext.data.model_dump())
+            if platform_ext
+            else {}
+        )
+        | (LLMServiceExtensionClient(llm_ext.spec).fulfillment_metadata(**llm_ext.data.model_dump()) if llm_ext else {})
+        | (
+            EmbeddingServiceExtensionClient(embedding_ext.spec).fulfillment_metadata(**embedding_ext.data.model_dump())
+            if embedding_ext
+            else {}
+        )
+    )
 
     agent_name = ""
     idx = 0
@@ -130,30 +163,37 @@ async def sequential_workflow(steps_message: Message) -> AsyncIterator:
         previous_output = ""
         for idx, step in enumerate(steps):
             current_step = step
-            async with httpx.AsyncClient() as http_client:
-                agent_card = AgentCard.model_validate(providers_by_id[step.provider_id]["agent_card"])
-                client = ClientFactory(ClientConfig(httpx_client=http_client)).create(card=agent_card)
-                agent_name = agent_card.name
+            provider = providers_by_id[step.provider_id]
+            async with provider.a2a_client() as client:
+                agent_name = provider.agent_card.name
 
+                workflow_update = f"✅ Agent {agent_name}[{idx}] started processing"
+                yield trajectory_ext.trajectory_metadata(title="workflow", content=workflow_update)
                 yield Metadata(
                     {
                         "beeai-sequential-workflow": {
                             "agent_name": agent_name,
-                            "provider_id": step.provider_id,
+                            "provider_id": provider.id,
                             "agent_idx": idx,
-                            "message": f"✅ Agent {agent_name}[{idx}] started processing",
+                            "message": workflow_update,
                         }
                     }
                 )
 
+                # TODO: forwarding extension metadata -
                 message = Message(
                     role=Role.user,
                     message_id=str(uuid.uuid4()),
                     parts=[Part(root=TextPart(text=format_agent_input(step.instruction, previous_output)))],
+                    metadata=ext_metadata,
                 )
                 previous_output = ""  # TODO
                 async for event in client.send_message(message):
                     match event:
+                        case Task(), TaskStatusUpdateEvent(
+                            status=TaskStatus(state=TaskState.input_required | TaskState.auth_required, message=message)
+                        ):
+                            raise NotImplementedError("TODO: handle input required/auth required")
                         case Task(), (
                             TaskStatusUpdateEvent(status=TaskStatus(message=Message(parts=parts, metadata=metadata)))
                             | TaskArtifactUpdateEvent(artifact=Artifact(parts=parts, metadata=metadata))
@@ -169,13 +209,16 @@ async def sequential_workflow(steps_message: Message) -> AsyncIterator:
                             parts = message.parts if message else []
                             text_part = [part.root for part in parts if isinstance(part.root, TextPart)]
                             raise RuntimeError(text_part[0].text if text_part else "Unknown error")
+
+                workflow_update = f"✅ Agent {agent_name}[{idx}] finished successfully"
+                yield trajectory_ext.trajectory_metadata(title="workflow", content=workflow_update)
                 yield Metadata(
                     {
                         "beeai-sequential-workflow": {
                             "provider_id": step.provider_id,
                             "agent_name": agent_name,
                             "agent_idx": idx,
-                            "message": f"✅ Agent {agent_name}[{idx}] finished successfully",
+                            "message": workflow_update,
                         }
                     }
                 )

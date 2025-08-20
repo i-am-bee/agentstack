@@ -48,6 +48,7 @@ button.toggleMenuBtn {
     gap: $spacing-07;
   }
 }
+
 @include breakpoint-down(md) {
   button.toggleMenuBtn {
     display: flex;

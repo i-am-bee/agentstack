@@ -29,3 +29,7 @@ line-length = 120
 
 [tool.uv.sources]
 beeai-sdk = { path = "../../../apps/beeai-sdk", editable = true }
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"

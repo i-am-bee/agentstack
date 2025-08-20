@@ -8,6 +8,7 @@
   flex-direction: column;
   row-gap: $spacing-04;
   padding-inline: $spacing-05;
+
   @include scrollbar();
 
   .button {

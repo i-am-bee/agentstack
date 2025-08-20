@@ -9,12 +9,12 @@ requires-python = ">=3.13,<4"
 dependencies = [
     "beeai-framework[duckduckgo,wikipedia]~=0.1.36",
     "beeai-sdk",
+    "openai==1.99.9",
     "openinference-instrumentation-beeai>=0.1.8",
     "pydantic-settings>=2.9.0",
     "tenacity>=9.1.2",
     "langchain-text-splitters>=0.3.0",
     "uvicorn>=0.35.0",
-    "openai>=1.97.2",
 ]
 
 [tool.ruff]
@@ -31,3 +31,7 @@ requires = [
     "hatchling",
 ]
 build-backend = "hatchling.build"
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"

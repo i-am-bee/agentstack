@@ -5,9 +5,9 @@
 
 import { useSearchParams } from 'next/navigation';
 
-export function useAgentNameFromPath() {
+export function useProviderIdFromUrl() {
   const searchParams = useSearchParams();
-  const agentName = searchParams.get('agent');
+  const providerId = searchParams.get('p');
 
-  return agentName ? decodeURIComponent(agentName) : null;
+  return providerId ? decodeURIComponent(providerId) : null;
 }

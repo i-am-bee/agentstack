@@ -17,6 +17,7 @@ const config = {
         ignore: ['overflow-y', 'overflow-x', '-webkit-box-orient'],
       },
     ],
+    'nesting-selector-no-missing-scoping-root': null,
   },
 };
 

@@ -1,13 +1,12 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-
+import functools
 from collections import defaultdict
 import logging
 from typing import Annotated
 import os
-import uuid
 
-from a2a.types import AgentSkill, Artifact, FilePart, FileWithUri, Message, Part
+from a2a.types import AgentSkill, Message
 from beeai_framework.adapters.openai import OpenAIChatModel
 from beeai_framework.agents.experimental import RequirementAgent
 
@@ -16,30 +15,36 @@ from beeai_framework.emitter import EmitterOptions
 from beeai_framework.memory import UnconstrainedMemory
 from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
 from beeai_framework.tools import Tool
+from openai import AsyncOpenAI
+
 from beeai_sdk.a2a.extensions import (
     AgentDetail,
     CitationExtensionServer,
     CitationExtensionSpec,
     TrajectoryExtensionServer,
     TrajectoryExtensionSpec,
+    LLMServiceExtensionServer,
+    LLMServiceExtensionSpec,
+    EmbeddingServiceExtensionServer,
+    EmbeddingServiceExtensionSpec,
 )
 from beeai_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionServer,
     PlatformApiExtensionSpec,
 )
 from beeai_framework.agents.experimental.utils._tool import FinalAnswerTool
-from beeai_sdk.a2a.types import AgentMessage
+from beeai_sdk.a2a.types import AgentMessage, AgentArtifact
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import RunContext
 from openinference.instrumentation.beeai import BeeAIInstrumentor
 from rag.helpers.citations import extract_citations
-from rag.helpers.platform import ApiClient, get_file_url
 from rag.helpers.trajectory import ToolCallTrajectoryEvent
 from rag.helpers.event_binder import EventBinder
 from rag.helpers.vectore_store import (
-    create_vector_store,
+    EmbeddingFunction,
     embed_all_files,
     CreateVectorStoreEvent,
+    create_vector_store,
 )
 from rag.tools.files.file_creator import FileCreatorTool, FileCreatorToolOutput
 from rag.tools.files.file_reader import create_file_reader_tool_class
@@ -59,18 +64,14 @@ from rag.tools.general.current_time import CurrentTimeTool
 
 BeeAIInstrumentor().instrument()
 ## TODO: https://github.com/phoenixframework/phoenix/issues/6224
-logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(
-    logging.CRITICAL
-)
-logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(
-    logging.CRITICAL
-)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(logging.CRITICAL)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(logging.CRITICAL)
 
 logger = logging.getLogger(__name__)
 
 messages: defaultdict[str, list[Message]] = defaultdict(list)
 framework_messages: defaultdict[str, list[FrameworkMessage]] = defaultdict(list)
-vector_store_id: str | None = None  # TODO: Implement vector store ID management
+vector_stores: defaultdict[str, None] = defaultdict(lambda: None)  # TODO: Implement vector store ID management
 
 server = Server()
 
@@ -120,12 +121,14 @@ async def rag(
     context: RunContext,
     trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
     citation: Annotated[CitationExtensionServer, CitationExtensionSpec()],
+    embedding_ext: Annotated[EmbeddingServiceExtensionServer, EmbeddingServiceExtensionSpec.single_demand()],
+    llm_ext: Annotated[LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand()],
     _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
 ):
+    llm, embedding = _get_clients(llm_ext, embedding_ext)
 
-    extracted_files = await extract_files(
-        history=messages[context.context_id], incoming_message=message
-    )
+    extracted_files = await extract_files(history=messages[context.context_id], incoming_message=message)
+
     input = to_framework_message(message)
 
     # Configure tools
@@ -164,39 +167,29 @@ async def rag(
     ]
 
     if extracted_files:
-        async with ApiClient() as client:  # FIXME: API Client will be redundant when create_embedding is implemented properly with openai client
-            global vector_store_id
-            if vector_store_id is None:
-                start_event = CreateVectorStoreEvent(phase="start")
-                yield start_event.metadata(trajectory)
-                vector_store = await create_vector_store(client)
-                vector_store_id = vector_store.id
-                yield CreateVectorStoreEvent(
-                    vector_store_id=vector_store_id,
-                    parent_id=start_event.id,
-                    phase="end",
-                ).metadata(trajectory)
+        if (vector_store_id := vector_stores[context.context_id]) is None:
+            start_event = CreateVectorStoreEvent(phase="start")
+            yield start_event.metadata(trajectory)
 
-            tools.append(VectorSearchTool(vector_store_id=vector_store_id))
-            async for item in embed_all_files(
-                client,
-                all_files=extracted_files,
+            vector_store_id = (await create_vector_store(embedding)).id
+            yield CreateVectorStoreEvent(
                 vector_store_id=vector_store_id,
-                trajectory=trajectory,
-            ):
-                yield item
+                parent_id=start_event.id,
+                phase="end",
+            ).metadata(trajectory)
+
+        tools.append(VectorSearchTool(vector_store_id=vector_store_id, embedding_function=embedding))
+        async for item in embed_all_files(
+            embedding_function=embedding,
+            all_files=extracted_files,
+            vector_store_id=vector_store_id,
+            trajectory=trajectory,
+        ):
+            yield item
 
     requirements = [
         ActAlwaysFirstRequirement(),  #  Enforces the ActTool to be used before any other tool execution.
     ]
-
-    llm = OpenAIChatModel(
-        model_id=os.getenv("LLM_MODEL", "llama3.1"),
-        api_key=os.getenv("LLM_API_KEY", "dummy"),
-        base_url=os.getenv("LLM_API_BASE", "http://localhost:11434/v1"),
-        parameters=ChatModelParameters(temperature=0.0),
-        tool_choice_support=set(),
-    )
 
     # Build dynamic instructions based on available files
     base_instructions = (
@@ -212,7 +205,7 @@ async def rag(
     if extracted_files:
         files_info = "\n\nAvailable files:\n"
         for file in extracted_files:
-            files_info += f"- ID: {file.id}, Filename: {file.filename}, Url: {get_file_url(file.id)}\n" # FIXME: URL should come from SDK
+            files_info += f"- ID: {file.id}, Filename: {file.filename}, Url: {file.url}\n"
         instructions = base_instructions + files_info
     else:
         instructions = base_instructions
@@ -239,13 +232,13 @@ async def rag(
     event_binder = EventBinder()
 
     async def handle_tool_start(event, meta):
-        print(f"Handle tool start")
+        logger.info("Handle tool start")
         # Store the start event ID using EventBinder
         event_binder.set_start_event_id(meta)
 
         event_id = event_binder.get_event_id(meta)
-        print(f"event_id: {event_id}")
-        print(f"meta.trace.id: {meta.trace.id}")
+        logger.info(f"event_id: {event_id}")
+        logger.info(f"meta.trace.id: {meta.trace.id}")
         tool_start_event = ToolCallTrajectoryEvent(
             id=event_id,
             kind=meta.creator.name,
@@ -257,14 +250,14 @@ async def rag(
         await context.yield_async(tool_start_event.metadata(trajectory))
 
     async def handle_tool_success(event, meta):
-        print(f"Handle tool success")
+        logger.info("Handle tool success")
         # Get the corresponding start event ID using EventBinder
         start_event_id = event_binder.get_start_event_id(meta)
 
         event_id = event_binder.get_event_id(meta)
-        print(f"event_id: {event_id}")
-        print(f"start_event_id: {start_event_id}")
-        print(f"meta.trace.id: {meta.trace.id}")
+        logger.info(f"event_id: {event_id}")
+        logger.info(f"start_event_id: {start_event_id}")
+        logger.info(f"meta.trace.id: {meta.trace.id}")
         tool_end_event = ToolCallTrajectoryEvent(
             kind=meta.creator.name,
             phase="end",
@@ -278,24 +271,7 @@ async def rag(
         if isinstance(event.output, FileCreatorToolOutput):
             result = event.output.result
             for file in result.files:
-                artifact = Artifact(
-                    artifact_id=str(file.id),
-                    name=file.filename,
-                    parts=[
-                        Part(
-                            root=FilePart(
-                                file=FileWithUri(
-                                    name=file.filename,
-                                    # mime_type=file.content_type, FIXME: File content type should come from sdk
-                                    uri=get_file_url(
-                                        file.id
-                                    ),  # FIXME: File url should come from sdk
-                                )
-                            )
-                        )
-                    ],
-                )
-
+                artifact = AgentArtifact(name=file.filename, parts=[file.to_file_part()])
                 await context.yield_async(artifact)
 
     response = (
@@ -321,12 +297,41 @@ async def rag(
 
         message = AgentMessage(
             text=clean_text,
-            metadata=(
-                citation.citation_metadata(citations=citations) if citations else None
-            ),
+            metadata=(citation.citation_metadata(citations=citations) if citations else None),
         )
         messages[context.context_id].append(message)
         yield message
+
+
+def _get_clients(
+    llm_ext: LLMServiceExtensionServer, embedding_ext: EmbeddingServiceExtensionServer
+) -> tuple[OpenAIChatModel, EmbeddingFunction]:
+    llm_conf, embedding_conf = None, None
+    if llm_ext:
+        [llm_conf] = llm_ext.data.llm_fulfillments.values()
+    if embedding_ext:
+        [embedding_conf] = embedding_ext.data.embedding_fulfillments.values()
+
+    llm = OpenAIChatModel(
+        model_id=llm_conf.api_model if llm_conf else os.getenv("LLM_MODEL", "llama3.1"),
+        api_key=llm_conf.api_key if llm_conf else os.getenv("LLM_API_KEY", "dummy"),
+        base_url=llm_conf.api_base if llm_conf else os.getenv("LLM_API_BASE", "http://localhost:11434/v1"),
+        parameters=ChatModelParameters(temperature=0.0),
+        tool_choice_support=set(),
+    )
+
+    embedding_client = AsyncOpenAI(
+        api_key=embedding_conf.api_key if embedding_conf else os.getenv("EMBEDDING_API_KEY", "dummy"),
+        base_url=embedding_conf.api_base
+        if embedding_conf
+        else os.getenv("EMBEDDING_API_BASE", "http://localhost:11434/v1"),
+    )
+    embedding = functools.partial(
+        embedding_client.embeddings.create,
+        encoding_format="float",
+        model=embedding_conf.api_model if embedding_conf else os.getenv("EMBEDDING_MODEL", "dummy"),
+    )
+    return llm, embedding
 
 
 def serve():

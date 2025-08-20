@@ -130,8 +130,13 @@ class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromCl
     def data(self):
         return self._metadata_from_client
 
-    def __init__(self, spec: ExtensionSpecT) -> None:
+    def __bool__(self):
+        return bool(self.data)
+
+    def __init__(self, spec: ExtensionSpecT, *args, **kwargs) -> None:
         self.spec = spec
+        self._args = args
+        self._kwargs = kwargs
 
     def parse_client_metadata(self, message: a2a.types.Message) -> MetadataFromClientT | None:
         """
@@ -147,9 +152,15 @@ class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromCl
         if self._metadata_from_client is None:
             self._metadata_from_client = self.parse_client_metadata(message)
 
+    def _fork(self) -> typing.Self:
+        """Creates a clone of this instance with the same arguments as the original"""
+        return type(self)(self.spec, *self._args, **self._kwargs)
+
     def __call__(self, message: a2a.types.Message, context: RunContext) -> typing.Self:
-        self.handle_incoming_message(message, context)
-        return self
+        """Works as a dependency constructor - create a private instance for the request"""
+        instance = self._fork()
+        instance.handle_incoming_message(message, context)
+        return instance
 
     @asynccontextmanager
     async def lifespan(self) -> AsyncIterator[None]:

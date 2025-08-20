@@ -18,6 +18,7 @@ jobs:
       matrix:
         agent:
           - official/beeai-framework/chat
+          - official/beeai-framework/rag
           - official/sequential-workflow
           - community/aider
           - community/gpt-researcher
@@ -91,6 +92,18 @@ jobs:
       - uses: ./.github/actions/setup
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: "Set up QEMU" # required by [beeai-cli:build]
+        id: "setup-qemu"
+        shell: bash
+        run: |
+          set -eux -o pipefail
+          [ "$(uname)" = "Linux" ]
+          [ "$(uname -m)" = "x86_64" ]
+          sudo apt-get update -qq
+          sudo apt-get install -qqy --no-install-recommends ovmf qemu-system-x86 qemu-utils
+          sudo modprobe kvm
+          # `sudo usermod -aG kvm $(whoami)` does not take an effect on GHA
+          sudo chown $(whoami) /dev/kvm
       - run: mise run common:check:version
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3

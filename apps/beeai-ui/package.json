@@ -2,7 +2,7 @@
   "name": "@i-am-bee/beeai-ui",
   "autor": "IBM Corp.",
   "private": true,
-  "version": "0.3.0-rc7",
+  "version": "0.3.0-rc8",
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
@@ -11,7 +11,7 @@
     "#*": "./src/*"
   },
   "dependencies": {
-    "@a2a-js/sdk": "^0.3.1",
+    "@a2a-js/sdk": "^0.3.2",
     "@bprogress/next": "^3.2.10",
     "@carbon/colors": "^11.30.0",
     "@carbon/grid": "^11.33.0",

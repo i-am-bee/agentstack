@@ -51,6 +51,7 @@
     grid-column: 2/ -2;
   }
 }
+
 @include breakpoint-down(sm) {
   .graphics {
     inline-size: 100%;

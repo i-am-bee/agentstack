@@ -31,8 +31,6 @@ async def get_final_task_from_stream(stream: AsyncIterator[ClientEvent | Message
     final_task = None
     async for event in stream:
         match event:
-            case (task, None):
-                final_task = task
             case (task, _):
                 final_task = task
     return final_task

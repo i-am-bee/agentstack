@@ -213,6 +213,11 @@ class LoadedFileWithUri:
 class PlatformFileUrl(AnyUrl):
     _constraints = UrlConstraints(allowed_schemes=["beeai"])
 
+    @property
+    def file_id(self) -> str:
+        assert self.host
+        return self.host
+
 
 UriType = RootModel[PlatformFileUrl | HttpUrl]
 
@@ -233,10 +238,7 @@ async def load_file(
                 case PlatformFileUrl() as url:
                     from beeai_sdk.platform import File
 
-                    file_id = url.host
-                    assert file_id
-
-                    async with File.load_content(file_id, stream=stream) as file:
+                    async with File.load_content(url.file_id, stream=stream) as file:
                         # override filename and content_type from part
                         if filename:
                             file.filename = filename
