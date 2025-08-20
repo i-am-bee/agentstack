@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation';
 import { AuthError } from 'next-auth';
 
 import { providerMap, signIn } from '#auth.ts';
-import Bee from '#svgs/bee.svg';
+import { SigninButton } from '#components/SigninButton/SigninButton.tsx';
 
 import classes from './signin.module.scss';
 
@@ -59,10 +59,7 @@ export default async function SignInPage(props: SigninPageProps) {
               }}
             >
               <div className={classes.beeaiLogin}>
-                <button type="submit" className="cds--btn cds--btn--md cds--layout--size-md cds--btn--primary">
-                  <Bee className={classes.beeButton} />
-                  <span>Continue with {provider.name}</span>
-                </button>
+                <SigninButton provider={provider} />
               </div>
             </form>
           ))}
