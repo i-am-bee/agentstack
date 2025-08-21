@@ -71,6 +71,12 @@ export function getMessageForm(message: UIMessage) {
   return form;
 }
 
+export function getMessageAuth(message: UIMessage) {
+  const form = message.parts.findLast((part) => part.kind === UIMessagePartKind.Auth);
+
+  return form;
+}
+
 export function checkMessageStatus(message: UIAgentMessage) {
   const { status, error } = message;
 

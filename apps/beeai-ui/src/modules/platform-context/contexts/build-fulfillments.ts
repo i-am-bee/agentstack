@@ -4,23 +4,23 @@
  */
 
 import type { Fulfillments } from '#api/a2a/types.ts';
+import { BASE_URL } from '#utils/constants.ts';
 import type { FeatureFlags } from '#utils/feature-flags.ts';
 
 interface BuildFullfilmentsParams {
   platformToken: string;
   selectedProviders: Record<string, string>;
+  selectedMCPServers: Record<string, string>;
   featureFlags: FeatureFlags;
 }
 
 export const buildFullfilments = ({
   platformToken,
   selectedProviders,
+  selectedMCPServers,
   featureFlags,
 }: BuildFullfilmentsParams): Fulfillments => {
   return {
-    mcp: async () => {
-      throw new Error('MCP fulfillment not implemented');
-    },
     llm: async ({ llm_demands }) => {
       const allDemands = Object.keys(llm_demands);
 
@@ -52,6 +52,40 @@ export const buildFullfilments = ({
         },
         { llm_fulfillments: {} },
       );
+    },
+    mcp: async ({ mcp_demands }) => {
+      if (!featureFlags.MCP) {
+        return null;
+      }
+
+      const allDemands = Object.keys(mcp_demands);
+
+      return allDemands.reduce(
+        (memo, demandKey) => {
+          memo.mcp_fulfillments[demandKey] = {
+            transport: {
+              type: 'streamable_http',
+              url: selectedMCPServers[demandKey],
+            },
+          };
+
+          return memo;
+        },
+        { mcp_fulfillments: {} },
+      );
+    },
+    oauth: async () => {
+      if (!featureFlags.MCPOAuth) {
+        return null;
+      }
+
+      return {
+        oauth_fulfillments: {
+          default: {
+            redirect_uri: `${BASE_URL}/oauth-callback`,
+          },
+        },
+      };
     },
   };
 };

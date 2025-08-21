@@ -9,6 +9,7 @@ import type { FormRender } from '#api/a2a/extensions/ui/form.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 import type { UIMessageForm } from '#modules/messages/types.ts';
 import type { RunStats } from '#modules/runs/types.ts';
+import type { TaskId } from '#modules/tasks/api/types.ts';
 
 export const AgentRunContext = createContext<AgentRunContextValue | undefined>(undefined);
 
@@ -24,6 +25,7 @@ interface AgentRunContextValue {
   formRender?: FormRender;
   chat: (input: string) => Promise<void>;
   submitForm: (form: UIMessageForm, taskId?: string) => Promise<void>;
+  startAuth: (url: string, taskId: TaskId) => void;
   cancel: () => void;
   clear: () => void;
 }

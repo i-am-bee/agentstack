@@ -34,8 +34,11 @@ async def mcp_agent(
 
     async with mcp.create_client() as (read, write), ClientSession(read, write) as session:
         await session.initialize()
-        result = await session.list_tools()
-        yield f"These are the tools available to me: {[tool.name for tool in result.tools]}"
+
+        tools = await session.list_tools()
+
+        yield "Available tools: \n"
+        yield "\n".join([t.name for t in tools.tools])
 
 
 if __name__ == "__main__":

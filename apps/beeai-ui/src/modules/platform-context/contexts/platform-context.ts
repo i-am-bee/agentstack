@@ -17,6 +17,8 @@ interface PlatformContextValue {
   getPlatformToken: () => Promise<string>;
   getFullfilments: () => Promise<Fulfillments>;
   selectProvider: (key: string, value: string) => void;
+  selectMCPServer: (key: string, value: string) => void;
+  selectedMCPServers: Record<string, string>;
 }
 
 export const PlatformContext = createContext<PlatformContextValue | null>(null);

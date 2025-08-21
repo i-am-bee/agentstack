@@ -25,6 +25,7 @@ export interface UIMessageBase {
 export interface UIUserMessage extends UIMessageBase {
   role: Role.User;
   form?: UIMessageForm;
+  auth?: string;
 }
 
 export interface UIAgentMessage extends UIMessageBase {
@@ -41,6 +42,7 @@ export type UIMessagePart =
   | UISourcePart
   | UITrajectoryPart
   | UIFormPart
+  | UIAuthPart
   | UITransformPart;
 
 export type UITextPart = {
@@ -81,6 +83,12 @@ export type UIFormPart = FormRender & {
   kind: UIMessagePartKind.Form;
 };
 
+export type UIAuthPart = {
+  kind: UIMessagePartKind.Auth;
+  url: string;
+  taskId: TaskId;
+};
+
 export type UITransformPart = {
   kind: UIMessagePartKind.Transform;
   id: string;
@@ -108,6 +116,7 @@ export enum UIMessagePartKind {
   Source = 'source',
   Trajectory = 'trajectory',
   Form = 'form',
+  Auth = 'auth',
   Transform = 'transform',
 }
 

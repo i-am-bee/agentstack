@@ -5,6 +5,8 @@
 
 import { type PropsWithChildren, useCallback, useEffect, useState } from 'react';
 
+import { mcpExtension } from '#api/a2a/extensions/services/mcp.ts';
+import { extractServiceExtensionDemands } from '#api/a2a/extensions/utils.ts';
 import type { AgentA2AClient } from '#api/a2a/types.ts';
 import { useApp } from '#contexts/App/index.ts';
 
@@ -18,10 +20,14 @@ interface Props<UIGenericPart> {
   agentClient?: AgentA2AClient<UIGenericPart>;
 }
 
+const mcpExtensionExtractor = extractServiceExtensionDemands(mcpExtension);
+
 export function PlatformContextProvider<UIGenericPart>({
   children,
   agentClient,
 }: PropsWithChildren<Props<UIGenericPart>>) {
+  // TODO: fix
+  const mcpDemands = mcpExtensionExtractor(agent?.capabilities.extensions ?? []);
   const { featureFlags } = useApp();
   const [contextId, setContextId] = useState<string | null>(null);
   const [selectedProviders, setSelectedProviders] = useState<Record<string, string>>({});
@@ -56,6 +62,12 @@ export function PlatformContextProvider<UIGenericPart>({
     },
     [setSelectedProviders],
   );
+  const [selectedMCPServers, setSelectedMCPServers] = useState<Record<string, string>>(
+    Object.keys(mcpDemands?.mcp_demands ?? {}).reduce((memo, value) => {
+      memo[value] = '';
+      return memo;
+    }, {}),
+  );
 
   const setContext = useCallback(
     (context: Awaited<ReturnType<typeof createContext>>) => {
@@ -73,6 +85,13 @@ export function PlatformContextProvider<UIGenericPart>({
 
     createContext().then(setContext);
   }, [createContext, setContext]);
+
+  const selectMCPServer = useCallback(
+    (key: string, value: string) => {
+      setSelectedMCPServers((prev) => ({ ...prev, [key]: value }));
+    },
+    [setSelectedMCPServers],
+  );
 
   const getPlatformToken = useCallback(async () => {
     if (contextId === null) {
@@ -111,8 +130,8 @@ export function PlatformContextProvider<UIGenericPart>({
 
   const getFullfilments = useCallback(async () => {
     const platformToken = await getPlatformToken();
-    return buildFullfilments({ platformToken, selectedProviders, featureFlags });
-  }, [getPlatformToken, selectedProviders, featureFlags]);
+    return buildFullfilments({ platformToken, selectedProviders, selectedMCPServers, featureFlags });
+  }, [getPlatformToken, selectedProviders, selectedMCPServers, featureFlags]);
 
   useEffect(() => {
     createContext().then(setContext);
@@ -137,6 +156,8 @@ export function PlatformContextProvider<UIGenericPart>({
         getPlatformToken,
         getFullfilments,
         selectProvider,
+        selectMCPServer,
+        selectedMCPServers,
       }}
     >
       {children}
