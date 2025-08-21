@@ -4,12 +4,13 @@
 
 from __future__ import annotations
 
-from types import NoneType
 from typing import Literal
 
+from a2a.types import Message as A2AMessage
 from pydantic import BaseModel, Field
 
 from beeai_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
+from beeai_sdk.a2a.types import AgentMessage, InputRequired
 
 
 class BaseField(BaseModel):
@@ -74,11 +75,57 @@ class FormRender(BaseModel):
     fields: list[FormField]
 
 
-class FormExtensionSpec(BaseExtensionSpec[FormRender]):
+class TextFieldValue(BaseModel):
+    type: str = "text"
+    value: str | None = None
+
+
+class DateFieldValue(BaseModel):
+    type: str = "date"
+    value: str | None = None
+
+
+class FileInfo(BaseModel):
+    uri: str
+    name: str | None = None
+    mime_type: str | None = None
+
+
+class FileFieldValue(BaseModel):
+    type: str = "file"
+    value: list[FileInfo] | None = None
+
+
+class MultiSelectFieldValue(BaseModel):
+    type: str = "multiselect"
+    value: list[str] | None = None
+
+
+class CheckboxFieldValue(BaseModel):
+    type: str = "checkbox"
+    value: bool | None = None
+
+
+FormFieldValue = TextFieldValue | DateFieldValue | FileFieldValue | MultiSelectFieldValue | CheckboxFieldValue
+
+
+class FormResponse(BaseModel):
+    id: str
+    values: dict[str, FormFieldValue]
+
+
+class FormExtensionSpec(BaseExtensionSpec[FormRender | None]):
     URI: str = "https://a2a-extensions.beeai.dev/ui/form/v1"
 
 
-class FormExtensionServer(BaseExtensionServer[FormExtensionSpec, NoneType]): ...
+class FormExtensionServer(BaseExtensionServer[FormExtensionSpec, FormResponse]):
+    def request_form(self, *, form: FormRender):
+        return InputRequired(message=AgentMessage(text=form.title, metadata={self.spec.URI: form}))
+
+    def parse_form_response(self, *, message: A2AMessage):
+        if not message or not message.metadata or not (data := message.metadata.get(self.spec.URI)):
+            raise ValueError("Form data has not been provided in response.")
+        return FormResponse.model_validate(data)
 
 
 class FormExtensionClient(BaseExtensionClient[FormExtensionSpec, FormRender]): ...

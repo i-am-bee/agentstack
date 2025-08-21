@@ -5,7 +5,7 @@
 
 import type { TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from '@a2a-js/sdk';
 import { A2AClient } from '@a2a-js/sdk/client';
-import { Subject } from 'rxjs';
+import { defaultIfEmpty, filter, lastValueFrom, Subject } from 'rxjs';
 import { match } from 'ts-pattern';
 
 import type { AgentExtension } from '#modules/agents/api/types.ts';
@@ -16,15 +16,21 @@ import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 import { AGENT_ERROR_MESSAGE } from './constants';
 import { llmExtension } from './extensions/services/llm';
 import { mcpExtension } from './extensions/services/mcp';
-import { extractServiceExtensionDemands, fulfillServiceExtensionDemand } from './extensions/utils';
+import { formExtension, formMessageExtension } from './extensions/ui/form';
+import {
+  extractServiceExtensionDemands,
+  extractUiExtensionData,
+  fulfillServiceExtensionDemand,
+} from './extensions/utils';
 import { processMessageMetadata, processParts } from './part-processors';
-import type { ChatParams, ChatRun } from './types';
+import { type ChatParams, type ChatRun, type FormRequired, UnfinishedTaskResult } from './types';
 import { createUserMessage, extractTextFromMessage } from './utils';
 
 const mcpExtensionExtractor = extractServiceExtensionDemands(mcpExtension);
 const fulfillMcpDemand = fulfillServiceExtensionDemand(mcpExtension);
 const llmExtensionExtractor = extractServiceExtensionDemands(llmExtension);
 const fulfillLlmDemand = fulfillServiceExtensionDemand(llmExtension);
+const extractForm = extractUiExtensionData(formMessageExtension);
 
 function handleStatusUpdate<UIGenericPart = never>(
   event: TaskStatusUpdateEvent,
@@ -78,10 +84,15 @@ export const buildA2AClient = <UIGenericPart = never>({
     ...(typeof window !== 'undefined' && { fetchImpl: window.fetch.bind(window) }),
   });
 
-  const chat = ({ message, contextId, fulfillments }: ChatParams) => {
-    const messageSubject = new Subject<{ parts: (UIMessagePart | UIGenericPart)[]; taskId: TaskId }>();
+  type PartsChatResult = 'parts';
+  type ChatResult =
+    | { type: PartsChatResult; parts: Array<UIMessagePart | UIGenericPart>; taskId: TaskId }
+    | FormRequired;
 
-    let taskId: string | null = null;
+  const chat = ({ message, contextId, fulfillments, taskId: initialTaskId, formResponse }: ChatParams) => {
+    const messageSubject = new Subject<ChatResult>();
+
+    let taskId: TaskId | undefined = initialTaskId;
 
     const iterateOverStream = async () => {
       let metadata = {};
@@ -94,7 +105,23 @@ export const buildA2AClient = <UIGenericPart = never>({
         metadata = fulfillLlmDemand(metadata, await fulfillments.llm(llmDemands));
       }
 
-      const stream = client.sendMessageStream({ message: createUserMessage({ message, contextId, metadata }) });
+      if (formResponse) {
+        metadata = {
+          ...metadata,
+          [formExtension.getUri()]: formResponse,
+        };
+      }
+
+      const stream = client.sendMessageStream({
+        message: createUserMessage({ message, contextId, metadata, taskId }),
+      });
+
+      const taskResult = lastValueFrom(
+        messageSubject.asObservable().pipe(
+          filter((result: ChatResult): result is FormRequired => result.type === UnfinishedTaskResult.FormRequired),
+          defaultIfEmpty(null),
+        ),
+      );
 
       for await (const event of stream) {
         match(event)
@@ -103,26 +130,49 @@ export const buildA2AClient = <UIGenericPart = never>({
           })
           .with({ kind: 'status-update' }, (event) => {
             taskId = event.taskId;
+            if (event.status.state === 'input-required') {
+              const form = extractForm(event.status.message?.metadata);
+              if (form) {
+                messageSubject.next({
+                  type: UnfinishedTaskResult.FormRequired,
+                  taskId,
+                  form,
+                });
+              } else {
+                throw new Error('Illegal State - Unimplemented');
+              }
+            }
 
             const parts: (UIMessagePart | UIGenericPart)[] = handleStatusUpdate(event, onStatusUpdate);
 
-            messageSubject.next({ parts, taskId });
+            messageSubject.next({ type: 'parts', parts, taskId });
           })
           .with({ kind: 'artifact-update' }, (event) => {
             taskId = event.taskId;
 
             const parts = handleArtifactUpdate(event);
 
-            messageSubject.next({ parts, taskId });
+            messageSubject.next({ type: 'parts', parts, taskId });
           });
       }
+
       messageSubject.complete();
+
+      return taskResult;
     };
 
     const run: ChatRun<UIGenericPart> = {
       done: iterateOverStream(),
       subscribe: (fn) => {
-        const subscription = messageSubject.subscribe(fn);
+        const subscription = messageSubject
+          .asObservable()
+          .pipe(
+            filter(
+              (result): result is { type: 'parts'; parts: Array<UIMessagePart | UIGenericPart>; taskId: TaskId } =>
+                result.type === 'parts',
+            ),
+          )
+          .subscribe(fn);
 
         return () => {
           subscription.unsubscribe();

@@ -8,7 +8,7 @@ import { type PropsWithChildren, useCallback, useMemo, useRef, useState } from '
 import { v4 as uuid } from 'uuid';
 
 import { buildA2AClient } from '#api/a2a/client.ts';
-import type { ChatRun } from '#api/a2a/types.ts';
+import { type ChatRun, UnfinishedTaskResult } from '#api/a2a/types.ts';
 import { createTextPart } from '#api/a2a/utils.ts';
 import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
@@ -20,13 +20,14 @@ import { convertFilesToUIFileParts } from '#modules/files/utils.ts';
 import type { RunFormValues } from '#modules/form/types.ts';
 import { Role } from '#modules/messages/api/types.ts';
 import type { UIAgentMessage, UIMessage, UIUserMessage } from '#modules/messages/types.ts';
-import { UIMessageStatus } from '#modules/messages/types.ts';
+import { UIMessagePartKind, UIMessageStatus } from '#modules/messages/types.ts';
 import { addTranformedMessagePart, isAgentMessage } from '#modules/messages/utils.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 import { PlatformContextProvider } from '#modules/platform-context/contexts/PlatformContextProvider.tsx';
 import type { RunStats } from '#modules/runs/types.ts';
 import { SourcesProvider } from '#modules/sources/contexts/SourcesProvider.tsx';
 import { getMessageSourcesMap } from '#modules/sources/utils.ts';
+import type { TaskId } from '#modules/tasks/api/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { MessagesProvider } from '../../../messages/contexts/MessagesProvider';
@@ -48,6 +49,8 @@ export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>)
 }
 
 function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
+  const [formId, setFormId] = useState<string | null>(null);
+  const [lastTaskId, setLastTaskId] = useState<TaskId | null>(null);
   const { getContextId, resetContext, getFullfilments } = usePlatformContext();
   const [messages, getMessages, setMessages] = useImmerWithGetter<UIMessage[]>([]);
   const [input, setInput] = useState<string>();
@@ -126,7 +129,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
   }, [setMessages, clearFiles, resetContext]);
 
   const run = useCallback(
-    async ({ input }: { input?: string; formValues?: RunFormValues }) => {
+    async ({ input, formValues }: { input?: string; formValues?: RunFormValues }) => {
       const contextId = getContextId();
 
       if (pendingRun.current || pendingSubscription.current) {
@@ -162,6 +165,8 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
           message: userMessage,
           contextId,
           fulfillments,
+          taskId: lastTaskId ?? undefined,
+          formResponse: formValues && formId ? { id: formId, values: formValues } : undefined,
         });
         pendingRun.current = run;
 
@@ -178,11 +183,21 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
           });
         });
 
-        await run.done;
+        const result = await run.done;
+        if (result && result.type === UnfinishedTaskResult.FormRequired) {
+          updateLastAgentMessage((message) => {
+            message.status = UIMessageStatus.Completed;
+            message.parts.push({ kind: UIMessagePartKind.Form, ...result.form });
+          });
 
-        updateLastAgentMessage((message) => {
-          message.status = UIMessageStatus.Completed;
-        });
+          setFormId(result.form.id);
+          setLastTaskId(result.taskId);
+        } else {
+          updateLastAgentMessage((message) => {
+            message.status = UIMessageStatus.Completed;
+          });
+          setLastTaskId(null);
+        }
       } catch (error) {
         handleError(error);
       } finally {
@@ -201,6 +216,9 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
       a2aAgentClient,
       updateLastAgentMessage,
       handleError,
+      setLastTaskId,
+      formId,
+      lastTaskId,
     ],
   );
 

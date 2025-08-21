@@ -8,15 +8,28 @@ import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
 
 import type { LLMDemand, LLMFulfillment } from './extensions/services/llm';
 import type { MCPDemand, MCPFulfillment } from './extensions/services/mcp';
+import type { FormRender, FormResponse } from './extensions/ui/form';
+
+export enum UnfinishedTaskResult {
+  FormRequired = 'form-required',
+}
+
+export interface FormRequired {
+  taskId: TaskId;
+  type: UnfinishedTaskResult.FormRequired;
+  form: FormRender;
+}
 
 export interface ChatParams {
   message: UIUserMessage;
   contextId: ContextId;
   fulfillments: Fulfillments;
+  taskId?: TaskId;
+  formResponse?: FormResponse;
 }
 
 export interface ChatRun<UIGenericPart = never> {
-  done: Promise<void>;
+  done: Promise<null | FormRequired>;
   subscribe: (fn: (data: { parts: (UIMessagePart | UIGenericPart)[]; taskId: TaskId }) => void) => () => void;
   cancel: () => Promise<void>;
 }

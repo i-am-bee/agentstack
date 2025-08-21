@@ -11,7 +11,6 @@ import type { UIFilePart, UIMessagePart } from '#modules/messages/types.ts';
 import { UIMessagePartKind } from '#modules/messages/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
-import { formExtensionRenderExample } from './extensions/ui/form';
 import {
   createFormPart,
   createSourcePart,
@@ -26,7 +25,7 @@ import {
 export function processMessageMetadata(message: Message): UIMessagePart[] {
   const trajectory = extractTrajectory(message.metadata);
   const citations = extractCitation(message.metadata)?.citations;
-  const form = extractForm(message.metadata) ?? formExtensionRenderExample; // TODO: Temporary for testing purposes
+  const form = extractForm(message.metadata);
 
   const parts: UIMessagePart[] = [];
 
