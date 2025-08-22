@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 from types import NoneType
-from typing import Annotated, Literal, Self, override
+from typing import Annotated, Literal, Self
 
 import a2a.types
 import pydantic
@@ -93,7 +93,6 @@ class MCPServiceExtensionMetadata(pydantic.BaseModel):
 
 
 class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCPServiceExtensionMetadata]):
-    @override
     def parse_client_metadata(self, message: a2a.types.Message) -> MCPServiceExtensionMetadata | None:
         metadata = super().parse_client_metadata(message)
         if metadata:
