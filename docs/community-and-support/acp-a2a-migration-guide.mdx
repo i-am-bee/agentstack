@@ -308,13 +308,6 @@ async def agent_function(
     )
     
     # Tool execution trajectory
-    if last_step and last_step.tool is not None:
-        yield trajectory.trajectory_metadata(
-            title=last_step.tool.name,
-            content=f"Executed {last_step.tool.name} with input: {last_step.input}"
-        )
-    
-    # Search-specific trajectory
     if tool_name == "DuckDuckGo":
         search_results = getattr(step.output, 'results', None)
         query = step.input.get("query", "Unknown")
@@ -322,7 +315,12 @@ async def agent_function(
         
         yield trajectory.trajectory_metadata(
             title="DuckDuckGo Search",
-            content=f"Searched: '{query}' → {count} results"
+            content=f"Searched: '{query}' -> {count} results"
+        )
+    elif tool_name == "think":
+        yield trajectory.trajectory_metadata(
+            title="Thought",
+            content=step.input["thoughts"]
         )
     
     # Final response with citations
@@ -341,7 +339,7 @@ async def agent_function(
     # Final completion trajectory
     yield trajectory.trajectory_metadata(
         title="Completion",
-        content="Response completed successfully"
+        content="Response completed"
     )
 ```
 
