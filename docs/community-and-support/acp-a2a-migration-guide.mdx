@@ -18,7 +18,7 @@ Migrate from ACP (Agent Communication Protocol) to A2A (Agent2Agent) Protocol fo
 **Old (ACP)**
 
 ```toml
-dependencies = ["acp_sdk>=1.0.0"]
+dependencies = ["acp-sdk>=1.0.0"]
 ```
 
 ```
@@ -31,7 +31,7 @@ from acp_sdk.models.platform import PlatformUIAnnotation, PlatformUIType, AgentT
 **New (A2A)**
 
 ```toml
-dependencies = ["beeai_sdk>=0.3.0"]
+dependencies = ["beeai-sdk>=0.3.0"]
 ```
 
 ```
@@ -44,6 +44,7 @@ from beeai_sdk.a2a.extensions import (
     TrajectoryExtensionServer, TrajectoryExtensionSpec,
     LLMServiceExtensionServer, LLMServiceExtensionSpec
 )
+from beeai_sdk.a2a.extensions.services.platform import PlatformApiExtensionServer, PlatformApiExtensionSpec
 from beeai_sdk.a2a.types import AgentMessage, AgentArtifact
 from beeai_sdk.util.file import load_file
 ```
@@ -264,19 +265,84 @@ for citation in citations:
 **New (A2A)**
 
 ```py
-yield trajectory.trajectory_metadata(
-    title="Processing",
-    content="Processing message..."
+import re
+from typing import Annotated
+
+from beeai_sdk.a2a.extensions import (
+    CitationExtensionServer, CitationExtensionSpec,
+    TrajectoryExtensionServer, TrajectoryExtensionSpec
 )
 
-citations.append({
-    "url": url,
-    "title": title,
-    "description": description,
-    "start_index": start,
-    "end_index": end
-})
-yield citation.citation_metadata(citations=citations)
+def extract_citations(text: str, search_results=None) -> tuple[list[dict], str]:
+    """Extract citations and clean text - returns citations in the correct format"""
+    citations, offset = [], 0
+    pattern = r"\[([^\]]+)\]\(([^)]+)\)"
+    
+    for match in re.finditer(pattern, text):
+        content, url = match.groups()
+        start = match.start() - offset
+
+        citations.append({
+            "url": url,
+            "title": url.split("/")[-1].replace("-", " ").title() or content[:50],
+            "description": content[:100] + ("..." if len(content) > 100 else ""),
+            "start_index": start, 
+            "end_index": start + len(content)
+        })
+        offset += len(match.group(0)) - len(content)
+
+    return citations, re.sub(pattern, r"\1", text)
+
+# Add extensions to function signature
+async def agent_function(
+    message: Message,
+    context: RunContext,
+    trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
+    citation: Annotated[CitationExtensionServer, CitationExtensionSpec()],
+    # ... other extensions
+):
+    # Trajectory updates during processing
+    yield trajectory.trajectory_metadata(
+        title="Processing Message",
+        content=f"Processing: '{user_message}'"
+    )
+    
+    # Tool execution trajectory
+    if last_step and last_step.tool is not None:
+        yield trajectory.trajectory_metadata(
+            title=last_step.tool.name,
+            content=f"Executed {last_step.tool.name} with input: {last_step.input}"
+        )
+    
+    # Search-specific trajectory
+    if tool_name == "DuckDuckGo":
+        search_results = getattr(step.output, 'results', None)
+        query = step.input.get("query", "Unknown")
+        count = len(search_results) if search_results else 0
+        
+        yield trajectory.trajectory_metadata(
+            title="DuckDuckGo Search",
+            content=f"Searched: '{query}' → {count} results"
+        )
+    
+    # Final response with citations
+    response_text = "Your response with [cited sources](https://example.com)"
+    
+    # Extract and yield citations
+    citations, clean_text = extract_citations(response_text, search_results)
+    
+    # Yield the clean response text
+    yield clean_text
+    
+    # Yield citations if any were found
+    if citations:
+        yield citation.citation_metadata(citations=citations)
+    
+    # Final completion trajectory
+    yield trajectory.trajectory_metadata(
+        title="Completion",
+        content="Response completed successfully"
+    )
 ```
 
 ### 7. Response Output
