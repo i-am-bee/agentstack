@@ -9,6 +9,7 @@ Migrate from ACP (Agent Communication Protocol) to A2A (Agent2Agent) Protocol fo
 ✅ Replace `Metadata` with `AgentDetail`<br>
 ✅ Update message processing<br>
 ✅ Update trajectory and citation handling
+✅ Use LLM service extension
 
 ## Step-by-Step Migration
 
@@ -200,7 +201,7 @@ def get_memory(context: RunContext) -> UnconstrainedMemory:
     return memories.setdefault(context_id, UnconstrainedMemory())
 ```
 
-### 5. Update LLM Configuration
+### 5. Use LLM Service Extension
 
 **Old (ACP)**
 
@@ -213,17 +214,28 @@ llm = ChatModel.from_name(f"openai:{os.getenv('LLM_MODEL', 'llama3.1')}")
 **New (A2A)**
 
 ```py
-llm_conf = None
-if llm_ext and llm_ext.data:
-    [llm_conf] = llm_ext.data.llm_fulfillments.values()
-
-llm = OpenAIChatModel(
-    model_id=llm_conf.api_model if llm_conf else os.getenv("LLM_MODEL", "llama3.1"),
-    api_key=llm_conf.api_key if llm_conf else os.getenv("LLM_API_KEY", "dummy"),
-    base_url=llm_conf.api_base if llm_conf else os.getenv("LLM_API_BASE", "http://localhost:11434/v1"),
-    parameters=ChatModelParameters(temperature=0.0),
-    tool_choice_support=set(),
-)
+# Add LLM extension to function signature
+async def agent_function(
+    message: Message,
+    context: RunContext,
+    llm_ext: Annotated[
+        LLMServiceExtensionServer,
+        LLMServiceExtensionSpec.single_demand(
+            suggested=("ibm/granite-3-3-8b-instruct", "llama3.1", "gpt-4o-mini")
+        )
+    ],
+    # ... other extensions
+):
+    # Get platform-managed LLM configuration
+    llm_config = llm_ext.data.llm_fulfillments.get("default")
+    
+    llm = OpenAIChatModel(
+        model_id=llm_config.api_model,
+        api_key=llm_config.api_key,
+        base_url=llm_config.api_base,
+        parameters=ChatModelParameters(temperature=0.0),
+        tool_choice_support=set(),
+    )
 ```
 
 ### 6. Update Trajectory & Citations
