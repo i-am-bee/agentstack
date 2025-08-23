@@ -29,6 +29,16 @@
 
 </div>
 
+---------------------------
+
+## 🚀 IMPORTANT UPDATE
+
+**ACP is now part of A2A under the Linux Foundation!**  
+<br>
+👉 [Learn more](TBD) | 🛠️ [Migration Guide](TBD)
+
+---------------------------
+
 <br />
 
 **BeeAI** is an open-source platform that makes it easy to **discover**, **run**, and **share** AI agents across frameworks. Built on the [Agent Communication Protocol (ACP)](https://agentcommunicationprotocol.dev/) and hosted by the **Linux Foundation**, BeeAI bridges the gap between different agent ecosystems.

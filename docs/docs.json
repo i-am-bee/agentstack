@@ -11,49 +11,64 @@
   "navigation": {
     "groups": [
       {
-        "group": "Introduction",
+        "group": "Getting Started",
         "pages": [
-          "/introduction/welcome",
-          "/introduction/quickstart",
-          "/introduction/installation"
+          "introduction/welcome",
+          "introduction/quickstart", 
+          "introduction/installation"
+        ]
+      },
+      {
+        "group": "Core Concepts",
+        "pages": [
+          "concepts/architecture",
+          "concepts/a2a"
         ]
       },
       {
         "group": "Build Your Own Agent",
         "pages": [
-          "/build-agents/hello-world",
-          "/build-agents/llm-configuration",
-          "/build-agents/agent-details",
-          "/build-agents/messages",
-          "/build-agents/files",
-          "/build-agents/gui-components"
+          "build-agents/hello-world",
+          {
+            "group": "Fundamentals",
+            "pages": [
+              "build-agents/llm-configuration",
+              "build-agents/agent-details",
+              "build-agents/messages",
+              "build-agents/files",
+              "build-agents/gui-components"
+            ]
+          }
         ]
       },
       {
-        "group": "How To",
+        "group": "Working with Agents",
         "pages": [
-          "/how-to/discover-agents",
-          "/how-to/environment-configuration",
-          "/how-to/run-agents",
-          "/how-to/observe-agents",
-          "/how-to/import-agents",
-
-          "/how-to/share-agents",
-          "/how-to/cli-reference",
-          "/how-to/web-interface",
-          "/how-to/mcp"
+          "working-with-agents/discover-agents",
+          "working-with-agents/run-agents", 
+          "working-with-agents/observe-agents",
+          "working-with-agents/import-agents",
+          "working-with-agents/share-agents"
+        ]
+      },
+      {
+        "group": "Guides",
+        "pages": [
+          "how-to/environment-configuration",
+          "how-to/mcp",
+          "how-to/web-interface",
+          "how-to/cli-reference"
         ]
       },
       {
         "group": "Deployment",
         "pages": [
-          "concepts/architecture",
           "deployment/overview",
           "deployment/kubernetes"
         ]
       },
       {
-        "group": "Community and Support",
+        "group": "Community & Support",
         "pages": [
           "community-and-support/troubleshooting",
           "community-and-support/contribute"
