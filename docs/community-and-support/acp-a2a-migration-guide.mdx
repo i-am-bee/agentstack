@@ -1,41 +1,24 @@
 # BeeAI Platform: ACP to A2A Migration Guide
 
-The BeeAI platform is transitioning from ACP (Agent Communication Protocol) to A2A (Agent2Agent) Protocol starting with version 0.3.x. This guide walks you through migrating your existing agents with practical examples and clear explanations.
+Migrate from ACP (Agent Communication Protocol) to A2A (Agent2Agent) Protocol for BeeAI platform v0.3.x+.
 
-The BeeAI team has designed this migration to be as seamless as possible. Most of your existing agent logic will work with minimal changes.
-
-## What's Changing?
-
-### SDK: `acp_sdk` → `beeai_sdk`
-
-The primary change is replacing the `acp_sdk` dependency with `beeai_sdk`. The new SDK provides:
-- Full A2A compatibility while maintaining familiar patterns
-- Higher-level constructs that simplify agent development
-- Complete integration with the BeeAI Platform
-- Enhanced extension system for improved modularity
-
-### Key Architectural Changes
-
-1. **Metadata System → Extensions System:** Rich metadata capabilities through specialized extensions
-2. **Function Signatures:** Updated to use A2A types and context patterns
-3. **Message Handling:** Simplified message processing with new Message types
-4. **Platform Integration:** Enhanced platform services through extension injection
+This guide walks you through migrating your BeeAI agents from the legacy ACP SDK to the new BeeAI SDK powered by the A2A protocol. The migration involves updating dependencies, imports, function signatures, and adopting new patterns for metadata, citations, and trajectory logging.
 
 ## Migration Checklist
 
 ✅ Replace `acp_sdk` with `beeai_sdk` in dependencies<br>
-✅ Update import statements<br>
-✅ Replace metadata with A2A agent detail<br>
-✅ Update agent decorator parameters<br>
-✅ Update function signatures<br>
-✅ Update extension injection patterns
-✅ Update error handling patterns
+✅ Update imports<br>
+✅ Replace Metadata with AgentDetail<br>
+✅ Update agent function signature<br>
+✅ Refactor message processing logic<br>
+✅ Update citation handling
+✅ Update trajectory logging
+✅ Add file processing capabilities
+✅ Verify LLM configuration
 
 ## Step-by-Step Migration
 
 ### 1. Update Dependencies
-
-Update your `pyproject.toml` or `requirements.txt`:
 
 **Old (ACP)**
 
@@ -55,7 +38,7 @@ dependencies = [
 ]
 ```
 
-### 2. Update Import Statements
+### 2. Update Imports
 
 **Old (ACP)**
 
@@ -74,14 +57,10 @@ from a2a.types import AgentCapabilities, AgentSkill, Message
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import RunContext
 from beeai_sdk.a2a.extensions import (
-    AgentDetail, 
-    AgentDetailTool, 
-    CitationExtensionServer, 
-    CitationExtensionSpec, 
-    TrajectoryExtensionServer, 
-    TrajectoryExtensionSpec,
-    LLMServiceExtensionServer,
-    LLMServiceExtensionSpec
+    AgentDetail, AgentDetailTool, 
+    CitationExtensionServer, CitationExtensionSpec, 
+    TrajectoryExtensionServer, TrajectoryExtensionSpec,
+    LLMServiceExtensionServer, LLMServiceExtensionSpec
 )
 from beeai_sdk.util.file import load_file
 ```
@@ -94,11 +73,9 @@ from beeai_sdk.util.file import load_file
   <summary>Expand ACP Metadata Example</summary>
 
 ```
-from acp_sdk import Annotations, Metadata
-
 @server.agent(
     name="jennas_granite_chat",
-    description="This is a general-purpose chat assistant prototype built with the BeeAI Framework and powered by Granite. It leverages the experimental `RequirementAgent` with `ConditionalRequirement` rules to intelligently decide when to use tools—specifically `ThinkTool` for reasoning and `DuckDuckGoSearchTool` for fetching real-time information.\n\nThe implementation uses specific conditional requirements: `ThinkTool` is forced at step 1 and after any other tool execution (with `consecutive_allowed=False`), while `DuckDuckGoSearchTool` is limited to 2 invocations maximum and includes custom checks that skip search for casual messages like \"hi\" or \"thanks.\"\n\nIt maintains conversation context using `UnconstrainedMemory` with session-based storage and implements comprehensive trajectory metadata logging throughout all interaction steps. Search results are automatically processed through regex-based citation extraction that converts markdown links `[text](URL)` into structured `CitationMetadata` objects for the platform's citation GUI support.\n\nThe agent includes error handling with try-catch blocks that provide clear, helpful messages when issues occur, and uses the `is_casual()` function to intelligently determine when tools aren't necessary for simple conversational exchanges.",
+    description="This is a general-purpose chat assistant prototype built with the BeeAI Framework and powered by Granite.",
     metadata=Metadata(
         annotations=Annotations(
             beeai_ui=PlatformUIAnnotation(
@@ -126,8 +103,6 @@ from acp_sdk import Annotations, Metadata
   <summary>Expand A2A Agent Detail Example</summary>
 
 ```
-from beeai_sdk.a2a.extensions import AgentDetail, AgentDetailTool
-
 @server.agent(
     name="Jenna's Granite Chat",
     default_input_modes=["text", "text/plain", "application/pdf", "text/csv", "application/json"],
@@ -156,7 +131,6 @@ from beeai_sdk.a2a.extensions import AgentDetail, AgentDetailTool
         },
         source_code_url="https://github.com/jenna-winkler/granite_chat"
     ),
-    capabilities=AgentCapabilities(streaming=True),
     skills=[
         AgentSkill(
             id="chat",
@@ -181,14 +155,246 @@ from beeai_sdk.a2a.extensions import AgentDetail, AgentDetailTool
 )
 ```
 
-4. Update Function Signatures
-5. Update Message Processing
-6. Update Trajectory Logging
-7. Update Citation Handling
-8. Update Response Yielding
-.......TBC!
+### 4. Update Function Signature
 
-## Full Code Example
+**Old (ACP)**
+
+```py
+async def general_chat_assistant(input: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
+```
+
+**New (A2A)**
+
+```py
+async def general_chat_assistant(
+    input: Message, 
+    context: RunContext,
+    citation: Annotated[CitationExtensionServer, CitationExtensionSpec()],
+    trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
+    llm: Annotated[
+        LLMServiceExtensionServer, 
+        LLMServiceExtensionSpec.single_demand(
+            suggested=("ibm/granite-3-3-8b-instruct", "llama3.1", "gpt-4o-mini")
+        )
+    ]
+):
+```
+
+### 5. Update Message Processing
+
+**Old (ACP)**
+
+```py
+user_msg = input[-1].parts[0].content if input else "Hello"
+```
+
+**New (A2A)**
+
+```py
+user_msg = ""
+file_content = ""
+uploaded_files = []
+
+for part in input.parts:
+    part_root = part.root
+    if part_root.kind == "text":
+        user_msg = part_root.text
+    elif part_root.kind == "file":
+        uploaded_files.append(part_root)
+
+if not user_msg:
+    user_msg = "Hello"
+```
+
+### 6. Update Context Management
+
+**Old (ACP)**
+
+```py
+def get_memory(context: Context) -> UnconstrainedMemory:
+    session_id = getattr(context, "session_id", "default")
+    return memories.setdefault(session_id, UnconstrainedMemory())
+```
+
+**New (A2A)**
+
+```py
+def get_memory(context: RunContext) -> UnconstrainedMemory:
+    context_id = getattr(context, "context_id", getattr(context, "session_id", "default"))
+    return memories.setdefault(context_id, UnconstrainedMemory())
+```
+
+### 7. File Processing
+
+**New!**
+
+```py
+import os
+
+from typing import Annotated
+
+from beeai_sdk.server import Server
+from beeai_sdk.a2a.types import Message
+from beeai_sdk.a2a.extensions.services.platform import (
+    PlatformApiExtensionServer,
+    PlatformApiExtensionSpec,
+)
+from beeai_sdk.platform import File
+from beeai_sdk.util.file import load_file
+
+
+server = Server()
+
+
+@server.agent(
+    default_input_modes=["text/plain"]
+)
+async def example_agent(
+    input: Message,
+    _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
+):
+    """Agent that can accept and modify files"""
+
+    for file_part in input.parts:
+        file_part_root = file_part.root
+
+        if file_part_root.kind == "file":
+            async with load_file(file_part_root) as loaded_content:
+                new_file = await File.create(
+                    filename=f"processed_{file_part_root.file.name}",
+                    content_type=file_part_root.file.mime_type,
+                    content=loaded_content.text.encode(),
+                )
+                yield new_file.to_file_part()
+
+    yield "File Processing Done"
+
+
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+
+if __name__ == "__main__":
+    run()
+```
+
+### 8. LLM Configuration
+
+**New!** - Using LLM Service Extension
+
+```py
+import os
+from typing import Annotated
+
+from a2a.types import Message
+from a2a.utils.message import get_message_text
+from beeai_sdk.server import Server
+from beeai_sdk.a2a.types import AgentMessage
+from beeai_sdk.a2a.extensions import LLMServiceExtensionServer, LLMServiceExtensionSpec
+
+server = Server()
+
+@server.agent()
+async def example_agent(
+    input: Message,
+    llm: Annotated[
+        LLMServiceExtensionServer,
+        LLMServiceExtensionSpec.single_demand(suggested=("ibm/granite-3-3-8b-instruct",))
+    ],
+):
+    """Agent that uses LLM inference to respond to user input"""
+
+    if llm:
+        # Extract the user's message
+        user_message = get_message_text(input)
+        
+        # Get LLM configuration
+        # Single demand is resolved to default (unless specified otherwise)
+        llm_config = llm.data.llm_fulfillments.get("default")
+        
+        # Use the LLM configuration with your preferred client
+        # The platform provides OpenAI-compatible endpoints
+        api_model = llm_config.api_model
+        api_key = llm_config.api_key
+        api_base = llm_config.api_base
+
+        yield AgentMessage(text=f"LLM access configured for model: {api_model}")
+
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+if __name__ == "__main__":
+    run()
+```
+
+### 9. Update Trajectory Logging
+
+**Old (ACP)**
+
+```py
+yield MessagePart(metadata=TrajectoryMetadata(
+    kind="trajectory", 
+    key=str(uuid.uuid4()),
+    message="Processing..."
+))
+```
+
+**New (A2A)**
+
+```py
+yield trajectory.trajectory_metadata(
+    title="Processing",
+    content="Processing message..."
+)
+```
+
+### 10. Update Citation Handling
+
+**Old (ACP)**
+
+```py
+citations.append(CitationMetadata(
+    kind="citation", 
+    url=url,
+    title=title,
+    description=description,
+    start_index=start, 
+    end_index=end
+))
+
+for citation in citations:
+    yield MessagePart(metadata=citation)
+```
+
+**New (A2A)**
+
+```py
+citations.append({
+    "url": url,
+    "title": title,
+    "description": description,
+    "start_index": start,
+    "end_index": end
+})
+
+yield citation.citation_metadata(citations=citations)
+```
+
+### 11. Update Response Output
+
+**Old (ACP)**
+
+```py
+yield MessagePart(content=response_text)
+```
+
+**New (A2A)**
+
+```py
+yield response_text
+```
+
+## Complete Example
 
 <details>
   <summary>Expand to see A2A Chat Agent Code Example</summary>
@@ -254,7 +460,6 @@ from chat.tools.general.clarification import (
     clarification_tool_middleware,
 )
 
-# Temporary instrument fix
 EventMeta.model_fields["context"].exclude = True
 
 BeeAIInstrumentor().instrument()
@@ -548,9 +753,3 @@ if __name__ == "__main__":
 </details>
 
 Source: https://github.com/i-am-bee/beeai-platform/blob/main/agents/official/beeai-framework/chat/src/chat/agent.py
-
-## Key Changes Explained
-
-1. Metadata → A2A extensions
-
-## Available Extensions
