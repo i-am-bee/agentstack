@@ -78,10 +78,20 @@ spec:
               value: "false"
           {{- end }}
           volumeMounts:
+            {{-  if .Values.oidc.enabled }}
+            - name: oidc-providers
+              readOnly: true
+              mountPath: "/providers"
+            {{- end }}
             {{- with .Values.ui.volumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
       volumes:
+        {{-  if .Values.oidc.enabled }}
+        - name: oidc-providers
+          secret:
+            secretName: oidc-providers
+        {{- end }}
         {{- with .Values.ui.volumes }}
           {{- toYaml . | nindent 8 }}
         {{- end }}

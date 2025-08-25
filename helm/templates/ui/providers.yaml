@@ -1,3 +1,4 @@
+{{-  if .Values.oidc.enabled -}}
 apiVersion: v1
 kind: Secret
 type: Opaque
@@ -6,7 +7,7 @@ metadata:
   labels:
     app.kubernetes.io/component: beeai-ui
     app: beeai-ui
-  namespace: default
 stringData:
   providers.json: |
     {{- toJson .Values.oidc.nextauth_providers | nindent 4 -}}
+{{- end }}

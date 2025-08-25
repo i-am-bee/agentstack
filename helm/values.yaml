@@ -190,14 +190,6 @@ ui:
   affinity: { }
   livenessProbe: { }
   readinessProbe: { }
-  volumeMounts:
-    - name: providers
-      readOnly: true
-      mountPath: "/providers"
-  volumes:
-    - name: providers
-      secret:
-        secretName: oidc-providers
 
 phoenix:
   # **Important License Notice**: Phoenix is disabled by default in BeeAI. When you enable Phoenix,
@@ -458,6 +450,6 @@ forge:
     - name: forge-storage
       mountPath: /data
   volumes:
-      - name: forge-storage
-        persistentVolumeClaim:
-          claimName: forge-pvc
+    - name: forge-storage
+      persistentVolumeClaim:
+        claimName: forge-pvc
