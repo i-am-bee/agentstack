@@ -48,7 +48,8 @@ server = Server()
 
 
 @server.agent(
-    default_input_modes=["text/plain"]
+    default_input_modes=["text/plain"],
+    default_output_modes=["text/plain"]
 )
 async def example_agent(
     input: Message,
@@ -85,6 +86,8 @@ Here's what you need to know to add file processing capabilities to your agent:
 
 **Enable file uploads**: Add `default_input_modes` to your agent decorator with a list of MIME types you want to accept (e.g., `["text/plain", "application/pdf", "image/jpeg"]`).
 
+**Enable producing of files**: Add `default_output_modes` to your agent decorator with a list of MIME types that your agent can potentially produce (e.g., `["text/plain", "application/pdf", "image/jpeg"]`).
+
 **Access the Platform API**: Import and use `PlatformApiExtensionServer` to get access to file manipulation capabilities.
 
 **Process message parts**: Iterate through `input.parts` to find FilePart objects that represent uploaded files.
@@ -102,6 +105,21 @@ The `default_input_modes` parameter controls which file types users can upload:
 ```python
 @server.agent(
     default_input_modes=[
+        "text/plain",           # Plain text files
+        "application/pdf",      # PDF documents
+        "image/jpeg",           # JPEG images
+        "image/png",            # PNG images
+        "application/json",     # JSON files
+        "text/csv"              # CSV files
+    ]
+)
+```
+
+The `default_output_modes` parameter controls which file agent can produce:
+
+```python
+@server.agent(
+    default_output_modes=[
         "text/plain",           # Plain text files
         "application/pdf",      # PDF documents
         "image/jpeg",           # JPEG images

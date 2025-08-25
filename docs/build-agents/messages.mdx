@@ -30,11 +30,15 @@ yield "Hello, world!"
 ```
 
 #### Plain dict
-Dictionaries send an empty A2A `Message` and supply the dictionary content as message metadata:
+Dictionaries sends `Message` containing `DataPart`
 
 ```python
 yield {"status": "processing", "progress": 50}
 ```
+
+#### AgentArtifact
+
+Same as `AgentMessage` but simplifies work with Artifacts.
 
 ### Direct A2A Components
 
@@ -90,43 +94,5 @@ from a2a.types import TaskStatus, TextPart, Message, TaskState
 yield TaskStatus(
     message=Message(message_id=str(uuid.uuid4()), role="agent", parts=[TextPart(text="Please provide some input.")]),
     state=TaskState.input_required,
-)
-```
-
-#### TaskStatusUpdateEvent
-Similar to `TaskStatus` but designed for streaming updates. Use this when you need to provide progressive status updates, such as when streaming content to the client.
-
-```python
-import uuid
-from a2a.types import Message, TextPart, TaskStatusUpdateEvent, TaskState, TaskStatus
-
-yield TaskStatusUpdateEvent(
-    contextId=str(uuid.uuid4()),
-    taskId=str(uuid.uuid4()),
-    final=False,
-    status=TaskStatus(
-        message=Message(
-            message_id=str(uuid.uuid4()), role="agent", parts=[TextPart(text="Please provide some input.")]
-        ),
-        state=TaskState.input_required,
-    ),
-)
-```
-
-#### TaskArtifactUpdateEvent
-Similar to `Artifact` but designed for artifact generation updates. Use this when progressively generating artifacts and want to provide updates on the generation progress.
-
-```python
-import uuid
-from a2a.types import Message, TaskArtifactUpdateEvent, Artifact, FilePart, FileWithUri
-
-yield TaskArtifactUpdateEvent(
-    contextId=str(uuid.uuid4()),
-    taskId=str(uuid.uuid4()),
-    last_chunk=False,
-    artifact=Artifact(
-        artifact_id=str(uuid.uuid4()),
-        parts=[FilePart(file=FileWithUri(uri="https://www.ibm.com/us-en", mime_type="text/html", name="IBM Website"))],
-    )
 )
 ```
