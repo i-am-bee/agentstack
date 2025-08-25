@@ -177,7 +177,7 @@ async def chat(
     and weather updates through integrated tools.
     """
     extracted_files = await extract_files(history=messages[context.context_id], incoming_message=message)
-    input = to_framework_message(message)
+    input = to_framework_message(message, [f for f in extracted_files if f.message_id == message.message_id])
 
     # Configure tools
     file_reader_tool_class = create_file_reader_tool_class(

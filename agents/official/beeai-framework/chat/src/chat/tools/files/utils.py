@@ -16,8 +16,11 @@ from chat.tools.files.model import FileChatInfo
 FrameworkMessage = UserMessage | AssistantMessage
 
 
-def to_framework_message(message: Message) -> FrameworkMessage:
+def to_framework_message(message: Message, attachments: list[FileChatInfo]) -> FrameworkMessage:
     message_text = "".join(part.root.text for part in message.parts if part.root.kind == "text")
+    if attachments:
+        message_text += "\nAttached files:\n" + "\n".join([file.description for file in attachments])
+
     match message.role:
         case Role.agent:
             return AssistantMessage(message_text)
@@ -39,13 +42,13 @@ async def extract_files(history: list[Message], incoming_message: Message) -> li
         list[FileChatInfo]: A list of FileInfo objects containing file details.
     """
     # 1. Combine historical messages with the current turn
-    all_messages = [*history, incoming_message]
+    all_messages = {message.message_id: message for message in (*history, incoming_message)}
 
     # 2. Collect, validate, deduplicate while preserving order
     seen: set[str] = set()
-    files: dict[str, Role] = {}
+    files: dict[str, Message] = {}
 
-    for message in all_messages:
+    for message in all_messages.values():
         for part in message.parts:
             match part.root:
                 case FilePart(file=FileWithUri(uri=uri)):
@@ -53,17 +56,18 @@ async def extract_files(history: list[Message], incoming_message: Message) -> li
                         url = pydantic.type_adapter.TypeAdapter(PlatformFileUrl).validate_python(uri)
                         if url.file_id not in seen:
                             seen.add(url.file_id)
-                            files[url.file_id] = message.role
+                            files[url.file_id] = message
 
     # TODO: N+1 query issue, add bulk endpoint
     file_objects = await asyncio.gather(*(File.get(file_id) for file_id in files))
     existing_filenames = set()
     result = []
-    for file, role in zip(file_objects, files.values()):
+    for file, message in zip(file_objects, files.values()):
         result.append(
             FileChatInfo(
                 file=file,
-                role=role,
+                role=message.role,
+                message_id=message.message_id,
                 display_filename=next_unused_filename(file.filename, existing_filenames),
             )
         )
@@ -112,14 +116,3 @@ def next_unused_filename(name: str, existing: Iterable[str]) -> str:
         i += 1
 
     return f"{base}({i}){ext}"
-
-
-def format_size(size: int | None) -> str:
-    if size is None:
-        return "unknown size"
-    elif size < 1024:
-        return f"{size} bytes"
-    elif size < 1024 * 1024:
-        return f"{size / 1024:.1f} KB"
-    else:
-        return f"{size / (1024 * 1024):.1f} MB"
