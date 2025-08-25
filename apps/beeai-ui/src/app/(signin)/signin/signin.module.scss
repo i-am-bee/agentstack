@@ -9,26 +9,26 @@
   background-position: 50% 50%;
   background-repeat: no-repeat no-repeat;
   resize: both;
-  width: 100%;
-  margin-bottom: 16px;
-  margin-left: 0px;
-  height: 100%;
+  inline-size: 100%;
+  margin-block-end: 16px;
+  margin-inline-start: 0px;
+  block-size: 100%;
 }
 
 .buttonList {
   margin: 16px;
   position: relative;
   align-content: center;
-  left: 1rem;
+  inset-inline-start: 1rem;
 }
 
 .buttonEntry {
-  min-height: 48px;
-  height: 48px;
+  min-block-size: 48px;
+  block-size: 48px;
 }
 
 .beeButton {
-  margin-right: 16px;
+  margin-inline-end: 16px;
 }
 
 .loginWrapper {
@@ -37,11 +37,11 @@
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  padding-left: 4rem;
-  padding-right: 6rem;
-  padding-top: 8.875rem;
-  width: 31.25rem;
-  height: 100%;
+  padding-inline-start: 4rem;
+  padding-inline-end: 6rem;
+  padding-block-start: 8.875rem;
+  inline-size: 31.25rem;
+  block-size: 100%;
 }
 
 .loginMain {
