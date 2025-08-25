@@ -4,6 +4,7 @@
  */
 
 import type { FilePart, FileWithUri, Message, Part, TextPart } from '@a2a-js/sdk';
+import truncate from 'lodash/truncate';
 import { v4 as uuid } from 'uuid';
 
 import { getFileContentUrl } from '#modules/files/utils.ts';
@@ -141,7 +142,7 @@ export function createTrajectoryPart(metadata: TrajectoryMetadata): UITrajectory
     kind: UIMessagePartKind.Trajectory,
     id: uuid(),
     title,
-    content,
+    content: truncate(content, { length: MAX_CONTENT_CHARS_LENGTH }),
   };
 
   return trajectoryPart;
@@ -156,3 +157,5 @@ export function createTextPart(text: string): UITextPart {
 
   return textPart;
 }
+
+const MAX_CONTENT_CHARS_LENGTH = 16000;

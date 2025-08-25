@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { useMemo } from 'react';
+
 import { CodeSnippet } from '#components/CodeSnippet/CodeSnippet.tsx';
 import type { UITrajectoryPart } from '#modules/messages/types.ts';
 import { parseJsonLikeString } from '#modules/runs/utils.ts';
@@ -16,11 +18,11 @@ interface Props {
 export function TrajectoryItemContent({ trajectory }: Props) {
   const { content } = trajectory;
 
-  if (!content) {
+  const parsed = useMemo(() => content && parseJsonLikeString(content), [content]);
+
+  if (!parsed) {
     return null;
   }
-
-  const parsed = parseJsonLikeString(content);
 
   return (
     <div className={classes.root}>
