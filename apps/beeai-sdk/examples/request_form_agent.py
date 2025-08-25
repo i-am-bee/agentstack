@@ -25,7 +25,7 @@ async def request_form_agent(
     ],
 ):
     """Request form data"""
-    response = yield form.request_form(
+    form_data = await form.request_form(
         form=FormRender(
             id="form",
             title="Whats your name?",
@@ -36,8 +36,6 @@ async def request_form_agent(
             ],
         )
     )
-    form_data = form.parse_form_response(message=response)
-
     yield f"Hello {form_data.values['first_name'].value} {form_data.values['last_name'].value}"
 
 
