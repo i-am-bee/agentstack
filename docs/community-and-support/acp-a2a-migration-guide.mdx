@@ -159,6 +159,20 @@ user_msg = input[-1].parts[0].content if input else "Hello"
 
 **New (A2A)**
 
+Use `PlatformApiExtensionServer` in your agent to get access to files.
+
+```py
+from beeai_sdk.a2a.extensions.services.platform import (
+    PlatformApiExtensionServer,
+    PlatformApiExtensionSpec,
+)
+
+async def example_agent(
+    input: Message,
+    _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
+):
+```
+
 ```py
 # Process message parts - A2A receives single Message with multiple parts
 user_text = ""
@@ -227,16 +241,17 @@ async def agent_function(
     ],
     # ... other extensions
 ):
-    # Get platform-managed LLM configuration
-    llm_config = llm_ext.data.llm_fulfillments.get("default")
-    
-    llm = OpenAIChatModel(
-        model_id=llm_config.api_model,
-        api_key=llm_config.api_key,
-        base_url=llm_config.api_base,
-        parameters=ChatModelParameters(temperature=0.0),
-        tool_choice_support=set(),
-    )
+    if llm_ext:
+        # Get platform-managed LLM configuration
+        llm_config = llm_ext.data.llm_fulfillments.get("default")
+        
+        llm = OpenAIChatModel(
+            model_id=llm_config.api_model,
+            api_key=llm_config.api_key,
+            base_url=llm_config.api_base,
+            parameters=ChatModelParameters(temperature=0.0),
+            tool_choice_support=set(),
+        )
 ```
 
 ### 6. Update Trajectory & Citations
