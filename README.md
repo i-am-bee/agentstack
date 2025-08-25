@@ -35,7 +35,7 @@
 
 **ACP is now part of A2A under the Linux Foundation!**  
 <br>
-👉 [Learn more](TBD) | 🛠️ [Migration Guide](TBD)
+👉 [Learn more](https://github.com/orgs/i-am-bee/discussions/5) | 🛠️ [Migration Guide](https://github.com/i-am-bee/beeai-platform/blob/main/docs/community-and-support/acp-a2a-migration-guide.mdx)
 
 ---------------------------
 
