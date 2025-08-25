@@ -356,10 +356,16 @@ class Executor(AgentExecutor):
                                 state=state, message=with_context(message), timestamp=timestamp
                             )
                         case TaskStatusUpdateEvent(
-                            status=TaskStatus(state=state, message=message, timestamp=timestamp), final=final
+                            status=TaskStatus(state=state, message=message, timestamp=timestamp),
+                            final=final,
+                            metadata=metadata,
                         ):
                             await task_updater.update_status(
-                                state=state, message=with_context(message), timestamp=timestamp, final=final
+                                state=state,
+                                message=with_context(message),
+                                timestamp=timestamp,
+                                final=final,
+                                metadata=metadata,
                             )
                         case TaskArtifactUpdateEvent(
                             artifact=Artifact(artifact_id=artifact_id, name=name, metadata=metadata, parts=parts),
