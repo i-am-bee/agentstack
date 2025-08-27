@@ -4,7 +4,7 @@
  */
 
 'use client';
-import { LogoPython, Plug, Rocket, SettingsAdjust, Unlocked, WorkflowAutomation } from '@carbon/icons-react';
+import { FlowConnection, InsertPage, LogoPython, Plug, SettingsAdjust, Shapes } from '@carbon/icons-react';
 import { Theme, useTheme } from '@i-am-bee/beeai-ui';
 import { useIsClient } from 'usehooks-ts';
 
@@ -13,6 +13,7 @@ import { LayoutContainer } from '@/layouts/LayoutContainer';
 
 import FrameworkGraphicsDark from './assets/framework-diagram-dark.svg';
 import FrameworkGraphicsLight from './assets/framework-diagram-light.svg';
+import type { FeatureItem } from './components/FeaturesList';
 import { FeaturesList } from './components/FeaturesList';
 import { HeadlineWithLink } from './components/HeadlineWithLink';
 import { TwoColumnGrid } from './components/TwoColumnGrid';
@@ -27,9 +28,8 @@ export function Framework() {
       <LayoutContainer asGrid>
         <TwoColumnGrid className={classes.info}>
           <HeadlineWithLink
-            title="Framework"
-            description="Build production-ready AI agents with enterprise-grade reliability, built-in caching, memory optimization,
-              resource management, and real-time monitoring."
+            title="beeai-framework"
+            description="Build reliable, intelligent agents with our lightweight framework that goes beyond prompting and enforces rules."
             buttonProps={{ url: FRAMEWORK_QUICKSTART_LINK }}
             inverse
           />
@@ -49,56 +49,40 @@ export function Framework() {
   );
 }
 
-const FEATURES_ITEMS = [
+const FEATURES_ITEMS: FeatureItem[] = [
   {
-    icon: Rocket,
-    content: (
-      <>
-        <strong>Production-ready from day one</strong> with built-in caching, memory optimization, resource management
-        and real-time monitoring with OpenTelemetry integration.
-      </>
-    ),
-  },
-  {
-    icon: WorkflowAutomation,
-    content: (
-      <>
-        <strong>Workflow Orchestration</strong> connects agents seamlessly, passing tasks between them while maintaining
-        context. Ensures reliable execution from simple to complex multi-agent processes.
-      </>
-    ),
-  },
-  {
-    icon: LogoPython,
-    content: (
-      <>
-        <strong>Python and TypeScript support</strong> with complete feature parity.
-      </>
-    ),
-  },
-  {
-    icon: Unlocked,
-    content: (
-      <>
-        <strong>No vendor lock-in</strong> - works with 10+ LLM providers, out-of-the-box.
-      </>
-    ),
+    icon: FlowConnection,
+    title: 'Dynamic workflows ',
+    content:
+      'Use simple decorators to design multi-agent systems with advanced patterns like parallelism, retries, and replanning.',
   },
   {
     icon: SettingsAdjust,
-    content: (
-      <>
-        <strong>Complete control over agent behavior</strong>, performance optimization, and resource allocation.
-      </>
-    ),
+    title: 'Configuration over code',
+    content: 'Define complex agent systems in YAML, for more predictable and maintainable orchestration.',
+  },
+  {
+    icon: InsertPage,
+    title: 'Modular by design',
+    content:
+      'Composable modules with stable interfaces give you a testable and maintainable foundation for production-grade AI.',
   },
   {
     icon: Plug,
-    content: (
-      <>
-        <strong>Existing stack integration</strong> with MCP compatibility, custom tool development support, and
-        seamless tool integration.
-      </>
-    ),
+    title: 'Pluggable observability',
+    content:
+      'Integrate with your existing stack in minutes with native OpenTelemetry support for auditing and monitoring.',
+  },
+  {
+    icon: LogoPython,
+    title: 'Dual-language support',
+    content:
+      'Feature parity between the Python and TypeScript lets teams build with the tools they already know and love.',
+  },
+  {
+    icon: Shapes,
+    title: 'Protocol native',
+    content:
+      'Build MCP-compatible components, equip agents with MCP tools, and interoperate with any MCP or A2A agent.',
   },
 ];

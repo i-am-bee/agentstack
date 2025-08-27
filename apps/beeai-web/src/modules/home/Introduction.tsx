@@ -12,28 +12,16 @@ import classes from './Introduction.module.scss';
 
 export function Introduction() {
   return (
-    <>
-      <LayoutContainer>
-        <section className={classes.root}>
-          <div className={classes.headline}>
-            <h1>
-              <LogoBeeAI /> the enterprise AI agent development, simplified.
-            </h1>
-            <GitHubButton />
-          </div>
-        </section>
-      </LayoutContainer>
-      <section className={classes.info}>
-        <LayoutContainer asGrid>
-          <div className={classes.infoContent}>
-            <p>
-              BeeAI provides two complementary open- source components for Enterprise Developers: a&nbsp;
-              <a href="#framework">framework</a> for building reliable AI agents and a <a href="#platform">platform</a>{' '}
-              for creating shareable interfaces.
-            </p>
-          </div>
-        </LayoutContainer>
+    <LayoutContainer>
+      <section className={classes.root}>
+        <div className={classes.headline}>
+          <h1>
+            <LogoBeeAI /> <br />
+            control and agency without compromise
+          </h1>
+          <GitHubButton />
+        </div>
       </section>
-    </>
+    </LayoutContainer>
   );
 }

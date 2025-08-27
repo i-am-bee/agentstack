@@ -21,7 +21,7 @@ export function GitHubButton() {
       className={classes.root}
       renderIcon={LogoGithub}
     >
-      Hack with us on GitHub
+      Get started on GitHub
     </Button>
   );
 }
