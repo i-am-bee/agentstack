@@ -52,7 +52,7 @@ export function Framework() {
 const FEATURES_ITEMS: FeatureItem[] = [
   {
     icon: FlowConnection,
-    title: 'Dynamic workflows ',
+    title: 'Dynamic workflows',
     content:
       'Use simple decorators to design multi-agent systems with advanced patterns like parallelism, retries, and replanning.',
   },
