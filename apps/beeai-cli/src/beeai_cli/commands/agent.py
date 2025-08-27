@@ -177,7 +177,10 @@ async def add_agent(
         try:
             with status("Registering agent to platform"):
                 async with configuration.use_platform_client():
-                    await Provider.create(location=location, agent_card=AgentCard.model_validate(agent_card))
+                    await Provider.create(
+                        location=location,
+                        agent_card=AgentCard.model_validate(agent_card) if agent_card else None,
+                    )
             console.print("Registering agent to platform [[green]DONE[/green]]")
         except Exception as e:
             raise ExceptionGroup("Error occured", [*errors, e]) from e
