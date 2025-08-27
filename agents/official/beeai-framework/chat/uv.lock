@@ -136,7 +136,7 @@ wheels = [
 
 [[package]]
 name = "beeai-framework"
-version = "0.1.36"
+version = "0.1.37"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -149,9 +149,9 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/18/27/70b35092380422c13dac00954bf5ddd8cd70524cb6bb761d9bdf9a211c9f/beeai_framework-0.1.36.tar.gz", hash = "sha256:94a9abcc130fb15940cd9c12680532f9f6ef01b746049e5e4e76d9dd167bcb4c", size = 131018, upload-time = "2025-08-08T13:01:54.674Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c3/b2/9a821fdae3c86994a72a3996a1c5561be2468489e56edeaa65ea01d9e4f9/beeai_framework-0.1.37.tar.gz", hash = "sha256:2aa3ee32bf5e3a0c09bef1a12a5402e551b2adb355410531f6c46f078db65fdd", size = 133819, upload-time = "2025-08-26T15:38:05.756Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8c/9a/6b01baddb4ec1127fbd5d00264913bb25b4712dc0ec8dc49c388a7972ad7/beeai_framework-0.1.36-py3-none-any.whl", hash = "sha256:10caaa685accd80eba4c04661c3b2ecd4ec26c4873ddb67b9b9efa9001bbc662", size = 246741, upload-time = "2025-08-08T13:01:53.28Z" },
+    { url = "https://files.pythonhosted.org/packages/e0/1a/e47041583d288f60fc78dd5f6a5c7372a3ea34209811e46e394ec84801c8/beeai_framework-0.1.37-py3-none-any.whl", hash = "sha256:7c582e86cb1dc0f76f6a277fa01b16e311ab65fc62ff7f1ffa877e85dc4ade22", size = 249225, upload-time = "2025-08-26T15:38:03.067Z" },
 ]
 
 [package.optional-dependencies]
@@ -164,7 +164,7 @@ wikipedia = [
 
 [[package]]
 name = "beeai-sdk"
-version = "0.3.0rc8"
+version = "0.3.1"
 source = { editable = "../../../../apps/beeai-sdk" }
 dependencies = [
     { name = "a2a-sdk" },
@@ -281,7 +281,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = "~=0.1.36" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = "~=0.1.37" },
     { name = "beeai-sdk", editable = "../../../../apps/beeai-sdk" },
     { name = "openai", specifier = "==1.99.9" },
     { name = "openinference-instrumentation-beeai", specifier = ">=0.1.8" },

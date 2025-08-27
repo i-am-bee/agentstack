@@ -95,7 +95,7 @@ LLM_PROVIDERS = [
     ),
     Choice(
         name="Groq".ljust(25) + "🆓 has a free tier",
-        value=("Groq", "https://api.groq.com/openai/v1", "deepseek-r1-distill-llama-70b"),
+        value=("Groq", "https://api.groq.com/openai/v1", "meta-llama/llama-4-maverick-17b-128e-instruct"),
     ),
     Choice(
         name="IBM watsonx".ljust(25),
