@@ -126,7 +126,7 @@ class FormExtensionServer(BaseExtensionServer[FormExtensionSpec, FormResponse]):
         super().handle_incoming_message(message, context)
         self.context = context
 
-    async def request_form(self, *, form: FormRender) -> FormResponse | None:
+    async def request_form(self, *, form: FormRender) -> FormResponse:
         resume = await self.context.yield_async(
             InputRequired(message=AgentMessage(text=form.title, metadata={self.spec.URI: form}))
         )
@@ -137,7 +137,7 @@ class FormExtensionServer(BaseExtensionServer[FormExtensionSpec, FormResponse]):
 
     def parse_form_response(self, *, message: A2AMessage):
         if not message or not message.metadata or not (data := message.metadata.get(self.spec.URI)):
-            return None
+            raise ValueError("Form data has not been provided in response.")
         return FormResponse.model_validate(data)
 
 

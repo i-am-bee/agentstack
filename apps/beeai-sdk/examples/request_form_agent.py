@@ -25,20 +25,21 @@ async def request_form_agent(
     ],
 ):
     """Request form data"""
-    form_data = await form.request_form(
-        form=FormRender(
-            id="form",
-            title="Whats your name?",
-            columns=2,
-            fields=[
-                TextField(id="first_name", label="First Name", type="text", col_span=1),
-                TextField(id="last_name", label="Last Name", type="text", col_span=1),
-            ],
+    try:
+        form_data = await form.request_form(
+            form=FormRender(
+                id="form",
+                title="Whats your name?",
+                columns=2,
+                fields=[
+                    TextField(id="first_name", label="First Name", type="text", col_span=1),
+                    TextField(id="last_name", label="Last Name", type="text", col_span=1),
+                ],
+            )
         )
-    )
-    if form_data is not None:
+
         yield f"Hello {form_data.values['first_name'].value} {form_data.values['last_name'].value}"
-    else:
+    except ValueError:
         yield "Sorry, but I can't continue without knowing your name."
 
 
