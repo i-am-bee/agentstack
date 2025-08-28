@@ -4,13 +4,14 @@
  */
 
 'use client';
-import { FlowConnection, InsertPage, LogoPython, Plug, SettingsAdjust, Shapes } from '@carbon/icons-react';
+import { Code, Constraint, FlowConnection, Plug, Shapes } from '@carbon/icons-react';
 import { Theme, useTheme } from '@i-am-bee/beeai-ui';
 import { useIsClient } from 'usehooks-ts';
 
 import { FRAMEWORK_QUICKSTART_LINK } from '@/constants';
 import { LayoutContainer } from '@/layouts/LayoutContainer';
 
+import FileConfigYaml from './assets/file-config-yaml.svg';
 import FrameworkGraphicsDark from './assets/framework-diagram-dark.svg';
 import FrameworkGraphicsLight from './assets/framework-diagram-light.svg';
 import type { FeatureItem } from './components/FeaturesList';
@@ -57,15 +58,15 @@ const FEATURES_ITEMS: FeatureItem[] = [
       'Use simple decorators to design multi-agent systems with advanced patterns like parallelism, retries, and replanning.',
   },
   {
-    icon: SettingsAdjust,
-    title: 'Configuration over code',
-    content: 'Define complex agent systems in YAML, for more predictable and maintainable orchestration.',
+    icon: Constraint,
+    title: 'Agents with constraints',
+    content:
+      "Preserve your agent's reasoning abilities while enforcing deterministic rules instead of suggesting behavior.",
   },
   {
-    icon: InsertPage,
-    title: 'Modular by design',
-    content:
-      'Composable modules with stable interfaces give you a testable and maintainable foundation for production-grade AI.',
+    icon: FileConfigYaml,
+    title: 'Declarative orchestration',
+    content: 'Define complex agent systems in YAML for more predictable and maintainable orchestration.',
   },
   {
     icon: Plug,
@@ -74,14 +75,13 @@ const FEATURES_ITEMS: FeatureItem[] = [
       'Integrate with your existing stack in minutes with native OpenTelemetry support for auditing and monitoring.',
   },
   {
-    icon: LogoPython,
-    title: 'Dual-language support',
-    content:
-      'Feature parity between the Python and TypeScript lets teams build with the tools they already know and love.',
+    icon: Code,
+    title: 'Python and Typescript support',
+    content: 'Feature parity between Python and TypeScript lets teams build with the tools they already know and love.',
   },
   {
     icon: Shapes,
-    title: 'Protocol native',
+    title: 'MCP and A2A native',
     content:
       'Build MCP-compatible components, equip agents with MCP tools, and interoperate with any MCP or A2A agent.',
   },

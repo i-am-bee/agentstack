@@ -11,7 +11,7 @@ export const AGENT_REGISTRY_URL = `https://raw.githubusercontent.com/i-am-bee/be
 
 export const SupportedDockerRegistries = ['ghcr.io'];
 
-export const GITHUB_REPO_LINK = 'https://github.com/i-am-bee/beeai';
+export const GITHUB_REPO_LINK = 'https://github.com/i-am-bee';
 
 export const FRAMEWORK_DOCS_LINK = 'https://framework.beeai.dev';
 
