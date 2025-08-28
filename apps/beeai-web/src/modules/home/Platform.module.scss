@@ -24,7 +24,7 @@
   img {
     inline-size: 100%;
     block-size: auto;
-    border-radius: rem(8px);
+    border-radius: $border-radius;
     box-shadow: 0 rem(1px) rem(4px) $layer-hover-02;
   }
 }
