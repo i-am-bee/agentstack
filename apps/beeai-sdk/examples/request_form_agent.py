@@ -36,7 +36,10 @@ async def request_form_agent(
             ],
         )
     )
-    yield f"Hello {form_data.values['first_name'].value} {form_data.values['last_name'].value}"
+    if form_data is not None:
+        yield f"Hello {form_data.values['first_name'].value} {form_data.values['last_name'].value}"
+    else:
+        yield "Sorry, but I can't continue without knowing your name."
 
 
 if __name__ == "__main__":
