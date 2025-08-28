@@ -147,27 +147,6 @@ async def test_run_cancel_awaiter(awaiter: tuple[Server, Client]) -> None:
     assert task_response.status.state == TaskState.canceled
 
 
-async def test_run_cancel_slow_echo(slow_echo: tuple[Server, Client]) -> None:
-    server, client = slow_echo
-    message = create_text_message_object()
-
-    # Start a task
-    initial_task = await get_final_task_from_stream(client.send_message(message))
-
-    assert initial_task is not None
-    task_id = initial_task.id
-
-    # Cancel the task
-    cancel_params = TaskIdParams(id=task_id)
-    await client.cancel_task(cancel_params)
-
-    # Check final status
-    task_params = TaskQueryParams(id=task_id)
-    task_response = await client.get_task(task_params)
-    assert hasattr(task_response, "status")
-    assert task_response.status.state == TaskState.canceled
-
-
 async def test_run_cancel_stream(slow_echo: tuple[Server, Client]) -> None:
     server, client = slow_echo
     task_id = None

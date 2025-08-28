@@ -78,7 +78,6 @@ async def run(base_url: str = "http://127.0.0.1:10000"):
         mcp_extension_client = beeai_sdk.a2a.extensions.MCPServiceExtensionClient(mcp_spec)
         oauth_extension_client = beeai_sdk.a2a.extensions.OAuthExtensionClient(oauth_spec)
 
-        client = a2a.client.A2AClient(httpx_client, agent_card=card)
         oauth = OAuthHandler()
         message = a2a.types.Message(
             message_id=str(uuid.uuid4()),
@@ -102,56 +101,35 @@ async def run(base_url: str = "http://127.0.0.1:10000"):
             ),
         )
 
-        result = await client.send_message(
-            a2a.types.SendMessageRequest(
-                id=str(uuid.uuid4()),
-                params=a2a.types.MessageSendParams(
-                    message=message,
-                    configuration=a2a.types.MessageSendConfiguration(
-                        accepted_output_modes=["text"],
-                    ),
-                ),
-            )
+        client = a2a.client.ClientFactory(a2a.client.ClientConfig(httpx_client=httpx_client, polling=True)).create(
+            card=card
         )
 
-        while True:
-            if isinstance(result.root, a2a.types.JSONRPCErrorResponse):
-                print(f"Error: {result.root.error}")
-                return
-
-            event = result.root.result
+        task = None
+        async for event in client.send_message(message):
             if isinstance(event, a2a.types.Message):
                 print(event)
                 return
-            elif isinstance(event, a2a.types.Task):
-                if event.status.state == a2a.types.TaskState.auth_required:
-                    message = event.status.message
-                    if not message:
-                        raise RuntimeError("Missing message")
-                    auth_request = oauth_extension_client.parse_auth_request(message=message)
+            task, update = event
 
-                    print("Agent has requested authorization")
-                    oauth.open_browser(str(auth_request.authorization_endpoint_url))
-                    request = await oauth.handle_redirect()
+        if task and task.status.state == a2a.types.TaskState.auth_required:
+            if not task.status.message:
+                raise RuntimeError("Missing message")
 
-                    result = await client.send_message(
-                        a2a.types.SendMessageRequest(
-                            id=str(uuid.uuid4()),
-                            params=a2a.types.MessageSendParams(
-                                message=oauth_extension_client.create_auth_response(
-                                    task_id=event.id, redirect_uri=AnyUrl(str(request.url))
-                                ),
-                                configuration=a2a.types.MessageSendConfiguration(
-                                    accepted_output_modes=["text"],
-                                ),
-                            ),
-                        )
-                    )
-                else:
-                    print(event)
-                    return
-            else:
-                raise NotImplementedError("Unexpected result type")
+            auth_request = oauth_extension_client.parse_auth_request(message=task.status.message)
+
+            print("Agent has requested authorization")
+            oauth.open_browser(str(auth_request.authorization_endpoint_url))
+            request = await oauth.handle_redirect()
+
+            async for event in client.send_message(
+                oauth_extension_client.create_auth_response(task_id=task.id, redirect_uri=AnyUrl(str(request.url)))
+            ):
+                if isinstance(event, a2a.types.Message):
+                    raise RuntimeError("Agent responded with message to a task")
+                task, update = event
+
+        print(task)
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [{ name = "IBM Corp." }]
 requires-python = ">=3.13,<4.0"
 dependencies = [
-    "a2a-sdk~=0.3.1",
+    "a2a-sdk~=0.3.3",
     "aiohttp>=3.11.11",
     "anyio>=4.9.0",
     "asgiref>=3.8.1",
@@ -87,18 +87,18 @@ env = [
 line-length = 120
 target-version = "py313"
 lint.select = [
-    "E", # pycodestyle errors
-    "W", # pycodestyle warnings
-    "F", # pyflakes
-    "UP", # pyupgrade
-    "I", # isort
-    "B", # bugbear
-    "N", # pep8-naming
-    "C4", # Comprehensions
-    "Q", # Quotes
-    "SIM", # Simplify
-    "RUF", # Ruff
-    "TID", # tidy-imports
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "UP",    # pyupgrade
+    "I",     # isort
+    "B",     # bugbear
+    "N",     # pep8-naming
+    "C4",    # Comprehensions
+    "Q",     # Quotes
+    "SIM",   # Simplify
+    "RUF",   # Ruff
+    "TID",   # tidy-imports
     "ASYNC", # async
     # TODO: add "DTZ",   # DatetimeZ
     # TODO: add "ANN",   # annotations

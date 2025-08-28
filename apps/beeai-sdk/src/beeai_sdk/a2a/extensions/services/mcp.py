@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 from types import NoneType
-from typing import Annotated, Literal, Self
+from typing import Annotated, Any, Literal, Self
 
 import a2a.types
 import pydantic
@@ -143,7 +143,5 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
 
 
 class MCPServiceExtensionClient(BaseExtensionClient[MCPServiceExtensionSpec, NoneType]):
-    def fulfillment_metadata(
-        self, *, mcp_fulfillments: dict[str, MCPFulfillment]
-    ) -> dict[str, MCPServiceExtensionMetadata]:
-        return {self.spec.URI: MCPServiceExtensionMetadata(mcp_fulfillments=mcp_fulfillments)}
+    def fulfillment_metadata(self, *, mcp_fulfillments: dict[str, MCPFulfillment]) -> dict[str, Any]:
+        return {self.spec.URI: MCPServiceExtensionMetadata(mcp_fulfillments=mcp_fulfillments).model_dump(mode="json")}

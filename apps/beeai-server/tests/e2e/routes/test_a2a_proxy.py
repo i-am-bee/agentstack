@@ -24,9 +24,11 @@ from a2a.types import (
     Artifact,
     DataPart,
     InternalError,
+    InvalidParamsError,
     InvalidRequestError,
     JSONParseError,
     Message,
+    MethodNotFoundError,
     Part,
     PushNotificationConfig,
     Role,
@@ -826,7 +828,7 @@ def test_unknown_method(client: Client):
     data = response.json()
     assert "error" in data
     # This should produce an UnsupportedOperationError error code
-    assert data["error"]["code"] == InvalidRequestError().code
+    assert data["error"]["code"] == MethodNotFoundError().code
 
 
 def test_validation_error(client: Client):
@@ -837,7 +839,7 @@ def test_validation_error(client: Client):
         json={
             "jsonrpc": "2.0",
             "id": "123",
-            "method": "messages/send",
+            "method": "message/send",
             "params": {
                 "message": {
                     # Missing required fields
@@ -849,7 +851,7 @@ def test_validation_error(client: Client):
     assert response.status_code == 200
     data = response.json()
     assert "error" in data
-    assert data["error"]["code"] == InvalidRequestError().code
+    assert data["error"]["code"] == InvalidParamsError().code
 
 
 def test_unhandled_exception(client: Client, handler: mock.AsyncMock):
