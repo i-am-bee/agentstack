@@ -32,7 +32,7 @@ export function Platform() {
           </div>
 
           <div className={classes.graphics}>
-            <Image src={screenshotsImage.src} width={1532} height={1126} alt="BeeAI UI & CLI" />
+            <Image src={screenshotsImage} width={1532} height={1126} alt="BeeAI UI & CLI" />
           </div>
         </TwoColumnGrid>
 
