@@ -254,7 +254,6 @@ dependencies = [
     { name = "starlette" },
     { name = "tenacity" },
     { name = "uvicorn" },
-    { name = "uvloop" },
 ]
 
 [package.metadata]
@@ -275,7 +274,6 @@ requires-dist = [
     { name = "starlette", specifier = ">=0.47.2" },
     { name = "tenacity", specifier = ">=9.1.2" },
     { name = "uvicorn", specifier = ">=0.35.0" },
-    { name = "uvloop", specifier = ">=0.21.0" },
 ]
 
 [package.metadata.requires-dev]
