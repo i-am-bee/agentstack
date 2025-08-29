@@ -9,14 +9,17 @@ data:
         protocols:
           grpc:
             endpoint: 0.0.0.0:4317
+            max_recv_msg_size_mib: 64
           http:
             endpoint: 0.0.0.0:4318
+            max_request_body_size: 67108864
 
     exporters:
       nop:
       {{- if .Values.phoenix.enabled }}
       otlp/phoenix:
         endpoint: phoenix-svc:8335
+        max_recv_msg_size_mib: 64
         tls:
           insecure: true
       {{- end }}
@@ -30,6 +33,8 @@ data:
         check_interval: 1s
         limit_mib: 1000
       batch:
+        send_batch_size: 1
+        send_batch_max_size: 1
       filter/phoenix:
         traces:
           span:
