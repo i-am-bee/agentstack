@@ -8,7 +8,7 @@ import { Code, Constraint, FlowConnection, Plug, Shapes } from '@carbon/icons-re
 import { Theme, useTheme } from '@i-am-bee/beeai-ui';
 import { useIsClient } from 'usehooks-ts';
 
-import { FRAMEWORK_QUICKSTART_LINK } from '@/constants';
+import { FRAMEWORK_INTRO_LINK } from '@/constants';
 import { LayoutContainer } from '@/layouts/LayoutContainer';
 
 import FileConfigYaml from './assets/file-config-yaml.svg';
@@ -31,7 +31,7 @@ export function Framework() {
           <HeadlineWithLink
             title="beeai-framework"
             description="Build reliable, intelligent agents with our lightweight framework that goes beyond prompting and enforces rules."
-            buttonProps={{ url: FRAMEWORK_QUICKSTART_LINK }}
+            buttonProps={{ url: FRAMEWORK_INTRO_LINK }}
             inverse
           />
 

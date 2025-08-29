@@ -7,7 +7,7 @@
 import { Deploy, Gui, Unlocked } from '@carbon/icons-react';
 import Image from 'next/image';
 
-import { PLATFORM_QUICKSTART_LINK } from '@/constants';
+import { PLATFORM_INTRO_LINK } from '@/constants';
 import { LayoutContainer } from '@/layouts/LayoutContainer';
 
 import InterfaceUsageAlt from './assets/interface-usage-alt.svg';
@@ -27,7 +27,7 @@ export function Platform() {
             <HeadlineWithLink
               title="beeai-platform"
               description="Test, debug, and share your agents in an interactive UI with out-of-the-box trajectory, citations, and more."
-              buttonProps={{ url: PLATFORM_QUICKSTART_LINK }}
+              buttonProps={{ url: PLATFORM_INTRO_LINK }}
             />
           </div>
 

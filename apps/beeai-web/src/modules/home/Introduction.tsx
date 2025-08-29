@@ -6,8 +6,8 @@
 'use client';
 import { LayoutContainer } from '@/layouts/LayoutContainer';
 
-import { GitHubButton } from './components/GitHubButton';
 import { LogoBeeAI } from './components/LogoBeeAI';
+import { PrimaryCTALink } from './components/PrimaryCTALink';
 import classes from './Introduction.module.scss';
 
 export function Introduction() {
@@ -19,7 +19,7 @@ export function Introduction() {
             <LogoBeeAI /> <br />
             control and agency without compromise
           </h1>
-          <GitHubButton />
+          <PrimaryCTALink />
         </div>
       </section>
     </LayoutContainer>
