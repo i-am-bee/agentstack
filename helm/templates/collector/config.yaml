@@ -19,6 +19,7 @@ data:
       {{- if .Values.phoenix.enabled }}
       otlp/phoenix:
         endpoint: phoenix-svc:8335
+        compression: gzip
         max_recv_msg_size_mib: 64
         tls:
           insecure: true
