@@ -7,10 +7,10 @@ authors = [
 ]
 requires-python = ">=3.13,<4"
 dependencies = [
-    "beeai-framework[duckduckgo,wikipedia]~=0.1.38",
+    "beeai-framework[duckduckgo,wikipedia]~=0.1.40",
     "openai==1.99.9",
     "beeai-sdk",
-    "openinference-instrumentation-beeai>=0.1.9",
+    "openinference-instrumentation-beeai>=0.1.10",
     "pydantic-settings>=2.9.0",
     "uvicorn>=0.35.0",
 ]
