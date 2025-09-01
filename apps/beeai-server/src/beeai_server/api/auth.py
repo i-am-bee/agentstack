@@ -13,6 +13,7 @@ from fastapi import HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials
 from pydantic import AwareDatetime, BaseModel
 
+from beeai_server.api.jwksdict import JwksDict
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.permissions import Permissions
 from beeai_server.domain.models.user import UserRole
@@ -92,10 +93,7 @@ def verify_internal_jwt(token: str, configuration: Configuration) -> ParsedToken
     )
 
 
-type JWKS_DICT = dict | None
-
-
-def setup_jwks(config: Configuration) -> JWKS_DICT:
+def setup_jwks(config: Configuration) -> JwksDict:
     if config.auth.oidc.disable_oidc:
         return None
 
@@ -115,7 +113,7 @@ def setup_jwks(config: Configuration) -> JWKS_DICT:
             logger.error(f"Failed to fetch JWKS from {issuer}/jwks : {e}")
             raise RuntimeError(f"Failed to fetch JWKS from {issuer}/jwks: {e}") from e
 
-    return jwks_dict_by_issuer
+    return JwksDict(jwks_dict_by_issuer)
 
 
 def extract_oauth_token(
@@ -163,22 +161,29 @@ async def introspect_token(token: str, configuration: Configuration) -> tuple[di
 
 
 async def decode_oauth_jwt_or_introspect(
-    token: str, jwks_dict: dict[str, dict] | None = None, aud: str | None = None, configuration=Configuration
+    token: str, jwks_dict: JwksDict | None = None, aud: str | None = None, configuration=Configuration
 ) -> tuple[dict, str] | None:
     if jwks_dict:
-        for issuer, jwks in jwks_dict.items():
+        for issuer, jwks in jwks_dict.data.items():
             # Decode JWT using keys from JWKS
             for pub_key in jwks.get("keys", []):
                 try:
                     obj_key = jwt.PyJWK(pub_key)
                     # explicitly only check exp and iat, nbf (not before time) is not included in w3id
                     claims = jwt.decode(
-                        token, obj_key, algorithms=["RS256"], options=None, verify=True, audience=aud, issuer=issuer
+                        token,
+                        obj_key,
+                        algorithms=["RS256"],
+                        verify=True,
+                        audience=aud,
+                        issuer=issuer,
+                        options={"verify_aud": bool(aud), "verify_iss": True},
                     )
                     logger.debug("Verified token claims: %s", json.dumps(claims))
                     return claims, issuer
                 except jwt.ExpiredSignatureError as err:
                     logger.error("Expired token: %s", err)
+                    return None
                 except jwt.InvalidTokenError as err:
                     logger.debug("Token verification failed: %s", err)
                     continue

@@ -12,7 +12,6 @@ from kink import di
 from pydantic import ConfigDict
 
 from beeai_server.api.auth import (
-    JWKS_DICT,
     ROLE_PERMISSIONS,
     decode_oauth_jwt_or_introspect,
     extract_oauth_token,
@@ -69,7 +68,7 @@ async def authenticate_oauth_user(
         ) from e
 
     claims, issuer = await decode_oauth_jwt_or_introspect(
-        token, jwks_dict=di[JWKS_DICT], aud="beeai-server", configuration=configuration
+        token, jwks_dict=di["JWKS_CACHE"], aud="beeai-server", configuration=configuration
     )
     if not claims:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
