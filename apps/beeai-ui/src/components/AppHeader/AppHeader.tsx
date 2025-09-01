@@ -10,7 +10,7 @@ import Avatar from '#components/Avatar/Avatar.tsx';
 import { MainNav } from '#components/layouts/MainNav.tsx';
 import { useProviderIdFromUrl } from '#hooks/useProviderIdFromUrl.ts';
 import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
-import { NAV_ITEMS } from '#utils/constants.ts';
+import { NAV_ITEMS, OIDC_ENABLED } from '#utils/constants.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { Container } from '../layouts/Container';
@@ -46,7 +46,7 @@ export function AppHeader({ className }: Props) {
               </div>
             </>
           )}
-          <Avatar />
+          {OIDC_ENABLED && <Avatar />}
         </div>
       </Container>
     </header>
