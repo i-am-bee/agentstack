@@ -2,9 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import base64
-import json
 import logging
-import os
 from collections import defaultdict
 from datetime import timedelta
 from functools import cache
@@ -80,20 +78,6 @@ class OidcConfiguration(BaseModel):
     admin_emails: list[str] = Field(default_factory=list)
     providers: list[OidcProvider] = Field(default_factory=list)
     scope: list[str] = ["openid", "email", "profile"]
-
-    @model_validator(mode="before")
-    @classmethod
-    def parse_providers(cls, values: dict) -> dict:
-        providers_string = os.environ.get("OIDC__PROVIDERS")
-        if providers_string:
-            try:
-                providers_data = json.loads(providers_string)
-                for p in providers_data:
-                    p["client_secret"] = Secret(p["client_secret"])
-                values["providers"] = providers_data
-            except json.JSONDecodeError as e:
-                raise ValueError(f"Invalid OIDC__PROVIDERS JSON: {e}") from e
-        return values
 
     @model_validator(mode="after")
     def validate_auth(self):

@@ -1,8 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Optional
-
 
 class JwksDict:
     def __init__(self, data: dict[str, dict] | None = None):
