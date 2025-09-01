@@ -21,7 +21,7 @@ from beeai_cli.utils import verbosity
 logging.basicConfig(level=logging.INFO if Configuration().debug else logging.FATAL)
 
 app = AsyncTyper(no_args_is_help=True)
-app.add_typer(beeai_cli.commands.model.app, name="model", no_args_is_help=True, help="Manage environment variables.")
+app.add_typer(beeai_cli.commands.model.app, name="model", no_args_is_help=True, help="Manage model providers.")
 app.add_typer(beeai_cli.commands.agent.app, name="agent", no_args_is_help=True, help="Manage agents.")
 app.add_typer(beeai_cli.commands.platform.app, name="platform", no_args_is_help=True, help="Manage BeeAI platform.")
 app.add_typer(beeai_cli.commands.mcp.app, name="mcp", no_args_is_help=True, help="Manage MCP servers and toolkits.")
