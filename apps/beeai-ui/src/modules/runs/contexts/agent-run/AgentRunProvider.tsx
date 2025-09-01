@@ -37,7 +37,7 @@ interface Props {
 
 export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>) {
   return (
-    <PlatformContextProvider>
+    <PlatformContextProvider agent={agent}>
       <FileUploadProvider allowedContentTypes={agent.defaultInputModes}>
         <AgentRunProvider agent={agent}>{children}</AgentRunProvider>
       </FileUploadProvider>

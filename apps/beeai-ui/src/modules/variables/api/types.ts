@@ -5,4 +5,4 @@
 
 import type { ApiRequest } from '#@types/utils.ts';
 
-export type UpdateVariablesRequest = ApiRequest<'/api/v1/variables', 'put'>;
+export type UpdateVariablesRequest = ApiRequest<'/api/v1/providers/{id}/variables', 'put'>;

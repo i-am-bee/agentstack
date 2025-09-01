@@ -5,7 +5,12 @@
 
 import type { Fulfillments } from '#api/a2a/types.ts';
 
-export const buildFullfilments = (platformToken: string): Fulfillments => {
+interface BuildFullfilmentsParams {
+  platformToken: string;
+  selectedProviders: Record<string, string>;
+}
+
+export const buildFullfilments = ({ platformToken, selectedProviders }: BuildFullfilmentsParams): Fulfillments => {
   return {
     mcp: async () => {
       throw new Error('MCP fulfillment not implemented');
@@ -18,11 +23,15 @@ export const buildFullfilments = (platformToken: string): Fulfillments => {
 
       return allDemands.reduce(
         (memo, demandKey) => {
+          if (!selectedProviders[demandKey]) {
+            throw new Error(`Selected provider for demand ${demandKey} not found`);
+          }
+
           memo.llm_fulfillments[demandKey] = {
             identifier: 'llm_proxy',
             api_base: '{platform_url}/api/v1/openai/',
             api_key: platformToken,
-            api_model: 'dummy',
+            api_model: selectedProviders[demandKey],
           };
 
           return memo;

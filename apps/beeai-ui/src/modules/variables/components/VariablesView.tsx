@@ -34,7 +34,7 @@ export function VariablesView() {
   const { data, isPending } = useListVariables();
   const { mutate: deleteVariable } = useDeleteVariable();
   const entries = useMemo(
-    () => (data ? Object.entries(data.env).map(([name, value]) => ({ name, value })) : []),
+    () => (data ? Object.entries(data.variables).map(([name, value]) => ({ name, value })) : []),
     [data],
   );
   const { items, onSearch } = useTableSearch({ entries, fields: ['name'] });

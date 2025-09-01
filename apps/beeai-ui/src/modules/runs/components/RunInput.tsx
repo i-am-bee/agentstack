@@ -34,7 +34,7 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
 
   const [promptExamplesOpen, setPromptExamplesOpen] = useState(false);
 
-  const { contextId } = usePlatformContext();
+  const { contextId, matchedProviders, selectProvider } = usePlatformContext();
 
   const {
     agent: {
@@ -109,6 +109,26 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
         }}
       >
         <RunFiles />
+        {Object.entries(matchedProviders || {}).map(([key, value]) => (
+          <div key={key}>
+            <p>{key}</p>
+            <select key={key} onChange={({ target }) => selectProvider(key, target.value)}>
+              {value.map((provider) => (
+                <option key={provider} value={provider}>
+                  {provider}
+                </option>
+              ))}
+            </select>
+          </div>
+        ))}
+        {/* 
+        <select onChange={(x) => selectProvider(x.target.value)}>
+          {matchedProviders.map((provider) => (
+            <option key={provider} value={provider}>
+              {provider}
+            </option>
+          ))}
+        </select> */}
 
         <TextAreaAutoHeight
           rows={1}

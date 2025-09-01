@@ -14,6 +14,8 @@ interface PlatformContextValue {
   resetContext: () => void;
   getPlatformToken: () => Promise<string>;
   getFullfilments: () => Promise<Fulfillments>;
+  matchedProviders: Record<string, string[]> | undefined;
+  selectProvider: (key: string, value: string) => void;
 }
 
 export const PlatformContext = createContext<PlatformContextValue | null>(null);

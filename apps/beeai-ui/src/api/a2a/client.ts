@@ -140,5 +140,5 @@ export const buildA2AClient = <UIGenericPart = never>({
     return run;
   };
 
-  return { chat };
+  return { chat, llmDemands };
 };

@@ -33,7 +33,7 @@ import { ComposeContext, ComposeStatus } from './compose-context';
 
 export function ComposeProvider({ children }: PropsWithChildren) {
   return (
-    <PlatformContextProvider>
+    <PlatformContextProvider agent={null}>
       <ComposeProviderWithContext>{children}</ComposeProviderWithContext>
     </PlatformContextProvider>
   );

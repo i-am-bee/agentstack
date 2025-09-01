@@ -5,15 +5,32 @@
 
 import { type PropsWithChildren, useCallback, useEffect, useState } from 'react';
 
+import { llmExtension } from '#api/a2a/extensions/services/llm.ts';
+import { extractServiceExtensionDemands } from '#api/a2a/extensions/utils.ts';
+import type { Agent } from '#modules/agents/api/types.ts';
+
 import { useCreateContext } from '../api/mutations/useCreateContext';
 import { useCreateContextToken } from '../api/mutations/useCreateContextToken';
+import { useMatchProviders } from '../api/mutations/useMatchProviders';
 import { buildFullfilments } from './build-fulfillments';
 import { PlatformContext } from './platform-context';
 
-export function PlatformContextProvider({ children }: PropsWithChildren) {
+const llmExtensionExtractor = extractServiceExtensionDemands(llmExtension);
+
+export function PlatformContextProvider({ children, agent }: PropsWithChildren<{ agent: Agent | null }>) {
   const [contextId, setContextId] = useState<string | null>(null);
+  const [selectedProviders, setSelectedProviders] = useState<Record<string, string>>({});
   const { mutateAsync: createContext } = useCreateContext();
   const { mutateAsync: createContextToken } = useCreateContextToken();
+  const llmDemands = llmExtensionExtractor(agent?.capabilities.extensions ?? []);
+  const { data: matchedProviders } = useMatchProviders(llmDemands ?? { llm_demands: {} });
+
+  const selectProvider = useCallback(
+    (key: string, value: string) => {
+      setSelectedProviders((prev) => ({ ...prev, [key]: value }));
+    },
+    [setSelectedProviders],
+  );
 
   const setContext = useCallback(
     (context: Awaited<ReturnType<typeof createContext>>) => {
@@ -47,7 +64,11 @@ export function PlatformContextProvider({ children }: PropsWithChildren) {
         feedback: [],
         files: [],
         providers: [],
-        variables: [],
+        provider_variables: [],
+        model_providers: [],
+        mcp_providers: [],
+        mcp_proxy: [],
+        mcp_tools: [],
         vector_stores: [],
       },
       contextPermissionGrant: {
@@ -65,8 +86,8 @@ export function PlatformContextProvider({ children }: PropsWithChildren) {
 
   const getFullfilments = useCallback(async () => {
     const platformToken = await getPlatformToken();
-    return buildFullfilments(platformToken);
-  }, [getPlatformToken]);
+    return buildFullfilments({ platformToken, selectedProviders });
+  }, [getPlatformToken, selectedProviders]);
 
   useEffect(() => {
     createContext().then(setContext);
@@ -88,6 +109,8 @@ export function PlatformContextProvider({ children }: PropsWithChildren) {
         resetContext,
         getPlatformToken,
         getFullfilments,
+        matchedProviders,
+        selectProvider,
       }}
     >
       {children}
