@@ -102,11 +102,6 @@ class OidcConfiguration(BaseModel):
             return self
         if not self.providers:
             raise ValueError("At least one OIDC provider must be configured if OIDC is enabled")
-        for provider in self.providers:
-            required = ["issuer", "client_id", "client_secret"]
-            for field in required:
-                if getattr(provider, field) is None:
-                    raise ValueError(f"'{field}' is required for provider '{provider.name}' if OIDC is enabled")
         return self
 
 
