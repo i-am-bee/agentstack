@@ -14,6 +14,7 @@ import { QueryProvider } from '#contexts/QueryProvider/QueryProvider.tsx';
 import { ThemeProvider } from '#contexts/Theme/ThemeProvider.tsx';
 import { ToastProvider } from '#contexts/Toast/ToastProvider.tsx';
 import { RouteTransitionProvider } from '#contexts/TransitionContext/RouteTransitionProvider.tsx';
+import { AUTH_BASEPATH } from '#utils/constants.ts';
 import type { FeatureFlags } from '#utils/feature-flags.ts';
 
 interface Props {
@@ -22,7 +23,7 @@ interface Props {
 
 export default function Providers({ featureFlags, children }: PropsWithChildren<Props>) {
   return (
-    <SessionProvider basePath={'/auth'}>
+    <SessionProvider basePath={AUTH_BASEPATH}>
       <ToastProvider>
         <QueryProvider>
           <ProgressBarProvider>

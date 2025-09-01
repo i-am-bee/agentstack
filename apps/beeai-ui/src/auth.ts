@@ -8,7 +8,7 @@ import type { Provider } from 'next-auth/providers';
 import Credentials from 'next-auth/providers/credentials';
 
 import { ProviderList } from '#app/auth/providers/providerlist.ts';
-import { OIDC_ENABLED } from '#utils/constants.ts';
+import { AUTH_BASEPATH, OIDC_ENABLED } from '#utils/constants.ts';
 
 let provider_list: {
   id: string;
@@ -162,7 +162,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   pages: {
     signIn: '/signin',
   },
-  basePath: '/auth',
+  basePath: AUTH_BASEPATH,
   session: { strategy: 'jwt' },
   trustHost: true,
   useSecureCookies: true,
