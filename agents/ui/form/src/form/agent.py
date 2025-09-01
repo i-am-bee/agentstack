@@ -37,7 +37,7 @@ location=TextField(
 )
 date_from=DateField(
     type="date",
-    id="date",
+    id="date_from",
     label="Date from",
     required=False,
     col_span=1
@@ -57,7 +57,7 @@ flexible=CheckboxField(
     required=False,
     col_span=2
 )
-flexible=FileField(
+notes=FileField(
     type="file",
     id="notes",
     label="Upload notes",
@@ -78,7 +78,7 @@ form_render = FormRender(
         id="adventure_form",
         title="Let’s go on an adventure",
         columns=2,
-        fields=[location, date_from, date_to, flexible, interests]
+        fields=[location, date_from, date_to, notes, flexible, interests]
     )
 form_extension_spec = FormExtensionSpec(form_render)
 
@@ -119,7 +119,6 @@ async def agent(
 ):
     """Request form data"""
     
-    print(input)
     form_data = form.parse_form_response(message=input)
     
     yield f"Hello {form_data.values['location'].value}"

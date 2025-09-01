@@ -28,9 +28,6 @@ class TextField(BaseField):
     placeholder: str | None = None
     default_value: str | None = None
 
-    type: Literal["text"]
-    value: str | None = None
-
 
 class DateField(BaseField):
     type: Literal["date"]

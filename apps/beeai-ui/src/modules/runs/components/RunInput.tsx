@@ -61,8 +61,6 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
   const inputValue = watch('input');
   const isSubmitDisabled = !isReady || isFileUploadPending || !inputValue;
 
-  console.log({ isReady, isPending });
-
   const dispatchInputEventAndFocus = useCallback(() => {
     const inputElem = inputRef.current;
 
