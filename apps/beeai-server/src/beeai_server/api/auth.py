@@ -103,8 +103,8 @@ def setup_jwks(config: Configuration) -> JWKS_DICT:
     for provider in config.auth.oidc.providers:
         issuer = provider.issuer
         if not issuer:
-            logger.warning(f"Skipping provider with missing issuer: {provider.name}")
-            continue
+            logger.error(f"Skipping provider with missing issuer: {provider.name}")
+            raise RuntimeError(f"OIDC provider '{provider.name}' is missing an issuer")
         try:
             response = requests.get(f"{issuer}/jwks")
             response.raise_for_status()
@@ -113,6 +113,7 @@ def setup_jwks(config: Configuration) -> JWKS_DICT:
             logger.debug(f"Fetched JWKS for issuer {issuer} from {issuer}/jwks")
         except Exception as e:
             logger.error(f"Failed to fetch JWKS from {issuer}/jwks : {e}")
+            raise RuntimeError(f"Failed to fetch JWKS from {issuer}/jwks: {e}") from e
 
     return jwks_dict_by_issuer
 
