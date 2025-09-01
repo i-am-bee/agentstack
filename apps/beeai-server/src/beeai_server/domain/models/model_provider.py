@@ -3,11 +3,12 @@
 
 from datetime import datetime
 from enum import StrEnum
+from typing import Any
 from uuid import UUID, uuid4
 
 from httpx import AsyncClient
-from openai.types import Model
-from pydantic import AwareDatetime, BaseModel, Field, HttpUrl, model_validator
+from openai.types import Model as OpenAIModel
+from pydantic import AwareDatetime, BaseModel, Field, HttpUrl, computed_field, model_validator
 
 from beeai_server.utils.utils import utc_now
 
@@ -41,6 +42,15 @@ class ModelCapability(StrEnum):
     EMBEDDING = "embedding"
 
 
+class ModelProviderInfo(BaseModel):
+    capabilities: set[ModelCapability]
+
+
+class Model(OpenAIModel):
+    provider: ModelProviderInfo
+    display_name: str | None = None
+
+
 class ModelProvider(BaseModel):
     id: UUID = Field(default_factory=uuid4)
     name: str | None = Field(None, description="Human-readable name for the model provider")
@@ -69,9 +79,19 @@ class ModelProvider(BaseModel):
             raise ValueError("WatsonX providers must have either watsonx_project_id or watsonx_space_id")
         return self
 
+    @computed_field
     @property
     def capabilities(self) -> set[ModelCapability]:
         return _PROVIDER_CAPABILITIES.get(self.type, set())
+
+    @property
+    def _model_provider_info(self) -> ModelProviderInfo:
+        return ModelProviderInfo(capabilities=self.capabilities)
+
+    def _parse_openai_compatible_model(self, model: dict[str, Any]) -> Model:
+        return Model.model_validate(
+            {**model, "id": f"{self.type}:{model['id']}", "provider": self._model_provider_info}
+        )
 
     async def load_models(self, api_key: str) -> list[Model]:
         async with AsyncClient() as client:
@@ -95,6 +115,7 @@ class ModelProvider(BaseModel):
                                 "created": created,
                                 "object": "model",
                                 "owned_by": model["provider"],
+                                "provider": self._model_provider_info,
                             }
                         )
                         for model, created in available_models
@@ -106,6 +127,7 @@ class ModelProvider(BaseModel):
                             created=int(datetime.now().timestamp()),
                             object="model",
                             owned_by="voyage",
+                            provider=self._model_provider_info,
                         )
                         for model_id in {
                             "voyage-3-large",
@@ -128,7 +150,8 @@ class ModelProvider(BaseModel):
                             created=int(datetime.fromisoformat(model["created_at"]).timestamp()),
                             owned_by="Anthropic",
                             object="model",
-                            display_name=model["display_name"],  # pyright: ignore [reportCallIssue]
+                            display_name=model["display_name"],
+                            provider=self._model_provider_info,
                         )
                         for model in models
                     ]
@@ -136,13 +159,13 @@ class ModelProvider(BaseModel):
                 case ModelProviderType.RITS:
                     response = await client.get(f"{self.base_url}/models", headers={"RITS_API_KEY": api_key})
                     models = response.raise_for_status().json()["data"]
-                    return [Model.model_validate({**model, "id": f"{self.type}:{model['id']}"}) for model in models]
+                    return [self._parse_openai_compatible_model(model) for model in models]
                 case _:
                     response = await client.get(
                         f"{self.base_url}/models", headers={"Authorization": f"Bearer {api_key}"}
                     )
                     models = response.raise_for_status().json()["data"]
-                    return [Model.model_validate({**model, "id": f"{self.type}:{model['id']}"}) for model in models]
+                    return [self._parse_openai_compatible_model(model) for model in models]
 
     @property
     def supports_llm(self) -> bool:

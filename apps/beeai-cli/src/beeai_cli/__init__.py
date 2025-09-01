@@ -90,7 +90,7 @@ async def _launch_graphical_interface(host_url: str):
 
     import beeai_cli.commands.model
 
-    await beeai_cli.commands.model.ensure_llm_env()
+    await beeai_cli.commands.model.ensure_llm_provider()
     webbrowser.open(host_url)
 
 

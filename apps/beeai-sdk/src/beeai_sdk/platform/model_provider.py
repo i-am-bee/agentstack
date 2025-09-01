@@ -53,6 +53,7 @@ class ModelProvider(pydantic.BaseModel):
     watsonx_project_id: str | None = None
     watsonx_space_id: str | None = None
     created_at: pydantic.AwareDatetime
+    capabilities: set[ModelCapability]
 
     @staticmethod
     async def create(

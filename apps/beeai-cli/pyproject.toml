@@ -23,6 +23,7 @@ dependencies = [
     "pyyaml>=6.0.2",
     "beeai-sdk",
     "authlib==1.5.2",
+    "openai>=1.102.0",
 ]
 
 [dependency-groups]

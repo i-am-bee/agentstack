@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 import httpx
+import openai
 import psutil
 from a2a.client import Client, ClientConfig, ClientFactory
 from a2a.types import AgentCard
@@ -138,3 +139,13 @@ async def a2a_client(agent_card: AgentCard, use_auth: bool = True) -> AsyncItera
 
     async with httpx.AsyncClient(headers=headers) as httpx_client:
         yield ClientFactory(ClientConfig(httpx_client=httpx_client)).create(card=agent_card)
+
+
+@asynccontextmanager
+async def openai_client() -> AsyncIterator[openai.AsyncOpenAI]:
+    async with Configuration().use_platform_client() as platform_client:
+        yield openai.AsyncOpenAI(
+            api_key=platform_client.headers.get("Authorization", "").removeprefix("Bearer ") or "dummy",
+            base_url=urllib.parse.urljoin(API_BASE_URL, "openai"),
+            default_headers=platform_client.headers,
+        )

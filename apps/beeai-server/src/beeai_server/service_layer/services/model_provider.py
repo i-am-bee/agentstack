@@ -10,11 +10,16 @@ from uuid import UUID
 from cachetools import TTLCache
 from httpx import HTTPError
 from kink import inject
-from openai.types import Model
 from pydantic import HttpUrl
 
 from beeai_server.domain.constants import MODEL_API_KEY_SECRET_NAME
-from beeai_server.domain.models.model_provider import ModelCapability, ModelProvider, ModelProviderType, ModelWithScore
+from beeai_server.domain.models.model_provider import (
+    Model,
+    ModelCapability,
+    ModelProvider,
+    ModelProviderType,
+    ModelWithScore,
+)
 from beeai_server.domain.repositories.env import EnvStoreEntity
 from beeai_server.exceptions import EntityNotFoundError, ModelLoadFailedError
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
@@ -82,6 +87,7 @@ class ModelProviderService:
         async with self._uow() as uow:
             await uow.model_providers.delete(model_provider_id=model_provider_id)
             await uow.commit()
+            self._provider_models.pop(model_provider_id, None)
 
     async def get_provider_api_key(self, *, model_provider_id: UUID) -> str:
         async with self._uow() as uow:

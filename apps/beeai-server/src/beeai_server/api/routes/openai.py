@@ -17,12 +17,12 @@ import openai.types.chat
 from fastapi import Depends, HTTPException
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import StreamingResponse
-from openai.types import CreateEmbeddingResponse, Model
+from openai.types import CreateEmbeddingResponse
 from starlette.status import HTTP_400_BAD_REQUEST
 
 from beeai_server.api.dependencies import ModelProviderServiceDependency, RequiresPermissions
 from beeai_server.api.schema.openai import ChatCompletionRequest, EmbeddingsRequest, MultiformatEmbedding, OpenAIPage
-from beeai_server.domain.models.model_provider import ModelProvider, ModelProviderType
+from beeai_server.domain.models.model_provider import Model, ModelProvider, ModelProviderType
 from beeai_server.domain.models.permissions import AuthorizedUser
 
 router = fastapi.APIRouter()

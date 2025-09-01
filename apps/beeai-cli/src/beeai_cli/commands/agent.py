@@ -53,7 +53,7 @@ from rich.rule import Rule
 from rich.text import Text
 
 from beeai_cli.commands.build import build
-from beeai_cli.commands.model import ensure_llm_env
+from beeai_cli.commands.model import ensure_llm_provider
 from beeai_cli.configuration import Configuration
 
 if sys.platform != "win32":
@@ -694,7 +694,7 @@ async def run_agent(
             grant_context_permissions=ContextPermissions(files={"*"}, vector_stores={"*"}),
         )
 
-    await ensure_llm_env()
+    await ensure_llm_provider()
 
     provider = select_provider(search_path, providers=providers)
     agent = provider.agent_card
