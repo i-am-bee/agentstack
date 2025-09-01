@@ -18,12 +18,24 @@ import { PlatformContext } from './platform-context';
 const llmExtensionExtractor = extractServiceExtensionDemands(llmExtension);
 
 export function PlatformContextProvider({ children, agent }: PropsWithChildren<{ agent: Agent | null }>) {
+  const llmDemands = llmExtensionExtractor(agent?.capabilities.extensions ?? []);
   const [contextId, setContextId] = useState<string | null>(null);
   const [selectedProviders, setSelectedProviders] = useState<Record<string, string>>({});
+
+  const setDefaultSelectedProviders = useCallback(
+    (data: Record<string, string[]>) => {
+      // TODO: what if there is no match?
+      setSelectedProviders(Object.fromEntries(Object.entries(data).map(([key, value]) => [key, value[0]])));
+    },
+    [setSelectedProviders],
+  );
+
   const { mutateAsync: createContext } = useCreateContext();
   const { mutateAsync: createContextToken } = useCreateContextToken();
-  const llmDemands = llmExtensionExtractor(agent?.capabilities.extensions ?? []);
-  const { data: matchedProviders } = useMatchProviders(llmDemands ?? { llm_demands: {} });
+  const { data: matchedProviders } = useMatchProviders(
+    llmDemands ? llmDemands.llm_demands : {},
+    setDefaultSelectedProviders,
+  );
 
   const selectProvider = useCallback(
     (key: string, value: string) => {

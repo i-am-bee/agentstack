@@ -4,25 +4,41 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 
 import type { LLMDemand } from '#api/a2a/extensions/services/llm.ts';
 
 import { matchProviders } from '..';
 
-export function useMatchProviders(demands: LLMDemand) {
-  // TODO: more
-  const mutation = useQuery({
-    queryKey: ['matchProviders'],
+const MAX_PROVIDERS = 5;
+
+export function useMatchProviders(
+  demands: LLMDemand['llm_demands'],
+  onSuccess: (data: Record<string, string[]>) => void,
+) {
+  const demandKey = Object.entries(demands)
+    .map(([key, value]) => [key, ...(value.suggested ?? [])])
+    .join();
+
+  const query = useQuery({
+    queryKey: ['matchProviders', demandKey],
     queryFn: async () => {
-      const acc = {};
-      for (const demandKey in demands.llm_demands) {
-        const result = await matchProviders(demands.llm_demands[demandKey].suggested ?? []);
-        acc[demandKey] = result?.items.map((item) => item.model_id).filter((_, index) => index < 5) ?? [];
+      const acc: Record<string, string[]> = {};
+
+      for (const demandKey in demands) {
+        const result = await matchProviders(demands[demandKey].suggested ?? []);
+        acc[demandKey] = result?.items.map((item) => item.model_id).filter((_, index) => index < MAX_PROVIDERS) ?? [];
       }
 
       return acc;
     },
   });
 
-  return mutation;
+  useEffect(() => {
+    if (query.isSuccess && query.data) {
+      onSuccess(query.data);
+    }
+  }, [query.isSuccess, query.data, onSuccess]);
+
+  return query;
 }

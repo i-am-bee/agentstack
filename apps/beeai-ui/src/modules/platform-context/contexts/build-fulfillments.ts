@@ -17,9 +17,6 @@ export const buildFullfilments = ({ platformToken, selectedProviders }: BuildFul
     },
     llm: async ({ llm_demands }) => {
       const allDemands = Object.keys(llm_demands);
-      if (allDemands.length !== 1) {
-        throw new Error('Platform currently support single demand LLM');
-      }
 
       return allDemands.reduce(
         (memo, demandKey) => {
