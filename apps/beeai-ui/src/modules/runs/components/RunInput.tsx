@@ -121,14 +121,6 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
             </select>
           </div>
         ))}
-        {/* 
-        <select onChange={(x) => selectProvider(x.target.value)}>
-          {matchedProviders.map((provider) => (
-            <option key={provider} value={provider}>
-              {provider}
-            </option>
-          ))}
-        </select> */}
 
         <TextAreaAutoHeight
           rows={1}
