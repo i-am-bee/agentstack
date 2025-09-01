@@ -138,7 +138,7 @@ def extract_oauth_token(
     return cookie_token
 
 
-async def introspect_token(token: str, configuration: Configuration) -> tuple[dict, str] | None:
+async def introspect_token(token: str, configuration: Configuration) -> tuple[dict | None, str | None]:
     """Call OAuth2 introspect endpoint to validate opaque token"""
     async with httpx.AsyncClient() as client:
         for provider in configuration.auth.oidc.providers:
@@ -158,7 +158,7 @@ async def introspect_token(token: str, configuration: Configuration) -> tuple[di
             except Exception as e:
                 logger.warning(f"Introspection failed for {provider.issuer}/introspect: {e}")
         logger.error("Token introspection failed for all providers")
-        return None
+        return None, None
 
 
 async def decode_oauth_jwt_or_introspect(
