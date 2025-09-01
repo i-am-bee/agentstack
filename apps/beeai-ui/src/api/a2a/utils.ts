@@ -166,7 +166,6 @@ export function createTextPart(text: string): UITextPart {
 export function createFormPart(form: FormRender): UIFormPart | null {
   const formPart: UIFormPart = {
     kind: UIMessagePartKind.Form,
-    // TODO: Temporary for testing purposes
     ...form,
   };
 

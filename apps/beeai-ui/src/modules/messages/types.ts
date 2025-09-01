@@ -77,7 +77,6 @@ export type UITrajectoryPart = {
   content?: string;
 };
 
-// TODO: Temporary for testing purposes
 export type UIFormPart = FormRender & {
   kind: UIMessagePartKind.Form;
 };
