@@ -44,11 +44,11 @@
       {
         "group": "Working with Agents",
         "pages": [
-          "working-with-agents/discover-agents",
-          "working-with-agents/run-agents", 
-          "working-with-agents/observe-agents",
-          "working-with-agents/import-agents",
-          "working-with-agents/share-agents"
+          "how-to/discover-agents",
+          "how-to/run-agents", 
+          "how-to/observe-agents",
+          "how-to/import-agents",
+          "how-to/share-agents"
         ]
       },
       {

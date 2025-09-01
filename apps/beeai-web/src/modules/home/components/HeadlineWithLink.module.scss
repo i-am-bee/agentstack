@@ -36,8 +36,11 @@
 
 .inverse {
   a {
-    background-color: $background;
-    color: $text-primary;
+    &,
+    &:focus {
+      background-color: $background;
+      color: $text-primary;
+    }
     &:hover {
       background-color: $layer-hover-02;
       color: $text-primary;

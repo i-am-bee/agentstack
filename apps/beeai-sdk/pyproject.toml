@@ -1,6 +1,6 @@
 [project]
 name = "beeai-sdk"
-version = "0.3.1"
+version = "0.3.2"
 description = "BeeAI SDK"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
@@ -19,7 +19,6 @@ dependencies = [
     "opentelemetry-sdk>=1.35.0",
     "tenacity>=9.1.2",
     "janus>=2.0.0",
-    "uvloop>=0.21.0",
     "httpx", # version determined by a2a-sdk
     "mcp>=1.12.3",
     "fastapi>=0.116.1",
@@ -27,7 +26,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "beeai-framework[duckduckgo,wikipedia]>=0.1.32",
+    "beeai-framework[duckduckgo,wikipedia]>=0.1.40",
     "pyright>=1.1.403",
     "pytest>=8.4.1",
     "pytest-asyncio>=1.1.0",

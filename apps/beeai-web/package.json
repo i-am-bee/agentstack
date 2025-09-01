@@ -1,10 +1,11 @@
 {
   "name": "@i-am-bee/beeai-web",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": true,
   "peerDependencies": {
-    "@bprogress/next": "*",
+    "@carbon/react": "*",
     "@carbon/icons-react": "*",
+    "@bprogress/next": "*",
     "@tanstack/react-query": "*",
     "framer-motion": "*",
     "lottie-react": "*",
@@ -15,7 +16,6 @@
     "react-is": "*"
   },
   "dependencies": {
-    "@carbon/react": "^1.83.0",
     "@i-am-bee/beeai-ui": "workspace:*",
     "clsx": "^2.1.1",
     "server-only": "^0.0.1",

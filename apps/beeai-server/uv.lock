@@ -235,7 +235,7 @@ wheels = [
 
 [[package]]
 name = "beeai-sdk"
-version = "0.3.1"
+version = "0.3.2"
 source = { editable = "../beeai-sdk" }
 dependencies = [
     { name = "a2a-sdk" },
@@ -254,7 +254,6 @@ dependencies = [
     { name = "starlette" },
     { name = "tenacity" },
     { name = "uvicorn" },
-    { name = "uvloop" },
 ]
 
 [package.metadata]
@@ -275,12 +274,11 @@ requires-dist = [
     { name = "starlette", specifier = ">=0.47.2" },
     { name = "tenacity", specifier = ">=9.1.2" },
     { name = "uvicorn", specifier = ">=0.35.0" },
-    { name = "uvloop", specifier = ">=0.21.0" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.32" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.40" },
     { name = "pyright", specifier = ">=1.1.403" },
     { name = "pytest", specifier = ">=8.4.1" },
     { name = "pytest-asyncio", specifier = ">=1.1.0" },
@@ -290,7 +288,7 @@ dev = [
 
 [[package]]
 name = "beeai-server"
-version = "0.3.1"
+version = "0.3.2"
 source = { editable = "." }
 dependencies = [
     { name = "a2a-sdk" },
