@@ -24,8 +24,17 @@ export function PlatformContextProvider({ children, agent }: PropsWithChildren<{
 
   const setDefaultSelectedProviders = useCallback(
     (data: Record<string, string[]>) => {
-      // TODO: what if there is no match?
-      setSelectedProviders(Object.fromEntries(Object.entries(data).map(([key, value]) => [key, value[0]])));
+      setSelectedProviders(
+        Object.fromEntries(
+          Object.entries(data).map(([key, value]) => {
+            if (value.length === 0) {
+              throw new Error(`No match found for demand ${key}`);
+            }
+
+            return [key, value[0]];
+          }),
+        ),
+      );
     },
     [setSelectedProviders],
   );
