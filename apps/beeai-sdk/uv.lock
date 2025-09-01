@@ -176,7 +176,7 @@ wheels = [
 
 [[package]]
 name = "beeai-framework"
-version = "0.1.36"
+version = "0.1.40"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -189,9 +189,9 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/18/27/70b35092380422c13dac00954bf5ddd8cd70524cb6bb761d9bdf9a211c9f/beeai_framework-0.1.36.tar.gz", hash = "sha256:94a9abcc130fb15940cd9c12680532f9f6ef01b746049e5e4e76d9dd167bcb4c", size = 131018, upload-time = "2025-08-08T13:01:54.674Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b2/e0/88207d376cc26d3ec72f2fa0415c56417f0c428bf54b1d518a25845f1aa3/beeai_framework-0.1.40.tar.gz", hash = "sha256:3bec698e7b6b1a28decf2dbaee467d4557106835d305f9c17346522e5942a39e", size = 134539, upload-time = "2025-08-29T13:42:25.162Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8c/9a/6b01baddb4ec1127fbd5d00264913bb25b4712dc0ec8dc49c388a7972ad7/beeai_framework-0.1.36-py3-none-any.whl", hash = "sha256:10caaa685accd80eba4c04661c3b2ecd4ec26c4873ddb67b9b9efa9001bbc662", size = 246741, upload-time = "2025-08-08T13:01:53.28Z" },
+    { url = "https://files.pythonhosted.org/packages/67/46/e3d7f9a2f3ffe729109066ea4aa3379a7500078e4835b76b644f63a17cae/beeai_framework-0.1.40-py3-none-any.whl", hash = "sha256:753dcb69164acc23592024866ef816f6dc7caaf442d95ae2648f9c10a7dfe1db", size = 249955, upload-time = "2025-08-29T13:42:23.408Z" },
 ]
 
 [package.optional-dependencies]
@@ -259,7 +259,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.32" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.40" },
     { name = "pyright", specifier = ">=1.1.403" },
     { name = "pytest", specifier = ">=8.4.1" },
     { name = "pytest-asyncio", specifier = ">=1.1.0" },

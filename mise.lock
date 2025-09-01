@@ -10,8 +10,10 @@ backend = "aqua:sharkdp/fd"
 version = "0.16.2"
 backend = "aqua:charmbracelet/gum"
 
-[tools.gum.checksums]
-"gum_0.16.2_Darwin_arm64.tar.gz" = "sha256:ee45a15043c33e90ab4902d9bfd9a6ee97ee820869f6de4a1a2e3d3f9636f05f"
+[tools.gum.platforms.macos-arm64]
+checksum = "sha256:ee45a15043c33e90ab4902d9bfd9a6ee97ee820869f6de4a1a2e3d3f9636f05f"
+size = 4477198
+url = "https://github.com/charmbracelet/gum/releases/download/v0.16.2/gum_0.16.2_Darwin_arm64.tar.gz"
 
 [tools.helm]
 version = "3.18.4"
@@ -25,8 +27,10 @@ backend = "aqua:yannh/kubeconform"
 version = "22.18.0"
 backend = "core:node"
 
-[tools.node.checksums]
-"node-v22.18.0-darwin-arm64.tar.gz" = "sha256:2c12913cba67af77ded8a399df3fd91c2e7f8628c7079da40bb9ff33bf00dfc0"
+[tools.node.platforms.macos-arm64]
+checksum = "sha256:2c12913cba67af77ded8a399df3fd91c2e7f8628c7079da40bb9ff33bf00dfc0"
+size = 47696084
+url = "https://nodejs.org/dist/v22.18.0/node-v22.18.0-darwin-arm64.tar.gz"
 
 [tools."pipx:toml-cli"]
 version = "0.8.1"
@@ -48,19 +52,23 @@ backend = "ubi:google/addlicense"
 version = "2.23.6"
 backend = "ubi:telepresenceio/telepresence"
 
-[tools."ubi:telepresenceio/telepresence".checksums]
-telepresence-macos-aarch64 = "sha256:d748e5aa07d6172d318c94eb8e9417f359b438ec2b988cbf65bb269ab492119a"
+[tools."ubi:telepresenceio/telepresence".platforms.macos-arm64-telepresence]
+checksum = "blake3:d7876c4f02e76bdfc7014aa5b96a3e5e4e181ce6623e7cf252feb20ed2597ee1"
 
 [tools.uv]
 version = "0.8.9"
 backend = "aqua:astral-sh/uv"
 
-[tools.uv.checksums]
-"uv-aarch64-apple-darwin.tar.gz" = "sha256:c233bee389c15fdef09a6028db61cc54a12e6171f27d6d9c018eedca5bbbd011"
+[tools.uv.platforms.macos-arm64]
+checksum = "sha256:c233bee389c15fdef09a6028db61cc54a12e6171f27d6d9c018eedca5bbbd011"
+size = 17202203
+url = "https://github.com/astral-sh/uv/releases/download/0.8.9/uv-aarch64-apple-darwin.tar.gz"
 
 [tools.yq]
 version = "4.47.1"
 backend = "aqua:mikefarah/yq"
 
-[tools.yq.checksums]
-yq_darwin_arm64 = "sha256:99aae3a7c9ddfe76bb339f0e7acd8224324b6527436fb6a5d890079bf5fcc590"
+[tools.yq.platforms.macos-arm64]
+checksum = "blake3:576374b350e23e8a83123dbb2008bb9115c27cc6569699bfdd6b034562969f16"
+size = 11079202
+url = "https://github.com/mikefarah/yq/releases/download/v4.47.1/yq_darwin_arm64"
