@@ -7,6 +7,7 @@ import { IconButton } from '@carbon/react';
 import type { MouseEventHandler } from 'react';
 
 import NewSession from './NewSession.svg';
+import classes from './NewSessionButton.module.scss';
 
 interface Props {
   onClick: MouseEventHandler;
@@ -14,7 +15,15 @@ interface Props {
 
 export function NewSessionButton({ onClick }: Props) {
   return (
-    <IconButton kind="tertiary" size="sm" label="New session" align="bottom" autoAlign onClick={onClick}>
+    <IconButton
+      kind="tertiary"
+      size="sm"
+      label="New session"
+      align="bottom"
+      autoAlign
+      onClick={onClick}
+      className={classes.root}
+    >
       <NewSession />
     </IconButton>
   );
