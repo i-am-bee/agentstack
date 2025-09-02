@@ -11,13 +11,9 @@ import UserAvatar from './UserAvatar';
 
 export default function Avatar() {
   const { data: session } = useSession();
-  function getUserAvatar() {
-    return <UserAvatar user={session?.user} />;
-  }
-
   return (
     <div className={classes.avatar}>
-      <OverflowMenu flipped renderIcon={getUserAvatar}>
+      <OverflowMenu flipped renderIcon={UserAvatar}>
         <OverflowMenuItem itemText={session?.user?.name || 'Not logged in'} />
       </OverflowMenu>
     </div>
