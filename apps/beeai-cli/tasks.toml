@@ -115,7 +115,7 @@ insert_line=$(awk '/^Requires-Dist:/ {print FNR-1; exit}' "$tmpdir/beeai_cli-${v
 ) > "$tmpdir/beeai_cli-${version}.dist-info/METADATA.new"
 mv "$tmpdir/beeai_cli-${version}.dist-info/METADATA.new" "$tmpdir/beeai_cli-${version}.dist-info/METADATA"
 rm "$universal_wheel"
-uv run wheel pack "$tmpdir" --dest-dir ./dist &>/dev/null
+uv run wheel pack "$tmpdir" --dest-dir ./dist >/dev/null
 rm -rf "$tmpdir"
 
 # Verify that the wheel works
@@ -129,7 +129,6 @@ build_wheel() {
   wheel_tag="$1"
   hostagent_arch="$2"
   tmpdir="$(mktemp -d)"
-  platform_wheel="$(realpath "./dist")/beeai_cli-$version-py3-none-$wheel_tag.whl"
   
   # Unzip wheel and fix permissions
   unzip -q "$universal_wheel" -d "$tmpdir"
@@ -144,7 +143,7 @@ build_wheel() {
   perl -pi -e "s/Root-Is-Purelib: true/Root-Is-Purelib: false/" "$tmpdir/beeai_cli-$version.dist-info/WHEEL"
   perl -pi -e "s/Tag: .*/Tag: py3-none-$wheel_tag/" "$tmpdir/beeai_cli-$version.dist-info/WHEEL"
 
-  uv run wheel pack "$tmpdir" --dest-dir ./dist &>/dev/null
+  uv run wheel pack "$tmpdir" --dest-dir ./dist >/dev/null
   rm -rf "$tmpdir"
 }
 build_wheel manylinux_2_34_x86_64  x86_64  &
