@@ -142,17 +142,7 @@ build_wheel() {
   perl -pi -e "s/Root-Is-Purelib: true/Root-Is-Purelib: false/" "$tmpdir/beeai_cli-$version.dist-info/WHEEL"
   perl -pi -e "s/Tag: .*/Tag: py3-none-$wheel_tag/" "$tmpdir/beeai_cli-$version.dist-info/WHEEL"
   
-  # Regenerate RECORD file
-  rm "$tmpdir/beeai_cli-$version.dist-info/RECORD"
-  (
-    find "$tmpdir" -type f | while read file; do
-      echo "${file#$tmpdir/},sha256=$(shasum -a 256 "$file" | cut -d' ' -f1),$(stat -f%z "$file")"
-    done
-    echo "beeai_cli-$version.dist-info/RECORD,,"
-  ) > "$tmpdir/beeai_cli-$version.dist-info/RECORD"
-  
-  # Create the platform-specific wheel
-  (cd "$tmpdir" && zip -q "$platform_wheel" -r .)
+  uv run wheel pack "$tmpdir" --dest-dir ./dist &>/dev/null
   rm -rf "$tmpdir"
 }
 build_wheel manylinux_2_34_x86_64  x86_64  &
