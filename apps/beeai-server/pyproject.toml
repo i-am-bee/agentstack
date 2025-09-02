@@ -41,7 +41,6 @@ dependencies = [
     "ibm-watsonx-ai>=1.3.28",
     "psycopg[binary]>=3.2.9",
     "openai>=1.97.0",
-    "itsdangerous==2.2.0",
 ]
 
 [dependency-groups]
