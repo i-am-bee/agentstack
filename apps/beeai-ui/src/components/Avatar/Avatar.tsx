@@ -11,8 +11,13 @@ import UserAvatar from './UserAvatar';
 
 export default function Avatar() {
   const { data: session } = useSession();
+  const oidcEnabled = process.env.OIDC_ENABLED === 'true';
+  let className = classes.avatar;
+  if (!oidcEnabled) {
+    className = classes.hidden;
+  }
   return (
-    <div className={classes.avatar}>
+    <div className={className}>
       <OverflowMenu flipped renderIcon={UserAvatar}>
         <OverflowMenuItem itemText={session?.user?.name || 'Not logged in'} />
       </OverflowMenu>
