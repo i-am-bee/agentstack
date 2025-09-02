@@ -8,6 +8,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
 
 import { TextAreaAutoHeight } from '#components/TextAreaAutoHeight/TextAreaAutoHeight.tsx';
+import { useApp } from '#contexts/App/index.ts';
 import { InteractionMode } from '#modules/agents/api/types.ts';
 import { FileUploadButton } from '#modules/files/components/FileUploadButton.tsx';
 import { useFileUpload } from '#modules/files/contexts/index.ts';
@@ -17,6 +18,7 @@ import { dispatchInputEventOnTextarea, submitFormOnEnter } from '#utils/form-uti
 import { ChatDefaultTools } from '../chat/constants';
 import { useAgentRun } from '../contexts/agent-run';
 import type { RunAgentFormValues } from '../types';
+import { ModelProviders } from './ModelProviders';
 import { PromptExamples } from './PromptExamples';
 import { RunFiles } from './RunFiles';
 import classes from './RunInput.module.scss';
@@ -34,7 +36,9 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
 
   const [promptExamplesOpen, setPromptExamplesOpen] = useState(false);
 
-  const { contextId, matchedProviders, selectProvider } = usePlatformContext();
+  const { featureFlags } = useApp();
+
+  const { contextId } = usePlatformContext();
 
   const {
     agent: {
@@ -109,18 +113,6 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
         }}
       >
         <RunFiles />
-        {Object.entries(matchedProviders || {}).map(([key, value]) => (
-          <div key={key}>
-            <p>{key}</p>
-            <select key={key} onChange={({ target }) => selectProvider(key, target.value)}>
-              {value.map((provider) => (
-                <option key={provider} value={provider}>
-                  {provider}
-                </option>
-              ))}
-            </select>
-          </div>
-        ))}
 
         <TextAreaAutoHeight
           rows={1}
@@ -138,6 +130,8 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
             {/* <RunSettings containerRef={formRef} /> */}
 
             {!isFileUploadDisabled && <FileUploadButton />}
+
+            {featureFlags.ModelProviders && <ModelProviders />}
           </div>
 
           <div className={classes.submit}>

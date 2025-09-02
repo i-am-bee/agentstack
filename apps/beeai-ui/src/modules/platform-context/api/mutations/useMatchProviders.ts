@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
 import type { LLMDemand } from '#api/a2a/extensions/services/llm.ts';
+import { useApp } from '#contexts/App/index.ts';
 
 import { matchProviders } from '..';
 
@@ -15,13 +16,14 @@ const MAX_PROVIDERS = 5;
 type MatchProvidersResult = Record<string, string[]>;
 
 export function useMatchProviders(demands: LLMDemand['llm_demands'], onSuccess: (data: MatchProvidersResult) => void) {
+  const { featureFlags } = useApp();
   const demandKey = Object.entries(demands)
     .map(([key, value]) => [key, ...(value.suggested ?? [])])
     .join();
 
   const query = useQuery({
     queryKey: ['matchProviders', demandKey],
-    enabled: Object.keys(demands).length > 0,
+    enabled: featureFlags.ModelProviders && Object.keys(demands).length > 0,
     queryFn: async () => {
       const demandKeys = Object.keys(demands);
 
@@ -42,11 +44,13 @@ export function useMatchProviders(demands: LLMDemand['llm_demands'], onSuccess: 
     },
   });
 
+  const { isSuccess, data } = query;
+
   useEffect(() => {
-    if (query.isSuccess && query.data) {
-      onSuccess(query.data);
+    if (isSuccess && data) {
+      onSuccess(data);
     }
-  }, [query.isSuccess, query.data, onSuccess]);
+  }, [isSuccess, data, onSuccess]);
 
   return query;
 }

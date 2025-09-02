@@ -126,11 +126,12 @@ export function PlatformContextProvider({ children, agent }: PropsWithChildren<{
     <PlatformContext.Provider
       value={{
         contextId,
+        matchedProviders,
+        selectedProviders,
         getContextId,
         resetContext,
         getPlatformToken,
         getFullfilments,
-        matchedProviders,
         selectProvider,
       }}
     >
