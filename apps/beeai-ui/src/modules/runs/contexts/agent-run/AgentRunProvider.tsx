@@ -6,6 +6,7 @@
 'use client';
 import { type PropsWithChildren, useCallback, useMemo, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
+import { z } from 'zod';
 
 import { type AgentA2AClient, type ChatRun, RunResultType } from '#api/a2a/types.ts';
 import { createTextPart } from '#api/a2a/utils.ts';
@@ -246,25 +247,40 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
 
   const startAuth = useCallback(
     (url: string, taskId: TaskId) => {
+      const authMessageSchema = z.object({
+        data: z.object({
+          redirect_uri: z.string(),
+        }),
+      });
+
       const popup = window.open(url);
       if (!popup) {
         throw new Error('Failed to open popup');
       }
-
       popup.focus();
-      window.addEventListener('message', async (msg) => {
-        if (msg) {
+
+      async function handler(message: unknown) {
+        const { success, data: parsedMessage } = authMessageSchema.safeParse(message);
+        if (!success) {
+          return;
+        }
+
+        if (popup) {
+          window.removeEventListener('message', handler);
           popup.close();
 
           const userMessage: UIUserMessage = {
             id: uuid(),
             role: Role.User,
             parts: [],
-            auth: msg.data.redirect_uri,
+            auth: parsedMessage.data.redirect_uri,
           };
+
           await run(userMessage, taskId);
         }
-      });
+      }
+
+      window.addEventListener('message', handler);
     },
     [run],
   );
