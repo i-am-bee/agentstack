@@ -4,7 +4,7 @@ requires-python = ">=3.13, <4.0"
 
 [[package]]
 name = "a2a-sdk"
-version = "0.3.1"
+version = "0.3.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "google-api-core" },
@@ -13,9 +13,9 @@ dependencies = [
     { name = "protobuf" },
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/94/a3/62e9bff37a4cb55c6d6fc59a732a9f07e95e66e13cdb4f0c53707d8ad8da/a2a_sdk-0.3.1.tar.gz", hash = "sha256:962099062279073a1b5ecd91666f2b0a1db90eb971436fba804af82173d2e305", size = 216716, upload-time = "2025-08-13T15:30:53.683Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f0/33/25ddb456829784575b5c693699162f7fa930d90a82e16fefaa53d8a02154/a2a_sdk-0.3.3.tar.gz", hash = "sha256:d32426a819d3305116d24e938787b0028c4240df862e7fc2c7bf039def0d60e2", size = 219695, upload-time = "2025-08-25T18:32:09.8Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/84/1d/6c25a110fbb558ee5c527a9477fbcf4656d7265e6bda62b45c19e9ff27a3/a2a_sdk-0.3.1-py3-none-any.whl", hash = "sha256:904bb1b58d8ace6382a9c4c279d102267c5cda393f4ab42583fdb63551e1cd3b", size = 133165, upload-time = "2025-08-13T15:30:52.079Z" },
+    { url = "https://files.pythonhosted.org/packages/57/cb/03315694ea2f9536c796767da0a1dd6d0b7c48df4badbab19c2c9c570741/a2a_sdk-0.3.3-py3-none-any.whl", hash = "sha256:d433c7f13a7a4b426e3aef798f9ef6eff0d3aea68c9a595634af865111b5c7c2", size = 135159, upload-time = "2025-08-25T18:32:08.18Z" },
 ]
 
 [[package]]
@@ -98,6 +98,7 @@ dev = [
     { name = "pyright" },
     { name = "pytest" },
     { name = "ruff" },
+    { name = "wheel" },
 ]
 
 [package.metadata]
@@ -125,6 +126,7 @@ dev = [
     { name = "pyright", specifier = ">=1.1.399" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "ruff", specifier = ">=0.8.5" },
+    { name = "wheel", specifier = ">=0.45.1" },
 ]
 
 [[package]]
@@ -148,12 +150,11 @@ dependencies = [
     { name = "starlette" },
     { name = "tenacity" },
     { name = "uvicorn" },
-    { name = "uvloop" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "a2a-sdk", specifier = "~=0.3.1" },
+    { name = "a2a-sdk", specifier = "~=0.3.3" },
     { name = "anyio", specifier = ">=4.9.0" },
     { name = "asyncclick", specifier = ">=8.1.8" },
     { name = "fastapi", specifier = ">=0.116.1" },
@@ -169,12 +170,11 @@ requires-dist = [
     { name = "starlette", specifier = ">=0.47.2" },
     { name = "tenacity", specifier = ">=9.1.2" },
     { name = "uvicorn", specifier = ">=0.35.0" },
-    { name = "uvloop", specifier = ">=0.21.0" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.32" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.40" },
     { name = "pyright", specifier = ">=1.1.403" },
     { name = "pytest", specifier = ">=8.4.1" },
     { name = "pytest-asyncio", specifier = ">=1.1.0" },
@@ -1216,26 +1216,21 @@ wheels = [
 ]
 
 [[package]]
-name = "uvloop"
-version = "0.21.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/af/c0/854216d09d33c543f12a44b393c402e89a920b1a0a7dc634c42de91b9cf6/uvloop-0.21.0.tar.gz", hash = "sha256:3bf12b0fda68447806a7ad847bfa591613177275d35b6724b1ee573faa3704e3", size = 2492741, upload-time = "2024-10-14T23:38:35.489Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/3f/8d/2cbef610ca21539f0f36e2b34da49302029e7c9f09acef0b1c3b5839412b/uvloop-0.21.0-cp313-cp313-macosx_10_13_universal2.whl", hash = "sha256:bfd55dfcc2a512316e65f16e503e9e450cab148ef11df4e4e679b5e8253a5281", size = 1468123, upload-time = "2024-10-14T23:38:00.688Z" },
-    { url = "https://files.pythonhosted.org/packages/93/0d/b0038d5a469f94ed8f2b2fce2434a18396d8fbfb5da85a0a9781ebbdec14/uvloop-0.21.0-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:787ae31ad8a2856fc4e7c095341cccc7209bd657d0e71ad0dc2ea83c4a6fa8af", size = 819325, upload-time = "2024-10-14T23:38:02.309Z" },
-    { url = "https://files.pythonhosted.org/packages/50/94/0a687f39e78c4c1e02e3272c6b2ccdb4e0085fda3b8352fecd0410ccf915/uvloop-0.21.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:5ee4d4ef48036ff6e5cfffb09dd192c7a5027153948d85b8da7ff705065bacc6", size = 4582806, upload-time = "2024-10-14T23:38:04.711Z" },
-    { url = "https://files.pythonhosted.org/packages/d2/19/f5b78616566ea68edd42aacaf645adbf71fbd83fc52281fba555dc27e3f1/uvloop-0.21.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f3df876acd7ec037a3d005b3ab85a7e4110422e4d9c1571d4fc89b0fc41b6816", size = 4701068, upload-time = "2024-10-14T23:38:06.385Z" },
-    { url = "https://files.pythonhosted.org/packages/47/57/66f061ee118f413cd22a656de622925097170b9380b30091b78ea0c6ea75/uvloop-0.21.0-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:bd53ecc9a0f3d87ab847503c2e1552b690362e005ab54e8a48ba97da3924c0dc", size = 4454428, upload-time = "2024-10-14T23:38:08.416Z" },
-    { url = "https://files.pythonhosted.org/packages/63/9a/0962b05b308494e3202d3f794a6e85abe471fe3cafdbcf95c2e8c713aabd/uvloop-0.21.0-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:a5c39f217ab3c663dc699c04cbd50c13813e31d917642d459fdcec07555cc553", size = 4660018, upload-time = "2024-10-14T23:38:10.888Z" },
-]
-
-[[package]]
 name = "wcwidth"
 version = "0.2.13"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/6c/63/53559446a878410fc5a5974feb13d31d78d752eb18aeba59c7fef1af7598/wcwidth-0.2.13.tar.gz", hash = "sha256:72ea0c06399eb286d978fdedb6923a9eb47e1c486ce63e9b4e64fc18303972b5", size = 101301, upload-time = "2024-01-06T02:10:57.829Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fd/84/fd2ba7aafacbad3c4201d395674fc6348826569da3c0937e75505ead3528/wcwidth-0.2.13-py2.py3-none-any.whl", hash = "sha256:3da69048e4540d84af32131829ff948f1e022c1c6bdb8d6102117aac784f6859", size = 34166, upload-time = "2024-01-06T02:10:55.763Z" },
+]
+
+[[package]]
+name = "wheel"
+version = "0.45.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/8a/98/2d9906746cdc6a6ef809ae6338005b3f21bb568bea3165cfc6a243fdc25c/wheel-0.45.1.tar.gz", hash = "sha256:661e1abd9198507b1409a20c02106d9670b2576e916d58f520316666abca6729", size = 107545, upload-time = "2024-11-23T00:18:23.513Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0b/2c/87f3254fd8ffd29e4c02732eee68a83a1d3c346ae39bc6822dcbcb697f2b/wheel-0.45.1-py3-none-any.whl", hash = "sha256:708e7481cc80179af0e556bbf0cc00b8444c7321e2700b8d8580231d13017248", size = 72494, upload-time = "2024-11-23T00:18:21.207Z" },
 ]
 
 [[package]]

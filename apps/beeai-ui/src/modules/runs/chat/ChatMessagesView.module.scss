@@ -10,6 +10,9 @@ $messages-row-gap: $spacing-07;
 $holder-row-gap: $spacing-06;
 $input-height: rem(88px);
 
+$zindex-messages: 1;
+$zindex-buttons: 2;
+
 .holder {
   inline-size: 100%;
   display: grid;
@@ -26,11 +29,10 @@ $input-height: rem(88px);
 
 .header {
   position: sticky;
-  inset-block-start: 0;
+  inset-block-start: $spacing-03;
   text-align: end;
-  background-color: $layer;
   padding-block-end: $spacing-06;
-  z-index: 1;
+  z-index: $zindex-buttons;
 }
 
 .container {
@@ -42,6 +44,7 @@ $input-height: rem(88px);
   display: flex;
   flex-direction: column;
   row-gap: $messages-row-gap;
+  padding-block-start: $spacing-03;
   block-size: 100%;
 }
 
@@ -81,7 +84,7 @@ $input-height: rem(88px);
     inset-block-end: 100%;
     inset-inline-start: 50%;
     transform: translate(-50%, -$spacing-05);
-    z-index: 1;
+    z-index: $zindex-messages;
   }
 }
 

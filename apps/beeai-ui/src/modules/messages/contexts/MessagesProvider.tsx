@@ -5,14 +5,9 @@
 
 import type { PropsWithChildren } from 'react';
 
-import type { UIMessage } from '#modules/messages/types.ts';
-
+import type { MessagesContextValue } from './messages-context';
 import { MessagesContext } from './messages-context';
 
-interface Props {
-  messages: UIMessage[];
-}
-
-export function MessagesProvider({ messages, children }: PropsWithChildren<Props>) {
+export function MessagesProvider({ messages, children }: PropsWithChildren<MessagesContextValue>) {
   return <MessagesContext.Provider value={{ messages }}>{children}</MessagesContext.Provider>;
 }

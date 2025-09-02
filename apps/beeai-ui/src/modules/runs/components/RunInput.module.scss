@@ -7,6 +7,7 @@
   position: relative;
   border: 1px solid $border-subtle-00;
   border-radius: $border-radius;
+  overflow: hidden;
   &:has(textarea:focus-visible) {
     border-color: $text-dark;
   }
@@ -52,4 +53,7 @@
 
 .submit {
   margin-inline-start: auto;
+  block-size: rem(32px);
+  display: flex;
+  align-items: center;
 }

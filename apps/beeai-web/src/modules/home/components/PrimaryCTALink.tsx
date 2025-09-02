@@ -3,25 +3,25 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { LogoGithub } from '@carbon/icons-react';
+import { ArrowRight } from '@carbon/icons-react';
 import { Button } from '@carbon/react';
 
-import { GITHUB_REPO_LINK } from '@/constants';
+import { FRAMEWORK_QUICKSTART_LINK } from '@/constants';
 
-import classes from './GitHubButton.module.scss';
+import classes from './PrimaryCTALink.module.scss';
 
-export function GitHubButton() {
+export function PrimaryCTALink() {
   return (
     <Button
       as="a"
-      href={GITHUB_REPO_LINK}
+      href={FRAMEWORK_QUICKSTART_LINK}
       target="_blank"
       rel="noreferrer"
       size="lg"
       className={classes.root}
-      renderIcon={LogoGithub}
+      renderIcon={ArrowRight}
     >
-      Get started on GitHub
+      Get started
     </Button>
   );
 }
