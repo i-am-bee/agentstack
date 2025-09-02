@@ -11,30 +11,37 @@ import { CopyButton } from '#components/CopyButton/CopyButton.tsx';
 import { MessageFeedback } from '#modules/feedback/components/MessageFeedback.tsx';
 import { fadeProps } from '#utils/fadeProps.ts';
 
+import { useMessageInteractionContext } from '../contexts/MessageInteraction';
 import type { UIAgentMessage } from '../types';
 import classes from './MessageActions.module.scss';
 
 interface Props {
-  isVisible: boolean;
   message: UIAgentMessage;
   contentRef: RefObject<HTMLElement | null>;
   className?: string;
 }
 
-export function MessageActions({ isVisible, message, contentRef, className }: Props) {
+export function MessageActions({ message, contentRef, className }: Props) {
+  const { isFocusWithin, isHovered } = useMessageInteractionContext();
   const [feedbackFormOpen, setFeedbackFormOpen] = useState(false);
 
-  const shouldShow = isVisible || feedbackFormOpen;
+  const shouldShow = isFocusWithin || isHovered || feedbackFormOpen;
 
   return (
-    <AnimatePresence>
-      {shouldShow && (
-        <motion.aside {...fadeProps()} className={clsx(classes.root, className)}>
-          <MessageFeedback message={message} buttonWrapperClasses={classes.button} onOpenChange={setFeedbackFormOpen} />
+    <div>
+      <AnimatePresence>
+        {shouldShow && (
+          <motion.aside {...fadeProps()} className={clsx(classes.root, className)}>
+            <MessageFeedback
+              message={message}
+              buttonWrapperClasses={classes.button}
+              onOpenChange={setFeedbackFormOpen}
+            />
 
-          <CopyButton size="sm" kind="tertiary" wrapperClasses={classes.button} contentRef={contentRef} />
-        </motion.aside>
-      )}
-    </AnimatePresence>
+            <CopyButton size="sm" kind="tertiary" wrapperClasses={classes.button} contentRef={contentRef} />
+          </motion.aside>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

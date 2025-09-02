@@ -29,7 +29,7 @@ import { getMessagesSourcesMap } from '#modules/sources/utils.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
-import { MessagesProvider } from '../../../messages/contexts/MessagesProvider';
+import { MessagesProvider } from '../../../messages/contexts/Messages/MessagesProvider';
 import { AgentStatusProvider } from '../agent-status/AgentStatusProvider';
 import { AgentRunContext, AgentRunStatus } from './agent-run-context';
 
