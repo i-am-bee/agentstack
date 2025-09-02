@@ -37,8 +37,8 @@ async def test_provider(set_di_configuration) -> Provider:
             description="Just a hello world agent",
             url="http://localhost:8000/",
             version="1.0.0",
-            defaultInputModes=["text"],
-            defaultOutputModes=["text"],
+            default_input_modes=["text"],
+            default_output_modes=["text"],
             capabilities=AgentCapabilities(),
             skills=[],
         ),
@@ -53,7 +53,7 @@ async def test_create_provider(db_transaction: AsyncConnection, test_provider: P
     repository = SqlAlchemyProviderRepository(connection=db_transaction)
 
     # Create provider
-    await repository.create(test_provider)
+    await repository.create(provider=test_provider)
 
     # Verify provider was created
     result = await db_transaction.execute(text("SELECT * FROM providers WHERE id = :id"), {"id": test_provider.id})
@@ -128,7 +128,7 @@ async def test_delete_provider(db_transaction: AsyncConnection, test_provider: P
     repository = SqlAlchemyProviderRepository(connection=db_transaction)
 
     # Create provider
-    await repository.create(test_provider)
+    await repository.create(provider=test_provider)
 
     # Verify provider was created
     result = await db_transaction.execute(text("SELECT * FROM providers WHERE id = :id"), {"id": test_provider.id})
@@ -237,7 +237,7 @@ async def test_create_duplicate_provider(db_transaction: AsyncConnection, test_p
     repository = SqlAlchemyProviderRepository(connection=db_transaction)
 
     # Create provider
-    await repository.create(test_provider)
+    await repository.create(provider=test_provider)
 
     # Try to create provider with same ID (should succeed with auto_remove=False)
     duplicate_provider = Provider(
@@ -250,7 +250,7 @@ async def test_create_duplicate_provider(db_transaction: AsyncConnection, test_p
 
     # This should raise a DuplicateEntityError because the source is the same
     with pytest.raises(DuplicateEntityError):
-        await repository.create(duplicate_provider)
+        await repository.create(provider=duplicate_provider)
 
 
 @pytest.mark.asyncio
@@ -259,7 +259,7 @@ async def test_replace_transient_provider(db_transaction: AsyncConnection, test_
     # Create provider with auto_remove=True (should succeed by replacing the existing one)
 
     test_provider.auto_remove = True  # This should allow replacement
-    await repository.create(test_provider)
+    await repository.create(provider=test_provider)
     new_provider = Provider(
         source=NetworkProviderLocation(root="http://localhost:8000"),  # Same source will generate same ID
         agent_card=test_provider.agent_card.model_copy(update={"name": "NEW_AGENT"}),
@@ -267,7 +267,7 @@ async def test_replace_transient_provider(db_transaction: AsyncConnection, test_
     )
 
     # This should succeed
-    await repository.create(new_provider)
+    await repository.create(provider=new_provider)
 
     # Verify provider was updated
     result = await db_transaction.execute(text("SELECT * FROM providers WHERE id = :id"), {"id": test_provider.id})

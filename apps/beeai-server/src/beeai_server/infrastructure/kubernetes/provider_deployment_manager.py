@@ -22,7 +22,7 @@ import yaml
 from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from httpx import AsyncClient, HTTPError
 from jinja2 import Template
-from kr8s.asyncio.objects import Deployment, Pod, Secret, Service
+from kr8s.asyncio.objects import APIObject, Deployment, Pod, Secret, Service
 from pydantic import HttpUrl
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, wait_fixed
 
@@ -156,7 +156,31 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
             async with self.api() as api:
                 deploy = await Deployment.get(name=self._get_k8s_name(provider_id, TemplateKind.DEPLOY), api=api)
                 await deploy.delete(propagation_policy="Foreground", force=True)
-                await deploy.wait({"delete"})
+                await deploy.wait(["delete"])
+
+    async def remove_orphaned_providers(self, existing_providers: list[UUID]) -> None:
+        errors = []
+
+        async def _delete(deploy: APIObject):
+            try:
+                with suppress(kr8s.NotFoundError):
+                    await deploy.delete(propagation_policy="Foreground", force=True)
+                    await deploy.wait(["delete"])
+                    logger.info(f"Deleted orphaned provider {deploy.metadata.name}")
+            except Exception as ex:
+                errors.append(ex)
+
+        async with self.api() as api, TaskGroup() as tg:
+            async for deployment in kr8s.asyncio.get(
+                kind="deployment",
+                label_selector={"managedBy": "beeai-platform"},
+                api=api,
+            ):
+                provider_id = self._get_provider_id_from_name(deployment.metadata.name, TemplateKind.deploy)
+                if provider_id not in existing_providers:
+                    tg.create_task(_delete(deployment))
+        if errors:
+            raise ExceptionGroup("Exceptions occurred when removing orphaned providers", errors)
 
     async def scale_down(self, *, provider_id: UUID) -> None:
         async with self.api() as api:

@@ -23,10 +23,14 @@ class DockerImageID(RootModel):
         return self._registry or "docker.io"
 
     @property
-    def repository(self) -> str | None:
+    def repository(self) -> str:
         if self.registry.endswith("docker.io") and "/" not in self._repository:
             return f"library/{self._repository}"
         return self._repository
+
+    @property
+    def base(self) -> str:
+        return f"{self.registry}/{self.repository}"
 
     @property
     def tag(self) -> str | None:
@@ -59,7 +63,7 @@ class DockerImageID(RootModel):
         return image_id
 
     def __str__(self):
-        return f"{self.registry}/{self.repository}:{self.tag}"
+        return f"{self.base}:{self.tag}"
 
 
 auth_url_per_registry = {

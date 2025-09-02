@@ -42,7 +42,7 @@ class DockerImageProviderLocation(RootModel):
 
     @property
     def provider_id(self) -> UUID:
-        location_digest = hashlib.sha256(str(self.root).encode()).digest()
+        location_digest = hashlib.sha256(self.root.base.encode()).digest()
         return UUID(bytes=location_digest[:16])
 
     @property
@@ -108,7 +108,7 @@ ProviderLocation = DockerImageProviderLocation | NetworkProviderLocation
 
 
 class Provider(BaseModel):
-    auto_stop_timeout: timedelta = Field(default=timedelta(minutes=5))
+    auto_stop_timeout: timedelta | None = Field(default=timedelta(minutes=5))
     source: ProviderLocation
     registry: RegistryLocation | None = None
     auto_remove: bool = False
