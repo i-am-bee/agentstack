@@ -114,6 +114,7 @@ insert_line=$(awk '/^Requires-Dist:/ {print FNR-1; exit}' "$tmpdir/beeai_cli-${v
 ) > "$tmpdir/beeai_cli-${version}.dist-info/METADATA.new"
 mv "$tmpdir/beeai_cli-${version}.dist-info/METADATA.new" "$tmpdir/beeai_cli-${version}.dist-info/METADATA"
 (cd "$tmpdir" && zip -q "$universal_wheel" "beeai_cli-${version}.dist-info/METADATA")
+rm -rf "$tmpdir"
 
 # Verify that the wheel works
 if ! uv tool run --isolated --from "$universal_wheel" --with ../beeai-sdk/dist/beeai_sdk-*-py3-none-any.whl -- beeai version; then
@@ -127,12 +128,30 @@ build_wheel() {
   hostagent_arch="$2"
   tmpdir="$(mktemp -d)"
   platform_wheel="$(realpath "./dist")/beeai_cli-$version-py3-none-$wheel_tag.whl"
-  cp "$universal_wheel" "$platform_wheel"
-  unzip -q "$universal_wheel" "beeai_cli-$version.dist-info/WHEEL" -d "$tmpdir"
+  
+  # Unzip wheel and fix permissions
+  unzip -q "$universal_wheel" -d "$tmpdir"
+  find "$tmpdir" -type f -exec chmod +r {} \;
+
+  # Add Lima binaries
+  mkdir -p "$tmpdir/beeai_cli/data"
+  cp "./vendor/lima-$lima_version/$wheel_tag/bin/limactl" "$tmpdir/beeai_cli/data/"
+  cp "./vendor/lima-$lima_version/$wheel_tag/share/lima/lima-guestagent.Linux-$hostagent_arch"* "$tmpdir/beeai_cli/data/"
+  
+  # Update WHEEL file
   perl -pi -e "s/Root-Is-Purelib: true/Root-Is-Purelib: false/" "$tmpdir/beeai_cli-$version.dist-info/WHEEL"
   perl -pi -e "s/Tag: .*/Tag: py3-none-$wheel_tag/" "$tmpdir/beeai_cli-$version.dist-info/WHEEL"
-  mkdir -p "$tmpdir/beeai_cli/data"
-  cp "./vendor/lima-$lima_version/$wheel_tag/bin/limactl" "./vendor/lima-$lima_version/$wheel_tag/share/lima/lima-guestagent.Linux-$hostagent_arch"* "$tmpdir/beeai_cli/data"
+  
+  # Regenerate RECORD file
+  rm "$tmpdir/beeai_cli-$version.dist-info/RECORD"
+  (
+    find "$tmpdir" -type f | while read file; do
+      echo "${file#$tmpdir/},sha256=$(shasum -a 256 "$file" | cut -d' ' -f1),$(stat -f%z "$file")"
+    done
+    echo "beeai_cli-$version.dist-info/RECORD,,"
+  ) > "$tmpdir/beeai_cli-$version.dist-info/RECORD"
+  
+  # Create the platform-specific wheel
   (cd "$tmpdir" && zip -q "$platform_wheel" -r .)
   rm -rf "$tmpdir"
 }
