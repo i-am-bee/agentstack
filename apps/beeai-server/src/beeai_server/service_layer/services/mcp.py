@@ -12,7 +12,7 @@ import fastapi
 import httpx
 from kink import inject
 
-from beeai_server.api.schema.mcp import McpProvider, Tool, Toolkit
+from beeai_server.api.schema.mcp import McpProvider, Resource, Tool, Toolkit
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.mcp_provider import (
     McpProviderDeploymentState,
@@ -100,18 +100,31 @@ class McpService:
                     raise EntityNotFoundError("mcp_provider", provider_id) from err
                 raise
 
+    # Resources
+
+    async def list_resources(self) -> list[Resource]:
+        async with self.gateway_context() as client:
+            response = await client.get("/resources")
+            resources: list[dict] = response.raise_for_status().json()
+            return [Resource.model_validate(resource) for resource in resources]
+
+    async def read_resource(self, *, resource_id: str) -> Resource:
+        async with self.gateway_context() as client:
+            response = await client.get(f"/resources/{resource_id}")
+            return Resource.model_validate(response.raise_for_status().json())
+
     # Tools
 
     async def list_tools(self) -> list[Tool]:
         async with self.gateway_context() as client:
             response = await client.get("/tools")
             tools: list[dict] = response.raise_for_status().json()
-            return [self._to_tool(tool) for tool in tools]
+            return [Tool.model_validate(tool) for tool in tools]
 
     async def read_tool(self, *, tool_id: str) -> Tool:
         async with self.gateway_context() as client:
             response = await client.get(f"/tools/{tool_id}")
-            return self._to_tool(response.raise_for_status().json())
+            return Tool.model_validate(response.raise_for_status().json())
 
     # Toolkits
 
@@ -212,9 +225,6 @@ class McpService:
                 return "SSE"
             case McpProviderTransport.STREAMABLE_HTTP:
                 return "STREAMABLEHTTP"
-
-    def _to_tool(self, tool: dict) -> Tool:
-        return Tool(id=tool["id"], name=tool["name"], description=tool["description"])
 
     @asynccontextmanager
     async def gateway_context(self) -> AsyncGenerator[httpx.AsyncClient]:

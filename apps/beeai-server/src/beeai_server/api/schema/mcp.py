@@ -26,6 +26,15 @@ class McpProvider(BaseModel):
     state: McpProviderDeploymentState
 
 
+class Resource(BaseModel):
+    id: int
+    uri: str
+    name: str
+    description: str | None = None
+    mime_type: str | None = None
+    size: int | None = None
+
+
 class Tool(BaseModel):
     id: str
     name: str

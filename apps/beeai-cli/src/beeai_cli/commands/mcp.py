@@ -71,6 +71,32 @@ async def uninstall_provider(
     await list_providers()
 
 
+resources_app = AsyncTyper()
+app.add_typer(resources_app, name="resource", no_args_is_help=True, help="Inspect resources.")
+
+
+@resources_app.command("list")
+async def list_resources() -> None:
+    """List resources."""
+
+    resources = await api_request("GET", "mcp/resources")
+    assert resources
+    with create_table(
+        Column("Name"),
+        Column("Description"),
+        Column("Type"),
+        Column("Size"),
+        Column("URI"),
+        no_wrap=True,
+    ) as table:
+        for resource in resources:
+            table.add_row(
+                resource["name"], resource["description"], resource["mime_type"], resource["size"], resource["uri"]
+            )
+    console.print()
+    console.print(table)
+
+
 tool_app = AsyncTyper()
 app.add_typer(tool_app, name="tool", no_args_is_help=True, help="Inspect tools.")
 
