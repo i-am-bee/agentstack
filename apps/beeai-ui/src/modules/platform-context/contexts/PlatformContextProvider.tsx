@@ -28,6 +28,7 @@ export function PlatformContextProvider<UIGenericPart>({
 }: PropsWithChildren<Props<UIGenericPart>>) {
   // TODO: fix
   const mcpDemands = mcpExtensionExtractor(agent?.capabilities.extensions ?? []);
+
   const { featureFlags } = useApp();
   const [contextId, setContextId] = useState<string | null>(null);
   const [selectedProviders, setSelectedProviders] = useState<Record<string, string>>({});
@@ -63,10 +64,13 @@ export function PlatformContextProvider<UIGenericPart>({
     [setSelectedProviders],
   );
   const [selectedMCPServers, setSelectedMCPServers] = useState<Record<string, string>>(
-    Object.keys(mcpDemands?.mcp_demands ?? {}).reduce((memo, value) => {
-      memo[value] = '';
-      return memo;
-    }, {}),
+    Object.keys(mcpDemands?.mcp_demands ?? {}).reduce(
+      (memo, value) => ({
+        ...memo,
+        [value]: '',
+      }),
+      {},
+    ),
   );
 
   const setContext = useCallback(
