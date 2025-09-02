@@ -135,7 +135,7 @@ export const buildA2AClient = <UIGenericPart = never>({
                   form,
                 });
               } else {
-                throw new Error('Illegal State - Unimplemented');
+                throw new Error(`Illegal State - form extension data missing on input-required event`);
               }
             }
 

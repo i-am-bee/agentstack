@@ -32,8 +32,8 @@ async def request_form_agent(
                 title="Whats your name?",
                 columns=2,
                 fields=[
-                    TextField(id="first_name", label="First Name", type="text", col_span=1),
-                    TextField(id="last_name", label="Last Name", type="text", col_span=1),
+                    TextField(id="first_name", label="First Name", col_span=1),
+                    TextField(id="last_name", label="Last Name", col_span=1),
                 ],
             )
         )

@@ -12,7 +12,7 @@ const URI = 'https://a2a-extensions.beeai.dev/ui/form/v1';
 const baseField = z.object({
   id: z.string().nonempty(),
   label: z.string().nonempty(),
-  required: z.boolean().nullish(),
+  required: z.boolean(),
   col_span: z.number().int().min(1).max(4).nullish(),
 });
 
@@ -77,7 +77,7 @@ const multiSelectFieldValue = z.object({
 const checkboxField = baseField.extend({
   type: z.literal('checkbox'),
   content: z.string(),
-  default_value: z.boolean().nullish(),
+  default_value: z.boolean(),
 });
 
 const checkboxFieldValue = z.object({

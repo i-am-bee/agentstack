@@ -71,7 +71,8 @@ interests=MultiSelectField(
     label="Interests",
     required=False,
     col_span=2,
-    options=[OptionItem(id="cuisine",label="Cuisine"),OptionItem(id="nature",label="Nature"),OptionItem(id="photography",label="Photography")]
+    options=[OptionItem(id="cuisine",label="Cuisine"),OptionItem(id="nature",label="Nature"),OptionItem(id="photography",label="Photography")],
+    default_value=["nature"]
 )
 
 form_render = FormRender(

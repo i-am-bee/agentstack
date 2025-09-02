@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Literal
 
 from a2a.types import Message as A2AMessage
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from beeai_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 from beeai_sdk.a2a.types import AgentMessage, InputRequired
@@ -19,18 +19,18 @@ if TYPE_CHECKING:
 class BaseField(BaseModel):
     id: str
     label: str
-    required: bool | None = None
+    required: bool = False
     col_span: int | None = Field(default=None, ge=1, le=4)
 
 
 class TextField(BaseField):
-    type: Literal["text"]
+    type: Literal["text"] = "text"
     placeholder: str | None = None
     default_value: str | None = None
 
 
 class DateField(BaseField):
-    type: Literal["date"]
+    type: Literal["date"] = "date"
     placeholder: str | None = None
     default_value: str | None = None
 
@@ -42,7 +42,7 @@ class FileItem(BaseModel):
 
 
 class FileField(BaseField):
-    type: Literal["file"]
+    type: Literal["file"] = "file"
     accept: list[str]
 
 
@@ -52,15 +52,24 @@ class OptionItem(BaseModel):
 
 
 class MultiSelectField(BaseField):
-    type: Literal["multiselect"]
+    type: Literal["multiselect"] = "multiselect"
     options: list[OptionItem]
     default_value: list[str] | None = None
 
+    @model_validator(mode="after")
+    def default_values_validator(self):
+        if self.default_value:
+            valid_values = {opt.id for opt in self.options}
+            invalid_values = [v for v in self.default_value if v not in valid_values]
+            if invalid_values:
+                raise ValueError(f"Invalid default_value(s): {invalid_values}. Must be one of {valid_values}")
+        return self
+
 
 class CheckboxField(BaseField):
-    type: Literal["checkbox"]
+    type: Literal["checkbox"] = "checkbox"
     content: str
-    default_value: bool | None = None
+    default_value: bool = False
 
 
 FormField = TextField | DateField | FileField | MultiSelectField | CheckboxField
@@ -76,12 +85,12 @@ class FormRender(BaseModel):
 
 
 class TextFieldValue(BaseModel):
-    type: str = "text"
+    type: Literal["text"] = "text"
     value: str | None = None
 
 
 class DateFieldValue(BaseModel):
-    type: str = "date"
+    type: Literal["date"] = "date"
     value: str | None = None
 
 
@@ -92,17 +101,17 @@ class FileInfo(BaseModel):
 
 
 class FileFieldValue(BaseModel):
-    type: str = "file"
+    type: Literal["file"] = "file"
     value: list[FileInfo] | None = None
 
 
 class MultiSelectFieldValue(BaseModel):
-    type: str = "multiselect"
+    type: Literal["multiselect"] = "multiselect"
     value: list[str] | None = None
 
 
 class CheckboxFieldValue(BaseModel):
-    type: str = "checkbox"
+    type: Literal["checkbox"] = "checkbox"
     value: bool | None = None
 
 
