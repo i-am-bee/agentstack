@@ -99,7 +99,8 @@ export universal_wheel=$(realpath "./dist/beeai_cli-$version-py3-none-any.whl")
 
 # Pin versions from uv.lock in wheel
 tmpdir="$(mktemp -d)"
-unzip -q "$universal_wheel" "beeai_cli-${version}.dist-info/METADATA" -d "$tmpdir"
+unzip -q "$universal_wheel" -d "$tmpdir"
+find "$tmpdir" -type f -exec chmod +r {} \;
 insert_line=$(awk '/^Requires-Dist:/ {print FNR-1; exit}' "$tmpdir/beeai_cli-${version}.dist-info/METADATA" | cut -d: -f1)
 (
   head -n $insert_line "$tmpdir/beeai_cli-${version}.dist-info/METADATA"
@@ -113,7 +114,8 @@ insert_line=$(awk '/^Requires-Dist:/ {print FNR-1; exit}' "$tmpdir/beeai_cli-${v
   awk -v insert_line="$insert_line" 'NR > insert_line && $0 !~ /^Requires-Dist:/' "$tmpdir/beeai_cli-${version}.dist-info/METADATA"
 ) > "$tmpdir/beeai_cli-${version}.dist-info/METADATA.new"
 mv "$tmpdir/beeai_cli-${version}.dist-info/METADATA.new" "$tmpdir/beeai_cli-${version}.dist-info/METADATA"
-(cd "$tmpdir" && zip -q "$universal_wheel" "beeai_cli-${version}.dist-info/METADATA")
+rm "$universal_wheel"
+uv run wheel pack "$tmpdir" --dest-dir ./dist &>/dev/null
 rm -rf "$tmpdir"
 
 # Verify that the wheel works
@@ -141,7 +143,7 @@ build_wheel() {
   # Update WHEEL file
   perl -pi -e "s/Root-Is-Purelib: true/Root-Is-Purelib: false/" "$tmpdir/beeai_cli-$version.dist-info/WHEEL"
   perl -pi -e "s/Tag: .*/Tag: py3-none-$wheel_tag/" "$tmpdir/beeai_cli-$version.dist-info/WHEEL"
-  
+
   uv run wheel pack "$tmpdir" --dest-dir ./dist &>/dev/null
   rm -rf "$tmpdir"
 }
