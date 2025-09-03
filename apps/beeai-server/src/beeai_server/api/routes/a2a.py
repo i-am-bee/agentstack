@@ -29,6 +29,37 @@ def _create_proxy_url(url: str, *, proxy_base: str) -> str:
     return urljoin(proxy_base, urlparse(url).path.lstrip("/"))
 
 
+def create_proxy_agent_card(agent_card: AgentCard, *, provider_id, request: Request) -> AgentCard:
+    proxy_base = str(request.url_for(proxy_request.__name__, provider_id=provider_id, path=""))
+    proxy_interfaces = (
+        [
+            interface.model_copy(update={"url": _create_proxy_url(interface.url, proxy_base=proxy_base)})
+            for interface in agent_card.additional_interfaces
+            if interface.transport in _SUPPORTED_TRANSPORTS
+        ]
+        if agent_card.additional_interfaces
+        else None
+    )
+    if agent_card.preferred_transport in _SUPPORTED_TRANSPORTS:
+        return agent_card.model_copy(
+            update={
+                "url": _create_proxy_url(agent_card.url, proxy_base=proxy_base),
+                "additional_interfaces": proxy_interfaces,
+            }
+        )
+    elif proxy_interfaces:
+        interface = proxy_interfaces[0]
+        return agent_card.model_copy(
+            update={
+                "url": interface.url,
+                "preferred_transport": interface.transport,
+                "additional_interfaces": proxy_interfaces,
+            }
+        )
+    else:
+        raise RuntimeError("Provider doesn't have any transport supported by the proxy.")
+
+
 def _to_fastapi(response: A2AServerResponse):
     common = {"status_code": response.status_code, "headers": response.headers, "media_type": response.media_type}
     if response.stream:
@@ -45,34 +76,7 @@ async def get_agent_card(
     _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}))],
 ) -> AgentCard:
     provider = await provider_service.get_provider(provider_id=provider_id)
-    proxy_base = str(request.url_for(proxy_request.__name__, provider_id=provider.id, path=""))
-    proxy_interfaces = (
-        [
-            interface.model_copy(update={"url": _create_proxy_url(interface.url, proxy_base=proxy_base)})
-            for interface in provider.agent_card.additional_interfaces
-            if interface.transport in _SUPPORTED_TRANSPORTS
-        ]
-        if provider.agent_card.additional_interfaces
-        else None
-    )
-    if provider.agent_card.preferred_transport in _SUPPORTED_TRANSPORTS:
-        return provider.agent_card.model_copy(
-            update={
-                "url": _create_proxy_url(provider.agent_card.url, proxy_base=proxy_base),
-                "additional_interfaces": proxy_interfaces,
-            }
-        )
-    elif proxy_interfaces:
-        interface = proxy_interfaces[0]
-        return provider.agent_card.model_copy(
-            update={
-                "url": interface.url,
-                "preferred_transport": interface.transport,
-                "additional_interfaces": proxy_interfaces,
-            }
-        )
-    else:
-        raise RuntimeError("Provider doesn't have any transport supported by the proxy.")
+    return create_proxy_agent_card(provider.agent_card, provider_id=provider.id, request=request)
 
 
 @router.api_route("/{provider_id}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"])

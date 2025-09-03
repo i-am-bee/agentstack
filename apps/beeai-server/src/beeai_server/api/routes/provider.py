@@ -14,7 +14,7 @@ from beeai_server.api.dependencies import (
     ProviderServiceDependency,
     RequiresPermissions,
 )
-from beeai_server.api.routes.a2a import proxy_request
+from beeai_server.api.routes.a2a import create_proxy_agent_card
 from beeai_server.api.schema.common import PaginatedResponse
 from beeai_server.api.schema.provider import CreateProviderRequest
 from beeai_server.domain.models.permissions import AuthorizedUser
@@ -56,8 +56,11 @@ async def list_providers(
 ) -> PaginatedResponse[ProviderWithState]:
     providers = []
     for provider in await provider_service.list_providers():
-        url = str(request.url_for(proxy_request.__name__, provider_id=provider.id, path=""))
-        new_provider = provider.model_copy(update={"agent_card": provider.agent_card.model_copy(update={"url": url})})
+        new_provider = provider.model_copy(
+            update={
+                "agent_card": create_proxy_agent_card(provider.agent_card, provider_id=provider.id, request=request)
+            }
+        )
         providers.append(new_provider)
 
     return PaginatedResponse(items=providers, total_count=len(providers))
@@ -67,9 +70,13 @@ async def list_providers(
 async def get_provider(
     id: UUID,
     provider_service: ProviderServiceDependency,
+    request: Request,
     _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}))],
 ) -> ProviderWithState:
-    return await provider_service.get_provider(provider_id=id)
+    provider = await provider_service.get_provider(provider_id=id)
+    return provider.model_copy(
+        update={"agent_card": create_proxy_agent_card(provider.agent_card, provider_id=provider.id, request=request)}
+    )
 
 
 @router.delete("/{id}", status_code=fastapi.status.HTTP_204_NO_CONTENT)
