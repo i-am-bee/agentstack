@@ -7,11 +7,11 @@ import { use } from 'react';
 
 import { MessageInteractionContext, MessageInteractionPropsContext } from './context';
 
-export function useMessageInteractionPropsContext() {
+export function useMessageInteractionProps() {
   const context = use(MessageInteractionPropsContext);
 
   if (!context) {
-    throw new Error('useMessageInteractionPropsContext must be used within a MessageInteractionProvider');
+    throw new Error('useMessageInteractionProps must be used within a MessageInteractionProvider');
   }
 
   return context;

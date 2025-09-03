@@ -11,7 +11,7 @@ import { MessageForm } from '#modules/form/components/MessageForm.tsx';
 import { MessageActions } from '#modules/messages/components/MessageActions.tsx';
 import { MessageContent } from '#modules/messages/components/MessageContent.tsx';
 import { MessageError } from '#modules/messages/components/MessageError.tsx';
-import { useMessageInteractionPropsContext } from '#modules/messages/contexts/MessageInteraction/index.ts';
+import { useMessageInteractionProps } from '#modules/messages/contexts/MessageInteraction/index.ts';
 import { MessageInteractionProvider } from '#modules/messages/contexts/MessageInteraction/MessageInteractionProvider.tsx';
 import type { UIAgentMessage } from '#modules/messages/types.ts';
 import { checkMessageContent, checkMessageStatus } from '#modules/messages/utils.ts';
@@ -35,7 +35,7 @@ export function ChatAgentMessage({ message }: Props) {
 function Message({ message }: Props) {
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const { props } = useMessageInteractionPropsContext();
+  const { props } = useMessageInteractionProps();
 
   const hasContent = checkMessageContent(message);
   const { isInProgress } = checkMessageStatus(message);

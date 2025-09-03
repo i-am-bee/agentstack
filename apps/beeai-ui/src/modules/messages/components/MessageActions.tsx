@@ -28,20 +28,14 @@ export function MessageActions({ message, contentRef, className }: Props) {
   const shouldShow = isFocusWithin || isHovered || feedbackFormOpen;
 
   return (
-    <div>
-      <AnimatePresence>
-        {shouldShow && (
-          <motion.aside {...fadeProps()} className={clsx(classes.root, className)}>
-            <MessageFeedback
-              message={message}
-              buttonWrapperClasses={classes.button}
-              onOpenChange={setFeedbackFormOpen}
-            />
+    <AnimatePresence>
+      {shouldShow && (
+        <motion.aside {...fadeProps()} className={clsx(classes.root, className)}>
+          <MessageFeedback message={message} buttonWrapperClasses={classes.button} onOpenChange={setFeedbackFormOpen} />
 
-            <CopyButton size="sm" kind="tertiary" wrapperClasses={classes.button} contentRef={contentRef} />
-          </motion.aside>
-        )}
-      </AnimatePresence>
-    </div>
+          <CopyButton size="sm" kind="tertiary" wrapperClasses={classes.button} contentRef={contentRef} />
+        </motion.aside>
+      )}
+    </AnimatePresence>
   );
 }

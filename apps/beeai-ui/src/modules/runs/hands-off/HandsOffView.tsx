@@ -9,14 +9,14 @@ import { formExtension } from '#api/a2a/extensions/ui/form.ts';
 import { extractServiceExtensionDemands } from '#api/a2a/extensions/utils.ts';
 import { MainContent } from '#components/layouts/MainContent.tsx';
 import type { Agent } from '#modules/agents/api/types.ts';
+import { useMessages } from '#modules/messages/contexts/Messages/index.ts';
 import { SourcesPanel } from '#modules/sources/components/SourcesPanel.tsx';
 
+import { FormRenderView } from '../components/FormRenderView';
 import { RunLandingView } from '../components/RunLandingView';
 import { useAgentRun } from '../contexts/agent-run';
 import { AgentRunProviders } from '../contexts/agent-run/AgentRunProvider';
 import { HandsOffOutputView } from './HandsOffOutputView';
-import { useMessages } from '#modules/messages/contexts/Messages/index.ts';
-import { FormRenderView } from '../components/FormRenderView';
 
 const formExtensionExtractor = extractServiceExtensionDemands(formExtension);
 
