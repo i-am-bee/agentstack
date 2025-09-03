@@ -37,7 +37,7 @@ export function ModelProviders() {
             titleText={key}
             type="inline"
             selectedItem={selectedProviders[key]}
-            hideLabel={items.length === 1}
+            hideLabel={providersList.length === 1}
             onChange={({ selectedItem }: { selectedItem: string | null }) =>
               selectedItem && selectProvider(key, selectedItem)
             }
