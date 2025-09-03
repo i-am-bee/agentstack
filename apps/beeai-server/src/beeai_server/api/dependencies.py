@@ -80,9 +80,14 @@ async def authenticate_oauth_user(
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="issuer not configured")
         userinfo = await fetch_user_info(token, f"{provider.issuer}/userinfo")
         email = userinfo.get("email")
+        email_verified = userinfo.get("email_verified", False)
+    else:
+        email_verified = claims.get("email_verified", False)
 
-    if not email:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Email not available in token or userinfo")
+    if not email or not email_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Verified email not available in token or userinfo"
+        )
 
     is_admin = email in configuration.auth.oidc.admin_emails
 
