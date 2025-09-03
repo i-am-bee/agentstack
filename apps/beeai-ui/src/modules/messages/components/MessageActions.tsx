@@ -11,7 +11,7 @@ import { CopyButton } from '#components/CopyButton/CopyButton.tsx';
 import { MessageFeedback } from '#modules/feedback/components/MessageFeedback.tsx';
 import { fadeProps } from '#utils/fadeProps.ts';
 
-import { useMessageInteractionContext } from '../contexts/MessageInteraction';
+import { useMessageInteraction } from '../contexts/MessageInteraction';
 import type { UIAgentMessage } from '../types';
 import classes from './MessageActions.module.scss';
 
@@ -22,7 +22,7 @@ interface Props {
 }
 
 export function MessageActions({ message, contentRef, className }: Props) {
-  const { isFocusWithin, isHovered } = useMessageInteractionContext();
+  const { isFocusWithin, isHovered } = useMessageInteraction();
   const [feedbackFormOpen, setFeedbackFormOpen] = useState(false);
 
   const shouldShow = isFocusWithin || isHovered || feedbackFormOpen;

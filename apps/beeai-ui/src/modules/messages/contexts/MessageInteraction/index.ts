@@ -17,11 +17,11 @@ export function useMessageInteractionProps() {
   return context;
 }
 
-export function useMessageInteractionContext() {
+export function useMessageInteraction() {
   const context = use(MessageInteractionContext);
 
   if (!context) {
-    throw new Error('useMessageInteractionContext must be used within a MessageInteractionProvider');
+    throw new Error('useMessageInteraction must be used within a MessageInteractionProvider');
   }
 
   return context;
