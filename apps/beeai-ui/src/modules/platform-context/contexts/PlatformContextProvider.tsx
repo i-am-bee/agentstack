@@ -5,9 +5,7 @@
 
 import { type PropsWithChildren, useCallback, useEffect, useState } from 'react';
 
-import { llmExtension } from '#api/a2a/extensions/services/llm.ts';
-import { extractServiceExtensionDemands } from '#api/a2a/extensions/utils.ts';
-import type { Agent } from '#modules/agents/api/types.ts';
+import type { AgentA2AClient } from '#api/a2a/types.ts';
 
 import { useCreateContext } from '../api/mutations/useCreateContext';
 import { useCreateContextToken } from '../api/mutations/useCreateContextToken';
@@ -15,10 +13,14 @@ import { useMatchProviders } from '../api/mutations/useMatchProviders';
 import { buildFullfilments } from './build-fulfillments';
 import { PlatformContext } from './platform-context';
 
-const llmExtensionExtractor = extractServiceExtensionDemands(llmExtension);
+interface Props<UIGenericPart> {
+  agentClient?: AgentA2AClient<UIGenericPart>;
+}
 
-export function PlatformContextProvider({ children, agent }: PropsWithChildren<{ agent: Agent | null }>) {
-  const llmDemands = llmExtensionExtractor(agent?.capabilities.extensions ?? []);
+export function PlatformContextProvider<UIGenericPart>({
+  children,
+  agentClient,
+}: PropsWithChildren<Props<UIGenericPart>>) {
   const [contextId, setContextId] = useState<string | null>(null);
   const [selectedProviders, setSelectedProviders] = useState<Record<string, string>>({});
 
@@ -42,7 +44,7 @@ export function PlatformContextProvider({ children, agent }: PropsWithChildren<{
   const { mutateAsync: createContext } = useCreateContext();
   const { mutateAsync: createContextToken } = useCreateContextToken();
   const { data: matchedProviders } = useMatchProviders(
-    llmDemands ? llmDemands.llm_demands : {},
+    agentClient?.llmDemands ? agentClient.llmDemands.llm_demands : {},
     setDefaultSelectedProviders,
   );
 

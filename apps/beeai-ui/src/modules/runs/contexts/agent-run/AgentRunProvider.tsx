@@ -8,7 +8,7 @@ import { type PropsWithChildren, useCallback, useMemo, useRef, useState } from '
 import { v4 as uuid } from 'uuid';
 
 import { buildA2AClient } from '#api/a2a/client.ts';
-import type { ChatRun } from '#api/a2a/types.ts';
+import type { AgentA2AClient, ChatRun } from '#api/a2a/types.ts';
 import { createTextPart } from '#api/a2a/utils.ts';
 import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
@@ -36,16 +36,31 @@ interface Props {
 }
 
 export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>) {
+  const agentClient = useMemo(
+    () =>
+      buildA2AClient({
+        providerId: agent.provider.id,
+        extensions: agent.capabilities.extensions ?? [],
+      }),
+    [agent.provider.id, agent.capabilities.extensions],
+  );
+
   return (
-    <PlatformContextProvider agent={agent}>
+    <PlatformContextProvider agentClient={agentClient}>
       <FileUploadProvider allowedContentTypes={agent.defaultInputModes}>
-        <AgentRunProvider agent={agent}>{children}</AgentRunProvider>
+        <AgentRunProvider agent={agent} agentClient={agentClient}>
+          {children}
+        </AgentRunProvider>
       </FileUploadProvider>
     </PlatformContextProvider>
   );
 }
 
-function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
+interface AgentRunProviderProps extends Props {
+  agentClient: AgentA2AClient;
+}
+
+function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<AgentRunProviderProps>) {
   const { getContextId, resetContext, getFullfilments } = usePlatformContext();
   const [messages, getMessages, setMessages] = useImmerWithGetter<UIMessage[]>([]);
   const [input, setInput] = useState<string>();
@@ -57,14 +72,6 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
 
   const errorHandler = useHandleError();
 
-  const a2aAgentClient = useMemo(
-    () =>
-      buildA2AClient({
-        providerId: agent.provider.id,
-        extensions: agent.capabilities.extensions ?? [],
-      }),
-    [agent.provider.id, agent.capabilities.extensions],
-  );
   const { files, clearFiles } = useFileUpload();
 
   const updateLastAgentMessage = useCallback(
@@ -156,7 +163,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
       clearFiles();
 
       try {
-        const run = a2aAgentClient.chat({
+        const run = agentClient.chat({
           message: userMessage,
           contextId,
           fulfillments,
@@ -190,16 +197,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
         pendingSubscription.current = undefined;
       }
     },
-    [
-      getContextId,
-      getFullfilments,
-      files,
-      setMessages,
-      clearFiles,
-      a2aAgentClient,
-      updateLastAgentMessage,
-      handleError,
-    ],
+    [getContextId, getFullfilments, files, setMessages, clearFiles, agentClient, updateLastAgentMessage, handleError],
   );
 
   const sources = useMemo(() => getMessageSourcesMap(messages), [messages]);
