@@ -29,9 +29,10 @@ export function AnimateHeightChange({
   useEffect(() => {
     if (containerRef.current) {
       const resizeObserver = new ResizeObserver((entries) => {
-        const observedHeight = entries[0].contentRect.height;
-
-        setHeight(observedHeight);
+        if (entries.length > 0) {
+          const observedHeight = entries[0].contentRect.height;
+          setHeight(observedHeight);
+        }
       });
 
       resizeObserver.observe(containerRef.current);

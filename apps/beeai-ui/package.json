@@ -1,6 +1,6 @@
 {
   "name": "@i-am-bee/beeai-ui",
-  "autor": "IBM Corp.",
+  "author": "IBM Corp.",
   "private": true,
   "version": "0.3.3-rc2",
   "type": "module",
