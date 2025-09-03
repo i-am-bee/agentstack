@@ -29,7 +29,7 @@ def _create_proxy_url(url: str, *, proxy_base: str) -> str:
     return urljoin(proxy_base, urlparse(url).path.lstrip("/"))
 
 
-def create_proxy_agent_card(agent_card: AgentCard, *, provider_id, request: Request) -> AgentCard:
+def create_proxy_agent_card(agent_card: AgentCard, *, provider_id: UUID, request: Request) -> AgentCard:
     proxy_base = str(request.url_for(proxy_request.__name__, provider_id=provider_id, path=""))
     proxy_interfaces = (
         [
@@ -37,7 +37,7 @@ def create_proxy_agent_card(agent_card: AgentCard, *, provider_id, request: Requ
             for interface in agent_card.additional_interfaces
             if interface.transport in _SUPPORTED_TRANSPORTS
         ]
-        if agent_card.additional_interfaces
+        if agent_card.additional_interfaces is not None
         else None
     )
     if agent_card.preferred_transport in _SUPPORTED_TRANSPORTS:
