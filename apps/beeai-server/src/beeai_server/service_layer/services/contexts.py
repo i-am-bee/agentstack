@@ -9,7 +9,7 @@ from uuid import UUID
 from kink import inject
 
 from beeai_server.configuration import Configuration
-from beeai_server.domain.models.context import Context
+from beeai_server.domain.models.context import Context, ContextHistoryItem
 from beeai_server.domain.models.user import User
 from beeai_server.domain.repositories.file import IObjectStorageRepository
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
@@ -84,3 +84,15 @@ class ContextService:
         async with self._uow() as uow:
             await uow.contexts.update_last_active(context_id=context_id)
             await uow.commit()
+
+    async def add_history_item(self, *, context_id: UUID, history_item: ContextHistoryItem, user: User) -> None:
+        async with self._uow() as uow:
+            await uow.contexts.get(context_id=context_id, user_id=user.id)
+            await uow.contexts.add_history_item(context_id=context_id, history_item=history_item)
+            await uow.commit()
+
+    async def list_history(self, *, context_id: UUID, user: User) -> AsyncIterator[ContextHistoryItem]:
+        async with self._uow() as uow:
+            await uow.contexts.get(context_id=context_id, user_id=user.id)
+            async for item in uow.contexts.list_history(context_id=context_id):
+                yield item

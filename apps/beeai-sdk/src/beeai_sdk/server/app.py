@@ -14,11 +14,14 @@ from fastapi.applications import AppType
 from starlette.types import Lifespan
 
 from beeai_sdk.server.agent import Agent, Executor
+from beeai_sdk.server.store.context_store import ContextStore
+from beeai_sdk.server.store.memory_context_store import InMemoryContextStore
 
 
 def create_app(
     agent: Agent,
     task_store: TaskStore | None = None,
+    context_store: ContextStore | None = None,
     queue_manager: QueueManager | None = None,
     push_config_store: PushNotificationConfigStore | None = None,
     push_sender: PushNotificationSender | None = None,
@@ -30,8 +33,9 @@ def create_app(
 ) -> FastAPI:
     queue_manager = queue_manager or InMemoryQueueManager()
     task_store = task_store or InMemoryTaskStore()
+    context_store = context_store or InMemoryContextStore()
     http_handler = DefaultRequestHandler(
-        agent_executor=Executor(agent.execute, queue_manager),
+        agent_executor=Executor(agent.execute, queue_manager, context_store=context_store),
         task_store=task_store,
         queue_manager=queue_manager,
         push_config_store=push_config_store,

@@ -5,7 +5,7 @@ import logging
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Query, Security, status
+from fastapi import Depends, HTTPException, Path, Query, Security, status
 from fastapi.security import APIKeyCookie, HTTPAuthorizationCredentials, HTTPBasic, HTTPBasicCredentials, HTTPBearer
 from jwt import PyJWTError
 from kink import di
@@ -183,6 +183,15 @@ class RequiresContextPermissions(Permissions):
             return user
 
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+
+
+class RequiresContextPermissionsPath(RequiresContextPermissions):
+    def __call__(  # pyright: ignore [reportIncompatibleMethodOverride]
+        self,
+        user: Annotated[AuthorizedUser, Depends(authorized_user)],
+        context_id: Annotated[UUID, Path()],
+    ) -> AuthorizedUser:
+        return super().__call__(user=user, context_id=context_id)
 
 
 class RequiresPermissions(Permissions):

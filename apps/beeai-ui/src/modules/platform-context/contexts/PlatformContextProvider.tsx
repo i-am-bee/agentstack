@@ -146,10 +146,12 @@ export function PlatformContextProvider<UIGenericPart>({
         mcp_proxy: [],
         mcp_tools: [],
         vector_stores: [],
+        context_data: [],
       },
       contextPermissionGrant: {
         files: ['*'],
         vector_stores: ['*'],
+        context_data: ['*'],
       },
     });
 

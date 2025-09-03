@@ -2,10 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import inspect
+from collections import Counter
 from collections.abc import AsyncIterator, Callable
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from inspect import isclass
-from typing import Annotated, Any, Generic, get_args, get_origin
+from typing import Annotated, Any, Generic, TypeAlias, get_args, get_origin
 
 from a2a.types import Message
 from typing_extensions import Doc
@@ -13,6 +14,10 @@ from typing_extensions import Doc
 from beeai_sdk.a2a.extensions import BaseExtensionSpec
 from beeai_sdk.a2a.extensions.base import BaseExtensionServer, ExtensionSpecT, MetadataFromClientT
 from beeai_sdk.server.context import RunContext
+
+Dependency: TypeAlias = (
+    Callable[[Message, RunContext, dict], Any] | BaseExtensionServer[ExtensionSpecT, MetadataFromClientT]
+)
 
 
 # Inspired by fastapi.Depends
@@ -22,7 +27,7 @@ class Depends(Generic[ExtensionSpecT, MetadataFromClientT]):
     def __init__(
         self,
         dependency: Annotated[
-            Callable[[Message, RunContext, dict], Any] | BaseExtensionServer[ExtensionSpecT, MetadataFromClientT],
+            Dependency,
             Doc(
                 """
                 A "dependable" callable (like a function).
@@ -85,5 +90,11 @@ def extract_dependencies(sign: inspect.Signature) -> dict[str, Depends]:
         raise TypeError(
             f"The agent function contains extra parameters with unknown type annotation: {extra_parameters}"
         )
+    if reserved_names := {param for param in dependencies if param.startswith("__")}:
+        raise TypeError(f"User-defined dependencies cannot start with double underscore: {reserved_names}")
+
+    extension_deps = Counter(dep.extension.spec.URI for dep in dependencies.values() if dep.extension)
+    if duplicate_uris := {k for k, v in extension_deps.items() if v > 1}:
+        raise TypeError(f"Duplicate extension URIs found in the agent function: {duplicate_uris}")
 
     return dependencies

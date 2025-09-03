@@ -39,6 +39,8 @@ from beeai_sdk.a2a.extensions import (
     LLMFulfillment,
     LLMServiceExtensionClient,
     LLMServiceExtensionSpec,
+    PlatformApiExtensionClient,
+    PlatformApiExtensionSpec,
     TrajectoryExtensionClient,
     TrajectoryExtensionSpec,
 )
@@ -332,6 +334,7 @@ async def _run_agent(
     trajectory_extension = TrajectoryExtensionClient(trajectory_spec) if trajectory_spec else None
     llm_spec = LLMServiceExtensionSpec.from_agent_card(agent_card)
     embedding_spec = EmbeddingServiceExtensionSpec.from_agent_card(agent_card)
+    platform_extension_spec = PlatformApiExtensionSpec.from_agent_card(agent_card)
 
     async with configuration.use_platform_client():
         metadata = (
@@ -376,6 +379,13 @@ async def _run_agent(
             | (
                 {FormExtensionSpec.URI: typing.cast(FormResponse, input).model_dump(mode="json")}
                 if isinstance(input, FormResponse)
+                else {}
+            )
+            | (
+                PlatformApiExtensionClient(platform_extension_spec).api_auth_metadata(
+                    auth_token=context_token.token, expires_at=context_token.expires_at
+                )
+                if platform_extension_spec
                 else {}
             )
         )
@@ -797,7 +807,7 @@ async def run_agent(
         context = await Context.create()
         context_token = await context.generate_token(
             grant_global_permissions=Permissions(llm={"*"}, embeddings={"*"}, a2a_proxy={"*"}),
-            grant_context_permissions=ContextPermissions(files={"*"}, vector_stores={"*"}),
+            grant_context_permissions=ContextPermissions(files={"*"}, vector_stores={"*"}, context_data={"*"}),
         )
 
     await ensure_llm_provider()

@@ -26,28 +26,32 @@ from pydantic import AnyUrl
 from starlette.types import Lifespan
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_attempt, wait_exponential
 
-from beeai_sdk.server.agent import Agent
+from beeai_sdk.server.agent import Agent, AgentFactory
 from beeai_sdk.server.agent import agent as agent_decorator
 from beeai_sdk.server.logging import configure_logger as configure_logger_func
 from beeai_sdk.server.logging import logger
+from beeai_sdk.server.store.context_store import ContextStore
+from beeai_sdk.server.store.memory_context_store import InMemoryContextStore
 from beeai_sdk.server.telemetry import configure_telemetry as configure_telemetry_func
 from beeai_sdk.server.utils import cancel_task
 
 
 class Server:
     def __init__(self) -> None:
+        self._agent_factory: AgentFactory | None = None
         self._agent: Agent | None = None
         self.server: uvicorn.Server | None = None
+        self._context_store: ContextStore | None = None
         self._self_registration_client_factory: Callable[[], httpx.AsyncClient] | None = None
 
     @functools.wraps(agent_decorator)
     def agent(*args, **kwargs) -> Callable:
         self, other_args = args[0], args[1:]  # Must hide self due to pyright issues
-        if self._agent:
+        if self._agent_factory:
             raise ValueError("Server can have only one agent.")
 
         def decorator(fn: Callable) -> Callable:
-            self._agent = agent_decorator(*other_args, **kwargs)(fn)  # pyright: ignore [reportArgumentType]
+            self._agent_factory = agent_decorator(*other_args, **kwargs)(fn)  # pyright: ignore [reportArgumentType]
             return fn
 
         return decorator
@@ -59,6 +63,7 @@ class Server:
         configure_telemetry: bool = False,
         self_registration: bool = True,
         task_store: TaskStore | None = None,
+        context_store: ContextStore | None = None,
         queue_manager: QueueManager | None = None,
         push_config_store: PushNotificationConfigStore | None = None,
         push_sender: PushNotificationSender | None = None,
@@ -115,8 +120,12 @@ class Server:
     ) -> None:
         if self.server:
             raise RuntimeError("The server is already running")
-        if not self._agent:
+        if not self._agent_factory:
             raise ValueError("Agent is not registered")
+
+        context_store = context_store or InMemoryContextStore()
+        self._agent = self._agent_factory(context_store)
+        self._agent.card.url = f"http://{host}:{port}"
 
         self._self_registration_client = (
             self_registration_client_factory() if self_registration_client_factory else None
@@ -149,6 +158,7 @@ class Server:
             self._agent,
             lifespan=_lifespan_fn,
             task_store=task_store,
+            context_store=context_store,
             queue_manager=queue_manager,
             push_config_store=push_config_store,
             push_sender=push_sender,

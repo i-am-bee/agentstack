@@ -35,18 +35,25 @@ from a2a.types import (
 
 from beeai_sdk.a2a.extensions.ui.agent_detail import AgentDetail, AgentDetailExtensionSpec
 from beeai_sdk.a2a.types import ArtifactChunk, Metadata, RunYield, RunYieldResume
+from beeai_sdk.server.constants import _IMPLICIT_DEPENDENCY_PREFIX
 from beeai_sdk.server.context import RunContext
 from beeai_sdk.server.dependencies import extract_dependencies
 from beeai_sdk.server.logging import logger
+from beeai_sdk.server.store.context_store import ContextStore, record_event
 from beeai_sdk.server.utils import cancel_task
 
 AgentFunction: TypeAlias = Callable[[], AsyncGenerator[RunYield, RunYieldResume]]
-AgentFunctionFactory: TypeAlias = Callable[[TaskUpdater, RequestContext], AbstractAsyncContextManager[AgentFunction]]
+AgentFunctionFactory: TypeAlias = Callable[
+    [TaskUpdater, RequestContext, ContextStore], AbstractAsyncContextManager[tuple[AgentFunction, RunContext]]
+]
 
 
 class Agent(NamedTuple):
     card: AgentCard
     execute: AgentFunctionFactory
+
+
+AgentFactory: TypeAlias = Callable[[ContextStore], Agent]
 
 
 def agent(
@@ -68,7 +75,7 @@ def agent(
     skills: list[AgentSkill] | None = None,
     supports_authenticated_extended_card: bool | None = None,
     version: str | None = None,
-) -> Callable[[Callable], Agent]:
+) -> Callable[[Callable], AgentFactory]:
     """
     Create an Agent function.
 
@@ -102,19 +109,22 @@ def agent(
     capabilities = capabilities.model_copy(deep=True) if capabilities else AgentCapabilities(streaming=True)
     detail = detail or AgentDetail()  # pyright: ignore [reportCallIssue]
 
-    def decorator(fn: Callable) -> Agent:
-        signature = inspect.signature(fn)
-        dependencies = extract_dependencies(signature)
-        sdk_extensions = [dep.extension for dep in dependencies.values() if dep.extension is not None]
+    def decorator(fn: Callable) -> AgentFactory:
+        def agent_factory(context_store: ContextStore):
+            signature = inspect.signature(fn)
+            dependencies = extract_dependencies(signature)
+            context_store.modify_dependencies(dependencies)
 
-        resolved_name = name or fn.__name__
-        resolved_description = description or fn.__doc__ or ""
+            sdk_extensions = [dep.extension for dep in dependencies.values() if dep.extension is not None]
 
-        capabilities.extensions = [
-            *(capabilities.extensions or []),
-            *(AgentDetailExtensionSpec(detail).to_agent_card_extensions()),
-            *(e_card for ext in sdk_extensions for e_card in ext.spec.to_agent_card_extensions()),
-        ]
+            resolved_name = name or fn.__name__
+            resolved_description = description or fn.__doc__ or ""
+
+            capabilities.extensions = [
+                *(capabilities.extensions or []),
+                *(AgentDetailExtensionSpec(detail).to_agent_card_extensions()),
+                *(e_card for ext in sdk_extensions for e_card in ext.spec.to_agent_card_extensions()),
+            ]
 
         card = AgentCard(
             url=url,
@@ -135,128 +145,151 @@ def agent(
             version=version or "1.0.0",
         )
 
-        if inspect.isasyncgenfunction(fn):
+            if inspect.isasyncgenfunction(fn):
 
-            async def execute_fn(_ctx: RunContext, *args, **kwargs) -> None:
-                try:
-                    gen: AsyncGenerator[RunYield, RunYieldResume] = fn(*args, **kwargs)
-                    value: RunYieldResume = None
-                    while True:
-                        value = await _ctx.yield_async(await gen.asend(value))
-                except StopAsyncIteration:
-                    pass
-                except Exception as e:
-                    await _ctx.yield_async(e)
-                finally:
-                    _ctx.shutdown()
-
-        elif inspect.iscoroutinefunction(fn):
-
-            async def execute_fn(_ctx: RunContext, *args, **kwargs) -> None:
-                try:
-                    await _ctx.yield_async(await fn(*args, **kwargs))
-                except Exception as e:
-                    await _ctx.yield_async(e)
-                finally:
-                    _ctx.shutdown()
-
-        elif inspect.isgeneratorfunction(fn):
-
-            def _execute_fn_sync(_ctx: RunContext, *args, **kwargs) -> None:
-                try:
-                    gen: Generator[RunYield, RunYieldResume] = fn(*args, **kwargs)
-                    value = None
-                    while True:
-                        value = _ctx.yield_sync(gen.send(value))
-                except StopIteration:
-                    pass
-                except Exception as e:
-                    _ctx.yield_sync(e)
-                finally:
-                    _ctx.shutdown()
-
-            async def execute_fn(_ctx: RunContext, *args, **kwargs) -> None:
-                await asyncio.to_thread(_execute_fn_sync, _ctx, *args, **kwargs)
-
-        else:
-
-            def _execute_fn_sync(_ctx: RunContext, *args, **kwargs) -> None:
-                try:
-                    _ctx.yield_sync(fn(*args, **kwargs))
-                except Exception as e:
-                    _ctx.yield_sync(e)
-                finally:
-                    _ctx.shutdown()
-
-            async def execute_fn(_ctx: RunContext, *args, **kwargs) -> None:
-                await asyncio.to_thread(_execute_fn_sync, _ctx, *args, **kwargs)
-
-        @asynccontextmanager
-        async def agent_executor_lifespan(
-            task_updater: TaskUpdater, request_context: RequestContext
-        ) -> AsyncIterator[AgentFunction]:
-            message = request_context.message
-            assert message  # this is only executed in the context of SendMessage request
-            # These are incorrectly typed in a2a
-            assert request_context.task_id
-            assert request_context.context_id
-            context = RunContext(
-                configuration=request_context.configuration,
-                context_id=request_context.context_id,
-                task_id=request_context.task_id,
-                task_updater=task_updater,
-                current_task=request_context.current_task,
-                related_tasks=request_context.related_tasks,
-                call_context=request_context.call_context,
-            )
-
-            # initialize dependencies
-            async with AsyncExitStack() as stack:
-                dependency_args = {}
-                for pname, depends in dependencies.items():
-                    # call dependencies with the first message and initialize their lifespan
-                    dependency_args[pname] = await stack.enter_async_context(depends(message, context, dependency_args))
-
-                async def agent_generator():
-                    yield_queue = context._yield_queue
-                    yield_resume_queue = context._yield_resume_queue
-
-                    task = asyncio.create_task(execute_fn(context, **dependency_args))
+                async def execute_fn(_ctx: RunContext, *args, **kwargs) -> None:
                     try:
-                        while not task.done() or yield_queue.async_q.qsize() > 0:
-                            value = yield await yield_queue.async_q.get()
-                            if isinstance(value, Exception):
-                                raise value
-
-                            if value:
-                                # TODO: context.call_context should be updated here
-                                # Unfortunately queue implementation does not support passing external types
-                                # (only a2a.event_queue.Event is supported:
-                                # Event = Message | Task | TaskStatusUpdateEvent | TaskArtifactUpdateEvent
-                                for ext in sdk_extensions:
-                                    ext.handle_incoming_message(value, context)
-
-                            await yield_resume_queue.async_q.put(value)
-                    except janus.AsyncQueueShutDown:
+                        gen: AsyncGenerator[RunYield, RunYieldResume] = fn(*args, **kwargs)
+                        value: RunYieldResume = None
+                        while True:
+                            value = await _ctx.yield_async(await gen.asend(value))
+                    except StopAsyncIteration:
                         pass
-                    except GeneratorExit:
-                        return
+                    except Exception as e:
+                        await _ctx.yield_async(e)
                     finally:
-                        await cancel_task(task)
+                        _ctx.shutdown()
 
-                yield agent_generator
+            elif inspect.iscoroutinefunction(fn):
 
-        return Agent(card=card, execute=agent_executor_lifespan)
+                async def execute_fn(_ctx: RunContext, *args, **kwargs) -> None:
+                    try:
+                        await _ctx.yield_async(await fn(*args, **kwargs))
+                    except Exception as e:
+                        await _ctx.yield_async(e)
+                    finally:
+                        _ctx.shutdown()
+
+            elif inspect.isgeneratorfunction(fn):
+
+                def _execute_fn_sync(_ctx: RunContext, *args, **kwargs) -> None:
+                    try:
+                        gen: Generator[RunYield, RunYieldResume] = fn(*args, **kwargs)
+                        value = None
+                        while True:
+                            value = _ctx.yield_sync(gen.send(value))
+                    except StopIteration:
+                        pass
+                    except Exception as e:
+                        _ctx.yield_sync(e)
+                    finally:
+                        _ctx.shutdown()
+
+                async def execute_fn(_ctx: RunContext, *args, **kwargs) -> None:
+                    await asyncio.to_thread(_execute_fn_sync, _ctx, *args, **kwargs)
+
+            else:
+
+                def _execute_fn_sync(_ctx: RunContext, *args, **kwargs) -> None:
+                    try:
+                        _ctx.yield_sync(fn(*args, **kwargs))
+                    except Exception as e:
+                        _ctx.yield_sync(e)
+                    finally:
+                        _ctx.shutdown()
+
+                async def execute_fn(_ctx: RunContext, *args, **kwargs) -> None:
+                    await asyncio.to_thread(_execute_fn_sync, _ctx, *args, **kwargs)
+
+            from beeai_sdk.server.store.context_store import ContextStore
+
+            @asynccontextmanager
+            async def agent_executor_lifespan(
+                task_updater: TaskUpdater, request_context: RequestContext, context_store: ContextStore
+            ) -> AsyncIterator[tuple[AgentFunction, RunContext]]:
+                message = request_context.message
+                assert message  # this is only executed in the context of SendMessage request
+                # These are incorrectly typed in a2a
+                assert request_context.task_id
+                assert request_context.context_id
+                context = RunContext(
+                    configuration=request_context.configuration,
+                    context_id=request_context.context_id,
+                    task_id=request_context.task_id,
+                    task_updater=task_updater,
+                    current_task=request_context.current_task,
+                    related_tasks=request_context.related_tasks,
+                    call_context=request_context.call_context,
+                    store=...,  # pyright: ignore [reportArgumentType], will be set below, after deps are initialized
+                )
+
+                async with AsyncExitStack() as stack:
+                    dependency_args = {}
+                    for pname, depends in dependencies.items():
+                        # call dependencies with the first message and initialize their lifespan
+                        dependency_args[pname] = await stack.enter_async_context(
+                            depends(message, context, dependency_args)
+                        )
+
+                    context.store = await context_store.create(
+                        context_id=request_context.context_id,
+                        initialized_dependencies=list(dependency_args.values()),
+                    )
+
+                    async def agent_generator():
+                        yield_queue = context._yield_queue
+                        yield_resume_queue = context._yield_resume_queue
+
+                        task = asyncio.create_task(
+                            execute_fn(
+                                context,
+                                **{
+                                    k: v
+                                    for k, v in dependency_args.items()
+                                    if not k.startswith(_IMPLICIT_DEPENDENCY_PREFIX)
+                                },
+                            )
+                        )
+                        try:
+                            while not task.done() or yield_queue.async_q.qsize() > 0:
+                                value = yield await yield_queue.async_q.get()
+                                if isinstance(value, Exception):
+                                    raise value
+
+                                if value:
+                                    # TODO: context.call_context should be updated here
+                                    # Unfortunately queue implementation does not support passing external types
+                                    # (only a2a.event_queue.Event is supported:
+                                    # Event = Message | Task | TaskStatusUpdateEvent | TaskArtifactUpdateEvent
+                                    for ext in sdk_extensions:
+                                        ext.handle_incoming_message(value, context)
+
+                                await yield_resume_queue.async_q.put(value)
+                        except janus.AsyncQueueShutDown:
+                            pass
+                        except GeneratorExit:
+                            return
+                        finally:
+                            await cancel_task(task)
+
+                    yield agent_generator, context
+
+            return Agent(card=card, execute=agent_executor_lifespan)
+
+        return agent_factory
 
     return decorator
 
 
 class Executor(AgentExecutor):
-    def __init__(self, execute_fn: AgentFunctionFactory, queue_manager: QueueManager) -> None:
+    def __init__(
+        self, execute_fn: AgentFunctionFactory, queue_manager: QueueManager, context_store: ContextStore
+    ) -> None:
         self._agent_executor_span = execute_fn
         self._queue_manager = queue_manager
         self._running_tasks: dict[str, asyncio.Task] = {}
         self._cancel_queues: dict[str, EventQueue] = {}
+        self._context_store = context_store
 
     async def _watch_for_cancellation(self, task_id: str, task: asyncio.Task) -> None:
         cancel_queue = await self._queue_manager.create_or_tap(f"_cancel_{task_id}")
@@ -274,6 +307,7 @@ class Executor(AgentExecutor):
         self,
         *,
         context: RequestContext,
+        context_store: ContextStore,
         task_updater: TaskUpdater,
         resume_queue: EventQueue,
     ) -> None:
@@ -294,14 +328,22 @@ class Executor(AgentExecutor):
                 deep=True, update={"context_id": task_updater.context_id, "task_id": task_updater.task_id}
             )
 
-        async with self._agent_executor_span(task_updater, context) as execute_fn:
-            agent_generator_fn = execute_fn()
+        try:
+            async with self._agent_executor_span(task_updater, context, context_store) as (execute_fn, run_context):
+                agent_generator_fn = execute_fn()
 
-            try:
+                if context.message:
+                    await record_event(context.message, run_context.store)
+
                 await task_updater.start_work()
+
+                record_queue = task_updater.event_queue.tap()
+
                 value: RunYieldResume = None
                 opened_artifacts: set[str] = set()
                 while True:
+                    if value:
+                        await run_context.store.store(value)
                     yielded_value = await agent_generator_fn.asend(value)
                     match yielded_value:
                         case str(text):
@@ -322,7 +364,11 @@ class Executor(AgentExecutor):
                         case Message() as message:
                             await task_updater.update_status(TaskState.working, message=with_context(message))
                         case ArtifactChunk(
-                            parts=parts, artifact_id=artifact_id, name=name, metadata=metadata, last_chunk=last_chunk
+                            parts=parts,
+                            artifact_id=artifact_id,
+                            name=name,
+                            metadata=metadata,
+                            last_chunk=last_chunk,
                         ):
                             await task_updater.add_artifact(
                                 parts=cast(list[Part], parts),
@@ -396,17 +442,18 @@ class Executor(AgentExecutor):
                         case _:
                             raise ValueError(f"Invalid value yielded from agent: {type(yielded_value)}")
                     value = None
-            except StopAsyncIteration:
-                await task_updater.complete()
-            except CancelledError:
-                await task_updater.cancel()
-            except Exception as ex:
-                logger.error("Error when executing agent", exc_info=ex)
-                await task_updater.failed(task_updater.new_agent_message(parts=[Part(root=TextPart(text=str(ex)))]))
-            finally:
-                await self._queue_manager.close(f"_event_{task_updater.task_id}")
-                await self._queue_manager.close(f"_resume_{task_updater.task_id}")
-                await cancel_task(cancellation_task)
+                    await record_event(await record_queue.dequeue_event(), context_store=run_context.store)
+        except StopAsyncIteration:
+            await task_updater.complete()
+        except CancelledError:
+            await task_updater.cancel()
+        except Exception as ex:
+            logger.error("Error when executing agent", exc_info=ex)
+            await task_updater.failed(task_updater.new_agent_message(parts=[Part(root=TextPart(text=str(ex)))]))
+        finally:
+            await self._queue_manager.close(f"_event_{task_updater.task_id}")
+            await self._queue_manager.close(f"_resume_{task_updater.task_id}")
+            await cancel_task(cancellation_task)
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         assert context.message  # this is only executed in the context of SendMessage request
@@ -431,8 +478,12 @@ class Executor(AgentExecutor):
             else:
                 task_updater = TaskUpdater(long_running_event_queue, context.task_id, context.context_id)
                 run_generator = self._run_agent_function(
-                    context=context, task_updater=task_updater, resume_queue=resume_queue
+                    context=context,
+                    context_store=self._context_store,
+                    task_updater=task_updater,
+                    resume_queue=resume_queue,
                 )
+
                 self._running_tasks[context.task_id] = asyncio.create_task(run_generator)
                 self._running_tasks[context.task_id].add_done_callback(
                     lambda _: self._running_tasks.pop(context.task_id)  # pyright: ignore [reportArgumentType]

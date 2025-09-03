@@ -5,7 +5,6 @@ import os
 from typing import Annotated
 from collections import defaultdict
 from textwrap import dedent
-from typing import Annotated
 
 from a2a.types import (
     AgentSkill,
@@ -59,6 +58,8 @@ from chat.tools.general.clarification import (
     clarification_tool_middleware,
 )
 from chat.tools.general.current_time import CurrentTimeTool
+
+from beeai_sdk.server.store.platform_context_store import PlatformContextStore
 
 # Temporary instrument fix
 EventMeta.model_fields["context"].exclude = True
@@ -169,7 +170,6 @@ server = Server()
     ],
 )
 async def chat(
-    message: Message,
     context: RunContext,
     trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
     citation: Annotated[CitationExtensionServer, CitationExtensionSpec()],
@@ -180,8 +180,10 @@ async def chat(
     The agent is an AI-powered conversational system with memory, supporting real-time search, Wikipedia lookups,
     and weather updates through integrated tools.
     """
-    extracted_files = await extract_files(history=messages[context.context_id], incoming_message=message)
-    input = to_framework_message(message, [f for f in extracted_files if f.message_id == message.message_id])
+    history = [
+        message async for message in context.store.load_history() if isinstance(message, Message) and message.parts
+    ]
+    extracted_files = await extract_files(history=history)
 
     # Configure tools
     file_reader_tool_class = create_file_reader_tool_class(
@@ -297,10 +299,7 @@ async def chat(
         ],
     )
 
-    messages[context.context_id].append(message)
-    framework_messages[context.context_id].append(input)
-
-    await agent.memory.add_many(framework_messages[context.context_id])
+    await agent.memory.add_many(to_framework_message(item, extracted_files) for item in history)
     final_answer = None
 
     async for event, meta in agent.run():
@@ -339,7 +338,6 @@ async def chat(
             text=clean_text,
             metadata=(citation.citation_metadata(citations=citations) if citations else None),
         )
-        messages[context.context_id].append(message)
         yield message
 
 
@@ -348,6 +346,7 @@ def serve():
         host=os.getenv("HOST", "127.0.0.1"),
         port=int(os.getenv("PORT", 8000)),
         configure_telemetry=True,
+        context_store=PlatformContextStore(),
     )
 
 
