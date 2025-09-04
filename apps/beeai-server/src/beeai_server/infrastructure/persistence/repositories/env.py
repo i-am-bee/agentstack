@@ -11,7 +11,6 @@ from sqlalchemy import (
     CheckConstraint,
     Column,
     DateTime,
-    Enum,
     ForeignKey,
     Index,
     String,
@@ -25,6 +24,7 @@ from beeai_server.configuration import Configuration
 from beeai_server.domain.repositories.env import NOT_SET, EnvStoreEntity, IEnvVariableRepository
 from beeai_server.exceptions import EntityNotFoundError
 from beeai_server.infrastructure.persistence.repositories.db_metadata import metadata
+from beeai_server.infrastructure.persistence.repositories.utils import sql_enum
 from beeai_server.utils.utils import utc_now
 
 # A polymorphic table for storing environment variables
@@ -41,7 +41,7 @@ variables_table = Table(
     Column("value", Text, nullable=False),
     Column("created_at", DateTime(timezone=True), nullable=False),
     # Discriminator
-    Column("parent_entity", Enum(EnvStoreEntity), nullable=False),
+    Column("parent_entity", sql_enum(EnvStoreEntity), nullable=False),
     # Foreign key columns
     Column("provider_id", SQL_UUID, ForeignKey("providers.id", ondelete="CASCADE"), nullable=True),
     Column("model_provider_id", SQL_UUID, ForeignKey("model_providers.id", ondelete="CASCADE"), nullable=True),

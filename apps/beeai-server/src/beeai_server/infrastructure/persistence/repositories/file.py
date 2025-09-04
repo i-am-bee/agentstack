@@ -10,7 +10,6 @@ from sqlalchemy import (
     JSON,
     Column,
     DateTime,
-    Enum,
     ForeignKey,
     Integer,
     Row,
@@ -27,6 +26,7 @@ from beeai_server.domain.models.file import ExtractionStatus, File, FileType, Te
 from beeai_server.domain.repositories.file import IFileRepository
 from beeai_server.exceptions import EntityNotFoundError
 from beeai_server.infrastructure.persistence.repositories.db_metadata import metadata
+from beeai_server.infrastructure.persistence.repositories.utils import sql_enum
 
 files_table = Table(
     "files",
@@ -37,7 +37,7 @@ files_table = Table(
     Column("file_size_bytes", Integer, nullable=True),
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("created_by", ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
-    Column("file_type", Enum(FileType, name="file_type"), nullable=False),
+    Column("file_type", sql_enum(FileType, name="file_type"), nullable=False),
     Column("parent_file_id", ForeignKey("files.id", ondelete="CASCADE"), nullable=True),
     Column("context_id", ForeignKey("contexts.id", ondelete="CASCADE"), nullable=True),
 )
@@ -48,7 +48,7 @@ text_extractions_table = Table(
     Column("id", SQL_UUID, primary_key=True),
     Column("file_id", ForeignKey("files.id", ondelete="CASCADE"), nullable=False, unique=True),
     Column("extracted_file_id", ForeignKey("files.id", ondelete="SET NULL"), nullable=True),
-    Column("status", Enum(ExtractionStatus, name="extraction_status"), nullable=False),
+    Column("status", sql_enum(ExtractionStatus, name="extraction_status"), nullable=False),
     Column("job_id", String(255), nullable=True),
     Column("error_message", Text, nullable=True),
     Column("extraction_metadata", JSON, nullable=True),

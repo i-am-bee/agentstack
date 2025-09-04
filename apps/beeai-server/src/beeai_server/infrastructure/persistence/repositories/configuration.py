@@ -5,7 +5,7 @@
 from enum import StrEnum
 
 from sqlalchemy import UUID as SQL_UUID
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Index, Row, String, Table
+from sqlalchemy import Column, DateTime, ForeignKey, Index, Row, String, Table
 from sqlalchemy.ext.asyncio import AsyncConnection
 from sqlalchemy.sql import select
 
@@ -13,6 +13,7 @@ from beeai_server.domain.models.configuration import SystemConfiguration
 from beeai_server.domain.repositories.configurations import IConfigurationsRepository
 from beeai_server.exceptions import EntityNotFoundError
 from beeai_server.infrastructure.persistence.repositories.db_metadata import metadata
+from beeai_server.infrastructure.persistence.repositories.utils import sql_enum
 
 
 class ConfigurationType(StrEnum):
@@ -26,7 +27,7 @@ configurations_table = Table(
     Column("id", SQL_UUID, primary_key=True),
     Column("updated_at", DateTime(timezone=True), nullable=False),
     Column("created_by", ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
-    Column("configuration_type", Enum(ConfigurationType), nullable=False),
+    Column("configuration_type", sql_enum(ConfigurationType), nullable=False),
     Column("default_llm_model", String(256), nullable=True),
     Column("default_embedding_model", String(256), nullable=True),
     Index(
