@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 'use client';
-
 import { ArrowDown } from '@carbon/icons-react';
 import { IconButton } from '@carbon/react';
 

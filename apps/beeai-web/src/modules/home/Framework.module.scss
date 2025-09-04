@@ -18,10 +18,10 @@
 
 .graphics {
   display: flex;
-  inline-size: 110%;
+  inline-size: 130%;
 
   svg {
-    max-inline-size: rem(481px);
+    max-inline-size: rem(622px);
   }
 }
 
@@ -50,9 +50,6 @@
   .features {
     grid-column: 2/ -2;
   }
-}
-
-@include breakpoint-down(sm) {
   .graphics {
     inline-size: 100%;
   }

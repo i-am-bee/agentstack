@@ -2,11 +2,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from typing import Annotated
+from urllib.parse import urljoin, urlparse
 from uuid import UUID
 
 import fastapi
 import fastapi.responses
-from a2a.types import AgentCard
+from a2a.types import AgentCard, TransportProtocol
 from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from fastapi import Depends, Request
 
@@ -18,7 +19,14 @@ from beeai_server.api.dependencies import (
 from beeai_server.domain.models.permissions import AuthorizedUser
 from beeai_server.service_layer.services.a2a import A2AServerResponse
 
+_SUPPORTED_TRANSPORTS = [TransportProtocol.jsonrpc, TransportProtocol.http_json]
+
+
 router = fastapi.APIRouter()
+
+
+def _create_proxy_url(url: str, *, proxy_base: str) -> str:
+    return urljoin(proxy_base, urlparse(url).path.lstrip("/"))
 
 
 def _to_fastapi(response: A2AServerResponse):
@@ -37,8 +45,34 @@ async def get_agent_card(
     _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}))],
 ) -> AgentCard:
     provider = await provider_service.get_provider(provider_id=provider_id)
-    url = str(request.url_for(proxy_request.__name__, provider_id=provider.id, path=""))
-    return provider.agent_card.model_copy(update={"url": url})
+    proxy_base = str(request.url_for(proxy_request.__name__, provider_id=provider.id, path=""))
+    proxy_interfaces = (
+        [
+            interface.model_copy(update={"url": _create_proxy_url(interface.url, proxy_base=proxy_base)})
+            for interface in provider.agent_card.additional_interfaces
+            if interface.transport in _SUPPORTED_TRANSPORTS
+        ]
+        if provider.agent_card.additional_interfaces
+        else None
+    )
+    if provider.agent_card.preferred_transport in _SUPPORTED_TRANSPORTS:
+        return provider.agent_card.model_copy(
+            update={
+                "url": _create_proxy_url(provider.agent_card.url, proxy_base=proxy_base),
+                "additional_interfaces": proxy_interfaces,
+            }
+        )
+    elif proxy_interfaces:
+        interface = proxy_interfaces[0]
+        return provider.agent_card.model_copy(
+            update={
+                "url": interface.url,
+                "preferred_transport": interface.transport,
+                "additional_interfaces": proxy_interfaces,
+            }
+        )
+    else:
+        raise RuntimeError("Provider doesn't have any transport supported by the proxy.")
 
 
 @router.api_route("/{provider_id}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"])

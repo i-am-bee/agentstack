@@ -5,9 +5,9 @@
 
 import { MainContent } from '#components/layouts/MainContent.tsx';
 import type { Agent } from '#modules/agents/api/types.ts';
+import { useMessages } from '#modules/messages/contexts/index.ts';
 import { SourcesPanel } from '#modules/sources/components/SourcesPanel.tsx';
 
-import { useMessages } from '../../messages/contexts';
 import { RunLandingView } from '../components/RunLandingView';
 import { useAgentRun } from '../contexts/agent-run';
 import { AgentRunProviders } from '../contexts/agent-run/AgentRunProvider';
@@ -29,12 +29,12 @@ function Chat() {
   const { isPending } = useAgentRun();
   const { messages } = useMessages();
 
-  const isIdle = !(isPending || messages.length);
+  const isLanding = !isPending && !messages.length;
 
   return (
     <>
-      <MainContent spacing="md" scrollable={isIdle}>
-        {isIdle ? <RunLandingView /> : <ChatMessagesView />}
+      <MainContent spacing="md" scrollable={isLanding}>
+        {isLanding ? <RunLandingView /> : <ChatMessagesView />}
       </MainContent>
 
       <SourcesPanel />

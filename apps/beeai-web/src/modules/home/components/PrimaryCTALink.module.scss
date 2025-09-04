@@ -5,11 +5,16 @@
 
 .root {
   &:global(.cds--btn) {
-    @include type-style(body-compact-01);
-    min-inline-size: rem(229px);
+    font-size: rem(16px);
+    min-inline-size: rem(208px);
     column-gap: $spacing-03;
     justify-content: flex-start;
     align-items: center;
     padding-inline-end: rem(20px);
+    svg {
+      inline-size: rem(24px);
+      block-size: rem(24px);
+      margin-block-start: rem(-1px); // vertical position correction
+    }
   }
 }

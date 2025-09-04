@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import uuid
 from types import NoneType
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING, Any, Self
 from urllib.parse import parse_qs
 
 import a2a.types
@@ -115,7 +115,7 @@ class OAuthExtensionServer(BaseExtensionServer[OAuthExtensionSpec, OAuthExtensio
 
     def create_auth_request(self, *, authorization_endpoint_url: pydantic.AnyUrl):
         data = AuthRequest(authorization_endpoint_url=authorization_endpoint_url)
-        return AgentMessage(text="Authorization required", metadata={self.spec.URI: data})
+        return AgentMessage(text="Authorization required", metadata={self.spec.URI: data.model_dump(mode="json")})
 
     def parse_auth_response(self, *, message: a2a.types.Message):
         if not message or not message.metadata or not (data := message.metadata.get(self.spec.URI)):
@@ -124,10 +124,8 @@ class OAuthExtensionServer(BaseExtensionServer[OAuthExtensionSpec, OAuthExtensio
 
 
 class OAuthExtensionClient(BaseExtensionClient[OAuthExtensionSpec, NoneType]):
-    def fulfillment_metadata(
-        self, *, oauth_fulfillments: dict[str, OAuthFulfillment]
-    ) -> dict[str, OAuthExtensionMetadata]:
-        return {self.spec.URI: OAuthExtensionMetadata(oauth_fulfillments=oauth_fulfillments)}
+    def fulfillment_metadata(self, *, oauth_fulfillments: dict[str, Any]) -> dict[str, Any]:
+        return {self.spec.URI: OAuthExtensionMetadata(oauth_fulfillments=oauth_fulfillments).model_dump(mode="json")}
 
     def parse_auth_request(self, *, message: a2a.types.Message):
         if not message or not message.metadata or not (data := message.metadata.get(self.spec.URI)):
@@ -142,5 +140,5 @@ class OAuthExtensionClient(BaseExtensionClient[OAuthExtensionSpec, NoneType]):
             role=a2a.types.Role.user,
             parts=[a2a.types.TextPart(text="Authorization completed")],  # type: ignore
             task_id=task_id,
-            metadata={self.spec.URI: data},
+            metadata={self.spec.URI: data.model_dump(mode="json")},
         )

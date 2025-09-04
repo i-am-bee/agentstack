@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import re
 from types import NoneType
-from typing import Self
+from typing import Any, Self
 
 import pydantic
 
@@ -91,7 +91,9 @@ class EmbeddingServiceExtensionServer(
 
 
 class EmbeddingServiceExtensionClient(BaseExtensionClient[EmbeddingServiceExtensionSpec, NoneType]):
-    def fulfillment_metadata(
-        self, *, embedding_fulfillments: dict[str, EmbeddingFulfillment]
-    ) -> dict[str, EmbeddingServiceExtensionMetadata]:
-        return {self.spec.URI: EmbeddingServiceExtensionMetadata(embedding_fulfillments=embedding_fulfillments)}
+    def fulfillment_metadata(self, *, embedding_fulfillments: dict[str, EmbeddingFulfillment]) -> dict[str, Any]:
+        return {
+            self.spec.URI: EmbeddingServiceExtensionMetadata(embedding_fulfillments=embedding_fulfillments).model_dump(
+                mode="json"
+            )
+        }

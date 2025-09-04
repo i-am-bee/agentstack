@@ -16,7 +16,7 @@
     inset-block: -$spacing-05;
     inset-inline-start: 50%;
     transform: translateX(-50%);
-    background-color: $layer-hover-01;
+    background-color: $background-hover-50;
     z-index: -1;
     transition: opacity $duration-fast-02;
   }

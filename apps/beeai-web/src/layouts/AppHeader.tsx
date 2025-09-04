@@ -58,13 +58,13 @@ export function AppHeader({ className }: Props) {
 
 const items = [
   {
-    label: 'Framework Docs',
+    label: 'Framework docs',
     href: FRAMEWORK_DOCS_LINK,
     Icon: ArrowUpRight,
     isExternal: true,
   },
   {
-    label: 'Platform Docs',
+    label: 'Platform docs',
     href: DOCUMENTATION_LINK,
     Icon: ArrowUpRight,
     isExternal: true,

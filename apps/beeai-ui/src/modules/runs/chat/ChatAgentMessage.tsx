@@ -8,6 +8,7 @@ import { useFocusWithin, useHover } from 'react-aria';
 
 import { Spinner } from '#components/Spinner/Spinner.tsx';
 import { MessageFiles } from '#modules/files/components/MessageFiles.tsx';
+import { MessageForm } from '#modules/form/components/MessageForm.tsx';
 import { MessageActions } from '#modules/messages/components/MessageActions.tsx';
 import { MessageContent } from '#modules/messages/components/MessageContent.tsx';
 import { MessageError } from '#modules/messages/components/MessageError.tsx';
@@ -54,6 +55,8 @@ export function ChatAgentMessage({ message }: Props) {
       <MessageSources message={message} />
 
       <MessageTrajectories message={message} />
+
+      <MessageForm message={message} />
 
       <MessageActions message={message} className={classes.actions} contentRef={contentRef} isVisible={showActions} />
     </div>

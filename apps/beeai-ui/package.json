@@ -39,7 +39,7 @@
     "lodash": "^4.17.21",
     "lottie-react": "^2.4.1",
     "mdast-util-to-hast": "^13.2.0",
-    "next": "15.3.4",
+    "next": "15.4.7",
     "next-auth": "^5.0.0-beta.29",
     "openapi-fetch": "^0.13.5",
     "pluralize": "^8.0.0",

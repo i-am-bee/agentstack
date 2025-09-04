@@ -10,6 +10,6 @@ import type { UIMessage } from '#modules/messages/types.ts';
 
 export const MessagesContext = createContext<MessagesContextValue>({ messages: [] });
 
-type MessagesContextValue = {
+export interface MessagesContextValue {
   messages: UIMessage[];
-};
+}

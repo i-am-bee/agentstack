@@ -3,4 +3,5 @@
 
 from .agent_detail import *
 from .citation import *
+from .form import *
 from .trajectory import *
