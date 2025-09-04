@@ -103,7 +103,7 @@ class BasicAuthConfiguration(BaseModel):
 
 
 class AuthConfiguration(BaseModel):
-    jwt_secret_key: Secret[str] | None = None
+    jwt_secret_key: Secret[str] = Secret("dummy")
     disable_auth: bool = False
     oidc: OidcConfiguration = Field(default_factory=OidcConfiguration)
     basic: BasicAuthConfiguration = Field(default_factory=BasicAuthConfiguration)
@@ -114,7 +114,7 @@ class AuthConfiguration(BaseModel):
             return self
         if not self.basic.enabled and not self.oidc.enabled:
             raise ValueError("If auth is enabled, either basic or oidc must be enabled")
-        if not self.jwt_secret_key:
+        if self.jwt_secret_key.get_secret_value() == "dummy":
             raise ValueError("JWT secret key must be provided if authentication is enabled")
         return self
 
