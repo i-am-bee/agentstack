@@ -313,23 +313,21 @@ def _get_clients(
         [embedding_conf] = embedding_ext.data.embedding_fulfillments.values()
 
     llm = OpenAIChatModel(
-        model_id=llm_conf.api_model if llm_conf else os.getenv("LLM_MODEL", "llama3.1"),
-        api_key=llm_conf.api_key if llm_conf else os.getenv("LLM_API_KEY", "dummy"),
-        base_url=llm_conf.api_base if llm_conf else os.getenv("LLM_API_BASE", "http://localhost:11434/v1"),
+        model_id=llm_conf.api_model if llm_conf else "llama3.1",
+        api_key=llm_conf.api_key if llm_conf else "dummy",
+        base_url=llm_conf.api_base if llm_conf else "http://localhost:11434/v1",
         parameters=ChatModelParameters(temperature=0.0),
         tool_choice_support=set(),
     )
 
     embedding_client = AsyncOpenAI(
-        api_key=embedding_conf.api_key if embedding_conf else os.getenv("EMBEDDING_API_KEY", "dummy"),
-        base_url=embedding_conf.api_base
-        if embedding_conf
-        else os.getenv("EMBEDDING_API_BASE", "http://localhost:11434/v1"),
+        api_key=embedding_conf.api_key if embedding_conf else "dummy",
+        base_url=embedding_conf.api_base if embedding_conf else "http://localhost:11434/v1",
     )
     embedding = functools.partial(
         embedding_client.embeddings.create,
         encoding_format="float",
-        model=embedding_conf.api_model if embedding_conf else os.getenv("EMBEDDING_MODEL", "dummy"),
+        model=embedding_conf.api_model if embedding_conf else "dummy",
     )
     return llm, embedding
 

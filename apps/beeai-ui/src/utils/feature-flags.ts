@@ -7,8 +7,16 @@ import { z } from 'zod';
 
 import { objectFromEntries } from './helpers';
 
-const featureNames = ['Variables', 'Providers'] as const;
-const featureFlagsDefaults = objectFromEntries(featureNames.map((key) => [key, false] as const));
+const featureNames = ['Variables', 'Providers', 'ModelProviders'] as const;
+const featureFlagsDefaults = objectFromEntries(
+  featureNames.map((key) => {
+    if (key === 'ModelProviders') {
+      return [key, true] as const;
+    }
+
+    return [key, false] as const;
+  }),
+);
 
 const featureFlagsSchema = z
   .object(objectFromEntries(featureNames.map((key) => [key, z.boolean().optional().default(false)])))

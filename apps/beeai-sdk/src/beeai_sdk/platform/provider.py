@@ -1,6 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+
 import typing
 from contextlib import asynccontextmanager
 from datetime import timedelta
@@ -86,7 +87,7 @@ class Provider(pydantic.BaseModel):
                 .json()
             )
 
-    async def get(self: "Provider | str", /, *, client: PlatformClient | None = None) -> "Provider":
+    async def get(self: "Provider | str", *, client: PlatformClient | None = None) -> "Provider":
         # `self` has a weird type so that you can call both `instance.get()` to update an instance, or `Provider.get("123")` to obtain a new instance
         provider_id = self if isinstance(self, str) else self.id
         async with client or get_platform_client() as client:
@@ -98,11 +99,31 @@ class Provider(pydantic.BaseModel):
             return self
         return result
 
-    async def delete(self: "Provider | str", /, *, client: PlatformClient | None = None) -> None:
+    async def delete(self: "Provider | str", *, client: PlatformClient | None = None) -> None:
         # `self` has a weird type so that you can call both `instance.delete()` or `Provider.delete("123")`
         provider_id = self if isinstance(self, str) else self.id
         async with client or get_platform_client() as client:
             _ = (await client.delete(f"/api/v1/providers/{provider_id}")).raise_for_status()
+
+    async def update_variables(
+        self: "Provider | str",
+        *,
+        variables: dict[str, str | None] | dict[str, str],
+        client: PlatformClient | None = None,
+    ) -> None:
+        # `self` has a weird type so that you can call both `instance.delete()` or `Provider.delete("123")`
+        provider_id = self if isinstance(self, str) else self.id
+        async with client or get_platform_client() as client:
+            _ = (
+                await client.put(f"/api/v1/providers/{provider_id}/variables", json={"variables": variables})
+            ).raise_for_status()
+
+    async def list_variables(self: "Provider | str", *, client: PlatformClient | None = None) -> dict[str, str]:
+        # `self` has a weird type so that you can call both `instance.delete()` or `Provider.delete("123")`
+        provider_id = self if isinstance(self, str) else self.id
+        async with client or get_platform_client() as client:
+            result = await client.get(f"/api/v1/providers/{provider_id}/variables")
+            return result.raise_for_status().json()["variables"]
 
     @staticmethod
     async def list(*, client: PlatformClient | None = None) -> list["Provider"]:

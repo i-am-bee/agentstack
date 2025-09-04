@@ -1,6 +1,6 @@
 [project]
 name = "beeai-cli"
-version = "0.3.2"
+version = "0.3.3-rc2"
 description = "BeeAI CLI"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
@@ -21,7 +21,8 @@ dependencies = [
     "tenacity~=9.1.2",
     "typer~=0.16.0",
     "pyyaml>=6.0.2",
-    "beeai-sdk"
+    "beeai-sdk",
+    "authlib==1.5.2",
 ]
 
 [dependency-groups]

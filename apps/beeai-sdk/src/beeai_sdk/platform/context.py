@@ -30,9 +30,15 @@ class Permissions(ContextPermissions):
     llm: set[Literal["*"] | ResourceIdPermission] = set()
     embeddings: set[Literal["*"] | ResourceIdPermission] = set()
     a2a_proxy: set[Literal["*"]] = set()
+    model_providers: set[Literal["read", "write", "*"]] = set()
+
     providers: set[Literal["read", "write", "*"]] = set()  # write includes "show logs" permission
-    variables: set[Literal["read", "write", "*"]] = set()
+    provider_variables: set[Literal["read", "write", "*"]] = set()
+
     contexts: set[Literal["read", "write", "*"]] = set()
+    mcp_providers: set[Literal["read", "write", "*"]] = set()
+    mcp_tools: set[Literal["read", "*"]] = set()
+    mcp_proxy: set[Literal["*"]] = set()
 
 
 class Context(pydantic.BaseModel):

@@ -10,7 +10,7 @@ Most agents require access to language models and other external services to fun
 The fastest way to get started is with the interactive setup wizard:
 
 ```bash
-beeai env setup
+beeai model setup
 ```
 
 The setup wizard will then guide you through:
@@ -45,14 +45,14 @@ BeeAI supports a wide range of language model providers:
 
 ### Custom Providers via LLM Gateway
 
-If you have a custom OpenAI-compatible API endpoint, you can configure it during the interactive setup via `beeai env setup` by selecting "Other (RITS, vLLM, ...)" and providing your API URL.
+If you have a custom OpenAI-compatible API endpoint, you can configure it during the interactive setup via `beeai model setup` by selecting "Other (RITS, vLLM, ...)" and providing your API URL.
 
 BeeAI includes a built-in LLM gateway that provides a unified OpenAI-compatible API endpoint. This is useful when you want to:
 - Point existing agents to BeeAI instead of directly to LLM providers
 - Centrally manage API keys and provider configurations
 - Switch providers without reconfiguring individual agents
 
-After configuring BeeAI with a provider, the gateway is available at: http://localhost:8333/api/v1/llm/chat/completions
+After configuring BeeAI with a provider, the gateway is available at: http://localhost:8333/api/v1/openai/chat/completions
 
 <Note>
 This is a POST-only API endpoint for programmatic use. Use curl or OpenAI-compatible clients to interact with it.
@@ -65,7 +65,7 @@ The gateway automatically handles:
 - Request validation and error responses
 
 <Important>
-The gateway uses whatever LLM provider you've configured with `beeai env setup`. Configure your preferred provider first, then use the gateway endpoint in your applications.
+The gateway uses whatever LLM provider you've configured with `beeai model setup`. Configure your preferred provider first, then use the gateway endpoint in your applications.
 </Important>
 
 ## Agent-Specific Variables

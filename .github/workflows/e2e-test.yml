@@ -41,5 +41,5 @@ jobs:
           # LLM_API_KEY: "${{ secrets.GITHUB_TOKEN }}"
           # TODO: groq is not working with chat agent
           LLM_API_BASE: "https://api.groq.com/openai/v1"
-          LLM_MODEL: "meta-llama/llama-4-maverick-17b-128e-instruct"
+          LLM_MODEL: "groq:meta-llama/llama-4-maverick-17b-128e-instruct"
           LLM_API_KEY: "${{ secrets.GROQ_API_KEY }}"

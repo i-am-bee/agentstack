@@ -159,11 +159,11 @@ class Provider(BaseModel):
 
 
 class ProviderDeploymentState(StrEnum):
-    missing = "missing"
-    starting = "starting"
-    ready = "ready"
-    running = "running"
-    error = "error"
+    MISSING = "missing"
+    STARTING = "starting"
+    READY = "ready"
+    RUNNING = "running"
+    ERROR = "error"
 
 
 class ProviderErrorMessage(BaseModel):

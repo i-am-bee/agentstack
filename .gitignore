@@ -17,6 +17,7 @@ node_modules
 # misc
 .DS_Store
 *.pem
+dnc/
 
 # debug
 npm-debug.log*
@@ -207,3 +208,6 @@ mise.local.toml
 
 # Ruff
 .ruff_cache/
+
+# VSCode
+.vscode/

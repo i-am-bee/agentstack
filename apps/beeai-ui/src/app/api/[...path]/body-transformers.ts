@@ -10,7 +10,7 @@ export async function transformAgentManifestBody(response: Response, apiPath: st
     const body = await response.json();
     const providerId = apiPath.at(2);
 
-    const modifiedBody = { ...body, url: getBaseUrl(`/api/v1/a2a/${providerId}`, true) };
+    const modifiedBody = { ...body, url: getBaseUrl(`/api/v1/a2a/${providerId}/jsonrpc/`, true) };
 
     return JSON.stringify(modifiedBody);
   } catch (err) {

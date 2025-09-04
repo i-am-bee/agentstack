@@ -65,13 +65,13 @@ function handleArtifactUpdate(event: TaskArtifactUpdateEvent): UIMessagePart[] {
   return contentParts;
 }
 
-interface CreateA2AClientParams<UIGenericPart = never> {
+export interface CreateA2AClientParams<UIGenericPart = never> {
   providerId: string;
   extensions: AgentExtension[];
   onStatusUpdate?: (event: TaskStatusUpdateEvent) => UIGenericPart[];
 }
 
-export const buildA2AClient = <UIGenericPart = never>({
+export const buildA2AClient = async <UIGenericPart = never>({
   providerId,
   extensions,
   onStatusUpdate,
@@ -79,11 +79,8 @@ export const buildA2AClient = <UIGenericPart = never>({
   const mcpDemands = mcpExtensionExtractor(extensions);
   const llmDemands = llmExtensionExtractor(extensions);
 
-  const agentUrl = `${getBaseUrl()}/api/v1/a2a/${providerId}`;
-  const client = new A2AClient(agentUrl, {
-    // TODO: workaround until the a2a-js bug is resolved https://github.com/a2aproject/a2a-js/issues/116
-    ...(typeof window !== 'undefined' && { fetchImpl: window.fetch.bind(window) }),
-  });
+  const agentCardUrl = `${getBaseUrl()}/api/v1/a2a/${providerId}/.well-known/agent-card.json`;
+  const client = await A2AClient.fromCardUrl(agentCardUrl);
 
   const chat = ({ message, contextId, fulfillments, taskId: initialTaskId }: ChatParams) => {
     const messageSubject = new Subject<ChatResult<UIGenericPart>>();
@@ -189,5 +186,5 @@ export const buildA2AClient = <UIGenericPart = never>({
     return run;
   };
 
-  return { chat };
+  return { chat, llmDemands };
 };

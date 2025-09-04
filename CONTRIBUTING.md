@@ -85,26 +85,29 @@ mise beeai-platform:start --set oidc.enabled=true
 ```
 
 This does the following:
-- Installs Istio in ambient mode.  
-- Creates a gateway and routes for `https://beeai.localhost:8336/`.  
-- Installs the Kiali console.  
+
+- Installs Istio in ambient mode.
+- Creates a gateway and routes for `https://beeai.localhost:8336/`.
+- Installs the Kiali console.
 
 **Why TLS is used:**  
-OAuth tokens are returned to the browser only over HTTPS to avoid leakage over plain HTTP. Always access the UI via `https://beeai.localhost:8336/`.
+OAuth tokens are returned to the browser only over HTTPS to avoid leakage over plain HTTP. Always access the UI via
+`https://beeai.localhost:8336/`.
 
 **Istio details:**  
-The default namespace is labeled `istio.io/dataplane-mode=ambient`. This ensures all intra-pod traffic is routed through `ztunnel`, except the `beeai-platform` pod, which uses `hostNetwork` and is not compatible with the Istio mesh.
+The default namespace is labeled `istio.io/dataplane-mode=ambient`. This ensures all intra-pod traffic is routed through
+`ztunnel`, except the `beeai-platform` pod, which uses `hostNetwork` and is not compatible with the Istio mesh.
 
 **Available endpoints:**
 
 | Service        | HTTPS                                      | HTTP                                |
-| -------------- | ------------------------------------------ | ----------------------------------- |
+|----------------|--------------------------------------------|-------------------------------------|
 | Kiali Console  | –                                          | `http://localhost:20001`            |
 | BeeAI UI       | `https://beeai.localhost:8336`             | `http://localhost:8334`             |
 | BeeAI API Docs | `https://beeai.localhost:8336/api/v1/docs` | `http://localhost:8333/api/v1/docs` |
 
+**OIDC configuration:**
 
-**OIDC configuration:**  
 - Update OIDC provider credentials and settings helm/values.yaml under:
 
 ```YAML
@@ -144,28 +147,32 @@ oidc:
   ]
 ```
 
-Note: the `class` in the providers entry must be a valid provider supported by next-auth. see: https://github.com/nextauthjs/next-auth-example/blob/main/auth.ts
+Note: the `class` in the providers entry must be a valid provider supported by next-auth.
+see: https://github.com/nextauthjs/next-auth-example/blob/main/auth.ts
 
-- When debugging the ui component (See debugging individual components), copy the env.example as .env and update the following oidc specific values:
+- When debugging the ui component (See debugging individual components), copy the env.example as .env and update the
+  following oidc specific values:
 
 ```JavaScript
-NEXTAUTH_SECRET="<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
-NEXTAUTH_URL="https://localhost:3000"
-OIDC_ENABLED=true
+NEXTAUTH_SECRET = "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
+NEXTAUTH_URL = "https://localhost:3000"
+OIDC_ENABLED = true
 ```
 
 Optionally add:
+
 ```JavaScript
-NEXTAUTH_DEBUG="true"
+NEXTAUTH_DEBUG = "true"
 ```
 
 **Configure nextjs to run in experimental https mode**
 
-Run this command from a terminal in the apps/beeai-ui  folder of your project to create the SSL certificates (one time):
+Run this command from a terminal in the apps/beeai-ui folder of your project to create the SSL certificates (one time):
 
 `pnpm next dev --experimental-https`
 
 Output:
+
 ```bash
  ⚠ Self-signed certificates are currently an experimental feature, use with caution.
    Downloading mkcert package...
@@ -188,7 +195,8 @@ Sudo password:
  ✓ Ready in 1705ms
  ⚠ ./src/auth.ts
 ```
-Then press CTRL+C  stop the server.
+
+Then press CTRL+C stop the server.
 
 **Updating .vscode/launch.json**
 
@@ -196,25 +204,30 @@ Add a debug confugriation to vscode: Use this .vscode/launch.json:
 
 ```json
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Debug beeai-ui:run:dev",
-            "runtimeExecutable": "pnpm",
-            "args": ["next", "dev", "--experimental-https"],
-            "cwd": "${workspaceFolder}/apps/beeai-ui",
-            "env": {
-                "NODE_OPTIONS": "--inspect --no-experimental-global-navigator"
-            },
-            "console": "integratedTerminal"
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug beeai-ui:run:dev",
+      "runtimeExecutable": "pnpm",
+      "args": [
+        "next",
+        "dev",
+        "--experimental-https"
+      ],
+      "cwd": "${workspaceFolder}/apps/beeai-ui",
+      "env": {
+        "NODE_OPTIONS": "--inspect --no-experimental-global-navigator"
+      },
+      "console": "integratedTerminal"
+    }
+  ]
 }
 ```
 
- Update your providers/providers.json  like so:  (in the apps/beeai-ui/providers folder)
+Update your providers/providers.json like so:  (in the apps/beeai-ui/providers folder)
+
 ```json
 [
   {
@@ -232,16 +245,17 @@ Add a debug confugriation to vscode: Use this .vscode/launch.json:
 ]
 ```
 
-
-
 **To deploy the helm chart to OpenShift:**
 
-- Update values.yaml so that oidc.enabled is true.  e.g.:
+- Update values.yaml so that oidc.enabled is true. e.g.:
+
 ```yaml
   odic:
     enabled: true
 ```
-- Update values.yaml so that the `nextauth_url` and the `nextauth_redirect_proxy_url` values reflect the URL for the route created for the `beeai-platform-ui-svc`.
+
+- Update values.yaml so that the `nextauth_url` and the `nextauth_redirect_proxy_url` values reflect the URL for the
+  route created for the `beeai-platform-ui-svc`.
 - Ensure that the oidc.nextauth_providers array entries in values.yaml have valid/appropriate values
 
 ### Running and debugging individual components
@@ -342,7 +356,7 @@ mise x -- telepresence quit
 If you want to run this local setup against Ollama you must use a special option when setting up the LLM:
 
 ```
-beeai env setup --use-true-localhost
+beeai model setup --use-true-localhost
 ```
 
 ### Working with migrations

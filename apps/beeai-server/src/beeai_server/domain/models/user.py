@@ -10,13 +10,13 @@ from beeai_server.utils.utils import utc_now
 
 
 class UserRole(StrEnum):
-    admin = "admin"
-    developer = "developer"
-    user = "user"
+    ADMIN = "admin"
+    DEVELOPER = "developer"
+    USER = "user"
 
 
 class User(BaseModel):
     id: UUID = Field(default_factory=uuid4)
-    role: UserRole = UserRole.user
+    role: UserRole = UserRole.USER
     email: EmailStr
     created_at: AwareDatetime = Field(default_factory=utc_now)

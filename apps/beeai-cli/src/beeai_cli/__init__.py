@@ -9,9 +9,10 @@ import pydantic
 import typer
 
 import beeai_cli.commands.agent
+import beeai_cli.commands.auth
 import beeai_cli.commands.build
-import beeai_cli.commands.env
 import beeai_cli.commands.mcp
+import beeai_cli.commands.model
 import beeai_cli.commands.platform
 from beeai_cli.async_typer import AsyncTyper
 from beeai_cli.configuration import Configuration
@@ -21,11 +22,12 @@ from beeai_cli.utils import verbosity
 logging.basicConfig(level=logging.INFO if Configuration().debug else logging.FATAL)
 
 app = AsyncTyper(no_args_is_help=True)
-app.add_typer(beeai_cli.commands.env.app, name="env", no_args_is_help=True, help="Manage environment variables.")
+app.add_typer(beeai_cli.commands.model.app, name="model", no_args_is_help=True, help="Manage model providers.")
 app.add_typer(beeai_cli.commands.agent.app, name="agent", no_args_is_help=True, help="Manage agents.")
 app.add_typer(beeai_cli.commands.platform.app, name="platform", no_args_is_help=True, help="Manage BeeAI platform.")
 app.add_typer(beeai_cli.commands.mcp.app, name="mcp", no_args_is_help=True, help="Manage MCP servers and toolkits.")
 app.add_typer(beeai_cli.commands.build.app, name="", no_args_is_help=True, help="Build agent images.")
+app.add_typer(beeai_cli.commands.auth.app, name="", no_args_is_help=True, help="Beeai login.")
 
 
 agent_alias = deepcopy(beeai_cli.commands.agent.app)
@@ -86,9 +88,9 @@ async def show_version(verbose: typing.Annotated[bool, typer.Option("-v", help="
 async def _launch_graphical_interface(host_url: str):
     import webbrowser
 
-    import beeai_cli.commands.env
+    import beeai_cli.commands.model
 
-    await beeai_cli.commands.env.ensure_llm_env()
+    await beeai_cli.commands.model.ensure_llm_env()
     webbrowser.open(host_url)
 
 

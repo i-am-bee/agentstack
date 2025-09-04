@@ -17,11 +17,34 @@ unmanagedProviders: [ ]
 externalRegistries: { }
 
 auth:
-  # admin_password: "" - deprecated, use adminPassword instead
-
-  adminPassword: ""
+  enabled: false # Warning, disable only for local deployments
   jwtSecretKey: ""
-  enabled: true # Warning, disable only for local deployments
+  basic: 
+    enabled: false
+    adminPassword: ""
+  oidc:
+    enabled: false
+    admin_emails:
+      - example.admin@ibm.com
+    nextauth_trust_host: true
+    nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
+    providers_path: "/providers"
+    nextauth_url: "https://beeai.localhost:8336"
+    providers: [
+      {
+        "name": "w3id",
+        "id": "w3id",
+        "type": "oidc",
+        "class": "IBM",
+        "client_id": "<oidc_client_id>",
+        "client_secret": "<oidc_client_secret>",
+        "issuer": "<oidc_issuer>",
+        "jwks_url": "<oidc_jwks_url>",
+        "nextauth_url": "https://beeai.localhost:8336",
+        "nextauth_redirect_proxy_url": "https://beeai.localhost:8336"
+      }
+    ]
+  
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
@@ -76,29 +99,6 @@ securityContext: { }
 initContainers:
   createVectorDbExtension: true
 
-oidc:
-  enabled: false
-  discovery_url: "https://preprod.login.w3.ibm.com/oidc/endpoint/default/.well-known/openid-configuration"
-  admin_emails: "habeck@us.ibm.com"
-  nextauth_trust_host: true
-  nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
-  providers_path: "/providers"
-  nextauth_url: "https://beeai.localhost:8336"
-  nextauth_providers: [
-    {
-      "name": "w3id",
-      "id": "w3id",
-      "type": "oidc",
-      "class": "IBM",
-      "client_id": "<oidc_client_id>",
-      "client_secret": "<oidc_client_secret>",
-      "issuer": "<oidc_issuer>",
-      "jwks_url": "<oidc_jwks_url>",
-      "nextauth_url": "https://beeai.localhost:8336",
-      "nextauth_redirect_proxy_url": "https://beeai.localhost:8336"
-    }
-  ]
-
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
   # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
@@ -150,6 +150,7 @@ readinessProbe:
 
 # Additional volumes on the output Deployment definition.
 volumes: [ ]
+
 # - name: foo
 #   secret:
 #     secretName: mysecret

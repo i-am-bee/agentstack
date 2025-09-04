@@ -82,7 +82,7 @@ async def get_text_file_content(
     user: Annotated[AuthorizedUser, Depends(RequiresContextPermissions(files={"read"}))],
 ) -> StreamingResponse:
     extraction = await file_service.get_extraction(file_id=file_id, user=user.user, context_id=user.context_id)
-    if not extraction.status == ExtractionStatus.completed or not extraction.extracted_file_id:
+    if not extraction.status == ExtractionStatus.COMPLETED or not extraction.extracted_file_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Extraction is not completed (status {extraction.status})",

@@ -42,8 +42,9 @@ from beeai_sdk.a2a.extensions import (
     TrajectoryExtensionClient,
     TrajectoryExtensionSpec,
 )
-from beeai_sdk.platform import Provider
+from beeai_sdk.platform import ModelProvider, Provider
 from beeai_sdk.platform.context import Context, ContextPermissions, ContextToken, Permissions
+from beeai_sdk.platform.model_provider import ModelCapability
 from pydantic import BaseModel
 from rich.box import HORIZONTALS
 from rich.console import ConsoleRenderable, Group, NewLine
@@ -52,7 +53,7 @@ from rich.rule import Rule
 from rich.text import Text
 
 from beeai_cli.commands.build import build
-from beeai_cli.commands.env import ensure_llm_env
+from beeai_cli.commands.model import ensure_llm_env
 from beeai_cli.configuration import Configuration
 
 if sys.platform != "win32":
@@ -77,6 +78,7 @@ from beeai_cli.api import a2a_client, api_stream
 from beeai_cli.async_typer import AsyncTyper, console, create_table, err_console
 from beeai_cli.utils import (
     generate_schema_example,
+    parse_env_var,
     prompt_user,
     remove_nullable,
     run_command,
@@ -86,8 +88,8 @@ from beeai_cli.utils import (
 
 
 class InteractionMode(StrEnum):
-    single_turn = "single-turn"
-    multi_turn = "multi-turn"
+    SINGLE_TURN = "single-turn"
+    MULTI_TURN = "multi-turn"
 
 
 class ProviderUtils(BaseModel):
@@ -246,33 +248,44 @@ async def _run_agent(
     llm_spec = LLMServiceExtensionSpec.from_agent_card(agent_card)
     embedding_spec = EmbeddingServiceExtensionSpec.from_agent_card(agent_card)
 
-    metadata = (
-        LLMServiceExtensionClient(llm_spec).fulfillment_metadata(
-            llm_fulfillments={
-                key: LLMFulfillment(
-                    api_base="{platform_url}/api/v1/llm/",
-                    api_key=context_token.token.get_secret_value(),
-                    api_model="dummy",
-                )
-                for key in llm_spec.params.llm_demands
-            }
+    async with configuration.use_platform_client():
+        metadata = (
+            LLMServiceExtensionClient(llm_spec).fulfillment_metadata(
+                llm_fulfillments={
+                    key: LLMFulfillment(
+                        api_base="{platform_url}/api/v1/openai/",
+                        api_key=context_token.token.get_secret_value(),
+                        api_model=(
+                            await ModelProvider.match(
+                                suggested_models=demand.suggested,
+                                capability=ModelCapability.LLM,
+                            )
+                        )[0].model_id,
+                    )
+                    for key, demand in llm_spec.params.llm_demands.items()
+                }
+            )
+            if llm_spec
+            else {}
+        ) | (
+            EmbeddingServiceExtensionClient(embedding_spec).fulfillment_metadata(
+                embedding_fulfillments={
+                    key: EmbeddingFulfillment(
+                        api_base="{platform_url}/api/v1/openai/",
+                        api_key=context_token.token.get_secret_value(),
+                        api_model=(
+                            await ModelProvider.match(
+                                suggested_models=demand.suggested,
+                                capability=ModelCapability.EMBEDDING,
+                            )
+                        )[0].model_id,
+                    )
+                    for key, demand in embedding_spec.params.embedding_demands.items()
+                }
+            )
+            if embedding_spec
+            else {}
         )
-        if llm_spec
-        else {}
-    ) | (
-        EmbeddingServiceExtensionClient(embedding_spec).fulfillment_metadata(
-            embedding_fulfillments={
-                key: EmbeddingFulfillment(
-                    api_base="{platform_url}/api/v1/llm/",
-                    api_key=context_token.token.get_secret_value(),
-                    api_model="dummy",
-                )
-                for key in embedding_spec.params.embedding_demands
-            }
-        )
-        if embedding_spec
-        else {}
-    )
 
     msg = Message(
         message_id=str(uuid4()),
@@ -598,7 +611,7 @@ def _setup_sequential_workflow(providers: list[Provider], splash_screen: Console
     prompt_agents = {
         provider.agent_card.name: provider
         for provider in providers
-        if (ProviderUtils.detail(provider) or {}).get("interaction_mode") == InteractionMode.single_turn
+        if (ProviderUtils.detail(provider) or {}).get("interaction_mode") == InteractionMode.SINGLE_TURN
     }
     steps = []
 
@@ -702,7 +715,7 @@ async def run_agent(
 
     if not input:
         if (
-            interaction_mode not in {InteractionMode.multi_turn, InteractionMode.single_turn}
+            interaction_mode not in {InteractionMode.MULTI_TURN, InteractionMode.SINGLE_TURN}
             and not is_sequential_workflow
         ):
             err_console.print(
@@ -712,7 +725,7 @@ async def run_agent(
             err_console.print(_render_examples(agent))
             exit(1)
 
-        if interaction_mode == InteractionMode.multi_turn:
+        if interaction_mode == InteractionMode.MULTI_TURN:
             console.print(f"{user_greeting}\n")
             input = handle_input()
             async with a2a_client(provider.agent_card) as client:
@@ -728,7 +741,7 @@ async def run_agent(
                     )
                     console.print()
                     input = handle_input()
-        elif interaction_mode == InteractionMode.single_turn:
+        elif interaction_mode == InteractionMode.SINGLE_TURN:
             user_greeting = ui_annotations.get("user_greeting", None) or "Enter your instructions."
             console.print(f"{user_greeting}\n")
             input = handle_input()
@@ -895,3 +908,56 @@ async def agent_detail(
             table.add_row(key, str(value))
     console.print()
     console.print(table)
+
+
+env_app = AsyncTyper()
+app.add_typer(env_app, name="env")
+
+
+async def _list_env(provider: Provider):
+    async with configuration.use_platform_client():
+        variables = await provider.list_variables()
+    with create_table(Column("name", style="yellow"), Column("value", ratio=1)) as table:
+        for name, value in sorted(variables.items()):
+            table.add_row(name, value)
+    console.print(table)
+
+
+@env_app.command("add")
+async def add_env(
+    search_path: typing.Annotated[
+        str, typer.Argument(..., help="Short ID, agent name or part of the provider location")
+    ],
+    env: typing.Annotated[list[str], typer.Argument(help="Environment variables to pass to agent")],
+) -> None:
+    """Store environment variables"""
+    env_vars = dict(parse_env_var(var) for var in env)
+    async with configuration.use_platform_client():
+        provider = select_provider(search_path, await Provider.list())
+        await provider.update_variables(variables=env_vars)
+    await _list_env(provider)
+
+
+@env_app.command("list")
+async def list_env(
+    search_path: typing.Annotated[
+        str, typer.Argument(..., help="Short ID, agent name or part of the provider location")
+    ],
+):
+    """List stored environment variables"""
+    async with configuration.use_platform_client():
+        provider = select_provider(search_path, await Provider.list())
+    await _list_env(provider)
+
+
+@env_app.command("remove")
+async def remove_env(
+    search_path: typing.Annotated[
+        str, typer.Argument(..., help="Short ID, agent name or part of the provider location")
+    ],
+    env: typing.Annotated[list[str], typer.Argument(help="Environment variable(s) to remove")],
+):
+    async with configuration.use_platform_client():
+        provider = select_provider(search_path, await Provider.list())
+        await provider.update_variables(variables=dict.fromkeys(env))
+    await _list_env(provider)

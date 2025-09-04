@@ -11,20 +11,21 @@ import { CopyButton } from '#components/CopyButton/CopyButton.tsx';
 import { MessageFeedback } from '#modules/feedback/components/MessageFeedback.tsx';
 import { fadeProps } from '#utils/fadeProps.ts';
 
+import { useMessageInteraction } from '../contexts/MessageInteraction';
 import type { UIAgentMessage } from '../types';
 import classes from './MessageActions.module.scss';
 
 interface Props {
-  isVisible: boolean;
   message: UIAgentMessage;
   contentRef: RefObject<HTMLElement | null>;
   className?: string;
 }
 
-export function MessageActions({ isVisible, message, contentRef, className }: Props) {
+export function MessageActions({ message, contentRef, className }: Props) {
+  const { isFocusWithin, isHovered } = useMessageInteraction();
   const [feedbackFormOpen, setFeedbackFormOpen] = useState(false);
 
-  const shouldShow = isVisible || feedbackFormOpen;
+  const shouldShow = isFocusWithin || isHovered || feedbackFormOpen;
 
   return (
     <AnimatePresence>

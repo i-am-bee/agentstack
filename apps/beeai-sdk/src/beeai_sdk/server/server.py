@@ -253,20 +253,13 @@ class Server:
                         resp = await client.post(
                             urljoin(base_url, "providers"), json=request_data, params={"auto_remove": True}
                         )
-                        resp.raise_for_status()
+                        resp = resp.raise_for_status().json()
 
                         logger.debug("Agent registered to the beeai server.")
 
-                        env_resp = await client.get(urljoin(base_url, "variables"))
+                        env_resp = await client.get(urljoin(base_url, f"providers/{resp['id']}/variables"))
                         envs_request = env_resp.raise_for_status().json()
-
                         envs = envs_request.get("env")
-                        os.environ["LLM_MODEL"] = "dummy"
-                        os.environ["LLM_API_KEY"] = "dummy"
-                        os.environ["LLM_API_BASE"] = f"{url.rstrip('/')}/api/v1/llm"
-                        os.environ["EMBEDDING_MODEL"] = "dummy"
-                        os.environ["EMBEDDING_API_KEY"] = "dummy"
-                        os.environ["EMBEDDING_API_BASE"] = f"{url.rstrip('/')}/api/v1/llm"
 
                 for extension in self._agent.card.capabilities.extensions or []:
                     # TODO - env extension?

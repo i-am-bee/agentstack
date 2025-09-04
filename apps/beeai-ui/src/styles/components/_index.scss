@@ -25,6 +25,8 @@
 // @forward '@carbon/styles/scss/components/data-table/expandable';
 @forward '@carbon/styles/scss/components/data-table/skeleton';
 // @forward '@carbon/styles/scss/components/data-table/sort';
+// @forward '@carbon/styles/scss/components/date-picker';
+@forward '@carbon/styles/scss/components/dropdown';
 @forward '@carbon/styles/scss/components/date-picker';
 @forward 'date-picker';
 // @forward '@carbon/styles/scss/components/dropdown';
@@ -68,7 +70,7 @@
 @forward '@carbon/styles/scss/components/radio-button';
 @forward 'radio-button';
 @forward '@carbon/styles/scss/components/search';
-// @forward '@carbon/styles/scss/components/select';
+@forward '@carbon/styles/scss/components/select';
 @forward '@carbon/styles/scss/components/skeleton-styles';
 @forward 'skeleton-styles';
 // @forward '@carbon/styles/scss/components/slider';

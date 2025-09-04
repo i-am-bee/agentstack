@@ -1,21 +1,28 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-
+import base64
 import json
+import re
+import struct
+import typing
 from collections.abc import AsyncGenerator, Generator
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any
 
 import fastapi
 import ibm_watsonx_ai
-import ibm_watsonx_ai.foundation_models
+import ibm_watsonx_ai.foundation_models.embeddings
 import openai
+import openai.pagination
 import openai.types.chat
-import pydantic
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import StreamingResponse
+from openai.types import CreateEmbeddingResponse, Model
+from starlette.status import HTTP_400_BAD_REQUEST
 
-from beeai_server.api.dependencies import EnvServiceDependency, RequiresPermissions
+from beeai_server.api.dependencies import ModelProviderServiceDependency, RequiresPermissions
+from beeai_server.api.schema.openai import ChatCompletionRequest, EmbeddingsRequest, MultiformatEmbedding, OpenAIPage
+from beeai_server.domain.models.model_provider import ModelProvider, ModelProviderType
 from beeai_server.domain.models.permissions import AuthorizedUser
 
 router = fastapi.APIRouter()
@@ -23,62 +30,26 @@ router = fastapi.APIRouter()
 BEEAI_PROXY_VERSION = 1
 
 
-class ChatCompletionRequest(pydantic.BaseModel):
-    """
-    Corresponds to args to OpenAI `client.chat.completions.create(...)`
-    """
-
-    messages: list[
-        pydantic.SkipValidation[openai.types.chat.ChatCompletionMessageParam]
-    ]  # SkipValidation to avoid https://github.com/pydantic/pydantic/issues/9467
-    model: str | openai.types.ChatModel
-    audio: openai.types.chat.ChatCompletionAudioParam | None = None
-    frequency_penalty: float | None = None
-    function_call: openai.types.chat.completion_create_params.FunctionCall | None = None
-    functions: list[openai.types.chat.completion_create_params.Function] | None = None
-    logit_bias: dict[str, int] | None = None
-    logprobs: bool | None = None
-    max_completion_tokens: int | None = None
-    max_tokens: int | None = None
-    metadata: openai.types.Metadata | None = None
-    modalities: list[Literal["text", "audio"]] | None = None
-    n: int | None = None
-    parallel_tool_calls: bool | None = None
-    prediction: openai.types.chat.ChatCompletionPredictionContentParam | None = None
-    presence_penalty: float | None = None
-    reasoning_effort: openai.types.ReasoningEffort | None = None
-    response_format: openai.types.chat.completion_create_params.ResponseFormat | None = None
-    seed: int | None = None
-    service_tier: Literal["auto", "default", "flex", "scale", "priority"] | None = None
-    stop: str | list[str] | None = None
-    store: bool | None = None
-    stream: bool | None = None
-    stream_options: openai.types.chat.ChatCompletionStreamOptionsParam | None = None
-    temperature: float | None = None
-    tool_choice: openai.types.chat.ChatCompletionToolChoiceOptionParam | None = None
-    tools: list[openai.types.chat.ChatCompletionToolParam] = None
-    top_logprobs: int | None = None
-    top_p: float | None = None
-    user: str | None = None
-    web_search_options: openai.types.chat.completion_create_params.WebSearchOptions | None = None
-
-
 @router.post("/chat/completions")
 async def create_chat_completion(
-    env_service: EnvServiceDependency,
+    model_provider_service: ModelProviderServiceDependency,
     request: ChatCompletionRequest,
     _: Annotated[AuthorizedUser, Depends(RequiresPermissions(llm={"*"}))],
 ):
-    env = await env_service.list_env()
+    provider = await model_provider_service.get_provider_by_model_id(model_id=request.model)
+    model_id = re.sub(rf"^{provider.type}:", "", request.model)
 
-    backend_url = pydantic.HttpUrl(env["LLM_API_BASE"])
-    assert backend_url.host
-    if backend_url.host.endswith(".ml.cloud.ibm.com"):
+    if not provider.supports_llm:
+        raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Model does not support chat completions")
+
+    api_key = await model_provider_service.get_provider_api_key(model_provider_id=provider.id)
+
+    if provider.type == ModelProviderType.WATSONX:
         model = ibm_watsonx_ai.foundation_models.ModelInference(
-            model_id=env["LLM_MODEL"],
-            credentials=ibm_watsonx_ai.Credentials(url=env["LLM_API_BASE"], api_key=env["LLM_API_KEY"]),
-            project_id=env.get("WATSONX_PROJECT_ID"),
-            space_id=env.get("WATSONX_SPACE_ID"),
+            model_id=model_id,
+            credentials=ibm_watsonx_ai.Credentials(url=str(provider.base_url), api_key=api_key),
+            project_id=provider.watsonx_project_id,
+            space_id=provider.watsonx_space_id,
             params=ibm_watsonx_ai.foundation_models.model.TextChatParameters(
                 frequency_penalty=request.frequency_penalty,
                 logprobs=request.logprobs,
@@ -103,7 +74,8 @@ async def create_chat_completion(
                         tools=request.tools,
                         tool_choice=request.tool_choice if isinstance(request.tool_choice, dict) else None,
                         tool_choice_option=request.tool_choice if isinstance(request.tool_choice, str) else None,
-                    )
+                    ),
+                    request.model,
                 ),
                 media_type="text/event-stream",
             )
@@ -144,7 +116,7 @@ async def create_chat_completion(
                     for choice in response["choices"]
                 ],
                 created=response["created"],
-                model=response["model_id"],
+                model=request.model,
                 object="chat.completion",
                 system_fingerprint=response.get("model_version"),
                 usage=openai.types.CompletionUsage(
@@ -155,32 +127,33 @@ async def create_chat_completion(
             ).model_dump(mode="json") | {"beeai_proxy_version": BEEAI_PROXY_VERSION}
     else:
         client = openai.AsyncOpenAI(
-            api_key=env["LLM_API_KEY"],
-            base_url=env["LLM_API_BASE"],
-            default_headers=(
-                {"RITS_API_KEY": env["LLM_API_KEY"]}
-                if pydantic.HttpUrl(env["LLM_API_BASE"]).host.endswith(".rits.fmaas.res.ibm.com")
-                else {}
-            ),
+            api_key=api_key,
+            base_url=str(provider.base_url),
+            default_headers=({"RITS_API_KEY": api_key} if provider.type == ModelProviderType.RITS else {}),
         )
         if request.stream:
             return StreamingResponse(
                 _stream_openai(
                     await client.chat.completions.create(
-                        **(request.model_dump(mode="json", exclude_none=True) | {"model": env["LLM_MODEL"]})
-                    )
+                        **(request.model_dump(mode="json", exclude_none=True) | {"model": model_id})
+                    ),
+                    request.model,
                 ),
                 media_type="text/event-stream",
             )
         else:
             return (
-                await client.chat.completions.create(
-                    **(request.model_dump(mode="json", exclude_none=True) | {"model": env["LLM_MODEL"]})
-                )
-            ).model_dump(mode="json") | {"beeai_proxy_version": BEEAI_PROXY_VERSION}
+                (
+                    await client.chat.completions.create(
+                        **(request.model_dump(mode="json", exclude_none=True) | {"model": model_id})
+                    )
+                ).model_dump(mode="json")
+                | {"model": request.model}
+                | {"beeai_proxy_version": BEEAI_PROXY_VERSION}
+            )
 
 
-def _stream_watsonx(stream: Generator) -> Generator[str, Any]:
+def _stream_watsonx(stream: Generator, request_model_id: str) -> Generator[str, Any]:
     try:
         for chunk in stream:
             yield f"""data: {
@@ -189,7 +162,7 @@ def _stream_watsonx(stream: Generator) -> Generator[str, Any]:
                         object="chat.completion.chunk",
                         id=chunk["id"],
                         created=chunk["created"],
-                        model=chunk["model_id"],
+                        model=request_model_id,
                         system_fingerprint=chunk["model_version"],
                         choices=[
                             openai.types.chat.chat_completion_chunk.Choice(
@@ -234,11 +207,101 @@ def _stream_watsonx(stream: Generator) -> Generator[str, Any]:
         yield "data: [DONE]\n\n"
 
 
-async def _stream_openai(stream: AsyncGenerator) -> AsyncGenerator[str, Any]:
+async def _stream_openai(stream: AsyncGenerator, request_model_id: str) -> AsyncGenerator[str, Any]:
     try:
         async for chunk in stream:
-            yield f"data: {json.dumps(chunk.model_dump(mode='json') | {'beeai_proxy_version': BEEAI_PROXY_VERSION})}\n\n"
+            data = json.dumps(
+                chunk.model_dump(mode="json")
+                | {"model": request_model_id}
+                | {"beeai_proxy_version": BEEAI_PROXY_VERSION}
+            )
+            yield f"data: {data}\n\n"
     except Exception as e:
         yield f"data: {json.dumps({'error': {'message': str(e), 'type': type(e).__name__}, 'beeai_proxy_version': BEEAI_PROXY_VERSION})}\n\n"
     finally:
         yield "data: [DONE]\n\n"
+
+
+def _get_provider_model_id(request_model_id: str, provider: ModelProvider):
+    return re.sub(rf"^{provider.type}:", "", request_model_id)
+
+
+@router.post("/embeddings")
+async def create_embedding(
+    request: EmbeddingsRequest,
+    model_provider_service: ModelProviderServiceDependency,
+    _: typing.Annotated[AuthorizedUser, Depends(RequiresPermissions(embeddings={"*"}))],
+):
+    provider = await model_provider_service.get_provider_by_model_id(model_id=request.model)
+    model_id = _get_provider_model_id(request.model, provider)
+
+    if not provider.supports_embedding:
+        raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Model does not support embeddings")
+
+    if provider.type == ModelProviderType.VOYAGE:
+        # Voyage does not support 'float' value: https://docs.voyageai.com/reference/embeddings-api
+        request.encoding_format = None if request.encoding_format == "float" else request.encoding_format
+
+    api_key = await model_provider_service.get_provider_api_key(model_provider_id=provider.id)
+
+    if provider.type == ModelProviderType.WATSONX:
+        watsonx_response = await run_in_threadpool(
+            ibm_watsonx_ai.foundation_models.embeddings.Embeddings(
+                model_id=model_id,
+                credentials=ibm_watsonx_ai.Credentials(url=str(provider.base_url), api_key=api_key),
+                project_id=provider.watsonx_project_id,
+                space_id=provider.watsonx_space_id,
+            ).generate,
+            inputs=[request.input] if isinstance(request.input, str) else request.input,
+        )
+        return openai.types.CreateEmbeddingResponse(
+            object="list",
+            model=watsonx_response["model_id"],
+            data=[
+                MultiformatEmbedding(
+                    object="embedding",
+                    index=i,
+                    embedding=(
+                        _float_list_to_base64(result["embedding"])
+                        if request.encoding_format == "base64"
+                        else typing.cast(list[float], result["embedding"])
+                    ),
+                )
+                for i, result in enumerate(watsonx_response.get("results", []))
+            ],
+            usage=openai.types.create_embedding_response.Usage(
+                prompt_tokens=watsonx_response.get("usage", {}).get("prompt_tokens", 0),
+                total_tokens=watsonx_response.get("usage", {}).get("total_tokens", 0),
+            ),
+        ).model_dump(mode="json") | {"beeai_proxy_version": BEEAI_PROXY_VERSION}
+    else:
+        result: CreateEmbeddingResponse = await openai.AsyncOpenAI(
+            api_key=api_key,
+            base_url=str(provider.base_url),
+            default_headers=({"RITS_API_KEY": api_key} if provider.type == ModelProviderType.RITS else {}),
+        ).embeddings.create(**(request.model_dump(mode="json", exclude_none=True) | {"model": model_id}))
+        # Despite the typing, OpenAI library does return str embeddings when base64 is requested
+        # However, some providers, like Ollama, silently don't support base64, so we have to convert
+        if request.encoding_format == "base64" and result.data and isinstance(result.data[0].embedding, list):
+            result.data = [
+                MultiformatEmbedding(
+                    object="embedding",
+                    index=embedding.index,
+                    embedding=_float_list_to_base64(embedding.embedding),
+                )
+                for embedding in result.data
+            ]
+        return result.model_dump(mode="json") | {"beeai_proxy_version": BEEAI_PROXY_VERSION}
+
+
+def _float_list_to_base64(embedding: list[float]) -> str:
+    return base64.b64encode(struct.pack(f"<{len(embedding)}f", *embedding)).decode("utf-8")
+
+
+@router.get("/models")
+async def list_models(
+    model_provider_service: ModelProviderServiceDependency,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(model_providers={"read"}))],
+) -> OpenAIPage[Model]:
+    all_models = await model_provider_service.get_all_models()
+    return OpenAIPage(data=[model for _, model in all_models.values()])

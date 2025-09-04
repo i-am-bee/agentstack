@@ -10,10 +10,13 @@ import type { ContextId } from '#modules/tasks/api/types.ts';
 
 interface PlatformContextValue {
   contextId: ContextId | null;
+  matchedProviders?: Record<string, string[]>;
+  selectedProviders: Record<string, string>;
   getContextId: () => ContextId;
   resetContext: () => void;
   getPlatformToken: () => Promise<string>;
   getFullfilments: () => Promise<Fulfillments>;
+  selectProvider: (key: string, value: string) => void;
 }
 
 export const PlatformContext = createContext<PlatformContextValue | null>(null);

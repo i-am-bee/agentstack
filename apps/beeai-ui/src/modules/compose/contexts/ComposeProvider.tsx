@@ -10,8 +10,7 @@ import { useFieldArray, useFormContext } from 'react-hook-form';
 import { match } from 'ts-pattern';
 import { v4 as uuid } from 'uuid';
 
-import { buildA2AClient } from '#api/a2a/client.ts';
-import type { ChatRun } from '#api/a2a/types.ts';
+import type { AgentA2AClient, ChatRun } from '#api/a2a/types.ts';
 import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 import { usePrevious } from '#hooks/usePrevious.ts';
@@ -23,6 +22,7 @@ import { UIMessagePartKind, UIMessageStatus, type UIUserMessage } from '#modules
 import { addTranformedMessagePart, getMessageRawContent } from '#modules/messages/utils.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 import { PlatformContextProvider } from '#modules/platform-context/contexts/PlatformContextProvider.tsx';
+import { useBuildA2AClient } from '#modules/runs/api/queries/useBuildA2AClient.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { type UIComposePart, UIComposePartKind } from '../a2a/types';
@@ -32,14 +32,26 @@ import type { ComposeStep, SequentialFormValues } from './compose-context';
 import { ComposeContext, ComposeStatus } from './compose-context';
 
 export function ComposeProvider({ children }: PropsWithChildren) {
+  const { data: sequentialAgent } = useAgentByName({ name: SEQUENTIAL_WORKFLOW_AGENT_NAME });
+
+  const { agentClient } = useBuildA2AClient({
+    providerId: sequentialAgent?.provider.id,
+    extensions: sequentialAgent?.capabilities.extensions ?? [],
+    onStatusUpdate: handleTaskStatusUpdate,
+  });
+
   return (
-    <PlatformContextProvider>
-      <ComposeProviderWithContext>{children}</ComposeProviderWithContext>
+    <PlatformContextProvider agentClient={agentClient}>
+      <ComposeProviderWithContext agentClient={agentClient}>{children}</ComposeProviderWithContext>
     </PlatformContextProvider>
   );
 }
 
-function ComposeProviderWithContext({ children }: PropsWithChildren) {
+interface Props {
+  agentClient?: AgentA2AClient<UIComposePart>;
+}
+
+function ComposeProviderWithContext({ agentClient, children }: PropsWithChildren<Props>) {
   const { getContextId, getFullfilments } = usePlatformContext();
   const { data: agents } = useListAgents({ onlyUiSupported: true, sort: true });
 
@@ -55,19 +67,6 @@ function ComposeProviderWithContext({ children }: PropsWithChildren) {
   const stepsFields = useFieldArray<SequentialFormValues>({ name: 'steps' });
   const { replace: replaceSteps } = stepsFields;
   const steps = watch('steps');
-
-  const { data: sequentialAgent } = useAgentByName({ name: SEQUENTIAL_WORKFLOW_AGENT_NAME });
-
-  const a2aAgentClient = useMemo(
-    () =>
-      sequentialAgent &&
-      buildA2AClient<UIComposePart>({
-        providerId: sequentialAgent.provider.id,
-        extensions: sequentialAgent.capabilities.extensions ?? [],
-        onStatusUpdate: handleTaskStatusUpdate,
-      }),
-    [sequentialAgent],
-  );
 
   const lastStep = steps.at(-1);
   const result = useMemo(() => (lastStep?.result ? getMessageRawContent(lastStep.result) : undefined), [lastStep]);
@@ -149,7 +148,7 @@ function ComposeProviderWithContext({ children }: PropsWithChildren) {
         if (pendingRun.current || pendingSubscription.current) {
           throw new Error('A run is already in progress');
         }
-        if (!a2aAgentClient) {
+        if (!agentClient) {
           throw new Error(`'${SEQUENTIAL_WORKFLOW_AGENT_NAME}' agent is not available.`);
         }
 
@@ -176,7 +175,7 @@ function ComposeProviderWithContext({ children }: PropsWithChildren) {
           parts: [createSequentialInputDataPart(steps)],
         };
 
-        const run = a2aAgentClient.chat({
+        const run = agentClient.chat({
           message: userMessage,
           contextId,
           fulfillments,
@@ -233,7 +232,7 @@ function ComposeProviderWithContext({ children }: PropsWithChildren) {
         pendingSubscription.current = undefined;
       }
     },
-    [a2aAgentClient, getContextId, getFullfilments, updateStep, getActiveStepIdx, getValues, handleError, onDone],
+    [agentClient, getContextId, getFullfilments, updateStep, getActiveStepIdx, getValues, handleError, onDone],
   );
 
   const onSubmit = useCallback(() => {

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
+import uuid
 from textwrap import dedent
 from typing import Any, AsyncIterator, Annotated
 import uuid
@@ -11,15 +12,16 @@ from a2a.types import (
     Artifact,
     DataPart,
     Message,
+    Part,
     Role,
+    Task,
     TaskArtifactUpdateEvent,
+    TaskState,
+    TaskStatus,
     TaskStatusUpdateEvent,
     TextPart,
-    Part,
-    TaskStatus,
-    TaskState,
-    Task,
 )
+
 import yaml
 from pydantic import Field, BaseModel
 
@@ -43,6 +45,7 @@ from beeai_sdk.a2a.extensions.services.platform import (
 from beeai_sdk.a2a.types import RunYield
 from beeai_sdk.platform import Metadata, Provider
 from beeai_sdk.server import Server
+from pydantic import BaseModel, Field
 
 
 class WorkflowStep(BaseModel):

@@ -102,7 +102,7 @@ beeai platform start
 3. **Configure** the LLM provider:
 
 ```sh
-beeai env setup
+beeai model setup
 ```
 
 4. **Use** the CLI:

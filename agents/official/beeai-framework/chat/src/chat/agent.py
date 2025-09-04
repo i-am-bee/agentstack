@@ -5,6 +5,7 @@ import os
 from typing import Annotated
 from collections import defaultdict
 from textwrap import dedent
+from typing import Annotated
 
 from a2a.types import (
     AgentSkill,
@@ -25,9 +26,7 @@ from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
 from beeai_framework.tools import Tool
 from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
 from beeai_framework.tools.search.wikipedia import WikipediaTool
-
 from beeai_framework.tools.weather import OpenMeteoTool
-
 from beeai_sdk.a2a.extensions import (
     AgentDetail,
     AgentDetailTool,
@@ -42,11 +41,10 @@ from beeai_sdk.a2a.extensions.services.platform import PlatformApiExtensionServe
 from beeai_sdk.a2a.types import AgentMessage, AgentArtifact
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import RunContext
-from chat.tools.general.current_time import CurrentTimeTool
-from chat.helpers.citations import extract_citations
-from chat.helpers.trajectory import TrajectoryContent
 from openinference.instrumentation.beeai import BeeAIInstrumentor
 
+from chat.helpers.citations import extract_citations
+from chat.helpers.trajectory import TrajectoryContent
 from chat.tools.files.file_creator import FileCreatorTool, FileCreatorToolOutput
 from chat.tools.files.file_reader import create_file_reader_tool_class
 from chat.tools.files.utils import FrameworkMessage, extract_files, to_framework_message
@@ -59,6 +57,7 @@ from chat.tools.general.clarification import (
     ClarificationTool,
     clarification_tool_middleware,
 )
+from chat.tools.general.current_time import CurrentTimeTool
 
 # Temporary instrument fix
 EventMeta.model_fields["context"].exclude = True
@@ -220,9 +219,9 @@ async def chat(
         [llm_conf] = llm_ext.data.llm_fulfillments.values()
 
     llm = OpenAIChatModel(
-        model_id=llm_conf.api_model if llm_conf else os.getenv("LLM_MODEL", "llama3.1"),
-        api_key=llm_conf.api_key if llm_conf else os.getenv("LLM_API_KEY", "dummy"),
-        base_url=llm_conf.api_base if llm_conf else os.getenv("LLM_API_BASE", "http://localhost:11434/v1"),
+        model_id=llm_conf.api_model if llm_conf else "llama3.1",
+        api_key=llm_conf.api_key if llm_conf else "dummy",
+        base_url=llm_conf.api_base if llm_conf else "http://localhost:11434/v1",
         parameters=ChatModelParameters(temperature=0.0),
         tool_choice_support=set(),
     )

@@ -13,6 +13,18 @@ export async function createContext() {
   return ensureData(response);
 }
 
+export async function matchProviders(suggestedModels: string[]) {
+  const response = await api.POST('/api/v1/model_providers/match', {
+    body: {
+      capability: 'llm',
+      score_cutoff: 0.4,
+      suggested_models: suggestedModels,
+    },
+  });
+
+  return ensureData(response);
+}
+
 export async function createContextToken(
   contextId: string,
   globalPermissionGrant: GlobalPermissionGrant,

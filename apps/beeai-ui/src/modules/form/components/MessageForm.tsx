@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useMessages } from '#modules/messages/contexts/index.ts';
+import { useMessages } from '#modules/messages/contexts/Messages/index.ts';
 import type { UIAgentMessage } from '#modules/messages/types.ts';
 import { getMessageForm } from '#modules/messages/utils.ts';
 import { useAgentRun } from '#modules/runs/contexts/agent-run/index.ts';

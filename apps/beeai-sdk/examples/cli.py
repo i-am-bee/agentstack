@@ -55,7 +55,6 @@ async def cli(base_url: str, context_id: str) -> None:
                     ]
                 ):
                     prompt: str = asyncclick.prompt("\n👤 User (CTRL-D to cancel)")
-
                     message = a2a.types.Message(
                         message_id=str(uuid.uuid4()),
                         role=a2a.types.Role.user,
@@ -67,7 +66,7 @@ async def cli(base_url: str, context_id: str) -> None:
                                 llm_fulfillments={
                                     # Demonstration only: we ignore the asks and just configure BeeAI proxy for everything
                                     key: beeai_sdk.a2a.extensions.services.llm.LLMFulfillment(
-                                        api_base="http://localhost:8333/api/v1/llm/",
+                                        api_base="http://localhost:8333/api/v1/openai/",
                                         api_key="dummy",
                                         api_model="dummy",
                                     )

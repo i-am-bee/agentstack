@@ -52,9 +52,7 @@ class FileCreatorTool(
             creator=self,
         )
 
-    async def _run(
-        self, input: FileCreatorInput, options, context
-    ) -> FileCreatorToolOutput:
+    async def _run(self, input: FileCreatorInput, options, context) -> FileCreatorToolOutput:
         files: list[FileCreatorFile] = []
         for item in input.files:
             file = await File.create(

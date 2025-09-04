@@ -29,15 +29,12 @@ app = AsyncTyper()
 
 @functools.cache
 def get_driver(vm_name: str = "beeai-platform") -> BaseDriver:
-    is_windows = platform.system() == "Windows" or shutil.which("wsl.exe")
     has_lima = (importlib.resources.files("beeai_cli") / "data" / "limactl").is_file() or shutil.which("limactl")
     has_vz = os.path.exists("/System/Library/Frameworks/Virtualization.framework")
     arch = "aarch64" if platform.machine().lower() == "arm64" else platform.machine().lower()
-    is_macos = platform.system() == "Darwin"
-    is_linux = platform.system() == "Linux"
-    has_qemu = not is_windows and bool(shutil.which(f"qemu-system-{arch}"))
+    has_qemu = bool(shutil.which(f"qemu-system-{arch}"))
 
-    if is_windows:
+    if platform.system() == "Windows" or shutil.which("wsl.exe"):
         return WSLDriver(vm_name=vm_name)
     elif has_lima and (has_vz or has_qemu):
         return LimaDriver(vm_name=vm_name)
@@ -45,16 +42,17 @@ def get_driver(vm_name: str = "beeai-platform") -> BaseDriver:
         console.print(
             "[red]Error: Could not find a compatible VM runtime. Please follow the installation instructions at https://docs.beeai.dev/introduction/installation[/red]"
         )
-        if is_macos and not (has_lima and has_vz):
+        if platform.system() == "Darwin":
             console.print("💡 [yellow]HINT[/yellow]: This version of macOS is unsupported, please update the system.")
-        elif is_linux and not has_lima:
-            console.print(
-                "💡 [yellow]HINT[/yellow]: This Linux distribution is not suppored by Lima VM binary releases. Manually install Lima VM through your distribution's package manager, or build it yourself, and ensure that limactl is in PATH."
-            )
-        elif is_linux and not has_qemu:
-            console.print(
-                f"💡 [yellow]HINT[/yellow]: QEMU is needed on Linux, please install it first and ensure that qemu-system-{arch} is in PATH."
-            )
+        elif platform.system() == "Linux":
+            if not has_lima:
+                console.print(
+                    "💡 [yellow]HINT[/yellow]: This Linux distribution is not suppored by Lima VM binary releases. Manually install Lima VM through your distribution's package manager, or build it yourself, and ensure that limactl is in PATH."
+                )
+            if not has_qemu:
+                console.print(
+                    f"💡 [yellow]HINT[/yellow]: QEMU is needed on Linux, please install it and ensure that qemu-system-{arch} is in PATH."
+                )
         sys.exit(1)
 
 

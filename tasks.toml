@@ -220,8 +220,8 @@ fi
 # Update all version fields
 yq -i ".version = \"$new_version\"" helm/Chart.yaml
 yq -i ".appVersion = \"$new_version\"" helm/Chart.yaml
-(cd apps/beeai-cli && toml set 'project.version' "$new_version" --toml-path pyproject.toml && uv lock)
 (cd apps/beeai-sdk && toml set 'project.version' "$new_version" --toml-path pyproject.toml && uv lock)
+(cd apps/beeai-cli && toml set 'project.version' "$new_version" --toml-path pyproject.toml && uv lock)
 (cd apps/beeai-server && toml set 'project.version' "$new_version" --toml-path pyproject.toml && uv lock)
 yq -i ".version = \"$new_version\"" apps/beeai-ui/package.json
 yq -i ".version = \"$new_version\"" apps/beeai-web/package.json

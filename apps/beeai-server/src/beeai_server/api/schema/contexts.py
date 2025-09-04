@@ -23,12 +23,22 @@ class GlobalPermissionGrant(BaseModel):
     files: list[Literal["read", "write", "extract", "*"]] = []
     feedback: list[Literal["write"]] = []
     vector_stores: list[Literal["read", "write", "extract", "*"]] = []
+
+    # openai proxy
     llm: list[Literal["*"] | ResourceIdPermission] = []
     embeddings: list[Literal["*"] | ResourceIdPermission] = []
+    model_providers: list[Literal["read", "write", "*"]] = []
+
     a2a_proxy: list[Literal["*"]] = []
+
+    # agent providers
     providers: list[Literal["read", "write", "*"]] = []  # write includes "show logs" permission
-    variables: list[Literal["read", "write", "*"]] = []
+    provider_variables: list[Literal["read", "write", "*"]] = []
+
     contexts: list[Literal["read", "write", "*"]] = []
+    mcp_providers: list[Literal["read", "write", "*"]] = []
+    mcp_tools: list[Literal["read", "*"]] = []
+    mcp_proxy: list[Literal["*"]] = []
 
 
 class ContextTokenCreateRequest(BaseModel):

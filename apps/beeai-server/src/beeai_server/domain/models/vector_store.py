@@ -47,8 +47,8 @@ class VectorSearchResult(BaseModel):
 
 
 class DocumentType(StrEnum):
-    platform_file = "platform_file"
-    external = "external"
+    PLATFORM_FILE = "platform_file"
+    EXTERNAL = "external"
 
 
 class VectorStoreDocumentInfo(BaseModel):
@@ -61,7 +61,7 @@ class VectorStoreItem(BaseModel):
 
     id: UUID = Field(default_factory=uuid4)
     document_id: str
-    document_type: DocumentType = DocumentType.platform_file
+    document_type: DocumentType = DocumentType.PLATFORM_FILE
     model_id: str | Literal["platform"] = "platform"
     text: str
     embedding: list[float]

@@ -86,10 +86,6 @@ class AsyncTyper(typer.Typer):
                             err_console.print(
                                 "💡 [yellow]HINT[/yellow]: Start the BeeAI platform using: [green]beeai platform start[/green]. If that does not help, run [green]beeai platform delete[/green] to start with a clean slate, then try [green]beeai platform start[/green] again."
                             )
-                        elif exc_type == "McpError":
-                            err_console.print(
-                                "💡 [yellow]HINT[/yellow]: Is your configuration correct? Try re-entering your LLM API details with: [green]beeai env setup[/green]"
-                            )
                         else:
                             err_console.print(
                                 "💡 [yellow]HINT[/yellow]: Are you having consistent problems? If so, try these troubleshooting steps: [green]beeai platform delete[/green] to remove the platform, and [green]beeai platform start[/green] to recreate it."

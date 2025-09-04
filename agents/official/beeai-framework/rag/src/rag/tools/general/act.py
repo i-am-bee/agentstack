@@ -29,15 +29,11 @@ class ActToolInput(BaseModel):
         ...,
         description="Provide a clear explanation of why you want to use the selected tool and what you expect to achieve.",
     )
-    selected_tool: str = Field(
-        ..., description="The name of the tool you want to execute next."
-    )
+    selected_tool: str = Field(..., description="The name of the tool you want to execute next.")
 
 
 class ActToolResult(BaseModel):
-    selected_tool: str = Field(
-        ..., description="The name of the tool that has been selected for execution."
-    )
+    selected_tool: str = Field(..., description="The name of the tool that has been selected for execution.")
 
 
 class ActToolOutput(JSONToolOutput[ActToolResult]):
@@ -102,9 +98,7 @@ class ActTool(Tool[ActToolInput]):
     def input_schema(self):
         return self._input_schema
 
-    async def _run(
-        self, input: ActToolInput, options: ToolRunOptions | None, context: RunContext
-    ) -> ActToolOutput:
+    async def _run(self, input: ActToolInput, options: ToolRunOptions | None, context: RunContext) -> ActToolOutput:
         if not input.selected_tool:
             raise ToolInputValidationError(
                 f"You must always select one of the provided tools: {self._allowed_tools_names}."
@@ -149,7 +143,7 @@ class ActAlwaysFirstRequirement(Requirement[RequirementAgentRunState]):
     @run_with_context
     async def run(self, state: RequirementAgentRunState, ctx: RunContext) -> list[Rule]:
         last_step = state.steps[-1] if state.steps else None
-        
+
         if last_step and last_step.tool and last_step.tool.name == "act":
             assert isinstance(last_step.tool, ActTool)
             if last_step.error is not None:
@@ -163,12 +157,8 @@ class ActAlwaysFirstRequirement(Requirement[RequirementAgentRunState]):
                     )
                 ]
 
-            if last_step.output is None or not isinstance(
-                last_step.output, ActToolOutput
-            ):
-                raise ValueError(
-                    "Last step output must be an instance of ActToolOutput."
-                )
+            if last_step.output is None or not isinstance(last_step.output, ActToolOutput):
+                raise ValueError("Last step output must be an instance of ActToolOutput.")
             selected_tool = last_step.output.result.selected_tool
             return [
                 Rule(
