@@ -63,8 +63,6 @@ function Message({ message }: Props) {
 
       <MessageForm message={message} />
 
-      <MessageForm message={message} />
-
       {!isPending && <MessageActions message={message} className={classes.actions} contentRef={contentRef} />}
     </div>
   );
