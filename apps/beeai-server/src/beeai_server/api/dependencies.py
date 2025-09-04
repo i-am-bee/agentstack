@@ -126,13 +126,13 @@ async def authorized_user(
             logger.info("Token is valid!")
             return token
         except PyJWTError:
-            if not configuration.auth.oidc.disable_oidc:
+            if configuration.auth.oidc.enabled:
                 return await authenticate_oauth_user(bearer_auth, cookie_auth, user_service, configuration)
             # TODO: update agents
             logger.warning("Bearer token is invalid, agent is not probably not using llm extension correctly")
 
     if configuration.auth.disable_auth or (
-        not configuration.auth.basic.disable_basic
+        configuration.auth.basic.enabled
         and basic_auth
         and basic_auth.password == configuration.auth.basic.admin_password.get_secret_value()
     ):

@@ -56,10 +56,6 @@ spec:
           env:
             - name: AUTH__DISABLE_AUTH
               value: "true"
-            - name: AUTH__BASIC__DISABLE_BASIC
-              value: "true"
-            - name: AUTH__OIDC__DISABLE_OIDC
-              value: "true"
             - name: LOGGING__LEVEL_SQLALCHEMY
               value: INFO
             - name: PERSISTENCE__ENCRYPTION_KEY
@@ -85,10 +81,6 @@ spec:
           env:
             - name: AUTH__DISABLE_AUTH
               value: "true"
-            - name: AUTH__BASIC__DISABLE_BASIC
-              value: "true"
-            - name: AUTH__OIDC__DISABLE_OIDC
-              value: "true"
             - name: LOGGING__LEVEL_SQLALCHEMY
               value: INFO
             - name: PERSISTENCE__ENCRYPTION_KEY
@@ -112,10 +104,6 @@ spec:
           {{- end }}
           env:
             - name: AUTH__DISABLE_AUTH
-              value: "true"
-            - name: AUTH__BASIC__DISABLE_BASIC
-              value: "true"
-            - name: AUTH__OIDC__DISABLE_OIDC
               value: "true"
             - name: PERSISTENCE__ENCRYPTION_KEY
               value: "dummy"
@@ -192,30 +180,26 @@ spec:
                 secretKeyRef:
                   key: sqlConnection
                   name: {{ include "beeai.databaseSecretName" . }}
-            {{- if not .Values.auth.enabled }}
+            {{- if .Values.auth.enabled }}
             - name: AUTH__DISABLE_AUTH
-              value: "true"
-            - name: AUTH__BASIC__DISABLE_BASIC
-              value: "true"
-            - name: AUTH__OIDC__DISABLE_OIDC
-              value: "true"
-            {{- else}}
+              value: "false"
             - name: AUTH__JWT_SECRET_KEY
               valueFrom:
                 secretKeyRef:
                   key: jwtSecretKey
                   name: beeai-platform-secret
-            {{- if and .Values.auth.enabled .Values.auth.basic.enabled}}
+            {{- if .Values.auth.basic.enabled}}
+            - name: AUTH__BASIC__ENABLED
+              value: "true"
             - name: AUTH__BASIC__ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
                   key: adminPassword
                   name: beeai-platform-secret
-            {{- else}}
-            - name: AUTH__BASIC__DISABLE_BASIC
+            {{- end }}
+            {{- if .Values.auth.oidc.enabled}}
+            - name: AUTH__OIDC__ENABLED
               value: "true"
-            {{- end}}
-            {{- if and .Values.auth.enabled .Values.auth.oidc.enabled}}
             {{- if .Values.auth.oidc.admin_emails (gt (len .Values.auth.oidc.admin_emails) 0) }}
             - name: AUTH__OIDC__ADMIN_EMAILS
               value: {{ .Values.auth.oidc.admin_emails | toJson | quote }}
@@ -225,10 +209,10 @@ spec:
                 secretKeyRef:
                   key: providers.json
                   name: beeai-oidc-providers
-            {{- else }}
-            - name: AUTH__OIDC__DISABLE_OIDC
-              value: "true"
             {{- end }}
+            {{- else }}
+            - name: AUTH__DISABLE_AUTH
+              value: "true"
             {{- end }}
             {{- if .Values.features.selfRegistration }}
             - name: PROVIDER__AUTO_REMOVE_ENABLED

@@ -74,14 +74,14 @@ class OidcProvider(BaseModel):
 
 
 class OidcConfiguration(BaseModel):
-    disable_oidc: bool = False
+    enabled: bool = False
     admin_emails: list[str] = Field(default_factory=list)
     providers: list[OidcProvider] = Field(default_factory=list)
     scope: list[str] = ["openid", "email", "profile"]
 
     @model_validator(mode="after")
     def validate_auth(self):
-        if self.disable_oidc:
+        if not self.enabled:
             logger.critical("Oauth Authentication is disabled! This is suitable only for local development.")
             return self
         if not self.providers:
@@ -90,12 +90,12 @@ class OidcConfiguration(BaseModel):
 
 
 class BasicAuthConfiguration(BaseModel):
-    disable_basic: bool = False
+    enabled: bool = False
     admin_password: Secret[str] | None = None
 
     @model_validator(mode="after")
     def validate_auth(self):
-        if self.disable_basic:
+        if not self.enabled:
             return self
         if not self.admin_password:
             raise ValueError("Admin password must be provided if basic authentication is enabled")
@@ -112,7 +112,7 @@ class AuthConfiguration(BaseModel):
     def validate_auth(self):
         if self.disable_auth:
             return self
-        if self.basic.disable_basic and self.oidc.disable_oidc:
+        if not self.basic.enabled and not self.oidc.enabled:
             raise ValueError("If auth is enabled, either basic or oidc must be enabled")
         if not self.jwt_secret_key:
             raise ValueError("JWT secret key must be provided if authentication is enabled")

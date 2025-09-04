@@ -93,8 +93,8 @@ def verify_internal_jwt(token: str, configuration: Configuration) -> ParsedToken
     )
 
 
-def setup_jwks(config: Configuration) -> JwksDict:
-    if config.auth.oidc.disable_oidc:
+def setup_jwks(config: Configuration) -> JwksDict | None:
+    if not config.auth.oidc.enabled:
         return None
 
     jwks_dict_by_issuer = {}
