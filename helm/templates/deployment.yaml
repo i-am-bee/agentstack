@@ -56,6 +56,10 @@ spec:
           env:
             - name: AUTH__DISABLE_AUTH
               value: "true"
+            - name: AUTH__BASIC__DISABLE_BASIC
+              value: "true"
+            - name: AUTH__OIDC__DISABLE_OIDC
+              value: "true"
             - name: LOGGING__LEVEL_SQLALCHEMY
               value: INFO
             - name: PERSISTENCE__ENCRYPTION_KEY
@@ -81,6 +85,10 @@ spec:
           env:
             - name: AUTH__DISABLE_AUTH
               value: "true"
+            - name: AUTH__BASIC__DISABLE_BASIC
+              value: "true"
+            - name: AUTH__OIDC__DISABLE_OIDC
+              value: "true"
             - name: LOGGING__LEVEL_SQLALCHEMY
               value: INFO
             - name: PERSISTENCE__ENCRYPTION_KEY
@@ -104,6 +112,10 @@ spec:
           {{- end }}
           env:
             - name: AUTH__DISABLE_AUTH
+              value: "true"
+            - name: AUTH__BASIC__DISABLE_BASIC
+              value: "true"
+            - name: AUTH__OIDC__DISABLE_OIDC
               value: "true"
             - name: PERSISTENCE__ENCRYPTION_KEY
               value: "dummy"
@@ -182,6 +194,10 @@ spec:
                   name: {{ include "beeai.databaseSecretName" . }}
             {{- if not .Values.auth.enabled }}
             - name: AUTH__DISABLE_AUTH
+              value: "true"
+            - name: AUTH__BASIC__DISABLE_BASIC
+              value: "true"
+            - name: AUTH__OIDC__DISABLE_OIDC
               value: "true"
             {{- else}}
             - name: AUTH__JWT_SECRET_KEY
