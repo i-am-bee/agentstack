@@ -26,9 +26,9 @@ ACP_URL = f"{API_BASE_URL}acp"
 
 
 class ProcessStatus(enum.StrEnum):
-    not_running = "not_running"
-    running_new = "running_new"
-    running_old = "running_old"
+    NOT_RUNNING = "not_running"
+    RUNNING_NEW = "running_new"
+    RUNNING_OLD = "running_old"
 
 
 def server_process_status(
@@ -41,11 +41,11 @@ def server_process_status(
                 continue
 
             process_age = datetime.now() - datetime.fromtimestamp(proc.info["create_time"])
-            return ProcessStatus.running_new if process_age < recent_threshold else ProcessStatus.running_old
+            return ProcessStatus.RUNNING_NEW if process_age < recent_threshold else ProcessStatus.RUNNING_OLD
     except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
         pass
 
-    return ProcessStatus.not_running
+    return ProcessStatus.NOT_RUNNING
 
 
 async def set_auth_header():

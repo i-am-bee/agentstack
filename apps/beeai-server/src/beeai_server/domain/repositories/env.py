@@ -8,8 +8,8 @@ NOT_SET = object()
 
 
 class EnvStoreEntity(StrEnum):
-    provider = "provider"
-    model_provider = "model_provider"
+    PROVIDER = "provider"
+    MODEL_PROVIDER = "model_provider"
 
 
 @runtime_checkable

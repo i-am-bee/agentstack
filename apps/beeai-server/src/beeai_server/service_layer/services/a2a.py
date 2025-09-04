@@ -101,22 +101,22 @@ class A2AProxyService:
             [state] = await self._deploy_manager.state(provider_ids=[provider.id])
             should_wait = False
             match state:
-                case ProviderDeploymentState.error:
+                case ProviderDeploymentState.ERROR:
                     raise RuntimeError("Provider is in an error state")
                 case (
-                    ProviderDeploymentState.missing
-                    | ProviderDeploymentState.running
-                    | ProviderDeploymentState.starting
-                    | ProviderDeploymentState.ready
+                    ProviderDeploymentState.MISSING
+                    | ProviderDeploymentState.RUNNING
+                    | ProviderDeploymentState.STARTING
+                    | ProviderDeploymentState.READY
                 ):
                     async with self._uow() as uow:
                         from beeai_server.domain.repositories.env import EnvStoreEntity
 
                         env = await uow.env.get_all(
-                            parent_entity=EnvStoreEntity.provider, parent_entity_ids=[provider.id]
+                            parent_entity=EnvStoreEntity.PROVIDER, parent_entity_ids=[provider.id]
                         )
                     modified = await self._deploy_manager.create_or_replace(provider=provider, env=env[provider.id])
-                    should_wait = modified or state != ProviderDeploymentState.running
+                    should_wait = modified or state != ProviderDeploymentState.RUNNING
                 case _:
                     raise ValueError(f"Unknown provider state: {state}")
             if should_wait:

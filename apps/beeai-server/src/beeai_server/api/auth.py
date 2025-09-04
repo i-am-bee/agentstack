@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 
 
 ROLE_PERMISSIONS: dict[UserRole, Permissions] = {
-    UserRole.admin: Permissions.all(),
-    UserRole.user: Permissions(
+    UserRole.ADMIN: Permissions.all(),
+    UserRole.USER: Permissions(
         system_configuration={"read"},
         files={"*"},
         vector_stores={"*"},
@@ -40,7 +40,7 @@ ROLE_PERMISSIONS: dict[UserRole, Permissions] = {
         mcp_proxy={"*"},
     ),
 }
-ROLE_PERMISSIONS[UserRole.developer] = ROLE_PERMISSIONS[UserRole.user] | Permissions(
+ROLE_PERMISSIONS[UserRole.DEVELOPER] = ROLE_PERMISSIONS[UserRole.USER] | Permissions(
     providers={"read", "write"},  # TODO provider ownership
     provider_variables={"read", "write"},
     mcp_providers={"read", "write"},

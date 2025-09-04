@@ -54,7 +54,7 @@ class ModelProviderService:
         async with self._uow() as uow:
             await uow.model_providers.create(model_provider=model_provider)
             await uow.env.update(
-                parent_entity=EnvStoreEntity.model_provider,
+                parent_entity=EnvStoreEntity.MODEL_PROVIDER,
                 parent_entity_id=model_provider.id,
                 variables={MODEL_API_KEY_SECRET_NAME: api_key},
             )
@@ -88,7 +88,7 @@ class ModelProviderService:
             # Check permissions
             await uow.model_providers.get(model_provider_id=model_provider_id)
             result = await uow.env.get(
-                parent_entity=EnvStoreEntity.model_provider,
+                parent_entity=EnvStoreEntity.MODEL_PROVIDER,
                 parent_entity_id=model_provider_id,
                 key=MODEL_API_KEY_SECRET_NAME,
             )
@@ -113,7 +113,7 @@ class ModelProviderService:
         async with self._uow() as uow, TaskGroup() as tg:
             providers = [provider async for provider in uow.model_providers.list()]
             all_env = await uow.env.get_all(
-                parent_entity=EnvStoreEntity.model_provider, parent_entity_ids=[p.id for p in providers]
+                parent_entity=EnvStoreEntity.MODEL_PROVIDER, parent_entity_ids=[p.id for p in providers]
             )
             for provider in providers:
                 tg.create_task(
@@ -162,9 +162,9 @@ class ModelProviderService:
         model_scores: dict[str, float] = defaultdict(float)
 
         # default models have score 0.5
-        if default_llm_model and capability == ModelCapability.llm:
+        if default_llm_model and capability == ModelCapability.LLM:
             model_scores[default_llm_model] = 0.5
-        if default_embedding_model and capability == ModelCapability.embedding:
+        if default_embedding_model and capability == ModelCapability.EMBEDDING:
             model_scores[default_embedding_model] = 0.5
 
         if suggested_models:

@@ -66,7 +66,7 @@ class ProviderService:
             await uow.providers.create(provider=provider)
             if variables:
                 await uow.env.update(
-                    parent_entity=EnvStoreEntity.provider, parent_entity_id=provider.id, variables=variables
+                    parent_entity=EnvStoreEntity.PROVIDER, parent_entity_id=provider.id, variables=variables
                 )
             await uow.commit()
         [provider_response] = await self._get_providers_with_state(providers=[provider])
@@ -92,7 +92,7 @@ class ProviderService:
 
         async with self._uow() as uow:
             provider_ids = [provider.id for provider in providers]
-            providers_env = await uow.env.get_all(parent_entity=EnvStoreEntity.provider, parent_entity_ids=provider_ids)
+            providers_env = await uow.env.get_all(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_ids=provider_ids)
 
             for provider, state in zip(providers, provider_states, strict=False):
                 result_providers.append(
@@ -101,7 +101,7 @@ class ProviderService:
                         # We blatantly report a ready state for unmanaged providers
                         # (calling each provider over HTTP is too expensive for a simple list_providers request)
                         # TODO: In-memory state caching for unmanaged providers
-                        state=state if provider.managed else ProviderDeploymentState.ready,
+                        state=state if provider.managed else ProviderDeploymentState.READY,
                         missing_configuration=[
                             var
                             for var in provider.check_env(providers_env[provider.id], raise_error=False)
@@ -123,7 +123,7 @@ class ProviderService:
         active_providers = [
             provider
             for provider in await self.list_providers()
-            if provider.managed and provider.state == ProviderDeploymentState.running
+            if provider.managed and provider.state == ProviderDeploymentState.RUNNING
         ]
         errors = []
         for provider in active_providers:
@@ -170,15 +170,15 @@ class ProviderService:
         try:
             async with self._uow() as uow:
                 provider = await uow.providers.get(provider_id=provider_id)
-                await uow.env.update(parent_entity=EnvStoreEntity.provider, parent_entity_id=provider_id, variables=env)
-                new_env = await uow.env.get_all(parent_entity=EnvStoreEntity.provider, parent_entity_ids=[provider_id])
+                await uow.env.update(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_id=provider_id, variables=env)
+                new_env = await uow.env.get_all(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_ids=[provider_id])
                 new_env = new_env[provider_id]
 
                 [state] = await self._deployment_manager.state(provider_ids=[provider.id])
                 if (
                     provider.managed
                     # provider is not idle (if idle, it will be updated next time it's scaled up)
-                    and state in {ProviderDeploymentState.running, ProviderDeploymentState.starting}
+                    and state in {ProviderDeploymentState.RUNNING, ProviderDeploymentState.STARTING}
                 ):
                     # Rotate the provider (inside the transaction)
                     await self._deployment_manager.create_or_replace(provider=provider, env=new_env)
@@ -188,7 +188,7 @@ class ProviderService:
                 return
             logger.error(f"Exception occurred while updating env, rolling back to previous state: {ex}")
             async with self._uow() as uow:
-                orig_env = await uow.env.get_all(parent_entity=EnvStoreEntity.provider, parent_entity_ids=[provider_id])
+                orig_env = await uow.env.get_all(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_ids=[provider_id])
                 orig_env = orig_env[provider_id]
                 try:
                     logger.exception(
@@ -202,5 +202,5 @@ class ProviderService:
     async def list_provider_env(self, *, provider_id: UUID) -> dict[str, str]:
         async with self._uow() as uow:
             await uow.providers.get(provider_id=provider_id)
-            env = await uow.env.get_all(parent_entity=EnvStoreEntity.provider, parent_entity_ids=[provider_id])
+            env = await uow.env.get_all(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_ids=[provider_id])
             return env[provider_id]

@@ -19,7 +19,7 @@ async def test_user() -> User:
     """Create a test user for use in tests."""
     return User(
         email=f"test-{uuid.uuid4()}@example.com",
-        role=UserRole.user,
+        role=UserRole.USER,
     )
 
 
@@ -28,7 +28,7 @@ async def test_admin() -> User:
     """Create a test admin user for use in tests."""
     return User(
         email=f"admin-{uuid.uuid4()}@example.com",
-        role=UserRole.admin,
+        role=UserRole.ADMIN,
     )
 
 

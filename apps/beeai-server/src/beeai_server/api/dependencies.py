@@ -96,7 +96,7 @@ async def authenticate_oauth_user(
     try:
         user = await user_service.get_user_by_email(email=email)
     except EntityNotFoundError:
-        role = UserRole.admin if is_admin else UserRole.user
+        role = UserRole.ADMIN if is_admin else UserRole.USER
         user = await user_service.create_user(email=email, role=role)
 
     return AuthorizedUser(
@@ -153,7 +153,7 @@ async def authorized_user(
 
 
 def admin_auth(user: Annotated[User, Depends(authorized_user)]) -> User:
-    if user.role != UserRole.admin:
+    if user.role != UserRole.ADMIN:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
     return user
 

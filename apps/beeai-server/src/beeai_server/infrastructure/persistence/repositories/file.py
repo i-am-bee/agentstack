@@ -142,7 +142,7 @@ class SqlAlchemyFileRepository(IFileRepository):
         return result.rowcount
 
     async def list(self, *, user_id: UUID | None = None, context_id: UUID | None = None) -> AsyncIterator[File]:
-        query = files_table.select().where(files_table.c.file_type == FileType.user_upload)
+        query = files_table.select().where(files_table.c.file_type == FileType.USER_UPLOAD)
         if user_id:
             query = query.where(files_table.c.created_by == user_id)
         if context_id:

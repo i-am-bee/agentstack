@@ -47,21 +47,21 @@ async def large_vector_items():
     return [
         VectorStoreItem(
             document_id="large_doc_001",
-            document_type=DocumentType.external,
+            document_type=DocumentType.EXTERNAL,
             text=large_text,
             embedding=[1.0] * 128,  # 128-dimensional vector
             metadata={"source": "test_large.txt", "type": "large"},
         ),
         VectorStoreItem(
             document_id="large_doc_002",
-            document_type=DocumentType.external,
+            document_type=DocumentType.EXTERNAL,
             text=large_text,
             embedding=[2.0] * 128,
             metadata={"source": "test_large2.txt", "type": "large"},
         ),
         VectorStoreItem(
             document_id="large_doc_003",
-            document_type=DocumentType.external,
+            document_type=DocumentType.EXTERNAL,
             text=large_text,
             embedding=[3.0] * 128,
             metadata={"source": "test_large3.txt", "type": "large"},
@@ -141,7 +141,7 @@ async def test_invalid_vector_dimension(vector_store_service: VectorStoreService
         VectorStoreItem(
             id=uuid4(),
             document_id="small_doc_001",
-            document_type=DocumentType.external,
+            document_type=DocumentType.EXTERNAL,
             text="Small text",  # Very small text
             embedding=[1.0] * 64,  # Smaller embedding
         )

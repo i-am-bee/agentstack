@@ -44,7 +44,7 @@ async def create_chat_completion(
 
     api_key = await model_provider_service.get_provider_api_key(model_provider_id=provider.id)
 
-    if provider.type == ModelProviderType.watsonx:
+    if provider.type == ModelProviderType.WATSONX:
         model = ibm_watsonx_ai.foundation_models.ModelInference(
             model_id=model_id,
             credentials=ibm_watsonx_ai.Credentials(url=str(provider.base_url), api_key=api_key),
@@ -129,7 +129,7 @@ async def create_chat_completion(
         client = openai.AsyncOpenAI(
             api_key=api_key,
             base_url=str(provider.base_url),
-            default_headers=({"RITS_API_KEY": api_key} if provider.type == ModelProviderType.rits else {}),
+            default_headers=({"RITS_API_KEY": api_key} if provider.type == ModelProviderType.RITS else {}),
         )
         if request.stream:
             return StreamingResponse(
@@ -238,13 +238,13 @@ async def create_embedding(
     if not provider.supports_embedding:
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Model does not support embeddings")
 
-    if provider.type == ModelProviderType.voyage:
+    if provider.type == ModelProviderType.VOYAGE:
         # Voyage does not support 'float' value: https://docs.voyageai.com/reference/embeddings-api
         request.encoding_format = None if request.encoding_format == "float" else request.encoding_format
 
     api_key = await model_provider_service.get_provider_api_key(model_provider_id=provider.id)
 
-    if provider.type == ModelProviderType.watsonx:
+    if provider.type == ModelProviderType.WATSONX:
         watsonx_response = await run_in_threadpool(
             ibm_watsonx_ai.foundation_models.embeddings.Embeddings(
                 model_id=model_id,
@@ -278,7 +278,7 @@ async def create_embedding(
         result: CreateEmbeddingResponse = await openai.AsyncOpenAI(
             api_key=api_key,
             base_url=str(provider.base_url),
-            default_headers=({"RITS_API_KEY": api_key} if provider.type == ModelProviderType.rits else {}),
+            default_headers=({"RITS_API_KEY": api_key} if provider.type == ModelProviderType.RITS else {}),
         ).embeddings.create(**(request.model_dump(mode="json", exclude_none=True) | {"model": model_id}))
         # Despite the typing, OpenAI library does return str embeddings when base64 is requested
         # However, some providers, like Ollama, silently don't support base64, so we have to convert

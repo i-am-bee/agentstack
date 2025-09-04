@@ -88,8 +88,8 @@ from beeai_cli.utils import (
 
 
 class InteractionMode(StrEnum):
-    single_turn = "single-turn"
-    multi_turn = "multi-turn"
+    SINGLE_TURN = "single-turn"
+    MULTI_TURN = "multi-turn"
 
 
 class ProviderUtils(BaseModel):
@@ -258,7 +258,7 @@ async def _run_agent(
                         api_model=(
                             await ModelProvider.match(
                                 suggested_models=demand.suggested,
-                                capability=ModelCapability.llm,
+                                capability=ModelCapability.LLM,
                             )
                         )[0].model_id,
                     )
@@ -276,7 +276,7 @@ async def _run_agent(
                         api_model=(
                             await ModelProvider.match(
                                 suggested_models=demand.suggested,
-                                capability=ModelCapability.embedding,
+                                capability=ModelCapability.EMBEDDING,
                             )
                         )[0].model_id,
                     )
@@ -611,7 +611,7 @@ def _setup_sequential_workflow(providers: list[Provider], splash_screen: Console
     prompt_agents = {
         provider.agent_card.name: provider
         for provider in providers
-        if (ProviderUtils.detail(provider) or {}).get("interaction_mode") == InteractionMode.single_turn
+        if (ProviderUtils.detail(provider) or {}).get("interaction_mode") == InteractionMode.SINGLE_TURN
     }
     steps = []
 
@@ -715,7 +715,7 @@ async def run_agent(
 
     if not input:
         if (
-            interaction_mode not in {InteractionMode.multi_turn, InteractionMode.single_turn}
+            interaction_mode not in {InteractionMode.MULTI_TURN, InteractionMode.SINGLE_TURN}
             and not is_sequential_workflow
         ):
             err_console.print(
@@ -725,7 +725,7 @@ async def run_agent(
             err_console.print(_render_examples(agent))
             exit(1)
 
-        if interaction_mode == InteractionMode.multi_turn:
+        if interaction_mode == InteractionMode.MULTI_TURN:
             console.print(f"{user_greeting}\n")
             input = handle_input()
             async with a2a_client(provider.agent_card) as client:
@@ -741,7 +741,7 @@ async def run_agent(
                     )
                     console.print()
                     input = handle_input()
-        elif interaction_mode == InteractionMode.single_turn:
+        elif interaction_mode == InteractionMode.SINGLE_TURN:
             user_greeting = ui_annotations.get("user_greeting", None) or "Enter your instructions."
             console.print(f"{user_greeting}\n")
             input = handle_input()
@@ -935,7 +935,6 @@ async def add_env(
     async with configuration.use_platform_client():
         provider = select_provider(search_path, await Provider.list())
         await provider.update_variables(variables=env_vars)
-    # await Variables.save(env_vars)
     await _list_env(provider)
 
 

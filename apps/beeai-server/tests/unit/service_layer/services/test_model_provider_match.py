@@ -27,7 +27,7 @@ class TestModelProviderMatchModels:
         result = service._match_models(
             available_models=available_models,
             suggested_models=None,
-            capability=ModelCapability.llm,
+            capability=ModelCapability.LLM,
             score_cutoff=0.4,
             default_llm_model="openai:gpt-4",
             default_embedding_model=None,
@@ -42,7 +42,7 @@ class TestModelProviderMatchModels:
         result = service._match_models(
             available_models=available_models,
             suggested_models=None,
-            capability=ModelCapability.embedding,
+            capability=ModelCapability.EMBEDDING,
             score_cutoff=0.4,
             default_llm_model=None,
             default_embedding_model="openai:text-embedding-ada-002",
@@ -62,7 +62,7 @@ class TestModelProviderMatchModels:
         result = service._match_models(
             available_models=available_models,
             suggested_models=["openai:gpt-4"],  # Exact match
-            capability=ModelCapability.llm,
+            capability=ModelCapability.LLM,
             score_cutoff=0.4,
             default_llm_model=None,
             default_embedding_model=None,
@@ -86,7 +86,7 @@ class TestModelProviderMatchModels:
         result = service._match_models(
             available_models=available_models,
             suggested_models=["gpt-3.5"],  # Partial match
-            capability=ModelCapability.llm,
+            capability=ModelCapability.LLM,
             score_cutoff=0.4,
             default_llm_model=None,
             default_embedding_model=None,
@@ -106,7 +106,7 @@ class TestModelProviderMatchModels:
         result = service._match_models(
             available_models=available_models,
             suggested_models=["xyz123nonexistent"],  # Should not match anything well
-            capability=ModelCapability.llm,
+            capability=ModelCapability.LLM,
             score_cutoff=0.4,
             default_llm_model=None,
             default_embedding_model=None,
@@ -125,7 +125,7 @@ class TestModelProviderMatchModels:
         result = service._match_models(
             available_models=available_models,
             suggested_models=["openai:gpt-4"],  # Exact match should get 1.0
-            capability=ModelCapability.llm,
+            capability=ModelCapability.LLM,
             score_cutoff=0.4,
             default_llm_model="openai:gpt-3.5-turbo",  # Default gets 0.5, but fuzzy match might be higher
             default_embedding_model=None,
@@ -162,7 +162,7 @@ class TestModelProviderMatchModels:
         result = service._match_models(
             available_models=available_models,
             suggested_models=["openai:gpt-4"],  # This shouldn't improve claude's score
-            capability=ModelCapability.llm,
+            capability=ModelCapability.LLM,
             score_cutoff=0.4,
             default_llm_model="anthropic:claude-3-5-sonnet",  # Default should stay at 0.5
             default_embedding_model=None,
@@ -191,7 +191,7 @@ class TestModelProviderMatchModels:
         result = service._match_models(
             available_models=available_models,
             suggested_models=["gpt", "gpt-4", "openai:gpt-4"],  # Progressive better matches
-            capability=ModelCapability.llm,
+            capability=ModelCapability.LLM,
             score_cutoff=0.4,
             default_llm_model=None,
             default_embedding_model=None,
@@ -213,7 +213,7 @@ class TestModelProviderMatchModels:
         result = service._match_models(
             available_models=available_models,
             suggested_models=["openai:gpt-4", "claude"],  # Exact match + partial match
-            capability=ModelCapability.llm,
+            capability=ModelCapability.LLM,
             score_cutoff=0.4,
             default_llm_model="openai:gpt-3.5-turbo",  # Default gets 0.5
             default_embedding_model=None,

@@ -16,8 +16,8 @@ from beeai_server.infrastructure.persistence.repositories.db_metadata import met
 
 
 class ConfigurationType(StrEnum):
-    system = "system"
-    user = "user"
+    SYSTEM = "system"
+    USER = "user"
 
 
 configurations_table = Table(
@@ -44,7 +44,7 @@ class SqlAlchemyConfigurationsRepository(IConfigurationsRepository):
 
     async def get_system_configuration(self) -> SystemConfiguration:
         query = select(configurations_table).where(
-            configurations_table.c.configuration_type == ConfigurationType.system
+            configurations_table.c.configuration_type == ConfigurationType.SYSTEM
         )
         result = await self.connection.execute(query)
 
@@ -56,7 +56,7 @@ class SqlAlchemyConfigurationsRepository(IConfigurationsRepository):
     async def create_or_update_system_configuration(self, *, configuration: SystemConfiguration) -> None:
         # Check if system configuration already exists
         query = configurations_table.select().where(
-            configurations_table.c.configuration_type == ConfigurationType.system
+            configurations_table.c.configuration_type == ConfigurationType.SYSTEM
         )
         result = await self.connection.execute(query)
         existing_row = result.fetchone()
@@ -65,7 +65,7 @@ class SqlAlchemyConfigurationsRepository(IConfigurationsRepository):
             # Update existing configuration
             update_stmt = (
                 configurations_table.update()
-                .where(configurations_table.c.configuration_type == ConfigurationType.system)
+                .where(configurations_table.c.configuration_type == ConfigurationType.SYSTEM)
                 .values(
                     default_llm_model=configuration.default_llm_model,
                     default_embedding_model=configuration.default_embedding_model,
@@ -78,7 +78,7 @@ class SqlAlchemyConfigurationsRepository(IConfigurationsRepository):
             # Create new configuration
             insert_stmt = configurations_table.insert().values(
                 id=configuration.id,
-                configuration_type=ConfigurationType.system,
+                configuration_type=ConfigurationType.SYSTEM,
                 created_by=configuration.created_by,
                 updated_at=configuration.updated_at,
                 default_llm_model=configuration.default_llm_model,

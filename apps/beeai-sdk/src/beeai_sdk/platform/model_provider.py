@@ -11,27 +11,27 @@ from beeai_sdk.platform.client import PlatformClient, get_platform_client
 
 
 class ModelProviderType(StrEnum):
-    anthropic = "anthropic"
-    cerebras = "cerebras"
-    chutes = "chutes"
-    cohere = "cohere"
-    deepseek = "deepseek"
-    gemini = "gemini"
-    github = "github"
-    groq = "groq"
-    watsonx = "watsonx"
-    jan = "jan"
-    mistral = "mistral"
-    moonshot = "moonshot"
-    nvidia = "nvidia"
-    ollama = "ollama"
-    openai = "openai"
-    openrouter = "openrouter"
-    perplexity = "perplexity"
-    together = "together"
-    voyage = "voyage"
-    rits = "rits"
-    other = "other"
+    ANTHROPIC = "anthropic"
+    CEREBRAS = "cerebras"
+    CHUTES = "chutes"
+    COHERE = "cohere"
+    DEEPSEEK = "deepseek"
+    GEMINI = "gemini"
+    GITHUB = "github"
+    GROQ = "groq"
+    WATSONX = "watsonx"
+    JAN = "jan"
+    MISTRAL = "mistral"
+    MOONSHOT = "moonshot"
+    NVIDIA = "nvidia"
+    OLLAMA = "ollama"
+    OPENAI = "openai"
+    OPENROUTER = "openrouter"
+    PERPLEXITY = "perplexity"
+    TOGETHER = "together"
+    VOYAGE = "voyage"
+    RITS = "rits"
+    OTHER = "other"
 
 
 class ModelWithScore(pydantic.BaseModel):
@@ -40,8 +40,8 @@ class ModelWithScore(pydantic.BaseModel):
 
 
 class ModelCapability(StrEnum):
-    llm = "llm"
-    embedding = "embedding"
+    LLM = "llm"
+    EMBEDDING = "embedding"
 
 
 class ModelProvider(pydantic.BaseModel):
@@ -106,7 +106,7 @@ class ModelProvider(pydantic.BaseModel):
     @staticmethod
     async def match(
         *,
-        capability: ModelCapability = ModelCapability.llm,
+        capability: ModelCapability = ModelCapability.LLM,
         suggested_models: tuple[str, ...] | None = None,
         client: PlatformClient | None = None,
     ) -> list[ModelWithScore]:

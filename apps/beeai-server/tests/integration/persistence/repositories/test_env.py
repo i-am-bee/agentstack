@@ -87,7 +87,7 @@ async def test_update_and_get(db_transaction: AsyncConnection, encryption_config
 
     # Update variables
     await repository.update(
-        parent_entity=EnvStoreEntity.provider,
+        parent_entity=EnvStoreEntity.PROVIDER,
         parent_entity_id=provider_id,
         variables=variables,
     )
@@ -100,8 +100,8 @@ async def test_update_and_get(db_transaction: AsyncConnection, encryption_config
     assert len(rows) == 2
 
     # Get variables
-    value1 = await repository.get(parent_entity=EnvStoreEntity.provider, parent_entity_id=provider_id, key="TEST_KEY_1")
-    value2 = await repository.get(parent_entity=EnvStoreEntity.provider, parent_entity_id=provider_id, key="TEST_KEY_2")
+    value1 = await repository.get(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_id=provider_id, key="TEST_KEY_1")
+    value2 = await repository.get(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_id=provider_id, key="TEST_KEY_2")
 
     # Verify values
     assert value1 == variables["TEST_KEY_1"]
@@ -115,7 +115,7 @@ async def test_get_with_default(db_transaction: AsyncConnection, encryption_conf
 
     # Get non-existent variable with default
     value = await repository.get(
-        parent_entity=EnvStoreEntity.provider,
+        parent_entity=EnvStoreEntity.PROVIDER,
         parent_entity_id=provider_id,
         key="NON_EXISTENT_KEY",
         default="default_value",
@@ -133,7 +133,7 @@ async def test_get_not_found(db_transaction: AsyncConnection, encryption_config:
     # Try to get non-existent variable without default
     with pytest.raises(EntityNotFoundError):
         await repository.get(
-            parent_entity=EnvStoreEntity.provider,
+            parent_entity=EnvStoreEntity.PROVIDER,
             parent_entity_id=provider_id,
             key="NON_EXISTENT_KEY",
         )
@@ -152,7 +152,7 @@ async def test_update_remove(db_transaction: AsyncConnection, encryption_config:
 
     # Update variables
     await repository.update(
-        parent_entity=EnvStoreEntity.provider,
+        parent_entity=EnvStoreEntity.PROVIDER,
         parent_entity_id=provider_id,
         variables=variables,
     )
@@ -165,7 +165,7 @@ async def test_update_remove(db_transaction: AsyncConnection, encryption_config:
 
     # Update with one variable set to None (should remove it)
     await repository.update(
-        parent_entity=EnvStoreEntity.provider,
+        parent_entity=EnvStoreEntity.PROVIDER,
         parent_entity_id=provider_id,
         variables={"TEST_KEY_1": None},
     )
@@ -199,14 +199,14 @@ async def test_get_all(db_transaction: AsyncConnection, encryption_config: Confi
 
     # Update variables
     await repository.update(
-        parent_entity=EnvStoreEntity.provider,
+        parent_entity=EnvStoreEntity.PROVIDER,
         parent_entity_id=provider_id,
         variables=variables,
     )
 
     # Get all variables
     all_variables = await repository.get_all(
-        parent_entity=EnvStoreEntity.provider,
+        parent_entity=EnvStoreEntity.PROVIDER,
         parent_entity_ids=[provider_id],
     )
 
@@ -236,19 +236,19 @@ async def test_model_provider_entity(
 
     # Update variables for model provider
     await repository.update(
-        parent_entity=EnvStoreEntity.model_provider,
+        parent_entity=EnvStoreEntity.MODEL_PROVIDER,
         parent_entity_id=model_provider_id,
         variables=variables,
     )
 
     # Get variables
     api_key = await repository.get(
-        parent_entity=EnvStoreEntity.model_provider,
+        parent_entity=EnvStoreEntity.MODEL_PROVIDER,
         parent_entity_id=model_provider_id,
         key="MODEL_API_KEY",
     )
     base_url = await repository.get(
-        parent_entity=EnvStoreEntity.model_provider,
+        parent_entity=EnvStoreEntity.MODEL_PROVIDER,
         parent_entity_id=model_provider_id,
         key="MODEL_BASE_URL",
     )
@@ -271,7 +271,7 @@ async def test_variable_isolation_between_entities(
     # Add variables to provider
     provider_vars = {"API_KEY": "provider_key", "SHARED_VAR": "provider_value"}
     await repository.update(
-        parent_entity=EnvStoreEntity.provider,
+        parent_entity=EnvStoreEntity.PROVIDER,
         parent_entity_id=provider_id,
         variables=provider_vars,
     )
@@ -279,31 +279,31 @@ async def test_variable_isolation_between_entities(
     # Add variables to model provider (same keys, different values)
     model_provider_vars = {"API_KEY": "model_provider_key", "SHARED_VAR": "model_provider_value"}
     await repository.update(
-        parent_entity=EnvStoreEntity.model_provider,
+        parent_entity=EnvStoreEntity.MODEL_PROVIDER,
         parent_entity_id=model_provider_id,
         variables=model_provider_vars,
     )
 
     # Get variables from provider
     provider_api_key = await repository.get(
-        parent_entity=EnvStoreEntity.provider,
+        parent_entity=EnvStoreEntity.PROVIDER,
         parent_entity_id=provider_id,
         key="API_KEY",
     )
     provider_shared = await repository.get(
-        parent_entity=EnvStoreEntity.provider,
+        parent_entity=EnvStoreEntity.PROVIDER,
         parent_entity_id=provider_id,
         key="SHARED_VAR",
     )
 
     # Get variables from model provider
     model_api_key = await repository.get(
-        parent_entity=EnvStoreEntity.model_provider,
+        parent_entity=EnvStoreEntity.MODEL_PROVIDER,
         parent_entity_id=model_provider_id,
         key="API_KEY",
     )
     model_shared = await repository.get(
-        parent_entity=EnvStoreEntity.model_provider,
+        parent_entity=EnvStoreEntity.MODEL_PROVIDER,
         parent_entity_id=model_provider_id,
         key="SHARED_VAR",
     )
@@ -350,26 +350,26 @@ async def test_get_all_multiple_entities(
 
     # Add variables to each provider
     await repository.update(
-        parent_entity=EnvStoreEntity.provider,
+        parent_entity=EnvStoreEntity.PROVIDER,
         parent_entity_id=provider1_id,
         variables={"KEY1": "value1", "KEY2": "value2"},
     )
 
     await repository.update(
-        parent_entity=EnvStoreEntity.provider,
+        parent_entity=EnvStoreEntity.PROVIDER,
         parent_entity_id=provider2_id,
         variables={"KEY3": "value3", "KEY4": "value4"},
     )
 
     await repository.update(
-        parent_entity=EnvStoreEntity.provider,
+        parent_entity=EnvStoreEntity.PROVIDER,
         parent_entity_id=provider3_id,
         variables={"KEY5": "value5"},
     )
 
     # Get all variables for multiple providers
     all_variables = await repository.get_all(
-        parent_entity=EnvStoreEntity.provider,
+        parent_entity=EnvStoreEntity.PROVIDER,
         parent_entity_ids=[provider1_id, provider2_id, provider3_id],
     )
 
@@ -404,14 +404,14 @@ async def test_get_all_empty_ids_list(
 ):
     """Test get_all method with empty parent entity IDs list."""
     repository = SqlAlchemyEnvVariableRepository(connection=db_transaction, configuration=encryption_config)
-    assert await repository.get_all(parent_entity=EnvStoreEntity.provider, parent_entity_ids=[]) == {}
+    assert await repository.get_all(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_ids=[]) == {}
 
     # Query for different nonexistent provider IDs
     nonexistent_id1 = uuid.uuid4()
     nonexistent_id2 = uuid.uuid4()
 
     all_variables = await repository.get_all(
-        parent_entity=EnvStoreEntity.provider,
+        parent_entity=EnvStoreEntity.PROVIDER,
         parent_entity_ids=[nonexistent_id1, nonexistent_id2],
     )
 
@@ -468,26 +468,26 @@ async def test_variable_isolation_between_entity_types(
 
     # Add variables as provider entity
     await repository.update(
-        parent_entity=EnvStoreEntity.provider,
+        parent_entity=EnvStoreEntity.PROVIDER,
         parent_entity_id=entity_id,
         variables={"SAME_KEY": "provider_value"},
     )
 
     # Add variables as model_provider entity (same UUID, different entity type)
     await repository.update(
-        parent_entity=EnvStoreEntity.model_provider,
+        parent_entity=EnvStoreEntity.MODEL_PROVIDER,
         parent_entity_id=entity_id,
         variables={"SAME_KEY": "model_provider_value"},
     )
 
     # Get variable as provider
     provider_value = await repository.get(
-        parent_entity=EnvStoreEntity.provider, parent_entity_id=entity_id, key="SAME_KEY"
+        parent_entity=EnvStoreEntity.PROVIDER, parent_entity_id=entity_id, key="SAME_KEY"
     )
 
     # Get variable as model_provider
     model_provider_value = await repository.get(
-        parent_entity=EnvStoreEntity.model_provider, parent_entity_id=entity_id, key="SAME_KEY"
+        parent_entity=EnvStoreEntity.MODEL_PROVIDER, parent_entity_id=entity_id, key="SAME_KEY"
     )
 
     # Values should be different despite same UUID

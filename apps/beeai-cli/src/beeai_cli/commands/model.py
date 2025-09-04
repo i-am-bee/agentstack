@@ -38,7 +38,7 @@ LLM_PROVIDERS = [
     Choice(
         name="Anthropic Claude".ljust(25),
         value=(
-            ModelProviderType.anthropic,
+            ModelProviderType.ANTHROPIC,
             "Anthropic Claude",
             "https://api.anthropic.com/v1",
             "claude-sonnet-4-20250514",
@@ -46,24 +46,24 @@ LLM_PROVIDERS = [
     ),
     Choice(
         name="Cerebras".ljust(25) + "🆓 has a free tier",
-        value=(ModelProviderType.cerebras, "Cerebras", "https://api.cerebras.ai/v1", "llama-3.3-70b"),
+        value=(ModelProviderType.CEREBRAS, "Cerebras", "https://api.cerebras.ai/v1", "llama-3.3-70b"),
     ),
     Choice(
         name="Chutes".ljust(25) + "🆓 has a free tier",
-        value=(ModelProviderType.chutes, "Chutes", "https://llm.chutes.ai/v1", None),
+        value=(ModelProviderType.CHUTES, "Chutes", "https://llm.chutes.ai/v1", None),
     ),
     Choice(
         name="Cohere".ljust(25) + "🆓 has a free tier",
-        value=(ModelProviderType.cohere, "Cohere", "https://api.cohere.ai/compatibility/v1", "command-r-plus"),
+        value=(ModelProviderType.COHERE, "Cohere", "https://api.cohere.ai/compatibility/v1", "command-r-plus"),
     ),
     Choice(
         name="DeepSeek",
-        value=(ModelProviderType.deepseek, "DeepSeek", "https://api.deepseek.com/v1", "deepseek-reasoner"),
+        value=(ModelProviderType.DEEPSEEK, "DeepSeek", "https://api.deepseek.com/v1", "deepseek-reasoner"),
     ),
     Choice(
         name="Google Gemini".ljust(25) + "🆓 has a free tier",
         value=(
-            ModelProviderType.gemini,
+            ModelProviderType.GEMINI,
             "Google Gemini",
             "https://generativelanguage.googleapis.com/v1beta/openai",
             "models/gemini-2.5-pro",
@@ -71,12 +71,12 @@ LLM_PROVIDERS = [
     ),
     Choice(
         name="GitHub Models".ljust(25) + "🆓 has a free tier",
-        value=(ModelProviderType.github, "GitHub Models", "https://models.github.ai/inference", "openai/gpt-4o"),
+        value=(ModelProviderType.GITHUB, "GitHub Models", "https://models.github.ai/inference", "openai/gpt-4o"),
     ),
     Choice(
         name="Groq".ljust(25) + "🆓 has a free tier",
         value=(
-            ModelProviderType.groq,
+            ModelProviderType.GROQ,
             "Groq",
             "https://api.groq.com/openai/v1",
             "meta-llama/llama-4-maverick-17b-128e-instruct",
@@ -84,38 +84,38 @@ LLM_PROVIDERS = [
     ),
     Choice(
         name="IBM watsonx".ljust(25),
-        value=(ModelProviderType.watsonx, "IBM watsonx", None, "ibm/granite-3-3-8b-instruct"),
+        value=(ModelProviderType.WATSONX, "IBM watsonx", None, "ibm/granite-3-3-8b-instruct"),
     ),
-    Choice(name="Jan".ljust(25) + "💻 local", value=(ModelProviderType.jan, "Jan", "http://localhost:1337/v1", None)),
+    Choice(name="Jan".ljust(25) + "💻 local", value=(ModelProviderType.JAN, "Jan", "http://localhost:1337/v1", None)),
     Choice(
         name="Mistral".ljust(25) + "🆓 has a free tier",
-        value=(ModelProviderType.mistral, "Mistral", "https://api.mistral.ai/v1", "mistral-large-latest"),
+        value=(ModelProviderType.MISTRAL, "Mistral", "https://api.mistral.ai/v1", "mistral-large-latest"),
     ),
     Choice(
         name="Moonshot AI".ljust(25),
-        value=(ModelProviderType.moonshot, "Moonshot AI", "https://api.moonshot.ai/v1", "kimi-latest"),
+        value=(ModelProviderType.MOONSHOT, "Moonshot AI", "https://api.moonshot.ai/v1", "kimi-latest"),
     ),
     Choice(
         name="NVIDIA NIM".ljust(25),
         value=(
-            ModelProviderType.nvidia,
+            ModelProviderType.NVIDIA,
             "NVIDIA NIM",
             "https://integrate.api.nvidia.com/v1",
             "deepseek-ai/deepseek-r1",
         ),
     ),
     Choice(
-        name=ModelProviderType.ollama.ljust(25) + "💻 local",
-        value=(ModelProviderType.ollama, ModelProviderType.ollama, "http://localhost:11434/v1", "granite3.3:8b"),
+        name=ModelProviderType.OLLAMA.ljust(25) + "💻 local",
+        value=(ModelProviderType.OLLAMA, ModelProviderType.OLLAMA, "http://localhost:11434/v1", "granite3.3:8b"),
     ),
     Choice(
         name="OpenAI".ljust(25),
-        value=(ModelProviderType.openai, "OpenAI", "https://api.openai.com/v1", "gpt-4o"),
+        value=(ModelProviderType.OPENAI, "OpenAI", "https://api.openai.com/v1", "gpt-4o"),
     ),
     Choice(
         name="OpenRouter".ljust(25) + "🆓 has some free models",
         value=(
-            ModelProviderType.openrouter,
+            ModelProviderType.OPENROUTER,
             "OpenRouter",
             "https://openrouter.ai/api/v1",
             "deepseek/deepseek-r1-distill-llama-70b:free",
@@ -123,27 +123,27 @@ LLM_PROVIDERS = [
     ),
     Choice(
         name="Perplexity".ljust(25),
-        value=(ModelProviderType.perplexity, "Perplexity", "https://api.perplexity.ai", None),
+        value=(ModelProviderType.PERPLEXITY, "Perplexity", "https://api.perplexity.ai", None),
     ),
     Choice(
         name="together.ai".ljust(25) + "🆓 has a free tier",
-        value=(ModelProviderType.together, "together.ai", "https://api.together.xyz/v1", "deepseek-ai/DeepSeek-R1"),
+        value=(ModelProviderType.TOGETHER, "together.ai", "https://api.together.xyz/v1", "deepseek-ai/DeepSeek-R1"),
     ),
     Choice(
         name="Other (RITS, vLLM, ...)".ljust(25) + "🔧 provide API URL",
-        value=(ModelProviderType.other, "Other", None, None),
+        value=(ModelProviderType.OTHER, "Other", None, None),
     ),
 ]
 
 EMBEDDING_PROVIDERS = [
     Choice(
         name="Cohere".ljust(25) + "🆓 has a free tier",
-        value=(ModelProviderType.cohere, "Cohere", "https://api.cohere.ai/compatibility/v1", "embed-multilingual-v3.0"),
+        value=(ModelProviderType.COHERE, "Cohere", "https://api.cohere.ai/compatibility/v1", "embed-multilingual-v3.0"),
     ),
     Choice(
         name="Google Gemini".ljust(25) + "🆓 has a free tier",
         value=(
-            ModelProviderType.gemini,
+            ModelProviderType.GEMINI,
             "Gemini",
             "https://generativelanguage.googleapis.com/v1beta/openai",
             "models/gemini-embedding-001",
@@ -151,27 +151,27 @@ EMBEDDING_PROVIDERS = [
     ),
     Choice(
         name="IBM watsonx".ljust(25),
-        value=(ModelProviderType.watsonx, "IBM watsonx", None, "ibm/granite-embedding-278m-multilingual"),
+        value=(ModelProviderType.WATSONX, "IBM watsonx", None, "ibm/granite-embedding-278m-multilingual"),
     ),
     Choice(
         name="Mistral".ljust(25) + "🆓 has a free tier",
-        value=(ModelProviderType.mistral, "Mistral", "https://api.mistral.ai/v1", "mistral-embed"),
+        value=(ModelProviderType.MISTRAL, "Mistral", "https://api.mistral.ai/v1", "mistral-embed"),
     ),
     Choice(
-        name=ModelProviderType.ollama.ljust(25) + "💻 local",
-        value=(ModelProviderType.ollama, "Ollama", "http://localhost:11434/v1", "nomic-embed-text:latest"),
+        name=ModelProviderType.OLLAMA.ljust(25) + "💻 local",
+        value=(ModelProviderType.OLLAMA, "Ollama", "http://localhost:11434/v1", "nomic-embed-text:latest"),
     ),
     Choice(
         name="OpenAI".ljust(25),
-        value=(ModelProviderType.openai, "OpenAI", "https://api.openai.com/v1", "text-embedding-3-small"),
+        value=(ModelProviderType.OPENAI, "OpenAI", "https://api.openai.com/v1", "text-embedding-3-small"),
     ),
     Choice(
         name="Voyage".ljust(25),
-        value=(ModelProviderType.voyage, "Voyage", "https://api.voyageai.com/v1", "voyage-3.5"),
+        value=(ModelProviderType.VOYAGE, "Voyage", "https://api.voyageai.com/v1", "voyage-3.5"),
     ),
     Choice(
         name="Other (vLLM, ...)".ljust(25) + "🔧 provide API URL",
-        value=(ModelProviderType.other, "Other", ModelProviderType.other, None, None),
+        value=(ModelProviderType.OTHER, "Other", ModelProviderType.OTHER, None, None),
     ),
 ]
 
@@ -191,18 +191,18 @@ async def _configure_llm() -> dict[str, str | None] | None:
 
     extra_config: dict[str, str | None] = {}
 
-    if provider_type == ModelProviderType.other:
+    if provider_type == ModelProviderType.OTHER:
         base_url: str = await inquirer.text(  # type: ignore
             message="Enter the base URL of your API (OpenAI-compatible):",
             validate=lambda url: (url.startswith(("http://", "https://")) or "URL must start with http:// or https://"),  # type: ignore
             transformer=lambda url: url.rstrip("/"),
         ).execute_async()
         if re.match(r"^https://[a-z0-9.-]+\.rits\.fmaas\.res\.ibm\.com/.*$", base_url):
-            provider_type = ModelProviderType.rits
+            provider_type = ModelProviderType.RITS
             if not base_url.endswith("/v1"):
                 base_url = base_url.removesuffix("/") + "/v1"
 
-    if provider_type == ModelProviderType.watsonx:
+    if provider_type == ModelProviderType.WATSONX:
         region: str = await inquirer.select(  # type: ignore
             message="Select IBM Cloud region:",
             choices=[
@@ -240,12 +240,12 @@ async def _configure_llm() -> dict[str, str | None] | None:
     ).execute_async():
         api_key: str = (
             "dummy"
-            if provider_type in {ModelProviderType.ollama, ModelProviderType.jan}
+            if provider_type in {ModelProviderType.OLLAMA, ModelProviderType.JAN}
             else await inquirer.secret(message="Enter API key:", validate=EmptyInputValidator()).execute_async()  # type: ignore
         )
 
     try:
-        if provider_type in {ModelProviderType.anthropic, ModelProviderType.watsonx}:
+        if provider_type in {ModelProviderType.ANTHROPIC, ModelProviderType.WATSONX}:
             available_models = []
         else:
             with console.status("Loading available models...", spinner="dots"):
@@ -254,7 +254,7 @@ async def _configure_llm() -> dict[str, str | None] | None:
                         f"{base_url}/models",
                         headers=(
                             {"RITS_API_KEY": api_key}
-                            if provider_type == ModelProviderType.rits
+                            if provider_type == ModelProviderType.RITS
                             else {"Authorization": f"Bearer {api_key}"}
                         ),
                         timeout=30.0,
@@ -272,13 +272,13 @@ async def _configure_llm() -> dict[str, str | None] | None:
     except httpx.HTTPError as e:
         console.print(format_error("Error", str(e)))
         match provider_type:
-            case ModelProviderType.ollama:
+            case ModelProviderType.OLLAMA:
                 console.print("💡 [yellow]HINT[/yellow]: We could not connect to Ollama. Is it running?")
-            case ModelProviderType.jan:
+            case ModelProviderType.JAN:
                 console.print(
                     "💡 [yellow]HINT[/yellow]: We could not connect to Jan. Ensure that the server is running: in the Jan application, click the [bold][<>][/bold] button and [bold]Start server[/bold]."
                 )
-            case ModelProviderType.other:
+            case ModelProviderType.OTHER:
                 console.print(
                     "💡 [yellow]HINT[/yellow]: We could not connect to the API URL you have specified. Is it correct?"
                 )
@@ -286,10 +286,10 @@ async def _configure_llm() -> dict[str, str | None] | None:
                 console.print(f"💡 [yellow]HINT[/yellow]: {provider_type} may be down.")
         return None
 
-    if provider_type == ModelProviderType.ollama:
+    if provider_type == ModelProviderType.OLLAMA:
         available_models = [model for model in available_models if not model.endswith("-beeai")]
 
-    if provider_type == ModelProviderType.ollama and not available_models:
+    if provider_type == ModelProviderType.OLLAMA and not available_models:
         if await inquirer.confirm(  # type: ignore
             message=f"There are no locally available models in Ollama. Do you want to pull the recommended model '{recommended_model}'?",
             default=True,
@@ -306,13 +306,13 @@ async def _configure_llm() -> dict[str, str | None] | None:
                 and (
                     not available_models
                     or recommended_model in available_models
-                    or provider_type == ModelProviderType.ollama
+                    or provider_type == ModelProviderType.OLLAMA
                 )
                 and await inquirer.confirm(  # type: ignore
                     message=f"Do you want to use the recommended model as default '{recommended_model}'?"
                     + (
                         " It will be pulled from Ollama now."
-                        if recommended_model not in available_models and provider_type == ModelProviderType.ollama
+                        if recommended_model not in available_models and provider_type == ModelProviderType.OLLAMA
                         else ""
                     ),
                     default=True,
@@ -328,7 +328,7 @@ async def _configure_llm() -> dict[str, str | None] | None:
             )
         )
 
-    if provider_type == ModelProviderType.ollama and selected_model not in available_models:
+    if provider_type == ModelProviderType.OLLAMA and selected_model not in available_models:
         try:
             await run_command(
                 [_ollama_exe(), "pull", selected_model],
@@ -340,7 +340,7 @@ async def _configure_llm() -> dict[str, str | None] | None:
             return None
 
     num_ctx: int
-    if provider_type == ModelProviderType.ollama and (
+    if provider_type == ModelProviderType.OLLAMA and (
         (
             num_ctx := await inquirer.select(  # type: ignore
                 message="Larger context window helps agents see more information at once at the cost of memory consumption, as long as the model supports it. Set a larger context window?",
@@ -385,7 +385,7 @@ async def _configure_llm() -> dict[str, str | None] | None:
                 test_response = await client.post(
                     (
                         f"{base_url}/ml/v1/text/chat?version=2023-10-25"
-                        if provider_type == ModelProviderType.watsonx
+                        if provider_type == ModelProviderType.WATSONX
                         else f"{base_url}/chat/completions"
                     ),
                     json={
@@ -400,14 +400,14 @@ async def _configure_llm() -> dict[str, str | None] | None:
                     }
                     | (
                         {"model_id": selected_model, f"{watsonx_project_or_space}_id": watsonx_project_or_space_id}
-                        if provider_type == ModelProviderType.watsonx
+                        if provider_type == ModelProviderType.WATSONX
                         else {"model": selected_model}
                     ),
                     headers=(
                         {"RITS_API_KEY": api_key}
-                        if provider_type == ModelProviderType.rits
+                        if provider_type == ModelProviderType.RITS
                         else {"Authorization": f"Bearer {await _get_watsonx_token(client, api_key)}"}
-                        if provider_type == ModelProviderType.watsonx
+                        if provider_type == ModelProviderType.WATSONX
                         else {"Authorization": f"Bearer {api_key}"}
                     ),
                     timeout=30.0,
@@ -418,7 +418,7 @@ async def _configure_llm() -> dict[str, str | None] | None:
             return None
     except Exception as e:
         console.print(format_error("Error", f"Error during model test: {e!s}"))
-        if provider_type == ModelProviderType.ollama:
+        if provider_type == ModelProviderType.OLLAMA:
             console.print(
                 "💡 [yellow]HINT[/yellow]: Try setting up the model with 2k context window first, to see if it works."
             )
@@ -464,18 +464,18 @@ async def _configure_embedding(llm_env: dict[str, str | None]) -> dict[str, str 
 
     extra_config: dict[str, str | None] = {}
 
-    if provider_type == ModelProviderType.other:
+    if provider_type == ModelProviderType.OTHER:
         base_url = await inquirer.text(  # type: ignore
             message="Enter the base URL of your embedding API (OpenAI-compatible):",
             validate=lambda url: (url.startswith(("http://", "https://")) or "URL must start with http:// or https://"),  # type: ignore
             transformer=lambda url: url.rstrip("/"),
         ).execute_async()
         if re.match(r"^https://[a-z0-9.-]+\.rits\.fmaas\.res\.ibm\.com/.*$", base_url):
-            provider_type = ModelProviderType.rits
+            provider_type = ModelProviderType.RITS
             if not base_url.endswith("/v1"):
                 base_url = base_url.removesuffix("/") + "/v1"
 
-    if provider_type == ModelProviderType.watsonx:
+    if provider_type == ModelProviderType.WATSONX:
         base_url = f"""https://{
             await inquirer.select(  # type: ignore
                 message="Select IBM Cloud region:",
@@ -496,7 +496,7 @@ async def _configure_embedding(llm_env: dict[str, str | None]) -> dict[str, str 
         watsonx_project_or_space = "project" if "watsonx_project_id" in llm_env else "space"
         watsonx_project_or_space_id = llm_env.get("watsonx_project_id") or llm_env.get("watsonx_space_id") or ""
     else:
-        if provider_type == ModelProviderType.watsonx:
+        if provider_type == ModelProviderType.WATSONX:
             watsonx_project_or_space = await inquirer.select(  # type: ignore
                 "Use a Project or a Space?", choices=["project", "space"]
             ).execute_async()
@@ -524,7 +524,7 @@ async def _configure_embedding(llm_env: dict[str, str | None]) -> dict[str, str 
         ).execute_async():
             api_key = (
                 "dummy"
-                if provider_type in {ModelProviderType.ollama, ModelProviderType.jan}
+                if provider_type in {ModelProviderType.OLLAMA, ModelProviderType.JAN}
                 else await inquirer.secret(  # type: ignore
                     message="Enter API key for embedding:", validate=EmptyInputValidator()
                 ).execute_async()
@@ -532,7 +532,7 @@ async def _configure_embedding(llm_env: dict[str, str | None]) -> dict[str, str 
 
     # Load available models
     try:
-        if provider_type in {ModelProviderType.voyage, ModelProviderType.watsonx}:
+        if provider_type in {ModelProviderType.VOYAGE, ModelProviderType.WATSONX}:
             available_models = []
         else:
             with console.status("Loading available embedding models...", spinner="dots"):
@@ -541,7 +541,7 @@ async def _configure_embedding(llm_env: dict[str, str | None]) -> dict[str, str 
                         f"{base_url}/models",
                         headers=(
                             {"RITS_API_KEY": api_key}
-                            if provider_type == ModelProviderType.rits
+                            if provider_type == ModelProviderType.RITS
                             else {"Authorization": f"Bearer {api_key}"}
                         ),
                         timeout=30.0,
@@ -560,9 +560,9 @@ async def _configure_embedding(llm_env: dict[str, str | None]) -> dict[str, str 
     except httpx.HTTPError as e:
         console.print(format_error("Error", str(e)))
         match provider_type:
-            case ModelProviderType.ollama:
+            case ModelProviderType.OLLAMA:
                 console.print("💡 [yellow]HINT[/yellow]: We could not connect to Ollama. Is it running?")
-            case ModelProviderType.other:
+            case ModelProviderType.OTHER:
                 console.print(
                     "💡 [yellow]HINT[/yellow]: We could not connect to the API URL you have specified. Is it correct?"
                 )
@@ -570,10 +570,10 @@ async def _configure_embedding(llm_env: dict[str, str | None]) -> dict[str, str 
                 console.print(f"💡 [yellow]HINT[/yellow]: {provider_type} may be down.")
         return None
 
-    if provider_type == ModelProviderType.ollama:
+    if provider_type == ModelProviderType.OLLAMA:
         available_models = [model for model in available_models if not model.endswith("-beeai")]
 
-    if provider_type == ModelProviderType.ollama and not available_models:
+    if provider_type == ModelProviderType.OLLAMA and not available_models:
         if await inquirer.confirm(  # type: ignore
             message=f"There are no locally available models in Ollama. Do you want to pull the recommended embedding model '{recommended_model}'?",
             default=True,
@@ -590,13 +590,13 @@ async def _configure_embedding(llm_env: dict[str, str | None]) -> dict[str, str 
                 and (
                     not available_models
                     or recommended_model in available_models
-                    or provider_type == ModelProviderType.ollama
+                    or provider_type == ModelProviderType.OLLAMA
                 )
                 and await inquirer.confirm(  # type: ignore
                     message=f"Do you want to use the recommended embedding model '{recommended_model}'?"
                     + (
                         " It will be pulled from Ollama now."
-                        if recommended_model not in available_models and provider_type == ModelProviderType.ollama
+                        if recommended_model not in available_models and provider_type == ModelProviderType.OLLAMA
                         else ""
                     ),
                     default=True,
@@ -614,7 +614,7 @@ async def _configure_embedding(llm_env: dict[str, str | None]) -> dict[str, str 
             )
         )
 
-    if provider_type == ModelProviderType.ollama and selected_model not in available_models:
+    if provider_type == ModelProviderType.OLLAMA and selected_model not in available_models:
         try:
             await run_command(
                 [_ollama_exe(), "pull", selected_model],
@@ -631,20 +631,20 @@ async def _configure_embedding(llm_env: dict[str, str | None]) -> dict[str, str 
                 test_response = await client.post(
                     (
                         f"{base_url}/ml/v1/text/embeddings?version=2024-05-02"
-                        if provider_type == ModelProviderType.watsonx
+                        if provider_type == ModelProviderType.WATSONX
                         else f"{base_url}/embeddings"
                     ),
-                    json={"input" + ("s" if provider_type == ModelProviderType.watsonx else ""): ["Hi"]}
+                    json={"input" + ("s" if provider_type == ModelProviderType.WATSONX else ""): ["Hi"]}
                     | (
                         {"model_id": selected_model, f"{watsonx_project_or_space}_id": watsonx_project_or_space_id}
-                        if provider_type == ModelProviderType.watsonx
+                        if provider_type == ModelProviderType.WATSONX
                         else {"model": selected_model}
                     ),
                     headers=(
                         {"RITS_API_KEY": api_key}
-                        if provider_type == ModelProviderType.rits
+                        if provider_type == ModelProviderType.RITS
                         else {"Authorization": f"Bearer {await _get_watsonx_token(client, api_key)}"}
-                        if provider_type == ModelProviderType.watsonx
+                        if provider_type == ModelProviderType.WATSONX
                         else {"Authorization": f"Bearer {api_key}"}
                     ),
                     timeout=30.0,

@@ -20,7 +20,7 @@ class UserService:
     ):
         self._uow = uow
 
-    async def create_user(self, *, email: str, role: UserRole = UserRole.user) -> User:
+    async def create_user(self, *, email: str, role: UserRole = UserRole.USER) -> User:
         async with self._uow() as uow:
             user = User(email=email, role=role)
             await uow.users.create(user=user)

@@ -18,8 +18,8 @@ logger = logging.getLogger(__name__)
 
 
 class ProcessLogType(StrEnum):
-    stdout = "stdout"
-    stderr = "stderr"
+    STDOUT = "stdout"
+    STDERR = "stderr"
 
 
 class ProcessLogMessage(BaseModel, extra="allow"):
@@ -46,10 +46,10 @@ class LogsContainer:
         self._notify_subscribers(log)
 
     def add_stdout(self, text: str):
-        self.add(ProcessLogMessage(stream=ProcessLogType.stdout, message=text.rstrip("\n\r")))
+        self.add(ProcessLogMessage(stream=ProcessLogType.STDOUT, message=text.rstrip("\n\r")))
 
     def add_stderr(self, text: str):
-        self.add(ProcessLogMessage(stream=ProcessLogType.stdout, message=text.rstrip("\n\r")))
+        self.add(ProcessLogMessage(stream=ProcessLogType.STDOUT, message=text.rstrip("\n\r")))
 
     def subscribe(self, handler: Callable[[ProcessLogMessage], None]):
         self._subscribers.add(handler)
@@ -63,11 +63,11 @@ class LogsContainer:
 
     @property
     def stdout(self) -> list[str]:
-        return [log.message for log in self._logs if log.stream == ProcessLogType.stdout]
+        return [log.message for log in self._logs if log.stream == ProcessLogType.STDOUT]
 
     @property
     def stderr(self) -> list[str]:
-        return [log.message for log in self._logs if log.stream == ProcessLogType.stderr]
+        return [log.message for log in self._logs if log.stream == ProcessLogType.STDERR]
 
     @asynccontextmanager
     async def stream(

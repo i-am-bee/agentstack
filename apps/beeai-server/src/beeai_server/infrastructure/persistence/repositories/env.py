@@ -75,9 +75,9 @@ class SqlAlchemyEnvVariableRepository(IEnvVariableRepository):
     def _get_parent_column(self, parent_entity: EnvStoreEntity):
         """Get the appropriate foreign key column for the parent entity type."""
         match parent_entity:
-            case EnvStoreEntity.provider:
+            case EnvStoreEntity.PROVIDER:
                 return variables_table.c.provider_id
-            case EnvStoreEntity.model_provider:
+            case EnvStoreEntity.MODEL_PROVIDER:
                 return variables_table.c.model_provider_id
             case _:
                 raise ValueError(f"Unknown parent entity type: {parent_entity}")
