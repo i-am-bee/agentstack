@@ -5,15 +5,55 @@
 
 import { type PropsWithChildren, useCallback, useEffect, useState } from 'react';
 
+import type { AgentA2AClient } from '#api/a2a/types.ts';
+
 import { useCreateContext } from '../api/mutations/useCreateContext';
 import { useCreateContextToken } from '../api/mutations/useCreateContextToken';
+import { useMatchProviders } from '../api/mutations/useMatchProviders';
 import { buildFullfilments } from './build-fulfillments';
 import { PlatformContext } from './platform-context';
 
-export function PlatformContextProvider({ children }: PropsWithChildren) {
+interface Props<UIGenericPart> {
+  agentClient?: AgentA2AClient<UIGenericPart>;
+}
+
+export function PlatformContextProvider<UIGenericPart>({
+  children,
+  agentClient,
+}: PropsWithChildren<Props<UIGenericPart>>) {
   const [contextId, setContextId] = useState<string | null>(null);
+  const [selectedProviders, setSelectedProviders] = useState<Record<string, string>>({});
+
+  const setDefaultSelectedProviders = useCallback(
+    (data: Record<string, string[]>) => {
+      setSelectedProviders(
+        Object.fromEntries(
+          Object.entries(data).map(([key, value]) => {
+            if (value.length === 0) {
+              throw new Error(`No match found for demand ${key}`);
+            }
+
+            return [key, value[0]];
+          }),
+        ),
+      );
+    },
+    [setSelectedProviders],
+  );
+
   const { mutateAsync: createContext } = useCreateContext();
   const { mutateAsync: createContextToken } = useCreateContextToken();
+  const { data: matchedProviders } = useMatchProviders(
+    agentClient?.llmDemands ? agentClient.llmDemands.llm_demands : {},
+    setDefaultSelectedProviders,
+  );
+
+  const selectProvider = useCallback(
+    (key: string, value: string) => {
+      setSelectedProviders((prev) => ({ ...prev, [key]: value }));
+    },
+    [setSelectedProviders],
+  );
 
   const setContext = useCallback(
     (context: Awaited<ReturnType<typeof createContext>>) => {
@@ -47,7 +87,11 @@ export function PlatformContextProvider({ children }: PropsWithChildren) {
         feedback: [],
         files: [],
         providers: [],
-        variables: [],
+        provider_variables: [],
+        model_providers: [],
+        mcp_providers: [],
+        mcp_proxy: [],
+        mcp_tools: [],
         vector_stores: [],
       },
       contextPermissionGrant: {
@@ -65,8 +109,8 @@ export function PlatformContextProvider({ children }: PropsWithChildren) {
 
   const getFullfilments = useCallback(async () => {
     const platformToken = await getPlatformToken();
-    return buildFullfilments(platformToken);
-  }, [getPlatformToken]);
+    return buildFullfilments({ platformToken, selectedProviders });
+  }, [getPlatformToken, selectedProviders]);
 
   useEffect(() => {
     createContext().then(setContext);
@@ -84,10 +128,13 @@ export function PlatformContextProvider({ children }: PropsWithChildren) {
     <PlatformContext.Provider
       value={{
         contextId,
+        matchedProviders,
+        selectedProviders,
         getContextId,
         resetContext,
         getPlatformToken,
         getFullfilments,
+        selectProvider,
       }}
     >
       {children}

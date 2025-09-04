@@ -72,6 +72,24 @@ export interface paths {
     patch: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
     trace?: never;
   };
+  '/api/v1/configurations/system': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Configuration */
+    get: operations['get_configuration_api_v1_configurations_system_get'];
+    /** Update Configuration */
+    put: operations['update_configuration_api_v1_configurations_system_put'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/contexts': {
     parameters: {
       query?: never;
@@ -221,40 +239,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/openai/chat/completions': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Create Chat Completion */
-    post: operations['create_chat_completion_api_v1_llm_chat_completions_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/openai/embeddings': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Create Embedding */
-    post: operations['create_embedding_api_v1_llm_embeddings_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   '/api/v1/mcp': {
     parameters: {
       query?: never;
@@ -378,6 +362,110 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/model_providers': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Model Providers */
+    get: operations['list_model_providers_api_v1_model_providers_get'];
+    put?: never;
+    /** Create Model Provider */
+    post: operations['create_model_provider_api_v1_model_providers_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/model_providers/{model_provider_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Model Provider */
+    get: operations['get_model_provider_api_v1_model_providers__model_provider_id__get'];
+    put?: never;
+    post?: never;
+    /** Delete Model Provider */
+    delete: operations['delete_model_provider_api_v1_model_providers__model_provider_id__delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/model_providers/match': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Match */
+    post: operations['match_api_v1_model_providers_match_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/openai/chat/completions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create Chat Completion */
+    post: operations['create_chat_completion_api_v1_openai_chat_completions_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/openai/embeddings': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create Embedding */
+    post: operations['create_embedding_api_v1_openai_embeddings_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/openai/models': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Models */
+    get: operations['list_models_api_v1_openai_models_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/providers': {
     parameters: {
       query?: never;
@@ -431,6 +519,24 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/providers/{id}/variables': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Provider Variables */
+    get: operations['list_provider_variables_api_v1_providers__id__variables_get'];
+    /** Update Provider Variables */
+    put: operations['update_provider_variables_api_v1_providers__id__variables_put'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/providers/preview': {
     parameters: {
       query?: never;
@@ -459,24 +565,6 @@ export interface paths {
     put?: never;
     /** User Feedback */
     post: operations['user_feedback_api_v1_user_feedback_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/variables': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List Variables */
-    get: operations['list_variables_api_v1_variables_get'];
-    /** Update Variables */
-    put: operations['update_variables_api_v1_variables_put'];
-    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -934,8 +1022,128 @@ export interface components {
       /** Tokenurl */
       tokenUrl: string;
     };
-    /** FileResponse */
+    /** ModelProviderResponse */
     beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__1: {
+      /**
+       * Base Url
+       * Format: uri
+       * @description Base URL for the API (unique)
+       */
+      base_url: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Description
+       * @description Optional description of the provider
+       */
+      description?: string | null;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Name
+       * @description Human-readable name for the model provider
+       */
+      name?: string | null;
+      /** @description Type of model provider */
+      type: components['schemas']['ModelProviderType'];
+    };
+    /** ModelProviderResponse */
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__2: {
+      /**
+       * Base Url
+       * Format: uri
+       * @description Base URL for the API (unique)
+       */
+      base_url: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Description
+       * @description Optional description of the provider
+       */
+      description?: string | null;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Name
+       * @description Human-readable name for the model provider
+       */
+      name?: string | null;
+      /** @description Type of model provider */
+      type: components['schemas']['ModelProviderType'];
+    };
+    /** SystemConfigurationResponse */
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__3: {
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      /**
+       * Default Embedding Model
+       * @description Default embedding model (e.g., 'openai:text-embedding-3-small')
+       */
+      default_embedding_model?: string | null;
+      /**
+       * Default Llm Model
+       * @description Default LLM model (e.g., 'openai:gpt-4o')
+       */
+      default_llm_model?: string | null;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at?: string;
+    };
+    /** SystemConfigurationResponse */
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__4: {
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      /**
+       * Default Embedding Model
+       * @description Default embedding model (e.g., 'openai:text-embedding-3-small')
+       */
+      default_embedding_model?: string | null;
+      /**
+       * Default Llm Model
+       * @description Default LLM model (e.g., 'openai:gpt-4o')
+       */
+      default_llm_model?: string | null;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at?: string;
+    };
+    /** FileResponse */
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__5: {
+      /** Content Type */
+      content_type: string;
       /** Context Id */
       context_id?: string | null;
       /**
@@ -963,7 +1171,9 @@ export interface components {
       parent_file_id?: string | null;
     };
     /** FileResponse */
-    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__2: {
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__6: {
+      /** Content Type */
+      content_type: string;
       /** Context Id */
       context_id?: string | null;
       /**
@@ -991,7 +1201,7 @@ export interface components {
       parent_file_id?: string | null;
     };
     /** TextExtractionResponse */
-    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__3: {
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__7: {
       /**
        * Created At
        * Format: date-time
@@ -1022,7 +1232,7 @@ export interface components {
       status: components['schemas']['ExtractionStatus'];
     };
     /** TextExtractionResponse */
-    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__4: {
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__8: {
       /**
        * Created At
        * Format: date-time
@@ -1053,7 +1263,7 @@ export interface components {
       status: components['schemas']['ExtractionStatus'];
     };
     /** ContextResponse */
-    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__5: {
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__9: {
       /**
        * Created At
        * Format: date-time
@@ -1085,7 +1295,7 @@ export interface components {
       updated_at?: string;
     };
     /** ContextResponse */
-    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__6: {
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__10: {
       /**
        * Created At
        * Format: date-time
@@ -1117,7 +1327,7 @@ export interface components {
       updated_at?: string;
     };
     /** VectorStoreResponse */
-    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__7: {
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__11: {
       /** Context Id */
       context_id?: string | null;
       /**
@@ -1149,7 +1359,7 @@ export interface components {
       stats?: components['schemas']['VectorStoreStats'] | null;
     };
     /** VectorStoreResponse */
-    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__8: {
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__12: {
       /** Context Id */
       context_id?: string | null;
       /**
@@ -1512,7 +1722,7 @@ export interface components {
         | components['schemas']['ChatCompletionNamedToolChoiceCustomParam']
         | null;
       /** Tools */
-      tools?: components['schemas']['ChatCompletionFunctionToolParam'][];
+      tools?: components['schemas']['ChatCompletionFunctionToolParam'][] | null;
       /** Top Logprobs */
       top_logprobs?: number | null;
       /** Top P */
@@ -1651,10 +1861,14 @@ export interface components {
        *       "vector_stores": [],
        *       "llm": [],
        *       "embeddings": [],
+       *       "model_providers": [],
        *       "a2a_proxy": [],
        *       "providers": [],
-       *       "variables": [],
-       *       "contexts": []
+       *       "provider_variables": [],
+       *       "contexts": [],
+       *       "mcp_providers": [],
+       *       "mcp_tools": [],
+       *       "mcp_proxy": []
        *     }
        */
       grant_global_permissions: components['schemas']['GlobalPermissionGrant'];
@@ -1676,11 +1890,34 @@ export interface components {
       name: string;
       transport: components['schemas']['McpProviderTransport'];
     };
+    /** CreateModelProviderRequest */
+    CreateModelProviderRequest: {
+      /** Api Key */
+      api_key: string;
+      /**
+       * Base Url
+       * Format: uri
+       */
+      base_url: string;
+      /** Description */
+      description?: string | null;
+      /** Name */
+      name?: string | null;
+      type: components['schemas']['ModelProviderType'];
+      /** Watsonx Project Id */
+      watsonx_project_id?: string | null;
+      /** Watsonx Space Id */
+      watsonx_space_id?: string | null;
+    };
     /** CreateProviderRequest */
     CreateProviderRequest: {
       agent_card?: components['schemas']['AgentCard-Input'] | null;
       /** Location */
       location: components['schemas']['DockerImageProviderLocation'] | components['schemas']['NetworkProviderLocation'];
+      /** Variables */
+      variables?: {
+        [key: string]: string;
+      } | null;
     };
     /** CreateToolkitRequest */
     CreateToolkitRequest: {
@@ -1720,7 +1957,7 @@ export interface components {
      */
     EmbeddingsRequest: {
       /** Encoding Format */
-      encoding_format?: 'float' | null;
+      encoding_format?: ('float' | 'base64') | null;
       /** Input */
       input: string[] | string;
       /** Model */
@@ -1835,15 +2072,35 @@ export interface components {
        */
       llm: ('*' | components['schemas']['ResourceIdPermission'])[];
       /**
+       * Mcp Providers
+       * @default []
+       */
+      mcp_providers: ('read' | 'write' | '*')[];
+      /**
+       * Mcp Proxy
+       * @default []
+       */
+      mcp_proxy: '*'[];
+      /**
+       * Mcp Tools
+       * @default []
+       */
+      mcp_tools: ('read' | '*')[];
+      /**
+       * Model Providers
+       * @default []
+       */
+      model_providers: ('read' | 'write' | '*')[];
+      /**
+       * Provider Variables
+       * @default []
+       */
+      provider_variables: ('read' | 'write' | '*')[];
+      /**
        * Providers
        * @default []
        */
       providers: ('read' | 'write' | '*')[];
-      /**
-       * Variables
-       * @default []
-       */
-      variables: ('read' | 'write' | '*')[];
       /**
        * Vector Stores
        * @default []
@@ -1960,10 +2217,21 @@ export interface components {
     };
     /** ListVariablesSchema */
     ListVariablesSchema: {
-      /** Env */
-      env: {
+      /** Variables */
+      variables: {
         [key: string]: string;
       };
+    };
+    /** MatchModelsRequest */
+    MatchModelsRequest: {
+      capability: components['schemas']['ModelCapability'];
+      /**
+       * Score Cutoff
+       * @default 0.4
+       */
+      score_cutoff: number;
+      /** Suggested Models */
+      suggested_models?: string[] | null;
     };
     /** McpProvider */
     McpProvider: {
@@ -1990,6 +2258,91 @@ export interface components {
      * @enum {string}
      */
     McpProviderTransport: 'sse' | 'streamable_http';
+    /** Model */
+    Model: {
+      /** Created */
+      created: number;
+      /** Id */
+      id: string;
+      /**
+       * Object
+       * @constant
+       */
+      object: 'model';
+      /** Owned By */
+      owned_by: string;
+    } & {
+      [key: string]: unknown;
+    };
+    /**
+     * ModelCapability
+     * @enum {string}
+     */
+    ModelCapability: 'llm' | 'embedding';
+    /** ModelProvider */
+    ModelProvider: {
+      /**
+       * Base Url
+       * Format: uri
+       * @description Base URL for the API (unique)
+       */
+      base_url: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Description
+       * @description Optional description of the provider
+       */
+      description?: string | null;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id?: string;
+      /**
+       * Name
+       * @description Human-readable name for the model provider
+       */
+      name?: string | null;
+      /** @description Type of model provider */
+      type: components['schemas']['ModelProviderType'];
+    };
+    /**
+     * ModelProviderType
+     * @enum {string}
+     */
+    ModelProviderType:
+      | 'anthropic'
+      | 'cerebras'
+      | 'chutes'
+      | 'cohere'
+      | 'deepseek'
+      | 'gemini'
+      | 'github'
+      | 'groq'
+      | 'watsonx'
+      | 'jan'
+      | 'mistral'
+      | 'moonshot'
+      | 'nvidia'
+      | 'ollama'
+      | 'openai'
+      | 'openrouter'
+      | 'perplexity'
+      | 'together'
+      | 'voyage'
+      | 'rits'
+      | 'other';
+    /** ModelWithScore */
+    ModelWithScore: {
+      /** Model Id */
+      model_id: string;
+      /** Score */
+      score: number;
+    };
     /**
      * MutualTLSSecurityScheme
      * @description Defines a security scheme using mTLS authentication.
@@ -2093,6 +2446,17 @@ export interface components {
         [key: string]: unknown;
       };
     };
+    /** OpenAIPage[Model] */
+    OpenAIPage_Model_: {
+      /** Data */
+      data: components['schemas']['Model'][];
+      /**
+       * Object
+       * @default list
+       * @constant
+       */
+      object: 'list';
+    };
     /**
      * OpenIdConnectSecurityScheme
      * @description Defines a security scheme using OpenID Connect.
@@ -2113,6 +2477,20 @@ export interface components {
     PaginatedResponse_Context_: {
       /** Items */
       items: components['schemas']['Context'][];
+      /** Total Count */
+      total_count: number;
+    };
+    /** PaginatedResponse[ModelProvider] */
+    PaginatedResponse_ModelProvider_: {
+      /** Items */
+      items: components['schemas']['ModelProvider'][];
+      /** Total Count */
+      total_count: number;
+    };
+    /** PaginatedResponse[ModelWithScore] */
+    PaginatedResponse_ModelWithScore_: {
+      /** Items */
+      items: components['schemas']['ModelWithScore'][];
       /** Total Count */
       total_count: number;
     };
@@ -2291,10 +2669,17 @@ export interface components {
       location: components['schemas']['McpProviderLocation'];
       transport: components['schemas']['McpProviderTransport'];
     };
+    /** UpdateConfigurationRequest */
+    UpdateConfigurationRequest: {
+      /** Default Embedding Model */
+      default_embedding_model?: string | null;
+      /** Default Llm Model */
+      default_llm_model?: string | null;
+    };
     /** UpdateVariablesRequest */
     UpdateVariablesRequest: {
-      /** Env */
-      env: {
+      /** Variables */
+      variables: {
         [key: string]: string | null;
       };
     };
@@ -2894,6 +3279,59 @@ export interface operations {
       };
     };
   };
+  get_configuration_api_v1_configurations_system_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__3'];
+        };
+      };
+    };
+  };
+  update_configuration_api_v1_configurations_system_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateConfigurationRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__4'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   list_contexts_api_v1_contexts_get: {
     parameters: {
       query?: never;
@@ -2929,7 +3367,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__5'];
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__9'];
         };
       };
     };
@@ -2951,7 +3389,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__6'];
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__10'];
         };
       };
       /** @description Validation Error */
@@ -3050,7 +3488,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__1'];
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__5'];
         };
       };
       /** @description Validation Error */
@@ -3083,7 +3521,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__2'];
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__6'];
         };
       };
       /** @description Validation Error */
@@ -3180,7 +3618,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__4'];
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__8'];
         };
       };
       /** @description Validation Error */
@@ -3213,7 +3651,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__3'];
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__7'];
         };
       };
       /** @description Validation Error */
@@ -3270,72 +3708,6 @@ export interface operations {
       cookie?: never;
     };
     requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  create_chat_completion_api_v1_llm_chat_completions_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ChatCompletionRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  create_embedding_api_v1_llm_embeddings_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['EmbeddingsRequest'];
-      };
-    };
     responses: {
       /** @description Successful Response */
       200: {
@@ -3656,6 +4028,238 @@ export interface operations {
       };
     };
   };
+  list_model_providers_api_v1_model_providers_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PaginatedResponse_ModelProvider_'];
+        };
+      };
+    };
+  };
+  create_model_provider_api_v1_model_providers_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateModelProviderRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__1'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_model_provider_api_v1_model_providers__model_provider_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        model_provider_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__2'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  delete_model_provider_api_v1_model_providers__model_provider_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        model_provider_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  match_api_v1_model_providers_match_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['MatchModelsRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PaginatedResponse_ModelWithScore_'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  create_chat_completion_api_v1_openai_chat_completions_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ChatCompletionRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  create_embedding_api_v1_openai_embeddings_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['EmbeddingsRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_models_api_v1_openai_models_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OpenAIPage_Model_'];
+        };
+      };
+    };
+  };
   list_providers_api_v1_providers_get: {
     parameters: {
       query?: never;
@@ -3800,6 +4404,72 @@ export interface operations {
       };
     };
   };
+  list_provider_variables_api_v1_providers__id__variables_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ListVariablesSchema'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  update_provider_variables_api_v1_providers__id__variables_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateVariablesRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   preview_provider_api_v1_providers_preview_post: {
     parameters: {
       query?: never;
@@ -3866,59 +4536,6 @@ export interface operations {
       };
     };
   };
-  list_variables_api_v1_variables_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ListVariablesSchema'];
-        };
-      };
-    };
-  };
-  update_variables_api_v1_variables_put: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UpdateVariablesRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
   create_vector_store_api_v1_vector_stores_post: {
     parameters: {
       query?: {
@@ -3940,7 +4557,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__7'];
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__11'];
         };
       };
       /** @description Validation Error */
@@ -3973,7 +4590,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__8'];
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__12'];
         };
       };
       /** @description Validation Error */
