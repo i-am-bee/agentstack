@@ -7,6 +7,8 @@ import { useQuery } from '@tanstack/react-query';
 
 import { buildA2AClient, type CreateA2AClientParams } from '#api/a2a/client.ts';
 
+import { runKeys } from '../keys';
+
 type Props<UIGenericPart> = Omit<CreateA2AClientParams<UIGenericPart>, 'providerId'> & {
   providerId?: string;
 };
@@ -17,7 +19,7 @@ export function useBuildA2AClient<UIGenericPart = never>({
   onStatusUpdate,
 }: Props<UIGenericPart>) {
   const { data: agentClient } = useQuery({
-    queryKey: ['agent', 'client', providerId],
+    queryKey: runKeys.client(providerId || ''),
     queryFn: async () =>
       buildA2AClient<UIGenericPart>({
         providerId: providerId!,
