@@ -8,7 +8,7 @@ import type { NextRequest } from 'next/server';
 import { API_URL } from '#utils/constants.ts';
 
 import { transformAgentManifestBody } from './body-transformers';
-import { isApiAgentManifestPath } from './utils';
+import { isApiAgentManifestUrl, isUrlTrailingSlashNeeded } from './utils';
 
 type RouteContext = {
   params: Promise<{
@@ -22,7 +22,12 @@ async function handler(request: NextRequest, context: RouteContext) {
   const search = nextUrl.search;
 
   const url = new URL(API_URL);
-  const targetUrl = `${url}api/${path.join('/')}${search}`;
+  let targetUrl = `${url}api/${path.join('/')}`;
+  // Ensure that URLs that need a trailing slash get one, because Next.js removes it for all routes
+  if (isUrlTrailingSlashNeeded(targetUrl)) {
+    targetUrl += '/';
+  }
+  targetUrl += search;
 
   const res = await fetch(targetUrl, {
     method,
@@ -34,7 +39,7 @@ async function handler(request: NextRequest, context: RouteContext) {
   });
 
   let responseBody: ReadableStream<Uint8Array<ArrayBufferLike>> | string | null = res.body;
-  if (isApiAgentManifestPath(path)) {
+  if (isApiAgentManifestUrl(targetUrl)) {
     responseBody = await transformAgentManifestBody(res, path);
   }
 
