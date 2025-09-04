@@ -177,12 +177,7 @@ async def _add_provider(capability: ModelCapability, use_true_localhost: bool = 
     provider_name: str
     base_url: str
     watsonx_project_id, watsonx_space_id = None, None
-    if capability == ModelCapability.LLM:
-        recommended_models = RECOMMENDED_LLM_MODELS
-        choices = LLM_PROVIDERS
-    else:
-        recommended_models = RECOMMENDED_EMBEDDING_MODELS
-        choices = EMBEDDING_PROVIDERS
+    choices = LLM_PROVIDERS if capability == ModelCapability.LLM else EMBEDDING_PROVIDERS
     provider_type, provider_name, base_url = await inquirer.fuzzy(  # type: ignore
         message=f"Select {capability} provider (type to search):", choices=choices
     ).execute_async()
@@ -246,21 +241,39 @@ async def _add_provider(capability: ModelCapability, use_true_localhost: bool = 
             console.print(
                 "\n[yellow]HINT[/yellow]: If you are struggling with ollama performance, try increasing the context "
                 "length in ollama UI settings or using an environment variable in the CLI: OLLAMA_CONTEXT_LENGTH=8192"
-                "\nMore information: https://github.com/ollama/ollama/blob/main/docs/faq.md#how-can-i-specify-the-context-window-size"
+                "\nMore information: https://github.com/ollama/ollama/blob/main/docs/faq.md#how-can-i-specify-the-context-window-size\n\n"
             )
             async with httpx.AsyncClient() as client:
                 response = (await client.get(f"{base_url}/models", timeout=30.0)).raise_for_status().json()
                 available_models = [m.get("id", "") for m in response.get("data", []) or []]
-                [recommended_model] = [m for m in recommended_models if m.startswith(ModelProviderType.OLLAMA)]
-                if (
-                    not available_models
-                    and await inquirer.confirm(  # type: ignore
-                        message=f"There are no locally available models in Ollama. Do you want to pull the recommended model '{recommended_model}'?",
+                [recommended_llm_model] = [m for m in RECOMMENDED_LLM_MODELS if m.startswith(ModelProviderType.OLLAMA)]
+                [recommended_embedding_model] = [
+                    m for m in RECOMMENDED_EMBEDDING_MODELS if m.startswith(ModelProviderType.OLLAMA)
+                ]
+                recommended_llm_model = recommended_llm_model.removeprefix(f"{ModelProviderType.OLLAMA}:")
+                recommended_embedding_model = recommended_embedding_model.removeprefix(f"{ModelProviderType.OLLAMA}:")
+
+                if recommended_llm_model not in available_models:
+                    message = f"Do you want to pull the recommended LLM model '{recommended_llm_model}'?"
+                    if not available_models:
+                        message = f"There are no locally available models in Ollama. {message}"
+                    if await inquirer.confirm(message, default=True).execute_async():  # type: ignore
+                        await run_command(
+                            [_ollama_exe(), "pull", recommended_llm_model], "Pulling the selected model", check=True
+                        )
+
+                if recommended_embedding_model not in available_models and (
+                    await inquirer.confirm(  # type: ignore
+                        message=f"Do you want to pull the recommended embedding model '{recommended_embedding_model}'?",
                         default=True,
                     ).execute_async()
                 ):
                     await run_command(
-                        [_ollama_exe(), "pull", recommended_model.removeprefix(f"{ModelProviderType.OLLAMA}:")],
+                        [
+                            _ollama_exe(),
+                            "pull",
+                            recommended_embedding_model.removeprefix(f"{ModelProviderType.OLLAMA}:"),
+                        ],
                         "Pulling the selected model",
                         check=True,
                     )
@@ -317,11 +330,13 @@ async def _select_default_model(capability: ModelCapability) -> str | None:
     recommended_model = [m for m in recommended_models if m in available_models]
     recommended_model = recommended_model[0] if recommended_model else None
 
+    console.print(f"\n[bold]Configure default model for {capability}[/bold]:")
+
     selected_model = (
         recommended_model
         if recommended_model
         and await inquirer.confirm(  # type: ignore
-            message=f"Do you want to use the recommended model as default '{recommended_model}'?",
+            message=f"Do you want to use the recommended model as default: '{recommended_model}'?",
             default=True,
         ).execute_async()
         else (
