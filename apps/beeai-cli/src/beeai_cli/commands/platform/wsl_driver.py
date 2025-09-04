@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import configparser
+import os
 import pathlib
 import platform
 import sys
@@ -28,7 +29,10 @@ class WSLDriver(BaseDriver):
         input: bytes | None = None,
     ):
         return await run_command(
-            ["wsl.exe", "--user", "root", "--distribution", self.vm_name, "--", *command], message, env=env, input=input
+            ["wsl.exe", "--user", "root", "--distribution", self.vm_name, "--", *command],
+            message,
+            env={**(env or {}), "WSL_UTF8": "1", "WSLENV": os.getenv("WSLENV", "") + ":WSL_UTF8"},
+            input=input,
         )
 
     @typing.override
@@ -38,7 +42,7 @@ class WSLDriver(BaseDriver):
                 result = await run_command(
                     ["wsl.exe", "--list", "--quiet", *cmd],
                     f"Looking for {status} BeeAI platform in WSL",
-                    env={"WSL_UTF8": "1"},
+                    env={"WSL_UTF8": "1", "WSLENV": os.getenv("WSLENV", "") + ":WSL_UTF8"},
                 )
                 if self.vm_name in result.stdout.decode().splitlines():
                     return status
@@ -80,13 +84,12 @@ class WSLDriver(BaseDriver):
                 f.truncate(0)
                 config.write(f)
 
-                await run_command(["wsl.exe", "--shutdown"], "Updating WSL2 networking")
-
                 if platform.system() == "Linux":
                     console.print(
-                        "WSL networking mode updated. Please re-open WSL and run [green]beeai platform start[/green] again."
+                        "WSL networking mode updated. Please close WSL, run [green]wsl --shutdown[/green] from PowerShell, re-open WSL and run [green]beeai platform start[/green] again."
                     )
                     sys.exit(1)
+                await run_command(["wsl.exe", "--shutdown"], "Updating WSL2 networking")
         Configuration().home.mkdir(exist_ok=True)
         if not await self.status():
             await run_command(
@@ -96,7 +99,18 @@ class WSLDriver(BaseDriver):
                 ["wsl.exe", "--install", "--name", self.vm_name, "--no-launch", "--web-download"],
                 "Creating a WSL distribution",
             )
-        await self.run_in_vm(["dbus-launch", "true"], "Ensuring persistence of WSL2")
+
+        await self.run_in_vm(
+            [
+                "sh",
+                "-c",
+                "echo '[network]\ngenerateResolvConf = false\n[boot]\nsystemd=true\n' >/etc/wsl.conf && rm /etc/resolv.conf && echo 'nameserver 1.1.1.1\n' >/etc/resolv.conf && chattr +i /etc/resolv.conf",
+            ],
+            "Setting up DNS configuration",
+        )
+
+        await run_command(["wsl.exe", "--terminate", self.vm_name], "Restarting BeeAI VM")
+        await self.run_in_vm(["dbus-launch", "true"], "Ensuring persistence of BeeAI VM")
 
     @typing.override
     async def deploy(self, set_values_list: list[str], import_images: list[str] | None = None) -> None:
@@ -138,7 +152,6 @@ class WSLDriver(BaseDriver):
             await self.run_in_vm(
                 ["k3s", "kubectl", "get", "svc", "--field-selector=spec.type=LoadBalancer", "--output=json"],
                 "Detecting ports to forward",
-                env={"WSL_UTF8": "1"},
             )
         ).stdout
         ServicePort = typing.TypedDict("ServicePort", {"port": int, "name": str})

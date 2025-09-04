@@ -10,7 +10,6 @@ import { useFieldArray, useFormContext } from 'react-hook-form';
 import { match } from 'ts-pattern';
 import { v4 as uuid } from 'uuid';
 
-import { buildA2AClient } from '#api/a2a/client.ts';
 import type { AgentA2AClient, ChatRun } from '#api/a2a/types.ts';
 import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
@@ -23,6 +22,7 @@ import { UIMessagePartKind, UIMessageStatus, type UIUserMessage } from '#modules
 import { addTranformedMessagePart, getMessageRawContent } from '#modules/messages/utils.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 import { PlatformContextProvider } from '#modules/platform-context/contexts/PlatformContextProvider.tsx';
+import { useBuildA2AClient } from '#modules/runs/api/queries/useBuildA2AClient.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { type UIComposePart, UIComposePartKind } from '../a2a/types';
@@ -34,16 +34,11 @@ import { ComposeContext, ComposeStatus } from './compose-context';
 export function ComposeProvider({ children }: PropsWithChildren) {
   const { data: sequentialAgent } = useAgentByName({ name: SEQUENTIAL_WORKFLOW_AGENT_NAME });
 
-  const agentClient = useMemo(
-    () =>
-      sequentialAgent &&
-      buildA2AClient<UIComposePart>({
-        providerId: sequentialAgent.provider.id,
-        extensions: sequentialAgent.capabilities.extensions ?? [],
-        onStatusUpdate: handleTaskStatusUpdate,
-      }),
-    [sequentialAgent],
-  );
+  const { agentClient } = useBuildA2AClient({
+    providerId: sequentialAgent?.provider.id,
+    extensions: sequentialAgent?.capabilities.extensions ?? [],
+    onStatusUpdate: handleTaskStatusUpdate,
+  });
 
   return (
     <PlatformContextProvider agentClient={agentClient}>

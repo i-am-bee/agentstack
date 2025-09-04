@@ -11,7 +11,7 @@ import { useIsScrolled } from '#hooks/useIsScrolled.ts';
 import { isAgentMessage, isUserMessage } from '#modules/messages/utils.ts';
 
 import { FileUpload } from '../../files/components/FileUpload';
-import { useMessages } from '../../messages/contexts';
+import { useMessages } from '../../messages/contexts/Messages';
 import { NewSessionButton } from '../components/NewSessionButton';
 import { RunInput } from '../components/RunInput';
 import { RunStatusBar } from '../components/RunStatusBar';

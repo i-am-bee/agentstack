@@ -20,7 +20,7 @@ export function useHandleError() {
         const errorMessage = errorToast?.includeErrorMessage ? getErrorMessage(error) : undefined;
 
         addToast({
-          title: errorToast?.title ?? 'An error occured',
+          title: errorToast?.title ?? 'An error occurred',
           subtitle: errorMessage,
         });
       } else {

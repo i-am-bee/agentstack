@@ -1,12 +1,12 @@
 [project]
 name = "beeai-sdk"
-version = "0.3.2"
+version = "0.3.3-rc2"
 description = "BeeAI SDK"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
 requires-python = ">=3.11"
 dependencies = [
-    "a2a-sdk~=0.3.3",
+    "a2a-sdk~=0.3.4",
     "objprint>=0.3.0",
     "uvicorn>=0.35.0",
     "asyncclick>=8.1.8",
@@ -19,7 +19,7 @@ dependencies = [
     "opentelemetry-sdk>=1.35.0",
     "tenacity>=9.1.2",
     "janus>=2.0.0",
-    "httpx", # version determined by a2a-sdk
+    "httpx",                                          # version determined by a2a-sdk
     "mcp>=1.12.3",
     "fastapi>=0.116.1",
 ]

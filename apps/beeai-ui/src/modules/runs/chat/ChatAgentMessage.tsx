@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useRef, useState } from 'react';
-import { useFocusWithin, useHover } from 'react-aria';
+import { useRef } from 'react';
 
 import { Spinner } from '#components/Spinner/Spinner.tsx';
 import { MessageFiles } from '#modules/files/components/MessageFiles.tsx';
@@ -12,6 +11,8 @@ import { MessageForm } from '#modules/form/components/MessageForm.tsx';
 import { MessageActions } from '#modules/messages/components/MessageActions.tsx';
 import { MessageContent } from '#modules/messages/components/MessageContent.tsx';
 import { MessageError } from '#modules/messages/components/MessageError.tsx';
+import { useMessageInteractionProps } from '#modules/messages/contexts/MessageInteraction/index.ts';
+import { MessageInteractionProvider } from '#modules/messages/contexts/MessageInteraction/MessageInteractionProvider.tsx';
 import type { UIAgentMessage } from '#modules/messages/types.ts';
 import { checkMessageContent, checkMessageStatus } from '#modules/messages/utils.ts';
 import { MessageSources } from '#modules/sources/components/MessageSources.tsx';
@@ -24,20 +25,24 @@ interface Props {
 }
 
 export function ChatAgentMessage({ message }: Props) {
+  return (
+    <MessageInteractionProvider>
+      <Message message={message} />
+    </MessageInteractionProvider>
+  );
+}
+
+function Message({ message }: Props) {
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const [isFocusWithin, setFocusWithin] = useState(false);
-
-  const { hoverProps, isHovered } = useHover({});
-  const { focusWithinProps } = useFocusWithin({ onFocusWithinChange: setFocusWithin });
+  const { props } = useMessageInteractionProps();
 
   const hasContent = checkMessageContent(message);
   const { isInProgress } = checkMessageStatus(message);
   const isPending = isInProgress && !hasContent;
-  const showActions = !isPending && (isHovered || isFocusWithin);
 
   return (
-    <div {...hoverProps} {...focusWithinProps} className={classes.root}>
+    <div {...props} className={classes.root}>
       {isPending ? (
         <Spinner center />
       ) : (
@@ -58,7 +63,9 @@ export function ChatAgentMessage({ message }: Props) {
 
       <MessageForm message={message} />
 
-      <MessageActions message={message} className={classes.actions} contentRef={contentRef} isVisible={showActions} />
+      <MessageForm message={message} />
+
+      {!isPending && <MessageActions message={message} className={classes.actions} contentRef={contentRef} />}
     </div>
   );
 }

@@ -49,4 +49,4 @@ export interface Fulfillments {
   llm: (demand: LLMDemand) => Promise<LLMFulfillment>;
 }
 
-export type AgentA2AClient<UIGenericPart = never> = ReturnType<typeof buildA2AClient<UIGenericPart>>;
+export type AgentA2AClient<UIGenericPart = never> = Awaited<ReturnType<typeof buildA2AClient<UIGenericPart>>>;

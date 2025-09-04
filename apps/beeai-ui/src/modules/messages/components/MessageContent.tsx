@@ -4,6 +4,7 @@
  */
 
 import clsx from 'clsx';
+import { memo } from 'react';
 
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 import type { UIMessage } from '#modules/messages/types.ts';
@@ -18,7 +19,7 @@ interface Props {
   message: UIMessage;
 }
 
-export function MessageContent({ message }: Props) {
+export const MessageContent = memo(function MessageContent({ message }: Props) {
   const { isPending } = useAgentRun();
 
   const content = getMessageContent(message);
@@ -37,4 +38,4 @@ export function MessageContent({ message }: Props) {
   ) : (
     <div className={clsx(classes.empty, classes.root)}>Message has no content</div>
   );
-}
+});

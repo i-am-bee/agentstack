@@ -9,7 +9,7 @@ import type { MediaType } from 'openapi-typescript-helpers';
 
 import { isNotNull } from '#utils/helpers.ts';
 
-import { AcpError, ApiError, ApiValidatioError, HttpError } from './errors';
+import { AcpError, ApiError, ApiValidationError, HttpError } from './errors';
 import type { AcpErrorResponse, ApiErrorCode, ApiErrorResponse, ApiValidationErrorResponse } from './types';
 
 export function ensureData<T extends Record<string | number, unknown>, O, M extends MediaType>(
@@ -28,12 +28,12 @@ function handleFailedError({ response, error }: { response: Response; error: unk
       const { detail } = error;
 
       if (typeof detail === 'object') {
-        throw new ApiValidatioError({ error: error as ApiValidationErrorResponse, response });
+        throw new ApiValidationError({ error: error as ApiValidationErrorResponse, response });
       } else if (typeof detail === 'string') {
         throw new HttpError({ message: detail, response });
       }
 
-      throw new HttpError({ message: 'An error occured', response });
+      throw new HttpError({ message: 'An error occurred', response });
     } else if ('error' in error) {
       throw new AcpError({ error: error as AcpErrorResponse, response });
     }
@@ -41,7 +41,7 @@ function handleFailedError({ response, error }: { response: Response; error: unk
     throw new ApiError({ error: error as ApiErrorResponse, response });
   }
 
-  throw new HttpError({ message: 'An error occured.', response });
+  throw new HttpError({ message: 'An error occurred.', response });
 }
 
 export async function handleStream<T>({

@@ -59,7 +59,7 @@ export class AcpError extends CustomError {
   }
 }
 
-export class ApiValidatioError extends CustomError {
+export class ApiValidationError extends CustomError {
   error: ApiValidationErrorResponse;
 
   constructor({ error, response }: { error: ApiValidationErrorResponse; response?: Response }) {

@@ -7,7 +7,7 @@ import { Container } from '#components/layouts/Container.tsx';
 import { MessageFormResponse } from '#modules/messages/components/MessageFormResponse.tsx';
 import { checkMessageContent, isAgentMessage, isUserMessage } from '#modules/messages/utils.ts';
 
-import { useMessages } from '../../messages/contexts';
+import { useMessages } from '../../messages/contexts/Messages';
 import { MessageTrajectories } from '../../trajectories/components/MessageTrajectories';
 import { NewSessionButton } from '../components/NewSessionButton';
 import { useAgentRun } from '../contexts/agent-run';

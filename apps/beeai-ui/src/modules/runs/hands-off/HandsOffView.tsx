@@ -9,7 +9,7 @@ import { formExtension } from '#api/a2a/extensions/ui/form.ts';
 import { extractServiceExtensionDemands } from '#api/a2a/extensions/utils.ts';
 import { MainContent } from '#components/layouts/MainContent.tsx';
 import type { Agent } from '#modules/agents/api/types.ts';
-import { useMessages } from '#modules/messages/contexts/index.ts';
+import { useMessages } from '#modules/messages/contexts/Messages/index.ts';
 import { SourcesPanel } from '#modules/sources/components/SourcesPanel.tsx';
 
 import { FormRenderView } from '../components/FormRenderView';

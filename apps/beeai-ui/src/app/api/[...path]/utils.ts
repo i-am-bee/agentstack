@@ -3,8 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export function isApiAgentManifestPath(path: string[]) {
-  return AGENT_MANIFEST_PATH_REGEX.test(path.join('/'));
+export function isApiAgentManifestUrl(url: string) {
+  return AGENT_MANIFEST_PATH_REGEX.test(url);
+}
+
+export function isUrlTrailingSlashNeeded(url: string) {
+  return A2A_JSONRPC_PATH_REGEX.test(url);
 }
 
 const AGENT_MANIFEST_PATH_REGEX = /v1\/a2a\/.*\/\.well-known\/agent\-card\.json/;
+const A2A_JSONRPC_PATH_REGEX = /v1\/a2a\/.*\/\jsonrpc/;

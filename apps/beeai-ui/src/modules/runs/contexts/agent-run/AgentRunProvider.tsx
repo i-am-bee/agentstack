@@ -7,7 +7,6 @@
 import { type PropsWithChildren, useCallback, useMemo, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
-import { buildA2AClient } from '#api/a2a/client.ts';
 import { type AgentA2AClient, type ChatRun, RunResultType } from '#api/a2a/types.ts';
 import { createTextPart } from '#api/a2a/utils.ts';
 import { getErrorCode } from '#api/utils.ts';
@@ -23,13 +22,14 @@ import { UIMessagePartKind, UIMessageStatus } from '#modules/messages/types.ts';
 import { addTranformedMessagePart, isAgentMessage } from '#modules/messages/utils.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 import { PlatformContextProvider } from '#modules/platform-context/contexts/PlatformContextProvider.tsx';
+import { useBuildA2AClient } from '#modules/runs/api/queries/useBuildA2AClient.ts';
 import type { RunStats } from '#modules/runs/types.ts';
 import { SourcesProvider } from '#modules/sources/contexts/SourcesProvider.tsx';
 import { getMessagesSourcesMap } from '#modules/sources/utils.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
-import { MessagesProvider } from '../../../messages/contexts/MessagesProvider';
+import { MessagesProvider } from '../../../messages/contexts/Messages/MessagesProvider';
 import { AgentStatusProvider } from '../agent-status/AgentStatusProvider';
 import { AgentRunContext, AgentRunStatus } from './agent-run-context';
 
@@ -38,14 +38,10 @@ interface Props {
 }
 
 export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>) {
-  const agentClient = useMemo(
-    () =>
-      buildA2AClient({
-        providerId: agent.provider.id,
-        extensions: agent.capabilities.extensions ?? [],
-      }),
-    [agent.provider.id, agent.capabilities.extensions],
-  );
+  const { agentClient } = useBuildA2AClient({
+    providerId: agent.provider.id,
+    extensions: agent.capabilities.extensions ?? [],
+  });
 
   return (
     <PlatformContextProvider agentClient={agentClient}>
@@ -59,7 +55,7 @@ export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>)
 }
 
 interface AgentRunProviderProps extends Props {
-  agentClient: AgentA2AClient;
+  agentClient?: AgentA2AClient;
 }
 
 function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<AgentRunProviderProps>) {
@@ -140,6 +136,10 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
 
   const run = useCallback(
     async (message: UIUserMessage, taskId?: TaskId) => {
+      if (!agentClient) {
+        throw new Error('Agent client is not initialized');
+      }
+
       checkPendingRun();
       setIsPending(true);
       setStats({ startTime: Date.now() });
@@ -243,7 +243,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
 
   const lastAgentMessage = getMessages().findLast(isAgentMessage);
   const status = useMemo(() => {
-    if (!contextId) {
+    if (!contextId || !agentClient) {
       return AgentRunStatus.Initializing;
     }
     if (isPending) {
@@ -253,7 +253,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
       return AgentRunStatus.ActionRequired;
     }
     return AgentRunStatus.Ready;
-  }, [contextId, isPending, lastAgentMessage?.status]);
+  }, [agentClient, contextId, isPending, lastAgentMessage?.status]);
 
   const contextValue = useMemo(() => {
     return {
