@@ -3,9 +3,10 @@
 
 import os
 from textwrap import dedent
-from typing import Any, Annotated, AsyncGenerator
+from typing import Annotated, Any, AsyncGenerator
 
 from a2a.types import AgentSkill, Message
+
 from gpt_researcher import GPTResearcher
 
 from gpt_researcher_agent.env_patch import with_local_env
@@ -22,6 +23,7 @@ from beeai_sdk.a2a.extensions import (
 from beeai_sdk.a2a.types import RunYield
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import RunContext
+from gpt_researcher import GPTResearcher
 
 server = Server()
 

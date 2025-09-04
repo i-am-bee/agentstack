@@ -15,6 +15,7 @@ from starlette.requests import Request
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 
 from beeai_server.api.routes.a2a import router as a2a_router
+from beeai_server.api.routes.auth import router as auth_router
 from beeai_server.api.routes.configurations import router as configuration_router
 from beeai_server.api.routes.contexts import router as contexts_router
 from beeai_server.api.routes.files import router as files_router
@@ -76,6 +77,7 @@ def register_global_exception_handlers(app: FastAPI):
 
 def mount_routes(app: FastAPI):
     server_router = APIRouter()
+    server_router.include_router(auth_router, prefix="", tags=["auth"])
     server_router.include_router(a2a_router, prefix="/a2a")
     server_router.include_router(mcp_router, prefix="/mcp")
     server_router.include_router(provider_router, prefix="/providers", tags=["providers"])

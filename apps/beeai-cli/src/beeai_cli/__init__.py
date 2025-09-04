@@ -9,6 +9,7 @@ import pydantic
 import typer
 
 import beeai_cli.commands.agent
+import beeai_cli.commands.auth
 import beeai_cli.commands.build
 import beeai_cli.commands.mcp
 import beeai_cli.commands.model
@@ -26,6 +27,7 @@ app.add_typer(beeai_cli.commands.agent.app, name="agent", no_args_is_help=True, 
 app.add_typer(beeai_cli.commands.platform.app, name="platform", no_args_is_help=True, help="Manage BeeAI platform.")
 app.add_typer(beeai_cli.commands.mcp.app, name="mcp", no_args_is_help=True, help="Manage MCP servers and toolkits.")
 app.add_typer(beeai_cli.commands.build.app, name="", no_args_is_help=True, help="Build agent images.")
+app.add_typer(beeai_cli.commands.auth.app, name="", no_args_is_help=True, help="Beeai login.")
 
 
 agent_alias = deepcopy(beeai_cli.commands.agent.app)

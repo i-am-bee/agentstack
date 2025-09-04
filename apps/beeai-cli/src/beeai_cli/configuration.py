@@ -13,6 +13,8 @@ import pydantic_settings
 from beeai_sdk.platform import PlatformClient, use_platform_client
 from pydantic import HttpUrl, SecretStr
 
+from beeai_cli.auth_config_manager import AuthConfigManager
+
 
 @functools.cache
 def version():
@@ -34,13 +36,35 @@ class Configuration(pydantic_settings.BaseSettings):
         f"https://github.com/i-am-bee/beeai-platform@v{version()}#path=agent-registry.yaml"
     )
     admin_password: SecretStr | None = None
+    oidc_enabled: bool = False
+    resource_metadata_ttl: int = 86400
+    client_id: str = "df82a687-d647-4247-838b-7080d7d83f6c"  # pre-registered with AS
+    redirect_uri: pydantic.AnyUrl = HttpUrl("http://localhost:9001/callback")
 
     @property
     def lima_home(self) -> pathlib.Path:
         return self.home / "lima"
 
+    @property
+    def auth_config_file(self) -> pathlib.Path:
+        """Return auth config file path"""
+        return self.home / "auth_config.json"
+
+    @property
+    def resource_metadata_dir(self) -> pathlib.Path:
+        """Return resource metadata directory path"""
+        path = self.home / "resource_metadata"
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    @property
+    def auth_manager(self) -> AuthConfigManager:
+        return AuthConfigManager(self.auth_config_file)
+
     @asynccontextmanager
     async def use_platform_client(self) -> AsyncIterator[PlatformClient]:
         auth = ("admin", self.admin_password.get_secret_value()) if self.admin_password else None
-        async with use_platform_client(auth=auth, base_url=str(self.host)) as client:
+        token = self.auth_manager.load_auth_token()
+        auth_token = token.get_secret_value() if token else None
+        async with use_platform_client(auth=auth, auth_token=auth_token, base_url=str(self.host)) as client:
             yield client

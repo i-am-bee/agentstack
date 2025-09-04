@@ -5,17 +5,25 @@ import logging
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Query, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBasic, HTTPBasicCredentials, HTTPBearer
+from fastapi import Depends, HTTPException, Query, Security, status
+from fastapi.security import APIKeyCookie, HTTPAuthorizationCredentials, HTTPBasic, HTTPBasicCredentials, HTTPBearer
 from jwt import PyJWTError
 from kink import di
 from pydantic import ConfigDict
 
-from beeai_server.api.auth import ROLE_PERMISSIONS, verify_internal_jwt
+from beeai_server.api.auth import (
+    ROLE_PERMISSIONS,
+    decode_oauth_jwt_or_introspect,
+    extract_oauth_token,
+    fetch_user_info,
+    verify_internal_jwt,
+)
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.permissions import AuthorizedUser, Permissions
 from beeai_server.domain.models.user import User, UserRole
+from beeai_server.exceptions import EntityNotFoundError
 from beeai_server.service_layer.services.a2a import A2AProxyService
+from beeai_server.service_layer.services.auth import AuthService
 from beeai_server.service_layer.services.configurations import ConfigurationService
 from beeai_server.service_layer.services.contexts import ContextService
 from beeai_server.service_layer.services.files import FileService
@@ -36,9 +44,66 @@ FileServiceDependency = Annotated[FileService, Depends(lambda: di[FileService])]
 UserServiceDependency = Annotated[UserService, Depends(lambda: di[UserService])]
 VectorStoreServiceDependency = Annotated[VectorStoreService, Depends(lambda: di[VectorStoreService])]
 UserFeedbackServiceDependency = Annotated[UserFeedbackService, Depends(lambda: di[UserFeedbackService])]
+AuthServiceDependency = Annotated[AuthService, Depends(lambda: di[AuthService])]
 ModelProviderServiceDependency = Annotated[ModelProviderService, Depends(lambda: di[ModelProviderService])]
 
 logger = logging.getLogger(__name__)
+api_key_cookie = APIKeyCookie(name="beeai-platform", auto_error=False)
+
+
+async def authenticate_oauth_user(
+    bearer_auth: HTTPAuthorizationCredentials,
+    cookie_auth: str | None,
+    user_service: UserServiceDependency,
+    configuration: ConfigurationDependency,
+) -> AuthorizedUser:
+    """
+    Authenticate using an OIDC/OAuth2 JWT bearer token with JWKS.
+    Creates the user if it doesn't exist.
+    """
+    try:
+        token = extract_oauth_token(bearer_auth, cookie_auth)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid Authorization header: {e}",
+        ) from e
+
+    claims, issuer = await decode_oauth_jwt_or_introspect(
+        token=token, jwks_dict=di["JWKS_CACHE"], aud="beeai-server", configuration=configuration
+    )
+    if not claims:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
+
+    email = claims.get("email")
+    if not email:
+        provider = next((p for p in configuration.auth.oidc.providers if p.issuer == issuer), None)
+        if not provider:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="issuer not configured")
+        userinfo = await fetch_user_info(token, f"{provider.issuer}/userinfo")
+        email = userinfo.get("email")
+        email_verified = userinfo.get("email_verified", False)
+    else:
+        email_verified = claims.get("email_verified", False)
+
+    if not email or not email_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Verified email not available in token or userinfo"
+        )
+
+    is_admin = email in configuration.auth.oidc.admin_emails
+
+    try:
+        user = await user_service.get_user_by_email(email=email)
+    except EntityNotFoundError:
+        role = UserRole.admin if is_admin else UserRole.user
+        user = await user_service.create_user(email=email, role=role)
+
+    return AuthorizedUser(
+        user=user,
+        global_permissions=ROLE_PERMISSIONS[user.role],
+        context_permissions=ROLE_PERMISSIONS[user.role],
+    )
 
 
 async def authorized_user(
@@ -46,10 +111,8 @@ async def authorized_user(
     configuration: ConfigurationDependency,
     basic_auth: Annotated[HTTPBasicCredentials | None, Depends(HTTPBasic(auto_error=False))],
     bearer_auth: Annotated[HTTPAuthorizationCredentials | None, Depends(HTTPBearer(auto_error=False))],
+    cookie_auth: Annotated[str | None, Security(api_key_cookie)],
 ) -> AuthorizedUser:
-    """
-    TODO: authentication is not impelemented yet, for now, this always returns the dummy user.
-    """
     if bearer_auth:
         # Check Bearer token first - locally this allows for "checking permissions" for development purposes
         # even if auth is disabled (requests that would pass with no header may not pass with context token header)
@@ -64,13 +127,15 @@ async def authorized_user(
             )
             return token
         except PyJWTError:
-            if not configuration.auth.disable_auth:
-                raise NotImplementedError("Oauth is not implemented yet.") from None
+            if configuration.auth.oidc.enabled:
+                return await authenticate_oauth_user(bearer_auth, cookie_auth, user_service, configuration)
             # TODO: update agents
             logger.warning("Bearer token is invalid, agent is not probably not using llm extension correctly")
 
     if configuration.auth.disable_auth or (
-        basic_auth and basic_auth.password == configuration.auth.admin_password.get_secret_value()  # pyright: ignore [reportOptionalMemberAccess]
+        configuration.auth.basic.enabled
+        and basic_auth
+        and basic_auth.password == configuration.auth.basic.admin_password.get_secret_value()
     ):
         user = await user_service.get_user_by_email("admin@beeai.dev")
         return AuthorizedUser(

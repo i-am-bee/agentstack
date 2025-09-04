@@ -2,12 +2,13 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from collections.abc import AsyncGenerator
+
 import httpx
 from a2a.client import A2ACardResolver, A2AClient
 from a2a.types import (
-    TaskStatusUpdateEvent,
-    SendStreamingMessageSuccessResponse,
     Message,
+    SendStreamingMessageSuccessResponse,
+    TaskStatusUpdateEvent,
 )
 from pydantic import BaseModel
 

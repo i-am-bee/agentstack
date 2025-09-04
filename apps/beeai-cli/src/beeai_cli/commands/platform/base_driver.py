@@ -119,6 +119,9 @@ class BaseDriver(abc.ABC):
                         f"Pulling image {image}" + (f" (attempt {attempt_num})" if attempt_num > 1 else ""),
                     )
 
+        if any("auth.oidc.enabled=true" in value.lower() for value in set_values_list):
+            await beeai_cli.commands.platform.istio.install(driver=self)
+
         kubeconfig_path = anyio.Path(Configuration().lima_home) / self.vm_name / "copied-from-guest" / "kubeconfig.yaml"
         await kubeconfig_path.parent.mkdir(parents=True, exist_ok=True)
         await kubeconfig_path.write_text(
@@ -129,9 +132,6 @@ class BaseDriver(abc.ABC):
                 )
             ).stdout.decode()
         )
-
-        if any("oidc.enabled=true" in value.lower() for value in set_values_list):
-            await beeai_cli.commands.platform.istio.install(driver=self)
 
         await self.run_in_vm(
             [

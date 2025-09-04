@@ -16,9 +16,7 @@ class TrajectoryEvent(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
 
     def metadata(self, server: TrajectoryExtensionServer):
-        return server.trajectory_metadata(
-            title=self.kind, content=self.model_dump_json(exclude={"kind"})
-        )
+        return server.trajectory_metadata(title=self.kind, content=self.model_dump_json(exclude={"kind"}))
 
 
 class ToolCallTrajectoryEvent(TrajectoryEvent):

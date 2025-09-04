@@ -14,7 +14,7 @@ import httpx
 import psutil
 from a2a.client import Client, ClientConfig, ClientFactory
 from a2a.types import AgentCard
-from httpx import BasicAuth, HTTPStatusError
+from httpx import HTTPStatusError
 from httpx._types import RequestFiles
 
 from beeai_cli.configuration import Configuration
@@ -48,9 +48,23 @@ def server_process_status(
     return ProcessStatus.not_running
 
 
+async def set_auth_header():
+    if not config.auth_manager.load_auth_token():
+        raise RuntimeError("No token found. Please run `beeai login` first.")
+    return f"Bearer {config.auth_manager.load_auth_token()}"
+
+
 async def api_request(
-    method: str, path: str, json: dict | None = None, files: RequestFiles | None = None
+    method: str,
+    path: str,
+    json: dict | None = None,
+    files: RequestFiles | None = None,
+    params: dict[str, Any] | None = None,
+    use_auth: bool = True,
 ) -> dict | None:
+    headers = {}
+    if config.oidc_enabled and use_auth:
+        headers["Authorization"] = await set_auth_header()
     """Make an API request to the server."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
@@ -58,8 +72,9 @@ async def api_request(
             urllib.parse.urljoin(API_BASE_URL, path),
             json=json,
             files=files,
+            params=params,
             timeout=60,
-            auth=BasicAuth("beeai-admin", config.admin_password.get_secret_value()) if config.admin_password else None,
+            headers=headers,
         )
         if response.is_error:
             error = ""
@@ -77,8 +92,16 @@ async def api_request(
 
 
 async def api_stream(
-    method: str, path: str, json: dict | None = None, params: dict[str, Any] | None = None
+    method: str,
+    path: str,
+    json: dict | None = None,
+    params: dict[str, Any] | None = None,
+    use_auth: bool = True,
 ) -> AsyncIterator[dict[str, Any]]:
+    headers = {}
+    if config.oidc_enabled and use_auth:
+        headers["Authorization"] = await set_auth_header()
+
     """Make a streaming API request to the server."""
     import json as jsonlib
 
@@ -90,6 +113,7 @@ async def api_stream(
             json=json,
             params=params,
             timeout=timedelta(hours=1).total_seconds(),
+            headers=headers,
         ) as response,
     ):
         response: httpx.Response
@@ -107,6 +131,10 @@ async def api_stream(
 
 
 @asynccontextmanager
-async def a2a_client(agent_card: AgentCard) -> AsyncIterator[Client]:
-    async with httpx.AsyncClient() as httpx_client:
+async def a2a_client(agent_card: AgentCard, use_auth: bool = True) -> AsyncIterator[Client]:
+    headers = {}
+    if config.oidc_enabled and use_auth:
+        headers["Authorization"] = await set_auth_header()
+
+    async with httpx.AsyncClient(headers=headers) as httpx_client:
         yield ClientFactory(ClientConfig(httpx_client=httpx_client)).create(card=agent_card)
