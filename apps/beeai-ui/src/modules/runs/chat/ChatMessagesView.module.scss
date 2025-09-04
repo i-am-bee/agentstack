@@ -8,6 +8,7 @@ $new-session-button-height: rem(32px);
 $user-message-height: rem(46px);
 $messages-row-gap: $spacing-07;
 $holder-row-gap: $spacing-06;
+$messages-top-padding: $spacing-03;
 $input-height: rem(88px);
 
 $zindex-messages: 1;
@@ -44,7 +45,7 @@ $zindex-buttons: 2;
   display: flex;
   flex-direction: column;
   row-gap: $messages-row-gap;
-  padding-block-start: $spacing-03;
+  padding-block-start: $messages-top-padding;
   block-size: 100%;
 }
 
@@ -54,7 +55,7 @@ $zindex-buttons: 2;
       (
         var(--header-height) + var(--header-border-height) + #{(2 * $content-block-padding) +
           $new-session-button-height + $user-message-height + (2 * $messages-row-gap) + $holder-row-gap +
-          $input-height + rem(48px)}
+          $input-height + rem(48px) + $messages-top-padding}
       )
   );
 }

@@ -4,7 +4,8 @@
  */
 
 import { ModelAlt } from '@carbon/icons-react';
-import { Dropdown } from '@carbon/react';
+import { Select, SelectItem } from '@carbon/react';
+import type { ChangeEvent } from 'react';
 import { useId, useMemo } from 'react';
 
 import { Tooltip } from '#components/Tooltip/Tooltip.tsx';
@@ -29,19 +30,21 @@ export function ModelProviders() {
           <Tooltip content="Model" asChild size="sm">
             <ModelAlt size={20} className={classes.icon} />
           </Tooltip>
-          <Dropdown
+          <Select
             size="sm"
-            items={items}
             id={`${htmlId}:${key}`}
-            label=""
-            titleText={key}
-            type="inline"
-            selectedItem={selectedProviders[key]}
+            labelText={key}
             hideLabel={providersList.length === 1}
-            onChange={({ selectedItem }: { selectedItem: string | null }) =>
-              selectedItem && selectProvider(key, selectedItem)
-            }
-          />
+            inline
+            value={selectedProviders[key] || ''}
+            onChange={(event: ChangeEvent<HTMLSelectElement>) => {
+              selectProvider(key, event.target.value);
+            }}
+          >
+            {items.map((item) => (
+              <SelectItem key={item} text={item} value={item} />
+            ))}
+          </Select>
         </div>
       ))}
     </div>
