@@ -12,4 +12,4 @@ export function isUrlTrailingSlashNeeded(url: string) {
 }
 
 const AGENT_MANIFEST_PATH_REGEX = /v1\/a2a\/.*\/\.well-known\/agent\-card\.json/;
-const A2A_JSONRPC_PATH_REGEX = /v1\/a2a\/.*\/\jsonrpc/;
+const A2A_JSONRPC_PATH_REGEX = /v1\/a2a\/.*\/jsonrpc/;
