@@ -59,7 +59,7 @@ export function ChatMessagesView() {
         </div>
 
         <div className={classes.bottom}>
-          {isScrolled && (
+          {messages.length && isScrolled && (
             <IconButton
               label="Scroll to bottom"
               kind="secondary"
