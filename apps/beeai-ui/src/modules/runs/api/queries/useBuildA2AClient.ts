@@ -19,13 +19,12 @@ export function useBuildA2AClient<UIGenericPart = never>({
   const { data: agentClient } = useQuery({
     queryKey: ['agent', 'client', providerId],
     queryFn: async () =>
-      providerId
-        ? buildA2AClient<UIGenericPart>({
-            providerId,
-            extensions,
-            onStatusUpdate,
-          })
-        : undefined,
+      buildA2AClient<UIGenericPart>({
+        providerId: providerId!,
+        extensions,
+        onStatusUpdate,
+      }),
+    enabled: Boolean(providerId),
     staleTime: Infinity,
   });
 
