@@ -35,6 +35,7 @@ export function HandsOffView({ agent }: Props) {
 function HandsOff() {
   const { agent, isPending } = useAgentRun();
 
+  // TODO: move extraction into the agent run context (or a2a client)
   const formRender = useMemo(() => {
     const { extensions } = agent.capabilities;
     const formRender = extensions && formExtensionExtractor(extensions);

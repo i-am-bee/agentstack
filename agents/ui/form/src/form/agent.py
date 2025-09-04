@@ -24,7 +24,7 @@ from beeai_sdk.a2a.extensions.ui.form import DateField, TextField, FileField, Ch
 
 agent_detail_extension_spec = beeai_sdk.a2a.extensions.AgentDetailExtensionSpec(
     params=beeai_sdk.a2a.extensions.AgentDetail(
-        interaction_mode="single-turn",
+        interaction_mode="multi-turn",
     )
 )
 

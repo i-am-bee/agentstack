@@ -4,7 +4,7 @@ requires-python = ">=3.13, <4"
 
 [[package]]
 name = "a2a-sdk"
-version = "0.3.2"
+version = "0.3.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "google-api-core" },
@@ -13,9 +13,9 @@ dependencies = [
     { name = "protobuf" },
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1b/43/57b3f7b45cc19dc52fcae2b9b59a8d7acabe933ae48a8fcf261cd6ff75ae/a2a_sdk-0.3.2.tar.gz", hash = "sha256:b18dcee03678ba6d881a20e0bf1312ad34833a81bed9b060813ee254227e69a4", size = 218438 }
+sdist = { url = "https://files.pythonhosted.org/packages/cd/ce/f50c904664a0fcafa0909be7a987ef6dcf1d75595532305bcefadb0532af/a2a_sdk-0.3.4.tar.gz", hash = "sha256:79db4c287cab1235a0b0c5af9a3a58eedd8a037b51a87bed2e89f5e5e8977f65", size = 220158 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9b/b8/37cc4100df87f14dc1cc56ad827d771652e0930585e348bdcde83e7a8d46/a2a_sdk-0.3.2-py3-none-any.whl", hash = "sha256:8ea1cff85d0f6a698884cc4270021463999291ca6d4e742b1d8114df9411ffd4", size = 134313 },
+    { url = "https://files.pythonhosted.org/packages/44/7a/c7a13e692aba332fb55480c843acb7f3cf43668623f75d127792e8fa9b30/a2a_sdk-0.3.4-py3-none-any.whl", hash = "sha256:423f72334b4a4b34cb4da07d5db3b786975de2fbc527236e3ca713b0d08c27e1", size = 135297 },
 ]
 
 [[package]]
@@ -164,7 +164,7 @@ wikipedia = [
 
 [[package]]
 name = "beeai-sdk"
-version = "0.3.2"
+version = "0.3.3rc2"
 source = { editable = "../../../apps/beeai-sdk" }
 dependencies = [
     { name = "a2a-sdk" },
@@ -187,7 +187,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "a2a-sdk", specifier = "~=0.3.1" },
+    { name = "a2a-sdk", specifier = "~=0.3.4" },
     { name = "anyio", specifier = ">=4.9.0" },
     { name = "asyncclick", specifier = ">=8.1.8" },
     { name = "fastapi", specifier = ">=0.116.1" },

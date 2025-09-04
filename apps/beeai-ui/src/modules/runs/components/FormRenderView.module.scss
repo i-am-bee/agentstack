@@ -9,4 +9,8 @@
   margin-block: auto;
   min-block-size: 100%;
   align-items: center;
+
+  > form {
+    inline-size: 100%;
+  }
 }
