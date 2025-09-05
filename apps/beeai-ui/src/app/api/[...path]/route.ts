@@ -40,7 +40,7 @@ async function handler(request: NextRequest, context: RouteContext) {
 
   let responseBody: ReadableStream<Uint8Array<ArrayBufferLike>> | string | null = res.body;
   if (isApiAgentManifestUrl(targetUrl)) {
-    responseBody = await transformAgentManifestBody(res, path);
+    responseBody = await transformAgentManifestBody(res);
   }
 
   return new Response(responseBody, {
