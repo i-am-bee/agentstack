@@ -77,10 +77,6 @@
       "href": "https://github.com/i-am-bee/beeai-platform"
     },
     "links": [
-      {
-        "label": "Agent Catalog",
-        "href": "https://beeai.dev/agents"
-      },
       { "label": "Discord", "href": "https://discord.gg/NradeA6ZNF" }
     ]
   },
