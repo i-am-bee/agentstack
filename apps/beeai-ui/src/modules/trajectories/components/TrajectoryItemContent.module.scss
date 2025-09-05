@@ -23,4 +23,7 @@
 
 .content {
   margin-block-start: -$spacing-02;
+  font-size: rem(14px);
+  line-height: math.div(20, 14);
+  letter-spacing: $letter-spacing;
 }

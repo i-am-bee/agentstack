@@ -6,6 +6,8 @@
 import humanizeDuration from 'humanize-duration';
 import JSON5 from 'json5';
 
+import { isNotNull } from '#utils/helpers.ts';
+
 humanizeDuration.languages.shortEn = {
   h: () => 'h',
   m: () => 'min',
@@ -24,16 +26,46 @@ export function runDuration(ms: number) {
   return duration;
 }
 
-export function parseJsonLikeString(string: string): string {
+const parseJsonLikeString = (string: string): unknown | string => {
   try {
     const json = JSON5.parse(string);
 
-    if (typeof json === 'string') {
-      return json;
-    }
-
-    return JSON.stringify(json, null, 2);
+    return json;
   } catch {
     return string;
   }
+};
+
+interface MaybeParsedJson {
+  type: 'string' | 'json';
+  value: string;
 }
+
+export const maybeParseJson = (content: string | null | undefined): MaybeParsedJson | null => {
+  if (!isNotNull(content)) {
+    return null;
+  }
+
+  try {
+    const maybeJson = parseJsonLikeString(content);
+
+    if (typeof maybeJson === 'string') {
+      return {
+        type: 'string',
+        value: maybeJson,
+      };
+    }
+
+    return {
+      type: 'json',
+      value: JSON.stringify(maybeJson, null, 2),
+    };
+  } catch {
+    // noop
+  }
+
+  return {
+    type: 'string',
+    value: content,
+  };
+};

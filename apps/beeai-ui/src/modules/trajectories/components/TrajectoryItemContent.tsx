@@ -6,8 +6,9 @@
 import { useMemo } from 'react';
 
 import { CodeSnippet } from '#components/CodeSnippet/CodeSnippet.tsx';
+import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
 import type { UITrajectoryPart } from '#modules/messages/types.ts';
-import { parseJsonLikeString } from '#modules/runs/utils.ts';
+import { maybeParseJson } from '#modules/runs/utils.ts';
 
 import classes from './TrajectoryItemContent.module.scss';
 
@@ -18,19 +19,25 @@ interface Props {
 export function TrajectoryItemContent({ trajectory }: Props) {
   const { content } = trajectory;
 
-  const parsed = useMemo(() => content && parseJsonLikeString(content), [content]);
+  const parsed = useMemo(() => maybeParseJson(content), [content]);
 
   if (!parsed) {
     return null;
   }
 
+  const { type, value } = parsed;
+
   return (
     <div className={classes.root}>
       <div className={classes.group}>
         <div className={classes.content}>
-          <CodeSnippet canCopy withBorder>
-            {parsed}
-          </CodeSnippet>
+          {type === 'string' ? (
+            <LineClampText lines={5}>{value}</LineClampText>
+          ) : (
+            <CodeSnippet canCopy withBorder>
+              {value}
+            </CodeSnippet>
+          )}
         </div>
       </div>
     </div>

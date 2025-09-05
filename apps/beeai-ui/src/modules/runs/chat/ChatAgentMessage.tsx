@@ -44,7 +44,9 @@ function Message({ message }: Props) {
   return (
     <div {...props} className={classes.root}>
       {isPending ? (
-        <Spinner center />
+        <div className={classes.spinner}>
+          <Spinner center />
+        </div>
       ) : (
         <>
           <div className={classes.content} ref={contentRef}>
