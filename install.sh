@@ -1,4 +1,5 @@
 #!/bin/sh
+set -eu
 echo "Starting the BeeAI Platform installation..."
 
 # Install uv
