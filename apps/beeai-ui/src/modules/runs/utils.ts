@@ -26,7 +26,7 @@ export function runDuration(ms: number) {
   return duration;
 }
 
-const parseJsonLikeString = (string: string): unknown => {
+function parseJsonLikeString(string: string): unknown {
   try {
     const json = JSON5.parse(string);
 
@@ -34,14 +34,14 @@ const parseJsonLikeString = (string: string): unknown => {
   } catch {
     return string;
   }
-};
+}
 
 interface MaybeParsedJson {
   type: 'string' | 'json';
   value: string;
 }
 
-export const maybeParseJson = (content: string | null | undefined): MaybeParsedJson | null => {
+export function maybeParseJson(content: string | null | undefined): MaybeParsedJson | null {
   if (!isNotNull(content)) {
     return null;
   }
@@ -68,4 +68,4 @@ export const maybeParseJson = (content: string | null | undefined): MaybeParsedJ
       value: content,
     };
   }
-};
+}
