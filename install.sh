@@ -11,7 +11,15 @@ else
 fi
 
 # Add uv installation paths to PATH
-export PATH="$XDG_BIN_HOME:$XDG_DATA_HOME/../bin:$HOME/.local/bin:$PATH"
+path_to_prepend=""
+if [ -n "$XDG_BIN_HOME" ]; then
+  path_to_prepend="$XDG_BIN_HOME:"
+fi
+if [ -n "$XDG_DATA_HOME" ]; then
+  path_to_prepend="$path_to_prepend$XDG_DATA_HOME/../bin:"
+fi
+path_to_prepend="$path_to_prepend$HOME/.local/bin"
+export PATH="$path_to_prepend:$PATH"
 
 # Install beeai-cli
 echo "Installing beeai-cli..."
