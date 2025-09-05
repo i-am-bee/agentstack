@@ -1,7 +1,9 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+import functools
 import logging
+import shutil
 import typing
 from copy import deepcopy
 
@@ -35,6 +37,22 @@ for cmd in agent_alias.registered_commands:
     cmd.rich_help_panel = "Agent commands"
 
 app.add_typer(agent_alias, name="", no_args_is_help=True)
+
+
+@functools.cache
+def _path() -> str:
+    import os
+
+    # These are PATHs where `uv` installs itself when installed through own install script
+    # Package managers may install elsewhere, but that location should already be in PATH
+    return os.pathsep.join(
+        [
+            os.getenv("XDG_BIN_HOME", ""),
+            os.getenv("XDG_DATA_HOME", "") + "/../bin",
+            os.path.expanduser("~/.local/bin"),
+            os.getenv("PATH", ""),
+        ]
+    )
 
 
 @app.command("version")
@@ -71,7 +89,7 @@ async def show_version(verbose: typing.Annotated[bool, typer.Option("-v", help="
 
         if latest_cli_version and packaging.version.parse(latest_cli_version) > packaging.version.parse(cli_version):
             console.print(
-                f"💡 [yellow]HINT[/yellow]: A newer version ([bold]{latest_cli_version}[/bold]) is available. Update using: [green]uv tool install --force beeai-cli[/green], then update the platform using [green]beeai platform start[/green]"
+                f"💡 [yellow]HINT[/yellow]: A newer version ([bold]{latest_cli_version}[/bold]) is available. Update using: [green]beeai upgrade[/green]."
             )
         elif platform_version is None:
             console.print(
@@ -83,6 +101,48 @@ async def show_version(verbose: typing.Annotated[bool, typer.Option("-v", help="
             )
         else:
             console.print("[green]Everything is up to date![/green]")
+
+
+@app.command("upgrade", hidden=True)
+async def upgrade(verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False):
+    """Upgrade BeeAI to the latest version."""
+    from beeai_cli.commands.platform import start
+    from beeai_cli.utils import run_command
+
+    if not shutil.which("uv", path=_path()):
+        console.print("[red]Error:[/red] Can't self-upgrade because 'uv' was not found.")
+        raise typer.Exit(1)
+
+    with verbosity(verbose=verbose):
+        await run_command(
+            ["uv", "tool", "install", "--force", "beeai-cli"],
+            "Upgrading beeai-cli",
+            env={"PATH": _path()},
+        )
+        await start(set_values_list=[], import_images=[], verbose=verbose)
+        await show_version(verbose=verbose)
+
+
+@app.command("uninstall", hidden=True)
+async def uninstall(
+    verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
+):
+    """Uninstall BeeAI platform."""
+    from beeai_cli.commands.platform import delete
+    from beeai_cli.utils import run_command
+
+    if not shutil.which("uv", path=_path()):
+        console.print("[red]Error:[/red] Can't self-uninstall because 'uv' was not found.")
+        raise typer.Exit(1)
+
+    with verbosity(verbose=verbose):
+        await delete(verbose=verbose)
+        await run_command(
+            ["uv", "tool", "uninstall", "beeai-cli"],
+            "Uninstalling beeai-cli",
+            env={"PATH": _path()},
+        )
+        console.print("[green]BeeAI uninstalled successfully.[/green]")
 
 
 async def _launch_graphical_interface(host_url: str):
