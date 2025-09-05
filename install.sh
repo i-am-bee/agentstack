@@ -46,7 +46,7 @@ else
                     INSTALL_QEMU_CMD="sudo yum install -y -q qemu-kvm"
                     ;;
                 "emerge")
-                    INSTALL_QEMU_CMD="sudo emerge --ask app-emulation/qemu"
+                    INSTALL_QEMU_CMD="sudo emerge --quiet app-emulation/qemu"
                     ;;
             esac
             break
