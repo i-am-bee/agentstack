@@ -41,7 +41,7 @@
 
 <br />
 
-**BeeAI** is an open-source platform that makes it easy to **discover**, **run**, and **share** AI agents across frameworks. Built on the [Agent Communication Protocol (ACP)](https://agentcommunicationprotocol.dev/) and hosted by the **Linux Foundation**, BeeAI bridges the gap between different agent ecosystems.
+**BeeAI** is an open-source platform that makes it easy to **discover**, **run**, and **share** AI agents across frameworks. Built on the [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) and hosted by the **Linux Foundation**, BeeAI bridges the gap between different agent ecosystems.
 
 ## The Problem BeeAI Solves
 
@@ -76,7 +76,7 @@ As you scale from personal experimentation to team adoption, BeeAI grows with yo
 | Feature | How It Works | Business Value |
 | :------ | :----------- | :------------- |
 | **Agent Catalog** | One BeeAI platform serves your entire team | Everyone works from the same system with unified management |
-| **Framework Agnostic** | BeeAI implements the Agent Communication Protocol (ACP) to standardize agent interfaces regardless of how they're built | Developers use their preferred tools while maintaining compatibility |
+| **Framework Agnostic** | BeeAI implements the Agent2Agent (A2A) Protocol to standardize agent interfaces regardless of how they're built | Developers use their preferred tools while maintaining compatibility |
 | **Containerized Agents** | Each agent runs in its own container with defined resource limits | Better performance, improved security, and efficient resource usage |
 | **Consistent Interfaces** | Predictable agent interactions | Learn once, use everywhere |
 | **Agent Discovery** | All agents appear in a searchable catalog with capability details | End users easily find agents and developers see usage patterns |
