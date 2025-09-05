@@ -45,14 +45,15 @@ def _path() -> str:
 
     # These are PATHs where `uv` installs itself when installed through own install script
     # Package managers may install elsewhere, but that location should already be in PATH
-    return os.pathsep.join(
-        [
-            os.getenv("XDG_BIN_HOME", ""),
-            os.getenv("XDG_DATA_HOME", "") + "/../bin",
-            os.path.expanduser("~/.local/bin"),
-            os.getenv("PATH", ""),
-        ]
-    )
+    paths = []
+    if path := os.getenv("XDG_BIN_HOME"):
+        paths.append(path)
+    if path := os.getenv("XDG_DATA_HOME"):
+        paths.append(f"{path}/../bin")
+    paths.append(os.path.expanduser("~/.local/bin"))
+    if path := os.getenv("PATH"):
+        paths.append(path)
+    return os.pathsep.join(paths)
 
 
 @app.command("version")
