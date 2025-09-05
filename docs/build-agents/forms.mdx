@@ -176,10 +176,11 @@ The BeeAI platform supports various field types for collecting different kinds o
 Basic text input fields for collecting strings, names, descriptions, etc.
 
 ```python
+from beeai_sdk.a2a.extensions.ui.form import TextField
+
 TextField(
     id="username", 
     label="Username", 
-    type="text", 
     col_span=1,
     required=True,
     placeholder="Enter your username",
@@ -191,10 +192,11 @@ TextField(
 Date input fields for collecting dates and timestamps.
 
 ```python
+from beeai_sdk.a2a.extensions.ui.form import DateField
+
 DateField(
     id="birth_date", 
-    label="Birth Date", 
-    type="date", 
+    label="Birth Date",
     col_span=1,
     required=True,
     placeholder="YYYY-MM-DD",
@@ -206,10 +208,11 @@ DateField(
 File upload fields for collecting files from users.
 
 ```python
+from beeai_sdk.a2a.extensions.ui.form import FileField
+
 FileField(
     id="document", 
-    label="Upload Document", 
-    type="file", 
+    label="Upload Document",
     col_span=2,
     required=True,
     accept=["application/pdf", "image/jpeg", "image/png"]
@@ -220,10 +223,11 @@ FileField(
 Multi-select dropdown fields for choosing multiple options from a list.
 
 ```python
+from beeai_sdk.a2a.extensions.ui.form import OptionItem, MultiSelectField
+
 MultiSelectField(
     id="interests", 
-    label="Your Interests", 
-    type="multiselect", 
+    label="Your Interests",
     col_span=2,
     required=False,
     options=[
@@ -240,10 +244,11 @@ MultiSelectField(
 Single checkbox fields for boolean values.
 
 ```python
+from beeai_sdk.a2a.extensions.ui.form import CheckboxField
+
 CheckboxField(
     id="newsletter", 
     label="Subscribe to Newsletter", 
-    type="checkbox", 
     col_span=1,
     required=False,
     content="I agree to receive marketing emails",
