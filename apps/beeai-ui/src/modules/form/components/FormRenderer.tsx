@@ -58,7 +58,6 @@ export function FormRenderer({
               <div className={classes.buttons}>
                 {onCancel && (
                   <Button
-                    type="submit"
                     size="md"
                     kind="tertiary"
                     onClick={(e) => {
