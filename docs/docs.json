@@ -12,18 +12,11 @@
     "groups": [
       {
         "group": "Getting Started",
-        "pages": [
-          "introduction/welcome",
-          "introduction/quickstart", 
-          "introduction/installation"
-        ]
+        "pages": ["introduction/welcome", "introduction/quickstart"]
       },
       {
         "group": "Core Concepts",
-        "pages": [
-          "concepts/architecture",
-          "concepts/a2a"
-        ]
+        "pages": ["concepts/architecture", "concepts/a2a"]
       },
       {
         "group": "Build Your Own Agent",
@@ -45,7 +38,7 @@
         "group": "Working with Agents",
         "pages": [
           "how-to/discover-agents",
-          "how-to/run-agents", 
+          "how-to/run-agents",
           "how-to/observe-agents",
           "how-to/import-agents",
           "how-to/share-agents"
@@ -62,10 +55,7 @@
       },
       {
         "group": "Deployment",
-        "pages": [
-          "deployment/overview",
-          "deployment/kubernetes"
-        ]
+        "pages": ["deployment/overview", "deployment/kubernetes"]
       },
       {
         "group": "Community & Support",
@@ -110,6 +100,10 @@
     {
       "source": "/acp/:slug*",
       "destination": "https://agentcommunicationprotocol.dev"
+    },
+    {
+      "source": "/introduction/installation",
+      "destination": "/introduction/quickstart"
     }
   ]
 }

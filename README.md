@@ -85,7 +85,7 @@ As you scale from personal experimentation to team adoption, BeeAI grows with yo
 ## Quickstart
 
 > [!TIP]
-> This is the short version. See the [installation guide](https://docs.beeai.dev/introduction/installation) for detailed instructions.
+> This is the short version. See the [installation guide](https://docs.beeai.dev/introduction/quickstart) for detailed instructions.
 
 1. **Install** the BeeAI CLI using [uv](https://docs.astral.sh/uv/) (on Linux you'll also need [QEMU](https://www.qemu.org/download/#linux)):
 

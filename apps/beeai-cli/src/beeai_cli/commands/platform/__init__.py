@@ -40,7 +40,7 @@ def get_driver(vm_name: str = "beeai-platform") -> BaseDriver:
         return LimaDriver(vm_name=vm_name)
     else:
         console.print(
-            "[red]Error: Could not find a compatible VM runtime. Please follow the installation instructions at https://docs.beeai.dev/introduction/installation[/red]"
+            "[red]Error: Could not find a compatible VM runtime. Please follow the installation instructions at https://docs.beeai.dev/introduction/quickstart[/red]"
         )
         if platform.system() == "Darwin":
             console.print("💡 [yellow]HINT[/yellow]: This version of macOS is unsupported, please update the system.")
