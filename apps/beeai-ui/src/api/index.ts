@@ -11,20 +11,20 @@ import { OIDC_ENABLED } from '#utils/constants.ts';
 
 import type { paths } from './schema';
 
-let accessToken: string | undefined = undefined;
+let idToken: string | undefined = undefined;
 
 const authMiddleware: Middleware = {
   async onRequest({ request }) {
     // fetch token, if it doesn’t exist
-    if (!accessToken && OIDC_ENABLED) {
+    if (!idToken && OIDC_ENABLED) {
       const authRes = await auth();
       if (authRes?.id_token) {
-        accessToken = authRes.id_token;
+        idToken = authRes.id_token;
       }
     }
     // add Authorization header to every request
-    if (accessToken) {
-      request.headers.set('Authorization', `Bearer ${accessToken}`);
+    if (idToken) {
+      request.headers.set('Authorization', `Bearer ${idToken}`);
     }
     return request;
   },
