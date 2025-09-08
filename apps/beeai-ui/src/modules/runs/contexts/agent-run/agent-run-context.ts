@@ -6,6 +6,7 @@
 import { createContext } from 'react';
 
 import type { FormRender } from '#api/a2a/extensions/ui/form.ts';
+import type { SettingsResponseValue } from '#api/a2a/extensions/ui/settings.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 import type { UIMessageForm } from '#modules/messages/types.ts';
 import type { RunStats } from '#modules/runs/types.ts';
@@ -22,6 +23,7 @@ interface AgentRunContextValue {
   input?: string;
   stats?: RunStats;
   formRender?: FormRender;
+  changeSettings: (settings: Record<string, SettingsResponseValue>) => void;
   chat: (input: string) => Promise<void>;
   submitForm: (form: UIMessageForm, taskId?: string) => Promise<void>;
   cancel: () => void;

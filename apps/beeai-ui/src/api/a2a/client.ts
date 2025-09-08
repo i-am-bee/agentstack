@@ -17,6 +17,7 @@ import { AGENT_ERROR_MESSAGE } from './constants';
 import { llmExtension } from './extensions/services/llm';
 import { mcpExtension } from './extensions/services/mcp';
 import { formExtension, formMessageExtension } from './extensions/ui/form';
+import { settingsExtension } from './extensions/ui/settings';
 import {
   extractServiceExtensionDemands,
   extractUiExtensionData,
@@ -32,6 +33,7 @@ const fulfillMcpDemand = fulfillServiceExtensionDemand(mcpExtension);
 const llmExtensionExtractor = extractServiceExtensionDemands(llmExtension);
 const fulfillLlmDemand = fulfillServiceExtensionDemand(llmExtension);
 const extractForm = extractUiExtensionData(formMessageExtension);
+const settingsExtensionExtractor = extractServiceExtensionDemands(settingsExtension);
 
 function handleStatusUpdate<UIGenericPart = never>(
   event: TaskStatusUpdateEvent,
@@ -78,11 +80,12 @@ export const buildA2AClient = async <UIGenericPart = never>({
 }: CreateA2AClientParams<UIGenericPart>) => {
   const mcpDemands = mcpExtensionExtractor(extensions);
   const llmDemands = llmExtensionExtractor(extensions);
+  const settingsDemands = settingsExtensionExtractor(extensions);
 
   const agentCardUrl = `${getBaseUrl()}/api/v1/a2a/${providerId}/.well-known/agent-card.json`;
   const client = await A2AClient.fromCardUrl(agentCardUrl);
 
-  const chat = ({ message, contextId, fulfillments, taskId: initialTaskId }: ChatParams) => {
+  const chat = ({ message, contextId, fulfillments, taskId: initialTaskId, settings }: ChatParams) => {
     const messageSubject = new Subject<ChatResult<UIGenericPart>>();
 
     let taskId: TaskId | undefined = initialTaskId;
@@ -96,6 +99,15 @@ export const buildA2AClient = async <UIGenericPart = never>({
 
       if (llmDemands) {
         metadata = fulfillLlmDemand(metadata, await fulfillments.llm(llmDemands));
+      }
+
+      if (settingsDemands) {
+        metadata = {
+          ...metadata,
+          [settingsExtension.getUri()]: {
+            values: settings,
+          },
+        };
       }
 
       if (message.form) {

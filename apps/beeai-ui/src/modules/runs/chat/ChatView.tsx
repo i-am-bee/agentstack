@@ -16,6 +16,7 @@ import { FormRenderView } from '../components/FormRenderView';
 import { RunLandingView } from '../components/RunLandingView';
 import { useAgentRun } from '../contexts/agent-run';
 import { AgentRunProviders } from '../contexts/agent-run/AgentRunProvider';
+import { SettingsRenderView } from '../SettingsRenderView';
 import { ChatMessagesView } from './ChatMessagesView';
 
 const formExtensionExtractor = extractServiceExtensionDemands(formExtension);
@@ -58,6 +59,8 @@ function Chat() {
           <ChatMessagesView />
         )}
       </MainContent>
+
+      <SettingsRenderView />
 
       <SourcesPanel />
     </>

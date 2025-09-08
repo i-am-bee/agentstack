@@ -7,6 +7,7 @@
 import { type PropsWithChildren, useCallback, useMemo, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
+import type { SettingsResponseValue } from '#api/a2a/extensions/ui/settings.ts';
 import { type AgentA2AClient, type ChatRun, RunResultType } from '#api/a2a/types.ts';
 import { createTextPart } from '#api/a2a/utils.ts';
 import { getErrorCode } from '#api/utils.ts';
@@ -64,6 +65,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
   const [input, setInput] = useState<string>();
   const [isPending, setIsPending] = useState(false);
   const [stats, setStats] = useState<RunStats>();
+  const [settings, setSettings] = useState<Record<string, SettingsResponseValue>>();
 
   const pendingSubscription = useRef<() => void>(undefined);
   const pendingRun = useRef<ChatRun>(undefined);
@@ -165,6 +167,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
           contextId,
           fulfillments,
           taskId,
+          settings,
         });
         pendingRun.current = run;
 
@@ -201,7 +204,16 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
         pendingSubscription.current = undefined;
       }
     },
-    [checkPendingRun, getContextId, getFullfilments, setMessages, agentClient, updateCurrentAgentMessage, handleError],
+    [
+      checkPendingRun,
+      getContextId,
+      getFullfilments,
+      setMessages,
+      agentClient,
+      updateCurrentAgentMessage,
+      handleError,
+      settings,
+    ],
   );
 
   const chat = useCallback(
@@ -255,6 +267,13 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
     return AgentRunStatus.Ready;
   }, [agentClient, contextId, isPending, lastAgentMessage?.status]);
 
+  const changeSettings = useCallback(
+    (settings: Record<string, SettingsResponseValue>) => {
+      setSettings(settings);
+    },
+    [setSettings],
+  );
+
   const contextValue = useMemo(() => {
     return {
       agent,
@@ -269,8 +288,9 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
       submitForm,
       cancel,
       clear,
+      changeSettings,
     };
-  }, [agent, status, input, stats, chat, submitForm, cancel, clear]);
+  }, [agent, status, input, stats, chat, submitForm, cancel, clear, changeSettings]);
 
   return (
     <AgentStatusProvider agent={agent} isMonitorStatusEnabled>
