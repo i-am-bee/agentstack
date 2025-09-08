@@ -190,8 +190,8 @@ async def decode_oauth_jwt_or_introspect(
                 except jwt.InvalidTokenError as err:
                     logger.debug("Token verification failed: %s", err)
                     continue
-                except BaseException as err:
-                    logger.info("Caught a base exception: %s", err)
+                except Exception as err:
+                    logger.info("Caught an exception: %s", err)
                     continue
     if token is None:
         return None, None
