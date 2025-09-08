@@ -15,8 +15,8 @@ let idToken: string | undefined = undefined;
 
 const authMiddleware: Middleware = {
   async onRequest({ request }) {
-    // fetch token, if it doesn’t exist
-    if (!idToken && OIDC_ENABLED) {
+    // fetch token
+    if (OIDC_ENABLED) {
       const authRes = await auth();
       if (authRes?.id_token) {
         idToken = authRes.id_token;
