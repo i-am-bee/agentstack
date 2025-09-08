@@ -12,7 +12,7 @@ import fastapi
 import httpx
 from kink import inject
 
-from beeai_server.api.schema.mcp import McpProvider, Resource, Tool, Toolkit
+from beeai_server.api.schema.mcp import McpProvider, Resource, ResourceMeta, Tool, Toolkit
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.mcp_provider import (
     McpProviderDeploymentState,
@@ -102,16 +102,20 @@ class McpService:
 
     # Resources
 
-    async def list_resources(self) -> list[Resource]:
+    async def list_resources(self) -> list[ResourceMeta]:
         async with self.gateway_context() as client:
             response = await client.get("/resources")
             resources: list[dict] = response.raise_for_status().json()
-            return [Resource.model_validate(resource) for resource in resources]
+            return [ResourceMeta.model_validate(resource) for resource in resources]
 
     async def read_resource(self, *, resource_id: str) -> Resource:
-        async with self.gateway_context() as client:
-            response = await client.get(f"/resources/{resource_id}")
-            return Resource.model_validate(response.raise_for_status().json())
+        resources = await self.list_resources()
+        for resource in resources:
+            if resource_id == resource.id:
+                async with self.gateway_context() as client:
+                    response = await client.get(f"/resources/{resource.uri}")
+                    return Resource.model_validate(resource.model_dump() | response.raise_for_status().json())
+        raise GatewayError(message=f"Resource {resource_id} not found", status_code=fastapi.status.HTTP_404_NOT_FOUND)
 
     # Tools
 

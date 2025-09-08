@@ -12,6 +12,7 @@ from beeai_server.api.schema.mcp import (
     CreateToolkitRequest,
     McpProvider,
     Resource,
+    ResourceMeta,
     Tool,
     Toolkit,
 )
@@ -56,7 +57,7 @@ async def delete_provider(
     await mcp_service.delete_provider(provider_id=provider_id)
 
 
-@router.get("/resources", response_model=list[Resource])
+@router.get("/resources", response_model=list[ResourceMeta])
 async def list_resources(
     mcp_service: McpServiceDependency,
     _: Annotated[AuthorizedUser, Depends(RequiresPermissions(mcp_resources={"read"}))],
