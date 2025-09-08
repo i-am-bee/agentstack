@@ -1,6 +1,6 @@
 [project]
 name = "beeai-sdk"
-version = "0.3.3-rc3"
+version = "0.3.3-rc6"
 description = "BeeAI SDK"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]

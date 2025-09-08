@@ -77,7 +77,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   key: providers.json
-                  name: oidc-providers
+                  name: beeai-oidc-providers
           {{- else}}
             - name: OIDC_ENABLED
               value: "false"

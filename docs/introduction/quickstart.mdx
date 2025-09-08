@@ -1,39 +1,113 @@
 ---
 title: "Quickstart"
-description: "Get up and running with BeeAI in minutes"
+description: "Installing and setting up local BeeAI on your computer"
 ---
 
-<Tip>
-This is the short version. See the [installation guide](/introduction/installation) for detailed instructions.
-</Tip>
+BeeAI CLI can be used to quickly set up a local instance of the BeeAI platform, including a web interface for interacting with agents.
 
+**Pre-requisites:**
+- familiarity with running commands in terminal
+- API key for an LLM provider (OpenAI, Anthropic, Gemini, watsonx, ...)
+    - free API keys can be obtained from [OpenRouter](https://openrouter.ai/) or [Groq](https://groq.com/)
+    - alternatively, [Ollama](https://ollama.com/) can be used to run local LLMs, but this requires a very powerful computer
+- _(recommended)_ fast internet connection (a few GB will be downloaded)
+
+<Tabs>
+<Tab title="macOS">
 <Steps>
+<Step title="Install uv">
+
+If you don't have `uv` installed, install it using one of the supported ways.
+
+Open a terminal and run:
+
+<Tabs>
+<Tab title="Installation script (recommended)">
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+</Tab>
+<Tab title="Homebrew">
+
+```bash
+brew install uv
+uv tool update-shell
+```
+
+</Tab>
+</Tabs>
+
+After this, close the terminal and re-open it.
+
+</Step>
 <Step title="Install BeeAI">
 
-Install the BeeAI CLI using [uv](https://docs.astral.sh/uv/) (on Linux you'll also need [QEMU](https://www.qemu.org/download/#linux)):
-
-```sh
+```bash
 uv tool install beeai-cli
 ```
+
+<Info>
+
+See bottom of this page for instructions on updating and uninstalling.
+
+</Info>
 
 </Step>
 <Step title="Start the BeeAI platform">
 
-```sh
+```bash
 beeai platform start
 ```
 
+<Info>
+
+This step downloads a few gigabytes of data, so it may take a while depending on your internet connection. Once started, the platform will continue running in the background until you stop it with `beeai platform stop` or shut down your computer.
+
+</Info>
+
 </Step>
-<Step title="Configure the LLM provider"> 
-   
-```sh
+<Step title="Configure an LLM provider">
+
+If you don't already have an API key for an LLM provider, register for a free one on [OpenRouter](https://openrouter.ai/) or [Groq](https://groq.com/).
+
+Run this command and follow the interactive prompts:
+
+```bash
 beeai model setup
 ```
 
-</Step>
-<Step title="Use the CLI">
+<Info>
 
-Get familiar with the core commands:
+You can re-run this command anytime to change the LLM provider.
+
+</Info>
+
+</Step>
+<Step title="Check that everything works">
+
+```bash
+beeai run chat Hi!
+```
+
+Starting up an agent for the first time may take a few minutes. If everything is successful, you should see a friendly greeting from the agent.
+
+</Step>
+<Step title="Try the web interface">
+
+```bash
+beeai ui
+```
+
+<Info>
+
+The web UI is intentionally simplified for end-users who need basic agent interactions without CLI complexity. Think of the web UI as a deployment target for your agents, not your primary development environment.
+
+</Info>
+
+</Step>
+<Step title="Get familiar with the CLI">
 
 ```sh
 # List all available agents
@@ -53,15 +127,404 @@ beeai --help
 ```
 
 </Step>
-<Step title="Launch the web interface">
+<Step title="Dive into BeeAI">
 
-```sh
-beeai ui
-```
-
-<Note>
-    The web UI is intentionally simplified for end-users who need basic agent interactions without CLI complexity. Think of the web UI as a deployment target for your agents, not your primary development environment.
-</Note>
+Explore the rest of the documentation to learn how to connect MCP servers, build your own agents, use document retrieval, and more! 🐝
 
 </Step>
 </Steps>
+
+</Tab>
+<Tab title="Linux">
+<Steps>
+<Step title="Install uv">
+
+If you don't have `uv` installed, install it through one of the available ways:
+
+<Tabs>
+<Tab title="Installation script (recommended)">
+
+Open a terminal and run:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+</Tab>
+<Tab title="Package manager">
+
+Some Linux distributions package `uv`, but beware that some may include outdated versions.
+Check the [Repology website](https://repology.org/project/uv/versions) to see if your distribution packages `uv`.
+Alternatively, you may install `uv` using `pipx` or `cargo` according to the [official installation instructions](https://docs.astral.sh/uv/getting-started/installation/).
+If in doubt, just use the installation script.
+
+After installing `uv`, run this to update your PATH:
+
+```bash
+uv tool update-shell
+```
+
+</Tab>
+</Tabs>
+
+After this, close the terminal and re-open it.
+
+</Step>
+<Step title="Install QEMU">
+
+<Tabs>
+<Tab title="Debian/Ubuntu">
+
+```bash
+sudo apt-get install qemu-system
+```
+
+</Tab>
+<Tab title="Fedora">
+
+```bash
+sudo dnf install @virtualization
+```
+
+</Tab>
+<Tab title="Arch">
+
+```bash
+sudo pacman -S qemu
+```
+
+</Tab>
+<Tab title="openSUSE">
+
+```bash
+sudo zypper install qemu
+```
+
+</Tab>
+<Tab title="RHEL/CentOS">
+
+```bash
+sudo yum install qemu-kvm
+```
+
+</Tab>
+<Tab title="Gentoo">
+
+```bash
+sudo emerge --ask app-emulation/qemu
+```
+
+</Tab>
+<Tab title="Other">
+
+Please refer to your distribution's package manager or the [official QEMU download page](https://www.qemu.org/download/) for installation instructions.
+
+</Tab>
+</Tabs>
+
+</Step>
+<Step title="Install BeeAI">
+
+```bash
+uv tool install beeai-cli
+```
+
+<Info>
+
+See bottom of this page for instructions on updating and uninstalling.
+
+</Info>
+
+</Step>
+<Step title="Start the BeeAI platform">
+
+```bash
+beeai platform start
+```
+
+<Info>
+
+This step downloads a few gigabytes of data, so it may take a while depending on your internet connection. Once started, the platform will continue running in the background until you stop it with `beeai platform stop` or shut down your computer.
+
+</Info>
+
+</Step>
+<Step title="Configure an LLM provider">
+
+If you don't already have an API key for an LLM provider, register for a free one on [OpenRouter](https://openrouter.ai/) or [Groq](https://groq.com/).
+
+Run this command and follow the interactive prompts:
+
+```bash
+beeai model setup
+```
+
+<Info>
+
+You can re-run this command anytime to change the LLM provider.
+
+</Info>
+
+</Step>
+<Step title="Check that everything works">
+
+```bash
+beeai run chat Hi!
+```
+
+Starting up an agent for the first time may take a few minutes. If everything is successful, you should see a friendly greeting from the agent.
+
+</Step>
+<Step title="Try the web interface">
+
+```bash
+beeai ui
+```
+
+<Info>
+
+The web UI is intentionally simplified for end-users who need basic agent interactions without CLI complexity. Think of the web UI as a deployment target for your agents, not your primary development environment.
+
+</Info>
+
+</Step>
+<Step title="Get familiar with the CLI">
+
+```sh
+# List all available agents
+beeai list
+
+# Run an agent interactively
+beeai run chat
+
+# Run an agent with direct input
+beeai run chat "Hello! How are you?"
+
+# Get agent details and parameters
+beeai info chat
+
+# View all CLI options
+beeai --help
+```
+
+</Step>
+<Step title="Dive into BeeAI">
+
+Explore the rest of the documentation to learn how to connect MCP servers, build your own agents, use document retrieval, and more! 🐝
+
+</Step>
+</Steps>
+</Tab>
+<Tab title="Windows (Experimental)">
+<Warning>
+
+Windows / WSL support is currently experimental. We recommend running BeeAI on Linux or macOS instead.
+
+</Warning>
+<Info>
+
+These steps guide you through installing BeeAI in PowerShell. If you wish, you may work in a WSL distribution instead. In that case, simply switch to the Linux instructions and skip installing QEMU.
+
+</Info>
+<Steps>
+<Step title="Update Windows">
+
+Ensure that you are using **Windows 11 22H2** or newer.
+
+</Step>
+<Step title="Install uv">
+
+If you don't have `uv` installed, install it using one of the supported ways.
+
+Open PowerShell and run:
+
+<Tabs>
+<Tab title="Installation script (recommended)">
+
+```bash
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+</Tab>
+<Tab title="Winget">
+
+```bash
+winget install astral-sh.uv
+uv tool update-shell
+```
+
+</Tab>
+<Tab title="Scoop">
+
+```bash
+scoop install uv
+uv tool update-shell
+```
+
+</Tab>
+<Tab title="Chocolatey">
+
+```bash
+choco install uv
+uv tool update-shell
+```
+
+</Tab>
+</Tabs>
+
+After this, close the terminal and re-open it.
+
+</Step>
+<Step title="Install BeeAI">
+
+```bash
+uv tool install beeai-cli
+```
+
+<Info>
+
+See bottom of this page for instructions on updating and uninstalling.
+
+</Info>
+
+</Step>
+
+<Step title="Start the BeeAI platform">
+
+```bash
+beeai platform start
+```
+
+<Info>
+
+This step downloads a few gigabytes of data, so it may take a while depending on your internet connection. Once started, the platform will continue running in the background until you stop it with `beeai platform stop` or shut down your computer.
+
+</Info>
+
+</Step>
+<Step title="Configure an LLM provider">
+
+If you don't already have an API key for an LLM provider, register for a free one on [OpenRouter](https://openrouter.ai/) or [Groq](https://groq.com/).
+
+Run this command and follow the interactive prompts:
+
+```bash
+beeai model setup
+```
+
+<Info>
+
+You can re-run this command anytime to change the LLM provider.
+
+</Info>
+
+</Step>
+<Step title="Check that everything works">
+
+```bash
+beeai run chat Hi!
+```
+
+Starting up an agent for the first time may take a few minutes. If everything is successful, you should see a friendly greeting from the agent.
+
+</Step>
+<Step title="Try the web interface">
+
+```bash
+beeai ui
+```
+
+<Info>
+
+The web UI is intentionally simplified for end-users who need basic agent interactions without CLI complexity. Think of the web UI as a deployment target for your agents, not your primary development environment.
+
+</Info>
+
+</Step>
+<Step title="Get familiar with the CLI">
+
+```sh
+# List all available agents
+beeai list
+
+# Run an agent interactively
+beeai run chat
+
+# Run an agent with direct input
+beeai run chat "Hello! How are you?"
+
+# Get agent details and parameters
+beeai info chat
+
+# View all CLI options
+beeai --help
+```
+
+</Step>
+<Step title="Dive into BeeAI">
+
+Explore the rest of the documentation to learn how to connect MCP servers, build your own agents, use document retrieval, and more! 🐝
+
+</Step>
+</Steps>
+</Tab>
+</Tabs>
+
+<AccordionGroup>
+<Accordion title="Updating">
+<Steps>
+<Step title="Upgrade BeeAI">
+
+```bash
+uv tool install --force beeai-cli
+```
+
+<Tip>
+We recommend this command over `uv tool upgrade beeai-cli` to ensure that you always get the latest version. `uv tool upgrade` respects the original version constraint -- e.g. if you installed with `uv tool install beeai-cli==0.3.2`, `uv tool upgrade beeai-cli` will never upgrade to `0.3.3` or later.
+</Tip>
+
+</Step>
+<Step title="Restart the BeeAI platform">
+
+```bash
+beeai platform start
+```
+
+<Info>
+
+This step downloads a few gigabytes of data, so it may take a while depending on your internet connection. Once started, the platform will continue running in the background until you stop it with `beeai platform stop` or shut down your computer.
+
+</Info>
+
+</Step>
+<Step title="Done!">
+
+BeeAI platform is updated.
+
+</Step>
+</Steps>
+</Accordion>
+<Accordion title="Uninstalling">
+<Steps>
+<Step title="Remove the BeeAI platform instance">
+
+```bash
+beeai platform delete
+```
+
+</Step>
+<Step title="Uninstall the BeeAI platform">
+
+```bash
+uv tool uninstall beeai-cli
+```
+
+</Step>
+<Step title="Done!">
+
+BeeAI platform is now fully removed.
+
+</Step>
+</Steps>
+</Accordion>
+</AccordionGroup>

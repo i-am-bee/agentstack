@@ -176,7 +176,7 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
                 label_selector={"managedBy": "beeai-platform"},
                 api=api,
             ):
-                provider_id = self._get_provider_id_from_name(deployment.metadata.name, TemplateKind.deploy)
+                provider_id = self._get_provider_id_from_name(deployment.metadata.name, TemplateKind.DEPLOY)
                 if provider_id not in existing_providers:
                     tg.create_task(_delete(deployment))
         if errors:

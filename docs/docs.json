@@ -12,11 +12,7 @@
     "groups": [
       {
         "group": "Getting Started",
-        "pages": [
-          "introduction/welcome",
-          "introduction/quickstart",
-          "introduction/installation"
-        ]
+        "pages": ["introduction/welcome", "introduction/quickstart"]
       },
       {
         "group": "Core Concepts",
@@ -105,6 +101,10 @@
     {
       "source": "/acp/:slug*",
       "destination": "https://agentcommunicationprotocol.dev"
+    },
+    {
+      "source": "/introduction/installation",
+      "destination": "/introduction/quickstart"
     }
   ]
 }

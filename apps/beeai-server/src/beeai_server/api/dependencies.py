@@ -20,7 +20,7 @@ from beeai_server.api.auth import (
 )
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.permissions import AuthorizedUser, Permissions
-from beeai_server.domain.models.user import User, UserRole
+from beeai_server.domain.models.user import UserRole
 from beeai_server.exceptions import EntityNotFoundError
 from beeai_server.service_layer.services.a2a import A2AProxyService
 from beeai_server.service_layer.services.auth import AuthService
@@ -96,7 +96,7 @@ async def authenticate_oauth_user(
     try:
         user = await user_service.get_user_by_email(email=email)
     except EntityNotFoundError:
-        role = UserRole.ADMIN if is_admin else UserRole.USER
+        role = UserRole.ADMIN if is_admin else configuration.auth.oidc.default_new_user_role
         user = await user_service.create_user(email=email, role=role)
 
     return AuthorizedUser(
@@ -132,30 +132,30 @@ async def authorized_user(
             # TODO: update agents
             logger.warning("Bearer token is invalid, agent is not probably not using llm extension correctly")
 
-    if configuration.auth.disable_auth or (
-        configuration.auth.basic.enabled
-        and basic_auth
-        and basic_auth.password == configuration.auth.basic.admin_password.get_secret_value()
-    ):
+    if configuration.auth.basic.enabled:
+        if basic_auth and basic_auth.password == configuration.auth.basic.admin_password.get_secret_value():
+            user = await user_service.get_user_by_email("admin@beeai.dev")
+            return AuthorizedUser(
+                user=user,
+                global_permissions=ROLE_PERMISSIONS[user.role],
+                context_permissions=ROLE_PERMISSIONS[user.role],
+            )
+        else:
+            user = await user_service.get_user_by_email("user@beeai.dev")
+            return AuthorizedUser(
+                user=user,
+                global_permissions=ROLE_PERMISSIONS[user.role],
+                context_permissions=ROLE_PERMISSIONS[user.role],
+            )
+
+    if configuration.auth.disable_auth:
         user = await user_service.get_user_by_email("admin@beeai.dev")
         return AuthorizedUser(
             user=user,
             global_permissions=ROLE_PERMISSIONS[user.role],
             context_permissions=ROLE_PERMISSIONS[user.role],
         )
-
-    user = await user_service.get_user_by_email("user@beeai.dev")
-    return AuthorizedUser(
-        user=user,
-        global_permissions=ROLE_PERMISSIONS[user.role],
-        context_permissions=ROLE_PERMISSIONS[user.role],
-    )
-
-
-def admin_auth(user: Annotated[User, Depends(authorized_user)]) -> User:
-    if user.role != UserRole.ADMIN:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
-    return user
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
 
 
 class RequiresContextPermissions(Permissions):

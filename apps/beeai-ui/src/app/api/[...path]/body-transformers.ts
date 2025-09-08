@@ -3,14 +3,22 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
+import type { AgentCard } from '@a2a-js/sdk';
 
-export async function transformAgentManifestBody(response: Response, apiPath: string[]) {
+import { createProxyUrl } from '#utils/api/getProxyUrl.ts';
+
+export async function transformAgentManifestBody(response: Response) {
   try {
-    const body = await response.json();
-    const providerId = apiPath.at(2);
+    const body: AgentCard = await response.json();
 
-    const modifiedBody = { ...body, url: getBaseUrl(`/api/v1/a2a/${providerId}/jsonrpc/`, true) };
+    const modifiedBody = {
+      ...body,
+      additionalInterfaces: body.additionalInterfaces?.map((item) => ({
+        ...item,
+        url: createProxyUrl(item.url),
+      })),
+      url: createProxyUrl(body.url),
+    };
 
     return JSON.stringify(modifiedBody);
   } catch (err) {

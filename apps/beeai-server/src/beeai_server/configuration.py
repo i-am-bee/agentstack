@@ -14,6 +14,7 @@ from pydantic_core.core_schema import ValidationInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from beeai_server.domain.models.registry import RegistryLocation
+from beeai_server.domain.models.user import UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -75,6 +76,7 @@ class OidcProvider(BaseModel):
 
 class OidcConfiguration(BaseModel):
     enabled: bool = False
+    default_new_user_role: UserRole = UserRole.USER
     admin_emails: list[str] = Field(default_factory=list)
     providers: list[OidcProvider] = Field(default_factory=list)
     scope: list[str] = ["openid", "email", "profile"]
