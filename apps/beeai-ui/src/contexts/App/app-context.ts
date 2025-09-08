@@ -18,6 +18,7 @@ interface AppContextValue {
   navigationOpen: boolean;
   closeNavOnClickOutside: boolean;
   activeSidePanel: SidePanelVariant | null;
+  isAuthEnabled: boolean;
   setNavigationOpen: Dispatch<SetStateAction<boolean>>;
   setCloseNavOnClickOutside: Dispatch<SetStateAction<boolean>>;
   openSidePanel: (variant: SidePanelVariant) => void;

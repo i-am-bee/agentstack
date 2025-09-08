@@ -6,10 +6,10 @@
 import type { Middleware } from 'openapi-fetch';
 import createClient from 'openapi-fetch';
 
+import { auth } from '#app/(auth)/auth.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 import { OIDC_ENABLED } from '#utils/constants.ts';
 
-import { getCurrentSession } from './get-session';
 import type { paths } from './schema';
 let accessToken: string | undefined = undefined;
 
@@ -17,9 +17,10 @@ const authMiddleware: Middleware = {
   async onRequest({ request }) {
     // fetch token
     if (OIDC_ENABLED) {
-      const authRes = await getCurrentSession();
-      if (authRes?.access_token) {
-        accessToken = authRes.access_token;
+      const session = await auth();
+
+      if (session?.access_token) {
+        accessToken = session.access_token;
       }
     }
     // add Authorization header to every request

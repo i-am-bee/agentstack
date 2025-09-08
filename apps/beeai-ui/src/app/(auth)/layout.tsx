@@ -8,9 +8,10 @@ import '#styles/style.scss';
 import type { Metadata } from 'next';
 
 import { SigninLayout } from '#components/layouts/SigninLayout.tsx';
+import { AppProvider } from '#contexts/App/AppProvider.tsx';
 import Providers from '#providers.tsx';
 // import { AppLayout } from '#components/layouts/AppLayout.tsx';
-import { APP_FAVICON_SVG, APP_NAME, BASE_PATH } from '#utils/constants.ts';
+import { APP_FAVICON_SVG, APP_NAME, BASE_PATH, OIDC_ENABLED } from '#utils/constants.ts';
 import { parseFeatureFlags } from '#utils/feature-flags.ts';
 
 const darkModeScript = `
@@ -53,9 +54,11 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: darkModeScript }} />
       </head>
       <body>
-        <Providers featureFlags={parseFeatureFlags(process.env.FEATURE_FLAGS)}>
-          <SigninLayout>{children}</SigninLayout>
-        </Providers>
+        <AppProvider featureFlags={parseFeatureFlags(process.env.FEATURE_FLAGS)} isAuthEnabled={OIDC_ENABLED}>
+          <Providers>
+            <SigninLayout>{children}</SigninLayout>
+          </Providers>
+        </AppProvider>
       </body>
     </html>
   );

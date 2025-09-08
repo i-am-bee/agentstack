@@ -5,7 +5,9 @@
 
 import { Launch, LogoGithub, Settings } from '@carbon/icons-react';
 import { OverflowMenu, OverflowMenuItem } from '@carbon/react';
+import clsx from 'clsx';
 
+import UserAvatar from '#components/UserAvatar/UserAvatar.tsx';
 import { useApp } from '#contexts/App/index.ts';
 import { useRouteTransition } from '#contexts/TransitionContext/index.ts';
 import { useBreakpointUp } from '#hooks/useBreakpoint.ts';
@@ -16,16 +18,17 @@ import classes from './UserNav.module.scss';
 
 export function UserNav() {
   const { transitionTo } = useRouteTransition();
-  const { setNavigationOpen } = useApp();
+  const { setNavigationOpen, isAuthEnabled } = useApp();
   const isMaxUp = useBreakpointUp('max');
 
   return (
     <OverflowMenu
-      renderIcon={Settings}
+      renderIcon={isAuthEnabled ? UserAvatar : Settings}
       size="sm"
       aria-label="User navigation"
       direction="top"
-      className={classes.button}
+      className={clsx(classes.button, { [classes.avatar]: isAuthEnabled })}
+      menuOptionsClass={classes.menu}
     >
       {NAV_ITEMS.map(({ hasDivider, itemText, icon: Icon, isInternal, href, ...props }, idx) => {
         return (
@@ -80,3 +83,5 @@ const NAV_ITEMS = [
     icon: LogoGithub,
   },
 ];
+
+const MENU_OFFSET = { top: 0, left: 0 };

@@ -3,5 +3,5 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { handlers } from '#auth.ts';
+import { handlers } from '#app/(auth)/auth.ts';
 export const { GET, POST } = handlers;

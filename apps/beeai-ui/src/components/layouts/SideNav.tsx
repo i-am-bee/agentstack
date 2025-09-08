@@ -15,11 +15,11 @@ import { UserNav } from '#components/UserNav/UserNav.tsx';
 import { useApp } from '#contexts/App/index.ts';
 import { NAV_ITEMS } from '#utils/constants.ts';
 
-import classes from './MainNav.module.scss';
+import classes from './SideNav.module.scss';
 
 type NavVariant = 'custom' | 'agents';
 
-export function MainNav() {
+export function SideNav() {
   const pathname = usePathname();
   const { navigationOpen, closeNavOnClickOutside, setNavigationOpen } = useApp();
   const navRef = useRef<HTMLDivElement>(null);

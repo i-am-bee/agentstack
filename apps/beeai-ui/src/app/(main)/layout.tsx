@@ -8,8 +8,9 @@ import '#styles/style.scss';
 import type { Metadata } from 'next';
 
 import { AppLayout } from '#components/layouts/AppLayout.tsx';
+import { AppProvider } from '#contexts/App/AppProvider.tsx';
 import Providers from '#providers.tsx';
-import { APP_FAVICON_SVG, APP_NAME, BASE_PATH } from '#utils/constants.ts';
+import { APP_FAVICON_SVG, APP_NAME, BASE_PATH, OIDC_ENABLED } from '#utils/constants.ts';
 import { parseFeatureFlags } from '#utils/feature-flags.ts';
 
 const darkModeScript = `
@@ -52,9 +53,11 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: darkModeScript }} />
       </head>
       <body>
-        <Providers featureFlags={parseFeatureFlags(process.env.FEATURE_FLAGS)}>
-          <AppLayout>{children}</AppLayout>
-        </Providers>
+        <AppProvider featureFlags={parseFeatureFlags(process.env.FEATURE_FLAGS)} isAuthEnabled={OIDC_ENABLED}>
+          <Providers>
+            <AppLayout>{children}</AppLayout>
+          </Providers>
+        </AppProvider>
       </body>
     </html>
   );

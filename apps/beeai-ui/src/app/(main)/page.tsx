@@ -6,7 +6,7 @@
 import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
 
-import { getCurrentSession } from '#api/get-session.ts';
+import { auth } from '#app/(auth)/auth.ts';
 import EntityNotFound from '#components/EntityNotFound/EntityNotFound.tsx';
 import { ErrorPage } from '#components/ErrorPage/ErrorPage.tsx';
 import { buildAgent, isAgentUiSupported, sortAgentsByName } from '#modules/agents/utils.ts';
@@ -22,7 +22,7 @@ export default async function LandingPage() {
   let session;
   // only force login if oidc is enabled.
   if (OIDC_ENABLED) {
-    session = await getCurrentSession();
+    session = await auth();
     if (!session?.user) {
       await connection();
       redirect(routes.login());

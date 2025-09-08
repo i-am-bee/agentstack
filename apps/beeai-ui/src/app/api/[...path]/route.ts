@@ -5,7 +5,7 @@
 
 import type { NextRequest } from 'next/server';
 
-import { getCurrentSession } from '#api/get-session.ts';
+import { auth } from '#app/(auth)/auth.ts';
 import { API_URL, OIDC_ENABLED } from '#utils/constants.ts';
 
 import { transformAgentManifestBody } from './body-transformers';
@@ -30,8 +30,10 @@ async function handler(request: NextRequest, context: RouteContext) {
   targetUrl += search;
 
   if (OIDC_ENABLED) {
-    // ensure the beeai-platform cookie is set with an access token.
-    await getCurrentSession(request);
+    const session = await auth();
+    if (session?.access_token) {
+      headers.set('Authorization', `Bearer ${session.access_token}`);
+    }
   }
 
   const res = await fetch(targetUrl, {
