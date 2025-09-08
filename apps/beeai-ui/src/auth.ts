@@ -47,7 +47,8 @@ declare module 'next-auth' {
    * Returned by `auth`, `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
    */
   interface Session {
-    id_token: string & DefaultSession['user'];
+    User: DefaultSession['user'];
+    id_token: string;
     access_token?: string;
   }
 }
@@ -213,7 +214,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return token;
     },
-    async session({ session }) {
+    async session({ session, token }) {
+      if (token?.id_token) {
+        session.id_token = token.id_token;
+      } else {
+        if (typeof token === 'string') {
+          session.id_token = token;
+        }
+      }
       return session;
     },
   },
