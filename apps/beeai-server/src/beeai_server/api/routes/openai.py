@@ -58,6 +58,7 @@ async def create_chat_completion(
                 response_format=request.response_format,
                 temperature=request.temperature,
                 max_tokens=request.max_tokens,
+                max_completion_tokens=request.max_completion_tokens,
                 top_p=request.top_p,
                 n=request.n,
                 logit_bias=request.logit_bias,

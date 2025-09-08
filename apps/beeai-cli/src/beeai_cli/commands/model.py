@@ -348,7 +348,7 @@ async def _select_default_model(capability: ModelCapability) -> str | None:
                 if capability == ModelCapability.LLM:
                     test_response = await client.chat.completions.create(
                         model=selected_model,
-                        max_tokens=500,  # reasoning models need some tokens to think about this
+                        max_completion_tokens=500,  # reasoning models need some tokens to think about this
                         messages=[
                             {
                                 "role": "system",
@@ -522,14 +522,18 @@ async def add_provider(
     async with configuration.use_platform_client():
         await _add_provider(capability)
 
-    conf = await SystemConfiguration.get()
-    default_model = conf.default_llm_model if capability == ModelCapability.LLM else conf.default_embedding_model
-    if not default_model:
-        default_model = await _select_default_model(capability)
-        default_llm = default_model if capability == ModelCapability.LLM else conf.default_llm_model
-        default_embedding = default_model if capability == ModelCapability.EMBEDDING else conf.default_embedding_model
-        with console.status("Saving configuration...", spinner="dots"):
-            await SystemConfiguration.update(default_llm_model=default_llm, default_embedding_model=default_embedding)
+        conf = await SystemConfiguration.get()
+        default_model = conf.default_llm_model if capability == ModelCapability.LLM else conf.default_embedding_model
+        if not default_model:
+            default_model = await _select_default_model(capability)
+            default_llm = default_model if capability == ModelCapability.LLM else conf.default_llm_model
+            default_embedding = (
+                default_model if capability == ModelCapability.EMBEDDING else conf.default_embedding_model
+            )
+            with console.status("Saving configuration...", spinner="dots"):
+                await SystemConfiguration.update(
+                    default_llm_model=default_llm, default_embedding_model=default_embedding
+                )
 
 
 def _select_provider(providers: list[ModelProvider], search_path: str) -> ModelProvider:
@@ -551,35 +555,36 @@ async def remove_provider(
         str | None, typer.Argument(..., help="Provider type or part of the provider base url")
     ] = None,
 ):
-    conf = await SystemConfiguration.get()
-
     async with configuration.use_platform_client():
-        providers = await ModelProvider.list()
+        conf = await SystemConfiguration.get()
 
-    if not search_path:
-        provider: ModelProvider = await inquirer.select(  # type: ignore
-            message="Choose a provider to remove:",
-            choices=[Choice(name=f"{p.type} ({p.base_url})", value=p) for p in providers],
-        ).execute_async()
-    else:
-        provider = _select_provider(providers, search_path)
+        async with configuration.use_platform_client():
+            providers = await ModelProvider.list()
 
-    await provider.delete()
+        if not search_path:
+            provider: ModelProvider = await inquirer.select(  # type: ignore
+                message="Choose a provider to remove:",
+                choices=[Choice(name=f"{p.type} ({p.base_url})", value=p) for p in providers],
+            ).execute_async()
+        else:
+            provider = _select_provider(providers, search_path)
 
-    default_llm = None if (conf.default_llm_model or "").startswith(provider.type) else conf.default_llm_model
-    default_embed = (
-        None if (conf.default_embedding_model or "").startswith(provider.type) else conf.default_embedding_model
-    )
+        await provider.delete()
 
-    try:
-        if (conf.default_llm_model or "").startswith(provider.type):
-            console.print("The provider was used as default llm model. Please select another one...")
-            default_llm = await _select_default_model(ModelCapability.LLM)
-        if (conf.default_embedding_model or "").startswith(provider.type):
-            console.print("The provider was used as default embedding model. Please select another one...")
-            default_embed = await _select_default_model(ModelCapability.EMBEDDING)
-    finally:
-        await SystemConfiguration.update(default_llm_model=default_llm, default_embedding_model=default_embed)
+        default_llm = None if (conf.default_llm_model or "").startswith(provider.type) else conf.default_llm_model
+        default_embed = (
+            None if (conf.default_embedding_model or "").startswith(provider.type) else conf.default_embedding_model
+        )
+
+        try:
+            if (conf.default_llm_model or "").startswith(provider.type):
+                console.print("The provider was used as default llm model. Please select another one...")
+                default_llm = await _select_default_model(ModelCapability.LLM)
+            if (conf.default_embedding_model or "").startswith(provider.type):
+                console.print("The provider was used as default embedding model. Please select another one...")
+                default_embed = await _select_default_model(ModelCapability.EMBEDDING)
+        finally:
+            await SystemConfiguration.update(default_llm_model=default_llm, default_embedding_model=default_embed)
 
     await list_model_providers()
 
