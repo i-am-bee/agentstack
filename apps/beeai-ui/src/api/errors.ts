@@ -4,8 +4,8 @@
  */
 
 import type {
-  AcpErrorResponse,
   ApiErrorCode,
+  APIErrorResponse,
   ApiErrorResponse,
   ApiValidationErrorResponse,
   StreamErrorResponse,
@@ -47,11 +47,11 @@ export class HttpError extends CustomError {
   }
 }
 
-export class AcpError extends CustomError {
-  error: AcpErrorResponse;
-  code: AcpErrorResponse['error']['code'];
+export class APIError extends CustomError {
+  error: APIErrorResponse;
+  code: APIErrorResponse['error']['code'];
 
-  constructor({ error, response }: { error: AcpErrorResponse; response?: Response }) {
+  constructor({ error, response }: { error: APIErrorResponse; response?: Response }) {
     super({ message: error.error.message, response });
 
     this.error = error;

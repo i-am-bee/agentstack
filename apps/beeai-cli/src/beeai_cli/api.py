@@ -23,7 +23,6 @@ from beeai_cli.configuration import Configuration
 config = Configuration()
 BASE_URL = str(config.host).rstrip("/")
 API_BASE_URL = f"{BASE_URL}/api/v1/"
-ACP_URL = f"{API_BASE_URL}acp"
 
 
 class ProcessStatus(enum.StrEnum):

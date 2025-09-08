@@ -12,7 +12,7 @@ export type ApiErrorResponse = {
 
 export type ApiErrorCode = ApiErrorResponse['code'];
 
-export type AcpErrorResponse = { error: ApiErrorResponse };
+export type APIErrorResponse = { error: ApiErrorResponse };
 
 export type ApiValidationErrorResponse = components['schemas']['HTTPValidationError'];
 

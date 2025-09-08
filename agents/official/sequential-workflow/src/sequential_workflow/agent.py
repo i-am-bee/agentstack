@@ -82,7 +82,7 @@ server = Server()
     ),
     detail=AgentDetail(
         license="Apache 2.0",
-        framework="ACP",
+        framework="BeeAI",
         interaction_mode="playground",
         use_cases=[
             "**Complex Text Processing**: Ideal for tasks that require multiple stages of processing, such as summarization followed by sentiment analysis.",
