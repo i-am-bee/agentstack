@@ -8,9 +8,12 @@ from a2a.types import Message
 
 from beeai_sdk.a2a.extensions.ui.settings import (
     CheckboxField,
+    CheckboxGroupField,
+    OptionItem,
     SettingsExtensionServer,
     SettingsExtensionSpec,
     SettingsRender,
+    SingleSelectField,
 )
 from beeai_sdk.a2a.types import RunYield
 from beeai_sdk.server import Server
@@ -28,12 +31,54 @@ async def settings_agent(
         SettingsExtensionSpec(
             params=SettingsRender(
                 fields=[
-                    CheckboxField(
-                        id="terms_and_conditions",
-                        label="Do you agree with terms and conditions?",
-                        type="checkbox",
-                        default_value=False,
-                    )
+                    CheckboxGroupField(
+                        id="thinking",
+                        fields=[
+                            CheckboxField(
+                                id="thinking",
+                                label="Thinking",
+                                default_value=True,
+                            )
+                        ],
+                    ),
+                    CheckboxGroupField(
+                        id="tools",
+                        fields=[
+                            CheckboxField(
+                                id="tool_1",
+                                label="Tool 1",
+                                default_value=True,
+                            ),
+                            CheckboxField(
+                                id="tool_2",
+                                label="Tool 2",
+                                default_value=False,
+                            ),
+                            CheckboxField(
+                                id="tool_3",
+                                label="Tool 3",
+                                default_value=True,
+                            ),
+                        ],
+                    ),
+                    SingleSelectField(
+                        id="length",
+                        options=[
+                            OptionItem(
+                                label="Short",
+                                value="short",
+                            ),
+                            OptionItem(
+                                label="Medium",
+                                value="medium",
+                            ),
+                            OptionItem(
+                                label="Long",
+                                value="long",
+                            ),
+                        ],
+                        default_value="short",
+                    ),
                 ],
             ),
         ),
@@ -46,10 +91,32 @@ async def settings_agent(
         return
 
     parsed_settings = settings.parse_settings_response()
-    if parsed_settings.values["terms_and_conditions"].value:
-        yield "You agree with terms and conditions"
-    else:
-        yield "You don't agree with terms and conditions"
+
+    thinking_field = parsed_settings.values["thinking"]
+    if thinking_field.type == "checkbox_group":
+        if thinking_field.values["thinking"].value:
+            yield "Thinking is enabled\n"
+        else:
+            yield "Thinking is disabled\n"
+
+    tools_field = parsed_settings.values["tools"]
+    if tools_field.type == "checkbox_group":
+        if tools_field.values["tool_1"].value:
+            yield "Tool 1 is enabled\n"
+        else:
+            yield "Tool 1 is disabled\n"
+        if tools_field.values["tool_2"].value:
+            yield "Tool 2 is enabled\n"
+        else:
+            yield "Tool 2 is disabled\n"
+        if tools_field.values["tool_3"].value:
+            yield "Tool 3 is enabled\n"
+        else:
+            yield "Tool 3 is disabled\n"
+
+    length_field = parsed_settings.values["length"]
+    if length_field.type == "single_select":
+        yield f"Length is {length_field.value}\n"
 
 
 if __name__ == "__main__":

@@ -10,7 +10,7 @@ import type { buildA2AClient } from './client';
 import type { LLMDemand, LLMFulfillment } from './extensions/services/llm';
 import type { MCPDemand, MCPFulfillment } from './extensions/services/mcp';
 import type { FormRender } from './extensions/ui/form';
-import type { SettingsResponseValue } from './extensions/ui/settings';
+import type { AgentSettings } from './extensions/ui/settings';
 
 export enum RunResultType {
   FormRequired = 'form-required',
@@ -35,7 +35,7 @@ export interface ChatParams {
   message: UIUserMessage;
   contextId: ContextId;
   fulfillments: Fulfillments;
-  settings?: Record<string, SettingsResponseValue>;
+  settings?: AgentSettings;
   taskId?: TaskId;
 }
 

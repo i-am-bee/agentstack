@@ -11,26 +11,49 @@ from pydantic import BaseModel
 from beeai_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 
 
-class BaseField(BaseModel):
+class CheckboxField(BaseModel):
     id: str
     label: str
-
-
-class CheckboxField(BaseField):
-    type: Literal["checkbox"] = "checkbox"
     default_value: bool = False
 
 
-class SettingsRender(BaseModel):
+class CheckboxGroupField(BaseModel):
+    id: str
+    type: Literal["checkbox_group"] = "checkbox_group"
     fields: list[CheckboxField]
 
 
+class OptionItem(BaseModel):
+    label: str
+    value: str
+
+
+class SingleSelectField(BaseModel):
+    type: Literal["single_select"] = "single_select"
+    id: str
+    options: list[OptionItem]
+    default_value: str
+
+
+class SettingsRender(BaseModel):
+    fields: list[CheckboxGroupField | SingleSelectField]
+
+
 class CheckboxFieldValue(BaseModel):
-    type: Literal["checkbox"] = "checkbox"
     value: bool | None = None
 
 
-SettingsFieldValue = CheckboxFieldValue
+class CheckboxGroupFieldValue(BaseModel):
+    type: Literal["checkbox_group"] = "checkbox_group"
+    values: dict[str, CheckboxFieldValue]
+
+
+class SingleSelectFieldValue(BaseModel):
+    type: Literal["single_select"] = "single_select"
+    value: str | None = None
+
+
+SettingsFieldValue = CheckboxGroupFieldValue | SingleSelectFieldValue
 
 
 class AgentRunSettings(BaseModel):
