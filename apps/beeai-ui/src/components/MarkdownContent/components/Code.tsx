@@ -15,11 +15,12 @@ import { SyntaxHighlighter } from '#components/SyntaxHighlighter/SyntaxHighlight
 import classes from './Code.module.scss';
 
 interface Props extends HTMLAttributes<HTMLElement>, ExtraProps {
+  variant?: 'blog';
   inline?: boolean;
   forceExpand?: boolean;
 }
 
-export function Code({ inline, forceExpand, className, children }: Props) {
+export function Code({ variant, inline, forceExpand, className, children }: Props) {
   const language = getLanguage(className);
 
   if (!isString(children)) {
@@ -28,8 +29,10 @@ export function Code({ inline, forceExpand, className, children }: Props) {
 
   if (language) {
     return (
-      <CopySnippet>
-        <SyntaxHighlighter language={language}>{children}</SyntaxHighlighter>
+      <CopySnippet variant={variant}>
+        <SyntaxHighlighter language={language} variant={variant}>
+          {children}
+        </SyntaxHighlighter>
       </CopySnippet>
     );
   }

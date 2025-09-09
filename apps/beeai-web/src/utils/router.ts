@@ -8,4 +8,5 @@ export const routeDefinitions = {
   notFound: '/not-found' as const,
   agents: `/agents` as const,
   agentDetail: `/agents/[name]` as const,
+  blog: '/blog' as const,
 };

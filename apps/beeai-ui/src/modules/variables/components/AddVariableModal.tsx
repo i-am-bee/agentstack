@@ -59,7 +59,9 @@ export function AddVariableModal({ onRequestClose, ...modalProps }: ModalProps) 
           <div className={classes.stack}>
             {!isProvidersPending ? (
               <Select id={`${id}:provider`} labelText="Agent" {...register('providerId', { required: true })}>
-                {data?.items.map(({ id, agent_card: { name } }) => <SelectItem key={id} value={id} text={name} />)}
+                {data?.items.map(({ id, agent_card: { name } }) => (
+                  <SelectItem key={id} value={id} text={name} />
+                ))}
               </Select>
             ) : (
               <SelectSkeleton />

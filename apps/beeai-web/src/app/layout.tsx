@@ -5,6 +5,7 @@
 
 import '../styles/style.scss';
 
+import { APP_NAME } from '@i-am-bee/beeai-ui';
 import type { Metadata } from 'next';
 
 import AppLayout from '@/layouts/AppLayout';
@@ -31,7 +32,7 @@ const darkModeScript = `
 `;
 
 export const metadata: Metadata = {
-  title: 'BeeAI',
+  title: APP_NAME,
 };
 
 export default function RootLayout({

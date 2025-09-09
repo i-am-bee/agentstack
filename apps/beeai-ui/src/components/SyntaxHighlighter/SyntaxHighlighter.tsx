@@ -3,21 +3,31 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import clsx from 'clsx';
 import { Light as Highlighter } from 'react-syntax-highlighter';
 
 import { registerLanguages } from './languages';
 import classes from './SyntaxHighlighter.module.scss';
-import { customStyle, style } from './theme';
+import { blogStyle, customStyle, style } from './theme';
 
 interface Props {
   language: string;
   children: string;
+  className?: string;
+  variant?: 'blog';
 }
 
-export function SyntaxHighlighter({ language, children }: Props) {
+export function SyntaxHighlighter({ language, className, variant, children }: Props) {
+  const isBlogVariant = variant === 'blog';
+
   return (
-    <div className={classes.container}>
-      <Highlighter style={style} customStyle={customStyle} language={language} wrapLongLines>
+    <div className={clsx(classes.container, className, { [classes.blog]: isBlogVariant })}>
+      <Highlighter
+        style={style}
+        customStyle={isBlogVariant ? blogStyle : customStyle}
+        language={language}
+        wrapLongLines
+      >
         {children}
       </Highlighter>
     </div>

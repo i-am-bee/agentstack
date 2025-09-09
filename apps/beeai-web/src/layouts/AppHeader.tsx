@@ -5,12 +5,13 @@
 'use client';
 import { ArrowUpRight } from '@carbon/icons-react';
 import { HeaderMenuButton } from '@carbon/react';
-import { DOCUMENTATION_LINK, MainNav } from '@i-am-bee/beeai-ui';
+import { MainNav } from '@i-am-bee/beeai-ui';
 import clsx from 'clsx';
 import Link from 'next/link';
 import { useState } from 'react';
 
 import { FRAMEWORK_DOCS_LINK } from '@/constants';
+import { routeDefinitions } from '@/utils/router';
 
 import classes from './AppHeader.module.scss';
 import { LayoutContainer } from './LayoutContainer';
@@ -36,7 +37,7 @@ export function AppHeader({ className }: Props) {
               className={classes.toggleMenuBtn}
             />
 
-            <Link href="/" className={classes.logo}>
+            <Link href={routeDefinitions.home} className={classes.logo}>
               <strong>BeeAI</strong>
             </Link>
 
@@ -58,15 +59,13 @@ export function AppHeader({ className }: Props) {
 
 const items = [
   {
-    label: 'Framework docs',
+    label: 'Documentation',
     href: FRAMEWORK_DOCS_LINK,
     Icon: ArrowUpRight,
     isExternal: true,
   },
   {
-    label: 'Platform docs',
-    href: DOCUMENTATION_LINK,
-    Icon: ArrowUpRight,
-    isExternal: true,
+    label: 'Blog',
+    href: routeDefinitions.blog,
   },
 ];

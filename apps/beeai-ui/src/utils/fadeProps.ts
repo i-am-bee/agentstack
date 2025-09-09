@@ -4,12 +4,13 @@
  */
 
 import { moderate02, motion as carbonMotion } from '@carbon/motion';
-import type { Variant } from 'framer-motion';
+import type { Easing, Variant } from 'framer-motion';
 
-export function parseCarbonMotion(string: string): number[] {
+export function parseCarbonMotion(string: string): Easing {
   const matches = string.match(/-?\d*\.?\d+/g);
+  const definition = matches?.map(Number);
 
-  return matches ? matches.map(Number) : [];
+  return definition?.length === 4 ? (definition as [number, number, number, number]) : 'linear';
 }
 
 export function fadeProps({

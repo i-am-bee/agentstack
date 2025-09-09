@@ -3,8 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import createMDX from '@next/mdx';
 import type { NextConfig } from 'next';
 import path from 'path';
+import remarkReadingTime from 'remark-reading-time';
+import readingMdxTime from 'remark-reading-time/mdx';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
@@ -17,6 +20,7 @@ const nextConfig: NextConfig = {
     quietDeps: true,
     includePaths: [path.join(__dirname, 'node_modules'), path.join(__dirname, 'src')],
   },
+  pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   webpack(config) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fileLoaderRule = config.module.rules.find((rule: any) => rule.test?.test?.('.svg'));
@@ -82,4 +86,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+const withMDX = createMDX({
+  extension: /\.(md|mdx)$/,
+  options: {
+    remarkPlugins: [remarkReadingTime, readingMdxTime],
+  },
+});
+
+export default withMDX(nextConfig);

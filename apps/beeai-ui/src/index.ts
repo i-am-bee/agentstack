@@ -7,6 +7,7 @@ export * from './components/ErrorPage/ErrorPage';
 export * from './components/layouts/Container';
 export * from './components/layouts/MainContent';
 export * from './components/MainNav/MainNav';
+export * from './components/MarkdownContent/components/Code';
 export * from './components/TransitionLink/TransitionLink';
 export * from './contexts/ProgressBar/ProgressBarProvider';
 export * from './contexts/Theme';

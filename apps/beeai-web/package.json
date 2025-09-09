@@ -3,9 +3,9 @@
   "version": "0.3.3",
   "private": true,
   "peerDependencies": {
-    "@carbon/react": "*",
-    "@carbon/icons-react": "*",
     "@bprogress/next": "*",
+    "@carbon/icons-react": "*",
+    "@carbon/react": "*",
     "@tanstack/react-query": "*",
     "framer-motion": "*",
     "lottie-react": "*",
@@ -17,7 +17,9 @@
   },
   "dependencies": {
     "@i-am-bee/beeai-ui": "workspace:*",
+    "@mdx-js/react": "^3.1.1",
     "clsx": "^2.1.1",
+    "reading-time": "^1.5.0",
     "server-only": "^0.0.1",
     "usehooks-ts": "^3.1.0",
     "yaml": "^2.7.1"
@@ -25,8 +27,11 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "catalog:",
+    "@mdx-js/loader": "^3.1.1",
     "@next/eslint-plugin-next": "catalog:",
+    "@next/mdx": "^15.5.2",
     "@svgr/webpack": "catalog:",
+    "@types/mdx": "^2.0.13",
     "@types/node": "^22.13.13",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
@@ -36,6 +41,7 @@
     "eslint-plugin-react-hooks": "catalog:",
     "eslint-plugin-simple-import-sort": "catalog:",
     "prettier": "catalog:",
+    "remark-reading-time": "^2.0.2",
     "sass-embedded": "catalog:",
     "stylelint": "catalog:",
     "stylelint-config-css-modules": "catalog:",
