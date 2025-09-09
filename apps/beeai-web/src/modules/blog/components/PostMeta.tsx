@@ -7,6 +7,7 @@ import { Calendar, Pen, Time } from '@carbon/icons-react';
 import type { IconProps } from '@carbon/icons-react/lib/Icon';
 import type { ComponentType, PropsWithChildren } from 'react';
 
+import { formatDate } from '../utils';
 import classes from './PostMeta.module.scss';
 
 interface Props {
@@ -19,7 +20,7 @@ export function PostMeta({ date, author, readingTime }: Props) {
   return (
     <div className={classes.root}>
       <div className={classes.list}>
-        <PostMetaItem icon={Calendar}>{date}</PostMetaItem>
+        <PostMetaItem icon={Calendar}>{formatDate(new Date(date))}</PostMetaItem>
 
         <PostMetaItem icon={Pen}>{author}</PostMetaItem>
 

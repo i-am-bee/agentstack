@@ -7,7 +7,6 @@ import fs from 'fs';
 import { join } from 'path';
 
 import type { Post, PostModule } from './types';
-import { formatDate } from './utils';
 
 const POSTS_DIR = join(process.cwd(), 'src/modules/blog/posts');
 
@@ -26,7 +25,6 @@ export async function getPostBySlug(slug: string): Promise<Post> {
     slug,
     metadata: {
       ...metadata,
-      date: formatDate(new Date(metadata.date)),
       readingTime,
     },
     Content,
