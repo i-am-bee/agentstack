@@ -13,9 +13,8 @@ $item-gap: rem(14px);
   display: flex;
   flex-wrap: wrap;
   row-gap: $spacing-02;
-  margin-inline-start: calc((($item-gap * 2) + 1px) * -1);
+  column-gap: calc((($item-gap * 2) + 1px));
   > * {
-    margin-inline-start: calc(($item-gap * 2) + 1px);
     position: relative;
     &::before {
       content: '';

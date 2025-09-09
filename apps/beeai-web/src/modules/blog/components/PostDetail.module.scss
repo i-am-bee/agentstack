@@ -43,11 +43,28 @@ $toc-width: rem(240px);
       margin-block-start: $spacing-05;
     }
   }
+  h2 {
+    @include type-style(heading-04);
+  }
+  h3 {
+    @include type-style(heading-03);
+  }
+  h4 {
+    @include type-style(heading-02);
+  }
+  h5,
+  h6 {
+    @include type-style(heading-01);
+  }
   p,
   ul,
   ol {
     font-size: inherit;
     line-height: inherit;
+  }
+  ul {
+    list-style: disc;
+    padding-inline-start: rem(34px);
   }
   ol {
     list-style: decimal;

@@ -17,7 +17,7 @@ innovative approach that provides the reliability needed for production scenario
 
 <img src="./images/requirement_agent_intro.png" alt="Requirement Agent BeeAI" style={{ width: 150 }} />
 
-### What Makes RequirementAgent Unique
+## What Makes RequirementAgent Unique
 
 Simplicity is key. Rather than writing complex orchestration code, **_you define the requirements and let the framework
 enforce them_**. RequirementAgent introduces a **rule system** that defines execution constraints while keeping
@@ -27,7 +27,7 @@ flexible following few or no constraints.
 This control works consistently across different language models, from cost-effective smaller models to powerful large
 ones, encouraging consistent behavior regardless of the underlying model's tool-calling capabilities.
 
-### Code Example with The RequirementAgent
+## Code Example with The RequirementAgent
 
 In about 32 lines of code, this Activity Planner Agent is enabled with memory, state, an internet search tool, a weather
 tool, a “thinking” tool and follows the following rules:
@@ -88,7 +88,7 @@ You can also find examples of adding
 [custom requirements](https://framework.beeai.dev/experimental/requirement-agent#custom-requirement) in the
 documentation.
 
-### How The Requirement Agent Works Step by Step
+## How The Requirement Agent Works Step by Step
 
 Under the hood, RequirementAgent follows the following execution pattern:
 
@@ -114,7 +114,7 @@ Under the hood, RequirementAgent follows the following execution pattern:
 This cycle continues until the agent successfully completes the task within the defined constraints, with built-in
 safeguards for maximum iterations and retry limits.
 
-### Similar Agent, Other Framework Implementation
+## Similar Agent, Other Framework Implementation
 
 To demonstrate the simplicity of the RequirementAgent, let's compare our BeeAI implementation with the equivalent
 functionality built using LangGraph. Frameworks like LangGraph give you fine-grained control by letting you design
@@ -421,7 +421,7 @@ if __name__ == "__main__":
     print(final_msgs[-1].content if final_msgs else "No final response produced.")
 ```
 
-### Conclusion
+## Conclusion
 
 Multi-agent systems don’t have to be unpredictable, brittle, or exhausting to manage. With the RequirementAgent, you get
 reliable and flexible agents that respect your rules, avoid common pitfalls, and still leverage the full reasoning power
