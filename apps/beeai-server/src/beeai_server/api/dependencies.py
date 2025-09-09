@@ -77,9 +77,9 @@ async def authenticate_oauth_user(
 
     email = claims.get("email")
     if not email:
-        provider = next((p for p in configuration.auth.oidc.providers if str(p.issuer) == issuer), None)
+        provider = next((p for p in configuration.auth.oidc.providers if str(p.issuer) == str(issuer)), None)
         if not provider:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="issuer not configured")
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"issuer not configured. {issuer}")
         userinfo = await fetch_user_info(token, f"{provider.issuer!s}/userinfo")
         email = userinfo.get("email")
         email_verified = userinfo.get("email_verified", False)
