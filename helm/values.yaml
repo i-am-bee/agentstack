@@ -204,6 +204,8 @@ phoenix:
   fullnameOverride: "phoenix"
   ingress:
     enabled: false
+  image:
+    repository: "ghcr.io/i-am-bee/arizephoenix/phoenix"
   securityContext:
     container:
       enabled: true
@@ -222,7 +224,7 @@ phoenix:
     enableAuth: false
 
 collector:
-  image: otel/opentelemetry-collector-contrib:0.122.1
+  image: ghcr.io/i-am-bee/otel/opentelemetry-collector-contrib:0.122.1
   livenessProbe: { }
   readinessProbe: { }
   resources: { }
@@ -347,6 +349,8 @@ externalDatabase:
 ## @param seaweedfs.auth.existingSecret must have keys "accessKeyId" and "accessKeySecret"
 seaweedfs:
   enabled: true
+  image:
+    repository: ghcr.io/i-am-bee/
   bucket: "beeai-files"
   auth:
     admin:

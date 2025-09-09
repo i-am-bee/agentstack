@@ -242,3 +242,77 @@ if gum confirm "Release version $new_version now?"; then
   fi
 fi
 '''
+
+["sync-images-to-ghcr"]
+dir = "{{config_root}}"
+depends = ["helm:build:dependencies"]
+run = '''
+#!/bin/bash
+
+set -euo pipefail
+DRY_RUN='{{flag(name='dryrun')}}'
+
+{% raw %}
+echo "Extracting images from helm chart..."
+
+# Extract images from helm chart
+images=$(helm template \
+  --set phoenix.enabled=true \
+  --set encryptionKey=dummy \
+  --set auth.enabled=false \
+  --set auth.jwtSecretKey=kyticka \
+  ./helm 2>/dev/null | \
+    sed -n '/^[[:space:]]*image:/{ /{{/d; s/.*image:[[:space:]]*//p; }' | \
+    sed 's/"\([^"]*\)"/\1/' | grep -v 'beeai-platform')
+
+echo "Found images:"
+echo "$images"
+
+# Process each image
+echo "$images" | while IFS= read -r ghcr_image; do
+  if [[ -z "$ghcr_image" ]]; then
+    continue
+  fi
+
+  echo "Processing image: $ghcr_image"
+
+  # Remove ghcr.io/i-am-bee/ prefix to get Docker Hub image
+  if [[ $ghcr_image =~ ^ghcr\.io/i-am-bee/(.+)$ ]]; then
+    dockerhub_image="${BASH_REMATCH[1]}"
+
+    echo "GHCR image: $ghcr_image"
+    echo "Docker Hub image: $dockerhub_image"
+
+    # Check if image exists in GHCR
+    if docker manifest inspect "$ghcr_image" >/dev/null 2>&1; then
+      echo "✅ Image $ghcr_image already exists in GHCR"
+      continue
+    fi
+
+    echo "❌ Image $ghcr_image not found in GHCR"
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+      echo "🔍 DRY RUN: Would sync $dockerhub_image -> $ghcr_image"
+      continue
+    fi
+
+    # Check if source image exists in Docker Hub
+    if ! docker manifest inspect "$dockerhub_image" >/dev/null 2>&1; then
+      echo "❌ Source image $dockerhub_image not found in Docker Hub"
+      continue
+    fi
+
+    echo "🔄 Syncing $dockerhub_image -> $ghcr_image"
+
+    # Copy image with all architectures using skopeo
+    skopeo copy --multi-arch all docker://"$dockerhub_image" docker://"$ghcr_image"
+
+    echo "✅ Successfully synced $ghcr_image"
+  else
+    echo "⚠️  Skipping image with unexpected format: $ghcr_image"
+  fi
+done
+
+echo "Image sync completed!"
+{% endraw %}
+'''
