@@ -3,7 +3,7 @@
 
 from datetime import datetime
 from enum import StrEnum
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID, uuid4
 
 from httpx import AsyncClient
@@ -49,6 +49,9 @@ class ModelProviderInfo(BaseModel):
 class Model(OpenAIModel):
     provider: ModelProviderInfo
     display_name: str | None = None
+    object: Literal["model"] = "model"
+    created: int = 0
+    owned_by: str = "unknown"
 
 
 class ModelProvider(BaseModel):
