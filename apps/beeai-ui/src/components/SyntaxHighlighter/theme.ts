@@ -16,4 +16,5 @@ export const customStyle: React.CSSProperties = {
 export const blogStyle: React.CSSProperties = {
   padding: '1rem 0.5rem 1rem 1.5rem',
   background: 'transparent',
+  color: 'var(--text-primary)',
 };
