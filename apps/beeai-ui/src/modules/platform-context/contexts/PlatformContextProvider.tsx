@@ -5,8 +5,6 @@
 
 import { type PropsWithChildren, useCallback, useEffect, useState } from 'react';
 
-import { mcpExtension } from '#api/a2a/extensions/services/mcp.ts';
-import { extractServiceExtensionDemands } from '#api/a2a/extensions/utils.ts';
 import type { AgentA2AClient } from '#api/a2a/types.ts';
 import { useApp } from '#contexts/App/index.ts';
 
@@ -20,15 +18,10 @@ interface Props<UIGenericPart> {
   agentClient?: AgentA2AClient<UIGenericPart>;
 }
 
-const mcpExtensionExtractor = extractServiceExtensionDemands(mcpExtension);
-
 export function PlatformContextProvider<UIGenericPart>({
   children,
   agentClient,
 }: PropsWithChildren<Props<UIGenericPart>>) {
-  // TODO: fix
-  const mcpDemands = mcpExtensionExtractor(agent?.capabilities.extensions ?? []);
-
   const { featureFlags } = useApp();
   const [contextId, setContextId] = useState<string | null>(null);
   const [selectedProviders, setSelectedProviders] = useState<Record<string, string>>({});
@@ -52,10 +45,7 @@ export function PlatformContextProvider<UIGenericPart>({
 
   const { mutateAsync: createContext } = useCreateContext();
   const { mutateAsync: createContextToken } = useCreateContextToken();
-  const { data: matchedProviders } = useMatchProviders(
-    agentClient?.llmDemands ? agentClient.llmDemands.llm_demands : {},
-    setDefaultSelectedProviders,
-  );
+  const { data: matchedProviders } = useMatchProviders(agentClient?.llmDemands ?? {}, setDefaultSelectedProviders);
 
   const selectProvider = useCallback(
     (key: string, value: string) => {
@@ -64,7 +54,7 @@ export function PlatformContextProvider<UIGenericPart>({
     [setSelectedProviders],
   );
   const [selectedMCPServers, setSelectedMCPServers] = useState<Record<string, string>>(
-    Object.keys(mcpDemands?.mcp_demands ?? {}).reduce(
+    Object.keys(agentClient?.mcpDemands ?? {}).reduce(
       (memo, value) => ({
         ...memo,
         [value]: '',
