@@ -3,7 +3,6 @@
 import logging
 import os
 from typing import Annotated
-from collections import defaultdict
 from textwrap import dedent
 
 from a2a.types import (
@@ -47,7 +46,7 @@ from chat.helpers.citations import extract_citations
 from chat.helpers.trajectory import TrajectoryContent
 from chat.tools.files.file_creator import FileCreatorTool, FileCreatorToolOutput
 from chat.tools.files.file_reader import create_file_reader_tool_class
-from chat.tools.files.utils import FrameworkMessage, extract_files, to_framework_message
+from chat.tools.files.utils import extract_files, to_framework_message
 from chat.tools.general.act import (
     ActAlwaysFirstRequirement,
     ActTool,
@@ -70,9 +69,6 @@ logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLev
 logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(logging.CRITICAL)
 
 logger = logging.getLogger(__name__)
-
-messages: defaultdict[str, list[Message]] = defaultdict(list)
-framework_messages: defaultdict[str, list[FrameworkMessage]] = defaultdict(list)
 
 server = Server()
 
@@ -173,7 +169,10 @@ async def chat(
     context: RunContext,
     trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
     citation: Annotated[CitationExtensionServer, CitationExtensionSpec()],
-    llm_ext: Annotated[LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand(suggested=("openai/gpt-5", "ollama/granite3.3:8b"))],
+    llm_ext: Annotated[
+        LLMServiceExtensionServer,
+        LLMServiceExtensionSpec.single_demand(suggested=("openai/gpt-5", "ollama/granite3.3:8b")),
+    ],
     _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
 ):
     """
@@ -330,8 +329,6 @@ async def chat(
             final_answer = event.state.answer
 
     if final_answer:
-        framework_messages[context.context_id].append(final_answer)
-
         citations, clean_text = extract_citations(final_answer.text)
 
         message = AgentMessage(

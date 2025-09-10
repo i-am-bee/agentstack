@@ -114,8 +114,8 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** List Contexts */
-    get: operations['list_contexts_api_v1_contexts_get'];
+    /** List Context */
+    get: operations['list_context_api_v1_contexts_get'];
     put?: never;
     /** Create Context */
     post: operations['create_context_api_v1_contexts_post'];
@@ -2478,7 +2478,10 @@ export interface components {
     };
     /** Model */
     Model: {
-      /** Created */
+      /**
+       * Created
+       * @default 0
+       */
       created: number;
       /** Display Name */
       display_name?: string | null;
@@ -2486,10 +2489,14 @@ export interface components {
       id: string;
       /**
        * Object
+       * @default model
        * @constant
        */
       object: 'model';
-      /** Owned By */
+      /**
+       * Owned By
+       * @default unknown
+       */
       owned_by: string;
       provider: components['schemas']['ModelProviderInfo'];
     } & {
@@ -2701,52 +2708,115 @@ export interface components {
        */
       type: 'openIdConnect';
     };
-    /** PaginatedResponse[Context] */
-    PaginatedResponse_Context_: {
+    /** PaginatedResult[Context] */
+    PaginatedResult_Context_: {
+      /** First Id */
+      readonly first_id: string | null;
+      /**
+       * Has More
+       * @default false
+       */
+      has_more: boolean;
       /** Items */
       items: components['schemas']['Context'][];
+      /** Last Id */
+      readonly last_id: string | null;
       /** Total Count */
       total_count: number;
     };
-    /** PaginatedResponse[ContextHistoryItem] */
-    PaginatedResponse_ContextHistoryItem_: {
+    /** PaginatedResult[ContextHistoryItem] */
+    PaginatedResult_ContextHistoryItem_: {
+      /** First Id */
+      readonly first_id: string | null;
+      /**
+       * Has More
+       * @default false
+       */
+      has_more: boolean;
       /** Items */
       items: components['schemas']['ContextHistoryItem-Output'][];
+      /** Last Id */
+      readonly last_id: string | null;
       /** Total Count */
       total_count: number;
     };
-    /** PaginatedResponse[ModelProvider] */
-    PaginatedResponse_ModelProvider_: {
+    /** PaginatedResult[ModelProvider] */
+    PaginatedResult_ModelProvider_: {
+      /** First Id */
+      readonly first_id: string | null;
+      /**
+       * Has More
+       * @default false
+       */
+      has_more: boolean;
       /** Items */
       items: components['schemas']['ModelProvider'][];
+      /** Last Id */
+      readonly last_id: string | null;
       /** Total Count */
       total_count: number;
     };
-    /** PaginatedResponse[ModelWithScore] */
-    PaginatedResponse_ModelWithScore_: {
+    /** PaginatedResult[ModelWithScore] */
+    PaginatedResult_ModelWithScore_: {
+      /** First Id */
+      readonly first_id: string | null;
+      /**
+       * Has More
+       * @default false
+       */
+      has_more: boolean;
       /** Items */
       items: components['schemas']['ModelWithScore'][];
+      /** Last Id */
+      readonly last_id: string | null;
       /** Total Count */
       total_count: number;
     };
-    /** PaginatedResponse[ProviderWithState] */
-    PaginatedResponse_ProviderWithState_: {
+    /** PaginatedResult[ProviderWithState] */
+    PaginatedResult_ProviderWithState_: {
+      /** First Id */
+      readonly first_id: string | null;
+      /**
+       * Has More
+       * @default false
+       */
+      has_more: boolean;
       /** Items */
       items: components['schemas']['ProviderWithState'][];
+      /** Last Id */
+      readonly last_id: string | null;
       /** Total Count */
       total_count: number;
     };
-    /** PaginatedResponse[VectorStoreDocument] */
-    PaginatedResponse_VectorStoreDocument_: {
+    /** PaginatedResult[VectorStoreDocument] */
+    PaginatedResult_VectorStoreDocument_: {
+      /** First Id */
+      readonly first_id: string | null;
+      /**
+       * Has More
+       * @default false
+       */
+      has_more: boolean;
       /** Items */
       items: components['schemas']['VectorStoreDocument'][];
+      /** Last Id */
+      readonly last_id: string | null;
       /** Total Count */
       total_count: number;
     };
-    /** PaginatedResponse[VectorStoreSearchResult] */
-    PaginatedResponse_VectorStoreSearchResult_: {
+    /** PaginatedResult[VectorStoreSearchResult] */
+    PaginatedResult_VectorStoreSearchResult_: {
+      /** First Id */
+      readonly first_id: string | null;
+      /**
+       * Has More
+       * @default false
+       */
+      has_more: boolean;
       /** Items */
       items: components['schemas']['VectorStoreSearchResult'][];
+      /** Last Id */
+      readonly last_id: string | null;
       /** Total Count */
       total_count: number;
     };
@@ -3620,9 +3690,14 @@ export interface operations {
       };
     };
   };
-  list_contexts_api_v1_contexts_get: {
+  list_context_api_v1_contexts_get: {
     parameters: {
-      query?: never;
+      query?: {
+        after?: string | null;
+        limit?: number;
+        order?: string;
+        order_by?: string;
+      };
       header?: never;
       path?: never;
       cookie?: never;
@@ -3635,7 +3710,16 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['PaginatedResponse_Context_'];
+          'application/json': components['schemas']['PaginatedResult_Context_'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
         };
       };
     };
@@ -3737,7 +3821,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['PaginatedResponse_ContextHistoryItem_'];
+          'application/json': components['schemas']['PaginatedResult_ContextHistoryItem_'];
         };
       };
       /** @description Validation Error */
@@ -4397,7 +4481,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['PaginatedResponse_ModelProvider_'];
+          'application/json': components['schemas']['PaginatedResult_ModelProvider_'];
         };
       };
     };
@@ -4514,7 +4598,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['PaginatedResponse_ModelWithScore_'];
+          'application/json': components['schemas']['PaginatedResult_ModelWithScore_'];
         };
       };
       /** @description Validation Error */
@@ -4629,7 +4713,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['PaginatedResponse_ProviderWithState_'];
+          'application/json': components['schemas']['PaginatedResult_ProviderWithState_'];
         };
       };
     };
@@ -5045,7 +5129,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['PaginatedResponse_VectorStoreDocument_'];
+          'application/json': components['schemas']['PaginatedResult_VectorStoreDocument_'];
         };
       };
       /** @description Validation Error */
@@ -5114,7 +5198,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['PaginatedResponse_VectorStoreSearchResult_'];
+          'application/json': components['schemas']['PaginatedResult_VectorStoreSearchResult_'];
         };
       };
       /** @description Validation Error */

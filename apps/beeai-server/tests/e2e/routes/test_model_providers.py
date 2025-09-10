@@ -7,7 +7,6 @@ from beeai_sdk.platform import ModelProvider
 pytestmark = pytest.mark.e2e
 
 
-@pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up", "setup_platform_client", "setup_real_llm")
 async def test_setup_real_llm_creates_provider():
     """Test that setup_real_llm fixture creates at least one model provider."""

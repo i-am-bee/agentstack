@@ -54,7 +54,6 @@ async def sample_vector_items(test_collection_id: UUID) -> list[VectorStoreItem]
     ]
 
 
-@pytest.mark.asyncio
 async def test_create_collection(
     vector_db_repository: VectorDatabaseRepository,
     test_collection_id: UUID,
@@ -73,7 +72,6 @@ async def test_create_collection(
     assert result.fetchone() is not None
 
 
-@pytest.mark.asyncio
 async def test_create_collection_with_unsupported_dimension(
     vector_db_repository: VectorDatabaseRepository,
     test_collection_id: UUID,
@@ -92,7 +90,6 @@ async def test_create_collection_with_unsupported_dimension(
     assert result.fetchone() is not None
 
 
-@pytest.mark.asyncio
 async def test_add_items_to_collection(
     vector_db_repository: VectorDatabaseRepository,
     test_collection_id: UUID,
@@ -135,7 +132,6 @@ async def test_add_items_to_collection(
     assert rows[2].vector_store_document_id == "doc_002"
 
 
-@pytest.mark.asyncio
 async def test_add_empty_items_list(
     vector_db_repository: VectorDatabaseRepository,
     test_collection_id: UUID,
@@ -152,7 +148,6 @@ async def test_add_empty_items_list(
     # This should not raise an error and should complete successfully
 
 
-@pytest.mark.asyncio
 async def test_estimate_size(
     vector_db_repository: VectorDatabaseRepository,
     sample_vector_items: list[VectorStoreItem],
@@ -177,7 +172,6 @@ async def test_estimate_size(
     assert doc_001_info.usage_bytes > doc_002_info.usage_bytes
 
 
-@pytest.mark.asyncio
 async def test_similarity_search(
     vector_db_repository: VectorDatabaseRepository,
     test_collection_id: UUID,
@@ -219,7 +213,6 @@ async def test_similarity_search(
     assert first_result.score >= results_list[1].score
 
 
-@pytest.mark.asyncio
 async def test_similarity_search_with_limit(
     vector_db_repository: VectorDatabaseRepository,
     test_collection_id: UUID,
@@ -249,7 +242,6 @@ async def test_similarity_search_with_limit(
         assert isinstance(result, VectorStoreSearchResult)
 
 
-@pytest.mark.asyncio
 async def test_delete_documents(
     vector_db_repository: VectorDatabaseRepository,
     test_collection_id: UUID,
@@ -291,7 +283,6 @@ async def test_delete_documents(
     assert remaining_doc_id == "doc_002"
 
 
-@pytest.mark.asyncio
 async def test_delete_multiple_documents(
     vector_db_repository: VectorDatabaseRepository,
     test_collection_id: UUID,
@@ -316,7 +307,6 @@ async def test_delete_multiple_documents(
     assert result.scalar() == 0
 
 
-@pytest.mark.asyncio
 async def test_delete_nonexistent_documents(
     vector_db_repository: VectorDatabaseRepository,
     test_collection_id: UUID,
@@ -341,7 +331,6 @@ async def test_delete_nonexistent_documents(
     assert result.scalar() == 3
 
 
-@pytest.mark.asyncio
 async def test_multiple_collections_same_dimension(
     vector_db_repository: VectorDatabaseRepository,
     sample_vector_items: list[VectorStoreItem],
@@ -378,7 +367,6 @@ async def test_multiple_collections_same_dimension(
     assert total_result.scalar() == 3
 
 
-@pytest.mark.asyncio
 async def test_different_dimensions_use_different_tables(
     vector_db_repository: VectorDatabaseRepository,
     db_transaction: AsyncConnection,
@@ -402,7 +390,6 @@ async def test_different_dimensions_use_different_tables(
     assert tables == ["collections_dim_128", "collections_dim_256"]
 
 
-@pytest.mark.asyncio
 async def test_dimension_mapping_to_supported_dimensions(
     vector_db_repository: VectorDatabaseRepository,
 ):
@@ -424,7 +411,6 @@ async def test_dimension_mapping_to_supported_dimensions(
         assert mapped_dim == expected_dim, f"Input {input_dim} should map to {expected_dim}, got {mapped_dim}"
 
 
-@pytest.mark.asyncio
 async def test_get_item_size_calculation(
     vector_db_repository: VectorDatabaseRepository,
     sample_vector_items: list[VectorStoreItem],

@@ -11,8 +11,9 @@ from beeai_server.api.dependencies import (
     ModelProviderServiceDependency,
     RequiresPermissions,
 )
-from beeai_server.api.schema.common import EntityModel, PaginatedResponse
+from beeai_server.api.schema.common import EntityModel
 from beeai_server.api.schema.model_provider import CreateModelProviderRequest, MatchModelsRequest
+from beeai_server.domain.models.common import PaginatedResult
 from beeai_server.domain.models.model_provider import ModelProvider, ModelWithScore
 from beeai_server.domain.models.permissions import AuthorizedUser
 
@@ -41,9 +42,9 @@ async def create_model_provider(
 async def list_model_providers(
     _: Annotated[AuthorizedUser, Depends(RequiresPermissions(model_providers={"read"}))],
     model_provider_service: ModelProviderServiceDependency,
-) -> PaginatedResponse[ModelProvider]:
+) -> PaginatedResult[ModelProvider]:
     providers = await model_provider_service.list_providers()
-    return PaginatedResponse(items=providers, total_count=len(providers))
+    return PaginatedResult(items=providers, total_count=len(providers))
 
 
 @router.get("/{model_provider_id}")
@@ -70,10 +71,10 @@ async def match(
     _: Annotated[AuthorizedUser, Depends(RequiresPermissions(model_providers={"read"}))],
     request: MatchModelsRequest,
     model_provider_service: ModelProviderServiceDependency,
-) -> PaginatedResponse[ModelWithScore]:
+) -> PaginatedResult[ModelWithScore]:
     models = await model_provider_service.match_models(
         suggested_models=request.suggested_models,
         capability=request.capability,
         score_cutoff=request.score_cutoff,
     )
-    return PaginatedResponse(items=models, total_count=len(models))
+    return PaginatedResult(items=models, total_count=len(models))

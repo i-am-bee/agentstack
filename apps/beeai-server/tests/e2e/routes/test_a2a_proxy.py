@@ -616,7 +616,6 @@ def test_server_auth(create_test_server, app: A2AStarletteApplication, handler: 
 # === STREAMING TESTS ===
 
 
-@pytest.mark.asyncio
 async def test_message_send_stream(create_test_server, app: A2AStarletteApplication, handler: mock.AsyncMock) -> None:
     """Test streaming message sending."""
 
@@ -694,7 +693,6 @@ async def test_message_send_stream(create_test_server, app: A2AStarletteApplicat
         await asyncio.sleep(0.1)
 
 
-@pytest.mark.asyncio
 async def test_task_resubscription(create_test_server, app: A2AStarletteApplication, handler: mock.AsyncMock) -> None:
     """Test task resubscription streaming."""
 

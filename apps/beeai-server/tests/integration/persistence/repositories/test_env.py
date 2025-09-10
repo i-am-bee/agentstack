@@ -74,7 +74,6 @@ async def model_provider_id(db_transaction: AsyncConnection) -> UUID:
     return model_provider_id
 
 
-@pytest.mark.asyncio
 async def test_update_and_get(db_transaction: AsyncConnection, encryption_config: Configuration, provider_id: UUID):
     # Create repository
     repository = SqlAlchemyEnvVariableRepository(connection=db_transaction, configuration=encryption_config)
@@ -108,7 +107,6 @@ async def test_update_and_get(db_transaction: AsyncConnection, encryption_config
     assert value2 == variables["TEST_KEY_2"]
 
 
-@pytest.mark.asyncio
 async def test_get_with_default(db_transaction: AsyncConnection, encryption_config: Configuration, provider_id: UUID):
     # Create repository
     repository = SqlAlchemyEnvVariableRepository(connection=db_transaction, configuration=encryption_config)
@@ -125,7 +123,6 @@ async def test_get_with_default(db_transaction: AsyncConnection, encryption_conf
     assert value == "default_value"
 
 
-@pytest.mark.asyncio
 async def test_get_not_found(db_transaction: AsyncConnection, encryption_config: Configuration, provider_id: UUID):
     # Create repository
     repository = SqlAlchemyEnvVariableRepository(connection=db_transaction, configuration=encryption_config)
@@ -139,7 +136,6 @@ async def test_get_not_found(db_transaction: AsyncConnection, encryption_config:
         )
 
 
-@pytest.mark.asyncio
 async def test_update_remove(db_transaction: AsyncConnection, encryption_config: Configuration, provider_id: UUID):
     # Create repository
     repository = SqlAlchemyEnvVariableRepository(connection=db_transaction, configuration=encryption_config)
@@ -185,7 +181,6 @@ async def test_update_remove(db_transaction: AsyncConnection, encryption_config:
     assert result.fetchone() is not None
 
 
-@pytest.mark.asyncio
 async def test_get_all(db_transaction: AsyncConnection, encryption_config: Configuration, provider_id: UUID):
     # Create repository
     repository = SqlAlchemyEnvVariableRepository(connection=db_transaction, configuration=encryption_config)
@@ -220,7 +215,6 @@ async def test_get_all(db_transaction: AsyncConnection, encryption_config: Confi
     assert provider_vars["TEST_KEY_3"] == variables["TEST_KEY_3"]
 
 
-@pytest.mark.asyncio
 async def test_model_provider_entity(
     db_transaction: AsyncConnection, encryption_config: Configuration, model_provider_id: UUID
 ):
@@ -258,7 +252,6 @@ async def test_model_provider_entity(
     assert base_url == variables["MODEL_BASE_URL"]
 
 
-@pytest.mark.asyncio
 async def test_variable_isolation_between_entities(
     db_transaction: AsyncConnection,
     encryption_config: Configuration,
@@ -315,7 +308,6 @@ async def test_variable_isolation_between_entities(
     assert model_shared == "model_provider_value"
 
 
-@pytest.mark.asyncio
 async def test_get_all_multiple_entities(
     db_transaction: AsyncConnection,
     encryption_config: Configuration,
@@ -397,7 +389,6 @@ async def test_get_all_multiple_entities(
     assert provider3_vars["KEY5"] == "value5"
 
 
-@pytest.mark.asyncio
 async def test_get_all_empty_ids_list(
     db_transaction: AsyncConnection,
     encryption_config: Configuration,
@@ -419,7 +410,6 @@ async def test_get_all_empty_ids_list(
     assert all_variables == {}
 
 
-@pytest.mark.asyncio
 async def test_variable_isolation_between_entity_types(
     db_transaction: AsyncConnection,
     encryption_config: Configuration,

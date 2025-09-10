@@ -41,7 +41,6 @@ async def file_reader_writer(create_server_with_agent) -> AsyncGenerator[tuple[S
         yield server, test_client
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "permissions, should_fail",
     [

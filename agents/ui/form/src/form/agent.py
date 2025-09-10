@@ -20,7 +20,17 @@ from beeai_sdk.server import Server
 from beeai_sdk.server.context import RunContext
 
 import beeai_sdk.a2a.extensions
-from beeai_sdk.a2a.extensions.ui.form import DateField, TextField, FileField, CheckboxField, MultiSelectField,OptionItem, FormExtensionServer, FormExtensionSpec, FormRender
+from beeai_sdk.a2a.extensions.ui.form import (
+    DateField,
+    TextField,
+    FileField,
+    CheckboxField,
+    MultiSelectField,
+    OptionItem,
+    FormExtensionServer,
+    FormExtensionSpec,
+    FormRender,
+)
 
 agent_detail_extension_spec = beeai_sdk.a2a.extensions.AgentDetailExtensionSpec(
     params=beeai_sdk.a2a.extensions.AgentDetail(
@@ -28,59 +38,38 @@ agent_detail_extension_spec = beeai_sdk.a2a.extensions.AgentDetailExtensionSpec(
     )
 )
 
-location=TextField(
-    type="text",
-    id="location",
-    label="Location",
-    required=True,
-    col_span=2
-)
-date_from=DateField(
-    type="date",
-    id="date_from",
-    label="Date from",
-    required=False,
-    col_span=1
-)
-date_to=DateField(
-    type="date",
-    id="date_to",
-    label="Date to",
-    required=False,
-    col_span=1
-)
-flexible=CheckboxField(
+location = TextField(type="text", id="location", label="Location", required=True, col_span=2)
+date_from = DateField(type="date", id="date_from", label="Date from", required=False, col_span=1)
+date_to = DateField(type="date", id="date_to", label="Date to", required=False, col_span=1)
+flexible = CheckboxField(
     type="checkbox",
     id="flexible",
     label="Do you have flexibility with your travel dates?",
     content="Yes, I'm flexible",
     required=False,
-    col_span=2
+    col_span=2,
 )
-notes=FileField(
-    type="file",
-    id="notes",
-    label="Upload notes",
-    accept=["text/*"],
-    required=False,
-    col_span=2
-)
-interests=MultiSelectField(
+notes = FileField(type="file", id="notes", label="Upload notes", accept=["text/*"], required=False, col_span=2)
+interests = MultiSelectField(
     type="multiselect",
     id="interests",
     label="Interests",
     required=False,
     col_span=2,
-    options=[OptionItem(id="cuisine",label="Cuisine"),OptionItem(id="nature",label="Nature"),OptionItem(id="photography",label="Photography")],
-    default_value=["nature"]
+    options=[
+        OptionItem(id="cuisine", label="Cuisine"),
+        OptionItem(id="nature", label="Nature"),
+        OptionItem(id="photography", label="Photography"),
+    ],
+    default_value=["nature"],
 )
 
 form_render = FormRender(
-        id="adventure_form",
-        title="Let’s go on an adventure",
-        columns=2,
-        fields=[location, date_from, date_to, notes, flexible, interests]
-    )
+    id="adventure_form",
+    title="Let’s go on an adventure",
+    columns=2,
+    fields=[location, date_from, date_to, notes, flexible, interests],
+)
 form_extension_spec = FormExtensionSpec(form_render)
 
 server = Server()
@@ -103,25 +92,21 @@ server = Server()
     ),
     skills=[
         a2a.types.AgentSkill(
-            id="form",
-            name="Form",
-            description="Answer complex questions using web search sources",
-            tags=["form"]
+            id="form", name="Form", description="Answer complex questions using web search sources", tags=["form"]
         )
     ],
 )
-
 async def agent(
-  input: Message,
-  form: Annotated[
+    input: Message,
+    form: Annotated[
         FormExtensionServer,
         form_extension_spec,
     ],
 ):
     """Request form data"""
-    
+
     form_data = form.parse_form_response(message=input)
-    
+
     yield f"Hello {form_data.values['location'].value}"
 
 

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from collections.abc import AsyncIterator
+from datetime import datetime
 from uuid import UUID, uuid4
 
 from kink import inject
@@ -20,10 +21,12 @@ from sqlalchemy import (
 from sqlalchemy import UUID as SQL_UUID
 from sqlalchemy.ext.asyncio import AsyncConnection
 
+from beeai_server.domain.models.common import PaginatedResult
 from beeai_server.domain.models.context import Context, ContextHistoryItem
 from beeai_server.domain.repositories.context import IContextRepository
 from beeai_server.exceptions import EntityNotFoundError
 from beeai_server.infrastructure.persistence.repositories.db_metadata import metadata
+from beeai_server.infrastructure.persistence.repositories.utils import cursor_paginate
 from beeai_server.utils.utils import utc_now
 
 contexts_table = Table(
@@ -52,13 +55,47 @@ class SqlAlchemyContextRepository(IContextRepository):
     def __init__(self, connection: AsyncConnection):
         self._connection = connection
 
-    async def list(self, user_id: UUID | None = None) -> AsyncIterator[Context]:
+    async def list(
+        self, user_id: UUID | None = None, last_active_before: datetime | None = None
+    ) -> AsyncIterator[Context]:
+        yield ...  # type: ignore
         query = select(contexts_table)
         if user_id is not None:
             query = query.where(contexts_table.c.created_by == user_id)
 
+        if last_active_before:
+            query = query.where(contexts_table.c.last_active_at < last_active_before)
+
         async for row in await self._connection.stream(query):
             yield self._row_to_context(row)
+
+    async def list_paginated(
+        self,
+        user_id: UUID | None = None,
+        limit: int = 20,
+        after: UUID | None = None,
+        order: str = "desc",
+        order_by: str = "created_at",
+    ) -> PaginatedResult:
+        query = contexts_table.select()
+        if user_id is not None:
+            query = query.where(contexts_table.c.created_by == user_id)
+
+        result = await cursor_paginate(
+            connection=self._connection,
+            query=query,
+            id_column=contexts_table.c.id,
+            limit=limit,
+            after_cursor=after,
+            order=order,
+            order_column=getattr(contexts_table.c, order_by),
+        )
+
+        return PaginatedResult(
+            items=[self._row_to_context(row) for row in result.items],
+            total_count=result.total_count,
+            has_more=result.has_more,
+        )
 
     async def create(self, *, context: Context) -> None:
         query = contexts_table.insert().values(

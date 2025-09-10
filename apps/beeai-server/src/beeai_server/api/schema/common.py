@@ -3,12 +3,14 @@
 from typing import Self
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
-class PaginatedResponse[BaseModelT: BaseModel](BaseModel):
-    items: list[BaseModelT]
-    total_count: int
+class PaginationQuery(BaseModel):
+    limit: int = Field(default=40, ge=1, le=100)
+    after: UUID | None = None
+    order: str = Field(default="desc", pattern="^(asc|desc)$")
+    order_by: str = Field(default="created_at", pattern="^created_at|updated_at$")
 
 
 class ErrorStreamResponseError(BaseModel, extra="allow"):

@@ -5,10 +5,14 @@ from __future__ import annotations
 
 import abc
 from collections.abc import AsyncIterator
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Any, Final, Protocol
 
 from a2a.server.events import Event
 from a2a.types import Artifact, Message, TaskArtifactUpdateEvent, TaskStatus, TaskStatusUpdateEvent
+
+from beeai_sdk.a2a.extensions import CitationExtensionSpec
+from beeai_sdk.a2a.extensions.ui.form import FormExtensionSpec
+from beeai_sdk.a2a.extensions.ui.trajectory import TrajectoryExtensionSpec
 
 if TYPE_CHECKING:
     from beeai_sdk.server.dependencies import Dependency, Depends
@@ -29,12 +33,21 @@ class ContextStore(abc.ABC):
     async def create(self, context_id: str, initialized_dependencies: list[Dependency]) -> ContextStoreInstance: ...
 
 
+ALLOWED_METADATA_EXTENSION_URIS: Final = {TrajectoryExtensionSpec.URI, CitationExtensionSpec.URI, FormExtensionSpec.URI}
+
+
+def filter_metadata(metadata: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not metadata:
+        return metadata
+    return {k: v for k, v in metadata.items() if k in ALLOWED_METADATA_EXTENSION_URIS}
+
+
 async def record_event(event: Event, context_store: ContextStoreInstance):
-    # TODO: we strip metadata because they may contain sensitive information and auth tokens
+    # TODO: we filter metadata because they may contain sensitive information and auth tokens
     match event:
         case Message() as msg:
-            await context_store.store(msg.model_copy(update={"metadata": None}))
+            await context_store.store(msg.model_copy(update={"metadata": filter_metadata(msg.metadata)}))
         case TaskStatusUpdateEvent(status=TaskStatus(message=Message() as msg)):
-            await context_store.store(msg.model_copy(update={"metadata": None}))
+            await context_store.store(msg.model_copy(update={"metadata": filter_metadata(msg.metadata)}))
         case TaskArtifactUpdateEvent(artifact=artifact):
-            await context_store.store(artifact.model_copy(update={"metadata": None}))
+            await context_store.store(artifact.model_copy(update={"metadata": filter_metadata(artifact.metadata)}))

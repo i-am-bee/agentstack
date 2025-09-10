@@ -74,7 +74,6 @@ async def db_test_file(db_transaction: AsyncConnection, test_user_id: uuid.UUID)
     return file_data
 
 
-@pytest.mark.asyncio
 async def test_create_file(db_transaction: AsyncConnection, test_file: File):
     # Create repository
     repository = SqlAlchemyFileRepository(connection=db_transaction)
@@ -93,7 +92,6 @@ async def test_create_file(db_transaction: AsyncConnection, test_file: File):
     assert str(row.created_by) == str(test_file.created_by)
 
 
-@pytest.mark.asyncio
 async def test_get_file(db_transaction: AsyncConnection, db_test_file: dict[str, Any]):
     # Create repository
     repository = SqlAlchemyFileRepository(connection=db_transaction)
@@ -109,7 +107,6 @@ async def test_get_file(db_transaction: AsyncConnection, db_test_file: dict[str,
     assert str(file.created_by) == str(db_test_file["created_by"])
 
 
-@pytest.mark.asyncio
 async def test_get_file_by_user(db_transaction: AsyncConnection, db_test_file: dict[str, Any], test_user_id: uuid.UUID):
     # Create repository
     repository = SqlAlchemyFileRepository(connection=db_transaction)
@@ -130,7 +127,6 @@ async def test_get_file_by_user(db_transaction: AsyncConnection, db_test_file: d
         await repository.get(file_id=db_test_file["id"], user_id=other_user_id)
 
 
-@pytest.mark.asyncio
 async def test_get_file_not_found(db_transaction: AsyncConnection):
     # Create repository
     repository = SqlAlchemyFileRepository(connection=db_transaction)
@@ -140,7 +136,6 @@ async def test_get_file_not_found(db_transaction: AsyncConnection):
         await repository.get(file_id=uuid.uuid4())
 
 
-@pytest.mark.asyncio
 async def test_delete_file(db_transaction: AsyncConnection, test_file: File):
     # Create repository
     repository = SqlAlchemyFileRepository(connection=db_transaction)
@@ -160,7 +155,6 @@ async def test_delete_file(db_transaction: AsyncConnection, test_file: File):
     assert result.fetchone() is None
 
 
-@pytest.mark.asyncio
 async def test_delete_file_by_user(db_transaction: AsyncConnection, test_file: File):
     # Create repository
     repository = SqlAlchemyFileRepository(connection=db_transaction)
@@ -189,7 +183,6 @@ async def test_delete_file_by_user(db_transaction: AsyncConnection, test_file: F
     assert result.fetchone() is None
 
 
-@pytest.mark.asyncio
 async def test_list_files(db_transaction: AsyncConnection, test_user_id: uuid.UUID):
     # Create repository
     repository = SqlAlchemyFileRepository(connection=db_transaction)
@@ -241,7 +234,6 @@ async def test_list_files(db_transaction: AsyncConnection, test_user_id: uuid.UU
         assert str(other_user_files_list[file_data["id"]].created_by) == str(file_data["created_by"])
 
 
-@pytest.mark.asyncio
 async def test_total_usage(db_transaction: AsyncConnection, test_user_id: uuid.UUID):
     # Create repository
     repository = SqlAlchemyFileRepository(connection=db_transaction)

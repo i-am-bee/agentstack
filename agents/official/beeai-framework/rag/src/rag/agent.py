@@ -1,6 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 import functools
+import json
 from collections import defaultdict
 import logging
 from typing import Annotated
@@ -48,7 +49,7 @@ from rag.helpers.vectore_store import (
 )
 from rag.tools.files.file_creator import FileCreatorTool, FileCreatorToolOutput
 from rag.tools.files.file_reader import create_file_reader_tool_class
-from rag.tools.files.utils import FrameworkMessage, extract_files, to_framework_message
+from rag.tools.files.utils import extract_files, to_framework_message
 from rag.tools.files.vector_search import VectorSearchTool
 from rag.tools.general.act import (
     ActAlwaysFirstRequirement,
@@ -70,8 +71,6 @@ logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setL
 
 logger = logging.getLogger(__name__)
 
-messages: defaultdict[str, list[Message]] = defaultdict(list)
-framework_messages: defaultdict[str, list[FrameworkMessage]] = defaultdict(list)
 vector_stores: defaultdict[str, None] = defaultdict(lambda: None)  # TODO: Implement vector store ID management
 
 server = Server()
@@ -118,7 +117,6 @@ server = Server()
     ],
 )
 async def rag(
-    message: Message,
     context: RunContext,
     trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
     citation: Annotated[CitationExtensionServer, CitationExtensionSpec()],
@@ -128,9 +126,9 @@ async def rag(
 ):
     llm, embedding = _get_clients(llm_ext, embedding_ext)
 
-    extracted_files = await extract_files(history=messages[context.context_id], incoming_message=message)
-
-    input = to_framework_message(message)
+    history = [m async for m in context.store.load_history()]
+    message_history = [message for message in history if isinstance(message, Message) and message.parts]
+    extracted_files = await extract_files(history=message_history)
 
     # Configure tools
     file_reader_tool_class = create_file_reader_tool_class(
@@ -168,7 +166,14 @@ async def rag(
     ]
 
     if extracted_files:
-        if (vector_store_id := vector_stores[context.context_id]) is None:
+        vector_store_id = [
+            json.loads(m.metadata[TrajectoryExtensionSpec.URI]["content"])["vector_store_id"]
+            for m in history
+            if m.metadata
+            and m.metadata.get(TrajectoryExtensionSpec.URI, {}).get("title") == CreateVectorStoreEvent.kind
+        ]
+        vector_store_id = vector_store_id[0] if vector_store_id else None
+        if vector_store_id is None:
             start_event = CreateVectorStoreEvent(phase="start")
             yield start_event.metadata(trajectory)
 
@@ -225,10 +230,7 @@ async def rag(
         ],
     )
 
-    messages[context.context_id].append(message)
-    framework_messages[context.context_id].append(input)
-
-    await agent.memory.add_many(framework_messages[context.context_id])
+    await agent.memory.add_many(to_framework_message(item) for item in message_history)
     final_answer = None
     event_binder = EventBinder()
 
@@ -292,15 +294,12 @@ async def rag(
     final_answer = response.answer
 
     if final_answer:
-        framework_messages[context.context_id].append(final_answer)
-
         citations, clean_text = extract_citations(final_answer.text)
 
         message = AgentMessage(
             text=clean_text,
             metadata=(citation.citation_metadata(citations=citations) if citations else None),
         )
-        messages[context.context_id].append(message)
         yield message
 
 

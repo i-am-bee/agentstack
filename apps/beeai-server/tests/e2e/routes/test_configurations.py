@@ -7,7 +7,6 @@ from beeai_sdk.platform import ModelProvider, SystemConfiguration
 pytestmark = pytest.mark.e2e
 
 
-@pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
 async def test_system_configuration(subtests, test_configuration):
     """Test system configuration get and update operations."""

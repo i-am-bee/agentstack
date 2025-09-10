@@ -2,15 +2,28 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from collections.abc import AsyncIterator
+from datetime import datetime
 from typing import Protocol
 from uuid import UUID
 
+from beeai_server.domain.models.common import PaginatedResult
 from beeai_server.domain.models.context import Context, ContextHistoryItem
 
 
 class IContextRepository(Protocol):
-    async def list(self, user_id: UUID | None = None) -> AsyncIterator[Context]:
+    async def list(
+        self, user_id: UUID | None = None, last_active_before: datetime | None = None
+    ) -> AsyncIterator[Context]:
         yield ...  # type: ignore
+
+    async def list_paginated(
+        self,
+        user_id: UUID | None = None,
+        limit: int = 20,
+        after: UUID | None = None,
+        order: str = "desc",
+        order_by: str = "created_at",
+    ) -> PaginatedResult: ...
 
     async def create(self, *, context: Context) -> None: ...
     async def get(self, *, context_id: UUID, user_id: UUID | None = None) -> Context: ...

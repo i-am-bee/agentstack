@@ -15,12 +15,13 @@ from beeai_server.api.dependencies import (
     RequiresContextPermissionsPath,
     RequiresPermissions,
 )
-from beeai_server.api.schema.common import EntityModel, PaginatedResponse
+from beeai_server.api.schema.common import EntityModel, PaginationQuery
 from beeai_server.api.schema.contexts import (
     ContextHistoryItemCreateRequest,
     ContextTokenCreateRequest,
     ContextTokenResponse,
 )
+from beeai_server.domain.models.common import PaginatedResult
 from beeai_server.domain.models.context import Context, ContextHistoryItem
 from beeai_server.domain.models.permissions import AuthorizedUser, Permissions
 
@@ -38,12 +39,12 @@ async def create_context(
 
 
 @router.get("")
-async def list_contexts(
+async def list_context(
     context_service: ContextServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(contexts={"read"}))],
-) -> PaginatedResponse[Context]:
-    contexts = [context async for context in context_service.list(user=user.user)]
-    return PaginatedResponse(items=contexts, total_count=len(contexts))
+    pagination: Annotated[PaginationQuery, Depends()],
+) -> PaginatedResult[Context]:
+    return await context_service.list(user=user.user, pagination=pagination)
 
 
 @router.get("/{context_id}")
@@ -115,9 +116,9 @@ async def list_context_history(
     context_id: UUID,
     context_service: ContextServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresContextPermissionsPath(context_data={"read"}))],
-) -> PaginatedResponse[ContextHistoryItem]:
+) -> PaginatedResult[ContextHistoryItem]:
     # Cannot list history for a different context
     if user.context_id and user.context_id != context_id:
         raise fastapi.HTTPException(status.HTTP_403_FORBIDDEN, "Insufficient permissions")
     history = [item async for item in context_service.list_history(context_id=context_id, user=user.user)]
-    return PaginatedResponse(items=history, total_count=len(history))
+    return PaginatedResult(items=history, total_count=len(history))
