@@ -6,6 +6,7 @@
 import type { Post } from '../types';
 import classes from './PostDetail.module.scss';
 import { PostMeta } from './PostMeta';
+import { PostToC } from './PostToC';
 
 interface Props {
   post: Post;
@@ -15,6 +16,7 @@ export function PostDetail({ post }: Props) {
   const {
     Content,
     metadata: { title, date, author, readingTime },
+    toc,
   } = post;
 
   return (
@@ -26,7 +28,9 @@ export function PostDetail({ post }: Props) {
       </header>
 
       <div className={classes.body}>
-        <div className={classes.toc}>{/* <PostToC /> */}</div>
+        <div className={classes.toc}>
+          <PostToC items={toc} />
+        </div>
 
         <div className={classes.content}>
           <Content />

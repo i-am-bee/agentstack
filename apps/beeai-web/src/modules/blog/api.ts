@@ -15,6 +15,7 @@ export async function getPostBySlug(slug: string): Promise<Post> {
     default: Content,
     metadata,
     readingTime: { text: readingTime },
+    toc,
   } = (await import(`@/modules/blog/posts/${slug}.mdx`)) as PostModule;
 
   if (!metadata.title || !metadata.date || !metadata.author) {
@@ -27,6 +28,7 @@ export async function getPostBySlug(slug: string): Promise<Post> {
       ...metadata,
       readingTime,
     },
+    toc,
     Content,
   };
 }

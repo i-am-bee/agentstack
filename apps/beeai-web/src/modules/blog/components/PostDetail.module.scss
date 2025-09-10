@@ -25,6 +25,12 @@ $toc-width: rem(240px);
   margin-block-end: 0;
 }
 
+.body {
+  display: grid;
+  row-gap: $spacing-07;
+  column-gap: $spacing-11;
+}
+
 .content {
   @include font-family(serif);
   font-size: rem(20px);
@@ -98,8 +104,6 @@ $toc-width: rem(240px);
   }
 
   .body {
-    display: grid;
-    column-gap: $spacing-11;
     grid-template-columns: minmax(0, 1fr) $toc-width;
     grid-template-areas: 'content toc';
   }

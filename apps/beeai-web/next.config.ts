@@ -6,8 +6,12 @@
 import createMDX from '@next/mdx';
 import type { NextConfig } from 'next';
 import path from 'path';
+import rehypeSlug from 'rehype-slug';
+import remarkFlexibleToc from 'remark-flexible-toc';
 import remarkReadingTime from 'remark-reading-time';
-import readingMdxTime from 'remark-reading-time/mdx';
+import remarkReadingTimeMdx from 'remark-reading-time/mdx';
+
+import { recmaExportToc } from '@/modules/blog/recma';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
@@ -89,7 +93,9 @@ const nextConfig: NextConfig = {
 const withMDX = createMDX({
   extension: /\.(md|mdx)$/,
   options: {
-    remarkPlugins: [remarkReadingTime, readingMdxTime],
+    remarkPlugins: [remarkFlexibleToc, remarkReadingTime, remarkReadingTimeMdx],
+    rehypePlugins: [rehypeSlug],
+    recmaPlugins: [recmaExportToc],
   },
 });
 

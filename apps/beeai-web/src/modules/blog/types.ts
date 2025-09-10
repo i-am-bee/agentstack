@@ -5,10 +5,14 @@
 
 import type { MDXContent } from 'mdx/types';
 import type { ReadTimeResults } from 'reading-time';
+import type { TocItem } from 'remark-flexible-toc';
+
+export type PostToCItem = TocItem;
 
 export interface Post {
   slug: string;
   metadata: PostMetadata;
+  toc: PostToCItem[];
   Content: MDXContent;
 }
 
@@ -22,5 +26,6 @@ export interface PostMetadata {
 export interface PostModule {
   default: MDXContent;
   metadata: Omit<PostMetadata, 'readTime'>;
+  toc: TocItem[];
   readingTime: ReadTimeResults;
 }
