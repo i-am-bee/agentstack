@@ -11,18 +11,25 @@ import type { RefObject } from 'react';
 
 import { fadeProps } from '#utils/fadeProps.ts';
 
-import { ChatTools } from '../chat/ChatTools';
-import { useRunSettingsDialog } from '../hooks/useRunSettingsDialog';
+import { useAgentRun } from '../contexts/agent-run';
 import classes from './RunSettings.module.scss';
+import { RunSettingsForm } from './RunSettingsForm';
+import { useRunSettingsDialog } from './useRunSettingsDialog';
 
 interface Props {
   containerRef: RefObject<HTMLElement | null>;
 }
 
 export function RunSettings({ containerRef }: Props) {
+  const { settingsRender } = useAgentRun();
+
   const { isOpen, refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useRunSettingsDialog({
     containerRef,
   });
+
+  if (!settingsRender?.fields.length) {
+    return null;
+  }
 
   return (
     <div className={classes.root}>
@@ -46,16 +53,15 @@ export function RunSettings({ containerRef }: Props) {
                   <motion.div
                     {...fadeProps({
                       hidden: {
-                        transform: 'translateY(1rem)',
+                        transform: 'translateY(-1rem)',
                       },
                       visible: {
                         transform: 'translateY(0)',
                       },
                     })}
+                    className={classes.content}
                   >
-                    <div className={classes.content}>
-                      <ChatTools />
-                    </div>
+                    <RunSettingsForm settingsRender={settingsRender} />
                   </motion.div>
                 </div>
               </FloatingFocusManager>

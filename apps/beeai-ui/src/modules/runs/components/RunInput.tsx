@@ -17,6 +17,7 @@ import { dispatchInputEventOnTextarea, submitFormOnEnter } from '#utils/form-uti
 
 import { ChatDefaultTools } from '../chat/constants';
 import { useAgentRun } from '../contexts/agent-run';
+import { RunSettings } from '../settings/RunSettings';
 import type { RunRunFormValues } from '../types';
 import { ModelProviders } from './ModelProviders';
 import { PromptExamples } from './PromptExamples';
@@ -127,7 +128,7 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
         <div className={classes.actionBar}>
           <div className={classes.actionBarStart}>
             {/* TODO: The API does not yet support tools. */}
-            {/* <RunSettings containerRef={formRef} /> */}
+            <RunSettings containerRef={formRef} />
 
             {!isFileUploadDisabled && <FileUploadButton />}
 

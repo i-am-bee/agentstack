@@ -198,5 +198,5 @@ export const buildA2AClient = async <UIGenericPart = never>({
     return run;
   };
 
-  return { chat, llmDemands };
+  return { chat, llmDemands, settingsDemands };
 };

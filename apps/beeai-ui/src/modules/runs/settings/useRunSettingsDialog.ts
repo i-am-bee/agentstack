@@ -24,7 +24,7 @@ export function useRunSettingsDialog({ containerRef }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
   const { refs, floatingStyles, context } = useFloating({
-    placement: 'top-start',
+    placement: 'bottom-start',
     open: isOpen,
     onOpenChange: setIsOpen,
     whileElementsMounted: autoUpdate,
@@ -61,6 +61,6 @@ export function useRunSettingsDialog({ containerRef }: Props) {
 }
 
 const OFFSET = {
-  mainAxis: 56,
+  mainAxis: 20,
   crossAxis: -12,
 };
