@@ -7,6 +7,7 @@
 
 import { isNotNull } from '@i-am-bee/beeai-ui';
 import debounce from 'lodash/debounce';
+import throttle from 'lodash/throttle';
 import type { MouseEvent } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -89,6 +90,11 @@ export function useSections({ scrollableContainer, items }: Props) {
 
   const debouncedHandleResize = useMemo(() => debounce(handleResize, 200), [handleResize]);
 
+  const throttledHandleScroll = useMemo(
+    () => throttle(handleScroll, 200, { leading: true, trailing: true }),
+    [handleScroll],
+  );
+
   useEffect(() => {
     if (!scrollableContainer) {
       return;
@@ -110,12 +116,12 @@ export function useSections({ scrollableContainer, items }: Props) {
       return;
     }
 
-    scrollableContainer.addEventListener('scroll', handleScroll);
+    scrollableContainer.addEventListener('scroll', throttledHandleScroll);
 
     return () => {
-      scrollableContainer.removeEventListener('scroll', handleScroll);
+      scrollableContainer.removeEventListener('scroll', throttledHandleScroll);
     };
-  }, [scrollableContainer, handleScroll]);
+  }, [scrollableContainer, throttledHandleScroll]);
 
   useEffect(() => {
     handleResize();
