@@ -33,9 +33,6 @@ catalogs:
     eslint-plugin-simple-import-sort:
       specifier: ^12.1.1
       version: 12.1.1
-    globals:
-      specifier: ^16.0.0
-      version: 16.3.0
     lodash:
       specifier: ^4.17.21
       version: 4.17.21
@@ -369,9 +366,6 @@ importers:
       react-is:
         specifier: '*'
         version: 19.1.1
-      react-scroll:
-        specifier: ^1.9.3
-        version: 1.9.3(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       reading-time:
         specifier: ^1.5.0
         version: 1.5.0
@@ -430,9 +424,6 @@ importers:
       '@types/react-dom':
         specifier: ^19.0.4
         version: 19.1.9(@types/react@19.1.12)
-      '@types/react-scroll':
-        specifier: ^1.8.10
-        version: 1.8.10
       eslint:
         specifier: 'catalog:'
         version: 9.35.0(jiti@1.21.7)
@@ -2842,9 +2833,6 @@ packages:
   '@types/react-resizable@3.0.8':
     resolution: {integrity: sha512-Pcvt2eGA7KNXldt1hkhVhAgZ8hK41m0mp89mFgQi7LAAEZiaLgm4fHJ5zbJZ/4m2LVaAyYrrRRv1LHDcrGQanA==}
 
-  '@types/react-scroll@1.8.10':
-    resolution: {integrity: sha512-RD4Z7grbdNGOKwKnUBKar6zNxqaW3n8m9QSrfvljW+gmkj1GArb8AFBomVr6xMOgHPD3v1uV3BrIf01py57daQ==}
-
   '@types/react-syntax-highlighter@15.5.13':
     resolution: {integrity: sha512-uLGJ87j6Sz8UaBAooU0T6lWJ0dBmjZgN1PZTrj05TNql2/XpC6+4HhMT5syIdFUUt+FASfCeLLv4kBygNU+8qA==}
 
@@ -4969,9 +4957,6 @@ packages:
   lodash.merge@4.6.2:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
 
-  lodash.throttle@4.1.1:
-    resolution: {integrity: sha512-wIkUCfVKpVsWo3JSZlc+8MB5it+2AN5W8J7YVMST30UrvcQNZ1Okbj+rbVniijTWE6FGYy4XJq/rHkas8qJMLQ==}
-
   lodash.topath@4.5.2:
     resolution: {integrity: sha512-1/W4dM+35DwvE/iEd1M9ekewOSTlpFekhw9mhAtrwjVqUr83/ilQiyAvmg4tVX7Unkcfl1KC+i9WdaT4B6aQcg==}
 
@@ -5870,12 +5855,6 @@ packages:
     resolution: {integrity: sha512-vKpeHhI5OZvYn82kXOs1bC8aOXktGU5AmKAgaZS4F5JPburCtbmDPqE7Pzp+1kN4+Wb81LlF33VpGwWwtXem+w==}
     peerDependencies:
       react: '>= 16.3'
-
-  react-scroll@1.9.3:
-    resolution: {integrity: sha512-xv7FXqF3k63aSLNu4/NjFvRNI0ge7DmmmsbeGarP7LZVAlJMSjUuW3dTtLxp1Afijyv0lS2qwC0GiFHvx1KBHQ==}
-    peerDependencies:
-      react: ^15.5.4 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-      react-dom: ^15.5.4 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   react-syntax-highlighter@15.6.6:
     resolution: {integrity: sha512-DgXrc+AZF47+HvAPEmn7Ua/1p10jNoVZVI/LoPiYdtY+OM+/nG5yefLHKJwdKqY1adMuHFbeyBaG9j64ML7vTw==}
@@ -7078,7 +7057,7 @@ snapshots:
       '@babel/types': 7.28.4
       '@jridgewell/remapping': 2.3.5
       convert-source-map: 2.0.0
-      debug: 4.4.1(supports-color@10.2.0)
+      debug: 4.4.1
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 6.3.1
@@ -7130,7 +7109,7 @@ snapshots:
       '@babel/core': 7.28.4
       '@babel/helper-compilation-targets': 7.27.2
       '@babel/helper-plugin-utils': 7.27.1
-      debug: 4.4.1(supports-color@10.2.0)
+      debug: 4.4.1
       lodash.debounce: 4.0.8
       resolve: 1.22.10
     transitivePeerDependencies:
@@ -7780,7 +7759,7 @@ snapshots:
       '@babel/parser': 7.28.4
       '@babel/template': 7.27.2
       '@babel/types': 7.28.4
-      debug: 4.4.1(supports-color@10.2.0)
+      debug: 4.4.1
     transitivePeerDependencies:
       - supports-color
 
@@ -7948,7 +7927,7 @@ snapshots:
   '@eslint/config-array@0.21.0':
     dependencies:
       '@eslint/object-schema': 2.1.6
-      debug: 4.4.1(supports-color@10.2.0)
+      debug: 4.4.1
       minimatch: 3.1.2
     transitivePeerDependencies:
       - supports-color
@@ -7962,7 +7941,7 @@ snapshots:
   '@eslint/eslintrc@3.3.1':
     dependencies:
       ajv: 6.12.6
-      debug: 4.4.1(supports-color@10.2.0)
+      debug: 4.4.1
       espree: 10.4.0
       globals: 14.0.0
       ignore: 5.3.2
@@ -10286,10 +10265,6 @@ snapshots:
     dependencies:
       '@types/react': 19.1.12
 
-  '@types/react-scroll@1.8.10':
-    dependencies:
-      '@types/react': 19.1.12
-
   '@types/react-syntax-highlighter@15.5.13':
     dependencies:
       '@types/react': 19.1.12
@@ -10332,7 +10307,7 @@ snapshots:
       '@typescript-eslint/types': 8.42.0
       '@typescript-eslint/typescript-estree': 8.42.0(typescript@5.8.2)
       '@typescript-eslint/visitor-keys': 8.42.0
-      debug: 4.4.1(supports-color@10.2.0)
+      debug: 4.4.1
       eslint: 9.35.0(jiti@1.21.7)
       typescript: 5.8.2
     transitivePeerDependencies:
@@ -10342,7 +10317,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/tsconfig-utils': 8.42.0(typescript@5.8.2)
       '@typescript-eslint/types': 8.42.0
-      debug: 4.4.1(supports-color@10.2.0)
+      debug: 4.4.1
       typescript: 5.8.2
     transitivePeerDependencies:
       - supports-color
@@ -10361,7 +10336,7 @@ snapshots:
       '@typescript-eslint/types': 8.42.0
       '@typescript-eslint/typescript-estree': 8.42.0(typescript@5.8.2)
       '@typescript-eslint/utils': 8.42.0(eslint@9.35.0(jiti@1.21.7))(typescript@5.8.2)
-      debug: 4.4.1(supports-color@10.2.0)
+      debug: 4.4.1
       eslint: 9.35.0(jiti@1.21.7)
       ts-api-utils: 2.1.0(typescript@5.8.2)
       typescript: 5.8.2
@@ -10376,7 +10351,7 @@ snapshots:
       '@typescript-eslint/tsconfig-utils': 8.42.0(typescript@5.8.2)
       '@typescript-eslint/types': 8.42.0
       '@typescript-eslint/visitor-keys': 8.42.0
-      debug: 4.4.1(supports-color@10.2.0)
+      debug: 4.4.1
       fast-glob: 3.3.3
       is-glob: 4.0.3
       minimatch: 9.0.5
@@ -11086,6 +11061,10 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
+  debug@4.4.1:
+    dependencies:
+      ms: 2.1.3
+
   debug@4.4.1(supports-color@10.2.0):
     dependencies:
       ms: 2.1.3
@@ -11445,7 +11424,7 @@ snapshots:
   eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@9.35.0(jiti@1.21.7)):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
-      debug: 4.4.1(supports-color@10.2.0)
+      debug: 4.4.1
       eslint: 9.35.0(jiti@1.21.7)
       get-tsconfig: 4.10.1
       is-bun-module: 2.0.0
@@ -11573,7 +11552,7 @@ snapshots:
       ajv: 6.12.6
       chalk: 4.1.2
       cross-spawn: 7.0.6
-      debug: 4.4.1(supports-color@10.2.0)
+      debug: 4.4.1
       escape-string-regexp: 4.0.0
       eslint-scope: 8.4.0
       eslint-visitor-keys: 4.2.1
@@ -12693,8 +12672,6 @@ snapshots:
 
   lodash.merge@4.6.2: {}
 
-  lodash.throttle@4.1.1: {}
-
   lodash.topath@4.5.2: {}
 
   lodash.truncate@4.4.2: {}
@@ -13210,7 +13187,7 @@ snapshots:
   micromark@4.0.2:
     dependencies:
       '@types/debug': 4.1.12
-      debug: 4.4.1(supports-color@10.2.0)
+      debug: 4.4.1
       decode-named-character-reference: 1.2.0
       devlop: 1.1.0
       micromark-core-commonmark: 2.0.3
@@ -13939,13 +13916,6 @@ snapshots:
       react-draggable: 4.5.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
     transitivePeerDependencies:
       - react-dom
-
-  react-scroll@1.9.3(react-dom@19.1.1(react@19.1.1))(react@19.1.1):
-    dependencies:
-      lodash.throttle: 4.1.1
-      prop-types: 15.8.1
-      react: 19.1.1
-      react-dom: 19.1.1(react@19.1.1)
 
   react-syntax-highlighter@15.6.6(react@19.1.1):
     dependencies:
@@ -14827,7 +14797,7 @@ snapshots:
       cosmiconfig: 9.0.0(typescript@5.8.2)
       css-functions-list: 3.2.3
       css-tree: 3.1.0
-      debug: 4.4.1(supports-color@10.2.0)
+      debug: 4.4.1
       fast-glob: 3.3.3
       fastest-levenshtein: 1.0.16
       file-entry-cache: 10.1.4

@@ -101,9 +101,7 @@ export function useSections({ scrollableContainer, items }: Props) {
     resizeObserver.observe(scrollableContainer);
 
     return () => {
-      if (scrollableContainer) {
-        resizeObserver.unobserve(scrollableContainer);
-      }
+      resizeObserver.unobserve(scrollableContainer);
     };
   }, [scrollableContainer, debouncedHandleResize]);
 
