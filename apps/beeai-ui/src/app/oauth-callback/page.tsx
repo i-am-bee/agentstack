@@ -10,7 +10,7 @@ import { useEffect } from 'react';
 export default function OAuthCallbackPage() {
   useEffect(() => {
     window.opener.postMessage({ redirect_uri: window.location.href }, window.origin);
-  });
+  }, []);
 
-  return <></>;
+  return null;
 }

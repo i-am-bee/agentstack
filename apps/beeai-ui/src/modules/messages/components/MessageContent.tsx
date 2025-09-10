@@ -43,6 +43,6 @@ export const MessageContent = memo(function MessageContent({ message }: Props) {
       </MarkdownContent>
     );
   } else {
-    <div className={clsx(classes.empty, classes.root)}>Message has no content</div>;
+    return <div className={clsx(classes.empty, classes.root)}>Message has no content</div>;
   }
 });

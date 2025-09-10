@@ -6,7 +6,6 @@
 'use client';
 import { type PropsWithChildren, useCallback, useMemo, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
-import { z } from 'zod';
 
 import { type AgentA2AClient, type ChatRun, RunResultType } from '#api/a2a/types.ts';
 import { createTextPart } from '#api/a2a/utils.ts';
@@ -24,6 +23,7 @@ import { addTranformedMessagePart, isAgentMessage } from '#modules/messages/util
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 import { PlatformContextProvider } from '#modules/platform-context/contexts/PlatformContextProvider.tsx';
 import { useBuildA2AClient } from '#modules/runs/api/queries/useBuildA2AClient.ts';
+import { useStartOAuth } from '#modules/runs/hooks/useStartOAuth.ts';
 import type { RunStats } from '#modules/runs/types.ts';
 import { SourcesProvider } from '#modules/sources/contexts/SourcesProvider.tsx';
 import { getMessagesSourcesMap } from '#modules/sources/utils.ts';
@@ -245,45 +245,18 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
     [checkPendingRun, run],
   );
 
-  const startAuth = useCallback(
-    (url: string, taskId: TaskId) => {
-      const authMessageSchema = z.object({
-        data: z.object({
-          redirect_uri: z.string(),
-        }),
-      });
+  const { startAuth } = useStartOAuth({
+    onSuccess: async (taskId: TaskId, redirectUri: string) => {
+      const userMessage: UIUserMessage = {
+        id: uuid(),
+        role: Role.User,
+        parts: [],
+        auth: redirectUri,
+      };
 
-      const popup = window.open(url);
-      if (!popup) {
-        throw new Error('Failed to open popup');
-      }
-      popup.focus();
-
-      async function handler(message: unknown) {
-        const { success, data: parsedMessage } = authMessageSchema.safeParse(message);
-        if (!success) {
-          return;
-        }
-
-        if (popup) {
-          window.removeEventListener('message', handler);
-          popup.close();
-
-          const userMessage: UIUserMessage = {
-            id: uuid(),
-            role: Role.User,
-            parts: [],
-            auth: parsedMessage.data.redirect_uri,
-          };
-
-          await run(userMessage, taskId);
-        }
-      }
-
-      window.addEventListener('message', handler);
+      await run(userMessage, taskId);
     },
-    [run],
-  );
+  });
 
   const sources = useMemo(() => getMessagesSourcesMap(messages), [messages]);
 

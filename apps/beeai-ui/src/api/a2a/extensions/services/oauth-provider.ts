@@ -44,3 +44,9 @@ export const oauthProviderExtension: A2AServiceExtension<
   getDemandsSchema: () => demandsSchema,
   getFulfillmentSchema: () => fulfillmentSchema,
 };
+
+export const oauthMessageSchema = z.object({
+  data: z.object({
+    redirect_uri: z.string(),
+  }),
+});
