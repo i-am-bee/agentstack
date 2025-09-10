@@ -1,11 +1,12 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
+
+import contextlib
 import logging
 import os
 from typing import Annotated
 from collections import defaultdict
 from textwrap import dedent
-from typing import Annotated
 
 from a2a.types import (
     AgentSkill,
@@ -19,7 +20,9 @@ from beeai_framework.agents.experimental.events import (
     RequirementAgentSuccessEvent,
 )
 from beeai_framework.agents.experimental.utils._tool import FinalAnswerTool
-from beeai_framework.backend.types import ChatModelParameters
+from beeai_framework.backend import ChatModel
+from beeai_framework.backend.chat import ChatModelKwargs
+from beeai_framework.backend.utils import load_model
 from beeai_framework.emitter import EventMeta
 from beeai_framework.memory import UnconstrainedMemory
 from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
@@ -38,7 +41,10 @@ from beeai_sdk.a2a.extensions import (
     LLMServiceExtensionServer,
     LLMServiceExtensionSpec,
 )
-from beeai_sdk.a2a.extensions.services.platform import PlatformApiExtensionServer, PlatformApiExtensionSpec
+from beeai_sdk.a2a.extensions.services.platform import (
+    PlatformApiExtensionServer,
+    PlatformApiExtensionSpec,
+)
 from beeai_sdk.a2a.types import AgentMessage, AgentArtifact
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import RunContext
@@ -65,8 +71,12 @@ EventMeta.model_fields["context"].exclude = True
 
 BeeAIInstrumentor().instrument()
 ## TODO: https://github.com/phoenixframework/phoenix/issues/6224
-logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(logging.CRITICAL)
-logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(logging.CRITICAL)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(
+    logging.CRITICAL
+)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(
+    logging.CRITICAL
+)
 
 logger = logging.getLogger(__name__)
 
@@ -164,7 +174,9 @@ server = Server()
                 """
             ),
             tags=["chat"],
-            examples=["Please find a room in LA, CA, April 15, 2025, checkout date is april 18, 2 adults"],
+            examples=[
+                "Please find a room in LA, CA, April 15, 2025, checkout date is april 18, 2 adults"
+            ],
         )
     ],
 )
@@ -173,15 +185,24 @@ async def chat(
     context: RunContext,
     trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
     citation: Annotated[CitationExtensionServer, CitationExtensionSpec()],
-    llm_ext: Annotated[LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand(suggested=("openai/gpt-5", "ollama/granite3.3:8b"))],
+    llm_ext: Annotated[
+        LLMServiceExtensionServer,
+        LLMServiceExtensionSpec.single_demand(
+            suggested=("openai/gpt-5", "ollama/granite3.3:8b")
+        ),
+    ],
     _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
 ):
     """
     The agent is an AI-powered conversational system with memory, supporting real-time search, Wikipedia lookups,
     and weather updates through integrated tools.
     """
-    extracted_files = await extract_files(history=messages[context.context_id], incoming_message=message)
-    input = to_framework_message(message, [f for f in extracted_files if f.message_id == message.message_id])
+    extracted_files = await extract_files(
+        history=messages[context.context_id], incoming_message=message
+    )
+    input = to_framework_message(
+        message, [f for f in extracted_files if f.message_id == message.message_id]
+    )
 
     # Configure tools
     file_reader_tool_class = create_file_reader_tool_class(
@@ -223,12 +244,19 @@ async def chat(
     if llm_ext and llm_ext.data:
         [llm_conf] = llm_ext.data.llm_fulfillments.values()
 
+    # Set provider specific configuration
+    extra_chat_model_kwargs = ChatModelKwargs()
+    with contextlib.suppress(Exception):
+        target_provider: type[ChatModel] = load_model(llm_conf.api_model, "chat")
+        extra_chat_model_kwargs["tool_choice_support"] = (
+            target_provider.tool_choice_support
+        )
+
     llm = OpenAIChatModel(
         model_id=llm_conf.api_model if llm_conf else "llama3.1",
         api_key=llm_conf.api_key if llm_conf else "dummy",
         base_url=llm_conf.api_base if llm_conf else "http://localhost:11434/v1",
-        parameters=ChatModelParameters(temperature=0.0),
-        tool_choice_support=set(),
+        **extra_chat_model_kwargs,
     )
 
     # Build dynamic instructions based on available files
@@ -277,9 +305,7 @@ async def chat(
         files_context += "\nThe user has uploaded the following files that you can access using the File Reader tool:"
         for file in extracted_files:
             files_context += f"\n- **{file.file.filename}** (ID: {file.file.id}) - Available at: {file.file.url}"
-        files_context += (
-            "\n\nWhen referencing these files, use their ID with the File Reader tool to access their content."
-        )
+        files_context += "\n\nWhen referencing these files, use their ID with the File Reader tool to access their content."
         instructions = base_instructions.format(file_context=files_context)
     else:
         instructions = base_instructions.format(file_context="")
@@ -337,7 +363,9 @@ async def chat(
 
         message = AgentMessage(
             text=clean_text,
-            metadata=(citation.citation_metadata(citations=citations) if citations else None),
+            metadata=(
+                citation.citation_metadata(citations=citations) if citations else None
+            ),
         )
         messages[context.context_id].append(message)
         yield message
