@@ -7,6 +7,7 @@ import { useRef } from 'react';
 
 import { Spinner } from '#components/Spinner/Spinner.tsx';
 import { MessageFiles } from '#modules/files/components/MessageFiles.tsx';
+import { MessageAuth } from '#modules/form/components/MessageAuth.tsx';
 import { MessageForm } from '#modules/form/components/MessageForm.tsx';
 import { MessageActions } from '#modules/messages/components/MessageActions.tsx';
 import { MessageContent } from '#modules/messages/components/MessageContent.tsx';
@@ -62,6 +63,8 @@ function Message({ message }: Props) {
       <MessageTrajectories message={message} />
 
       <MessageForm message={message} />
+
+      <MessageAuth message={message} />
 
       {!isPending && <MessageActions message={message} className={classes.actions} contentRef={contentRef} />}
     </div>

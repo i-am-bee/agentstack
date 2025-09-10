@@ -3,25 +3,32 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useApp } from '#contexts/App/index.ts';
+import { TextInput } from '@carbon/react';
+import { useId } from 'react';
+
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 
+import classes from './MCPConfig.module.scss';
+
+/**
+ * This component is for testing purposes only
+ */
 export function MCPConfig() {
-  const { featureFlags } = useApp();
+  const id = useId();
   const { selectedMCPServers, selectMCPServer } = usePlatformContext();
 
   return (
-    featureFlags.MCP && (
-      <>
-        MCP Config:
-        <div>
-          {Object.entries(selectedMCPServers).map(([key, value]) => (
-            <div key={key}>
-              {key}: <input type="text" value={value} onChange={(e) => selectMCPServer(key, e.target.value)} />
-            </div>
-          ))}
-        </div>
-      </>
-    )
+    <div className={classes.root}>
+      {Object.entries(selectedMCPServers).map(([key, value]) => (
+        <TextInput
+          value={value}
+          onChange={(e) => selectMCPServer(key, e.target.value)}
+          id={`${id}:${key}`}
+          labelText={`MCP: ${key}`}
+          key={key}
+          inline
+        />
+      ))}
+    </div>
   );
 }

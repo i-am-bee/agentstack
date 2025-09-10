@@ -114,7 +114,6 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
         }}
       >
         <RunFiles />
-        <MCPConfig />
 
         <TextAreaAutoHeight
           rows={1}
@@ -132,6 +131,8 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
             {/* <RunSettings containerRef={formRef} /> */}
 
             {!isFileUploadDisabled && <FileUploadButton />}
+
+            {featureFlags.MCP && <MCPConfig />}
 
             {featureFlags.ModelProviders && <ModelProviders />}
           </div>

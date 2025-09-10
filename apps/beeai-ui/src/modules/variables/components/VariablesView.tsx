@@ -43,7 +43,6 @@ export function VariablesView() {
         : [],
     [data],
   );
-  console.log({ data, entries });
 
   const { items, onSearch } = useTableSearch({ entries, fields: ['name'] });
 

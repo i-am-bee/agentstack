@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { Button } from '@carbon/react';
 import { useCallback } from 'react';
 
 import type { UIAgentMessage } from '#modules/messages/types.ts';
@@ -30,8 +31,8 @@ export function MessageAuth({ message }: Props) {
   }
 
   return (
-    <div>
-      Agent needs to authenticate - <button onClick={onHandleAuth}>OAuth redirect</button>
-    </div>
+    <Button onClick={onHandleAuth} size="md">
+      Authorize
+    </Button>
   );
 }

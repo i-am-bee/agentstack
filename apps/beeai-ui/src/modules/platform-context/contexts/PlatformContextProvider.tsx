@@ -53,15 +53,20 @@ export function PlatformContextProvider<UIGenericPart>({
     },
     [setSelectedProviders],
   );
-  const [selectedMCPServers, setSelectedMCPServers] = useState<Record<string, string>>(
-    Object.keys(agentClient?.mcpDemands ?? {}).reduce(
-      (memo, value) => ({
-        ...memo,
-        [value]: '',
-      }),
-      {},
-    ),
-  );
+
+  const [selectedMCPServers, setSelectedMCPServers] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    setSelectedMCPServers(
+      Object.keys(agentClient?.mcpDemands ?? {}).reduce(
+        (memo, value) => ({
+          ...memo,
+          [value]: '',
+        }),
+        {},
+      ),
+    );
+  }, [agentClient?.mcpDemands]);
 
   const setContext = useCallback(
     (context: Awaited<ReturnType<typeof createContext>>) => {
