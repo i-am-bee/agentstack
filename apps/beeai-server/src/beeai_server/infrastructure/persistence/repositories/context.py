@@ -12,6 +12,7 @@ from sqlalchemy import (
     Column,
     DateTime,
     ForeignKey,
+    Index,
     Row,
     Table,
     delete,
@@ -47,6 +48,7 @@ context_history_table = Table(
     Column("context_id", ForeignKey("contexts.id", ondelete="CASCADE"), nullable=False),
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("history_item", JSON, nullable=False),
+    Index("idx_context_history_context_id", "context_id"),
 )
 
 
