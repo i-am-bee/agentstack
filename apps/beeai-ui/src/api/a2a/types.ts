@@ -4,6 +4,7 @@
  */
 
 import type { UIMessagePart, UIUserMessage } from '#modules/messages/types.ts';
+import type { ContextToken } from '#modules/platform-context/contexts/platform-context.ts';
 import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
 
 import type { buildA2AClient } from './client';
@@ -56,6 +57,7 @@ export interface Fulfillments {
   mcp: (demand: MCPDemand) => Promise<MCPFulfillment | null>;
   llm: (demand: LLMDemand) => Promise<LLMFulfillment>;
   oauth: (demand: OAuthDemand) => Promise<OAuthFulfillment | null>;
+  getContextToken: () => ContextToken;
 }
 
 export type AgentA2AClient<UIGenericPart = never> = Awaited<ReturnType<typeof buildA2AClient<UIGenericPart>>>;

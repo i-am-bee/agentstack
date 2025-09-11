@@ -17,6 +17,7 @@ import { AGENT_ERROR_MESSAGE } from './constants';
 import { llmExtension } from './extensions/services/llm';
 import { mcpExtension } from './extensions/services/mcp';
 import { oauthProviderExtension } from './extensions/services/oauth-provider';
+import { activePlatformExtension } from './extensions/services/platform';
 import { formExtension, formMessageExtension } from './extensions/ui/form';
 import { oauthRequestExtension } from './extensions/ui/oauth';
 import {
@@ -98,6 +99,8 @@ export const buildA2AClient = async <UIGenericPart = never>({
 
     const iterateOverStream = async () => {
       let metadata = {};
+
+      metadata = activePlatformExtension(metadata, fulfillments.getContextToken());
 
       if (mcpDemands) {
         const mcpFullfilment = await fulfillments.mcp(mcpDemands);

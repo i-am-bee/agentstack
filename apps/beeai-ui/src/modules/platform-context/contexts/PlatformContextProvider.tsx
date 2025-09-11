@@ -92,7 +92,7 @@ export function PlatformContextProvider<UIGenericPart>({
     [setSelectedMCPServers],
   );
 
-  const getPlatformToken = useCallback(async () => {
+  const getContextToken = useCallback(async () => {
     if (contextId === null) {
       throw new Error('Illegal State - Context ID is not set.');
     }
@@ -124,13 +124,13 @@ export function PlatformContextProvider<UIGenericPart>({
       throw new Error('Could not generate context token');
     }
 
-    return contextToken.token;
+    return contextToken;
   }, [contextId, createContextToken]);
 
   const getFullfilments = useCallback(async () => {
-    const platformToken = await getPlatformToken();
-    return buildFullfilments({ platformToken, selectedProviders, selectedMCPServers, featureFlags });
-  }, [getPlatformToken, selectedProviders, selectedMCPServers, featureFlags]);
+    const contextToken = await getContextToken();
+    return buildFullfilments({ contextToken, selectedProviders, selectedMCPServers, featureFlags });
+  }, [getContextToken, selectedProviders, selectedMCPServers, featureFlags]);
 
   useEffect(() => {
     createContext().then(setContext);
@@ -152,7 +152,7 @@ export function PlatformContextProvider<UIGenericPart>({
         selectedProviders,
         getContextId,
         resetContext,
-        getPlatformToken,
+        getContextToken,
         getFullfilments,
         selectProvider,
         selectMCPServer,

@@ -1,82 +1,78 @@
-[[tools."asdf:CrouchingMuppet/asdf-lima"]]
+[tools."asdf:CrouchingMuppet/asdf-lima"]
 version = "1.2.1"
 backend = "asdf:CrouchingMuppet/asdf-lima"
 
-[[tools.fd]]
+[tools.fd]
 version = "10.3.0"
 backend = "aqua:sharkdp/fd"
 
-[tools.fd.platforms.macos-arm64]
-checksum = "blake3:e7a554aed4fea189f2aa297e82087ceaebb844eac55a2503e5321cce88fbb636"
-size = 1337349
-url = "https://github.com/sharkdp/fd/releases/download/v10.3.0/fd-v10.3.0-aarch64-apple-darwin.tar.gz"
+[tools.fd.checksums]
+"fd-v10.3.0-aarch64-apple-darwin.tar.gz" = "sha256:0570263812089120bc2a5d84f9e65cd0c25e4a4d724c80075c357239c74ae904"
 
-[[tools.gum]]
+[tools.gum]
 version = "0.17.0"
 backend = "aqua:charmbracelet/gum"
 
-[tools.gum.platforms.macos-arm64]
-checksum = "sha256:e2a4b8596efa05821d8c58d0c1afbcd7ad1699ba69c689cc3ff23a4a99c8b237"
-size = 4395909
-url = "https://github.com/charmbracelet/gum/releases/download/v0.17.0/gum_0.17.0_Darwin_arm64.tar.gz"
+[tools.gum.checksums]
+"gum_0.17.0_Darwin_arm64.tar.gz" = "sha256:e2a4b8596efa05821d8c58d0c1afbcd7ad1699ba69c689cc3ff23a4a99c8b237"
 
-[[tools.helm]]
+[tools.helm]
 version = "3.18.6"
 backend = "aqua:helm/helm"
 
-[tools.helm.platforms.macos-arm64]
-checksum = "sha256:48e30d236a1f334c6acb78501be5a851eaa2a267fefeb1131b6484eb2f9f30d7"
-size = 17032674
-url = "https://get.helm.sh/helm-v3.18.6-darwin-arm64.tar.gz"
+[tools.helm.checksums]
+"helm-v3.18.6-darwin-arm64.tar.gz" = "sha256:48e30d236a1f334c6acb78501be5a851eaa2a267fefeb1131b6484eb2f9f30d7"
 
-[[tools.kubeconform]]
+[tools.kubeconform]
 version = "0.7.0"
 backend = "aqua:yannh/kubeconform"
 
-[[tools.node]]
+[tools.node]
 version = "22.19.0"
 backend = "core:node"
 
-[tools.node.platforms.macos-arm64]
-checksum = "sha256:c59006db713c770d6ec63ae16cb3edc11f49ee093b5c415d667bb4f436c6526d"
-size = 47739366
-url = "https://nodejs.org/dist/v22.19.0/node-v22.19.0-darwin-arm64.tar.gz"
+[tools.node.checksums]
+"node-v22.19.0-darwin-arm64.tar.gz" = "sha256:c59006db713c770d6ec63ae16cb3edc11f49ee093b5c415d667bb4f436c6526d"
 
-[[tools."pipx:toml-cli"]]
+[tools."pipx:toml-cli"]
 version = "0.8.1"
 backend = "pipx:toml-cli"
 
-[[tools.pnpm]]
+[tools.pnpm]
 version = "10.15.1"
 backend = "aqua:pnpm/pnpm"
 
-[[tools.python]]
+[tools.pnpm.checksums]
+pnpm-macos-arm64 = "sha256:b64bd9e75d92934251bd0b890d3d4d1073e85d71bf39227ff6a6408d27c3106d"
+
+[tools.python]
 version = "3.13.7"
 backend = "core:python"
 
-[[tools."ubi:google/addlicense"]]
+[tools."ubi:google/addlicense"]
 version = "1.2.0"
 backend = "ubi:google/addlicense"
 
-[tools."ubi:google/addlicense".platforms.macos-arm64-addlicense]
-checksum = "blake3:29c4b12b602b33cf8b88b2f947741bdbd60516afd72d9585abc95912fbeca47a"
+[tools."ubi:google/addlicense".checksums]
+addlicense-macos-aarch64 = "sha256:094f9b26d931a96df5bdb7c0f1e8c7a15d640b50c9bd282e60b25010aa47f30d"
 
-[[tools."ubi:telepresenceio/telepresence"]]
+[tools."ubi:telepresenceio/telepresence"]
 version = "2.24.1"
 backend = "ubi:telepresenceio/telepresence"
 
-[tools."ubi:telepresenceio/telepresence".platforms.macos-arm64-telepresence]
-checksum = "blake3:1d8fc5495ba38b306e2b7b01da21446312eb6fe2111c83d520a56fa5a0b69cb5"
+[tools."ubi:telepresenceio/telepresence".checksums]
+telepresence-macos-aarch64 = "sha256:bf5ebf57365ba8b943a7fdd5ae49400643b8cd508d85798612206346ba300afc"
 
-[[tools.uv]]
+[tools.uv]
 version = "0.8.17"
 backend = "aqua:astral-sh/uv"
 
-[[tools.yq]]
+[tools.uv.checksums]
+"uv-aarch64-apple-darwin.tar.gz" = "sha256:e4d4859d7726298daa4c12e114f269ff282b2cfc2b415dc0b2ca44ae2dbd358e"
+
+[tools.yq]
 version = "4.47.2"
 backend = "aqua:mikefarah/yq"
 
-[tools.yq.platforms.macos-arm64]
-checksum = "blake3:28c623201e07c86d5082e88384af61ed40af8b8f71d22758e8b0690d424fc3c2"
-size = 10980754
-url = "https://github.com/mikefarah/yq/releases/download/v4.47.2/yq_darwin_arm64"
+[tools.yq.checksums]
+yq_darwin_arm64 = "sha256:4ccc7f2f5f6f37804d70ad211a287b1b589f67024ecb77586c77106030424b9f"
