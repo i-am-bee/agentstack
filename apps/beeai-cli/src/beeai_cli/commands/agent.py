@@ -279,6 +279,7 @@ async def _ask_form_questions(form_render: FormRender) -> FormResponse:
                 continue
             month = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
                 message=f"{field.label} (month):",
+                validate=EmptyInputValidator() if field.required else None,
                 choices=[
                     Choice(
                         value=str(i).zfill(2),
@@ -289,13 +290,13 @@ async def _ask_form_questions(form_render: FormRender) -> FormResponse:
             ).execute_async()
             if not month:
                 continue
-            try:
-                days_in_month = calendar.monthrange(int(year), int(month))[1]
-            except ValueError:
-                days_in_month = 31
             day = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
                 message=f"{field.label} (day):",
-                choices=[Choice(value=str(i).zfill(2), name=str(i).zfill(2)) for i in range(1, days_in_month + 1)],
+                validate=EmptyInputValidator() if field.required else None,
+                choices=[
+                    Choice(value=str(i).zfill(2), name=str(i).zfill(2))
+                    for i in range(1, calendar.monthrange(int(year), int(month))[1] + 1)
+                ],
             ).execute_async()
             if not day:
                 continue
