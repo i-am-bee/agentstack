@@ -9,6 +9,7 @@ import { type FileRejection, useDropzone } from 'react-dropzone';
 import { v4 as uuid } from 'uuid';
 
 import { useToast } from '#contexts/Toast/index.ts';
+import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 import { isMimeType } from '#utils/helpers.ts';
 
 import { useDeleteFile } from '../api/mutations/useDeleteFile';
@@ -23,6 +24,7 @@ interface Props {
 
 export function FileUploadProvider({ allowedContentTypes = [], children }: PropsWithChildren<Props>) {
   const [files, setFiles] = useState<FileEntity[]>([]);
+  const { contextId } = usePlatformContext();
 
   const { addToast } = useToast();
   const { mutateAsync: uploadFile } = useUploadFile({
@@ -49,10 +51,14 @@ export function FileUploadProvider({ allowedContentTypes = [], children }: Props
       setFiles((files) => [...files, ...newFiles]);
 
       newFiles.forEach((file) => {
-        uploadFile({ file });
+        if (!contextId) {
+          throw new Error('Illegal State - Context must be set');
+        }
+
+        uploadFile({ file, contextId });
       });
     },
-    [uploadFile],
+    [uploadFile, contextId],
   );
 
   const onDropRejected = useCallback(
@@ -77,12 +83,16 @@ export function FileUploadProvider({ allowedContentTypes = [], children }: Props
       const uploadFileId = files.find((file) => file.id === id)?.uploadFile?.id;
 
       if (uploadFileId) {
-        deleteFile({ file_id: uploadFileId });
+        if (!contextId) {
+          throw new Error('Illegal State - Context must be set');
+        }
+
+        deleteFile({ file_id: uploadFileId, contextId });
       }
 
       setFiles((files) => files.filter((file) => file.id !== id));
     },
-    [files, deleteFile],
+    [files, deleteFile, contextId],
   );
 
   const isPending = useMemo(
