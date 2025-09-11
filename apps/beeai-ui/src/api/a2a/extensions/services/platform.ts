@@ -5,7 +5,7 @@
 
 import type { ContextToken } from '#modules/platform-context/contexts/platform-context.ts';
 
-const getUri = () => 'https://a2a-extensions.beeai.dev/services/platform_api/v1';
+const URI = 'https://a2a-extensions.beeai.dev/services/platform_api/v1';
 
 const getMetadata = (contextToken: ContextToken) => {
   return {
@@ -17,6 +17,6 @@ const getMetadata = (contextToken: ContextToken) => {
 export const activePlatformExtension = (metadata: Record<string, unknown>, contextToken: ContextToken) => {
   return {
     ...metadata,
-    [getUri()]: getMetadata(contextToken),
+    [URI]: getMetadata(contextToken),
   };
 };
