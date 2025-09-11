@@ -4,7 +4,7 @@
 """empty message
 
 Revision ID: 7b933a4a8cfc
-Revises: d39dd1ff796f
+Revises: 4fbb7136a125
 Create Date: 2025-09-08 12:43:11.504637
 
 """
@@ -16,7 +16,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "7b933a4a8cfc"
-down_revision: str | None = "d39dd1ff796f"
+down_revision: str | None = "4fbb7136a125"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

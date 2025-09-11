@@ -48,7 +48,7 @@ def create_message(token: ContextToken, content: str) -> Message:
 
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
 async def test_agent_history(history_agent, subtests):
-    server, client = history_agent
+    _, client = history_agent
 
     with subtests.test("history repeats itself"):
         context1 = await Context.create()

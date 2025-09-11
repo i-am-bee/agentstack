@@ -44,7 +44,7 @@ async def history_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server
 
 async def test_agent_history(history_agent):
     """Test that history starts empty."""
-    server, client = history_agent
+    _, client = history_agent
     message = create_text_message_object(content="first message")
 
     final_task = await get_final_task_from_stream(client.send_message(message))
