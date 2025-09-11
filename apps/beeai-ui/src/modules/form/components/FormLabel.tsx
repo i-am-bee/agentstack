@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import clsx from 'clsx';
 import type { LabelHTMLAttributes } from 'react';
 
-export function FormLabel({ children, ...props }: LabelHTMLAttributes<HTMLLabelElement>) {
+export function FormLabel({ className, children, ...props }: LabelHTMLAttributes<HTMLLabelElement>) {
   return (
-    <label {...props} className="cds--label">
+    <label {...props} className={clsx('cds--label', className)}>
       {children}
     </label>
   );

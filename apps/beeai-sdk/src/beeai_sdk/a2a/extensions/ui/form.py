@@ -27,7 +27,7 @@ class TextField(BaseField):
     type: Literal["text"] = "text"
     placeholder: str | None = None
     default_value: str | None = None
-    auto_resize: bool = True
+    auto_resize: bool | None = True
 
 
 class DateField(BaseField):
