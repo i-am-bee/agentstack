@@ -24,18 +24,25 @@ export const MessageContent = memo(function MessageContent({ message }: Props) {
 
   const content = getMessageContent(message);
   const form = message.role === Role.User ? message.form : null;
-  const hasContent = content || form;
+  const auth = message.role === Role.User ? message.auth : null;
+  const hasContent = content || form || auth;
   const sources = getMessageSources(message);
 
-  return hasContent ? (
-    form ? (
-      <MessageFormResponse form={form} />
-    ) : (
+  if (hasContent) {
+    if (form) {
+      return <MessageFormResponse form={form} />;
+    }
+
+    if (auth) {
+      return <div className={clsx(classes.root)}>User has granted access</div>;
+    }
+
+    return (
       <MarkdownContent className={classes.root} sources={sources} isPending={isPending}>
         {content}
       </MarkdownContent>
-    )
-  ) : (
-    <div className={clsx(classes.empty, classes.root)}>Message has no content</div>
-  );
+    );
+  } else {
+    return <div className={clsx(classes.empty, classes.root)}>Message has no content</div>;
+  }
 });

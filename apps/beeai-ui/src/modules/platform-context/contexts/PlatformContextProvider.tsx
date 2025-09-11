@@ -45,10 +45,7 @@ export function PlatformContextProvider<UIGenericPart>({
 
   const { mutateAsync: createContext } = useCreateContext();
   const { mutateAsync: createContextToken } = useCreateContextToken();
-  const { data: matchedProviders } = useMatchProviders(
-    agentClient?.llmDemands ? agentClient.llmDemands.llm_demands : {},
-    setDefaultSelectedProviders,
-  );
+  const { data: matchedProviders } = useMatchProviders(agentClient?.llmDemands ?? {}, setDefaultSelectedProviders);
 
   const selectProvider = useCallback(
     (key: string, value: string) => {
@@ -56,6 +53,20 @@ export function PlatformContextProvider<UIGenericPart>({
     },
     [setSelectedProviders],
   );
+
+  const [selectedMCPServers, setSelectedMCPServers] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    setSelectedMCPServers(
+      Object.keys(agentClient?.mcpDemands ?? {}).reduce(
+        (memo, value) => ({
+          ...memo,
+          [value]: '',
+        }),
+        {},
+      ),
+    );
+  }, [agentClient?.mcpDemands]);
 
   const setContext = useCallback(
     (context: Awaited<ReturnType<typeof createContext>>) => {
@@ -73,6 +84,13 @@ export function PlatformContextProvider<UIGenericPart>({
 
     createContext().then(setContext);
   }, [createContext, setContext]);
+
+  const selectMCPServer = useCallback(
+    (key: string, value: string) => {
+      setSelectedMCPServers((prev) => ({ ...prev, [key]: value }));
+    },
+    [setSelectedMCPServers],
+  );
 
   const getPlatformToken = useCallback(async () => {
     if (contextId === null) {
@@ -111,8 +129,8 @@ export function PlatformContextProvider<UIGenericPart>({
 
   const getFullfilments = useCallback(async () => {
     const platformToken = await getPlatformToken();
-    return buildFullfilments({ platformToken, selectedProviders, featureFlags });
-  }, [getPlatformToken, selectedProviders, featureFlags]);
+    return buildFullfilments({ platformToken, selectedProviders, selectedMCPServers, featureFlags });
+  }, [getPlatformToken, selectedProviders, selectedMCPServers, featureFlags]);
 
   useEffect(() => {
     createContext().then(setContext);
@@ -137,6 +155,8 @@ export function PlatformContextProvider<UIGenericPart>({
         getPlatformToken,
         getFullfilments,
         selectProvider,
+        selectMCPServer,
+        selectedMCPServers,
       }}
     >
       {children}

@@ -9,6 +9,8 @@ export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? 'BeeAI';
 
+export const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
+
 export const APP_FAVICON_SVG = process.env.NEXT_PUBLIC_APP_FAVICON_SVG ?? '/bee.svg';
 
 export const NAV_ITEMS = parseNav(process.env.NEXT_PUBLIC_NAV_ITEMS);

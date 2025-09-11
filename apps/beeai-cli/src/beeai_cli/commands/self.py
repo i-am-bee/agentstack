@@ -146,7 +146,7 @@ async def install(
         if (
             already_configured
             and await inquirer.confirm(  # pyright: ignore[reportPrivateImportUsage]
-                message="Do you want to open the web UI now?", default=True
+                message="Do you want to open the web UI now? Will run: beeai ui", default=True
             ).execute_async()
         ):
             import webbrowser

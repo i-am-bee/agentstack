@@ -15,8 +15,8 @@ fi
 
 echo "Installing beeai-cli..."
 case "${BEEAI_VERSION:-latest}" in
-"latest") PATH="$new_path" uv tool install --quiet --force beeai-cli ;;
-"pre")    PATH="$new_path" uv tool install --quiet --force --pre beeai-cli ;;
-*)        PATH="$new_path" uv tool install --quiet --force "beeai-cli==$BEEAI_VERSION" ;;
+"latest") PATH="$new_path" uv tool install --refresh --quiet --force beeai-cli ;;
+"pre")    PATH="$new_path" uv tool install --refresh --quiet --force --pre beeai-cli ;;
+*)        PATH="$new_path" uv tool install --refresh --quiet --force "beeai-cli==$BEEAI_VERSION" ;;
 esac
 PATH="$new_path" beeai self install
