@@ -3,6 +3,7 @@
 
 import abc
 import base64
+import calendar
 import inspect
 import json
 import random
@@ -41,9 +42,26 @@ from beeai_sdk.a2a.extensions import (
     TrajectoryExtensionClient,
     TrajectoryExtensionSpec,
 )
+from beeai_sdk.a2a.extensions.ui.form import (
+    CheckboxField,
+    CheckboxFieldValue,
+    DateField,
+    DateFieldValue,
+    FormExtensionSpec,
+    FormFieldValue,
+    FormRender,
+    FormResponse,
+    MultiSelectField,
+    MultiSelectFieldValue,
+    TextField,
+    TextFieldValue,
+)
 from beeai_sdk.platform import ModelProvider, Provider
 from beeai_sdk.platform.context import Context, ContextPermissions, ContextToken, Permissions
 from beeai_sdk.platform.model_provider import ModelCapability
+from InquirerPy import inquirer
+from InquirerPy.base.control import Choice
+from InquirerPy.validator import EmptyInputValidator
 from pydantic import BaseModel
 from rich.box import HORIZONTALS
 from rich.console import ConsoleRenderable, Group, NewLine
@@ -62,7 +80,6 @@ if sys.platform != "win32":
     except ImportError:
         import readline  # noqa: F401
 
-import sys
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -227,9 +244,77 @@ async def stream_logs(
         _print_log(message)
 
 
+async def _ask_form_questions(form_render: FormRender) -> FormResponse:
+    """Ask user to fill a form using inquirer."""
+    form_values: dict[str, FormFieldValue] = {}
+
+    console.print("[bold]Form input[/bold]" + (f": {form_render.title}" if form_render.title else ""))
+    if form_render.description:
+        console.print(f"{form_render.description}\n")
+
+    for field in form_render.fields:
+        if isinstance(field, TextField):
+            answer = await inquirer.text(  # pyright: ignore[reportPrivateImportUsage]
+                message=field.label + ":",
+                default=field.default_value or "",
+                validate=EmptyInputValidator() if field.required else None,
+            ).execute_async()
+            form_values[field.id] = TextFieldValue(value=answer)
+        elif isinstance(field, MultiSelectField):
+            choices = [Choice(value=opt.id, name=opt.label) for opt in field.options]
+            answer = await inquirer.checkbox(  # pyright: ignore[reportPrivateImportUsage]
+                message=field.label + ":",
+                choices=choices,
+                default=field.default_value,
+                validate=EmptyInputValidator() if field.required else None,
+            ).execute_async()
+            form_values[field.id] = MultiSelectFieldValue(value=answer)
+        elif isinstance(field, DateField):
+            year = await inquirer.text(  # pyright: ignore[reportPrivateImportUsage]
+                message=f"{field.label} (year):",
+                validate=EmptyInputValidator() if field.required else None,
+                filter=lambda y: y.strip(),
+            ).execute_async()
+            if not year:
+                continue
+            month = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
+                message=f"{field.label} (month):",
+                choices=[
+                    Choice(
+                        value=str(i).zfill(2),
+                        name=f"{i:02d} - {calendar.month_name[i]}",
+                    )
+                    for i in range(1, 13)
+                ],
+            ).execute_async()
+            if not month:
+                continue
+            try:
+                days_in_month = calendar.monthrange(int(year), int(month))[1]
+            except ValueError:
+                days_in_month = 31
+            day = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
+                message=f"{field.label} (day):",
+                choices=[Choice(value=str(i).zfill(2), name=str(i).zfill(2)) for i in range(1, days_in_month + 1)],
+            ).execute_async()
+            if not day:
+                continue
+            full_date = f"{year}-{month}-{day}"
+            form_values[field.id] = DateFieldValue(value=full_date)
+        elif isinstance(field, CheckboxField):
+            answer = await inquirer.confirm(  # pyright: ignore[reportPrivateImportUsage]
+                message=field.label + ":",
+                default=field.default_value,
+                long_instruction=field.content or "",
+            ).execute_async()
+            form_values[field.id] = CheckboxFieldValue(value=answer)
+    console.print()
+    return FormResponse(id=form_render.id, values=form_values)
+
+
 async def _run_agent(
     client: Client,
-    input: str | DataPart,
+    input: str | DataPart | FormResponse,
     agent_card: AgentCard,
     context_token: ContextToken,
     dump_files_path: Path | None = None,
@@ -249,46 +334,62 @@ async def _run_agent(
 
     async with configuration.use_platform_client():
         metadata = (
-            LLMServiceExtensionClient(llm_spec).fulfillment_metadata(
-                llm_fulfillments={
-                    key: LLMFulfillment(
-                        api_base="{platform_url}/api/v1/openai/",
-                        api_key=context_token.token.get_secret_value(),
-                        api_model=(
-                            await ModelProvider.match(
-                                suggested_models=demand.suggested,
-                                capability=ModelCapability.LLM,
-                            )
-                        )[0].model_id,
-                    )
-                    for key, demand in llm_spec.params.llm_demands.items()
-                }
+            (
+                LLMServiceExtensionClient(llm_spec).fulfillment_metadata(
+                    llm_fulfillments={
+                        key: LLMFulfillment(
+                            api_base="{platform_url}/api/v1/openai/",
+                            api_key=context_token.token.get_secret_value(),
+                            api_model=(
+                                await ModelProvider.match(
+                                    suggested_models=demand.suggested,
+                                    capability=ModelCapability.LLM,
+                                )
+                            )[0].model_id,
+                        )
+                        for key, demand in llm_spec.params.llm_demands.items()
+                    }
+                )
+                if llm_spec
+                else {}
             )
-            if llm_spec
-            else {}
-        ) | (
-            EmbeddingServiceExtensionClient(embedding_spec).fulfillment_metadata(
-                embedding_fulfillments={
-                    key: EmbeddingFulfillment(
-                        api_base="{platform_url}/api/v1/openai/",
-                        api_key=context_token.token.get_secret_value(),
-                        api_model=(
-                            await ModelProvider.match(
-                                suggested_models=demand.suggested,
-                                capability=ModelCapability.EMBEDDING,
-                            )
-                        )[0].model_id,
-                    )
-                    for key, demand in embedding_spec.params.embedding_demands.items()
-                }
+            | (
+                EmbeddingServiceExtensionClient(embedding_spec).fulfillment_metadata(
+                    embedding_fulfillments={
+                        key: EmbeddingFulfillment(
+                            api_base="{platform_url}/api/v1/openai/",
+                            api_key=context_token.token.get_secret_value(),
+                            api_model=(
+                                await ModelProvider.match(
+                                    suggested_models=demand.suggested,
+                                    capability=ModelCapability.EMBEDDING,
+                                )
+                            )[0].model_id,
+                        )
+                        for key, demand in embedding_spec.params.embedding_demands.items()
+                    }
+                )
+                if embedding_spec
+                else {}
             )
-            if embedding_spec
-            else {}
+            | (
+                {FormExtensionSpec.URI: typing.cast(FormResponse, input).model_dump(mode="json")}
+                if isinstance(input, FormResponse)
+                else {}
+            )
         )
 
     msg = Message(
         message_id=str(uuid4()),
-        parts=[Part(root=TextPart(text=input) if isinstance(input, str) else input)],
+        parts=[
+            Part(
+                root=TextPart(text=input)
+                if isinstance(input, str)
+                else TextPart(text="")
+                if isinstance(input, FormResponse)
+                else input
+            )
+        ],
         role=Role.user,
         task_id=task_id,
         context_id=context_token.context_id,
@@ -349,6 +450,25 @@ async def _run_agent(
                 ):
                     if handle_input is None:
                         raise ValueError("Agent requires input but no input handler provided")
+
+                    if form_metadata := (
+                        message.metadata.get(FormExtensionSpec.URI) if message and message.metadata else None
+                    ):
+                        stream = client.send_message(
+                            Message(
+                                message_id=str(uuid4()),
+                                parts=[],
+                                role=Role.user,
+                                task_id=task_id,
+                                context_id=context_token.context_id,
+                                metadata={
+                                    FormExtensionSpec.URI: (
+                                        await _ask_form_questions(FormRender.model_validate(form_metadata))
+                                    ).model_dump(mode="json")
+                                },
+                            )
+                        )
+                        break
 
                     text = ""
                     for part in message.parts if message else []:
@@ -710,31 +830,39 @@ async def run_agent(
             err_console.print(_render_examples(agent))
             exit(1)
 
+        initial_form_render = next(
+            (
+                FormRender.model_validate(ext.params)
+                for ext in agent.capabilities.extensions or ()
+                if ext.uri == FormExtensionSpec.URI and ext.params
+            ),
+            None,
+        )
+
         if interaction_mode == InteractionMode.MULTI_TURN:
             console.print(f"{user_greeting}\n")
-            input = handle_input()
+            turn_input = await _ask_form_questions(initial_form_render) if initial_form_render else handle_input()
             async with a2a_client(provider.agent_card) as client:
                 while True:
                     console.print()
                     await _run_agent(
                         client,
-                        input,
+                        input=turn_input,
                         agent_card=agent,
                         context_token=context_token,
                         dump_files_path=dump_files,
                         handle_input=handle_input,
                     )
                     console.print()
-                    input = handle_input()
+                    turn_input = handle_input()
         elif interaction_mode == InteractionMode.SINGLE_TURN:
             user_greeting = ui_annotations.get("user_greeting", None) or "Enter your instructions."
             console.print(f"{user_greeting}\n")
-            input = handle_input()
             console.print()
             async with a2a_client(provider.agent_card) as client:
                 await _run_agent(
                     client,
-                    input,
+                    input=await _ask_form_questions(initial_form_render) if initial_form_render else handle_input(),
                     agent_card=agent,
                     context_token=context_token,
                     dump_files_path=dump_files,
