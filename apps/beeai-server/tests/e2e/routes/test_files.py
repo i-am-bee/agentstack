@@ -192,13 +192,13 @@ async def test_context_scoped_file_access(subtests):
         # Verify file cannot be accessed from different context using wrong client
         with (
             subtests.test("cannot access context 1 file using context 2 client"),
-            pytest.raises(httpx.HTTPStatusError, match="404 Not Found|403 Forbidden"),
+            pytest.raises(httpx.HTTPStatusError, match=r"404 Not Found|403 Forbidden"),
         ):
             await File.get(file_id_1, client=client_2)
 
         with (
             subtests.test("cannot access context 1 file content using context 2 client"),
-            pytest.raises(httpx.HTTPStatusError, match="404 Not Found|403 Forbidden"),
+            pytest.raises(httpx.HTTPStatusError, match=r"404 Not Found|403 Forbidden"),
         ):
             async with File.load_content(file_id_1, client=client_2):
                 ...
@@ -206,14 +206,14 @@ async def test_context_scoped_file_access(subtests):
         # Verify file cannot be deleted from different context using wrong client
         with (
             subtests.test("cannot delete context 1 file using context 2 client"),
-            pytest.raises(httpx.HTTPStatusError, match="404 Not Found|403 Forbidden"),
+            pytest.raises(httpx.HTTPStatusError, match=r"404 Not Found|403 Forbidden"),
         ):
             await File.delete(file_id_1, client=client_2)
 
         # Verify cross-context isolation works both ways
         with (
             subtests.test("cannot access context 2 file using context 1 client"),
-            pytest.raises(httpx.HTTPStatusError, match="404 Not Found|403 Forbidden"),
+            pytest.raises(httpx.HTTPStatusError, match=r"404 Not Found|403 Forbidden"),
         ):
             await File.get(file_id_2, client=client_1)
 
@@ -286,13 +286,13 @@ async def test_file_extraction_context_isolation(subtests, test_configuration):
         # Verify extraction cannot be accessed from context 2
         with (
             subtests.test("cannot access extraction from context 2"),
-            pytest.raises(httpx.HTTPStatusError, match="404 Not Found|403 Forbidden"),
+            pytest.raises(httpx.HTTPStatusError, match=r"404 Not Found|403 Forbidden"),
         ):
             await File.get_extraction(file_id, client=client_2)
 
         with (
             subtests.test("cannot access text content from context 2"),
-            pytest.raises(httpx.HTTPStatusError, match="404 Not Found|403 Forbidden"),
+            pytest.raises(httpx.HTTPStatusError, match=r"404 Not Found|403 Forbidden"),
         ):
             async with File.load_text_content(file_id, client=client_2):
                 ...
@@ -300,14 +300,14 @@ async def test_file_extraction_context_isolation(subtests, test_configuration):
         # Verify extraction cannot be created from wrong context
         with (
             subtests.test("cannot create extraction from context 2"),
-            pytest.raises(httpx.HTTPStatusError, match="404 Not Found|403 Forbidden"),
+            pytest.raises(httpx.HTTPStatusError, match=r"404 Not Found|403 Forbidden"),
         ):
             await File.create_extraction(file_id, client=client_2)
 
         # Verify extraction cannot be deleted from wrong context
         with (
             subtests.test("cannot delete extraction from context 2"),
-            pytest.raises(httpx.HTTPStatusError, match="404 Not Found|403 Forbidden"),
+            pytest.raises(httpx.HTTPStatusError, match=r"404 Not Found|403 Forbidden"),
         ):
             await File.delete_extraction(file_id, client=client_2)
 
