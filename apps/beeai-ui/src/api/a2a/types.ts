@@ -8,6 +8,7 @@ import type { ContextToken } from '#modules/platform-context/contexts/platform-c
 import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
 
 import type { buildA2AClient } from './client';
+import type { EmbeddingDemand, EmbeddingFulfillment } from './extensions/services/embedding';
 import type { LLMDemand, LLMFulfillment } from './extensions/services/llm';
 import type { MCPDemand, MCPFulfillment } from './extensions/services/mcp';
 import type { OAuthDemand, OAuthFulfillment } from './extensions/services/oauth-provider';
@@ -58,6 +59,7 @@ export interface Fulfillments {
   llm: (demand: LLMDemand) => Promise<LLMFulfillment>;
   oauth: (demand: OAuthDemand) => Promise<OAuthFulfillment | null>;
   getContextToken: () => ContextToken;
+  embedding: (demand: EmbeddingDemand) => Promise<EmbeddingFulfillment>;
 }
 
 export type AgentA2AClient<UIGenericPart = never> = Awaited<ReturnType<typeof buildA2AClient<UIGenericPart>>>;

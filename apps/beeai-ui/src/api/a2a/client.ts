@@ -14,6 +14,7 @@ import type { TaskId } from '#modules/tasks/api/types.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 
 import { AGENT_ERROR_MESSAGE } from './constants';
+import { embeddingExtension } from './extensions/services/embedding';
 import { llmExtension } from './extensions/services/llm';
 import { mcpExtension } from './extensions/services/mcp';
 import { oauthProviderExtension } from './extensions/services/oauth-provider';
@@ -37,7 +38,9 @@ const mcpExtensionExtractor = extractServiceExtensionDemands(mcpExtension);
 const fulfillMcpDemand = fulfillServiceExtensionDemand(mcpExtension);
 
 const llmExtensionExtractor = extractServiceExtensionDemands(llmExtension);
+const embeddingExtensionExtractor = extractServiceExtensionDemands(embeddingExtension);
 const fulfillLlmDemand = fulfillServiceExtensionDemand(llmExtension);
+const fulfillEmbeddingDemand = fulfillServiceExtensionDemand(embeddingExtension);
 const extractForm = extractUiExtensionData(formMessageExtension);
 
 const oauthRequestExtensionExtractor = extractUiExtensionData(oauthRequestExtension);
@@ -88,6 +91,7 @@ export const buildA2AClient = async <UIGenericPart = never>({
   const mcpDemands = mcpExtensionExtractor(extensions);
   const llmDemands = llmExtensionExtractor(extensions);
   const oauthDemands = oauthExtensionExtractor(extensions);
+  const embeddingDemands = embeddingExtensionExtractor(extensions);
 
   const agentCardUrl = `${getBaseUrl()}/api/v1/a2a/${providerId}/.well-known/agent-card.json`;
   const client = await A2AClient.fromCardUrl(agentCardUrl);
@@ -120,6 +124,10 @@ export const buildA2AClient = async <UIGenericPart = never>({
         if (mcpOAuthFullfilment !== null) {
           metadata = fulfillOauthDemand(metadata, mcpOAuthFullfilment);
         }
+      }
+
+      if (embeddingDemands) {
+        metadata = fulfillEmbeddingDemand(metadata, await fulfillments.embedding(embeddingDemands));
       }
 
       if (message.form) {
@@ -235,5 +243,10 @@ export const buildA2AClient = async <UIGenericPart = never>({
     return run;
   };
 
-  return { chat, llmDemands: llmDemands?.llm_demands, mcpDemands: mcpDemands?.mcp_demands };
+  return {
+    chat,
+    llmDemands: llmDemands?.llm_demands,
+    embeddingDemands: embeddingDemands?.embedding_demands,
+    mcpDemands: mcpDemands?.mcp_demands,
+  };
 };

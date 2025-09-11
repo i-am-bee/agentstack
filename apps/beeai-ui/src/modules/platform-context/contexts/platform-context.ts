@@ -15,13 +15,16 @@ export type ContextToken = {
 
 interface PlatformContextValue {
   contextId: ContextId | null;
-  matchedProviders?: Record<string, string[]>;
-  selectedProviders: Record<string, string>;
+  matchedLLMProviders?: Record<string, string[]>;
+  selectedLLMProviders: Record<string, string>;
+  matchedEmbeddingProviders?: Record<string, string[]>;
+  selectedEmbeddingProviders: Record<string, string>;
   getContextId: () => ContextId;
   resetContext: () => void;
   getContextToken: () => Promise<ContextToken>;
   getFullfilments: () => Promise<Fulfillments>;
-  selectProvider: (key: string, value: string) => void;
+  selectLLMProvider: (key: string, value: string) => void;
+  selectEmbeddingProvider: (key: string, value: string) => void;
   selectMCPServer: (key: string, value: string) => void;
   selectedMCPServers: Record<string, string>;
 }

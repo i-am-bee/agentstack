@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { EmbeddingDemand } from '#api/a2a/extensions/services/embedding.ts';
 import type { Fulfillments } from '#api/a2a/types.ts';
 import { BASE_URL } from '#utils/constants.ts';
 import type { FeatureFlags } from '#utils/feature-flags.ts';
@@ -11,20 +12,43 @@ import type { ContextToken } from './platform-context';
 
 interface BuildFullfilmentsParams {
   contextToken: ContextToken;
-  selectedProviders: Record<string, string>;
+  selectedLLMProviders: Record<string, string>;
+  selectedEmbeddingProviders: Record<string, string>;
   selectedMCPServers: Record<string, string>;
   featureFlags: FeatureFlags;
 }
 
 export const buildFullfilments = ({
   contextToken,
-  selectedProviders,
+  selectedLLMProviders,
+  selectedEmbeddingProviders,
   selectedMCPServers,
   featureFlags,
 }: BuildFullfilmentsParams): Fulfillments => {
   return {
     getContextToken: () => contextToken,
 
+    embedding: async ({ embedding_demands }: EmbeddingDemand) => {
+      const allDemands = Object.keys(embedding_demands);
+
+      return allDemands.reduce(
+        (memo, demandKey) => {
+          if (!selectedEmbeddingProviders[demandKey]) {
+            throw new Error(`Selected provider for Embedding demand ${demandKey} not found`);
+          }
+
+          memo.embedding_fulfillments[demandKey] = {
+            identifier: 'embedding_proxy',
+            api_base: '{platform_url}/api/v1/openai/',
+            api_key: platformToken,
+            api_model: selectedEmbeddingProviders[demandKey],
+          };
+
+          return memo;
+        },
+        { embedding_fulfillments: {} },
+      );
+    },
     llm: async ({ llm_demands }) => {
       const allDemands = Object.keys(llm_demands);
 
@@ -41,15 +65,15 @@ export const buildFullfilments = ({
             return memo;
           }
 
-          if (!selectedProviders[demandKey]) {
-            throw new Error(`Selected provider for demand ${demandKey} not found`);
+          if (!selectedLLMProviders[demandKey]) {
+            throw new Error(`Selected provider for LLM demand ${demandKey} not found`);
           }
 
           memo.llm_fulfillments[demandKey] = {
             identifier: 'llm_proxy',
             api_base: '{platform_url}/api/v1/openai/',
             api_key: contextToken.token,
-            api_model: selectedProviders[demandKey],
+            api_model: selectedLLMProviders[demandKey],
           };
 
           return memo;
