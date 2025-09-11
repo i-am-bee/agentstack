@@ -16,6 +16,7 @@ from textwrap import dedent
 from a2a.types import AgentSkill, Artifact, FilePart, FileWithBytes, Message, Part
 from beeai_sdk.a2a.extensions import AgentDetail
 from beeai_sdk.server import Server
+from beeai_sdk.server.store.platform_context_store import PlatformContextStore
 
 server = Server()
 
@@ -206,4 +207,9 @@ async def aider(message: Message) -> AsyncGenerator:
 
 
 def run():
-    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)), configure_telemetry=True)
+    server.run(
+        host=os.getenv("HOST", "127.0.0.1"),
+        port=int(os.getenv("PORT", 8000)),
+        context_store=PlatformContextStore(),
+        configure_telemetry=True,
+    )

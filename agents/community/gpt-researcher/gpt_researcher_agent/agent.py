@@ -9,6 +9,7 @@ from a2a.types import AgentSkill, Message
 
 from gpt_researcher import GPTResearcher
 
+from beeai_sdk.server.store.platform_context_store import PlatformContextStore
 from gpt_researcher_agent.env_patch import with_local_env
 
 from beeai_sdk.a2a.extensions import (
@@ -23,7 +24,6 @@ from beeai_sdk.a2a.extensions import (
 from beeai_sdk.a2a.types import RunYield
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import RunContext
-from gpt_researcher import GPTResearcher
 
 server = Server()
 
@@ -116,7 +116,12 @@ async def gpt_researcher(
 
 
 def run():
-    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)), configure_telemetry=True)
+    server.run(
+        host=os.getenv("HOST", "127.0.0.1"),
+        port=int(os.getenv("PORT", 8000)),
+        context_store=PlatformContextStore(),
+        configure_telemetry=True,
+    )
 
 
 if __name__ == "__main__":
