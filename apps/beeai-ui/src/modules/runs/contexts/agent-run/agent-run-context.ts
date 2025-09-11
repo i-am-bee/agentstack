@@ -22,6 +22,7 @@ interface AgentRunContextValue {
   isReady: boolean;
   input?: string;
   stats?: RunStats;
+  hasMessages: boolean;
   settingsRender: SettingsRender | null;
   chat: (input: string) => Promise<void>;
   submitForm: (form: UIMessageForm, taskId?: string) => Promise<void>;

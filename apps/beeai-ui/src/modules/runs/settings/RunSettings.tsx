@@ -21,7 +21,7 @@ interface Props {
 }
 
 export function RunSettings({ containerRef }: Props) {
-  const { settingsRender } = useAgentRun();
+  const { settingsRender, hasMessages } = useAgentRun();
 
   const { isOpen, refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useRunSettingsDialog({
     containerRef,
@@ -52,7 +52,7 @@ export function RunSettings({ containerRef }: Props) {
                 <motion.div
                   {...fadeProps({
                     hidden: {
-                      transform: 'translateY(-1rem)',
+                      transform: `translateY(${hasMessages ? '1' : '-1'}rem)`,
                     },
                     visible: {
                       transform: 'translateY(0)',

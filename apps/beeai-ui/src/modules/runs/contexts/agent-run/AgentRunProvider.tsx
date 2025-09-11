@@ -297,6 +297,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
       isReady: status === AgentRunStatus.Ready,
       isPending: status === AgentRunStatus.Pending,
       isActionRequired: status === AgentRunStatus.ActionRequired,
+      hasMessages: Boolean(getMessages().length),
       input,
       stats,
       settingsRender: agentClient?.settingsDemands ?? null,
@@ -311,6 +312,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
   }, [
     agent,
     status,
+    getMessages,
     input,
     stats,
     agentClient?.settingsDemands,
