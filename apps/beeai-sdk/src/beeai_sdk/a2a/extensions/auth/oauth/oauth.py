@@ -13,9 +13,9 @@ import pydantic
 from mcp.client.auth import OAuthClientProvider
 from mcp.shared.auth import OAuthClientMetadata
 
-from beeai_sdk.a2a.extensions.auth.oauth.storage import MemoryTokenStorageFactory, TokenStorageFactory
 from beeai_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 from beeai_sdk.a2a.types import AgentMessage, AuthRequired, RunYieldResume
+from beeai_sdk.util.mcp.storage import MemoryTokenStorageFactory, TokenStorageFactory
 
 if TYPE_CHECKING:
     from beeai_sdk.server.context import RunContext

@@ -7,7 +7,12 @@ from uuid import UUID
 
 import fastapi
 import fastapi.responses
-from a2a.types import AgentCard, TransportProtocol
+from a2a.types import (
+    AgentCard,
+    HTTPAuthSecurityScheme,
+    SecurityScheme,
+    TransportProtocol,
+)
 from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from fastapi import Depends, Request
 
@@ -40,11 +45,19 @@ def create_proxy_agent_card(agent_card: AgentCard, *, provider_id: UUID, request
         if agent_card.additional_interfaces is not None
         else None
     )
+    # Note that we're not using oAuth but a more generic http scheme.
+    # This is because we don't want to declare the auth metadata but prefer discovery through related RFCs
+    # The http scheme also covers internal jwt tokens
+    proxy_security = [{"bearer": []}]
+    proxy_security_schemes = {"bearer": SecurityScheme(HTTPAuthSecurityScheme(scheme="Bearer"))}
+
     if agent_card.preferred_transport in _SUPPORTED_TRANSPORTS:
         return agent_card.model_copy(
             update={
                 "url": _create_proxy_url(agent_card.url, proxy_base=proxy_base),
                 "additional_interfaces": proxy_interfaces,
+                "security": proxy_security,
+                "security_schemes": proxy_security_schemes,
             }
         )
     elif proxy_interfaces:
@@ -54,6 +67,8 @@ def create_proxy_agent_card(agent_card: AgentCard, *, provider_id: UUID, request
                 "url": interface.url,
                 "preferred_transport": interface.transport,
                 "additional_interfaces": proxy_interfaces,
+                "security": proxy_security,
+                "security_schemes": proxy_security_schemes,
             }
         )
     else:
