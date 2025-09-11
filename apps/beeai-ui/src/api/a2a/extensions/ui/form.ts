@@ -20,7 +20,7 @@ const textField = baseField.extend({
   type: z.literal('text'),
   placeholder: z.string().nullish(),
   default_value: z.string().nullish(),
-  auto_resize: z.boolean().default(true),
+  auto_resize: z.boolean().default(true).nullish(),
 });
 
 const textFieldValue = z.object({
