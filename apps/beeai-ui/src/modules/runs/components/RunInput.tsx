@@ -117,6 +117,7 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
 
         <TextAreaAutoHeight
           rows={1}
+          maxRows={7}
           autoFocus
           placeholder="Ask anything…"
           className={classes.textarea}

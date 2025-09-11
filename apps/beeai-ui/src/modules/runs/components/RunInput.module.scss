@@ -14,26 +14,21 @@
 }
 
 .textarea {
-  max-block-size: rem(192px);
-  overflow-y: auto;
   &::after,
   > textarea {
-    padding: rem(11px) rem(11px) $spacing-03;
+    --padding-top: #{rem(11px)};
+    --padding-bottom: #{$spacing-03};
+    --padding-inline: #{rem(11px)};
+    --border-width: 0px;
+    --line-size: #{math.div(24, 16) * rem(16px)};
+
+    @include type-style(body-02);
     border-radius: calc($border-radius - 1px) calc($border-radius - 1px) 0 0;
-    border: 0;
   }
   > textarea {
-    color: inherit;
-    background-color: $background;
-    &::placeholder {
-      transition: opacity $duration-fast-02;
-      color: $text-placeholder;
-    }
+    &,
     &:focus-visible {
-      outline: 0;
-      &::placeholder {
-        opacity: 0.5;
-      }
+      outline: none;
     }
   }
 }
