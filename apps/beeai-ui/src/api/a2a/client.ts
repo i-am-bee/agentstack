@@ -91,7 +91,7 @@ export const buildA2AClient = async <UIGenericPart = never>({
   const agentCardUrl = `${getBaseUrl()}/api/v1/a2a/${providerId}/.well-known/agent-card.json`;
   const client = await A2AClient.fromCardUrl(agentCardUrl);
 
-  const chat = ({ message, contextId, fulfillments, taskId: initialTaskId = undefined }: ChatParams) => {
+  const chat = ({ message, contextId, fulfillments, taskId: initialTaskId }: ChatParams) => {
     const messageSubject = new Subject<ChatResult<UIGenericPart>>();
 
     let taskId: undefined | TaskId = initialTaskId;
