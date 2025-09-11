@@ -33,42 +33,40 @@ export function RunSettings({ containerRef }: Props) {
 
   return (
     <div className={classes.root}>
-      <>
-        <IconButton
-          kind="ghost"
-          size="sm"
-          label="Customize Tools"
-          autoAlign
-          ref={refs.setReference}
-          {...getReferenceProps()}
-        >
-          <Settings />
-        </IconButton>
+      <IconButton
+        kind="ghost"
+        size="sm"
+        label="Customize Tools"
+        autoAlign
+        ref={refs.setReference}
+        {...getReferenceProps()}
+      >
+        <Settings />
+      </IconButton>
 
-        <AnimatePresence>
-          {isOpen && (
-            <FloatingPortal>
-              <FloatingFocusManager context={context}>
-                <div ref={refs.setFloating} style={floatingStyles} className={classes.modal} {...getFloatingProps()}>
-                  <motion.div
-                    {...fadeProps({
-                      hidden: {
-                        transform: 'translateY(-1rem)',
-                      },
-                      visible: {
-                        transform: 'translateY(0)',
-                      },
-                    })}
-                    className={classes.content}
-                  >
-                    <RunSettingsForm settingsRender={settingsRender} />
-                  </motion.div>
-                </div>
-              </FloatingFocusManager>
-            </FloatingPortal>
-          )}
-        </AnimatePresence>
-      </>
+      <AnimatePresence>
+        {isOpen && (
+          <FloatingPortal>
+            <FloatingFocusManager context={context}>
+              <div ref={refs.setFloating} style={floatingStyles} className={classes.modal} {...getFloatingProps()}>
+                <motion.div
+                  {...fadeProps({
+                    hidden: {
+                      transform: 'translateY(-1rem)',
+                    },
+                    visible: {
+                      transform: 'translateY(0)',
+                    },
+                  })}
+                  className={classes.content}
+                >
+                  <RunSettingsForm settingsRender={settingsRender} />
+                </motion.div>
+              </div>
+            </FloatingFocusManager>
+          </FloatingPortal>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

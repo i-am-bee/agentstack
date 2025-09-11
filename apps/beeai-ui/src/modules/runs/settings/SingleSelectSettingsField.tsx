@@ -3,11 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { Checkmark } from '@carbon/icons-react';
 import { RadioButton, RadioButtonGroup } from '@carbon/react';
+import clsx from 'clsx';
 import { useId } from 'react';
 import { useController } from 'react-hook-form';
 
 import type { SingleSelectFieldValue } from '#api/a2a/extensions/ui/settings.ts';
+
+import classes from './SingleSelectSettingsField.module.scss';
 
 export function SingleSelectSettingsField({
   field,
@@ -19,7 +23,7 @@ export function SingleSelectSettingsField({
 
   const {
     field: { onChange, value },
-  } = useController<{ [key: string]: SingleSelectFieldValue }>({
+  } = useController<{ [key: string]: SingleSelectFieldValue }, `${typeof id}.value`>({
     name: `${id}.value`,
   });
 
@@ -27,32 +31,24 @@ export function SingleSelectSettingsField({
     <RadioButtonGroup
       legendText=""
       name="radio-button-vertical-group"
-      valueSelected={value?.value}
+      valueSelected={value}
       orientation="vertical"
+      className={classes.root}
     >
-      {field.options.map(({ value, label }) => (
-        <RadioButton
-          key={value}
-          id={`${htmlId}:${value}`}
-          value={value}
-          labelText={label}
-          onChange={(value) => {
-            onChange({ type: 'single_select', value });
-          }}
-        />
-      ))}
+      {field.options.map(({ value: optionValue, label }) => {
+        const isSelected = optionValue === value;
+        return (
+          <div className={clsx(classes.option, { [classes.selected]: isSelected })} key={optionValue}>
+            <RadioButton
+              id={`${htmlId}:${optionValue}`}
+              value={optionValue}
+              labelText={label}
+              onClick={() => onChange(optionValue)}
+            />
+            {optionValue === value && <Checkmark size={16} />}
+          </div>
+        );
+      })}
     </RadioButtonGroup>
   );
-  // return (
-  //   <Select
-  //     id={id}
-  //     {...register(`${id}.value`, {
-  //       onChange: onChanged,
-  //     })}
-  //   >
-  //     {field.options.map(({ value, label }) => (
-  //       <SelectItem key={value} value={value} text={label} />
-  //     ))}
-  //   </Select>
-  // );
 }

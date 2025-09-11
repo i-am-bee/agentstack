@@ -127,7 +127,6 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
 
         <div className={classes.actionBar}>
           <div className={classes.actionBarStart}>
-            {/* TODO: The API does not yet support tools. */}
             <RunSettings containerRef={formRef} />
 
             {!isFileUploadDisabled && <FileUploadButton />}
