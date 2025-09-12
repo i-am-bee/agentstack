@@ -40,7 +40,7 @@ export const buildFullfilments = ({
           memo.embedding_fulfillments[demandKey] = {
             identifier: 'embedding_proxy',
             api_base: '{platform_url}/api/v1/openai/',
-            api_key: platformToken,
+            api_key: contextToken.token,
             api_model: selectedEmbeddingProviders[demandKey],
           };
 

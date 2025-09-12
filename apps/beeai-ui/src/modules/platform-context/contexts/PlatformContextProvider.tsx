@@ -169,7 +169,7 @@ export function PlatformContextProvider<UIGenericPart>({
       selectedMCPServers,
       featureFlags,
     });
-  }, [selectedLLMProviders, selectedEmbeddingProviders, selectedMCPServers, featureFlags]);
+  }, [selectedLLMProviders, selectedEmbeddingProviders, selectedMCPServers, featureFlags, getContextToken]);
 
   useEffect(() => {
     createContext().then(setContext);
