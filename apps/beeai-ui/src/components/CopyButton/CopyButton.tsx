@@ -37,7 +37,6 @@ export function CopyButton({ contentRef, kind = 'ghost', size = 'md', align, wra
   return (
     <IconButton
       label="Copy"
-      align="bottom"
       kind={kind}
       size={size}
       align={align}
