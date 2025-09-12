@@ -260,3 +260,11 @@ def verbosity(verbose: bool, show_success_status: bool = True):
 def make_safe_name(resource_url: str) -> str:
     parsed = urlparse(resource_url)
     return parsed.netloc or parsed.path
+
+
+def normalize_url(url: str) -> str:
+    if not url.startswith(("http://", "https://")):
+        url = "https://" + url
+    parsed = urlparse(url)
+    # ensure no trailing slash
+    return f"{parsed.scheme}://{parsed.netloc}"

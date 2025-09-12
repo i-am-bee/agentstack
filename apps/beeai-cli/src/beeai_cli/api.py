@@ -19,9 +19,14 @@ from httpx import HTTPStatusError
 from httpx._types import RequestFiles
 
 from beeai_cli.configuration import Configuration
+from beeai_cli.utils import normalize_url
 
 config = Configuration()
-BASE_URL = str(config.host).rstrip("/")
+BASE_URL = (
+    normalize_url(config.auth_manager.get_active_resource())
+    if config.auth_manager.get_active_resource()
+    else config.default_host
+)
 API_BASE_URL = f"{BASE_URL}/api/v1/"
 
 

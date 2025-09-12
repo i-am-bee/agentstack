@@ -13,6 +13,7 @@ import beeai_cli.commands.build
 import beeai_cli.commands.mcp
 import beeai_cli.commands.model
 import beeai_cli.commands.platform
+import beeai_cli.commands.resource_server
 import beeai_cli.commands.self
 from beeai_cli.async_typer import AsyncTyper
 from beeai_cli.configuration import Configuration
@@ -26,6 +27,9 @@ app.add_typer(beeai_cli.commands.platform.app, name="platform", no_args_is_help=
 app.add_typer(beeai_cli.commands.mcp.app, name="mcp", no_args_is_help=True, help="Manage MCP servers and toolkits.")
 app.add_typer(beeai_cli.commands.build.app, name="", no_args_is_help=True, help="Build agent images.")
 app.add_typer(beeai_cli.commands.auth.app, name="", no_args_is_help=True, help="Beeai login.")
+app.add_typer(
+    beeai_cli.commands.resource_server.app, name="server", no_args_is_help=True, help="Manage resource servers"
+)
 app.add_typer(
     beeai_cli.commands.self.app, name="self", no_args_is_help=True, help="Manage BeeAI installation.", hidden=True
 )

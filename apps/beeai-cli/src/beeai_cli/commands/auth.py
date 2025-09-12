@@ -16,7 +16,7 @@ from fastapi.responses import HTMLResponse
 
 from beeai_cli.async_typer import AsyncTyper, console
 from beeai_cli.configuration import Configuration
-from beeai_cli.utils import make_safe_name
+from beeai_cli.utils import make_safe_name, normalize_url
 
 app = AsyncTyper()
 
@@ -32,7 +32,7 @@ async def get_resource_metadata(resource_url: str, force_refresh=False):
         if data.get("expiry", 0) > time.time():
             return data["metadata"]
 
-    url = f"{resource_url}api/v1/.well-known/oauth-protected-resource"
+    url = f"{resource_url}/api/v1/.well-known/oauth-protected-resource"
     async with httpx.AsyncClient() as client:
         resp = await client.get(url)
         resp.raise_for_status()
@@ -128,10 +128,19 @@ async def exchange_token(oidc: dict, code: str, code_verifier: str, config) -> d
 
 @app.command("login")
 async def cli_login(resource_url: str | None = None):
-    if not resource_url:
-        entered = input(f"Enter the server url (default: {config.host}):").strip()
-        resource_url = entered or str(config.host)
+    # if config.auth_manager.config.get("resources"):
+    #     default_url = config.auth_manager.config.get("active_resource")
+    # else:
+    #     default_url = "beeai.res.ibm.com"
 
+    default_url = config.auth_manager.get_active_resource()
+    if not default_url:
+        default_url = "beeai.res.ibm.com"
+    if not resource_url:
+        entered = input(f"Enter the server address (default: {default_url}):").strip()
+        resource_url = entered or str(default_url)
+    resource_url = normalize_url(resource_url)
+    print(resource_url)
     metadata = await get_resource_metadata(resource_url=resource_url)
     auth_servers = metadata.get("authorization_servers", [])
 
@@ -178,7 +187,7 @@ async def cli_login(resource_url: str | None = None):
     tokens = await exchange_token(oidc, code, code_verifier, config)
 
     if tokens:
-        config.auth_manager.save_auth_token(resource_url, issuer, tokens)
+        config.auth_manager.save_auth_token(make_safe_name(resource_url), issuer, tokens)
         console.print()
         console.success("Login successful.")
         return

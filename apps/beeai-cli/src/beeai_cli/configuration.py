@@ -14,6 +14,7 @@ from beeai_sdk.platform import PlatformClient, use_platform_client
 from pydantic import HttpUrl, SecretStr
 
 from beeai_cli.auth_config_manager import AuthConfigManager
+from beeai_cli.utils import normalize_url
 
 
 @functools.cache
@@ -27,7 +28,7 @@ class Configuration(pydantic_settings.BaseSettings):
     model_config = pydantic_settings.SettingsConfigDict(
         env_file=None, env_prefix="BEEAI__", env_nested_delimiter="__", extra="allow"
     )
-    host: pydantic.AnyUrl = HttpUrl("http://localhost:8333")
+    default_host: pydantic.AnyUrl = HttpUrl("http://localhost:8333")
     ui_url: pydantic.AnyUrl = HttpUrl("http://localhost:8334")
     playground: str = "playground"
     debug: bool = False
@@ -38,7 +39,8 @@ class Configuration(pydantic_settings.BaseSettings):
     admin_password: SecretStr | None = None
     oidc_enabled: bool = False
     resource_metadata_ttl: int = 86400
-    client_id: str = "df82a687-d647-4247-838b-7080d7d83f6c"  # pre-registered with AS
+    # client_id: str = "df82a687-d647-4247-838b-7080d7d83f6c"  # pre-registered with AS
+    client_id: str = "0004ec72-bb41-49d0-804d-430167e5a148"
     redirect_uri: pydantic.AnyUrl = HttpUrl("http://localhost:9001/callback")
 
     @property
@@ -66,5 +68,7 @@ class Configuration(pydantic_settings.BaseSettings):
         auth = ("admin", self.admin_password.get_secret_value()) if self.admin_password else None
         token = self.auth_manager.load_auth_token()
         auth_token = token.get_secret_value() if token else None
-        async with use_platform_client(auth=auth, auth_token=auth_token, base_url=str(self.host)) as client:
+        active_resource = self.auth_manager.get_active_resource()
+        base_url = normalize_url(active_resource) if active_resource else str(self.default_host)
+        async with use_platform_client(auth=auth, auth_token=auth_token, base_url=base_url) as client:
             yield client
