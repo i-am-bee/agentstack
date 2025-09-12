@@ -5,7 +5,8 @@
 
 import type { NextRequest } from 'next/server';
 
-import { API_URL } from '#utils/constants.ts';
+import { getCurrentSession } from '#api/get-session.ts';
+import { API_URL, OIDC_ENABLED } from '#utils/constants.ts';
 
 import { transformAgentManifestBody } from './body-transformers';
 import { isApiAgentManifestUrl, isUrlTrailingSlashNeeded } from './utils';
@@ -20,7 +21,6 @@ async function handler(request: NextRequest, context: RouteContext) {
   const { method, headers, body, nextUrl } = request;
   const { path } = await context.params;
   const search = nextUrl.search;
-
   const url = new URL(API_URL);
   let targetUrl = `${url}api/${path.join('/')}`;
   // Ensure that URLs that need a trailing slash get one, because Next.js removes it for all routes
@@ -28,6 +28,11 @@ async function handler(request: NextRequest, context: RouteContext) {
     targetUrl += '/';
   }
   targetUrl += search;
+
+  if (OIDC_ENABLED) {
+    // ensure the beeai-platform cookie is set with an access token.
+    await getCurrentSession(request);
+  }
 
   const res = await fetch(targetUrl, {
     method,

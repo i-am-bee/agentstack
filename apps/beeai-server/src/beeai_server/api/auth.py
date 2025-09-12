@@ -194,6 +194,7 @@ async def decode_oauth_jwt_or_introspect(
                     logger.info("Caught an exception: %s", err)
                     continue
     if token is None:
+        logger.info("token is None")
         return None, None
     # The token may have been issued by a cron job using public / private key pair.
 

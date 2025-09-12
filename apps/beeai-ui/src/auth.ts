@@ -48,18 +48,16 @@ declare module 'next-auth' {
    */
   interface Session {
     User: DefaultSession['user'];
-    id_token: string;
     access_token?: string;
   }
 }
 
-import type { JWT, JWTDecodeParams, JWTEncodeParams } from 'next-auth/jwt';
+import type { JWT } from 'next-auth/jwt';
 
 declare module 'next-auth/jwt' {
   /** Returned by the `jwt` callback and `auth`, when using JWT sessions */
   interface JWT {
     /** OpenID ID Token */
-    id_token?: string;
     access_token?: string;
   }
 }
@@ -123,39 +121,66 @@ export const providerMap = providers
   })
   .filter((provider) => provider.id !== 'credentials');
 
-// Assisted by watsonx Code Assistant
+async function jwtWithRefresh(token, account) {
+  if (account) {
+    // First-time login, save the `access_token`, its expiry and the `refresh_token`
+    return {
+      ...token,
+      access_token: account.access_token,
+      expires_at: account.expires_at,
+      refresh_token: account.refresh_token,
+    };
+  } else if (Date.now() < token.expires_at * 1000) {
+    // Subsequent logins, but the `access_token` is still valid
+    return token;
+  } else {
+    // Subsequent logins, but the `access_token` has expired, try to refresh it
+    if (!token.refresh_token) throw new TypeError('Missing refresh_token');
 
-/**
- * Asynchronously decodes a JWT using a list of providers.
- * This function attempts to verify the JWT against each provider's JWKS (JSON Web Key Set) URL.
- * It will retry up to a certain count if verification fails.
- *
- * @param {JWTDecodeParams} params - The parameters for JWT decoding.
- * @returns {Promise<JWT | null>} - A Promise that resolves to the decoded JWT object or null if decoding fails.
- */
-async function internalDecode(params: JWTDecodeParams): Promise<JWT | null> {
-  let jwt: JWT | null = null;
-  let retryCount = 0;
-
-  for (const provider of provider_list) {
     try {
-      const { payload } = await jose.jwtVerify(params?.token || '', provider.JWKS, {
-        issuer: provider.issuer,
-        audience: provider.client_id,
-      });
-      payload['id_token'] = params?.token || '';
-      jwt = payload;
-      break;
-    } catch (error) {
-      if (error) {
-        retryCount += 1;
+      // The `token_endpoint` can be found in the provider's documentation. Or if they support OIDC,
+      // at their `/.well-known/openid-configuration` endpoint.
+      // lookup the provider's uri
+      const tmp = providers.filter((p) => p.name === token['provider']);
+      if (tmp.length === 0) {
+        throw new TypeError('no matching provider found');
       }
+      const tokenProvider = tmp[0];
+
+      const response = await fetch(`${tokenProvider.options?.issuer}/token`, {
+        method: 'POST',
+        body: new URLSearchParams({
+          client_id: '' + tokenProvider.options?.clientId || '',
+          client_secret: '' + tokenProvider.options?.clientSecret || '',
+          grant_type: 'refresh_token',
+          refresh_token: token.refresh_token!,
+        }),
+      });
+
+      const tokensOrError = await response.json();
+
+      if (!response.ok) throw tokensOrError;
+
+      const newTokens = tokensOrError as {
+        access_token: string;
+        expires_in: number;
+        refresh_token?: string;
+      };
+
+      return {
+        ...token,
+        access_token: newTokens.access_token,
+        expires_at: Math.floor(Date.now() / 1000 + newTokens.expires_in),
+        // Some providers only issue refresh tokens once, so preserve if we did not get a new one
+        refresh_token: newTokens.refresh_token ? newTokens.refresh_token : token.refresh_token,
+      };
+    } catch (error) {
+      console.error('Error refreshing access_token', error);
+      // If we fail to refresh the token, return an error so we can handle it on the page
+      token.error = 'RefreshTokenError';
+      return token;
     }
   }
-  if (jwt === null) {
-    console.warn(`Unable to verify jwt, retries: ${retryCount}`);
-  }
-  return jwt;
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -167,22 +192,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   session: { strategy: 'jwt' },
   trustHost: true,
   useSecureCookies: true,
-  jwt: {
-    async encode(params: JWTEncodeParams<JWT>): Promise<string> {
-      // return a custom encoded JWT string
-      return params?.token?.id_token || '';
-    },
-    async decode(params: JWTDecodeParams): Promise<JWT | null> {
-      // return a `JWT` object, or `null` if decoding failed
-      // const jwt = { access_token: params.token || '' };
-      let jwt: JWT | null = null;
-      jwt = await internalDecode(params);
-      return jwt;
-    },
-  },
   cookies: {
     sessionToken: {
-      name: `beeai-platform`,
+      name: `beeai-platform-1`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
@@ -193,34 +205,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   callbacks: {
     // middleware callback
-    authorized({ request, auth }) {
+    authorized({ auth }) {
       // essentially return !!auth
-      const isOidcEnabled = process.env.OIDC_ENABLED === 'true';
-      if (!isOidcEnabled) {
+      if (!OIDC_ENABLED) {
         return true;
       }
-      const { pathname } = request.nextUrl;
-      if (pathname === '/') return !!auth;
       return !!auth;
     },
-    jwt({ token, account, trigger, session }) {
+    async jwt({ token, account, trigger, session }) {
       if (trigger === 'update') {
         token.name = session.user.name;
       }
       // pull the id token out of the account on signIn
       if (account) {
-        token['id_token'] = account.id_token;
         token['access_token'] = account.access_token;
+        token['provider'] = account.provider;
       }
-      return token;
+      return await jwtWithRefresh(token, account);
     },
     async session({ session, token }) {
-      if (token?.id_token) {
-        session.id_token = token.id_token;
-      } else {
-        if (typeof token === 'string') {
-          session.id_token = token;
-        }
+      // Silly workaround to allow overriding the JWT interface
+      const jwt: JWT = {};
+      if (jwt && token?.access_token) {
+        session.access_token = token.access_token;
       }
       return session;
     },
