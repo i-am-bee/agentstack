@@ -6,7 +6,9 @@
 import { Launch, LogoGithub, Settings } from '@carbon/icons-react';
 import { OverflowMenu, OverflowMenuItem } from '@carbon/react';
 
+import { useApp } from '#contexts/App/index.ts';
 import { useRouteTransition } from '#contexts/TransitionContext/index.ts';
+import { useBreakpoint } from '#hooks/useBreakpoint.ts';
 import { DOCUMENTATION_LINK, GET_SUPPORT_LINK } from '#utils/constants.ts';
 import { routes } from '#utils/router.ts';
 
@@ -14,6 +16,8 @@ import classes from './UserNav.module.scss';
 
 export function UserNav() {
   const { transitionTo } = useRouteTransition();
+  const { setNavigationOpen } = useApp();
+  const isBreakpointMax = useBreakpoint('max');
 
   return (
     <OverflowMenu
@@ -33,6 +37,11 @@ export function UserNav() {
             onClick={(event) => {
               if (isInternal) {
                 transitionTo(href);
+
+                if (!isBreakpointMax) {
+                  setNavigationOpen(false);
+                }
+
                 event.preventDefault();
               }
             }}
