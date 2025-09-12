@@ -18,6 +18,7 @@ import { dispatchInputEventOnTextarea, submitFormOnEnter } from '#utils/form-uti
 import { ChatDefaultTools } from '../chat/constants';
 import { useAgentRun } from '../contexts/agent-run';
 import type { RunRunFormValues } from '../types';
+import { MCPConfig } from './MCPConfig';
 import { ModelProviders } from './ModelProviders';
 import { PromptExamples } from './PromptExamples';
 import { RunFiles } from './RunFiles';
@@ -130,6 +131,8 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
             {/* <RunSettings containerRef={formRef} /> */}
 
             {!isFileUploadDisabled && <FileUploadButton />}
+
+            {featureFlags.MCP && <MCPConfig />}
 
             {featureFlags.ModelProviders && <ModelProviders />}
           </div>

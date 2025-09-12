@@ -5,6 +5,7 @@
 
 import '../styles/style.scss';
 
+import { APP_FAVICON_SVG, APP_NAME, BASE_PATH } from '@i-am-bee/beeai-ui';
 import type { Metadata } from 'next';
 
 import AppLayout from '@/layouts/AppLayout';
@@ -30,8 +31,14 @@ const darkModeScript = `
 })();
 `;
 
+const icon = `${BASE_PATH}${APP_FAVICON_SVG}`;
+
 export const metadata: Metadata = {
-  title: 'BeeAI',
+  title: APP_NAME,
+  icons: {
+    icon: icon,
+    shortcut: icon,
+  },
 };
 
 export default function RootLayout({

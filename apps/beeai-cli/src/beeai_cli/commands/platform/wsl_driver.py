@@ -110,7 +110,7 @@ class WSLDriver(BaseDriver):
                 config.write(f)
 
                 if platform.system() == "Linux":
-                    console.print(
+                    console.warning(
                         "WSL networking mode updated. Please close WSL, run [green]wsl --shutdown[/green] from PowerShell, re-open WSL and run [green]beeai platform start[/green] again."
                     )
                     sys.exit(1)

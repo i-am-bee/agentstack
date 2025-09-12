@@ -26,6 +26,12 @@
   }
 }
 
+.spinner {
+  min-block-size: rem(26px);
+  display: flex;
+  align-items: center;
+}
+
 .content {
   font-size: rem(16px);
   line-height: math.div(26, 16);

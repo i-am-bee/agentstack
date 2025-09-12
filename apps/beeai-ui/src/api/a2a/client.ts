@@ -14,24 +14,36 @@ import type { TaskId } from '#modules/tasks/api/types.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 
 import { AGENT_ERROR_MESSAGE } from './constants';
+import { embeddingExtension } from './extensions/services/embedding';
 import { llmExtension } from './extensions/services/llm';
 import { mcpExtension } from './extensions/services/mcp';
+import { oauthProviderExtension } from './extensions/services/oauth-provider';
+import { activePlatformExtension } from './extensions/services/platform';
 import { formExtension, formMessageExtension } from './extensions/ui/form';
+import { oauthRequestExtension } from './extensions/ui/oauth';
 import {
   extractServiceExtensionDemands,
   extractUiExtensionData,
   fulfillServiceExtensionDemand,
 } from './extensions/utils';
 import { processMessageMetadata, processParts } from './part-processors';
-import type { ChatResult, FormRequiredResult } from './types';
+import type { AuthRequiredResult, ChatResult, FormRequiredResult } from './types';
 import { type ChatParams, type ChatRun, RunResultType } from './types';
 import { createUserMessage, extractTextFromMessage } from './utils';
 
+const oauthExtensionExtractor = extractServiceExtensionDemands(oauthProviderExtension);
+const fulfillOauthDemand = fulfillServiceExtensionDemand(oauthProviderExtension);
+
 const mcpExtensionExtractor = extractServiceExtensionDemands(mcpExtension);
 const fulfillMcpDemand = fulfillServiceExtensionDemand(mcpExtension);
+
 const llmExtensionExtractor = extractServiceExtensionDemands(llmExtension);
+const embeddingExtensionExtractor = extractServiceExtensionDemands(embeddingExtension);
 const fulfillLlmDemand = fulfillServiceExtensionDemand(llmExtension);
+const fulfillEmbeddingDemand = fulfillServiceExtensionDemand(embeddingExtension);
 const extractForm = extractUiExtensionData(formMessageExtension);
+
+const oauthRequestExtensionExtractor = extractUiExtensionData(oauthRequestExtension);
 
 function handleStatusUpdate<UIGenericPart = never>(
   event: TaskStatusUpdateEvent,
@@ -78,6 +90,8 @@ export const buildA2AClient = async <UIGenericPart = never>({
 }: CreateA2AClientParams<UIGenericPart>) => {
   const mcpDemands = mcpExtensionExtractor(extensions);
   const llmDemands = llmExtensionExtractor(extensions);
+  const oauthDemands = oauthExtensionExtractor(extensions);
+  const embeddingDemands = embeddingExtensionExtractor(extensions);
 
   const agentCardUrl = `${getBaseUrl()}/api/v1/a2a/${providerId}/.well-known/agent-card.json`;
   const client = await A2AClient.fromCardUrl(agentCardUrl);
@@ -85,17 +99,35 @@ export const buildA2AClient = async <UIGenericPart = never>({
   const chat = ({ message, contextId, fulfillments, taskId: initialTaskId }: ChatParams) => {
     const messageSubject = new Subject<ChatResult<UIGenericPart>>();
 
-    let taskId: TaskId | undefined = initialTaskId;
+    let taskId: undefined | TaskId = initialTaskId;
 
     const iterateOverStream = async () => {
       let metadata = {};
 
+      metadata = activePlatformExtension(metadata, fulfillments.getContextToken());
+
       if (mcpDemands) {
-        metadata = fulfillMcpDemand(metadata, await fulfillments.mcp(mcpDemands));
+        const mcpFullfilment = await fulfillments.mcp(mcpDemands);
+
+        if (mcpFullfilment !== null) {
+          metadata = fulfillMcpDemand(metadata, mcpFullfilment);
+        }
       }
 
       if (llmDemands) {
         metadata = fulfillLlmDemand(metadata, await fulfillments.llm(llmDemands));
+      }
+
+      if (oauthDemands) {
+        const mcpOAuthFullfilment = await fulfillments.oauth(oauthDemands);
+
+        if (mcpOAuthFullfilment !== null) {
+          metadata = fulfillOauthDemand(metadata, mcpOAuthFullfilment);
+        }
+      }
+
+      if (embeddingDemands) {
+        metadata = fulfillEmbeddingDemand(metadata, await fulfillments.embedding(embeddingDemands));
       }
 
       if (message.form) {
@@ -105,13 +137,25 @@ export const buildA2AClient = async <UIGenericPart = never>({
         };
       }
 
+      if (message.auth) {
+        metadata = {
+          ...metadata,
+          [oauthRequestExtension.getUri()]: {
+            redirect_uri: message.auth,
+          },
+        };
+      }
+
       const stream = client.sendMessageStream({
         message: createUserMessage({ message, contextId, metadata, taskId }),
       });
 
       const taskResult = lastValueFrom(
         messageSubject.asObservable().pipe(
-          filter((result: ChatResult): result is FormRequiredResult => result.type === RunResultType.FormRequired),
+          filter(
+            (result: ChatResult): result is FormRequiredResult | AuthRequiredResult =>
+              result.type !== RunResultType.Parts,
+          ),
           defaultIfEmpty(null),
         ),
       );
@@ -133,6 +177,19 @@ export const buildA2AClient = async <UIGenericPart = never>({
                 });
               } else {
                 throw new Error(`Illegal State - form extension data missing on input-required event`);
+              }
+            }
+
+            if (event.status.state === 'auth-required') {
+              const oauth = oauthRequestExtensionExtractor(event.status.message?.metadata);
+              if (oauth) {
+                messageSubject.next({
+                  type: RunResultType.AuthRequired,
+                  taskId,
+                  url: oauth.authorization_endpoint_url,
+                });
+              } else {
+                throw new Error(`Illegal State - oauth extension data missing on auth-required event`);
               }
             }
 
@@ -186,5 +243,10 @@ export const buildA2AClient = async <UIGenericPart = never>({
     return run;
   };
 
-  return { chat, llmDemands };
+  return {
+    chat,
+    llmDemands: llmDemands?.llm_demands,
+    embeddingDemands: embeddingDemands?.embedding_demands,
+    mcpDemands: mcpDemands?.mcp_demands,
+  };
 };

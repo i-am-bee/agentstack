@@ -204,6 +204,8 @@ phoenix:
   fullnameOverride: "phoenix"
   ingress:
     enabled: false
+  image:
+    repository: "ghcr.io/i-am-bee/arizephoenix/phoenix"
   securityContext:
     container:
       enabled: true
@@ -213,6 +215,7 @@ phoenix:
     grpcPort: 8335
   database:
     url: "sqlite:////home/phoenix/phoenix.db"
+    defaultRetentionPolicyDays: 7
   persistence:
     enabled: true
     size: 8Gi
@@ -222,7 +225,7 @@ phoenix:
     enableAuth: false
 
 collector:
-  image: otel/opentelemetry-collector-contrib:0.122.1
+  image: ghcr.io/i-am-bee/otel/opentelemetry-collector-contrib:0.122.1
   livenessProbe: { }
   readinessProbe: { }
   resources: { }
@@ -290,7 +293,7 @@ postgresql:
   image:
     registry: ghcr.io
     repository: i-am-bee/bitnami/postgresql-pgvector
-    tag: 17.5.0
+    tag: 17.6.0
   auth:
     postgresPassword: "admin-password"
     enablePostgresUser: true
@@ -347,6 +350,8 @@ externalDatabase:
 ## @param seaweedfs.auth.existingSecret must have keys "accessKeyId" and "accessKeySecret"
 seaweedfs:
   enabled: true
+  image:
+    repository: ghcr.io/i-am-bee/
   bucket: "beeai-files"
   auth:
     admin:
@@ -430,7 +435,7 @@ docling:
     port: 15001
     type: ClusterIP
   imagePullPolicy: IfNotPresent
-  image: "ghcr.io/docling-project/docling-serve-cpu:v0.16.0"
+  image: "ghcr.io/docling-project/docling-serve-cpu:v1.5.0"
 
 ## MCP Context Forge configuration
 forge:

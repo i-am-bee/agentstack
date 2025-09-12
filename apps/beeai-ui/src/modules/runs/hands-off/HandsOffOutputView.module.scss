@@ -58,6 +58,10 @@ $max-inline-size: rem(608px);
   font-size: rem(24px);
   line-height: math.div(32, 24);
   flex-grow: 1;
+  > p {
+    font-size: inherit;
+    line-height: inherit;
+  }
 }
 
 .body {

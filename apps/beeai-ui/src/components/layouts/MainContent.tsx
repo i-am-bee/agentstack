@@ -15,7 +15,7 @@ import { createScrollbarStyles } from '#utils/createScrollbarStyles.ts';
 import classes from './MainContent.module.scss';
 
 export interface MainContentProps extends PropsWithChildren {
-  spacing?: 'md' | 'lg';
+  spacing?: 'md' | 'lg' | false;
   scrollable?: boolean;
   className?: string;
   footer?: ReactNode;
@@ -25,13 +25,15 @@ export function MainContent({ spacing = 'lg', scrollable = true, className, foot
   const { scrollElementRef, observeElementRef, isScrolled } = useIsScrolled();
   const { ref: scrollbarRef, scrollbarWidth } = useScrollbarWidth();
 
+  const spacingClassName = spacing ? classes[spacing] : null;
+
   return (
     <div
       ref={mergeRefs([scrollbarRef, scrollElementRef])}
       className={clsx(
         classes.root,
+        spacingClassName,
         {
-          [classes[spacing]]: spacing,
           [classes.scrollable]: scrollable,
           [classes.hasFooter]: Boolean(footer),
         },

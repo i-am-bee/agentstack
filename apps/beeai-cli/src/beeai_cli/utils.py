@@ -202,7 +202,7 @@ async def run_command(
     except FileNotFoundError:
         console.print(f"{message} [[red]ERROR[/red]]")
         tool_name = command[0]
-        console.print(f"[red]Error: {tool_name} is not installed. Please install {tool_name} first.[/red]")
+        console.error(f"{tool_name} is not installed. Please install {tool_name} first.")
         sys.exit(1)
     except subprocess.CalledProcessError as e:
         console.print(f"{message} [[red]ERROR[/red]]")

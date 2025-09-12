@@ -20,5 +20,5 @@ pytestmark = pytest.mark.integration
     ],
 )
 async def test_get_registry_image_config_and_labels(image):
-    config, labels = await get_registry_image_config_and_labels(image, configuration=Configuration())
+    config, _ = await get_registry_image_config_and_labels(image, configuration=Configuration())
     assert config

@@ -31,14 +31,14 @@ class DoclingTextExtractionBackend(ITextExtractionBackend):
             AsyncClient(base_url=str(self._config.docling_service_url), timeout=timeout.seconds) as client,
             client.stream(
                 "POST",
-                "/v1alpha/convert/source",
+                "/v1/convert/source",
                 json={
                     "options": {
                         "to_formats": ["md"],
                         "document_timeout": timeout.total_seconds(),
                         "image_export_mode": "placeholder",
                     },
-                    "http_sources": [{"url": str(file_url)}],
+                    "sources": [{"kind": "http", "url": str(file_url)}],
                 },
             ) as response,
         ):

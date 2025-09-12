@@ -23,6 +23,7 @@ import { addTranformedMessagePart, isAgentMessage } from '#modules/messages/util
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 import { PlatformContextProvider } from '#modules/platform-context/contexts/PlatformContextProvider.tsx';
 import { useBuildA2AClient } from '#modules/runs/api/queries/useBuildA2AClient.ts';
+import { useStartOAuth } from '#modules/runs/hooks/useStartOAuth.ts';
 import type { RunStats } from '#modules/runs/types.ts';
 import { SourcesProvider } from '#modules/sources/contexts/SourcesProvider.tsx';
 import { getMessagesSourcesMap } from '#modules/sources/utils.ts';
@@ -187,6 +188,11 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
             message.status = UIMessageStatus.InputRequired;
             message.parts.push({ kind: UIMessagePartKind.Form, ...result.form });
           });
+        } else if (result && result.type === RunResultType.AuthRequired) {
+          updateCurrentAgentMessage((message) => {
+            message.status = UIMessageStatus.InputRequired;
+            message.parts.push({ kind: UIMessagePartKind.Auth, url: result.url, taskId: result.taskId });
+          });
         } else {
           updateCurrentAgentMessage((message) => {
             message.status = UIMessageStatus.Completed;
@@ -239,6 +245,19 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
     [checkPendingRun, run],
   );
 
+  const { startAuth } = useStartOAuth({
+    onSuccess: async (taskId: TaskId, redirectUri: string) => {
+      const userMessage: UIUserMessage = {
+        id: uuid(),
+        role: Role.User,
+        parts: [],
+        auth: redirectUri,
+      };
+
+      await run(userMessage, taskId);
+    },
+  });
+
   const sources = useMemo(() => getMessagesSourcesMap(messages), [messages]);
 
   const lastAgentMessage = getMessages().findLast(isAgentMessage);
@@ -267,10 +286,11 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
       stats,
       chat,
       submitForm,
+      startAuth,
       cancel,
       clear,
     };
-  }, [agent, status, input, stats, chat, submitForm, cancel, clear]);
+  }, [agent, status, input, stats, chat, submitForm, cancel, clear, startAuth]);
 
   return (
     <AgentStatusProvider agent={agent} isMonitorStatusEnabled>

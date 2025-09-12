@@ -14,7 +14,6 @@ from textwrap import dedent
 from uuid import uuid4
 
 import httpx
-import jsonref
 from a2a.client import Client
 from a2a.types import (
     AgentCard,
@@ -655,20 +654,6 @@ def _setup_sequential_workflow(providers: list[Provider], splash_screen: Console
     return steps
 
 
-def _get_config_schema(schema: dict[str, Any] | None) -> dict[str, Any] | None:
-    if not schema:
-        return None
-    schema = jsonref.replace_refs(schema, lazy_load=False)
-
-    if not (schema := schema.get("properties", {}).get("config", None)):
-        return None
-
-    schema = remove_nullable(schema)
-    if not schema.get("properties", None):
-        return None
-    return schema
-
-
 @app.command("run")
 async def run_agent(
     search_path: typing.Annotated[
@@ -718,9 +703,9 @@ async def run_agent(
             interaction_mode not in {InteractionMode.MULTI_TURN, InteractionMode.SINGLE_TURN}
             and not is_sequential_workflow
         ):
-            err_console.print(
-                f"💥 [red][b]Error[/red][/b]: Agent {agent.name} does not use any supported UIs.\n"
-                f"Please use the agent according to the following examples and schema:"
+            err_console.error(
+                f"Agent {agent.name} does not use any supported UIs.\n"
+                + "Please use the agent according to the following examples and schema:"
             )
             err_console.print(_render_examples(agent))
             exit(1)

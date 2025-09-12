@@ -20,7 +20,7 @@ from rich.table import Column
 from beeai_cli.api import openai_client
 from beeai_cli.async_typer import AsyncTyper, console, create_table
 from beeai_cli.configuration import Configuration
-from beeai_cli.utils import format_error, run_command, verbosity
+from beeai_cli.utils import run_command, verbosity
 
 app = AsyncTyper()
 configuration = Configuration()
@@ -238,10 +238,11 @@ async def _add_provider(capability: ModelCapability, use_true_localhost: bool = 
 
     try:
         if provider_type == ModelProviderType.OLLAMA:
-            console.print(
-                "\n[yellow]HINT[/yellow]: If you are struggling with ollama performance, try increasing the context "
-                "length in ollama UI settings or using an environment variable in the CLI: OLLAMA_CONTEXT_LENGTH=8192"
-                "\nMore information: https://github.com/ollama/ollama/blob/main/docs/faq.md#how-can-i-specify-the-context-window-size\n\n"
+            console.print()
+            console.hint(
+                "If you are struggling with ollama performance, try increasing the context "
+                + "length in ollama UI settings or using an environment variable in the CLI: OLLAMA_CONTEXT_LENGTH=8192"
+                + "\nMore information: https://github.com/ollama/ollama/blob/main/docs/faq.md#how-can-i-specify-the-context-window-size\n\n"
             )
             async with httpx.AsyncClient() as client:
                 response = (await client.get(f"{base_url}/models", timeout=30.0)).raise_for_status().json()
@@ -292,19 +293,19 @@ async def _add_provider(capability: ModelCapability, use_true_localhost: bool = 
             err = str(e)
         match provider_type:
             case ModelProviderType.OLLAMA:
-                err += "\n\n💡 [yellow]HINT[/yellow]: We could not connect to Ollama. Is it running?"
+                err += "\n\n💡 [bright_cyan]HINT[/bright_cyan]: We could not connect to Ollama. Is it running?"
             case ModelProviderType.JAN:
                 err += (
-                    "\n\n💡 [yellow]HINT[/yellow]: We could not connect to Jan. Ensure that the server is running: "
+                    "\n\n💡 [bright_cyan]HINT[/bright_cyan]: We could not connect to Jan. Ensure that the server is running: "
                     "in the Jan application, click the [bold][<>][/bold] button and [bold]Start server[/bold]."
                 )
             case ModelProviderType.OTHER:
                 err += (
-                    "\n\n💡 [yellow]HINT[/yellow]: We could not connect to the API URL you have specified."
+                    "\n\n💡 [bright_cyan]HINT[/bright_cyan]: We could not connect to the API URL you have specified."
                     "Is it correct?"
                 )
             case _:
-                err += f"\n\n💡 [yellow]HINT[/yellow]: {provider_type} may be down or API key is invalid"
+                err += f"\n\n💡 [bright_cyan]HINT[/bright_cyan]: {provider_type} may be down or API key is invalid"
         raise ModelProviderError(err) from e
 
 
@@ -414,7 +415,7 @@ async def setup(
             # Delete all existing providers
             existing_providers = await ModelProvider.list()
             if existing_providers:
-                console.print("⚠️ [bold]Warning:[/bold] The following providers are already configured:\n")
+                console.warning("The following providers are already configured:\n")
                 _list_providers(existing_providers)
                 console.print()
                 if await inquirer.confirm(  # type: ignore
@@ -600,10 +601,7 @@ async def ensure_llm_provider():
         if (config.default_embedding_model and config.default_embedding_model not in models) or (
             config.default_llm_model and config.default_llm_model not in models
         ):
-            console.print(
-                "⚠️ [bold red]Found inconsistent configuration:[/bold red]"
-                "default model is not found in available models."
-            )
+            console.warning("Found inconsistent configuration: default model is not found in available models.")
             inconsistent = True
 
         if config.default_llm_model and not inconsistent:
@@ -614,9 +612,7 @@ async def ensure_llm_provider():
     try:
         await setup()
     except Exception:
-        console.print(format_error("Error", "Could not continue because the LLM environment is not properly set up."))
-        console.print(
-            "💡 [yellow]HINT[/yellow]: Try re-entering your LLM API details with: [green]beeai model setup[/green]"
-        )
+        console.error("Could not continue because the LLM environment is not properly set up.")
+        console.hint("Try re-entering your LLM API details with: [green]beeai model setup[/green]")
         raise
     console.print()

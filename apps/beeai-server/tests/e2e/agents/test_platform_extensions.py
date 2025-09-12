@@ -50,7 +50,7 @@ async def file_reader_writer(create_server_with_agent) -> AsyncGenerator[tuple[S
 )
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
 async def test_platform_api_extension(file_reader_writer, permissions, should_fail, get_final_task_from_stream):
-    server, client = file_reader_writer
+    _, client = file_reader_writer
 
     # create context and token
     context = await Context.create()

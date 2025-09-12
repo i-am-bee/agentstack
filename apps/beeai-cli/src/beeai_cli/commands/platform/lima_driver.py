@@ -11,6 +11,7 @@ import uuid
 from subprocess import CompletedProcess
 
 import anyio
+import psutil
 import pydantic
 import yaml
 
@@ -30,7 +31,7 @@ class LimaDriver(BaseDriver):
             self.limactl_exe = str(bundled_limactl_exe)
         else:
             self.limactl_exe = str(shutil.which("limactl"))
-            console.print(f"[yellow]Warning: Using external Lima from {self.limactl_exe}[/yellow]")
+            console.warning(f"Using external Lima from {self.limactl_exe}")
 
     @typing.override
     async def run_in_vm(
@@ -84,6 +85,17 @@ class LimaDriver(BaseDriver):
                 cwd="/",
             )
 
+            total_memory_gib = typing.cast(int, psutil.virtual_memory().total / (1024**3))
+
+            if total_memory_gib < 4:
+                console.error("Not enough memory. BeeAI platform requires at least 4 GB of RAM.")
+                sys.exit(1)
+
+            if total_memory_gib < 8:
+                console.warning("Less than 8 GB of RAM detected. Performance may be degraded.")
+
+            vm_memory_gib = round(min(8, max(3, total_memory_gib / 2)))
+
             with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete_on_close=False) as template_file:
                 template_file.write(
                     yaml.dump(
@@ -98,10 +110,19 @@ class LimaDriver(BaseDriver):
                                     "arch": "aarch64",
                                 },
                             ],
+                            "portForwards": [
+                                {
+                                    "guestIP": "127.0.0.1",
+                                    "guestPortRange": [1024, 65535],
+                                    "hostPortRange": [1024, 65535],
+                                    "hostIP": "127.0.0.1",
+                                },
+                                {"guestIP": "0.0.0.0", "proto": "any", "ignore": True},
+                            ],
                             "mounts": [{"location": "/tmp/beeai", "mountPoint": "/tmp/beeai", "writable": True}],
                             "containerd": {"system": False, "user": False},
                             "hostResolver": {"hosts": {"host.docker.internal": "host.lima.internal"}},
-                            "memory": "8GiB",
+                            "memory": f"{vm_memory_gib}GiB",
                         }
                     )
                 )
@@ -127,7 +148,7 @@ class LimaDriver(BaseDriver):
                 cwd="/",
             )
         else:
-            console.print("Updating an existing instance.")
+            console.info("Updating an existing instance.")
 
     @typing.override
     async def stop(self):

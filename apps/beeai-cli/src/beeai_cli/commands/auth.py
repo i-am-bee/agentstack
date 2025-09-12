@@ -136,7 +136,7 @@ async def cli_login(resource_url: str | None = None):
     auth_servers = metadata.get("authorization_servers", [])
 
     if not auth_servers:
-        console.print("[bold red]No authorization servers found for this resource.[/bold red]")
+        console.error("No authorization servers found for this resource.")
         raise RuntimeError("Login failed due to missing authorization servers.")
 
     if len(auth_servers) == 1:
@@ -179,10 +179,12 @@ async def cli_login(resource_url: str | None = None):
 
     if tokens:
         config.auth_manager.save_auth_token(resource_url, issuer, tokens)
-        console.print("\n[bold green]Ok! Login successful.[/bold green]")
+        console.print()
+        console.success("Login successful.")
         return
 
-    console.print("\n [bold red] Login timed out or not successful. [/bold red] ")
+    console.print()
+    console.error("Login timed out or not successful.")
     raise RuntimeError("Login failed.")
 
 
@@ -198,4 +200,5 @@ async def logout():
             except Exception:
                 metadata_file.unlink()
 
-    console.print("\n[bold yellow]You have been logged out.[/bold yellow]")
+    console.print()
+    console.success("You have been logged out.")

@@ -39,19 +39,20 @@ def get_driver(vm_name: str = "beeai-platform") -> BaseDriver:
     elif has_lima and (has_vz or has_qemu):
         return LimaDriver(vm_name=vm_name)
     else:
-        console.print(
-            "[red]Error: Could not find a compatible VM runtime. Please follow the installation instructions at https://docs.beeai.dev/introduction/quickstart[/red]"
-        )
+        console.error("Could not find a compatible VM runtime.")
         if platform.system() == "Darwin":
-            console.print("💡 [yellow]HINT[/yellow]: This version of macOS is unsupported, please update the system.")
+            console.hint("This version of macOS is unsupported, please update the system.")
         elif platform.system() == "Linux":
             if not has_lima:
-                console.print(
-                    "💡 [yellow]HINT[/yellow]: This Linux distribution is not suppored by Lima VM binary releases. Manually install Lima VM through your distribution's package manager, or build it yourself, and ensure that limactl is in PATH."
+                console.hint(
+                    "This Linux distribution is not suppored by Lima VM binary releases (required: glibc>=2.34). Manually install Lima VM >=1.2.1 through either:\n"
+                    + "  - Your distribution's package manager, if available (https://repology.org/project/lima/versions)\n"
+                    + "  - Homebrew, which uses its own separate glibc on Linux (https://brew.sh)\n"
+                    + "  - Building it yourself, and ensuring that limactl is in PATH (https://lima-vm.io/docs/installation/source/)"
                 )
             if not has_qemu:
-                console.print(
-                    f"💡 [yellow]HINT[/yellow]: QEMU is needed on Linux, please install it and ensure that qemu-system-{arch} is in PATH."
+                console.hint(
+                    f"QEMU is needed on Linux, please install it and ensure that qemu-system-{arch} is in PATH. Refer to https://www.qemu.org/download/ for instructions."
                 )
         sys.exit(1)
 
@@ -90,7 +91,7 @@ async def start(
             else:
                 raise ConnectionError(f"Server did not start in {timeout}. Please check your internet connection.")
 
-        console.print("[green]BeeAI platform started successfully![/green]")
+        console.success("BeeAI platform started successfully!")
 
         if any("phoenix.enabled=true" in value.lower() for value in set_values_list):
             console.print(
@@ -116,10 +117,10 @@ async def stop(
     with verbosity(verbose):
         driver = get_driver(vm_name=vm_name)
         if not await driver.status():
-            console.print("BeeAI platform not found. Nothing to stop.")
+            console.info("BeeAI platform not found. Nothing to stop.")
             return
         await driver.stop()
-        console.print("[green]BeeAI platform stopped successfully.[/green]")
+        console.success("BeeAI platform stopped successfully.")
 
 
 @app.command("delete")
@@ -131,7 +132,7 @@ async def delete(
     with verbosity(verbose):
         driver = get_driver(vm_name=vm_name)
         await driver.delete()
-        console.print("[green]BeeAI platform deleted successfully.[/green]")
+        console.success("BeeAI platform deleted successfully.")
 
 
 @app.command("import")
@@ -144,7 +145,7 @@ async def import_image_cmd(
     with verbosity(verbose):
         driver = get_driver(vm_name=vm_name)
         if (await driver.status()) != "running":
-            console.print("[red]BeeAI platform is not running.[/red]")
+            console.error("BeeAI platform is not running.")
             sys.exit(1)
         await driver.import_image(tag)
 
@@ -159,6 +160,6 @@ async def exec_cmd(
     with verbosity(verbose, show_success_status=False):
         driver = get_driver(vm_name=vm_name)
         if (await driver.status()) != "running":
-            console.print("[red]BeeAI platform is not running.[/red]")
+            console.error("BeeAI platform is not running.")
             sys.exit(1)
         await driver.exec(command or ["/bin/bash"])

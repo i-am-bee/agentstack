@@ -83,12 +83,12 @@ class AsyncTyper(typer.Typer):
                     for exc_type, message in extract_messages(ex):
                         err_console.print(format_error(exc_type, message))
                         if exc_type in ["ConnectionError", "ConnectError"]:
-                            err_console.print(
-                                "💡 [yellow]HINT[/yellow]: Start the BeeAI platform using: [green]beeai platform start[/green]. If that does not help, run [green]beeai platform delete[/green] to start with a clean slate, then try [green]beeai platform start[/green] again."
+                            err_console.hint(
+                                "Start the BeeAI platform using: [green]beeai platform start[/green]. If that does not help, run [green]beeai platform delete[/green] to clean up, then [green]beeai platform start[/green] again."
                             )
                         else:
-                            err_console.print(
-                                "💡 [yellow]HINT[/yellow]: Are you having consistent problems? If so, try these troubleshooting steps: [green]beeai platform delete[/green] to remove the platform, and [green]beeai platform start[/green] to recreate it."
+                            err_console.hint(
+                                "Are you having consistent problems? If so, try these troubleshooting steps: [green]beeai platform delete[/green] to remove the platform, and [green]beeai platform start[/green] to recreate it."
                             )
                     if DEBUG:
                         raise
