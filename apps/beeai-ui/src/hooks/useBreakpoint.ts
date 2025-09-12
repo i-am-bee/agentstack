@@ -8,7 +8,7 @@ import { useMediaQuery } from 'usehooks-ts';
 
 type Breakpoint = keyof typeof breakpoints;
 
-export function useBreakpoint(breakpoint: Breakpoint) {
+export function useBreakpointUp(breakpoint: Breakpoint) {
   const { width } = breakpoints[breakpoint];
   const matches = useMediaQuery(`(min-width: ${width})`);
 
