@@ -1,4 +1,4 @@
-[[tools."asdf:CrouchingMuppet/asdf-lima"]]
+[tools."asdf:CrouchingMuppet/asdf-lima"]
 version = "1.2.1"
 backend = "asdf:CrouchingMuppet/asdf-lima"
 
@@ -34,7 +34,7 @@ backend = "core:node"
 [tools.node.checksums]
 "node-v22.19.0-darwin-arm64.tar.gz" = "sha256:c59006db713c770d6ec63ae16cb3edc11f49ee093b5c415d667bb4f436c6526d"
 
-[[tools."pipx:toml-cli"]]
+[tools."pipx:toml-cli"]
 version = "0.8.1"
 backend = "pipx:toml-cli"
 
