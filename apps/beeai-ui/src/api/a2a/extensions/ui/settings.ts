@@ -29,7 +29,7 @@ const optionItem = z.object({
 const singleSelectField = z.object({
   type: z.literal('single_select'),
   id: z.string().nonempty(),
-  options: z.array(optionItem),
+  options: z.array(optionItem).nonempty(),
   default_value: z.string().nonempty(),
 });
 

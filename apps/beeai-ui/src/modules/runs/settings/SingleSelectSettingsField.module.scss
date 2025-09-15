@@ -24,8 +24,10 @@
   gap: $spacing-05;
   border-radius: $border-radius;
 
-  &:hover,
-  &.selected {
+  &:hover {
+    background-color: $layer-hover-01;
+  }
+  :not(:hover) &.selected {
     background-color: $layer-hover-01;
   }
 

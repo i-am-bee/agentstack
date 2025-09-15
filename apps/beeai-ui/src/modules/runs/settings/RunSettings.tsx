@@ -36,7 +36,7 @@ export function RunSettings({ containerRef }: Props) {
       <IconButton
         kind="ghost"
         size="sm"
-        label="Customize Tools"
+        label="Agent settings"
         autoAlign
         ref={refs.setReference}
         {...getReferenceProps()}
