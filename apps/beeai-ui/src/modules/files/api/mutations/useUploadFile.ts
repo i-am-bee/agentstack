@@ -17,11 +17,12 @@ interface Props {
 
 interface UploadFileVariables {
   file: FileEntity;
+  contextId: string;
 }
 
 export function useUploadFile({ onMutate, onSuccess, onError }: Props = {}) {
   const mutation = useMutation({
-    mutationFn: ({ file }: UploadFileVariables) => uploadFile({ body: { file } }),
+    mutationFn: ({ file, contextId }: UploadFileVariables) => uploadFile({ body: { file }, contextId }),
     onMutate,
     onSuccess,
     onError,

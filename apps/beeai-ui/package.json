@@ -2,7 +2,7 @@
   "name": "@i-am-bee/beeai-ui",
   "author": "IBM Corp.",
   "private": true,
-  "version": "0.3.4-rc1",
+  "version": "0.3.4-rc4",
   "type": "module",
   "exports": {
     ".": "./src/index.ts"

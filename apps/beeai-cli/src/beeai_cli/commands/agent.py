@@ -14,7 +14,6 @@ from textwrap import dedent
 from uuid import uuid4
 
 import httpx
-import jsonref
 from a2a.client import Client
 from a2a.types import (
     AgentCard,
@@ -653,20 +652,6 @@ def _setup_sequential_workflow(providers: list[Provider], splash_screen: Console
         steps.append({"provider_id": prompt_agents[agent].id, "instruction": instruction})
 
     return steps
-
-
-def _get_config_schema(schema: dict[str, Any] | None) -> dict[str, Any] | None:
-    if not schema:
-        return None
-    schema = jsonref.replace_refs(schema, lazy_load=False)
-
-    if not (schema := schema.get("properties", {}).get("config", None)):
-        return None
-
-    schema = remove_nullable(schema)
-    if not schema.get("properties", None):
-        return None
-    return schema
 
 
 @app.command("run")

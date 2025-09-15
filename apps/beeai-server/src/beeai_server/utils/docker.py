@@ -83,7 +83,7 @@ async def get_auth_endpoint(registry: str, get_manifest_url: str) -> str | None:
             return
         if not (match := re.match(r"(\w+)\s+(.*)", header)):
             raise ValueError(f"Invalid www authenticate header: {header}")
-        auth_scheme, params_str = match.groups()
+        _auth_scheme, params_str = match.groups()
         params = {}
         for param in re.finditer(r'(\w+)="([^"]*)"', params_str):
             key, value = param.groups()

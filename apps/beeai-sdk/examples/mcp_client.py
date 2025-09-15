@@ -110,7 +110,7 @@ async def run(base_url: str = "http://127.0.0.1:10000"):
             if isinstance(event, a2a.types.Message):
                 print(event)
                 return
-            task, update = event
+            task, _update = event
 
         if task and task.status.state == a2a.types.TaskState.auth_required:
             if not task.status.message:
@@ -127,7 +127,7 @@ async def run(base_url: str = "http://127.0.0.1:10000"):
             ):
                 if isinstance(event, a2a.types.Message):
                     raise RuntimeError("Agent responded with message to a task")
-                task, update = event
+                task, _update = event
 
         print(task)
 

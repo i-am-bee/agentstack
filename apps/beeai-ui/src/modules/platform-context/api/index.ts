@@ -7,16 +7,18 @@ import { api } from '#api/index.ts';
 import type { ContextPermissionsGrant, GlobalPermissionGrant } from '#api/types.ts';
 import { ensureData } from '#api/utils.ts';
 
+import type { ModelCapability } from '../types';
+
 export async function createContext() {
   const response = await api.POST('/api/v1/contexts');
 
   return ensureData(response);
 }
 
-export async function matchProviders(suggestedModels: string[]) {
+export async function matchProviders(suggestedModels: string[], capability: ModelCapability) {
   const response = await api.POST('/api/v1/model_providers/match', {
     body: {
-      capability: 'llm',
+      capability,
       score_cutoff: 0.4,
       suggested_models: suggestedModels,
     },

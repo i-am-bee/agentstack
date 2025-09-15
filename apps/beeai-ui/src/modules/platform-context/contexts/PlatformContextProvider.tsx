@@ -10,7 +10,7 @@ import { useApp } from '#contexts/App/index.ts';
 
 import { useCreateContext } from '../api/mutations/useCreateContext';
 import { useCreateContextToken } from '../api/mutations/useCreateContextToken';
-import { useMatchProviders } from '../api/mutations/useMatchProviders';
+import { useMatchEmbeddingProviders, useMatchLLMProviders } from '../api/mutations/useMatchProviders';
 import { buildFullfilments } from './build-fulfillments';
 import { PlatformContext } from './platform-context';
 
@@ -24,11 +24,13 @@ export function PlatformContextProvider<UIGenericPart>({
 }: PropsWithChildren<Props<UIGenericPart>>) {
   const { featureFlags } = useApp();
   const [contextId, setContextId] = useState<string | null>(null);
-  const [selectedProviders, setSelectedProviders] = useState<Record<string, string>>({});
 
-  const setDefaultSelectedProviders = useCallback(
+  const [selectedEmbeddingProviders, setSelectedEmbeddingProviders] = useState<Record<string, string>>({});
+  const [selectedLLMProviders, setSelectedLLMProviders] = useState<Record<string, string>>({});
+
+  const setDefaultSelectedLLMProviders = useCallback(
     (data: Record<string, string[]>) => {
-      setSelectedProviders(
+      setSelectedLLMProviders(
         Object.fromEntries(
           Object.entries(data).map(([key, value]) => {
             if (value.length === 0) {
@@ -40,18 +42,49 @@ export function PlatformContextProvider<UIGenericPart>({
         ),
       );
     },
-    [setSelectedProviders],
+    [setSelectedLLMProviders],
+  );
+
+  const setDefaultSelectedEmbeddingProviders = useCallback(
+    (data: Record<string, string[]>) => {
+      setSelectedEmbeddingProviders(
+        Object.fromEntries(
+          Object.entries(data).map(([key, value]) => {
+            if (value.length === 0) {
+              throw new Error(`No match found for demand ${key}`);
+            }
+
+            return [key, value[0]];
+          }),
+        ),
+      );
+    },
+    [setSelectedEmbeddingProviders],
   );
 
   const { mutateAsync: createContext } = useCreateContext();
   const { mutateAsync: createContextToken } = useCreateContextToken();
-  const { data: matchedProviders } = useMatchProviders(agentClient?.llmDemands ?? {}, setDefaultSelectedProviders);
+  const { data: matchedLLMProviders } = useMatchLLMProviders(
+    agentClient?.llmDemands ?? {},
+    setDefaultSelectedLLMProviders,
+  );
+  const { data: matchedEmbeddingProviders } = useMatchEmbeddingProviders(
+    agentClient?.embeddingDemands ?? {},
+    setDefaultSelectedEmbeddingProviders,
+  );
 
-  const selectProvider = useCallback(
+  const selectLLMProvider = useCallback(
     (key: string, value: string) => {
-      setSelectedProviders((prev) => ({ ...prev, [key]: value }));
+      setSelectedLLMProviders((prev) => ({ ...prev, [key]: value }));
     },
-    [setSelectedProviders],
+    [setSelectedLLMProviders],
+  );
+
+  const selectEmbeddingProvider = useCallback(
+    (key: string, value: string) => {
+      setSelectedEmbeddingProviders((prev) => ({ ...prev, [key]: value }));
+    },
+    [setSelectedEmbeddingProviders],
   );
 
   const [selectedMCPServers, setSelectedMCPServers] = useState<Record<string, string>>({});
@@ -92,7 +125,7 @@ export function PlatformContextProvider<UIGenericPart>({
     [setSelectedMCPServers],
   );
 
-  const getPlatformToken = useCallback(async () => {
+  const getContextToken = useCallback(async () => {
     if (contextId === null) {
       throw new Error('Illegal State - Context ID is not set.');
     }
@@ -124,13 +157,19 @@ export function PlatformContextProvider<UIGenericPart>({
       throw new Error('Could not generate context token');
     }
 
-    return contextToken.token;
+    return contextToken;
   }, [contextId, createContextToken]);
 
   const getFullfilments = useCallback(async () => {
-    const platformToken = await getPlatformToken();
-    return buildFullfilments({ platformToken, selectedProviders, selectedMCPServers, featureFlags });
-  }, [getPlatformToken, selectedProviders, selectedMCPServers, featureFlags]);
+    const contextToken = await getContextToken();
+    return buildFullfilments({
+      contextToken,
+      selectedLLMProviders,
+      selectedEmbeddingProviders,
+      selectedMCPServers,
+      featureFlags,
+    });
+  }, [selectedLLMProviders, selectedEmbeddingProviders, selectedMCPServers, featureFlags, getContextToken]);
 
   useEffect(() => {
     createContext().then(setContext);
@@ -148,13 +187,16 @@ export function PlatformContextProvider<UIGenericPart>({
     <PlatformContext.Provider
       value={{
         contextId,
-        matchedProviders,
-        selectedProviders,
+        matchedLLMProviders,
+        selectedLLMProviders,
+        matchedEmbeddingProviders,
+        selectedEmbeddingProviders,
         getContextId,
         resetContext,
-        getPlatformToken,
+        getContextToken,
         getFullfilments,
-        selectProvider,
+        selectLLMProvider,
+        selectEmbeddingProvider,
         selectMCPServer,
         selectedMCPServers,
       }}

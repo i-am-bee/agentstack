@@ -215,6 +215,7 @@ phoenix:
     grpcPort: 8335
   database:
     url: "sqlite:////home/phoenix/phoenix.db"
+    defaultRetentionPolicyDays: 7
   persistence:
     enabled: true
     size: 8Gi
@@ -292,7 +293,7 @@ postgresql:
   image:
     registry: ghcr.io
     repository: i-am-bee/bitnami/postgresql-pgvector
-    tag: 17.5.0
+    tag: 17.6.0
   auth:
     postgresPassword: "admin-password"
     enablePostgresUser: true
@@ -434,7 +435,7 @@ docling:
     port: 15001
     type: ClusterIP
   imagePullPolicy: IfNotPresent
-  image: "ghcr.io/docling-project/docling-serve-cpu:v0.16.0"
+  image: "ghcr.io/docling-project/docling-serve-cpu:v1.5.0"
 
 ## MCP Context Forge configuration
 forge:

@@ -43,7 +43,7 @@ async def llm_extension_agent(create_server_with_agent) -> AsyncGenerator[tuple[
 
 
 async def test_extension_is_not_reused(llm_extension_agent):
-    server, client = llm_extension_agent
+    _, client = llm_extension_agent
     card = await client.get_card()
     llm_spec = LLMServiceExtensionSpec.from_agent_card(card)
     extension_client = LLMServiceExtensionClient(llm_spec)
