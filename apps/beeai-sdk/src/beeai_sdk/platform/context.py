@@ -3,18 +3,25 @@
 
 from __future__ import annotations
 
-from typing import Literal, TypeAlias
+from collections.abc import AsyncIterator
+from typing import Literal
 from uuid import UUID
 
 import pydantic
 from a2a.types import Artifact, Message
+from pydantic import AwareDatetime, BaseModel
 
 from beeai_sdk.platform.client import PlatformClient, get_platform_client
 from beeai_sdk.platform.common import PaginatedResult
 from beeai_sdk.platform.types import Metadata
 from beeai_sdk.util.utils import filter_dict
 
-ContextHistoryItem: TypeAlias = Artifact | Message
+
+class ContextHistoryItem(BaseModel):
+    id: UUID
+    data: Artifact | Message
+    created_at: AwareDatetime
+    context_id: UUID
 
 
 class ContextToken(pydantic.BaseModel):
@@ -154,30 +161,53 @@ class Context(pydantic.BaseModel):
     async def add_history_item(
         self: Context | str,
         *,
-        history_item: ContextHistoryItem,
+        data: Message | Artifact,
         client: PlatformClient | None = None,
     ) -> None:
         """Add a Message or Artifact to the context history (append-only)"""
         target_context_id = self if isinstance(self, str) else self.id
         async with client or get_platform_client() as platform_client:
             _ = (
-                await platform_client.post(
-                    url=f"/api/v1/contexts/{target_context_id}/history", json=history_item.model_dump()
-                )
+                await platform_client.post(url=f"/api/v1/contexts/{target_context_id}/history", json=data.model_dump())
             ).raise_for_status()
 
     async def list_history(
         self: Context | str,
         *,
+        after: UUID | None = None,
+        limit: int | None = None,
+        order: Literal["asc"] | Literal["desc"] | None = "asc",
+        order_by: Literal["created_at"] | Literal["updated_at"] | None = None,
         client: PlatformClient | None = None,
-    ) -> list[ContextHistoryItem]:
+    ) -> PaginatedResult[ContextHistoryItem]:
         """List all history items for this context in chronological order"""
         target_context_id = self if isinstance(self, str) else self.id
         async with client or get_platform_client() as platform_client:
-            response = (
-                await platform_client.get(url=f"/api/v1/contexts/{target_context_id}/history")
-            ).raise_for_status()
+            return pydantic.TypeAdapter(PaginatedResult[ContextHistoryItem]).validate_python(
+                (
+                    await platform_client.get(
+                        url=f"/api/v1/contexts/{target_context_id}/history",
+                        params=filter_dict(
+                            {
+                                "after": str(after) if after else None,
+                                "limit": limit,
+                                "order": order,
+                                "order_by": order_by,
+                            }
+                        ),
+                    )
+                )
+                .raise_for_status()
+                .json()
+            )
 
-            data = response.json()
-            adapter = pydantic.TypeAdapter(list[ContextHistoryItem])
-            return adapter.validate_python(data["items"])
+    async def list_all_history(
+        self: Context | str, client: PlatformClient | None = None
+    ) -> AsyncIterator[ContextHistoryItem]:
+        result = await Context.list_history(self, client=client)
+        for item in result.items:
+            yield item
+        while result.has_more:
+            result = await Context.list_history(self, after=result.last_id, client=client)
+            for item in result.items:
+                yield item

@@ -8,7 +8,14 @@ from pydantic import AwareDatetime, BaseModel, Field
 from beeai_server.domain.models.common import Metadata
 from beeai_server.utils.utils import utc_now
 
-type ContextHistoryItem = Artifact | Message
+type ContextHistoryItemData = Artifact | Message
+
+
+class ContextHistoryItem(BaseModel):
+    id: UUID = Field(default_factory=uuid4)
+    data: ContextHistoryItemData
+    created_at: AwareDatetime = Field(default_factory=utc_now)
+    context_id: UUID
 
 
 class Context(BaseModel):

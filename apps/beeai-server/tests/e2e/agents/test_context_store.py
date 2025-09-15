@@ -78,7 +78,7 @@ async def test_agent_history(history_agent, subtests):
         ]
 
         context1_history = await Context.list_history(context1.id)
-        assert len(context1_history) == 14
+        assert context1_history.total_count == 14
 
     with subtests.test("other context id does not mix history"):
         context2 = await Context.create()
@@ -88,7 +88,7 @@ async def test_agent_history(history_agent, subtests):
         assert agent_messages == ["first message"]
 
         context1_history = await Context.list_history(context1.id)
-        assert len(context1_history) == 14
+        assert context1_history.total_count == 14
 
         context2_history = await Context.list_history(context2.id)
-        assert len(context2_history) == 2
+        assert context2_history.total_count == 2

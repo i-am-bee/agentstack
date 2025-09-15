@@ -30,5 +30,12 @@ class IContextRepository(Protocol):
     async def delete(self, *, context_id: UUID, user_id: UUID | None = None) -> int: ...
     async def update_last_active(self, *, context_id: UUID) -> None: ...
     async def add_history_item(self, *, context_id: UUID, history_item: ContextHistoryItem) -> None: ...
-    async def list_history(self, *, context_id: UUID) -> AsyncIterator[ContextHistoryItem]:
-        yield ...  # type: ignore
+    async def list_history(
+        self,
+        *,
+        context_id: UUID,
+        after: UUID | None = None,
+        limit: int = 20,
+        order_by: str = "created_at",
+        order="desc",
+    ) -> PaginatedResult[ContextHistoryItem]: ...

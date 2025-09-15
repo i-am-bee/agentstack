@@ -29,7 +29,7 @@ def upgrade() -> None:
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("context_id", sa.UUID(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("history_item", sa.JSON(), nullable=False),
+        sa.Column("data", sa.JSON(), nullable=False),
         sa.ForeignKeyConstraint(["context_id"], ["contexts.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )

@@ -6,7 +6,7 @@ from typing import Annotated
 from uuid import UUID
 
 import fastapi
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 
 from beeai_server.api.auth import issue_internal_jwt
 from beeai_server.api.dependencies import (
@@ -42,7 +42,7 @@ async def create_context(
 async def list_context(
     context_service: ContextServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(contexts={"read"}))],
-    pagination: Annotated[PaginationQuery, Depends()],
+    pagination: Annotated[PaginationQuery, Query()],
 ) -> PaginatedResult[Context]:
     return await context_service.list(user=user.user, pagination=pagination)
 
@@ -101,14 +101,11 @@ async def generate_context_token(
 @router.post("/{context_id}/history", status_code=status.HTTP_201_CREATED)
 async def add_context_history_item(
     context_id: UUID,
-    history_item: ContextHistoryItemCreateRequest,
+    history_item_data: ContextHistoryItemCreateRequest,
     context_service: ContextServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresContextPermissionsPath(context_data={"write"}))],
 ) -> None:
-    # Cannot add history to a different context
-    if user.context_id and user.context_id != context_id:
-        raise fastapi.HTTPException(status.HTTP_403_FORBIDDEN, "Insufficient permissions")
-    await context_service.add_history_item(context_id=context_id, history_item=history_item.root, user=user.user)
+    await context_service.add_history_item(context_id=context_id, data=history_item_data.root, user=user.user)
 
 
 @router.get("/{context_id}/history")
@@ -116,9 +113,6 @@ async def list_context_history(
     context_id: UUID,
     context_service: ContextServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresContextPermissionsPath(context_data={"read"}))],
+    pagination: Annotated[PaginationQuery, Query()],
 ) -> PaginatedResult[ContextHistoryItem]:
-    # Cannot list history for a different context
-    if user.context_id and user.context_id != context_id:
-        raise fastapi.HTTPException(status.HTTP_403_FORBIDDEN, "Insufficient permissions")
-    history = [item async for item in context_service.list_history(context_id=context_id, user=user.user)]
-    return PaginatedResult(items=history, total_count=len(history))
+    return await context_service.list_history(context_id=context_id, user=user.user, pagination=pagination)

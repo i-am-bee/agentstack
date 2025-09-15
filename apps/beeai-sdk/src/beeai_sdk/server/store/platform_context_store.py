@@ -40,9 +40,9 @@ class PlatformContextStoreInstance(ContextStoreInstance):
 
     async def load_history(self) -> AsyncIterator[Message | Artifact]:
         async with self._platform_extension.use_client():
-            for history_item in await Context.list_history(self._context_id):
-                yield history_item
+            async for history_item in Context.list_all_history(self._context_id):
+                yield history_item.data
 
     async def store(self, data: Message | Artifact) -> None:
         async with self._platform_extension.use_client():
-            await Context.add_history_item(self._context_id, history_item=data)
+            await Context.add_history_item(self._context_id, data=data)

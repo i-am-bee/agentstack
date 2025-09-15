@@ -5,7 +5,7 @@ from typing import Literal
 from pydantic import AwareDatetime, BaseModel, Field, RootModel
 
 from beeai_server.domain.models.common import Metadata
-from beeai_server.domain.models.context import ContextHistoryItem
+from beeai_server.domain.models.context import ContextHistoryItemData
 from beeai_server.domain.models.permissions import ResourceIdPermission
 
 
@@ -63,5 +63,5 @@ class ContextTokenResponse(BaseModel):
     expires_at: AwareDatetime | None
 
 
-class ContextHistoryItemCreateRequest(RootModel[ContextHistoryItem]):
-    root: ContextHistoryItem
+class ContextHistoryItemCreateRequest(RootModel[ContextHistoryItemData]):
+    root: ContextHistoryItemData

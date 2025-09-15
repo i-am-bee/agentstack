@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-from collections.abc import AsyncIterator
 from datetime import timedelta
 from uuid import UUID
 
@@ -11,7 +10,7 @@ from kink import inject
 from beeai_server.api.schema.common import PaginationQuery
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.common import PaginatedResult
-from beeai_server.domain.models.context import Context, ContextHistoryItem
+from beeai_server.domain.models.context import Context, ContextHistoryItem, ContextHistoryItemData
 from beeai_server.domain.models.user import User
 from beeai_server.domain.repositories.file import IObjectStorageRepository
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
@@ -91,14 +90,24 @@ class ContextService:
             await uow.contexts.update_last_active(context_id=context_id)
             await uow.commit()
 
-    async def add_history_item(self, *, context_id: UUID, history_item: ContextHistoryItem, user: User) -> None:
+    async def add_history_item(self, *, context_id: UUID, data: ContextHistoryItemData, user: User) -> None:
         async with self._uow() as uow:
             await uow.contexts.get(context_id=context_id, user_id=user.id)
-            await uow.contexts.add_history_item(context_id=context_id, history_item=history_item)
+            await uow.contexts.add_history_item(
+                context_id=context_id,
+                history_item=ContextHistoryItem(context_id=context_id, data=data),
+            )
             await uow.commit()
 
-    async def list_history(self, *, context_id: UUID, user: User) -> AsyncIterator[ContextHistoryItem]:
+    async def list_history(
+        self, *, context_id: UUID, user: User, pagination: PaginationQuery
+    ) -> PaginatedResult[ContextHistoryItem]:
         async with self._uow() as uow:
             await uow.contexts.get(context_id=context_id, user_id=user.id)
-            async for item in uow.contexts.list_history(context_id=context_id):
-                yield item
+            return await uow.contexts.list_history(
+                context_id=context_id,
+                limit=pagination.limit,
+                after=pagination.after,
+                order=pagination.order,
+                order_by=pagination.order_by,
+            )

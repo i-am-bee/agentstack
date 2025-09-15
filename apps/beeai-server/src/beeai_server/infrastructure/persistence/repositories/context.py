@@ -6,7 +6,6 @@ from datetime import datetime
 from uuid import UUID, uuid4
 
 from kink import inject
-from pydantic import TypeAdapter
 from sqlalchemy import (
     JSON,
     Column,
@@ -47,7 +46,7 @@ context_history_table = Table(
     Column("id", SQL_UUID, primary_key=True),
     Column("context_id", ForeignKey("contexts.id", ondelete="CASCADE"), nullable=False),
     Column("created_at", DateTime(timezone=True), nullable=False),
-    Column("history_item", JSON, nullable=False),
+    Column("data", JSON, nullable=False),
     Index("idx_context_history_context_id", "context_id"),
 )
 
@@ -136,24 +135,46 @@ class SqlAlchemyContextRepository(IContextRepository):
         await self._connection.execute(query)
 
     async def add_history_item(self, *, context_id: UUID, history_item: ContextHistoryItem) -> None:
-        adapter = TypeAdapter(ContextHistoryItem)
         query = context_history_table.insert().values(
             id=uuid4(),
-            context_id=context_id,
-            created_at=utc_now(),
-            history_item=adapter.dump_python(history_item),
+            context_id=history_item.context_id,
+            created_at=history_item.created_at,
+            data=history_item.data.model_dump(),
         )
         await self._connection.execute(query)
 
-    async def list_history(self, *, context_id: UUID) -> AsyncIterator[ContextHistoryItem]:
-        adapter = TypeAdapter(ContextHistoryItem)
-        query = (
-            select(context_history_table.c.history_item)
-            .where(context_history_table.c.context_id == context_id)
-            .order_by(context_history_table.c.created_at.asc())
+    async def list_history(
+        self,
+        *,
+        context_id: UUID,
+        after: UUID | None = None,
+        limit: int = 20,
+        order_by: str = "created_at",
+        order="desc",
+    ) -> PaginatedResult[ContextHistoryItem]:
+        query = context_history_table.select().where(context_history_table.c.context_id == context_id)
+        result = await cursor_paginate(
+            connection=self._connection,
+            query=query,
+            after_cursor=after,
+            id_column=context_history_table.c.id,
+            order_column=getattr(context_history_table.c, order_by),
+            order=order,
+            limit=limit,
         )
-        async for row in await self._connection.stream(query):
-            yield adapter.validate_python(row.history_item)
+        return PaginatedResult(
+            items=[self._row_to_context_history_item(item) for item in result.items],
+            total_count=result.total_count,
+            has_more=result.has_more,
+        )
+
+    def _row_to_context_history_item(self, row: Row) -> ContextHistoryItem:
+        return ContextHistoryItem(
+            id=row.id,
+            data=row.data,
+            context_id=row.context_id,
+            created_at=row.created_at,
+        )
 
     def _row_to_context(self, row: Row) -> Context:
         return Context(
