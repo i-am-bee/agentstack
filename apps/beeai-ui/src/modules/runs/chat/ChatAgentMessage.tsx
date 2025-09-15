@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { Spinner } from '#components/Spinner/Spinner.tsx';
 import { MessageFiles } from '#modules/files/components/MessageFiles.tsx';
@@ -23,20 +23,25 @@ import classes from './ChatAgentMessage.module.scss';
 
 interface Props {
   message: UIAgentMessage;
+  onShow?: () => void;
 }
 
-export function ChatAgentMessage({ message }: Props) {
+export function ChatAgentMessage({ message, onShow }: Props) {
   return (
     <MessageInteractionProvider>
-      <Message message={message} />
+      <Message message={message} onShow={onShow} />
     </MessageInteractionProvider>
   );
 }
 
-function Message({ message }: Props) {
+function Message({ message, onShow }: Props) {
   const contentRef = useRef<HTMLDivElement>(null);
 
   const { props } = useMessageInteractionProps();
+
+  useEffect(() => {
+    onShow?.();
+  }, [onShow]);
 
   const hasContent = checkMessageContent(message);
   const { isInProgress } = checkMessageStatus(message);

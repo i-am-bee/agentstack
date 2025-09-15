@@ -247,7 +247,7 @@ export const buildA2AClient = async <UIGenericPart = never>({
         messageSubject.complete();
 
         if (taskId) {
-          await client.cancelTask({ id: taskId });
+          await cancelTask(taskId);
         }
       },
     };
@@ -255,8 +255,13 @@ export const buildA2AClient = async <UIGenericPart = never>({
     return run;
   };
 
+  const cancelTask = async (taskId: TaskId) => {
+    await client.cancelTask({ id: taskId });
+  };
+
   return {
     chat,
+    cancelTask,
     llmDemands: llmDemands?.llm_demands,
     embeddingDemands: embeddingDemands?.embedding_demands,
     mcpDemands: mcpDemands?.mcp_demands,

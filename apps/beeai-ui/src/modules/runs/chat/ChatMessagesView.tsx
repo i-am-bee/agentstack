@@ -48,7 +48,7 @@ export function ChatMessagesView() {
                   <li key={message.id} className={classes.message}>
                     {isUser && <ChatUserMessage message={message} />}
 
-                    {isAgent && <ChatAgentMessage message={message} />}
+                    {isAgent && <ChatAgentMessage message={message} onShow={isLast ? scrollToBottom : undefined} />}
 
                     {isLast && <div ref={observeElementRef} />}
                   </li>
@@ -77,13 +77,7 @@ export function ChatMessagesView() {
               {isPending && (isNotInstalled || isStarting) ? (
                 <RunStatusBar isPending>Starting the agent, please bee patient&hellip;</RunStatusBar>
               ) : (
-                <RunInput
-                  onSubmit={() => {
-                    requestAnimationFrame(() => {
-                      scrollToBottom();
-                    });
-                  }}
-                />
+                <RunInput />
               )}
             </Container>
           </div>

@@ -19,18 +19,10 @@ interface Props {
   defaultHeading?: string;
   showHeading?: boolean;
   isDisabled?: boolean;
-  onCancel?: () => void;
   onSubmit: (values: RunFormValues) => void;
 }
 
-export function FormRenderer({
-  definition,
-  defaultHeading,
-  showHeading = true,
-  isDisabled,
-  onSubmit,
-  onCancel,
-}: Props) {
+export function FormRenderer({ definition, defaultHeading, showHeading = true, isDisabled, onSubmit }: Props) {
   const { id, title, description, columns, submit_label, fields } = definition;
 
   const defaultValues = getDefaultValues(fields);
@@ -56,18 +48,6 @@ export function FormRenderer({
           {!isDisabled && (
             <>
               <div className={classes.buttons}>
-                {onCancel && (
-                  <Button
-                    size="md"
-                    kind="tertiary"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onCancel();
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                )}
                 <Button type="submit" size="md">
                   {submit_label ?? 'Submit'}
                 </Button>

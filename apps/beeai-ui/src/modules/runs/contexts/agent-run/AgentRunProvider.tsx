@@ -145,6 +145,22 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
     }
   }, []);
 
+  const cancelPendingTask = useCallback(() => {
+    const lastMessage = getMessages().at(-1);
+    if (
+      lastMessage &&
+      isAgentMessage(lastMessage) &&
+      lastMessage.status === UIMessageStatus.InputRequired &&
+      lastMessage.taskId
+    ) {
+      agentClient?.cancelTask(lastMessage.taskId).catch((error) => {
+        errorHandler(error, {
+          errorToast: { title: 'Failed to cancel previous task.', includeErrorMessage: true },
+        });
+      });
+    }
+  }, [agentClient, errorHandler, getMessages]);
+
   const run = useCallback(
     async (message: UIUserMessage, taskId?: TaskId) => {
       if (!agentClient) {
@@ -224,6 +240,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
   const chat = useCallback(
     (input: string) => {
       checkPendingRun();
+      cancelPendingTask();
 
       setInput(input);
 
@@ -237,7 +254,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
 
       return run(message);
     },
-    [checkPendingRun, clearFiles, files, run],
+    [cancelPendingTask, checkPendingRun, clearFiles, files, run],
   );
 
   const submitForm = useCallback(
@@ -271,7 +288,6 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
 
   const sources = useMemo(() => getMessagesSourcesMap(messages), [messages]);
 
-  const lastAgentMessage = getMessages().findLast(isAgentMessage);
   const status = useMemo(() => {
     if (!contextId || !agentClient) {
       return AgentRunStatus.Initializing;
@@ -279,11 +295,8 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
     if (isPending) {
       return AgentRunStatus.Pending;
     }
-    if (lastAgentMessage?.status === UIMessageStatus.InputRequired) {
-      return AgentRunStatus.ActionRequired;
-    }
     return AgentRunStatus.Ready;
-  }, [agentClient, contextId, isPending, lastAgentMessage?.status]);
+  }, [agentClient, contextId, isPending]);
 
   const onUpdateSettings = useCallback((values: AgentSettings) => {
     settings.current = values;
@@ -296,7 +309,6 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
       isInitializing: status === AgentRunStatus.Initializing,
       isReady: status === AgentRunStatus.Ready,
       isPending: status === AgentRunStatus.Pending,
-      isActionRequired: status === AgentRunStatus.ActionRequired,
       hasMessages: Boolean(getMessages().length),
       input,
       stats,
@@ -325,7 +337,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
   ]);
 
   return (
-    <AgentStatusProvider agent={agent} isMonitorStatusEnabled>
+    <AgentStatusProvider agent={agent} isMonitorStatusEnabled={isPending}>
       <SourcesProvider sources={sources}>
         <MessagesProvider messages={getMessages()}>
           <AgentRunContext.Provider value={contextValue}>{children}</AgentRunContext.Provider>

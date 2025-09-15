@@ -18,7 +18,6 @@ interface AgentRunContextValue {
   status: AgentRunStatus;
   isPending: boolean;
   isInitializing: boolean;
-  isActionRequired: boolean;
   isReady: boolean;
   input?: string;
   stats?: RunStats;
@@ -37,5 +36,4 @@ export enum AgentRunStatus {
   Initializing = 'initializing',
   Ready = 'ready',
   Pending = 'pending',
-  ActionRequired = 'action-required',
 }

@@ -39,14 +39,13 @@ export function ModelProviders() {
     <div className={classes.root}>
       {llmProviderList.map(({ key, items }) => (
         <div key={key} className={classes.item}>
-          <Tooltip content="Model" asChild size="sm">
+          <Tooltip content="LLM Model" asChild size="sm">
             <ModelAlt size={20} className={classes.icon} />
           </Tooltip>
           <Select
             size="sm"
             id={`${htmlId}:${key}`}
-            labelText={`${key} LLM`}
-            hideLabel={llmProviderList.length === 1}
+            labelText={`${llmProviderList.length > 1 ? key : ''} LLM`}
             inline
             value={selectedLLMProviders[key] || ''}
             onChange={(event: ChangeEvent<HTMLSelectElement>) => {
@@ -61,14 +60,13 @@ export function ModelProviders() {
       ))}
       {embeddingProviderList.map(({ key, items }) => (
         <div key={key} className={classes.item}>
-          <Tooltip content="Model" asChild size="sm">
+          <Tooltip content="Embedding Model" asChild size="sm">
             <ModelAlt size={20} className={classes.icon} />
           </Tooltip>
           <Select
             size="sm"
             id={`${htmlId}:${key}`}
-            labelText={`${key} Embedding`}
-            hideLabel={embeddingProviderList.length === 1}
+            labelText={`${embeddingProviderList.length > 1 ? key : ''} Embedding`}
             inline
             value={selectedEmbeddingProviders[key] || ''}
             onChange={(event: ChangeEvent<HTMLSelectElement>) => {
