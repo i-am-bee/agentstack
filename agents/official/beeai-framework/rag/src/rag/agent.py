@@ -166,13 +166,17 @@ async def rag(
     ]
 
     if extracted_files:
-        vector_store_id = [
-            json.loads(m.metadata[TrajectoryExtensionSpec.URI]["content"])["vector_store_id"]
-            for m in history
-            if m.metadata
-            and m.metadata.get(TrajectoryExtensionSpec.URI, {}).get("title") == CreateVectorStoreEvent.kind
-        ]
-        vector_store_id = vector_store_id[0] if vector_store_id else None
+        vector_store_id = None
+        for message in history:
+            if (
+                message.metadata
+                and message.metadata.get(TrajectoryExtensionSpec.URI)
+                and message.metadata[TrajectoryExtensionSpec.URI]["title"] == "create_vector_store"
+            ):
+                content = json.loads(message.metadata[TrajectoryExtensionSpec.URI]["content"])
+                if vector_store_id := content["vector_store_id"]:
+                    break
+
         if vector_store_id is None:
             start_event = CreateVectorStoreEvent(phase="start")
             yield start_event.metadata(trajectory)
@@ -291,7 +295,7 @@ async def rag(
         )
     )
 
-    final_answer = response.answer
+    final_answer = response.state.answer
 
     if final_answer:
         citations, clean_text = extract_citations(final_answer.text)

@@ -171,7 +171,7 @@ async def chat(
     citation: Annotated[CitationExtensionServer, CitationExtensionSpec()],
     llm_ext: Annotated[
         LLMServiceExtensionServer,
-        LLMServiceExtensionSpec.single_demand(suggested=("openai/gpt-5", "ollama/granite3.3:8b")),
+        LLMServiceExtensionSpec.single_demand(suggested=("openai:gpt-4o", "ollama:granite3.3:8b")),
     ],
     _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
 ):
