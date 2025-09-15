@@ -42,10 +42,5 @@ class PaginatedResult[T: BaseModel](BaseModel):
 
     @computed_field
     @property
-    def first_id(self) -> UUID | None:
-        return getattr(self.items[0], "id", None) if self.items else None
-
-    @computed_field
-    @property
-    def last_id(self) -> UUID | None:
+    def next_page_token(self) -> UUID | None:
         return getattr(self.items[-1], "id", None) if self.items else None

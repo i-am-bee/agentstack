@@ -10,9 +10,9 @@ from typing import TYPE_CHECKING, Any, Final, Protocol
 from a2a.server.events import Event
 from a2a.types import Artifact, Message, TaskArtifactUpdateEvent, TaskStatus, TaskStatusUpdateEvent
 
-from beeai_sdk.a2a.extensions import CitationExtensionSpec
-from beeai_sdk.a2a.extensions.ui.form import FormExtensionSpec
-from beeai_sdk.a2a.extensions.ui.trajectory import TrajectoryExtensionSpec
+from beeai_sdk.a2a.extensions.services.embedding import EmbeddingServiceExtensionSpec
+from beeai_sdk.a2a.extensions.services.llm import LLMServiceExtensionSpec
+from beeai_sdk.a2a.extensions.services.platform import PlatformApiExtensionSpec
 
 if TYPE_CHECKING:
     from beeai_sdk.server.dependencies import Dependency, Depends
@@ -33,13 +33,17 @@ class ContextStore(abc.ABC):
     async def create(self, context_id: str, initialized_dependencies: list[Dependency]) -> ContextStoreInstance: ...
 
 
-ALLOWED_METADATA_EXTENSION_URIS: Final = {TrajectoryExtensionSpec.URI, CitationExtensionSpec.URI, FormExtensionSpec.URI}
+FORBIDDEN_METADATA_EXTENSION_URIS: Final = {
+    PlatformApiExtensionSpec.URI,
+    LLMServiceExtensionSpec.URI,
+    EmbeddingServiceExtensionSpec.URI,
+}
 
 
 def filter_metadata(metadata: dict[str, Any] | None) -> dict[str, Any] | None:
     if not metadata:
         return metadata
-    return {k: v for k, v in metadata.items() if k in ALLOWED_METADATA_EXTENSION_URIS}
+    return {k: v for k, v in metadata.items() if k not in FORBIDDEN_METADATA_EXTENSION_URIS}
 
 
 async def record_event(event: Event, context_store: ContextStoreInstance):

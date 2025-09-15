@@ -78,7 +78,7 @@ class Context(pydantic.BaseModel):
     async def list(
         *,
         client: PlatformClient | None = None,
-        after: UUID | None = None,
+        page_token: str | None = None,
         limit: int | None = None,
         order: Literal["asc"] | Literal["desc"] | None = None,
         order_by: Literal["created_at"] | Literal["updated_at"] | None = None,
@@ -90,12 +90,7 @@ class Context(pydantic.BaseModel):
                     await client.get(
                         url="/api/v1/contexts",
                         params=filter_dict(
-                            {
-                                "after": str(after) if after else None,
-                                "limit": limit,
-                                "order": order,
-                                "order_by": order_by,
-                            }
+                            {"page_token": page_token, "limit": limit, "order": order, "order_by": order_by}
                         ),
                     )
                 )
@@ -174,7 +169,7 @@ class Context(pydantic.BaseModel):
     async def list_history(
         self: Context | str,
         *,
-        after: UUID | None = None,
+        page_token: str | None = None,
         limit: int | None = None,
         order: Literal["asc"] | Literal["desc"] | None = "asc",
         order_by: Literal["created_at"] | Literal["updated_at"] | None = None,
@@ -188,12 +183,7 @@ class Context(pydantic.BaseModel):
                     await platform_client.get(
                         url=f"/api/v1/contexts/{target_context_id}/history",
                         params=filter_dict(
-                            {
-                                "after": str(after) if after else None,
-                                "limit": limit,
-                                "order": order,
-                                "order_by": order_by,
-                            }
+                            {"page_token": page_token, "limit": limit, "order": order, "order_by": order_by}
                         ),
                     )
                 )
@@ -208,6 +198,6 @@ class Context(pydantic.BaseModel):
         for item in result.items:
             yield item
         while result.has_more:
-            result = await Context.list_history(self, after=result.last_id, client=client)
+            result = await Context.list_history(self, page_token=result.next_page_token, client=client)
             for item in result.items:
                 yield item

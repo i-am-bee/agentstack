@@ -126,24 +126,24 @@ def agent(
                 *(e_card for ext in sdk_extensions for e_card in ext.spec.to_agent_card_extensions()),
             ]
 
-        card = AgentCard(
-            url=url,
-            preferred_transport=preferred_transport,
-            additional_interfaces=additional_interfaces,
-            capabilities=capabilities,
-            default_input_modes=default_input_modes or ["text"],
-            default_output_modes=default_output_modes or ["text"],
-            description=resolved_description,
-            documentation_url=documentation_url,
-            icon_url=icon_url,
-            name=resolved_name,
-            provider=provider,
-            security=security,
-            security_schemes=security_schemes,
-            skills=skills or [],
-            supports_authenticated_extended_card=supports_authenticated_extended_card,
-            version=version or "1.0.0",
-        )
+            card = AgentCard(
+                url=url,
+                preferred_transport=preferred_transport,
+                additional_interfaces=additional_interfaces,
+                capabilities=capabilities,
+                default_input_modes=default_input_modes or ["text"],
+                default_output_modes=default_output_modes or ["text"],
+                description=resolved_description,
+                documentation_url=documentation_url,
+                icon_url=icon_url,
+                name=resolved_name,
+                provider=provider,
+                security=security,
+                security_schemes=security_schemes,
+                skills=skills or [],
+                supports_authenticated_extended_card=supports_authenticated_extended_card,
+                version=version or "1.0.0",
+            )
 
             if inspect.isasyncgenfunction(fn):
 
@@ -200,8 +200,6 @@ def agent(
 
                 async def execute_fn(_ctx: RunContext, *args, **kwargs) -> None:
                     await asyncio.to_thread(_execute_fn_sync, _ctx, *args, **kwargs)
-
-            from beeai_sdk.server.store.context_store import ContextStore
 
             @asynccontextmanager
             async def agent_executor_lifespan(

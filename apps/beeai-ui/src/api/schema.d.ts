@@ -34,19 +34,19 @@ export interface paths {
       cookie?: never;
     };
     /** Proxy Request */
-    get: operations['proxy_request_api_v1_a2a__provider_id__delete'];
+    get: operations['proxy_request_api_v1_a2a__provider_id__get'];
     /** Proxy Request */
-    put: operations['proxy_request_api_v1_a2a__provider_id__delete'];
+    put: operations['proxy_request_api_v1_a2a__provider_id__get'];
     /** Proxy Request */
-    post: operations['proxy_request_api_v1_a2a__provider_id__delete'];
+    post: operations['proxy_request_api_v1_a2a__provider_id__get'];
     /** Proxy Request */
-    delete: operations['proxy_request_api_v1_a2a__provider_id__delete'];
+    delete: operations['proxy_request_api_v1_a2a__provider_id__get'];
     /** Proxy Request */
-    options: operations['proxy_request_api_v1_a2a__provider_id__delete'];
+    options: operations['proxy_request_api_v1_a2a__provider_id__get'];
     /** Proxy Request */
-    head: operations['proxy_request_api_v1_a2a__provider_id__delete'];
+    head: operations['proxy_request_api_v1_a2a__provider_id__get'];
     /** Proxy Request */
-    patch: operations['proxy_request_api_v1_a2a__provider_id__delete'];
+    patch: operations['proxy_request_api_v1_a2a__provider_id__get'];
     trace?: never;
   };
   '/api/v1/a2a/{provider_id}/.well-known/agent-card.json': {
@@ -74,19 +74,19 @@ export interface paths {
       cookie?: never;
     };
     /** Proxy Request */
-    get: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
+    get: operations['proxy_request_api_v1_a2a__provider_id___path__get'];
     /** Proxy Request */
-    put: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
+    put: operations['proxy_request_api_v1_a2a__provider_id___path__get'];
     /** Proxy Request */
-    post: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
+    post: operations['proxy_request_api_v1_a2a__provider_id___path__get'];
     /** Proxy Request */
-    delete: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
+    delete: operations['proxy_request_api_v1_a2a__provider_id___path__get'];
     /** Proxy Request */
-    options: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
+    options: operations['proxy_request_api_v1_a2a__provider_id___path__get'];
     /** Proxy Request */
-    head: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
+    head: operations['proxy_request_api_v1_a2a__provider_id___path__get'];
     /** Proxy Request */
-    patch: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
+    patch: operations['proxy_request_api_v1_a2a__provider_id___path__get'];
     trace?: never;
   };
   '/api/v1/configurations/system': {
@@ -1911,10 +1911,29 @@ export interface components {
        */
       updated_at?: string;
     };
-    'ContextHistoryItem-Input': components['schemas']['Artifact-Input'] | components['schemas']['Message-Input'];
-    'ContextHistoryItem-Output': components['schemas']['Artifact-Output'] | components['schemas']['Message-Output'];
+    /** ContextHistoryItem */
+    ContextHistoryItem: {
+      /**
+       * Context Id
+       * Format: uuid
+       */
+      context_id: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      data: components['schemas']['ContextHistoryItemData-Output'];
+      /**
+       * Id
+       * Format: uuid
+       */
+      id?: string;
+    };
     /** ContextHistoryItemCreateRequest */
-    ContextHistoryItemCreateRequest: components['schemas']['ContextHistoryItem-Input'];
+    ContextHistoryItemCreateRequest: components['schemas']['ContextHistoryItemData-Input'];
+    'ContextHistoryItemData-Input': components['schemas']['Artifact-Input'] | components['schemas']['Message-Input'];
+    'ContextHistoryItemData-Output': components['schemas']['Artifact-Output'] | components['schemas']['Message-Output'];
     /** ContextPermissionsGrant */
     ContextPermissionsGrant: {
       /**
@@ -2710,8 +2729,6 @@ export interface components {
     };
     /** PaginatedResult[Context] */
     PaginatedResult_Context_: {
-      /** First Id */
-      readonly first_id: string | null;
       /**
        * Has More
        * @default false
@@ -2719,31 +2736,27 @@ export interface components {
       has_more: boolean;
       /** Items */
       items: components['schemas']['Context'][];
-      /** Last Id */
-      readonly last_id: string | null;
+      /** Next Page Token */
+      readonly next_page_token: string | null;
       /** Total Count */
       total_count: number;
     };
     /** PaginatedResult[ContextHistoryItem] */
     PaginatedResult_ContextHistoryItem_: {
-      /** First Id */
-      readonly first_id: string | null;
       /**
        * Has More
        * @default false
        */
       has_more: boolean;
       /** Items */
-      items: components['schemas']['ContextHistoryItem-Output'][];
-      /** Last Id */
-      readonly last_id: string | null;
+      items: components['schemas']['ContextHistoryItem'][];
+      /** Next Page Token */
+      readonly next_page_token: string | null;
       /** Total Count */
       total_count: number;
     };
     /** PaginatedResult[ModelProvider] */
     PaginatedResult_ModelProvider_: {
-      /** First Id */
-      readonly first_id: string | null;
       /**
        * Has More
        * @default false
@@ -2751,15 +2764,13 @@ export interface components {
       has_more: boolean;
       /** Items */
       items: components['schemas']['ModelProvider'][];
-      /** Last Id */
-      readonly last_id: string | null;
+      /** Next Page Token */
+      readonly next_page_token: string | null;
       /** Total Count */
       total_count: number;
     };
     /** PaginatedResult[ModelWithScore] */
     PaginatedResult_ModelWithScore_: {
-      /** First Id */
-      readonly first_id: string | null;
       /**
        * Has More
        * @default false
@@ -2767,15 +2778,13 @@ export interface components {
       has_more: boolean;
       /** Items */
       items: components['schemas']['ModelWithScore'][];
-      /** Last Id */
-      readonly last_id: string | null;
+      /** Next Page Token */
+      readonly next_page_token: string | null;
       /** Total Count */
       total_count: number;
     };
     /** PaginatedResult[ProviderWithState] */
     PaginatedResult_ProviderWithState_: {
-      /** First Id */
-      readonly first_id: string | null;
       /**
        * Has More
        * @default false
@@ -2783,15 +2792,13 @@ export interface components {
       has_more: boolean;
       /** Items */
       items: components['schemas']['ProviderWithState'][];
-      /** Last Id */
-      readonly last_id: string | null;
+      /** Next Page Token */
+      readonly next_page_token: string | null;
       /** Total Count */
       total_count: number;
     };
     /** PaginatedResult[VectorStoreDocument] */
     PaginatedResult_VectorStoreDocument_: {
-      /** First Id */
-      readonly first_id: string | null;
       /**
        * Has More
        * @default false
@@ -2799,15 +2806,13 @@ export interface components {
       has_more: boolean;
       /** Items */
       items: components['schemas']['VectorStoreDocument'][];
-      /** Last Id */
-      readonly last_id: string | null;
+      /** Next Page Token */
+      readonly next_page_token: string | null;
       /** Total Count */
       total_count: number;
     };
     /** PaginatedResult[VectorStoreSearchResult] */
     PaginatedResult_VectorStoreSearchResult_: {
-      /** First Id */
-      readonly first_id: string | null;
       /**
        * Has More
        * @default false
@@ -2815,8 +2820,8 @@ export interface components {
       has_more: boolean;
       /** Items */
       items: components['schemas']['VectorStoreSearchResult'][];
-      /** Last Id */
-      readonly last_id: string | null;
+      /** Next Page Token */
+      readonly next_page_token: string | null;
       /** Total Count */
       total_count: number;
     };
@@ -3151,7 +3156,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__delete: {
+  proxy_request_api_v1_a2a__provider_id__get: {
     parameters: {
       query?: {
         path?: string;
@@ -3184,7 +3189,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__delete: {
+  proxy_request_api_v1_a2a__provider_id__get: {
     parameters: {
       query?: {
         path?: string;
@@ -3217,7 +3222,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__delete: {
+  proxy_request_api_v1_a2a__provider_id__get: {
     parameters: {
       query?: {
         path?: string;
@@ -3250,7 +3255,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__delete: {
+  proxy_request_api_v1_a2a__provider_id__get: {
     parameters: {
       query?: {
         path?: string;
@@ -3283,7 +3288,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__delete: {
+  proxy_request_api_v1_a2a__provider_id__get: {
     parameters: {
       query?: {
         path?: string;
@@ -3316,7 +3321,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__delete: {
+  proxy_request_api_v1_a2a__provider_id__get: {
     parameters: {
       query?: {
         path?: string;
@@ -3349,7 +3354,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__delete: {
+  proxy_request_api_v1_a2a__provider_id__get: {
     parameters: {
       query?: {
         path?: string;
@@ -3413,7 +3418,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__delete: {
+  proxy_request_api_v1_a2a__provider_id___path__get: {
     parameters: {
       query?: never;
       header?: never;
@@ -3445,7 +3450,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__delete: {
+  proxy_request_api_v1_a2a__provider_id___path__get: {
     parameters: {
       query?: never;
       header?: never;
@@ -3477,7 +3482,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__delete: {
+  proxy_request_api_v1_a2a__provider_id___path__get: {
     parameters: {
       query?: never;
       header?: never;
@@ -3509,7 +3514,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__delete: {
+  proxy_request_api_v1_a2a__provider_id___path__get: {
     parameters: {
       query?: never;
       header?: never;
@@ -3541,7 +3546,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__delete: {
+  proxy_request_api_v1_a2a__provider_id___path__get: {
     parameters: {
       query?: never;
       header?: never;
@@ -3573,7 +3578,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__delete: {
+  proxy_request_api_v1_a2a__provider_id___path__get: {
     parameters: {
       query?: never;
       header?: never;
@@ -3605,7 +3610,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__delete: {
+  proxy_request_api_v1_a2a__provider_id___path__get: {
     parameters: {
       query?: never;
       header?: never;
@@ -3693,10 +3698,10 @@ export interface operations {
   list_context_api_v1_contexts_get: {
     parameters: {
       query?: {
-        after?: string | null;
         limit?: number;
         order?: string;
         order_by?: string;
+        page_token?: string | null;
       };
       header?: never;
       path?: never;
@@ -3806,7 +3811,12 @@ export interface operations {
   };
   list_context_history_api_v1_contexts__context_id__history_get: {
     parameters: {
-      query?: never;
+      query?: {
+        limit?: number;
+        order?: string;
+        order_by?: string;
+        page_token?: string | null;
+      };
       header?: never;
       path: {
         context_id: string;

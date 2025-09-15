@@ -74,7 +74,7 @@ class SqlAlchemyContextRepository(IContextRepository):
         self,
         user_id: UUID | None = None,
         limit: int = 20,
-        after: UUID | None = None,
+        page_token: UUID | None = None,
         order: str = "desc",
         order_by: str = "created_at",
     ) -> PaginatedResult:
@@ -87,7 +87,7 @@ class SqlAlchemyContextRepository(IContextRepository):
             query=query,
             id_column=contexts_table.c.id,
             limit=limit,
-            after_cursor=after,
+            after_cursor=page_token,
             order=order,
             order_column=getattr(contexts_table.c, order_by),
         )
@@ -147,7 +147,7 @@ class SqlAlchemyContextRepository(IContextRepository):
         self,
         *,
         context_id: UUID,
-        after: UUID | None = None,
+        page_token: UUID | None = None,
         limit: int = 20,
         order_by: str = "created_at",
         order="desc",
@@ -156,7 +156,7 @@ class SqlAlchemyContextRepository(IContextRepository):
         result = await cursor_paginate(
             connection=self._connection,
             query=query,
-            after_cursor=after,
+            after_cursor=page_token,
             id_column=context_history_table.c.id,
             order_column=getattr(context_history_table.c, order_by),
             order=order,

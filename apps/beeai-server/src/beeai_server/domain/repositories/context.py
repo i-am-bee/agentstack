@@ -20,7 +20,7 @@ class IContextRepository(Protocol):
         self,
         user_id: UUID | None = None,
         limit: int = 20,
-        after: UUID | None = None,
+        page_token: UUID | None = None,
         order: str = "desc",
         order_by: str = "created_at",
     ) -> PaginatedResult: ...
@@ -34,7 +34,7 @@ class IContextRepository(Protocol):
         self,
         *,
         context_id: UUID,
-        after: UUID | None = None,
+        page_token: UUID | None = None,
         limit: int = 20,
         order_by: str = "created_at",
         order="desc",

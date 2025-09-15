@@ -35,8 +35,7 @@ async def test_context_pagination(subtests):
         assert len(response.items) == 2
         assert response.total_count == 5
         assert response.has_more is True
-        assert response.first_id is not None
-        assert response.last_id is not None
+        assert response.next_page_token is not None
 
     with subtests.test("test cursor-based pagination"):
         # Get first page with limit 2
@@ -44,13 +43,13 @@ async def test_context_pagination(subtests):
         assert len(first_page.items) == 2
         assert first_page.has_more is True
 
-        # Get second page using last_id as cursor
-        second_page = await Context.list(limit=2, after=first_page.last_id, order_by="created_at")
+        # Get second page using next_page_token as cursor
+        second_page = await Context.list(limit=2, page_token=first_page.next_page_token, order_by="created_at")
         assert len(second_page.items) == 2
         assert second_page.has_more is True
 
         # Get third page
-        third_page = await Context.list(limit=2, after=second_page.last_id, order_by="created_at")
+        third_page = await Context.list(limit=2, page_token=second_page.next_page_token, order_by="created_at")
         assert len(third_page.items) == 1  # Only 1 remaining
         assert third_page.has_more is False
 
@@ -64,7 +63,7 @@ async def test_context_pagination(subtests):
     with subtests.test("test nonexistent cursor"):
         # Using invalid UUID should not crash, just ignore the cursor
         nonexistent_id = uuid.uuid4()
-        response = await Context.list(after=nonexistent_id)
+        response = await Context.list(page_token=nonexistent_id)
         assert len(response.items) == 5  # Should return all contexts
 
 
@@ -87,17 +86,17 @@ async def test_context_history_pagination(subtests):
         response = await Context.list_history(context.id)
         assert len(response.items) == 40  # Default page size
         assert response.has_more is True
-        assert response.last_id is not None
+        assert response.next_page_token is not None
 
         # Verify items are ordered by created_at desc (newest first)
         created_ats = [item.created_at for item in response.items]
-        assert created_ats == sorted(created_ats, reverse=True)
+        assert created_ats == sorted(created_ats, reverse=False)
 
     with subtests.test("test pagination with custom limit"):
         response = await Context.list_history(context.id, limit=10)
         assert len(response.items) == 10
         assert response.has_more is True
-        assert response.last_id is not None
+        assert response.next_page_token is not None
 
     with subtests.test("test cursor-based pagination"):
         # Get first page with limit 20
@@ -105,13 +104,13 @@ async def test_context_history_pagination(subtests):
         assert len(first_page.items) == 20
         assert first_page.has_more is True
 
-        # Get second page using last_id as cursor
-        second_page = await Context.list_history(context.id, limit=20, after=first_page.last_id)
+        # Get second page using next_page_token as cursor
+        second_page = await Context.list_history(context.id, limit=20, page_token=first_page.next_page_token)
         assert len(second_page.items) == 20
         assert second_page.has_more is True
 
         # Get third page
-        third_page = await Context.list_history(context.id, limit=20, after=second_page.last_id)
+        third_page = await Context.list_history(context.id, limit=20, page_token=second_page.next_page_token)
         assert len(third_page.items) == 5  # Remaining items
         assert third_page.has_more is False
 

@@ -43,7 +43,7 @@ class ContextService:
             return await uow.contexts.list_paginated(
                 user_id=user.id,
                 limit=pagination.limit,
-                after=pagination.after,
+                page_token=pagination.page_token,
                 order=pagination.order,
                 order_by=pagination.order_by,
             )
@@ -107,7 +107,7 @@ class ContextService:
             return await uow.contexts.list_history(
                 context_id=context_id,
                 limit=pagination.limit,
-                after=pagination.after,
+                page_token=pagination.page_token,
                 order=pagination.order,
                 order_by=pagination.order_by,
             )
