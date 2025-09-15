@@ -301,7 +301,7 @@ async def chat(
     await agent.memory.add_many(to_framework_message(item, extracted_files) for item in history)
     final_answer = None
 
-    async for event, meta in agent.run():
+    async for event, meta in agent.run([]):
         if not isinstance(event, RequirementAgentSuccessEvent):
             continue
 

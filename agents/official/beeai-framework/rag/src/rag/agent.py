@@ -278,7 +278,7 @@ async def rag(
                 await context.yield_async(artifact)
 
     response = (
-        await agent.run()
+        await agent.run([])
         .on(
             lambda event: event.name == "start" and isinstance(event.creator, Tool),
             handle_tool_start,
