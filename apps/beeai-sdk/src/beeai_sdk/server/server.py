@@ -22,6 +22,7 @@ from a2a.types import AgentExtension
 from fastapi import FastAPI
 from fastapi.applications import AppType
 from httpx import AsyncClient, HTTPError, HTTPStatusError
+from pydantic import AnyUrl
 from starlette.types import Lifespan
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_attempt, wait_exponential
 
@@ -140,7 +141,9 @@ class Server:
                 if register_task:
                     await cancel_task(register_task)
 
-        self._agent.card.url = f"http://{host}:{port}"
+        card_url = AnyUrl(self._agent.card.url)
+        if card_url.host == "invalid":
+            self._agent.card.url = f"http://{host}:{port}"
 
         app = create_app(
             self._agent,

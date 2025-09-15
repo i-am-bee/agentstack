@@ -53,6 +53,7 @@ def agent(
     name: str | None = None,
     description: str | None = None,
     *,
+    url: str = "http://invalid",  # Default will be replaced by the server
     additional_interfaces: list[AgentInterface] | None = None,
     capabilities: AgentCapabilities | None = None,
     default_input_modes: list[str] | None = None,
@@ -116,6 +117,8 @@ def agent(
         ]
 
         card = AgentCard(
+            url=url,
+            preferred_transport=preferred_transport,
             additional_interfaces=additional_interfaces,
             capabilities=capabilities,
             default_input_modes=default_input_modes or ["text"],
@@ -124,13 +127,11 @@ def agent(
             documentation_url=documentation_url,
             icon_url=icon_url,
             name=resolved_name,
-            preferred_transport=preferred_transport,
             provider=provider,
             security=security,
             security_schemes=security_schemes,
             skills=skills or [],
             supports_authenticated_extended_card=supports_authenticated_extended_card,
-            url="http://localhost:10000",  # dummy url - will be replaced by server
             version=version or "1.0.0",
         )
 

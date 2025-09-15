@@ -25,6 +25,7 @@ def create_app(
     request_context_builder: RequestContextBuilder | None = None,
     lifespan: Lifespan[AppType] | None = None,
     dependencies: list[Depends] | None = None,  # pyright: ignore [reportGeneralTypeIssues]
+    override_interfaces: bool = True,
     **kwargs,
 ) -> FastAPI:
     queue_manager = queue_manager or InMemoryQueueManager()
@@ -38,12 +39,13 @@ def create_app(
         request_context_builder=request_context_builder,
     )
 
-    agent.card.additional_interfaces = [
-        AgentInterface(url=agent.card.url, transport=TransportProtocol.http_json),
-        AgentInterface(url=agent.card.url + "/jsonrpc/", transport=TransportProtocol.jsonrpc),
-    ]
-    agent.card.url = agent.card.url + "/jsonrpc/"
-    agent.card.preferred_transport = TransportProtocol.jsonrpc
+    if override_interfaces:
+        agent.card.additional_interfaces = [
+            AgentInterface(url=agent.card.url, transport=TransportProtocol.http_json),
+            AgentInterface(url=agent.card.url + "/jsonrpc/", transport=TransportProtocol.jsonrpc),
+        ]
+        agent.card.url = agent.card.url + "/jsonrpc/"
+        agent.card.preferred_transport = TransportProtocol.jsonrpc
 
     jsonrpc_app = A2AFastAPIApplication(agent_card=agent.card, http_handler=http_handler).build(
         dependencies=dependencies,
