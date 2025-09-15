@@ -45,7 +45,7 @@ export function ModelProviders() {
           <Select
             size="sm"
             id={`${htmlId}:${key}`}
-            labelText={`${llmProviderList.length > 1 ? key : ''} LLM`}
+            labelText={`LLM:${llmProviderList.length > 1 ? key : ''}`}
             inline
             value={selectedLLMProviders[key] || ''}
             onChange={(event: ChangeEvent<HTMLSelectElement>) => {
@@ -66,7 +66,7 @@ export function ModelProviders() {
           <Select
             size="sm"
             id={`${htmlId}:${key}`}
-            labelText={`${embeddingProviderList.length > 1 ? key : ''} Embedding`}
+            labelText={`Embedding:${embeddingProviderList.length > 1 ? key : ''}`}
             inline
             value={selectedEmbeddingProviders[key] || ''}
             onChange={(event: ChangeEvent<HTMLSelectElement>) => {
