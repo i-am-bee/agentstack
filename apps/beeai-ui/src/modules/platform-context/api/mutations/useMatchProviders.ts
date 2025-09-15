@@ -27,7 +27,7 @@ export function useMatchEmbeddingProviders(
     .join();
 
   const query = useQuery({
-    queryKey: ['matchProviders', demandKey],
+    queryKey: ['matchEmbeddingProviders', demandKey],
     enabled: featureFlags.ModelProviders && Object.keys(demands).length > 0,
     queryFn: async () => {
       const demandKeys = Object.keys(demands);
@@ -70,7 +70,7 @@ export function useMatchLLMProviders(
     .join();
 
   const query = useQuery({
-    queryKey: ['matchProviders', demandKey],
+    queryKey: ['matchLLMProviders', demandKey],
     enabled: featureFlags.ModelProviders && Object.keys(demands).length > 0,
     queryFn: async () => {
       const demandKeys = Object.keys(demands);
