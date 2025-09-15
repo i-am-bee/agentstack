@@ -6,6 +6,7 @@ from datetime import datetime
 from uuid import UUID, uuid4
 
 from kink import inject
+from pydantic import TypeAdapter
 from sqlalchemy import (
     JSON,
     Column,
@@ -21,7 +22,7 @@ from sqlalchemy import (
 from sqlalchemy import UUID as SQL_UUID
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from beeai_server.domain.models.common import PaginatedResult
+from beeai_server.domain.models.common import Metadata, PaginatedResult
 from beeai_server.domain.models.context import Context, ContextHistoryItem
 from beeai_server.domain.repositories.context import IContextRepository
 from beeai_server.exceptions import EntityNotFoundError
@@ -138,6 +139,17 @@ class SqlAlchemyContextRepository(IContextRepository):
 
     async def update_last_active(self, *, context_id: UUID) -> None:
         query = update(contexts_table).where(contexts_table.c.id == context_id).values(last_active_at=utc_now())
+        await self._connection.execute(query)
+
+    async def update_title(self, *, context_id: UUID, title: str) -> None:
+        # validate length before saving to database
+        _ = TypeAdapter(Metadata).validate_python({"title": title})
+        context = await self.get(context_id=context_id)
+        query = (
+            contexts_table.update()
+            .where(contexts_table.c.id == context_id)
+            .values(metadata=(context.metadata or {}) | {"title": title})
+        )
         await self._connection.execute(query)
 
     async def add_history_item(self, *, context_id: UUID, history_item: ContextHistoryItem) -> None:

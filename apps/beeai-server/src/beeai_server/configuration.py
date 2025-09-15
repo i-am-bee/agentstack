@@ -190,6 +190,10 @@ class ContextConfiguration(BaseModel):
     resource_expire_after_days: int = 7  # Expires files and vector_stores attached to a context
 
 
+class FeatureConfiguration(BaseModel):
+    generate_conversation_title: bool = True
+
+
 class Configuration(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", env_nested_delimiter="__", extra="ignore"
@@ -197,6 +201,7 @@ class Configuration(BaseSettings):
 
     auth: AuthConfiguration = Field(default_factory=AuthConfiguration)
     logging: LoggingConfiguration = Field(default_factory=LoggingConfiguration)
+    features: FeatureConfiguration = Field(default_factory=FeatureConfiguration)
     agent_registry: AgentRegistryConfiguration = Field(default_factory=AgentRegistryConfiguration)
     mcp: McpConfiguration = Field(default_factory=McpConfiguration)
     oci_registry: dict[str, OCIRegistryConfiguration] = Field(default_factory=dict)

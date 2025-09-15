@@ -5,15 +5,17 @@ import logging
 from datetime import timedelta
 from uuid import UUID
 
-from kink import inject
-from openai.types import Metadata
+from a2a.types import Artifact, Message, Role, TextPart
+from kink import di, inject
 
 from beeai_server.api.schema.common import PaginationQuery
+from beeai_server.api.schema.openai import ChatCompletionRequest
 from beeai_server.configuration import Configuration
-from beeai_server.domain.models.common import PaginatedResult
+from beeai_server.domain.models.common import Metadata, PaginatedResult
 from beeai_server.domain.models.context import Context, ContextHistoryItem, ContextHistoryItemData
 from beeai_server.domain.models.user import User
 from beeai_server.domain.repositories.file import IObjectStorageRepository
+from beeai_server.service_layer.services.model_provider import ModelProviderService
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
 from beeai_server.utils.utils import utc_now
 
@@ -94,14 +96,77 @@ class ContextService:
             await uow.contexts.update_last_active(context_id=context_id)
             await uow.commit()
 
+    def _extract_text(self, msg: Message | Artifact) -> str | None:
+        for part in msg.parts:
+            if isinstance(part.root, TextPart):
+                return part.root.text
+        return None
+
     async def add_history_item(self, *, context_id: UUID, data: ContextHistoryItemData, user: User) -> None:
         async with self._uow() as uow:
-            await uow.contexts.get(context_id=context_id, user_id=user.id)
+            context = await uow.contexts.get(context_id=context_id, user_id=user.id)
             await uow.contexts.add_history_item(
                 context_id=context_id,
                 history_item=ContextHistoryItem(context_id=context_id, data=data),
             )
+
+            if getattr(data, "role", None) == Role.user and not (context.metadata or {}).get("title"):
+                from beeai_server.jobs.tasks.context import generate_conversation_title as task
+
+                title = self._extract_text(data) or "Untitled"
+                title = f"{title[:100]}..." if len(title) > 100 else title
+                await uow.contexts.update_title(context_id=context_id, title=title)
+
+                if self._configuration.features.generate_conversation_title:
+                    await task.configure(queueing_lock=str(context_id)).defer_async(context_id=str(context_id))
+
             await uow.commit()
+
+    async def generate_conversation_title(self, *, context_id: UUID):
+        from beeai_server.api.routes.openai import create_chat_completion
+
+        async with self._uow() as uow:
+            msg = await uow.contexts.list_history(context_id=context_id, limit=1, order="desc", order_by="created_at")
+            config = await uow.configuration.get_system_configuration()
+
+        if not msg.items:
+            logger.warning(f"Cannot generate title for context {context_id}: no history found.")
+            return
+        if not (text := self._extract_text(msg.items[0].data)):
+            logger.warning(f"Cannot generate title for context {context_id}: first message has no text.")
+            return
+        if not config.default_llm_model:
+            logger.warning(f"Cannot generate title for context {context_id}: default LLM model not set.")
+            return
+
+        try:
+            # HACK: calling the endpoint directly (instead, logic should be extracted from the api layer to domain)
+            resp = await create_chat_completion(
+                model_provider_service=di[ModelProviderService],
+                request=ChatCompletionRequest(
+                    model=config.default_llm_model,
+                    stream=False,
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": (
+                                "Write a short descriptive title for the conversation (max 100 characters). "
+                                "Return only the title verbatim with no commentary or explanation"
+                            ),
+                        },
+                        {"role": "user", "content": text},
+                    ],
+                ),
+                _=None,  # pyright: ignore [reportArgumentType]
+            )
+            title = resp["choices"][0]["message"]["content"]  # pyright: ignore [reportIndexIssue]
+            title = f"{title[:100]}..." if len(title) > 100 else title
+            async with self._uow() as uow:
+                await uow.contexts.update_title(context_id=context_id, title=title)
+                await uow.commit()
+        except Exception as e:
+            logger.warning(f"Failed to generate title for context {context_id}: {e}")
+            raise e
 
     async def list_history(
         self, *, context_id: UUID, user: User, pagination: PaginationQuery
