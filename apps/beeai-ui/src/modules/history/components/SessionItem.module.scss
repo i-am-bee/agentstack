@@ -1,0 +1,48 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.link {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  row-gap: $spacing-02;
+  padding: $spacing-03;
+  border-radius: $border-radius;
+  transition: background-color $duration-fast-01 motion(entrance, productive);
+  &:focus-visible {
+    border-radius: $border-radius;
+  }
+  &:hover {
+    background-color: $layer-02;
+  }
+  &:active {
+    background-color: $background-active;
+  }
+  &.isActive {
+    background-color: $layer-02;
+  }
+}
+
+.heading {
+  @include line-clamp();
+  font-size: rem(14px);
+  line-height: math.div(18, 14);
+  color: $text-dark;
+}
+
+.agentName {
+  @include line-clamp();
+  font-size: rem(12px);
+  line-height: math.div(14, 12);
+  color: $text-secondary;
+}
+
+.skeleton {
+  &:global(.cds--btn.cds--skeleton) {
+    inline-size: 100%;
+    min-block-size: rem(52px);
+  }
+}

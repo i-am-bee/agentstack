@@ -13,6 +13,7 @@ import { CustomNav } from '#components/CustomNav/CustomNav.tsx';
 import { SidePanel } from '#components/SidePanel/SidePanel.tsx';
 import { UserNav } from '#components/UserNav/UserNav.tsx';
 import { useApp } from '#contexts/App/index.ts';
+import { SessionsNav } from '#modules/history/components/SessionsNav.tsx';
 import { NAV_ITEMS } from '#utils/constants.ts';
 
 import classes from './SideNav.module.scss';
@@ -44,8 +45,17 @@ export function SideNav() {
 
       <SidePanel variant="left" isOpen={navigationOpen}>
         <div className={classes.root}>
-          {navVariant === 'custom' && <CustomNav items={NAV_ITEMS} />}
-          {navVariant === 'agents' && <AgentsNav />}
+          <div className={classes.body}>
+            {navVariant === 'custom' && (
+              <CustomNav items={NAV_ITEMS} className={classes.nav} bodyClassName={classes.navBody} />
+            )}
+
+            {navVariant === 'agents' && <AgentsNav className={classes.nav} bodyClassName={classes.navBody} />}
+
+            <hr className={classes.separator} />
+
+            <SessionsNav />
+          </div>
 
           <div className={classes.footer}>
             <UserNav />
