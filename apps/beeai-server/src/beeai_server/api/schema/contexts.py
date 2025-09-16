@@ -4,6 +4,7 @@ from typing import Literal
 
 from pydantic import AwareDatetime, BaseModel, Field, RootModel
 
+from beeai_server.api.schema.common import PaginationQuery
 from beeai_server.domain.models.common import Metadata
 from beeai_server.domain.models.context import ContextHistoryItemData
 from beeai_server.domain.models.permissions import ResourceIdPermission
@@ -13,6 +14,10 @@ class ContextCreateRequest(BaseModel):
     """Request schema for context creation."""
 
     metadata: Metadata | None = None
+
+
+class ContextListQuery(PaginationQuery):
+    include_empty: bool = True
 
 
 class ContextPermissionsGrant(BaseModel):

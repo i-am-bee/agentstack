@@ -6,6 +6,7 @@ from datetime import timedelta
 from uuid import UUID
 
 from kink import inject
+from openai.types import Metadata
 
 from beeai_server.api.schema.common import PaginationQuery
 from beeai_server.configuration import Configuration
@@ -27,8 +28,8 @@ class ContextService:
         self._configuration = configuration
         self._expire_resources_after = timedelta(days=configuration.context.resource_expire_after_days)
 
-    async def create(self, *, user: User) -> Context:
-        context = Context(created_by=user.id)
+    async def create(self, *, user: User, metadata: Metadata) -> Context:
+        context = Context(created_by=user.id, metadata=metadata)
         async with self._uow() as uow:
             await uow.contexts.create(context=context)
             await uow.commit()
@@ -38,7 +39,9 @@ class ContextService:
         async with self._uow() as uow:
             return await uow.contexts.get(context_id=context_id, user_id=user.id)
 
-    async def list(self, *, user: User, pagination: PaginationQuery) -> PaginatedResult[Context]:
+    async def list(
+        self, *, user: User, pagination: PaginationQuery, include_empty: bool = True
+    ) -> PaginatedResult[Context]:
         async with self._uow() as uow:
             return await uow.contexts.list_paginated(
                 user_id=user.id,
@@ -46,6 +49,7 @@ class ContextService:
                 page_token=pagination.page_token,
                 order=pagination.order,
                 order_by=pagination.order_by,
+                include_empty=include_empty,
             )
 
     async def delete(self, *, context_id: UUID, user: User) -> None:

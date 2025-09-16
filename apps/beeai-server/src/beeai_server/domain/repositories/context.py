@@ -23,6 +23,7 @@ class IContextRepository(Protocol):
         page_token: UUID | None = None,
         order: str = "desc",
         order_by: str = "created_at",
+        include_empty: bool = True,
     ) -> PaginatedResult: ...
 
     async def create(self, *, context: Context) -> None: ...

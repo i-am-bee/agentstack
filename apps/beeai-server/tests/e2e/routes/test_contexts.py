@@ -136,3 +136,28 @@ async def test_context_history_pagination(subtests):
         created_ats = [item.created_at for item in all_items]
         # Note: list_all_history should maintain the order from list_history (desc by default)
         # but iterate through all pages
+
+
+@pytest.mark.usefixtures("clean_up", "setup_platform_client")
+async def test_context_empty_filtering(subtests):
+    """Test filtering contexts based on whether they have history records."""
+
+    with subtests.test("create contexts with and without history"):
+        # Create empty context (no history)
+        empty_context = await Context.create()
+
+        # Create context with history
+        context_with_history = await Context.create()
+        message = AgentMessage(text="Test message")
+        await context_with_history.add_history_item(data=message)
+
+    with subtests.test("include_empty=True returns all contexts"):
+        response = await Context.list(include_empty=True)
+        assert len(response.items) == 2  # Should include both contexts
+
+    with subtests.test("include_empty=False returns only contexts with history"):
+        response = await Context.list(include_empty=False)
+        context_ids = [ctx.id for ctx in response.items]
+        assert len(context_ids) == 1
+        assert context_with_history.id in context_ids
+        assert empty_context.id not in context_ids

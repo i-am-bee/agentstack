@@ -82,6 +82,7 @@ class Context(pydantic.BaseModel):
         limit: int | None = None,
         order: Literal["asc"] | Literal["desc"] | None = None,
         order_by: Literal["created_at"] | Literal["updated_at"] | None = None,
+        include_empty: bool = True,
     ) -> PaginatedResult[Context]:
         # `self` has a weird type so that you can call both `instance.get()` to update an instance, or `File.get("123")` to obtain a new instance
         async with client or get_platform_client() as client:
@@ -90,7 +91,13 @@ class Context(pydantic.BaseModel):
                     await client.get(
                         url="/api/v1/contexts",
                         params=filter_dict(
-                            {"page_token": page_token, "limit": limit, "order": order, "order_by": order_by}
+                            {
+                                "page_token": page_token,
+                                "limit": limit,
+                                "order": order,
+                                "order_by": order_by,
+                                "include_empty": include_empty,
+                            }
                         ),
                     )
                 )

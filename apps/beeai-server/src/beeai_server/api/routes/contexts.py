@@ -17,7 +17,9 @@ from beeai_server.api.dependencies import (
 )
 from beeai_server.api.schema.common import EntityModel, PaginationQuery
 from beeai_server.api.schema.contexts import (
+    ContextCreateRequest,
     ContextHistoryItemCreateRequest,
+    ContextListQuery,
     ContextTokenCreateRequest,
     ContextTokenResponse,
 )
@@ -32,19 +34,20 @@ router = APIRouter()
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_context(
+    request: ContextCreateRequest,
     context_service: ContextServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(contexts={"write"}))],
 ) -> EntityModel[Context]:
-    return EntityModel(await context_service.create(user=user.user))
+    return EntityModel(await context_service.create(user=user.user, metadata=request.metadata))
 
 
 @router.get("")
 async def list_context(
     context_service: ContextServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(contexts={"read"}))],
-    pagination: Annotated[PaginationQuery, Query()],
+    query: Annotated[ContextListQuery, Query()],
 ) -> PaginatedResult[Context]:
-    return await context_service.list(user=user.user, pagination=pagination)
+    return await context_service.list(user=user.user, pagination=query, include_empty=query.include_empty)
 
 
 @router.get("/{context_id}")

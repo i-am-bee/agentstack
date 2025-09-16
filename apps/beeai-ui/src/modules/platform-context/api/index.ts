@@ -10,7 +10,7 @@ import { ensureData } from '#api/utils.ts';
 import type { ModelCapability } from '../types';
 
 export async function createContext() {
-  const response = await api.POST('/api/v1/contexts');
+  const response = await api.POST('/api/v1/contexts', { body: {} });
 
   return ensureData(response);
 }

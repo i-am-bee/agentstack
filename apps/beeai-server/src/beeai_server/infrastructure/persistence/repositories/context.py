@@ -76,10 +76,17 @@ class SqlAlchemyContextRepository(IContextRepository):
         page_token: UUID | None = None,
         order: str = "desc",
         order_by: str = "created_at",
+        include_empty: bool = True,
     ) -> PaginatedResult:
         query = contexts_table.select()
         if user_id is not None:
             query = query.where(contexts_table.c.created_by == user_id)
+        if not include_empty:
+            # Use EXISTS subquery to find contexts that have at least one history record
+            subquery = select(context_history_table.c.context_id).where(
+                context_history_table.c.context_id == contexts_table.c.id
+            )
+            query = query.where(subquery.exists())
 
         result = await cursor_paginate(
             connection=self._connection,
