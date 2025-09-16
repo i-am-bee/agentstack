@@ -223,6 +223,14 @@ run = "{{ mise_bin }} run beeai-server:dev:delete --vm-name=beeai-local-test"
 dir = "{{config_root}}/apps/beeai-server"
 run = "{{ mise_bin }} run beeai-platform:shell --vm-name=beeai-local-test"
 
+["beeai-server:dev:test:connect"]
+dir = "{{config_root}}/apps/beeai-server"
+run = "{{ mise_bin }} run beeai-server:dev:connect --vm-name=beeai-local-test"
+
+["beeai-server:dev:test:disconnect"]
+dir = "{{config_root}}/apps/beeai-server"
+run = "{{ mise_bin }} run beeai-server:dev:disconnect --vm-name=beeai-local-test"
+
 ["beeai-server:dev:test:reconnect"]
 dir = "{{config_root}}/apps/beeai-server"
 run = "{{ mise_bin }} run beeai-server:dev:reconnect --vm-name=beeai-local-test"
@@ -243,7 +251,8 @@ curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhos
     --set docling.enabled=true \
     --set ui.enabled=false \
     --set auth.enabled="true" \
-    --set auth.adminPassword="test-password" \
+    --set auth.basic.enabled="true" \
+    --set auth.basic.adminPassword="test-password" \
     --set auth.jwtSecretKey="test-secret-key"
 
 
@@ -252,6 +261,7 @@ eval "$( {{ mise_bin }} run beeai-platform:shell --vm-name="$VM_NAME" )"
 export SERVER_URL="http://localhost:8333"
 export DB_URL="postgresql+asyncpg://beeai-user:password@localhost:5432/beeai"
 export LLM_API_BASE="${LLM_API_BASE:-http://host.docker.internal:11434/v1}"
+export OIDC__DISABLE_OIDC=true
 
 kubectl port-forward svc/postgresql 5432:5432 2>/dev/null 1>&2 &
 uv run pytest -m e2e
@@ -284,6 +294,7 @@ VM_NAME=itegration-test-run
     --set ui.enabled=false
 
 eval "$( {{ mise_bin }} run beeai-platform:shell --vm-name="$VM_NAME" )"
+export OIDC__DISABLE_OIDC=True
 
 {{ mise_bin }} run beeai-server:dev:connect --vm-name="$VM_NAME"
 

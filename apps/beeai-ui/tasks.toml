@@ -10,10 +10,10 @@ run = "pnpm prettier --log-level silent --check src"
 sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx", "src/**/*.html", "src/**/*.css", "src/**/*.scss"]
 outputs = { auto = true }
 
-["beeai-ui:check:next"]
+["beeai-ui:check:eslint"]
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/beeai-ui"
-run = "pnpm next lint"
+run = "pnpm eslint ."
 sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
 outputs = { auto = true }
 
@@ -46,7 +46,7 @@ outputs = { auto = true }
 ["beeai-ui:fix:next"]
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/beeai-ui"
-run = "pnpm next lint --fix"
+run = "pnpm eslint . --fix"
 sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
 outputs = { auto = true }
 

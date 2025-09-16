@@ -23,15 +23,25 @@ class Permissions(BaseModel):
     #   - SerializeAsAny is required to allow duck typing:
     #       https://docs.pydantic.dev/latest/concepts/serialization/#serializing-with-duck-typing
 
+    system_configuration: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
+
     files: SerializeAsAny[set[Literal["read", "write", "extract", "*"]]] = set()
     feedback: SerializeAsAny[set[Literal["write"]]] = set()
     vector_stores: SerializeAsAny[set[Literal["read", "write", "extract", "*"]]] = set()
+
+    # openai proxy
+    model_providers: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
     llm: SerializeAsAny[set[Literal["*"] | ResourceIdPermission]] = set()
     embeddings: SerializeAsAny[set[Literal["*"] | ResourceIdPermission]] = set()
+
     a2a_proxy: SerializeAsAny[set[Literal["*"]]] = set()
+
+    # agent providers
     providers: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()  # write includes "show logs" permission
-    variables: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
+    provider_variables: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
+
     contexts: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
+    context_data: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()  # covers history (TODO: variables)
     mcp_providers: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
     mcp_tools: SerializeAsAny[set[Literal["read", "*"]]] = set()
     mcp_proxy: SerializeAsAny[set[Literal["*"]]] = set()

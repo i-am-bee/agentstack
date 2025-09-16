@@ -7,6 +7,7 @@ import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from types import NoneType
+from typing import TYPE_CHECKING
 
 import a2a.types
 import pydantic
@@ -20,7 +21,9 @@ from beeai_sdk.a2a.extensions.base import (
 from beeai_sdk.a2a.extensions.exceptions import ExtensionError
 from beeai_sdk.platform import use_platform_client
 from beeai_sdk.platform.client import PlatformClient
-from beeai_sdk.server.context import RunContext
+
+if TYPE_CHECKING:
+    from beeai_sdk.server.context import RunContext
 
 
 class PlatformApiExtensionMetadata(pydantic.BaseModel):

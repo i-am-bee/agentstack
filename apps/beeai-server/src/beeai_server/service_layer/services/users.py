@@ -6,7 +6,7 @@ from uuid import UUID
 
 from kink import inject
 
-from beeai_server.domain.models.user import User
+from beeai_server.domain.models.user import User, UserRole
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
 
 logger = logging.getLogger(__name__)
@@ -20,9 +20,9 @@ class UserService:
     ):
         self._uow = uow
 
-    async def create_user(self, *, email: str) -> User:
+    async def create_user(self, *, email: str, role: UserRole = UserRole.USER) -> User:
         async with self._uow() as uow:
-            user = User(email=email)
+            user = User(email=email, role=role)
             await uow.users.create(user=user)
             await uow.commit()
             return user

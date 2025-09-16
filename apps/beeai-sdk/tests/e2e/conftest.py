@@ -27,6 +27,7 @@ from beeai_sdk.a2a.extensions.ui.agent_detail import AgentDetail
 from beeai_sdk.a2a.types import AgentArtifact, ArtifactChunk, InputRequired, RunYield, RunYieldResume
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import RunContext
+from beeai_sdk.server.store.context_store import ContextStore
 
 pytestmark = pytest.mark.e2e
 
@@ -38,9 +39,11 @@ def get_free_port() -> int:
 
 
 @asynccontextmanager
-async def run_server(server: Server, port: int) -> AsyncGenerator[tuple[Server, Client]]:
+async def run_server(
+    server: Server, port: int, context_store: ContextStore | None = None
+) -> AsyncGenerator[tuple[Server, Client]]:
     async with asyncio.TaskGroup() as tg:
-        tg.create_task(asyncio.to_thread(server.run, self_registration=False, port=port))
+        tg.create_task(asyncio.to_thread(server.run, self_registration=False, port=port, context_store=context_store))
 
         try:
             async with httpx.AsyncClient(timeout=None) as httpx_client:
@@ -64,10 +67,10 @@ def create_server_with_agent():
     """Factory fixture that creates a server with the given agent function."""
 
     @asynccontextmanager
-    async def _create_server(agent_fn):
+    async def _create_server(agent_fn, context_store: ContextStore | None = None):
         server = Server()
         server.agent(detail=AgentDetail(interaction_mode="multi-turn"))(agent_fn)
-        async with run_server(server, get_free_port()) as (server, client):
+        async with run_server(server, get_free_port(), context_store=context_store) as (server, client):
             yield server, client
 
     return _create_server

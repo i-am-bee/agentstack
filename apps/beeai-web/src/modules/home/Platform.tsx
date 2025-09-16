@@ -4,13 +4,15 @@
  */
 
 'use client';
-import { LogoPython, Rocket, SettingsAdjust, Unlocked } from '@carbon/icons-react';
+import { Deploy, Gui, Unlocked } from '@carbon/icons-react';
 import Image from 'next/image';
 
-import { PLATFORM_QUICKSTART_LINK } from '@/constants';
+import { PLATFORM_INTRO_LINK } from '@/constants';
 import { LayoutContainer } from '@/layouts/LayoutContainer';
 
+import InterfaceUsageAlt from './assets/interface-usage-alt.svg';
 import screenshotsImage from './assets/platform.png';
+import type { FeatureItem } from './components/FeaturesList';
 import { FeaturesList } from './components/FeaturesList';
 import { HeadlineWithLink } from './components/HeadlineWithLink';
 import { TwoColumnGrid } from './components/TwoColumnGrid';
@@ -23,9 +25,9 @@ export function Platform() {
         <TwoColumnGrid className={classes.info}>
           <div className={classes.infoLeft}>
             <HeadlineWithLink
-              title="Platform"
-              description="Deploy any AI agent with a custom web interface in minutes."
-              buttonProps={{ url: PLATFORM_QUICKSTART_LINK }}
+              title="beeai-platform"
+              description="Test, debug, and share your agents in an interactive UI with out-of-the-box trajectory, citations, and more."
+              buttonProps={{ url: PLATFORM_INTRO_LINK }}
             />
           </div>
 
@@ -42,37 +44,29 @@ export function Platform() {
   );
 }
 
-const FEATURES_ITEMS = [
+const FEATURES_ITEMS: FeatureItem[] = [
   {
-    icon: Rocket,
-    content: (
-      <>
-        <strong>Create front-end interfaces</strong> for your Agents without a front-end developer skillset.
-      </>
-    ),
+    icon: Gui,
+    title: 'Instant agent UI',
+    content:
+      "Generate a shareable front-end from your code in minutes. Focus on your agent's logic, not UI frameworks.",
   },
   {
-    icon: LogoPython,
-    content: (
-      <>
-        <strong>Deploy agents from any framework</strong> — BeeAI, Langchain, CrewAI, or custom implementations.
-      </>
-    ),
+    icon: InterfaceUsageAlt,
+    title: 'Effortless deployment',
+    content:
+      'Go from container to production-ready. We handle database, storage, scaling, and RAG so you can focus on your agent.',
   },
   {
     icon: Unlocked,
-    content: (
-      <>
-        <strong>Test agents with 10+ LLM providers</strong> including OpenAI, Anthropic, Google Gemini, and IBM watsonx.
-      </>
-    ),
+    title: 'Multi-provider playground',
+    content:
+      'Test across OpenAI, Anthropic, Gemini, IBM watsonx, Ollama and more. Instantly compare performance and cost to find the optimal model.',
   },
   {
-    icon: SettingsAdjust,
-    content: (
-      <>
-        <strong>Enable agent interpretability</strong> by using A2A and the BeeAI SDK under the hood.
-      </>
-    ),
+    icon: Deploy,
+    title: 'Framework-agnostic',
+    content:
+      'Run agents from LangChain, CrewAI, BeeAI and more on a single platform. Enable cross-framework collaboration without rewriting your code.',
   },
 ];

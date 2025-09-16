@@ -3,8 +3,9 @@
 
 from textwrap import dedent
 from typing import Annotated
+from uuid import UUID
 
-from pydantic import AfterValidator, Field
+from pydantic import AfterValidator, BaseModel, Field, computed_field
 
 
 def validate_metadata(metadata: dict[str, str]) -> dict[str, str]:
@@ -32,3 +33,14 @@ Metadata = Annotated[
     ),
     AfterValidator(validate_metadata),
 ]
+
+
+class PaginatedResult[T: BaseModel](BaseModel):
+    items: list[T]
+    total_count: int
+    has_more: bool = False
+
+    @computed_field
+    @property
+    def next_page_token(self) -> UUID | None:
+        return getattr(self.items[-1], "id", None) if self.items else None

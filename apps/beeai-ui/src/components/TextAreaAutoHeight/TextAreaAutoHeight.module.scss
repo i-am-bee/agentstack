@@ -3,7 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-$line-size: math.div(21, 14) * 0.875rem;
+$line-size: math.div(18, 14) * rem(14px);
+$border-width: 1px;
+$padding-top: rem(10px);
+$padding-bottom: rem(10px);
+$padding-inline: $spacing-05;
 
 .root {
   /* easy way to plop the elements on top of each other and have them both sized based on the tallest one's height */
@@ -13,7 +17,10 @@ $line-size: math.div(21, 14) * 0.875rem;
   &::after {
     /* Note the weird space! Needed to preventy jumpy behavior */
     content: attr(data-replicated-value) ' ';
-    max-block-size: calc((var(--max-rows) * $line-size) + (2 * $spacing-04));
+    max-block-size: calc(
+      (var(--max-rows) * var(--line-size, $line-size)) + (2 * var(--border-width, $border-width)) +
+        var(--padding-top, $padding-top) + var(--padding-bottom, $padding-bottom)
+    );
 
     /* This is how textarea text behaves */
     white-space: pre-wrap;
@@ -22,31 +29,50 @@ $line-size: math.div(21, 14) * 0.875rem;
     visibility: hidden;
   }
 
-  /* Turn off automatic resize feature after the height is manually modified */
-  &.resized {
-    &::after {
-      display: none;
-    }
-  }
-
   > textarea {
     /* After user resizes, it ruins the auto sizing */
     resize: none;
     /* Hide FF scrollbar on growth */
     overflow: hidden;
-    max-block-size: var(--max-block-size);
+    color: inherit;
+    background-color: $background;
+    outline: 2px solid transparent;
+    outline-offset: -2px;
+    transition: outline $duration-fast-01 motion(standard, productive);
     &::placeholder {
       color: $text-placeholder;
+      transition: opacity $duration-fast-02;
+    }
+    &:focus-visible {
+      outline: 2px solid $background-inverse;
+      &::placeholder {
+        opacity: 0.5;
+      }
     }
   }
 
-  > textarea,
-  &::after {
+  &::after,
+  > textarea {
     /* Place on top of each other */
     grid-area: 1 / 1 / 2 / 2;
 
-    @include type-style(body-02);
-    padding: $spacing-04;
+    @include type-style('body-compact-01');
+    padding-block: var(--padding-top, $padding-top) var(--padding-bottom, $padding-bottom);
+    padding-inline: var(--padding-inline, $padding-inline);
+    border: var(--border-width, $border-width) solid $border-subtle;
+    border-radius: $border-radius;
+  }
+
+  &.lg {
+    --padding-top: #{rem(14px)};
+    --padding-bottom: #{rem(14px)};
+  }
+
+  /* Turn off automatic resize feature after the height is manually modified */
+  &.resized {
+    &::after {
+      display: none;
+    }
   }
 }
 

@@ -118,7 +118,7 @@ class VectorStoreService:
                     item.document_id: VectorStoreDocument(
                         vector_store_id=vector_store_id,
                         id=item.document_id,
-                        file_id=UUID(item.document_id) if item.document_type == DocumentType.platform_file else None,
+                        file_id=UUID(item.document_id) if item.document_type == DocumentType.PLATFORM_FILE else None,
                         usage_bytes=usage_bytes_per_document_id.get(item.document_id),
                     )
                     for item in items

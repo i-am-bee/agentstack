@@ -3,20 +3,24 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { InlineLoading } from '@carbon/react';
 import { useCallback, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
 
 import { TextAreaAutoHeight } from '#components/TextAreaAutoHeight/TextAreaAutoHeight.tsx';
+import { useApp } from '#contexts/App/index.ts';
 import { InteractionMode } from '#modules/agents/api/types.ts';
 import { FileUploadButton } from '#modules/files/components/FileUploadButton.tsx';
 import { useFileUpload } from '#modules/files/contexts/index.ts';
-import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 import { dispatchInputEventOnTextarea, submitFormOnEnter } from '#utils/form-utils.ts';
 
 import { ChatDefaultTools } from '../chat/constants';
 import { useAgentRun } from '../contexts/agent-run';
-import type { RunAgentFormValues } from '../types';
+import { RunSettings } from '../settings/RunSettings';
+import type { RunRunFormValues } from '../types';
+import { MCPConfig } from './MCPConfig';
+import { ModelProviders } from './ModelProviders';
 import { PromptExamples } from './PromptExamples';
 import { RunFiles } from './RunFiles';
 import classes from './RunInput.module.scss';
@@ -34,21 +38,23 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
 
   const [promptExamplesOpen, setPromptExamplesOpen] = useState(false);
 
-  const { contextId } = usePlatformContext();
+  const { featureFlags } = useApp();
 
   const {
     agent: {
       ui: { interaction_mode },
     },
+    isReady,
     isPending,
-    run,
+    isInitializing,
+    chat,
     cancel,
   } = useAgentRun();
   const { isPending: isFileUploadPending, isDisabled: isFileUploadDisabled } = useFileUpload();
 
   const isChatUi = interaction_mode === InteractionMode.MultiTurn;
 
-  const form = useForm<RunAgentFormValues>({
+  const form = useForm<RunRunFormValues>({
     mode: 'onChange',
     defaultValues: {
       tools: isChatUi ? ChatDefaultTools : [],
@@ -59,7 +65,7 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
 
   const inputProps = register('input', { required: true });
   const inputValue = watch('input');
-  const isSubmitDisabled = isPending || isFileUploadPending || !inputValue || !contextId;
+  const isSubmitDisabled = !isReady || isFileUploadPending || !inputValue;
 
   const dispatchInputEventAndFocus = useCallback(() => {
     const inputElem = inputRef.current;
@@ -104,7 +110,7 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
             onSubmit?.();
             resetForm();
 
-            await run(input);
+            await chat(input);
           })();
         }}
       >
@@ -112,6 +118,7 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
 
         <TextAreaAutoHeight
           rows={1}
+          maxRows={7}
           autoFocus
           placeholder="Ask anything…"
           className={classes.textarea}
@@ -122,19 +129,26 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
 
         <div className={classes.actionBar}>
           <div className={classes.actionBarStart}>
-            {/* TODO: The API does not yet support tools. */}
-            {/* <RunSettings containerRef={formRef} /> */}
+            <RunSettings containerRef={formRef} />
 
             {!isFileUploadDisabled && <FileUploadButton />}
+
+            {featureFlags.MCP && <MCPConfig />}
+
+            {featureFlags.ModelProviders && <ModelProviders />}
           </div>
 
           <div className={classes.submit}>
-            <RunSubmit
-              isPending={isPending}
-              isFileUploadPending={isFileUploadPending}
-              disabled={isSubmitDisabled}
-              onCancel={cancel}
-            />
+            {!isInitializing ? (
+              <RunSubmit
+                isPending={isPending}
+                isFileUploadPending={isFileUploadPending}
+                disabled={isSubmitDisabled}
+                onCancel={cancel}
+              />
+            ) : (
+              <InlineLoading iconDescription="Initializing conversation" />
+            )}
           </div>
         </div>
 

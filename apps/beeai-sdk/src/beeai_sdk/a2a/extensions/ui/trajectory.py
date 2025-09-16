@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from types import NoneType
+from typing import Any
 
 import pydantic
 from a2a.types import DataPart, FilePart, Part, TextPart
@@ -45,8 +46,8 @@ class TrajectoryExtensionSpec(NoParamsBaseExtensionSpec):
 
 
 class TrajectoryExtensionServer(BaseExtensionServer[TrajectoryExtensionSpec, NoneType]):
-    def trajectory_metadata(self, *, title: str | None = None, content: str | None = None) -> Metadata[str, Trajectory]:
-        return Metadata({self.spec.URI: Trajectory(title=title, content=content)})
+    def trajectory_metadata(self, *, title: str | None = None, content: str | None = None) -> Metadata[str, Any]:
+        return Metadata({self.spec.URI: Trajectory(title=title, content=content).model_dump(mode="json")})
 
     def message(
         self,

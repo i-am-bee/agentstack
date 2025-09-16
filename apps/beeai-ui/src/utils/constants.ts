@@ -9,6 +9,10 @@ export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? 'BeeAI';
 
+export const COMPANY_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME;
+
+export const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
+
 export const APP_FAVICON_SVG = process.env.NEXT_PUBLIC_APP_FAVICON_SVG ?? '/bee.svg';
 
 export const NAV_ITEMS = parseNav(process.env.NEXT_PUBLIC_NAV_ITEMS);
@@ -32,3 +36,5 @@ export const COMPOSE_LINK = `${DOCUMENTATION_LINK}/how-to/compose-agents`;
 export const LF_PROJECTS_LINK = 'https://lfprojects.org/';
 
 export const OIDC_ENABLED = process.env.OIDC_ENABLED === 'true';
+
+export const AUTH_BASEPATH = '/auth';

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from types import NoneType
+from typing import Any
 
 import pydantic
 from a2a.types import DataPart, FilePart, Part, TextPart
@@ -62,8 +63,8 @@ class CitationExtensionServer(BaseExtensionServer[CitationExtensionSpec, NoneTyp
         self,
         *,
         citations: list[Citation],
-    ) -> Metadata[str, CitationMetadata]:
-        return Metadata({self.spec.URI: CitationMetadata(citations=citations)})
+    ) -> Metadata[str, Any]:
+        return Metadata({self.spec.URI: CitationMetadata(citations=citations).model_dump(mode="json")})
 
     def message(
         self,

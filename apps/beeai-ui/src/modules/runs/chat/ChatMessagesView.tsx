@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 'use client';
-
 import { ArrowDown } from '@carbon/icons-react';
 import { IconButton } from '@carbon/react';
 
@@ -12,7 +11,7 @@ import { useIsScrolled } from '#hooks/useIsScrolled.ts';
 import { isAgentMessage, isUserMessage } from '#modules/messages/utils.ts';
 
 import { FileUpload } from '../../files/components/FileUpload';
-import { useMessages } from '../../messages/contexts';
+import { useMessages } from '../../messages/contexts/Messages';
 import { NewSessionButton } from '../components/NewSessionButton';
 import { RunInput } from '../components/RunInput';
 import { RunStatusBar } from '../components/RunStatusBar';
@@ -60,7 +59,7 @@ export function ChatMessagesView() {
         </div>
 
         <div className={classes.bottom}>
-          {isScrolled && (
+          {messages.length && isScrolled && (
             <IconButton
               label="Scroll to bottom"
               kind="secondary"

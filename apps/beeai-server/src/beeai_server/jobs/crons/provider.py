@@ -44,6 +44,11 @@ async def check_registry(timestamp: int, configuration: Configuration, provider_
     desired_providers = {}
     errors = []
 
+    try:
+        await provider_service.remove_orphaned_providers()
+    except Exception as ex:
+        errors.extend(ex.exceptions if isinstance(ex, ExceptionGroup) else [ex])
+
     for registry in configuration.agent_registry.locations.values():
         for provider_location in await registry.load():
             try:
@@ -59,6 +64,7 @@ async def check_registry(timestamp: int, configuration: Configuration, provider_
 
     new_providers = desired_providers.keys() - managed_providers.keys()
     old_providers = managed_providers.keys() - desired_providers.keys()
+    existing_providers = managed_providers.keys() & desired_providers.keys()
 
     # Remove old providers - to prevent agent name collisions
     for provider_id in old_providers:
@@ -77,6 +83,15 @@ async def check_registry(timestamp: int, configuration: Configuration, provider_
                 registry=registry_by_provider_id[provider_id],
             )
             logger.info(f"Added provider {provider_location}")
+        except Exception as ex:
+            errors.append(RuntimeError(f"[{provider_location}]: Failed to add provider: {ex}"))
+
+    for provider_id in existing_providers:
+        provider_location = desired_providers[provider_id]
+        try:
+            result = await provider_service.upgrade_provider(provider_id=provider_id, location=provider_location)
+            if managed_providers[provider_id].source.root != result.source.root:
+                logger.info(f"Upgraded provider {provider_location}")
         except Exception as ex:
             errors.append(RuntimeError(f"[{provider_location}]: Failed to add provider: {ex}"))
 

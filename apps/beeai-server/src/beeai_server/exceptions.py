@@ -5,7 +5,10 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 from fastapi import status
+from httpx import HTTPError
 from tenacity import retry_base, retry_if_exception
+
+from beeai_server.domain.models.model_provider import ModelProvider
 
 if TYPE_CHECKING:
     from beeai_server.domain.models.provider import EnvVar, ProviderLocation
@@ -53,6 +56,14 @@ class StorageCapacityExceededError(PlatformError):
             f"{entity} exceeds the limit of {max_size / 1024 / 1024:.2f} MB. "
             f"Either the {entity} is too large or you exceeded the available storage capacity.",
             status_code,
+        )
+
+
+class ModelLoadFailedError(PlatformError):
+    def __init__(self, provider: ModelProvider, exception: HTTPError, status_code: int = status.HTTP_400_BAD_REQUEST):
+        super().__init__(
+            f"Failed to load models from {provider.type} provider ({provider.base_url}): {exception}",
+            status_code=status_code,
         )
 
 

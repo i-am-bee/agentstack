@@ -15,13 +15,23 @@ import classes from './CopySnippet.module.scss';
 interface Props {
   children: string | ReactElement;
   className?: string;
+  variant?: 'blog';
 }
 
-export function CopySnippet({ children: snippet, className }: Props) {
+export function CopySnippet({ children: snippet, className, variant }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
   return (
-    <div className={clsx(classes.root, { [classes.block]: typeof snippet !== 'string' }, className)}>
+    <div
+      className={clsx(
+        classes.root,
+        {
+          [classes.block]: typeof snippet !== 'string',
+          [classes.blog]: variant === 'blog',
+        },
+        className,
+      )}
+    >
       <div ref={ref} className={classes.content}>
         {typeof snippet === 'string' ? <code>{snippet}</code> : snippet}
       </div>

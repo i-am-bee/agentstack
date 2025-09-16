@@ -18,13 +18,14 @@
 }
 
 .graphics {
-  inline-size: 125%;
-  max-inline-size: rem(860px);
+  inline-size: 145%;
+  max-inline-size: rem(960px);
   position: relative;
-
   img {
     inline-size: 100%;
     block-size: auto;
+    border-radius: $border-radius;
+    box-shadow: 0 rem(1px) rem(4px) $layer-hover-02;
   }
 }
 
@@ -45,5 +46,8 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+  }
+  .graphics {
+    inline-size: 100%;
   }
 }

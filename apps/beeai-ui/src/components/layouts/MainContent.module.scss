@@ -6,13 +6,18 @@
 .root {
   inline-size: 100%;
   block-size: 100%;
-  padding-block: $spacing-07;
   display: flex;
   flex-direction: column;
   min-block-size: 0;
   position: relative;
   &.scrollable {
     @include scrollbar();
+  }
+  &.md {
+    padding-block: $spacing-07;
+  }
+  &.lg {
+    padding-block: $spacing-07;
   }
   &.hasFooter {
     padding-block-end: 0;

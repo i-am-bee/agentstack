@@ -5,13 +5,14 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 from types import NoneType
-from typing import Annotated, Literal, Self, override
+from typing import Annotated, Any, Literal, Self
 
 import a2a.types
 import pydantic
 from mcp.client.stdio import StdioServerParameters, stdio_client
 from mcp.client.streamable_http import streamablehttp_client
 
+from beeai_sdk.a2a.extensions.auth.oauth.oauth import OAuthExtensionServer
 from beeai_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 
 _TRANSPORT_TYPES = Literal["streamable_http", "stdio"]
@@ -31,7 +32,7 @@ class StdioTransport(pydantic.BaseModel):
 class StreamableHTTPTransport(pydantic.BaseModel):
     type: Literal["streamable_http"] = "streamable_http"
 
-    url: str
+    url: pydantic.AnyHttpUrl
 
 
 MCPTransport = Annotated[StdioTransport | StreamableHTTPTransport, pydantic.Field(discriminator="type")]
@@ -93,7 +94,6 @@ class MCPServiceExtensionMetadata(pydantic.BaseModel):
 
 
 class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCPServiceExtensionMetadata]):
-    @override
     def parse_client_metadata(self, message: a2a.types.Message) -> MCPServiceExtensionMetadata | None:
         metadata = super().parse_client_metadata(message)
         if metadata:
@@ -103,6 +103,12 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
                 if fulfillment.transport.type not in demand.allowed_transports:
                     raise ValueError(f'Transport "{fulfillment.transport.type}" not allowed for demand "{name}"')
         return metadata
+
+    def _get_oauth_server(self):
+        for dependency in self._dependencies.values():
+            if isinstance(dependency, OAuthExtensionServer):
+                return dependency
+        return None
 
     @asynccontextmanager
     async def create_client(self, demand: str = _DEFAULT_DEMAND_NAME):
@@ -122,14 +128,20 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
             ):
                 yield (read, write)
         elif isinstance(transport, StreamableHTTPTransport):
-            async with streamablehttp_client(url=transport.url) as (read, write, _):
+            oauth = self._get_oauth_server()
+            async with streamablehttp_client(
+                url=str(transport.url),
+                auth=await oauth.create_httpx_auth(resource_url=transport.url) if oauth else None,
+            ) as (
+                read,
+                write,
+                _,
+            ):
                 yield (read, write)
         else:
             raise NotImplementedError("Unsupported transport")
 
 
 class MCPServiceExtensionClient(BaseExtensionClient[MCPServiceExtensionSpec, NoneType]):
-    def fulfillment_metadata(
-        self, *, mcp_fulfillments: dict[str, MCPFulfillment]
-    ) -> dict[str, MCPServiceExtensionMetadata]:
-        return {self.spec.URI: MCPServiceExtensionMetadata(mcp_fulfillments=mcp_fulfillments)}
+    def fulfillment_metadata(self, *, mcp_fulfillments: dict[str, MCPFulfillment]) -> dict[str, Any]:
+        return {self.spec.URI: MCPServiceExtensionMetadata(mcp_fulfillments=mcp_fulfillments).model_dump(mode="json")}

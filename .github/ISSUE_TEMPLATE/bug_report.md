@@ -7,7 +7,7 @@ assignees: ""
 ---
 
 **Pre-requisities**
-- [ ] I am using the newest version of the platform (`uv tool upgrade beeai-cli`)
+- [ ] I am using the newest version of the platform (`beeai version` shows that CLI and platform are the same version, and there is no newer version available)
 
 **Describe the bug**
 A clear and concise description of what the bug is.

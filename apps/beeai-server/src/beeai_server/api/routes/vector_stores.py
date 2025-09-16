@@ -11,11 +11,12 @@ from beeai_server.api.dependencies import (
     RequiresContextPermissions,
     VectorStoreServiceDependency,
 )
-from beeai_server.api.schema.common import EntityModel, PaginatedResponse
+from beeai_server.api.schema.common import EntityModel
 from beeai_server.api.schema.vector_stores import (
     CreateVectorStoreRequest,
     SearchRequest,
 )
+from beeai_server.domain.models.common import PaginatedResult
 from beeai_server.domain.models.permissions import AuthorizedUser
 from beeai_server.domain.models.vector_store import (
     VectorStore,
@@ -87,7 +88,7 @@ async def search_with_vector(
     request: SearchRequest,
     vector_store_service: VectorStoreServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresContextPermissions(vector_stores={"read"}))],
-) -> PaginatedResponse[VectorStoreSearchResult]:
+) -> PaginatedResult[VectorStoreSearchResult]:
     """Search a vector store using either text or a vector."""
     response = await vector_store_service.search(
         vector_store_id=vector_store_id,
@@ -96,7 +97,7 @@ async def search_with_vector(
         user=user.user,
         context_id=user.context_id,
     )
-    return PaginatedResponse(items=response, total_count=len(response))
+    return PaginatedResult(items=response, total_count=len(response))
 
 
 @router.get("/{vector_store_id}/documents")
@@ -104,12 +105,12 @@ async def list_documents(
     vector_store_id: UUID,
     vector_store_service: VectorStoreServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresContextPermissions(vector_stores={"read"}))],
-) -> PaginatedResponse[VectorStoreDocument]:
+) -> PaginatedResult[VectorStoreDocument]:
     """List all documents in a vector store."""
     documents = await vector_store_service.list_documents(
         vector_store_id=vector_store_id, user=user.user, context_id=user.context_id
     )
-    return PaginatedResponse(items=documents, total_count=len(documents))
+    return PaginatedResult(items=documents, total_count=len(documents))
 
 
 @router.delete("/{vector_store_id}/documents/{document_id}", status_code=status.HTTP_204_NO_CONTENT)

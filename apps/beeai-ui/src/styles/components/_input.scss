@@ -6,7 +6,8 @@
 @use 'styles/common' as *;
 
 .cds--text-area,
-.cds--text-input {
+.cds--text-input,
+.cds--date-picker__input {
   border: 1px solid $border-subtle-00;
   border-radius: $border-radius;
   background-color: $layer;

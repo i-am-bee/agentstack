@@ -2,12 +2,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import inspect
+from collections import Counter
 from collections.abc import AsyncIterator, Callable
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from inspect import isclass
-from typing import Annotated, Any, Generic, get_args, get_origin
+from typing import Annotated, Any, Generic, TypeAlias, get_args, get_origin
 
-import fastapi
 from a2a.types import Message
 from typing_extensions import Doc
 
@@ -15,7 +15,9 @@ from beeai_sdk.a2a.extensions import BaseExtensionSpec
 from beeai_sdk.a2a.extensions.base import BaseExtensionServer, ExtensionSpecT, MetadataFromClientT
 from beeai_sdk.server.context import RunContext
 
-fastapi.Depends()
+Dependency: TypeAlias = (
+    Callable[[Message, RunContext, dict], Any] | BaseExtensionServer[ExtensionSpecT, MetadataFromClientT]
+)
 
 
 # Inspired by fastapi.Depends
@@ -25,7 +27,7 @@ class Depends(Generic[ExtensionSpecT, MetadataFromClientT]):
     def __init__(
         self,
         dependency: Annotated[
-            Callable[[Message, RunContext], Any] | BaseExtensionServer[ExtensionSpecT, MetadataFromClientT],
+            Dependency,
             Doc(
                 """
                 A "dependable" callable (like a function).
@@ -38,8 +40,10 @@ class Depends(Generic[ExtensionSpecT, MetadataFromClientT]):
         if isinstance(dependency, BaseExtensionServer):
             self.extension = dependency
 
-    def __call__(self, message: Message, context: RunContext) -> AbstractAsyncContextManager[Any]:
-        instance = self._dependency_callable(message, context)
+    def __call__(
+        self, message: Message, context: RunContext, dependencies: dict[str, Any]
+    ) -> AbstractAsyncContextManager[Any]:
+        instance = self._dependency_callable(message, context, dependencies)
 
         @asynccontextmanager
         async def lifespan() -> AsyncIterator[Any]:
@@ -58,7 +62,7 @@ def extract_dependencies(sign: inspect.Signature) -> dict[str, Depends]:
         if get_origin(param.annotation) is Annotated:
             args = get_args(param.annotation)
             if len(args) > 1:
-                dep_type, spec, *_ = args
+                dep_type, spec, *rest = args
                 # extension_param: Annotated[some_type, Depends(some_callable)]
                 if isinstance(spec, Depends):
                     dependencies[name] = spec
@@ -68,15 +72,15 @@ def extract_dependencies(sign: inspect.Signature) -> dict[str, Depends]:
                     and issubclass(dep_type, BaseExtensionServer)
                     and isinstance(spec, BaseExtensionSpec)
                 ):
-                    dependencies[name] = Depends(dep_type(spec))
+                    dependencies[name] = Depends(dep_type(spec, *rest))
 
         elif inspect.isclass(param.annotation):
             # message: Message
             if param.annotation == Message:
-                dependencies[name] = Depends(lambda message, _context: message)
+                dependencies[name] = Depends(lambda message, _context, _dependencies: message)
             # context: Context
             elif param.annotation == RunContext:
-                dependencies[name] = Depends(lambda _message, context: context)
+                dependencies[name] = Depends(lambda _message, context, _dependencies: context)
             # extension: BaseExtensionServer = BaseExtensionSpec()
             # TODO: this does not get past linters, should we enable it or somehow fix the typing?
             # elif issubclass(param.annotation, BaseExtensionServer) and isinstance(param.default, BaseExtensionSpec):
@@ -86,5 +90,11 @@ def extract_dependencies(sign: inspect.Signature) -> dict[str, Depends]:
         raise TypeError(
             f"The agent function contains extra parameters with unknown type annotation: {extra_parameters}"
         )
+    if reserved_names := {param for param in dependencies if param.startswith("__")}:
+        raise TypeError(f"User-defined dependencies cannot start with double underscore: {reserved_names}")
+
+    extension_deps = Counter(dep.extension.spec.URI for dep in dependencies.values() if dep.extension)
+    if duplicate_uris := {k for k, v in extension_deps.items() if v > 1}:
+        raise TypeError(f"Duplicate extension URIs found in the agent function: {duplicate_uris}")
 
     return dependencies

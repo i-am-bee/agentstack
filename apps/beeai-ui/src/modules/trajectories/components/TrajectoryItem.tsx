@@ -6,6 +6,7 @@
 import { ChevronDown } from '@carbon/icons-react';
 import { IconButton } from '@carbon/react';
 import clsx from 'clsx';
+import truncate from 'lodash/truncate';
 import type { TransitionEventHandler } from 'react';
 import { useCallback, useState } from 'react';
 
@@ -70,7 +71,7 @@ export function TrajectoryItem({ trajectory }: Props) {
           </h3>
         )}
 
-        {content && <div className={classes.message}>{content}</div>}
+        {content && <div className={classes.message}>{truncate(content, { length: MAX_CONTENT_PREVIEW_LENGTH })}</div>}
       </header>
 
       {isToggleable && (
@@ -83,3 +84,5 @@ export function TrajectoryItem({ trajectory }: Props) {
     </div>
   );
 }
+
+const MAX_CONTENT_PREVIEW_LENGTH = 120;

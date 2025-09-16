@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import re
+
 from beeai_sdk.a2a.extensions import Citation
 
 

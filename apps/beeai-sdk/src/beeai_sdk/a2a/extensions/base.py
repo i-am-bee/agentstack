@@ -125,6 +125,7 @@ class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromCl
         cls.MetadataFromClient = _get_generic_args(cls, BaseExtensionServer)[1]
 
     _metadata_from_client: MetadataFromClientT | None = None
+    _dependencies: dict
 
     @property
     def data(self):
@@ -156,9 +157,12 @@ class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromCl
         """Creates a clone of this instance with the same arguments as the original"""
         return type(self)(self.spec, *self._args, **self._kwargs)
 
-    def __call__(self, message: a2a.types.Message, context: RunContext) -> typing.Self:
+    def __call__(
+        self, message: a2a.types.Message, context: RunContext, dependencies: dict[str, typing.Any]
+    ) -> typing.Self:
         """Works as a dependency constructor - create a private instance for the request"""
         instance = self._fork()
+        instance._dependencies = dependencies
         instance.handle_incoming_message(message, context)
         return instance
 

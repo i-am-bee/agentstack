@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import re
 from types import NoneType
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING, Any, Self
 
 import pydantic
 
@@ -94,7 +94,5 @@ class LLMServiceExtensionServer(BaseExtensionServer[LLMServiceExtensionSpec, LLM
 
 
 class LLMServiceExtensionClient(BaseExtensionClient[LLMServiceExtensionSpec, NoneType]):
-    def fulfillment_metadata(
-        self, *, llm_fulfillments: dict[str, LLMFulfillment]
-    ) -> dict[str, LLMServiceExtensionMetadata]:
-        return {self.spec.URI: LLMServiceExtensionMetadata(llm_fulfillments=llm_fulfillments)}
+    def fulfillment_metadata(self, *, llm_fulfillments: dict[str, LLMFulfillment]) -> dict[str, Any]:
+        return {self.spec.URI: LLMServiceExtensionMetadata(llm_fulfillments=llm_fulfillments).model_dump(mode="json")}

@@ -11,16 +11,16 @@ from beeai_server.utils.utils import utc_now
 
 
 class FileType(StrEnum):
-    user_upload = "user_upload"
-    extracted_text = "extracted_text"
+    USER_UPLOAD = "user_upload"
+    EXTRACTED_TEXT = "extracted_text"
 
 
 class ExtractionStatus(StrEnum):
-    pending = "pending"
-    in_progress = "in_progress"
-    completed = "completed"
-    failed = "failed"
-    cancelled = "cancelled"
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
 
 
 class ExtractionMetadata(BaseModel, extra="allow"):
@@ -47,7 +47,7 @@ class File(BaseModel):
     file_size_bytes: int | None = None
     created_at: AwareDatetime = Field(default_factory=utc_now)
     created_by: UUID
-    file_type: FileType = FileType.user_upload
+    file_type: FileType = FileType.USER_UPLOAD
     parent_file_id: UUID | None = None
     context_id: UUID | None = None
 
@@ -56,7 +56,7 @@ class TextExtraction(BaseModel):
     id: UUID = Field(default_factory=uuid4)
     file_id: UUID
     extracted_file_id: UUID | None = None
-    status: ExtractionStatus = ExtractionStatus.pending
+    status: ExtractionStatus = ExtractionStatus.PENDING
     job_id: str | None = None
     error_message: str | None = None
     extraction_metadata: ExtractionMetadata | None = None
@@ -66,14 +66,14 @@ class TextExtraction(BaseModel):
 
     def set_started(self, job_id: str) -> None:
         """Mark extraction as started with job ID."""
-        self.status = ExtractionStatus.in_progress
+        self.status = ExtractionStatus.IN_PROGRESS
         self.job_id = job_id
         self.started_at = utc_now()
         self.error_message = None
 
     def set_completed(self, extracted_file_id: UUID, metadata: ExtractionMetadata | None = None) -> None:
         """Mark extraction as completed with extracted file ID."""
-        self.status = ExtractionStatus.completed
+        self.status = ExtractionStatus.COMPLETED
         self.extracted_file_id = extracted_file_id
         self.finished_at = utc_now()
         self.extraction_metadata = metadata
@@ -81,18 +81,18 @@ class TextExtraction(BaseModel):
 
     def set_failed(self, error_message: str) -> None:
         """Mark extraction as failed with error message."""
-        self.status = ExtractionStatus.failed
+        self.status = ExtractionStatus.FAILED
         self.error_message = error_message
         self.finished_at = utc_now()
 
     def set_cancelled(self) -> None:
         """Mark extraction as cancelled."""
-        self.status = ExtractionStatus.cancelled
+        self.status = ExtractionStatus.CANCELLED
         self.finished_at = utc_now()
 
     def reset_for_retry(self) -> None:
         """Reset extraction for retry (clears error state)."""
-        self.status = ExtractionStatus.pending
+        self.status = ExtractionStatus.PENDING
         self.error_message = None
         self.started_at = None
         self.finished_at = None

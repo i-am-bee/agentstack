@@ -9,7 +9,6 @@ from chat.tools.files.model import FileChatInfo
 from pydantic import BaseModel, Field, create_model
 
 from beeai_sdk.platform import File
-from chat.tools.files.utils import format_size
 
 
 class FileReaderToolResult(BaseModel):
@@ -56,10 +55,7 @@ def create_file_reader_tool_class(
     # 1. create a tailor-made Pydantic model
 
     if len(files):
-        file_descriptions = "\n".join(
-            f"- `{file.file.filename}`[{file.origin_type}]: {file.file.content_type}, {format_size(file.file.file_size_bytes)}"
-            for file in files
-        )
+        file_descriptions = "\n".join(file.description for file in files)
 
         description = f"Select one or more of the provided files:\n\n{file_descriptions}"
         literal = Literal[tuple(file.display_filename for file in files)]

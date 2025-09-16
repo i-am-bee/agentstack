@@ -47,21 +47,21 @@ async def large_vector_items():
     return [
         VectorStoreItem(
             document_id="large_doc_001",
-            document_type=DocumentType.external,
+            document_type=DocumentType.EXTERNAL,
             text=large_text,
             embedding=[1.0] * 128,  # 128-dimensional vector
             metadata={"source": "test_large.txt", "type": "large"},
         ),
         VectorStoreItem(
             document_id="large_doc_002",
-            document_type=DocumentType.external,
+            document_type=DocumentType.EXTERNAL,
             text=large_text,
             embedding=[2.0] * 128,
             metadata={"source": "test_large2.txt", "type": "large"},
         ),
         VectorStoreItem(
             document_id="large_doc_003",
-            document_type=DocumentType.external,
+            document_type=DocumentType.EXTERNAL,
             text=large_text,
             embedding=[3.0] * 128,
             metadata={"source": "test_large3.txt", "type": "large"},
@@ -69,7 +69,6 @@ async def large_vector_items():
     ]
 
 
-@pytest.mark.asyncio
 async def test_vector_store_storage_limit_enforcement(
     vector_store_service: VectorStoreService, test_user: User, large_vector_items: list[VectorStoreItem]
 ):
@@ -101,7 +100,6 @@ async def test_vector_store_storage_limit_enforcement(
     assert retrieved_store_after.stats.usage_bytes == initial_usage
 
 
-@pytest.mark.asyncio
 async def test_storage_limit_check_happens_after_size_estimation(
     vector_store_service: VectorStoreService, test_user: User, large_vector_items: list[VectorStoreItem]
 ):
@@ -130,7 +128,6 @@ async def test_storage_limit_check_happens_after_size_estimation(
     assert len(search_results) == 0, "No vector items should be present after limit exceeded"
 
 
-@pytest.mark.asyncio
 async def test_invalid_vector_dimension(vector_store_service: VectorStoreService, test_user: User):
     # Create a vector store
     vector_store = await vector_store_service.create(
@@ -141,7 +138,7 @@ async def test_invalid_vector_dimension(vector_store_service: VectorStoreService
         VectorStoreItem(
             id=uuid4(),
             document_id="small_doc_001",
-            document_type=DocumentType.external,
+            document_type=DocumentType.EXTERNAL,
             text="Small text",  # Very small text
             embedding=[1.0] * 64,  # Smaller embedding
         )

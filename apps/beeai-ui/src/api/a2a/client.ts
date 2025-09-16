@@ -5,7 +5,7 @@
 
 import type { TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from '@a2a-js/sdk';
 import { A2AClient } from '@a2a-js/sdk/client';
-import { Subject } from 'rxjs';
+import { defaultIfEmpty, filter, lastValueFrom, Subject } from 'rxjs';
 import { match } from 'ts-pattern';
 
 import type { AgentExtension } from '#modules/agents/api/types.ts';
@@ -14,17 +14,38 @@ import type { TaskId } from '#modules/tasks/api/types.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 
 import { AGENT_ERROR_MESSAGE } from './constants';
+import { embeddingExtension } from './extensions/services/embedding';
 import { llmExtension } from './extensions/services/llm';
 import { mcpExtension } from './extensions/services/mcp';
-import { extractServiceExtensionDemands, fulfillServiceExtensionDemand } from './extensions/utils';
+import { oauthProviderExtension } from './extensions/services/oauth-provider';
+import { activePlatformExtension } from './extensions/services/platform';
+import { formExtension, formMessageExtension } from './extensions/ui/form';
+import { oauthRequestExtension } from './extensions/ui/oauth';
+import { settingsExtension } from './extensions/ui/settings';
+import {
+  extractServiceExtensionDemands,
+  extractUiExtensionData,
+  fulfillServiceExtensionDemand,
+} from './extensions/utils';
 import { processMessageMetadata, processParts } from './part-processors';
-import type { ChatParams, ChatRun } from './types';
+import type { AuthRequiredResult, ChatResult, FormRequiredResult } from './types';
+import { type ChatParams, type ChatRun, RunResultType } from './types';
 import { createUserMessage, extractTextFromMessage } from './utils';
+
+const oauthExtensionExtractor = extractServiceExtensionDemands(oauthProviderExtension);
+const fulfillOauthDemand = fulfillServiceExtensionDemand(oauthProviderExtension);
 
 const mcpExtensionExtractor = extractServiceExtensionDemands(mcpExtension);
 const fulfillMcpDemand = fulfillServiceExtensionDemand(mcpExtension);
+
 const llmExtensionExtractor = extractServiceExtensionDemands(llmExtension);
+const embeddingExtensionExtractor = extractServiceExtensionDemands(embeddingExtension);
 const fulfillLlmDemand = fulfillServiceExtensionDemand(llmExtension);
+const fulfillEmbeddingDemand = fulfillServiceExtensionDemand(embeddingExtension);
+const extractForm = extractUiExtensionData(formMessageExtension);
+const settingsExtensionExtractor = extractServiceExtensionDemands(settingsExtension);
+
+const oauthRequestExtensionExtractor = extractUiExtensionData(oauthRequestExtension);
 
 function handleStatusUpdate<UIGenericPart = never>(
   event: TaskStatusUpdateEvent,
@@ -58,43 +79,98 @@ function handleArtifactUpdate(event: TaskArtifactUpdateEvent): UIMessagePart[] {
   return contentParts;
 }
 
-interface CreateA2AClientParams<UIGenericPart = never> {
+export interface CreateA2AClientParams<UIGenericPart = never> {
   providerId: string;
   extensions: AgentExtension[];
   onStatusUpdate?: (event: TaskStatusUpdateEvent) => UIGenericPart[];
 }
 
-export const buildA2AClient = <UIGenericPart = never>({
+export const buildA2AClient = async <UIGenericPart = never>({
   providerId,
   extensions,
   onStatusUpdate,
 }: CreateA2AClientParams<UIGenericPart>) => {
   const mcpDemands = mcpExtensionExtractor(extensions);
   const llmDemands = llmExtensionExtractor(extensions);
+  const oauthDemands = oauthExtensionExtractor(extensions);
+  const settingsDemands = settingsExtensionExtractor(extensions);
+  const embeddingDemands = embeddingExtensionExtractor(extensions);
 
-  const agentUrl = `${getBaseUrl()}/api/v1/a2a/${providerId}`;
-  const client = new A2AClient(agentUrl, {
-    // TODO: workaround until the a2a-js bug is resolved https://github.com/a2aproject/a2a-js/issues/116
-    ...(typeof window !== 'undefined' && { fetchImpl: window.fetch.bind(window) }),
-  });
+  const agentCardUrl = `${getBaseUrl()}/api/v1/a2a/${providerId}/.well-known/agent-card.json`;
+  const client = await A2AClient.fromCardUrl(agentCardUrl);
 
-  const chat = ({ message, contextId, fulfillments }: ChatParams) => {
-    const messageSubject = new Subject<{ parts: (UIMessagePart | UIGenericPart)[]; taskId: TaskId }>();
+  const chat = ({ message, contextId, fulfillments, taskId: initialTaskId, settings }: ChatParams) => {
+    const messageSubject = new Subject<ChatResult<UIGenericPart>>();
 
-    let taskId: string | null = null;
+    let taskId: undefined | TaskId = initialTaskId;
 
     const iterateOverStream = async () => {
       let metadata = {};
 
+      metadata = activePlatformExtension(metadata, fulfillments.getContextToken());
+
       if (mcpDemands) {
-        metadata = fulfillMcpDemand(metadata, await fulfillments.mcp(mcpDemands));
+        const mcpFullfilment = await fulfillments.mcp(mcpDemands);
+
+        if (mcpFullfilment !== null) {
+          metadata = fulfillMcpDemand(metadata, mcpFullfilment);
+        }
       }
 
       if (llmDemands) {
         metadata = fulfillLlmDemand(metadata, await fulfillments.llm(llmDemands));
       }
 
-      const stream = client.sendMessageStream({ message: createUserMessage({ message, contextId, metadata }) });
+      if (oauthDemands) {
+        const mcpOAuthFullfilment = await fulfillments.oauth(oauthDemands);
+
+        if (mcpOAuthFullfilment !== null) {
+          metadata = fulfillOauthDemand(metadata, mcpOAuthFullfilment);
+        }
+      }
+
+      if (settingsDemands) {
+        metadata = {
+          ...metadata,
+          [settingsExtension.getUri()]: {
+            values: settings,
+          },
+        };
+      }
+
+      if (embeddingDemands) {
+        metadata = fulfillEmbeddingDemand(metadata, await fulfillments.embedding(embeddingDemands));
+      }
+
+      if (message.form) {
+        metadata = {
+          ...metadata,
+          [formExtension.getUri()]: message.form.response,
+        };
+      }
+
+      if (message.auth) {
+        metadata = {
+          ...metadata,
+          [oauthRequestExtension.getUri()]: {
+            redirect_uri: message.auth,
+          },
+        };
+      }
+
+      const stream = client.sendMessageStream({
+        message: createUserMessage({ message, contextId, metadata, taskId }),
+      });
+
+      const taskResult = lastValueFrom(
+        messageSubject.asObservable().pipe(
+          filter(
+            (result: ChatResult): result is FormRequiredResult | AuthRequiredResult =>
+              result.type !== RunResultType.Parts,
+          ),
+          defaultIfEmpty(null),
+        ),
+      );
 
       for await (const event of stream) {
         match(event)
@@ -103,26 +179,65 @@ export const buildA2AClient = <UIGenericPart = never>({
           })
           .with({ kind: 'status-update' }, (event) => {
             taskId = event.taskId;
+            if (event.status.state === 'input-required') {
+              const form = extractForm(event.status.message?.metadata);
+              if (form) {
+                messageSubject.next({
+                  type: RunResultType.FormRequired,
+                  taskId,
+                  form,
+                });
+              } else {
+                throw new Error(`Illegal State - form extension data missing on input-required event`);
+              }
+            }
+
+            if (event.status.state === 'auth-required') {
+              const oauth = oauthRequestExtensionExtractor(event.status.message?.metadata);
+              if (oauth) {
+                messageSubject.next({
+                  type: RunResultType.AuthRequired,
+                  taskId,
+                  url: oauth.authorization_endpoint_url,
+                });
+              } else {
+                throw new Error(`Illegal State - oauth extension data missing on auth-required event`);
+              }
+            }
 
             const parts: (UIMessagePart | UIGenericPart)[] = handleStatusUpdate(event, onStatusUpdate);
 
-            messageSubject.next({ parts, taskId });
+            messageSubject.next({ type: RunResultType.Parts, parts, taskId });
           })
           .with({ kind: 'artifact-update' }, (event) => {
             taskId = event.taskId;
 
             const parts = handleArtifactUpdate(event);
 
-            messageSubject.next({ parts, taskId });
+            messageSubject.next({ type: RunResultType.Parts, parts, taskId });
           });
       }
+
       messageSubject.complete();
+
+      return taskResult;
     };
 
     const run: ChatRun<UIGenericPart> = {
+      taskId,
       done: iterateOverStream(),
       subscribe: (fn) => {
-        const subscription = messageSubject.subscribe(fn);
+        const subscription = messageSubject
+          .asObservable()
+          .pipe(
+            filter(
+              (
+                result,
+              ): result is { type: RunResultType.Parts; parts: Array<UIMessagePart | UIGenericPart>; taskId: TaskId } =>
+                result.type === 'parts',
+            ),
+          )
+          .subscribe(fn);
 
         return () => {
           subscription.unsubscribe();
@@ -140,5 +255,11 @@ export const buildA2AClient = <UIGenericPart = never>({
     return run;
   };
 
-  return { chat };
+  return {
+    chat,
+    llmDemands: llmDemands?.llm_demands,
+    embeddingDemands: embeddingDemands?.embedding_demands,
+    mcpDemands: mcpDemands?.mcp_demands,
+    settingsDemands,
+  };
 };

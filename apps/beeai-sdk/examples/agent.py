@@ -105,7 +105,7 @@ class ChatAgentExecutor(a2a.server.agent_execution.AgentExecutor):
         updater = a2a.server.tasks.TaskUpdater(event_queue, context.task_id, context.context_id)
         try:
             final_answer = ""
-            async for data, event in agent.run():
+            async for data, event in agent.run([]):
                 match (data, event.name):
                     case (beeai_framework.agents.react.ReActAgentUpdateEvent(), "partial_update"):
                         update = data.update.value

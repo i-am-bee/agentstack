@@ -15,12 +15,13 @@ from starlette.requests import Request
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 
 from beeai_server.api.routes.a2a import router as a2a_router
+from beeai_server.api.routes.auth import router as auth_router
+from beeai_server.api.routes.configurations import router as configuration_router
 from beeai_server.api.routes.contexts import router as contexts_router
-from beeai_server.api.routes.embeddings import router as embeddings_router
-from beeai_server.api.routes.env import router as env_router
 from beeai_server.api.routes.files import router as files_router
-from beeai_server.api.routes.llm import router as llm_router
 from beeai_server.api.routes.mcp import router as mcp_router
+from beeai_server.api.routes.model_providers import router as model_providers_router
+from beeai_server.api.routes.openai import router as openai_router
 from beeai_server.api.routes.provider import router as provider_router
 from beeai_server.api.routes.user_feedback import router as user_feedback_router
 from beeai_server.api.routes.vector_stores import router as vector_stores_router
@@ -76,14 +77,15 @@ def register_global_exception_handlers(app: FastAPI):
 
 def mount_routes(app: FastAPI):
     server_router = APIRouter()
+    server_router.include_router(auth_router, prefix="", tags=["auth"])
     server_router.include_router(a2a_router, prefix="/a2a")
     server_router.include_router(mcp_router, prefix="/mcp")
     server_router.include_router(provider_router, prefix="/providers", tags=["providers"])
-    server_router.include_router(env_router, prefix="/variables", tags=["variables"])
+    server_router.include_router(model_providers_router, prefix="/model_providers", tags=["model_providers"])
+    server_router.include_router(configuration_router, prefix="/configurations", tags=["configurations"])
     server_router.include_router(files_router, prefix="/files", tags=["files"])
-    server_router.include_router(contexts_router, prefix="/contexts", tags=["embeddings"])
-    server_router.include_router(llm_router, prefix="/llm", tags=["llm"])
-    server_router.include_router(embeddings_router, prefix="/llm", tags=["embeddings"])
+    server_router.include_router(contexts_router, prefix="/contexts", tags=["contexts"])
+    server_router.include_router(openai_router, prefix="/openai", tags=["openai"])
     server_router.include_router(vector_stores_router, prefix="/vector_stores", tags=["vector_stores"])
     server_router.include_router(user_feedback_router, prefix="/user_feedback", tags=["user_feedback"])
 

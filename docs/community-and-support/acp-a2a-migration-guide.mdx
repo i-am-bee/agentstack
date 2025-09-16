@@ -1,0 +1,313 @@
+---
+title: ACP to A2A Migration Guide
+description: "Migrate from ACP (Agent Communication Protocol) to A2A (Agent2Agent) Protocol for BeeAI platform v0.3.x+."
+---
+
+## Quick Migration Checklist
+
+✅ Update dependencies: `acp_sdk` → `beeai_sdk`
+
+✅ Update imports and function signature
+
+✅ Replace `Metadata` with `AgentDetail`
+
+✅ Update message processing
+
+✅ Update trajectory and citation handling
+
+✅ Use LLM service extension
+
+## Step-by-Step Migration
+
+### 1. Update Dependencies & Imports
+
+**Old (ACP)**
+
+```toml
+dependencies = ["acp-sdk>=1.0.0"]
+```
+
+```py
+from acp_sdk import Message, Metadata, Link, LinkType, Annotations
+from acp_sdk.models import MessagePart
+from acp_sdk.server import Context, Server
+from acp_sdk.models.platform import PlatformUIAnnotation, PlatformUIType, AgentToolInfo
+```
+
+**New (A2A)**
+
+```toml
+dependencies = ["beeai-sdk>=0.3.0"]
+```
+
+```py
+from a2a.types import AgentSkill, Message
+from beeai_sdk.server import Server
+from beeai_sdk.server.context import RunContext
+from beeai_sdk.a2a.extensions import (
+    AgentDetail, AgentDetailTool, 
+    CitationExtensionServer, CitationExtensionSpec, 
+    TrajectoryExtensionServer, TrajectoryExtensionSpec,
+    LLMServiceExtensionServer, LLMServiceExtensionSpec
+)
+from beeai_sdk.a2a.extensions.services.platform import PlatformApiExtensionServer, PlatformApiExtensionSpec
+from beeai_sdk.a2a.types import AgentMessage, AgentArtifact
+from beeai_sdk.util.file import load_file
+```
+
+### 2. Update Agent Decorator & Function Signature
+
+**Old (ACP)**
+
+```py
+@server.agent(
+    name="jennas_granite_chat",
+    description="This is a general-purpose chat assistant prototype built with the BeeAI Framework and powered by Granite.",
+    metadata=Metadata(
+        annotations=Annotations(
+            beeai_ui=PlatformUIAnnotation(
+                ui_type=PlatformUIType.CHAT,
+                user_greeting="Hi! I'm your Granite-powered AI assistant—here to help with questions, research, and more. What can I do for you today?",
+                display_name="Jenna's Granite Chat",
+                tools=[
+                    AgentToolInfo(name="Think", description="Advanced reasoning and analysis to provide thoughtful, well-structured responses to complex questions and topics."),
+                    AgentToolInfo(name="DuckDuckGo", description="Search the web for current information, news, and real-time updates on any topic.")
+                ]
+            )
+        ),
+        author={"name": "Jenna Winkler"},
+        contributors=[{"name": "Tomas Weiss"}, {"name": "Tomas Dvorak"}],
+        recommended_models=["granite3.3:8b-beeai"],
+        tags=["Granite", "Chat", "Research"], framework="BeeAI", license="Apache 2.0",
+        links=[{"type": "source-code", "url": "https://github.com/jenna-winkler/granite_chat"}])
+async def agent_function(input: list[Message], context: Context) -> AsyncGenerator:
+```
+
+**New (A2A)**
+
+```py
+@server.agent(
+    name="Jenna's Granite Chat",
+    default_input_modes=["text", "text/plain", "application/pdf", "text/csv", "application/json"],
+    default_output_modes=["text", "text/plain"],
+    detail=AgentDetail(
+        interaction_mode="multi-turn",
+        user_greeting="Hi! I'm your Granite-powered AI assistant. How can I help?",
+        version="0.0.10",
+        tools=[
+            AgentDetailTool(
+                name="Think", 
+                description="Advanced reasoning and analysis to provide thoughtful, well-structured responses to complex questions and topics."
+            ),
+            AgentDetailTool(
+                name="DuckDuckGo", 
+                description="Search the web for current information, news, and real-time updates on any topic."
+            ),
+            AgentDetailTool(
+                name="File Processing", 
+                description="Read and analyze uploaded files including PDFs, text files, CSV data, and JSON documents."
+            )
+        ],
+        framework="BeeAI",
+        author={
+            "name": "Jenna Winkler"
+        },
+        source_code_url="https://github.com/jenna-winkler/granite_chat"
+    ),
+    skills=[
+        AgentSkill(
+            id="chat",
+            name="Chat",
+            description=dedent(
+                """\
+                The agent is an AI-powered conversational system designed to process user messages, maintain context,
+                generate intelligent responses, and analyze uploaded files.
+                """
+            ),
+            tags=["Chat", "Files"],
+            examples=[
+                "What are the latest advancements in AI research from 2025?",
+                "What's the difference between LLM tool use and API orchestration?",
+                "Can you help me draft an email apologizing for missing a meeting?",
+                "Analyze this CSV file and tell me the key trends.",
+                "Summarize the main points from this PDF document.",
+            ]
+
+        )
+    ],
+)
+async def agent_function(
+    message: Message,
+    context: RunContext,
+    trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
+    citation: Annotated[CitationExtensionServer, CitationExtensionSpec()],
+    llm_ext: Annotated[LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand()],
+):
+```
+
+### 3. Update Message & File Processing
+
+**Old (ACP)**
+
+```py
+user_msg = input[-1].parts[0].content if input else "Hello"
+```
+
+**New (A2A)**
+
+Use `PlatformApiExtensionServer` in your agent to get access to files.
+
+```py
+from beeai_sdk.a2a.extensions.services.platform import (
+    PlatformApiExtensionServer,
+    PlatformApiExtensionSpec,
+)
+
+async def example_agent(
+    input: Message,
+    _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
+):
+```
+
+```py
+# Process message parts - A2A receives single Message with multiple parts
+user_text = ""
+uploaded_files = []
+
+for part in message.parts:
+    if part.root.kind == "text":
+        user_text = part.root.text
+    elif part.root.kind == "file":
+        uploaded_files.append(part.root)
+
+# Simple file processing (if needed)
+if uploaded_files:
+    from beeai_sdk.util.file import load_file
+    
+    for file_part in uploaded_files:
+        async with load_file(file_part) as loaded_content:
+            # Process file content as needed
+            content = loaded_content.text
+            # Use content in your agent logic...
+
+if not user_text:
+    user_text = "Hello"
+```
+
+### 4. Update Context & Memory
+
+**Old (ACP)**
+
+```py
+def get_memory(context: Context) -> UnconstrainedMemory:
+    session_id = getattr(context, "session_id", "default")
+    return memories.setdefault(session_id, UnconstrainedMemory())
+```
+
+**New (A2A)**
+
+```py
+def get_memory(context: RunContext) -> UnconstrainedMemory:
+    context_id = getattr(context, "context_id", getattr(context, "session_id", "default"))
+    return memories.setdefault(context_id, UnconstrainedMemory())
+```
+
+### 5. Use LLM Service Extension
+
+**Old (ACP)**
+
+```py
+os.environ["OPENAI_API_BASE"] = os.getenv("LLM_API_BASE", "http://localhost:11434/v1")
+os.environ["OPENAI_API_KEY"] = os.getenv("LLM_API_KEY", "dummy")
+llm = ChatModel.from_name(f"openai:{os.getenv('LLM_MODEL', 'llama3.1')}")
+```
+
+**New (A2A)**
+
+```py
+# Add LLM extension to function signature
+async def agent_function(
+    message: Message,
+    context: RunContext,
+    llm_ext: Annotated[
+        LLMServiceExtensionServer,
+        LLMServiceExtensionSpec.single_demand(
+            suggested=("ibm/granite-3-3-8b-instruct", "llama3.1", "gpt-4o-mini")
+        )
+    ],
+    # ... other extensions
+):
+    if llm_ext:
+        # Get platform-managed LLM configuration
+        llm_config = llm_ext.data.llm_fulfillments.get("default")
+        
+        llm = OpenAIChatModel(
+            model_id=llm_config.api_model,
+            api_key=llm_config.api_key,
+            base_url=llm_config.api_base,
+            parameters=ChatModelParameters(temperature=0.0),
+            tool_choice_support=set(),
+        )
+```
+
+### 6. Update Trajectory & Citations
+
+**Old (ACP)**
+
+```py
+yield MessagePart(metadata=TrajectoryMetadata(
+    kind="trajectory", 
+    key=str(uuid.uuid4()),
+    message="Processing..."
+))
+
+citations.append(CitationMetadata(
+    kind="citation", 
+    url=url,
+    title=title,
+    description=description,
+    start_index=start, 
+    end_index=end
+))
+for citation in citations:
+    yield MessagePart(metadata=citation)
+```
+
+**New (A2A)**
+
+```py
+yield trajectory.trajectory_metadata(
+    title="Processing",
+    content="Processing message..."
+)
+
+citations.append({
+    "url": url,
+    "title": title,
+    "description": description,
+    "start_index": start,
+    "end_index": end
+})
+yield citation.citation_metadata(citations=citations)
+```
+
+### 7. Response Output
+
+**Old (ACP)**
+
+```py
+yield MessagePart(content=response_text)
+```
+
+**New (A2A)**
+
+```py
+yield AgentMessage(text=response_text)
+# or simply:
+yield response_text
+```
+
+## Complete Examples
+
+1. https://github.com/i-am-bee/beeai-platform/blob/main/agents/official/beeai-framework/chat/src/chat/agent.py
+2. https://github.com/jenna-winkler/granite_chat/blob/main/src/beeai_agents/agent.py

@@ -9,6 +9,7 @@ from anyio import Path
 from kink import Container, di
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
+from beeai_server.api.auth import setup_jwks
 from beeai_server.configuration import Configuration, get_configuration
 from beeai_server.domain.repositories.file import IObjectStorageRepository, ITextExtractionBackend
 from beeai_server.infrastructure.kubernetes.provider_deployment_manager import KubernetesProviderDeploymentManager
@@ -67,6 +68,9 @@ async def bootstrap_dependencies(dependency_overrides: Container | None = None):
     _set_di(procrastinate.App, create_app())
 
     _set_di(ITextExtractionBackend, DoclingTextExtractionBackend(di[Configuration].text_extraction))
+
+    # Download JWKS
+    _set_di("JWKS_CACHE", setup_jwks(di[Configuration]))
 
 
 bootstrap_dependencies_sync = async_to_sync_isolated(bootstrap_dependencies)

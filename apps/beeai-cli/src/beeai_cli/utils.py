@@ -13,6 +13,7 @@ from contextvars import ContextVar
 from copy import deepcopy
 from io import BytesIO
 from typing import TYPE_CHECKING, Any
+from urllib.parse import urlparse
 
 import anyio
 import anyio.abc
@@ -201,7 +202,7 @@ async def run_command(
     except FileNotFoundError:
         console.print(f"{message} [[red]ERROR[/red]]")
         tool_name = command[0]
-        console.print(f"[red]Error: {tool_name} is not installed. Please install {tool_name} first.[/red]")
+        console.error(f"{tool_name} is not installed. Please install {tool_name} first.")
         sys.exit(1)
     except subprocess.CalledProcessError as e:
         console.print(f"{message} [[red]ERROR[/red]]")
@@ -254,3 +255,8 @@ def verbosity(verbose: bool, show_success_status: bool = True):
         VERBOSE.reset(token)
         IN_VERBOSITY_CONTEXT.set(False)
         SHOW_SUCCESS_STATUS.reset(token_command_status)
+
+
+def make_safe_name(resource_url: str) -> str:
+    parsed = urlparse(resource_url)
+    return parsed.netloc or parsed.path

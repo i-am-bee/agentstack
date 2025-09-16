@@ -68,7 +68,9 @@
 .body {
   display: grid;
   grid-template-rows: 0fr;
+  grid-template-columns: 100%;
   transition: grid-template-rows $duration-moderate-02 motion(standard, expressive);
+
   .root.isOpen & {
     grid-template-rows: 1fr;
   }

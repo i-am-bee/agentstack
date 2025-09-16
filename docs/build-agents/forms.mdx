@@ -1,0 +1,286 @@
+---
+title: "Structured User Input"
+description: "Leverage UI Forms to request structured input from the user."
+---
+
+One of the most powerful features of the BeeAI platform is the ability to request structured data from users through interactive forms. Instead of relying on free-form text input, your agent can present users with specific fields, dropdowns, and other form elements to gather precise information.
+
+The BeeAI platform provides a Form extension that allows you to collect structured data from users in two ways:
+
+1. **Initial form rendering** - Present a form as the first interaction before users start a conversation with your agent
+2. **Dynamic form requests** - Request forms at any point during a multi-turn conversation when your agent needs specific structured input
+
+
+## Quickstart
+
+<Steps>
+<Step title="Import the Form extension">
+Import the necessary components from the BeeAI SDK form extension.
+</Step>
+
+<Step title="Add form parameter to your agent">
+Inject the Form extension into your agent function using the `Annotated` type hint.
+</Step>
+
+<Step title="Define your form structure">
+Create a `FormRender` object with the fields you want to collect from users.
+</Step>
+
+<Step title="Process form data">
+Use either `parse_form_response()` for initial forms or `request_form()` for dynamic forms.
+</Step>
+</Steps>
+
+## Initial Form Rendering
+
+For initial form rendering, you specify the form structure when injecting the extension and then parse the response from the initial message:
+
+```python
+import os
+from typing import Annotated
+
+from a2a.types import Message
+from beeai_sdk.server import Server
+from beeai_sdk.a2a.extensions.ui.form import (
+    FormExtensionServer,
+    FormExtensionSpec,
+    FormRender,
+    TextField
+)
+
+server = Server()
+
+@server.agent()
+async def initial_form_agent(
+    message: Message,
+    form: Annotated[
+        FormExtensionServer,
+        FormExtensionSpec(
+            params=FormRender(
+                id="user_info_form",
+                title="Welcome! Please tell us about yourself",
+                columns=2,
+                fields=[
+                    TextField(id="first_name", label="First Name", col_span=1),
+                    TextField(id="last_name", label="Last Name", col_span=1),
+                ],
+            )
+        ),
+    ],
+):
+    """Agent that collects user information through an initial form"""
+    
+    # Parse the form data from the initial message
+    form_data = form.parse_form_response(message=message)
+    
+    # Access the form values
+    first_name = form_data.values['first_name'].value
+    last_name = form_data.values['last_name'].value
+    
+    yield f"Hello {first_name} {last_name}! Nice to meet you."
+
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+if __name__ == "__main__":
+    run()
+```
+
+## Dynamic Form Requests
+
+For dynamic form requests during conversation, you can request forms at any point when your agent needs structured input. This is useful when your agent needs to collect additional information based on the conversation flow:
+
+```python
+import os
+from typing import Annotated
+
+from a2a.types import Message
+from a2a.utils.message import get_message_text
+from beeai_sdk.server import Server
+from beeai_sdk.a2a.extensions.ui.form import (
+    FormExtensionServer,
+    FormExtensionSpec,
+    FormRender,
+    TextField
+)
+
+server = Server()
+
+@server.agent()
+async def dynamic_form_agent(
+    message: Message,
+    form: Annotated[
+        FormExtensionServer,
+        FormExtensionSpec(params=None)
+    ],
+):
+    """Agent that requests forms dynamically during conversation"""
+    
+    user_input = get_message_text(message)
+    
+    # Check if user wants to provide contact information
+    if "contact" in user_input.lower() or "reach" in user_input.lower():
+        # Request contact form dynamically
+        form_data = await form.request_form(
+            form=FormRender(
+                id="contact_form",
+                title="Please provide your contact information",
+                columns=2,
+                fields=[
+                    TextField(id="email", label="Email Address", col_span=2),
+                    TextField(id="phone", label="Phone Number", col_span=1),
+                    TextField(id="company", label="Company", col_span=1),
+                ],
+            )
+        )
+        
+        email = form_data.values['email'].value
+        phone = form_data.values['phone'].value
+        company = form_data.values['company'].value
+        
+        yield f"Thank you! I'll contact you at {email} or {phone} regarding {company}."
+    else:
+        yield "Hello! If you'd like me to contact you, just let me know and I'll ask for your details."
+
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+if __name__ == "__main__":
+    run()
+```
+
+## How to work with forms
+
+Here's what you need to know to add form capabilities to your agent:
+
+**Import the form extension**: Import `FormExtensionServer`, `FormExtensionSpec`, `FormRender`, and field types from `beeai_sdk.a2a.extensions.ui.form`.
+
+**Inject the extension**: Add a form parameter to your agent function using the `Annotated` type hint with `FormExtensionServer` and `FormExtensionSpec`.
+
+**For initial forms**: Specify the form structure in the `FormExtensionSpec` parameters and use `parse_form_response()` to extract data from the initial message.
+
+**For dynamic forms**: Use an empty `FormExtensionSpec()` and call `await form.request_form()` with your form definition when needed.
+
+**Access form data**: Use `form_data.values['field_id'].value` to access the submitted values from your form fields. Different field types return different value types:
+
+- **TextField/DateField**: Returns `str | None`
+- **FileField**: Returns `list[FileInfo] | None` where each `FileInfo` has `uri`, `name`, and `mime_type`
+- **MultiSelectField**: Returns `list[str] | None` (list of selected option IDs)
+- **CheckboxField**: Returns `bool | None`
+
+## Form Field Types
+
+The BeeAI platform supports various field types for collecting different kinds of structured data:
+
+### TextField
+Basic text input fields for collecting strings, names, descriptions, etc.
+
+```python
+from beeai_sdk.a2a.extensions.ui.form import TextField
+
+TextField(
+    id="username", 
+    label="Username", 
+    col_span=1,
+    required=True,
+    placeholder="Enter your username",
+    default_value=""
+)
+```
+
+### DateField
+Date input fields for collecting dates and timestamps.
+
+```python
+from beeai_sdk.a2a.extensions.ui.form import DateField
+
+DateField(
+    id="birth_date", 
+    label="Birth Date",
+    col_span=1,
+    required=True,
+    placeholder="YYYY-MM-DD",
+    default_value="1990-01-01"
+)
+```
+
+### FileField
+File upload fields for collecting files from users.
+
+```python
+from beeai_sdk.a2a.extensions.ui.form import FileField
+
+FileField(
+    id="document", 
+    label="Upload Document",
+    col_span=2,
+    required=True,
+    accept=["application/pdf", "image/jpeg", "image/png"]
+)
+```
+
+### MultiSelectField
+Multi-select dropdown fields for choosing multiple options from a list.
+
+```python
+from beeai_sdk.a2a.extensions.ui.form import OptionItem, MultiSelectField
+
+MultiSelectField(
+    id="interests", 
+    label="Your Interests",
+    col_span=2,
+    required=False,
+    options=[
+        OptionItem(id="tech", label="Technology"),
+        OptionItem(id="sports", label="Sports"),
+        OptionItem(id="music", label="Music"),
+        OptionItem(id="travel", label="Travel")
+    ],
+    default_value=["tech", "music"]
+)
+```
+
+### CheckboxField
+Single checkbox fields for boolean values.
+
+```python
+from beeai_sdk.a2a.extensions.ui.form import CheckboxField
+
+CheckboxField(
+    id="newsletter", 
+    label="Subscribe to Newsletter", 
+    col_span=1,
+    required=False,
+    content="I agree to receive marketing emails",
+    default_value=False
+)
+```
+
+## Form Layout Configuration
+
+Control how your form appears using the `FormRender` configuration:
+
+```python
+FormRender(
+    id="my_form",
+    title="Form Title",
+    description="Optional description text below the title",
+    columns=2,  # Number of columns in the form grid
+    submit_label="Custom Submit Button Text",
+    fields=[
+        # Your field definitions here
+    ]
+)
+```
+
+**FormRender properties**:
+- **`id`**: Unique identifier for the form (required)
+- **`title`**: Main heading displayed above the form
+- **`description`**: Optional description text displayed below the title
+- **`columns`**: Number of columns in the form grid (1-4)
+- **`submit_label`**: Custom text for the submit button (default: "Submit")
+- **`fields`**: List of form field definitions (required)
+
+<Tip>
+Use `col_span` on individual fields to control how they span across the grid. For example, with `columns=2`, a field with `col_span=2` will take the full width, while `col_span=1` will take half the width.
+</Tip>

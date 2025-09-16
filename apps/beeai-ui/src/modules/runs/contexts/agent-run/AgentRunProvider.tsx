@@ -4,11 +4,11 @@
  */
 
 'use client';
-import { type PropsWithChildren, useCallback, useMemo, useRef, useState } from 'react';
+import { type PropsWithChildren, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
-import { buildA2AClient } from '#api/a2a/client.ts';
-import type { ChatRun } from '#api/a2a/types.ts';
+import type { AgentSettings } from '#api/a2a/extensions/ui/settings.ts';
+import { type AgentA2AClient, type ChatRun, RunResultType } from '#api/a2a/types.ts';
 import { createTextPart } from '#api/a2a/utils.ts';
 import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
@@ -18,56 +18,72 @@ import { FileUploadProvider } from '#modules/files/contexts/FileUploadProvider.t
 import { useFileUpload } from '#modules/files/contexts/index.ts';
 import { convertFilesToUIFileParts } from '#modules/files/utils.ts';
 import { Role } from '#modules/messages/api/types.ts';
-import type { UIAgentMessage, UIMessage, UIUserMessage } from '#modules/messages/types.ts';
-import { UIMessageStatus } from '#modules/messages/types.ts';
+import type { UIAgentMessage, UIMessage, UIMessageForm, UIUserMessage } from '#modules/messages/types.ts';
+import { UIMessagePartKind, UIMessageStatus } from '#modules/messages/types.ts';
 import { addTranformedMessagePart, isAgentMessage } from '#modules/messages/utils.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 import { PlatformContextProvider } from '#modules/platform-context/contexts/PlatformContextProvider.tsx';
+import { useBuildA2AClient } from '#modules/runs/api/queries/useBuildA2AClient.ts';
+import { useStartOAuth } from '#modules/runs/hooks/useStartOAuth.ts';
+import { getSettingsRenderDefaultValues } from '#modules/runs/settings/utils.ts';
 import type { RunStats } from '#modules/runs/types.ts';
 import { SourcesProvider } from '#modules/sources/contexts/SourcesProvider.tsx';
-import { getMessageSourcesMap } from '#modules/sources/utils.ts';
+import { getMessagesSourcesMap } from '#modules/sources/utils.ts';
+import type { TaskId } from '#modules/tasks/api/types.ts';
+import { isNotNull } from '#utils/helpers.ts';
 
-import { MessagesProvider } from '../../../messages/contexts/MessagesProvider';
+import { MessagesProvider } from '../../../messages/contexts/Messages/MessagesProvider';
 import { AgentStatusProvider } from '../agent-status/AgentStatusProvider';
-import { AgentRunContext } from './agent-run-context';
+import { AgentRunContext, AgentRunStatus } from './agent-run-context';
 
 interface Props {
   agent: Agent;
 }
 
 export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>) {
+  const { agentClient } = useBuildA2AClient({
+    providerId: agent.provider.id,
+    extensions: agent.capabilities.extensions ?? [],
+  });
+
   return (
-    <PlatformContextProvider>
+    <PlatformContextProvider agentClient={agentClient}>
       <FileUploadProvider allowedContentTypes={agent.defaultInputModes}>
-        <AgentRunProvider agent={agent}>{children}</AgentRunProvider>
+        <AgentRunProvider agent={agent} agentClient={agentClient}>
+          {children}
+        </AgentRunProvider>
       </FileUploadProvider>
     </PlatformContextProvider>
   );
 }
 
-function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
-  const { getContextId, resetContext, getFullfilments } = usePlatformContext();
+interface AgentRunProviderProps extends Props {
+  agentClient?: AgentA2AClient;
+}
+
+function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<AgentRunProviderProps>) {
+  const { contextId, getContextId, resetContext, getFullfilments } = usePlatformContext();
   const [messages, getMessages, setMessages] = useImmerWithGetter<UIMessage[]>([]);
   const [input, setInput] = useState<string>();
   const [isPending, setIsPending] = useState(false);
   const [stats, setStats] = useState<RunStats>();
+  const settings = useRef<AgentSettings | undefined>(undefined);
 
   const pendingSubscription = useRef<() => void>(undefined);
   const pendingRun = useRef<ChatRun>(undefined);
 
   const errorHandler = useHandleError();
 
-  const a2aAgentClient = useMemo(
-    () =>
-      buildA2AClient({
-        providerId: agent.provider.id,
-        extensions: agent.capabilities.extensions ?? [],
-      }),
-    [agent.provider.id, agent.capabilities.extensions],
-  );
   const { files, clearFiles } = useFileUpload();
 
-  const updateLastAgentMessage = useCallback(
+  useEffect(() => {
+    const settingsDemands = agentClient?.settingsDemands;
+    if (settingsDemands) {
+      settings.current = getSettingsRenderDefaultValues(settingsDemands);
+    }
+  }, [agentClient?.settingsDemands]);
+
+  const updateCurrentAgentMessage = useCallback(
     (updater: (message: UIAgentMessage) => void) => {
       setMessages((messages) => {
         const lastMessage = messages.at(-1);
@@ -91,18 +107,18 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
       });
 
       if (error instanceof Error) {
-        updateLastAgentMessage((message) => {
+        updateCurrentAgentMessage((message) => {
           message.error = error;
           message.status = UIMessageStatus.Failed;
         });
       }
     },
-    [errorHandler, updateLastAgentMessage],
+    [errorHandler, updateCurrentAgentMessage],
   );
 
   const cancel = useCallback(async () => {
     if (pendingRun.current && pendingSubscription.current) {
-      updateLastAgentMessage((message) => {
+      updateCurrentAgentMessage((message) => {
         message.status = UIMessageStatus.Aborted;
       });
 
@@ -111,7 +127,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
     } else {
       throw new Error('No run in progress');
     }
-  }, [updateLastAgentMessage]);
+  }, [updateCurrentAgentMessage]);
 
   const clear = useCallback(() => {
     setMessages([]);
@@ -123,25 +139,26 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
     pendingRun.current = undefined;
   }, [setMessages, clearFiles, resetContext]);
 
-  const run = useCallback(
-    async (input: string) => {
-      const contextId = getContextId();
+  const checkPendingRun = useCallback(() => {
+    if (pendingRun.current || pendingSubscription.current) {
+      throw new Error('A run is already in progress');
+    }
+  }, []);
 
-      if (pendingRun.current || pendingSubscription.current) {
-        throw new Error('A run is already in progress');
+  const run = useCallback(
+    async (message: UIUserMessage, taskId?: TaskId) => {
+      if (!agentClient) {
+        throw new Error('Agent client is not initialized');
       }
 
-      setInput(input);
+      checkPendingRun();
       setIsPending(true);
       setStats({ startTime: Date.now() });
 
+      const contextId = getContextId();
+
       const fulfillments = await getFullfilments();
 
-      const userMessage: UIUserMessage = {
-        id: uuid(),
-        role: Role.User,
-        parts: [createTextPart(input), ...convertFilesToUIFileParts(files)],
-      };
       const agentMessage: UIAgentMessage = {
         id: uuid(),
         role: Role.Agent,
@@ -150,37 +167,48 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
       };
 
       setMessages((messages) => {
-        messages.push(userMessage, agentMessage);
+        messages.push(message, agentMessage);
       });
 
-      clearFiles();
-
       try {
-        const run = a2aAgentClient.chat({
-          message: userMessage,
+        const run = agentClient.chat({
+          message,
           contextId,
           fulfillments,
+          taskId,
+          settings: settings.current,
         });
         pendingRun.current = run;
 
-        pendingSubscription.current = run.subscribe(({ parts, taskId }) => {
-          updateLastAgentMessage((message) => {
-            message.id = taskId;
+        pendingSubscription.current = run.subscribe(({ parts, taskId: responseTaskId }) => {
+          updateCurrentAgentMessage((message) => {
+            message.taskId = responseTaskId;
           });
 
           parts.forEach((part) => {
-            updateLastAgentMessage((message) => {
+            updateCurrentAgentMessage((message) => {
               const updatedParts = addTranformedMessagePart(part, message);
               message.parts = updatedParts;
             });
           });
         });
 
-        await run.done;
-
-        updateLastAgentMessage((message) => {
-          message.status = UIMessageStatus.Completed;
-        });
+        const result = await run.done;
+        if (result && result.type === RunResultType.FormRequired) {
+          updateCurrentAgentMessage((message) => {
+            message.status = UIMessageStatus.InputRequired;
+            message.parts.push({ kind: UIMessagePartKind.Form, ...result.form });
+          });
+        } else if (result && result.type === RunResultType.AuthRequired) {
+          updateCurrentAgentMessage((message) => {
+            message.status = UIMessageStatus.InputRequired;
+            message.parts.push({ kind: UIMessagePartKind.Auth, url: result.url, taskId: result.taskId });
+          });
+        } else {
+          updateCurrentAgentMessage((message) => {
+            message.status = UIMessageStatus.Completed;
+          });
+        }
       } catch (error) {
         handleError(error);
       } finally {
@@ -190,31 +218,111 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
         pendingSubscription.current = undefined;
       }
     },
-    [
-      getContextId,
-      getFullfilments,
-      files,
-      setMessages,
-      clearFiles,
-      a2aAgentClient,
-      updateLastAgentMessage,
-      handleError,
-    ],
+    [checkPendingRun, getContextId, getFullfilments, setMessages, agentClient, updateCurrentAgentMessage, handleError],
   );
 
-  const sources = useMemo(() => getMessageSourcesMap(messages), [messages]);
+  const chat = useCallback(
+    (input: string) => {
+      checkPendingRun();
+
+      setInput(input);
+
+      const message: UIUserMessage = {
+        id: uuid(),
+        role: Role.User,
+        parts: [createTextPart(input), ...convertFilesToUIFileParts(files)].filter(isNotNull),
+      };
+
+      clearFiles();
+
+      return run(message);
+    },
+    [checkPendingRun, clearFiles, files, run],
+  );
+
+  const submitForm = useCallback(
+    (form: UIMessageForm, taskId?: TaskId) => {
+      checkPendingRun();
+
+      const message: UIUserMessage = {
+        id: uuid(),
+        role: Role.User,
+        parts: [],
+        form,
+      };
+
+      return run(message, taskId);
+    },
+    [checkPendingRun, run],
+  );
+
+  const { startAuth } = useStartOAuth({
+    onSuccess: async (taskId: TaskId, redirectUri: string) => {
+      const userMessage: UIUserMessage = {
+        id: uuid(),
+        role: Role.User,
+        parts: [],
+        auth: redirectUri,
+      };
+
+      await run(userMessage, taskId);
+    },
+  });
+
+  const sources = useMemo(() => getMessagesSourcesMap(messages), [messages]);
+
+  const lastAgentMessage = getMessages().findLast(isAgentMessage);
+  const status = useMemo(() => {
+    if (!contextId || !agentClient) {
+      return AgentRunStatus.Initializing;
+    }
+    if (isPending) {
+      return AgentRunStatus.Pending;
+    }
+    if (lastAgentMessage?.status === UIMessageStatus.InputRequired) {
+      return AgentRunStatus.ActionRequired;
+    }
+    return AgentRunStatus.Ready;
+  }, [agentClient, contextId, isPending, lastAgentMessage?.status]);
+
+  const onUpdateSettings = useCallback((values: AgentSettings) => {
+    settings.current = values;
+  }, []);
 
   const contextValue = useMemo(() => {
     return {
       agent,
-      isPending,
+      status,
+      isInitializing: status === AgentRunStatus.Initializing,
+      isReady: status === AgentRunStatus.Ready,
+      isPending: status === AgentRunStatus.Pending,
+      isActionRequired: status === AgentRunStatus.ActionRequired,
+      hasMessages: Boolean(getMessages().length),
       input,
       stats,
-      run,
+      settingsRender: agentClient?.settingsDemands ?? null,
+      chat,
+      submitForm,
+      startAuth,
       cancel,
       clear,
+      onUpdateSettings,
+      getSettings: () => settings.current,
     };
-  }, [agent, isPending, input, stats, run, cancel, clear]);
+  }, [
+    agent,
+    status,
+    getMessages,
+    input,
+    stats,
+    agentClient?.settingsDemands,
+    chat,
+    submitForm,
+    startAuth,
+    cancel,
+    clear,
+    onUpdateSettings,
+  ]);
 
   return (
     <AgentStatusProvider agent={agent} isMonitorStatusEnabled>
