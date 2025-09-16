@@ -18,21 +18,21 @@ mise install
 
 After setup, you can use:
 
-* `mise run` to list tasks and select one interactively to run
+- `mise run` to list tasks and select one interactively to run
 
-* `mise <task-name>` to run a task
+- `mise <task-name>` to run a task
 
-* `mise x -- <command>` to run a project tool -- for example `mise x -- uv add <package>`
+- `mise x -- <command>` to run a project tool -- for example `mise x -- uv add <package>`
 
 If you want to run tools directly without the `mise x --` prefix, you need to activate a shell hook:
 
-* Bash: `eval "$(mise activate bash)"` (add to `~/.bashrc` to make permanent)
+- Bash: `eval "$(mise activate bash)"` (add to `~/.bashrc` to make permanent)
 
-* Zsh: `eval "$(mise activate zsh)"` (add to `~/.zshrc` to make permanent)
+- Zsh: `eval "$(mise activate zsh)"` (add to `~/.zshrc` to make permanent)
 
-* Fish: `mise activate fish | source` (add to `~/.config/fish/config.fish` to make permanent)
+- Fish: `mise activate fish | source` (add to `~/.config/fish/config.fish` to make permanent)
 
-* Other shells: [documentation](https://mise.jdx.dev/installing-mise.html#shells)
+- Other shells: [documentation](https://mise.jdx.dev/installing-mise.html#shells)
 
 ### Configuration
 
@@ -101,7 +101,7 @@ The default namespace is labeled `istio.io/dataplane-mode=ambient`. This ensures
 **Available endpoints:**
 
 | Service        | HTTPS                                      | HTTP                                |
-|----------------|--------------------------------------------|-------------------------------------|
+| -------------- | ------------------------------------------ | ----------------------------------- |
 | Kiali Console  | –                                          | `http://localhost:20001`            |
 | BeeAI UI       | `https://beeai.localhost:8336`             | `http://localhost:8334`             |
 | BeeAI API Docs | `https://beeai.localhost:8336/api/v1/docs` | `http://localhost:8333/api/v1/docs` |
@@ -154,10 +154,10 @@ see: https://github.com/nextauthjs/next-auth-example/blob/main/auth.ts
   following oidc specific values:
 
 ```JavaScript
+NEXT_PUBLIC_OIDC_ENABLED = true
 OIDC_PROVIDERS='[{"name": "w3id","id": "w3id","type": "oidc","class": "IBM","client_id": "<your_client_id>","client_secret": "<your_client_secret>","issuer": "your_issuer","jwks_url": "<your_jwks_url>","nextauth_url": "http://localhost:3000","nextauth_redirect_proxy_url": "http://localhost:3000"}]'
 NEXTAUTH_SECRET = "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
 NEXTAUTH_URL = "http://localhost:3000"
-OIDC_ENABLED = true
 ```
 
 Optionally add:
@@ -171,8 +171,8 @@ NEXTAUTH_DEBUG = "true"
 - Update values.yaml so that oidc.enabled is true. e.g.:
 
 ```yaml
-  odic:
-    enabled: true
+odic:
+  enabled: true
 ```
 
 - Update values.yaml so that the `nextauth_url` and the `nextauth_redirect_proxy_url` values reflect the URL for the
@@ -205,9 +205,9 @@ After the command succeeds, you can:
 - connect to postgresql using the default credentials `postgresql://beeai-user:password@postgresql:5432/beeai`
 - now you can start your server from your IDE or using `mise run beeai-server:run` on port **18333**
 - run beeai-cli using `mise beeai-cli:run -- <command>` or HTTP requests to localhost:8333 or localhost:18333
-    - localhost:8333 is port-forwarded from the cluster, so any requests will pass through the cluster networking to the
-      beeai-platform pod, which is replaced by telepresence and forwarded back to your local machine to port 18333
-    - localhost:18333 is where your local platform should be running
+  - localhost:8333 is port-forwarded from the cluster, so any requests will pass through the cluster networking to the
+    beeai-platform pod, which is replaced by telepresence and forwarded back to your local machine to port 18333
+  - localhost:18333 is where your local platform should be running
 
 To inspect cluster using `kubectl` or `k9s` and lima using `limactl`, activate the dev environment using:
 
@@ -252,7 +252,7 @@ and then run `beeai-server:dev:test:start`
 <details>
 <summary> Lower-level networking using telepresence directly</summary>
 
-```shell
+````shell
 # Activate environment
 eval "$(mise run beeai-server:dev:shell)"
 
@@ -268,7 +268,7 @@ mise x -- telepresence replace <pod-name>
 # Once done, quit Telepresence using:
 ```sh
 mise x -- telepresence quit
-```
+````
 
 </details>
 
@@ -322,7 +322,7 @@ mise beeai-server:run
 
 ## Releasing
 
-> ⚠️ **IMPORTANT**   
+> ⚠️ **IMPORTANT**  
 > Always create pre-release before the actual public release and check that the upgrade and installation work.
 
 Use the release script:
@@ -330,4 +330,3 @@ Use the release script:
 ```shell
 mise run release
 ```
-
