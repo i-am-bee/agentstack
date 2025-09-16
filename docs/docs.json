@@ -27,7 +27,8 @@
           "build-agents/messages",
           "build-agents/multi-turn",
           "build-agents/files",
-          "build-agents/gui-components",
+          "build-agents/trajectory",
+          "build-agents/citations",
           "build-agents/forms"
         ]
       },
