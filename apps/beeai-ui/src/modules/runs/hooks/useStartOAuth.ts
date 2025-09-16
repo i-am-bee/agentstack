@@ -9,7 +9,7 @@ import { oauthMessageSchema } from '#api/a2a/extensions/services/oauth-provider.
 import type { TaskId } from '#modules/tasks/api/types.ts';
 
 interface Props {
-  onSuccess: (redirectUri: string, taskId: TaskId) => Promise<void>;
+  onSuccess: (taskId: TaskId, redirectUri: string) => Promise<void>;
 }
 
 export function useStartOAuth({ onSuccess }: Props) {
