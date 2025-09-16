@@ -171,8 +171,8 @@ NEXTAUTH_DEBUG = "true"
 - Update values.yaml so that oidc.enabled is true. e.g.:
 
 ```yaml
-odic:
-  enabled: true
+  oidc:
+    enabled: true
 ```
 
 - Update values.yaml so that the `nextauth_url` and the `nextauth_redirect_proxy_url` values reflect the URL for the
