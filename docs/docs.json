@@ -22,17 +22,13 @@
         "group": "Build Your Own Agent",
         "pages": [
           "build-agents/hello-world",
-          {
-            "group": "Fundamentals",
-            "pages": [
-              "build-agents/llm-configuration",
-              "build-agents/agent-details",
-              "build-agents/messages",
-              "build-agents/files",
-              "build-agents/gui-components",
-              "build-agents/forms"
-            ]
-          }
+          "build-agents/llm-configuration",
+          "build-agents/agent-details",
+          "build-agents/messages",
+          "build-agents/multi-turn",
+          "build-agents/files",
+          "build-agents/gui-components",
+          "build-agents/forms"
         ]
       },
       {
