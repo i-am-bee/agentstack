@@ -1,0 +1,70 @@
+--- 
+title: Platform Extensions
+---
+
+Platform extensions enable agents to access external services and UI components through dependency injection. The platform automatically provides configured services based on your agent's function signature.
+
+Extensions make agents portable across different providers, allow users to configure their preferred services, handle authentication automatically, and are optional by design.
+
+## Extension Types
+
+### Service Extensions
+
+Provide access to external services with automatic configuration:
+
+**LLM Service**: Access to language models (OpenAI, Ollama, IBM Granite, etc.)
+**Embedding Service**: Text embedding generation for RAG and similarity search  
+**Platform API**: File storage, vector databases, and platform services
+**MCP**: Integration with Model Context Protocol tools
+
+### UI Extensions
+
+Enhance the user interface with rich components:
+
+**Trajectory**: Step-by-step agent reasoning visualization
+**Citation**: Source references with clickable links
+**Form**: Interactive forms for structured user input
+
+## Dependency Injection Pattern
+
+Extensions are injected using `Annotated` type hints:
+
+```python
+from typing import Annotated
+from beeai_sdk.a2a.extensions import LLMServiceExtensionServer, LLMServiceExtensionSpec
+
+async def my_agent(
+    input: Message,
+    context: RunContext,
+    llm: Annotated[LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand()]
+):
+    # Platform provides configured LLM access
+    pass
+```
+
+## Extension Availability
+
+Extensions are optional by design. Always check if provided:
+
+```python
+if llm:
+    # Use LLM functionality
+    pass
+else:
+    # Provide fallback or inform user
+    yield "LLM not configured"
+```
+
+## Model Suggestions
+
+Service extensions accept suggested models in preference order:
+
+```python
+LLMServiceExtensionSpec.single_demand(
+    suggested=("openai/gpt-4o", "ollama/llama3.1", "ibm/granite-3-8b")
+)
+```
+
+Platform selects the first available model from suggestions.
+
+Extensions make agents adaptable to different deployment environments while providing rich user experiences.
