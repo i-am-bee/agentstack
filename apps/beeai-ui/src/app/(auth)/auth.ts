@@ -100,11 +100,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     // middleware callback
     authorized({ auth }) {
-      // essentially return !!auth
       if (!OIDC_ENABLED) {
         return true;
       }
-      return !!auth;
+      return Boolean(auth);
     },
     async jwt({ token, account, trigger, session }) {
       if (trigger === 'update') {

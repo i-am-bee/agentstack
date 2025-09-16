@@ -8,6 +8,7 @@ import { AuthError } from 'next-auth';
 
 import { providerMap, signIn } from '#app/(auth)/auth.ts';
 import { SigninButton } from '#components/SigninButton/SigninButton.tsx';
+import { routes } from '#utils/router.ts';
 
 import classes from './SignIn.module.scss';
 
@@ -33,7 +34,7 @@ export function SignIn({ callbackUrl }: Props) {
                 'use server';
                 try {
                   await signIn(provider.id, {
-                    redirectTo: callbackUrl,
+                    redirectTo: callbackUrl ?? routes.home(),
                   });
                 } catch (error) {
                   // Signin can fail for a number of reasons, such as the user
