@@ -9,15 +9,10 @@ from a2a.types import (
     AgentSkill,
     Message,
 )
-from beeai_framework.adapters.openai import OpenAIChatModel
-from beeai_framework.agents.experimental import (
-    RequirementAgent,
-)
-from beeai_framework.agents.experimental.events import (
-    RequirementAgentSuccessEvent,
-)
+from beeai_framework.adapters.beeai_platform.backend.chat import BeeAIPlatformChatModel
+from beeai_framework.agents.experimental import RequirementAgent
+from beeai_framework.agents.experimental.events import RequirementAgentSuccessEvent
 from beeai_framework.agents.experimental.utils._tool import FinalAnswerTool
-from beeai_framework.backend.types import ChatModelParameters
 from beeai_framework.emitter import EventMeta
 from beeai_framework.memory import UnconstrainedMemory
 from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
@@ -36,7 +31,10 @@ from beeai_sdk.a2a.extensions import (
     LLMServiceExtensionServer,
     LLMServiceExtensionSpec,
 )
-from beeai_sdk.a2a.extensions.services.platform import PlatformApiExtensionServer, PlatformApiExtensionSpec
+from beeai_sdk.a2a.extensions.services.platform import (
+    PlatformApiExtensionServer,
+    PlatformApiExtensionSpec,
+)
 from beeai_sdk.a2a.types import AgentMessage, AgentArtifact
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import RunContext
@@ -65,8 +63,12 @@ EventMeta.model_fields["context"].exclude = True
 
 BeeAIInstrumentor().instrument()
 ## TODO: https://github.com/phoenixframework/phoenix/issues/6224
-logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(logging.CRITICAL)
-logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(logging.CRITICAL)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(
+    logging.CRITICAL
+)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(
+    logging.CRITICAL
+)
 
 logger = logging.getLogger(__name__)
 
@@ -161,7 +163,9 @@ server = Server()
                 """
             ),
             tags=["chat"],
-            examples=["Please find a room in LA, CA, April 15, 2025, checkout date is april 18, 2 adults"],
+            examples=[
+                "Please find a room in LA, CA, April 15, 2025, checkout date is april 18, 2 adults"
+            ],
         )
     ],
 )
@@ -171,7 +175,9 @@ async def chat(
     citation: Annotated[CitationExtensionServer, CitationExtensionSpec()],
     llm_ext: Annotated[
         LLMServiceExtensionServer,
-        LLMServiceExtensionSpec.single_demand(suggested=("openai:gpt-4o", "ollama:granite3.3:8b")),
+        LLMServiceExtensionSpec.single_demand(
+            suggested=("openai:gpt-4o", "ollama:granite3.3:8b")
+        ),
     ],
     _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
 ):
@@ -180,7 +186,9 @@ async def chat(
     and weather updates through integrated tools.
     """
     history = [
-        message async for message in context.store.load_history() if isinstance(message, Message) and message.parts
+        message
+        async for message in context.store.load_history()
+        if isinstance(message, Message) and message.parts
     ]
     extracted_files = await extract_files(history=history)
 
@@ -224,12 +232,11 @@ async def chat(
     if llm_ext and llm_ext.data:
         [llm_conf] = llm_ext.data.llm_fulfillments.values()
 
-    llm = OpenAIChatModel(
+    llm = BeeAIPlatformChatModel()
+    llm.configure(
         model_id=llm_conf.api_model if llm_conf else "llama3.1",
         api_key=llm_conf.api_key if llm_conf else "dummy",
         base_url=llm_conf.api_base if llm_conf else "http://localhost:11434/v1",
-        parameters=ChatModelParameters(temperature=0.0),
-        tool_choice_support=set(),
     )
 
     # Build dynamic instructions based on available files
@@ -278,9 +285,7 @@ async def chat(
         files_context += "\nThe user has uploaded the following files that you can access using the File Reader tool:"
         for file in extracted_files:
             files_context += f"\n- **{file.file.filename}** (ID: {file.file.id}) - Available at: {file.file.url}"
-        files_context += (
-            "\n\nWhen referencing these files, use their ID with the File Reader tool to access their content."
-        )
+        files_context += "\n\nWhen referencing these files, use their ID with the File Reader tool to access their content."
         instructions = base_instructions.format(file_context=files_context)
     else:
         instructions = base_instructions.format(file_context="")
@@ -291,6 +296,7 @@ async def chat(
         tools=tools,
         memory=UnconstrainedMemory(),
         requirements=requirements,
+        instructions=instructions,
         middlewares=[
             GlobalTrajectoryMiddleware(included=[Tool]),  # ChatModel,
             act_tool_middleware,
@@ -298,10 +304,10 @@ async def chat(
         ],
     )
 
-    await agent.memory.add_many(to_framework_message(item, extracted_files) for item in history)
     final_answer = None
+    new_messages = [to_framework_message(item, extracted_files) for item in history]
 
-    async for event, meta in agent.run([]):
+    async for event, meta in agent.run(new_messages):
         if not isinstance(event, RequirementAgentSuccessEvent):
             continue
 
@@ -333,7 +339,9 @@ async def chat(
 
         message = AgentMessage(
             text=clean_text,
-            metadata=(citation.citation_metadata(citations=citations) if citations else None),
+            metadata=(
+                citation.citation_metadata(citations=citations) if citations else None
+            ),
         )
         yield message
 
