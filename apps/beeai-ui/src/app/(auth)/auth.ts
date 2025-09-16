@@ -9,6 +9,7 @@ import type { Provider } from 'next-auth/providers';
 
 import { ProviderList } from '#app/api/auth/providers/providers.ts';
 import { OIDC_ENABLED } from '#utils/constants.ts';
+import { routes } from '#utils/router.ts';
 
 import type { ProviderConfig } from './types';
 import { jwtWithRefresh } from './utils';
@@ -81,7 +82,7 @@ export const providerMap = providers
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers,
   pages: {
-    signIn: '/signin',
+    signIn: routes.login(),
   },
   session: { strategy: 'jwt' },
   trustHost: true,
@@ -90,7 +91,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   useSecureCookies: true,
   cookies: {
     sessionToken: {
-      name: `beeai-platform-1`,
+      name: 'beeai-platform',
       options: {
         httpOnly: true,
         sameSite: 'lax',

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import type { JWT } from 'next-auth/jwt';
 import type { Provider } from 'next-auth/providers';
 

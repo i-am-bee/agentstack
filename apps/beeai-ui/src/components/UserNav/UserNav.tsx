@@ -83,5 +83,3 @@ const NAV_ITEMS = [
     icon: LogoGithub,
   },
 ];
-
-const MENU_OFFSET = { top: 0, left: 0 };
