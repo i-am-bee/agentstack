@@ -15,13 +15,9 @@ class AuthService:
     def __init__(self, configuration: Configuration):
         self._config = configuration
 
-    def protected_resource_metadata(self) -> dict:
-        resource_id = f"http://localhost:{self._config.port}"  # TODO
-        providers = self._config.auth.oidc.providers
-        authorization_server = [str(p.issuer) for p in providers if p.issuer is not None]
-
+    def protected_resource_metadata(self, *, resource: str) -> dict:
         return {
-            "resource_id": resource_id,
-            "authorization_servers": authorization_server,
+            "resource": resource,
+            "authorization_servers": [str(p.issuer) for p in self._config.auth.oidc.providers if p.issuer is not None],
             "scopes_supported": list(self._config.auth.oidc.scope),
         }

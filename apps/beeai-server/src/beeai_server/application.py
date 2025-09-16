@@ -12,10 +12,10 @@ from fastapi.responses import ORJSONResponse
 from kink import Container, di, inject
 from opentelemetry.metrics import CallbackOptions, Observation, get_meter
 from starlette.requests import Request
-from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
+from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_500_INTERNAL_SERVER_ERROR
 
 from beeai_server.api.routes.a2a import router as a2a_router
-from beeai_server.api.routes.auth import router as auth_router
+from beeai_server.api.routes.auth import well_known_router as auth_well_known_router
 from beeai_server.api.routes.configurations import router as configuration_router
 from beeai_server.api.routes.contexts import router as contexts_router
 from beeai_server.api.routes.files import router as files_router
@@ -72,12 +72,18 @@ def register_global_exception_handlers(app: FastAPI):
                 exception = exc
             case _:
                 exception = HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, detail=repr(extract_messages(exc)))
+
+        if isinstance(exception, HTTPException) and exc.status_code == HTTP_401_UNAUTHORIZED:
+            exception.headers = exception.headers or {}
+            exception.headers |= {
+                "WWW-Authenticate": f'Bearer resource_metadata="{request.url.replace(path="/.well-known/oauth-protected-resource")}"'  # We don't define multiple resource domains at the moment
+            }
+
         return await http_exception_handler(request, exception)
 
 
 def mount_routes(app: FastAPI):
     server_router = APIRouter()
-    server_router.include_router(auth_router, prefix="", tags=["auth"])
     server_router.include_router(a2a_router, prefix="/a2a")
     server_router.include_router(mcp_router, prefix="/mcp")
     server_router.include_router(provider_router, prefix="/providers", tags=["providers"])
@@ -89,7 +95,11 @@ def mount_routes(app: FastAPI):
     server_router.include_router(vector_stores_router, prefix="/vector_stores", tags=["vector_stores"])
     server_router.include_router(user_feedback_router, prefix="/user_feedback", tags=["user_feedback"])
 
+    well_known_router = APIRouter()
+    well_known_router.include_router(auth_well_known_router, prefix="")
+
     app.include_router(server_router, prefix="/api/v1", tags=["provider"])
+    app.include_router(well_known_router, prefix="/.well-known", tags=["well-known"])
 
     @app.get("/healthcheck")
     async def healthcheck():

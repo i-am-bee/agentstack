@@ -2,15 +2,19 @@
 # SPDX-License-Identifier: Apache-2.0
 import logging
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from beeai_server.api.dependencies import AuthServiceDependency
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+well_known_router = APIRouter()
 
 
-@router.get("/.well-known/oauth-protected-resource")
-def protected_resource_metadata(auth_servide: AuthServiceDependency):
-    return auth_servide.protected_resource_metadata()
+@well_known_router.get("/oauth-protected-resource/{resource:path}")
+def protected_resource_metadata(
+    request: Request,
+    auth_servide: AuthServiceDependency,
+    resource: str = "",
+):
+    return auth_servide.protected_resource_metadata(resource=str(request.url.replace(path=resource)))

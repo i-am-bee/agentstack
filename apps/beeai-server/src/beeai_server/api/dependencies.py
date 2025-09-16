@@ -5,7 +5,7 @@ import logging
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Path, Query, Security, status
+from fastapi import Depends, HTTPException, Path, Query, Request, Security, status
 from fastapi.security import APIKeyCookie, HTTPAuthorizationCredentials, HTTPBasic, HTTPBasicCredentials, HTTPBearer
 from jwt import PyJWTError
 from kink import di
@@ -56,6 +56,7 @@ async def authenticate_oauth_user(
     cookie_auth: str | None,
     user_service: UserServiceDependency,
     configuration: ConfigurationDependency,
+    request: Request,
 ) -> AuthorizedUser:
     """
     Authenticate using an OIDC/OAuth2 JWT bearer token with JWKS.
@@ -69,8 +70,9 @@ async def authenticate_oauth_user(
             detail=f"Invalid Authorization header: {e}",
         ) from e
 
+    expected_audience = str(request.url.replace(path="/"))
     claims, issuer = await decode_oauth_jwt_or_introspect(
-        token=token, jwks_dict=di["JWKS_CACHE"], aud="beeai-server", configuration=configuration
+        token=token, jwks_dict=di["JWKS_CACHE"], aud=expected_audience, configuration=configuration
     )
     if not claims:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
@@ -112,6 +114,7 @@ async def authorized_user(
     basic_auth: Annotated[HTTPBasicCredentials | None, Depends(HTTPBasic(auto_error=False))],
     bearer_auth: Annotated[HTTPAuthorizationCredentials | None, Depends(HTTPBearer(auto_error=False))],
     cookie_auth: Annotated[str | None, Security(api_key_cookie)],
+    request: Request,
 ) -> AuthorizedUser:
     if bearer_auth:
         # Check Bearer token first - locally this allows for "checking permissions" for development purposes
@@ -128,12 +131,12 @@ async def authorized_user(
             return token
         except PyJWTError:
             if configuration.auth.oidc.enabled:
-                return await authenticate_oauth_user(bearer_auth, cookie_auth, user_service, configuration)
+                return await authenticate_oauth_user(bearer_auth, cookie_auth, user_service, configuration, request)
             # TODO: update agents
             logger.warning("Bearer token is invalid, agent is not probably not using llm extension correctly")
 
     if configuration.auth.oidc.enabled and cookie_auth:
-        return await authenticate_oauth_user(bearer_auth, cookie_auth, user_service, configuration)
+        return await authenticate_oauth_user(bearer_auth, cookie_auth, user_service, configuration, request)
 
     if configuration.auth.basic.enabled:
         if basic_auth and basic_auth.password == configuration.auth.basic.admin_password.get_secret_value():
