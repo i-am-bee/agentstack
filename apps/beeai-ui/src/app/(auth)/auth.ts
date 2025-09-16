@@ -4,7 +4,6 @@
  */
 import * as jose from 'jose';
 import NextAuth from 'next-auth';
-import type { JWT } from 'next-auth/jwt';
 import type { Provider } from 'next-auth/providers';
 
 import { ProviderList } from '#app/api/auth/providers/providers.ts';
@@ -121,9 +120,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return await jwtWithRefresh(token, account, providers);
     },
     async session({ session, token }) {
-      // Silly workaround to allow overriding the JWT interface
-      const jwt: JWT = {};
-      if (jwt && token?.access_token) {
+      if (token?.access_token) {
         session.access_token = token.access_token;
       }
       return session;
@@ -144,5 +141,7 @@ declare module 'next-auth/jwt' {
   /** Returned by the `jwt` callback and `auth`, when using JWT sessions */
   interface JWT {
     access_token?: string;
+    expires_at?: number;
+    refresh_token?: string;
   }
 }

@@ -5,7 +5,7 @@
 
 import type { NextRequest } from 'next/server';
 
-import { auth } from '#app/(auth)/auth.ts';
+import { ensureSession } from '#app/(auth)/rsc.tsx';
 import { API_URL, OIDC_ENABLED } from '#utils/constants.ts';
 
 import { transformAgentManifestBody } from './body-transformers';
@@ -30,7 +30,7 @@ async function handler(request: NextRequest, context: RouteContext) {
   targetUrl += search;
 
   if (OIDC_ENABLED) {
-    const session = await auth();
+    const session = await ensureSession();
     if (session?.access_token) {
       headers.set('Authorization', `Bearer ${session.access_token}`);
     }

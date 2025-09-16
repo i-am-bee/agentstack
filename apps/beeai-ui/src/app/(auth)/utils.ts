@@ -3,10 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { Account } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import type { Provider } from 'next-auth/providers';
 
-export async function jwtWithRefresh(token: JWT, account, providers: Provider[]): Promise<JWT> {
+export async function jwtWithRefresh(
+  token: JWT,
+  account: Account | null | undefined,
+  providers: Provider[],
+): Promise<JWT> {
   if (account) {
     // First-time login, save the `access_token`, its expiry and the `refresh_token`
     return {
@@ -15,9 +20,7 @@ export async function jwtWithRefresh(token: JWT, account, providers: Provider[])
       expires_at: account.expires_at,
       refresh_token: account.refresh_token,
     };
-  }
-  // TODO: check if token.expires_at exists and is a number
-  else if (Date.now() < Number(token.expires_at) * 1000) {
+  } else if (token.expires_at && Date.now() < token.expires_at * 1000) {
     // Subsequent logins, but the `access_token` is still valid
     return token;
   } else {
@@ -34,13 +37,19 @@ export async function jwtWithRefresh(token: JWT, account, providers: Provider[])
       }
       const tokenProvider = tmp[0];
 
+      const clientId = tokenProvider.options?.clientId;
+      const clientSecret = tokenProvider.options?.clientSecret;
+      if (!clientId || !clientSecret) {
+        throw new TypeError('Missing clientId or clientSecret in provider configuration');
+      }
+
       const response = await fetch(`${tokenProvider.options?.issuer}/token`, {
         method: 'POST',
         body: new URLSearchParams({
-          client_id: '' + tokenProvider.options?.clientId || '',
-          client_secret: '' + tokenProvider.options?.clientSecret || '',
+          client_id: String(clientId),
+          client_secret: String(clientSecret),
           grant_type: 'refresh_token',
-          refresh_token: String(token.refresh_token)!,
+          refresh_token: token.refresh_token!,
         }),
       });
 

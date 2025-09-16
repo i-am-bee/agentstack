@@ -4,19 +4,21 @@
  */
 
 import { redirect } from 'next/navigation';
-import { getSession } from 'next-auth/react';
 
 import { OIDC_ENABLED } from '#utils/constants.ts';
+import { routes } from '#utils/router.ts';
+
+import { auth } from './auth';
 
 export const ensureSession = async () => {
   if (!OIDC_ENABLED) {
     return null;
   }
 
-  const session = await getSession();
+  const session = await auth();
 
   if (!session) {
-    redirect('/signin');
+    redirect(routes.login());
   }
   return session;
 };
