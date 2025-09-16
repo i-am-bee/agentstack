@@ -2,9 +2,7 @@
 title: Platform Extensions
 ---
 
-Platform extensions enable agents to access external services and UI components through dependency injection. The platform automatically provides configured services based on your agent's function signature.
-
-Extensions make agents portable across different providers, allow users to configure their preferred services, handle authentication automatically, and are optional by design.
+Platform extensions let agents access external services and UI components via dependency injection. They provide configured services automatically, make agents portable, support user-configured services, handle authentication, and remain optional.
 
 ## Extension Types
 
@@ -12,18 +10,17 @@ Extensions make agents portable across different providers, allow users to confi
 
 Provide access to external services with automatic configuration:
 
-**LLM Service**: Access to language models (OpenAI, Ollama, IBM Granite, etc.)
-**Embedding Service**: Text embedding generation for RAG and similarity search  
-**Platform API**: File storage, vector databases, and platform services
-**MCP**: Integration with Model Context Protocol tools
+- **LLM Service**: Access to language models (OpenAI, Ollama, IBM Granite, etc.)
+- **Embedding Service**: Text embedding generation for RAG and similarity search - **Platform API**: File storage, vector databases, and platform services
+- **MCP**: Integration with Model Context Protocol tools
 
 ### UI Extensions
 
 Enhance the user interface with rich components:
 
-**Trajectory**: Step-by-step agent reasoning visualization
-**Citation**: Source references with clickable links
-**Form**: Interactive forms for structured user input
+- **Trajectory**: Step-by-step agent reasoning visualization
+- **Citation**: Source references with clickable links
+- **Form**: Interactive forms for structured user input
 
 ## Dependency Injection Pattern
 
