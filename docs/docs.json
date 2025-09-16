@@ -16,7 +16,7 @@
       },
       {
         "group": "Core Concepts",
-        "pages": ["concepts/architecture", "concepts/a2a"]
+        "pages": ["concepts/architecture", "concepts/a2a", "concepts/extensions"]
       },
       {
         "group": "Build Your Own Agent",
