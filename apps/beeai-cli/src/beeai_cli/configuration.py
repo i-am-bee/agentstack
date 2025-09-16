@@ -39,8 +39,7 @@ class Configuration(pydantic_settings.BaseSettings):
     admin_password: SecretStr | None = None
     oidc_enabled: bool = False
     resource_metadata_ttl: int = 86400
-    # client_id: str = "df82a687-d647-4247-838b-7080d7d83f6c"  # pre-registered with AS
-    client_id: str = "0004ec72-bb41-49d0-804d-430167e5a148"
+    client_id: str = "df82a687-d647-4247-838b-7080d7d83f6c"  # pre-registered with AS
     redirect_uri: pydantic.AnyUrl = HttpUrl("http://localhost:9001/callback")
 
     @property
