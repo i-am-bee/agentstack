@@ -21,7 +21,7 @@ if (OIDC_ENABLED) {
   try {
     const providersJson = process.env.OIDC_PROVIDERS;
     if (!providersJson) {
-      throw Error('No OIDC providers configured. Set OIDC_PROVIDERS with at least one provider.');
+      throw new Error('No OIDC providers configured. Set OIDC_PROVIDERS with at least one provider.');
     }
 
     providersConfig = JSON.parse(providersJson);
@@ -87,7 +87,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
   // Prevents nextauth errors when authentication is disabled and NEXTAUTH_SECRET is not provided
   secret: OIDC_ENABLED ? process.env.NEXTAUTH_SECRET : 'dummy_secret',
-  useSecureCookies: true,
   cookies: {
     sessionToken: {
       name: 'beeai-platform',
@@ -95,7 +94,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV !== 'development',
       },
     },
   },
