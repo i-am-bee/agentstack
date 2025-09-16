@@ -154,8 +154,9 @@ see: https://github.com/nextauthjs/next-auth-example/blob/main/auth.ts
   following oidc specific values:
 
 ```JavaScript
+OIDC_PROVIDERS='[{"name": "w3id","id": "w3id","type": "oidc","class": "IBM","client_id": "<your_client_id>","client_secret": "<your_client_secret>","issuer": "your_issuer","jwks_url": "<your_jwks_url>","nextauth_url": "http://localhost:3000","nextauth_redirect_proxy_url": "http://localhost:3000"}]'
 NEXTAUTH_SECRET = "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
-NEXTAUTH_URL = "https://localhost:3000"
+NEXTAUTH_URL = "http://localhost:3000"
 OIDC_ENABLED = true
 ```
 
@@ -163,61 +164,6 @@ Optionally add:
 
 ```JavaScript
 NEXTAUTH_DEBUG = "true"
-```
-
-**Configure nextjs to run in experimental https mode**
-
-Run this command from a terminal in the apps/beeai-ui folder of your project to create the SSL certificates (one time):
-
-`pnpm next dev --experimental-https`
-
-Once the server has reached a ready state, stop it with CTRL+C.
-
-**Updating .vscode/launch.json**
-
-Add a debug confugriation to vscode: Use this .vscode/launch.json:
-
-```json
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Debug beeai-ui:run:dev",
-      "runtimeExecutable": "pnpm",
-      "args": [
-        "next",
-        "dev",
-        "--experimental-https"
-      ],
-      "cwd": "${workspaceFolder}/apps/beeai-ui",
-      "env": {
-        "NODE_OPTIONS": "--inspect --no-experimental-global-navigator"
-      },
-      "console": "integratedTerminal"
-    }
-  ]
-}
-```
-
-Update your providers/providers.json like so:  (in the apps/beeai-ui/providers folder)
-
-```json
-[
-  {
-    "name": "w3id",
-    "id": "w3id",
-    "type": "oidc",
-    "class": "IBM",
-    "client_id": "<your_client_id>",
-    "client_secret": "<your_client_secret>",
-    "issuer": "<your_oidc_issuer>",
-    "jwks_url": "<your_oidc_jwks_url>",
-    "nextauth_url": "https://localhost:3000",
-    "nextauth_redirect_proxy_url": "https://localhost:3000"
-  }
-]
 ```
 
 **To deploy the helm chart to OpenShift:**
