@@ -22,9 +22,10 @@ from beeai_server.api.routes.files import router as files_router
 from beeai_server.api.routes.mcp import router as mcp_router
 from beeai_server.api.routes.model_providers import router as model_providers_router
 from beeai_server.api.routes.openai import router as openai_router
-from beeai_server.api.routes.provider import router as provider_router
 from beeai_server.api.routes.provider_builds import router as provider_builds_router
+from beeai_server.api.routes.providers import router as provider_router
 from beeai_server.api.routes.user_feedback import router as user_feedback_router
+from beeai_server.api.routes.variables import router as variables_router
 from beeai_server.api.routes.vector_stores import router as vector_stores_router
 from beeai_server.bootstrap import bootstrap_dependencies_sync
 from beeai_server.configuration import Configuration
@@ -92,6 +93,7 @@ def mount_routes(app: FastAPI):
     server_router.include_router(model_providers_router, prefix="/model_providers", tags=["model_providers"])
     server_router.include_router(configuration_router, prefix="/configurations", tags=["configurations"])
     server_router.include_router(files_router, prefix="/files", tags=["files"])
+    server_router.include_router(variables_router, prefix="/variables", tags=["variables"])
     server_router.include_router(contexts_router, prefix="/contexts", tags=["contexts"])
     server_router.include_router(openai_router, prefix="/openai", tags=["openai"])
     server_router.include_router(vector_stores_router, prefix="/vector_stores", tags=["vector_stores"])

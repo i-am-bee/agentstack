@@ -9,7 +9,7 @@ from uuid import UUID
 
 import pydantic
 from a2a.types import Artifact, Message
-from pydantic import AwareDatetime, BaseModel
+from pydantic import AwareDatetime, BaseModel, SerializeAsAny
 
 from beeai_sdk.platform.client import PlatformClient, get_platform_client
 from beeai_sdk.platform.common import PaginatedResult
@@ -45,6 +45,7 @@ class Permissions(ContextPermissions):
     embeddings: set[Literal["*"] | ResourceIdPermission] = set()
     a2a_proxy: set[Literal["*"]] = set()
     model_providers: set[Literal["read", "write", "*"]] = set()
+    variables: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
 
     providers: set[Literal["read", "write", "*"]] = set()  # write includes "show logs" permission
     provider_variables: set[Literal["read", "write", "*"]] = set()

@@ -153,6 +153,7 @@ class PersistenceConfiguration(BaseModel):
     stale_requests_remove_after_sec: int = int(timedelta(hours=1).total_seconds())
     vector_db_schema: str = Field(default="vector_db", pattern=r"^[a-zA-Z0-9_]+$")
     procrastinate_schema: str = Field(default="procrastinate", pattern=r"^[a-zA-Z0-9_]+$")
+    variable_store_limit_per_users: int = 100
 
 
 class VectorStoresConfiguration(BaseModel):

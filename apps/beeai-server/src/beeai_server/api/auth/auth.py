@@ -44,6 +44,7 @@ ROLE_PERMISSIONS: dict[UserRole, Permissions] = {
         a2a_proxy={"*"},
         feedback={"write"},
         providers={"read"},
+        variables={"read", "write"},
         model_providers={"read"},
         contexts={"*"},
         context_data={"*"},

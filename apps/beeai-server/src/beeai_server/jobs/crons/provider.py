@@ -17,7 +17,7 @@ from beeai_server.configuration import Configuration
 from beeai_server.domain.models.provider import ProviderLocation
 from beeai_server.exceptions import EntityNotFoundError
 from beeai_server.jobs.queues import Queues
-from beeai_server.service_layer.services.provider import ProviderService
+from beeai_server.service_layer.services.providers import ProviderService
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
 from beeai_server.utils.utils import extract_messages
 

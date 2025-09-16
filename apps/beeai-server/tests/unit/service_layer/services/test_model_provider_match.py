@@ -4,7 +4,7 @@
 import pytest
 
 from beeai_server.domain.models.model_provider import ModelCapability
-from beeai_server.service_layer.services.model_provider import ModelProviderService
+from beeai_server.service_layer.services.model_providers import ModelProviderService
 
 pytestmark = pytest.mark.unit
 

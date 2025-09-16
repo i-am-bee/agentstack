@@ -27,9 +27,9 @@ from beeai_server.service_layer.services.configurations import ConfigurationServ
 from beeai_server.service_layer.services.contexts import ContextService
 from beeai_server.service_layer.services.files import FileService
 from beeai_server.service_layer.services.mcp import McpService
-from beeai_server.service_layer.services.model_provider import ModelProviderService
-from beeai_server.service_layer.services.provider import ProviderService
+from beeai_server.service_layer.services.model_providers import ModelProviderService
 from beeai_server.service_layer.services.provider_build import ProviderBuildService
+from beeai_server.service_layer.services.providers import ProviderService
 from beeai_server.service_layer.services.user_feedback import UserFeedbackService
 from beeai_server.service_layer.services.users import UserService
 from beeai_server.service_layer.services.vector_stores import VectorStoreService

@@ -15,7 +15,7 @@ from beeai_server.domain.models.common import Metadata, PaginatedResult
 from beeai_server.domain.models.context import Context, ContextHistoryItem, ContextHistoryItemData, TitleGenerationState
 from beeai_server.domain.models.user import User
 from beeai_server.domain.repositories.file import IObjectStorageRepository
-from beeai_server.service_layer.services.model_provider import ModelProviderService
+from beeai_server.service_layer.services.model_providers import ModelProviderService
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
 from beeai_server.utils.utils import utc_now
 
