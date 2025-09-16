@@ -1,0 +1,63 @@
+---
+title: Citations & Sources
+description: Add source references to agent responses with clickable links
+---
+
+## Basic Usage
+
+```python
+from typing import Annotated
+from beeai_sdk.a2a.extensions import CitationExtensionServer, CitationExtensionSpec
+
+@server.agent()
+async def research_agent(
+    input: Message,
+    context: RunContext,
+    citation: Annotated[CitationExtensionServer, CitationExtensionSpec()]
+):
+    response_text = "Python is the most popular programming language for AI development."
+    
+    citations = [{
+        "url": "https://survey.stackoverflow.com/2023",
+        "title": "Stack Overflow Developer Survey 2023",
+        "description": "Annual survey of developer preferences and trends",
+        "start_index": 0,
+        "end_index": 47  # "Python is the most popular programming language"
+    }]
+    
+    yield citation.message(text=response_text, citations=citations)
+```
+
+## Citation Format
+
+Each citation requires:
+- `url`: Source link
+- `title`: Display title
+- `description`: Brief explanation
+- `start_index`: Start position in text
+- `end_index`: End position in text
+
+## Multiple Citations
+
+```python
+response_text = "Python leads AI development while JavaScript dominates web development."
+
+citations = [
+    {
+        "url": "https://ai-survey.com",
+        "title": "AI Language Survey",
+        "description": "Programming language usage in AI",
+        "start_index": 0,
+        "end_index": 31  # "Python leads AI development"
+    },
+    {
+        "url": "https://web-stats.com", 
+        "title": "Web Development Report",
+        "description": "Web programming language statistics",
+        "start_index": 38,
+        "end_index": 67  # "JavaScript dominates web development"
+    }
+]
+```
+
+Citations appear as highlighted text with hover tooltips and clickable source links in the UI.
