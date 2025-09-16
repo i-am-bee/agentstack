@@ -12,7 +12,7 @@ const featureFlagsSchema = z
     Variables: booleanProp(),
     Providers: booleanProp(),
     ModelProviders: booleanProp(true),
-    MCPOAuth: booleanProp(),
+    MCPOAuth: booleanProp(true),
     MCP: booleanProp(),
   })
   .strict();
