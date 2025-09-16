@@ -5,9 +5,9 @@ description: "Get BeeAI running locally in minutes"
 
 ## Prerequisites
 
-- Basic terminal/command line experience
-- LLM API key (free options: [OpenRouter](https://openrouter.ai/), [Groq](https://groq.com/)) or [Ollama](https://ollama.com/) running locally
-- Fast internet connection (initial download: 2-3GB)
+- Basic terminal/command line experience  
+- LLM API key (OpenAI, Anthropic, Gemini, watsonx, or free via [OpenRouter](https://openrouter.ai/) / [Groq](https://groq.com/)) or [Ollama](https://ollama.com/) (requires a powerful computer)  
+- Fast internet (2–3GB download)  
 
 ## Installation
 
@@ -19,12 +19,12 @@ description: "Get BeeAI running locally in minutes"
 Open the terminal and run this command to install BeeAI:
 
 ```bash
-sh -c "$(curl -LsSf https://raw.githubusercontent.com/i-am-bee/beeai-platform/refs/heads/main/install.sh)"
+sh -c "$(curl -LsSf https://raw.githubusercontent.com/i-am-bee/beeai-platform/HEAD/install.sh)"
 ```
 
 This interactive script installs BeeAI CLI, downloads and starts the platform, prompts you to configure your LLM API key, then launches the web interface.
 
-## Manual Install
+<Accordion title="Manual Install">
 
 <Steps>
 <Step title="Install uv">
@@ -49,11 +49,14 @@ Follow the interactive prompts to finish installation and setup.
 
 </Step>
 </Steps>
+</Accordion>
 
 </Tab>
-<Tab title="Windows (Experimental)">
+<Tab title="Windows">
 
-Requires Windows 11 22H2+
+<Warning>
+Windows support is experimental (best experience on Linux/macOS). On Windows, we recommend using WSL2 (requires Windows 11 22H2+).
+</Warning>
 
 <Steps>
 <Step title="Install uv">
@@ -121,7 +124,7 @@ beeai info chat              # View agent details
 beeai --help                 # See all options
 ```
 
-## Platform Operations
+## Platform Management
 
 ```sh
 beeai platform start        # Start platform
@@ -130,7 +133,7 @@ beeai platform stop         # Stop (keeps data)
 beeai platform delete       # Delete all data
 ```
 
-## Version Management
+## Version & Upgrades
 
 ```sh
 beeai self version          # Check version
