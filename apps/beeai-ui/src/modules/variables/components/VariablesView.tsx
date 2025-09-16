@@ -33,14 +33,21 @@ export function VariablesView() {
   const { openModal, openConfirmation } = useModal();
   const { data, isPending } = useListVariables();
   const { mutate: deleteVariable } = useDeleteVariable();
+
   const entries = useMemo(
-    () => (data ? Object.entries(data.env).map(([name, value]) => ({ name, value })) : []),
+    () =>
+      data
+        ? data.flatMap(({ provider, variables }) =>
+            variables ? Object.entries(variables).map(([name, value]) => ({ name, value, provider })) : [],
+          )
+        : [],
     [data],
   );
+
   const { items, onSearch } = useTableSearch({ entries, fields: ['name'] });
 
   const rows = useMemo(() => {
-    return items.map(({ name, value }) => ({
+    return items.map(({ provider, name, value }) => ({
       id: name,
       name,
       value,
@@ -56,7 +63,7 @@ export function VariablesView() {
                 body: 'Are you sure you want to delete this variable? It can’t be undone.',
                 primaryButtonText: 'Delete',
                 danger: true,
-                onSubmit: () => deleteVariable({ name }),
+                onSubmit: () => deleteVariable({ providerId: provider.id, name }),
               })
             }
             align="left"

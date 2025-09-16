@@ -6,6 +6,7 @@
 'use client';
 import clsx from 'clsx';
 
+import Avatar from '#components/Avatar/Avatar.tsx';
 import { MainNav } from '#components/layouts/MainNav.tsx';
 import { useProviderIdFromUrl } from '#hooks/useProviderIdFromUrl.ts';
 import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
@@ -27,7 +28,6 @@ export function AppHeader({ className }: Props) {
   const { data: agent } = useAgent({ providerId: providerId ?? '' });
   const hasNav = NAV_ITEMS.length > 0;
   const showAgent = !hasNav && isNotNull(agent);
-
   return (
     <header className={clsx(classes.root, className)}>
       <Container size="full">
@@ -45,6 +45,7 @@ export function AppHeader({ className }: Props) {
               </div>
             </>
           )}
+          <Avatar />
         </div>
       </Container>
     </header>

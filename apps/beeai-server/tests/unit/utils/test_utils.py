@@ -21,7 +21,6 @@ def async_json_reader(obj: dict[str, Any] | str):
 
 
 @pytest.mark.unit
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "obj",
     [
@@ -43,7 +42,6 @@ async def test_extract_string_value_stream(obj):
 
 
 @pytest.mark.unit
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "obj, error",
     [

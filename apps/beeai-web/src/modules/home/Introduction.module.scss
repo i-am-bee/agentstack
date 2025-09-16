@@ -6,7 +6,7 @@
 .root {
   display: flex;
   flex-direction: column;
-  margin-block-start: rem(103px);
+  padding-block: rem(104px);
 }
 
 .headline {
@@ -23,30 +23,7 @@
   }
 }
 
-.info {
-  margin-block-start: rem(105px);
-  background-color: $green-10;
-  color: $black;
-  padding-block: $spacing-08;
-}
-.infoContent {
-  grid-column: 3 / -3;
-  p {
-    font-size: rem(20px);
-    line-height: math.div(28, 20);
-    max-inline-size: rem(845px);
-
-    a {
-      font-weight: 600;
-      color: $black;
-    }
-  }
-}
-
 @include breakpoint-down(md) {
-  .infoContent {
-    grid-column: 2 / -2;
-  }
   .headline h1 {
     font-size: clamp(rem(48px), 13vw, rem(80px));
   }

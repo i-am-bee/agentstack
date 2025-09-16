@@ -4,14 +4,15 @@
  */
 
 import clsx from 'clsx';
-import type { ComponentType, PropsWithChildren, ReactNode } from 'react';
+import type { ComponentType, PropsWithChildren } from 'react';
 
 import classes from './FeaturesList.module.scss';
 import { TwoColumnGrid } from './TwoColumnGrid';
 
-interface FeatureItem {
+export interface FeatureItem {
   icon: ComponentType;
-  content: ReactNode;
+  title: string;
+  content: string;
 }
 
 interface Props {
@@ -22,10 +23,13 @@ interface Props {
 export function FeaturesList({ className, items }: PropsWithChildren<Props>) {
   return (
     <TwoColumnGrid className={clsx(classes.root, className)} as="ul">
-      {items.map(({ icon: Icon, content }, idx) => (
+      {items.map(({ icon: Icon, title, content }, idx) => (
         <li key={idx}>
           <Icon />
-          <span>{content}</span>
+          <div className={classes.content}>
+            <strong>{title}</strong>
+            <span>{content}</span>
+          </div>
         </li>
       ))}
     </TwoColumnGrid>

@@ -8,10 +8,10 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.13,<4.0"
 dependencies = [
-    "gpt-researcher>=0.14.2",
+    "gpt-researcher>=0.14.3",
     "duckduckgo-search~=7.5.5",
-    "pydantic-settings>=2.7.1",
-    "openinference-instrumentation-openai>=0.1.22",
+    "pydantic-settings>=2.10.1",
+    "openinference-instrumentation-openai>=0.1.32",
     "beeai-sdk",
 ]
 

@@ -2,32 +2,42 @@
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-
-import { readFile } from 'fs/promises';
+import * as jose from 'jose';
 import NextAuth, { type DefaultSession } from 'next-auth';
 import type { Provider } from 'next-auth/providers';
 import Credentials from 'next-auth/providers/credentials';
 
 import { ProviderList } from '#app/auth/providers/providerlist.ts';
-import { OIDC_ENABLED } from '#utils/constants.ts';
+import { AUTH_BASEPATH, OIDC_ENABLED } from '#utils/constants.ts';
 
 let provider_list: {
   id: string;
   name: string;
   type: 'oidc';
   issuer: string;
+  jwks_url: string;
   client_id: string;
   client_secret: string;
   nextauth_redirect_proxy_url: string;
+  JWKS: {
+    (protectedHeader?: jose.JWSHeaderParameters, token?: jose.FlattenedJWSInput): Promise<jose.CryptoKey>;
+    coolingDown: boolean;
+    fresh: boolean;
+    reloading: boolean;
+    reload: () => Promise<void>;
+    jwks: () => jose.JSONWebKeySet | undefined;
+  };
 }[] = [];
 if (OIDC_ENABLED) {
-  const rootPath = process.env.OIDC__PROVIDERS_PATH || './providers';
   try {
-    provider_list = JSON.parse(await readFile(`${rootPath}/providers.json`, 'utf8'));
+    provider_list = JSON.parse(process.env.OIDC_PROVIDERS || '[]');
+    for (const provider of provider_list) {
+      const JWKS = jose.createRemoteJWKSet(new URL(provider.jwks_url));
+      provider.JWKS = JWKS;
+    }
+    console.log('Providers loaded.');
   } catch (parse_err) {
-    console.warn(
-      `Unable to parse provider list: ${rootPath}/providers.json.  Missing, not found, or invalid JSON. error: `,
-    );
+    console.warn('Unable to parse provider list');
     console.error(parse_err);
   }
 }
@@ -38,6 +48,7 @@ declare module 'next-auth' {
    */
   interface Session {
     id_token: string & DefaultSession['user'];
+    access_token?: string;
   }
 }
 
@@ -48,6 +59,7 @@ declare module 'next-auth/jwt' {
   interface JWT {
     /** OpenID ID Token */
     id_token?: string;
+    access_token?: string;
   }
 }
 // The providers come from a secret "oidc-providers" whos data is JSON and mounted in fs and loaded via import as json
@@ -110,24 +122,60 @@ export const providerMap = providers
   })
   .filter((provider) => provider.id !== 'credentials');
 
+// Assisted by watsonx Code Assistant
+
+/**
+ * Asynchronously decodes a JWT using a list of providers.
+ * This function attempts to verify the JWT against each provider's JWKS (JSON Web Key Set) URL.
+ * It will retry up to a certain count if verification fails.
+ *
+ * @param {JWTDecodeParams} params - The parameters for JWT decoding.
+ * @returns {Promise<JWT | null>} - A Promise that resolves to the decoded JWT object or null if decoding fails.
+ */
+async function internalDecode(params: JWTDecodeParams): Promise<JWT | null> {
+  let jwt: JWT | null = null;
+  let retryCount = 0;
+
+  for (const provider of provider_list) {
+    try {
+      const { payload } = await jose.jwtVerify(params?.token || '', provider.JWKS, {
+        issuer: provider.issuer,
+        audience: provider.client_id,
+      });
+      payload['id_token'] = params?.token || '';
+      jwt = payload;
+      break;
+    } catch (error) {
+      if (error) {
+        retryCount += 1;
+      }
+    }
+  }
+  if (jwt === null) {
+    console.warn(`Unable to verify jwt, retries: ${retryCount}`);
+  }
+  return jwt;
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers,
   pages: {
     signIn: '/signin',
   },
-  basePath: '/auth',
+  basePath: AUTH_BASEPATH,
   session: { strategy: 'jwt' },
   trustHost: true,
   useSecureCookies: true,
   jwt: {
     async encode(params: JWTEncodeParams<JWT>): Promise<string> {
       // return a custom encoded JWT string
-      return params?.token?.['id_token'] || '';
+      return params?.token?.id_token || '';
     },
     async decode(params: JWTDecodeParams): Promise<JWT | null> {
       // return a `JWT` object, or `null` if decoding failed
-      // likely need to base64 decode the id_token and extract the
-      const jwt = { id_token: params.token || '' };
+      // const jwt = { access_token: params.token || '' };
+      let jwt: JWT | null = null;
+      jwt = await internalDecode(params);
       return jwt;
     },
   },
@@ -157,20 +205,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     jwt({ token, account, trigger, session }) {
       if (trigger === 'update') {
         token.name = session.user.name;
-        if (token['id_token'] && session) {
-          if (!session['id_token']) {
-            session['id_token'] = token['id_token'];
-          }
-        }
       }
       // pull the id token out of the account on signIn
       if (account) {
         token['id_token'] = account.id_token;
+        token['access_token'] = account.access_token;
       }
       return token;
     },
-    async session({ session, token }) {
-      if (token?.id_token) session['id_token'] = token.id_token;
+    async session({ session }) {
       return session;
     },
   },

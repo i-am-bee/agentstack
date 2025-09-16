@@ -4,3 +4,4 @@
 from .embedding import *
 from .llm import *
 from .mcp import *
+from .platform import *

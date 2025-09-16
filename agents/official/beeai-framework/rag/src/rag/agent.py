@@ -1,6 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 import functools
+import json
 from collections import defaultdict
 import logging
 from typing import Annotated
@@ -48,7 +49,7 @@ from rag.helpers.vectore_store import (
 )
 from rag.tools.files.file_creator import FileCreatorTool, FileCreatorToolOutput
 from rag.tools.files.file_reader import create_file_reader_tool_class
-from rag.tools.files.utils import FrameworkMessage, extract_files, to_framework_message
+from rag.tools.files.utils import extract_files, to_framework_message
 from rag.tools.files.vector_search import VectorSearchTool
 from rag.tools.general.act import (
     ActAlwaysFirstRequirement,
@@ -61,6 +62,7 @@ from rag.tools.general.clarification import (
 )
 from rag.tools.general.current_time import CurrentTimeTool
 
+from beeai_sdk.server.store.platform_context_store import PlatformContextStore
 
 BeeAIInstrumentor().instrument()
 ## TODO: https://github.com/phoenixframework/phoenix/issues/6224
@@ -69,8 +71,6 @@ logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setL
 
 logger = logging.getLogger(__name__)
 
-messages: defaultdict[str, list[Message]] = defaultdict(list)
-framework_messages: defaultdict[str, list[FrameworkMessage]] = defaultdict(list)
 vector_stores: defaultdict[str, None] = defaultdict(lambda: None)  # TODO: Implement vector store ID management
 
 server = Server()
@@ -117,7 +117,6 @@ server = Server()
     ],
 )
 async def rag(
-    message: Message,
     context: RunContext,
     trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
     citation: Annotated[CitationExtensionServer, CitationExtensionSpec()],
@@ -127,9 +126,9 @@ async def rag(
 ):
     llm, embedding = _get_clients(llm_ext, embedding_ext)
 
-    extracted_files = await extract_files(history=messages[context.context_id], incoming_message=message)
-
-    input = to_framework_message(message)
+    history = [m async for m in context.store.load_history()]
+    message_history = [message for message in history if isinstance(message, Message) and message.parts]
+    extracted_files = await extract_files(history=message_history)
 
     # Configure tools
     file_reader_tool_class = create_file_reader_tool_class(
@@ -167,7 +166,18 @@ async def rag(
     ]
 
     if extracted_files:
-        if (vector_store_id := vector_stores[context.context_id]) is None:
+        vector_store_id = None
+        for message in history:
+            if (
+                message.metadata
+                and message.metadata.get(TrajectoryExtensionSpec.URI)
+                and message.metadata[TrajectoryExtensionSpec.URI]["title"] == "create_vector_store"
+            ):
+                content = json.loads(message.metadata[TrajectoryExtensionSpec.URI]["content"])
+                if vector_store_id := content["vector_store_id"]:
+                    break
+
+        if vector_store_id is None:
             start_event = CreateVectorStoreEvent(phase="start")
             yield start_event.metadata(trajectory)
 
@@ -224,10 +234,7 @@ async def rag(
         ],
     )
 
-    messages[context.context_id].append(message)
-    framework_messages[context.context_id].append(input)
-
-    await agent.memory.add_many(framework_messages[context.context_id])
+    await agent.memory.add_many(to_framework_message(item) for item in message_history)
     final_answer = None
     event_binder = EventBinder()
 
@@ -275,7 +282,7 @@ async def rag(
                 await context.yield_async(artifact)
 
     response = (
-        await agent.run()
+        await agent.run([])
         .on(
             lambda event: event.name == "start" and isinstance(event.creator, Tool),
             handle_tool_start,
@@ -288,18 +295,15 @@ async def rag(
         )
     )
 
-    final_answer = response.answer
+    final_answer = response.state.answer
 
     if final_answer:
-        framework_messages[context.context_id].append(final_answer)
-
         citations, clean_text = extract_citations(final_answer.text)
 
         message = AgentMessage(
             text=clean_text,
             metadata=(citation.citation_metadata(citations=citations) if citations else None),
         )
-        messages[context.context_id].append(message)
         yield message
 
 
@@ -313,23 +317,21 @@ def _get_clients(
         [embedding_conf] = embedding_ext.data.embedding_fulfillments.values()
 
     llm = OpenAIChatModel(
-        model_id=llm_conf.api_model if llm_conf else os.getenv("LLM_MODEL", "llama3.1"),
-        api_key=llm_conf.api_key if llm_conf else os.getenv("LLM_API_KEY", "dummy"),
-        base_url=llm_conf.api_base if llm_conf else os.getenv("LLM_API_BASE", "http://localhost:11434/v1"),
+        model_id=llm_conf.api_model if llm_conf else "llama3.1",
+        api_key=llm_conf.api_key if llm_conf else "dummy",
+        base_url=llm_conf.api_base if llm_conf else "http://localhost:11434/v1",
         parameters=ChatModelParameters(temperature=0.0),
         tool_choice_support=set(),
     )
 
     embedding_client = AsyncOpenAI(
-        api_key=embedding_conf.api_key if embedding_conf else os.getenv("EMBEDDING_API_KEY", "dummy"),
-        base_url=embedding_conf.api_base
-        if embedding_conf
-        else os.getenv("EMBEDDING_API_BASE", "http://localhost:11434/v1"),
+        api_key=embedding_conf.api_key if embedding_conf else "dummy",
+        base_url=embedding_conf.api_base if embedding_conf else "http://localhost:11434/v1",
     )
     embedding = functools.partial(
         embedding_client.embeddings.create,
         encoding_format="float",
-        model=embedding_conf.api_model if embedding_conf else os.getenv("EMBEDDING_MODEL", "dummy"),
+        model=embedding_conf.api_model if embedding_conf else "dummy",
     )
     return llm, embedding
 
@@ -339,6 +341,7 @@ def serve():
         host=os.getenv("HOST", "127.0.0.1"),
         port=int(os.getenv("PORT", 8000)),
         configure_telemetry=True,
+        context_store=PlatformContextStore(),
     )
 
 

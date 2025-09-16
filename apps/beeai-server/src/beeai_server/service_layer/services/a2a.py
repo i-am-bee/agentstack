@@ -42,7 +42,13 @@ class ProxyClient:
         try:
             client = await exit_stack.enter_async_context(self._client)
             resp: httpx.Response = await exit_stack.enter_async_context(client.stream(*rest_args, **kwargs))
-            is_stream = resp.headers["content-type"].startswith("text/event-stream")
+
+            try:
+                content_type = resp.headers["content-type"]
+                is_stream = content_type.startswith("text/event-stream")
+            except KeyError:
+                content_type = None
+                is_stream = False
 
             async def stream_fn():
                 try:
@@ -54,7 +60,7 @@ class ProxyClient:
             common = {
                 "status_code": resp.status_code,
                 "headers": resp.headers,
-                "media_type": resp.headers["content-type"],
+                "media_type": content_type,
             }
             if is_stream:
                 return A2AServerResponse(content=None, stream=stream_fn(), **common)
@@ -101,18 +107,22 @@ class A2AProxyService:
             [state] = await self._deploy_manager.state(provider_ids=[provider.id])
             should_wait = False
             match state:
-                case ProviderDeploymentState.error:
+                case ProviderDeploymentState.ERROR:
                     raise RuntimeError("Provider is in an error state")
                 case (
-                    ProviderDeploymentState.missing
-                    | ProviderDeploymentState.running
-                    | ProviderDeploymentState.starting
-                    | ProviderDeploymentState.ready
+                    ProviderDeploymentState.MISSING
+                    | ProviderDeploymentState.RUNNING
+                    | ProviderDeploymentState.STARTING
+                    | ProviderDeploymentState.READY
                 ):
                     async with self._uow() as uow:
-                        env = await uow.env.get_all()
-                    modified = await self._deploy_manager.create_or_replace(provider=provider, env=env)
-                    should_wait = modified or state != ProviderDeploymentState.running
+                        from beeai_server.domain.repositories.env import EnvStoreEntity
+
+                        env = await uow.env.get_all(
+                            parent_entity=EnvStoreEntity.PROVIDER, parent_entity_ids=[provider.id]
+                        )
+                    modified = await self._deploy_manager.create_or_replace(provider=provider, env=env[provider.id])
+                    should_wait = modified or state != ProviderDeploymentState.RUNNING
                 case _:
                     raise ValueError(f"Unknown provider state: {state}")
             if should_wait:

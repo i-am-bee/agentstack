@@ -11,7 +11,7 @@ import httpx
 import pytest
 from a2a.client import Client, ClientConfig, ClientEvent, ClientFactory
 from a2a.types import AgentCard, Message, Task
-from beeai_sdk.platform import Variables, use_platform_client
+from beeai_sdk.platform import ModelProvider, SystemConfiguration, use_platform_client
 
 logger = logging.getLogger(__name__)
 
@@ -59,10 +59,10 @@ def free_port() -> int:
 
 @pytest.fixture()
 async def setup_real_llm(test_configuration, setup_platform_client):
-    await Variables.save(
-        {
-            "LLM_API_BASE": test_configuration.llm_api_base,
-            "LLM_API_KEY": test_configuration.llm_api_key.get_secret_value(),
-            "LLM_MODEL": test_configuration.llm_model,
-        },
+    await ModelProvider.create(
+        name="test_config",
+        type=test_configuration.llm_provider_type,
+        base_url=test_configuration.llm_api_base,
+        api_key=test_configuration.llm_api_key.get_secret_value(),
     )
+    await SystemConfiguration.update(default_llm_model=test_configuration.llm_model)

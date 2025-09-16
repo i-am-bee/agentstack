@@ -11,8 +11,9 @@ from typing import Any
 
 import kr8s
 import pytest
+from beeai_sdk.platform import ModelProviderType
 from kink import di
-from pydantic import Secret, model_validator
+from pydantic import Secret, computed_field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -24,10 +25,16 @@ class TestConfiguration(BaseSettings):
     model_config = SettingsConfigDict(extra="ignore")
     kubeconfig: Path = Path.home() / ".beeai/lima/beeai-local-test/copied-from-guest/kubeconfig.yaml"
     llm_api_base: str = "http://localhost:11434/v1"
-    llm_model: str = "llama3.1"
+    llm_model: str = "other:llama3.1:8b"
     llm_api_key: Secret[str] = Secret("dummy")
+    test_agent_image: str = "ghcr.io/i-am-bee/beeai-platform/official/beeai-framework/chat:0.3.2"
     server_url: str = "http://beeai-platform-svc:8333"
     db_url: str = "postgresql+asyncpg://beeai-user:password@postgresql:5432/beeai"
+
+    @computed_field
+    @property
+    def llm_provider_type(self) -> ModelProviderType:
+        return ModelProviderType(self.llm_model.split(":", maxsplit=1)[0])
 
     @model_validator(mode="after")
     def set_kubeconfig_env(self):

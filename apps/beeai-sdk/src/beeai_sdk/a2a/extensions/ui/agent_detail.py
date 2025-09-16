@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from types import NoneType
 
-import pydantic.config
+import pydantic
 
 from beeai_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 

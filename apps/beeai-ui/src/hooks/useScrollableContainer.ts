@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+'use client';
+
 import { useEffect, useState } from 'react';
 
 export function useScrollableContainer(element: HTMLElement | null) {

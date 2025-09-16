@@ -3,13 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type {
-  AcpErrorResponse,
-  ApiErrorCode,
-  ApiErrorResponse,
-  ApiValidationErrorResponse,
-  StreamErrorResponse,
-} from './types';
+import type { ApiErrorCode, ApiErrorResponse, ApiValidationErrorResponse, StreamErrorResponse } from './types';
 
 abstract class CustomError extends Error {
   name: string;
@@ -47,19 +41,7 @@ export class HttpError extends CustomError {
   }
 }
 
-export class AcpError extends CustomError {
-  error: AcpErrorResponse;
-  code: AcpErrorResponse['error']['code'];
-
-  constructor({ error, response }: { error: AcpErrorResponse; response?: Response }) {
-    super({ message: error.error.message, response });
-
-    this.error = error;
-    this.code = error.error.code;
-  }
-}
-
-export class ApiValidatioError extends CustomError {
+export class ApiValidationError extends CustomError {
   error: ApiValidationErrorResponse;
 
   constructor({ error, response }: { error: ApiValidationErrorResponse; response?: Response }) {

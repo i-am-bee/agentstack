@@ -3,7 +3,6 @@
 import logging
 import os
 from typing import Annotated
-from collections import defaultdict
 from textwrap import dedent
 
 from a2a.types import (
@@ -25,11 +24,10 @@ from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
 from beeai_framework.tools import Tool
 from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
 from beeai_framework.tools.search.wikipedia import WikipediaTool
-
 from beeai_framework.tools.weather import OpenMeteoTool
-
 from beeai_sdk.a2a.extensions import (
     AgentDetail,
+    AgentDetailContributor,
     AgentDetailTool,
     CitationExtensionServer,
     CitationExtensionSpec,
@@ -42,14 +40,13 @@ from beeai_sdk.a2a.extensions.services.platform import PlatformApiExtensionServe
 from beeai_sdk.a2a.types import AgentMessage, AgentArtifact
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import RunContext
-from chat.tools.general.current_time import CurrentTimeTool
-from chat.helpers.citations import extract_citations
-from chat.helpers.trajectory import TrajectoryContent
 from openinference.instrumentation.beeai import BeeAIInstrumentor
 
+from chat.helpers.citations import extract_citations
+from chat.helpers.trajectory import TrajectoryContent
 from chat.tools.files.file_creator import FileCreatorTool, FileCreatorToolOutput
 from chat.tools.files.file_reader import create_file_reader_tool_class
-from chat.tools.files.utils import FrameworkMessage, extract_files, to_framework_message
+from chat.tools.files.utils import extract_files, to_framework_message
 from chat.tools.general.act import (
     ActAlwaysFirstRequirement,
     ActTool,
@@ -59,6 +56,9 @@ from chat.tools.general.clarification import (
     ClarificationTool,
     clarification_tool_middleware,
 )
+from chat.tools.general.current_time import CurrentTimeTool
+
+from beeai_sdk.server.store.platform_context_store import PlatformContextStore
 
 # Temporary instrument fix
 EventMeta.model_fields["context"].exclude = True
@@ -69,9 +69,6 @@ logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLev
 logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(logging.CRITICAL)
 
 logger = logging.getLogger(__name__)
-
-messages: defaultdict[str, list[Message]] = defaultdict(list)
-framework_messages: defaultdict[str, list[FrameworkMessage]] = defaultdict(list)
 
 server = Server()
 
@@ -123,6 +120,10 @@ server = Server()
             ),
         ],
         framework="BeeAI",
+        programming_language="Python",
+        author=AgentDetailContributor(name="BeeAI contributors"),
+        contributors=[],
+        license="Apache 2.0",
     ),
     skills=[
         AgentSkill(
@@ -165,19 +166,23 @@ server = Server()
     ],
 )
 async def chat(
-    message: Message,
     context: RunContext,
     trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
     citation: Annotated[CitationExtensionServer, CitationExtensionSpec()],
-    llm_ext: Annotated[LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand()],
+    llm_ext: Annotated[
+        LLMServiceExtensionServer,
+        LLMServiceExtensionSpec.single_demand(suggested=("openai:gpt-4o", "ollama:granite3.3:8b")),
+    ],
     _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
 ):
     """
     The agent is an AI-powered conversational system with memory, supporting real-time search, Wikipedia lookups,
     and weather updates through integrated tools.
     """
-    extracted_files = await extract_files(history=messages[context.context_id], incoming_message=message)
-    input = to_framework_message(message)
+    history = [
+        message async for message in context.store.load_history() if isinstance(message, Message) and message.parts
+    ]
+    extracted_files = await extract_files(history=history)
 
     # Configure tools
     file_reader_tool_class = create_file_reader_tool_class(
@@ -220,9 +225,9 @@ async def chat(
         [llm_conf] = llm_ext.data.llm_fulfillments.values()
 
     llm = OpenAIChatModel(
-        model_id=llm_conf.api_model if llm_conf else os.getenv("LLM_MODEL", "llama3.1"),
-        api_key=llm_conf.api_key if llm_conf else os.getenv("LLM_API_KEY", "dummy"),
-        base_url=llm_conf.api_base if llm_conf else os.getenv("LLM_API_BASE", "http://localhost:11434/v1"),
+        model_id=llm_conf.api_model if llm_conf else "llama3.1",
+        api_key=llm_conf.api_key if llm_conf else "dummy",
+        base_url=llm_conf.api_base if llm_conf else "http://localhost:11434/v1",
         parameters=ChatModelParameters(temperature=0.0),
         tool_choice_support=set(),
     )
@@ -293,13 +298,10 @@ async def chat(
         ],
     )
 
-    messages[context.context_id].append(message)
-    framework_messages[context.context_id].append(input)
-
-    await agent.memory.add_many(framework_messages[context.context_id])
+    await agent.memory.add_many(to_framework_message(item, extracted_files) for item in history)
     final_answer = None
 
-    async for event, meta in agent.run():
+    async for event, meta in agent.run([]):
         if not isinstance(event, RequirementAgentSuccessEvent):
             continue
 
@@ -327,15 +329,12 @@ async def chat(
             final_answer = event.state.answer
 
     if final_answer:
-        framework_messages[context.context_id].append(final_answer)
-
         citations, clean_text = extract_citations(final_answer.text)
 
         message = AgentMessage(
             text=clean_text,
             metadata=(citation.citation_metadata(citations=citations) if citations else None),
         )
-        messages[context.context_id].append(message)
         yield message
 
 
@@ -344,6 +343,7 @@ def serve():
         host=os.getenv("HOST", "127.0.0.1"),
         port=int(os.getenv("PORT", 8000)),
         configure_telemetry=True,
+        context_store=PlatformContextStore(),
     )
 
 

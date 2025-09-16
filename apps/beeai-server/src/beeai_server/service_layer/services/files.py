@@ -63,7 +63,7 @@ class FileService:
                 extracted_db_file = await self.upload_file(
                     file=extracted_file,
                     user=user,
-                    file_type=FileType.extracted_text,
+                    file_type=FileType.EXTRACTED_TEXT,
                     context_id=file.context_id,
                     parent_file_id=file_id,
                 )
@@ -90,7 +90,7 @@ class FileService:
         *,
         file: AsyncFile,
         user: User,
-        file_type: FileType = FileType.user_upload,
+        file_type: FileType = FileType.USER_UPLOAD,
         context_id: UUID | None = None,
         parent_file_id: UUID | None = None,
     ) -> File:
@@ -147,14 +147,14 @@ class FileService:
     async def create_extraction(self, *, file_id: UUID, user: User, context_id: UUID | None = None) -> TextExtraction:
         async with self._uow() as uow:
             # Check user permissions
-            await uow.files.get(file_id=file_id, user_id=user.id, context_id=context_id, file_type=FileType.user_upload)
+            await uow.files.get(file_id=file_id, user_id=user.id, context_id=context_id, file_type=FileType.USER_UPLOAD)
             try:
                 # Check if extraction already exists
                 extraction = await uow.files.get_extraction_by_file_id(file_id=file_id)
                 match extraction.status:
-                    case ExtractionStatus.completed | ExtractionStatus.pending | ExtractionStatus.in_progress:
+                    case ExtractionStatus.COMPLETED | ExtractionStatus.PENDING | ExtractionStatus.IN_PROGRESS:
                         return extraction
-                    case ExtractionStatus.failed | ExtractionStatus.cancelled:
+                    case ExtractionStatus.FAILED | ExtractionStatus.CANCELLED:
                         extraction.reset_for_retry()
                         await uow.files.update_extraction(extraction=extraction)
                     case _:
@@ -168,7 +168,7 @@ class FileService:
                         metadata=ExtractionMetadata(backend="in-place"),
                     )
                 await uow.files.create_extraction(extraction=extraction)
-            if extraction.status == ExtractionStatus.pending:
+            if extraction.status == ExtractionStatus.PENDING:
                 from beeai_server.jobs.tasks.file import extract_text
 
                 await extract_text.configure(queueing_lock=str(file_id)).defer_async(file_id=str(file_id))

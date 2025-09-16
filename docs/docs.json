@@ -11,34 +11,47 @@
   "navigation": {
     "groups": [
       {
-        "group": "Introduction",
-        "pages": [
-          "/introduction/welcome",
-          "/introduction/quickstart",
-          "/introduction/installation"
-        ]
-      },
-      {
-        "group": "How To",
-        "pages": [
-          "/how-to/discover-agents",
-          "/how-to/environment-configuration",
-          "/how-to/run-agents",
-          "/how-to/observe-agents",
-          "/how-to/import-agents",
-          "/how-to/build-agents",
-          "/how-to/share-agents",
-          "/how-to/cli-reference",
-          "/how-to/web-interface",
-          "/how-to/mcp"
-        ]
+        "group": "Getting Started",
+        "pages": ["introduction/welcome", "introduction/quickstart"]
       },
       {
         "group": "Core Concepts",
+        "pages": ["concepts/architecture", "concepts/a2a"]
+      },
+      {
+        "group": "Build Your Own Agent",
         "pages": [
-          "concepts/architecture",
-          "concepts/acp-protocol",
-          "concepts/gui-components"
+          "build-agents/hello-world",
+          {
+            "group": "Fundamentals",
+            "pages": [
+              "build-agents/llm-configuration",
+              "build-agents/agent-details",
+              "build-agents/messages",
+              "build-agents/files",
+              "build-agents/gui-components",
+              "build-agents/forms"
+            ]
+          }
+        ]
+      },
+      {
+        "group": "Working with Agents",
+        "pages": [
+          "how-to/discover-agents",
+          "how-to/run-agents",
+          "how-to/observe-agents",
+          "how-to/import-agents",
+          "how-to/share-agents"
+        ]
+      },
+      {
+        "group": "Guides",
+        "pages": [
+          "how-to/environment-configuration",
+          "how-to/mcp",
+          "how-to/web-interface",
+          "how-to/cli-reference"
         ]
       },
       {
@@ -46,7 +59,7 @@
         "pages": ["deployment/overview", "deployment/kubernetes"]
       },
       {
-        "group": "Community and Support",
+        "group": "Community & Support",
         "pages": [
           "community-and-support/troubleshooting",
           "community-and-support/contribute"
@@ -82,12 +95,8 @@
   },
   "redirects": [
     {
-      "source": "/acp/spec/openapi.yaml",
-      "destination": "https://github.com/i-am-bee/acp/blob/main/docs/spec/openapi.yaml"
-    },
-    {
-      "source": "/acp/:slug*",
-      "destination": "https://agentcommunicationprotocol.dev"
+      "source": "/introduction/installation",
+      "destination": "/introduction/quickstart"
     }
   ]
 }

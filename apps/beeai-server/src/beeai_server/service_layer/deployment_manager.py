@@ -20,18 +20,13 @@ def global_provider_variables(configuration: Configuration):
         "HOST": "0.0.0.0",
         "OTEL_EXPORTER_OTLP_ENDPOINT": str(configuration.telemetry.collector_url),
         "PLATFORM_URL": f"http://{configuration.platform_service_url}",
-        "EMBEDDING_MODEL": "dummy",
-        "EMBEDDING_API_KEY": "dummy",
-        "EMBEDDING_API_BASE": f"http://{configuration.platform_service_url}/api/v1/llm",
-        "LLM_MODEL": "dummy",
-        "LLM_API_KEY": "dummy",
-        "LLM_API_BASE": f"http://{configuration.platform_service_url}/api/v1/llm",
     }
 
 
 class IProviderDeploymentManager(Protocol):
     async def create_or_replace(self, *, provider: Provider, env: dict[str, str] | None = None) -> bool: ...
     async def delete(self, *, provider_id: UUID) -> None: ...
+    async def remove_orphaned_providers(self, existing_providers: list[UUID]) -> None: ...
     async def state(self, *, provider_ids: list[UUID]) -> list[ProviderDeploymentState]: ...
     async def scale_down(self, *, provider_id: UUID) -> None: ...
     async def scale_up(self, *, provider_id: UUID) -> None: ...

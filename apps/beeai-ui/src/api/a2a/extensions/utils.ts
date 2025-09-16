@@ -43,7 +43,11 @@ export function fulfillServiceExtensionDemand<U extends string, D, F>(extension:
   const uri = extension.getUri();
 
   return function (metadata: Record<string, unknown>, fulfillment: F) {
-    const { success, data: parsed } = schema.safeParse(fulfillment);
+    const { success, data: parsed, error } = schema.safeParse(fulfillment);
+
+    if (!success) {
+      console.warn(error);
+    }
 
     return {
       ...metadata,

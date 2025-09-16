@@ -158,7 +158,12 @@ class McpService:
                 )
             )
 
-            is_stream = resp.headers["content-type"].startswith("text/event-stream")
+            try:
+                content_type = resp.headers["content-type"]
+                is_stream = content_type.startswith("text/event-stream")
+            except KeyError:
+                content_type = None
+                is_stream = False
 
             async def stream_fn():
                 try:
@@ -170,7 +175,7 @@ class McpService:
             common = {
                 "status_code": resp.status_code,
                 "headers": resp.headers,
-                "media_type": resp.headers["content-type"],
+                "media_type": content_type,
             }
             if is_stream:
                 return McpServerResponse(content=None, stream=stream_fn(), **common)

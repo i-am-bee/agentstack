@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 class GithubVersionType(StrEnum):
-    head = "head"
-    tag = "tag"
+    HEAD = "head"
+    TAG = "tag"
 
 
 class ResolvedGithubUrl(BaseModel):
@@ -26,7 +26,7 @@ class ResolvedGithubUrl(BaseModel):
     path: str | None = None
 
     def get_tgz_link(self) -> AnyUrl:
-        version_type = "heads" if self._version_type == GithubVersionType.head else "tags"
+        version_type = "heads" if self._version_type == GithubVersionType.HEAD else "tags"
         return AnyUrl.build(
             scheme="https",
             host="github.com",
@@ -129,7 +129,7 @@ class GithubUrl(RootModel):
                 resp = resp.text.split("\n")
                 [version_line] = [line for line in resp if line.endswith(f"/{version}")]
                 [commit_hash, _ref_name] = version_line[4:].split()
-                version_type = GithubVersionType.head if "/refs/heads" in _ref_name else GithubVersionType.tag
+                version_type = GithubVersionType.HEAD if "/refs/heads" in _ref_name else GithubVersionType.TAG
                 return ResolvedGithubUrl(
                     org=self._org,
                     repo=self._repo,

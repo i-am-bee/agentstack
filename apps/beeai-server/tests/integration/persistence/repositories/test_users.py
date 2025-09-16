@@ -19,7 +19,7 @@ async def test_user() -> User:
     """Create a test user for use in tests."""
     return User(
         email=f"test-{uuid.uuid4()}@example.com",
-        role=UserRole.user,
+        role=UserRole.USER,
     )
 
 
@@ -28,11 +28,10 @@ async def test_admin() -> User:
     """Create a test admin user for use in tests."""
     return User(
         email=f"admin-{uuid.uuid4()}@example.com",
-        role=UserRole.admin,
+        role=UserRole.ADMIN,
     )
 
 
-@pytest.mark.asyncio
 async def test_create_user(db_transaction: AsyncConnection, test_user: User):
     # Create repository
     repository = SqlAlchemyUserRepository(connection=db_transaction)
@@ -50,7 +49,6 @@ async def test_create_user(db_transaction: AsyncConnection, test_user: User):
     assert row.created_at == test_user.created_at
 
 
-@pytest.mark.asyncio
 async def test_get_user(db_transaction: AsyncConnection, test_user: User):
     # Create repository
     repository = SqlAlchemyUserRepository(connection=db_transaction)
@@ -68,7 +66,6 @@ async def test_get_user(db_transaction: AsyncConnection, test_user: User):
     assert user.created_at == test_user.created_at
 
 
-@pytest.mark.asyncio
 async def test_get_user_not_found(db_transaction: AsyncConnection):
     # Create repository
     repository = SqlAlchemyUserRepository(connection=db_transaction)
@@ -82,7 +79,6 @@ async def test_get_user_not_found(db_transaction: AsyncConnection):
         await repository.get_by_email(email="nonexistent@example.com")
 
 
-@pytest.mark.asyncio
 async def test_get_user_by_email(db_transaction: AsyncConnection, test_user: User):
     # Create repository
     repository = SqlAlchemyUserRepository(connection=db_transaction)
@@ -100,7 +96,6 @@ async def test_get_user_by_email(db_transaction: AsyncConnection, test_user: Use
     assert user.created_at == test_user.created_at
 
 
-@pytest.mark.asyncio
 async def test_delete_user(db_transaction: AsyncConnection, test_user: User):
     # Create repository
     repository = SqlAlchemyUserRepository(connection=db_transaction)
@@ -120,7 +115,6 @@ async def test_delete_user(db_transaction: AsyncConnection, test_user: User):
     assert result.fetchone() is None
 
 
-@pytest.mark.asyncio
 async def test_list_users(db_transaction: AsyncConnection, test_user: User, test_admin: User):
     # Create repository
     repository = SqlAlchemyUserRepository(connection=db_transaction)

@@ -8,7 +8,11 @@ $new-session-button-height: rem(32px);
 $user-message-height: rem(46px);
 $messages-row-gap: $spacing-07;
 $holder-row-gap: $spacing-06;
+$messages-top-padding: $spacing-03;
 $input-height: rem(88px);
+
+$zindex-messages: 1;
+$zindex-buttons: 2;
 
 .holder {
   inline-size: 100%;
@@ -26,11 +30,10 @@ $input-height: rem(88px);
 
 .header {
   position: sticky;
-  inset-block-start: 0;
+  inset-block-start: $spacing-03;
   text-align: end;
-  background-color: $layer;
   padding-block-end: $spacing-06;
-  z-index: 1;
+  z-index: $zindex-buttons;
 }
 
 .container {
@@ -42,6 +45,7 @@ $input-height: rem(88px);
   display: flex;
   flex-direction: column;
   row-gap: $messages-row-gap;
+  padding-block-start: $messages-top-padding;
   block-size: 100%;
 }
 
@@ -51,7 +55,7 @@ $input-height: rem(88px);
       (
         var(--header-height) + var(--header-border-height) + #{(2 * $content-block-padding) +
           $new-session-button-height + $user-message-height + (2 * $messages-row-gap) + $holder-row-gap +
-          $input-height + rem(48px)}
+          $input-height + rem(48px) + $messages-top-padding}
       )
   );
 }
@@ -81,7 +85,7 @@ $input-height: rem(88px);
     inset-block-end: 100%;
     inset-inline-start: 50%;
     transform: translate(-50%, -$spacing-05);
-    z-index: 1;
+    z-index: $zindex-messages;
   }
 }
 

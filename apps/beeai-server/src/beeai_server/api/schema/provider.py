@@ -10,3 +10,4 @@ from beeai_server.domain.models.provider import ProviderLocation
 class CreateProviderRequest(BaseModel):
     location: ProviderLocation
     agent_card: AgentCard | None = None
+    variables: dict[str, str] | None = None

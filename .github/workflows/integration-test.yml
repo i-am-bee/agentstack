@@ -38,5 +38,5 @@ jobs:
           # LLM_MODEL: "meta/Meta-Llama-3.1-8B-Instruct"
           # LLM_API_KEY: "${{ secrets.GITHUB_TOKEN }}"
           LLM_API_BASE: "https://api.groq.com/openai/v1"
-          LLM_MODEL: "llama-3.1-8b-instant"
+          LLM_MODEL: "groq:meta-llama/llama-4-maverick-17b-128e-instruct"
           LLM_API_KEY: "${{ secrets.GROQ_API_KEY }}"

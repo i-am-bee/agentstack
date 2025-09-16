@@ -3,63 +3,68 @@ title: Welcome to BeeAI
 description: "Discover, run, and share agents from any framework"
 ---
 
-BeeAI is an open-source platform that makes it easy to **discover**, **run**, and **share** AI agents across frameworks. Built on the [Agent Communication Protocol (ACP)](https://agentcommunicationprotocol.dev/) and hosted by the Linux Foundation, BeeAI bridges the gap between different agent ecosystems.
+<Info>
+
+### 🚀 IMPORTANT UPDATE
+
+ACP is now part of A2A under the Linux Foundation!
+
+👉 [Learn more](https://github.com/orgs/i-am-bee/discussions/5) &nbsp;|&nbsp; 🛠️ [Migration Guide](/community-and-support/acp-a2a-migration-guide)
+
+</Info>
+
+BeeAI is an open-source platform that makes it easy to **discover**, **run**, and **share** AI agents across frameworks. Built on the [Agent2Agent Protocol (A2A)](https://github.com/a2aproject/A2A) and hosted by the Linux Foundation, BeeAI bridges the gap between different agent ecosystems.
 
 ## The Problem BeeAI Solves
 
-Teams trying to operationalize AI agents face three critical challenges:
-- **Framework Fragmentation:** Different frameworks create silos and duplicated efforts
-- **Deployment Complexity:** Each agent requires its own setup, limiting scalability
-- **Discovery Challenges:** No central hub exists for finding and using available agents
+Teams building AI agents often run into three main challenges:
+- **Framework Fragmentation:** Multiple frameworks lead to silos and duplicated work.
+- **Deployment Complexity:** Each agent needs its own setup, slowing down scale.
+- **Discovery Challenges:** Finding and reusing agents is hard without a central hub.
 
-BeeAI provides a standardized platform to discover, run, and share agents from any framework - for both individuals and teams.
-
-## For Individual Developers
-
-BeeAI makes it easy to experiment with agent capabilities on your own machine:
-
-- **Try agents** instantly from the community catalog without complex setup
-- Use **standard interfaces** that create consistent user experiences
-- **Package existing agents** from any framework using standardized containers
-- **Share agents** with others through a consistent protocol
-
-## For Teams
-
-As you scale from personal experimentation to team adoption, BeeAI grows with you:
-- **Deploy a centralized BeeAI instance** that the entire team can access
-- Create a **team catalog** where developers publish and end users discover agents
-- **Standardize agent interfaces** for consistent user experiences
-- **Centrally manage** LLM connections to control costs and access
+BeeAI provides a standardized platform to discover, run, and share agents from any framework.
 
 ## Key Features
 
-| Feature | How It Works | Business Value |
-| :------ | :----------- | :------------- |
-| **Agent Catalog** | One BeeAI platform serves your entire team | Everyone works from the same system with unified management |
-| **Framework Agnostic** | BeeAI implements the Agent Communication Protocol (ACP) to standardize agent interfaces regardless of how they're built | Developers use their preferred tools while maintaining compatibility |
-| **Containerized Agents** | Each agent runs in its own container with defined resource limits | Better performance, improved security, and efficient resource usage |
-| **Consistent Interfaces** | Predictable agent interactions | Learn once, use everywhere |
-| **Agent Discovery** | All agents appear in a searchable catalog with capability details | End users easily find agents and developers see usage patterns |
-| **LLM Provider Flexibility** | Connect to any LLM provider | Use the best model for each task and easily switch providers |
+| Feature | What it does |
+| :------ | :----------- |
+| **Instant web interface** | Spin up a shareable front-end in minutes—focus on your agent, not UI frameworks. |
+| **Complete infrastructure** | Deploy your agent container instantly, with database, storage, scaling, monitoring, plus MCP gateway and RAG services. |
+| **Framework-agnostic** | Combine agents from BeeAI, LangChain, CrewAI, and more using A2A. |
+| **Multi-provider playground** | Test agents across OpenAI, Anthropic, Gemini, IBM watsonx, Ollama, and others to compare performance and cost instantly. |
+
+## How BeeAI Works
+
+Run BeeAI locally, and your agents connect to the platform for discovery, testing, and sharing through a simple web interface.
+
+You get:
+- Access to ready-to-use agents from our official catalog  
+- Easy testing across multiple LLM providers  
+- Framework-agnostic development via the BeeAI SDK powered by A2A  
+- Ready-made web interfaces for all your agents  
+
+<Note>
+Want to deploy BeeAI for your team? BeeAI can also run as a hosted platform with full Kubernetes infrastructure. Learn more about [platform deployment](/deployment/overview).
+</Note>
 
 ## Get Started
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="rocket" href="/introduction/quickstart">
-    Learn how to get up and running
+    Get up and running quickly
   </Card>
   <Card title="Agent Library" icon="robot" href="https://beeai.dev/agents">
-    Explore the collection of ready-to-use agents available for orchestration
+    Explore the collection of ready-to-use agents
   </Card>
   <Card title="Architecture" icon="sitemap" href="/concepts/architecture">
     Learn about the core concepts and architecture
   </Card>
   <Card
-    title="Agent Communication Protocol"
+    title="Agent2Agent (A2A) Protocol"
     icon="network-wired"
     href="https://agentcommunicationprotocol.dev"
   >
-    Learn how BeeAI connects diverse agent frameworks seamlessly.
+   See how BeeAI connects diverse agent frameworks seamlessly
   </Card>
 </CardGroup>
 

@@ -17,11 +17,35 @@ unmanagedProviders: [ ]
 externalRegistries: { }
 
 auth:
-  # admin_password: "" - deprecated, use adminPassword instead
-
-  adminPassword: ""
+  enabled: false # Warning, disable only for local deployments
   jwtSecretKey: ""
-  enabled: true # Warning, disable only for local deployments
+  basic:
+    enabled: false
+    adminPassword: ""
+  oidc:
+    enabled: false
+    default_new_user_role: "user"
+    admin_emails:
+      - example.admin@ibm.com
+    nextauth_trust_host: true
+    nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
+    providers_path: "/providers"
+    nextauth_url: "https://beeai.localhost:8336"
+    providers: [
+      {
+        "name": "w3id",
+        "id": "w3id",
+        "type": "oidc",
+        "class": "IBM",
+        "client_id": "<oidc_client_id>",
+        "client_secret": "<oidc_client_secret>",
+        "issuer": "<oidc_issuer>",
+        "jwks_url": "<oidc_jwks_url>",
+        "nextauth_url": "https://beeai.localhost:8336",
+        "nextauth_redirect_proxy_url": "https://beeai.localhost:8336"
+      }
+    ]
+
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
@@ -76,29 +100,6 @@ securityContext: { }
 initContainers:
   createVectorDbExtension: true
 
-oidc:
-  enabled: false
-  discovery_url: "https://preprod.login.w3.ibm.com/oidc/endpoint/default/.well-known/openid-configuration"
-  admin_emails: "habeck@us.ibm.com"
-  nextauth_trust_host: true
-  nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
-  providers_path: "/providers"
-  nextauth_url: "https://beeai.localhost:8336"
-  nextauth_providers: [
-    {
-      "name": "w3id",
-      "id": "w3id",
-      "type": "oidc",
-      "class": "IBM",
-      "client_id": "<oidc_client_id>",
-      "client_secret": "<oidc_client_secret>",
-      "issuer": "<oidc_issuer>",
-      "jwks_url": "<oidc_jwks_url>",
-      "nextauth_url": "https://beeai.localhost:8336",
-      "nextauth_redirect_proxy_url": "https://beeai.localhost:8336"
-    }
-  ]
-
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
   # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
@@ -150,6 +151,7 @@ readinessProbe:
 
 # Additional volumes on the output Deployment definition.
 volumes: [ ]
+
 # - name: foo
 #   secret:
 #     secretName: mysecret
@@ -190,14 +192,6 @@ ui:
   affinity: { }
   livenessProbe: { }
   readinessProbe: { }
-  volumeMounts:
-    - name: providers
-      readOnly: true
-      mountPath: "/providers"
-  volumes:
-    - name: providers
-      secret:
-        secretName: oidc-providers
 
 phoenix:
   # **Important License Notice**: Phoenix is disabled by default in BeeAI. When you enable Phoenix,
@@ -210,6 +204,8 @@ phoenix:
   fullnameOverride: "phoenix"
   ingress:
     enabled: false
+  image:
+    repository: "ghcr.io/i-am-bee/arizephoenix/phoenix"
   securityContext:
     container:
       enabled: true
@@ -219,6 +215,7 @@ phoenix:
     grpcPort: 8335
   database:
     url: "sqlite:////home/phoenix/phoenix.db"
+    defaultRetentionPolicyDays: 7
   persistence:
     enabled: true
     size: 8Gi
@@ -228,7 +225,7 @@ phoenix:
     enableAuth: false
 
 collector:
-  image: otel/opentelemetry-collector-contrib:0.122.1
+  image: ghcr.io/i-am-bee/otel/opentelemetry-collector-contrib:0.122.1
   livenessProbe: { }
   readinessProbe: { }
   resources: { }
@@ -296,7 +293,7 @@ postgresql:
   image:
     registry: ghcr.io
     repository: i-am-bee/bitnami/postgresql-pgvector
-    tag: 17.5.0
+    tag: 17.6.0
   auth:
     postgresPassword: "admin-password"
     enablePostgresUser: true
@@ -353,6 +350,8 @@ externalDatabase:
 ## @param seaweedfs.auth.existingSecret must have keys "accessKeyId" and "accessKeySecret"
 seaweedfs:
   enabled: true
+  image:
+    repository: ghcr.io/i-am-bee/
   bucket: "beeai-files"
   auth:
     admin:
@@ -436,7 +435,7 @@ docling:
     port: 15001
     type: ClusterIP
   imagePullPolicy: IfNotPresent
-  image: "ghcr.io/docling-project/docling-serve-cpu:v0.16.0"
+  image: "ghcr.io/docling-project/docling-serve-cpu:v1.5.0"
 
 ## MCP Context Forge configuration
 forge:
@@ -458,6 +457,6 @@ forge:
     - name: forge-storage
       mountPath: /data
   volumes:
-      - name: forge-storage
-        persistentVolumeClaim:
-          claimName: forge-pvc
+    - name: forge-storage
+      persistentVolumeClaim:
+        claimName: forge-pvc

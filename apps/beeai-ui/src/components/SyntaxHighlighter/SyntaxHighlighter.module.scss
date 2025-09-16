@@ -9,4 +9,9 @@
   --cds-layer: #{$layer-02};
 
   min-block-size: rem(48px);
+
+  &.blog {
+    font-size: rem(16px);
+    line-height: math.div(24, 16);
+  }
 }

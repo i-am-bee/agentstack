@@ -5,17 +5,20 @@
 
 import { z } from 'zod';
 
-import { objectFromEntries } from './helpers';
-
-const featureNames = ['Variables', 'Providers'] as const;
-const featureFlagsDefaults = objectFromEntries(featureNames.map((key) => [key, false] as const));
+const booleanProp = (defaultValue: boolean | undefined = false) => z.boolean().optional().default(defaultValue);
 
 const featureFlagsSchema = z
-  .object(objectFromEntries(featureNames.map((key) => [key, z.boolean().optional().default(false)])))
+  .object({
+    Variables: booleanProp(),
+    Providers: booleanProp(),
+    ModelProviders: booleanProp(true),
+    MCPOAuth: booleanProp(),
+    MCP: booleanProp(),
+  })
   .strict();
 
 export type FeatureFlags = z.infer<typeof featureFlagsSchema>;
-export type FeatureName = (typeof featureNames)[number];
+export type FeatureName = keyof FeatureFlags;
 
 export function parseFeatureFlags(data?: string) {
   if (data) {
@@ -28,5 +31,5 @@ export function parseFeatureFlags(data?: string) {
       console.error(error);
     }
   }
-  return featureFlagsDefaults;
+  return featureFlagsSchema.parse({});
 }

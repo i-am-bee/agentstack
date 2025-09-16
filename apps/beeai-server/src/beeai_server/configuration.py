@@ -14,6 +14,7 @@ from pydantic_core.core_schema import ValidationInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from beeai_server.domain.models.registry import RegistryLocation
+from beeai_server.domain.models.user import UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -66,22 +67,57 @@ class AgentRegistryConfiguration(BaseModel):
     sync_period_cron: str = Field(default="*/5 * * * *")  # every 10 minutes
 
 
-class AuthConfiguration(BaseModel):
+class OidcProvider(BaseModel):
+    name: str
+    issuer: AnyUrl
+    client_id: str
+    client_secret: Secret[str]
+
+
+class OidcConfiguration(BaseModel):
+    enabled: bool = False
+    default_new_user_role: UserRole = UserRole.USER
+    admin_emails: list[str] = Field(default_factory=list)
+    providers: list[OidcProvider] = Field(default_factory=list)
+    scope: list[str] = ["openid", "email", "profile"]
+
+    @model_validator(mode="after")
+    def validate_auth(self):
+        if not self.enabled:
+            logger.critical("Oauth Authentication is disabled! This is suitable only for local development.")
+            return self
+        if not self.providers:
+            raise ValueError("At least one OIDC provider must be configured if OIDC is enabled")
+        return self
+
+
+class BasicAuthConfiguration(BaseModel):
+    enabled: bool = False
     admin_password: Secret[str] | None = None
-    jwt_secret_key: Secret[str] | None = None
+
+    @model_validator(mode="after")
+    def validate_auth(self):
+        if not self.enabled:
+            return self
+        if not self.admin_password:
+            raise ValueError("Admin password must be provided if basic authentication is enabled")
+        return self
+
+
+class AuthConfiguration(BaseModel):
+    jwt_secret_key: Secret[str] = Secret("dummy")
     disable_auth: bool = False
+    oidc: OidcConfiguration = Field(default_factory=OidcConfiguration)
+    basic: BasicAuthConfiguration = Field(default_factory=BasicAuthConfiguration)
 
     @model_validator(mode="after")
     def validate_auth(self):
         if self.disable_auth:
-            logger.critical("Authentication is disabled! This is suitable only for local (desktop) deployment.")
-            self.admin_password = self.admin_password or Secret("dummy-admin-password")
-            self.jwt_secret_key = self.jwt_secret_key or Secret("dummy-secret-key")
             return self
-        if not self.jwt_secret_key:
+        if not self.basic.enabled and not self.oidc.enabled:
+            raise ValueError("If auth is enabled, either basic or oidc must be enabled")
+        if self.jwt_secret_key.get_secret_value() == "dummy":
             raise ValueError("JWT secret key must be provided if authentication is enabled")
-        if not self.admin_password:
-            raise ValueError("Admin password must be provided if authentication is enabled")
         return self
 
 

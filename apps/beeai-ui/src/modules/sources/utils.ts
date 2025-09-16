@@ -38,7 +38,7 @@ export function transformSourcePart(sourcePart: UISourcePart): UITransformPart {
   return transformPart;
 }
 
-export function getMessageSourcesMap(messages: UIMessage[]) {
+export function getMessagesSourcesMap(messages: UIMessage[]) {
   const sources = messages.reduce<MessageSourcesMap>(
     (data, message) => ({
       ...data,

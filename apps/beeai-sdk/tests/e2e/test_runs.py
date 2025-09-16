@@ -57,7 +57,7 @@ def create_streaming_request_object(text: str | None = None, task_id: str | None
 
 
 async def test_run_sync(echo: tuple[Server, Client]) -> None:
-    server, client = echo
+    _, client = echo
     message = create_text_message_object(content=input_text)
 
     final_task = await get_final_task_from_stream(client.send_message(message))
@@ -72,7 +72,7 @@ async def test_run_sync(echo: tuple[Server, Client]) -> None:
 
 
 async def test_run_stream(echo: tuple[Server, Client]) -> None:
-    server, client = echo
+    _, client = echo
     events = []
     async for event in client.send_message(create_text_message_object()):
         events.append(event)
@@ -90,7 +90,7 @@ async def test_run_stream(echo: tuple[Server, Client]) -> None:
 
 
 async def test_run_status(echo: tuple[Server, Client]) -> None:
-    server, client = echo
+    _, client = echo
     message = create_text_message_object()
 
     final_task = await get_final_task_from_stream(client.send_message(message))
@@ -106,7 +106,7 @@ async def test_run_status(echo: tuple[Server, Client]) -> None:
 
 
 async def test_failure_failer(failer: tuple[Server, Client]) -> None:
-    server, client = failer
+    _, client = failer
     message = create_text_message_object()
 
     final_task = await get_final_task_from_stream(client.send_message(message))
@@ -117,7 +117,7 @@ async def test_failure_failer(failer: tuple[Server, Client]) -> None:
 
 
 async def test_failure_raiser(raiser: tuple[Server, Client]) -> None:
-    server, client = raiser
+    _, client = raiser
     message = create_text_message_object()
 
     final_task = await get_final_task_from_stream(client.send_message(message))
@@ -128,7 +128,7 @@ async def test_failure_raiser(raiser: tuple[Server, Client]) -> None:
 
 
 async def test_run_cancel_awaiter(awaiter: tuple[Server, Client]) -> None:
-    server, client = awaiter
+    _, client = awaiter
     message = create_text_message_object()
 
     # Start a task
@@ -144,32 +144,11 @@ async def test_run_cancel_awaiter(awaiter: tuple[Server, Client]) -> None:
     # Check final status
     task_params = TaskQueryParams(id=task_id)
     task_response = await client.get_task(task_params)
-    assert task_response.status.state == TaskState.canceled
-
-
-async def test_run_cancel_slow_echo(slow_echo: tuple[Server, Client]) -> None:
-    server, client = slow_echo
-    message = create_text_message_object()
-
-    # Start a task
-    initial_task = await get_final_task_from_stream(client.send_message(message))
-
-    assert initial_task is not None
-    task_id = initial_task.id
-
-    # Cancel the task
-    cancel_params = TaskIdParams(id=task_id)
-    await client.cancel_task(cancel_params)
-
-    # Check final status
-    task_params = TaskQueryParams(id=task_id)
-    task_response = await client.get_task(task_params)
-    assert hasattr(task_response, "status")
     assert task_response.status.state == TaskState.canceled
 
 
 async def test_run_cancel_stream(slow_echo: tuple[Server, Client]) -> None:
-    server, client = slow_echo
+    _, client = slow_echo
     task_id = None
     cancelled = False
     states = []
@@ -188,7 +167,7 @@ async def test_run_cancel_stream(slow_echo: tuple[Server, Client]) -> None:
 
 
 async def test_run_resume_sync(awaiter: tuple[Server, Client]) -> None:
-    server, client = awaiter
+    _, client = awaiter
     message = create_text_message_object()
 
     initial_task = await get_final_task_from_stream(client.send_message(message))
@@ -206,7 +185,7 @@ async def test_run_resume_sync(awaiter: tuple[Server, Client]) -> None:
 
 
 async def test_run_resume_stream(awaiter: tuple[Server, Client]) -> None:
-    server, client = awaiter
+    _, client = awaiter
     message = create_text_message_object()
 
     initial_task = await get_final_task_from_stream(client.send_message(message))
@@ -229,7 +208,7 @@ async def test_run_resume_stream(awaiter: tuple[Server, Client]) -> None:
 
 
 async def test_artifacts(artifact_producer: tuple[Server, Client]) -> None:
-    server, client = artifact_producer
+    _, client = artifact_producer
     message = create_text_message_object()
 
     final_task = await get_final_task_from_stream(client.send_message(message))
@@ -274,7 +253,7 @@ async def test_artifacts(artifact_producer: tuple[Server, Client]) -> None:
 
 
 async def test_artifact_streaming(artifact_producer: tuple[Server, Client]) -> None:
-    server, client = artifact_producer
+    _, client = artifact_producer
     events = []
     async for event in client.send_message(create_text_message_object()):
         events.append(event)
@@ -314,7 +293,7 @@ async def test_artifact_streaming(artifact_producer: tuple[Server, Client]) -> N
 
 
 async def test_chunked_artifacts(chunked_artifact_producer: tuple[Server, Client]) -> None:
-    server, client = chunked_artifact_producer
+    _, client = chunked_artifact_producer
     # Test chunked artifacts by streaming from chunked_artifact_producer agent
     events = []
     async for event in client.send_message(create_text_message_object()):

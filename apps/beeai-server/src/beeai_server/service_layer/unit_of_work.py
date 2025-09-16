@@ -3,9 +3,11 @@
 
 from typing import Protocol, Self
 
+from beeai_server.domain.repositories.configurations import IConfigurationsRepository
 from beeai_server.domain.repositories.context import IContextRepository
 from beeai_server.domain.repositories.env import IEnvVariableRepository
 from beeai_server.domain.repositories.file import IFileRepository
+from beeai_server.domain.repositories.model_provider import IModelProviderRepository
 from beeai_server.domain.repositories.provider import IProviderRepository
 from beeai_server.domain.repositories.user import IUserRepository
 from beeai_server.domain.repositories.user_feedback import IUserFeedbackRepository
@@ -17,6 +19,8 @@ class IUnitOfWork(Protocol):
     contexts: IContextRepository
     files: IFileRepository
     env: IEnvVariableRepository
+    model_providers: IModelProviderRepository
+    configuration: IConfigurationsRepository
     users: IUserRepository
     vector_stores: IVectorStoreRepository
     vector_database: IVectorDatabaseRepository

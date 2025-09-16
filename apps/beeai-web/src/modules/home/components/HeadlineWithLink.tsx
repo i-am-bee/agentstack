@@ -26,7 +26,7 @@ export function HeadlineWithLink({ title, inverse, description, buttonProps }: P
       <p>{description}</p>
       {buttonProps && (
         <Button renderIcon={ArrowRight} href={buttonProps.url} target="_blank" rel="noreferrer">
-          {buttonProps?.label ?? 'Get started'}
+          {buttonProps?.label ?? 'Learn more'}
         </Button>
       )}
     </div>

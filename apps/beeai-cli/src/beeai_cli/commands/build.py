@@ -117,13 +117,13 @@ async def build(
             message="Adding agent labels to container",
             check=True,
         )
-        console.print(f"✅ Successfully built agent: {tag}")
+        console.success(f"Successfully built agent: {tag}")
         if import_image:
             from beeai_cli.commands.platform import get_driver
 
             driver = get_driver(vm_name=vm_name)
             if (await driver.status()) != "running":
-                console.print("[red]BeeAI platform is not running.[/red]")
+                console.error("BeeAI platform is not running.")
                 sys.exit(1)
             await driver.import_image(tag)
 

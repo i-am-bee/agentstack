@@ -7,6 +7,7 @@ from typing import Annotated
 from a2a.types import Message
 from mcp import ClientSession
 
+from beeai_sdk.a2a.extensions.auth.oauth import OAuthExtensionServer, OAuthExtensionSpec
 from beeai_sdk.a2a.extensions.services.mcp import MCPServiceExtensionServer, MCPServiceExtensionSpec
 from beeai_sdk.a2a.types import RunYield
 from beeai_sdk.server import Server
@@ -19,18 +20,25 @@ server = Server()
 async def mcp_agent(
     message: Message,
     context: RunContext,
+    oauth: Annotated[OAuthExtensionServer, OAuthExtensionSpec.single_demand()],
     mcp: Annotated[
         MCPServiceExtensionServer,
         MCPServiceExtensionSpec.single_demand(),
     ],
 ) -> AsyncGenerator[RunYield, Message]:
     """Lists tools"""
-    # TODO mcp.is_active check
+
+    if not mcp:
+        yield "MCP extension hasn't been activated, no tools are available"
+        return
 
     async with mcp.create_client() as (read, write), ClientSession(read, write) as session:
         await session.initialize()
-        result = await session.list_tools()
-        yield f"These are the tools available to me: {[tool.name for tool in result.tools]}"
+
+        tools = await session.list_tools()
+
+        yield "Available tools: \n"
+        yield "\n".join([t.name for t in tools.tools])
 
 
 if __name__ == "__main__":

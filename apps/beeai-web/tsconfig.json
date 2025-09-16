@@ -21,7 +21,10 @@
     ],
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "types": [
+      "next/image-types/global"
+    ]
   },
   "include": [
     "next-env.d.ts",

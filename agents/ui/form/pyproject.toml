@@ -1,0 +1,35 @@
+[project]
+name = "form"
+version = "0.1.0"
+description = "Agent with structured input."
+authors = [
+    { name = "IBM Corp." },
+]
+requires-python = ">=3.13,<4"
+dependencies = [
+    "beeai-framework[duckduckgo,wikipedia]~=0.1.36",
+    "openai==1.99.9",
+    "beeai-sdk",
+    "openinference-instrumentation-beeai>=0.1.8",
+    "pydantic-settings>=2.9.0",
+    "uvicorn>=0.35.0",
+]
+
+[tool.ruff]
+line-length = 120
+
+[tool.uv.sources]
+beeai-sdk = { path = "../../../apps/beeai-sdk", editable = true }
+
+[project.scripts]
+server = "form.agent:serve"
+
+[build-system]
+requires = [
+    "hatchling",
+]
+build-backend = "hatchling.build"
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"

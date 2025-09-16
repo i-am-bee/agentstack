@@ -3,9 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-.appName {
+.root {
+  display: flex;
+  column-gap: $spacing-02;
   font-size: rem(14px);
   line-height: math.div(18, 14);
   font-weight: 600;
   color: $text-dark;
+}
+
+.companyName + .appName {
+  font-weight: normal;
 }

@@ -22,7 +22,7 @@ import yaml
 from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from httpx import AsyncClient, HTTPError
 from jinja2 import Template
-from kr8s.asyncio.objects import Deployment, Pod, Secret, Service
+from kr8s.asyncio.objects import APIObject, Deployment, Pod, Secret, Service
 from pydantic import HttpUrl
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, wait_fixed
 
@@ -35,15 +35,15 @@ logger = logging.getLogger(__name__)
 
 
 class TemplateKind(StrEnum):
-    deploy = "deploy"
-    svc = "svc"
-    secret = "secret"
+    DEPLOY = "deploy"
+    SVC = "svc"
+    SECRET = "secret"
 
 
 TEMPLATE_KIND_TO_FILE_NAME: Final = {
-    TemplateKind.deploy: "deployment.yaml",
-    TemplateKind.svc: "service.yaml",
-    TemplateKind.secret: "secret.yaml",
+    TemplateKind.DEPLOY: "deployment.yaml",
+    TemplateKind.SVC: "service.yaml",
+    TemplateKind.SECRET: "secret.yaml",
 }
 
 DEFAULT_TEMPLATE_DIR: Final = Path(__file__).parent / "default_templates"
@@ -81,30 +81,26 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
             return UUID(provider_id)
         raise ValueError(f"Invalid provider name format: {name}")
 
-    def _get_env_for_provider(self, provider: Provider, env: dict[str, str | None]):
-        return {**provider.extract_env(env), **global_provider_variables()}
-
     async def create_or_replace(self, *, provider: Provider, env: dict[str, str] | None = None) -> bool:
         if not provider.managed:
             raise ValueError("Attempted to update provider not managed by Kubernetes")
 
         async with self.api() as api:
-            env = env or {}
             label = self._get_k8s_name(provider.id)
 
             service = Service(
                 await self._render_template(
-                    TemplateKind.svc,
-                    provider_service_name=self._get_k8s_name(provider.id, kind=TemplateKind.svc),
+                    TemplateKind.SVC,
+                    provider_service_name=self._get_k8s_name(provider.id, kind=TemplateKind.SVC),
                     provider_app_label=label,
                 ),
                 api=api,
             )
-            env = self._get_env_for_provider(provider, env)
+            env = {**(env or {}), **global_provider_variables()}
             secret = Secret(
                 await self._render_template(
-                    TemplateKind.secret,
-                    provider_secret_name=self._get_k8s_name(provider.id, TemplateKind.secret),
+                    TemplateKind.SECRET,
+                    provider_secret_name=self._get_k8s_name(provider.id, TemplateKind.SECRET),
                     provider_app_label=label,
                     secret_data={key: base64.b64encode(value.encode()).decode() for key, value in env.items()},
                 ),
@@ -112,11 +108,11 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
             )
 
             deployment_manifest = await self._render_template(
-                TemplateKind.deploy,
-                provider_deployment_name=self._get_k8s_name(provider.id, TemplateKind.deploy),
+                TemplateKind.DEPLOY,
+                provider_deployment_name=self._get_k8s_name(provider.id, TemplateKind.DEPLOY),
                 provider_app_label=label,
                 image=str(provider.source.root),
-                provider_secret_name=self._get_k8s_name(provider.id, TemplateKind.secret),
+                provider_secret_name=self._get_k8s_name(provider.id, TemplateKind.SECRET),
             )
             combined_manifest = json.dumps(
                 {"service": service.raw, "secret": secret.raw, "deployment": deployment_manifest}
@@ -158,23 +154,47 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
     async def delete(self, *, provider_id: UUID) -> None:
         with suppress(kr8s.NotFoundError):
             async with self.api() as api:
-                deploy = await Deployment.get(name=self._get_k8s_name(provider_id, TemplateKind.deploy), api=api)
+                deploy = await Deployment.get(name=self._get_k8s_name(provider_id, TemplateKind.DEPLOY), api=api)
                 await deploy.delete(propagation_policy="Foreground", force=True)
-                await deploy.wait({"delete"})
+                await deploy.wait(["delete"])
+
+    async def remove_orphaned_providers(self, existing_providers: list[UUID]) -> None:
+        errors = []
+
+        async def _delete(deploy: APIObject):
+            try:
+                with suppress(kr8s.NotFoundError):
+                    await deploy.delete(propagation_policy="Foreground", force=True)
+                    await deploy.wait(["delete"])
+                    logger.info(f"Deleted orphaned provider {deploy.metadata.name}")
+            except Exception as ex:
+                errors.append(ex)
+
+        async with self.api() as api, TaskGroup() as tg:
+            async for deployment in kr8s.asyncio.get(
+                kind="deployment",
+                label_selector={"managedBy": "beeai-platform"},
+                api=api,
+            ):
+                provider_id = self._get_provider_id_from_name(deployment.metadata.name, TemplateKind.DEPLOY)
+                if provider_id not in existing_providers:
+                    tg.create_task(_delete(deployment))
+        if errors:
+            raise ExceptionGroup("Exceptions occurred when removing orphaned providers", errors)
 
     async def scale_down(self, *, provider_id: UUID) -> None:
         async with self.api() as api:
-            deploy = await Deployment.get(name=self._get_k8s_name(provider_id, TemplateKind.deploy), api=api)
+            deploy = await Deployment.get(name=self._get_k8s_name(provider_id, TemplateKind.DEPLOY), api=api)
             await deploy.scale(0)
 
     async def scale_up(self, *, provider_id: UUID) -> None:
         async with self.api() as api:
-            deploy = await Deployment.get(name=self._get_k8s_name(provider_id, TemplateKind.deploy), api=api)
+            deploy = await Deployment.get(name=self._get_k8s_name(provider_id, TemplateKind.DEPLOY), api=api)
             await deploy.scale(1)
 
     async def wait_for_startup(self, *, provider_id: UUID, timeout: timedelta) -> None:  # noqa: ASYNC109 (the timeout actually corresponds to kubernetes timeout)
         async with self.api() as api:
-            deployment = await Deployment.get(name=self._get_k8s_name(provider_id, kind=TemplateKind.deploy), api=api)
+            deployment = await Deployment.get(name=self._get_k8s_name(provider_id, kind=TemplateKind.DEPLOY), api=api)
             await deployment.wait("condition=Available", timeout=int(timeout.total_seconds()))
             # For some reason the first request sometimes doesn't come through
             # (the service does not route immediately after deploy is available?)
@@ -194,7 +214,7 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
     async def state(self, *, provider_ids: list[UUID]) -> list[ProviderDeploymentState]:
         async with self.api() as api:
             deployments = {
-                self._get_provider_id_from_name(deployment.metadata.name, TemplateKind.deploy): deployment
+                self._get_provider_id_from_name(deployment.metadata.name, TemplateKind.DEPLOY): deployment
                 async for deployment in kr8s.asyncio.get(
                     kind="deployment",
                     label_selector={"managedBy": "beeai-platform"},
@@ -207,18 +227,18 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
             for provider_id in provider_ids:
                 deployment = deployments.get(provider_id)
                 if not deployment:
-                    state = ProviderDeploymentState.missing
+                    state = ProviderDeploymentState.MISSING
                 elif deployment.status.get("availableReplicas", 0) > 0:
-                    state = ProviderDeploymentState.running
+                    state = ProviderDeploymentState.RUNNING
                 elif deployment.status.get("replicas", 0) == 0:
-                    state = ProviderDeploymentState.ready
+                    state = ProviderDeploymentState.READY
                 else:
-                    state = ProviderDeploymentState.starting
+                    state = ProviderDeploymentState.STARTING
                 states.append(state)
             return states
 
     async def get_provider_url(self, *, provider_id: UUID) -> HttpUrl:
-        return HttpUrl(f"http://{self._get_k8s_name(provider_id, TemplateKind.svc)}:8000")
+        return HttpUrl(f"http://{self._get_k8s_name(provider_id, TemplateKind.SVC)}:8000")
 
     async def stream_logs(self, *, provider_id: UUID, logs_container: LogsContainer):
         try:
@@ -227,7 +247,7 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
                 while True:
                     try:
                         deploy = await Deployment.get(
-                            name=self._get_k8s_name(provider_id, kind=TemplateKind.deploy),
+                            name=self._get_k8s_name(provider_id, kind=TemplateKind.DEPLOY),
                             api=api,
                         )
                         if pods := await deploy.pods():
@@ -270,7 +290,7 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
                 async def stream_logs(pod: Pod):
                     async for line in pod.logs(follow=True):
                         logs_container.add_stdout(
-                            f"{pod.name.replace(self._get_k8s_name(provider_id, TemplateKind.deploy), '')}: {line}"
+                            f"{pod.name.replace(self._get_k8s_name(provider_id, TemplateKind.DEPLOY), '')}: {line}"
                         )
 
                 async with TaskGroup() as tg:
@@ -279,7 +299,7 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
 
         except Exception as ex:
             logs_container.add(
-                ProcessLogMessage(stream=ProcessLogType.stderr, message=extract_messages(ex), error=True)
+                ProcessLogMessage(stream=ProcessLogType.STDERR, message=extract_messages(ex), error=True)
             )
             logger.error(f"Error while streaming logs: {extract_messages(ex)}")
             raise

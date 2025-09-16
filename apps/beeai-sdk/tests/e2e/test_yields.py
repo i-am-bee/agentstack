@@ -215,7 +215,7 @@ async def async_generator_resume_agent(create_server_with_agent) -> AsyncGenerat
 
 async def test_sync_function_agent(sync_function_agent):
     """Test synchronous function agent that returns a string directly."""
-    server, client = sync_function_agent
+    _, client = sync_function_agent
     message = create_text_message_object(content="hello")
 
     final_task = await get_final_task_from_stream(client.send_message(message))
@@ -227,7 +227,7 @@ async def test_sync_function_agent(sync_function_agent):
 
 async def test_sync_function_with_context_agent(sync_function_with_context_agent):
     """Test synchronous function agent with context using context.yield_sync."""
-    server, client = sync_function_with_context_agent
+    _, client = sync_function_with_context_agent
     message = create_text_message_object(content="hello")
 
     final_task = await get_final_task_from_stream(client.send_message(message))
@@ -242,7 +242,7 @@ async def test_sync_function_with_context_agent(sync_function_with_context_agent
 
 async def test_sync_generator_agent(sync_generator_agent):
     """Test synchronous generator agent using yield statements."""
-    server, client = sync_generator_agent
+    _, client = sync_generator_agent
     message = create_text_message_object(content="hello")
 
     final_task = await get_final_task_from_stream(client.send_message(message))
@@ -256,7 +256,7 @@ async def test_sync_generator_agent(sync_generator_agent):
 
 async def test_sync_generator_with_context_agent(sync_generator_with_context_agent):
     """Test synchronous generator agent with context using both yields and context.yield_sync."""
-    server, client = sync_generator_with_context_agent
+    _, client = sync_generator_with_context_agent
     message = create_text_message_object(content="hello")
 
     final_task = await get_final_task_from_stream(client.send_message(message))
@@ -272,7 +272,7 @@ async def test_sync_generator_with_context_agent(sync_generator_with_context_age
 
 async def test_async_function_agent(async_function_agent):
     """Test asynchronous function agent that returns a string directly."""
-    server, client = async_function_agent
+    _, client = async_function_agent
     message = create_text_message_object(content="hello")
 
     final_task = await get_final_task_from_stream(client.send_message(message))
@@ -284,7 +284,7 @@ async def test_async_function_agent(async_function_agent):
 
 async def test_async_function_with_context_agent(async_function_with_context_agent):
     """Test asynchronous function agent with context using context.yield_async."""
-    server, client = async_function_with_context_agent
+    _, client = async_function_with_context_agent
     message = create_text_message_object(content="hello")
 
     final_task = await get_final_task_from_stream(client.send_message(message))
@@ -298,7 +298,7 @@ async def test_async_function_with_context_agent(async_function_with_context_age
 
 async def test_async_generator_agent(async_generator_agent):
     """Test asynchronous generator agent using yield statements."""
-    server, client = async_generator_agent
+    _, client = async_generator_agent
     message = create_text_message_object(content="hello")
 
     final_task = await get_final_task_from_stream(client.send_message(message))
@@ -313,7 +313,7 @@ async def test_async_generator_agent(async_generator_agent):
 
 async def test_async_generator_with_context_agent(async_generator_with_context_agent):
     """Test asynchronous generator agent with context using both yields and context.yield_async."""
-    server, client = async_generator_with_context_agent
+    _, client = async_generator_with_context_agent
     message = create_text_message_object(content="hello")
 
     final_task = await get_final_task_from_stream(client.send_message(message))
@@ -329,7 +329,7 @@ async def test_async_generator_with_context_agent(async_generator_with_context_a
 
 async def test_sync_function_resume_agent(sync_function_resume_agent):
     """Test synchronous function agent with resume functionality."""
-    server, client = sync_function_resume_agent
+    _, client = sync_function_resume_agent
     message = create_text_message_object(content="initial")
 
     # First interaction - should require input
@@ -351,7 +351,7 @@ async def test_sync_function_resume_agent(sync_function_resume_agent):
 
 async def test_sync_generator_resume_agent(sync_generator_resume_agent):
     """Test synchronous generator agent with resume functionality."""
-    server, client = sync_generator_resume_agent
+    _, client = sync_generator_resume_agent
     message = create_text_message_object(content="initial")
 
     # First interaction - should require input
@@ -377,7 +377,7 @@ async def test_sync_generator_resume_agent(sync_generator_resume_agent):
 
 async def test_async_function_resume_agent(async_function_resume_agent):
     """Test asynchronous function agent with resume functionality."""
-    server, client = async_function_resume_agent
+    _, client = async_function_resume_agent
     message = create_text_message_object(content="initial")
 
     # First interaction - should require input
@@ -400,7 +400,7 @@ async def test_async_function_resume_agent(async_function_resume_agent):
 
 async def test_async_generator_resume_agent(async_generator_resume_agent):
     """Test asynchronous generator agent with resume functionality."""
-    server, client = async_generator_resume_agent
+    _, client = async_generator_resume_agent
     message = create_text_message_object(content="initial")
 
     # First interaction - should require input
@@ -426,7 +426,7 @@ async def test_async_generator_resume_agent(async_generator_resume_agent):
 
 async def test_sync_function_streaming(sync_function_agent):
     """Test synchronous function agent with streaming."""
-    server, client = sync_function_agent
+    _, client = sync_function_agent
     events = []
     async for event in client.send_message(create_text_message_object(content="hello")):
         events.append(event)
@@ -443,7 +443,7 @@ async def test_sync_function_streaming(sync_function_agent):
 
 async def test_sync_generator_streaming(sync_generator_agent):
     """Test synchronous generator agent with streaming to see intermediate yields."""
-    server, client = sync_generator_agent
+    _, client = sync_generator_agent
     events = []
     async for event in client.send_message(create_text_message_object(content="hello")):
         events.append(event)
@@ -464,7 +464,7 @@ async def test_sync_generator_streaming(sync_generator_agent):
 
 async def test_async_generator_streaming(async_generator_agent):
     """Test asynchronous generator agent with streaming to see intermediate yields."""
-    server, client = async_generator_agent
+    _, client = async_generator_agent
     events = []
     async for event in client.send_message(create_text_message_object(content="hello")):
         events.append(event)
@@ -492,7 +492,7 @@ async def test_yield_dict_vs_metadata(create_server_with_agent):
             | {"metadata2": "and can be used in union"}
         )
 
-    async with create_server_with_agent(yielder_of_meta_data) as (server, client):
+    async with create_server_with_agent(yielder_of_meta_data) as (_, client):
         message = create_text_message_object(content="hello")
 
         final_task = await get_final_task_from_stream(client.send_message(message))
@@ -536,7 +536,7 @@ async def test_yield_of_all_types(create_server_with_agent):
         yield {"data": "this is important"}
         yield Metadata({"metadata": "this, not so much"})
 
-    async with create_server_with_agent(yielder_of_all_types_agent) as (server, client):
+    async with create_server_with_agent(yielder_of_all_types_agent) as (_, client):
         message_cnt, artifact_cnt = 0, 0
         async for event in client.send_message(create_text_message_object(content="hello")):
             match event:

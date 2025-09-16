@@ -8,6 +8,10 @@
     display: flex;
     flex-direction: column;
     gap: $spacing-04;
+    font-size: rem(20px);
+    line-height: math.div(26, 20);
+    text-wrap: pretty;
+    max-inline-size: rem(369px);
 
     svg {
       block-size: rem(40px);
@@ -16,13 +20,12 @@
         fill: currentColor;
       }
     }
-    span {
-      font-size: rem(20px);
-      line-height: math.div(26, 20);
-      text-wrap: pretty;
-      max-inline-size: rem(369px);
-    }
   }
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
 }
 
 @include breakpoint-down(md) {

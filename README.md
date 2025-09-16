@@ -29,9 +29,19 @@
 
 </div>
 
+---------------------------
+
+## 🚀 IMPORTANT UPDATE
+
+**ACP is now part of A2A under the Linux Foundation!**  
+<br>
+👉 [Learn more](https://github.com/orgs/i-am-bee/discussions/5) | 🛠️ [Migration Guide](https://github.com/i-am-bee/beeai-platform/blob/main/docs/community-and-support/acp-a2a-migration-guide.mdx)
+
+---------------------------
+
 <br />
 
-**BeeAI** is an open-source platform that makes it easy to **discover**, **run**, and **share** AI agents across frameworks. Built on the [Agent Communication Protocol (ACP)](https://agentcommunicationprotocol.dev/) and hosted by the **Linux Foundation**, BeeAI bridges the gap between different agent ecosystems.
+**BeeAI** is an open-source platform that makes it easy to **discover**, **run**, and **share** AI agents across frameworks. Built on the [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) and hosted by the **Linux Foundation**, BeeAI bridges the gap between different agent ecosystems.
 
 ## The Problem BeeAI Solves
 
@@ -66,7 +76,7 @@ As you scale from personal experimentation to team adoption, BeeAI grows with yo
 | Feature | How It Works | Business Value |
 | :------ | :----------- | :------------- |
 | **Agent Catalog** | One BeeAI platform serves your entire team | Everyone works from the same system with unified management |
-| **Framework Agnostic** | BeeAI implements the Agent Communication Protocol (ACP) to standardize agent interfaces regardless of how they're built | Developers use their preferred tools while maintaining compatibility |
+| **Framework Agnostic** | BeeAI implements the Agent2Agent (A2A) Protocol to standardize agent interfaces regardless of how they're built | Developers use their preferred tools while maintaining compatibility |
 | **Containerized Agents** | Each agent runs in its own container with defined resource limits | Better performance, improved security, and efficient resource usage |
 | **Consistent Interfaces** | Predictable agent interactions | Learn once, use everywhere |
 | **Agent Discovery** | All agents appear in a searchable catalog with capability details | End users easily find agents and developers see usage patterns |
@@ -75,7 +85,7 @@ As you scale from personal experimentation to team adoption, BeeAI grows with yo
 ## Quickstart
 
 > [!TIP]
-> This is the short version. See the [installation guide](https://docs.beeai.dev/introduction/installation) for detailed instructions.
+> This is the short version. See the [installation guide](https://docs.beeai.dev/introduction/quickstart) for detailed instructions.
 
 1. **Install** the BeeAI CLI using [uv](https://docs.astral.sh/uv/) (on Linux you'll also need [QEMU](https://www.qemu.org/download/#linux)):
 
@@ -92,7 +102,7 @@ beeai platform start
 3. **Configure** the LLM provider:
 
 ```sh
-beeai env setup
+beeai model setup
 ```
 
 4. **Use** the CLI:

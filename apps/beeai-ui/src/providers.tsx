@@ -4,6 +4,7 @@
  */
 
 'use client';
+import { SessionProvider } from 'next-auth/react';
 import type { PropsWithChildren } from 'react';
 
 import { AppProvider } from '#contexts/App/AppProvider.tsx';
@@ -13,6 +14,7 @@ import { QueryProvider } from '#contexts/QueryProvider/QueryProvider.tsx';
 import { ThemeProvider } from '#contexts/Theme/ThemeProvider.tsx';
 import { ToastProvider } from '#contexts/Toast/ToastProvider.tsx';
 import { RouteTransitionProvider } from '#contexts/TransitionContext/RouteTransitionProvider.tsx';
+import { AUTH_BASEPATH } from '#utils/constants.ts';
 import type { FeatureFlags } from '#utils/feature-flags.ts';
 
 interface Props {
@@ -21,18 +23,20 @@ interface Props {
 
 export default function Providers({ featureFlags, children }: PropsWithChildren<Props>) {
   return (
-    <ToastProvider>
-      <QueryProvider>
-        <ProgressBarProvider>
-          <ThemeProvider>
-            <RouteTransitionProvider>
-              <ModalProvider>
-                <AppProvider featureFlags={featureFlags}>{children}</AppProvider>
-              </ModalProvider>
-            </RouteTransitionProvider>
-          </ThemeProvider>
-        </ProgressBarProvider>
-      </QueryProvider>
-    </ToastProvider>
+    <SessionProvider basePath={AUTH_BASEPATH}>
+      <ToastProvider>
+        <QueryProvider>
+          <ProgressBarProvider>
+            <ThemeProvider>
+              <RouteTransitionProvider>
+                <ModalProvider>
+                  <AppProvider featureFlags={featureFlags}>{children}</AppProvider>
+                </ModalProvider>
+              </RouteTransitionProvider>
+            </ThemeProvider>
+          </ProgressBarProvider>
+        </QueryProvider>
+      </ToastProvider>
+    </SessionProvider>
   );
 }

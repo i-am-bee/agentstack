@@ -9,7 +9,6 @@ from beeai_server.utils.docker import DockerImageID, get_registry_image_config_a
 pytestmark = pytest.mark.integration
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "image",
     [
@@ -20,5 +19,5 @@ pytestmark = pytest.mark.integration
     ],
 )
 async def test_get_registry_image_config_and_labels(image):
-    config, labels = await get_registry_image_config_and_labels(image, configuration=Configuration())
+    config, _ = await get_registry_image_config_and_labels(image, configuration=Configuration())
     assert config
