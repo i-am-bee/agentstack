@@ -1,0 +1,58 @@
+---
+title: Trajectory Visualization
+description: Show users the step-by-step reasoning process of your agent.
+---
+
+## Basic Usage
+
+```python
+from typing import Annotated
+from beeai_sdk.a2a.extensions import TrajectoryExtensionServer, TrajectoryExtensionSpec
+
+@server.agent()
+async def my_agent(
+    input: Message,
+    context: RunContext,
+    trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()]
+):
+    yield trajectory.trajectory_metadata(
+        title="Planning",
+        content="Analyzing the user request to determine the best approach..."
+    )
+    
+    # Do work
+    
+    yield trajectory.trajectory_metadata(
+        title="Execution", 
+        content="Processing data with temperature=0.7"
+    )
+    
+    yield "Final result"
+```
+
+## Common Patterns
+
+**Progress Steps:**
+```python
+yield trajectory.trajectory_metadata(title="Step 1", content="Loading data...")
+yield trajectory.trajectory_metadata(title="Step 2", content="Processing...")
+yield trajectory.trajectory_metadata(title="Step 3", content="Generating output...")
+```
+
+**Decision Points:**
+```python
+yield trajectory.trajectory_metadata(
+    title="Tool Selection",
+    content="Choosing search tool based on query type: factual"
+)
+```
+
+**Error Handling:**
+```python
+yield trajectory.trajectory_metadata(
+    title="Retry Attempt",
+    content="First attempt failed, trying alternative approach..."
+)
+```
+
+Trajectory steps appear as expandable sections in the UI, helping users understand your agent's thought process.
