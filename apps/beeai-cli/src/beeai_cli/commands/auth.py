@@ -128,11 +128,6 @@ async def exchange_token(oidc: dict, code: str, code_verifier: str, config) -> d
 
 @app.command("login")
 async def cli_login(resource_url: str | None = None):
-    # if config.auth_manager.config.get("resources"):
-    #     default_url = config.auth_manager.config.get("active_resource")
-    # else:
-    #     default_url = "beeai.res.ibm.com"
-
     default_url = config.auth_manager.get_active_resource()
     if not default_url:
         default_url = "beeai.res.ibm.com"
