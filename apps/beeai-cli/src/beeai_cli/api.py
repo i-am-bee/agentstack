@@ -6,7 +6,7 @@ import re
 import urllib
 import urllib.parse
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -49,9 +49,9 @@ def server_process_status(
 
 
 async def set_auth_header():
-    if not config.auth_manager.load_auth_token():
+    if not (token := config.auth_manager.load_auth_token()):
         raise RuntimeError("No token found. Please run `beeai login` first.")
-    return f"Bearer {config.auth_manager.load_auth_token()}"
+    return f"Bearer {token.get_secret_value()}"
 
 
 async def api_request(
@@ -133,8 +133,9 @@ async def api_stream(
 @asynccontextmanager
 async def a2a_client(agent_card: AgentCard, use_auth: bool = True) -> AsyncIterator[Client]:
     headers = {}
-    if config.oidc_enabled and use_auth:
-        headers["Authorization"] = await set_auth_header()
+    if use_auth:
+        with suppress(RuntimeError):
+            headers["Authorization"] = await set_auth_header()
 
     async with httpx.AsyncClient(headers=headers) as httpx_client:
         yield ClientFactory(ClientConfig(httpx_client=httpx_client)).create(card=agent_card)

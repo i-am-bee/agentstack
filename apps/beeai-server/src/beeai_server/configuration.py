@@ -81,6 +81,11 @@ class OidcConfiguration(BaseModel):
     providers: list[OidcProvider] = Field(default_factory=list)
     scope: list[str] = ["openid", "email", "profile"]
 
+    @field_validator("admin_emails")
+    @classmethod
+    def make_emails_lowercase(cls, v):
+        return [email.lower() for email in v]
+
     @model_validator(mode="after")
     def validate_auth(self):
         if not self.enabled:

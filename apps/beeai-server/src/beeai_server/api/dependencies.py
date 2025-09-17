@@ -91,7 +91,7 @@ async def authenticate_oauth_user(
             status_code=status.HTTP_403_FORBIDDEN, detail="Verified email not available in token or userinfo"
         )
 
-    is_admin = email in configuration.auth.oidc.admin_emails
+    is_admin = email.lower() in configuration.auth.oidc.admin_emails
 
     try:
         user = await user_service.get_user_by_email(email=email)
