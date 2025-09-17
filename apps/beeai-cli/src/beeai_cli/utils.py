@@ -12,6 +12,7 @@ from contextlib import asynccontextmanager
 from contextvars import ContextVar
 from copy import deepcopy
 from io import BytesIO
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
@@ -268,3 +269,29 @@ def normalize_url(url: str) -> str:
     parsed = urlparse(url)
     # ensure no trailing slash
     return f"{parsed.scheme}://{parsed.netloc}"
+
+
+async def get_verify_option(resource_url: str, ca_cert_file: Path):
+    parsed = urlparse(resource_url)
+    if parsed.scheme == "https":
+        ca_cert_file = await get_resource_ca_cert(resource_url, ca_cert_file)
+        return str(ca_cert_file)
+    return True
+
+
+async def get_resource_ca_cert(resource_url: str, ca_cert_file: Path) -> Path:
+    if not ca_cert_file.exists():
+        import socket
+        import ssl
+
+        host, port = resource_url.replace("https://", "").split(":")
+        port = int(port)
+        ctx = ssl._create_unverified_context()
+        with socket.create_connection((host, port)) as sock, ctx.wrap_socket(sock, server_hostname=host) as ssock:
+            der_cert = ssock.getpeercert(binary_form=True)
+            if der_cert is None:
+                raise RuntimeError(f"No certificate received from {resource_url}")
+            pem_cert = ssl.DER_cert_to_PEM_cert(der_cert)
+            ca_cert_file.write_text(pem_cert)
+        console.print(f"Saved CA cert to {ca_cert_file}")
+    return ca_cert_file
