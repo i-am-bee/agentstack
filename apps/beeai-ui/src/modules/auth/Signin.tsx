@@ -10,7 +10,7 @@ import { providerMap, signIn } from '#app/(auth)/auth.ts';
 import { SigninButton } from '#components/SigninButton/SigninButton.tsx';
 import { routes } from '#utils/router.ts';
 
-import classes from './SignIn.module.scss';
+import classes from './Signin.module.scss';
 
 const SIGNIN_ERROR_URL = '/error';
 
