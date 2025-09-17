@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { SignIn } from '#modules/auth/Signin.tsx';
+import { SignInView } from '#modules/auth/SignInView.tsx';
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -12,5 +12,5 @@ interface PageProps {
 export default async function SignInPage({ searchParams }: PageProps) {
   const callbackUrl = (await searchParams).callbackUrl;
 
-  return <SignIn callbackUrl={typeof callbackUrl == 'string' ? callbackUrl : undefined} />;
+  return <SignInView callbackUrl={typeof callbackUrl == 'string' ? callbackUrl : undefined} />;
 }

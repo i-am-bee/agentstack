@@ -10,7 +10,7 @@ import { providerMap, signIn } from '#app/(auth)/auth.ts';
 import { SigninButton } from '#components/SigninButton/SigninButton.tsx';
 import { routes } from '#utils/router.ts';
 
-import classes from './Signin.module.scss';
+import classes from './SignInView.module.scss';
 
 const SIGNIN_ERROR_URL = '/error';
 
@@ -18,7 +18,7 @@ interface Props {
   callbackUrl?: string;
 }
 
-export function SignIn({ callbackUrl }: Props) {
+export function SignInView({ callbackUrl }: Props) {
   return (
     <div className={classes.root}>
       <div className={classes.loginWrapper}>
