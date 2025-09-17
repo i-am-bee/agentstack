@@ -1,0 +1,24 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.root {
+  block-size: 100vh;
+  display: flex;
+  align-items: center;
+}
+
+.loginWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-06;
+  padding-inline: $spacing-10;
+}
+
+.loginMain {
+  font-size: 2rem;
+  .bolded {
+    font-weight: 600;
+  }
+}

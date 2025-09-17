@@ -3,5 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { handlers } from '#auth.ts';
-export const { GET, POST } = handlers;
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-05;
+}

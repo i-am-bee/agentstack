@@ -135,21 +135,6 @@ async def install(driver: "BaseDriver"):
         {
             "apiVersion": "gateway.networking.k8s.io/v1",
             "kind": "HTTPRoute",
-            "metadata": {"name": "beeai-platform-api"},
-            "spec": {
-                "parentRefs": [{"name": "beeai-gateway", "namespace": "istio-system"}],
-                "hostnames": ["beeai.localhost"],
-                "rules": [
-                    {
-                        "matches": [{"path": {"type": "PathPrefix", "value": "/api/v1"}}],
-                        "backendRefs": [{"name": "beeai-platform-svc", "port": 8333}],
-                    }
-                ],
-            },
-        },
-        {
-            "apiVersion": "gateway.networking.k8s.io/v1",
-            "kind": "HTTPRoute",
             "metadata": {"name": "beeai-platform-ui"},
             "spec": {
                 "parentRefs": [{"name": "beeai-gateway", "namespace": "istio-system"}],

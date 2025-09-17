@@ -8,7 +8,6 @@ from beeai_sdk.platform import Provider
 pytestmark = pytest.mark.e2e
 
 
-@pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
 async def test_provider_variables(subtests):
     """Test provider environment variables operations."""

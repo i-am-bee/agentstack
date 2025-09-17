@@ -20,7 +20,7 @@
       }
     ],
     "paths": {
-      "auth": ["./auth"]
+      "auth": ["./api/auth"]
     },
     "strictNullChecks": true
   },

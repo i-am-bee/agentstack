@@ -15,7 +15,6 @@ from tenacity import AsyncRetrying, stop_after_delay, wait_fixed
 pytestmark = pytest.mark.e2e
 
 
-@pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up", "setup_platform_client", "setup_real_llm")
 async def test_files(subtests):
     with subtests.test("upload file"):
@@ -62,7 +61,6 @@ def test_pdf() -> Callable[[str], BytesIO]:
     return create_fn
 
 
-@pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
 async def test_text_extraction_pdf_workflow(subtests, test_configuration, test_pdf: Callable[[str], BytesIO]):
     """Test complete PDF text extraction workflow: upload -> extract -> wait -> verify"""
@@ -117,7 +115,6 @@ async def test_text_extraction_pdf_workflow(subtests, test_configuration, test_p
         _ = await file.get_extraction()
 
 
-@pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up", "setup_real_llm", "setup_platform_client")
 async def test_text_extraction_plain_text_workflow(subtests):
     """Test text extraction for plain text files (should be immediate)"""
@@ -142,7 +139,6 @@ async def test_text_extraction_plain_text_workflow(subtests):
             assert loaded_text_content.text == text_content
 
 
-@pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
 async def test_context_scoped_file_access(subtests):
     """Test that files are properly scoped to contexts and users cannot access files from other contexts."""
@@ -238,7 +234,6 @@ async def test_context_scoped_file_access(subtests):
             await File.delete(file_id_2, client=client_2)
 
 
-@pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up")
 async def test_file_extraction_context_isolation(subtests, test_configuration):
     """Test that file text extraction is also properly scoped to contexts."""

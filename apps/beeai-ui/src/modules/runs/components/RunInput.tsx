@@ -17,6 +17,7 @@ import { dispatchInputEventOnTextarea, submitFormOnEnter } from '#utils/form-uti
 
 import { ChatDefaultTools } from '../chat/constants';
 import { useAgentRun } from '../contexts/agent-run';
+import { RunSettings } from '../settings/RunSettings';
 import type { RunRunFormValues } from '../types';
 import { MCPConfig } from './MCPConfig';
 import { ModelProviders } from './ModelProviders';
@@ -28,10 +29,9 @@ import { RunSubmit } from './RunSubmit';
 
 interface Props {
   promptExamples?: string[];
-  onSubmit?: () => void;
 }
 
-export function RunInput({ promptExamples, onSubmit }: Props) {
+export function RunInput({ promptExamples }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -106,7 +106,6 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
           }
 
           handleSubmit(async ({ input }) => {
-            onSubmit?.();
             resetForm();
 
             await chat(input);
@@ -117,6 +116,7 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
 
         <TextAreaAutoHeight
           rows={1}
+          maxRows={7}
           autoFocus
           placeholder="Ask anything…"
           className={classes.textarea}
@@ -127,8 +127,7 @@ export function RunInput({ promptExamples, onSubmit }: Props) {
 
         <div className={classes.actionBar}>
           <div className={classes.actionBarStart}>
-            {/* TODO: The API does not yet support tools. */}
-            {/* <RunSettings containerRef={formRef} /> */}
+            <RunSettings containerRef={formRef} />
 
             {!isFileUploadDisabled && <FileUploadButton />}
 

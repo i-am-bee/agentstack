@@ -3,12 +3,25 @@
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
 from typing import Literal
+from uuid import UUID
 
 import pydantic
+from a2a.types import Artifact, Message
+from pydantic import AwareDatetime, BaseModel
 
 from beeai_sdk.platform.client import PlatformClient, get_platform_client
+from beeai_sdk.platform.common import PaginatedResult
 from beeai_sdk.platform.types import Metadata
+from beeai_sdk.util.utils import filter_dict
+
+
+class ContextHistoryItem(BaseModel):
+    id: UUID
+    data: Artifact | Message
+    created_at: AwareDatetime
+    context_id: UUID
 
 
 class ContextToken(pydantic.BaseModel):
@@ -24,6 +37,7 @@ class ResourceIdPermission(pydantic.BaseModel):
 class ContextPermissions(pydantic.BaseModel):
     files: set[Literal["read", "write", "extract", "*"]] = set()
     vector_stores: set[Literal["read", "write", "extract", "*"]] = set()
+    context_data: set[Literal["read", "write", "*"]] = set()
 
 
 class Permissions(ContextPermissions):
@@ -58,6 +72,37 @@ class Context(pydantic.BaseModel):
         async with client or get_platform_client() as client:
             return pydantic.TypeAdapter(Context).validate_python(
                 (await client.post(url="/api/v1/contexts", json={"metadata": metadata})).raise_for_status().json()
+            )
+
+    @staticmethod
+    async def list(
+        *,
+        client: PlatformClient | None = None,
+        page_token: str | None = None,
+        limit: int | None = None,
+        order: Literal["asc"] | Literal["desc"] | None = None,
+        order_by: Literal["created_at"] | Literal["updated_at"] | None = None,
+        include_empty: bool = True,
+    ) -> PaginatedResult[Context]:
+        # `self` has a weird type so that you can call both `instance.get()` to update an instance, or `File.get("123")` to obtain a new instance
+        async with client or get_platform_client() as client:
+            return pydantic.TypeAdapter(PaginatedResult[Context]).validate_python(
+                (
+                    await client.get(
+                        url="/api/v1/contexts",
+                        params=filter_dict(
+                            {
+                                "page_token": page_token,
+                                "limit": limit,
+                                "order": order,
+                                "order_by": order_by,
+                                "include_empty": include_empty,
+                            }
+                        ),
+                    )
+                )
+                .raise_for_status()
+                .json()
             )
 
     async def get(
@@ -114,3 +159,52 @@ class Context(pydantic.BaseModel):
                 .json()
             )
         return pydantic.TypeAdapter(ContextToken).validate_python({**token_response, "context_id": context_id})
+
+    async def add_history_item(
+        self: Context | str,
+        *,
+        data: Message | Artifact,
+        client: PlatformClient | None = None,
+    ) -> None:
+        """Add a Message or Artifact to the context history (append-only)"""
+        target_context_id = self if isinstance(self, str) else self.id
+        async with client or get_platform_client() as platform_client:
+            _ = (
+                await platform_client.post(url=f"/api/v1/contexts/{target_context_id}/history", json=data.model_dump())
+            ).raise_for_status()
+
+    async def list_history(
+        self: Context | str,
+        *,
+        page_token: str | None = None,
+        limit: int | None = None,
+        order: Literal["asc"] | Literal["desc"] | None = "asc",
+        order_by: Literal["created_at"] | Literal["updated_at"] | None = None,
+        client: PlatformClient | None = None,
+    ) -> PaginatedResult[ContextHistoryItem]:
+        """List all history items for this context in chronological order"""
+        target_context_id = self if isinstance(self, str) else self.id
+        async with client or get_platform_client() as platform_client:
+            return pydantic.TypeAdapter(PaginatedResult[ContextHistoryItem]).validate_python(
+                (
+                    await platform_client.get(
+                        url=f"/api/v1/contexts/{target_context_id}/history",
+                        params=filter_dict(
+                            {"page_token": page_token, "limit": limit, "order": order, "order_by": order_by}
+                        ),
+                    )
+                )
+                .raise_for_status()
+                .json()
+            )
+
+    async def list_all_history(
+        self: Context | str, client: PlatformClient | None = None
+    ) -> AsyncIterator[ContextHistoryItem]:
+        result = await Context.list_history(self, client=client)
+        for item in result.items:
+            yield item
+        while result.has_more:
+            result = await Context.list_history(self, page_token=result.next_page_token, client=client)
+            for item in result.items:
+                yield item

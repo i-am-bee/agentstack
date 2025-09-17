@@ -35,6 +35,7 @@ ROLE_PERMISSIONS: dict[UserRole, Permissions] = {
         providers={"read"},
         model_providers={"read"},
         contexts={"*"},
+        context_data={"*"},
         mcp_providers={"read"},
         mcp_tools={"read"},
         mcp_proxy={"*"},
@@ -166,7 +167,7 @@ async def introspect_token(token: str, configuration: Configuration) -> tuple[di
 async def decode_oauth_jwt_or_introspect(
     configuration: Configuration, token: str, jwks_dict: JwksDict | None = None, aud: str | None = None
 ) -> tuple[dict | None, str | None]:
-    if jwks_dict:
+    if jwks_dict and token:
         for issuer, jwks in jwks_dict.data.items():
             # Decode JWT using keys from JWKS
             for pub_key in jwks.get("keys", []):
@@ -179,7 +180,7 @@ async def decode_oauth_jwt_or_introspect(
                         algorithms=["RS256"],
                         verify=True,
                         audience=aud,
-                        issuer=issuer,
+                        issuer=str(issuer),
                         options={"verify_aud": bool(aud), "verify_iss": True},
                     )
                     logger.debug("Verified token claims: %s", json.dumps(claims))
@@ -190,6 +191,13 @@ async def decode_oauth_jwt_or_introspect(
                 except jwt.InvalidTokenError as err:
                     logger.debug("Token verification failed: %s", err)
                     continue
+                except Exception as err:
+                    logger.info("Caught an exception: %s", err)
+                    continue
+    if token is None:
+        logger.info("token is None")
+        return None, None
+    # The token may have been issued by a cron job using public / private key pair.
 
     logger.info("JWT decoding failed or no JWKS, trying introspection on all providers")
     return await introspect_token(token=token, configuration=configuration)

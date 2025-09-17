@@ -1,6 +1,6 @@
 {
   "name": "@i-am-bee/beeai-web",
-  "version": "0.3.4-rc4",
+  "version": "0.3.4-rc6",
   "private": true,
   "type": "module",
   "peerDependencies": {

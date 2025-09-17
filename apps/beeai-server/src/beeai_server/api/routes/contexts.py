@@ -6,13 +6,25 @@ from typing import Annotated
 from uuid import UUID
 
 import fastapi
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 
 from beeai_server.api.auth import issue_internal_jwt
-from beeai_server.api.dependencies import ConfigurationDependency, ContextServiceDependency, RequiresPermissions
-from beeai_server.api.schema.common import EntityModel, PaginatedResponse
-from beeai_server.api.schema.contexts import ContextTokenCreateRequest, ContextTokenResponse
-from beeai_server.domain.models.context import Context
+from beeai_server.api.dependencies import (
+    ConfigurationDependency,
+    ContextServiceDependency,
+    RequiresContextPermissionsPath,
+    RequiresPermissions,
+)
+from beeai_server.api.schema.common import EntityModel, PaginationQuery
+from beeai_server.api.schema.contexts import (
+    ContextCreateRequest,
+    ContextHistoryItemCreateRequest,
+    ContextListQuery,
+    ContextTokenCreateRequest,
+    ContextTokenResponse,
+)
+from beeai_server.domain.models.common import PaginatedResult
+from beeai_server.domain.models.context import Context, ContextHistoryItem
 from beeai_server.domain.models.permissions import AuthorizedUser, Permissions
 
 logger = logging.getLogger(__name__)
@@ -22,19 +34,20 @@ router = APIRouter()
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_context(
+    request: ContextCreateRequest,
     context_service: ContextServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(contexts={"write"}))],
 ) -> EntityModel[Context]:
-    return EntityModel(await context_service.create(user=user.user))
+    return EntityModel(await context_service.create(user=user.user, metadata=request.metadata))
 
 
 @router.get("")
-async def list_contexts(
+async def list_context(
     context_service: ContextServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(contexts={"read"}))],
-) -> PaginatedResponse[Context]:
-    contexts = [context async for context in context_service.list(user=user.user)]
-    return PaginatedResponse(items=contexts, total_count=len(contexts))
+    query: Annotated[ContextListQuery, Query()],
+) -> PaginatedResult[Context]:
+    return await context_service.list(user=user.user, pagination=query, include_empty=query.include_empty)
 
 
 @router.get("/{context_id}")
@@ -86,3 +99,23 @@ async def generate_context_token(
         configuration=configuration,
     )
     return ContextTokenResponse(token=token, expires_at=expires_at)
+
+
+@router.post("/{context_id}/history", status_code=status.HTTP_201_CREATED)
+async def add_context_history_item(
+    context_id: UUID,
+    history_item_data: ContextHistoryItemCreateRequest,
+    context_service: ContextServiceDependency,
+    user: Annotated[AuthorizedUser, Depends(RequiresContextPermissionsPath(context_data={"write"}))],
+) -> None:
+    await context_service.add_history_item(context_id=context_id, data=history_item_data.root, user=user.user)
+
+
+@router.get("/{context_id}/history")
+async def list_context_history(
+    context_id: UUID,
+    context_service: ContextServiceDependency,
+    user: Annotated[AuthorizedUser, Depends(RequiresContextPermissionsPath(context_data={"read"}))],
+    pagination: Annotated[PaginationQuery, Query()],
+) -> PaginatedResult[ContextHistoryItem]:
+    return await context_service.list_history(context_id=context_id, user=user.user, pagination=pagination)

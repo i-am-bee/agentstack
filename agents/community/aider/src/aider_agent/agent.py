@@ -12,10 +12,12 @@ import tempfile
 from collections.abc import AsyncGenerator
 from pathlib import Path
 from textwrap import dedent
+from typing import Annotated
 
 from a2a.types import AgentSkill, Artifact, FilePart, FileWithBytes, Message, Part
-from beeai_sdk.a2a.extensions import AgentDetail
+from beeai_sdk.a2a.extensions import AgentDetail, LLMServiceExtensionServer, LLMServiceExtensionSpec
 from beeai_sdk.server import Server
+from beeai_sdk.server.store.platform_context_store import PlatformContextStore
 
 server = Server()
 
@@ -114,7 +116,19 @@ server = Server()
         )
     ],
 )
-async def aider(message: Message) -> AsyncGenerator:
+async def aider(
+    message: Message,
+    llm_ext: Annotated[
+        LLMServiceExtensionServer,
+        LLMServiceExtensionSpec.single_demand(
+            suggested=(
+                "openai:gpt-4o",
+                "anthropic:claude-sonnet-4",
+                "ollama:granite3.3:8b",
+            )
+        ),
+    ],
+) -> AsyncGenerator:
     """
     An AI pair programmer that edits code in a local Git repository using natural language, executing commands and providing feedback.
     """
@@ -122,10 +136,13 @@ async def aider(message: Message) -> AsyncGenerator:
     with tempfile.TemporaryDirectory() as tmp_dir:
         tmp_path = Path(tmp_dir)
         try:
+            config = llm_ext.data.llm_fulfillments.get("default") if llm_ext else None
             env = os.environ.copy()
-            env["OPENAI_API_KEY"] = env.get("LLM_API_KEY", "dummy")
-            env["OPENAI_API_BASE"] = env.get("LLM_API_BASE", "http://localhost:11434/v1")
-            env["AIDER_MODEL"] = f"openai/{env.get('LLM_MODEL', 'llama3.1')}"
+            env["OPENAI_API_KEY"] = config.api_key if config else env.get("LLM_API_KEY", "dummy")
+            env["OPENAI_API_BASE"] = config.api_base if config else env.get("LLM_API_BASE", "http://localhost:11434/v1")
+            env["AIDER_MODEL"] = (
+                f"openai/{config.api_model}" if config else f"openai/{env.get('LLM_MODEL', 'llama3.1')}"
+            )
             process = await asyncio.create_subprocess_exec(
                 sys.executable,
                 "-m",
@@ -206,4 +223,9 @@ async def aider(message: Message) -> AsyncGenerator:
 
 
 def run():
-    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)), configure_telemetry=True)
+    server.run(
+        host=os.getenv("HOST", "127.0.0.1"),
+        port=int(os.getenv("PORT", 8000)),
+        context_store=PlatformContextStore(),
+        configure_telemetry=True,
+    )

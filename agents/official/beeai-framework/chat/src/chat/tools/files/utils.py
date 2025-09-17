@@ -16,9 +16,9 @@ from chat.tools.files.model import FileChatInfo
 FrameworkMessage = UserMessage | AssistantMessage
 
 
-def to_framework_message(message: Message, attachments: list[FileChatInfo]) -> FrameworkMessage:
+def to_framework_message(message: Message, all_attachments: list[FileChatInfo]) -> FrameworkMessage:
     message_text = "".join(part.root.text for part in message.parts if part.root.kind == "text")
-    if attachments:
+    if attachments := [file for file in all_attachments if file.message_id == message.message_id]:
         message_text += "\nAttached files:\n" + "\n".join([file.description for file in attachments])
 
     match message.role:
@@ -30,33 +30,29 @@ def to_framework_message(message: Message, attachments: list[FileChatInfo]) -> F
             raise ValueError(f"Invalid message role: {message.role}")
 
 
-async def extract_files(history: list[Message], incoming_message: Message) -> list[FileChatInfo]:
+async def extract_files(history: list[Message]) -> list[FileChatInfo]:
     """
     Extracts file URLs from the chat history and the current turn's messages.
 
     Args:
         context (Context): The current context of the chat session.
-        incoming_message (Message): The message from the current turn.
 
     Returns:
         list[FileChatInfo]: A list of FileInfo objects containing file details.
     """
-    # 1. Combine historical messages with the current turn
-    all_messages = {message.message_id: message for message in (*history, incoming_message)}
-
-    # 2. Collect, validate, deduplicate while preserving order
+    # 1. Collect, validate, deduplicate while preserving order
     seen: set[str] = set()
     files: dict[str, Message] = {}
 
-    for message in all_messages.values():
-        for part in message.parts:
+    for item in history:
+        for part in item.parts:
             match part.root:
                 case FilePart(file=FileWithUri(uri=uri)):
                     with suppress(ValueError):
                         url = pydantic.type_adapter.TypeAdapter(PlatformFileUrl).validate_python(uri)
                         if url.file_id not in seen:
                             seen.add(url.file_id)
-                            files[url.file_id] = message
+                            files[url.file_id] = item
 
     # TODO: N+1 query issue, add bulk endpoint
     file_objects = await asyncio.gather(*(File.get(file_id) for file_id in files))

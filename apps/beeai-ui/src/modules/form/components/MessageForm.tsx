@@ -42,11 +42,6 @@ export function MessageForm({ message }: Props) {
 
         blurActiveElement();
       }}
-      onCancel={() => {
-        // TODO: Temporary solution for cancelled form request
-        submitForm({ request: formPart }, message.taskId);
-        blurActiveElement();
-      }}
     />
   );
 }

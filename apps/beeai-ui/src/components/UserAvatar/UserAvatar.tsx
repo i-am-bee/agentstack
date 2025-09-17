@@ -5,6 +5,8 @@
 
 import { useSession } from 'next-auth/react';
 
+import classes from './UserAvatar.module.scss';
+
 const getUserInitials = (name: string) => {
   if (!name) return '';
 
@@ -20,9 +22,5 @@ export default function UserAvatar() {
   if (session?.user?.name) {
     userInitials = getUserInitials(session.user.name);
   }
-  return (
-    <div>
-      <span>{userInitials}</span>
-    </div>
-  );
+  return <div className={classes.root}>{userInitials}</div>;
 }

@@ -16,20 +16,23 @@ import {
 import type { RefObject } from 'react';
 import { useState } from 'react';
 
+import { useAgentRun } from '../contexts/agent-run';
+
 interface Props {
   containerRef: RefObject<HTMLElement | null>;
 }
 
 export function useRunSettingsDialog({ containerRef }: Props) {
+  const { hasMessages } = useAgentRun();
   const [isOpen, setIsOpen] = useState(false);
 
   const { refs, floatingStyles, context } = useFloating({
-    placement: 'top-start',
+    placement: hasMessages ? 'top-start' : 'bottom-start',
     open: isOpen,
     onOpenChange: setIsOpen,
     whileElementsMounted: autoUpdate,
     middleware: [
-      offset(OFFSET),
+      offset(hasMessages ? OFFSET_CHAT : OFFSET_LANDING),
       size({
         apply({ elements }) {
           const container = containerRef.current;
@@ -60,7 +63,11 @@ export function useRunSettingsDialog({ containerRef }: Props) {
   };
 }
 
-const OFFSET = {
+const OFFSET_LANDING = {
+  mainAxis: 20,
+  crossAxis: -12,
+};
+const OFFSET_CHAT = {
   mainAxis: 56,
   crossAxis: -12,
 };

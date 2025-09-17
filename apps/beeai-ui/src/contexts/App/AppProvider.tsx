@@ -2,6 +2,7 @@
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
  * SPDX-License-Identifier: Apache-2.0
  */
+'use client';
 
 import type { PropsWithChildren } from 'react';
 import { useCallback, useMemo, useState } from 'react';
@@ -13,9 +14,10 @@ import type { SidePanelVariant } from './types';
 
 interface Props {
   featureFlags: FeatureFlags;
+  isAuthEnabled: boolean;
 }
 
-export function AppProvider({ featureFlags, children }: PropsWithChildren<Props>) {
+export function AppProvider({ featureFlags, isAuthEnabled, children }: PropsWithChildren<Props>) {
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [closeNavOnClickOutside, setCloseNavOnClickOutside] = useState(false);
   const [activeSidePanel, setActiveSidePanel] = useState<SidePanelVariant | null>(null);
@@ -34,12 +36,21 @@ export function AppProvider({ featureFlags, children }: PropsWithChildren<Props>
       navigationOpen,
       closeNavOnClickOutside,
       activeSidePanel,
+      isAuthEnabled,
       setNavigationOpen,
       setCloseNavOnClickOutside,
       openSidePanel,
       closeSidePanel,
     }),
-    [featureFlags, navigationOpen, closeNavOnClickOutside, activeSidePanel, openSidePanel, closeSidePanel],
+    [
+      featureFlags,
+      navigationOpen,
+      closeNavOnClickOutside,
+      activeSidePanel,
+      isAuthEnabled,
+      openSidePanel,
+      closeSidePanel,
+    ],
   );
 
   return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;

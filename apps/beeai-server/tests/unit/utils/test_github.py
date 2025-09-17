@@ -54,7 +54,6 @@ def test_invalid_urls(url):
         GithubUrl(url)
 
 
-@pytest.mark.asyncio
 @pytest.mark.skip("TODO: fix this test")
 async def test_resolve_version(httpx_mock: HTTPXMock):
     url = "http://github.com/my-org/my-repo"

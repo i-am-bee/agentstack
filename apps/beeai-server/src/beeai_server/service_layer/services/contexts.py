@@ -2,14 +2,16 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-from collections.abc import AsyncIterator
 from datetime import timedelta
 from uuid import UUID
 
 from kink import inject
+from openai.types import Metadata
 
+from beeai_server.api.schema.common import PaginationQuery
 from beeai_server.configuration import Configuration
-from beeai_server.domain.models.context import Context
+from beeai_server.domain.models.common import PaginatedResult
+from beeai_server.domain.models.context import Context, ContextHistoryItem, ContextHistoryItemData
 from beeai_server.domain.models.user import User
 from beeai_server.domain.repositories.file import IObjectStorageRepository
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
@@ -26,8 +28,8 @@ class ContextService:
         self._configuration = configuration
         self._expire_resources_after = timedelta(days=configuration.context.resource_expire_after_days)
 
-    async def create(self, *, user: User) -> Context:
-        context = Context(created_by=user.id)
+    async def create(self, *, user: User, metadata: Metadata) -> Context:
+        context = Context(created_by=user.id, metadata=metadata)
         async with self._uow() as uow:
             await uow.contexts.create(context=context)
             await uow.commit()
@@ -37,10 +39,18 @@ class ContextService:
         async with self._uow() as uow:
             return await uow.contexts.get(context_id=context_id, user_id=user.id)
 
-    async def list(self, *, user: User) -> AsyncIterator[Context]:
+    async def list(
+        self, *, user: User, pagination: PaginationQuery, include_empty: bool = True
+    ) -> PaginatedResult[Context]:
         async with self._uow() as uow:
-            async for context in uow.contexts.list(user_id=user.id):
-                yield context
+            return await uow.contexts.list_paginated(
+                user_id=user.id,
+                limit=pagination.limit,
+                page_token=pagination.page_token,
+                order=pagination.order,
+                order_by=pagination.order_by,
+                include_empty=include_empty,
+            )
 
     async def delete(self, *, context_id: UUID, user: User) -> None:
         """Delete context and all attached resources"""
@@ -75,12 +85,33 @@ class ContextService:
     async def expire_resources(self) -> dict[str, int]:
         deleted_stats = {}
         async with self._uow() as uow:
-            async for context in uow.contexts.list():
-                if utc_now() - context.last_active_at > self._expire_resources_after:
-                    deleted_stats.update(await self._cleanup_expired_resources(context_id=context.id))
+            async for context in uow.contexts.list(last_active_before=utc_now() - self._expire_resources_after):
+                deleted_stats.update(await self._cleanup_expired_resources(context_id=context.id))
         return deleted_stats
 
     async def update_last_active(self, *, context_id: UUID) -> None:
         async with self._uow() as uow:
             await uow.contexts.update_last_active(context_id=context_id)
             await uow.commit()
+
+    async def add_history_item(self, *, context_id: UUID, data: ContextHistoryItemData, user: User) -> None:
+        async with self._uow() as uow:
+            await uow.contexts.get(context_id=context_id, user_id=user.id)
+            await uow.contexts.add_history_item(
+                context_id=context_id,
+                history_item=ContextHistoryItem(context_id=context_id, data=data),
+            )
+            await uow.commit()
+
+    async def list_history(
+        self, *, context_id: UUID, user: User, pagination: PaginationQuery
+    ) -> PaginatedResult[ContextHistoryItem]:
+        async with self._uow() as uow:
+            await uow.contexts.get(context_id=context_id, user_id=user.id)
+            return await uow.contexts.list_history(
+                context_id=context_id,
+                limit=pagination.limit,
+                page_token=pagination.page_token,
+                order=pagination.order,
+                order_by=pagination.order_by,
+            )

@@ -2,9 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 from typing import Literal
 
-from pydantic import AwareDatetime, BaseModel, Field
+from pydantic import AwareDatetime, BaseModel, Field, RootModel
 
+from beeai_server.api.schema.common import PaginationQuery
 from beeai_server.domain.models.common import Metadata
+from beeai_server.domain.models.context import ContextHistoryItemData
 from beeai_server.domain.models.permissions import ResourceIdPermission
 
 
@@ -14,9 +16,14 @@ class ContextCreateRequest(BaseModel):
     metadata: Metadata | None = None
 
 
+class ContextListQuery(PaginationQuery):
+    include_empty: bool = True
+
+
 class ContextPermissionsGrant(BaseModel):
     files: list[Literal["read", "write", "extract", "*"]] = []
     vector_stores: list[Literal["read", "write", "extract", "*"]] = []
+    context_data: list[Literal["read", "write", "*"]] = []
 
 
 class GlobalPermissionGrant(BaseModel):
@@ -36,6 +43,8 @@ class GlobalPermissionGrant(BaseModel):
     provider_variables: list[Literal["read", "write", "*"]] = []
 
     contexts: list[Literal["read", "write", "*"]] = []
+    context_data: list[Literal["read", "write", "*"]] = []
+
     mcp_providers: list[Literal["read", "write", "*"]] = []
     mcp_tools: list[Literal["read", "*"]] = []
     mcp_proxy: list[Literal["*"]] = []
@@ -57,3 +66,7 @@ class ContextTokenResponse(BaseModel):
 
     token: str
     expires_at: AwareDatetime | None
+
+
+class ContextHistoryItemCreateRequest(RootModel[ContextHistoryItemData]):
+    root: ContextHistoryItemData

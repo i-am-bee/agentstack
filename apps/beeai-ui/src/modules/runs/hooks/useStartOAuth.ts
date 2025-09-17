@@ -39,7 +39,7 @@ export function useStartOAuth({ onSuccess }: Props) {
           window.removeEventListener('message', handler);
           popup.close();
 
-          await onSuccess(parsedMessage.data.redirect_uri, taskId);
+          await onSuccess(taskId, parsedMessage.data.redirect_uri);
         }
       }
 

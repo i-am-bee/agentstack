@@ -8,7 +8,6 @@ from beeai_sdk.platform.vector_store import VectorStore, VectorStoreItem
 pytestmark = pytest.mark.e2e
 
 
-@pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
 async def test_vector_stores(subtests):
     items = [
@@ -73,7 +72,6 @@ async def test_vector_stores(subtests):
         assert search_results[2].item.embedding == items[0].embedding
 
 
-@pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
 async def test_vector_store_deletion(subtests):
     """Test vector store deletion functionality"""
@@ -113,7 +111,6 @@ async def test_vector_store_deletion(subtests):
         )
 
 
-@pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
 async def test_document_deletion(subtests):
     """Test individual document deletion functionality"""
@@ -186,7 +183,6 @@ async def test_document_deletion(subtests):
         )
 
 
-@pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
 async def test_adding_items_to_existing_documents(subtests):
     """Test adding new items to existing documents in vector store"""
@@ -282,7 +278,6 @@ async def test_adding_items_to_existing_documents(subtests):
         assert doc_003_items[0].item.text == "New document 3 content."
 
 
-@pytest.mark.asyncio
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
 async def test_document_listing(subtests):
     """Test listing documents in a vector store"""

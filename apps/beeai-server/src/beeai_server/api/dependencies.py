@@ -5,7 +5,7 @@ import logging
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Query, Security, status
+from fastapi import Depends, HTTPException, Path, Query, Security, status
 from fastapi.security import APIKeyCookie, HTTPAuthorizationCredentials, HTTPBasic, HTTPBasicCredentials, HTTPBearer
 from jwt import PyJWTError
 from kink import di
@@ -77,10 +77,10 @@ async def authenticate_oauth_user(
 
     email = claims.get("email")
     if not email:
-        provider = next((p for p in configuration.auth.oidc.providers if p.issuer == issuer), None)
+        provider = next((p for p in configuration.auth.oidc.providers if str(p.issuer) == str(issuer)), None)
         if not provider:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="issuer not configured")
-        userinfo = await fetch_user_info(token, f"{provider.issuer}/userinfo")
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"issuer not configured. {issuer}")
+        userinfo = await fetch_user_info(token, f"{provider.issuer!s}/userinfo")
         email = userinfo.get("email")
         email_verified = userinfo.get("email_verified", False)
     else:
@@ -91,7 +91,7 @@ async def authenticate_oauth_user(
             status_code=status.HTTP_403_FORBIDDEN, detail="Verified email not available in token or userinfo"
         )
 
-    is_admin = email in configuration.auth.oidc.admin_emails
+    is_admin = email.lower() in configuration.auth.oidc.admin_emails
 
     try:
         user = await user_service.get_user_by_email(email=email)
@@ -131,6 +131,9 @@ async def authorized_user(
                 return await authenticate_oauth_user(bearer_auth, cookie_auth, user_service, configuration)
             # TODO: update agents
             logger.warning("Bearer token is invalid, agent is not probably not using llm extension correctly")
+
+    if configuration.auth.oidc.enabled and cookie_auth:
+        return await authenticate_oauth_user(bearer_auth, cookie_auth, user_service, configuration)
 
     if configuration.auth.basic.enabled:
         if basic_auth and basic_auth.password == configuration.auth.basic.admin_password.get_secret_value():
@@ -183,6 +186,15 @@ class RequiresContextPermissions(Permissions):
             return user
 
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+
+
+class RequiresContextPermissionsPath(RequiresContextPermissions):
+    def __call__(  # pyright: ignore [reportIncompatibleMethodOverride]
+        self,
+        user: Annotated[AuthorizedUser, Depends(authorized_user)],
+        context_id: Annotated[UUID, Path()],
+    ) -> AuthorizedUser:
+        return super().__call__(user=user, context_id=context_id)
 
 
 class RequiresPermissions(Permissions):

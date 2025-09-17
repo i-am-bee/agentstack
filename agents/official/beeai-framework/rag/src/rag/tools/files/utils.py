@@ -25,7 +25,7 @@ def to_framework_message(message: Message) -> FrameworkMessage:
     raise ValueError(f"Invalid message role: {message.role}")
 
 
-async def extract_files(history: list[Message], incoming_message: Message) -> list[File]:
+async def extract_files(history: list[Message]) -> list[File]:
     """
     Extracts file URLs from the chat history and the current turn's messages.
 
@@ -37,10 +37,8 @@ async def extract_files(history: list[Message], incoming_message: Message) -> li
         list[FileInfo]: A list of FileInfo objects containing file details.
     """
     # 1. Combine historical messages with the current turn
-    all_messages = [*history, incoming_message]
-
     # 2. Flatten to all parts
-    all_parts = (part.root for message in all_messages for part in message.parts)
+    all_parts = (part.root for message in history for part in message.parts)
 
     # 3. Collect, validate, deduplicate while preserving order
     seen: set[str] = set()

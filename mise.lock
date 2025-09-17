@@ -14,6 +14,11 @@ backend = "aqua:charmbracelet/gum"
 version = "3.19.0"
 backend = "aqua:helm/helm"
 
+[tools.helm.platforms.macos-arm64]
+checksum = "sha256:31513e1193da4eb4ae042eb5f98ef9aca7890cfa136f4707c8d4f70e2115bef6"
+size = 17058141
+url = "https://get.helm.sh/helm-v3.19.0-darwin-arm64.tar.gz"
+
 [[tools.kubeconform]]
 version = "0.7.0"
 backend = "aqua:yannh/kubeconform"

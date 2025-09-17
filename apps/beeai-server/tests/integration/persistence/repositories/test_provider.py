@@ -47,7 +47,6 @@ async def test_provider(set_di_configuration) -> Provider:
     )
 
 
-@pytest.mark.asyncio
 async def test_create_provider(db_transaction: AsyncConnection, test_provider: Provider):
     # Create repository
     repository = SqlAlchemyProviderRepository(connection=db_transaction)
@@ -66,7 +65,6 @@ async def test_create_provider(db_transaction: AsyncConnection, test_provider: P
     assert row.auto_remove == test_provider.auto_remove
 
 
-@pytest.mark.asyncio
 @pytest.mark.usefixtures("set_di_configuration")
 async def test_get_provider(db_transaction: AsyncConnection, test_provider):
     # Create repository
@@ -112,7 +110,6 @@ async def test_get_provider(db_transaction: AsyncConnection, test_provider):
     assert provider.auto_remove == provider_data["auto_remove"]
 
 
-@pytest.mark.asyncio
 async def test_get_provider_not_found(db_transaction: AsyncConnection):
     # Create repository
     repository = SqlAlchemyProviderRepository(connection=db_transaction)
@@ -122,7 +119,6 @@ async def test_get_provider_not_found(db_transaction: AsyncConnection):
         await repository.get(provider_id=uuid.uuid4())
 
 
-@pytest.mark.asyncio
 async def test_delete_provider(db_transaction: AsyncConnection, test_provider: Provider):
     # Create repository
     repository = SqlAlchemyProviderRepository(connection=db_transaction)
@@ -142,7 +138,6 @@ async def test_delete_provider(db_transaction: AsyncConnection, test_provider: P
     assert result.fetchone() is None
 
 
-@pytest.mark.asyncio
 @pytest.mark.usefixtures("set_di_configuration")
 async def test_list_providers(db_transaction: AsyncConnection):
     # Create repository
@@ -231,7 +226,6 @@ async def test_list_providers(db_transaction: AsyncConnection):
     assert first_provider["id"] in non_auto_remove_providers
 
 
-@pytest.mark.asyncio
 async def test_create_duplicate_provider(db_transaction: AsyncConnection, test_provider: Provider):
     # Create repository
     repository = SqlAlchemyProviderRepository(connection=db_transaction)
@@ -253,7 +247,6 @@ async def test_create_duplicate_provider(db_transaction: AsyncConnection, test_p
         await repository.create(provider=duplicate_provider)
 
 
-@pytest.mark.asyncio
 async def test_replace_transient_provider(db_transaction: AsyncConnection, test_provider: Provider):
     repository = SqlAlchemyProviderRepository(connection=db_transaction)
     # Create provider with auto_remove=True (should succeed by replacing the existing one)

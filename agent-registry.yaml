@@ -1,8 +1,8 @@
 providers:
   # Official
-  - location: ghcr.io/i-am-bee/beeai-platform/official/sequential-workflow:0.3.4-rc4
-  - location: ghcr.io/i-am-bee/beeai-platform/official/beeai-framework/chat:0.3.4-rc4
-  - location: ghcr.io/i-am-bee/beeai-platform/official/beeai-framework/rag:0.3.4-rc4
+  - location: ghcr.io/i-am-bee/beeai-platform/official/sequential-workflow:0.3.4-rc6
+  - location: ghcr.io/i-am-bee/beeai-platform/official/beeai-framework/chat:0.3.4-rc6
+  - location: ghcr.io/i-am-bee/beeai-platform/official/beeai-framework/rag:0.3.4-rc6
   # Community
-  - location: ghcr.io/i-am-bee/beeai-platform/community/aider:0.3.4-rc4
-  - location: ghcr.io/i-am-bee/beeai-platform/community/gpt-researcher:0.3.4-rc4
+  - location: ghcr.io/i-am-bee/beeai-platform/community/aider:0.3.4-rc6
+  - location: ghcr.io/i-am-bee/beeai-platform/community/gpt-researcher:0.3.4-rc6

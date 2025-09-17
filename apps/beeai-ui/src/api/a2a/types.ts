@@ -13,6 +13,7 @@ import type { LLMDemand, LLMFulfillment } from './extensions/services/llm';
 import type { MCPDemand, MCPFulfillment } from './extensions/services/mcp';
 import type { OAuthDemand, OAuthFulfillment } from './extensions/services/oauth-provider';
 import type { FormRender } from './extensions/ui/form';
+import type { AgentSettings } from './extensions/ui/settings';
 
 export enum RunResultType {
   FormRequired = 'form-required',
@@ -44,6 +45,7 @@ export interface ChatParams {
   message: UIUserMessage;
   contextId: ContextId;
   fulfillments: Fulfillments;
+  settings?: AgentSettings;
   taskId?: TaskId;
 }
 

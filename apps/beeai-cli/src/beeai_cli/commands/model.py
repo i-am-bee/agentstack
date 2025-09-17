@@ -11,7 +11,12 @@ from datetime import datetime
 
 import httpx
 import typer
-from beeai_sdk.platform import ModelCapability, ModelProvider, ModelProviderType, SystemConfiguration
+from beeai_sdk.platform import (
+    ModelCapability,
+    ModelProvider,
+    ModelProviderType,
+    SystemConfiguration,
+)
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
 from InquirerPy.validator import EmptyInputValidator
@@ -373,7 +378,8 @@ async def _select_default_model(capability: ModelCapability) -> str | None:
 
 @app.command("list")
 async def list_models():
-    config = await SystemConfiguration.get()
+    async with configuration.use_platform_client():
+        config = await SystemConfiguration.get()
     async with openai_client() as client:
         models = (await client.models.list()).data
         max_id_len = max(len(model.id) for model in models) if models else 0

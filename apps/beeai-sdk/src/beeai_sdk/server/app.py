@@ -14,23 +14,28 @@ from fastapi.applications import AppType
 from starlette.types import Lifespan
 
 from beeai_sdk.server.agent import Agent, Executor
+from beeai_sdk.server.store.context_store import ContextStore
+from beeai_sdk.server.store.memory_context_store import InMemoryContextStore
 
 
 def create_app(
     agent: Agent,
     task_store: TaskStore | None = None,
+    context_store: ContextStore | None = None,
     queue_manager: QueueManager | None = None,
     push_config_store: PushNotificationConfigStore | None = None,
     push_sender: PushNotificationSender | None = None,
     request_context_builder: RequestContextBuilder | None = None,
     lifespan: Lifespan[AppType] | None = None,
     dependencies: list[Depends] | None = None,  # pyright: ignore [reportGeneralTypeIssues]
+    override_interfaces: bool = True,
     **kwargs,
 ) -> FastAPI:
     queue_manager = queue_manager or InMemoryQueueManager()
     task_store = task_store or InMemoryTaskStore()
+    context_store = context_store or InMemoryContextStore()
     http_handler = DefaultRequestHandler(
-        agent_executor=Executor(agent.execute, queue_manager),
+        agent_executor=Executor(agent.execute, queue_manager, context_store=context_store),
         task_store=task_store,
         queue_manager=queue_manager,
         push_config_store=push_config_store,
@@ -38,12 +43,13 @@ def create_app(
         request_context_builder=request_context_builder,
     )
 
-    agent.card.additional_interfaces = [
-        AgentInterface(url=agent.card.url, transport=TransportProtocol.http_json),
-        AgentInterface(url=agent.card.url + "/jsonrpc/", transport=TransportProtocol.jsonrpc),
-    ]
-    agent.card.url = agent.card.url + "/jsonrpc/"
-    agent.card.preferred_transport = TransportProtocol.jsonrpc
+    if override_interfaces:
+        agent.card.additional_interfaces = [
+            AgentInterface(url=agent.card.url, transport=TransportProtocol.http_json),
+            AgentInterface(url=agent.card.url + "/jsonrpc/", transport=TransportProtocol.jsonrpc),
+        ]
+        agent.card.url = agent.card.url + "/jsonrpc/"
+        agent.card.preferred_transport = TransportProtocol.jsonrpc
 
     jsonrpc_app = A2AFastAPIApplication(agent_card=agent.card, http_handler=http_handler).build(
         dependencies=dependencies,

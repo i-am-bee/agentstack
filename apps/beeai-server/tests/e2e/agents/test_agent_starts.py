@@ -12,9 +12,9 @@ from beeai_sdk.a2a.extensions import LLMFulfillment, LLMServiceExtensionClient, 
 from beeai_sdk.platform import ModelProvider, Provider
 from beeai_sdk.platform.context import Context, Permissions
 
+pytestmark = pytest.mark.e2e
 
-@pytest.mark.e2e
-@pytest.mark.asyncio
+
 @pytest.mark.usefixtures("clean_up", "setup_real_llm", "setup_platform_client")
 async def test_remote_agent(subtests, a2a_client_factory, get_final_task_from_stream, test_configuration):
     agent_image = test_configuration.test_agent_image

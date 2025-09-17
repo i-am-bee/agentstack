@@ -6,22 +6,21 @@
 import { redirect } from 'next/navigation';
 import { AuthError } from 'next-auth';
 
-import { providerMap, signIn } from '#auth.ts';
+import { providerMap, signIn } from '#app/(auth)/auth.ts';
 import { SigninButton } from '#components/SigninButton/SigninButton.tsx';
+import { routes } from '#utils/router.ts';
 
-import classes from './signin.module.scss';
+import classes from './SignInView.module.scss';
 
 const SIGNIN_ERROR_URL = '/error';
 
-export interface SigninPageProps {
-  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+interface Props {
+  callbackUrl?: string;
 }
 
-export default async function SignInPage(props: SigninPageProps) {
-  const searchParams = await props.searchParams;
+export function SignInView({ callbackUrl }: Props) {
   return (
-    <div className={classes.bannerBackground}>
-      {/* <BannerImage /> */}
+    <div className={classes.root}>
       <div className={classes.loginWrapper}>
         <div className={classes.loginMain}>
           <span>Log in to </span>
@@ -34,14 +33,9 @@ export default async function SignInPage(props: SigninPageProps) {
               action={async () => {
                 'use server';
                 try {
-                  const callbackUrl = searchParams?.['callbackUrl'] ?? '';
-                  if (typeof callbackUrl == 'string') {
-                    await signIn(provider.id, {
-                      redirectTo: callbackUrl,
-                    });
-                  } else {
-                    throw new URIError('missing or invalid redirect uri passed to signIn.');
-                  }
+                  await signIn(provider.id, {
+                    redirectTo: callbackUrl ?? routes.home(),
+                  });
                 } catch (error) {
                   // Signin can fail for a number of reasons, such as the user
                   // not existing, or the user not having the correct role.

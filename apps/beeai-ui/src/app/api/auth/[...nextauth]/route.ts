@@ -3,11 +3,5 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-.avatar {
-  position: absolute;
-  inset-inline-end: 80px;
-}
-
-.hidden {
-  display: none;
-}
+import { handlers } from '#app/(auth)/auth.ts';
+export const { GET, POST } = handlers;

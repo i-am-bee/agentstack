@@ -14,10 +14,11 @@ import classes from './TextAreaAutoHeight.module.scss';
 type Props = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'value'> & {
   maxRows?: number;
   resizable?: boolean;
+  size?: 'lg';
 };
 
 export const TextAreaAutoHeight = forwardRef<HTMLTextAreaElement, Props>(function TextAreaAutoHeight(
-  { className, resizable, maxRows, onChange, ...rest },
+  { className, resizable, maxRows, size, onChange, ...rest },
   ref,
 ) {
   const [value, setValue] = useState(rest.defaultValue ?? '');
@@ -59,10 +60,12 @@ export const TextAreaAutoHeight = forwardRef<HTMLTextAreaElement, Props>(functio
     return () => element?.removeEventListener('input', handleInput);
   });
 
+  const sizeClassName = size ? classes[size] : undefined;
+
   const content = (
     <div
       ref={containerRef}
-      className={clsx(classes.root, className, {
+      className={clsx(classes.root, className, sizeClassName, {
         [classes.resizable]: resizable,
         [classes.resized]: Boolean(manualHeight),
       })}

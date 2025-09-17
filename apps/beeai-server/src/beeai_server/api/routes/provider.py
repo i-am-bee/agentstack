@@ -15,9 +15,9 @@ from beeai_server.api.dependencies import (
     RequiresPermissions,
 )
 from beeai_server.api.routes.a2a import create_proxy_agent_card
-from beeai_server.api.schema.common import PaginatedResponse
 from beeai_server.api.schema.env import ListVariablesSchema, UpdateVariablesRequest
 from beeai_server.api.schema.provider import CreateProviderRequest
+from beeai_server.domain.models.common import PaginatedResult
 from beeai_server.domain.models.permissions import AuthorizedUser
 from beeai_server.domain.models.provider import ProviderWithState
 from beeai_server.utils.fastapi import streaming_response
@@ -57,7 +57,7 @@ async def list_providers(
     provider_service: ProviderServiceDependency,
     request: Request,
     _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}), use_cache=False)],
-) -> PaginatedResponse[ProviderWithState]:
+) -> PaginatedResult[ProviderWithState]:
     providers = []
     for provider in await provider_service.list_providers():
         new_provider = provider.model_copy(
@@ -67,7 +67,7 @@ async def list_providers(
         )
         providers.append(new_provider)
 
-    return PaginatedResponse(items=providers, total_count=len(providers))
+    return PaginatedResult(items=providers, total_count=len(providers))
 
 
 @router.get("/{id}")

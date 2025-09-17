@@ -18,7 +18,7 @@ interface Props {
 export function SigninButton({ provider }: Props) {
   return (
     <Button renderIcon={Bee} iconDescription={`Signin with ${provider.name}`} kind="secondary" type="submit">
-      <span>Continue with {provider.name}</span>
+      <span>Login with {provider.name}</span>
     </Button>
   );
 }

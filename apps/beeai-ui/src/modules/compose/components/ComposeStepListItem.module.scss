@@ -99,26 +99,8 @@
 
 .textarea {
   padding-block-end: $spacing-06;
-
   &::after,
   > textarea {
-    @include type-style('body-compact-01');
-    border: 1px solid $border-subtle;
-    border-radius: $border-radius;
-  }
-  > textarea {
-    color: inherit;
-    background-color: $background;
-    &::placeholder {
-      transition: opacity $duration-fast-02;
-      color: $text-placeholder;
-    }
-    &:focus-visible {
-      border-color: $text-dark;
-      outline: 0;
-      &::placeholder {
-        opacity: 0.5;
-      }
-    }
+    --padding-inline: #{$spacing-04};
   }
 }

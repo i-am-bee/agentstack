@@ -9,7 +9,6 @@ from beeai_server.utils.docker import DockerImageID, get_registry_image_config_a
 pytestmark = pytest.mark.integration
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "image",
     [

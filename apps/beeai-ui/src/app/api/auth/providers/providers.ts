@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import IBM from '#app/auth/providers/ibm.ts';
+import IBM from './ibm';
 
 export class ProviderList {
   providerMap = new Map();

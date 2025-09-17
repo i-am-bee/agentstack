@@ -69,7 +69,6 @@ async def large_vector_items():
     ]
 
 
-@pytest.mark.asyncio
 async def test_vector_store_storage_limit_enforcement(
     vector_store_service: VectorStoreService, test_user: User, large_vector_items: list[VectorStoreItem]
 ):
@@ -101,7 +100,6 @@ async def test_vector_store_storage_limit_enforcement(
     assert retrieved_store_after.stats.usage_bytes == initial_usage
 
 
-@pytest.mark.asyncio
 async def test_storage_limit_check_happens_after_size_estimation(
     vector_store_service: VectorStoreService, test_user: User, large_vector_items: list[VectorStoreItem]
 ):
@@ -130,7 +128,6 @@ async def test_storage_limit_check_happens_after_size_estimation(
     assert len(search_results) == 0, "No vector items should be present after limit exceeded"
 
 
-@pytest.mark.asyncio
 async def test_invalid_vector_dimension(vector_store_service: VectorStoreService, test_user: User):
     # Create a vector store
     vector_store = await vector_store_service.create(
