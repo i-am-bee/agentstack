@@ -71,7 +71,7 @@ spec:
                 secretKeyRef:
                   key: authSecret
                   name: beeai-next-auth
-            - name: NEXT_PUBLIC_OIDC_ENABLED
+            - name: OIDC_ENABLED
               value: "true"
             - name: OIDC_PROVIDERS
               valueFrom:
