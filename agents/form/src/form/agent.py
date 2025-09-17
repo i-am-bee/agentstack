@@ -77,7 +77,7 @@ server = Server()
 
 @server.agent(
     name="Single-turn Form Agent",
-    documentation_url="https://github.com/i-am-bee/beeai-platform/blob/main/agents/official/beeai-framework/chat",
+    documentation_url="https://beeai.dev",
     version="1.0.0",
     default_input_modes=["text", "text/plain"],
     default_output_modes=["text", "text/plain"],

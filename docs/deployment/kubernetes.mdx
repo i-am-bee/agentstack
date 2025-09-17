@@ -128,12 +128,10 @@ Include specific agents in your deployment:
 ```yaml
 # config.yaml
 providers:
-  # Community agents
-  - location: ghcr.io/i-am-bee/beeai-platform/community/aider:latest
-  - location: ghcr.io/i-am-bee/beeai-platform/community/gpt-researcher:latest
-
   # Official agents
-  - location: ghcr.io/i-am-bee/beeai-platform/official/beeai-framework/chat:latest
+  - location: ghcr.io/i-am-bee/beeai-platform/agents/chat:0.3.4
+  - location: ghcr.io/i-am-bee/beeai-platform/agents/rag:0.3.4
+  - location: ghcr.io/i-am-bee/beeai-platform/agents/form:0.3.4
 
   # Your custom agents
   - location: your-registry.com/your-team/custom-agent:v1.0.0

@@ -79,8 +79,7 @@ server = Server()
 @server.agent(
     name="RAG",
     documentation_url=(
-        f"https://github.com/i-am-bee/beeai-platform/blob/{os.getenv('RELEASE_VERSION', 'main')}"
-        "/agents/official/beeai-framework/rag"
+        f"https://github.com/i-am-bee/beeai-platform/blob/{os.getenv('RELEASE_VERSION', 'main')}/agents/rag"
     ),
     version="1.0.0",
     default_input_modes=[

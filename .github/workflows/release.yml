@@ -17,11 +17,9 @@ jobs:
     strategy:
       matrix:
         agent:
-          - official/beeai-framework/chat
-          - official/beeai-framework/rag
-          - official/sequential-workflow
-          - community/aider
-          - community/gpt-researcher
+          - chat
+          - rag
+          - form
     steps:
       - uses: actions/checkout@v4
       - id: version
@@ -43,8 +41,8 @@ jobs:
           build-args: |
             RELEASE_VERSION=${{ github.ref_name }}
           tags: tmp-agent-image
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/${{ matrix.agent }}:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/${{ matrix.agent }}:cache,mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/agents/${{ matrix.agent }}:cache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/agents/${{ matrix.agent }}:cache,mode=max
       - id: agent-manifest
         run: |
           set -e
@@ -68,13 +66,13 @@ jobs:
           build-args: |
             RELEASE_VERSION=${{ github.ref_name }}
           tags: |
-            ghcr.io/${{ github.repository }}/${{ matrix.agent }}:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/${{ matrix.agent }}:${{ steps.version.outputs.version }}
-            ghcr.io/${{ github.repository }}/${{ matrix.agent }}:${{ steps.version.outputs.latestTag }}
+            ghcr.io/${{ github.repository }}/agents/${{ matrix.agent }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/agents/${{ matrix.agent }}:${{ steps.version.outputs.version }}
+            ghcr.io/${{ github.repository }}/agents/${{ matrix.agent }}:${{ steps.version.outputs.latestTag }}
           labels: |
             beeai.dev.agent.json=${{ steps.agent-manifest.outputs.content }}
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/${{ matrix.agent }}:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/${{ matrix.agent }}:cache,mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/agents/${{ matrix.agent }}:cache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/agents/${{ matrix.agent }}:cache,mode=max
 
   beeai-platform:
     needs: agents

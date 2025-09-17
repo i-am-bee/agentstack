@@ -1,8 +1,8 @@
 FROM python:3.13-slim-bookworm AS builder
 RUN apt-get update && apt-get install -y build-essential
 COPY --from=ghcr.io/astral-sh/uv:0.8.17 /uv /bin/
-WORKDIR /agents/official/beeai-framework/rag
-COPY ./agents/official/beeai-framework/rag/ ./
+WORKDIR /agents/form
+COPY ./agents/form/ ./
 COPY ./apps/beeai-sdk/ /apps/beeai-sdk/
 RUN uv sync --no-cache --link-mode copy
 
@@ -12,4 +12,4 @@ COPY --from=builder /agents/ /agents/
 COPY --from=builder /apps/ /apps/
 ENV PRODUCTION_MODE=True \
     RELEASE_VERSION=${RELEASE_VERSION}
-CMD ["/agents/official/beeai-framework/rag/.venv/bin/server"]
+CMD ["/agents/form/.venv/bin/server"]

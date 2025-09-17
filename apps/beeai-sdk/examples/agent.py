@@ -160,7 +160,7 @@ async def serve():
                         - **Customizable Configuration** - Users can enable or disable specific tools for enhanced responses.
                         """
                     ),
-                    documentation_url="https://github.com/i-am-bee/beeai-platform/blob/main/agents/official/beeai-framework/chat",
+                    documentation_url="https://github.com/i-am-bee/beeai-platform/blob/main/agents/chat",
                     url=f"http://{host}:{port}/",
                     version="1.0.0",
                     default_input_modes=["text", "text/plain"],
