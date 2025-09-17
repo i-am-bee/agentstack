@@ -241,9 +241,10 @@ async def stream_logs(
     ],
 ):
     """Stream agent provider logs"""
-    provider = select_provider(search_path, await Provider.list()).id
-    async for message in api_stream("get", f"providers/{provider}/logs"):
-        _print_log(message)
+    async with configuration.use_platform_client():
+        provider = select_provider(search_path, await Provider.list()).id
+        async for message in api_stream("get", f"providers/{provider}/logs"):
+            _print_log(message)
 
 
 async def _ask_form_questions(form_render: FormRender) -> FormResponse:

@@ -16,6 +16,13 @@ unmanagedProviders: [ ]
 # github: "https://github.com/i-am-bee/beeai-platform@v0.2.14#path=agent-registry.yaml"
 externalRegistries: { }
 
+# In beeai-server this is used to determine the request origin and dynamically create agent card.
+# For example https://beeai.example.com/api/v1/providers/{provider_id} will return an agent cart with URL for
+# https://beeai.example.com, without respecting the headers, the URL would be "http://beeai.example.com",
+# See https://www.uvicorn.org/settings/#application-interface
+
+forwardedAllowIps: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+
 auth:
   enabled: false # Warning, disable only for local deployments
   jwtSecretKey: ""

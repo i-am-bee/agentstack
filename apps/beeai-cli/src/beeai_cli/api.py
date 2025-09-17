@@ -63,8 +63,9 @@ async def api_request(
     use_auth: bool = True,
 ) -> dict | None:
     headers = {}
-    if config.oidc_enabled and use_auth:
-        headers["Authorization"] = await set_auth_header()
+    if use_auth:
+        with suppress(RuntimeError):
+            headers["Authorization"] = await set_auth_header()
     """Make an API request to the server."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
@@ -99,8 +100,9 @@ async def api_stream(
     use_auth: bool = True,
 ) -> AsyncIterator[dict[str, Any]]:
     headers = {}
-    if config.oidc_enabled and use_auth:
-        headers["Authorization"] = await set_auth_header()
+    with suppress(RuntimeError):
+        if use_auth:
+            headers["Authorization"] = await set_auth_header()
 
     """Make a streaming API request to the server."""
     import json as jsonlib
@@ -137,7 +139,7 @@ async def a2a_client(agent_card: AgentCard, use_auth: bool = True) -> AsyncItera
         with suppress(RuntimeError):
             headers["Authorization"] = await set_auth_header()
 
-    async with httpx.AsyncClient(headers=headers) as httpx_client:
+    async with httpx.AsyncClient(headers=headers, follow_redirects=True) as httpx_client:
         yield ClientFactory(ClientConfig(httpx_client=httpx_client)).create(card=agent_card)
 
 
