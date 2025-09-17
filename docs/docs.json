@@ -12,16 +12,19 @@
     "groups": [
       {
         "group": "Getting Started",
-        "pages": ["introduction/welcome", "introduction/quickstart"]
+        "pages": [
+          "introduction/welcome",
+          "introduction/quickstart",
+          "build-agents/hello-world"
+        ]
       },
       {
         "group": "Core Concepts",
-        "pages": ["concepts/architecture", "concepts/a2a", "concepts/extensions"]
+        "pages": ["concepts/a2a", "concepts/extensions"]
       },
       {
-        "group": "Build Your Own Agent",
+        "group": "Building Agents",
         "pages": [
-          "build-agents/hello-world",
           "build-agents/llm-configuration",
           "build-agents/agent-details",
           "build-agents/messages",
