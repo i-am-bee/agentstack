@@ -50,17 +50,17 @@ async def example_agent(input: Message, context: RunContext):
     current_message = get_message_text(input)
     print(f"Current message: {current_message}")
     
-    # Load all previous messages from conversation history
+    # Load all messages from conversation history (including current message)
     history = [
         message async for message in context.store.load_history() 
         if isinstance(message, Message) and message.parts
     ]
     
     # Process the conversation history
-    print(f"Found {len(history)} previous messages")
+    print(f"Found {len(history)} messages in conversation (including current)")
     
-    # Your agent logic here - you can now reference previous messages
-    yield AgentMessage(text=f"Hello! I can see we have {len(history)} previous messages in our conversation.")
+    # Your agent logic here - you can now reference all messages in the conversation
+    yield AgentMessage(text=f"Hello! I can see we have {len(history)} messages in our conversation.")
 
 def run():
     server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
@@ -71,14 +71,18 @@ if __name__ == "__main__":
 
 ## Understanding Conversation History
 
-The `context.store.load_history()` method returns an async iterator containing all previous items in the conversation. This can include:
+The `context.store.load_history()` method returns an async iterator containing all items in the conversation, including the current message. This can include:
 
-- **A2A Messages**: Both user and assistant messages from the conversation
+- **A2A Messages**: Both user and assistant messages from the conversation (including the current message)
 - **Artifacts**: Any files, documents, or other artifacts shared during the conversation
 
 For multi-turn conversations, you'll primarily work with A2A messages, which include:
 - **User messages**: Messages sent by the user
 - **Assistant messages**: Previous responses from your agent
+
+<Tip>
+The history includes the current message, so if you want only previous messages, you may need to filter out the last message or use the current message separately.
+</Tip>
 
 <Warning>
 The history iterator returns all message types. Always filter messages using `isinstance(message, Message)` to ensure you're working with the correct message format.
