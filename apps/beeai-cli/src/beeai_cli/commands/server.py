@@ -100,13 +100,13 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
 
     server = server.rstrip("/")
 
-    if (server_data := config.auth_manager.get_server(server)) and ():
+    if server_data := config.auth_manager.get_server(server):
         console.info("Switching to an already logged in server.")
         auth_server = None
         auth_servers = list(server_data.authorization_servers.keys())
         if len(auth_servers) == 1:
             auth_server = auth_servers[0]
-        else:
+        elif len(auth_servers) > 1:
             auth_server = await inquirer.select(  #  type: ignore
                 message="Select an authorization server:",
                 choices=[

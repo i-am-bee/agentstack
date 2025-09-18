@@ -113,7 +113,7 @@ class AuthConfigManager:
 
     @active_auth_server.setter
     def active_auth_server(self, auth_server: str | None) -> None:
-        if self._config.active_auth_server is not None and (
+        if auth_server is not None and (
             self._config.active_server not in self._config.servers
             or auth_server not in self._config.servers[self._config.active_server].authorization_servers
         ):
