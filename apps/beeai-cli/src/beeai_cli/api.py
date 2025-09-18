@@ -18,11 +18,12 @@ from a2a.types import AgentCard
 from httpx import HTTPStatusError
 from httpx._types import RequestFiles
 
+from beeai_cli import configuration
 from beeai_cli.configuration import Configuration
 
 config = Configuration()
-BASE_URL = server if (server := config.auth_manager.active_server) else "http://localhost:8333"
-API_BASE_URL = f"{BASE_URL}/api/v1/"
+
+API_BASE_URL = "/api/v1/"
 
 
 class ProcessStatus(enum.StrEnum):
@@ -67,7 +68,7 @@ async def api_request(
         with suppress(RuntimeError):
             headers["Authorization"] = await set_auth_header()
     """Make an API request to the server."""
-    async with httpx.AsyncClient() as client:
+    async with configuration.use_platform_client() as client:
         response = await client.request(
             method,
             urllib.parse.urljoin(API_BASE_URL, path),
@@ -108,7 +109,7 @@ async def api_stream(
     import json as jsonlib
 
     async with (
-        httpx.AsyncClient() as client,
+        configuration.use_platform_client() as client,
         client.stream(
             method,
             urllib.parse.urljoin(API_BASE_URL, path),

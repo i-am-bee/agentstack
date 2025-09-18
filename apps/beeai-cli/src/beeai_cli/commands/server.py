@@ -67,21 +67,25 @@ async def _wait_for_auth_code(port: int = 9001) -> str:
     return code
 
 
-@app.command("login")
+@app.command("login | change | select | default")
 async def server_login(server: typing.Annotated[str | None, typer.Argument()] = None):
     """Login to a server or switch between logged in servers."""
-    servers = config.auth_manager.config.servers
-    active_server = config.auth_manager.active_server
     server = server or (
         await inquirer.select(  #  type: ignore
-            message="Select a server to activate, or log in to a new one:",
+            message="Select a server, or log in to a new one:",
             choices=[
-                *(Choice(name=f"{s} {'(active)' if s == active_server else ''}", value=s) for s in servers),
+                *(
+                    Choice(
+                        name=f"{server} {'(active)' if server == config.auth_manager.active_server else ''}",
+                        value=server,
+                    )
+                    for server in config.auth_manager.servers
+                ),
                 Choice(name="Log in to a new server", value=None),
             ],
             default=0,
         ).execute_async()
-        if servers
+        if config.auth_manager.servers
         else None
     )
     server = server or await inquirer.text(message="Enter server URL:").execute_async()  #  type: ignore
@@ -94,11 +98,10 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
 
     server = server.rstrip("/")
 
-    if (server_data := config.auth_manager.config.servers.get(server)) and (
-        auth_servers := list(server_data.authorization_servers.keys())
-    ):
-        console.info("Switching to already logged in server.")
+    if (server_data := config.auth_manager.get_server(server)) and ():
+        console.info("Switching to an already logged in server.")
         auth_server = None
+        auth_servers = list(server_data.authorization_servers.keys())
         if len(auth_servers) == 1:
             auth_server = auth_servers[0]
         else:
@@ -115,10 +118,9 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                 if config.auth_manager.active_auth_server in auth_servers
                 else 0,
             ).execute_async()
-
-        if not auth_server:
-            console.info("Action cancelled.")
-            return
+            if not auth_server:
+                console.info("Action cancelled.")
+                sys.exit(1)
     else:
         console.info("No authentication tokens found for this server. Proceeding to log in.")
         async with httpx.AsyncClient(verify=await get_verify_option(server)) as client:
@@ -127,70 +129,69 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                 console.error("This server does not appear to run a compatible version of BeeAI Platform.")
                 sys.exit(1)
             metadata = resp.json()
+
         auth_servers = metadata.get("authorization_servers", [])
-
-        if not auth_servers:
-            raise RuntimeError("No authorization servers found.")
-
         auth_server = None
-        if len(auth_servers) == 1:
-            auth_server = auth_servers[0]
-        else:
-            auth_server = await inquirer.select(  # type: ignore
-                message="Select an authorization server:",
-                choices=auth_servers,
-            ).execute_async()
+        token = None
+        if auth_servers:
+            if len(auth_servers) == 1:
+                auth_server = auth_servers[0]
+            else:
+                auth_server = await inquirer.select(  # type: ignore
+                    message="Select an authorization server:",
+                    choices=auth_servers,
+                ).execute_async()
 
-        if not auth_server:
-            raise RuntimeError("No authorization server selected.")
+            if not auth_server:
+                raise RuntimeError("No authorization server selected.")
 
-        async with httpx.AsyncClient() as client:
-            try:
-                resp = await client.get(f"{auth_server}/.well-known/openid-configuration")
-                resp.raise_for_status()
-                oidc = resp.json()
-            except Exception as e:
-                raise RuntimeError(f"OIDC discovery failed: {e}") from e
+            async with httpx.AsyncClient() as client:
+                try:
+                    resp = await client.get(f"{auth_server}/.well-known/openid-configuration")
+                    resp.raise_for_status()
+                    oidc = resp.json()
+                except Exception as e:
+                    raise RuntimeError(f"OIDC discovery failed: {e}") from e
 
-        code_verifier = generate_token(64)
+            code_verifier = generate_token(64)
 
-        auth_url = f"{oidc['authorization_endpoint']}?{
-            urlencode(
-                {
-                    'client_id': config.client_id,
-                    'response_type': 'code',
-                    'redirect_uri': config.redirect_uri,
-                    'scope': ' '.join(metadata.get('scopes_supported', ['openid'])),
-                    'code_challenge': typing.cast(str, create_s256_code_challenge(code_verifier)),
-                    'code_challenge_method': 'S256',
-                }
-            )
-        }"
-
-        console.info(f"Opening browser for login: [cyan]{auth_url}[/cyan]")
-        if not webbrowser.open(auth_url):
-            console.warning("Could not open browser. Please visit the above URL manually.")
-
-        code = await _wait_for_auth_code()
-        async with httpx.AsyncClient() as client:
-            try:
-                token_resp = await client.post(
-                    oidc["token_endpoint"],
-                    data={
-                        "grant_type": "authorization_code",
-                        "code": code,
-                        "redirect_uri": config.redirect_uri,
-                        "client_id": config.client_id,
-                        "code_verifier": code_verifier,
-                    },
+            auth_url = f"{oidc['authorization_endpoint']}?{
+                urlencode(
+                    {
+                        'client_id': config.client_id,
+                        'response_type': 'code',
+                        'redirect_uri': config.redirect_uri,
+                        'scope': ' '.join(metadata.get('scopes_supported', ['openid'])),
+                        'code_challenge': typing.cast(str, create_s256_code_challenge(code_verifier)),
+                        'code_challenge_method': 'S256',
+                    }
                 )
-                token_resp.raise_for_status()
-                token = token_resp.json()
-            except Exception as e:
-                raise RuntimeError(f"Token request failed: {e}") from e
+            }"
 
-        if not token:
-            raise RuntimeError("Login timed out or not successful.")
+            console.info(f"Opening browser for login: [cyan]{auth_url}[/cyan]")
+            if not webbrowser.open(auth_url):
+                console.warning("Could not open browser. Please visit the above URL manually.")
+
+            code = await _wait_for_auth_code()
+            async with httpx.AsyncClient() as client:
+                try:
+                    token_resp = await client.post(
+                        oidc["token_endpoint"],
+                        data={
+                            "grant_type": "authorization_code",
+                            "code": code,
+                            "redirect_uri": config.redirect_uri,
+                            "client_id": config.client_id,
+                            "code_verifier": code_verifier,
+                        },
+                    )
+                    token_resp.raise_for_status()
+                    token = token_resp.json()
+                except Exception as e:
+                    raise RuntimeError(f"Token request failed: {e}") from e
+
+            if not token:
+                raise RuntimeError("Login timed out or not successful.")
 
         config.auth_manager.save_auth_token(server, auth_server, token)
 
@@ -199,19 +200,36 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
     console.success(f"Logged in to [cyan]{server}[/cyan].")
 
 
-@app.command("logout")
-async def server_logout():
-    config.auth_manager.clear_auth_token()
+@app.command("logout | remove | rm | delete")
+async def server_logout(
+    all: typing.Annotated[
+        bool,
+        typer.Option(),
+    ] = False,
+):
+    config.auth_manager.clear_auth_token(all=all)
     console.success("You have been logged out.")
 
 
 @app.command("show")
 def server_show():
+    if not config.auth_manager.active_server:
+        console.info("No server selected.")
+        console.hint(
+            "Run [green]beeai server list[/green] to list available servers, and [green]beeai server login[/green] to select one."
+        )
+        return
     console.info(f"Active server: [cyan]{config.auth_manager.active_server}[/cyan]")
 
 
 @app.command("list")
 def server_list():
+    if not config.auth_manager.servers:
+        console.info("No servers found.")
+        console.hint(
+            "Run [green]beeai platform start[/green] to start a local server, or [green]beeai server login[/green] to connect to a remote one."
+        )
+        return
     for server in config.auth_manager.servers:
         console.print(
             f"[cyan]{server}[/cyan] {'[green](active)[/green]' if server == config.auth_manager.active_server else ''}"

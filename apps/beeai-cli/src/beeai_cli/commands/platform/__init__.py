@@ -72,6 +72,8 @@ async def start(
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ):
     """Start BeeAI platform."""
+    import beeai_cli.commands.server
+
     with verbosity(verbose):
         driver = get_driver(vm_name=vm_name)
         await driver.create_vm()
@@ -106,6 +108,8 @@ async def start(
                 """),
                 style="dim",
             )
+
+        await beeai_cli.commands.server.server_login("http://localhost:8333")
 
 
 @app.command("stop")

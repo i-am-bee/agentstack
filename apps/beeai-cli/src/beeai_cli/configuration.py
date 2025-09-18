@@ -5,6 +5,7 @@ import functools
 import importlib.metadata
 import pathlib
 import re
+import sys
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -61,11 +62,18 @@ class Configuration(pydantic_settings.BaseSettings):
 
     @asynccontextmanager
     async def use_platform_client(self) -> AsyncIterator[PlatformClient]:
-        base_url = self.auth_manager.active_server or "http://localhost:8333"
+        if self.auth_manager.active_server is None:
+            from beeai_cli.console import console
+
+            console.error("No server selected.")
+            console.hint(
+                "Run [green]beeai platform start[/green] to start a local server, or [green]beeai server login[/green] to connect to a remote one."
+            )
+            sys.exit(1)
         async with use_platform_client(
             auth=("admin", self.admin_password.get_secret_value()) if self.admin_password else None,
             auth_token=self.auth_manager.load_auth_token(),
-            base_url=base_url,
-            verify=await get_verify_option(base_url),
+            base_url=self.auth_manager.active_server,
+            verify=await get_verify_option(self.auth_manager.active_server),
         ) as client:
             yield client
