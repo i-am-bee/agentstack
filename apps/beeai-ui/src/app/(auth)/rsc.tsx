@@ -18,7 +18,7 @@ export const ensureSession = async () => {
   const session = await auth();
 
   if (!session) {
-    redirect(routes.login());
+    redirect(routes.signIn());
   }
   return session;
 };

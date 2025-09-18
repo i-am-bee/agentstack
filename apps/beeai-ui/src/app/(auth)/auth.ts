@@ -81,7 +81,7 @@ export const providerMap = providers
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers,
   pages: {
-    signIn: routes.login(),
+    signIn: routes.signIn(),
   },
   session: { strategy: 'jwt' },
   trustHost: true,

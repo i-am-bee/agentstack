@@ -35,7 +35,7 @@ export function UserNav() {
               icon: Logout,
               hasDivider: true,
               onClick: () => {
-                signOut({ redirectTo: routes.login() });
+                signOut({ redirectTo: routes.signIn() });
               },
             },
           ]

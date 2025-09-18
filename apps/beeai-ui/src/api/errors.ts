@@ -62,3 +62,5 @@ export class StreamError extends CustomError {
     this.code = error.status_code;
   }
 }
+
+export class UnauthenticatedError extends CustomError {}

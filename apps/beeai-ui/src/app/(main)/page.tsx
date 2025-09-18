@@ -25,7 +25,7 @@ export default async function LandingPage() {
     session = await auth();
     if (!session?.user) {
       await connection();
-      redirect(routes.login());
+      redirect(routes.signIn());
     }
   }
   try {

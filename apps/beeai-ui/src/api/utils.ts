@@ -9,17 +9,23 @@ import type { MediaType } from 'openapi-typescript-helpers';
 
 import { isNotNull } from '#utils/helpers.ts';
 
-import { ApiError, ApiValidationError, HttpError } from './errors';
+import { ApiError, ApiValidationError, HttpError, UnauthenticatedError } from './errors';
 import type { ApiErrorCode, ApiErrorResponse, ApiValidationErrorResponse } from './types';
 
 export function ensureData<T extends Record<string | number, unknown>, O, M extends MediaType>(
-  response: FetchResponse<T, O, M>,
+  fetchResponse: FetchResponse<T, O, M>,
 ) {
-  if ('error' in response) {
-    handleFailedError({ response: response.response, error: response.error });
+  const { response, data, error } = fetchResponse;
+
+  if (response.status === 401) {
+    throw new UnauthenticatedError({ message: 'You are not authenticated.', response });
   }
 
-  return response.data;
+  if (error) {
+    handleFailedError({ response, error });
+  }
+
+  return data;
 }
 
 function handleFailedError({ response, error }: { response: Response; error: unknown }) {
