@@ -38,7 +38,6 @@ class Configuration(pydantic_settings.BaseSettings):
     oidc_enabled: bool = False
     server_metadata_ttl: int = 86400
     client_id: str = "df82a687-d647-4247-838b-7080d7d83f6c"  # pre-registered with AS
-    redirect_uri: pydantic.AnyUrl = HttpUrl("http://localhost:9001/callback")
 
     @property
     def lima_home(self) -> pathlib.Path:

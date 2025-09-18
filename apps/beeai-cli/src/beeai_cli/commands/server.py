@@ -26,6 +26,8 @@ app = AsyncTyper()
 
 config = Configuration()
 
+REDIRECT_URI = "http://localhost:9001/callback"
+
 
 async def _wait_for_auth_code(port: int = 9001) -> str:
     code_future: asyncio.Future[str] = asyncio.Future()
@@ -160,7 +162,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                     {
                         'client_id': config.client_id,
                         'response_type': 'code',
-                        'redirect_uri': config.redirect_uri,
+                        'redirect_uri': REDIRECT_URI,
                         'scope': ' '.join(metadata.get('scopes_supported', ['openid'])),
                         'code_challenge': typing.cast(str, create_s256_code_challenge(code_verifier)),
                         'code_challenge_method': 'S256',
@@ -180,7 +182,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                         data={
                             "grant_type": "authorization_code",
                             "code": code,
-                            "redirect_uri": config.redirect_uri,
+                            "redirect_uri": REDIRECT_URI,
                             "client_id": config.client_id,
                             "code_verifier": code_verifier,
                         },
