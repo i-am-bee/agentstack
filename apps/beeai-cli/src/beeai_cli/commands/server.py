@@ -18,30 +18,30 @@ from InquirerPy import inquirer
 
 from beeai_cli.async_typer import AsyncTyper, console
 from beeai_cli.configuration import Configuration
-from beeai_cli.utils import get_resource_ca_cert, get_verify_option, make_safe_name, normalize_url
+from beeai_cli.utils import get_server_ca_cert, get_verify_option, make_safe_name, normalize_url
 
 app = AsyncTyper()
 
 config = Configuration()
 
 
-async def get_resource_metadata(resource_url: str, ca_cert_file: Path, force_refresh=False):
-    safe_name = make_safe_name(resource_url)
-    metadata_file = config.resource_metadata_dir / f"{safe_name}_metadata.json"
+async def get_server_metadata(server_url: str, ca_cert_file: Path, force_refresh=False):
+    safe_name = make_safe_name(server_url)
+    metadata_file = config.server_metadata_dir / f"{safe_name}_metadata.json"
 
     if not force_refresh and metadata_file.exists():
         data = json.loads(metadata_file.read_text())
         if data.get("expiry", 0) > time.time():
             return data["metadata"]
 
-    url = f"{resource_url}/api/v1/.well-known/oauth-protected-resource"
-    verify_option = await get_verify_option(resource_url, ca_cert_file)
+    url = f"{server_url}/api/v1/.well-known/oauth-protected-server"
+    verify_option = await get_verify_option(server_url, ca_cert_file)
     async with httpx.AsyncClient(verify=verify_option) as client:
         resp = await client.get(url)
         resp.raise_for_status()
         metadata = resp.json()
 
-    payload = {"metadata": metadata, "expiry": time.time() + config.resource_metadata_ttl}
+    payload = {"metadata": metadata, "expiry": time.time() + config.server_metadata_ttl}
     metadata_file.write_text(json.dumps(payload, indent=2))
     return metadata
 
@@ -130,30 +130,30 @@ async def exchange_token(oidc: dict, code: str, code_verifier: str, config) -> d
 
 
 @app.command("login")
-async def cli_login(resource_url: str | None = None):
-    default_url = config.auth_manager.get_active_resource()
+async def login(server_url: str | None = None):
+    default_url = config.auth_manager.get_active_server()
     if not default_url:
         default_url = config.default_external_host
-    if not resource_url:
-        resource_url = await inquirer.text(  # type: ignore
+    if not server_url:
+        server_url = await inquirer.text(  # type: ignore
             message=f"🌐 Enter the server address (default: {default_url}):",
             default=str(default_url),
             validate=lambda val: bool(val.strip()),
         ).execute_async()
-    if resource_url is None:
-        raise RuntimeError("No resource URL provided.")
+    if server_url is None:
+        raise RuntimeError("No server URL provided.")
 
-    resource_url = normalize_url(resource_url)
+    server_url = normalize_url(server_url)
 
-    ca_cert_file = await get_resource_ca_cert(
-        resource_url=resource_url, ca_cert_file=config.ca_cert_dir / f"{make_safe_name(resource_url)}_ca.crt"
+    ca_cert_file = await get_server_ca_cert(
+        server_url=server_url, ca_cert_file=config.ca_cert_dir / f"{make_safe_name(server_url)}_ca.crt"
     )
-    metadata = await get_resource_metadata(resource_url=resource_url, ca_cert_file=ca_cert_file)
+    metadata = await get_server_metadata(server_url=server_url, ca_cert_file=ca_cert_file)
     auth_servers = metadata.get("authorization_servers", [])
 
     if not auth_servers:
         console.print()
-        console.error("No authorization servers found for this resource.")
+        console.error("No authorization servers found.")
         raise RuntimeError("Login failed due to missing authorization servers.")
 
     if len(auth_servers) == 1:
@@ -196,7 +196,7 @@ async def cli_login(resource_url: str | None = None):
     tokens = await exchange_token(oidc, code, code_verifier, config)
 
     if tokens:
-        config.auth_manager.save_auth_token(make_safe_name(resource_url), issuer, tokens)
+        config.auth_manager.save_auth_token(make_safe_name(server_url), issuer, tokens)
         console.print()
         console.success("Login successful.")
         return
@@ -210,8 +210,8 @@ async def cli_login(resource_url: str | None = None):
 async def logout():
     config.auth_manager.clear_auth_token()
 
-    if config.resource_metadata_dir.exists():
-        for metadata_file in config.resource_metadata_dir.glob("*_metadata.json"):
+    if config.server_metadata_dir.exists():
+        for metadata_file in config.server_metadata_dir.glob("*_metadata.json"):
             try:
                 if json.loads(metadata_file.read_text()).get("expiry", 0) <= time.time():
                     metadata_file.unlink()
@@ -224,53 +224,53 @@ async def logout():
 
 @app.command("show")
 def show_server():
-    active_resource = config.auth_manager.get_active_resource()
-    if not active_resource:
+    active_server = config.auth_manager.get_active_server()
+    if not active_server:
         console.print("[bold red]No active server!!![/bold red]\n")
         return
-    console.print(f"\n[bold]Active server:[/bold] [green]{active_resource}[/green]\n")
+    console.print(f"\n[bold]Active server:[/bold] [green]{active_server}[/green]\n")
 
 
 @app.command("list")
 def list_server():
-    resources = config.auth_manager.config.get("resources", {})
-    if not resources:
+    servers = config.auth_manager.config.get("servers", {})
+    if not servers:
         console.print("[bold red]No servers logged in.[/bold red]\nRun [bold green]`beeai login`[/bold green] first.\n")
         return
     console.print("\n[bold blue]Known servers:[/bold blue]")
-    for i, res in enumerate(resources, start=1):
-        marker = " [green]✅(active)[/green]" if res == config.auth_manager.get_active_resource() else ""
-        console.print(f"[cyan]{i}. {res}[/cyan] {marker}")
+    for i, server in enumerate(servers, start=1):
+        marker = " [green]✅(active)[/green]" if server == config.auth_manager.get_active_server() else ""
+        console.print(f"[cyan]{i}. {server}[/cyan] {marker}")
 
 
 @app.command("change | select | default")
 def switch_server():
-    resources = config.auth_manager.config.get("resources", {})
-    if not resources:
+    servers = config.auth_manager.config.get("servers", {})
+    if not servers:
         console.print("[bold red]No server logged in.[/bold red] Run [bold green]`beeai login`[/bold green] first.\n")
 
     console.print("\n[bold blue]Available servers:[/bold blue]")
     choices = [
         {
-            "name": f"{i + 1}. {res} {' ✅(active)' if res == config.auth_manager.get_active_resource() else ''}",
-            "value": res,
+            "name": f"{i + 1}. {server} {' ✅(active)' if server == config.auth_manager.get_active_server() else ''}",
+            "value": server,
         }
-        for i, res in enumerate(resources)
+        for i, server in enumerate(servers)
     ]
 
-    selected_resource = inquirer.select(  # type: ignore
+    selected_server = inquirer.select(  # type: ignore
         message="Select a server:",
         choices=choices,
-        default=config.auth_manager.get_active_resource() if config.auth_manager.get_active_resource() else None,
+        default=config.auth_manager.get_active_server() if config.auth_manager.get_active_server() else None,
         pointer="👉",
     ).execute()
 
-    resource_data = resources[selected_resource]
-    auth_servers = list(resource_data.get("authorization_servers", {}).keys())
+    server_data = servers[selected_server]
+    auth_servers = list(server_data.get("authorization_servers", {}).keys())
 
     if not auth_servers:
         console.print(
-            f"[bold red]No tokens available for [cyan]{selected_resource}[/cyan].[/bold red] You may need to run [bolc green]`beeai login -- {selected_resource}`[/bold green]."
+            f"[bold red]No tokens available for [cyan]{selected_server}[/cyan].[/bold red] You may need to run [bolc green]`beeai login -- {selected_server}`[/bold green]."
         )
         return
     if len(auth_servers) == 1:
@@ -279,7 +279,7 @@ def switch_server():
         console.print("[bold blue]Multiple authorization servers are available.[/bold blue]")
         auth_server_choices = [
             {
-                "name": f"{j + 1}. {issuer} {' ✅(active)' if selected_resource == config.auth_manager.config.get('active_resource') and issuer == config.auth_manager.config.get('active_token') else ''}",
+                "name": f"{j + 1}. {issuer} {' ✅(active)' if selected_server == config.auth_manager.config.get('active_server') and issuer == config.auth_manager.config.get('active_token') else ''}",
                 "value": issuer,
             }
             for j, issuer in enumerate(auth_servers)
@@ -290,7 +290,7 @@ def switch_server():
             pointer="👉",
         ).execute()
 
-    config.auth_manager.set_active_resource(selected_resource)
-    config.auth_manager.set_active_token(selected_resource, selected_issuer)
+    config.auth_manager.set_active_server(selected_server)
+    config.auth_manager.set_active_token(selected_server, selected_issuer)
 
-    console.print(f"\n[bold green]Switched to:[/bold green] [cyan]{selected_resource}[/cyan]")
+    console.print(f"\n[bold green]Switched to:[/bold green] [cyan]{selected_server}[/cyan]")

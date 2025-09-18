@@ -258,8 +258,8 @@ def verbosity(verbose: bool, show_success_status: bool = True):
         SHOW_SUCCESS_STATUS.reset(token_command_status)
 
 
-def make_safe_name(resource_url: str) -> str:
-    parsed = urlparse(resource_url)
+def make_safe_name(server_url: str) -> str:
+    parsed = urlparse(server_url)
     return parsed.netloc or parsed.path
 
 
@@ -271,26 +271,26 @@ def normalize_url(url: str) -> str:
     return f"{parsed.scheme}://{parsed.netloc}"
 
 
-async def get_verify_option(resource_url: str, ca_cert_file: Path):
-    parsed = urlparse(resource_url)
+async def get_verify_option(server_url: str, ca_cert_file: Path):
+    parsed = urlparse(server_url)
     if parsed.scheme == "https":
-        ca_cert_file = await get_resource_ca_cert(resource_url, ca_cert_file)
+        ca_cert_file = await get_server_ca_cert(server_url, ca_cert_file)
         return str(ca_cert_file)
     return True
 
 
-async def get_resource_ca_cert(resource_url: str, ca_cert_file: Path) -> Path:
+async def get_server_ca_cert(server_url: str, ca_cert_file: Path) -> Path:
     if not ca_cert_file.exists():
         import socket
         import ssl
 
-        host, port = resource_url.replace("https://", "").split(":")
+        host, port = server_url.replace("https://", "").split(":")
         port = int(port)
         ctx = ssl._create_unverified_context()
         with socket.create_connection((host, port)) as sock, ctx.wrap_socket(sock, server_hostname=host) as ssock:
             der_cert = ssock.getpeercert(binary_form=True)
             if der_cert is None:
-                raise RuntimeError(f"No certificate received from {resource_url}")
+                raise RuntimeError(f"No certificate received from {server_url}")
             pem_cert = ssl.DER_cert_to_PEM_cert(der_cert)
             ca_cert_file.write_text(pem_cert)
         console.print(f"Saved CA cert to {ca_cert_file}")

@@ -38,7 +38,7 @@ class Configuration(pydantic_settings.BaseSettings):
     )
     admin_password: SecretStr | None = None
     oidc_enabled: bool = False
-    resource_metadata_ttl: int = 86400
+    server_metadata_ttl: int = 86400
     client_id: str = "df82a687-d647-4247-838b-7080d7d83f6c"  # pre-registered with AS
     redirect_uri: pydantic.AnyUrl = HttpUrl("http://localhost:9001/callback")
 
@@ -52,9 +52,9 @@ class Configuration(pydantic_settings.BaseSettings):
         return self.home / "auth_config.json"
 
     @property
-    def resource_metadata_dir(self) -> pathlib.Path:
-        """Return resource metadata directory path"""
-        path = self.home / "resource_metadata"
+    def server_metadata_dir(self) -> pathlib.Path:
+        """Return server metadata directory path"""
+        path = self.home / "server_metadata"
         path.mkdir(parents=True, exist_ok=True)
         return path
 
@@ -74,8 +74,8 @@ class Configuration(pydantic_settings.BaseSettings):
         auth = ("admin", self.admin_password.get_secret_value()) if self.admin_password else None
         token = self.auth_manager.load_auth_token()
         auth_token = token.get_secret_value() if token else None
-        active_resource = self.auth_manager.get_active_resource()
-        base_url = normalize_url(active_resource) if active_resource else str(self.default_host)
+        active_server = self.auth_manager.get_active_server()
+        base_url = normalize_url(active_server) if active_server else str(self.default_host)
 
         verify_option = await get_verify_option(base_url, self.ca_cert_dir / f"{make_safe_name(base_url)}_ca.crt")
         verify_args = {}
