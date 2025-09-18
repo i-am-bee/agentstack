@@ -15,6 +15,7 @@ from beeai_sdk.platform import PlatformClient, use_platform_client
 from pydantic import HttpUrl, SecretStr
 
 from beeai_cli.auth_config_manager import AuthConfigManager
+from beeai_cli.console import console
 from beeai_cli.utils import get_verify_option
 
 
@@ -62,8 +63,6 @@ class Configuration(pydantic_settings.BaseSettings):
     @asynccontextmanager
     async def use_platform_client(self) -> AsyncIterator[PlatformClient]:
         if self.auth_manager.active_server is None:
-            from beeai_cli.console import console
-
             console.error("No server selected.")
             console.hint(
                 "Run [green]beeai platform start[/green] to start a local server, or [green]beeai server login[/green] to connect to a remote one."
