@@ -21,7 +21,7 @@ from httpx._types import RequestFiles
 from beeai_cli.configuration import Configuration
 
 config = Configuration()
-BASE_URL = server if (server := config.auth_manager.get_active_server()) else config.default_host
+BASE_URL = server if (server := config.auth_manager.get_active_server()) else "http://localhost:8333"
 API_BASE_URL = f"{BASE_URL}/api/v1/"
 
 

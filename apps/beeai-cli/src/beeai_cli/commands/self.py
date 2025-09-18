@@ -151,7 +151,7 @@ async def install(
         ):
             import webbrowser
 
-            webbrowser.open(str(Configuration().ui_url))
+            webbrowser.open("http://localhost:8334")
 
         console.print()
         console.success("Installation complete!")

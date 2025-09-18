@@ -20,7 +20,7 @@ from InquirerPy.base.control import Choice
 
 from beeai_cli.async_typer import AsyncTyper, console
 from beeai_cli.configuration import Configuration
-from beeai_cli.utils import get_server_ca_cert, get_verify_option, make_safe_name
+from beeai_cli.utils import get_verify_option
 
 app = AsyncTyper()
 
@@ -122,11 +122,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
             return
     else:
         console.info("No authentication tokens found for this server. Proceeding to log in.")
-        ca_cert_file = await get_server_ca_cert(
-            server_url=server, ca_cert_file=config.ca_cert_dir / f"{make_safe_name(server)}_ca.crt"
-        )
-        verify_option = await get_verify_option(server, ca_cert_file)
-        async with httpx.AsyncClient(verify=verify_option) as client:
+        async with httpx.AsyncClient(verify=await get_verify_option(server)) as client:
             resp = await client.get(f"{server}/api/v1/.well-known/oauth-protected-resource")
             if resp.is_error:
                 console.error("This server does not appear to run a compatible version of BeeAI Platform.")
@@ -172,7 +168,6 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
             )
         }"
 
-        console.print()
         console.info(f"Opening browser for login: [cyan]{auth_url}[/cyan]")
         if not webbrowser.open(auth_url):
             console.warning("Could not open browser. Please visit the above URL manually.")
@@ -202,7 +197,6 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
 
     config.auth_manager.set_active_server(server)
     config.auth_manager.set_active_token(server, auth_server)
-    console.print()
     console.success(f"Logged in to [cyan]{server}[/cyan].")
 
 

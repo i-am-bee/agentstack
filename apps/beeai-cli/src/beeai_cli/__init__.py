@@ -57,7 +57,9 @@ async def ui():
     import beeai_cli.commands.model
 
     await beeai_cli.commands.model.ensure_llm_provider()
-    webbrowser.open(str(Configuration().ui_url))
+    webbrowser.open(
+        "http://localhost:8334"
+    )  # TODO: This always opens the local UI, how to open the UI of a logged in server instead?
 
 
 if __name__ == "__main__":

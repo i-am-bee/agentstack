@@ -30,7 +30,7 @@ class AuthConfigManager:
         self._save()
 
     def get_active_server(self) -> str:
-        return self.config["active_server"]
+        return self.config["active_server"] or "http://localhost:8333"
 
     def set_active_token(self, server: str, auth_server: str) -> None:
         if server not in self.config["servers"]:

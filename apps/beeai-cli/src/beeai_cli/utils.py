@@ -260,23 +260,20 @@ def verbosity(verbose: bool, show_success_status: bool = True):
         SHOW_SUCCESS_STATUS.reset(token_command_status)
 
 
-def make_safe_name(server_url: str) -> str:
-    parsed = urlparse(server_url)
-    return parsed.netloc or parsed.path
-
-
-async def get_verify_option(server_url: str, ca_cert_file: Path):
+async def get_verify_option(server_url: str):
     parsed = urlparse(server_url)
     if parsed.scheme == "https":
-        ca_cert_file = await get_server_ca_cert(server_url, ca_cert_file)
-        return str(ca_cert_file)
+        return str(await get_server_ca_cert(server_url))
     return True
 
 
-async def get_server_ca_cert(server_url: str, ca_cert_file: Path) -> Path:
+async def get_server_ca_cert(server_url: str) -> Path:
+    from beeai_cli.configuration import Configuration
+
+    parsed = urlparse(server_url)
+    ca_cert_file = Configuration().ca_cert_dir / f"{parsed.netloc}_ca.crt"
     if ca_cert_file.exists():
         return ca_cert_file
-    parsed = urlparse(server_url if "://" in server_url else f"https://{server_url}")
     ctx = ssl._create_unverified_context()
     with (
         socket.create_connection((parsed.hostname, parsed.port or 443)) as sock,
