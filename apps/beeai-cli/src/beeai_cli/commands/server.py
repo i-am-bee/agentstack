@@ -55,7 +55,9 @@ async def discover_oidc_config(issuer: str) -> dict:
             raise RuntimeError(f"OIDC discovery failed: {e}") from e
 
 
-def make_callback_app(result: dict, got_code: anyio.Event) -> FastAPI:
+async def wait_for_auth_code(port: int = 9001) -> str:
+    result: dict = {}
+    got_code = anyio.Event()
     app = FastAPI()
 
     @app.get("/callback")
@@ -82,22 +84,10 @@ def make_callback_app(result: dict, got_code: anyio.Event) -> FastAPI:
         """
         return HTMLResponse(content=html_content, status_code=200)
 
-    return app
-
-
-async def wait_for_auth_code(port: int = 9001) -> str:
-    result: dict = {}
-    got_code = anyio.Event()
-    app = make_callback_app(result, got_code)
-
-    server_config = uvicorn.Config(app, host="127.0.0.1", port=9001, log_level="error")
-    server = uvicorn.Server(config=server_config)
-
-    async def run_server():
-        await server.serve()
+    server = uvicorn.Server(config=uvicorn.Config(app, host="127.0.0.1", port=9001, log_level="error"))
 
     async with anyio.create_task_group() as tg:
-        tg.start_soon(run_server)
+        tg.start_soon(server.serve)
         await got_code.wait()
         server.should_exit = True
 
@@ -229,7 +219,7 @@ def show_server():
 def list_server():
     servers = config.auth_manager.config.get("servers", {})
     if not servers:
-        console.print("[bold red]No servers logged in.[/bold red]\nRun [bold green]`beeai login`[/bold green] first.\n")
+        console.print("[bold red]No servers logged in.[/bold red]\nRun [bold green]beeai login[/bold green] first.\n")
         return
     console.print("\n[bold blue]Known servers:[/bold blue]")
     for i, server in enumerate(servers, start=1):
@@ -241,7 +231,7 @@ def list_server():
 def switch_server():
     servers = config.auth_manager.config.get("servers", {})
     if not servers:
-        console.print("[bold red]No server logged in.[/bold red] Run [bold green]`beeai login`[/bold green] first.\n")
+        console.print("[bold red]No server logged in.[/bold red] Run [bold green]beeai login[/bold green] first.\n")
 
     console.print("\n[bold blue]Available servers:[/bold blue]")
     choices = [
@@ -264,7 +254,7 @@ def switch_server():
 
     if not auth_servers:
         console.print(
-            f"[bold red]No tokens available for [cyan]{selected_server}[/cyan].[/bold red] You may need to run [bolc green]`beeai login -- {selected_server}`[/bold green]."
+            f"[bold red]No tokens available for [cyan]{selected_server}[/cyan].[/bold red] You may need to run [green]beeai login -- {selected_server}[/green]."
         )
         return
     if len(auth_servers) == 1:
