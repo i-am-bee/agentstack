@@ -52,13 +52,6 @@ class Configuration(pydantic_settings.BaseSettings):
         return self.home / "auth_config.json"
 
     @property
-    def server_metadata_dir(self) -> pathlib.Path:
-        """Return server metadata directory path"""
-        path = self.home / "server_metadata"
-        path.mkdir(parents=True, exist_ok=True)
-        return path
-
-    @property
     def ca_cert_dir(self) -> pathlib.Path:
         """Return ca certs directory path"""
         path = self.home / "cacerts"

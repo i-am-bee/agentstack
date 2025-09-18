@@ -1,16 +1,13 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import json
+import asyncio
 import logging
 import sys
-import time
 import typing
 import webbrowser
-from pathlib import Path
 from urllib.parse import urlencode
 
-import anyio
 import httpx
 import typer
 import uvicorn
@@ -30,82 +27,44 @@ app = AsyncTyper()
 config = Configuration()
 
 
-async def _get_server_metadata(server_url: str, ca_cert_file: Path):
-    verify_option = await get_verify_option(server_url, ca_cert_file)
-    async with httpx.AsyncClient(verify=verify_option) as client:
-        resp = await client.get(f"{server_url}/api/v1/.well-known/oauth-protected-resource")
-        if resp.is_error:
-            console.error("This server does not appear to run a compatible version of BeeAI Platform.")
-            sys.exit(1)
-        return resp.json()
-
-
-async def _discover_oidc_config(issuer: str) -> dict:
-    async with httpx.AsyncClient() as client:
-        try:
-            resp = await client.get(f"{issuer}/.well-known/openid-configuration")
-            resp.raise_for_status()
-            return resp.json()
-        except Exception as e:
-            raise RuntimeError(f"OIDC discovery failed: {e}") from e
-
-
 async def _wait_for_auth_code(port: int = 9001) -> str:
-    result: dict = {}
-    got_code = anyio.Event()
+    code_future: asyncio.Future[str] = asyncio.Future()
     app = FastAPI()
 
     @app.get("/callback")
     async def callback(request: Request):
-        query = dict(request.query_params)
-        result.update(query)
-        got_code.set()
-        html_content = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Login Successful</title>
-            <style>
-            body { font-family: Arial, sans-serif; text-align: center; margin-top: 15%; }
-            h1 { color: #2e7d32; }
-            p { color: #555; }
-            </style>
-        </head>
-        <body>
-            <h1>Login successful!</h1>
-            <p>You can safely close this tab and return to the CLI.</p>
-        </body>
-        </html>
-        """
-        return HTMLResponse(content=html_content, status_code=200)
+        code = request.query_params.get("code")
+        if code and not code_future.done():
+            code_future.set_result(code)
+        return HTMLResponse(
+            content="""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Login Successful</title>
+                <style>
+                body { font-family: Arial, sans-serif; text-align: center; margin-top: 15%; }
+                h1 { color: #2e7d32; }
+                p { color: #555; }
+                </style>
+            </head>
+            <body>
+                <h1>Login successful!</h1>
+                <p>You can safely close this tab and return to the BeeAI CLI.</p>
+            </body>
+            </html>
+            """,
+            status_code=200,
+        )
 
-    server = uvicorn.Server(config=uvicorn.Config(app, host="127.0.0.1", port=9001, log_level=logging.ERROR))
+    server = uvicorn.Server(config=uvicorn.Config(app, host="127.0.0.1", port=port, log_level=logging.ERROR))
 
-    async with anyio.create_task_group() as tg:
-        tg.start_soon(server.serve)
-        await got_code.wait()
+    async with asyncio.TaskGroup() as tg:
+        tg.create_task(server.serve())
+        code = await code_future
         server.should_exit = True
 
-    return result["code"]
-
-
-async def exchange_token(oidc: dict, code: str, code_verifier: str, config) -> dict:
-    async with httpx.AsyncClient() as client:
-        try:
-            token_resp = await client.post(
-                oidc["token_endpoint"],
-                data={
-                    "grant_type": "authorization_code",
-                    "code": code,
-                    "redirect_uri": config.redirect_uri,
-                    "client_id": config.client_id,
-                    "code_verifier": code_verifier,
-                },
-            )
-            token_resp.raise_for_status()
-            return token_resp.json()
-        except Exception as e:
-            raise RuntimeError(f"Token request failed: {e}") from e
+    return code
 
 
 @app.command("login")
@@ -132,6 +91,8 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
 
     if "://" not in server:
         server = f"https://{server}"
+
+    server = server.rstrip("/")
 
     servers = config.auth_manager.config.get("servers", {})
     server_data = servers.get(server, {})
@@ -164,7 +125,13 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
         ca_cert_file = await get_server_ca_cert(
             server_url=server, ca_cert_file=config.ca_cert_dir / f"{make_safe_name(server)}_ca.crt"
         )
-        metadata = await _get_server_metadata(server_url=server, ca_cert_file=ca_cert_file)
+        verify_option = await get_verify_option(server, ca_cert_file)
+        async with httpx.AsyncClient(verify=verify_option) as client:
+            resp = await client.get(f"{server}/api/v1/.well-known/oauth-protected-resource")
+            if resp.is_error:
+                console.error("This server does not appear to run a compatible version of BeeAI Platform.")
+                sys.exit(1)
+            metadata = resp.json()
         auth_servers = metadata.get("authorization_servers", [])
 
         if not auth_servers:
@@ -182,7 +149,14 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
         if not auth_server:
             raise RuntimeError("No authorization server selected.")
 
-        oidc = await _discover_oidc_config(auth_server)
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.get(f"{auth_server}/.well-known/openid-configuration")
+                resp.raise_for_status()
+                oidc = resp.json()
+            except Exception as e:
+                raise RuntimeError(f"OIDC discovery failed: {e}") from e
+
         code_verifier = generate_token(64)
 
         auth_url = f"{oidc['authorization_endpoint']}?{
@@ -192,7 +166,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                     'response_type': 'code',
                     'redirect_uri': config.redirect_uri,
                     'scope': ' '.join(metadata.get('scopes_supported', ['openid'])),
-                    'code_challenge': create_s256_code_challenge(code_verifier),
+                    'code_challenge': typing.cast(str, create_s256_code_challenge(code_verifier)),
                     'code_challenge_method': 'S256',
                 }
             )
@@ -204,7 +178,22 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
             console.warning("Could not open browser. Please visit the above URL manually.")
 
         code = await _wait_for_auth_code()
-        token = await exchange_token(oidc, code, code_verifier, config)
+        async with httpx.AsyncClient() as client:
+            try:
+                token_resp = await client.post(
+                    oidc["token_endpoint"],
+                    data={
+                        "grant_type": "authorization_code",
+                        "code": code,
+                        "redirect_uri": config.redirect_uri,
+                        "client_id": config.client_id,
+                        "code_verifier": code_verifier,
+                    },
+                )
+                token_resp.raise_for_status()
+                token = token_resp.json()
+            except Exception as e:
+                raise RuntimeError(f"Token request failed: {e}") from e
 
         if not token:
             raise RuntimeError("Login timed out or not successful.")
@@ -220,16 +209,6 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
 @app.command("logout")
 async def server_logout():
     config.auth_manager.clear_auth_token()
-
-    if config.server_metadata_dir.exists():
-        for metadata_file in config.server_metadata_dir.glob("*_metadata.json"):
-            try:
-                if json.loads(metadata_file.read_text()).get("expiry", 0) <= time.time():
-                    metadata_file.unlink()
-            except Exception:
-                metadata_file.unlink()
-
-    console.print()
     console.success("You have been logged out.")
 
 
