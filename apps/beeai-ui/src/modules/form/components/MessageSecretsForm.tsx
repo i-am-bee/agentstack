@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, TextInput } from '@carbon/react';
+import { Button, PasswordInput } from '@carbon/react';
 import { useId } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { useMessages } from '#modules/messages/contexts/Messages/index.ts';
 import type { UIAgentMessage } from '#modules/messages/types.ts';
 import { getMessageSecret } from '#modules/messages/utils.ts';
 import { useAgentRun } from '#modules/runs/contexts/agent-run/index.ts';
@@ -24,47 +25,55 @@ export function MessageSecretsForm({ message }: Props) {
   const secretPart = getMessageSecret(message);
   const { submitSecrets } = useAgentRun();
   const { storeSecrets } = useAgentSettings();
+  const { messages } = useMessages();
 
-  const { register } = useForm({ mode: 'onChange' });
+  const { register, handleSubmit } = useForm({ mode: 'onChange' });
 
   if (!secretPart) {
     return null;
   }
 
-  const testingSecrets = Object.entries(secretPart.secret.secret_demands).reduce<AgentRequestSecrets>(
-    (acc, [key]) => ({
-      ...acc,
-      [key]: { ...secretPart.secret.secret_demands[key], isReady: true, value: 'Some Random Secret' },
-    }),
-    {},
-  );
+  const onSubmit = async (values: FormValues) => {
+    storeSecrets(values);
+
+    const secretsFulfillment = Object.entries(secretPart.secret.secret_demands).reduce<AgentRequestSecrets>(
+      (acc, [key, demand]) => {
+        const value = values[key];
+        if (!value) {
+          return acc;
+        }
+
+        return {
+          ...acc,
+          [key]: { ...demand, isReady: true, value },
+        };
+      },
+      {},
+    );
+    submitSecrets(secretsFulfillment, secretPart.taskId);
+  };
+
+  const isLastMessage = messages.at(-1)?.id === message.id;
 
   return (
-    <div className={classes.root}>
-      {Object.entries(secretPart.secret.secret_demands).map(([demand, { name, description }], idx) => {
-        const key = `${name}${idx}`;
-        return (
-          <div key={key} className={classes.demand}>
-            <p>{description}</p>
-            <TextInput id={`${id}:${key}`} labelText={name} {...register(demand, { required: true })} />
-          </div>
-        );
-      })}
-
-      <Button
-        size="sm"
-        onClick={() => {
-          storeSecrets(
-            Object.entries(secretPart.secret.secret_demands).reduce(
-              (acc, [key]) => ({ ...acc, [key]: 'Some Random Secret' }),
-              {},
-            ),
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <fieldset disabled={!isLastMessage} className={classes.root}>
+        {Object.entries(secretPart.secret.secret_demands).map(([demand, { name, description }], idx) => {
+          const key = `${name}${idx}`;
+          return (
+            <div key={key} className={classes.demand}>
+              <p>{description}</p>
+              <PasswordInput id={`${id}:${key}`} labelText={name} {...register(demand, { required: true })} />
+            </div>
           );
-          submitSecrets(testingSecrets, secretPart.taskId);
-        }}
-      >
-        Submit
-      </Button>
-    </div>
+        })}
+
+        <Button size="md">Submit</Button>
+      </fieldset>
+    </form>
   );
+}
+
+interface FormValues {
+  [key: string]: string;
 }

@@ -6,6 +6,7 @@
 import { createContext } from 'react';
 
 import type { FormRender } from '#api/a2a/extensions/ui/form.ts';
+import type { AgentA2AClient } from '#api/a2a/types.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 import type { UIMessageForm } from '#modules/messages/types.ts';
 import type { RunStats } from '#modules/runs/types.ts';
@@ -17,6 +18,7 @@ export const AgentRunContext = createContext<AgentRunContextValue | undefined>(u
 
 interface AgentRunContextValue {
   agent: Agent;
+  agentClient?: AgentA2AClient;
   status: AgentRunStatus;
   isPending: boolean;
   isInitializing: boolean;

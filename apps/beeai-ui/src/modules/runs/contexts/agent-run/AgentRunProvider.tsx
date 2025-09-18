@@ -306,6 +306,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
   const contextValue = useMemo(() => {
     return {
       agent,
+      agentClient,
       status,
       isInitializing: status === AgentRunStatus.Initializing,
       isReady: status === AgentRunStatus.Ready,
@@ -320,7 +321,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
       cancel,
       clear,
     };
-  }, [agent, status, input, stats, chat, submitForm, cancel, clear, startAuth, submitSecrets]);
+  }, [agent, agentClient, status, input, stats, chat, submitForm, startAuth, submitSecrets, cancel, clear]);
 
   return (
     <AgentStatusProvider agent={agent} isMonitorStatusEnabled>

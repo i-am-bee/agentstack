@@ -6,7 +6,6 @@
 import { type PropsWithChildren, Suspense } from 'react';
 
 import { AppHeader } from '#components/AppHeader/AppHeader.tsx';
-import { AgentDetailPanel } from '#modules/agents/components/AgentDetailPanel.tsx';
 
 import classes from './AppLayout.module.scss';
 
@@ -19,10 +18,6 @@ export function AppLayout({ children }: PropsWithChildren) {
 
       <main className={classes.main} data-route-transition>
         {children}
-
-        <Suspense>
-          <AgentDetailPanel />
-        </Suspense>
       </main>
     </div>
   );

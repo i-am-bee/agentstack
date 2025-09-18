@@ -15,6 +15,12 @@ interface Props {
 }
 
 export function ChatUserMessage({ message }: Props) {
+  const { runtimeFullfilledDemands } = message;
+
+  if (runtimeFullfilledDemands) {
+    return null;
+  }
+
   return (
     <div className={classes.root}>
       <div className={classes.content}>
