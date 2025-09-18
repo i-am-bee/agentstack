@@ -53,8 +53,6 @@ class AuthConfigManager:
             self._config.servers[server].authorization_servers[auth_server] = AuthServer(token=AuthToken(**token))
         else:
             self._config.servers[server]  # touch
-        self._config.active_server = server
-        self._config.active_auth_server = auth_server
         self._save()
 
     def load_auth_token(self) -> str | None:
