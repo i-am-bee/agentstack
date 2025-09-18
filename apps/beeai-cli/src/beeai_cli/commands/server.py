@@ -70,7 +70,7 @@ async def _wait_for_auth_code(port: int = 9001) -> str:
 @app.command("login")
 async def server_login(server: typing.Annotated[str | None, typer.Argument()] = None):
     """Login to a server or switch between logged in servers."""
-    servers = config.auth_manager.config.get("servers", {})
+    servers = config.auth_manager.config.servers
     active_server = config.auth_manager.get_active_server()
     server = server or (
         await inquirer.select(  #  type: ignore
@@ -94,11 +94,9 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
 
     server = server.rstrip("/")
 
-    servers = config.auth_manager.config.get("servers", {})
-    server_data = servers.get(server, {})
-    auth_servers = list(server_data.get("authorization_servers", {}).keys())
-
-    if auth_servers:
+    if (server_data := config.auth_manager.config.servers.get(server)) and (
+        auth_servers := list(server_data.authorization_servers.keys())
+    ):
         console.info("Switching to already logged in server.")
         auth_server = None
         if len(auth_servers) == 1:
@@ -106,7 +104,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
         else:
             active_token_issuer = None
             if server == config.auth_manager.get_active_server():
-                active_token_issuer = config.auth_manager.config.get("active_token")
+                active_token_issuer = config.auth_manager.config.active_token
 
             auth_server = await inquirer.select(  #  type: ignore
                 message="Select an authorization server:",
@@ -217,12 +215,11 @@ def server_show():
 
 @app.command("list")
 def server_list():
-    servers = config.auth_manager.config.get("servers", {})
-    if not servers:
+    if not config.auth_manager.config.servers:
         console.info("No servers logged in.")
         console.hint("Run [green]beeai login[/green] to log in.")
         return
-    for server in servers:
+    for server in config.auth_manager.config.servers:
         console.print(
             f"[cyan]{server}[/cyan] {'[green](active)[/green]' if server == config.auth_manager.get_active_server() else ''}"
         )

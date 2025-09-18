@@ -51,7 +51,7 @@ def server_process_status(
 async def set_auth_header():
     if not (token := config.auth_manager.load_auth_token()):
         raise RuntimeError("No token found. Please run `beeai login` first.")
-    return f"Bearer {token.get_secret_value()}"
+    return f"Bearer {token}"
 
 
 async def api_request(

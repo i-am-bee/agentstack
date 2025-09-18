@@ -61,11 +61,11 @@ class Configuration(pydantic_settings.BaseSettings):
 
     @asynccontextmanager
     async def use_platform_client(self) -> AsyncIterator[PlatformClient]:
-        auth = ("admin", self.admin_password.get_secret_value()) if self.admin_password else None
-        token = self.auth_manager.load_auth_token()
-        auth_token = token.get_secret_value() if token else None
         base_url = self.auth_manager.get_active_server()
         async with use_platform_client(
-            auth=auth, auth_token=auth_token, base_url=base_url, verify=await get_verify_option(base_url)
+            auth=("admin", self.admin_password.get_secret_value()) if self.admin_password else None,
+            auth_token=self.auth_manager.load_auth_token(),
+            base_url=base_url,
+            verify=await get_verify_option(base_url),
         ) as client:
             yield client
