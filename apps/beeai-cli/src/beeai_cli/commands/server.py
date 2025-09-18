@@ -34,22 +34,15 @@ async def get_server_metadata(server_url: str, ca_cert_file: Path, force_refresh
         if data.get("expiry", 0) > time.time():
             return data["metadata"]
 
-    url = f"{server_url}/api/v1/.well-known/oauth-protected-server"
     verify_option = await get_verify_option(server_url, ca_cert_file)
     async with httpx.AsyncClient(verify=verify_option) as client:
-        resp = await client.get(url)
+        resp = await client.get(f"{server_url}/api/v1/.well-known/oauth-protected-resource")
         resp.raise_for_status()
         metadata = resp.json()
 
     payload = {"metadata": metadata, "expiry": time.time() + config.server_metadata_ttl}
     metadata_file.write_text(json.dumps(payload, indent=2))
     return metadata
-
-
-def generate_pkce_pair():
-    code_verifier = generate_token(64)
-    code_challenge = create_s256_code_challenge(code_verifier)
-    return code_verifier, code_challenge
 
 
 async def discover_oidc_config(issuer: str) -> dict:
@@ -173,7 +166,8 @@ async def login(server_url: str | None = None):
         raise RuntimeError("No issuer selected.")
 
     oidc = await discover_oidc_config(issuer)
-    code_verifier, code_challenge = generate_pkce_pair()
+    code_verifier = generate_token(64)
+    code_challenge = create_s256_code_challenge(code_verifier)
 
     requested_scopes = metadata.get("scopes_supported", [])
     if not requested_scopes:
