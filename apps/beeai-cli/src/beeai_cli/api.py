@@ -23,7 +23,7 @@ from beeai_cli.configuration import Configuration
 
 config = Configuration()
 
-API_BASE_URL = "/api/v1/"
+API_BASE_URL = "api/v1/"
 
 
 class ProcessStatus(enum.StrEnum):
@@ -149,6 +149,6 @@ async def openai_client() -> AsyncIterator[openai.AsyncOpenAI]:
     async with Configuration().use_platform_client() as platform_client:
         yield openai.AsyncOpenAI(
             api_key=platform_client.headers.get("Authorization", "").removeprefix("Bearer ") or "dummy",
-            base_url=urllib.parse.urljoin(API_BASE_URL, "openai"),
+            base_url=urllib.parse.urljoin(str(platform_client.base_url), urllib.parse.urljoin(API_BASE_URL, "openai")),
             default_headers=platform_client.headers,
         )
