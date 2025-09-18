@@ -5,13 +5,13 @@
 'use client';
 import { createContext } from 'react';
 
-import type { AgentRequestedApiKeys } from './types';
+import type { AgentRequestSecrets } from './types';
 
 export const AgentSettingsContext = createContext<AgentSettingsContextValue | undefined>(undefined);
 
 interface AgentSettingsContextValue {
-  requestedApiKeys: AgentRequestedApiKeys;
+  requestedSecrets: AgentRequestSecrets;
   updateApiKey: (key: string, value: string) => void;
   revokeApiKey: (key: string) => void;
-  provideSecrets: (secrets: Record<string, string>) => void;
+  storeSecrets: (secrets: Record<string, string>) => void;
 }

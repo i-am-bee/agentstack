@@ -23,7 +23,7 @@ export function PlatformContextProvider<UIGenericPart>({
   children,
   agentClient,
 }: PropsWithChildren<Props<UIGenericPart>>) {
-  const { requestedApiKeys } = useAgentSettings();
+  const { requestedSecrets } = useAgentSettings();
   const { featureFlags } = useApp();
   const [contextId, setContextId] = useState<string | null>(null);
 
@@ -169,7 +169,7 @@ export function PlatformContextProvider<UIGenericPart>({
       selectedLLMProviders,
       selectedEmbeddingProviders,
       selectedMCPServers,
-      requestedApiKeys,
+      requestedSecrets,
       featureFlags,
     });
   }, [
@@ -178,7 +178,7 @@ export function PlatformContextProvider<UIGenericPart>({
     selectedMCPServers,
     featureFlags,
     getContextToken,
-    requestedApiKeys,
+    requestedSecrets,
   ]);
 
   useEffect(() => {

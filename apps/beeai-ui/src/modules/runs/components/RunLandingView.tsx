@@ -20,24 +20,24 @@ import classes from './RunLandingView.module.scss';
 
 export function RunLandingView() {
   const { agent } = useAgentRun();
-  // const { requestedApiKeys, updateApiKey, revokeApiKey } = useAgentSettings();
+  // const { requestedSecrets, updateApiKey, revokeApiKey } = useAgentSettings();
 
   const promptExamples = useMemo(() => getAgentPromptExamples(agent), [agent]);
 
   // const { openModal } = useModal();
 
   // useEffect(() => {
-  //   if (Object.keys(requestedApiKeys).length > 0) {
+  //   if (Object.keys(requestedSecrets).length > 0) {
   //     openModal((props) => (
   //       <ApiKeysModal
   //         {...props}
-  //         requestedApiKeys={requestedApiKeys}
+  //         requestedSecrets={requestedSecrets}
   //         updateApiKey={updateApiKey}
   //         revokeApiKey={revokeApiKey}
   //       />
   //     ));
   //   }
-  // }, [openModal, requestedApiKeys]);
+  // }, [openModal, requestedSecrets]);
 
   return (
     <FileUpload>

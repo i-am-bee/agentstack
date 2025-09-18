@@ -11,13 +11,13 @@ import { Modal } from '#components/Modal/Modal.tsx';
 import { useModal } from '#contexts/Modal/index.tsx';
 import type { ModalProps } from '#contexts/Modal/modal-context.ts';
 
-import type { AgentRequestedApiKeys } from '../contexts/agent-settings/types';
+import type { AgentRequestSecrets } from '../contexts/agent-settings/types';
 import { ApiKeysAddModal } from './ApiKeysAddModal';
 import classes from './ApiKeysModal.module.scss';
 import { ToolCardsList } from './ToolCardsList';
 
 interface ApiKeyModalProps extends ModalProps {
-  requestedApiKeys: AgentRequestedApiKeys;
+  requestedSecrets: AgentRequestSecrets;
   updateApiKey: (key: string, value: string) => void;
   revokeApiKey: (key: string) => void;
 }

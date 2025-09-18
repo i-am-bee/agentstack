@@ -12,7 +12,7 @@ import type { AgentA2AClient } from '#api/a2a/types.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 
 import { AgentSettingsContext } from './agent-settings-context';
-import type { AgentRequestedApiKeys, NonReadySecretDemand, ReadySecretDemand } from './types';
+import type { AgentRequestSecrets, NonReadySecretDemand, ReadySecretDemand } from './types';
 
 interface Props {
   agent: Agent;
@@ -45,7 +45,7 @@ export function AgentSettingsProvider({ agent, agentClient, children }: PropsWit
     [agent.provider.id, setAgentSettings],
   );
 
-  const provideSecrets = useCallback(
+  const storeSecrets = useCallback(
     (secrets: Record<string, string>) => {
       setAgentSettings((prev) => ({ ...prev, [agent.provider.id]: { ...prev[agent.provider.id], ...secrets } }));
     },
@@ -64,12 +64,12 @@ export function AgentSettingsProvider({ agent, agentClient, children }: PropsWit
     [agent.provider.id, setAgentSettings],
   );
 
-  const requestedApiKeys = useMemo(() => {
+  const requestedSecrets = useMemo(() => {
     if (secretDemands === null) {
       return {};
     }
 
-    return Object.entries(secretDemands).reduce<AgentRequestedApiKeys>((acc, [key, demand]) => {
+    return Object.entries(secretDemands).reduce<AgentRequestSecrets>((acc, [key, demand]) => {
       if (parsedAgentSettings[key]) {
         const readyDemand: ReadySecretDemand = {
           ...demand,
@@ -92,12 +92,12 @@ export function AgentSettingsProvider({ agent, agentClient, children }: PropsWit
 
   const contextValue = useMemo(
     () => ({
-      requestedApiKeys,
+      requestedSecrets,
       updateApiKey,
       revokeApiKey,
-      provideSecrets,
+      storeSecrets,
     }),
-    [requestedApiKeys, updateApiKey, revokeApiKey, provideSecrets],
+    [requestedSecrets, updateApiKey, revokeApiKey, storeSecrets],
   );
 
   return <AgentSettingsContext.Provider value={contextValue}>{children}</AgentSettingsContext.Provider>;
