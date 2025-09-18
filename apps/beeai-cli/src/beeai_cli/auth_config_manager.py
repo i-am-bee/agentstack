@@ -26,6 +26,7 @@ class Server(BaseModel):
 
 
 class AuthConfig(BaseModel):
+    config_version: typing.Literal[1] = 1
     servers: defaultdict[str, typing.Annotated[Server, Field(default_factory=Server)]] = Field(
         default_factory=lambda: defaultdict(Server)
     )
@@ -47,8 +48,9 @@ class AuthConfigManager:
     def _save(self) -> None:
         self.config_path.write_text(self.config.model_dump_json(indent=2))
 
-    def save_auth_token(self, server: str, auth_server: str, token: dict[str, Any]) -> None:
-        self.config.servers[server].authorization_servers[auth_server] = AuthServer(token=AuthToken(**token))
+    def save_auth_token(self, server: str, auth_server: str | None = None, token: dict[str, Any] | None = None) -> None:
+        if auth_server is not None and token is not None:
+            self.config.servers[server].authorization_servers[auth_server] = AuthServer(token=AuthToken(**token))
         self.config.active_server = server
         self.config.active_auth_server = auth_server
         self._save()
@@ -107,9 +109,8 @@ class AuthConfigManager:
 
     @active_auth_server.setter
     def active_auth_server(self, auth_server: str) -> None:
-        if (
-            not self.config.active_auth_server
-            or self.config.active_server not in self.config.servers
+        if self.config.active_auth_server is not None and (
+            self.config.active_server not in self.config.servers
             or auth_server not in self.config.servers[self.config.active_server].authorization_servers
         ):
             raise ValueError(f"Auth server {auth_server} not found in active server")
