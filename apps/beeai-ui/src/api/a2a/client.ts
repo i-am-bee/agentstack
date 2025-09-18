@@ -272,14 +272,10 @@ export const buildA2AClient = async <UIGenericPart = never>({
 };
 
 async function clientFetch(input: RequestInfo, init?: RequestInit) {
-  try {
-    const response = await fetch(input, init);
-    if (!response.ok && response.status === 401) {
-      throw new UnauthenticatedError({ message: 'You are not authenticated.', response });
-    }
-
-    return response;
-  } catch (err) {
-    throw err;
+  const response = await fetch(input, init);
+  if (!response.ok && response.status === 401) {
+    throw new UnauthenticatedError({ message: 'You are not authenticated.', response });
   }
+
+  return response;
 }

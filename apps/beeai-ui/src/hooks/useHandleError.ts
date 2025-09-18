@@ -21,8 +21,6 @@ export function useHandleError() {
     (error: unknown, options: QueryMetadata = {}) => {
       const { errorToast } = options;
 
-      console.log({ error, isauth: error instanceof UnauthenticatedError });
-
       let errorTitle = 'An error occurred';
 
       if (error instanceof UnauthenticatedError) {
