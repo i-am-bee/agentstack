@@ -12,7 +12,7 @@ from beeai_server.api.schema.common import PaginationQuery
 from beeai_server.api.schema.openai import ChatCompletionRequest
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.common import Metadata, PaginatedResult
-from beeai_server.domain.models.context import Context, ContextHistoryItem, ContextHistoryItemData
+from beeai_server.domain.models.context import Context, ContextHistoryItem, ContextHistoryItemData, TitleGenerationState
 from beeai_server.domain.models.user import User
 from beeai_server.domain.repositories.file import IObjectStorageRepository
 from beeai_server.service_layer.services.model_provider import ModelProviderService
@@ -115,9 +115,12 @@ class ContextService:
 
                 title = self._extract_text(data) or "Untitled"
                 title = f"{title[:100]}..." if len(title) > 100 else title
-                await uow.contexts.update_title(context_id=context_id, title=title)
 
-                if self._configuration.features.generate_conversation_title:
+                should_generate_title = self._configuration.features.generate_conversation_title
+                state = TitleGenerationState.PENDING if should_generate_title else TitleGenerationState.COMPLETED
+                await uow.contexts.update_title(context_id=context_id, title=title, generation_state=state)
+
+                if should_generate_title:
                     await task.configure(queueing_lock=str(context_id)).defer_async(context_id=str(context_id))
 
             await uow.commit()
@@ -146,6 +149,7 @@ class ContextService:
                 request=ChatCompletionRequest(
                     model=config.default_llm_model,
                     stream=False,
+                    max_completion_tokens=100,
                     messages=[
                         {
                             "role": "system",
@@ -162,9 +166,16 @@ class ContextService:
             title = resp["choices"][0]["message"]["content"]  # pyright: ignore [reportIndexIssue]
             title = f"{title[:100]}..." if len(title) > 100 else title
             async with self._uow() as uow:
-                await uow.contexts.update_title(context_id=context_id, title=title)
+                await uow.contexts.update_title(
+                    context_id=context_id, title=title, generation_state=TitleGenerationState.COMPLETED
+                )
                 await uow.commit()
         except Exception as e:
+            async with self._uow() as uow:
+                await uow.contexts.update_title(
+                    context_id=context_id, title=None, generation_state=TitleGenerationState.FAILED
+                )
+                await uow.commit()
             logger.warning(f"Failed to generate title for context {context_id}: {e}")
             raise e
 

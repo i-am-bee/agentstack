@@ -1,5 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
+from enum import StrEnum
 from uuid import UUID, uuid4
 
 from a2a.types import Artifact, Message
@@ -27,3 +28,9 @@ class Context(BaseModel):
     last_active_at: AwareDatetime = Field(default_factory=utc_now)
     created_by: UUID
     metadata: Metadata | None = None
+
+
+class TitleGenerationState(StrEnum):
+    PENDING = "pending"
+    COMPLETED = "completed"
+    FAILED = "failed"

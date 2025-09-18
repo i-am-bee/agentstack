@@ -23,7 +23,7 @@ from sqlalchemy import UUID as SQL_UUID
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from beeai_server.domain.models.common import Metadata, PaginatedResult
-from beeai_server.domain.models.context import Context, ContextHistoryItem
+from beeai_server.domain.models.context import Context, ContextHistoryItem, TitleGenerationState
 from beeai_server.domain.repositories.context import IContextRepository
 from beeai_server.exceptions import EntityNotFoundError
 from beeai_server.infrastructure.persistence.repositories.db_metadata import metadata
@@ -141,14 +141,20 @@ class SqlAlchemyContextRepository(IContextRepository):
         query = update(contexts_table).where(contexts_table.c.id == context_id).values(last_active_at=utc_now())
         await self._connection.execute(query)
 
-    async def update_title(self, *, context_id: UUID, title: str) -> None:
+    async def update_title(
+        self, *, context_id: UUID, title: str | None = None, generation_state: TitleGenerationState
+    ) -> None:
         # validate length before saving to database
         _ = TypeAdapter(Metadata).validate_python({"title": title})
         context = await self.get(context_id=context_id)
         query = (
             contexts_table.update()
             .where(contexts_table.c.id == context_id)
-            .values(metadata=(context.metadata or {}) | {"title": title})
+            .values(
+                metadata=(context.metadata or {})
+                | ({"title": title} if title else {})
+                | {"title_generation_state": generation_state}
+            )
         )
         await self._connection.execute(query)
 

@@ -82,7 +82,11 @@ class BaseDriver(abc.ABC):
                     "hostNetwork": True,
                     "externalRegistries": {"public_github": str(Configuration().agent_registry)},
                     "encryptionKey": "Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc=",
-                    "features": {"uiNavigation": True, "selfRegistration": True},
+                    "features": {
+                        "uiNavigation": True,
+                        "selfRegistration": True,
+                        "generateConversationTitle": False,  # TODO: enable when UI implementation is ready
+                    },
                     "auth": {"enabled": False},
                 }
             ).encode("utf-8"),
