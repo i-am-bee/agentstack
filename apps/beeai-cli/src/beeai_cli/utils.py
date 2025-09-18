@@ -5,6 +5,8 @@ import contextlib
 import functools
 import json
 import os
+import socket
+import ssl
 import subprocess
 import sys
 from collections.abc import AsyncIterator
@@ -280,18 +282,17 @@ async def get_verify_option(server_url: str, ca_cert_file: Path):
 
 
 async def get_server_ca_cert(server_url: str, ca_cert_file: Path) -> Path:
-    if not ca_cert_file.exists():
-        import socket
-        import ssl
-
-        host, port = server_url.replace("https://", "").split(":")
-        port = int(port)
-        ctx = ssl._create_unverified_context()
-        with socket.create_connection((host, port)) as sock, ctx.wrap_socket(sock, server_hostname=host) as ssock:
-            der_cert = ssock.getpeercert(binary_form=True)
-            if der_cert is None:
-                raise RuntimeError(f"No certificate received from {server_url}")
-            pem_cert = ssl.DER_cert_to_PEM_cert(der_cert)
-            ca_cert_file.write_text(pem_cert)
-        console.print(f"Saved CA cert to {ca_cert_file}")
+    if ca_cert_file.exists():
+        return ca_cert_file
+    parsed = urlparse(server_url if "://" in server_url else f"https://{server_url}")
+    ctx = ssl._create_unverified_context()
+    with (
+        socket.create_connection((parsed.hostname, parsed.port or 443)) as sock,
+        ctx.wrap_socket(sock, server_hostname=parsed.hostname) as ssock,
+    ):
+        der_cert = ssock.getpeercert(binary_form=True)
+        if not der_cert:
+            raise RuntimeError(f"No certificate received from {server_url}")
+        ca_cert_file.write_text(ssl.DER_cert_to_PEM_cert(der_cert))
+    console.print(f"Saved CA cert to {ca_cert_file}")
     return ca_cert_file
