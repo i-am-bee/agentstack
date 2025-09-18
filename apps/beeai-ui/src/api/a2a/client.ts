@@ -273,14 +273,9 @@ export const buildA2AClient = async <UIGenericPart = never>({
 
 async function clientFetch(input: RequestInfo, init?: RequestInit) {
   try {
-    // You can bind context here if needed, e.g., add headers or log
     const response = await fetch(input, init);
-    if (!response.ok) {
-      if (response.status === 401) {
-        throw new UnauthenticatedError({ message: 'You are not authenticated.', response });
-      }
-
-      throw new Error(response.statusText);
+    if (!response.ok && response.status === 401) {
+      throw new UnauthenticatedError({ message: 'You are not authenticated.', response });
     }
 
     return response;
