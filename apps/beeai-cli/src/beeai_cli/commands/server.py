@@ -3,12 +3,14 @@
 
 import json
 import time
+import typing
 import webbrowser
 from pathlib import Path
 from urllib.parse import urlencode
 
 import anyio
 import httpx
+import typer
 import uvicorn
 from authlib.common.security import generate_token
 from authlib.oauth2.rfc7636 import create_s256_code_challenge
@@ -95,17 +97,18 @@ async def wait_for_auth_code(port: int = 9001) -> str:
 
 
 async def exchange_token(oidc: dict, code: str, code_verifier: str, config) -> dict:
-    token_req = {
-        "grant_type": "authorization_code",
-        "code": code,
-        "redirect_uri": config.redirect_uri,
-        "client_id": config.client_id,
-        "code_verifier": code_verifier,
-    }
-
     async with httpx.AsyncClient() as client:
         try:
-            token_resp = await client.post(oidc["token_endpoint"], data=token_req)
+            token_resp = await client.post(
+                oidc["token_endpoint"],
+                data={
+                    "grant_type": "authorization_code",
+                    "code": code,
+                    "redirect_uri": config.redirect_uri,
+                    "client_id": config.client_id,
+                    "code_verifier": code_verifier,
+                },
+            )
             token_resp.raise_for_status()
             return token_resp.json()
         except Exception as e:
@@ -113,21 +116,11 @@ async def exchange_token(oidc: dict, code: str, code_verifier: str, config) -> d
 
 
 @app.command("login")
-async def login(server_url: str | None = None):
-    default_url = config.auth_manager.get_active_server()
-    if not default_url:
-        default_url = config.default_external_host
-    if not server_url:
-        server_url = await inquirer.text(  # type: ignore
-            message=f"🌐 Enter the server address (default: {default_url}):",
-            default=str(default_url),
-            validate=lambda val: bool(val.strip()),
-        ).execute_async()
-    if server_url is None:
-        raise RuntimeError("No server URL provided.")
-
-    server_url = normalize_url(server_url)
-
+async def login(server_url: typing.Annotated[str | None, typer.Argument()] = None):
+    server_url = normalize_url(
+        server_url or config.auth_manager.get_active_server() or str(config.default_external_host)
+    )
+    console.info(f"Logging in to server: [cyan]{server_url}[/cyan]")
     ca_cert_file = await get_server_ca_cert(
         server_url=server_url, ca_cert_file=config.ca_cert_dir / f"{make_safe_name(server_url)}_ca.crt"
     )
@@ -135,59 +128,52 @@ async def login(server_url: str | None = None):
     auth_servers = metadata.get("authorization_servers", [])
 
     if not auth_servers:
-        console.print()
-        console.error("No authorization servers found.")
-        raise RuntimeError("Login failed due to missing authorization servers.")
+        raise RuntimeError("No authorization servers found.")
 
     if len(auth_servers) == 1:
         issuer = auth_servers[0]
-        if not isinstance(issuer, str):
-            raise RuntimeError("Invalid authorization server format.")
     else:
-        console.print("\n[bold blue]Multiple authorization servers are available.[/bold blue]")
+        console.info("Multiple authorization servers are available.")
         issuer = await inquirer.select(  # type: ignore
             message="Select an authorization server:",
             choices=auth_servers,
-            default=auth_servers[0],
-            pointer="👉",
         ).execute_async()
 
     if not issuer:
         raise RuntimeError("No issuer selected.")
+    if not isinstance(issuer, str):
+        raise RuntimeError("Invalid authorization server format.")
 
     oidc = await discover_oidc_config(issuer)
     code_verifier = generate_token(64)
-    code_challenge = create_s256_code_challenge(code_verifier)
 
-    requested_scopes = metadata.get("scopes_supported", [])
-    if not requested_scopes:
-        requested_scopes = ["openid"]  # default fallback
+    auth_url = f"{oidc['authorization_endpoint']}?{
+        urlencode(
+            {
+                'client_id': config.client_id,
+                'response_type': 'code',
+                'redirect_uri': config.redirect_uri,
+                'scope': ' '.join(metadata.get('scopes_supported', ['openid'])),
+                'code_challenge': create_s256_code_challenge(code_verifier),
+                'code_challenge_method': 'S256',
+            }
+        )
+    }"
 
-    auth_params = {
-        "client_id": config.client_id,
-        "response_type": "code",
-        "redirect_uri": config.redirect_uri,
-        "scope": " ".join(requested_scopes),
-        "code_challenge": code_challenge,
-        "code_challenge_method": "S256",
-    }
-    auth_url = f"{oidc['authorization_endpoint']}?{urlencode(auth_params)}"
-
-    console.print(f"\n[bold blue]Opening browser for login:[/bold blue] [cyan]{auth_url}[/cyan]")
+    console.info(f"Opening browser for login: [cyan]{auth_url}[/cyan]")
     webbrowser.open(auth_url)
 
     code = await wait_for_auth_code()
-    tokens = await exchange_token(oidc, code, code_verifier, config)
+    token = await exchange_token(oidc, code, code_verifier, config)
 
-    if tokens:
-        config.auth_manager.save_auth_token(make_safe_name(server_url), issuer, tokens)
+    if token:
+        config.auth_manager.save_auth_token(make_safe_name(server_url), issuer, token)
         console.print()
         console.success("Login successful.")
         return
 
     console.print()
-    console.error("Login timed out or not successful.")
-    raise RuntimeError("Login failed.")
+    raise RuntimeError("Login timed out or not successful.")
 
 
 @app.command("logout")
@@ -210,28 +196,31 @@ async def logout():
 def show_server():
     active_server = config.auth_manager.get_active_server()
     if not active_server:
-        console.print("[bold red]No active server!!![/bold red]\n")
+        console.info("No active server.")
         return
-    console.print(f"\n[bold]Active server:[/bold] [green]{active_server}[/green]\n")
+    console.info(f"Active server: [cyan]{active_server}[/cyan]")
 
 
 @app.command("list")
 def list_server():
     servers = config.auth_manager.config.get("servers", {})
     if not servers:
-        console.print("[bold red]No servers logged in.[/bold red]\nRun [bold green]beeai login[/bold green] first.\n")
+        console.info("No servers logged in.")
+        console.hint("Run [green]beeai login <server>[/green] to log in.")
         return
-    console.print("\n[bold blue]Known servers:[/bold blue]")
-    for i, server in enumerate(servers, start=1):
-        marker = " [green]✅(active)[/green]" if server == config.auth_manager.get_active_server() else ""
-        console.print(f"[cyan]{i}. {server}[/cyan] {marker}")
+    for server in servers:
+        console.print(
+            f"[cyan]{server}[/cyan] {'[green](active)[/green]' if server == config.auth_manager.get_active_server() else ''}"
+        )
 
 
 @app.command("change | select | default")
 def switch_server():
     servers = config.auth_manager.config.get("servers", {})
     if not servers:
-        console.print("[bold red]No server logged in.[/bold red] Run [bold green]beeai login[/bold green] first.\n")
+        console.error("No server logged in.")
+        console.hint("Run [green]beeai login <server>[/green] to log in.")
+        return
 
     console.print("\n[bold blue]Available servers:[/bold blue]")
     choices = [
