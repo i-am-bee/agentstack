@@ -61,7 +61,7 @@ class Configuration(pydantic_settings.BaseSettings):
 
     @asynccontextmanager
     async def use_platform_client(self) -> AsyncIterator[PlatformClient]:
-        base_url = self.auth_manager.get_active_server()
+        base_url = self.auth_manager.active_server or "http://localhost:8333"
         async with use_platform_client(
             auth=("admin", self.admin_password.get_secret_value()) if self.admin_password else None,
             auth_token=self.auth_manager.load_auth_token(),

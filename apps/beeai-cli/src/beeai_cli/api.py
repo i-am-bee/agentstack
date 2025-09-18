@@ -21,7 +21,7 @@ from httpx._types import RequestFiles
 from beeai_cli.configuration import Configuration
 
 config = Configuration()
-BASE_URL = server if (server := config.auth_manager.get_active_server()) else "http://localhost:8333"
+BASE_URL = server if (server := config.auth_manager.active_server) else "http://localhost:8333"
 API_BASE_URL = f"{BASE_URL}/api/v1/"
 
 
@@ -50,7 +50,7 @@ def server_process_status(
 
 async def set_auth_header():
     if not (token := config.auth_manager.load_auth_token()):
-        raise RuntimeError("No token found. Please run `beeai login` first.")
+        raise RuntimeError("No token found. Please run `beeai server login` first.")
     return f"Bearer {token}"
 
 

@@ -71,7 +71,7 @@ async def _wait_for_auth_code(port: int = 9001) -> str:
 async def server_login(server: typing.Annotated[str | None, typer.Argument()] = None):
     """Login to a server or switch between logged in servers."""
     servers = config.auth_manager.config.servers
-    active_server = config.auth_manager.get_active_server()
+    active_server = config.auth_manager.active_server
     server = server or (
         await inquirer.select(  #  type: ignore
             message="Select a server to activate, or log in to a new one:",
@@ -102,17 +102,18 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
         if len(auth_servers) == 1:
             auth_server = auth_servers[0]
         else:
-            active_token_issuer = None
-            if server == config.auth_manager.get_active_server():
-                active_token_issuer = config.auth_manager.config.active_token
-
             auth_server = await inquirer.select(  #  type: ignore
                 message="Select an authorization server:",
                 choices=[
-                    Choice(name=f"{issuer} {'(active)' if issuer == active_token_issuer else ''}", value=issuer)
-                    for issuer in auth_servers
+                    Choice(
+                        name=f"{auth_server} {'(active)' if auth_server == config.auth_manager.active_auth_server else ''}",
+                        value=auth_server,
+                    )
+                    for auth_server in auth_servers
                 ],
-                default=active_token_issuer,
+                default=config.auth_manager.active_auth_server
+                if config.auth_manager.active_auth_server in auth_servers
+                else 0,
             ).execute_async()
 
         if not auth_server:
@@ -193,8 +194,8 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
 
         config.auth_manager.save_auth_token(server, auth_server, token)
 
-    config.auth_manager.set_active_server(server)
-    config.auth_manager.set_active_token(server, auth_server)
+    config.auth_manager.active_server = server
+    config.auth_manager.active_auth_server = auth_server
     console.success(f"Logged in to [cyan]{server}[/cyan].")
 
 
@@ -206,20 +207,12 @@ async def server_logout():
 
 @app.command("show")
 def server_show():
-    active_server = config.auth_manager.get_active_server()
-    if not active_server:
-        console.info("No active server.")
-        return
-    console.info(f"Active server: [cyan]{active_server}[/cyan]")
+    console.info(f"Active server: [cyan]{config.auth_manager.active_server}[/cyan]")
 
 
 @app.command("list")
 def server_list():
-    if not config.auth_manager.config.servers:
-        console.info("No servers logged in.")
-        console.hint("Run [green]beeai login[/green] to log in.")
-        return
-    for server in config.auth_manager.config.servers:
+    for server in config.auth_manager.servers:
         console.print(
-            f"[cyan]{server}[/cyan] {'[green](active)[/green]' if server == config.auth_manager.get_active_server() else ''}"
+            f"[cyan]{server}[/cyan] {'[green](active)[/green]' if server == config.auth_manager.active_server else ''}"
         )
