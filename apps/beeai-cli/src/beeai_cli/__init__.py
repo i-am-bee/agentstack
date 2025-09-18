@@ -18,6 +18,7 @@ from beeai_cli.async_typer import AsyncTyper
 from beeai_cli.configuration import Configuration
 
 logging.basicConfig(level=logging.INFO if Configuration().debug else logging.FATAL)
+logging.getLogger("httpx").setLevel(logging.WARNING)  # not sure why this is necessary
 
 app = AsyncTyper(no_args_is_help=True)
 app.add_typer(beeai_cli.commands.model.app, name="model", no_args_is_help=True, help="Manage model providers.")

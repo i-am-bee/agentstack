@@ -14,7 +14,7 @@ from beeai_sdk.platform import PlatformClient, use_platform_client
 from pydantic import HttpUrl, SecretStr
 
 from beeai_cli.auth_config_manager import AuthConfigManager
-from beeai_cli.utils import get_verify_option, make_safe_name, normalize_url
+from beeai_cli.utils import get_verify_option, make_safe_name
 
 
 @functools.cache
@@ -74,8 +74,7 @@ class Configuration(pydantic_settings.BaseSettings):
         auth = ("admin", self.admin_password.get_secret_value()) if self.admin_password else None
         token = self.auth_manager.load_auth_token()
         auth_token = token.get_secret_value() if token else None
-        active_server = self.auth_manager.get_active_server()
-        base_url = normalize_url(active_server) if active_server else str(self.default_host)
+        base_url = self.auth_manager.get_active_server() or str(self.default_host)
 
         verify_option = await get_verify_option(base_url, self.ca_cert_dir / f"{make_safe_name(base_url)}_ca.crt")
         verify_args = {}

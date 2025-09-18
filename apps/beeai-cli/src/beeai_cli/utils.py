@@ -265,14 +265,6 @@ def make_safe_name(server_url: str) -> str:
     return parsed.netloc or parsed.path
 
 
-def normalize_url(url: str) -> str:
-    if not url.startswith(("http://", "https://")):
-        url = "https://" + url
-    parsed = urlparse(url)
-    # ensure no trailing slash
-    return f"{parsed.scheme}://{parsed.netloc}"
-
-
 async def get_verify_option(server_url: str, ca_cert_file: Path):
     parsed = urlparse(server_url)
     if parsed.scheme == "https":
