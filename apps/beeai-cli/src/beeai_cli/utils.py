@@ -19,6 +19,7 @@ from urllib.parse import urlparse
 
 import anyio
 import anyio.abc
+import httpx
 import typer
 import yaml
 from anyio import create_task_group
@@ -53,7 +54,13 @@ def extract_messages(exc):
     if isinstance(exc, BaseExceptionGroup):
         return [(exc_type, msg) for e in exc.exceptions for exc_type, msg in extract_messages(e)]
     else:
-        return [(type(exc).__name__, str(exc))]
+        message = str(exc)
+        if isinstance(exc, httpx.HTTPStatusError):
+            with contextlib.suppress(Exception):
+                message = str(exc).split(" for url", maxsplit=1)[0]
+                message = f"{message}: {exc.response.json()['detail']}"
+
+        return [(type(exc).__name__, message)]
 
 
 def parse_env_var(env_var: str) -> tuple[str, str]:
@@ -280,3 +287,21 @@ async def get_verify_option(server_url: str):
                 raise RuntimeError(f"No certificate received from {server_url}")
             ca_cert_file.write_text(ssl.DER_cert_to_PEM_cert(der_cert))
     return str(ca_cert_file)
+
+
+def print_log(line, ansi_mode=False):
+    if "error" in line:
+
+        class CustomError(Exception): ...
+
+        CustomError.__name__ = line["error"]["type"]
+
+        raise CustomError(line["error"]["detail"])
+
+    def decode(text: str):
+        return Text.from_ansi(text) if ansi_mode else text
+
+    if line["stream"] == "stderr":
+        err_console.print(decode(line["message"]))
+    elif line["stream"] == "stdout":
+        console.print(decode(line["message"]))

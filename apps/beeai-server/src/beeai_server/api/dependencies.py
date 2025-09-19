@@ -29,12 +29,14 @@ from beeai_server.service_layer.services.files import FileService
 from beeai_server.service_layer.services.mcp import McpService
 from beeai_server.service_layer.services.model_provider import ModelProviderService
 from beeai_server.service_layer.services.provider import ProviderService
+from beeai_server.service_layer.services.provider_build import ProviderBuildService
 from beeai_server.service_layer.services.user_feedback import UserFeedbackService
 from beeai_server.service_layer.services.users import UserService
 from beeai_server.service_layer.services.vector_stores import VectorStoreService
 
 ConfigurationDependency = Annotated[Configuration, Depends(lambda: di[Configuration])]
 ProviderServiceDependency = Annotated[ProviderService, Depends(lambda: di[ProviderService])]
+ProviderBuildServiceDependency = Annotated[ProviderBuildService, Depends(lambda: di[ProviderBuildService])]
 A2AProxyServiceDependency = Annotated[A2AProxyService, Depends(lambda: di[A2AProxyService])]
 McpServiceDependency = Annotated[McpService, Depends(lambda: di[McpService])]
 ContextServiceDependency = Annotated[ContextService, Depends(lambda: di[ContextService])]

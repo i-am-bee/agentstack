@@ -1,0 +1,165 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ provider_build_name }}"
+  labels:
+    app: "{{ provider_build_label }}"
+    managedBy: beeai-platform
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 600
+  activeDeadlineSeconds: {{ job_timeout_seconds }}
+  template:
+    spec:
+      imagePullSecrets:
+        - name: beeai-platform-registry-secret
+      restartPolicy: Never
+      shareProcessNamespace: true
+      initContainers:
+        - name: git-clone
+          image: alpine/git:v2.49.1
+          command: [ "/bin/sh" ]
+          env:
+            - name: GIT_HOST_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: beeai-platform-secret
+                  key: "GITHUB_REGISTRY__{{ git_host_upper }}__TOKEN"
+                  optional: true
+          args:
+            - -c
+            - |
+              echo "Cloning repository..."
+              git clone --depth 1 \
+                --revision {{ git_ref }} \
+                "https://{{ git_host }}/{{ git_org }}/{{ git_repo }}.git" \
+                /tmp/repo
+              mv "/tmp/repo/{{ git_path }}"/* /workspace/ 2>/dev/null || true
+              mv "/tmp/repo/{{ git_path }}"/.[^.]* /workspace/ 2>/dev/null || true
+              echo "Repository cloned successfully"
+              ls -la /workspace
+          volumeMounts:
+            - name: workspace
+              mountPath: /workspace
+        # Build image
+        - name: buildkit
+          image: moby/buildkit:v0.24.0-rootless
+          env:
+            - name: DOCKER_CONFIG
+              value: /docker
+            - name: BUILDKITD_FLAGS
+              value: --oci-worker-no-process-sandbox
+          command:
+            - buildctl-daemonless.sh
+          args:
+            - build
+            - --frontend
+            - dockerfile.v0
+            - --local
+            - dockerfile=/workspace
+            - --local
+            - context=/workspace
+            - --opt
+            - platform=linux/amd64,linux/arm64
+            - --output
+            - type=image,name={{ destination }},push=true,registry.insecure=true
+            - --export-cache
+            - type=inline
+            - --import-cache
+            - type=registry,ref={{ destination }},registry.insecure=true
+          # To push the image to a registry, add
+          # `--output type=image,name=docker.io/username/image,push=true`
+          securityContext:
+            # Needs Kubernetes >= 1.19
+            seccompProfile:
+              type: Unconfined
+            # Needs Kubernetes >= 1.30
+            appArmorProfile:
+              type: Unconfined
+            # To change UID/GID, you need to rebuild the image
+            runAsUser: 1000
+            runAsGroup: 1000
+          volumeMounts:
+            - name: workspace
+              mountPath: /workspace
+            # Dockerfile has `VOLUME /home/user/.local/share/buildkit` by default too,
+            # but the default VOLUME does not work with rootless on Google's Container-Optimized OS
+            # as it is mounted with `nosuid,nodev`.
+            # https://github.com/moby/buildkit/issues/879#issuecomment-1240347038
+            - mountPath: /home/user/.local/share/buildkit
+              name: buildkitd
+            - name: docker-config
+              mountPath: /docker/config.json
+              subPath: .dockerconfigjson
+              readOnly: true
+        - name: run-agent
+          image: "{{ destination }}"
+          restartPolicy: Always # This makes it a daemon sidecar container
+          env:
+            - name: PORT
+              value: "8000"
+            - name: HOST
+              value: "0.0.0.0"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+      containers:
+        # Main container: Step 3 - Mutate and push final image
+        - name: mutate
+          image: alpine/crane:0.20.6
+          command:
+            - /bin/sh
+            - -c
+            - |
+              # Extract agent manifest
+              for i in $(seq 1 30); do
+                if nc -z 127.0.0.1 8000; then
+                  break
+                fi
+                echo "Waiting for server to start... (attempt $i/10)"
+                sleep 1
+              done
+              
+              if wget -O /agent-card.json http://127.0.0.1:8000/.well-known/agent-card.json; then
+                echo "Successfully extracted agent-card.json"
+                echo "Content preview:"
+                head -n 10 /agent-card.json
+              else
+                echo "Failed to extract agent-card.json"
+                exit 1
+              fi
+
+              echo "Starting image mutation..."
+              echo "Extraction complete!"
+
+              LABEL_CONTENT=$(base64 -w 0 /agent-card.json)
+              
+              echo "Label content size: $(echo -n $LABEL_CONTENT | wc -c) bytes"
+              crane mutate --insecure {{ destination }} \
+                --label "beeai.dev.agent.json=${LABEL_CONTENT}"
+
+          volumeMounts:
+            - name: docker-config
+              mountPath: /root/.docker/config.json
+              subPath: .dockerconfigjson
+              readOnly: true
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
+      volumes:
+        - name: workspace
+          emptyDir: { }
+        - name: buildkitd
+          emptyDir: { }
+        - name: docker-config
+          secret:
+            secretName: beeai-platform-registry-secret

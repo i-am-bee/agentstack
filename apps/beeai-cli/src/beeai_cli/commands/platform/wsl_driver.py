@@ -140,7 +140,12 @@ class WSLDriver(BaseDriver):
         await self.run_in_vm(["dbus-launch", "true"], "Ensuring persistence of BeeAI VM")
 
     @typing.override
-    async def deploy(self, set_values_list: list[str], import_images: list[str] | None = None) -> None:
+    async def deploy(
+        self,
+        set_values_list: list[str],
+        values_file: pathlib.Path | None = None,
+        import_images: list[str] | None = None,
+    ) -> None:
         await self.run_in_vm(
             ["k3s", "kubectl", "apply", "-f", "-"],
             "Setting up internal networking",
@@ -155,7 +160,7 @@ class WSLDriver(BaseDriver):
                 }
             ).encode(),
         )
-        await super().deploy(set_values_list=set_values_list, import_images=import_images)
+        await super().deploy(set_values_list=set_values_list, values_file=values_file, import_images=import_images)
         await self.run_in_vm(
             ["sh", "-c", "cat >/etc/systemd/system/kubectl-port-forward@.service"],
             "Installing systemd unit for port-forwarding",

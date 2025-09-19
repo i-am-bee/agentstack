@@ -2,12 +2,27 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import pytest
-from pytest_httpx import HTTPXMock
+from kink import di
+from kink.errors import ServiceError
 
+from beeai_server.configuration import Configuration
 from beeai_server.utils.github import GithubUrl
 from beeai_server.utils.utils import filter_dict
 
 pytestmark = pytest.mark.unit
+
+
+@pytest.fixture
+def configuration():
+    from contextlib import suppress
+
+    orig_conf = None
+    with suppress(ServiceError):
+        orig_conf = di[Configuration]
+    di[Configuration] = Configuration()
+    yield
+    if orig_conf:
+        di[Configuration] = orig_conf
 
 
 @pytest.mark.parametrize(
@@ -19,6 +34,7 @@ pytestmark = pytest.mark.unit
         ("https://github.com/myorg/myrepo.git", {"org": "myorg", "repo": "myrepo"}),
         ("https://github.com/myorg/myrepo", {"org": "myorg", "repo": "myrepo"}),
         ("https://github.com/myorg/myrepo#path=/a/b.txt", {"org": "myorg", "repo": "myrepo", "path": "a/b.txt"}),
+        ("https://github.ibm.com/myorg/myrepo#path=/a/b.txt", {"org": "myorg", "repo": "myrepo", "path": "a/b.txt"}),
         ("https://github.com/myorg/myrepo@1.0.0", {"org": "myorg", "repo": "myrepo", "version": "1.0.0"}),
         ("https://github.com/myorg/myrepo.git@1.0.0", {"org": "myorg", "repo": "myrepo", "version": "1.0.0"}),
         (
@@ -32,7 +48,7 @@ pytestmark = pytest.mark.unit
         ("https://github.com/org.dot/repo.dot.git", {"org": "org.dot", "repo": "repo.dot"}),
     ],
 )
-def test_parses_github_url(url, expected):
+def test_parses_github_url(url, expected, configuration):
     url = GithubUrl(url)
     assert filter_dict({"org": url.org, "repo": url.repo, "version": url.version, "path": url.path}) == expected
 
@@ -45,6 +61,9 @@ def test_parses_github_url(url, expected):
         "git+invalid://github.com/org/repo",  # Invalid protocol
         "https://github.com/org",  # Missing repo
         "https://gitlab.com/org/repo",  # Different domain
+        "https://github.com /org/repo",  # extra space
+        "https://github.com/org /repo",  # extra space
+        "https://github.com/org/repo#path=;DROP TABLE",  # extra path
         "git@github.com:org/repo.git",  # SSH format (not supported)
     ],
 )
@@ -52,20 +71,3 @@ def test_invalid_urls(url):
     """Test that invalid URLs raise ValueError."""
     with pytest.raises(ValueError):
         GithubUrl(url)
-
-
-@pytest.mark.skip("TODO: fix this test")
-async def test_resolve_version(httpx_mock: HTTPXMock):
-    url = "http://github.com/my-org/my-repo"
-    location = "https://github.com/my-org/my-repo/blob/main/dummy"
-    httpx_mock.add_response(status_code=304, headers={"location": location})
-
-    url = GithubUrl(url)
-    assert url.version is None
-
-    await url.resolve_version()
-
-    assert url.version == "main"
-
-    request = httpx_mock.get_request()
-    assert str(request.url).startswith("https://github.com/my-org/my-repo/blob/-/")

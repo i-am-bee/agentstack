@@ -313,3 +313,45 @@ We need to set database.url otherwise migrations fail
         {{- fail "ERROR: Conflicting database configuration detected!\n\nYou cannot specify both 'database.url' and enable the built-in PostgreSQL (postgresql.enabled=true).\n\nTo fix this, choose ONE option:\n\n  1. Use external database:\n     - Set postgresql.enabled=false\n     - Keep database.url configured with your external database\n\n  2. Use built-in PostgreSQL:\n     - Set postgresql.enabled=true\n     - Set database.url to empty string\n\nThe database.url setting overrides PostgreSQL settings, so having both enabled creates ambiguity." }}
     {{- end }}
 {{- end }}
+
+{{/*
+Generate imagePullSecrets including optional internal registry secret
+*/}}
+{{- define "beeai-platform.imagePullSecrets" -}}
+{{- $secrets := list -}}
+{{- range .Values.imagePullSecrets -}}
+  {{- $secrets = append $secrets . -}}
+{{- end -}}
+{{- if .Values.localDockerRegistry.enabled -}}
+  {{- $internalSecret := dict "name" "beeai-platform-registry-secret" -}}
+  {{- $secrets = append $secrets $internalSecret -}}
+{{- end -}}
+{{- if $secrets -}}
+imagePullSecrets:
+{{- range $secrets }}
+  - name: {{ .name }}
+{{- end -}}
+{{- end -}}
+{{- end }}
+
+
+{{/*
+Generate environment variables for registry docker configs
+*/}}
+{{- define "beeai-platform.registryEnvVars" -}}
+{{- $secrets := list -}}
+{{- range .Values.imagePullSecrets -}}
+  {{- $secrets = append $secrets . -}}
+{{- end -}}
+{{- if .Values.localDockerRegistry.enabled -}}
+  {{- $internalSecret := dict "name" "beeai-platform-registry-secret" -}}
+  {{- $secrets = append $secrets $internalSecret -}}
+{{- end -}}
+{{- range $idx, $secret := $secrets }}
+- name: OCI_REGISTRY_DOCKER_CONFIG_JSON__{{ $idx }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ $secret.name }}
+      key: ".dockerconfigjson"
+{{- end }}
+{{- end }}

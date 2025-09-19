@@ -12,6 +12,7 @@ from procrastinate import Blueprint
 
 from beeai_server.configuration import get_configuration
 from beeai_server.domain.models.mcp_provider import McpProviderDeploymentState
+from beeai_server.jobs.queues import Queues
 from beeai_server.service_layer.services.mcp import McpService
 from beeai_server.utils.utils import extract_messages
 
@@ -22,7 +23,7 @@ blueprint = Blueprint()
 if get_configuration().mcp.auto_remove_enabled:
 
     @blueprint.periodic(cron="* * * * * */5")
-    @blueprint.task(queueing_lock="auto_remove_mcp_providers", queue="cron:mcp_provider")
+    @blueprint.task(queueing_lock="auto_remove_mcp_providers", queue=str(Queues.CRON_MCP_PROVIDER))
     @inject
     async def auto_remove_providers(timestamp: int, mcp_service: McpService):
         providers = await mcp_service.list_providers()

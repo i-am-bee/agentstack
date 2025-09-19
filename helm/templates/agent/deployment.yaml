@@ -32,10 +32,7 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      {{- with $root.Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+      {{- include "beeai-platform.imagePullSecrets" $root | nindent 6 }}
       {{- with $root.Values.agent.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}

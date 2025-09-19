@@ -92,11 +92,12 @@ import typer
 from rich.markdown import Markdown
 from rich.table import Column
 
-from beeai_cli.api import a2a_client, api_stream
+from beeai_cli.api import a2a_client
 from beeai_cli.async_typer import AsyncTyper, console, create_table, err_console
 from beeai_cli.utils import (
     generate_schema_example,
     parse_env_var,
+    print_log,
     prompt_user,
     remove_nullable,
     run_command,
@@ -143,24 +144,6 @@ processing_messages = [
 ]
 
 configuration = Configuration()
-
-
-def _print_log(line, ansi_mode=False):
-    if "error" in line:
-
-        class CustomError(Exception): ...
-
-        CustomError.__name__ = line["error"]["type"]
-
-        raise CustomError(line["error"]["detail"])
-
-    def decode(text: str):
-        return Text.from_ansi(text) if ansi_mode else text
-
-    if line["stream"] == "stderr":
-        err_console.print(decode(line["message"]))
-    elif line["stream"] == "stdout":
-        console.print(decode(line["message"]))
 
 
 @app.command("add")
@@ -243,8 +226,8 @@ async def stream_logs(
     """Stream agent provider logs"""
     async with configuration.use_platform_client():
         provider = select_provider(search_path, await Provider.list()).id
-        async for message in api_stream("get", f"providers/{provider}/logs"):
-            _print_log(message)
+        async for message in Provider.stream_logs(provider):
+            print_log(message, ansi_mode=True)
 
 
 async def _ask_form_questions(form_render: FormRender) -> FormResponse:

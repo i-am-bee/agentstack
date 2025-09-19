@@ -18,6 +18,7 @@ class IContextRepository(Protocol):
 
     async def list_paginated(
         self,
+        *,
         user_id: UUID | None = None,
         limit: int = 20,
         page_token: UUID | None = None,

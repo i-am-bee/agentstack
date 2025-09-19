@@ -22,6 +22,7 @@ from beeai_server.infrastructure.persistence.repositories.env import SqlAlchemyE
 from beeai_server.infrastructure.persistence.repositories.file import SqlAlchemyFileRepository
 from beeai_server.infrastructure.persistence.repositories.model_provider import SqlAlchemyModelProviderRepository
 from beeai_server.infrastructure.persistence.repositories.provider import SqlAlchemyProviderRepository
+from beeai_server.infrastructure.persistence.repositories.provider_build import SqlAlchemyProviderBuildRepository
 from beeai_server.infrastructure.persistence.repositories.user import SqlAlchemyUserRepository
 from beeai_server.infrastructure.persistence.repositories.user_feedback import SqlAlchemyUserFeedbackRepository
 from beeai_server.infrastructure.persistence.repositories.vector_store import SqlAlchemyVectorStoreRepository
@@ -61,6 +62,7 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
 
             self.providers = SqlAlchemyProviderRepository(self._connection)
             self.model_providers = SqlAlchemyModelProviderRepository(self._connection)
+            self.provider_builds = SqlAlchemyProviderBuildRepository(self._connection)
             self.contexts = SqlAlchemyContextRepository(self._connection)
             self.env = SqlAlchemyEnvVariableRepository(self._connection, configuration=self._config)
             self.files = SqlAlchemyFileRepository(self._connection)

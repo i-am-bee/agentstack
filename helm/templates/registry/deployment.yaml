@@ -1,0 +1,35 @@
+{{- if .Values.localDockerRegistry.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: beeai-platform-registry
+  labels:
+    app: beeai-platform-registry
+    {{- include "beeai-platform.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: beeai-platform-registry
+      {{- include "beeai-platform.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: beeai-platform-registry
+        {{- include "beeai-platform.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: registry
+          image: ghcr.io/i-am-bee/library/registry:3
+          ports:
+            - containerPort: 5000
+              protocol: TCP
+          volumeMounts:
+            - name: registry-data
+              mountPath: /var/lib/registry
+      volumes:
+        - name: registry-data
+          hostPath:
+            path: /registry-data
+            type: Directory
+{{- end }}

@@ -11,11 +11,13 @@ from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from beeai_server.configuration import Configuration, get_configuration
 from beeai_server.domain.repositories.file import IObjectStorageRepository, ITextExtractionBackend
+from beeai_server.infrastructure.kubernetes.provider_build_manager import KubernetesProviderBuildManager
 from beeai_server.infrastructure.kubernetes.provider_deployment_manager import KubernetesProviderDeploymentManager
 from beeai_server.infrastructure.object_storage.repository import S3ObjectStorageRepository
 from beeai_server.infrastructure.persistence.unit_of_work import SqlAlchemyUnitOfWorkFactory
 from beeai_server.infrastructure.text_extraction.docling import DoclingTextExtractionBackend
 from beeai_server.jobs.procrastinate import create_app
+from beeai_server.service_layer.build_manager import IProviderBuildManager
 from beeai_server.service_layer.deployment_manager import IProviderDeploymentManager
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
 from beeai_server.utils.utils import async_to_sync_isolated
@@ -53,6 +55,13 @@ async def bootstrap_dependencies(dependency_overrides: Container | None = None):
     _set_di(
         IProviderDeploymentManager,
         KubernetesProviderDeploymentManager(
+            api_factory=await setup_kubernetes_client(di[Configuration]),
+            manifest_template_dir=di[Configuration].provider.manifest_template_dir,
+        ),
+    )
+    _set_di(
+        IProviderBuildManager,
+        KubernetesProviderBuildManager(
             api_factory=await setup_kubernetes_client(di[Configuration]),
             manifest_template_dir=di[Configuration].provider.manifest_template_dir,
         ),

@@ -39,6 +39,7 @@ class Permissions(BaseModel):
     # agent providers
     providers: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()  # write includes "show logs" permission
     provider_variables: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
+    provider_builds: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()  # write includes "show logs" permission
 
     contexts: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
     context_data: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()  # covers history (TODO: variables)

@@ -11,6 +11,7 @@ from a2a.client import ClientConfig, ClientFactory
 from a2a.types import AgentCard
 
 from beeai_sdk.platform.client import PlatformClient, get_platform_client
+from beeai_sdk.util.utils import parse_stream
 
 
 class ProviderErrorMessage(pydantic.BaseModel):
@@ -117,6 +118,22 @@ class Provider(pydantic.BaseModel):
             _ = (
                 await client.put(f"/api/v1/providers/{provider_id}/variables", json={"variables": variables})
             ).raise_for_status()
+
+    async def stream_logs(
+        self: "Provider| str", *, client: PlatformClient | None = None
+    ) -> typing.AsyncIterator[dict[str, typing.Any]]:
+        # `self` has a weird type so that you can call both `instance.stream_logs()` or `ProviderBuild.stream_logs("123")`
+        provider_id = self if isinstance(self, str) else self.id
+        async with (
+            client or get_platform_client() as client,
+            client.stream(
+                "GET",
+                url=f"/api/v1/providers/{provider_id}/logs",
+                timeout=timedelta(hours=1).total_seconds(),
+            ) as response,
+        ):
+            async for line in parse_stream(response):
+                yield line
 
     async def list_variables(self: "Provider | str", *, client: PlatformClient | None = None) -> dict[str, str]:
         # `self` has a weird type so that you can call both `instance.delete()` or `Provider.delete("123")`

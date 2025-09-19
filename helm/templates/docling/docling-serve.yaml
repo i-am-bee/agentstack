@@ -45,10 +45,7 @@ spec:
         {{- end }}
     spec:
       restartPolicy: Always
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+      {{- include "beeai-platform.imagePullSecrets" . | nindent 6 }}
       {{- with .Values.docling.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}

@@ -44,7 +44,8 @@ class GithubRegistryLocation(RootModel):
 
     async def load(self) -> list["ProviderLocation"]:
         resolved_url = await self.root.resolve_version()
-        network_location = NetworkRegistryLocation(root=HttpUrl(resolved_url.get_raw_url()))
+        url = await resolved_url.get_raw_url()
+        network_location = NetworkRegistryLocation(root=HttpUrl(url))
         return await network_location.load()
 
 

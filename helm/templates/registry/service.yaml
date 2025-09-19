@@ -1,0 +1,20 @@
+{{- if .Values.localDockerRegistry.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: beeai-platform-registry-svc
+  labels:
+    app: beeai-platform-registry
+    {{- include "beeai-platform.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: beeai-platform-registry
+    {{- include "beeai-platform.selectorLabels" . | nindent 4 }}
+  ports:
+    - port: {{ .Values.localDockerRegistry.service.port }}
+      targetPort: 5000
+      {{- if (eq .Values.localDockerRegistry.service.type "NodePort") }}
+      nodePort: {{ .Values.localDockerRegistry.service.nodePort }}
+      {{- end }}
+  type: {{ .Values.localDockerRegistry.service.type }}
+{{- end }}

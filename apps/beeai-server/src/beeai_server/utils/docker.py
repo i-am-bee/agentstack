@@ -46,6 +46,8 @@ class DockerImageID(RootModel):
             ^(?!https?://)
 
             # Registry (optional) - ends with slash and contains at least one dot
+            # For local registries, these must use the svc.namespace url pattern, otherwise we
+            # cannot really distinguish the registry hostname from image name on docker hub
             ((?P<registry>[^/]+\.[^/]+)/)?
 
             # Repository (required) - final component before any tag
@@ -121,7 +123,7 @@ async def get_registry_image_config_and_labels(
     try:
         token_endpoint = await get_auth_endpoint(registry, get_manifest_url)
     except Exception as ex:
-        raise Exception("Image registry does not exist or is not accessible") from ex
+        raise Exception(f"Image registry does not exist or is not accessible: {get_manifest_url}") from ex
 
     async with httpx.AsyncClient() as client:
         if token_endpoint:

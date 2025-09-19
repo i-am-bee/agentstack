@@ -5,24 +5,29 @@
 # Use host network for beeai-server: useful for accessing localhost (Ollama, local agents etc.)
 hostNetwork: false
 
-# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
-replicaCount: 1
+features:
+  # Enables variable configuration - should be disabled in production (correlates with auth.enabled)
+  uiNavigation: false
+  selfRegistration: false
+  generateConversationTitle: false
+  providerBuilds: false
 
+# -------- AGENTS ----------
 providers: [ ]
-unmanagedProviders: [ ]
+
+# DEPRECATED: Unmanaged providers
+unmanagedProviders: [ ] # DEPRECATED: use providers instead
+variables: { } # DEPRECATED: use server API to manage variables instead
 
 # External registries in the format: [name: githubURL]
 # for example
 # github: "https://github.com/i-am-bee/beeai-platform@v0.2.14#path=agent-registry.yaml"
 externalRegistries: { }
 
-# In beeai-server this is used to determine the request origin and dynamically create agent card.
-# For example https://beeai.example.com/api/v1/providers/{provider_id} will return an agent cart with URL for
-# https://beeai.example.com, without respecting the headers, the URL would be "http://beeai.example.com",
-# See https://www.uvicorn.org/settings/#application-interface
 
-forwardedAllowIps: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+# ------- SECURITY ---------
 
+encryptionKey: ""
 auth:
   enabled: false # Warning, disable only for local deployments
   jwtSecretKey: ""
@@ -53,7 +58,34 @@ auth:
       }
     ]
 
+# In beeai-server this is used to determine the request origin and dynamically create agent card.
+# For example https://beeai.example.com/api/v1/providers/{provider_id} will return an agent cart with URL for
+# https://beeai.example.com, without respecting the headers, the URL would be "http://beeai.example.com",
+# See https://www.uvicorn.org/settings/#application-interface
+forwardedAllowIps: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
 
+# --- EXTERNAL REGISTRIES ---
+# GitHub providers for accessing private repositories
+githubTokens: [ ]
+# Example:
+# githubProviders:
+#   - host: "github.com"
+#     token: "ghp_xxxxxxxxxxxxxxxxxxxx"
+#   - host: "github.example.com"
+#     token: "ghp_xxxxxxxxxxxxxxxxxxxx"
+
+# This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: [ ]
+
+providerBuilds:
+  enabled: false
+  buildRegistry:
+    registryPrefix: "beeai-platform-registry-svc.default:5001" # This must include a dot
+    imageFormat: "{registry_prefix}/{org}/{repo}/{path}:{commit_hash}"
+    secretName: "beeai-platform-registry-secret"
+    insecure: true
+
+# -------- SERVER ----------
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
   repository: ghcr.io/i-am-bee/beeai-platform/beeai-server
@@ -62,31 +94,8 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
-encryptionKey: ""
-
-# This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
-imagePullSecrets: [ ]
-# This is to override the chart name.
-nameOverride: ""
-fullnameOverride: ""
-
-features:
-  # Enables variable configuration - should be disabled in production (correlates with auth.enabled)
-  uiNavigation: false
-  selfRegistration: false
-  generateConversationTitle: false
-
-# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: true
-  # Automatically mount a ServiceAccount's API credentials?
-  automount: true
-  # Annotations to add to the service account
-  annotations: { }
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  name: ""
+# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+replicaCount: 1
 
 # This is for setting Kubernetes Annotations to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
@@ -116,6 +125,14 @@ service:
   port: 8333
   nodePort: 8333
 
+resources:
+  requests:
+    memory: 300Mi
+#   cpu: 100m
+# limits:
+#   memory: 300Mi
+#   cpu: 100m
+
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
   enabled: false
@@ -133,13 +150,17 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
-resources:
-  requests:
-    memory: 300Mi
-#   cpu: 100m
-# limits:
-#   memory: 300Mi
-#   cpu: 100m
+# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: { }
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
 
 # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 livenessProbe:
@@ -201,6 +222,51 @@ ui:
   livenessProbe: { }
   readinessProbe: { }
 
+# --------- AGENT ----------
+agent:
+  podAnnotations: { }
+  deploymentStrategy: RollingUpdate
+  deploymentAnnotations: { }
+  imagePullPolicy: IfNotPresent
+  podLabels: { }
+  resources: { }
+  securityContext: { }
+  podSecurityContext: { }
+  service:
+    type: ClusterIP
+    port: 8000
+  startupProbe:
+    httpGet:
+      path: /.well-known/agent-card.json
+      port: 8000
+    initialDelaySeconds: 1
+    periodSeconds: 3
+    timeoutSeconds: 2
+    failureThreshold: 20
+  livenessProbe:
+    httpGet:
+      path: /.well-known/agent-card.json
+      port: 8000
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 2
+  volumes: [ ]
+  volumeMounts: [ ]
+  nodeSelector: { }
+  tolerations: [ ]
+  affinity: { }
+
+
+# ----- INFRASTRUCTURE ------
+
+# INSECURE: Only use locally with k3s deployment
+localDockerRegistry:
+  enabled: false
+  service:
+    type: NodePort
+    port: 5001
+    nodePort: 30501
+
 phoenix:
   # **Important License Notice**: Phoenix is disabled by default in BeeAI. When you enable Phoenix,
   # be aware that Arize Phoenix is licensed under the Elastic License v2 (ELv2), which has specific terms regarding
@@ -242,46 +308,6 @@ collector:
   pipelines: { }
   service:
     type: ClusterIP
-
-agent:
-  podAnnotations: { }
-  deploymentStrategy: RollingUpdate
-  deploymentAnnotations: { }
-  imagePullPolicy: IfNotPresent
-  podLabels: { }
-  resources: { }
-  securityContext: { }
-  podSecurityContext: { }
-  service:
-    type: ClusterIP
-    port: 8000
-  startupProbe:
-    httpGet:
-      path: /.well-known/agent-card.json
-      port: 8000
-    initialDelaySeconds: 1
-    periodSeconds: 3
-    timeoutSeconds: 2
-    failureThreshold: 20
-  livenessProbe:
-    httpGet:
-      path: /.well-known/agent-card.json
-      port: 8000
-    periodSeconds: 10
-    timeoutSeconds: 2
-    failureThreshold: 2
-  volumes: [ ]
-  volumeMounts: [ ]
-  nodeSelector: { }
-  tolerations: [ ]
-  affinity: { }
-
-unmanagedProviderVariables:
-  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector-svc:4318
-  PLATFORM_URL: http://beeai-platform-svc:8333
-
-# Variable configuration
-variables: { }
 
 ## PostgreSQL chart configuration
 ## ref: https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml
@@ -469,3 +495,7 @@ forge:
     - name: forge-storage
       persistentVolumeClaim:
         claimName: forge-pvc
+
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""

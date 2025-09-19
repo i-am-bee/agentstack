@@ -46,8 +46,8 @@ class LoggingConfiguration(BaseModel):
 class OCIRegistryConfiguration(BaseModel, extra="allow"):
     username: str | None = None
     password: Secret[str] | None = None
-    insecure: bool = False
     auth_header: Secret[str] | None = None
+    insecure: bool = False
 
     @property
     def protocol(self):
@@ -163,10 +163,15 @@ class TelemetryConfiguration(BaseModel):
     collector_url: AnyUrl = AnyUrl("http://otel-collector-svc:4318")
 
 
+class GithubConfiguration(BaseModel):
+    token: Secret[str] = Secret("")
+
+
 class DockerConfigJsonAuth(BaseModel, extra="allow"):
     auth: Secret[str] | None = None
     username: str | None = None
     password: Secret[str] | None = None
+    insecure: bool = False
 
 
 class DockerConfigJson(BaseModel):
@@ -195,6 +200,13 @@ class ContextConfiguration(BaseModel):
 
 class FeatureConfiguration(BaseModel):
     generate_conversation_title: bool = True
+    provider_builds: bool = True
+
+
+class ProviderBuildConfiguration(BaseModel):
+    oci_build_registry_prefix: str | None = None
+    image_format: str = "{registry_prefix}/{org}/{repo}/{path}:{commit_hash}"
+    job_timeout_sec: int = int(timedelta(minutes=20).total_seconds())
 
 
 class Configuration(BaseSettings):
@@ -209,6 +221,8 @@ class Configuration(BaseSettings):
     mcp: McpConfiguration = Field(default_factory=McpConfiguration)
     oci_registry: dict[str, OCIRegistryConfiguration] = Field(default_factory=dict)
     oci_registry_docker_config_json: dict[int, DockerConfigJson] = {}
+    provider_build: ProviderBuildConfiguration = Field(default_factory=ProviderBuildConfiguration)
+    github_registry: dict[str, GithubConfiguration] = Field(default_factory=dict)
     telemetry: TelemetryConfiguration = Field(default_factory=TelemetryConfiguration)
     persistence: PersistenceConfiguration = Field(default_factory=PersistenceConfiguration)
     object_storage: ObjectStorageConfiguration = Field(default_factory=ObjectStorageConfiguration)
@@ -231,12 +245,25 @@ class Configuration(BaseSettings):
         for docker_config_json in self.oci_registry_docker_config_json.values():
             try:
                 for registry, conf in docker_config_json.auths.items():
-                    registry_short = AnyUrl(registry).host if "://" in registry else registry.strip("/")
-                    self.oci_registry[registry_short].username = conf.username
-                    self.oci_registry[registry_short].password = conf.password
-                    self.oci_registry[registry_short].auth_header = conf.auth
+                    if "://" in registry:
+                        url = AnyUrl(registry)
+                        registry_short = f"{url.host}:{url.port}" if url.port else url.host
+                    else:
+                        registry_short = registry.strip("/")
+                    # For some reason dockerhub registry has a weird url
+                    assert registry_short
+                    aliases = [registry_short]
+                    if "index.docker.io" in registry_short:
+                        aliases.append("docker.io")
+                    for alias in aliases:
+                        self.oci_registry[alias].username = conf.username
+                        self.oci_registry[alias].password = conf.password
+                        self.oci_registry[alias].auth_header = conf.auth
+                        self.oci_registry[alias].insecure = conf.insecure
             except ValueError as e:
                 logger.error(f"Failed to parse .dockerconfigjson: {e}. Some agent images might not work correctly.")
+        if not self.provider_build.oci_build_registry_prefix and len(self.oci_registry):
+            self.provider_build.oci_build_registry_prefix = next(iter(self.oci_registry.keys()))
         return self
 
 

@@ -22,7 +22,7 @@ unmarked_tests=$(uv run pytest --collect-only --no-header --no-summary -q -m "no
 
 if echo "$unmarked_tests" | grep "tests collected" | grep -qv "no tests collected"; then
     echo "ERROR: Found tests without required pytest marks:\n"
-    echo "$unmarked_tests" | grep 'tests collected'
+    echo "$unmarked_tests"
     echo ""
     echo "All tests must be marked with @pytest.mark.unit, @pytest.mark.integration, or @pytest.mark.e2e"
     exit 1
@@ -213,7 +213,14 @@ VM_NAME='{{option(name="vm-name", default="beeai-local-dev")}}'
 
 ["beeai-server:dev:test:start"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "{{ mise_bin }} run beeai-server:dev:start --vm-name=beeai-local-test --set externalRegistries=null"
+run = """
+#!/bin/bash
+{{ mise_bin }} run beeai-server:dev:start \
+    --vm-name=beeai-local-test \
+    --set externalRegistries=null \
+    --set providerBuilds.enabled=true \
+    --set localDockerRegistry.enabled=true
+"""
 
 ["beeai-server:dev:test:delete"]
 dir = "{{config_root}}/apps/beeai-server"
@@ -253,7 +260,9 @@ curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhos
     --set auth.enabled="true" \
     --set auth.basic.enabled="true" \
     --set auth.basic.adminPassword="test-password" \
-    --set auth.jwtSecretKey="test-secret-key"
+    --set auth.jwtSecretKey="test-secret-key" \
+    --set providerBuilds.enabled=true \
+    --set localDockerRegistry.enabled=true
 
 
 eval "$( {{ mise_bin }} run beeai-platform:shell --vm-name="$VM_NAME" )"

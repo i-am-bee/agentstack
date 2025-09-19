@@ -5,6 +5,7 @@ import datetime
 import functools
 import importlib.resources
 import os
+import pathlib
 import platform
 import shutil
 import sys
@@ -67,17 +68,26 @@ async def start(
             "--import", help="Import an image from a local Docker CLI into BeeAI platform", default_factory=list
         ),
     ],
+    values_file: typing.Annotated[
+        pathlib.Path | None, typer.Option("-f", help="Set Helm chart values using yaml values file")
+    ] = None,
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ):
     """Start BeeAI platform."""
     import beeai_cli.commands.server
 
+    values_file_path = None
+    if values_file:
+        values_file_path = pathlib.Path(values_file)
+        if not values_file_path.is_file():
+            raise FileNotFoundError(f"Values file {values_file} not found.")
+
     with verbosity(verbose):
         driver = get_driver(vm_name=vm_name)
         await driver.create_vm()
         await driver.install_tools()
-        await driver.deploy(set_values_list=set_values_list, import_images=import_images)
+        await driver.deploy(set_values_list=set_values_list, values_file=values_file_path, import_images=import_images)
 
         with console.status("Waiting for BeeAI platform to be ready...", spinner="dots"):
             timeout = datetime.timedelta(minutes=20)

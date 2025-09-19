@@ -16,6 +16,7 @@ from beeai_server import get_configuration
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.provider import ProviderLocation
 from beeai_server.exceptions import EntityNotFoundError
+from beeai_server.jobs.queues import Queues
 from beeai_server.service_layer.services.provider import ProviderService
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
 from beeai_server.utils.utils import extract_messages
@@ -26,7 +27,7 @@ blueprint = Blueprint()
 
 
 @blueprint.periodic(cron="*/1 * * * *")
-@blueprint.task(queueing_lock="scale_down_providers", queue="cron:provider")
+@blueprint.task(queueing_lock="scale_down_providers", queue=str(Queues.CRON_PROVIDER))
 @inject
 async def scale_down_providers(timestamp: int, service: ProviderService):
     await service.scale_down_providers()
@@ -34,7 +35,7 @@ async def scale_down_providers(timestamp: int, service: ProviderService):
 
 # TODO: Can't use DI here because it's not initialized yet
 @blueprint.periodic(cron=get_configuration().agent_registry.sync_period_cron)
-@blueprint.task(queueing_lock="check_registry", queue="cron:provider")
+@blueprint.task(queueing_lock="check_registry", queue=str(Queues.CRON_PROVIDER))
 @inject
 async def check_registry(timestamp: int, configuration: Configuration, provider_service: ProviderService):
     if not configuration.agent_registry.locations:
@@ -102,7 +103,7 @@ async def check_registry(timestamp: int, configuration: Configuration, provider_
 if get_configuration().provider.auto_remove_enabled:
 
     @blueprint.periodic(cron="* * * * * */5")
-    @blueprint.task(queueing_lock="auto_remove_providers", queue="cron:provider")
+    @blueprint.task(queueing_lock="auto_remove_providers", queue=str(Queues.CRON_PROVIDER))
     @inject
     async def auto_remove_providers(timestamp: int, uow_f: IUnitOfWorkFactory, provider_service: ProviderService):
         async with uow_f() as uow:

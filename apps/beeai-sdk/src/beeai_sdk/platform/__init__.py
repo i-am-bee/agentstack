@@ -6,4 +6,5 @@ from .configuration import *
 from .file import *
 from .model_provider import *
 from .provider import *
+from .provider_build import *
 from .vector_store import *

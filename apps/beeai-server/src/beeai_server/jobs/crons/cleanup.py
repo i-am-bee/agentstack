@@ -5,6 +5,7 @@ import logging
 from kink import inject
 from procrastinate import Blueprint, JobContext, builtin_tasks
 
+from beeai_server.jobs.queues import Queues
 from beeai_server.service_layer.services.contexts import ContextService
 
 blueprint = Blueprint()
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 @blueprint.periodic(cron="5 * * * *")
-@blueprint.task(queueing_lock="cleanup_expired_vector_stores", queue="cron:cleanup")
+@blueprint.task(queueing_lock="cleanup_expired_vector_stores", queue=str(Queues.CRON_CLEANUP))
 @inject
 async def cleanup_expired_context_resources(timestamp: int, context: ContextService) -> None:
     """Delete resources of contexts that haven't been used for several days."""
@@ -22,7 +23,7 @@ async def cleanup_expired_context_resources(timestamp: int, context: ContextServ
 
 
 @blueprint.periodic(cron="*/10 * * * *")
-@blueprint.task(queueing_lock="remove_old_jobs", queue="cron:cleanup", pass_context=True)
+@blueprint.task(queueing_lock="remove_old_jobs", queue=str(Queues.CRON_CLEANUP), pass_context=True)
 async def remove_old_jobs(context: JobContext, timestamp: int):
     return await builtin_tasks.remove_old_jobs(
         context,

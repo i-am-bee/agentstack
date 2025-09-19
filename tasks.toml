@@ -262,6 +262,8 @@ images=$(helm template \
   --set encryptionKey=dummy \
   --set auth.enabled=false \
   --set auth.jwtSecretKey=kyticka \
+  --set providerBuilds.enabled=true \
+  --set localDockerRegistry.enabled=true \
   ./helm 2>/dev/null | \
     sed -n '/^[[:space:]]*image:/{ /{{/d; s/.*image:[[:space:]]*//p; }' | \
     sed 's/"\([^"]*\)"/\1/' | grep -v 'beeai-platform')

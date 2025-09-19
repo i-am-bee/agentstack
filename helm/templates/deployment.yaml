@@ -33,10 +33,7 @@ spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       {{- end }}
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+      {{- include "beeai-platform.imagePullSecrets" . | nindent 6 }}
       serviceAccountName: {{ include "beeai-platform.serviceAccountName" . }}
       {{- with .Values.podSecurityContext }}
       securityContext:
@@ -160,12 +157,21 @@ spec:
               value: {{ .Values.docling.enabled | quote }}
             - name: AGENT_REGISTRY__SYNC_PERIOD_SEC
               value: "30"
-            {{- range $idx, $secret := .Values.imagePullSecrets }}
-            - name: OCI_REGISTRY_DOCKER_CONFIG_JSON__{{ $idx }}
+            {{- include "beeai-platform.registryEnvVars" . | nindent 12 }}
+            - name: FEATURES__PROVIDER_BUILDS
+              value: {{ .Values.providerBuilds.enabled | quote }}
+            {{- if .Values.providerBuilds.enabled }}
+            - name: PROVIDER_BUILD__OCI_BUILD_REGISTRY_PREFIX
+              value: {{ .Values.providerBuilds.buildRegistry.registryPrefix | quote }}
+            - name: PROVIDER_BUILD__IMAGE_FORMAT
+              value: {{ .Values.providerBuilds.buildRegistry.imageFormat | quote }}
+            {{- end }}
+            {{- range $provider := .Values.githubTokens }}
+            - name: GITHUB_REGISTRY__{{ $provider.host | upper }}__TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: {{ $secret.name }}
-                  key: ".dockerconfigjson"
+                  name: beeai-platform-secret
+                  key: GITHUB_REGISTRY__{{ $provider.host | upper }}__TOKEN
             {{- end }}
             - name: AGENT_REGISTRY__LOCATIONS__FILE
               value: file:///app/config/registry.yaml

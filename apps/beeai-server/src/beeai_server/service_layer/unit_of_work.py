@@ -9,6 +9,7 @@ from beeai_server.domain.repositories.env import IEnvVariableRepository
 from beeai_server.domain.repositories.file import IFileRepository
 from beeai_server.domain.repositories.model_provider import IModelProviderRepository
 from beeai_server.domain.repositories.provider import IProviderRepository
+from beeai_server.domain.repositories.provider_build import IProviderBuildRepository
 from beeai_server.domain.repositories.user import IUserRepository
 from beeai_server.domain.repositories.user_feedback import IUserFeedbackRepository
 from beeai_server.domain.repositories.vector_store import IVectorDatabaseRepository, IVectorStoreRepository
@@ -16,6 +17,7 @@ from beeai_server.domain.repositories.vector_store import IVectorDatabaseReposit
 
 class IUnitOfWork(Protocol):
     providers: IProviderRepository
+    provider_builds: IProviderBuildRepository
     contexts: IContextRepository
     files: IFileRepository
     env: IEnvVariableRepository

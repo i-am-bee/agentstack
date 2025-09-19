@@ -92,7 +92,7 @@ async def delete_provider(
     await provider_service.delete_provider(provider_id=id)
 
 
-@router.get("/{id}/logs", status_code=fastapi.status.HTTP_204_NO_CONTENT)
+@router.get("/{id}/logs")
 async def stream_logs(
     _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"write"}))],
     id: UUID,
