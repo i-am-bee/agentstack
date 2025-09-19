@@ -14,7 +14,7 @@ import pydantic_settings
 from beeai_sdk.platform import PlatformClient, use_platform_client
 from pydantic import HttpUrl, SecretStr
 
-from beeai_cli.auth_config_manager import AuthConfigManager
+from beeai_cli.auth_manager import AuthManager
 from beeai_cli.console import console
 from beeai_cli.utils import get_verify_option
 
@@ -45,9 +45,9 @@ class Configuration(pydantic_settings.BaseSettings):
         return self.home / "lima"
 
     @property
-    def auth_config_file(self) -> pathlib.Path:
+    def auth_file(self) -> pathlib.Path:
         """Return auth config file path"""
-        return self.home / "auth_config.json"
+        return self.home / "auth.json"
 
     @property
     def ca_cert_dir(self) -> pathlib.Path:
@@ -57,8 +57,8 @@ class Configuration(pydantic_settings.BaseSettings):
         return path
 
     @property
-    def auth_manager(self) -> AuthConfigManager:
-        return AuthConfigManager(self.auth_config_file)
+    def auth_manager(self) -> AuthManager:
+        return AuthManager(self.auth_file)
 
     @asynccontextmanager
     async def use_platform_client(self) -> AsyncIterator[PlatformClient]:

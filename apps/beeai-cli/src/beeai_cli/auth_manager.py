@@ -25,8 +25,8 @@ class Server(BaseModel):
     authorization_servers: dict[str, AuthServer] = Field(default_factory=dict)
 
 
-class AuthConfig(BaseModel):
-    config_version: typing.Literal[1] = 1
+class Auth(BaseModel):
+    version: typing.Literal[1] = 1
     servers: defaultdict[str, typing.Annotated[Server, Field(default_factory=Server)]] = Field(
         default_factory=lambda: defaultdict(Server)
     )
@@ -35,32 +35,32 @@ class AuthConfig(BaseModel):
 
 
 @typing.final
-class AuthConfigManager:
+class AuthManager:
     def __init__(self, config_path: pathlib.Path):
-        self._config_path = config_path
-        self._config: AuthConfig = self._load()
+        self._auth_path = config_path
+        self._auth = self._load()
 
-    def _load(self) -> AuthConfig:
-        if not self._config_path.exists():
-            return AuthConfig()
-        return AuthConfig.model_validate_json(self._config_path.read_bytes())
+    def _load(self) -> Auth:
+        if not self._auth_path.exists():
+            return Auth()
+        return Auth.model_validate_json(self._auth_path.read_bytes())
 
     def _save(self) -> None:
-        self._config_path.write_text(self._config.model_dump_json(indent=2))
+        self._auth_path.write_text(self._auth.model_dump_json(indent=2))
 
     def save_auth_token(self, server: str, auth_server: str | None = None, token: dict[str, Any] | None = None) -> None:
         if auth_server is not None and token is not None:
-            self._config.servers[server].authorization_servers[auth_server] = AuthServer(token=AuthToken(**token))
+            self._auth.servers[server].authorization_servers[auth_server] = AuthServer(token=AuthToken(**token))
         else:
-            self._config.servers[server]  # touch
+            self._auth.servers[server]  # touch
         self._save()
 
     def load_auth_token(self) -> str | None:
-        active_res = self._config.active_server
-        active_auth_server = self._config.active_auth_server
+        active_res = self._auth.active_server
+        active_auth_server = self._auth.active_auth_server
         if not active_res or not active_auth_server:
             return None
-        server = self._config.servers.get(active_res)
+        server = self._auth.servers.get(active_res)
         if not server:
             return None
 
@@ -72,49 +72,44 @@ class AuthConfigManager:
 
     def clear_auth_token(self, all: bool = False) -> None:
         if all:
-            self._config.servers = defaultdict(Server)
+            self._auth.servers = defaultdict(Server)
         else:
-            if self._config.active_server and self._config.active_auth_server:
-                del self._config.servers[self._config.active_server].authorization_servers[
-                    self._config.active_auth_server
-                ]
-            if (
-                self._config.active_server
-                and not self._config.servers[self._config.active_server].authorization_servers
-            ):
-                del self._config.servers[self._config.active_server]
-        self._config.active_server = None
-        self._config.active_auth_server = None
+            if self._auth.active_server and self._auth.active_auth_server:
+                del self._auth.servers[self._auth.active_server].authorization_servers[self._auth.active_auth_server]
+            if self._auth.active_server and not self._auth.servers[self._auth.active_server].authorization_servers:
+                del self._auth.servers[self._auth.active_server]
+        self._auth.active_server = None
+        self._auth.active_auth_server = None
         self._save()
 
     def get_server(self, server: str) -> Server | None:
-        return self._config.servers.get(server)
+        return self._auth.servers.get(server)
 
     @property
     def servers(self) -> list[str]:
-        return list(self._config.servers.keys())
+        return list(self._auth.servers.keys())
 
     @property
     def active_server(self) -> str | None:
-        return self._config.active_server
+        return self._auth.active_server
 
     @active_server.setter
     def active_server(self, server: str | None) -> None:
-        if server is not None and server not in self._config.servers:
+        if server is not None and server not in self._auth.servers:
             raise ValueError(f"Server {server} not found")
-        self._config.active_server = server
+        self._auth.active_server = server
         self._save()
 
     @property
     def active_auth_server(self) -> str | None:
-        return self._config.active_auth_server
+        return self._auth.active_auth_server
 
     @active_auth_server.setter
     def active_auth_server(self, auth_server: str | None) -> None:
         if auth_server is not None and (
-            self._config.active_server not in self._config.servers
-            or auth_server not in self._config.servers[self._config.active_server].authorization_servers
+            self._auth.active_server not in self._auth.servers
+            or auth_server not in self._auth.servers[self._auth.active_server].authorization_servers
         ):
             raise ValueError(f"Auth server {auth_server} not found in active server")
-        self._config.active_auth_server = auth_server
+        self._auth.active_auth_server = auth_server
         self._save()
