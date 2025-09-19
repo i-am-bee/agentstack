@@ -7,6 +7,10 @@ import { notFound } from 'next/navigation';
 
 import type { Agent } from '#modules/agents/api/types.ts';
 import { buildAgent } from '#modules/agents/utils.ts';
+import { HistoryProvider } from '#modules/history/contexts/HistoryProvider.tsx';
+import { LIST_CONTEXT_HISTORY_DEFAULT_QUERY } from '#modules/platform-context/api/constants.ts';
+import { fetchContextHistory } from '#modules/platform-context/api/index.ts';
+import type { ListContextHistoryResponse } from '#modules/platform-context/api/types.ts';
 import { listProviders } from '#modules/providers/api/index.ts';
 import { RunView } from '#modules/runs/components/RunView.tsx';
 
@@ -16,8 +20,6 @@ interface Props {
 
 export default async function AgentRunPage({ searchParams }: Props) {
   const { p: providerId, c: contextId } = await searchParams;
-
-  console.log(contextId);
 
   let agent: Agent | undefined;
   try {
@@ -35,5 +37,22 @@ export default async function AgentRunPage({ searchParams }: Props) {
     notFound();
   }
 
-  return <RunView agent={agent} />;
+  let initialData: ListContextHistoryResponse | undefined;
+
+  if (contextId) {
+    initialData = await fetchContextHistory({
+      contextId,
+      query: LIST_CONTEXT_HISTORY_DEFAULT_QUERY,
+    });
+
+    if (!initialData) {
+      notFound();
+    }
+  }
+
+  return (
+    <HistoryProvider contextId={contextId} initialData={initialData}>
+      <RunView agent={agent} />
+    </HistoryProvider>
+  );
 }

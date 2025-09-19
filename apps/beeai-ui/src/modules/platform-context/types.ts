@@ -3,22 +3,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ApiQuery } from '#@types/utils.ts';
+import type { ListContextsResponse } from './api/types';
 
-export enum ModelCapability {
-  LLM = 'llm',
-  EMBEDDING = 'embedding',
+enum TitleGenerationState {
+  Pending = 'pending',
+  Completed = 'completed',
+  Failed = 'failed',
 }
 
-type ListContextsQery = ApiQuery<'/api/v1/contexts'>;
+export enum ModelCapability {
+  Llm = 'llm',
+  Embedding = 'embedding',
+}
 
-type ListContextHistoryQuery = ApiQuery<'/api/v1/contexts/{context_id}/history'>;
-
-export type ListContextsParams = {
-  query?: ListContextsQery;
+export type ContextMetadata = {
+  agent_name?: string;
+  provider_id?: string;
+  title_generation_state?: TitleGenerationState;
+  title?: string;
 };
-
-export type ListContextHistoryParams = {
-  contextId: string;
-  query?: ListContextHistoryQuery;
-};
+export type ContextWithMetadata = ListContextsResponse['items'][number] & { metadata?: ContextMetadata };

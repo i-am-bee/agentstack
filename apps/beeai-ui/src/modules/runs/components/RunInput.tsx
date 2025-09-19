@@ -29,9 +29,10 @@ import { RunSubmit } from './RunSubmit';
 
 interface Props {
   promptExamples?: string[];
+  onMessageSent?: () => void;
 }
 
-export function RunInput({ promptExamples }: Props) {
+export function RunInput({ promptExamples, onMessageSent }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -107,6 +108,8 @@ export function RunInput({ promptExamples }: Props) {
 
           handleSubmit(async ({ input }) => {
             resetForm();
+
+            onMessageSent?.();
 
             await chat(input);
           })();

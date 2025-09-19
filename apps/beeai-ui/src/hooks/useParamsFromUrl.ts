@@ -5,9 +5,13 @@
 
 import { useSearchParams } from 'next/navigation';
 
-export function useProviderIdFromUrl() {
+export function useParamsFromUrl() {
   const searchParams = useSearchParams();
   const providerId = searchParams.get('p');
+  const contextId = searchParams.get('c');
 
-  return providerId ? decodeURIComponent(providerId) : null;
+  return {
+    providerId: providerId ? decodeURIComponent(providerId) : null,
+    contextId: contextId ? decodeURIComponent(contextId) : null,
+  };
 }

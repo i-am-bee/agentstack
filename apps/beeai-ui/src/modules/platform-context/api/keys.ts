@@ -3,12 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ListContextHistoryParams, ListContextsParams } from '../types';
+import type { ListContextHistoryParams, ListContextsParams } from './types';
 
 export const contextKeys = {
   all: () => ['contexts'] as const,
   lists: () => [...contextKeys.all(), 'list'] as const,
-  list: (params: ListContextsParams) => [...contextKeys.lists(), params.query] as const,
+  list: ({ query = {} }: ListContextsParams) => [...contextKeys.lists(), query] as const,
   histories: () => [...contextKeys.all(), 'history'] as const,
-  history: (params: ListContextHistoryParams) => [...contextKeys.histories(), params.contextId, params.query] as const,
+  history: ({ contextId, query = {} }: ListContextHistoryParams) =>
+    [...contextKeys.histories(), contextId, query] as const,
 };

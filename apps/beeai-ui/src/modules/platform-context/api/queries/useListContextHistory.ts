@@ -5,22 +5,30 @@
 
 import { useInfiniteQuery } from '@tanstack/react-query';
 
-import type { ListContextHistoryParams } from '#modules/platform-context/types.ts';
+import type { PartialBy } from '#@types/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { listContextHistory } from '..';
 import { contextKeys } from '../keys';
+import type { ListContextHistoryParams, ListContextHistoryResponse } from '../types';
 
-export function useListContextHistory(params: ListContextHistoryParams) {
+type Params = PartialBy<ListContextHistoryParams, 'contextId'> & {
+  initialData?: ListContextHistoryResponse;
+};
+
+export function useListContextHistory(params: Params) {
+  const { contextId, query: queryParams, initialData } = params;
+
   const query = useInfiniteQuery({
-    queryKey: contextKeys.history(params),
+    queryKey: contextKeys.history({
+      contextId: contextId!,
+      query: queryParams,
+    }),
     queryFn: ({ pageParam }: { pageParam?: string }) => {
-      const { contextId, query } = params;
-
       return listContextHistory({
-        contextId,
+        contextId: contextId!,
         query: {
-          ...query,
+          ...queryParams,
           page_token: pageParam,
         },
       });
@@ -29,10 +37,16 @@ export function useListContextHistory(params: ListContextHistoryParams) {
     getNextPageParam: (lastPage) =>
       lastPage?.has_more && lastPage.next_page_token ? lastPage.next_page_token : undefined,
     select: (data) => {
+      if (!data) {
+        return undefined;
+      }
+
       const items = data.pages.flatMap((page) => page?.items).filter(isNotNull);
 
       return items;
     },
+    enabled: Boolean(contextId),
+    initialData: initialData ? { pages: [initialData], pageParams: [undefined] } : undefined,
   });
 
   return query;

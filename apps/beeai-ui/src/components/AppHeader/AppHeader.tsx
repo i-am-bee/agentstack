@@ -7,7 +7,7 @@
 import clsx from 'clsx';
 
 import { SideNav } from '#components/layouts/SideNav.tsx';
-import { useProviderIdFromUrl } from '#hooks/useProviderIdFromUrl.ts';
+import { useParamsFromUrl } from '#hooks/useParamsFromUrl.ts';
 import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
 import { NAV_ITEMS } from '#utils/constants.ts';
 import { isNotNull } from '#utils/helpers.ts';
@@ -22,7 +22,7 @@ interface Props {
 }
 
 export function AppHeader({ className }: Props) {
-  const providerId = useProviderIdFromUrl();
+  const { providerId } = useParamsFromUrl();
 
   const { data: agent } = useAgent({ providerId });
   const hasNav = NAV_ITEMS.length > 0;

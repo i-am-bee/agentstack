@@ -31,6 +31,6 @@ export function createSendFeedbackPayload({
     message: getMessageRawContent(message),
     provider_id: agent.provider.id,
     context_id: contextId,
-    task_id: message.id,
+    task_id: message.taskId!,
   };
 }

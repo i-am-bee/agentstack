@@ -22,13 +22,13 @@ export function ensureData<T extends Record<string | number, unknown>, O, M exte
   }
 
   if (error) {
-    handleFailedError({ response, error });
+    handleFailedResponse({ response, error });
   }
 
   return data;
 }
 
-function handleFailedError({ response, error }: { response: Response; error: unknown }) {
+function handleFailedResponse({ response, error }: { response: Response; error: unknown }) {
   if (typeof error === 'object' && isNotNull(error)) {
     if ('detail' in error) {
       const { detail } = error;
@@ -70,4 +70,14 @@ export function getErrorCode(error: unknown) {
   return typeof error === 'object' && isNotNull(error) && 'code' in error
     ? (error.code as number | ApiErrorCode)
     : undefined;
+}
+
+export async function fetchEntity<T>(fetchFn: () => Promise<T>): Promise<T | undefined> {
+  try {
+    return await fetchFn();
+  } catch (error) {
+    console.error(error);
+
+    return undefined;
+  }
 }

@@ -3,11 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { Container } from '#components/layouts/Container.tsx';
 import { AgentGreeting } from '#modules/agents/components/AgentGreeting.tsx';
 import { getAgentPromptExamples } from '#modules/agents/utils.ts';
+import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
+import { routes } from '#utils/router.ts';
 
 import { FileUpload } from '../../files/components/FileUpload';
 import { useAgentRun } from '../contexts/agent-run';
@@ -17,15 +19,29 @@ import classes from './RunLandingView.module.scss';
 
 export function RunLandingView() {
   const { agent } = useAgentRun();
+  const { contextId } = usePlatformContext();
 
   const promptExamples = useMemo(() => getAgentPromptExamples(agent), [agent]);
+
+  const handleMessageSent = useCallback(() => {
+    if (contextId) {
+      window.history.pushState(
+        null,
+        '',
+        routes.agentRun({
+          providerId: agent.provider.id,
+          contextId,
+        }),
+      );
+    }
+  }, [agent.provider.id, contextId]);
 
   return (
     <FileUpload>
       <Container size="sm" className={classes.root}>
         <AgentGreeting agent={agent} />
 
-        <RunInput promptExamples={promptExamples} />
+        <RunInput promptExamples={promptExamples} onMessageSent={handleMessageSent} />
       </Container>
       <SecretsModalPortal />
     </FileUpload>

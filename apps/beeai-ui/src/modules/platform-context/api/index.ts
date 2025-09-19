@@ -4,19 +4,31 @@
  */
 
 import { api } from '#api/index.ts';
-import { ensureData } from '#api/utils.ts';
+import { ensureData, fetchEntity } from '#api/utils.ts';
 
-import type { ListContextHistoryParams, ListContextsParams } from '../types';
-import type { CreateContextTokenParams, MatchModelProvidersParams } from './types';
+import type {
+  CreateContextParams,
+  CreateContextTokenParams,
+  DeleteContextParams,
+  ListContextHistoryParams,
+  ListContextsParams,
+  MatchModelProvidersParams,
+} from './types';
 
-export async function createContext() {
-  const response = await api.POST('/api/v1/contexts', { body: {} });
+export async function createContext(body: CreateContextParams) {
+  const response = await api.POST('/api/v1/contexts', { body });
 
   return ensureData(response);
 }
 
 export async function listContexts({ query }: ListContextsParams) {
   const response = await api.GET('/api/v1/contexts', { params: { query } });
+
+  return ensureData(response);
+}
+
+export async function deleteContext({ context_id }: DeleteContextParams) {
+  const response = await api.DELETE('/api/v1/contexts/{context_id}', { params: { path: { context_id } } });
 
   return ensureData(response);
 }
@@ -48,4 +60,8 @@ export async function createContextToken({
   });
 
   return ensureData(response);
+}
+
+export async function fetchContextHistory(params: ListContextHistoryParams) {
+  return await fetchEntity(() => listContextHistory(params));
 }

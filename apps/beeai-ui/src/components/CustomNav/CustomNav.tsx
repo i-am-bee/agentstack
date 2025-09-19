@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 import { NavGroup } from '#components/SidePanel/NavGroup.tsx';
 import type { NavItem as SideNavItem } from '#components/SidePanel/NavItem.tsx';
@@ -20,19 +20,12 @@ interface Props {
 
 export function CustomNav({ items, className, bodyClassName }: Props) {
   const pathname = usePathname();
-  const router = useRouter();
   const { start } = groupNavItems(items);
   const theItems: SideNavItem[] = start.map((item) => ({
     ...item,
     key: item.url,
+    href: item.url,
     isActive: isActive(item, pathname ?? ''),
-    onClick() {
-      if (item.isExternal) {
-        window.open(item.url, item.target ?? '_blank', 'noopener,noreferrer');
-      } else {
-        router.push(item.url);
-      }
-    },
   }));
 
   return (

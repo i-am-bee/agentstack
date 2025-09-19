@@ -5,11 +5,12 @@
 
 import { useInfiniteQuery } from '@tanstack/react-query';
 
-import type { ListContextsParams } from '#modules/platform-context/types.ts';
+import type { ContextWithMetadata } from '#modules/platform-context/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { listContexts } from '..';
 import { contextKeys } from '../keys';
+import type { ListContextsParams } from '../types';
 
 export function useListContexts(params: ListContextsParams = {}) {
   const query = useInfiniteQuery({
@@ -30,7 +31,7 @@ export function useListContexts(params: ListContextsParams = {}) {
     select: (data) => {
       const items = data.pages.flatMap((page) => page?.items).filter(isNotNull);
 
-      return items;
+      return items as ContextWithMetadata[];
     },
   });
 

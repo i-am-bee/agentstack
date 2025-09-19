@@ -41,7 +41,7 @@ export function ComposeProvider({ children }: PropsWithChildren) {
   });
 
   return (
-    <PlatformContextProvider agentClient={agentClient}>
+    <PlatformContextProvider agent={sequentialAgent} agentClient={agentClient}>
       <ComposeProviderWithContext agentClient={agentClient}>{children}</ComposeProviderWithContext>
     </PlatformContextProvider>
   );
