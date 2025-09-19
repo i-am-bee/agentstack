@@ -87,9 +87,9 @@ async def settings_agent(
 
     parsed_settings = settings.parse_settings_response()
 
-    thinking_field = parsed_settings.values["thinking"]
-    if thinking_field.type == "checkbox_group":
-        if thinking_field.values["thinking"].value:
+    thinking_group = parsed_settings.values["thinking_group"]
+    if thinking_group.type == "checkbox_group":
+        if thinking_group.values["thinking"].value:
             yield "Thinking mode is enabled - I'll show my reasoning process.\n"
         else:
             yield "Thinking mode is disabled - I'll provide direct responses.\n"
