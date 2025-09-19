@@ -1,0 +1,187 @@
+---
+title: "Agent Settings"
+description: "Allow users to configure agent behavior with interactive settings"
+---
+
+Sometimes you need to give users control over how your agent behaves during a conversation. For example, users might want to enable or disable thinking mode, choose between different response styles, or configure other agent-specific parameters.
+
+The BeeAI platform provides a Settings extension that creates an interactive UI component where users can configure these options before or during their interaction with your agent.
+
+<Tip>
+Settings extensions are a type of [Platform Extension](/concepts/extensions) that allows you to easily "inject dependencies" into your agent. This follows the inversion of control principle where your agent defines what it needs, and the platform provides those dependencies.
+</Tip>
+
+## Quickstart
+
+<Steps>
+<Step title="Import the Settings extension">
+Import the necessary components from the BeeAI SDK settings extension.
+</Step>
+
+<Step title="Add settings parameter to your agent">
+Inject the Settings extension into your agent function using the `Annotated` type hint.
+</Step>
+
+<Step title="Define your settings structure">
+Create a `SettingsRender` object with the fields you want users to configure.
+</Step>
+
+<Step title="Process settings data">
+Use `parse_settings_response()` to access the user's configuration choices.
+</Step>
+</Steps>
+
+## Basic Settings Example
+
+Here's how to add settings capabilities to your agent:
+
+```python
+import os
+from collections.abc import AsyncGenerator
+from typing import Annotated
+
+from a2a.types import Message
+
+from beeai_sdk.a2a.extensions.ui.settings import (
+    CheckboxField,
+    CheckboxGroupField,
+    SettingsExtensionServer,
+    SettingsExtensionSpec,
+    SettingsRender,
+)
+from beeai_sdk.a2a.types import RunYield
+from beeai_sdk.server import Server
+from beeai_sdk.server.context import RunContext
+
+server = Server()
+
+@server.agent()
+async def settings_agent(
+    message: Message,
+    context: RunContext,
+    settings: Annotated[
+        SettingsExtensionServer,
+        SettingsExtensionSpec(
+            params=SettingsRender(
+                fields=[
+                    CheckboxGroupField(
+                        id="thinking",
+                        fields=[
+                            CheckboxField(
+                                id="thinking",
+                                label="Enable Thinking Mode",
+                                default_value=True,
+                            )
+                        ],
+                    )
+                ],
+            ),
+        ),
+    ],
+) -> AsyncGenerator[RunYield, Message]:
+    """Agent that demonstrates settings configuration"""
+
+    if not settings:
+        yield "Settings extension hasn't been activated, no settings are available"
+        return
+
+    parsed_settings = settings.parse_settings_response()
+
+    thinking_field = parsed_settings.values["thinking"]
+    if thinking_field.type == "checkbox_group":
+        if thinking_field.values["thinking"].value:
+            yield "Thinking mode is enabled - I'll show my reasoning process.\n"
+        else:
+            yield "Thinking mode is disabled - I'll provide direct responses.\n"
+
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+if __name__ == "__main__":
+    run()
+```
+
+## How to work with settings
+
+Here's what you need to know to add settings capabilities to your agent:
+
+**Import the settings extension**: Import `SettingsExtensionServer`, `SettingsExtensionSpec`, `SettingsRender`, and field types from `beeai_sdk.a2a.extensions.ui.settings`.
+
+**Inject the extension**: Add a settings parameter to your agent function using the `Annotated` type hint with `SettingsExtensionServer` and `SettingsExtensionSpec`.
+
+**Define your settings structure**: Create a `SettingsRender` object with the fields you want users to configure.
+
+**Check if the extension exists**: Always verify that the settings extension is provided before using it, as service extensions are optional.
+
+**Parse settings data**: Use `settings.parse_settings_response()` to access the user's configuration choices.
+
+**Access field values**: Use `parsed_settings.values['field_id']` to access the submitted values from your settings fields.
+
+<Tip>
+Settings are presented to users in a clean, organized interface that makes it easy to configure your agent's behavior. The platform automatically handles the UI rendering and data collection.
+</Tip>
+
+<Warning>
+Always check if the settings extension is available before using it to comply with plain A2A clients.
+</Warning>
+
+## Settings Field Types
+
+The BeeAI platform supports various field types for collecting different kinds of configuration data:
+
+### CheckboxField
+Single checkbox fields for boolean configuration options.
+
+```python
+from beeai_sdk.a2a.extensions.ui.settings import CheckboxField
+
+CheckboxField(
+    id="debug_mode", 
+    label="Enable Debug Mode", 
+    default_value=False,
+)
+```
+
+### CheckboxGroupField
+Groups multiple checkboxes together for related boolean options.
+
+```python
+from beeai_sdk.a2a.extensions.ui.settings import CheckboxField, CheckboxGroupField
+
+CheckboxGroupField(
+    id="features",
+    fields=[
+        CheckboxField(
+            id="thinking",
+            label="Show Thinking Process",
+            default_value=True,
+        ),
+        CheckboxField(
+            id="citations",
+            label="Include Citations",
+            default_value=False,
+        ),
+    ],
+)
+```
+
+### SingleSelectField
+Dropdown fields for choosing a single option from a list.
+
+```python
+from beeai_sdk.a2a.extensions.ui.settings import OptionItem, SingleSelectField
+
+SingleSelectField(
+    id="response_style", 
+    label="Response Style",
+    options=[
+        OptionItem(id="formal", label="Formal"),
+        OptionItem(id="casual", label="Casual"),
+        OptionItem(id="technical", label="Technical"),
+    ],
+    default_value="casual",
+)
+```
+
+
+
