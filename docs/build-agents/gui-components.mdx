@@ -42,14 +42,14 @@ from a2a.types import (
     Message,
 )
 from beeai_sdk.server import Server
-from beeai_sdk.server.context import Context
+from beeai_sdk.server.context import RunContext
 from beeai_sdk.a2a.extensions import TrajectoryExtensionServer, TrajectoryExtensionSpec
 
 server = Server()
 
 @server.agent()
 async def example_agent(
-    input: Message, context: Context, trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()]
+    input: Message, context: RunContext, trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()]
 ):
     """Polite agent that greets the user"""
 
@@ -85,7 +85,7 @@ from beeai_sdk.a2a.extensions import TrajectoryExtensionServer, TrajectoryExtens
 
 @server.agent()
 async def example_agent(
-    input: Message, context: Context, trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()]
+    input: Message, context: RunContext, trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()]
 ):
 ```
 
@@ -117,7 +117,7 @@ from beeai_sdk.a2a.extensions import CitationExtensionServer, CitationExtensionS
 
 @server.agent()
 async def example_agent(
-    input: Message, context: Context, citation: Annotated[CitationExtensionServer, CitationExtensionSpec()]
+    input: Message, context: RunContext, citation: Annotated[CitationExtensionServer, CitationExtensionSpec()]
 ):
 ```
 
