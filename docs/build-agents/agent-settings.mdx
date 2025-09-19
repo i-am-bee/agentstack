@@ -65,7 +65,7 @@ async def settings_agent(
             params=SettingsRender(
                 fields=[
                     CheckboxGroupField(
-                        id="thinking",
+                        id="thinking_group",
                         fields=[
                             CheckboxField(
                                 id="thinking",
@@ -173,15 +173,11 @@ from beeai_sdk.a2a.extensions.ui.settings import OptionItem, SingleSelectField
 
 SingleSelectField(
     id="response_style", 
-    label="Response Style",
     options=[
-        OptionItem(id="formal", label="Formal"),
-        OptionItem(id="casual", label="Casual"),
-        OptionItem(id="technical", label="Technical"),
+        OptionItem(value="formal", label="Formal"),
+        OptionItem(value="casual", label="Casual"),
+        OptionItem(value="technical", label="Technical"),
     ],
     default_value="casual",
 )
 ```
-
-
-
