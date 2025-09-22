@@ -5,6 +5,11 @@
 
 .root {
   display: block;
+  p {
+    font-size: inherit;
+    line-height: inherit;
+    letter-spacing: inherit;
+  }
 }
 
 .clamped {
