@@ -30,7 +30,6 @@ dependencies = [
     "asyncpg>=0.30.0",
     "sqlalchemy[asyncio]>=2.0.41",
     "aioboto3>=14.3.0",
-    "pyjwt>=2.10.1",
     # !!! WARNING !!!
     # Migrations need to be applied appropriately when upgrading procrastinate. Make sure to update the appropriate
     # migration scripts in ./src/beeai_server/infrastructure/peristence/migrations/alembic
@@ -41,6 +40,8 @@ dependencies = [
     "ibm-watsonx-ai>=1.3.28",
     "psycopg[binary]>=3.2.9",
     "openai>=1.97.0",
+    "authlib>=1.6.4",
+    "async-lru>=2.0.5",
 ]
 
 [dependency-groups]

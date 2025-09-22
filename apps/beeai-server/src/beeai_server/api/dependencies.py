@@ -5,17 +5,17 @@ import logging
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Path, Query, Request, Security, status
-from fastapi.security import APIKeyCookie, HTTPAuthorizationCredentials, HTTPBasic, HTTPBasicCredentials, HTTPBearer
-from jwt import PyJWTError
+from authlib.jose import JoseError
+from fastapi import Depends, HTTPException, Path, Query, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBasic, HTTPBasicCredentials, HTTPBearer
 from kink import di
 from pydantic import ConfigDict
 
-from beeai_server.api.auth import (
+from beeai_server.api.auth.auth import (
     ROLE_PERMISSIONS,
-    decode_oauth_jwt_or_introspect,
     extract_oauth_token,
-    fetch_user_info,
+    get_user_info,
+    validate_oauth_access_token,
     verify_internal_jwt,
 )
 from beeai_server.configuration import Configuration
@@ -48,12 +48,10 @@ AuthServiceDependency = Annotated[AuthService, Depends(lambda: di[AuthService])]
 ModelProviderServiceDependency = Annotated[ModelProviderService, Depends(lambda: di[ModelProviderService])]
 
 logger = logging.getLogger(__name__)
-api_key_cookie = APIKeyCookie(name="beeai-platform", auto_error=False)
 
 
 async def authenticate_oauth_user(
     bearer_auth: HTTPAuthorizationCredentials,
-    cookie_auth: str | None,
     user_service: UserServiceDependency,
     configuration: ConfigurationDependency,
     request: Request,
@@ -63,7 +61,7 @@ async def authenticate_oauth_user(
     Creates the user if it doesn't exist.
     """
     try:
-        token = extract_oauth_token(bearer_auth, cookie_auth)
+        token = extract_oauth_token(bearer_auth)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -71,27 +69,25 @@ async def authenticate_oauth_user(
         ) from e
 
     expected_audience = str(request.url.replace(path="/"))
-    claims, issuer = await decode_oauth_jwt_or_introspect(
-        token=token, jwks_dict=di["JWKS_CACHE"], aud=expected_audience, configuration=configuration
-    )
-    if not claims:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
-
-    email = claims.get("email")
-    if not email:
-        provider = next((p for p in configuration.auth.oidc.providers if str(p.issuer) == str(issuer)), None)
-        if not provider:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"issuer not configured. {issuer}")
-        userinfo = await fetch_user_info(token, f"{provider.issuer!s}/userinfo")
-        email = userinfo.get("email")
-        email_verified = userinfo.get("email_verified", False)
-    else:
-        email_verified = claims.get("email_verified", False)
-
-    if not email or not email_verified:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Verified email not available in token or userinfo"
+    try:
+        claims, provider = await validate_oauth_access_token(
+            token=token, aud=expected_audience, configuration=configuration
         )
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token validation failed") from e
+
+    try:
+        claims = (
+            claims
+            if claims and "email" in claims and "email_verified" in claims
+            else await get_user_info(token, provider=provider)
+        )
+        email = claims.get("email")
+        email_verified = claims.get("email_verified")
+        if not isinstance(email, str) or not isinstance(email_verified, (str, bool)) or not bool(email_verified):
+            raise RuntimeError("Email not verified")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Verified email not found") from e
 
     is_admin = email.lower() in configuration.auth.oidc.admin_emails
 
@@ -113,7 +109,6 @@ async def authorized_user(
     configuration: ConfigurationDependency,
     basic_auth: Annotated[HTTPBasicCredentials | None, Depends(HTTPBasic(auto_error=False))],
     bearer_auth: Annotated[HTTPAuthorizationCredentials | None, Depends(HTTPBearer(auto_error=False))],
-    cookie_auth: Annotated[str | None, Security(api_key_cookie)],
     request: Request,
 ) -> AuthorizedUser:
     if bearer_auth:
@@ -129,16 +124,19 @@ async def authorized_user(
                 token_context_id=parsed_token.context_id,
             )
             return token
-        except PyJWTError:
+        except JoseError:
             if configuration.auth.oidc.enabled:
-                return await authenticate_oauth_user(bearer_auth, cookie_auth, user_service, configuration, request)
+                return await authenticate_oauth_user(bearer_auth, user_service, configuration, request)
             # TODO: update agents
             logger.warning("Bearer token is invalid, agent is not probably not using llm extension correctly")
 
-    if configuration.auth.oidc.enabled and cookie_auth:
-        return await authenticate_oauth_user(bearer_auth, cookie_auth, user_service, configuration, request)
+    if configuration.auth.oidc.enabled:
+        if not bearer_auth:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Bearer token not found")
+        return await authenticate_oauth_user(bearer_auth, user_service, configuration, request)
 
     if configuration.auth.basic.enabled:
+        assert configuration.auth.basic.admin_password is not None
         if basic_auth and basic_auth.password == configuration.auth.basic.admin_password.get_secret_value():
             user = await user_service.get_user_by_email("admin@beeai.dev")
             return AuthorizedUser(

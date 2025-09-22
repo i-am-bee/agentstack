@@ -8,7 +8,7 @@ from uuid import UUID
 import fastapi
 from fastapi import APIRouter, Depends, Query, status
 
-from beeai_server.api.auth import issue_internal_jwt
+from beeai_server.api.auth.auth import issue_internal_jwt
 from beeai_server.api.dependencies import (
     ConfigurationDependency,
     ContextServiceDependency,
