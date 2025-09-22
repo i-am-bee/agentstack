@@ -27,6 +27,7 @@
 }
 
 .content {
+  @include scrollbar(false);
   background-color: $background;
   border-radius: $border-radius;
   box-shadow: $box-shadow;
@@ -34,4 +35,5 @@
   display: flex;
   flex-direction: column;
   row-gap: $spacing-06;
+  max-block-size: rem(294px);
 }

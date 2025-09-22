@@ -30,13 +30,17 @@
   }
 }
 
-@mixin scrollbar() {
+@mixin scrollbar($use-stable-gutter: true) {
   scroll-behavior: smooth;
   scrollbar-width: thin;
   scrollbar-color: $layer-03 transparent;
-  scrollbar-gutter: stable;
   overflow-x: hidden;
   overflow-y: auto;
+
+  @if $use-stable-gutter {
+    scrollbar-gutter: stable;
+  }
+
   &::-webkit-scrollbar {
     inline-size: $spacing-05;
     block-size: $spacing-05;

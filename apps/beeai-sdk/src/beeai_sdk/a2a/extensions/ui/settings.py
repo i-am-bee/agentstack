@@ -31,6 +31,7 @@ class OptionItem(BaseModel):
 class SingleSelectField(BaseModel):
     type: Literal["single_select"] = "single_select"
     id: str
+    label: str
     options: list[OptionItem]
     default_value: str
 
