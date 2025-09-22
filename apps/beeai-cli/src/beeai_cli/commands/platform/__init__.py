@@ -1,8 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import asyncio
-import contextlib
 import datetime
 import functools
 import importlib.resources
@@ -16,6 +14,7 @@ import typing
 import httpx
 import typer
 from beeai_sdk.platform import Provider
+from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, wait_fixed
 
 from beeai_cli.async_typer import AsyncTyper
 from beeai_cli.commands.platform.base_driver import BaseDriver
@@ -81,17 +80,20 @@ async def start(
         await driver.deploy(set_values_list=set_values_list, import_images=import_images)
 
         with console.status("Waiting for BeeAI platform to be ready...", spinner="dots"):
-            start_time = datetime.datetime.now()
             timeout = datetime.timedelta(minutes=20)
-            await asyncio.sleep(5)
-
-            while datetime.datetime.now() - start_time < timeout:
-                await asyncio.sleep(1)
-                with contextlib.suppress(httpx.HTTPError, ConnectionError):
-                    await Provider.list()
-                    break
-            else:
-                raise ConnectionError(f"Server did not start in {timeout}. Please check your internet connection.")
+            try:
+                async for attempt in AsyncRetrying(
+                    stop=stop_after_delay(timeout),
+                    wait=wait_fixed(datetime.timedelta(seconds=1)),
+                    retry=retry_if_exception_type((httpx.HTTPError, ConnectionError)),
+                    reraise=True,
+                ):
+                    with attempt:
+                        await Provider.list()
+            except Exception as ex:
+                raise ConnectionError(
+                    f"Server did not start in {timeout}. Please check your internet connection."
+                ) from ex
 
         console.success("BeeAI platform started successfully!")
 

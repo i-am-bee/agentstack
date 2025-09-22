@@ -126,7 +126,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
     else:
         console.info("No authentication tokens found for this server. Proceeding to log in.")
         async with httpx.AsyncClient(verify=await get_verify_option(server)) as client:
-            resp = await client.get(f"{server}/.well-known/oauth-protected-resource")
+            resp = await client.get(f"{server}/.well-known/oauth-protected-resource/", follow_redirects=True)
             if resp.is_error:
                 console.error("This server does not appear to run a compatible version of BeeAI Platform.")
                 sys.exit(1)
