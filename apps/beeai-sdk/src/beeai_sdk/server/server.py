@@ -9,7 +9,7 @@ from collections.abc import AsyncGenerator, Awaitable, Callable
 from configparser import RawConfigParser
 from contextlib import asynccontextmanager, nullcontext, suppress
 from ssl import CERT_NONE
-from typing import IO, Any
+from typing import IO, Any, Literal
 from urllib.parse import urljoin
 
 import httpx
@@ -72,7 +72,7 @@ class Server:
         port: int = 10000,
         uds: str | None = None,
         fd: int | None = None,
-        loop: uvicorn_config.LoopSetupType = "auto",
+        loop: Literal["none", "auto", "asyncio", "uvloop"] = "auto",
         http: type[asyncio.Protocol] | uvicorn_config.HTTPProtocolType = "auto",
         ws: type[asyncio.Protocol] | uvicorn_config.WSProtocolType = "auto",
         ws_max_size: int = 16 * 1024 * 1024,
