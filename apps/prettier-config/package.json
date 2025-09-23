@@ -1,0 +1,15 @@
+{
+  "name": "@i-am-bee/prettier-config",
+  "author": "IBM Corp.",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "exports": "./prettier.config.js",
+  "types": "prettier-config.d.ts",
+  "peerDependencies": {
+    "prettier": ">=3.0.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2"
+  }
+}

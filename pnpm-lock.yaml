@@ -225,6 +225,9 @@ importers:
       '@eslint/js':
         specifier: 'catalog:'
         version: 9.36.0
+      '@i-am-bee/prettier-config':
+        specifier: workspace:*
+        version: link:../prettier-config
       '@i-am-bee/stylelint-config':
         specifier: workspace:*
         version: link:../stylelint-config
@@ -382,6 +385,9 @@ importers:
       '@eslint/js':
         specifier: 'catalog:'
         version: 9.36.0
+      '@i-am-bee/prettier-config':
+        specifier: workspace:*
+        version: link:../prettier-config
       '@i-am-bee/stylelint-config':
         specifier: workspace:*
         version: link:../stylelint-config
@@ -448,6 +454,12 @@ importers:
       typescript-eslint:
         specifier: 'catalog:'
         version: 8.44.1(eslint@9.36.0(jiti@1.21.7))(typescript@5.9.2)
+
+  apps/prettier-config:
+    devDependencies:
+      prettier:
+        specifier: ^3.6.2
+        version: 3.6.2
 
   apps/stylelint-config:
     dependencies:

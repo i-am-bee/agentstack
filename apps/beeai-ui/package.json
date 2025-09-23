@@ -68,6 +68,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "catalog:",
+    "@i-am-bee/prettier-config": "workspace:*",
     "@i-am-bee/stylelint-config": "workspace:*",
     "@next/eslint-plugin-next": "catalog:",
     "@svgr/webpack": "catalog:",

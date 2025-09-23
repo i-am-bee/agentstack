@@ -1,6 +1,7 @@
 packages:
   - apps/beeai-ui
   - apps/beeai-web
+  - apps/prettier-config
   - apps/stylelint-config
   - docs
 
