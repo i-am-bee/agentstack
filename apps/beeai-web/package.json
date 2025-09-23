@@ -24,11 +24,11 @@
     "lodash": "catalog:",
     "reading-time": "^1.5.0",
     "rehype-slug": "^6.0.0",
-    "remark-flexible-toc": "^1.2.0",
+    "remark-flexible-toc": "^1.2.1",
     "server-only": "^0.0.1",
-    "usehooks-ts": "^3.1.0",
+    "usehooks-ts": "^3.1.1",
     "vfile": "^6.0.3",
-    "yaml": "^2.7.1"
+    "yaml": "^2.8.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -41,9 +41,9 @@
     "@types/estree": "^1.0.8",
     "@types/lodash": "catalog:",
     "@types/mdx": "^2.0.13",
-    "@types/node": "^22.13.13",
-    "@types/react": "^19.0.12",
-    "@types/react-dom": "^19.0.4",
+    "@types/node": "^22.18.6",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
     "eslint": "catalog:",
     "eslint-config-next": "catalog:",
     "eslint-config-prettier": "catalog:",

@@ -18,7 +18,7 @@ catalog:
   globals: 16.4.0
   lodash: 4.17.21
   prettier: 3.6.2
-  sass-embedded: ^1.86.0
+  sass-embedded: ^1.93.1
   stylelint: 16.24.0
   typescript: 5.9.2
   typescript-eslint: 8.44.1
