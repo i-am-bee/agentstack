@@ -179,7 +179,7 @@ def extract_oauth_token(
 
 
 @alru_cache(ttl=timedelta(seconds=15).seconds)
-async def introspect_token(token: str, *, provider: OidcProvider) -> None:
+async def introspect_token(token: str, *, provider: OidcProvider) -> bool:
     """Call OAuth2 introspect endpoint to validate opaque token"""
 
     async with httpx.AsyncClient() as client:
@@ -195,13 +195,12 @@ async def introspect_token(token: str, *, provider: OidcProvider) -> None:
             )
             resp.raise_for_status()
             token_info = resp.json()
-            if token_info.get("active"):
-                logger.debug(f"Token validated by provider: {provider.issuer}")
-                return
-            else:
-                logger.debug(f"Token inactive for provider: {provider.issuer}")
+            return bool(token_info.get("active"))
         except Exception as e:
-            logger.warning(f"Introspection failed for {provider.issuer}: {e}")
+            logger.warning(f"Introspection failed for provider {provider.issuer}: {e}")
+            raise IntrospectionDiscoveryError(
+                f"Provider {provider.issuer} does not support introspection discovery"
+            ) from e
 
 
 async def validate_oauth_access_token(
@@ -236,7 +235,9 @@ async def validate_oauth_access_token(
 
     for provider in configuration.auth.oidc.providers:
         try:
-            await introspect_token(token, provider=provider)
+            is_valid = await introspect_token(token, provider=provider)
+            if not is_valid:
+                raise RuntimeError(f"Token invalid for provider {provider.issuer}")
             return None, provider
         except Exception as e:
             exceptions.append(e)
