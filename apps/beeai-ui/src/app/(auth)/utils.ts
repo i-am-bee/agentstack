@@ -6,6 +6,14 @@
 import type { Account } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import type { Provider } from 'next-auth/providers';
+import * as openidClient from 'openid-client';
+
+interface OIDCProviderOptions {
+  clientId: string;
+  clientSecret: string;
+  issuer: string;
+  [key: string]: unknown;
+}
 
 export async function jwtWithRefresh(
   token: JWT,
@@ -20,7 +28,8 @@ export async function jwtWithRefresh(
       expires_at: account.expires_at,
       refresh_token: account.refresh_token,
     };
-  } else if (token.expires_at && Date.now() < token.expires_at * 1000) {
+    // TODO: remove false, used for debugging
+  } else if (token.expires_at && Date.now() < token.expires_at * 1000 && false) {
     // Subsequent logins, but the `access_token` is still valid
     return token;
   } else {
@@ -28,26 +37,43 @@ export async function jwtWithRefresh(
     if (!token.refresh_token) throw new TypeError('Missing refresh_token');
 
     try {
-      // The `token_endpoint` can be found in the provider's documentation. Or if they support OIDC,
-      // at their `/.well-known/openid-configuration` endpoint.
-      // lookup the provider's uri
-      const tmp = providers.filter((p) => p.name === token['provider']);
-      if (tmp.length === 0) {
-        throw new TypeError('no matching provider found');
-      }
-      const tokenProvider = tmp[0];
-
-      const clientId = tokenProvider.options?.clientId;
-      const clientSecret = tokenProvider.options?.clientSecret;
-      if (!clientId || !clientSecret) {
-        throw new TypeError('Missing clientId or clientSecret in provider configuration');
+      const tokenProvider = providers.find(({ name }) => name === token.provider);
+      if (!tokenProvider) {
+        throw new TypeError('No matching provider found');
       }
 
-      const response = await fetch(tokenProvider.options?.token, {
+      // Type assertion to ensure we have the OIDC options
+      const providerOptions = tokenProvider.options as OIDCProviderOptions | undefined;
+
+      if (!providerOptions?.clientId || !providerOptions?.clientSecret || !providerOptions?.issuer) {
+        throw new TypeError('Missing clientId, clientSecret, or issuer in provider configuration');
+      }
+
+      const { clientId, clientSecret, issuer: issuerUrl } = providerOptions;
+
+      let refreshTokenUrl: string;
+
+      try {
+        // Try to discover the OIDC configuration and get the token endpoint
+        const config = await openidClient.discovery(new URL(issuerUrl), clientId, clientSecret);
+        const tokenEndpoint = config.serverMetadata().token_endpoint;
+
+        if (!tokenEndpoint) {
+          throw new Error('Token endpoint not found in OIDC discovery');
+        }
+
+        refreshTokenUrl = tokenEndpoint;
+      } catch (discoveryError) {
+        // Fallback: construct the token endpoint URL manually for OIDC
+        console.warn('OIDC discovery failed, using fallback token endpoint:', discoveryError);
+        refreshTokenUrl = `${issuerUrl.replace(/\/$/, '')}/token`;
+      }
+
+      const response = await fetch(refreshTokenUrl, {
         method: 'POST',
         body: new URLSearchParams({
-          client_id: String(clientId),
-          client_secret: String(clientSecret),
+          client_id: clientId,
+          client_secret: clientSecret,
           grant_type: 'refresh_token',
           refresh_token: token.refresh_token!,
         }),

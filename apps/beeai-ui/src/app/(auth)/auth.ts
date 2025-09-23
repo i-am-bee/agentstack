@@ -6,7 +6,7 @@
 import NextAuth from 'next-auth';
 import type { Provider } from 'next-auth/providers';
 
-import { ProviderList } from '#app/api/auth/providers/providers.ts';
+import { getProviderConstructor } from '#app/(auth)/providers/providers.ts';
 import { OIDC_ENABLED } from '#utils/constants.ts';
 import { routes } from '#utils/router.ts';
 
@@ -29,40 +29,25 @@ if (OIDC_ENABLED) {
     console.error('Unable to parse providers from OIDC_PROVIDERS environment variable.', err);
   }
 
-  const providerList = new ProviderList();
   for (const provider of providersConfig) {
     const { id, name, issuer, client_id, client_secret } = provider;
-    const providerClass = providerList.getProviderByName(name.toLocaleLowerCase());
-    if (providerClass) {
+    const providerConstructor = getProviderConstructor(name.toLocaleLowerCase());
+    if (providerConstructor) {
       providers.push(
-        providerClass({
+        providerConstructor({
           id,
           name,
           type: 'oidc',
           issuer,
           clientId: client_id,
           clientSecret: client_secret,
-          account(account: {
-            refresh_token_expires_in: string;
-            access_token: string;
-            expires_at: string;
-            refresh_token: string;
-          }) {
-            const refresh_token_expires_at = Math.floor(Date.now() / 1000) + Number(account.refresh_token_expires_in);
-            return {
-              access_token: account.access_token,
-              expires_at: account.expires_at,
-              refresh_token: account.refresh_token,
-              refresh_token_expires_at,
-            };
-          },
         }),
       );
     }
   }
 }
 
-export const providerMap = providers
+export const authProviders = providers
   .map((provider) => {
     if (typeof provider === 'function') {
       const providerData = provider();

@@ -42,6 +42,7 @@
     "next": "15.5.2",
     "next-auth": "^5.0.0-beta.29",
     "openapi-fetch": "^0.13.5",
+    "openid-client": "^6.8.0",
     "pluralize": "^8.0.0",
     "react": "^19.0.0",
     "react-aria": "^3.42.0",

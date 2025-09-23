@@ -111,7 +111,7 @@ export interface IbmProfile extends Record<string, any> {
   exp: number;
 }
 
-export default function IBM(config: OIDCConfig<IbmProfile>): OIDCConfig<IbmProfile> {
+export function IBMProvider(config: OIDCConfig<IbmProfile>): OIDCConfig<IbmProfile> {
   return {
     id: config.id,
     name: config.name,

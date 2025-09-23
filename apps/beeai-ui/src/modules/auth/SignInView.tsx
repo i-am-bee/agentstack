@@ -6,7 +6,7 @@
 import { redirect } from 'next/navigation';
 import { AuthError } from 'next-auth';
 
-import { providerMap, signIn } from '#app/(auth)/auth.ts';
+import { authProviders, signIn } from '#app/(auth)/auth.ts';
 import { SigninButton } from '#components/SigninButton/SigninButton.tsx';
 import { routes } from '#utils/router.ts';
 
@@ -27,7 +27,7 @@ export function SignInView({ callbackUrl }: Props) {
           <span className={classes.bolded}>BeeAI</span>
         </div>
         <div className={classes.buttonList}>
-          {Object.values(providerMap).map((provider) => (
+          {Object.values(authProviders).map((provider) => (
             <form
               key={provider.id}
               action={async () => {
