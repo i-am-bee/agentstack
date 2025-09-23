@@ -73,6 +73,9 @@ class OidcProvider(BaseModel):
     client_id: str
     client_secret: Secret[str]
 
+    def __hash__(self):
+        return hash(self.name + str(self.issuer) + self.client_id)  # Enables auth caching per provider
+
 
 class OidcConfiguration(BaseModel):
     enabled: bool = False
