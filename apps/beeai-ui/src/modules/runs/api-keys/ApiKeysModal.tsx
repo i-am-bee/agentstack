@@ -11,11 +11,18 @@ import { Modal } from '#components/Modal/Modal.tsx';
 import { useModal } from '#contexts/Modal/index.tsx';
 import type { ModalProps } from '#contexts/Modal/modal-context.ts';
 
+import type { AgentRequestedApiKeys } from '../contexts/agent-settings/types';
 import { ApiKeysAddModal } from './ApiKeysAddModal';
 import classes from './ApiKeysModal.module.scss';
 import { ToolCardsList } from './ToolCardsList';
 
-export function ApiKeysModal({ onRequestClose, ...modalProps }: ModalProps) {
+interface ApiKeyModalProps extends ModalProps {
+  requestedApiKeys: AgentRequestedApiKeys;
+  updateApiKey: (key: string, value: string) => void;
+  revokeApiKey: (key: string) => void;
+}
+
+export function ApiKeysModal({ onRequestClose, ...modalProps }: ApiKeyModalProps) {
   const [step, setStep] = useState(Step.Landing);
 
   const { openModal } = useModal();

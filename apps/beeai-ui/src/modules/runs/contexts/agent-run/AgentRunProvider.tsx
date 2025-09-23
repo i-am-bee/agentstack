@@ -31,6 +31,8 @@ import type { TaskId } from '#modules/tasks/api/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { MessagesProvider } from '../../../messages/contexts/Messages/MessagesProvider';
+import { AgentSettingsProvider } from '../agent-settings/AgentSettingsProvider';
+import type { AgentRequestedApiKeys } from '../agent-settings/types';
 import { AgentStatusProvider } from '../agent-status/AgentStatusProvider';
 import { AgentRunContext, AgentRunStatus } from './agent-run-context';
 
@@ -45,13 +47,15 @@ export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>)
   });
 
   return (
-    <PlatformContextProvider agentClient={agentClient}>
-      <FileUploadProvider allowedContentTypes={agent.defaultInputModes}>
-        <AgentRunProvider agent={agent} agentClient={agentClient}>
-          {children}
-        </AgentRunProvider>
-      </FileUploadProvider>
-    </PlatformContextProvider>
+    <AgentSettingsProvider agent={agent} agentClient={agentClient}>
+      <PlatformContextProvider agentClient={agentClient}>
+        <FileUploadProvider allowedContentTypes={agent.defaultInputModes}>
+          <AgentRunProvider agent={agent} agentClient={agentClient}>
+            {children}
+          </AgentRunProvider>
+        </FileUploadProvider>
+      </PlatformContextProvider>
+    </AgentSettingsProvider>
   );
 }
 
@@ -188,10 +192,19 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
             message.status = UIMessageStatus.InputRequired;
             message.parts.push({ kind: UIMessagePartKind.Form, ...result.form });
           });
-        } else if (result && result.type === RunResultType.AuthRequired) {
+        } else if (result && result.type === RunResultType.OAuthRequired) {
           updateCurrentAgentMessage((message) => {
             message.status = UIMessageStatus.InputRequired;
-            message.parts.push({ kind: UIMessagePartKind.Auth, url: result.url, taskId: result.taskId });
+            message.parts.push({ kind: UIMessagePartKind.OAuth, url: result.url, taskId: result.taskId });
+          });
+        } else if (result && result.type === RunResultType.SecretRequired) {
+          updateCurrentAgentMessage((message) => {
+            message.status = UIMessageStatus.InputRequired;
+            message.parts.push({
+              kind: UIMessagePartKind.SecretRequired,
+              secret: result.secret,
+              taskId: result.taskId,
+            });
           });
         } else {
           updateCurrentAgentMessage((message) => {
@@ -258,6 +271,22 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
     },
   });
 
+  const submitSecrets = useCallback(
+    (runtimeFullfilledDemands: AgentRequestedApiKeys, taskId: TaskId) => {
+      checkPendingRun();
+
+      const message: UIUserMessage = {
+        id: uuid(),
+        role: Role.User,
+        parts: [],
+        runtimeFullfilledDemands,
+      };
+
+      return run(message, taskId);
+    },
+    [checkPendingRun, run],
+  );
+
   const sources = useMemo(() => getMessagesSourcesMap(messages), [messages]);
 
   const lastAgentMessage = getMessages().findLast(isAgentMessage);
@@ -287,10 +316,11 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
       chat,
       submitForm,
       startAuth,
+      submitSecrets,
       cancel,
       clear,
     };
-  }, [agent, status, input, stats, chat, submitForm, cancel, clear, startAuth]);
+  }, [agent, status, input, stats, chat, submitForm, cancel, clear, startAuth, submitSecrets]);
 
   return (
     <AgentStatusProvider agent={agent} isMonitorStatusEnabled>
