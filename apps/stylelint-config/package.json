@@ -1,0 +1,16 @@
+{
+  "name": "@i-am-bee/stylelint-config",
+  "author": "IBM Corp.",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "exports": "./stylelint.config.js",
+  "peerDependencies": {
+    "stylelint": ">=16.0.0"
+  },
+  "dependencies": {
+    "stylelint-config-css-modules": "^4.5.1",
+    "stylelint-config-recommended-scss": "^16.0.1",
+    "stylelint-plugin-logical-css": "^1.2.3"
+  }
+}

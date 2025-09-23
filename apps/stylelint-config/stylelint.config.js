@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/** @type {import('stylelint').Config} */
 const config = {
   extends: ['stylelint-config-recommended-scss', 'stylelint-config-css-modules'],
   plugins: ['stylelint-plugin-logical-css'],

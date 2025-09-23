@@ -33,6 +33,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "catalog:",
+    "@i-am-bee/stylelint-config": "workspace:*",
     "@mdx-js/loader": "^3.1.1",
     "@next/eslint-plugin-next": "catalog:",
     "@next/mdx": "^15.5.2",
@@ -52,9 +53,6 @@
     "remark-reading-time": "^2.0.2",
     "sass-embedded": "catalog:",
     "stylelint": "catalog:",
-    "stylelint-config-css-modules": "catalog:",
-    "stylelint-config-recommended-scss": "catalog:",
-    "stylelint-plugin-logical-css": "catalog:",
     "typescript": "catalog:",
     "typescript-eslint": "catalog:"
   },

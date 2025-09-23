@@ -1,13 +1,14 @@
 packages:
   - apps/beeai-ui
   - apps/beeai-web
+  - apps/stylelint-config
   - docs
 
 catalog:
-  "@eslint/js": ^9.23.0
-  "@svgr/webpack": ^8.1.0
-  "@next/eslint-plugin-next": 15.5.2
-  "@types/lodash": ^4.17.20
+  '@eslint/js': ^9.23.0
+  '@next/eslint-plugin-next': 15.5.2
+  '@svgr/webpack': ^8.1.0
+  '@types/lodash': ^4.17.20
   eslint: ^9.23.0
   eslint-config-next: 15.5.2
   eslint-config-prettier: ^10.1.1
@@ -18,9 +19,6 @@ catalog:
   lodash: ^4.17.21
   prettier: ^3.5.3
   sass-embedded: ^1.86.0
-  stylelint: ^16.23.0
-  stylelint-config-css-modules: ^4.5.1
-  stylelint-config-recommended-scss: ^16.0.0
-  stylelint-plugin-logical-css: ^1.2.2
-  typescript-eslint: ^8.28.0
+  stylelint: 16.24.0
   typescript: 5.8.2
+  typescript-eslint: ^8.28.0
