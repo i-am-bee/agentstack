@@ -11,6 +11,7 @@ from async_lru import alru_cache
 from authlib.jose import JWTClaims, jwt
 from authlib.jose.errors import DecodeError, KeyMismatchError
 from authlib.jose.rfc7517 import JsonWebKey, KeySet
+from authlib.oauth2.rfc7662 import IntrospectTokenValidator
 from authlib.oauth2.rfc8414 import AuthorizationServerMetadata
 from authlib.oauth2.rfc8414 import get_well_known_url as oauth_get_well_known_url
 from authlib.oidc.discovery import OpenIDProviderMetadata
@@ -178,8 +179,28 @@ def extract_oauth_token(
         raise Exception("Invalid Authorization header format") from err
 
 
+@alru_cache(ttl=timedelta(seconds=5).seconds)
+async def validate_jwt(token: str, *, provider: OidcProvider, aud: str | None = None) -> JWTClaims | Exception:
+    keyset = await discover_jwks(provider)
+    try:
+        claims = jwt.decode(
+            token,
+            key=keyset,
+            claims_options={
+                "sub": {"essential": True},
+                "exp": {"essential": True},
+                "iss": {"essential": True, "value": str(provider.issuer)},
+                "aud": {"essential": True, "value": aud},
+            },
+        )
+        claims.validate()
+        return claims
+    except Exception as e:
+        return e  # Cache exception response
+
+
 @alru_cache(ttl=timedelta(seconds=15).seconds)
-async def introspect_token(token: str, *, provider: OidcProvider) -> bool:
+async def introspect_token(token: str, *, provider: OidcProvider, aud: str | None = None) -> JWTClaims | Exception:
     """Call OAuth2 introspect endpoint to validate opaque token"""
 
     async with httpx.AsyncClient() as client:
@@ -194,8 +215,21 @@ async def introspect_token(token: str, *, provider: OidcProvider) -> bool:
                 data={"token": token},
             )
             resp.raise_for_status()
-            token_info = resp.json()
-            return bool(token_info.get("active"))
+            token = resp.json()
+            try:
+                IntrospectTokenValidator().validate_token(token, None, None)
+                claims = JWTClaims(
+                    token,
+                    header={},
+                    options={
+                        "iss": {"value": str(provider.issuer)},
+                        "aud": {"value": aud},
+                    },
+                )
+                claims.validate()
+                return claims
+            except Exception as e:
+                return e  # Cache exception response
         except Exception as e:
             logger.warning(f"Introspection failed for provider {provider.issuer}: {e}")
             raise IntrospectionDiscoveryError(
@@ -210,35 +244,23 @@ async def validate_oauth_access_token(
 
     for provider in configuration.auth.oidc.providers:
         try:
-            keyset = await discover_jwks(provider)
-        except Exception as e:
-            exceptions.append(e)
-            continue
-
-        try:
-            claims = jwt.decode(
-                token,
-                key=keyset,
-                claims_options={
-                    "sub": {"essential": True},
-                    "exp": {"essential": True},
-                    "iss": {"essential": True, "value": str(provider.issuer)},
-                    "aud": {"essential": True, "value": aud},
-                },
-            )
-            claims.validate()
-            return claims, provider
+            claims_or_exc = await validate_jwt(token, provider=provider, aud=aud)
+            if isinstance(claims_or_exc, Exception):
+                raise claims_or_exc
+            return claims_or_exc, provider
         except DecodeError:
             break  # Not a JWT
         except KeyMismatchError:
             continue  # None of the keys match for the issuer
+        except JWKSDiscoveryError:
+            break  # JWKS validation is non-functioning
 
     for provider in configuration.auth.oidc.providers:
         try:
-            is_valid = await introspect_token(token, provider=provider)
-            if not is_valid:
-                raise RuntimeError(f"Token invalid for provider {provider.issuer}")
-            return None, provider
+            claims_or_exc = await introspect_token(token, provider=provider, aud=aud)
+            if isinstance(claims_or_exc, Exception):
+                raise claims_or_exc
+            return claims_or_exc, provider
         except Exception as e:
             exceptions.append(e)
             continue
