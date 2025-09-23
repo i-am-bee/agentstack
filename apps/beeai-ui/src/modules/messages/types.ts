@@ -5,7 +5,9 @@
 
 import type { Task } from '@a2a-js/sdk';
 
+import type { SecretDemands } from '#api/a2a/extensions/services/secrets.ts';
 import type { FormRender, FormResponse } from '#api/a2a/extensions/ui/form.ts';
+import type { AgentRequestedApiKeys } from '#modules/runs/contexts/agent-settings/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 
 import type { Role } from './api/types';
@@ -26,6 +28,7 @@ export interface UIUserMessage extends UIMessageBase {
   role: Role.User;
   form?: UIMessageForm;
   auth?: string;
+  runtimeFullfilledDemands?: AgentRequestedApiKeys;
 }
 
 export interface UIAgentMessage extends UIMessageBase {
@@ -43,7 +46,8 @@ export type UIMessagePart =
   | UITrajectoryPart
   | UIFormPart
   | UIAuthPart
-  | UITransformPart;
+  | UITransformPart
+  | UISecretPart;
 
 export type UITextPart = {
   kind: UIMessagePartKind.Text;
@@ -84,8 +88,14 @@ export type UIFormPart = FormRender & {
 };
 
 export type UIAuthPart = {
-  kind: UIMessagePartKind.Auth;
+  kind: UIMessagePartKind.OAuth;
   url: string;
+  taskId: TaskId;
+};
+
+export type UISecretPart = {
+  kind: UIMessagePartKind.SecretRequired;
+  secret: SecretDemands;
   taskId: TaskId;
 };
 
@@ -116,7 +126,8 @@ export enum UIMessagePartKind {
   Source = 'source',
   Trajectory = 'trajectory',
   Form = 'form',
-  Auth = 'auth',
+  OAuth = 'oauth',
+  SecretRequired = 'secret-required',
   Transform = 'transform',
 }
 

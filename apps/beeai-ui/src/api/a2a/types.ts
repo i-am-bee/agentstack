@@ -5,6 +5,7 @@
 
 import type { UIMessagePart, UIUserMessage } from '#modules/messages/types.ts';
 import type { ContextToken } from '#modules/platform-context/contexts/platform-context.ts';
+import type { AgentRequestedApiKeys } from '#modules/runs/contexts/agent-settings/types.ts';
 import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
 
 import type { buildA2AClient } from './client';
@@ -12,12 +13,14 @@ import type { EmbeddingDemand, EmbeddingFulfillment } from './extensions/service
 import type { LLMDemand, LLMFulfillment } from './extensions/services/llm';
 import type { MCPDemand, MCPFulfillment } from './extensions/services/mcp';
 import type { OAuthDemand, OAuthFulfillment } from './extensions/services/oauth-provider';
+import type { SecretDemands, SecretFulfillment } from './extensions/services/secrets';
 import type { FormRender } from './extensions/ui/form';
 import type { AgentSettings } from './extensions/ui/settings';
 
 export enum RunResultType {
   FormRequired = 'form-required',
-  AuthRequired = 'auth-required',
+  OAuthRequired = 'oauth-required',
+  SecretRequired = 'secret-required',
   Parts = 'parts',
 }
 
@@ -27,10 +30,16 @@ export interface FormRequiredResult {
   form: FormRender;
 }
 
-export interface AuthRequiredResult {
-  type: RunResultType.AuthRequired;
+export interface OAuthRequiredResult {
+  type: RunResultType.OAuthRequired;
   taskId: TaskId;
   url: string;
+}
+
+export interface SecretRequiredResult {
+  type: RunResultType.SecretRequired;
+  taskId: TaskId;
+  secret: SecretDemands;
 }
 
 export interface PartsResult<UIGenericPart = never> {
@@ -39,7 +48,11 @@ export interface PartsResult<UIGenericPart = never> {
   parts: Array<UIMessagePart | UIGenericPart>;
 }
 
-export type ChatResult<UIGenericPart = never> = PartsResult<UIGenericPart> | FormRequiredResult | AuthRequiredResult;
+export type ChatResult<UIGenericPart = never> =
+  | PartsResult<UIGenericPart>
+  | FormRequiredResult
+  | OAuthRequiredResult
+  | SecretRequiredResult;
 
 export interface ChatParams {
   message: UIUserMessage;
@@ -51,7 +64,7 @@ export interface ChatParams {
 
 export interface ChatRun<UIGenericPart = never> {
   taskId?: TaskId;
-  done: Promise<null | FormRequiredResult | AuthRequiredResult>;
+  done: Promise<null | FormRequiredResult | OAuthRequiredResult | SecretRequiredResult>;
   subscribe: (fn: (data: { parts: (UIMessagePart | UIGenericPart)[]; taskId: TaskId }) => void) => () => void;
   cancel: () => Promise<void>;
 }
@@ -62,6 +75,7 @@ export interface Fulfillments {
   oauth: (demand: OAuthDemand) => Promise<OAuthFulfillment | null>;
   getContextToken: () => ContextToken;
   embedding: (demand: EmbeddingDemand) => Promise<EmbeddingFulfillment>;
+  secrets: (demand: SecretDemands, runtimeFullfilledDemands?: AgentRequestedApiKeys) => Promise<SecretFulfillment>;
 }
 
 export type AgentA2AClient<UIGenericPart = never> = Awaited<ReturnType<typeof buildA2AClient<UIGenericPart>>>;

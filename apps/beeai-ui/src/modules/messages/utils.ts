@@ -71,10 +71,16 @@ export function getMessageForm(message: UIMessage) {
   return form;
 }
 
-export function getMessageAuth(message: UIMessage) {
-  const auth = message.parts.findLast((part) => part.kind === UIMessagePartKind.Auth);
+export function getMessageOauth(message: UIMessage) {
+  const oauth = message.parts.findLast((part) => part.kind === UIMessagePartKind.OAuth);
 
-  return auth;
+  return oauth;
+}
+
+export function getMessageSecret(message: UIMessage) {
+  const secret = message.parts.findLast((part) => part.kind === UIMessagePartKind.SecretRequired);
+
+  return secret;
 }
 
 export function checkMessageStatus(message: UIAgentMessage) {

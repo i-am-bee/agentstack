@@ -7,6 +7,7 @@ import { type PropsWithChildren, useCallback, useEffect, useState } from 'react'
 
 import type { AgentA2AClient } from '#api/a2a/types.ts';
 import { useApp } from '#contexts/App/index.ts';
+import { useAgentSettings } from '#modules/runs/contexts/agent-settings/index.ts';
 
 import { useCreateContext } from '../api/mutations/useCreateContext';
 import { useCreateContextToken } from '../api/mutations/useCreateContextToken';
@@ -22,6 +23,7 @@ export function PlatformContextProvider<UIGenericPart>({
   children,
   agentClient,
 }: PropsWithChildren<Props<UIGenericPart>>) {
+  const { requestedApiKeys } = useAgentSettings();
   const { featureFlags } = useApp();
   const [contextId, setContextId] = useState<string | null>(null);
 
@@ -169,9 +171,17 @@ export function PlatformContextProvider<UIGenericPart>({
       selectedLLMProviders,
       selectedEmbeddingProviders,
       selectedMCPServers,
+      requestedApiKeys,
       featureFlags,
     });
-  }, [selectedLLMProviders, selectedEmbeddingProviders, selectedMCPServers, featureFlags, getContextToken]);
+  }, [
+    selectedLLMProviders,
+    selectedEmbeddingProviders,
+    selectedMCPServers,
+    featureFlags,
+    getContextToken,
+    requestedApiKeys,
+  ]);
 
   useEffect(() => {
     createContext().then(setContext);

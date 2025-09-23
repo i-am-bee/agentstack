@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// import { useEffect, useMemo } from 'react';
 import { useMemo } from 'react';
 
+// import { useMemo } from 'react';
 import { Container } from '#components/layouts/Container.tsx';
 // import { useModal } from '#contexts/Modal/index.tsx';
 import { AgentGreeting } from '#modules/agents/components/AgentGreeting.tsx';
@@ -16,17 +16,28 @@ import { FileUpload } from '../../files/components/FileUpload';
 import { useAgentRun } from '../contexts/agent-run';
 import { RunInput } from './RunInput';
 import classes from './RunLandingView.module.scss';
+// import { useAgentSettings } from '../contexts/agent-settings';
 
 export function RunLandingView() {
   const { agent } = useAgentRun();
+  // const { requestedApiKeys, updateApiKey, revokeApiKey } = useAgentSettings();
 
   const promptExamples = useMemo(() => getAgentPromptExamples(agent), [agent]);
 
   // const { openModal } = useModal();
 
   // useEffect(() => {
-  //   openModal((props) => <ApiKeysModal {...props} />);
-  // }, [openModal]);
+  //   if (Object.keys(requestedApiKeys).length > 0) {
+  //     openModal((props) => (
+  //       <ApiKeysModal
+  //         {...props}
+  //         requestedApiKeys={requestedApiKeys}
+  //         updateApiKey={updateApiKey}
+  //         revokeApiKey={revokeApiKey}
+  //       />
+  //     ));
+  //   }
+  // }, [openModal, requestedApiKeys]);
 
   return (
     <FileUpload>

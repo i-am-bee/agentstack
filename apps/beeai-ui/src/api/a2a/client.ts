@@ -20,6 +20,7 @@ import { llmExtension } from './extensions/services/llm';
 import { mcpExtension } from './extensions/services/mcp';
 import { oauthProviderExtension } from './extensions/services/oauth-provider';
 import { activePlatformExtension } from './extensions/services/platform';
+import { secretsExtension, secretsMessageExtension } from './extensions/services/secrets';
 import { formExtension, formMessageExtension } from './extensions/ui/form';
 import { oauthRequestExtension } from './extensions/ui/oauth';
 import { settingsExtension } from './extensions/ui/settings';
@@ -29,7 +30,7 @@ import {
   fulfillServiceExtensionDemand,
 } from './extensions/utils';
 import { processMessageMetadata, processParts } from './part-processors';
-import type { AuthRequiredResult, ChatResult, FormRequiredResult } from './types';
+import type { ChatResult, FormRequiredResult, OAuthRequiredResult, SecretRequiredResult } from './types';
 import { type ChatParams, type ChatRun, RunResultType } from './types';
 import { createUserMessage, extractTextFromMessage } from './utils';
 
@@ -45,8 +46,10 @@ const fulfillLlmDemand = fulfillServiceExtensionDemand(llmExtension);
 const fulfillEmbeddingDemand = fulfillServiceExtensionDemand(embeddingExtension);
 const extractForm = extractUiExtensionData(formMessageExtension);
 const settingsExtensionExtractor = extractServiceExtensionDemands(settingsExtension);
-
+const secretsExtensionExtractor = extractServiceExtensionDemands(secretsExtension);
+const fulfillSecretDemand = fulfillServiceExtensionDemand(secretsExtension);
 const oauthRequestExtensionExtractor = extractUiExtensionData(oauthRequestExtension);
+const secretsMessageExtensionExtractor = extractUiExtensionData(secretsMessageExtension);
 
 function handleStatusUpdate<UIGenericPart = never>(
   event: TaskStatusUpdateEvent,
@@ -96,6 +99,7 @@ export const buildA2AClient = async <UIGenericPart = never>({
   const oauthDemands = oauthExtensionExtractor(extensions);
   const settingsDemands = settingsExtensionExtractor(extensions);
   const embeddingDemands = embeddingExtensionExtractor(extensions);
+  const secretDemands = secretsExtensionExtractor(extensions);
 
   const agentCardUrl = `${getBaseUrl()}/api/v1/a2a/${providerId}/.well-known/agent-card.json`;
 
@@ -144,6 +148,11 @@ export const buildA2AClient = async <UIGenericPart = never>({
         metadata = fulfillEmbeddingDemand(metadata, await fulfillments.embedding(embeddingDemands));
       }
 
+      if (secretDemands) {
+        const secretFulfillments = await fulfillments.secrets(secretDemands, message.runtimeFullfilledDemands);
+        metadata = fulfillSecretDemand(metadata, secretFulfillments);
+      }
+
       if (message.form) {
         metadata = {
           ...metadata,
@@ -167,7 +176,7 @@ export const buildA2AClient = async <UIGenericPart = never>({
       const taskResult = lastValueFrom(
         messageSubject.asObservable().pipe(
           filter(
-            (result: ChatResult): result is FormRequiredResult | AuthRequiredResult =>
+            (result: ChatResult): result is FormRequiredResult | OAuthRequiredResult | SecretRequiredResult =>
               result.type !== RunResultType.Parts,
           ),
           defaultIfEmpty(null),
@@ -196,11 +205,19 @@ export const buildA2AClient = async <UIGenericPart = never>({
 
             if (event.status.state === 'auth-required') {
               const oauth = oauthRequestExtensionExtractor(event.status.message?.metadata);
+              const secret = secretsMessageExtensionExtractor(event.status.message?.metadata);
+
               if (oauth) {
                 messageSubject.next({
-                  type: RunResultType.AuthRequired,
+                  type: RunResultType.OAuthRequired,
                   taskId,
                   url: oauth.authorization_endpoint_url,
+                });
+              } else if (secret) {
+                messageSubject.next({
+                  type: RunResultType.SecretRequired,
+                  taskId,
+                  secret,
                 });
               } else {
                 throw new Error(`Illegal State - oauth extension data missing on auth-required event`);
@@ -268,6 +285,7 @@ export const buildA2AClient = async <UIGenericPart = never>({
     embeddingDemands: embeddingDemands?.embedding_demands,
     mcpDemands: mcpDemands?.mcp_demands,
     settingsDemands,
+    secretDemands: secretDemands?.secret_demands,
   };
 };
 
