@@ -42,14 +42,10 @@ auth:
       {
         "name": "w3id",
         "id": "w3id",
-        "type": "oidc",
         "class": "IBM",
         "client_id": "<oidc_client_id>",
         "client_secret": "<oidc_client_secret>",
         "issuer": "<oidc_issuer>",
-        "jwks_url": "<oidc_jwks_url>",
-        "nextauth_url": "https://beeai.localhost:8336",
-        "nextauth_redirect_proxy_url": "https://beeai.localhost:8336"
       }
     ]
 

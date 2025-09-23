@@ -2,7 +2,7 @@
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-import * as jose from 'jose';
+
 import NextAuth from 'next-auth';
 import type { Provider } from 'next-auth/providers';
 
@@ -25,28 +25,23 @@ if (OIDC_ENABLED) {
     }
 
     providersConfig = JSON.parse(providersJson);
-    for (const provider of providersConfig) {
-      const JWKS = jose.createRemoteJWKSet(new URL(provider.jwks_url));
-      provider.JWKS = JWKS;
-    }
   } catch (err) {
     console.error('Unable to parse providers from OIDC_PROVIDERS environment variable.', err);
   }
 
   const providerList = new ProviderList();
   for (const provider of providersConfig) {
-    const { id, name, type, issuer, client_id, client_secret, nextauth_redirect_proxy_url } = provider;
+    const { id, name, issuer, client_id, client_secret } = provider;
     const providerClass = providerList.getProviderByName(name.toLocaleLowerCase());
     if (providerClass) {
       providers.push(
         providerClass({
           id,
           name,
-          type,
+          type: 'oidc',
           issuer,
           clientId: client_id,
           clientSecret: client_secret,
-          redirectProxyUrl: nextauth_redirect_proxy_url,
           account(account: {
             refresh_token_expires_in: string;
             access_token: string;

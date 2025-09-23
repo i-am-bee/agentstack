@@ -43,7 +43,7 @@ export async function jwtWithRefresh(
         throw new TypeError('Missing clientId or clientSecret in provider configuration');
       }
 
-      const response = await fetch(`${tokenProvider.options?.issuer}/token`, {
+      const response = await fetch(tokenProvider.options?.token, {
         method: 'POST',
         body: new URLSearchParams({
           client_id: String(clientId),
