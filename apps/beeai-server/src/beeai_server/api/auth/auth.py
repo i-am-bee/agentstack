@@ -10,7 +10,7 @@ import httpx
 from async_lru import alru_cache
 from authlib.jose import JWTClaims, jwt
 from authlib.jose.errors import DecodeError, KeyMismatchError
-from authlib.jose.rfc7517 import KeySet
+from authlib.jose.rfc7517 import JsonWebKey, KeySet
 from authlib.oauth2.rfc8414 import AuthorizationServerMetadata
 from authlib.oauth2.rfc8414 import get_well_known_url as oauth_get_well_known_url
 from authlib.oidc.discovery import OpenIDProviderMetadata
@@ -156,7 +156,7 @@ async def discover_jwks(provider: OidcProvider) -> KeySet:
         async with httpx.AsyncClient(headers={"Accept": "application/json"}) as client:
             response = await client.get(jwks_uri)
             response.raise_for_status()
-            return KeySet(response.json())
+            return JsonWebKey.import_key_set(response.json())
     except Exception as e:
         logger.warning(f"JWKS discovery failed for provider {provider.issuer}: {e}")
         raise JWKSDiscoveryError(f"JWKS discovery failed for provider {provider.issuer}: {e}") from e
