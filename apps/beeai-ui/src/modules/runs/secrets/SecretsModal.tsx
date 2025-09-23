@@ -5,58 +5,48 @@
 
 import { Button, ModalBody, ModalFooter, ModalHeader } from '@carbon/react';
 import clsx from 'clsx';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { Modal } from '#components/Modal/Modal.tsx';
-import { useModal } from '#contexts/Modal/index.tsx';
 import type { ModalProps } from '#contexts/Modal/modal-context.ts';
 
-import type { AgentRequestSecrets } from '../contexts/agent-settings/types';
-import { ApiKeysAddModal } from './ApiKeysAddModal';
-import classes from './ApiKeysModal.module.scss';
-import { ToolCardsList } from './ToolCardsList';
+import type { AgentSecret } from '../contexts/agent-secrets/types';
+import { SecretCardsList } from './SecretCardsList';
+import classes from './SecretsModal.module.scss';
 
 interface ApiKeyModalProps extends ModalProps {
-  requestedSecrets: AgentRequestSecrets;
-  updateApiKey: (key: string, value: string) => void;
-  revokeApiKey: (key: string) => void;
+  secrets: AgentSecret[];
+  updateSecret: (key: string, value: string) => void;
+  revokeSecret: (key: string) => void;
 }
 
-export function ApiKeysModal({ onRequestClose, ...modalProps }: ApiKeyModalProps) {
+export function SecretsModal({ secrets, updateSecret, onRequestClose, ...modalProps }: ApiKeyModalProps) {
   const [step, setStep] = useState(Step.Landing);
 
-  const { openModal } = useModal();
+  // const { openModal } = useModal();
 
   const isLanding = step === Step.Landing;
 
-  const closeAddModal = useCallback(() => {
-    setStep(Step.Landing);
+  // const closeAddModal = useCallback(() => {
+  //   setStep(Step.Landing);
 
-    console.log('close');
-  }, []);
+  //   console.log('close');
+  // }, []);
 
-  const openAddModal = useCallback(() => {
+  // useEffect(() => {
+  //   openAddModal();
+
+  //   return () => {
+  //     closeAddModal();
+  //   };
+  // }, [openAddModal, closeAddModal]);
+
+  const handleOpendAddModal = useCallback(() => {
     setStep(Step.Add);
-
-    openModal(({ onRequestClose, ...props }) => (
-      <ApiKeysAddModal
-        {...props}
-        onRequestClose={(force) => {
-          closeAddModal();
-
-          onRequestClose(force);
-        }}
-      />
-    ));
-  }, [openModal, closeAddModal]);
-
-  useEffect(() => {
-    openAddModal();
-
-    return () => {
-      closeAddModal();
-    };
-  }, [openAddModal, closeAddModal]);
+  }, []);
+  const handleCloseAddModal = useCallback(() => {
+    setStep(Step.Landing);
+  }, []);
 
   return (
     <Modal
@@ -73,7 +63,12 @@ export function ApiKeysModal({ onRequestClose, ...modalProps }: ApiKeyModalProps
       </ModalHeader>
 
       <ModalBody>
-        <ToolCardsList />
+        <SecretCardsList
+          secrets={secrets}
+          updateSecret={updateSecret}
+          onCloseAddModal={handleCloseAddModal}
+          onOpenAddModal={handleOpendAddModal}
+        />
       </ModalBody>
 
       <ModalFooter>

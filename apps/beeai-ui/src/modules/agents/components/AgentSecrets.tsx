@@ -3,26 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { CheckmarkFilled } from '@carbon/icons-react';
-import { Tag } from '@carbon/react';
-import { useMemo } from 'react';
-
-import { useAgentSettings } from '#modules/runs/contexts/agent-settings/index.ts';
+import { useModal } from '#contexts/Modal/index.tsx';
+import { useAgentSecrets } from '#modules/runs/contexts/agent-secrets/index.ts';
+import { SecretsAddModal } from '#modules/runs/secrets/SecretsAddModal.tsx';
+import { SecretTag } from '#modules/runs/secrets/SecretTag.tsx';
 
 import classes from './AgentSecrets.module.scss';
 
 export function AgentSecrets() {
-  const { requestedSecrets } = useAgentSettings();
+  const { openModal } = useModal();
 
-  const secrets = useMemo(() => {
-    if (!requestedSecrets) {
-      return [];
-    }
-
-    return Object.entries(requestedSecrets).map(([key, secret]) => {
-      return { key, ...secret };
-    });
-  }, [requestedSecrets]);
+  const { secrets, updateSecret } = useAgentSecrets();
 
   return (
     <div className={classes.root}>
@@ -32,13 +23,14 @@ export function AgentSecrets() {
             <li key={idx}>
               <div className={classes.title}>{secret.name}</div>
               <p>{secret.description}</p>
-              {secret.isReady ? (
-                <Tag type="green" className={classes.ready}>
-                  <CheckmarkFilled /> Ready to use
-                </Tag>
-              ) : (
-                <Tag className={classes.pending}>Required</Tag>
-              )}
+
+              <SecretTag
+                secret={secret}
+                size="md"
+                onClick={() =>
+                  openModal((props) => <SecretsAddModal {...props} secret={secret} updateSecret={updateSecret} />)
+                }
+              />
             </li>
           ))}
         </ul>

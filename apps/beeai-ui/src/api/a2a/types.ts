@@ -5,7 +5,7 @@
 
 import type { UIMessagePart, UIUserMessage } from '#modules/messages/types.ts';
 import type { ContextToken } from '#modules/platform-context/contexts/platform-context.ts';
-import type { AgentRequestSecrets } from '#modules/runs/contexts/agent-settings/types.ts';
+import type { AgentRequestSecrets } from '#modules/runs/contexts/agent-secrets/types.ts';
 import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
 
 import type { buildA2AClient } from './client';

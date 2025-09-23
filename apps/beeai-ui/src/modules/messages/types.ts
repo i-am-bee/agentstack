@@ -7,7 +7,7 @@ import type { Task } from '@a2a-js/sdk';
 
 import type { SecretDemands } from '#api/a2a/extensions/services/secrets.ts';
 import type { FormRender, FormResponse } from '#api/a2a/extensions/ui/form.ts';
-import type { AgentRequestSecrets } from '#modules/runs/contexts/agent-settings/types.ts';
+import type { AgentRequestSecrets } from '#modules/runs/contexts/agent-secrets/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 
 import type { Role } from './api/types';

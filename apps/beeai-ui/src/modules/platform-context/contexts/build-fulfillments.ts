@@ -6,7 +6,7 @@
 import type { EmbeddingDemand } from '#api/a2a/extensions/services/embedding.ts';
 import type { SecretDemands } from '#api/a2a/extensions/services/secrets.ts';
 import type { Fulfillments } from '#api/a2a/types.ts';
-import type { AgentRequestSecrets } from '#modules/runs/contexts/agent-settings/types.ts';
+import type { AgentRequestSecrets } from '#modules/runs/contexts/agent-secrets/types.ts';
 import { BASE_URL } from '#utils/constants.ts';
 import type { FeatureFlags } from '#utils/feature-flags.ts';
 

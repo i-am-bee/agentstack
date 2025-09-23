@@ -5,39 +5,40 @@
 
 import { useMemo } from 'react';
 
-// import { useMemo } from 'react';
 import { Container } from '#components/layouts/Container.tsx';
 // import { useModal } from '#contexts/Modal/index.tsx';
 import { AgentGreeting } from '#modules/agents/components/AgentGreeting.tsx';
 import { getAgentPromptExamples } from '#modules/agents/utils.ts';
 
 import { FileUpload } from '../../files/components/FileUpload';
-// import { ApiKeysModal } from '../api-keys/ApiKeysModal';
 import { useAgentRun } from '../contexts/agent-run';
+// import { useAgentSecrets } from '../contexts/agent-secrets';
+// import { SecretsModal } from '../secrets/SecretsModal';
 import { RunInput } from './RunInput';
 import classes from './RunLandingView.module.scss';
-// import { useAgentSettings } from '../contexts/agent-settings';
 
 export function RunLandingView() {
   const { agent } = useAgentRun();
-  // const { requestedSecrets, updateApiKey, revokeApiKey } = useAgentSettings();
+  // const { requestedSecrets, updateSecret, revokeSecret } = useAgentSecrets();
 
   const promptExamples = useMemo(() => getAgentPromptExamples(agent), [agent]);
 
   // const { openModal } = useModal();
 
   // useEffect(() => {
-  //   if (Object.keys(requestedSecrets).length > 0) {
+  //   const unresolvedSecrets = Object.values(requestedSecrets).filter((s) => !s.isReady);
+
+  //   if (unresolvedSecrets.length > 0) {
   //     openModal((props) => (
-  //       <ApiKeysModal
+  //       <SecretsModal
   //         {...props}
   //         requestedSecrets={requestedSecrets}
-  //         updateApiKey={updateApiKey}
-  //         revokeApiKey={revokeApiKey}
+  //         updateSecret={updateSecret}
+  //         revokeSecret={revokeSecret}
   //       />
   //     ));
   //   }
-  // }, [openModal, requestedSecrets]);
+  // }, [openModal, requestedSecrets, revokeSecret, updateSecret]);
 
   return (
     <FileUpload>

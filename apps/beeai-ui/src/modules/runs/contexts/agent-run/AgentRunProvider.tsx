@@ -31,8 +31,8 @@ import type { TaskId } from '#modules/tasks/api/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { MessagesProvider } from '../../../messages/contexts/Messages/MessagesProvider';
-import { AgentSettingsProvider } from '../agent-settings/AgentSettingsProvider';
-import type { AgentRequestSecrets } from '../agent-settings/types';
+import { AgentSecretsProvider } from '../agent-secrets/AgentSecretsProvider';
+import type { AgentRequestSecrets } from '../agent-secrets/types';
 import { AgentStatusProvider } from '../agent-status/AgentStatusProvider';
 import { AgentRunContext, AgentRunStatus } from './agent-run-context';
 
@@ -47,7 +47,7 @@ export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>)
   });
 
   return (
-    <AgentSettingsProvider agent={agent} agentClient={agentClient}>
+    <AgentSecretsProvider agent={agent} agentClient={agentClient}>
       <PlatformContextProvider agentClient={agentClient}>
         <FileUploadProvider allowedContentTypes={agent.defaultInputModes}>
           <AgentRunProvider agent={agent} agentClient={agentClient}>
@@ -55,7 +55,7 @@ export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>)
           </AgentRunProvider>
         </FileUploadProvider>
       </PlatformContextProvider>
-    </AgentSettingsProvider>
+    </AgentSecretsProvider>
   );
 }
 

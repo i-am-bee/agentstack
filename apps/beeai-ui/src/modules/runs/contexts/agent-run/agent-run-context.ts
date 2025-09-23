@@ -12,7 +12,7 @@ import type { UIMessageForm } from '#modules/messages/types.ts';
 import type { RunStats } from '#modules/runs/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 
-import type { AgentRequestSecrets } from '../agent-settings/types';
+import type { AgentRequestSecrets } from '../agent-secrets/types';
 
 export const AgentRunContext = createContext<AgentRunContextValue | undefined>(undefined);
 

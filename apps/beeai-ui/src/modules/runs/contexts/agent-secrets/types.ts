@@ -7,5 +7,6 @@ import type { SecretDemand } from '#api/a2a/extensions/services/secrets.ts';
 
 export type ReadySecretDemand = SecretDemand & { isReady: true; value: string };
 export type NonReadySecretDemand = SecretDemand & { isReady: false };
+export type AgentSecret = SecretDemand & { key: string } & (ReadySecretDemand | NonReadySecretDemand);
 
-export type AgentRequestSecrets = Record<string, SecretDemand & (ReadySecretDemand | NonReadySecretDemand)>;
+export type AgentRequestSecrets = Record<string, ReadySecretDemand | NonReadySecretDemand>;

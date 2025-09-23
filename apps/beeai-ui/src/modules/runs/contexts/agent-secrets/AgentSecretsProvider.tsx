@@ -11,7 +11,7 @@ import z from 'zod';
 import type { AgentA2AClient } from '#api/a2a/types.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 
-import { AgentSettingsContext } from './agent-settings-context';
+import { AgentSecretsContext } from './agent-secrets-context';
 import type { AgentRequestSecrets, NonReadySecretDemand, ReadySecretDemand } from './types';
 
 interface Props {
@@ -27,78 +27,84 @@ const secretsLocalStorageOptions = {
   deserializer: (value) => secretsSchema.parse(JSON.parse(value)),
 };
 
-export function AgentSettingsProvider({ agent, agentClient, children }: PropsWithChildren<Props>) {
-  const [agentSettings, setAgentSettings] = useLocalStorage<Secrets>('agent-settings', {}, secretsLocalStorageOptions);
+export function AgentSecretsProvider({ agent, agentClient, children }: PropsWithChildren<Props>) {
+  const [agentSecrets, setAgentSecrets] = useLocalStorage<Secrets>('agent-secrets', {}, secretsLocalStorageOptions);
 
-  const parsedAgentSettings = useMemo(() => {
-    return agentSettings[agent.provider.id] ?? {};
-  }, [agentSettings, agent.provider.id]);
+  const parsedAgentSecrets = useMemo(() => {
+    return agentSecrets[agent.provider.id] ?? {};
+  }, [agentSecrets, agent.provider.id]);
 
   const secretDemands = useMemo(() => {
     return agentClient?.secretDemands ?? null;
   }, [agentClient]);
 
-  const updateApiKey = useCallback(
+  const updateSecret = useCallback(
     (key: string, value: string) => {
-      setAgentSettings((prev) => ({ ...prev, [agent.provider.id]: { ...prev[agent.provider.id], [key]: value } }));
+      setAgentSecrets((prev) => ({ ...prev, [agent.provider.id]: { ...prev[agent.provider.id], [key]: value } }));
     },
-    [agent.provider.id, setAgentSettings],
+    [agent.provider.id, setAgentSecrets],
   );
 
   const storeSecrets = useCallback(
     (secrets: Record<string, string>) => {
-      setAgentSettings((prev) => ({ ...prev, [agent.provider.id]: { ...prev[agent.provider.id], ...secrets } }));
+      setAgentSecrets((prev) => ({ ...prev, [agent.provider.id]: { ...prev[agent.provider.id], ...secrets } }));
     },
-    [agent.provider.id, setAgentSettings],
+    [agent.provider.id, setAgentSecrets],
   );
 
-  const revokeApiKey = useCallback(
+  const revokeSecret = useCallback(
     (key: string) => {
-      setAgentSettings((prev) => {
+      setAgentSecrets((prev) => {
         const providerSettings = { ...prev[agent.provider.id] };
         delete providerSettings[key];
 
         return { ...prev, [agent.provider.id]: providerSettings };
       });
     },
-    [agent.provider.id, setAgentSettings],
+    [agent.provider.id, setAgentSecrets],
   );
 
-  const requestedSecrets = useMemo(() => {
+  const secrets = useMemo(() => {
     if (secretDemands === null) {
-      return {};
+      return [];
     }
 
-    return Object.entries(secretDemands).reduce<AgentRequestSecrets>((acc, [key, demand]) => {
-      if (parsedAgentSettings[key]) {
+    return Object.entries(secretDemands).map(([key, demand]) => {
+      if (parsedAgentSecrets[key]) {
         const readyDemand: ReadySecretDemand = {
           ...demand,
           isReady: true,
-          value: parsedAgentSettings[key],
+          value: parsedAgentSecrets[key],
         };
 
-        acc[key] = readyDemand;
+        return { key, ...readyDemand };
       } else {
         const nonReadyDemand: NonReadySecretDemand = {
           ...demand,
           isReady: false,
         };
 
-        acc[key] = nonReadyDemand;
+        return { key, ...nonReadyDemand };
       }
-      return acc;
+    });
+  }, [secretDemands, parsedAgentSecrets]);
+
+  const getRequestSecrets = useCallback((): AgentRequestSecrets => {
+    return secrets.reduce<AgentRequestSecrets>((acc, secret) => {
+      return { ...acc, [secret.key]: secret };
     }, {});
-  }, [secretDemands, parsedAgentSettings]);
+  }, [secrets]);
 
   const contextValue = useMemo(
     () => ({
-      requestedSecrets,
-      updateApiKey,
-      revokeApiKey,
+      secrets,
+      getRequestSecrets,
+      updateSecret,
+      revokeSecret,
       storeSecrets,
     }),
-    [requestedSecrets, updateApiKey, revokeApiKey, storeSecrets],
+    [secrets, getRequestSecrets, updateSecret, revokeSecret, storeSecrets],
   );
 
-  return <AgentSettingsContext.Provider value={contextValue}>{children}</AgentSettingsContext.Provider>;
+  return <AgentSecretsContext.Provider value={contextValue}>{children}</AgentSecretsContext.Provider>;
 }
