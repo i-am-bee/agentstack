@@ -36,7 +36,7 @@
     "@i-am-bee/stylelint-config": "workspace:*",
     "@mdx-js/loader": "^3.1.1",
     "@next/eslint-plugin-next": "catalog:",
-    "@next/mdx": "^15.5.2",
+    "@next/mdx": "15.5.3",
     "@svgr/webpack": "catalog:",
     "@types/estree": "^1.0.8",
     "@types/lodash": "catalog:",
