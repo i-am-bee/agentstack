@@ -28,7 +28,6 @@ export async function jwtWithRefresh(
       expires_at: account.expires_at,
       refresh_token: account.refresh_token,
     };
-    // TODO: remove false, used for debugging
   } else if (token.expires_at && Date.now() < token.expires_at * 1000) {
     // Subsequent logins, but the `access_token` is still valid
     return token;
