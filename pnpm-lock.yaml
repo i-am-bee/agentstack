@@ -475,6 +475,13 @@ importers:
       stylelint-plugin-logical-css:
         specifier: ^1.2.3
         version: 1.2.3(stylelint@16.24.0(typescript@5.9.2))
+    devDependencies:
+      '@i-am-bee/prettier-config':
+        specifier: workspace:*
+        version: link:../prettier-config
+      prettier:
+        specifier: 'catalog:'
+        version: 3.6.2
 
   docs:
     devDependencies:

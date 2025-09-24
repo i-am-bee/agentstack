@@ -12,5 +12,9 @@
     "stylelint-config-css-modules": "^4.5.1",
     "stylelint-config-recommended-scss": "^16.0.1",
     "stylelint-plugin-logical-css": "^1.2.3"
+  },
+  "devDependencies": {
+    "@i-am-bee/prettier-config": "workspace:*",
+    "prettier": "catalog:"
   }
 }
