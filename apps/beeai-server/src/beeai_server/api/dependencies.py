@@ -5,7 +5,6 @@ import logging
 from typing import Annotated
 from uuid import UUID
 
-from authlib.jose import JoseError
 from fastapi import Depends, HTTPException, Path, Query, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBasic, HTTPBasicCredentials, HTTPBearer
 from kink import di
@@ -124,7 +123,7 @@ async def authorized_user(
                 token_context_id=parsed_token.context_id,
             )
             return token
-        except JoseError:
+        except Exception:
             if configuration.auth.oidc.enabled:
                 return await authenticate_oauth_user(bearer_auth, user_service, configuration, request)
             # TODO: update agents

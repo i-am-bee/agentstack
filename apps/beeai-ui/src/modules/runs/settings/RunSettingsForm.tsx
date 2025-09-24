@@ -46,11 +46,12 @@ export function RunSettingsForm({ settingsRender }: Props) {
                 ))}
               </div>
             ))
-            .with({ type: 'single_select' }, ({ id, options }) => (
+            .with({ type: 'single_select' }, ({ id, label, options }) => (
               <SingleSelectSettingsField
                 key={id}
                 field={{
                   id,
+                  label,
                   options,
                 }}
               />

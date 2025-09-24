@@ -16,10 +16,10 @@ import classes from './SingleSelectSettingsField.module.scss';
 export function SingleSelectSettingsField({
   field,
 }: {
-  field: { id: string; options: { value: string; label: string }[] };
+  field: { id: string; label: string; options: { value: string; label: string }[] };
 }) {
   const htmlId = useId();
-  const { id } = field;
+  const { id, label } = field;
 
   const {
     field: { onChange, value },
@@ -29,7 +29,7 @@ export function SingleSelectSettingsField({
 
   return (
     <RadioButtonGroup
-      legendText=""
+      legendText={label}
       name="radio-button-vertical-group"
       valueSelected={value}
       orientation="vertical"
