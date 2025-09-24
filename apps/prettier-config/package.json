@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "type": "module",
   "exports": "./prettier.config.js",
-  "types": "prettier-config.d.ts",
+  "types": "./prettier-config.d.ts",
   "peerDependencies": {
     "prettier": ">=3.0.0"
   },

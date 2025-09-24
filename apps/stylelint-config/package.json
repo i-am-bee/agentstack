@@ -5,6 +5,7 @@
   "version": "1.0.0",
   "type": "module",
   "exports": "./stylelint.config.js",
+  "types": "./stylelint-config.d.ts",
   "peerDependencies": {
     "stylelint": ">=16.0.0"
   },

@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "type": "module",
   "exports": "./eslint.config.js",
-  "types": "eslint-config.d.ts",
+  "types": "./eslint-config.d.ts",
   "peerDependencies": {
     "eslint": ">=9.0.0",
     "prettier": ">=3.0.0",
