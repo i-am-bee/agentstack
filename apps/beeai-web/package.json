@@ -31,9 +31,7 @@
     "yaml": "^2.8.1"
   },
   "devDependencies": {
-    "@i-am-bee/eslint-config": "workspace:*",
-    "@i-am-bee/prettier-config": "workspace:*",
-    "@i-am-bee/stylelint-config": "workspace:*",
+    "@i-am-bee/lint-config": "workspace:*",
     "@mdx-js/loader": "^3.1.1",
     "@next/mdx": "15.5.3",
     "@svgr/webpack": "catalog:",

@@ -1,9 +1,7 @@
 packages:
   - apps/beeai-ui
   - apps/beeai-web
-  - apps/eslint-config
-  - apps/prettier-config
-  - apps/stylelint-config
+  - apps/lint-config
   - docs
 
 catalog:

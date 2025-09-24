@@ -1,14 +1,19 @@
 {
-  "name": "@i-am-bee/eslint-config",
+  "name": "@i-am-bee/lint-config",
   "author": "IBM Corp.",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "exports": "./eslint.config.js",
-  "types": "./eslint-config.d.ts",
+  "exports": {
+    "./eslint": "./eslint.config.js",
+    "./prettier": "./prettier.config.js",
+    "./stylelint": "./stylelint.config.js"
+  },
+  "types": "./types.d.ts",
   "peerDependencies": {
     "eslint": ">=9.0.0",
     "prettier": ">=3.0.0",
+    "stylelint": ">=16.0.0",
     "typescript": ">=5.0.0"
   },
   "dependencies": {
@@ -20,10 +25,12 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "prettier": "^3.6.2",
+    "stylelint-config-css-modules": "^4.5.1",
+    "stylelint-config-recommended-scss": "^16.0.1",
+    "stylelint-plugin-logical-css": "^1.2.3",
     "typescript-eslint": "^8.44.1"
   },
   "devDependencies": {
-    "@i-am-bee/prettier-config": "workspace:*",
     "eslint": "catalog:",
     "prettier": "catalog:"
   }

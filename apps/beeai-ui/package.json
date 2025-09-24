@@ -66,9 +66,7 @@
     "zod-to-json-schema": "^3.24.6"
   },
   "devDependencies": {
-    "@i-am-bee/eslint-config": "workspace:*",
-    "@i-am-bee/prettier-config": "workspace:*",
-    "@i-am-bee/stylelint-config": "workspace:*",
+    "@i-am-bee/lint-config": "workspace:*",
     "@svgr/webpack": "catalog:",
     "@types/hast": "^3.0.4",
     "@types/http-proxy": "^1.17.16",
