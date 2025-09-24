@@ -11,7 +11,7 @@ import { OIDC_ENABLED } from '#utils/constants.ts';
 import { routes } from '#utils/router.ts';
 
 import type { ProviderConfig } from './types';
-import { jwtWithRefresh } from './utils';
+import { jwtWithRefresh, RefreshTokenError } from './utils';
 
 let providersConfig: ProviderConfig[] = [];
 
@@ -91,7 +91,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token['provider'] = account.provider;
         token['refresh_token'] = account.refresh_token;
       }
-      return await jwtWithRefresh(token, account, providers);
+
+      try {
+        return await jwtWithRefresh(token, account, providers);
+      } catch (error) {
+        console.error('Error while refreshing jwt token:', error);
+
+        if (error instanceof RefreshTokenError) {
+          return null;
+        }
+
+        return token;
+      }
     },
   },
 });
