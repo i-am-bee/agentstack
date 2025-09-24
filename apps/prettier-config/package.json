@@ -10,6 +10,8 @@
     "prettier": ">=3.0.0"
   },
   "devDependencies": {
-    "prettier": "^3.6.2"
+    "@i-am-bee/eslint-config": "workspace:*",
+    "eslint": "catalog:",
+    "prettier": "catalog:"
   }
 }

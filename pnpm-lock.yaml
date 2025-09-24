@@ -6,12 +6,6 @@ settings:
 
 catalogs:
   default:
-    '@eslint/js':
-      specifier: 9.36.0
-      version: 9.36.0
-    '@next/eslint-plugin-next':
-      specifier: 15.5.3
-      version: 15.5.3
     '@svgr/webpack':
       specifier: 8.1.0
       version: 8.1.0
@@ -21,18 +15,6 @@ catalogs:
     eslint:
       specifier: 9.36.0
       version: 9.36.0
-    eslint-config-next:
-      specifier: 15.5.3
-      version: 15.5.3
-    eslint-config-prettier:
-      specifier: 10.1.8
-      version: 10.1.8
-    eslint-plugin-react-hooks:
-      specifier: 5.2.0
-      version: 5.2.0
-    eslint-plugin-simple-import-sort:
-      specifier: 12.1.1
-      version: 12.1.1
     globals:
       specifier: 16.4.0
       version: 16.4.0
@@ -51,9 +33,6 @@ catalogs:
     typescript:
       specifier: 5.9.2
       version: 5.9.2
-    typescript-eslint:
-      specifier: 8.44.1
-      version: 8.44.1
 
 importers:
 
@@ -219,21 +198,15 @@ importers:
         specifier: ^3.24.6
         version: 3.24.6(zod@3.25.76)
     devDependencies:
-      '@eslint/eslintrc':
-        specifier: ^3.3.1
-        version: 3.3.1
-      '@eslint/js':
-        specifier: 'catalog:'
-        version: 9.36.0
+      '@i-am-bee/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
       '@i-am-bee/prettier-config':
         specifier: workspace:*
         version: link:../prettier-config
       '@i-am-bee/stylelint-config':
         specifier: workspace:*
         version: link:../stylelint-config
-      '@next/eslint-plugin-next':
-        specifier: 'catalog:'
-        version: 15.5.3
       '@svgr/webpack':
         specifier: 'catalog:'
         version: 8.1.0(typescript@5.9.2)
@@ -267,18 +240,6 @@ importers:
       eslint:
         specifier: 'catalog:'
         version: 9.36.0(jiti@1.21.7)
-      eslint-config-next:
-        specifier: 'catalog:'
-        version: 15.5.3(eslint@9.36.0(jiti@1.21.7))(typescript@5.9.2)
-      eslint-config-prettier:
-        specifier: 'catalog:'
-        version: 10.1.8(eslint@9.36.0(jiti@1.21.7))
-      eslint-plugin-react-hooks:
-        specifier: 'catalog:'
-        version: 5.2.0(eslint@9.36.0(jiti@1.21.7))
-      eslint-plugin-simple-import-sort:
-        specifier: 'catalog:'
-        version: 12.1.1(eslint@9.36.0(jiti@1.21.7))
       globals:
         specifier: 'catalog:'
         version: 16.4.0
@@ -303,9 +264,6 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 5.9.2
-      typescript-eslint:
-        specifier: 'catalog:'
-        version: 8.44.1(eslint@9.36.0(jiti@1.21.7))(typescript@5.9.2)
 
   apps/beeai-web:
     dependencies:
@@ -379,12 +337,9 @@ importers:
         specifier: ^2.8.1
         version: 2.8.1
     devDependencies:
-      '@eslint/eslintrc':
-        specifier: ^3.3.1
-        version: 3.3.1
-      '@eslint/js':
-        specifier: 'catalog:'
-        version: 9.36.0
+      '@i-am-bee/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
       '@i-am-bee/prettier-config':
         specifier: workspace:*
         version: link:../prettier-config
@@ -394,9 +349,6 @@ importers:
       '@mdx-js/loader':
         specifier: ^3.1.1
         version: 3.1.1
-      '@next/eslint-plugin-next':
-        specifier: 'catalog:'
-        version: 15.5.3
       '@next/mdx':
         specifier: 15.5.3
         version: 15.5.3(@mdx-js/loader@3.1.1)(@mdx-js/react@3.1.1(@types/react@19.1.13)(react@19.1.1))
@@ -424,18 +376,6 @@ importers:
       eslint:
         specifier: 'catalog:'
         version: 9.36.0(jiti@1.21.7)
-      eslint-config-next:
-        specifier: 'catalog:'
-        version: 15.5.3(eslint@9.36.0(jiti@1.21.7))(typescript@5.9.2)
-      eslint-config-prettier:
-        specifier: 'catalog:'
-        version: 10.1.8(eslint@9.36.0(jiti@1.21.7))
-      eslint-plugin-react-hooks:
-        specifier: 'catalog:'
-        version: 5.2.0(eslint@9.36.0(jiti@1.21.7))
-      eslint-plugin-simple-import-sort:
-        specifier: 'catalog:'
-        version: 12.1.1(eslint@9.36.0(jiti@1.21.7))
       prettier:
         specifier: 'catalog:'
         version: 3.6.2
@@ -451,14 +391,57 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 5.9.2
+
+  apps/eslint-config:
+    dependencies:
+      '@eslint/eslintrc':
+        specifier: ^3.3.1
+        version: 3.3.1
+      '@eslint/js':
+        specifier: ^9.36.0
+        version: 9.36.0
+      '@next/eslint-plugin-next':
+        specifier: ^15.5.3
+        version: 15.5.3
+      eslint-config-next:
+        specifier: ^15.5.3
+        version: 15.5.3(eslint@9.36.0(jiti@1.21.7))(typescript@5.9.2)
+      eslint-config-prettier:
+        specifier: ^10.1.8
+        version: 10.1.8(eslint@9.36.0(jiti@1.21.7))
+      eslint-plugin-react-hooks:
+        specifier: ^5.2.0
+        version: 5.2.0(eslint@9.36.0(jiti@1.21.7))
+      eslint-plugin-simple-import-sort:
+        specifier: ^12.1.1
+        version: 12.1.1(eslint@9.36.0(jiti@1.21.7))
+      prettier:
+        specifier: ^3.6.2
+        version: 3.6.2
+      typescript:
+        specifier: '>=5.0.0'
+        version: 5.9.2
       typescript-eslint:
-        specifier: 'catalog:'
+        specifier: ^8.44.1
         version: 8.44.1(eslint@9.36.0(jiti@1.21.7))(typescript@5.9.2)
+    devDependencies:
+      '@i-am-bee/prettier-config':
+        specifier: workspace:*
+        version: link:../prettier-config
+      eslint:
+        specifier: 'catalog:'
+        version: 9.36.0(jiti@1.21.7)
 
   apps/prettier-config:
     devDependencies:
+      '@i-am-bee/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      eslint:
+        specifier: 'catalog:'
+        version: 9.36.0(jiti@1.21.7)
       prettier:
-        specifier: ^3.6.2
+        specifier: 'catalog:'
         version: 3.6.2
 
   apps/stylelint-config:
@@ -476,9 +459,15 @@ importers:
         specifier: ^1.2.3
         version: 1.2.3(stylelint@16.24.0(typescript@5.9.2))
     devDependencies:
+      '@i-am-bee/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
       '@i-am-bee/prettier-config':
         specifier: workspace:*
         version: link:../prettier-config
+      eslint:
+        specifier: 'catalog:'
+        version: 9.36.0(jiti@1.21.7)
       prettier:
         specifier: 'catalog:'
         version: 3.6.2

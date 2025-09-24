@@ -66,11 +66,9 @@
     "zod-to-json-schema": "^3.24.6"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.1",
-    "@eslint/js": "catalog:",
+    "@i-am-bee/eslint-config": "workspace:*",
     "@i-am-bee/prettier-config": "workspace:*",
     "@i-am-bee/stylelint-config": "workspace:*",
-    "@next/eslint-plugin-next": "catalog:",
     "@svgr/webpack": "catalog:",
     "@types/hast": "^3.0.4",
     "@types/http-proxy": "^1.17.16",
@@ -82,10 +80,6 @@
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "eslint": "catalog:",
-    "eslint-config-next": "catalog:",
-    "eslint-config-prettier": "catalog:",
-    "eslint-plugin-react-hooks": "catalog:",
-    "eslint-plugin-simple-import-sort": "catalog:",
     "globals": "catalog:",
     "keycode-js": "^3.1.0",
     "openapi-typescript": "^7.9.1",
@@ -93,8 +87,7 @@
     "prettier": "catalog:",
     "sass-embedded": "catalog:",
     "stylelint": "catalog:",
-    "typescript": "catalog:",
-    "typescript-eslint": "catalog:"
+    "typescript": "catalog:"
   },
   "packageManager": "pnpm@9.9.0"
 }

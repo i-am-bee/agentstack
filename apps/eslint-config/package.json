@@ -1,0 +1,30 @@
+{
+  "name": "@i-am-bee/eslint-config",
+  "author": "IBM Corp.",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "exports": "./eslint.config.js",
+  "types": "eslint-config.d.ts",
+  "peerDependencies": {
+    "eslint": ">=9.0.0",
+    "prettier": ">=3.0.0",
+    "typescript": ">=5.0.0"
+  },
+  "dependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.36.0",
+    "@next/eslint-plugin-next": "^15.5.3",
+    "eslint-config-next": "^15.5.3",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "prettier": "^3.6.2",
+    "typescript-eslint": "^8.44.1"
+  },
+  "devDependencies": {
+    "@i-am-bee/prettier-config": "workspace:*",
+    "eslint": "catalog:",
+    "prettier": "catalog:"
+  }
+}

@@ -14,7 +14,9 @@
     "stylelint-plugin-logical-css": "^1.2.3"
   },
   "devDependencies": {
+    "@i-am-bee/eslint-config": "workspace:*",
     "@i-am-bee/prettier-config": "workspace:*",
+    "eslint": "catalog:",
     "prettier": "catalog:"
   }
 }

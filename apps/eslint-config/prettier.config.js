@@ -3,4 +3,4 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export { nextConfig as default } from '@i-am-bee/eslint-config';
+export { default } from '@i-am-bee/prettier-config';
