@@ -78,14 +78,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
   callbacks: {
-    // middleware callback
-    authorized({ auth }) {
-      if (!OIDC_ENABLED) {
-        return true;
-      }
-      return Boolean(auth);
+    authorized: ({ auth }) => {
+      return OIDC_ENABLED ? Boolean(auth) : true;
     },
-    async jwt({ token, account, trigger, session }) {
+    jwt: async ({ token, account, trigger, session }) => {
       if (trigger === 'update') {
         token.name = session.user.name;
       }
@@ -93,14 +89,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (account) {
         token['access_token'] = account.access_token;
         token['provider'] = account.provider;
+        token['refresh_token'] = account.refresh_token;
       }
       return await jwtWithRefresh(token, account, providers);
-    },
-    async session({ session, token }) {
-      if (token?.access_token) {
-        session.access_token = token.access_token;
-      }
-      return session;
     },
   },
 });
@@ -111,6 +102,7 @@ declare module 'next-auth' {
    */
   interface Session {
     access_token?: string;
+    refresh_token?: string;
   }
 }
 
