@@ -1,0 +1,65 @@
+name: Build non-root buildkit image with custom User ID
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Exact Buildkit rootless tag (e.g., v0.24.0-rootless)'
+        required: true
+        type: string
+        default: 'v0.24.0-rootless'
+      uid:
+        description: 'User ID'
+        required: true
+        type: number
+        default: 1001410000
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  build-buildkit-docker-image:
+    name: Build buildkit image with custom User ID
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v4
+
+      # Docker
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Dockerfile
+        run: |
+          cat > Dockerfile << 'EOF'
+          FROM moby/buildkit:${{ github.event.inputs.tag }}
+          
+          RUN add_user -D -u ${{ github.event.inputs.uid }} oc_user \
+            && mkdir -p /run/user/${{ github.event.inputs.uid }} /home/oc_user/.local/tmp /home/oc_user/.local/share/buildkit \
+            && chown -R oc_user /run/user/${{ github.event.inputs.uid }} /home/oc_user \
+            && echo oc_user:100000:65536 | tee /etc/subuid | tee /etc/subgid
+          
+          # Kubernetes runAsNonRoot requires user to be numeric
+          USER ${{ github.event.inputs.uid }}:${{ github.event.inputs.uid }}
+          ENV HOME=/home/oc_user
+          ENV USER=oc_user
+          ENV XDG_RUNTIME_DIR=/run/user/${{ github.event.inputs.uid }}
+          ENV TMPDIR=/home/oc_user/.local/tmp
+          ENV BUILDKIT_HOST=unix:///run/user/${{ github.event.inputs.uid }}/buildkit/buildkitd.sock
+          VOLUME /home/oc_user/.local/share/buildkit
+          EOF
+      # Build and push the image
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/i-am-bee/moby/buildkit:${{ steps.version.outputs.exact_tag }}-uid-${{ github.event.inputs.uid }}
