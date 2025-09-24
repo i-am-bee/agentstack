@@ -6,7 +6,8 @@
 import type { Account } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import type { Provider } from 'next-auth/providers';
-import * as openidClient from 'openid-client';
+
+import { getTokenEndpoint } from './token-endpoint';
 
 interface OIDCProviderOptions {
   clientId: string;
@@ -29,10 +30,10 @@ export async function jwtWithRefresh(
       refresh_token: account.refresh_token,
     };
   } else if (token.expires_at && Date.now() < token.expires_at * 1000) {
-    // Subsequent logins, but the `access_token` is still valid
+    // Subsequent requests, `access_token` is still valid
     return token;
   } else {
-    // Subsequent logins, but the `access_token` has expired, try to refresh it
+    // Subsequent requests, `access_token` has expired, try to refresh it
     if (!token.refresh_token) throw new TypeError('Missing refresh_token');
 
     const tokenProvider = providers.find(({ name }) => name === token.provider);
@@ -49,23 +50,7 @@ export async function jwtWithRefresh(
 
     const { clientId, clientSecret, issuer: issuerUrl } = providerOptions;
 
-    let refreshTokenUrl: string;
-
-    try {
-      // Try to discover the OIDC configuration and get the token endpoint
-      const config = await openidClient.discovery(new URL(issuerUrl), clientId, clientSecret);
-      const tokenEndpoint = config.serverMetadata().token_endpoint;
-
-      if (!tokenEndpoint) {
-        throw new Error('Token endpoint not found in OIDC discovery');
-      }
-
-      refreshTokenUrl = tokenEndpoint;
-    } catch (discoveryError) {
-      // Fallback: construct the token endpoint URL manually for OIDC
-      console.warn('OIDC discovery failed, using fallback token endpoint:', discoveryError);
-      refreshTokenUrl = `${issuerUrl.replace(/\/$/, '')}/token`;
-    }
+    const refreshTokenUrl = await getTokenEndpoint(issuerUrl, clientId, clientSecret);
 
     const response = await fetch(refreshTokenUrl, {
       method: 'POST',
@@ -73,7 +58,7 @@ export async function jwtWithRefresh(
         client_id: clientId,
         client_secret: clientSecret,
         grant_type: 'refresh_token',
-        refresh_token: token.refresh_token! + 'xx',
+        refresh_token: token.refresh_token!,
       }),
     });
 

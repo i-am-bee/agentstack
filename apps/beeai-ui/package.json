@@ -33,7 +33,6 @@
     "http-proxy": "^1.18.1",
     "humanize-duration": "^3.32.1",
     "immer": "^10.1.1",
-    "jose": "6.1.0",
     "json5": "^2.2.3",
     "ky": "^1.7.5",
     "lodash": "catalog:",
