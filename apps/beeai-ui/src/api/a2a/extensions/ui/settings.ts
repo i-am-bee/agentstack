@@ -44,7 +44,7 @@ const checkboxFieldValue = z.object({
 
 const checkboxGroupFieldValue = z.object({
   type: z.literal('checkbox_group'),
-  values: z.record(checkboxFieldValue),
+  values: z.record(z.string(), checkboxFieldValue),
 });
 
 const singleSelectFieldValue = z.object({
@@ -54,7 +54,7 @@ const singleSelectFieldValue = z.object({
 
 const settingsFieldValue = z.discriminatedUnion('type', [checkboxGroupFieldValue, singleSelectFieldValue]);
 
-export const agentSettings = z.record(settingsFieldValue);
+export const agentSettings = z.record(z.string(), settingsFieldValue);
 export type AgentSettings = z.infer<typeof agentSettings>;
 
 const agentRunSettingsSchema = z.object({

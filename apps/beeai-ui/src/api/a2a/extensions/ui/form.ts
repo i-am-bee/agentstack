@@ -13,7 +13,7 @@ const baseField = z.object({
   id: z.string().nonempty(),
   label: z.string().nonempty(),
   required: z.boolean(),
-  col_span: z.number().int().min(1).max(4).nullish(),
+  col_span: z.int().min(1).max(4).nullish(),
 });
 
 const textField = baseField.extend({
@@ -92,7 +92,7 @@ const renderSchema = z.object({
   id: z.string().nonempty(),
   title: z.string().nullish(),
   description: z.string().nullish(),
-  columns: z.number().int().min(1).max(4).nullish(),
+  columns: z.int().min(1).max(4).nullish(),
   submit_label: z.string().nullish(),
   fields: z.array(fieldSchema).nonempty(),
 });
@@ -100,6 +100,7 @@ const renderSchema = z.object({
 const responseSchema = z.object({
   id: z.string().nonempty(),
   values: z.record(
+    z.string(),
     z.discriminatedUnion('type', [
       textFieldValue,
       dateFieldValue,
