@@ -59,6 +59,6 @@ if get_configuration().features.provider_builds:
     async def delete(
         _: Annotated[AuthorizedUser, Depends(RequiresPermissions(provider_builds={"write"}))],
         id: UUID,
-        provider_service: ProviderBuildServiceDependency,
+        provider_build_service: ProviderBuildServiceDependency,
     ) -> None:
-        await provider_service.delete_build(provider_build_id=id)
+        await provider_build_service.delete_build(provider_build_id=id)
