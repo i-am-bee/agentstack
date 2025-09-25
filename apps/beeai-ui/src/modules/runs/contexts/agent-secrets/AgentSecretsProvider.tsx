@@ -19,7 +19,13 @@ interface Props {
   agentClient?: AgentA2AClient;
 }
 
-const secretsSchema = z.record(z.string(), z.record(z.string(), z.string()));
+const secretsSchema = z.record(
+  z.string(),
+  z.object({
+    secrets: z.record(z.string(), z.string()),
+    modalSeen: z.boolean().optional(),
+  }),
+);
 type Secrets = z.infer<typeof secretsSchema>;
 
 const secretsLocalStorageOptions = {
@@ -38,7 +44,11 @@ export function AgentSecretsProvider({ agent, agentClient, children }: PropsWith
   const [agentSecrets, setAgentSecrets] = useLocalStorage<Secrets>('agent-secrets', {}, secretsLocalStorageOptions);
 
   const parsedAgentSecrets = useMemo(() => {
-    return agentSecrets[agent.provider.id] ?? {};
+    return agentSecrets[agent.provider.id]?.secrets ?? {};
+  }, [agentSecrets, agent.provider.id]);
+
+  const hasSeenModal = useMemo(() => {
+    return agentSecrets[agent.provider.id]?.modalSeen ?? false;
   }, [agentSecrets, agent.provider.id]);
 
   const secretDemands = useMemo(() => {
@@ -47,14 +57,32 @@ export function AgentSecretsProvider({ agent, agentClient, children }: PropsWith
 
   const updateSecret = useCallback(
     (key: string, value: string) => {
-      setAgentSecrets((prev) => ({ ...prev, [agent.provider.id]: { ...prev[agent.provider.id], [key]: value } }));
+      setAgentSecrets((prev) => {
+        const prevAgentValue = prev[agent.provider.id];
+        return {
+          ...prev,
+          [agent.provider.id]: {
+            ...prevAgentValue,
+            secrets: { ...prevAgentValue?.secrets, [key]: value },
+          },
+        };
+      });
     },
     [agent.provider.id, setAgentSecrets],
   );
 
   const storeSecrets = useCallback(
     (secrets: Record<string, string>) => {
-      setAgentSecrets((prev) => ({ ...prev, [agent.provider.id]: { ...prev[agent.provider.id], ...secrets } }));
+      setAgentSecrets((prev) => {
+        const prevAgentValue = prev[agent.provider.id];
+        return {
+          ...prev,
+          [agent.provider.id]: {
+            ...prevAgentValue,
+            secrets: { ...prevAgentValue?.secrets, ...secrets },
+          },
+        };
+      });
     },
     [agent.provider.id, setAgentSecrets],
   );
@@ -62,14 +90,24 @@ export function AgentSecretsProvider({ agent, agentClient, children }: PropsWith
   const revokeSecret = useCallback(
     (key: string) => {
       setAgentSecrets((prev) => {
-        const providerSettings = { ...prev[agent.provider.id] };
-        delete providerSettings[key];
+        const providerSecrets = { ...prev[agent.provider.id] };
+        delete providerSecrets[key];
 
-        return { ...prev, [agent.provider.id]: providerSettings };
+        return { ...prev, [agent.provider.id]: providerSecrets };
       });
     },
     [agent.provider.id, setAgentSecrets],
   );
+
+  const markModalAsSeen = useCallback(() => {
+    setAgentSecrets((prev) => ({
+      ...prev,
+      [agent.provider.id]: {
+        secrets: prev[agent.provider.id]?.secrets ?? {},
+        modalSeen: true,
+      },
+    }));
+  }, [agent.provider.id, setAgentSecrets]);
 
   const secrets = useMemo(() => {
     if (secretDemands === null) {
@@ -105,12 +143,14 @@ export function AgentSecretsProvider({ agent, agentClient, children }: PropsWith
   const contextValue = useMemo(
     () => ({
       secrets,
+      hasSeenModal,
+      markModalAsSeen,
       getRequestSecrets,
       updateSecret,
       revokeSecret,
       storeSecrets,
     }),
-    [secrets, getRequestSecrets, updateSecret, revokeSecret, storeSecrets],
+    [secrets, hasSeenModal, markModalAsSeen, getRequestSecrets, updateSecret, revokeSecret, storeSecrets],
   );
 
   return <AgentSecretsContext.Provider value={contextValue}>{children}</AgentSecretsContext.Provider>;

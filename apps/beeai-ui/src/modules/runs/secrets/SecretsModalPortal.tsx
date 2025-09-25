@@ -10,23 +10,21 @@ import { useAgentSecrets } from '../contexts/agent-secrets';
 import { SecretsModal } from './SecretsModal';
 
 export function SecretsModalPortal() {
-  const { secrets } = useAgentSecrets();
+  const { secrets, hasSeenModal, markModalAsSeen } = useAgentSecrets();
   const [isOpen, setIsOpen] = useState(false);
-  // TODO: Do we want save the state in localStorage to avoid showing it again on subsequent visits?
-  const [wasVisited, setWasVisited] = useState(false);
 
   useEffect(() => {
-    if (wasVisited) {
+    if (hasSeenModal) {
       return;
     }
 
     const unresolvedSecrets = secrets.filter((s) => !s.isReady);
 
     if (unresolvedSecrets.length > 0) {
-      setWasVisited(true);
+      markModalAsSeen();
       setIsOpen(true);
     }
-  }, [secrets, wasVisited]);
+  }, [hasSeenModal, markModalAsSeen, secrets]);
 
   if (!isOpen || typeof document === 'undefined') {
     return null;

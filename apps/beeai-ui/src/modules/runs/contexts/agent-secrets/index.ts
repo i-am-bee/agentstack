@@ -8,11 +8,5 @@ import { use } from 'react';
 import { AgentSecretsContext } from './agent-secrets-context';
 
 export function useAgentSecrets() {
-  const context = use(AgentSecretsContext);
-
-  if (!context) {
-    throw new Error('useAgentSecrets must be used within a AgentSecretsProvider');
-  }
-
-  return context;
+  return use(AgentSecretsContext);
 }

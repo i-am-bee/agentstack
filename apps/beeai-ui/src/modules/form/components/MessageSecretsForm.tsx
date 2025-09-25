@@ -58,7 +58,7 @@ export function MessageSecretsForm({ message }: Props) {
           return (
             <div key={key} className={classes.demand}>
               <p>{description}</p>
-              <PasswordInput id={`${id}:${key}`} labelText={name} {...register(key, { required: true })} />
+              <PasswordInput id={`${id}:${key}`} labelText={name} {...register(key, { required: true })} autoFocus />
             </div>
           );
         })}
