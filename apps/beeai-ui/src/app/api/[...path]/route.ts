@@ -3,15 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { redirect } from 'next/navigation';
 import type { NextRequest } from 'next/server';
 
 import { ensureToken } from '#app/(auth)/rsc.tsx';
 import { API_URL, OIDC_ENABLED } from '#utils/constants.ts';
+import { routes } from '#utils/router.ts';
 
 import { transformAgentManifestBody } from './body-transformers';
 import { isApiAgentManifestUrl, isUrlTrailingSlashNeeded } from './utils';
-import { redirect } from 'next/navigation';
-import { routes } from '#utils/router.ts';
 
 type RouteContext = {
   params: Promise<{

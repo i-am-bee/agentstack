@@ -6,11 +6,11 @@
 import type { Middleware } from 'openapi-fetch';
 import createClient from 'openapi-fetch';
 
+import { ensureToken } from '#app/(auth)/rsc.tsx';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 import { OIDC_ENABLED } from '#utils/constants.ts';
 
 import type { paths } from './schema';
-import { ensureToken } from '#app/(auth)/rsc.tsx';
 
 const authMiddleware: Middleware = {
   async onRequest({ request }) {

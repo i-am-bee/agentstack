@@ -3,12 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 'use server';
+import { cookies } from 'next/headers';
 import { getToken } from 'next-auth/jwt';
 
 import { OIDC_ENABLED } from '#utils/constants.ts';
 
 import { auth, AUTH_COOKIE_NAME } from './auth';
-import { cookies } from 'next/headers';
 
 export const ensureToken = async (request: Request) => {
   if (!OIDC_ENABLED) {
