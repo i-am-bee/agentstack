@@ -10,7 +10,7 @@ dependencies = [
     "beeai-framework[duckduckgo,wikipedia,beeai-platform]>=0.1.49",
     "openai>=1.107.1",
     "beeai-sdk",
-    "openinference-instrumentation-beeai>=0.1.10",
+    "openinference-instrumentation-beeai>=0.1.11",
     "pydantic-settings>=2.9.0",
     "uvicorn>=0.35.0",
 ]

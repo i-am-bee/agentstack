@@ -229,7 +229,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.49" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.46" },
     { name = "pyright", specifier = ">=1.1.403" },
     { name = "pytest", specifier = ">=8.4.1" },
     { name = "pytest-asyncio", specifier = ">=1.1.0" },
@@ -386,7 +386,7 @@ requires-dist = [
     { name = "beeai-framework", extras = ["duckduckgo", "wikipedia", "beeai-platform"], specifier = ">=0.1.49" },
     { name = "beeai-sdk", editable = "../../apps/beeai-sdk" },
     { name = "openai", specifier = ">=1.107.1" },
-    { name = "openinference-instrumentation-beeai", specifier = ">=0.1.10" },
+    { name = "openinference-instrumentation-beeai", specifier = ">=0.1.11" },
     { name = "pydantic-settings", specifier = ">=2.9.0" },
     { name = "uvicorn", specifier = ">=0.35.0" },
 ]
@@ -1096,7 +1096,7 @@ wheels = [
 
 [[package]]
 name = "openinference-instrumentation-beeai"
-version = "0.1.10"
+version = "0.1.11"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beeai-framework" },
@@ -1107,9 +1107,9 @@ dependencies = [
     { name = "opentelemetry-semantic-conventions" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e1/0a/08868bd5fcb8465d684e02456c47cce51bfb0c383a8187c10316a082631f/openinference_instrumentation_beeai-0.1.10.tar.gz", hash = "sha256:5ee6695cdd22429bd82241f0b6c3dcc7d9703fc425d8e2134a2ef3c5c5762faa", size = 11486, upload-time = "2025-08-30T07:13:35.819Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/33/40/5053eec966721ffe9183c049db4af244bb2084ff03b271ce963aed73465c/openinference_instrumentation_beeai-0.1.11.tar.gz", hash = "sha256:01734d468d5d6b56b4010e4190a795670f72a8f047056c45247c71513444c855", size = 11488, upload-time = "2025-09-25T03:23:55.603Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6a/aa/6bbf982cdc3806e39b7b72a22f2dc90c9788309fcaa38847d23a826f2132/openinference_instrumentation_beeai-0.1.10-py3-none-any.whl", hash = "sha256:de9a0dce025fe4aa368203bf67082958eb8553a736f44fd5ee367b296e6b7bdc", size = 20809, upload-time = "2025-08-30T07:13:34.798Z" },
+    { url = "https://files.pythonhosted.org/packages/45/2f/51032a0f41a0eb9836ded296da06feaf4373c49414eb339fbfd8037a0f12/openinference_instrumentation_beeai-0.1.11-py3-none-any.whl", hash = "sha256:8ae0c1c8f779a621999d0eefe5ed04bf4f46fc8a1cbf71f19dfaf5246140ae9a", size = 20814, upload-time = "2025-09-25T03:23:54.37Z" },
 ]
 
 [[package]]
