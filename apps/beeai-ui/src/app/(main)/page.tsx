@@ -19,15 +19,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function LandingPage() {
   let firstAgentProviderId;
-  let session;
-  // only force login if oidc is enabled.
-  if (OIDC_ENABLED) {
-    session = await auth();
-    if (!session?.user) {
-      await connection();
-      redirect(routes.signIn());
-    }
-  }
+
   try {
     const response = await listProviders();
 

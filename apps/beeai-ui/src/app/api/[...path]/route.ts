@@ -31,6 +31,7 @@ async function handler(request: NextRequest, context: RouteContext) {
 
   if (OIDC_ENABLED) {
     const session = await ensureSession();
+
     if (session?.access_token) {
       headers.set('Authorization', `Bearer ${session.access_token}`);
     }
