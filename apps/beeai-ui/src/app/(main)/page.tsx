@@ -4,14 +4,11 @@
  */
 
 import { redirect } from 'next/navigation';
-import { connection } from 'next/server';
 
-import { auth } from '#app/(auth)/auth.ts';
 import EntityNotFound from '#components/EntityNotFound/EntityNotFound.tsx';
 import { ErrorPage } from '#components/ErrorPage/ErrorPage.tsx';
 import { buildAgent, isAgentUiSupported, sortAgentsByName } from '#modules/agents/utils.ts';
 import { listProviders } from '#modules/providers/api/index.ts';
-import { OIDC_ENABLED } from '#utils/constants.ts';
 import { routes } from '#utils/router.ts';
 
 // Prevent static render, the API is not available at build time
