@@ -19,8 +19,8 @@ export function AgentSecrets() {
     <div className={classes.root}>
       {secrets.length ? (
         <ul className={classes.list}>
-          {secrets.map((secret, idx) => (
-            <li key={idx}>
+          {secrets.map((secret) => (
+            <li key={secret.key}>
               <div className={classes.title}>{secret.name}</div>
               <p>{secret.description}</p>
 

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { useCallback } from 'react';
 
 import { useModal } from '#contexts/Modal/index.tsx';
@@ -22,7 +27,7 @@ export function SecretCard({ secret, onCloseAddModal, onOpenAddModal, updateSecr
 
     openModal(({ onRequestClose, ...props }) => (
       <SecretsAddModal
-        secret={secret} // TODO: pass the actual secret here
+        secret={secret}
         {...props}
         updateSecret={updateSecret}
         className={classes.addModal}

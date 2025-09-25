@@ -17,6 +17,7 @@ interface Props {
 export function ChatUserMessage({ message }: Props) {
   const { runtimeFullfilledDemands } = message;
 
+  // TODO: show some visual feedback?
   if (runtimeFullfilledDemands) {
     return null;
   }

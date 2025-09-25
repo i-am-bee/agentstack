@@ -58,17 +58,18 @@ export function MessageSecretsForm({ message }: Props) {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <fieldset disabled={!isLastMessage} className={classes.root}>
-        {Object.entries(secretPart.secret.secret_demands).map(([demand, { name, description }], idx) => {
-          const key = `${name}${idx}`;
+        {Object.entries(secretPart.secret.secret_demands).map(([key, { name, description }]) => {
           return (
             <div key={key} className={classes.demand}>
               <p>{description}</p>
-              <PasswordInput id={`${id}:${key}`} labelText={name} {...register(demand, { required: true })} />
+              <PasswordInput id={`${id}:${key}`} labelText={name} {...register(key, { required: true })} />
             </div>
           );
         })}
 
-        <Button size="md">Submit</Button>
+        <Button size="md" type="submit">
+          Submit
+        </Button>
       </fieldset>
     </form>
   );
