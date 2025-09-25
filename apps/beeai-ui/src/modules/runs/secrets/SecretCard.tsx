@@ -1,9 +1,3 @@
-/**
- * Copyright 2025 © BeeAI a Series of LF Projects, LLC
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import { Tools } from '@carbon/icons-react';
 import { useCallback } from 'react';
 
 import { useModal } from '#contexts/Modal/index.tsx';
@@ -31,6 +25,7 @@ export function SecretCard({ secret, onCloseAddModal, onOpenAddModal, updateSecr
         secret={secret} // TODO: pass the actual secret here
         {...props}
         updateSecret={updateSecret}
+        className={classes.addModal}
         onRequestClose={(force) => {
           onCloseAddModal?.();
 
@@ -40,18 +35,13 @@ export function SecretCard({ secret, onCloseAddModal, onOpenAddModal, updateSecr
     ));
   }, [onOpenAddModal, openModal, secret, updateSecret, onCloseAddModal]);
 
+  const { name, description } = secret;
+
   return (
     <article className={classes.root}>
-      <span className={classes.icon}>
-        <Tools size={32} />
-      </span>
+      <h3 className={classes.heading}>{name}</h3>
 
-      <h3 className={classes.heading}>Outlook</h3>
-
-      <p className={classes.description}>
-        Advanced reasoning and analysis to provide thoughtful, well-structured responses to complex questions and
-        topics, lorem ipsum dolor sit amet...
-      </p>
+      <p className={classes.description}>{description}</p>
 
       <div className={classes.tag}>
         <SecretTag secret={secret} onClick={() => openAddModal()} />

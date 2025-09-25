@@ -6,39 +6,19 @@
 import { useMemo } from 'react';
 
 import { Container } from '#components/layouts/Container.tsx';
-// import { useModal } from '#contexts/Modal/index.tsx';
 import { AgentGreeting } from '#modules/agents/components/AgentGreeting.tsx';
 import { getAgentPromptExamples } from '#modules/agents/utils.ts';
 
 import { FileUpload } from '../../files/components/FileUpload';
 import { useAgentRun } from '../contexts/agent-run';
-// import { useAgentSecrets } from '../contexts/agent-secrets';
-// import { SecretsModal } from '../secrets/SecretsModal';
+import { SecretsModalPortal } from '../secrets/SecretsModalPortal';
 import { RunInput } from './RunInput';
 import classes from './RunLandingView.module.scss';
 
 export function RunLandingView() {
   const { agent } = useAgentRun();
-  // const { requestedSecrets, updateSecret, revokeSecret } = useAgentSecrets();
 
   const promptExamples = useMemo(() => getAgentPromptExamples(agent), [agent]);
-
-  // const { openModal } = useModal();
-
-  // useEffect(() => {
-  //   const unresolvedSecrets = Object.values(requestedSecrets).filter((s) => !s.isReady);
-
-  //   if (unresolvedSecrets.length > 0) {
-  //     openModal((props) => (
-  //       <SecretsModal
-  //         {...props}
-  //         requestedSecrets={requestedSecrets}
-  //         updateSecret={updateSecret}
-  //         revokeSecret={revokeSecret}
-  //       />
-  //     ));
-  //   }
-  // }, [openModal, requestedSecrets, revokeSecret, updateSecret]);
 
   return (
     <FileUpload>
@@ -47,6 +27,7 @@ export function RunLandingView() {
 
         <RunInput promptExamples={promptExamples} />
       </Container>
+      <SecretsModalPortal />
     </FileUpload>
   );
 }

@@ -10,36 +10,16 @@ import { useCallback, useState } from 'react';
 import { Modal } from '#components/Modal/Modal.tsx';
 import type { ModalProps } from '#contexts/Modal/modal-context.ts';
 
-import type { AgentSecret } from '../contexts/agent-secrets/types';
+import { useAgentSecrets } from '../contexts/agent-secrets';
 import { SecretCardsList } from './SecretCardsList';
 import classes from './SecretsModal.module.scss';
 
-interface ApiKeyModalProps extends ModalProps {
-  secrets: AgentSecret[];
-  updateSecret: (key: string, value: string) => void;
-  revokeSecret: (key: string) => void;
-}
-
-export function SecretsModal({ secrets, updateSecret, onRequestClose, ...modalProps }: ApiKeyModalProps) {
+export function SecretsModal({ onRequestClose, ...modalProps }: ModalProps) {
   const [step, setStep] = useState(Step.Landing);
 
-  // const { openModal } = useModal();
+  const { secrets, updateSecret } = useAgentSecrets();
 
   const isLanding = step === Step.Landing;
-
-  // const closeAddModal = useCallback(() => {
-  //   setStep(Step.Landing);
-
-  //   console.log('close');
-  // }, []);
-
-  // useEffect(() => {
-  //   openAddModal();
-
-  //   return () => {
-  //     closeAddModal();
-  //   };
-  // }, [openAddModal, closeAddModal]);
 
   const handleOpendAddModal = useCallback(() => {
     setStep(Step.Add);
@@ -52,13 +32,13 @@ export function SecretsModal({ secrets, updateSecret, onRequestClose, ...modalPr
     <Modal
       {...modalProps}
       size="lg"
-      className={clsx(classes.root, { [classes.isHidden]: !isLanding })}
+      rootClassName={clsx(classes.root, { [classes.isHidden]: !isLanding })}
       preventCloseOnClickOutside
     >
       <ModalHeader>
         <p className={classes.description}>
-          This agent uses the following tools, would you like to add your API keys? This can also be done later during
-          runtime if you choose to skip for now.
+          This agent uses the following API keys. You can configure it now to get a full capability use or later at
+          runtime
         </p>
       </ModalHeader>
 
@@ -76,7 +56,9 @@ export function SecretsModal({ secrets, updateSecret, onRequestClose, ...modalPr
           Skip for now
         </Button>
 
-        <Button disabled>Continue</Button>
+        <Button disabled={secrets.some(({ isReady }) => !isReady)} onClick={() => onRequestClose()}>
+          Continue
+        </Button>
       </ModalFooter>
     </Modal>
   );

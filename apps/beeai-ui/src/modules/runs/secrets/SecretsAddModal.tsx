@@ -4,6 +4,7 @@
  */
 
 import { ModalBody, ModalHeader } from '@carbon/react';
+import clsx from 'clsx';
 
 import { Modal } from '#components/Modal/Modal.tsx';
 import type { ModalProps } from '#contexts/Modal/modal-context.ts';
@@ -14,14 +15,15 @@ import classes from './SecretsAddModal.module.scss';
 
 interface Props extends ModalProps {
   secret: AgentSecret;
+  className?: string;
   updateSecret: (key: string, value: string) => void;
 }
 
-export function SecretsAddModal({ secret, updateSecret, ...modalProps }: Props) {
+export function SecretsAddModal({ secret, className, updateSecret, ...modalProps }: Props) {
   const { name, description } = secret;
 
   return (
-    <Modal {...modalProps} className={classes.root}>
+    <Modal {...modalProps} className={clsx(classes.root, className)} size="sm">
       <ModalHeader>
         <h2>
           <span>{name}</span>
