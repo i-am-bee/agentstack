@@ -3,16 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { NoItemsMessage } from '#components/NoItemsMessage/NoItemsMessage.tsx';
 import { useModal } from '#contexts/Modal/index.tsx';
 import { useAgentSecrets } from '#modules/runs/contexts/agent-secrets/index.ts';
-import { SecretsAddModal } from '#modules/runs/secrets/SecretsAddModal.tsx';
-import { SecretTag } from '#modules/runs/secrets/SecretTag.tsx';
+import { SecretCard } from '#modules/runs/secrets/SecretCard.tsx';
 
 import classes from './AgentSecrets.module.scss';
 
 export function AgentSecrets() {
-  const { openModal } = useModal();
-
   const { secrets, updateSecret } = useAgentSecrets();
 
   return (
@@ -21,21 +19,12 @@ export function AgentSecrets() {
         <ul className={classes.list}>
           {secrets.map((secret) => (
             <li key={secret.key}>
-              <div className={classes.title}>{secret.name}</div>
-              <p>{secret.description}</p>
-
-              <SecretTag
-                secret={secret}
-                size="md"
-                onClick={() =>
-                  openModal((props) => <SecretsAddModal {...props} secret={secret} updateSecret={updateSecret} />)
-                }
-              />
+              <SecretCard secret={secret} updateSecret={updateSecret} variant="inline" />
             </li>
           ))}
         </ul>
       ) : (
-        <p className={classes.empty}>This agent does not have any secrets</p>
+        <NoItemsMessage message="This agent does not have any secrets" />
       )}
     </div>
   );

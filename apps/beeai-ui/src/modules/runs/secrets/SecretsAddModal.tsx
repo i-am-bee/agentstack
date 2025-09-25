@@ -23,7 +23,12 @@ export function SecretsAddModal({ secret, className, updateSecret, ...modalProps
   const { name, description } = secret;
 
   return (
-    <Modal {...modalProps} className={clsx(classes.root, className)} size="sm">
+    <Modal
+      {...modalProps}
+      className={clsx(classes.root, className)}
+      size="sm"
+      selectorPrimaryFocus="[data-modal-initial-focus]"
+    >
       <ModalHeader>
         <h2>
           <span>{name}</span>

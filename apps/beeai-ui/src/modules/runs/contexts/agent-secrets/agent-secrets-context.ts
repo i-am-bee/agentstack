@@ -14,7 +14,6 @@ export const AgentSecretsContext = createContext<AgentSecretsContextValue>({
   markModalAsSeen: noop,
   getRequestSecrets: () => ({}),
   updateSecret: noop,
-  revokeSecret: noop,
   storeSecrets: noop,
 });
 
@@ -24,6 +23,5 @@ interface AgentSecretsContextValue {
   markModalAsSeen: () => void;
   getRequestSecrets: () => AgentRequestSecrets;
   updateSecret: (key: string, value: string) => void;
-  revokeSecret: (key: string) => void;
   storeSecrets: (secrets: Record<string, string>) => void;
 }

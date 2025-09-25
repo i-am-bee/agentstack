@@ -19,6 +19,8 @@ interface Props {
   agentClient?: AgentA2AClient;
 }
 
+const STORAGE_KEY = '@i-am-bee/beeai/AGENT-SECRETS';
+
 const secretsSchema = z.record(
   z.string(),
   z.object({
@@ -41,7 +43,7 @@ const secretsLocalStorageOptions = {
 };
 
 export function AgentSecretsProvider({ agent, agentClient, children }: PropsWithChildren<Props>) {
-  const [agentSecrets, setAgentSecrets] = useLocalStorage<Secrets>('agent-secrets', {}, secretsLocalStorageOptions);
+  const [agentSecrets, setAgentSecrets] = useLocalStorage<Secrets>(STORAGE_KEY, {}, secretsLocalStorageOptions);
 
   const parsedAgentSecrets = useMemo(() => {
     return agentSecrets[agent.provider.id]?.secrets ?? {};
@@ -82,18 +84,6 @@ export function AgentSecretsProvider({ agent, agentClient, children }: PropsWith
             secrets: { ...prevAgentValue?.secrets, ...secrets },
           },
         };
-      });
-    },
-    [agent.provider.id, setAgentSecrets],
-  );
-
-  const revokeSecret = useCallback(
-    (key: string) => {
-      setAgentSecrets((prev) => {
-        const providerSecrets = { ...prev[agent.provider.id] };
-        delete providerSecrets[key];
-
-        return { ...prev, [agent.provider.id]: providerSecrets };
       });
     },
     [agent.provider.id, setAgentSecrets],
@@ -147,10 +137,9 @@ export function AgentSecretsProvider({ agent, agentClient, children }: PropsWith
       markModalAsSeen,
       getRequestSecrets,
       updateSecret,
-      revokeSecret,
       storeSecrets,
     }),
-    [secrets, hasSeenModal, markModalAsSeen, getRequestSecrets, updateSecret, revokeSecret, storeSecrets],
+    [secrets, hasSeenModal, markModalAsSeen, getRequestSecrets, updateSecret, storeSecrets],
   );
 
   return <AgentSecretsContext.Provider value={contextValue}>{children}</AgentSecretsContext.Provider>;

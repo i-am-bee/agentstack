@@ -43,7 +43,7 @@ export function EditSecretForm({ secret, updateSecret, onSuccess }: Props) {
           id={`${id}:api-key`}
           size="lg"
           labelText="API Key"
-          autoFocus
+          data-modal-initial-focus
           showPasswordLabel="Show API Key"
           hidePasswordLabel="Hide API Key"
           {...register('value', { required: true })}
@@ -55,11 +55,6 @@ export function EditSecretForm({ secret, updateSecret, onSuccess }: Props) {
       </Button>
     </form>
   );
-}
-
-export enum EditSecretFormVariant {
-  Modal = 'modal',
-  Inline = 'inline',
 }
 
 interface FormValues {

@@ -12,10 +12,3 @@
   flex-direction: column;
   gap: $spacing-03;
 }
-
-.empty {
-  font-size: rem(14px);
-  line-height: math.div(20, 14);
-  letter-spacing: $letter-spacing;
-  color: $text-placeholder;
-}

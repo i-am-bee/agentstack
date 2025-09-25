@@ -4,7 +4,7 @@
  */
 
 import { Button, PasswordInput } from '@carbon/react';
-import { useId } from 'react';
+import { useId, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { useMessages } from '#modules/messages/contexts/Messages/index.ts';
@@ -29,6 +29,11 @@ export function MessageSecretsForm({ message }: Props) {
 
   const { register, handleSubmit } = useForm({ mode: 'onChange' });
 
+  const secretDemandsEntries = useMemo(
+    () => (secretPart ? Object.entries(secretPart.secret.secret_demands) : []),
+    [secretPart],
+  );
+
   if (!secretPart) {
     return null;
   }
@@ -36,16 +41,13 @@ export function MessageSecretsForm({ message }: Props) {
   const onSubmit = async (values: FormValues) => {
     storeSecrets(values);
 
-    const secretsFulfillment = Object.entries(secretPart.secret.secret_demands).reduce<AgentRequestSecrets>(
-      (acc, [key, demand]) => {
-        const value = values[key];
-        if (value) {
-          acc[key] = { ...demand, isReady: true, value };
-        }
-        return acc;
-      },
-      {},
-    );
+    const secretsFulfillment = secretDemandsEntries.reduce<AgentRequestSecrets>((acc, [key, demand]) => {
+      const value = values[key];
+      if (value) {
+        acc[key] = { ...demand, isReady: true, value };
+      }
+      return acc;
+    }, {});
     submitSecrets(secretsFulfillment, secretPart.taskId);
   };
 
@@ -54,11 +56,16 @@ export function MessageSecretsForm({ message }: Props) {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <fieldset disabled={!isLastMessage} className={classes.root}>
-        {Object.entries(secretPart.secret.secret_demands).map(([key, { name, description }]) => {
+        {secretDemandsEntries.map(([key, { name, description }], idx) => {
           return (
             <div key={key} className={classes.demand}>
               <p>{description}</p>
-              <PasswordInput id={`${id}:${key}`} labelText={name} {...register(key, { required: true })} autoFocus />
+              <PasswordInput
+                id={`${id}:${key}`}
+                labelText={name}
+                {...register(key, { required: true })}
+                autoFocus={idx === 0}
+              />
             </div>
           );
         })}
