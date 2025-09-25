@@ -104,6 +104,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return token;
       }
     },
+    async session({ session, token }) {
+      if (token?.access_token) {
+        session.access_token = token.access_token;
+      }
+      return session;
+    },
   },
 });
 
@@ -113,7 +119,6 @@ declare module 'next-auth' {
    */
   interface Session {
     access_token?: string;
-    refresh_token?: string;
   }
 }
 
