@@ -70,9 +70,11 @@ export function MessageSecretsForm({ message }: Props) {
           );
         })}
 
-        <Button size="md" type="submit">
-          Submit
-        </Button>
+        {isLastMessage && (
+          <Button size="md" type="submit">
+            Submit
+          </Button>
+        )}
       </fieldset>
     </form>
   );
