@@ -4,13 +4,13 @@
  */
 
 import { redirect } from 'next/navigation';
+import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
 import { OIDC_ENABLED } from '#utils/constants.ts';
 import { routes } from '#utils/router.ts';
 
 import { auth, AUTH_COOKIE_NAME } from './auth';
-import { NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 
 export const ensureToken = async (request: NextRequest) => {
   if (!OIDC_ENABLED) {
