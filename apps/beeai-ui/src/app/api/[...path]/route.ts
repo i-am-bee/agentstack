@@ -10,6 +10,8 @@ import { API_URL, OIDC_ENABLED } from '#utils/constants.ts';
 
 import { transformAgentManifestBody } from './body-transformers';
 import { isApiAgentManifestUrl, isUrlTrailingSlashNeeded } from './utils';
+import { redirect } from 'next/navigation';
+import { routes } from '#utils/router.ts';
 
 type RouteContext = {
   params: Promise<{
@@ -31,6 +33,10 @@ async function handler(request: NextRequest, context: RouteContext) {
 
   if (OIDC_ENABLED) {
     const token = await ensureToken(request);
+
+    if (!token) {
+      redirect(routes.signIn());
+    }
 
     if (token?.access_token) {
       headers.set('Authorization', `Bearer ${token.access_token}`);

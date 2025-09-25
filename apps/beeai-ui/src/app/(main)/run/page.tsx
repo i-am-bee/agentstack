@@ -9,6 +9,7 @@ import type { Agent } from '#modules/agents/api/types.ts';
 import { buildAgent } from '#modules/agents/utils.ts';
 import { listProviders } from '#modules/providers/api/index.ts';
 import { RunView } from '#modules/runs/components/RunView.tsx';
+import { ensureToken } from '#app/(auth)/rsc.tsx';
 
 interface Props {
   searchParams: Promise<{ p: string }>;
