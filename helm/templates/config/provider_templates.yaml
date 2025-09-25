@@ -104,7 +104,7 @@ data:
               image: ghcr.io/i-am-bee/alpine/git:v2.49.1
               command: [ "/bin/sh" ]
               env:
-                - name: GIT_HOST_TOKEN
+                - name: GIT_TOKEN
                   valueFrom:
                     secretKeyRef:
                       name: beeai-platform-secret
@@ -115,14 +115,14 @@ data:
                 - |
                   echo "Cloning repository..."
                   # Check if GitHub token is available for this host
-                  if [ -n "$GIT_HOST_TOKEN" ]; then
+                  if [ -n "$GIT_TOKEN" ]; then
                     echo "Using authenticated clone for {{`{{ git_host }}`}}"
                   else
                     echo "Using unauthenticated clone for {{`{{ git_host }}`}}"
                   fi
                   git clone --depth 1 \
                     --revision {{`{{ git_ref }}`}} \
-                    "https://$GIT_HOST_TOKEN@{{`{{ git_host }}`}}/{{`{{ git_org }}`}}/{{`{{ git_repo }}`}}.git" \
+                    "https://$GIT_TOKEN@{{`{{ git_host }}`}}/{{`{{ git_org }}`}}/{{`{{ git_repo }}`}}.git" \
                     /tmp/repo
                   mv "/tmp/repo/{{`{{ git_path }}`}}"/* /workspace/ 2>/dev/null || true
                   mv "/tmp/repo/{{`{{ git_path }}`}}"/.[^.]* /workspace/ 2>/dev/null || true
@@ -131,7 +131,8 @@ data:
               volumeMounts:
                 - name: workspace
                   mountPath: /workspace
-            # Build image
+            # Build image with BuildKit
+            {{- if eq .Values.providerBuilds.buildBackend "buildkit" }}
             - name: buildkit
               image: ghcr.io/i-am-bee/moby/buildkit:v0.24.0-rootless
               env:
@@ -157,8 +158,6 @@ data:
                 - type=inline
                 - --import-cache
                 - type=registry,ref={{`{{destination}}`}}{{- if .Values.providerBuilds.buildRegistry.insecure }},registry.insecure=true{{- end }}
-              # To push the image to a registry, add
-              # `--output type=image,name=docker.io/username/image,push=true`
               securityContext:
                 # Needs Kubernetes >= 1.19
                 seccompProfile:
@@ -182,6 +181,45 @@ data:
                   mountPath: /docker/config.json
                   subPath: .dockerconfigjson
                   readOnly: true
+            {{- else if eq .Values.providerBuilds.buildBackend "kaniko" }}
+            # Build image with Kaniko (no securityContext required)
+            - name: kaniko-build
+              image: ghcr.io/kaniko-build/dist/chainguard-dev-kaniko/executor:v1.25.2-slim
+              args:
+                - --context=/workspace
+                - --dockerfile=Dockerfile
+                - --no-push
+                - --tar-path=/tmp/image.tar
+              volumeMounts:
+                - name: workspace
+                  mountPath: /workspace
+                - name: image-tar
+                  mountPath: /tmp
+            # Main container: Step 3 Push the intermediary image
+            - name: crane-push
+              image: ghcr.io/i-am-bee/alpine/crane:0.20.6
+              args:
+                - push
+                - /tmp/image.tar
+                - {{`{{ destination }}`}}
+                {{- if .Values.providerBuilds.buildRegistry.insecure }}
+                - --insecure
+                {{- end }}
+              volumeMounts:
+                - name: image-tar
+                  mountPath: /tmp
+                - name: docker-config
+                  mountPath: /root/.docker/config.json
+                  subPath: .dockerconfigjson
+                  readOnly: true
+              resources:
+                requests:
+                  memory: "256Mi"
+                  cpu: "200m"
+                limits:
+                  memory: "512Mi"
+                  cpu: "500m"
+            {{- end }}
             - name: run-agent
               image: "{{`{{ destination }}`}}"
               restartPolicy: Always # This makes it a daemon sidecar container
@@ -247,8 +285,13 @@ data:
           volumes:
             - name: workspace
               emptyDir: { }
+            {{- if eq .Values.providerBuilds.buildBackend "buildkit" }}
             - name: buildkitd
               emptyDir: { }
+            {{- else if eq .Values.providerBuilds.buildBackend "kaniko" }}
+            - name: image-tar
+              emptyDir: { }
+            {{- end }}
             - name: docker-config
               secret:
                 secretName: {{ .Values.providerBuilds.buildRegistry.secretName }}

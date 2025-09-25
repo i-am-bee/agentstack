@@ -1,6 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-
+import asyncio
 import json
 import logging
 
@@ -27,7 +27,12 @@ async def test_remote_agent_build_and_start(
         build = await ProviderBuild.create(location=test_configuration.test_agent_build_repo)
         async for message in build.stream_logs():
             logger.debug(json.dumps(message))
-        build = await build.get()
+
+        for _ in range(10):
+            build = await build.get()
+            if build.status != BuildState.IN_PROGRESS:
+                break
+            await asyncio.sleep(0.5)
 
         assert build.status == BuildState.COMPLETED
     with subtests.test("run example agent"):

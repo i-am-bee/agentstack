@@ -79,6 +79,7 @@ imagePullSecrets: [ ]
 
 providerBuilds:
   enabled: false
+  buildBackend: "kaniko" # Options: "buildkit" or "kaniko"
   buildRegistry:
     registryPrefix: "beeai-platform-registry-svc.default:5001" # This must include a dot
     imageFormat: "{registry_prefix}/{org}/{repo}/{path}:{commit_hash}"

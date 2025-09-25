@@ -68,9 +68,9 @@ class ProviderBuild(pydantic.BaseModel):
 
     async def delete(self: ProviderBuild | str, *, client: PlatformClient | None = None) -> None:
         # `self` has a weird type so that you can call both `instance.delete()` or `ProviderBuild.delete("123")`
-        provider_id = self if isinstance(self, str) else self.id
+        provider_build_id = self if isinstance(self, str) else self.id
         async with client or get_platform_client() as client:
-            _ = (await client.delete(f"/api/v1/provider_builds/{provider_id}")).raise_for_status()
+            _ = (await client.delete(f"/api/v1/provider_builds/{provider_build_id}")).raise_for_status()
 
     @staticmethod
     async def list(

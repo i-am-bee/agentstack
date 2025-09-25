@@ -88,6 +88,7 @@ class KubernetesProviderBuildManager(IProviderBuildManager):
                     git_host_upper=provider_build.source.host.upper(),
                     git_org=provider_build.source.org,
                     git_repo=provider_build.source.repo,
+                    git_path=provider_build.source.path or ".",
                     git_ref=provider_build.source.commit_hash,
                     destination=str(provider_build.destination),
                 ),
