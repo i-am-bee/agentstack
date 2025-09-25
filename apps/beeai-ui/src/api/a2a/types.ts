@@ -5,7 +5,7 @@
 
 import type { UIMessagePart, UIUserMessage } from '#modules/messages/types.ts';
 import type { ContextToken } from '#modules/platform-context/contexts/platform-context.ts';
-import type { AgentRequestedApiKeys } from '#modules/runs/contexts/agent-settings/types.ts';
+import type { AgentRequestSecrets } from '#modules/runs/contexts/agent-secrets/types.ts';
 import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
 
 import type { buildA2AClient } from './client';
@@ -75,7 +75,7 @@ export interface Fulfillments {
   oauth: (demand: OAuthDemand) => Promise<OAuthFulfillment | null>;
   getContextToken: () => ContextToken;
   embedding: (demand: EmbeddingDemand) => Promise<EmbeddingFulfillment>;
-  secrets: (demand: SecretDemands, runtimeFullfilledDemands?: AgentRequestedApiKeys) => Promise<SecretFulfillment>;
+  secrets: (demand: SecretDemands, runtimeFullfilledDemands?: AgentRequestSecrets) => Promise<SecretFulfillment>;
 }
 
 export type AgentA2AClient<UIGenericPart = never> = Awaited<ReturnType<typeof buildA2AClient<UIGenericPart>>>;

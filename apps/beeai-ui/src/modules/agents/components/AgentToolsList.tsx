@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { NoItemsMessage } from '#components/NoItemsMessage/NoItemsMessage.tsx';
+
 import type { Agent } from '../api/types';
 import { AgentTool } from './AgentTool';
 import classes from './AgentToolsList.module.scss';
@@ -25,7 +27,7 @@ export function AgentToolsList({ agent }: Props) {
           ))}
         </ul>
       ) : (
-        <p className={classes.empty}>This agent does not have any tools</p>
+        <NoItemsMessage message="This agent does not have any tools" />
       )}
     </div>
   );

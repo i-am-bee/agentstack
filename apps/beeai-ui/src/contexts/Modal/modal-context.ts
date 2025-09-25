@@ -15,7 +15,7 @@ export interface ModalProps {
   /** Called when modal requests to be closed, you should update isOpen prop there to false */
   onRequestClose: (force?: boolean) => void;
   /** Called when modal finished closing and unmounted from DOM */
-  onAfterClose: () => void;
+  onAfterClose?: () => void;
 }
 
 interface ModalRenderFn {

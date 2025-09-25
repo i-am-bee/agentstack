@@ -9,6 +9,7 @@ import { formExtension } from '#api/a2a/extensions/ui/form.ts';
 import { extractServiceExtensionDemands } from '#api/a2a/extensions/utils.ts';
 import { MainContent } from '#components/layouts/MainContent.tsx';
 import type { Agent } from '#modules/agents/api/types.ts';
+import { AgentDetailPanel } from '#modules/agents/components/AgentDetailPanel.tsx';
 import { SourcesPanel } from '#modules/sources/components/SourcesPanel.tsx';
 
 import { useMessages } from '../../messages/contexts/Messages';
@@ -27,6 +28,7 @@ export function ChatView({ agent }: Props) {
   return (
     <AgentRunProviders agent={agent}>
       <Chat />
+      <AgentDetailPanel />
     </AgentRunProviders>
   );
 }

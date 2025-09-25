@@ -4,7 +4,6 @@
  */
 
 'use client';
-
 import { ArrowUpRight } from '@carbon/icons-react';
 import { SkeletonText, Tab, TabList, TabPanel, TabPanels, Tabs } from '@carbon/react';
 
@@ -18,6 +17,7 @@ import { useProviderIdFromUrl } from '#hooks/useProviderIdFromUrl.ts';
 import { useAgent } from '../api/queries/useAgent';
 import { AgentCredits } from './AgentCredits';
 import classes from './AgentDetailPanel.module.scss';
+import { AgentSecrets } from './AgentSecrets';
 import { AgentTags } from './AgentTags';
 import { AgentToolsList } from './AgentToolsList';
 
@@ -41,8 +41,8 @@ export function AgentDetailPanel() {
         <Tabs>
           <TabList>
             <Tab>Agent details</Tab>
-
             <Tab>Tools</Tab>
+            <Tab>Secrets</Tab>
           </TabList>
 
           <TabPanels>
@@ -72,6 +72,9 @@ export function AgentDetailPanel() {
 
             <TabPanel>
               <AgentToolsList agent={agent} />
+            </TabPanel>
+            <TabPanel>
+              <AgentSecrets />
             </TabPanel>
           </TabPanels>
         </Tabs>

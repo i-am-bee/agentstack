@@ -6,7 +6,6 @@
 import { OverflowMenu, OverflowMenuItem } from '@carbon/react';
 
 import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
-import { ApiKeyTag } from '#modules/runs/api-keys/ApiKeyTag.tsx';
 
 import type { AgentTool } from '../api/types';
 import classes from './AgentTool.module.scss';
@@ -37,10 +36,6 @@ export function AgentTool({ tool }: Props) {
           {description}
         </LineClampText>
       )}
-
-      <div className={classes.tag}>
-        <ApiKeyTag size="md" />
-      </div>
     </div>
   );
 }

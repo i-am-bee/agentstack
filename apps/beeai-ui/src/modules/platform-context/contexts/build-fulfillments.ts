@@ -6,7 +6,7 @@
 import type { EmbeddingDemand } from '#api/a2a/extensions/services/embedding.ts';
 import type { SecretDemands } from '#api/a2a/extensions/services/secrets.ts';
 import type { Fulfillments } from '#api/a2a/types.ts';
-import type { AgentRequestedApiKeys } from '#modules/runs/contexts/agent-settings/types.ts';
+import type { AgentRequestSecrets } from '#modules/runs/contexts/agent-secrets/types.ts';
 import { BASE_URL } from '#utils/constants.ts';
 import type { FeatureFlags } from '#utils/feature-flags.ts';
 
@@ -17,7 +17,7 @@ interface BuildFullfilmentsParams {
   selectedLLMProviders: Record<string, string>;
   selectedEmbeddingProviders: Record<string, string>;
   selectedMCPServers: Record<string, string>;
-  requestedApiKeys: AgentRequestedApiKeys;
+  requestedSecrets: AgentRequestSecrets;
   featureFlags: FeatureFlags;
 }
 
@@ -26,17 +26,17 @@ export const buildFullfilments = ({
   selectedLLMProviders,
   selectedEmbeddingProviders,
   selectedMCPServers,
-  requestedApiKeys,
+  requestedSecrets,
   featureFlags,
 }: BuildFullfilmentsParams): Fulfillments => {
   return {
     getContextToken: () => contextToken,
 
-    secrets: async ({ secret_demands }: SecretDemands, runtimeFullfilledDemands?: AgentRequestedApiKeys) => {
+    secrets: async ({ secret_demands }: SecretDemands, runtimeFullfilledDemands?: AgentRequestSecrets) => {
       const demanded_fullfilments = Object.entries(secret_demands).reduce(
         (memo, [key]) => {
           const getFullfilment = () => {
-            const fullfilment = requestedApiKeys[key];
+            const fullfilment = requestedSecrets[key];
             if (fullfilment.isReady) {
               return fullfilment.value;
             }
