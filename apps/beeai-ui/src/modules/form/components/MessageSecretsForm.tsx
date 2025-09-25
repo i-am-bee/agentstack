@@ -39,14 +39,10 @@ export function MessageSecretsForm({ message }: Props) {
     const secretsFulfillment = Object.entries(secretPart.secret.secret_demands).reduce<AgentRequestSecrets>(
       (acc, [key, demand]) => {
         const value = values[key];
-        if (!value) {
-          return acc;
+        if (value) {
+          acc[key] = { ...demand, isReady: true, value };
         }
-
-        return {
-          ...acc,
-          [key]: { ...demand, isReady: true, value },
-        };
+        return acc;
       },
       {},
     );

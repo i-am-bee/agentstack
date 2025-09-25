@@ -24,7 +24,14 @@ type Secrets = z.infer<typeof secretsSchema>;
 
 const secretsLocalStorageOptions = {
   serializer: (value: Secrets) => JSON.stringify(value),
-  deserializer: (value) => secretsSchema.parse(JSON.parse(value)),
+  deserializer: (value) => {
+    try {
+      return secretsSchema.parse(JSON.parse(value));
+    } catch (error) {
+      console.warn('Failed to parse agent secrets from localStorage', error);
+      return {};
+    }
+  },
 };
 
 export function AgentSecretsProvider({ agent, agentClient, children }: PropsWithChildren<Props>) {

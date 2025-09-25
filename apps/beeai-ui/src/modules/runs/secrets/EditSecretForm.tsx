@@ -31,7 +31,7 @@ export function EditSecretForm({ secret, updateSecret, onSuccess }: Props) {
     },
   });
 
-  const onSubmit = ({ value }) => {
+  const onSubmit = ({ value }: FormValues) => {
     updateSecret(key, value);
     onSuccess?.();
   };
