@@ -17,6 +17,8 @@ let providersConfig: ProviderConfig[] = [];
 
 const providers: Provider[] = [];
 
+export const AUTH_COOKIE_NAME = 'beeai-platform';
+
 if (OIDC_ENABLED) {
   try {
     const providersJson = process.env.OIDC_PROVIDERS;
@@ -69,7 +71,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: OIDC_ENABLED ? process.env.NEXTAUTH_SECRET : 'dummy_secret',
   cookies: {
     sessionToken: {
-      name: 'beeai-platform',
+      name: AUTH_COOKIE_NAME,
       options: {
         httpOnly: true,
         sameSite: 'lax',
@@ -104,23 +106,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return token;
       }
     },
-    async session({ session, token }) {
-      if (token?.access_token) {
-        session.access_token = token.access_token;
-      }
-      return session;
-    },
   },
 });
-
-declare module 'next-auth' {
-  /**
-   * Returned by `auth`, `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
-   */
-  interface Session {
-    access_token?: string;
-  }
-}
 
 declare module 'next-auth/jwt' {
   /** Returned by the `jwt` callback and `auth`, when using JWT sessions */

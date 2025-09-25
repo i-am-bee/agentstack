@@ -8,17 +8,24 @@ import { redirect } from 'next/navigation';
 import { OIDC_ENABLED } from '#utils/constants.ts';
 import { routes } from '#utils/router.ts';
 
-import { auth } from './auth';
+import { auth, AUTH_COOKIE_NAME } from './auth';
+import { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
-export const ensureSession = async () => {
+export const ensureToken = async (request: NextRequest) => {
   if (!OIDC_ENABLED) {
     return null;
   }
 
   const session = await auth();
-
   if (!session) {
     redirect(routes.signIn());
   }
-  return session;
+
+  const token = await getToken({ req: request, cookieName: AUTH_COOKIE_NAME, secret: process.env.NEXTAUTH_SECRET });
+
+  if (!token) {
+    redirect(routes.signIn());
+  }
+  return token;
 };
