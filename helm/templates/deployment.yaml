@@ -165,13 +165,24 @@ spec:
               value: {{ .Values.providerBuilds.buildRegistry.registryPrefix | quote }}
             - name: PROVIDER_BUILD__IMAGE_FORMAT
               value: {{ .Values.providerBuilds.buildRegistry.imageFormat | quote }}
+            {{- if .Values.providerBuilds.externalClusterExecutor.namespace }}
+            - name: PROVIDER_BUILD__K8S_NAMESPACE
+              value: {{ .Values.providerBuilds.externalClusterExecutor.namespace | quote }}
             {{- end }}
-            {{- range $provider := .Values.githubTokens }}
-            - name: GITHUB_REGISTRY__{{ $provider.host | upper }}__TOKEN
+            {{- if .Values.providerBuilds.externalClusterExecutor.kubeconfig }}
+            - name: PROVIDER_BUILD__K8S_KUBECONFIG
               valueFrom:
                 secretKeyRef:
                   name: beeai-platform-secret
-                  key: GITHUB_REGISTRY__{{ $provider.host | upper }}__TOKEN
+                  key: providerBuildExternalClusterKubeconfig
+            {{- end }}
+            {{- end }}
+            {{- if .Values.github.auths }}
+            - name: GITHUB_REGISTRY_CONFIG_JSON
+              valueFrom:
+                secretKeyRef:
+                  name: beeai-platform-secret
+                  key: .githubconfigjson
             {{- end }}
             - name: AGENT_REGISTRY__LOCATIONS__FILE
               value: file:///app/config/registry.yaml

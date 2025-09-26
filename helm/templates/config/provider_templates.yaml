@@ -82,6 +82,15 @@ data:
     data: {{`{{ secret_data }}`}}
 
   {{- if .Values.providerBuilds.enabled }}
+  build-provider-secret.yaml: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: "{{`{{ git_token_secret_name }}`}}"
+      labels:
+        app: "{{`{{ provider_build_label }}`}}"
+    type: Opaque
+    data: {{`{{ secret_data }}`}}
   build-provider-job.yaml: |
     apiVersion: batch/v1
     kind: Job
@@ -93,10 +102,14 @@ data:
     spec:
       backoffLimit: 0
       activeDeadlineSeconds: {{`{{ job_timeout_seconds }}`}}
-      ttlSecondsAfterFinished: 600
+      ttlSecondsAfterFinished: 60
       template:
         spec:
-          {{- include "beeai-platform.imagePullSecrets" . | nindent 10 }}
+          {{- if .Values.providerBuilds.externalClusterExecutor.serviceAccountName }}
+          serviceAccountName: {{ .Values.providerBuilds.externalClusterExecutor.serviceAccountName }}
+          {{- end }}
+          imagePullSecrets:
+            - name: {{.Values.providerBuilds.buildRegistry.secretName | quote}}
           restartPolicy: Never
           shareProcessNamespace: true
           initContainers:
@@ -107,8 +120,8 @@ data:
                 - name: GIT_TOKEN
                   valueFrom:
                     secretKeyRef:
-                      name: beeai-platform-secret
-                      key: {{ printf "GITHUB_REGISTRY__{{ git_host_upper }}__TOKEN" }}
+                      name: {{`{{ git_token_secret_name }}`}}
+                      key: GIT_TOKEN
                       optional: true
               args:
                 - -c
@@ -195,6 +208,16 @@ data:
                   mountPath: /workspace
                 - name: image-tar
                   mountPath: /tmp
+              securityContext:
+                capabilities:
+                  drop:
+                    - ALL
+                  add:
+                    - CAP_CHOWN
+                    - CAP_SETGID
+                    - CAP_SETUID
+                    - CAP_FOWNER
+                    - CAP_DAC_OVERRIDE
             # Main container: Step 3 Push the intermediary image
             - name: crane-push
               image: ghcr.io/i-am-bee/alpine/crane:0.20.6

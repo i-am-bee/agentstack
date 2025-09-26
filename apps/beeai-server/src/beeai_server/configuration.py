@@ -4,11 +4,13 @@
 import base64
 import logging
 from collections import defaultdict
+from contextlib import suppress
 from datetime import timedelta
 from functools import cache
 from pathlib import Path
 from typing import Literal
 
+import yaml
 from pydantic import AnyUrl, BaseModel, Field, Secret, ValidationError, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -163,8 +165,20 @@ class TelemetryConfiguration(BaseModel):
     collector_url: AnyUrl = AnyUrl("http://otel-collector-svc:4318")
 
 
-class GithubConfiguration(BaseModel):
-    token: Secret[str] = Secret("")
+class GithubAppConfiguration(BaseModel):
+    type: Literal["app"] = "app"
+    app_id: int
+    installation_id: int
+    private_key: Secret[str]
+
+
+class GithubPATConfiguration(BaseModel):
+    type: Literal["pat"] = "pat"
+    token: Secret[str]
+
+
+class GithubConfigJson(BaseModel):
+    auths: dict[str, GithubAppConfiguration | GithubPATConfiguration] = Field(default_factory=dict)
 
 
 class DockerConfigJsonAuth(BaseModel, extra="allow"):
@@ -207,6 +221,9 @@ class ProviderBuildConfiguration(BaseModel):
     oci_build_registry_prefix: str | None = None
     image_format: str = "{registry_prefix}/{org}/{repo}/{path}:{commit_hash}"
     job_timeout_sec: int = int(timedelta(minutes=20).total_seconds())
+    manifest_template_dir: Path | None = None
+    k8s_namespace: str | None = None
+    k8s_kubeconfig: Path | str | dict | None = None
 
 
 class Configuration(BaseSettings):
@@ -221,8 +238,9 @@ class Configuration(BaseSettings):
     mcp: McpConfiguration = Field(default_factory=McpConfiguration)
     oci_registry: dict[str, OCIRegistryConfiguration] = Field(default_factory=dict)
     oci_registry_docker_config_json: dict[int, DockerConfigJson] = {}
+    github_registry_config_json: GithubConfigJson = Field(default_factory=GithubConfigJson)
+    github_registry: dict[str, GithubPATConfiguration | GithubAppConfiguration] = Field(default_factory=dict)
     provider_build: ProviderBuildConfiguration = Field(default_factory=ProviderBuildConfiguration)
-    github_registry: dict[str, GithubConfiguration] = Field(default_factory=dict)
     telemetry: TelemetryConfiguration = Field(default_factory=TelemetryConfiguration)
     persistence: PersistenceConfiguration = Field(default_factory=PersistenceConfiguration)
     object_storage: ObjectStorageConfiguration = Field(default_factory=ObjectStorageConfiguration)
@@ -230,7 +248,7 @@ class Configuration(BaseSettings):
     text_extraction: DoclingExtractionConfiguration = Field(default_factory=DoclingExtractionConfiguration)
     context: ContextConfiguration = Field(default_factory=ContextConfiguration)
     k8s_namespace: str | None = None
-    k8s_kubeconfig: Path | None = None
+    k8s_kubeconfig: Path | str | dict | None = None
 
     provider: ManagedProviderConfiguration = Field(default_factory=ManagedProviderConfiguration)
 
@@ -244,17 +262,17 @@ class Configuration(BaseSettings):
         self.oci_registry = oci_registry
         for docker_config_json in self.oci_registry_docker_config_json.values():
             try:
+                aliases = set()
                 for registry, conf in docker_config_json.auths.items():
                     if "://" in registry:
                         url = AnyUrl(registry)
-                        registry_short = f"{url.host}:{url.port}" if url.port else url.host
+                        aliases.add(f"{url.host}:{url.port}" if url.port else url.host)
+                        if url.port == 443 or (url.port == 80 and conf.insecure):
+                            aliases.add(url.host)
                     else:
-                        registry_short = registry.strip("/")
-                    # For some reason dockerhub registry has a weird url
-                    assert registry_short
-                    aliases = [registry_short]
-                    if "index.docker.io" in registry_short:
-                        aliases.append("docker.io")
+                        aliases.add(registry.strip("/"))
+                    if any("index.docker.io" in alias for alias in aliases):
+                        aliases.add("docker.io")
                     for alias in aliases:
                         self.oci_registry[alias].username = conf.username
                         self.oci_registry[alias].password = conf.password
@@ -264,6 +282,33 @@ class Configuration(BaseSettings):
                 logger.error(f"Failed to parse .dockerconfigjson: {e}. Some agent images might not work correctly.")
         if not self.provider_build.oci_build_registry_prefix and len(self.oci_registry):
             self.provider_build.oci_build_registry_prefix = next(iter(self.oci_registry.keys()))
+        return self
+
+    @model_validator(mode="after")
+    def _github_registry_config(self):
+        try:
+            for registry, conf in self.github_registry_config_json.auths.items():
+                self.github_registry[registry] = conf
+        except ValueError as e:
+            logger.error(f"Failed to parse .githubconfigjson: {e}. GitHub access might not work correctly.")
+        return self
+
+    @model_validator(mode="after")
+    def _set_default_provider_build_values(self):
+        self.provider_build.k8s_namespace = self.provider_build.k8s_namespace or self.k8s_namespace
+        self.provider_build.k8s_kubeconfig = self.provider_build.k8s_kubeconfig or self.k8s_kubeconfig
+        self.provider_build.manifest_template_dir = (
+            self.provider_build.manifest_template_dir or self.provider.manifest_template_dir
+        )
+        return self
+
+    @model_validator(mode="after")
+    def _parse_kubeconfig(self):
+        # try load kubeconfig env as dict
+        with suppress(Exception):
+            self.k8s_kubeconfig = yaml.safe_load(str(self.k8s_kubeconfig))
+        with suppress(Exception):
+            self.provider_build.k8s_kubeconfig = yaml.safe_load(str(self.provider_build.k8s_kubeconfig))
         return self
 
 

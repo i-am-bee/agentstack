@@ -31,7 +31,7 @@ from beeai_server.domain.constants import DOCKER_MANIFEST_LABEL_NAME, REQUIRED_E
 from beeai_server.domain.models.registry import RegistryLocation
 from beeai_server.domain.utils import bridge_k8s_to_localhost, bridge_localhost_to_k8s
 from beeai_server.exceptions import MissingConfigurationError
-from beeai_server.utils.docker import DockerImageID, get_registry_image_config_and_labels
+from beeai_server.utils.docker import DockerImageID
 from beeai_server.utils.utils import utc_now
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class DockerImageProviderLocation(RootModel):
     async def load_agent_card(self) -> AgentCard:
         from a2a.types import AgentCard
 
-        _, labels = await get_registry_image_config_and_labels(self.root)
+        _, labels = await self.root.get_registry_image_config_and_labels()
         if DOCKER_MANIFEST_LABEL_NAME not in labels:
             raise ValueError(f"Docker image labels must contain 'beeai.dev.agent.json': {self.root!s}")
         return AgentCard.model_validate(json.loads(base64.b64decode(labels[DOCKER_MANIFEST_LABEL_NAME])))
