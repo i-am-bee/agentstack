@@ -8,38 +8,10 @@ import '#styles/style.scss';
 import type { Metadata } from 'next';
 
 import { AppLayout } from '#components/layouts/AppLayout.tsx';
-import { AppProvider } from '#contexts/App/AppProvider.tsx';
-import Providers from '#providers.tsx';
-import { APP_FAVICON_SVG, APP_NAME, BASE_PATH, OIDC_ENABLED } from '#utils/constants.ts';
-import { parseFeatureFlags } from '#utils/feature-flags.ts';
-
-const darkModeScript = `
-(() => {
-  try {
-    const html = document.documentElement;
-    const storedTheme = window.localStorage.getItem('@i-am-bee/beeai/THEME');
-    const theme = typeof storedTheme === 'string' ? JSON.parse(storedTheme) : 'System';
-    const isDarkMode = theme === 'Dark' || (theme === 'System' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-    if (isDarkMode) {
-      html.classList.add('cds--g90');
-      html.classList.remove('cds--white');
-    } else {
-      html.classList.add('cds--white');
-      html.classList.remove('cds--g90');
-    }
-  } catch (error) {}
-})();
-`;
-
-const icon = `${BASE_PATH}${APP_FAVICON_SVG}`;
+import { APP_NAME } from '#utils/constants.ts';
 
 export const metadata: Metadata = {
   title: APP_NAME,
-  icons: {
-    icon: icon,
-    shortcut: icon,
-  },
 };
 
 export default function RootLayout({
@@ -47,18 +19,5 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: darkModeScript }} />
-      </head>
-      <body>
-        <AppProvider featureFlags={parseFeatureFlags(process.env.FEATURE_FLAGS)} isAuthEnabled={OIDC_ENABLED}>
-          <Providers>
-            <AppLayout>{children}</AppLayout>
-          </Providers>
-        </AppProvider>
-      </body>
-    </html>
-  );
+  return <AppLayout>{children}</AppLayout>;
 }

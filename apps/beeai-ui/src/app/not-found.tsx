@@ -9,20 +9,23 @@ import { ArrowRight } from '@carbon/icons-react';
 import { Button } from '@carbon/react';
 
 import { ErrorPage } from '#components/ErrorPage/ErrorPage.tsx';
+import { AppLayout } from '#components/layouts/AppLayout.tsx';
 import { MainContent } from '#components/layouts/MainContent.tsx';
 import { TransitionLink } from '#components/TransitionLink/TransitionLink.tsx';
 import { routes } from '#utils/router.ts';
 
 export default function NotFoundPage() {
   return (
-    <MainContent>
-      <ErrorPage
-        renderButton={({ className }) => (
-          <Button as={TransitionLink} href={routes.home()} renderIcon={ArrowRight} className={className}>
-            Buzz back to safety!
-          </Button>
-        )}
-      />
-    </MainContent>
+    <AppLayout>
+      <MainContent>
+        <ErrorPage
+          renderButton={({ className }) => (
+            <Button as={TransitionLink} href={routes.home()} renderIcon={ArrowRight} className={className}>
+              Buzz back to safety!
+            </Button>
+          )}
+        />
+      </MainContent>
+    </AppLayout>
   );
 }
