@@ -29,7 +29,7 @@
 </div>
 
 <div align="center">
-  <img src="docs/images/ui-example.png" alt="UI Example" width="650">
+  <img src="docs/images/ui-example2.png" alt="UI Example" width="650">
 </div>
 
 ---
