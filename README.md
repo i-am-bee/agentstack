@@ -60,12 +60,6 @@ BeeAI is an open-source platform that makes it easy to test, debug, and share AI
 sh -c "$(curl -LsSf https://raw.githubusercontent.com/i-am-bee/beeai-platform/HEAD/install.sh)"
 ```
 
-This interactive script will automatically:
-- Install prerequisites (QEMU on Linux)
-- Start the BeeAI platform
-- Configure your LLM provider
-- Open the web interface
-
 > [!TIP]
 > The one-line script works on Linux and macOS. For manual setup or experimental Windows support, see the [quickstart guide](https://docs.beeai.dev/introduction/quickstart).
 
