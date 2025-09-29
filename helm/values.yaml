@@ -90,6 +90,8 @@ providerBuilds:
     imageFormat: "{registry_prefix}/{org}/{repo}/{path}:{commit_hash}"
     secretName: "beeai-platform-registry-secret"
     insecure: true
+  kaniko:
+    useSecurityContextCapabilities: false
   externalClusterExecutor:
     serviceAccountName: ""
     namespace: ""  # Kubernetes namespace for provider builds (defaults to current namespace if empty)

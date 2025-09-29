@@ -130,14 +130,18 @@ class KubernetesProviderBuildManager(IProviderBuildManager):
                         await secret.delete()
                 with suppress(Exception):
                     await job.delete()
+                raise
 
             return BuildState.IN_PROGRESS
 
     async def wait_for_completion(self, *, provider_build_id: UUID) -> BuildState:
         async with self.api() as api:
-            job = await Job.get(name=self._get_k8s_name(provider_build_id), api=api)
-            await job.wait(["condition=Complete", "condition=Failed"])
-            return self._get_build_status(job)
+            try:
+                job = await Job.get(name=self._get_k8s_name(provider_build_id), api=api)
+                await job.wait(["condition=Complete", "condition=Failed"])
+                return self._get_build_status(job)
+            except kr8s.NotFoundError as e:
+                raise EntityNotFoundError("build_provider_job", provider_build_id) from e
 
     async def cancel_job(self, *, provider_build_id: UUID, grace_period: timedelta = timedelta(seconds=20)) -> None:
         async with self.api() as api:
