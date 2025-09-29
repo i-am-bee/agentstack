@@ -71,10 +71,12 @@ export function AgentSecretsProvider({ agent, agentClient, children }: PropsWith
 
   const storeSecrets = useCallback(
     (secrets: Record<string, string>) => {
-      updateVariable({
-        providerId: agent.provider.id,
-        body: secrets,
-      });
+      if (Object.keys(secrets).length) {
+        updateVariable({
+          providerId: agent.provider.id,
+          body: secrets,
+        });
+      }
     },
     [agent.provider.id, updateVariable],
   );
