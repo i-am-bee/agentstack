@@ -7,8 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { buildAgent } from '#modules/agents/utils.ts';
 import { listProviders } from '#modules/providers/api/index.ts';
-
-import { agentKeys } from '../keys';
+import { providerKeys } from '#modules/providers/api/keys.ts';
 
 interface Props {
   providerId: string | null | undefined;
@@ -16,9 +15,7 @@ interface Props {
 
 export function useAgent({ providerId }: Props) {
   return useQuery({
-    queryKey: agentKeys.list(),
-    // TODO: We could read agent via its provider id, but currently we are loading
-    // all the providers anyway, so we can reuse the data here
+    queryKey: providerKeys.list(),
     queryFn: listProviders,
     select: (response) => {
       const agentProvider = response?.items.find(({ id }) => id === providerId);

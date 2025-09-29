@@ -5,8 +5,6 @@
 
 import { useMutation } from '@tanstack/react-query';
 
-import { agentKeys } from '#modules/agents/api/keys.ts';
-
 import { registerManagedProvider } from '..';
 import { providerKeys } from '../keys';
 import type { Provider } from '../types';
@@ -20,7 +18,7 @@ export function useImportProvider({ onSuccess }: Props = {}) {
     mutationFn: registerManagedProvider,
     onSuccess,
     meta: {
-      invalidates: [providerKeys.lists(), agentKeys.lists()],
+      invalidates: [providerKeys.lists()],
       errorToast: {
         title: 'Failed to import provider.',
         includeErrorMessage: true,
