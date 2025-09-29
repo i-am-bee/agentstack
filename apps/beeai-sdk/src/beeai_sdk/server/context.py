@@ -2,11 +2,13 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+from collections.abc import AsyncIterator
+
 import janus
 from a2a.server.context import ServerCallContext
 from a2a.server.tasks import TaskUpdater
-from a2a.types import MessageSendConfiguration, Task
-from pydantic import BaseModel, PrivateAttr, SkipValidation
+from a2a.types import Artifact, Message, MessageSendConfiguration, Task
+from pydantic import BaseModel, PrivateAttr
 
 from beeai_sdk.a2a.types import RunYield, RunYieldResume
 from beeai_sdk.server.store.context_store import ContextStoreInstance
@@ -20,10 +22,23 @@ class RunContext(BaseModel, arbitrary_types_allowed=True):
     current_task: Task | None = None
     related_tasks: list[Task] | None = None
     call_context: ServerCallContext | None = None
-    store: SkipValidation[ContextStoreInstance]
 
+    _store: ContextStoreInstance | None = PrivateAttr(None)
     _yield_queue: janus.Queue[RunYield] = PrivateAttr(default_factory=janus.Queue)
     _yield_resume_queue: janus.Queue[RunYieldResume] = PrivateAttr(default_factory=janus.Queue)
+
+    async def store(self, data: Message | Artifact):
+        if not self._store:
+            raise RuntimeError("Context store is not initialized")
+        if isinstance(data, Message):
+            data = data.model_copy(deep=True, update={"context_id": self.context_id, "task_id": self.task_id})
+        await self._store.store(data)
+
+    async def load_history(self) -> AsyncIterator[Message | Artifact]:
+        if not self._store:
+            raise RuntimeError("Context store is not initialized")
+        async for message in self._store.load_history():
+            yield message
 
     def yield_sync(self, value: RunYield) -> RunYieldResume:
         self._yield_queue.sync_q.put(value)

@@ -33,10 +33,12 @@ async def history_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server
     """Agent that tests context.store.load_history() functionality."""
     context_store = InMemoryContextStore()
 
-    async def history_agent(context: RunContext) -> AsyncGenerator[RunYield, None]:
-        async for message in context.store.load_history():
+    async def history_agent(input: Message, context: RunContext) -> AsyncGenerator[RunYield, None]:
+        await context.store(input)
+        async for message in context.load_history():
             message.role = Role.agent
             yield message
+            await context.store(message)
 
     async with create_server_with_agent(history_agent, context_store=context_store) as (server, client):
         yield server, client
