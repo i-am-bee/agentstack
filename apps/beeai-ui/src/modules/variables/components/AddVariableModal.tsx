@@ -43,7 +43,7 @@ export function AddVariableModal({ onRequestClose, ...modalProps }: ModalProps) 
 
   const onSubmit = useCallback(
     ({ name, providerId, value }: FormValues) => {
-      updateVariable({ providerId, body: { [name]: value } });
+      updateVariable({ id: providerId, variables: { [name]: value } });
     },
     [updateVariable],
   );

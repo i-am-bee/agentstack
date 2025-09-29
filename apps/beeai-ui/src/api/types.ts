@@ -16,10 +16,6 @@ export type ApiValidationErrorResponse = components['schemas']['HTTPValidationEr
 
 export type AgentExtension = components['schemas']['AgentExtension'];
 
-export type GlobalPermissionGrant = components['schemas']['GlobalPermissionGrant'];
-
-export type ContextPermissionsGrant = components['schemas']['ContextPermissionsGrant'];
-
 export type HttpErrorResponse = {
   detail?: string;
 };

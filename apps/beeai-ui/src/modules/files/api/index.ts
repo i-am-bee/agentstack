@@ -6,23 +6,12 @@
 import { api } from '#api/index.ts';
 import { ensureData } from '#api/utils.ts';
 
-import type { FileEntity } from '../types';
-import type { DeleteFilePath, UploadFileRequest } from './types';
+import type { DeleteFileParams, UploadFileParams, UploadFileRequest } from './types';
 
-export async function uploadFile({
-  body,
-  contextId,
-}: {
-  body: Omit<UploadFileRequest, 'file'> & { file: FileEntity };
-  contextId: string;
-}) {
+export async function uploadFile({ context_id, file }: UploadFileParams) {
   const response = await api.POST('/api/v1/files', {
-    params: {
-      query: {
-        context_id: contextId,
-      },
-    },
-    body: { ...body, file: body.file.originalFile } as unknown as UploadFileRequest,
+    params: { query: { context_id } },
+    body: { file: file.originalFile } as unknown as UploadFileRequest,
     bodySerializer: (body) => {
       const formData = new FormData();
 
@@ -35,9 +24,9 @@ export async function uploadFile({
   return ensureData(response);
 }
 
-export async function deleteFile({ file_id, contextId }: DeleteFilePath & { contextId: string }) {
+export async function deleteFile({ file_id, context_id }: DeleteFileParams) {
   const response = await api.DELETE('/api/v1/files/{file_id}', {
-    params: { path: { file_id }, query: { context_id: contextId } },
+    params: { path: { file_id }, query: { context_id } },
   });
 
   return ensureData(response);

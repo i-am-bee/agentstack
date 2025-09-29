@@ -10,7 +10,11 @@ import { listProviders } from '#modules/providers/api/index.ts';
 
 import { agentKeys } from '../keys';
 
-export function useAgent({ providerId }: { providerId: string }) {
+interface Props {
+  providerId: string | null | undefined;
+}
+
+export function useAgent({ providerId }: Props) {
   return useQuery({
     queryKey: agentKeys.list(),
     // TODO: We could read agent via its provider id, but currently we are loading
@@ -20,5 +24,6 @@ export function useAgent({ providerId }: { providerId: string }) {
       const agentProvider = response?.items.find(({ id }) => id === providerId);
       return agentProvider ? buildAgent(agentProvider) : undefined;
     },
+    enabled: Boolean(providerId),
   });
 }

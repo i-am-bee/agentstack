@@ -31,7 +31,7 @@ import classes from './ImportAgentsModal.module.scss';
 export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps) {
   const id = useId();
   const [registeredProvider, setRegisteredProvider] = useState<Provider>();
-  const { data: agent } = useAgent({ providerId: registeredProvider?.id ?? '' });
+  const { data: agent } = useAgent({ providerId: registeredProvider?.id });
 
   const { mutateAsync: importProvider, isPending } = useImportProvider({
     onSuccess: (provider) => {
@@ -58,7 +58,7 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
 
   const onSubmit = useCallback(
     async ({ location, source }: FormValues) => {
-      await importProvider({ body: { location: `${ProviderSourcePrefixes[source]}${location}` } });
+      await importProvider({ location: `${ProviderSourcePrefixes[source]}${location}` });
     },
     [importProvider],
   );

@@ -55,7 +55,7 @@ export function FileUploadProvider({ allowedContentTypes = [], children }: Props
           throw new Error('Illegal State - Context must be set');
         }
 
-        uploadFile({ file, contextId });
+        uploadFile({ file, context_id: contextId });
       });
     },
     [uploadFile, contextId],
@@ -87,7 +87,7 @@ export function FileUploadProvider({ allowedContentTypes = [], children }: Props
           throw new Error('Illegal State - Context must be set');
         }
 
-        deleteFile({ file_id: uploadFileId, contextId });
+        deleteFile({ file_id: uploadFileId, context_id: contextId });
       }
 
       setFiles((files) => files.filter((file) => file.id !== id));

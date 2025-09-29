@@ -24,7 +24,7 @@ interface Props {
 export function AppHeader({ className }: Props) {
   const providerId = useProviderIdFromUrl();
 
-  const { data: agent } = useAgent({ providerId: providerId ?? '' });
+  const { data: agent } = useAgent({ providerId });
   const hasNav = NAV_ITEMS.length > 0;
   const showAgent = !hasNav && isNotNull(agent);
   return (

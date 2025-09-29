@@ -65,7 +65,7 @@ export function VariablesView() {
                 body: 'Are you sure you want to delete this variable? It can’t be undone.',
                 primaryButtonText: 'Delete',
                 danger: true,
-                onSubmit: () => deleteVariable({ providerId: provider.id, name }),
+                onSubmit: () => deleteVariable({ id: provider.id, name }),
               })
             }
             align="left"
