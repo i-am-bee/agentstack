@@ -21,27 +21,24 @@
 <p align="center">
     <a href="#key-features">Key Features</a> •
     <a href="#quickstart">Quickstart</a> •
-    <a href="#documentation">Documentation</a> •
-    <a href="#agent-catalog">Agent Catalog</a>
+    <a href="#documentation">Documentation</a>
 </p>
 
 <div align="center">
 
 </div>
 
----------------------------
+<div align="center">
+  <img src="docs/images/ui-example.png" alt="UI Example" width="650">
+</div>
 
-## 🚀 IMPORTANT UPDATE
+---
 
-**ACP is now part of A2A under the Linux Foundation!**  
-<br>
-👉 [Learn more](https://github.com/orgs/i-am-bee/discussions/5) | 🛠️ [Migration Guide](https://github.com/i-am-bee/beeai-platform/blob/main/docs/community-and-support/acp-a2a-migration-guide.mdx)
+BeeAI is an open-source platform that makes it easy to test, debug, and share AI agents in an interactive UI — with out-of-the-box trajectory, citations, and more.  
 
----------------------------
+Built on the [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) and hosted by the **Linux Foundation**, BeeAI bridges the gap between different agent ecosystems.
 
-<br />
-
-BeeAI is an open-source platform that makes it easy to test, debug, and share AI agents in an interactive UI with out-of-the-box trajectory, citations, and more. Built on the [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) and hosted by the Linux Foundation, BeeAI bridges the gap between different agent ecosystems.
+---
 
 ## Key Features
 
