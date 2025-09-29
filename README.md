@@ -117,12 +117,14 @@ Special thanks to our contributors for helping us improve BeeAI.
 
 ## Acknowledgements
 
-Special thanks to the following outstanding projects for their inspiration and influence:
+BeeAI builds upon the foundations established by several pioneering projects in the agent and protocol ecosystem:
 
-- [Model Context Protocol](https://github.com/modelcontextprotocol)
-- [Language Server Protocol](https://github.com/microsoft/language-server-protocol)
-- [JSON-RPC](https://www.jsonrpc.org/)
-- [Natural Language Interaction Protocol](https://github.com/nlip-project)
+- [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) - The open standard enabling cross-framework agent communication
+- [Model Context Protocol](https://github.com/modelcontextprotocol) - Advancing how AI models interact with context
+- [Language Server Protocol](https://github.com/microsoft/language-server-protocol) - Demonstrating the power of standardized tooling protocols
+- [JSON-RPC](https://www.jsonrpc.org/) - The specification underlying modern RPC communication
+
+We're grateful to these communities for advancing the state of agent infrastructure and interoperability.
 
 ---
 
