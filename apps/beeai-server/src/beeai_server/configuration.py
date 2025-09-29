@@ -4,13 +4,11 @@
 import base64
 import logging
 from collections import defaultdict
-from contextlib import suppress
 from datetime import timedelta
 from functools import cache
 from pathlib import Path
 from typing import Literal
 
-import yaml
 from pydantic import AnyUrl, BaseModel, Field, Secret, ValidationError, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -223,7 +221,7 @@ class ProviderBuildConfiguration(BaseModel):
     job_timeout_sec: int = int(timedelta(minutes=20).total_seconds())
     manifest_template_dir: Path | None = None
     k8s_namespace: str | None = None
-    k8s_kubeconfig: Path | str | dict | None = None
+    k8s_kubeconfig: Path | None = None
 
 
 class Configuration(BaseSettings):
@@ -248,7 +246,7 @@ class Configuration(BaseSettings):
     text_extraction: DoclingExtractionConfiguration = Field(default_factory=DoclingExtractionConfiguration)
     context: ContextConfiguration = Field(default_factory=ContextConfiguration)
     k8s_namespace: str | None = None
-    k8s_kubeconfig: Path | str | dict | None = None
+    k8s_kubeconfig: Path | None = None
 
     provider: ManagedProviderConfiguration = Field(default_factory=ManagedProviderConfiguration)
 
@@ -300,15 +298,6 @@ class Configuration(BaseSettings):
         self.provider_build.manifest_template_dir = (
             self.provider_build.manifest_template_dir or self.provider.manifest_template_dir
         )
-        return self
-
-    @model_validator(mode="after")
-    def _parse_kubeconfig(self):
-        # try load kubeconfig env as dict
-        with suppress(Exception):
-            self.k8s_kubeconfig = yaml.safe_load(str(self.k8s_kubeconfig))
-        with suppress(Exception):
-            self.provider_build.k8s_kubeconfig = yaml.safe_load(str(self.provider_build.k8s_kubeconfig))
         return self
 
 

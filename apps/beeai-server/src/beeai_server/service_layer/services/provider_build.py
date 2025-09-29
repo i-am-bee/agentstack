@@ -131,11 +131,18 @@ class ProviderBuildService:
             try:
                 async for attempt in AsyncRetrying(
                     stop=stop_after_delay(wait_for_start_timeout),
-                    wait=wait_fixed(timedelta(seconds=0.5)),
+                    wait=wait_fixed(timedelta(seconds=2)),
                     retry=retry_if_exception_type(EntityNotFoundError),
                     reraise=True,
                 ):
                     with attempt:
+                        async with self._uow() as uow:
+                            # If the build or worker fails to deploy the job, the wait would get stuck retrying
+                            # waiting for a k8s job that will never be created. Hence, we check database state:
+                            build = await uow.provider_builds.get(provider_build_id=provider_build_id)
+                            if build.status in {BuildState.FAILED, BuildState.COMPLETED}:
+                                state = build.status
+                                break
                         state = await self._build_manager.wait_for_completion(provider_build_id=provider_build_id)
             except EntityNotFoundError:
                 logs_container.add(
