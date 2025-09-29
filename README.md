@@ -66,6 +66,9 @@ This interactive script will automatically:
 - Configure your LLM provider
 - Open the web interface
 
+> [!TIP]
+> The one-line script works on Linux and macOS. For manual setup or experimental Windows support, see the [quickstart guide](https://docs.beeai.dev/introduction/quickstart).
+
 ### Usage
 
 ```sh
@@ -93,7 +96,7 @@ beeai run example_agent "Alice"  # Test your agent
 You should see: "Ciao Alice!" 🎉
 
 > [!TIP]
-> See the full [installation guide](https://docs.beeai.dev/introduction/quickstart) and [build tutorial](https://docs.beeai.dev/build-agents/hello-world) for detailed instructions.
+> Follow the [Hello World tutorial](https://docs.beeai.dev/build-agents/hello-world) for a step-by-step guide to building your first agent.
 
 ## Documentation
 
