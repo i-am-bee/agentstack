@@ -5,14 +5,7 @@
 
 import '#styles/style.scss';
 
-import type { Metadata } from 'next';
-
 import { AppLayout } from '#components/layouts/AppLayout.tsx';
-import { APP_NAME } from '#utils/constants.ts';
-
-export const metadata: Metadata = {
-  title: APP_NAME,
-};
 
 export default function RootLayout({
   children,
