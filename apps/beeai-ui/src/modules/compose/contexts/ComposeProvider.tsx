@@ -21,8 +21,10 @@ import { Role } from '#modules/messages/api/types.ts';
 import { UIMessagePartKind, UIMessageStatus, type UIUserMessage } from '#modules/messages/types.ts';
 import { addTranformedMessagePart, getMessageRawContent } from '#modules/messages/utils.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
-import { PlatformContextProvider } from '#modules/platform-context/contexts/PlatformContextProvider.tsx';
+import { useEnsurePlatformContext } from '#modules/platform-context/hooks/useEnsurePlatformContext.ts';
 import { useBuildA2AClient } from '#modules/runs/api/queries/useBuildA2AClient.ts';
+import { AgentDemandsProvider } from '#modules/runs/contexts/agent-demands/AgentDemandsProvider.tsx';
+import { useAgentDemands } from '#modules/runs/contexts/agent-demands/index.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { type UIComposePart, UIComposePartKind } from '../a2a/types';
@@ -34,6 +36,8 @@ import { ComposeContext, ComposeStatus } from './compose-context';
 export function ComposeProvider({ children }: PropsWithChildren) {
   const { data: sequentialAgent } = useAgentByName({ name: SEQUENTIAL_WORKFLOW_AGENT_NAME });
 
+  useEnsurePlatformContext(sequentialAgent);
+
   const { agentClient } = useBuildA2AClient({
     providerId: sequentialAgent?.provider.id,
     extensions: sequentialAgent?.capabilities.extensions ?? [],
@@ -41,9 +45,9 @@ export function ComposeProvider({ children }: PropsWithChildren) {
   });
 
   return (
-    <PlatformContextProvider agent={sequentialAgent} agentClient={agentClient}>
+    <AgentDemandsProvider agentClient={agentClient}>
       <ComposeProviderWithContext agentClient={agentClient}>{children}</ComposeProviderWithContext>
-    </PlatformContextProvider>
+    </AgentDemandsProvider>
   );
 }
 
@@ -52,7 +56,8 @@ interface Props {
 }
 
 function ComposeProviderWithContext({ agentClient, children }: PropsWithChildren<Props>) {
-  const { getContextId, getFullfilments } = usePlatformContext();
+  const { getContextId } = usePlatformContext();
+  const { getFullfilments } = useAgentDemands();
   const { data: agents } = useListAgents({ onlyUiSupported: true, sort: true });
 
   const searchParams = useSearchParams();

@@ -7,10 +7,10 @@ import { notFound } from 'next/navigation';
 
 import type { Agent } from '#modules/agents/api/types.ts';
 import { buildAgent } from '#modules/agents/utils.ts';
-import { HistoryProvider } from '#modules/history/contexts/HistoryProvider.tsx';
 import { LIST_CONTEXT_HISTORY_DEFAULT_QUERY } from '#modules/platform-context/api/constants.ts';
 import { fetchContextHistory } from '#modules/platform-context/api/index.ts';
 import type { ListContextHistoryResponse } from '#modules/platform-context/api/types.ts';
+import { PlatformContextProvider } from '#modules/platform-context/contexts/PlatformContextProvider.tsx';
 import { listProviders } from '#modules/providers/api/index.ts';
 import { RunView } from '#modules/runs/components/RunView.tsx';
 
@@ -51,8 +51,8 @@ export default async function AgentRunPage({ searchParams }: Props) {
   }
 
   return (
-    <HistoryProvider contextId={contextId} initialData={initialData}>
+    <PlatformContextProvider contextId={contextId} history={initialData}>
       <RunView agent={agent} />
-    </HistoryProvider>
+    </PlatformContextProvider>
   );
 }

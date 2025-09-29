@@ -7,10 +7,12 @@ import { useMutation } from '@tanstack/react-query';
 
 import { createContext } from '..';
 import { contextKeys } from '../keys';
+import type { CreateContextResponse } from '../types';
 
-export function useCreateContext() {
+export function useCreateContext({ onSuccess }: { onSuccess?: (data: CreateContextResponse) => void } = {}) {
   const mutation = useMutation({
     mutationFn: createContext,
+    onSuccess,
     meta: {
       invalidates: [contextKeys.lists()],
     },

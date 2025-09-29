@@ -5,7 +5,6 @@
 
 'use client';
 import { useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
 import type { PropsWithChildren } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
@@ -20,9 +19,9 @@ import type { Agent } from '#modules/agents/api/types.ts';
 import { FileUploadProvider } from '#modules/files/contexts/FileUploadProvider.tsx';
 import { useFileUpload } from '#modules/files/contexts/index.ts';
 import { convertFilesToUIFileParts } from '#modules/files/utils.ts';
-import { useHistory } from '#modules/history/contexts/index.ts';
 import { convertHistoryToUIMessages } from '#modules/history/utils.ts';
 import { Role } from '#modules/messages/api/types.ts';
+import { MessagesProvider } from '#modules/messages/contexts/Messages/MessagesProvider.tsx';
 import type { UIAgentMessage, UIMessage, UIMessageForm, UIUserMessage } from '#modules/messages/types.ts';
 import { UIMessagePartKind, UIMessageStatus } from '#modules/messages/types.ts';
 import { addTranformedMessagePart, isAgentMessage } from '#modules/messages/utils.ts';
@@ -30,7 +29,7 @@ import { LIST_CONTEXT_HISTORY_DEFAULT_QUERY } from '#modules/platform-context/ap
 import { contextKeys } from '#modules/platform-context/api/keys.ts';
 import { useListContextHistory } from '#modules/platform-context/api/queries/useListContextHistory.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
-import { PlatformContextProvider } from '#modules/platform-context/contexts/PlatformContextProvider.tsx';
+import { useEnsurePlatformContext } from '#modules/platform-context/hooks/useEnsurePlatformContext.ts';
 import { useBuildA2AClient } from '#modules/runs/api/queries/useBuildA2AClient.ts';
 import { useStartOAuth } from '#modules/runs/hooks/useStartOAuth.ts';
 import { getSettingsRenderDefaultValues } from '#modules/runs/settings/utils.ts';
@@ -39,9 +38,9 @@ import { SourcesProvider } from '#modules/sources/contexts/SourcesProvider.tsx';
 import { getMessagesSourcesMap } from '#modules/sources/utils.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
-import { routes } from '#utils/router.ts';
 
-import { MessagesProvider } from '../../../messages/contexts/Messages/MessagesProvider';
+import { useAgentDemands } from '../agent-demands';
+import { AgentDemandsProvider } from '../agent-demands/AgentDemandsProvider';
 import { AgentSecretsProvider } from '../agent-secrets/AgentSecretsProvider';
 import type { AgentRequestSecrets } from '../agent-secrets/types';
 import { AgentStatusProvider } from '../agent-status/AgentStatusProvider';
@@ -56,16 +55,18 @@ export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>)
     providerId: agent.provider.id,
     extensions: agent.capabilities.extensions ?? [],
   });
-  const { contextId, initialData } = useHistory();
+  const { contextId, history: initialHistory } = usePlatformContext();
   const { data: history } = useListContextHistory({
-    contextId,
+    contextId: contextId ?? undefined,
     query: LIST_CONTEXT_HISTORY_DEFAULT_QUERY,
-    initialData,
+    initialData: initialHistory,
   });
+
+  useEnsurePlatformContext(agent);
 
   return (
     <AgentSecretsProvider agent={agent} agentClient={agentClient}>
-      <PlatformContextProvider agent={agent} contextId={contextId} agentClient={agentClient}>
+      <AgentDemandsProvider agentClient={agentClient}>
         <FileUploadProvider allowedContentTypes={agent.defaultInputModes}>
           <AgentRunProvider
             agent={agent}
@@ -75,7 +76,7 @@ export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>)
             {children}
           </AgentRunProvider>
         </FileUploadProvider>
-      </PlatformContextProvider>
+      </AgentDemandsProvider>
     </AgentSecretsProvider>
   );
 }
@@ -91,9 +92,9 @@ function AgentRunProvider({
   initialMessages = [],
   children,
 }: PropsWithChildren<AgentRunProviderProps>) {
-  const router = useRouter();
   const queryClient = useQueryClient();
-  const { contextId, getContextId, resetContext, getFullfilments } = usePlatformContext();
+  const { contextId, getContextId, resetContext } = usePlatformContext();
+  const { getFullfilments } = useAgentDemands();
   const [messages, getMessages, setMessages] = useImmerWithGetter<UIMessage[]>(initialMessages);
   const [input, setInput] = useState<string>();
   const [isPending, setIsPending] = useState(false);
@@ -164,13 +165,12 @@ function AgentRunProvider({
     setMessages([]);
     setStats(undefined);
     clearFiles();
-    resetContext();
     setIsPending(false);
     setInput(undefined);
     pendingRun.current = undefined;
 
-    router.push(routes.agentRun({ providerId: agent.provider.id }));
-  }, [router, agent.provider.id, setMessages, clearFiles, resetContext]);
+    resetContext(agent);
+  }, [agent, setMessages, clearFiles, resetContext]);
 
   const checkPendingRun = useCallback(() => {
     if (pendingRun.current || pendingSubscription.current) {
@@ -229,7 +229,12 @@ function AgentRunProvider({
         });
         pendingRun.current = run;
 
+        let isFirstIteration = true;
         pendingSubscription.current = run.subscribe(({ parts, taskId: responseTaskId }) => {
+          if (isFirstIteration) {
+            queryClient.invalidateQueries({ queryKey: contextKeys.lists() });
+          }
+
           updateCurrentAgentMessage((message) => {
             message.taskId = responseTaskId;
           });
@@ -240,6 +245,8 @@ function AgentRunProvider({
               message.parts = updatedParts;
             });
           });
+
+          isFirstIteration = false;
         });
 
         const result = await run.done;
@@ -275,16 +282,12 @@ function AgentRunProvider({
         pendingRun.current = undefined;
         pendingSubscription.current = undefined;
 
-        if (getMessages().length === 2) {
-          queryClient.invalidateQueries({ queryKey: contextKeys.lists() });
-        }
-
+        queryClient.invalidateQueries({ queryKey: contextKeys.lists() });
         queryClient.invalidateQueries({ queryKey: contextKeys.history({ contextId }) });
       }
     },
     [
       queryClient,
-      getMessages,
       checkPendingRun,
       getContextId,
       getFullfilments,
