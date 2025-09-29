@@ -10,6 +10,8 @@ import z from 'zod';
 
 import type { AgentA2AClient } from '#api/a2a/types.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
+import { useUpdateVariable } from '#modules/variables/api/mutations/useUpdateVariable.ts';
+import { useListVariables } from '#modules/variables/api/queries/useListVariables.ts';
 
 import { AgentSecretsContext } from './agent-secrets-context';
 import type { AgentRequestSecrets, NonReadySecretDemand, ReadySecretDemand } from './types';
@@ -19,12 +21,11 @@ interface Props {
   agentClient?: AgentA2AClient;
 }
 
-const STORAGE_KEY = '@i-am-bee/beeai/AGENT-SECRETS';
+const STORAGE_KEY = '@i-am-bee/beeai/AGENT-SECRETS-SETTINGS';
 
 const secretsSchema = z.record(
   z.string(),
   z.object({
-    secrets: z.record(z.string(), z.string()),
     modalSeen: z.boolean().optional(),
   }),
 );
@@ -36,7 +37,7 @@ const secretsLocalStorageOptions = {
     try {
       return secretsSchema.parse(JSON.parse(value));
     } catch (error) {
-      console.warn('Failed to parse agent secrets from localStorage', error);
+      console.warn('Failed to parse agent secrets settings from localStorage', error);
       return {};
     }
   },
@@ -45,9 +46,10 @@ const secretsLocalStorageOptions = {
 export function AgentSecretsProvider({ agent, agentClient, children }: PropsWithChildren<Props>) {
   const [agentSecrets, setAgentSecrets] = useLocalStorage<Secrets>(STORAGE_KEY, {}, secretsLocalStorageOptions);
 
-  const parsedAgentSecrets = useMemo(() => {
-    return agentSecrets[agent.provider.id]?.secrets ?? {};
-  }, [agentSecrets, agent.provider.id]);
+  const { data } = useListVariables({ providerId: agent.provider.id });
+  const variables = data ? data.variables : null;
+
+  const { mutate: updateVariable } = useUpdateVariable();
 
   const hasSeenModal = useMemo(() => {
     return agentSecrets[agent.provider.id]?.modalSeen ?? false;
@@ -59,41 +61,30 @@ export function AgentSecretsProvider({ agent, agentClient, children }: PropsWith
 
   const updateSecret = useCallback(
     (key: string, value: string) => {
-      setAgentSecrets((prev) => {
-        const prevAgentValue = prev[agent.provider.id];
-        return {
-          ...prev,
-          [agent.provider.id]: {
-            ...prevAgentValue,
-            secrets: { ...prevAgentValue?.secrets, [key]: value },
-          },
-        };
+      updateVariable({
+        providerId: agent.provider.id,
+        body: { [key]: value },
       });
     },
-    [agent.provider.id, setAgentSecrets],
+    [agent.provider.id, updateVariable],
   );
 
   const storeSecrets = useCallback(
     (secrets: Record<string, string>) => {
-      setAgentSecrets((prev) => {
-        const prevAgentValue = prev[agent.provider.id];
-        return {
-          ...prev,
-          [agent.provider.id]: {
-            ...prevAgentValue,
-            secrets: { ...prevAgentValue?.secrets, ...secrets },
-          },
-        };
+      Object.entries(secrets).forEach(([key, value]) => {
+        updateVariable({
+          providerId: agent.provider.id,
+          body: { [key]: value },
+        });
       });
     },
-    [agent.provider.id, setAgentSecrets],
+    [agent.provider.id, updateVariable],
   );
 
   const markModalAsSeen = useCallback(() => {
     setAgentSecrets((prev) => ({
       ...prev,
       [agent.provider.id]: {
-        secrets: prev[agent.provider.id]?.secrets ?? {},
         modalSeen: true,
       },
     }));
@@ -105,11 +96,11 @@ export function AgentSecretsProvider({ agent, agentClient, children }: PropsWith
     }
 
     return Object.entries(secretDemands).map(([key, demand]) => {
-      if (parsedAgentSecrets[key]) {
+      if (variables && key in variables) {
         const readyDemand: ReadySecretDemand = {
           ...demand,
           isReady: true,
-          value: parsedAgentSecrets[key],
+          value: variables[key],
         };
 
         return { key, ...readyDemand };
@@ -122,7 +113,7 @@ export function AgentSecretsProvider({ agent, agentClient, children }: PropsWith
         return { key, ...nonReadyDemand };
       }
     });
-  }, [secretDemands, parsedAgentSecrets]);
+  }, [secretDemands, variables]);
 
   const getRequestSecrets = useCallback((): AgentRequestSecrets => {
     return secrets.reduce<AgentRequestSecrets>((acc, secret) => {

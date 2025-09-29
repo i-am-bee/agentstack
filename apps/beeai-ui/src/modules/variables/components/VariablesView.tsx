@@ -25,13 +25,14 @@ import { useModal } from '#contexts/Modal/index.tsx';
 import { useTableSearch } from '#hooks/useTableSearch.ts';
 
 import { useDeleteVariable } from '../api/mutations/useDeleteVariable';
-import { useListVariables } from '../api/queries/useListVariables';
+import { useListAllVariables } from '../api/queries/useListAllVariables';
+import { maskSecretValue } from '../utils';
 import { AddVariableModal } from './AddVariableModal';
 import classes from './VariablesView.module.scss';
 
 export function VariablesView() {
   const { openModal, openConfirmation } = useModal();
-  const { data, isPending } = useListVariables();
+  const { data, isPending } = useListAllVariables();
   const { mutate: deleteVariable } = useDeleteVariable();
 
   const entries = useMemo(
@@ -50,7 +51,8 @@ export function VariablesView() {
     return items.map(({ provider, name, value }) => ({
       id: name,
       name,
-      value,
+      agent: provider.agent_card.name,
+      value: maskSecretValue(value),
       actions: (
         <TableViewActions>
           <IconButton
@@ -134,6 +136,7 @@ export function VariablesView() {
 }
 
 const HEADERS = [
+  { key: 'agent', header: 'Agent' },
   { key: 'name', header: 'Name' },
   { key: 'value', header: 'Value' },
   { key: 'actions', header: '' },

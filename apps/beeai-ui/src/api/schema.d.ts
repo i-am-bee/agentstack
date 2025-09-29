@@ -9,7 +9,7 @@
  */
 
 export interface paths {
-  '/api/v1/.well-known/oauth-protected-resource': {
+  '/.well-known/oauth-protected-resource/{resource}': {
     parameters: {
       query?: never;
       header?: never;
@@ -17,7 +17,7 @@ export interface paths {
       cookie?: never;
     };
     /** Protected Resource Metadata */
-    get: operations['protected_resource_metadata_api_v1__well_known_oauth_protected_resource_get'];
+    get: operations['protected_resource_metadata__well_known_oauth_protected_resource__resource__get'];
     put?: never;
     post?: never;
     delete?: never;
@@ -34,19 +34,19 @@ export interface paths {
       cookie?: never;
     };
     /** Proxy Request */
-    get: operations['proxy_request_api_v1_a2a__provider_id__put'];
+    get: operations['proxy_request_api_v1_a2a__provider_id__post'];
     /** Proxy Request */
-    put: operations['proxy_request_api_v1_a2a__provider_id__put'];
+    put: operations['proxy_request_api_v1_a2a__provider_id__post'];
     /** Proxy Request */
-    post: operations['proxy_request_api_v1_a2a__provider_id__put'];
+    post: operations['proxy_request_api_v1_a2a__provider_id__post'];
     /** Proxy Request */
-    delete: operations['proxy_request_api_v1_a2a__provider_id__put'];
+    delete: operations['proxy_request_api_v1_a2a__provider_id__post'];
     /** Proxy Request */
-    options: operations['proxy_request_api_v1_a2a__provider_id__put'];
+    options: operations['proxy_request_api_v1_a2a__provider_id__post'];
     /** Proxy Request */
-    head: operations['proxy_request_api_v1_a2a__provider_id__put'];
+    head: operations['proxy_request_api_v1_a2a__provider_id__post'];
     /** Proxy Request */
-    patch: operations['proxy_request_api_v1_a2a__provider_id__put'];
+    patch: operations['proxy_request_api_v1_a2a__provider_id__post'];
     trace?: never;
   };
   '/api/v1/a2a/{provider_id}/.well-known/agent-card.json': {
@@ -74,19 +74,19 @@ export interface paths {
       cookie?: never;
     };
     /** Proxy Request */
-    get: operations['proxy_request_api_v1_a2a__provider_id___path__put'];
+    get: operations['proxy_request_api_v1_a2a__provider_id___path__post'];
     /** Proxy Request */
-    put: operations['proxy_request_api_v1_a2a__provider_id___path__put'];
+    put: operations['proxy_request_api_v1_a2a__provider_id___path__post'];
     /** Proxy Request */
-    post: operations['proxy_request_api_v1_a2a__provider_id___path__put'];
+    post: operations['proxy_request_api_v1_a2a__provider_id___path__post'];
     /** Proxy Request */
-    delete: operations['proxy_request_api_v1_a2a__provider_id___path__put'];
+    delete: operations['proxy_request_api_v1_a2a__provider_id___path__post'];
     /** Proxy Request */
-    options: operations['proxy_request_api_v1_a2a__provider_id___path__put'];
+    options: operations['proxy_request_api_v1_a2a__provider_id___path__post'];
     /** Proxy Request */
-    head: operations['proxy_request_api_v1_a2a__provider_id___path__put'];
+    head: operations['proxy_request_api_v1_a2a__provider_id___path__post'];
     /** Proxy Request */
-    patch: operations['proxy_request_api_v1_a2a__provider_id___path__put'];
+    patch: operations['proxy_request_api_v1_a2a__provider_id___path__post'];
     trace?: never;
   };
   '/api/v1/configurations/system': {
@@ -3146,11 +3146,13 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-  protected_resource_metadata_api_v1__well_known_oauth_protected_resource_get: {
+  protected_resource_metadata__well_known_oauth_protected_resource__resource__get: {
     parameters: {
       query?: never;
       header?: never;
-      path?: never;
+      path: {
+        resource: string;
+      };
       cookie?: never;
     };
     requestBody?: never;
@@ -3164,9 +3166,18 @@ export interface operations {
           'application/json': unknown;
         };
       };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__put: {
+  proxy_request_api_v1_a2a__provider_id__post: {
     parameters: {
       query?: {
         path?: string;
@@ -3199,7 +3210,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__put: {
+  proxy_request_api_v1_a2a__provider_id__post: {
     parameters: {
       query?: {
         path?: string;
@@ -3232,7 +3243,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__put: {
+  proxy_request_api_v1_a2a__provider_id__post: {
     parameters: {
       query?: {
         path?: string;
@@ -3265,7 +3276,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__put: {
+  proxy_request_api_v1_a2a__provider_id__post: {
     parameters: {
       query?: {
         path?: string;
@@ -3298,7 +3309,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__put: {
+  proxy_request_api_v1_a2a__provider_id__post: {
     parameters: {
       query?: {
         path?: string;
@@ -3331,7 +3342,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__put: {
+  proxy_request_api_v1_a2a__provider_id__post: {
     parameters: {
       query?: {
         path?: string;
@@ -3364,7 +3375,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__put: {
+  proxy_request_api_v1_a2a__provider_id__post: {
     parameters: {
       query?: {
         path?: string;
@@ -3428,7 +3439,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__put: {
+  proxy_request_api_v1_a2a__provider_id___path__post: {
     parameters: {
       query?: never;
       header?: never;
@@ -3460,7 +3471,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__put: {
+  proxy_request_api_v1_a2a__provider_id___path__post: {
     parameters: {
       query?: never;
       header?: never;
@@ -3492,7 +3503,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__put: {
+  proxy_request_api_v1_a2a__provider_id___path__post: {
     parameters: {
       query?: never;
       header?: never;
@@ -3524,7 +3535,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__put: {
+  proxy_request_api_v1_a2a__provider_id___path__post: {
     parameters: {
       query?: never;
       header?: never;
@@ -3556,7 +3567,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__put: {
+  proxy_request_api_v1_a2a__provider_id___path__post: {
     parameters: {
       query?: never;
       header?: never;
@@ -3588,7 +3599,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__put: {
+  proxy_request_api_v1_a2a__provider_id___path__post: {
     parameters: {
       query?: never;
       header?: never;
@@ -3620,7 +3631,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__put: {
+  proxy_request_api_v1_a2a__provider_id___path__post: {
     parameters: {
       query?: never;
       header?: never;
@@ -4859,11 +4870,13 @@ export interface operations {
     requestBody?: never;
     responses: {
       /** @description Successful Response */
-      204: {
+      200: {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          'application/json': unknown;
+        };
       };
       /** @description Validation Error */
       422: {
