@@ -71,11 +71,9 @@ export function AgentSecretsProvider({ agent, agentClient, children }: PropsWith
 
   const storeSecrets = useCallback(
     (secrets: Record<string, string>) => {
-      Object.entries(secrets).forEach(([key, value]) => {
-        updateVariable({
-          providerId: agent.provider.id,
-          body: { [key]: value },
-        });
+      updateVariable({
+        providerId: agent.provider.id,
+        body: secrets,
       });
     },
     [agent.provider.id, updateVariable],
