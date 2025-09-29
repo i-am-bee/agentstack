@@ -53,7 +53,7 @@ export function PlatformContextProvider({ contextId: contextIdProp, history, chi
 
   const createContext = useCallback(
     async (agent: Agent) => {
-      createContextMutate({
+      await createContextMutate({
         metadata: {
           agent_name: agent.name ?? '',
           provider_id: agent.provider.id ?? '',

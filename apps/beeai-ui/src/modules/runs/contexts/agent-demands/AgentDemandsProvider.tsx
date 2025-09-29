@@ -170,25 +170,6 @@ export function AgentDemandsProvider<UIGenericPart>({
     featureFlags,
   ]);
 
-  // useEffect(() => {
-  //   if (contextId || creatingContextRef.current) {
-  //     return;
-  //   }
-
-  //   creatingContextRef.current = true;
-
-  //   createContext({
-  //     metadata: {
-  //       agent_name: agent?.name ?? '',
-  //       provider_id: agent?.provider.id ?? '',
-  //     },
-  //   })
-  //     .then(setContext)
-  //     .finally(() => {
-  //       creatingContextRef.current = false;
-  //     });
-  // }, [contextId, agent, createContext, setContext]);
-
   return (
     <AgentDemandsContext.Provider
       value={{
