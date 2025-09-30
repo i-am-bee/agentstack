@@ -8,6 +8,7 @@ import re
 from collections.abc import AsyncGenerator, Awaitable, Callable
 from configparser import RawConfigParser
 from contextlib import asynccontextmanager, nullcontext, suppress
+from datetime import timedelta
 from ssl import CERT_NONE
 from typing import IO, Any, Literal
 from urllib.parse import urljoin
@@ -65,6 +66,7 @@ class Server:
         task_store: TaskStore | None = None,
         context_store: ContextStore | None = None,
         queue_manager: QueueManager | None = None,
+        task_timeout: timedelta = timedelta(minutes=10),
         push_config_store: PushNotificationConfigStore | None = None,
         push_sender: PushNotificationSender | None = None,
         request_context_builder: RequestContextBuilder | None = None,
@@ -162,6 +164,7 @@ class Server:
             queue_manager=queue_manager,
             push_config_store=push_config_store,
             push_sender=push_sender,
+            task_timeout=task_timeout,
             request_context_builder=request_context_builder,
         )
 

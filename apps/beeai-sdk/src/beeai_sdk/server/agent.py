@@ -6,9 +6,11 @@ import inspect
 from asyncio import CancelledError
 from collections.abc import AsyncGenerator, AsyncIterator, Callable, Generator
 from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
-from typing import NamedTuple, TypeAlias, cast
+from datetime import datetime, timedelta
+from typing import NamedTuple, TypeAlias, TypedDict, cast
 
 import janus
+from a2a.client import create_text_message_object
 from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.events import EventQueue, QueueManager
 from a2a.server.tasks import TaskUpdater
@@ -40,7 +42,7 @@ from beeai_sdk.server.context import RunContext
 from beeai_sdk.server.dependencies import extract_dependencies
 from beeai_sdk.server.logging import logger
 from beeai_sdk.server.store.context_store import ContextStore
-from beeai_sdk.server.utils import cancel_task
+from beeai_sdk.server.utils import cancel_task, close_queue
 
 AgentFunction: TypeAlias = Callable[[], AsyncGenerator[RunYield, RunYieldResume]]
 AgentFunctionFactory: TypeAlias = Callable[
@@ -278,15 +280,25 @@ def agent(
     return decorator
 
 
+class RunningTask(TypedDict):
+    task: asyncio.Task
+    last_invocation: datetime
+
+
 class Executor(AgentExecutor):
     def __init__(
-        self, execute_fn: AgentFunctionFactory, queue_manager: QueueManager, context_store: ContextStore
+        self,
+        execute_fn: AgentFunctionFactory,
+        queue_manager: QueueManager,
+        context_store: ContextStore,
+        task_timeout: timedelta,
     ) -> None:
         self._agent_executor_span = execute_fn
         self._queue_manager = queue_manager
-        self._running_tasks: dict[str, asyncio.Task] = {}
+        self._running_tasks: dict[str, RunningTask] = {}
         self._cancel_queues: dict[str, EventQueue] = {}
         self._context_store = context_store
+        self._task_timeout = task_timeout
 
     async def _watch_for_cancellation(self, task_id: str, task: asyncio.Task) -> None:
         cancel_queue = await self._queue_manager.create_or_tap(f"_cancel_{task_id}")
@@ -333,7 +345,11 @@ class Executor(AgentExecutor):
                 value: RunYieldResume = None
                 opened_artifacts: set[str] = set()
                 while True:
+                    # update invocation time
+                    self._running_tasks[task_updater.task_id]["last_invocation"] = datetime.now()
+
                     yielded_value = await agent_generator_fn.asend(value)
+
                     match yielded_value:
                         case str(text):
                             await task_updater.update_status(
@@ -438,10 +454,16 @@ class Executor(AgentExecutor):
         except Exception as ex:
             logger.error("Error when executing agent", exc_info=ex)
             await task_updater.failed(task_updater.new_agent_message(parts=[Part(root=TextPart(text=str(ex)))]))
-        finally:
-            await self._queue_manager.close(f"_event_{task_updater.task_id}")
-            await self._queue_manager.close(f"_resume_{task_updater.task_id}")
+        finally:  # cleanup
             await cancel_task(cancellation_task)
+            is_cancelling = bool(current_task.cancelling())
+            try:
+                async with asyncio.timeout(10):  # grace period to read all events from queue
+                    await close_queue(self._queue_manager, f"_event_{context.task_id}", immediate=is_cancelling)
+                    await close_queue(self._queue_manager, f"_resume_{context.task_id}", immediate=is_cancelling)
+            except (TimeoutError, CancelledError):
+                await close_queue(self._queue_manager, f"_event_{context.task_id}", immediate=True)
+                await close_queue(self._queue_manager, f"_resume_{context.task_id}", immediate=True)
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         assert context.message  # this is only executed in the context of SendMessage request
@@ -472,10 +494,12 @@ class Executor(AgentExecutor):
                     resume_queue=resume_queue,
                 )
 
-                self._running_tasks[context.task_id] = asyncio.create_task(run_generator)
-                self._running_tasks[context.task_id].add_done_callback(
-                    lambda _: self._running_tasks.pop(context.task_id)  # pyright: ignore [reportArgumentType]
+                self._running_tasks[context.task_id] = RunningTask(
+                    task=asyncio.create_task(run_generator), last_invocation=datetime.now()
                 )
+                asyncio.create_task(
+                    self._schedule_run_cleanup(task_id=context.task_id, task_timeout=self._task_timeout)
+                ).add_done_callback(lambda _: ...)
 
             while True:
                 # Forward messages to local event queue
@@ -490,6 +514,7 @@ class Executor(AgentExecutor):
             # When a streaming request is canceled, this executor is canceled first meaning that "cancellation" event
             # passed from the agent's long_running_event_queue is not forwarded. Instead of shielding this function,
             # we report the cancellation explicitly
+            await self._cancel_task(context.task_id)
             local_updater = TaskUpdater(event_queue, task_id=context.task_id, context_id=context.context_id)
             await local_updater.cancel()
         except Exception as ex:
@@ -497,11 +522,31 @@ class Executor(AgentExecutor):
             local_updater = TaskUpdater(event_queue, task_id=context.task_id, context_id=context.context_id)
             await local_updater.failed(local_updater.new_agent_message(parts=[Part(root=TextPart(text=str(ex)))]))
 
+    async def _cancel_task(self, task_id: str):
+        if queue := self._cancel_queues.get(task_id):
+            await queue.enqueue_event(create_text_message_object(content="canceled"))
+
+    async def _schedule_run_cleanup(self, task_id: str, task_timeout: timedelta):
+        task = self._running_tasks.get(task_id)
+        assert task
+
+        try:
+            while not task["task"].done():
+                await asyncio.sleep(5)
+                if not task["task"].done() and task["last_invocation"] + task_timeout < datetime.now():
+                    # Task might be stuck waiting for queue events to be processed
+                    logger.warning(f"Task {task_id} did not finish in {task_timeout}")
+                    await self._cancel_task(task_id)
+                    break
+        except Exception as ex:
+            logger.error("Error when cleaning up task", exc_info=ex)
+        finally:
+            self._running_tasks.pop(task_id)
+
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
         if not context.task_id or not context.context_id:
             raise ValueError("Task ID and context ID must be set to cancel a task")
         try:
-            if context.current_task and (queue := self._cancel_queues.get(context.task_id)):
-                await queue.enqueue_event(context.current_task)
+            await self._cancel_task(task_id=context.task_id)
         finally:
             await TaskUpdater(event_queue, task_id=context.task_id, context_id=context.context_id).cancel()
