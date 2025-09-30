@@ -51,7 +51,7 @@ export default async function AgentRunPage({ searchParams }: Props) {
   }
 
   return (
-    <PlatformContextProvider contextId={contextId} history={initialData}>
+    <PlatformContextProvider history={initialData}>
       <RunView agent={agent} />
     </PlatformContextProvider>
   );

@@ -3,29 +3,26 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 'use client';
-import { useRouter } from 'next/navigation';
 import { type PropsWithChildren, useCallback, useEffect, useState } from 'react';
 
+import { useParamsFromUrl } from '#hooks/useParamsFromUrl.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
-import { routes } from '#utils/router.ts';
 
 import { useCreateContext } from '../api/mutations/useCreateContext';
 import type { ListContextHistoryResponse } from '../api/types';
 import { PlatformContext } from './platform-context';
 
 interface Props {
-  contextId?: string;
   history?: ListContextHistoryResponse;
 }
 
-export function PlatformContextProvider({ contextId: contextIdProp, history, children }: PropsWithChildren<Props>) {
-  const [contextId, setContextId] = useState<string | null>(contextIdProp ?? null);
-
-  const router = useRouter();
+export function PlatformContextProvider({ history, children }: PropsWithChildren<Props>) {
+  const { contextId: urlContextId } = useParamsFromUrl();
+  const [contextId, setContextId] = useState<string | null>(urlContextId ?? null);
 
   useEffect(() => {
-    setContextId(contextIdProp ?? null);
-  }, [contextIdProp]);
+    setContextId(urlContextId ?? null);
+  }, [urlContextId]);
 
   const { mutateAsync: createContextMutate } = useCreateContext({
     onSuccess: (context) => {
@@ -37,19 +34,9 @@ export function PlatformContextProvider({ contextId: contextIdProp, history, chi
     },
   });
 
-  const resetContext = useCallback(
-    (agent: Agent) => {
-      if (!contextIdProp) {
-        // If contextId is not passed via props, reset it manually.
-        // If it is passed, the server already resets it on a new page render,
-        // so resetting here would cause a second unnecessary re-creation and possible issues.
-        setContextId(null);
-      }
-
-      router.push(routes.agentRun({ providerId: agent.provider.id }));
-    },
-    [contextIdProp, router],
-  );
+  const resetContext = useCallback(() => {
+    setContextId(null);
+  }, []);
 
   const createContext = useCallback(
     async (agent: Agent) => {
@@ -75,7 +62,7 @@ export function PlatformContextProvider({ contextId: contextIdProp, history, chi
     <PlatformContext.Provider
       value={{
         contextId,
-        history: contextId ? history : undefined,
+        history,
         createContext,
         getContextId,
         resetContext,

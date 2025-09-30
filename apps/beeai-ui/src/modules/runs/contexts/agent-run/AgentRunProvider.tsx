@@ -5,6 +5,7 @@
 
 'use client';
 import { useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import type { PropsWithChildren } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
@@ -38,6 +39,7 @@ import { SourcesProvider } from '#modules/sources/contexts/SourcesProvider.tsx';
 import { getMessagesSourcesMap } from '#modules/sources/utils.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
+import { routes } from '#utils/router.ts';
 
 import { useAgentDemands } from '../agent-demands';
 import { AgentDemandsProvider } from '../agent-demands/AgentDemandsProvider';
@@ -93,19 +95,19 @@ function AgentRunProvider({
   children,
 }: PropsWithChildren<AgentRunProviderProps>) {
   const queryClient = useQueryClient();
-  const { contextId, getContextId, resetContext } = usePlatformContext();
-  const { getFullfilments } = useAgentDemands();
+  const router = useRouter();
+  const errorHandler = useHandleError();
+
   const [messages, getMessages, setMessages] = useImmerWithGetter<UIMessage[]>(initialMessages);
   const [input, setInput] = useState<string>();
   const [isPending, setIsPending] = useState(false);
   const [stats, setStats] = useState<RunStats>();
   const settings = useRef<AgentSettings | undefined>(undefined);
-
   const pendingSubscription = useRef<() => void>(undefined);
   const pendingRun = useRef<ChatRun>(undefined);
 
-  const errorHandler = useHandleError();
-
+  const { contextId, getContextId } = usePlatformContext();
+  const { getFullfilments } = useAgentDemands();
   const { files, clearFiles } = useFileUpload();
 
   useEffect(() => {
@@ -169,8 +171,8 @@ function AgentRunProvider({
     setInput(undefined);
     pendingRun.current = undefined;
 
-    resetContext(agent);
-  }, [agent, setMessages, clearFiles, resetContext]);
+    router.push(routes.agentRun({ providerId: agent.provider.id }));
+  }, [setMessages, clearFiles, router, agent.provider.id]);
 
   const checkPendingRun = useCallback(() => {
     if (pendingRun.current || pendingSubscription.current) {
