@@ -5,7 +5,7 @@ description: "Learn how to handle conversation history and state in BeeAI Agents
 
 When building conversational AI agents, one of the key requirements is maintaining context across multiple interactions. While agent functions are essentially stateless by design, the BeeAI platform provides built-in mechanisms to access and manage conversation history.
 
-The platform automatically stores all conversation messages in context memory, allowing your agent to retrieve previous interactions when needed.
+You need to explicitly store messages in the context memory using `context.store()` to make them available for retrieval in future interactions.
 
 <Tip>
 The stateless design of agent functions ensures reliability and scalability, while the context memory system provides the conversation continuity that users expect from AI assistants.
@@ -14,12 +14,20 @@ The stateless design of agent functions ensures reliability and scalability, whi
 ## Quickstart
 
 <Steps>
+<Step title="Store incoming messages">
+Use `await context.store(input)` to store the current user message in the conversation history.
+</Step>
+
 <Step title="Access conversation history">
 Use the `RunContext` parameter to access the conversation store and load previous messages.
 </Step>
 
 <Step title="Filter and process history">
 Retrieve and filter the conversation history to get the messages relevant to your agent's logic.
+</Step>
+
+<Step title="Store agent responses">
+Use `await context.store(response)` to store your agent's responses for future conversation context.
 </Step>
 
 <Step title="Configure persistent storage">
@@ -93,6 +101,43 @@ The history includes the current message, so if you want only previous messages,
 
 <Warning>
 The history iterator returns all message types. Always filter messages using `isinstance(message, Message)` to ensure you're working with the correct message format.
+</Warning>
+
+## Message Storage Guidelines
+
+Since messages are not automatically stored, you need to explicitly call `context.store()` for any message you want to be available in future interactions. Here are the key guidelines:
+
+### What to Store
+
+- **User messages**: Always store incoming user messages to maintain conversation context
+- **Agent responses**: Store your agent's responses so they're available for future reference
+- **Important artifacts**: Store any files, documents, or other artifacts that should persist
+
+### When to Store
+
+```python
+@server.agent()
+async def my_agent(input: Message, context: RunContext):
+    # Store the incoming user message immediately
+    await context.store(input)
+    
+    # Process the message and generate response
+    response = AgentMessage(text="Your response here")
+    yield response
+    
+    # Store the agent's response after yielding
+    await context.store(response)
+```
+
+### Storage Best Practices
+
+- **Store early**: Store user messages at the beginning of your agent function
+- **Store after yielding**: Store agent responses after yielding them to the user
+- **Be selective**: Only store messages that are relevant for future conversation context
+- **Handle errors**: Consider what happens if storage fails - your agent should still function
+
+<Warning>
+If you don't store messages, they won't be available in `context.load_history()` for future interactions. This means your agent will lose conversation context.
 </Warning>
 
 ## Persistent Storage
