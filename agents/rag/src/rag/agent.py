@@ -116,6 +116,7 @@ server = Server()
     ],
 )
 async def rag(
+    input: Message,
     context: RunContext,
     trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
     citation: Annotated[CitationExtensionServer, CitationExtensionSpec()],
@@ -124,9 +125,10 @@ async def rag(
     _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
 ):
     """RAG agent that retrieves and generates text based on user queries."""
+    await context.store(input)
     llm, embedding = _get_clients(llm_ext, embedding_ext)
 
-    history = [m async for m in context.store.load_history()]
+    history = [m async for m in context.load_history()]
     message_history = [message for message in history if isinstance(message, Message) and message.parts]
     extracted_files = await extract_files(history=message_history)
 
@@ -182,11 +184,13 @@ async def rag(
             yield start_event.metadata(trajectory)
 
             vector_store_id = (await create_vector_store(embedding)).id
-            yield CreateVectorStoreEvent(
+            vector_store_create_metadata = CreateVectorStoreEvent(
                 vector_store_id=vector_store_id,
                 parent_id=start_event.id,
                 phase="end",
             ).metadata(trajectory)
+            yield vector_store_create_metadata
+            await context.store(AgentMessage(metadata=vector_store_create_metadata))
 
         tools.append(VectorSearchTool(vector_store_id=vector_store_id, embedding_function=embedding))
         async for item in embed_all_files(
@@ -305,6 +309,7 @@ async def rag(
             metadata=(citation.citation_metadata(citations=citations) if citations else None),
         )
         yield message
+        await context.store(message)
 
 
 def _get_clients(

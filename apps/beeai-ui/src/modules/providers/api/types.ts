@@ -12,6 +12,8 @@ export type Provider = RemoveIndexSignature<ProvidersListResponse['items'][numbe
 
 export type ProviderLocation = Provider['source'];
 
+export type ReadProviderPath = ApiPath<'/api/v1/providers/{id}'>;
+
 export type DeleteProviderPath = ApiPath<'/api/v1/providers/{id}', 'delete'>;
 
 export type RegisterProviderRequest = ApiRequest<'/api/v1/providers'>;

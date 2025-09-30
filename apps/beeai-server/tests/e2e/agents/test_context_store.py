@@ -29,10 +29,12 @@ async def get_final_task_from_stream(stream: AsyncIterator[ClientEvent | Message
 async def history_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server, Client]]:
     """Agent that tests context.store.load_history() functionality."""
 
-    async def history_agent(context: RunContext) -> AsyncGenerator[RunYield]:
-        async for message in context.store.load_history():
+    async def history_agent(input: Message, context: RunContext) -> AsyncGenerator[RunYield]:
+        await context.store(input)
+        async for message in context.load_history():
             message.role = Role.agent
             yield message
+            await context.store(message)
 
     async with create_server_with_agent(history_agent, context_store=PlatformContextStore()) as (server, client):
         yield server, client

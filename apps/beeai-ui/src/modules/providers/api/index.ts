@@ -6,7 +6,7 @@
 import { api } from '#api/index.ts';
 import { ensureData } from '#api/utils.ts';
 
-import type { DeleteProviderPath, RegisterProviderRequest } from './types';
+import type { DeleteProviderPath, ReadProviderPath, RegisterProviderRequest } from './types';
 
 export async function listProviders() {
   const response = await api.GET('/api/v1/providers');
@@ -14,21 +14,20 @@ export async function listProviders() {
   return ensureData(response);
 }
 
-export async function readProvider(id: string) {
-  const response = await api.GET('/api/v1/providers/{id}', { params: { path: { id } } });
+export async function readProvider(path: ReadProviderPath) {
+  const response = await api.GET('/api/v1/providers/{id}', { params: { path } });
 
   return ensureData(response);
 }
 
-export async function deleteProvider({ id }: DeleteProviderPath) {
-  const response = await api.DELETE('/api/v1/providers/{id}', { params: { path: { id } } });
+export async function deleteProvider(path: DeleteProviderPath) {
+  const response = await api.DELETE('/api/v1/providers/{id}', { params: { path } });
 
   return ensureData(response);
 }
 
-export async function registerManagedProvider({ body }: { body: RegisterProviderRequest }) {
-  const response = await api.POST('/api/v1/providers', {
-    body,
-  });
+export async function registerManagedProvider(body: RegisterProviderRequest) {
+  const response = await api.POST('/api/v1/providers', { body });
+
   return ensureData(response);
 }

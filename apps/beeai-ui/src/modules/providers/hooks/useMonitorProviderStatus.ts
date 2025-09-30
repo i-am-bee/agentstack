@@ -25,7 +25,7 @@ export function useMonitorProviderStatus({ id, isEnabled }: Props) {
   const { addTask, removeTask } = useTasks();
 
   const { refetch: refetchStatus, ...agentStatusReturn } = useProviderStatus({ providerId: id });
-  const { data: agent } = useAgent({ providerId: id ?? '' });
+  const { data: agent } = useAgent({ providerId: id });
 
   const { isStarting, isNotInstalled } = agentStatusReturn;
 

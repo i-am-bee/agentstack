@@ -5,24 +5,18 @@
 
 import { useMutation } from '@tanstack/react-query';
 
-import type { FileEntity } from '../../types';
 import { uploadFile } from '..';
-import type { UploadFileResponse } from '../types';
+import type { UploadFileParams, UploadFileResponse } from '../types';
 
 interface Props {
-  onMutate?: (variables: UploadFileVariables) => void;
-  onSuccess?: (data: UploadFileResponse | undefined, variables: UploadFileVariables) => void;
-  onError?: (error: Error, variables: UploadFileVariables) => void;
-}
-
-interface UploadFileVariables {
-  file: FileEntity;
-  contextId: string;
+  onMutate?: (variables: UploadFileParams) => void;
+  onSuccess?: (data: UploadFileResponse | undefined, variables: UploadFileParams) => void;
+  onError?: (error: Error, variables: UploadFileParams) => void;
 }
 
 export function useUploadFile({ onMutate, onSuccess, onError }: Props = {}) {
   const mutation = useMutation({
-    mutationFn: ({ file, contextId }: UploadFileVariables) => uploadFile({ body: { file }, contextId }),
+    mutationFn: uploadFile,
     onMutate,
     onSuccess,
     onError,

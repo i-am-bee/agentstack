@@ -7,7 +7,7 @@
   BeeAI Platform
 </h1>
 
-<h4 align="center">Discover, run, and share agents from any framework</h4>
+<h4 align="center">Test, debug, and share agents with complete UIs - add trajectory, citations, forms, file uploads, and more</h4>
 
 <div align="center">
 
@@ -21,125 +21,77 @@
 <p align="center">
     <a href="#key-features">Key Features</a> •
     <a href="#quickstart">Quickstart</a> •
-    <a href="#documentation">Documentation</a> •
-    <a href="#agent-catalog">Agent Catalog</a>
+    <a href="#documentation">Documentation</a>
 </p>
 
 <div align="center">
 
 </div>
 
----------------------------
+<div align="center">
+  <img src="docs/images/ui-example2.png" alt="UI Example" width="650">
+</div>
 
-## 🚀 IMPORTANT UPDATE
+---
 
-**ACP is now part of A2A under the Linux Foundation!**  
-<br>
-👉 [Learn more](https://github.com/orgs/i-am-bee/discussions/5) | 🛠️ [Migration Guide](https://github.com/i-am-bee/beeai-platform/blob/main/docs/community-and-support/acp-a2a-migration-guide.mdx)
+BeeAI is an open-source platform that makes it easy to test, debug, and share AI agents in an interactive UI — with out-of-the-box trajectory, citations, and more.  
 
----------------------------
+Built on the [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) and hosted by the **Linux Foundation**, BeeAI bridges the gap between different agent ecosystems.
 
-<br />
-
-**BeeAI** is an open-source platform that makes it easy to **discover**, **run**, and **share** AI agents across frameworks. Built on the [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) and hosted by the **Linux Foundation**, BeeAI bridges the gap between different agent ecosystems.
-
-## The Problem BeeAI Solves
-
-Teams trying to operationalize AI agents face three critical challenges:
-
-- **Framework Fragmentation:** Different agent frameworks create silos and duplicated efforts
-- **Deployment Complexity:** Each agent requires its own setup, limiting scalability
-- **Discovery Challenges:** No central hub exists for finding and using available agents
-
-BeeAI provides a standardized platform to discover, run, and share agents from any framework - for both individuals and teams.
-
-## 👩‍💻 For Individual Developers
-
-BeeAI makes it easy to experiment with agent capabilities on your own machine:
-
-- 🧪 **Try agents** instantly from the community catalog without complex setup
-- 📦 Use **standard interfaces** that create consistent user experiences
-- 🛠️ **Package existing agents** from any framework using standardized containers
-- 🌍 **Share agents** with others through a consistent web interface
-
-## 👥 For Teams
-
-As you scale from personal experimentation to team adoption, BeeAI grows with you:
-
-- 🌐 **Deploy a centralized BeeAI instance** that the entire team can access
-- 📚 Create a **team catalog** where developers publish and end users discover agents
-- 🧰 **Standardize agent interfaces** for consistent user experiences
-- 🔐 **Centrally manage** LLM connections to control costs and access
+---
 
 ## Key Features
 
-| Feature | How It Works | Business Value |
-| :------ | :----------- | :------------- |
-| **Agent Catalog** | One BeeAI platform serves your entire team | Everyone works from the same system with unified management |
-| **Framework Agnostic** | BeeAI implements the Agent2Agent (A2A) Protocol to standardize agent interfaces regardless of how they're built | Developers use their preferred tools while maintaining compatibility |
-| **Containerized Agents** | Each agent runs in its own container with defined resource limits | Better performance, improved security, and efficient resource usage |
-| **Consistent Interfaces** | Predictable agent interactions | Learn once, use everywhere |
-| **Agent Discovery** | All agents appear in a searchable catalog with capability details | End users easily find agents and developers see usage patterns |
-| **LLM Provider Flexibility** | Connect to any LLM provider | Use the best model for each task and easily switch providers |
+| Feature | Description |
+|:---------|:-------------|
+| 🎯 Instant Agent UI | Generate a shareable front-end from your code in minutes. Focus on your agent's logic, not UI frameworks. |
+| 🚀 Effortless Deployment | Go from container to production-ready. We handle database, storage, scaling, and RAG so you can focus on your agent. |
+| 🔄 Multi-Provider Playground | Test across OpenAI, Anthropic, Gemini, IBM watsonx, Ollama and more. Instantly compare performance and cost to find the optimal model. |
+| 🔧 Framework-Agnostic | Run agents from LangChain, CrewAI, BeeAI and more on a single platform. Enable cross-framework collaboration without rewriting your code. |
 
 ## Quickstart
 
+### Installation
+
+```sh
+sh -c "$(curl -LsSf https://raw.githubusercontent.com/i-am-bee/beeai-platform/HEAD/install.sh)"
+```
+
 > [!TIP]
-> This is the short version. See the [installation guide](https://docs.beeai.dev/introduction/quickstart) for detailed instructions.
+> The one-line script works on Linux and macOS. For manual setup or experimental Windows support, see the [quickstart guide](https://docs.beeai.dev/introduction/quickstart).
 
-1. **Install** the BeeAI CLI using [uv](https://docs.astral.sh/uv/) (on Linux you'll also need [QEMU](https://www.qemu.org/download/#linux)):
-
-```sh
-uv tool install beeai-cli
-```
-
-2. **Start** the BeeAI platform:
+### Usage
 
 ```sh
-beeai platform start
+beeai ui                     # Launch web interface
+beeai list                   # See what agents are available
+beeai run chat "Hi!"         # Send a message to chat agent
+beeai run chat               # Try interactive mode
+beeai info chat              # View agent details
+beeai --help                 # See all options
 ```
 
-3. **Configure** the LLM provider:
+### Build Your First Agent
 
 ```sh
-beeai model setup
+git clone https://github.com/i-am-bee/beeai-platform-agent-starter my-agent
+cd my-agent
+uv run server               # Start your agent
 ```
 
-4. **Use** the CLI:
-
+Then in another terminal:
 ```sh
-# List all available agents
-beeai list
-
-# Run an agent interactively
-beeai run chat
-
-# Run an agent with direct input
-beeai run chat "Hello! How are you?"
-
-# Get agent details and parameters
-beeai info chat
-
-# View all CLI options
-beeai --help
+beeai run example_agent "Alice"  # Test your agent
 ```
 
-5. **Launch** the web interface:
+You should see: "Ciao Alice!" 🎉
 
-```sh
-beeai ui
-```
-
-> [!NOTE]
-> The web UI is intentionally simplified for end-users who need basic agent interactions without CLI complexity. Think of the web UI as a deployment target for your agents, not your primary development environment.
+> [!TIP]
+> Follow the [Hello World tutorial](https://docs.beeai.dev/build-agents/hello-world) for a step-by-step guide to building your first agent.
 
 ## Documentation
 
 Visit [docs.beeai.dev](https://docs.beeai.dev) for full documentation.
-
-## Agent Catalog
-
-Visit [beeai.dev/agents](https://beeai.dev/agents) for the list of reference agent implementations.
 
 ## Community
 
@@ -165,12 +117,14 @@ Special thanks to our contributors for helping us improve BeeAI.
 
 ## Acknowledgements
 
-Special thanks to the following outstanding projects for their inspiration and influence:
+BeeAI builds upon the foundations established by several pioneering projects in the agent and protocol ecosystem:
 
-- [Model Context Protocol](https://github.com/modelcontextprotocol)
-- [Language Server Protocol](https://github.com/microsoft/language-server-protocol)
-- [JSON-RPC](https://www.jsonrpc.org/)
-- [Natural Language Interaction Protocol](https://github.com/nlip-project)
+- [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) - The open standard enabling cross-framework agent communication
+- [Model Context Protocol](https://github.com/modelcontextprotocol) - Advancing how AI models interact with context
+- [Language Server Protocol](https://github.com/microsoft/language-server-protocol) - Demonstrating the power of standardized tooling protocols
+- [JSON-RPC](https://www.jsonrpc.org/) - The specification underlying modern RPC communication
+
+We're grateful to these communities for advancing the state of agent infrastructure and interoperability.
 
 ---
 

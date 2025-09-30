@@ -2,10 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
+import pathlib
 
+import anyio
 import kr8s
 import procrastinate
-from anyio import Path
 from kink import Container, di
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
@@ -29,15 +30,14 @@ def setup_database_engine(config: Configuration) -> AsyncEngine:
     return create_async_engine(str(config.persistence.db_url.get_secret_value()), isolation_level="READ COMMITTED")
 
 
-async def setup_kubernetes_client(config: Configuration):
-    namespace = config.k8s_namespace
+async def setup_kubernetes_client(namespace: str | None = None, kubeconfig: pathlib.Path | str | dict | None = None):
     if namespace is None:
-        ns_path = Path("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
+        ns_path = anyio.Path("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
         if await ns_path.exists():
             namespace = (await ns_path.read_text()).strip()
 
     async def api_factory():
-        return await kr8s.asyncio.Api(bypass_factory=True, namespace=namespace, kubeconfig=str(config.k8s_kubeconfig))
+        return await kr8s.asyncio.Api(bypass_factory=True, namespace=namespace, kubeconfig=kubeconfig)
 
     return api_factory
 
@@ -55,14 +55,21 @@ async def bootstrap_dependencies(dependency_overrides: Container | None = None):
     _set_di(
         IProviderDeploymentManager,
         KubernetesProviderDeploymentManager(
-            api_factory=await setup_kubernetes_client(di[Configuration]),
+            api_factory=await setup_kubernetes_client(
+                di[Configuration].k8s_namespace,
+                di[Configuration].k8s_kubeconfig,
+            ),
             manifest_template_dir=di[Configuration].provider.manifest_template_dir,
         ),
     )
     _set_di(
         IProviderBuildManager,
         KubernetesProviderBuildManager(
-            api_factory=await setup_kubernetes_client(di[Configuration]),
+            configuration=di[Configuration],
+            api_factory=await setup_kubernetes_client(
+                di[Configuration].provider_build.k8s_namespace,
+                di[Configuration].provider_build.k8s_kubeconfig,
+            ),
             manifest_template_dir=di[Configuration].provider.manifest_template_dir,
         ),
     )

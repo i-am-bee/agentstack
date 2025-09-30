@@ -61,10 +61,7 @@ export function AgentSecretsProvider({ agent, agentClient, children }: PropsWith
 
   const updateSecret = useCallback(
     (key: string, value: string) => {
-      updateVariable({
-        providerId: agent.provider.id,
-        body: { [key]: value },
-      });
+      updateVariable({ id: agent.provider.id, variables: { [key]: value } });
     },
     [agent.provider.id, updateVariable],
   );
@@ -73,8 +70,8 @@ export function AgentSecretsProvider({ agent, agentClient, children }: PropsWith
     (secrets: Record<string, string>) => {
       if (Object.keys(secrets).length) {
         updateVariable({
-          providerId: agent.provider.id,
-          body: secrets,
+          id: agent.provider.id,
+          variables: secrets,
         });
       }
     },

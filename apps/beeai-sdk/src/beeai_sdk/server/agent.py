@@ -39,7 +39,7 @@ from beeai_sdk.server.constants import _IMPLICIT_DEPENDENCY_PREFIX
 from beeai_sdk.server.context import RunContext
 from beeai_sdk.server.dependencies import extract_dependencies
 from beeai_sdk.server.logging import logger
-from beeai_sdk.server.store.context_store import ContextStore, record_event
+from beeai_sdk.server.store.context_store import ContextStore
 from beeai_sdk.server.utils import cancel_task
 
 AgentFunction: TypeAlias = Callable[[], AsyncGenerator[RunYield, RunYieldResume]]
@@ -218,7 +218,6 @@ def agent(
                     current_task=request_context.current_task,
                     related_tasks=request_context.related_tasks,
                     call_context=request_context.call_context,
-                    store=...,  # pyright: ignore [reportArgumentType], will be set below, after deps are initialized
                 )
 
                 async with AsyncExitStack() as stack:
@@ -229,7 +228,7 @@ def agent(
                             depends(message, context, dependency_args)
                         )
 
-                    context.store = await context_store.create(
+                    context._store = await context_store.create(
                         context_id=request_context.context_id,
                         initialized_dependencies=list(dependency_args.values()),
                     )
@@ -327,21 +326,13 @@ class Executor(AgentExecutor):
             )
 
         try:
-            async with self._agent_executor_span(task_updater, context, context_store) as (execute_fn, run_context):
+            async with self._agent_executor_span(task_updater, context, context_store) as (execute_fn, _run_context):
                 agent_generator_fn = execute_fn()
 
-                if context.message:
-                    await record_event(context.message, run_context.store)
-
                 await task_updater.start_work()
-
-                record_queue = task_updater.event_queue.tap()
-
                 value: RunYieldResume = None
                 opened_artifacts: set[str] = set()
                 while True:
-                    if value:
-                        await run_context.store.store(value)
                     yielded_value = await agent_generator_fn.asend(value)
                     match yielded_value:
                         case str(text):
@@ -440,7 +431,6 @@ class Executor(AgentExecutor):
                         case _:
                             raise ValueError(f"Invalid value yielded from agent: {type(yielded_value)}")
                     value = None
-                    await record_event(await record_queue.dequeue_event(), context_store=run_context.store)
         except StopAsyncIteration:
             await task_updater.complete()
         except CancelledError:

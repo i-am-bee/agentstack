@@ -12,6 +12,7 @@ from datetime import timedelta
 from uuid import UUID
 
 from kink import inject
+from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, wait_fixed
 
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.common import PaginatedResult
@@ -111,7 +112,9 @@ class ProviderBuildService:
             await uow.provider_builds.delete(provider_build_id=provider_build_id)
             await uow.commit()
 
-    async def stream_logs(self, provider_build_id: UUID) -> Callable[..., AsyncIterator[str]]:
+    async def stream_logs(
+        self, provider_build_id: UUID, wait_for_start_timeout: timedelta = timedelta(minutes=5)
+    ) -> Callable[..., AsyncIterator[str]]:
         logs_container = LogsContainer()
 
         logs_task = asyncio.create_task(
@@ -123,9 +126,36 @@ class ProviderBuildService:
                 raise BuildAlreadyFinishedError(platform_build_id=build.id, state=build.status)
 
         async def watch_for_completion():
+            logs_container.add_stdout("Waiting for build job to be scheduled...")
             state = BuildState.FAILED
-            with suppress(Exception):
-                state = await self._build_manager.wait_for_completion(provider_build_id=provider_build_id)
+            try:
+                async for attempt in AsyncRetrying(
+                    stop=stop_after_delay(wait_for_start_timeout),
+                    wait=wait_fixed(timedelta(seconds=2)),
+                    retry=retry_if_exception_type(EntityNotFoundError),
+                    reraise=True,
+                ):
+                    with attempt:
+                        async with self._uow() as uow:
+                            # If the build or worker fails to deploy the job, the wait would get stuck retrying
+                            # waiting for a k8s job that will never be created. Hence, we check database state:
+                            build = await uow.provider_builds.get(provider_build_id=provider_build_id)
+                            if build.status in {BuildState.FAILED, BuildState.COMPLETED}:
+                                state = build.status
+                                break
+                        state = await self._build_manager.wait_for_completion(provider_build_id=provider_build_id)
+            except EntityNotFoundError:
+                logs_container.add(
+                    ProcessLogMessage(
+                        stream=ProcessLogType.STDOUT,
+                        message=(
+                            "Wait timeout for job to be scheduled exceeded, the job queue might be busy at the moment."
+                            "The job will continue to run in the background when the queue is available."
+                        ),
+                        error=True,
+                    )
+                )
+                return
             logs_container.add(ProcessLogMessage(stream=ProcessLogType.STDOUT, message=f"Job {state}.", finished=True))
 
         watch_for_completion_task = asyncio.create_task(watch_for_completion())
@@ -137,7 +167,8 @@ class ProviderBuildService:
                         if message.model_dump().get("error"):
                             raise RuntimeError(f"Error capturing logs: {message.message}")
                         yield json.dumps(message.model_dump(mode="json"))
-                        if message.model_dump().get("finished"):
+                        message_dict = message.model_dump()
+                        if message_dict.get("finished") or message_dict.get("error"):
                             return
             finally:
                 await cancel_task(logs_task)

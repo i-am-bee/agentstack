@@ -165,13 +165,21 @@ spec:
               value: {{ .Values.providerBuilds.buildRegistry.registryPrefix | quote }}
             - name: PROVIDER_BUILD__IMAGE_FORMAT
               value: {{ .Values.providerBuilds.buildRegistry.imageFormat | quote }}
+            {{- if .Values.providerBuilds.externalClusterExecutor.namespace }}
+            - name: PROVIDER_BUILD__K8S_NAMESPACE
+              value: {{ .Values.providerBuilds.externalClusterExecutor.namespace | quote }}
             {{- end }}
-            {{- range $provider := .Values.githubTokens }}
-            - name: GITHUB_REGISTRY__{{ $provider.host | upper }}__TOKEN
+            {{- if .Values.providerBuilds.externalClusterExecutor.kubeconfig }}
+            - name: PROVIDER_BUILD__K8S_KUBECONFIG
+              value: /app/external_build_kubeconfig
+            {{- end }}
+            {{- end }}
+            {{- if .Values.github.auths }}
+            - name: GITHUB_REGISTRY_CONFIG_JSON
               valueFrom:
                 secretKeyRef:
                   name: beeai-platform-secret
-                  key: GITHUB_REGISTRY__{{ $provider.host | upper }}__TOKEN
+                  key: .githubconfigjson
             {{- end }}
             - name: AGENT_REGISTRY__LOCATIONS__FILE
               value: file:///app/config/registry.yaml
@@ -253,6 +261,12 @@ spec:
             - name: OBJECT_STORAGE__USE_SSL
               value: {{ ternary "true" "false" (eq (include "beeai.s3.protocol" .) "https") | quote}}
           volumeMounts:
+            {{- if .Values.providerBuilds.externalClusterExecutor.kubeconfig }}
+            - name: provider-build-external-kubeconfig
+              mountPath: /app/external_build_kubeconfig
+              subPath: providerBuildExternalClusterKubeconfig
+              readOnly: true
+            {{- end }}
             - name: beeai-platform-providers
               mountPath: /app/config
               readOnly: true
@@ -263,6 +277,11 @@ spec:
               {{- toYaml . | nindent 12 }}
             {{- end }}
       volumes:
+        {{- if .Values.providerBuilds.externalClusterExecutor.kubeconfig }}
+        - name: provider-build-external-kubeconfig
+          secret:
+            secretName: beeai-platform-secret
+        {{- end }}
         - name: beeai-platform-providers
           configMap:
             name: beeai-platform-providers-cm

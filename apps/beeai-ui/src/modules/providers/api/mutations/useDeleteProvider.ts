@@ -5,7 +5,6 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { agentKeys } from '#modules/agents/api/keys.ts';
 import { providerKeys } from '#modules/providers/api/keys.ts';
 
 import { deleteProvider } from '..';
@@ -17,7 +16,7 @@ export function useDeleteProvider() {
   const mutation = useMutation({
     mutationFn: deleteProvider,
     onSuccess: (_data, variables) => {
-      queryClient.setQueryData<ProvidersListResponse>(agentKeys.lists(), (data) => {
+      queryClient.setQueryData<ProvidersListResponse>(providerKeys.lists(), (data) => {
         if (!data) {
           return data;
         }
@@ -28,7 +27,7 @@ export function useDeleteProvider() {
       });
     },
     meta: {
-      invalidates: [providerKeys.lists(), agentKeys.lists()],
+      invalidates: [providerKeys.lists()],
       errorToast: {
         title: 'Failed to delete provider.',
         includeErrorMessage: true,

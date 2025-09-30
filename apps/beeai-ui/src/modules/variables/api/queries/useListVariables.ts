@@ -12,10 +12,10 @@ interface Props {
   providerId?: string;
 }
 
-export function useListVariables({ providerId }: Props) {
+export function useListVariables({ providerId = '' }: Props) {
   return useQuery({
-    queryKey: variableKeys.list(providerId ?? ''),
-    queryFn: () => listVariables(providerId!),
+    queryKey: variableKeys.list(providerId),
+    queryFn: () => listVariables({ id: providerId }),
     enabled: Boolean(providerId),
   });
 }

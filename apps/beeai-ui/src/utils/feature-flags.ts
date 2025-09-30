@@ -7,15 +7,13 @@ import { z } from 'zod';
 
 const booleanProp = (defaultValue: boolean | undefined = false) => z.boolean().optional().default(defaultValue);
 
-const featureFlagsSchema = z
-  .object({
-    Variables: booleanProp(),
-    Providers: booleanProp(),
-    ModelProviders: booleanProp(true),
-    MCPOAuth: booleanProp(true),
-    MCP: booleanProp(),
-  })
-  .strict();
+const featureFlagsSchema = z.strictObject({
+  Variables: booleanProp(),
+  Providers: booleanProp(),
+  ModelProviders: booleanProp(true),
+  MCPOAuth: booleanProp(true),
+  MCP: booleanProp(),
+});
 
 export type FeatureFlags = z.infer<typeof featureFlagsSchema>;
 export type FeatureName = keyof FeatureFlags;

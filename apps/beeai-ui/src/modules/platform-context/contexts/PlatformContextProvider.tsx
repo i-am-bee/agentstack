@@ -133,8 +133,8 @@ export function PlatformContextProvider<UIGenericPart>({
     }
 
     const contextToken = await createContextToken({
-      contextId,
-      globalPermissionGrant: {
+      context_id: contextId,
+      grant_global_permissions: {
         llm: ['*'],
         a2a_proxy: [],
         contexts: [],
@@ -150,7 +150,7 @@ export function PlatformContextProvider<UIGenericPart>({
         vector_stores: [],
         context_data: [],
       },
-      contextPermissionGrant: {
+      grant_context_permissions: {
         files: ['*'],
         vector_stores: ['*'],
         context_data: ['*'],

@@ -24,7 +24,7 @@ export function useListAllVariables({ errorToast, retry }: Props = {}) {
     queryFn: async () => {
       return Promise.all(
         providers?.items.map(async (provider) => {
-          const result = await listVariables(provider.id);
+          const result = await listVariables({ id: provider.id });
 
           return { provider, variables: result?.variables ?? {} };
         }) || [],

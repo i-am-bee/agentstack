@@ -3,12 +3,19 @@
 
 import logging
 import re
+import time
+from datetime import timedelta
 from enum import StrEnum
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import httpx
+from async_lru import alru_cache
+from authlib.jose import jwt
 from kink import di, inject
 from pydantic import AnyUrl, BaseModel, ModelWrapValidatorHandler, RootModel, model_validator
+
+if TYPE_CHECKING:
+    from beeai_server.configuration import GithubAppConfiguration, GithubPATConfiguration
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +23,30 @@ logger = logging.getLogger(__name__)
 class GithubVersionType(StrEnum):
     HEAD = "head"
     TAG = "tag"
+
+
+@alru_cache(ttl=timedelta(minutes=15).seconds)
+async def get_github_token(host: str) -> str | None:
+    from beeai_server.configuration import Configuration
+
+    if not (conf := di[Configuration].github_registry.get(host)):
+        return None
+    if conf.type == "pat":
+        return conf.token.get_secret_value()
+    else:
+        now = time.time()
+        payload = {"iat": int(now), "exp": int(now) + 600, "iss": conf.app_id}
+        encoded_jwt = jwt.encode({"alg": "RS256"}, payload, conf.private_key.get_secret_value()).decode("utf-8")
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                f"https://{host}/api/v3/app/installations/{conf.installation_id}/access_tokens",
+                headers={
+                    "Authorization": f"Bearer {encoded_jwt}",
+                    "Accept": "application/vnd.github+json",
+                    "X-GitHub-Api-Version": "2022-11-28",
+                },
+            )
+            return resp.raise_for_status().json()["token"]
 
 
 class ResolvedGithubUrl(BaseModel):
@@ -27,18 +58,24 @@ class ResolvedGithubUrl(BaseModel):
     commit_hash: str
     path: str | None = None
 
-    async def get_raw_url(self, path: str | None = None) -> AnyUrl:
+    @property
+    def _github_config(self) -> "GithubPATConfiguration | GithubAppConfiguration | None":
         from beeai_server.configuration import Configuration
 
-        configuration = di[Configuration]
+        configuration = di[Configuration]  # not using inject due to a  circular import
+        return configuration.github_registry.get(self.host)
 
+    async def get_github_token(self) -> str | None:
+        return await get_github_token(self.host)
+
+    async def get_raw_url(self, path: str | None = None) -> AnyUrl:
         if not path and "." not in (self.path or ""):
             raise ValueError("Path is not specified or it is not a file")
         path = path or self.path
         if not path:
             raise ValueError("Path cannot be empty")
         # For github.com, use raw.githubusercontent.com, for enterprise use API
-        if not (conf := configuration.github_registry.get(self.host)):
+        if not self._github_config:
             if self.host == "github.com":
                 return AnyUrl.build(
                     scheme="https",
@@ -47,7 +84,7 @@ class ResolvedGithubUrl(BaseModel):
                 )
             raise ValueError(f"GitHub token not configured for host: {self.host}")
         # For enterprise, we need to fetch the download_url from the API response
-        token = conf.token.get_secret_value()
+        token = await get_github_token(self.host)
         api_host = f"{self.host}/api/v3"
         async with httpx.AsyncClient() as client:
             headers = {"Authorization": f"token {token}", "Accept": "application/vnd.github.v3+json"}
@@ -214,17 +251,12 @@ class GithubUrl(RootModel):
         except Exception as exc:
             raise ValueError(f"Failed to resolve github version for private repository: {exc!r}") from exc
 
-    @inject
     async def resolve_version(self) -> ResolvedGithubUrl:
-        from beeai_server.configuration import Configuration
-
-        configuration = di[Configuration]
-
-        if not (conf := configuration.github_registry.get(self._host)):
+        if not (token := await get_github_token(self._host)):
             if self._host == "github.com":
                 return await self._resolve_version_public()
             raise ValueError(f"GitHub token not configured for host {self._host}")
-        return await self._resolve_version_api(token=conf.token.get_secret_value())
+        return await self._resolve_version_api(token=token)
 
     def __str__(self):
         version = f"@{self._version}" if self._version else ""

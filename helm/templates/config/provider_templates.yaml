@@ -82,6 +82,15 @@ data:
     data: {{`{{ secret_data }}`}}
 
   {{- if .Values.providerBuilds.enabled }}
+  build-provider-secret.yaml: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: "{{`{{ git_token_secret_name }}`}}"
+      labels:
+        app: "{{`{{ provider_build_label }}`}}"
+    type: Opaque
+    data: {{`{{ secret_data }}`}}
   build-provider-job.yaml: |
     apiVersion: batch/v1
     kind: Job
@@ -93,10 +102,16 @@ data:
     spec:
       backoffLimit: 0
       activeDeadlineSeconds: {{`{{ job_timeout_seconds }}`}}
-      ttlSecondsAfterFinished: 600
+      ttlSecondsAfterFinished: 60
       template:
         spec:
-          {{- include "beeai-platform.imagePullSecrets" . | nindent 10 }}
+          {{- if .Values.providerBuilds.externalClusterExecutor.serviceAccountName }}
+          serviceAccountName: {{ .Values.providerBuilds.externalClusterExecutor.serviceAccountName }}
+          {{- end }}
+          imagePullSecrets:
+            - name: {{.Values.providerBuilds.buildRegistry.secretName | quote}}
+          securityContext:
+            fsGroup: 1000
           restartPolicy: Never
           shareProcessNamespace: true
           initContainers:
@@ -107,8 +122,8 @@ data:
                 - name: GIT_TOKEN
                   valueFrom:
                     secretKeyRef:
-                      name: beeai-platform-secret
-                      key: {{ printf "GITHUB_REGISTRY__{{ git_host_upper }}__TOKEN" }}
+                      name: {{`{{ git_token_secret_name }}`}}
+                      key: GIT_TOKEN
                       optional: true
               args:
                 - -c
@@ -131,6 +146,12 @@ data:
               volumeMounts:
                 - name: workspace
                   mountPath: /workspace
+              securityContext:
+                capabilities:
+                  drop:
+                    - ALL
+                runAsUser: 1000
+                runAsGroup: 1000
             # Build image with BuildKit
             {{- if eq .Values.providerBuilds.buildBackend "buildkit" }}
             - name: buildkit
@@ -195,9 +216,27 @@ data:
                   mountPath: /workspace
                 - name: image-tar
                   mountPath: /tmp
+              securityContext:
+                runAsUser: 0
+                {{- if .Values.providerBuilds.kaniko.useSecurityContextCapabilities }}
+                # Capabilities don't work as expected in k3s. Instead of complex security configuration, use a simple toggle
+                # this can be refined later
+                capabilities:
+                  drop:
+                    - ALL
+                  add:
+                    - CAP_CHOWN
+                    - CAP_SETGID
+                    - CAP_SETUID
+                    - CAP_FOWNER
+                    - CAP_DAC_OVERRIDE
+                {{- end }}
             # Main container: Step 3 Push the intermediary image
             - name: crane-push
               image: ghcr.io/i-am-bee/alpine/crane:0.20.6
+              env:
+                - name: DOCKER_CONFIG
+                  value: /tmp/.docker
               args:
                 - push
                 - /tmp/image.tar
@@ -209,9 +248,15 @@ data:
                 - name: image-tar
                   mountPath: /tmp
                 - name: docker-config
-                  mountPath: /root/.docker/config.json
+                  mountPath: /tmp/.docker/config.json
                   subPath: .dockerconfigjson
                   readOnly: true
+              securityContext:
+                capabilities:
+                  drop:
+                    - ALL
+                runAsUser: 1000
+                runAsGroup: 1000
               resources:
                 requests:
                   memory: "256Mi"
@@ -228,6 +273,12 @@ data:
                   value: "8000"
                 - name: HOST
                   value: "0.0.0.0"
+              securityContext:
+                capabilities:
+                  drop:
+                    - ALL
+                runAsUser: 1000
+                runAsGroup: 1000
               resources:
                 requests:
                   memory: "512Mi"
@@ -239,6 +290,9 @@ data:
             # Main container: Step 3 - Mutate and push final image
             - name: mutate
               image: ghcr.io/i-am-bee/alpine/crane:0.20.6
+              env:
+                - name: DOCKER_CONFIG
+                  value: /tmp/.docker
               command:
                 - /bin/sh
                 - -c
@@ -252,10 +306,11 @@ data:
                     sleep 1
                   done
 
-                  if wget -O /agent-card.json http://127.0.0.1:8000/.well-known/agent-card.json; then
+                  AGENT_CARD_CONTENT=$(wget -O - http://127.0.0.1:8000/.well-known/agent-card.json)
+                  if [ $? -eq 0 ] && [ -n "$AGENT_CARD_CONTENT" ]; then
                     echo "Successfully extracted agent-card.json"
                     echo "Content preview:"
-                    head -n 10 /agent-card.json
+                    echo "$AGENT_CARD_CONTENT" | head -n 10
                   else
                     echo "Failed to extract agent-card.json"
                     exit 1
@@ -264,16 +319,22 @@ data:
                   echo "Starting image mutation..."
                   echo "Extraction complete!"
 
-                  LABEL_CONTENT=$(base64 -w 0 /agent-card.json)
+                  LABEL_CONTENT=$(echo -n "$AGENT_CARD_CONTENT" | base64 -w 0)
                   echo "Label content size: $(echo -n $LABEL_CONTENT | wc -c) bytes"
                   crane mutate {{- if .Values.providerBuilds.buildRegistry.insecure }} --insecure{{- end }} {{`{{ destination }}`}} \
                     --label "beeai.dev.agent.json=${LABEL_CONTENT}"
 
               volumeMounts:
                 - name: docker-config
-                  mountPath: /root/.docker/config.json
+                  mountPath: /tmp/.docker/config.json
                   subPath: .dockerconfigjson
                   readOnly: true
+              securityContext:
+                capabilities:
+                  drop:
+                    - ALL
+                runAsUser: 1000
+                runAsGroup: 1000
               resources:
                 requests:
                   memory: "256Mi"

@@ -227,20 +227,23 @@ for agent in agents/*; do (cd $agent && uv lock); done
 yq -i ".version = \"$new_version\"" apps/beeai-ui/package.json
 yq -i ".version = \"$new_version\"" apps/beeai-web/package.json
 yq -i ".providers[].location |= sub(\":(.*)\$\"; \":\" + \"$new_version\")" agent-registry.yaml
+perl -pi -e "s/^(LATEST_BEEAI_VERSION=).*/\${1}$new_version/" install.sh
+if [[ "$new_version" != *"-rc"* ]]; then perl -pi -e "s/^(LATEST_STABLE_BEEAI_VERSION=).*/\${1}$new_version/" install.sh; fi
 
 # Confirm commit and push
 if gum confirm "Release version $new_version now?"; then
   (
     set -eux -o pipefail
-    git add agent-registry.yaml helm/Chart.yaml apps/beeai-{cli,server,sdk}/{uv.lock,pyproject.toml} apps/beeai-{ui,web}/package.json agents/*/uv.lock
+    git add agent-registry.yaml helm/Chart.yaml apps/beeai-{cli,server,sdk}/{uv.lock,pyproject.toml} apps/beeai-{ui,web}/package.json agents/*/uv.lock install.sh
     git commit -m "release: v$new_version"
     git tag "v$new_version"
     git push --atomic origin main "v$new_version"
   )
-  if gum confirm "Follow GitHub Action? (Requires gh CLI.)"; then
+  if command -v gh >/dev/null; then
     gum spin --title="Waiting for GitHub Action to start..." sleep 10
     gh run watch $(gh run list --workflow=Release --branch=v$new_version --limit=1 --json databaseId,status -q '.[0].databaseId') || true
   fi
+  echo "GitHub action started. Check the progress and result on: https://github.com/i-am-bee/beeai-platform/actions/workflows/release.yml"
 fi
 '''
 

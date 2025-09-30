@@ -52,7 +52,7 @@ export type ApiRequest<
 
 export type ApiQuery<
   Path extends keyof paths,
-  Method extends keyof paths[Path] & 'get' = 'get',
+  Method extends keyof paths[Path] & ('get' | 'post' | 'delete') = 'get',
 > = paths[Path][Method] extends {
   parameters: { query?: infer Q };
 }

@@ -11,9 +11,9 @@ import { useDebounceCallback } from 'usehooks-ts';
 
 export function useScrollbarWidth() {
   const [scrollbarWidth, setScrollbarWidth] = useState<number>(0);
-  const [element, setElement] = useState<HTMLElement | null>(null);
+  const [element, setElement] = useState<HTMLDivElement | null>(null);
 
-  const checkScrollbar = useCallback((element: HTMLElement) => {
+  const checkScrollbar = useCallback((element: HTMLDivElement) => {
     const scrollbarWidth = element.offsetWidth - element.clientWidth;
 
     setScrollbarWidth(scrollbarWidth);
@@ -21,7 +21,7 @@ export function useScrollbarWidth() {
 
   const debouncedCheckScrollbar = useDebounceCallback(checkScrollbar, 200);
 
-  const ref: RefCallback<HTMLElement> = useCallback(
+  const ref: RefCallback<HTMLDivElement> = useCallback(
     (element) => {
       if (!element) {
         return;

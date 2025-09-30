@@ -23,7 +23,7 @@ import { AgentToolsList } from './AgentToolsList';
 
 export function AgentDetailPanel() {
   const providerId = useProviderIdFromUrl();
-  const { data: agent, isPending } = useAgent({ providerId: providerId ?? '' });
+  const { data: agent, isPending } = useAgent({ providerId });
   const { activeSidePanel } = useApp();
 
   if (!agent) return null;

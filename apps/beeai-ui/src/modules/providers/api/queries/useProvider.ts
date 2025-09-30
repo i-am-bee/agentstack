@@ -12,10 +12,10 @@ interface Props {
   id?: string;
 }
 
-export function useProvider({ id }: Props) {
+export function useProvider({ id = '' }: Props) {
   const query = useQuery({
-    queryKey: providerKeys.detail(id ?? ''),
-    queryFn: () => readProvider(id!),
+    queryKey: providerKeys.detail(id),
+    queryFn: () => readProvider({ id }),
     enabled: Boolean(id),
   });
 
