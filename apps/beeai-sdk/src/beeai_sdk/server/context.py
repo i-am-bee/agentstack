@@ -37,8 +37,8 @@ class RunContext(BaseModel, arbitrary_types_allowed=True):
     async def load_history(self) -> AsyncIterator[Message | Artifact]:
         if not self._store:
             raise RuntimeError("Context store is not initialized")
-        async for message in self._store.load_history():
-            yield message
+        async for item in self._store.load_history():
+            yield item
 
     def yield_sync(self, value: RunYield) -> RunYieldResume:
         self._yield_queue.sync_q.put(value)
