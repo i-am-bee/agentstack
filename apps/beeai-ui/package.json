@@ -19,6 +19,7 @@
     "@carbon/react": "catalog:",
     "@carbon/styles": "^1.90.0",
     "@floating-ui/react": "^0.27.16",
+    "@ibm/plex": "^6.4.1",
     "@radix-ui/react-slot": "^1.2.3",
     "@tanstack/react-query": "catalog:",
     "clsx": "catalog:",
