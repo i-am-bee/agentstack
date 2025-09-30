@@ -191,18 +191,35 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
       });
 
       try {
+        const artifactMessage = messages.find((m) => m.artifactId);
+        console.log(artifactMessage, messages);
+
+        let artifact: undefined | { start_index: number; end_index: number; artifact_id: string } = undefined;
+        if (artifactMessage) {
+          artifact = {
+            start_index: 0,
+            end_index:
+              artifactMessage.parts[0].kind === UIMessagePartKind.Text ? artifactMessage.parts[0].text.length : 0,
+            artifact_id: artifactMessage.artifactId ?? '',
+          };
+        }
+
         const run = agentClient.chat({
           message,
           contextId,
           fulfillments,
           taskId,
           settings: settings.current,
+          artifact,
         });
         pendingRun.current = run;
 
-        pendingSubscription.current = run.subscribe(({ parts, taskId: responseTaskId }) => {
+        pendingSubscription.current = run.subscribe(({ parts, taskId: responseTaskId, artifactId }) => {
           updateCurrentAgentMessage((message) => {
             message.taskId = responseTaskId;
+            if (artifactId) {
+              message.artifactId = artifactId;
+            }
           });
 
           parts.forEach((part) => {

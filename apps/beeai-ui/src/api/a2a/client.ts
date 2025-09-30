@@ -105,7 +105,7 @@ export const buildA2AClient = async <UIGenericPart = never>({
 
   const client = await A2AClient.fromCardUrl(agentCardUrl, { fetchImpl: clientFetch });
 
-  const chat = ({ message, contextId, fulfillments, taskId: initialTaskId, settings }: ChatParams) => {
+  const chat = ({ message, contextId, fulfillments, taskId: initialTaskId, settings, artifact }: ChatParams) => {
     const messageSubject = new Subject<ChatResult<UIGenericPart>>();
 
     let taskId: undefined | TaskId = initialTaskId;
@@ -169,6 +169,17 @@ export const buildA2AClient = async <UIGenericPart = never>({
         };
       }
 
+      if (artifact) {
+        metadata = {
+          ...metadata,
+          ['https://a2a-extensions.beeai.dev/ui/canvas/v1']: {
+            start_index: artifact.start_index,
+            end_index: artifact.end_index,
+            artifact_id: artifact.artifact_id,
+          },
+        };
+      }
+
       const stream = client.sendMessageStream({
         message: createUserMessage({ message, contextId, metadata, taskId }),
       });
@@ -177,7 +188,7 @@ export const buildA2AClient = async <UIGenericPart = never>({
         messageSubject.asObservable().pipe(
           filter(
             (result: ChatResult): result is FormRequiredResult | OAuthRequiredResult | SecretRequiredResult =>
-              result.type !== RunResultType.Parts,
+              ![RunResultType.Parts, RunResultType.Artifact].includes(result.type),
           ),
           defaultIfEmpty(null),
         ),
@@ -233,7 +244,7 @@ export const buildA2AClient = async <UIGenericPart = never>({
 
             const parts = handleArtifactUpdate(event);
 
-            messageSubject.next({ type: RunResultType.Parts, parts, taskId });
+            messageSubject.next({ type: RunResultType.Artifact, parts, taskId, artifactId: event.artifact.artifactId });
           });
       }
 
@@ -252,8 +263,14 @@ export const buildA2AClient = async <UIGenericPart = never>({
             filter(
               (
                 result,
-              ): result is { type: RunResultType.Parts; parts: Array<UIMessagePart | UIGenericPart>; taskId: TaskId } =>
-                result.type === 'parts',
+              ): result is
+                | { type: RunResultType.Parts; parts: Array<UIMessagePart | UIGenericPart>; taskId: TaskId }
+                | {
+                    type: RunResultType.Artifact;
+                    parts: Array<UIMessagePart | UIGenericPart>;
+                    taskId: TaskId;
+                    artifactId: string;
+                  } => [RunResultType.Parts, RunResultType.Artifact].includes(result.type),
             ),
           )
           .subscribe(fn);

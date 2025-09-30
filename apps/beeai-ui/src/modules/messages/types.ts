@@ -21,6 +21,7 @@ export interface UIMessageBase {
   role: Role;
   parts: UIMessagePart[];
   taskId?: TaskId;
+  artifactId?: string;
   error?: Error;
 }
 
