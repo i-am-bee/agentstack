@@ -20,7 +20,7 @@ interface PlatformContextValue {
   history?: ListContextHistoryResponse;
 
   getContextId: () => ContextId;
-  resetContext: (agent: Agent) => void;
+  resetContext: () => void;
   createContext: (agent: Agent) => Promise<void>;
 }
 
