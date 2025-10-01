@@ -17,7 +17,7 @@ class ContextCreateRequest(BaseModel):
 
 
 class ContextUpdateRequest(BaseModel):
-    """Request schema for context creation."""
+    """Request schema for context update."""
 
     metadata: Metadata | None = None
 
