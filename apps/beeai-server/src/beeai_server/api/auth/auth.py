@@ -54,11 +54,35 @@ ROLE_PERMISSIONS: dict[UserRole, Permissions] = {
     ),
 }
 ROLE_PERMISSIONS[UserRole.DEVELOPER] = ROLE_PERMISSIONS[UserRole.USER] | Permissions(
-    providers={"read", "write"},  # TODO provider ownership
+    providers={"read", "write"},
     provider_builds={"read", "write"},
     provider_variables={"read", "write"},
     mcp_providers={"read", "write"},
 )
+
+"""
+global entities:
+    - model_providers
+    - system_configuration
+    - mcp_providers
+    - mcp_tools
+private entities (scoped to user):
+    - files
+    - vector_stores
+    - variables
+    - contexts
+    - context_data
+    - feedback
+semi-private entities:
+    - providers
+        - any user list and show detail about any provider
+        - developers can create/delete and manage only their own providers
+        - admins can create/delete and manage any provider
+    - provider_builds
+        - any user list and show detail about any build
+        - developers can create/delete and manage only their own builds
+        - admins can create/delete and manage any build
+"""
 
 
 class ParsedToken(BaseModel):

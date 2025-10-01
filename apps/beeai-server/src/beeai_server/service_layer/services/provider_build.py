@@ -14,10 +14,11 @@ from uuid import UUID
 from kink import inject
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, wait_fixed
 
+from beeai_server.api.schema.common import PaginationQuery
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.common import PaginatedResult
 from beeai_server.domain.models.provider_build import BuildState, ProviderBuild
-from beeai_server.domain.models.user import User
+from beeai_server.domain.models.user import User, UserRole
 from beeai_server.exceptions import BuildAlreadyFinishedError, EntityNotFoundError, InvalidGithubReferenceError
 from beeai_server.service_layer.build_manager import IProviderBuildManager
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
@@ -67,9 +68,19 @@ class ProviderBuildService:
         async with self._uow() as uow:
             return await uow.provider_builds.get(provider_build_id=provider_build_id)
 
-    async def list_builds(self) -> PaginatedResult[ProviderBuild]:
+    async def list_builds(
+        self, pagination: PaginationQuery, status: BuildState | None = None, user: User | None = None
+    ) -> PaginatedResult[ProviderBuild]:
+        user_id = user.id if user else None
         async with self._uow() as uow:
-            return await uow.provider_builds.list_paginated()
+            return await uow.provider_builds.list_paginated(
+                user_id=user_id,
+                limit=pagination.limit,
+                page_token=pagination.page_token,
+                order=pagination.order,
+                order_by=pagination.order_by,
+                status=status,
+            )
 
     async def build_provider(self, provider_build_id: UUID):
         async with self._uow() as uow:
@@ -103,27 +114,32 @@ class ProviderBuildService:
                 await uow.commit()
             raise
 
-    async def delete_build(self, provider_build_id: UUID):
+    async def delete_build(self, provider_build_id: UUID, user: User):
+        user_id = user.id if user.role != UserRole.ADMIN else None
         async with self._uow() as uow:
-            build = await uow.provider_builds.get(provider_build_id=provider_build_id)
+            build = await uow.provider_builds.get(provider_build_id=provider_build_id, user_id=user_id)
             if build.status not in {BuildState.FAILED, BuildState.COMPLETED}:
                 with suppress(EntityNotFoundError):
                     await self._build_manager.cancel_job(provider_build_id=provider_build_id)
-            await uow.provider_builds.delete(provider_build_id=provider_build_id)
+            await uow.provider_builds.delete(provider_build_id=provider_build_id, user_id=user_id)
             await uow.commit()
 
     async def stream_logs(
-        self, provider_build_id: UUID, wait_for_start_timeout: timedelta = timedelta(minutes=5)
+        self,
+        provider_build_id: UUID,
+        user: User,
+        wait_for_start_timeout: timedelta = timedelta(minutes=5),
     ) -> Callable[..., AsyncIterator[str]]:
         logs_container = LogsContainer()
+        user_id = user.id if user.role != UserRole.ADMIN else None
+        async with self._uow() as uow:
+            build = await uow.provider_builds.get(provider_build_id=provider_build_id, user_id=user_id)
+            if build.status in {BuildState.FAILED, BuildState.COMPLETED}:
+                raise BuildAlreadyFinishedError(platform_build_id=build.id, state=build.status)
 
         logs_task = asyncio.create_task(
             self._build_manager.stream_logs(provider_build_id=provider_build_id, logs_container=logs_container)
         )
-        async with self._uow() as uow:
-            build = await uow.provider_builds.get(provider_build_id=provider_build_id)
-            if build.status in {BuildState.FAILED, BuildState.COMPLETED}:
-                raise BuildAlreadyFinishedError(platform_build_id=build.id, state=build.status)
 
         async def watch_for_completion():
             logs_container.add_stdout("Waiting for build job to be scheduled...")

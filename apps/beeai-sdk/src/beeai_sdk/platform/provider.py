@@ -5,6 +5,7 @@
 import typing
 from contextlib import asynccontextmanager
 from datetime import timedelta
+from uuid import UUID
 
 import pydantic
 from a2a.client import ClientConfig, ClientFactory
@@ -35,6 +36,7 @@ class Provider(pydantic.BaseModel):
     agent_card: AgentCard
     state: typing.Literal["missing", "starting", "ready", "running", "error"] = "missing"
     last_error: ProviderErrorMessage | None = None
+    created_by: UUID
     missing_configuration: list[EnvVar] = pydantic.Field(default_factory=list)
 
     @staticmethod

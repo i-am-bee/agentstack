@@ -27,7 +27,7 @@ router = fastapi.APIRouter()
 
 @router.post("")
 async def create_provider(
-    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"write"}))],
+    user: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"write"}))],
     request: CreateProviderRequest,
     provider_service: ProviderServiceDependency,
     configuration: ConfigurationDependency,
@@ -36,6 +36,7 @@ async def create_provider(
     if auto_remove and not configuration.provider.auto_remove_enabled:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Auto remove functionality is disabled")
     return await provider_service.create_provider(
+        user=user.user,
         location=request.location,
         agent_card=request.agent_card,
         auto_remove=auto_remove,
@@ -47,7 +48,7 @@ async def create_provider(
 async def preview_provider(
     request: CreateProviderRequest,
     provider_service: ProviderServiceDependency,
-    _: Annotated[AuthorizedUser, Depends(RequiresPermissions())],
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"write"}))],
 ) -> ProviderWithState:
     return await provider_service.preview_provider(location=request.location, agent_card=request.agent_card)
 
@@ -56,10 +57,11 @@ async def preview_provider(
 async def list_providers(
     provider_service: ProviderServiceDependency,
     request: Request,
-    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}), use_cache=False)],
+    user: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}), use_cache=False)],
+    user_owned: Annotated[bool, Query()] = False,
 ) -> PaginatedResult[ProviderWithState]:
     providers = []
-    for provider in await provider_service.list_providers():
+    for provider in await provider_service.list_providers(user=user.user if user_owned else None):
         new_provider = provider.model_copy(
             update={
                 "agent_card": create_proxy_agent_card(provider.agent_card, provider_id=provider.id, request=request)
@@ -87,18 +89,20 @@ async def get_provider(
 async def delete_provider(
     id: UUID,
     provider_service: ProviderServiceDependency,
-    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"write"}))],
+    user: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"write"}))],
 ) -> None:
-    await provider_service.delete_provider(provider_id=id)
+    # admin can delete any provider, other users only their providers
+    await provider_service.delete_provider(provider_id=id, user=user.user)
 
 
 @router.get("/{id}/logs")
 async def stream_logs(
-    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"write"}))],
+    user: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"write"}))],
     id: UUID,
     provider_service: ProviderServiceDependency,
 ) -> StreamingResponse:
-    logs_iterator = await provider_service.stream_logs(provider_id=id)
+    # admin can see logs from all providers, other users only logs of their provider
+    logs_iterator = await provider_service.stream_logs(provider_id=id, user=user.user)
     return streaming_response(logs_iterator())
 
 
@@ -107,15 +111,17 @@ async def update_provider_variables(
     id: UUID,
     request: UpdateVariablesRequest,
     provider_service: ProviderServiceDependency,
-    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(provider_variables={"write"}))],
+    user: Annotated[AuthorizedUser, Depends(RequiresPermissions(provider_variables={"write"}))],
 ) -> None:
-    await provider_service.update_provider_env(provider_id=id, env=request.variables)
+    # admin can update all variables, other users only variables of their provider
+    await provider_service.update_provider_env(provider_id=id, env=request.variables, user=user.user)
 
 
 @router.get("/{id}/variables")
 async def list_provider_variables(
     id: UUID,
     provider_service: ProviderServiceDependency,
-    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(provider_variables={"read"}))],
+    user: Annotated[AuthorizedUser, Depends(RequiresPermissions(provider_variables={"read"}))],
 ) -> ListVariablesSchema:
-    return ListVariablesSchema(variables=await provider_service.list_provider_env(provider_id=id))
+    # admin can see all variables, other users only variables of their provider
+    return ListVariablesSchema(variables=await provider_service.list_provider_env(provider_id=id, user=user.user))

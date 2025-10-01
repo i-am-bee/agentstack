@@ -24,7 +24,7 @@ provider_builds_table = Table(
     Column("source", JSON, nullable=False),
     Column("created_at", DateTime(timezone=True), nullable=False),
     # The CASCADE might leave some k8s jobs orphaned without cancellation, but jobs have timeout and self-deletion
-    Column("created_by", ForeignKey("users.id", ondelete="CASCADE"), nullable=True),
+    Column("created_by", ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
     Column("status", sql_enum(BuildState), nullable=False),
     Column("destination", String(512), nullable=False),
 )
@@ -68,22 +68,30 @@ class SqlAlchemyProviderBuildRepository(IProviderBuildRepository):
             }
         )
 
-    async def get(self, *, provider_build_id: UUID) -> ProviderBuild:
+    async def get(self, *, provider_build_id: UUID, user_id: UUID | None = None) -> ProviderBuild:
         query = select(provider_builds_table).where(provider_builds_table.c.id == provider_build_id)
+        if user_id:
+            query = query.where(provider_builds_table.c.created_by == user_id)
         result = await self._connection.execute(query)
         if not (row := result.fetchone()):
             raise EntityNotFoundError(entity="provider_build", id=provider_build_id)
         return self._to_provider_build(row)
 
-    async def delete(self, *, provider_build_id: UUID) -> int:
+    async def delete(self, *, provider_build_id: UUID, user_id: UUID | None = None) -> int:
         query = provider_builds_table.delete().where(provider_builds_table.c.id == provider_build_id)
+        if user_id:
+            query = query.where(provider_builds_table.c.created_by == user_id)
         result = await self._connection.execute(query)
         if not result.rowcount:
             raise EntityNotFoundError("provider_build", provider_build_id)
         return result.rowcount
 
-    async def list(self, *, status: BuildState | None = None) -> AsyncIterator[ProviderBuild]:
+    async def list(
+        self, *, status: BuildState | None = None, user_id: UUID | None = None
+    ) -> AsyncIterator[ProviderBuild]:
         query = provider_builds_table.select()
+        if user_id:
+            query = query.where(provider_builds_table.c.created_by == user_id)
         if status is not None:
             query = query.where(provider_builds_table.c.status == status)
         async for row in await self._connection.stream(query):
@@ -97,8 +105,11 @@ class SqlAlchemyProviderBuildRepository(IProviderBuildRepository):
         order: str = "desc",
         order_by: str = "created_at",
         status: BuildState | None = None,
+        user_id: UUID | None = None,
     ) -> PaginatedResult[ProviderBuild]:
         query = provider_builds_table.select()
+        if user_id:
+            query = query.where(provider_builds_table.c.created_by == user_id)
         if status is not None:
             query = query.where(provider_builds_table.c.status == status)
 

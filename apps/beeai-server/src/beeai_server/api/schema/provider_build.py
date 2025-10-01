@@ -3,8 +3,15 @@
 
 from pydantic import BaseModel
 
+from beeai_server.api.schema.common import PaginationQuery
+from beeai_server.domain.models.provider_build import BuildState
 from beeai_server.utils.github import GithubUrl
 
 
 class CreateProviderBuildRequest(BaseModel):
     location: GithubUrl
+
+
+class ProviderBuildListQuery(PaginationQuery):
+    status: BuildState | None = None
+    user_owned: bool = False

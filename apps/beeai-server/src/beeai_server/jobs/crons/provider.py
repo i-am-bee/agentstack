@@ -18,6 +18,7 @@ from beeai_server.domain.models.provider import ProviderLocation
 from beeai_server.exceptions import EntityNotFoundError
 from beeai_server.jobs.queues import Queues
 from beeai_server.service_layer.services.providers import ProviderService
+from beeai_server.service_layer.services.users import UserService
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
 from beeai_server.utils.utils import extract_messages
 
@@ -37,9 +38,16 @@ async def scale_down_providers(timestamp: int, service: ProviderService):
 @blueprint.periodic(cron=get_configuration().agent_registry.sync_period_cron)
 @blueprint.task(queueing_lock="check_registry", queue=str(Queues.CRON_PROVIDER))
 @inject
-async def check_registry(timestamp: int, configuration: Configuration, provider_service: ProviderService):
+async def check_registry(
+    timestamp: int,
+    configuration: Configuration,
+    provider_service: ProviderService,
+    user_service: UserService,
+):
     if not configuration.agent_registry.locations:
         return
+
+    user = await user_service.get_user_by_email("admin@beeai.dev")
 
     registry_by_provider_id = {}
     desired_providers = {}
@@ -80,6 +88,7 @@ async def check_registry(timestamp: int, configuration: Configuration, provider_
         provider_location = desired_providers[provider_id]
         try:
             await provider_service.create_provider(
+                user=user,
                 location=provider_location,
                 registry=registry_by_provider_id[provider_id],
             )

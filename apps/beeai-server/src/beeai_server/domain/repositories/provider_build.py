@@ -11,7 +11,9 @@ from beeai_server.domain.models.provider_build import BuildState, ProviderBuild
 
 @runtime_checkable
 class IProviderBuildRepository(Protocol):
-    async def list(self, *, status: BuildState | None = None) -> AsyncIterator[ProviderBuild]:
+    async def list(
+        self, *, status: BuildState | None = None, user_id: UUID | None = None
+    ) -> AsyncIterator[ProviderBuild]:
         yield ...  # type: ignore
 
     async def list_paginated(
@@ -22,9 +24,10 @@ class IProviderBuildRepository(Protocol):
         order: str = "desc",
         order_by: str = "created_at",
         status: BuildState | None = None,
+        user_id: UUID | None = None,
     ) -> PaginatedResult[ProviderBuild]: ...
 
     async def create(self, *, provider_build: ProviderBuild) -> None: ...
     async def update(self, *, provider_build: ProviderBuild) -> None: ...
-    async def get(self, *, provider_build_id: UUID) -> ProviderBuild: ...
-    async def delete(self, *, provider_build_id: UUID) -> int: ...
+    async def get(self, *, provider_build_id: UUID, user_id: UUID | None = None) -> ProviderBuild: ...
+    async def delete(self, *, provider_build_id: UUID, user_id: UUID | None = None) -> int: ...

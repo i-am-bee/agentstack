@@ -7,7 +7,7 @@ from datetime import timedelta
 
 import pytest
 from a2a.types import AgentCapabilities, AgentCard
-from sqlalchemy import text
+from sqlalchemy import UUID, text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from beeai_server.configuration import Configuration
@@ -27,7 +27,7 @@ def set_di_configuration(override_global_dependency):
 
 
 @pytest.fixture
-async def test_provider(set_di_configuration) -> Provider:
+async def test_provider(set_di_configuration, admin_user: UUID) -> Provider:
     """Create a test provider for use in tests."""
     return Provider(
         source=NetworkProviderLocation(root="http://localhost:8000"),
@@ -44,6 +44,7 @@ async def test_provider(set_di_configuration) -> Provider:
         ),
         auto_stop_timeout=timedelta(minutes=5),
         auto_remove=False,
+        created_by=admin_user,
     )
 
 
@@ -66,7 +67,7 @@ async def test_create_provider(db_transaction: AsyncConnection, test_provider: P
 
 
 @pytest.mark.usefixtures("set_di_configuration")
-async def test_get_provider(db_transaction: AsyncConnection, test_provider):
+async def test_get_provider(db_transaction: AsyncConnection, test_provider, admin_user: UUID):
     # Create repository
     repository = SqlAlchemyProviderRepository(connection=db_transaction)
 
@@ -90,12 +91,13 @@ async def test_get_provider(db_transaction: AsyncConnection, test_provider):
         },
         "auto_stop_timeout_sec": 300,  # 5 minutes
         "auto_remove": False,
+        "created_by": admin_user,
     }
 
     await db_transaction.execute(
         text(
-            "INSERT INTO providers (id, source, registry, auto_stop_timeout_sec, auto_remove, agent_card, created_at, last_active_at) "
-            "VALUES (:id, :source, :registry, :auto_stop_timeout_sec, :auto_remove, :agent_card, :created_at, :last_active_at)"
+            "INSERT INTO providers (id, source, registry, auto_stop_timeout_sec, auto_remove, agent_card, created_at, last_active_at, created_by) "
+            "VALUES (:id, :source, :registry, :auto_stop_timeout_sec, :auto_remove, :agent_card, :created_at, :last_active_at, :created_by)"
         ),
         {**provider_data, "agent_card": json.dumps(provider_data["agent_card"])},
     )
@@ -139,7 +141,7 @@ async def test_delete_provider(db_transaction: AsyncConnection, test_provider: P
 
 
 @pytest.mark.usefixtures("set_di_configuration")
-async def test_list_providers(db_transaction: AsyncConnection):
+async def test_list_providers(db_transaction: AsyncConnection, admin_user: UUID):
     # Create repository
     repository = SqlAlchemyProviderRepository(connection=db_transaction)
     source = NetworkProviderLocation(root="http://localhost:8001")
@@ -165,6 +167,7 @@ async def test_list_providers(db_transaction: AsyncConnection):
         },
         "auto_stop_timeout_sec": 300,
         "auto_remove": False,
+        "created_by": admin_user,
     }
     second_provider = {
         "id": source2.provider_id,
@@ -185,12 +188,13 @@ async def test_list_providers(db_transaction: AsyncConnection):
         },
         "auto_stop_timeout_sec": 600,
         "auto_remove": True,
+        "created_by": admin_user,
     }
 
     await db_transaction.execute(
         text(
-            "INSERT INTO providers (id, source, registry, agent_card, created_at, last_active_at, auto_stop_timeout_sec, auto_remove) "
-            "VALUES (:id, :source, :registry, :agent_card, :created_at, :last_active_at, :auto_stop_timeout_sec, :auto_remove)"
+            "INSERT INTO providers (id, source, registry, agent_card, created_at, last_active_at, auto_stop_timeout_sec, auto_remove, created_by) "
+            "VALUES (:id, :source, :registry, :agent_card, :created_at, :last_active_at, :auto_stop_timeout_sec, :auto_remove, :created_by)"
         ),
         [
             {**first_provider, "agent_card": json.dumps(first_provider["agent_card"])},
@@ -226,7 +230,7 @@ async def test_list_providers(db_transaction: AsyncConnection):
     assert first_provider["id"] in non_auto_remove_providers
 
 
-async def test_create_duplicate_provider(db_transaction: AsyncConnection, test_provider: Provider):
+async def test_create_duplicate_provider(db_transaction: AsyncConnection, test_provider: Provider, admin_user: UUID):
     # Create repository
     repository = SqlAlchemyProviderRepository(connection=db_transaction)
 
@@ -240,6 +244,7 @@ async def test_create_duplicate_provider(db_transaction: AsyncConnection, test_p
         agent_card=test_provider.agent_card.model_copy(update={"name": "NEW_AGENT"}),
         auto_stop_timeout=timedelta(minutes=10),  # Different timeout
         auto_remove=False,
+        created_by=admin_user,
     )
 
     # This should raise a DuplicateEntityError because the source is the same
@@ -247,7 +252,7 @@ async def test_create_duplicate_provider(db_transaction: AsyncConnection, test_p
         await repository.create(provider=duplicate_provider)
 
 
-async def test_replace_transient_provider(db_transaction: AsyncConnection, test_provider: Provider):
+async def test_replace_transient_provider(db_transaction: AsyncConnection, test_provider: Provider, admin_user: UUID):
     repository = SqlAlchemyProviderRepository(connection=db_transaction)
     # Create provider with auto_remove=True (should succeed by replacing the existing one)
 
@@ -257,6 +262,7 @@ async def test_replace_transient_provider(db_transaction: AsyncConnection, test_
         source=NetworkProviderLocation(root="http://localhost:8000"),  # Same source will generate same ID
         agent_card=test_provider.agent_card.model_copy(update={"name": "NEW_AGENT"}),
         auto_remove=True,
+        created_by=admin_user,
     )
 
     # This should succeed

@@ -113,6 +113,7 @@ class Provider(BaseModel):
     registry: RegistryLocation | None = None
     auto_remove: bool = False
     created_at: AwareDatetime = Field(default_factory=utc_now)
+    created_by: UUID
     last_active_at: AwareDatetime = Field(default_factory=utc_now)
     agent_card: AgentCard
 
