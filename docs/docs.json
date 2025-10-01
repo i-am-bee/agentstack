@@ -33,7 +33,8 @@
           "build-agents/trajectory",
           "build-agents/citations",
           "build-agents/forms",
-          "build-agents/agent-settings"
+          "build-agents/agent-settings",
+          "build-agents/secrets"
         ]
       },
       {
