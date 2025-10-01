@@ -179,7 +179,6 @@ function ComposeProviderWithContext({ agentClient, children }: PropsWithChildren
           message: userMessage,
           contextId,
           fulfillments,
-          artifact: undefined,
         });
         pendingRun.current = run;
 

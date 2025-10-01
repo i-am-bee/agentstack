@@ -22,7 +22,6 @@ export enum RunResultType {
   OAuthRequired = 'oauth-required',
   SecretRequired = 'secret-required',
   Parts = 'parts',
-  Artifact = 'artifact',
 }
 
 export interface FormRequiredResult {
@@ -43,13 +42,6 @@ export interface SecretRequiredResult {
   secret: SecretDemands;
 }
 
-export interface ArtifactResult<UIGenericPart = never> {
-  type: RunResultType.Artifact;
-  artifactId: string;
-  taskId: TaskId;
-  parts: Array<UIMessagePart | UIGenericPart>;
-}
-
 export interface PartsResult<UIGenericPart = never> {
   type: RunResultType.Parts;
   taskId: TaskId;
@@ -60,8 +52,7 @@ export type ChatResult<UIGenericPart = never> =
   | PartsResult<UIGenericPart>
   | FormRequiredResult
   | OAuthRequiredResult
-  | SecretRequiredResult
-  | ArtifactResult<UIGenericPart>;
+  | SecretRequiredResult;
 
 export interface ChatParams {
   message: UIUserMessage;
@@ -69,21 +60,12 @@ export interface ChatParams {
   fulfillments: Fulfillments;
   settings?: AgentSettings;
   taskId?: TaskId;
-  artifact:
-    | {
-        start_index: number;
-        end_index: number;
-        artifact_id: string;
-      }
-    | undefined;
 }
 
 export interface ChatRun<UIGenericPart = never> {
   taskId?: TaskId;
   done: Promise<null | FormRequiredResult | OAuthRequiredResult | SecretRequiredResult>;
-  subscribe: (
-    fn: (data: { parts: (UIMessagePart | UIGenericPart)[]; taskId: TaskId; artifactId?: string }) => void,
-  ) => () => void;
+  subscribe: (fn: (data: { parts: (UIMessagePart | UIGenericPart)[]; taskId: TaskId }) => void) => () => void;
   cancel: () => Promise<void>;
 }
 
