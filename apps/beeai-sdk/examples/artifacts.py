@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
-from collections.abc import AsyncGenerator
+import re
 from typing import Annotated
 
-from a2a.types import Message, Role, TaskStatus, TextPart
+from a2a.types import Message, Role, TextPart
 from a2a.utils.message import get_message_text
 from beeai_framework.adapters.openai import OpenAIChatModel
 from beeai_framework.agents.experimental import RequirementAgent
@@ -14,7 +14,7 @@ from beeai_framework.backend import AssistantMessage, UserMessage
 from beeai_framework.tools.think import ThinkTool
 
 from beeai_sdk.a2a.extensions import LLMServiceExtensionServer, LLMServiceExtensionSpec
-from beeai_sdk.a2a.extensions.ui.canvas import ArtifactChangeResponse, CanvasExtensionServer, CanvasExtensionSpec
+from beeai_sdk.a2a.extensions.ui.canvas import CanvasEditRequest, CanvasExtensionServer, CanvasExtensionSpec
 from beeai_sdk.a2a.types import AgentArtifact
 from beeai_sdk.server import Server
 from beeai_sdk.server.context import RunContext
@@ -37,24 +37,65 @@ def to_framework_message(message: Message) -> FrameworkMessage:
         raise ValueError(f"Invalid message role: {message.role}")
 
 
-def def_get_system_prompt(canvas_data: ArtifactChangeResponse | None) -> str:
-    base_prompt = "You are a helpful assistant that should help user draft a cooking recipe. Producing a recipe should always be in the markdown format and should always be started with a header with # Cooking Recipe: NAME OF THE RECIPE."
-    if canvas_data:
-        original_recipe = canvas_data.artifact.parts[0].root.text
-        return f"""
-    {base_prompt}
-    You are given previous recipe and the changes that the user has made to the recipe. You should use the changes to help the user draft a new recipe.
+BASE_PROMPT = """\
+You are a helpful assistant that creates cooking recipes.
 
-    Here is the previous recipe:
-        {original_recipe}
+- The recipe should be formatted as markdown and be enclosed in a triple-backtick code block tagged ```recipe.
+- The first line after that should be the recipe name as a top-level heading.
 
-    Here is the part of the recipe that user wishes to change:
-        {original_recipe[canvas_data.start_index : canvas_data.end_index]}
+Example:
 
-    IMPORTANT NOTE: Do not change ANYTHING outside of the part of the recipe that user wishes to change.
-    """
-    else:
-        return base_prompt
+```recipe
+# Bread with butter
+
+## Ingredients
+- bread (1 slice)
+- butter (1 slice)
+
+## Instructions
+1. Cut a slice of bread.
+2. Cut a slice of butter.
+3. Spread the slice of butter on the slice of bread.
+"""
+
+EDIT_PROMPT = (
+    BASE_PROMPT
+    + """
+You are given previous recipe and the changes that the user has made to the recipe. You should use the changes to help the user draft a new recipe.
+
+Here is the previous recipe:
+```recipe
+{artifact_text}
+```
+
+Here is the part of the recipe that user wishes to change:
+```recipe-edit-part
+{artifact_text_substring}
+```
+
+The requested change is:
+```recipe-edit-description
+{edit_description}
+```
+
+Respond with the recipe in full, with the given part changed according to the request. IMPORTANT NOTE: Do not change ANYTHING outside of the part of the recipe that user wishes to change.
+"""
+)
+
+
+def get_system_prompt(canvas_edit_request: CanvasEditRequest | None) -> str:
+    if not canvas_edit_request:
+        return BASE_PROMPT
+    original_recipe = (
+        canvas_edit_request.artifact.parts[0].root.text
+        if isinstance(canvas_edit_request.artifact.parts[0].root, TextPart)
+        else ""
+    )
+    return EDIT_PROMPT.format(
+        artifact_text=original_recipe,
+        artifact_text_substring=original_recipe[canvas_edit_request.start_index : canvas_edit_request.end_index],
+        edit_description=canvas_edit_request.description,
+    )
 
 
 @server.agent()
@@ -69,10 +110,10 @@ async def artifacts_agent(
         CanvasExtensionServer,
         CanvasExtensionSpec(),
     ],
-) -> AsyncGenerator[TaskStatus | Message | str, Message]:
+):
     """Works with artifacts"""
 
-    canvas_data = await canvas.parse_canvas_response(message=input)
+    canvas_edit_request = await canvas.parse_canvas_edit_request(message=input)
 
     if not llm or not llm.data:
         raise ValueError("LLM service extension is required but not available")
@@ -89,14 +130,12 @@ async def artifacts_agent(
         tool_choice_support=set(),
     )
 
-    history = [
-        message async for message in context.store.load_history() if isinstance(message, Message) and message.parts
-    ]
+    history = [message async for message in context.load_history() if isinstance(message, Message) and message.parts]
 
     agent = RequirementAgent(
         llm=llm_client,
         role="helpful assistant",
-        instructions=def_get_system_prompt(canvas_data),
+        instructions=get_system_prompt(canvas_edit_request),
         tools=[ThinkTool()],
         requirements=[ConditionalRequirement(ThinkTool, force_at_step=1)],
         save_intermediate_steps=False,
@@ -115,15 +154,24 @@ async def artifacts_agent(
 
             if tool_name == "final_answer":
                 response = step.input["response"]
+                match = re.compile(r"```recipe\n(.*?)\n```", re.DOTALL).search(response)
 
-                if response.startswith("# Cooking Recipe:"):
-                    lines = response.split("\n")
-                    header_line = lines[0]
-                    recipe_name = header_line.replace("# Cooking Recipe:", "").strip()
-
-                    yield AgentArtifact(name=recipe_name, parts=[TextPart(text=response)])
-                else:
+                if not match:
                     yield response
+                    continue
+
+                if pre_text := response[: match.start()].strip():
+                    yield pre_text
+
+                recipe_content = match.group(1).strip()
+                first_line = recipe_content.split("\n", 1)[0]
+                yield AgentArtifact(
+                    name=first_line.lstrip("# ").strip() if first_line.startswith("#") else "Recipe",
+                    parts=[TextPart(text=recipe_content)],
+                )
+
+                if post_text := response[match.end() :].strip():
+                    yield post_text
 
 
 if __name__ == "__main__":

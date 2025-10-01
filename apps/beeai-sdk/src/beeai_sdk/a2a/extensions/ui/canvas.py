@@ -18,13 +18,17 @@ from beeai_sdk.a2a.extensions.base import (
 )
 
 
-class ArtifactChange(pydantic.BaseModel):
+class CanvasEditRequestMetadata(pydantic.BaseModel):
     start_index: int
     end_index: int
+    description: str
     artifact_id: str
 
 
-class ArtifactChangeResponse(ArtifactChange):
+class CanvasEditRequest(pydantic.BaseModel):
+    start_index: int
+    end_index: int
+    description: str
     artifact: Artifact
 
 
@@ -32,30 +36,30 @@ class CanvasExtensionSpec(NoParamsBaseExtensionSpec):
     URI: str = "https://a2a-extensions.beeai.dev/ui/canvas/v1"
 
 
-class CanvasExtensionServer(BaseExtensionServer[CanvasExtensionSpec, ArtifactChange]):
+class CanvasExtensionServer(BaseExtensionServer[CanvasExtensionSpec, CanvasEditRequestMetadata]):
     def handle_incoming_message(self, message: A2AMessage, context: RunContext):
         super().handle_incoming_message(message, context)
         self.context = context
 
-    async def parse_canvas_response(self, *, message: A2AMessage) -> ArtifactChange | None:
+    async def parse_canvas_edit_request(self, *, message: A2AMessage) -> CanvasEditRequest | None:
         if not message or not message.metadata or not (data := message.metadata.get(self.spec.URI)):
             return None
 
-        artifact_change = ArtifactChange.model_validate(data)
-        self.context.store.load_history()
+        metadata = CanvasEditRequestMetadata.model_validate(data)
 
-        history = [
-            message
-            async for message in self.context.store.load_history()
-            if isinstance(message, Artifact) and message.parts
-        ]
-        for message in history:
-            if message.artifact_id == artifact_change.artifact_id:
-                return ArtifactChangeResponse(
-                    start_index=artifact_change.start_index,
-                    end_index=artifact_change.end_index,
-                    artifact_id=message.artifact_id,
-                    artifact=message,
-                )
+        try:
+            artifact = await anext(
+                artifact
+                async for artifact in self.context.load_history()
+                if isinstance(artifact, Artifact) and artifact.parts
+                if artifact.artifact_id == metadata.artifact_id
+            )
+        except StopAsyncIteration as e:
+            raise ValueError(f"Artifact {metadata.artifact_id} not found in history") from e
 
-        raise ValueError(f"Artifact {artifact_change.artifact_id} not found in history")
+        return CanvasEditRequest(
+            start_index=metadata.start_index,
+            end_index=metadata.end_index,
+            description=metadata.description,
+            artifact=artifact,
+        )
