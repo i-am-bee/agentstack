@@ -16,7 +16,7 @@ from typing import Any
 import anyio.to_thread
 
 
-def filter_dict[T, V](map: dict[str, T | V], value_to_exclude: V = None) -> dict[str, V]:
+def filter_dict[T, V](map: dict[str, T | V], value_to_exclude: V = None) -> dict[str, T]:
     """Remove entries with unwanted values (None by default) from dictionary."""
     return {filter: value for filter, value in map.items() if value is not value_to_exclude}
 

@@ -20,8 +20,10 @@ from beeai_server.api.schema.contexts import (
     ContextCreateRequest,
     ContextHistoryItemCreateRequest,
     ContextListQuery,
+    ContextPatchMetadataRequest,
     ContextTokenCreateRequest,
     ContextTokenResponse,
+    ContextUpdateRequest,
 )
 from beeai_server.domain.models.common import PaginatedResult
 from beeai_server.domain.models.context import Context, ContextHistoryItem
@@ -66,6 +68,32 @@ async def delete_context(
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(contexts={"write"}))],
 ) -> None:
     await context_service.delete(context_id=context_id, user=user.user)
+
+
+@router.put("/{context_id}")
+async def update_context(
+    request: ContextUpdateRequest,
+    context_id: UUID,
+    context_service: ContextServiceDependency,
+    user: Annotated[AuthorizedUser, Depends(RequiresPermissions(contexts={"write"}))],
+) -> EntityModel[Context]:
+    context = await context_service.update(metadata=request.metadata, context_id=context_id, user=user.user)
+    return EntityModel(context)
+
+
+@router.patch("/{context_id}/metadata")
+async def patch_context_metadata(
+    request: ContextPatchMetadataRequest,
+    context_id: UUID,
+    context_service: ContextServiceDependency,
+    user: Annotated[AuthorizedUser, Depends(RequiresPermissions(contexts={"write"}))],
+) -> EntityModel[Context]:
+    context = await context_service.patch_metadata(
+        context_id=context_id,
+        metadata_patch=request.metadata,
+        user=user.user,
+    )
+    return EntityModel(context)
 
 
 @router.post("/{context_id}/token")

@@ -6,18 +6,21 @@ from datetime import timedelta
 from uuid import UUID
 
 from a2a.types import Artifact, Message, Role, TextPart
+from fastapi import status
 from kink import di, inject
+from pydantic import TypeAdapter
 
 from beeai_server.api.schema.common import PaginationQuery
 from beeai_server.api.schema.openai import ChatCompletionRequest
 from beeai_server.configuration import Configuration
-from beeai_server.domain.models.common import Metadata, PaginatedResult
+from beeai_server.domain.models.common import Metadata, MetadataPatch, PaginatedResult
 from beeai_server.domain.models.context import Context, ContextHistoryItem, ContextHistoryItemData, TitleGenerationState
 from beeai_server.domain.models.user import User
 from beeai_server.domain.repositories.file import IObjectStorageRepository
+from beeai_server.exceptions import PlatformError
 from beeai_server.service_layer.services.model_providers import ModelProviderService
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
-from beeai_server.utils.utils import utc_now
+from beeai_server.utils.utils import filter_dict, utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +56,33 @@ class ContextService:
                 order_by=pagination.order_by,
                 include_empty=include_empty,
             )
+
+    async def update(self, *, context_id: UUID, metadata: Metadata | None, user: User) -> Context:
+        async with self._uow() as uow:
+            context = await uow.contexts.get(context_id=context_id, user_id=user.id)
+            context.metadata = metadata
+            context.updated_at = utc_now()
+            await uow.contexts.update(context=context)
+            await uow.commit()
+        return context
+
+    async def patch_metadata(self, *, context_id: UUID, metadata_patch: MetadataPatch, user: User) -> Context:
+        async with self._uow() as uow:
+            context = await uow.contexts.get(context_id=context_id, user_id=user.id)
+            deleted_keys = {k for k, v in metadata_patch.items() if v is None}
+            try:
+                context.metadata = TypeAdapter(Metadata).validate_python(
+                    {
+                        **{k: v for k, v in (context.metadata or {}).items() if k not in deleted_keys},
+                        **filter_dict(metadata_patch),
+                    }
+                )
+            except ValueError as e:  # maximum number of keys exceeded
+                raise PlatformError(str(e), status_code=status.HTTP_400_BAD_REQUEST) from e
+            context.updated_at = utc_now()
+            await uow.contexts.update(context=context)
+            await uow.commit()
+        return context
 
     async def delete(self, *, context_id: UUID, user: User) -> None:
         """Delete context and all attached resources"""

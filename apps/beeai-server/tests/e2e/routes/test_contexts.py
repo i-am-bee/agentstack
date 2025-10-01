@@ -6,6 +6,7 @@ import uuid
 import pytest
 from beeai_sdk.a2a.types import AgentMessage
 from beeai_sdk.platform.context import Context
+from httpx import HTTPStatusError
 
 pytestmark = pytest.mark.e2e
 
@@ -161,3 +162,25 @@ async def test_context_empty_filtering(subtests):
         assert len(context_ids) == 1
         assert context_with_history.id in context_ids
         assert empty_context.id not in context_ids
+
+
+@pytest.mark.usefixtures("clean_up", "setup_platform_client")
+async def test_context_update_and_patch(subtests):
+    """Test updating and patching context metadata."""
+
+    context = None
+
+    with subtests.test("create context with initial metadata"):
+        context = await Context.create(metadata={"key1": "value1", "key2": "value2"})
+        assert context.metadata == {"key1": "value1", "key2": "value2"}
+
+    with subtests.test("update context metadata"):
+        updated = await context.update(metadata={"key3": "value3", "key4": "value4"})
+        assert updated.metadata == {"key3": "value3", "key4": "value4"}
+
+    with subtests.test("patch context metadata"):
+        patched = await context.patch_metadata(metadata={"key3": None, "key5": "value5"})
+        assert patched.metadata == {"key4": "value4", "key5": "value5"}
+
+    with subtests.test("exceed metadata size"), pytest.raises(HTTPStatusError):
+        await context.patch_metadata(metadata={str(i): str(i) for i in range(15)})

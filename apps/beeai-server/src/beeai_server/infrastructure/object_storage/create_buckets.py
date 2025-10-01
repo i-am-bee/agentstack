@@ -27,7 +27,7 @@ def _get_client(config: ObjectStorageConfiguration):
     )
 
 
-@retry(stop=stop_after_delay(timedelta(seconds=5)), wait=wait_fixed(2), reraise=True)
+@retry(stop=stop_after_delay(timedelta(minutes=10)), wait=wait_fixed(2), reraise=True)
 async def _wait_for_db(config: ObjectStorageConfiguration):
     logger.info("Waiting for object storage to be ready...")
     async with _get_client(config) as s3:
