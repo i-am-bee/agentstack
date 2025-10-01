@@ -10,6 +10,7 @@ from beeai_sdk.a2a.extensions import CitationExtensionServer, CitationExtensionS
 from beeai_sdk.server.dependencies import extract_dependencies
 
 
+@pytest.mark.unit
 def test_extract_dependencies_simple() -> None:
     def agent(a: Annotated[CitationExtensionServer, CitationExtensionSpec()]) -> None:
         pass
@@ -18,17 +19,24 @@ def test_extract_dependencies_simple() -> None:
     assert extract_dependencies(signature).keys() == {"a"}
 
 
+@pytest.mark.unit
 def test_extract_dependencies_extra_parameters() -> None:
-    def agent(a: Annotated[CitationExtensionServer, CitationExtensionSpec()], b: bool) -> None:
+    def agent(
+        a: Annotated[CitationExtensionServer, CitationExtensionSpec()], b: bool
+    ) -> None:
         pass
 
     signature = inspect.signature(agent)
     with pytest.raises(TypeError) as exc_info:
         extract_dependencies(signature)
 
-    assert str(exc_info.value) == "The agent function contains extra parameters with unknown type annotation: {'b'}"
+    assert (
+        str(exc_info.value)
+        == "The agent function contains extra parameters with unknown type annotation: {'b'}"
+    )
 
 
+@pytest.mark.unit
 def test_extract_dependencies_kwargs() -> None:
     class MyExtensions(TypedDict):
         a: Annotated[CitationExtensionServer, CitationExtensionSpec()]
@@ -42,6 +50,7 @@ def test_extract_dependencies_kwargs() -> None:
     assert extract_dependencies(signature).keys() == {"a", "b", "c"}
 
 
+@pytest.mark.unit
 def test_extract_dependencies_complex() -> None:
     class MyExtensions(TypedDict):
         b: Annotated[CitationExtensionServer, CitationExtensionSpec()]
