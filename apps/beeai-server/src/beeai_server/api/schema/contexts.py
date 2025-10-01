@@ -23,7 +23,7 @@ class ContextUpdateRequest(BaseModel):
 
 
 class ContextPatchMetadataRequest(BaseModel):
-    """Request schema for context creation."""
+    """Request schema for patching context metadata."""
 
     metadata: MetadataPatch
 
