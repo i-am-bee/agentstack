@@ -20,8 +20,7 @@ from beeai_sdk.a2a.extensions.base import (
 from beeai_sdk.server.context import RunContext
 
 Dependency: TypeAlias = (
-    Callable[[Message, RunContext, dict], Any]
-    | BaseExtensionServer[ExtensionSpecT, MetadataFromClientT]
+    Callable[[Message, RunContext, dict], Any] | BaseExtensionServer[ExtensionSpecT, MetadataFromClientT]
 )
 
 
@@ -73,9 +72,7 @@ def extract_dependencies(sign: inspect.Signature) -> dict[str, Depends]:
                 dependencies[name] = spec
             # extension_param: Annotated[BaseExtensionServer, BaseExtensionSpec()]
             elif (
-                isclass(dep_type)
-                and issubclass(dep_type, BaseExtensionServer)
-                and isinstance(spec, BaseExtensionSpec)
+                isclass(dep_type) and issubclass(dep_type, BaseExtensionServer) and isinstance(spec, BaseExtensionSpec)
             ):
                 dependencies[name] = Depends(dep_type(spec, *rest))
 
@@ -89,14 +86,10 @@ def extract_dependencies(sign: inspect.Signature) -> dict[str, Depends]:
         elif inspect.isclass(param.annotation):
             # message: Message
             if param.annotation == Message:
-                dependencies[name] = Depends(
-                    lambda message, _context, _dependencies: message
-                )
+                dependencies[name] = Depends(lambda message, _context, _dependencies: message)
             # context: Context
             elif param.annotation == RunContext:
-                dependencies[name] = Depends(
-                    lambda _message, context, _dependencies: context
-                )
+                dependencies[name] = Depends(lambda _message, context, _dependencies: context)
             # extension: BaseExtensionServer = BaseExtensionSpec()
             # TODO: this does not get past linters, should we enable it or somehow fix the typing?
             # elif issubclass(param.annotation, BaseExtensionServer) and isinstance(param.default, BaseExtensionSpec):
@@ -114,20 +107,12 @@ def extract_dependencies(sign: inspect.Signature) -> dict[str, Depends]:
 
     missing_keys = seen_keys.difference(dependencies.keys())
     if missing_keys:
-        raise TypeError(
-            f"The agent function contains extra parameters with unknown type annotation: {missing_keys}"
-        )
+        raise TypeError(f"The agent function contains extra parameters with unknown type annotation: {missing_keys}")
     if reserved_names := {param for param in dependencies if param.startswith("__")}:
-        raise TypeError(
-            f"User-defined dependencies cannot start with double underscore: {reserved_names}"
-        )
+        raise TypeError(f"User-defined dependencies cannot start with double underscore: {reserved_names}")
 
-    extension_deps = Counter(
-        dep.extension.spec.URI for dep in dependencies.values() if dep.extension
-    )
+    extension_deps = Counter(dep.extension.spec.URI for dep in dependencies.values() if dep.extension)
     if duplicate_uris := {k for k, v in extension_deps.items() if v > 1}:
-        raise TypeError(
-            f"Duplicate extension URIs found in the agent function: {duplicate_uris}"
-        )
+        raise TypeError(f"Duplicate extension URIs found in the agent function: {duplicate_uris}")
 
     return dependencies
