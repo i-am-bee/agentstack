@@ -104,6 +104,9 @@ class ModelProvider(BaseModel):
                     response_models = response.raise_for_status().json()["resources"]
                     available_models = []
                     for model in response_models:
+                        if not model.get("lifecycle"):  # models without lifecycle might be embedding models
+                            available_models.append((model, 0))
+                            continue
                         events = {e["id"]: e for e in model["lifecycle"]}
                         if "withdrawn" in events:
                             continue
