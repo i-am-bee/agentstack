@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { APP_NAME } from '@i-am-bee/beeai-ui';
 import type { Metadata } from 'next';
 
+import { APP_NAME } from '@/constants';
 import { MainContentView } from '@/layouts/MainContentView';
 import { BlogView } from '@/modules/blog/components/BlogView';
 
