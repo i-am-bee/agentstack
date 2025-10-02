@@ -20,12 +20,12 @@ import { useAgentRun } from '../contexts/agent-run';
 import { RunSettings } from '../settings/RunSettings';
 import type { RunRunFormValues } from '../types';
 import { MCPConfig } from './MCPConfig';
-import { ModelProviders } from './ModelProviders';
 import { PromptExamples } from './PromptExamples';
 import { RunFiles } from './RunFiles';
 import classes from './RunInput.module.scss';
 // import { RunSettings } from './RunSettings';
 import { RunSubmit } from './RunSubmit';
+import { OpenRouterModelProviders } from './OpenRouterModelProviders';
 
 interface Props {
   promptExamples?: string[];
@@ -133,7 +133,8 @@ export function RunInput({ promptExamples }: Props) {
 
             {featureFlags.MCP && <MCPConfig />}
 
-            {featureFlags.ModelProviders && <ModelProviders />}
+            {/* {featureFlags.ModelProviders && <ModelProviders />} */}
+            <OpenRouterModelProviders />
           </div>
 
           <div className={classes.submit}>

@@ -27,6 +27,7 @@ export function PlatformContextProvider<UIGenericPart>({
   const { featureFlags } = useApp();
   const [contextId, setContextId] = useState<string | null>(null);
 
+  const [selectedOpenRouterModel, setSelectedOpenRouterModel] = useState<null | { model: string; key: string }>(null);
   const [selectedEmbeddingProviders, setSelectedEmbeddingProviders] = useState<Record<string, string>>({});
   const [selectedLLMProviders, setSelectedLLMProviders] = useState<Record<string, string>>({});
 
@@ -173,6 +174,7 @@ export function PlatformContextProvider<UIGenericPart>({
       selectedMCPServers,
       requestedSecrets: getRequestSecrets(),
       featureFlags,
+      selectedOpenRouterModel,
     });
   }, [
     selectedLLMProviders,
@@ -181,6 +183,7 @@ export function PlatformContextProvider<UIGenericPart>({
     featureFlags,
     getContextToken,
     getRequestSecrets,
+    selectedOpenRouterModel,
   ]);
 
   useEffect(() => {
@@ -211,6 +214,9 @@ export function PlatformContextProvider<UIGenericPart>({
         selectEmbeddingProvider,
         selectMCPServer,
         selectedMCPServers,
+        selectOpenRouterModel: (model: string, key: string) => {
+          setSelectedOpenRouterModel({ model, key });
+        },
       }}
     >
       {children}

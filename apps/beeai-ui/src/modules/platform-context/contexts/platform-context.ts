@@ -23,6 +23,7 @@ interface PlatformContextValue {
   resetContext: () => void;
   getContextToken: () => Promise<ContextToken>;
   getFullfilments: () => Promise<Fulfillments>;
+  selectOpenRouterModel: (model: string, key: string) => void;
   selectLLMProvider: (key: string, value: string) => void;
   selectEmbeddingProvider: (key: string, value: string) => void;
   selectMCPServer: (key: string, value: string) => void;
