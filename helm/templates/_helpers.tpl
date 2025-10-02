@@ -180,6 +180,15 @@ Return the PostgreSQL Secret Name
 {{- end -}}
 {{- end -}}
 
+{{/*
+Return if SSL is enabled
+*/}}
+{{- define "beeai.databaseSslEnabled" -}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalDatabase.ssl -}}
+true
+{{- end -}}
+{{- end -}}
+
 
 {{/*
 *** S3 CONFIGURATION ***

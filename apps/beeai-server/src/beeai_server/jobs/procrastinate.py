@@ -23,6 +23,12 @@ def create_app(configuration: Configuration) -> procrastinate.App:
     conn_string = str(configuration.persistence.db_url.get_secret_value())
     conn_string = re.sub(r"postgresql\+[a-zA-Z]+://", "postgresql://", conn_string)
 
+    kwargs = {"options": f"-c search_path={configuration.persistence.procrastinate_schema}"}
+    if configuration.persistence.db_use_ssl:
+        kwargs["sslmode"] = "verify-full"
+        if configuration.persistence.db_ssl_cert:
+            kwargs["sslrootcert"] = str(configuration.persistence.db_ssl_cert)
+
     def exit_app_on_db_error(*_args, **_kwargs):
         import os
         import signal
@@ -36,9 +42,7 @@ def create_app(configuration: Configuration) -> procrastinate.App:
             conninfo=conn_string,
             reconnect_failed=exit_app_on_db_error,
             max_size=10,
-            kwargs={
-                "options": f"-c search_path={configuration.persistence.procrastinate_schema}",
-            },
+            kwargs=kwargs,
         ),
         worker_defaults=WorkerOptions(install_signal_handlers=False),
     )

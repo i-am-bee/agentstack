@@ -398,6 +398,14 @@ externalDatabase:
   adminUser: ""
   adminPassword: ""
   existingSecret: ""
+  ssl: true
+  sslRootCert: ""
+  # SSL certificate for the external database to ensure ssl connection, for example:
+  # sslRootCert: |
+  #   -----BEGIN CERTIFICATE-----
+  #   ...
+  #   -----END CERTIFICATE-----
+
 
 ## SeaweedFS chart configuration
 ## ref: https://github.com/seaweedfs/seaweedfs/tree/master/k8s/charts/seaweedfs
