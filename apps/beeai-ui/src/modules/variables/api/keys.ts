@@ -6,5 +6,4 @@
 export const variableKeys = {
   all: () => ['variables'] as const,
   lists: () => [...variableKeys.all(), 'list'] as const,
-  list: (providerId: string) => [...variableKeys.lists(), providerId],
 };

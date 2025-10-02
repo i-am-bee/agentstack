@@ -11,8 +11,8 @@ import { useMessages } from '#modules/messages/contexts/Messages/index.ts';
 import type { UIAgentMessage } from '#modules/messages/types.ts';
 import { getMessageSecret } from '#modules/messages/utils.ts';
 import { useAgentRun } from '#modules/runs/contexts/agent-run/index.ts';
-import { useAgentSecrets } from '#modules/runs/contexts/agent-secrets/index.ts';
 import type { AgentRequestSecrets } from '#modules/runs/contexts/agent-secrets/types.ts';
+import { useUpdateVariable } from '#modules/variables/api/mutations/useUpdateVariable.ts';
 
 import classes from './MessageSecretsForm.module.scss';
 
@@ -24,7 +24,7 @@ export function MessageSecretsForm({ message }: Props) {
   const id = useId();
   const secretPart = getMessageSecret(message);
   const { submitSecrets } = useAgentRun();
-  const { storeSecrets } = useAgentSecrets();
+  const { mutate: updateVariables } = useUpdateVariable();
   const { messages } = useMessages();
 
   const { register, handleSubmit } = useForm({ mode: 'onChange' });
@@ -39,7 +39,7 @@ export function MessageSecretsForm({ message }: Props) {
   }
 
   const onSubmit = async (values: FormValues) => {
-    storeSecrets(values);
+    updateVariables({ variables: values });
 
     const secretsFulfillment = secretDemandsEntries.reduce<AgentRequestSecrets>((acc, [key, demand]) => {
       const value = values[key];

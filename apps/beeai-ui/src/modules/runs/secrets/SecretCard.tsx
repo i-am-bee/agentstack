@@ -16,12 +16,11 @@ import { SecretTag } from './SecretTag';
 interface Props {
   secret: AgentSecret;
   variant?: 'default' | 'inline';
-  updateSecret: (key: string, value: string) => void;
   onCloseAddModal?: () => void;
   onOpenAddModal?: () => void;
 }
 
-export function SecretCard({ secret, variant = 'default', onCloseAddModal, onOpenAddModal, updateSecret }: Props) {
+export function SecretCard({ secret, variant = 'default', onCloseAddModal, onOpenAddModal }: Props) {
   const { openModal } = useModal();
 
   const openAddModal = useCallback(() => {
@@ -31,7 +30,6 @@ export function SecretCard({ secret, variant = 'default', onCloseAddModal, onOpe
       <SecretsAddModal
         secret={secret}
         {...props}
-        updateSecret={updateSecret}
         className={classes.addModal}
         onRequestClose={(force) => {
           onCloseAddModal?.();
@@ -40,7 +38,7 @@ export function SecretCard({ secret, variant = 'default', onCloseAddModal, onOpe
         }}
       />
     ));
-  }, [onOpenAddModal, openModal, secret, updateSecret, onCloseAddModal]);
+  }, [onOpenAddModal, openModal, secret, onCloseAddModal]);
 
   const { name, description } = secret;
 

@@ -34,19 +34,19 @@ export interface paths {
       cookie?: never;
     };
     /** Proxy Request */
-    get: operations['proxy_request_api_v1_a2a__provider_id__patch'];
+    get: operations['proxy_request_api_v1_a2a__provider_id__delete'];
     /** Proxy Request */
-    put: operations['proxy_request_api_v1_a2a__provider_id__patch'];
+    put: operations['proxy_request_api_v1_a2a__provider_id__delete'];
     /** Proxy Request */
-    post: operations['proxy_request_api_v1_a2a__provider_id__patch'];
+    post: operations['proxy_request_api_v1_a2a__provider_id__delete'];
     /** Proxy Request */
-    delete: operations['proxy_request_api_v1_a2a__provider_id__patch'];
+    delete: operations['proxy_request_api_v1_a2a__provider_id__delete'];
     /** Proxy Request */
-    options: operations['proxy_request_api_v1_a2a__provider_id__patch'];
+    options: operations['proxy_request_api_v1_a2a__provider_id__delete'];
     /** Proxy Request */
-    head: operations['proxy_request_api_v1_a2a__provider_id__patch'];
+    head: operations['proxy_request_api_v1_a2a__provider_id__delete'];
     /** Proxy Request */
-    patch: operations['proxy_request_api_v1_a2a__provider_id__patch'];
+    patch: operations['proxy_request_api_v1_a2a__provider_id__delete'];
     trace?: never;
   };
   '/api/v1/a2a/{provider_id}/.well-known/agent-card.json': {
@@ -74,19 +74,19 @@ export interface paths {
       cookie?: never;
     };
     /** Proxy Request */
-    get: operations['proxy_request_api_v1_a2a__provider_id___path__patch'];
+    get: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
     /** Proxy Request */
-    put: operations['proxy_request_api_v1_a2a__provider_id___path__patch'];
+    put: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
     /** Proxy Request */
-    post: operations['proxy_request_api_v1_a2a__provider_id___path__patch'];
+    post: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
     /** Proxy Request */
-    delete: operations['proxy_request_api_v1_a2a__provider_id___path__patch'];
+    delete: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
     /** Proxy Request */
-    options: operations['proxy_request_api_v1_a2a__provider_id___path__patch'];
+    options: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
     /** Proxy Request */
-    head: operations['proxy_request_api_v1_a2a__provider_id___path__patch'];
+    head: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
     /** Proxy Request */
-    patch: operations['proxy_request_api_v1_a2a__provider_id___path__patch'];
+    patch: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
     trace?: never;
   };
   '/api/v1/configurations/system': {
@@ -134,7 +134,8 @@ export interface paths {
     };
     /** Get Context */
     get: operations['get_context_api_v1_contexts__context_id__get'];
-    put?: never;
+    /** Update Context */
+    put: operations['update_context_api_v1_contexts__context_id__put'];
     post?: never;
     /** Delete Context */
     delete: operations['delete_context_api_v1_contexts__context_id__delete'];
@@ -159,6 +160,23 @@ export interface paths {
     options?: never;
     head?: never;
     patch?: never;
+    trace?: never;
+  };
+  '/api/v1/contexts/{context_id}/metadata': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Patch Context Metadata */
+    patch: operations['patch_context_metadata_api_v1_contexts__context_id__metadata_patch'];
     trace?: never;
   };
   '/api/v1/contexts/{context_id}/token': {
@@ -501,59 +519,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/provider_builds': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List Provider Build */
-    get: operations['list_provider_build_api_v1_provider_builds_get'];
-    put?: never;
-    /** Create Provider Build */
-    post: operations['create_provider_build_api_v1_provider_builds_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/provider_builds/{id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get Provider Build */
-    get: operations['get_provider_build_api_v1_provider_builds__id__get'];
-    put?: never;
-    post?: never;
-    /** Delete */
-    delete: operations['delete_api_v1_provider_builds__id__delete'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/provider_builds/{id}/logs': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Stream Logs */
-    get: operations['stream_logs_api_v1_provider_builds__id__logs_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   '/api/v1/providers': {
     parameters: {
       query?: never;
@@ -653,6 +618,24 @@ export interface paths {
     put?: never;
     /** User Feedback */
     post: operations['user_feedback_api_v1_user_feedback_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/variables': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List User Variables */
+    get: operations['list_user_variables_api_v1_variables_get'];
+    /** Update User Variables */
+    put: operations['update_user_variables_api_v1_variables_put'];
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -1458,8 +1441,72 @@ export interface components {
        */
       updated_at?: string;
     };
-    /** VectorStoreResponse */
+    /** ContextResponse */
     beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__11: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Last Active At
+       * Format: date-time
+       */
+      last_active_at?: string;
+      /** Metadata */
+      metadata?: {
+        [key: string]: string;
+      } | null;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at?: string;
+    };
+    /** ContextResponse */
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__12: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Last Active At
+       * Format: date-time
+       */
+      last_active_at?: string;
+      /** Metadata */
+      metadata?: {
+        [key: string]: string;
+      } | null;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at?: string;
+    };
+    /** VectorStoreResponse */
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__13: {
       /** Context Id */
       context_id?: string | null;
       /**
@@ -1491,7 +1538,7 @@ export interface components {
       stats?: components['schemas']['VectorStoreStats'] | null;
     };
     /** VectorStoreResponse */
-    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__12: {
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__14: {
       /** Context Id */
       context_id?: string | null;
       /**
@@ -1530,11 +1577,6 @@ export interface components {
        */
       file: string;
     };
-    /**
-     * BuildState
-     * @enum {string}
-     */
-    BuildState: 'missing' | 'in_progress' | 'completed' | 'failed';
     /** ChatCompletionAllowedToolChoiceParam */
     ChatCompletionAllowedToolChoiceParam: {
       allowed_tools: components['schemas']['ChatCompletionAllowedToolsParam'];
@@ -2002,6 +2044,19 @@ export interface components {
     ContextHistoryItemCreateRequest: components['schemas']['ContextHistoryItemData-Input'];
     'ContextHistoryItemData-Input': components['schemas']['Artifact-Input'] | components['schemas']['Message-Input'];
     'ContextHistoryItemData-Output': components['schemas']['Artifact-Output'] | components['schemas']['Message-Output'];
+    /**
+     * ContextPatchMetadataRequest
+     * @description Request schema for patching context metadata.
+     */
+    ContextPatchMetadataRequest: {
+      /**
+       * Metadata
+       * @description Metadata update, will add or overwrite existing keys, None will delete the key from metadata.
+       */
+      metadata: {
+        [key: string]: string | null;
+      };
+    };
     /** ContextPermissionsGrant */
     ContextPermissionsGrant: {
       /**
@@ -2062,6 +2117,16 @@ export interface components {
       /** Token */
       token: string;
     };
+    /**
+     * ContextUpdateRequest
+     * @description Request schema for context update.
+     */
+    ContextUpdateRequest: {
+      /** Metadata */
+      metadata?: {
+        [key: string]: string;
+      } | null;
+    };
     /** CreateMcpProviderRequest */
     CreateMcpProviderRequest: {
       location: components['schemas']['McpProviderLocation'];
@@ -2087,10 +2152,6 @@ export interface components {
       watsonx_project_id?: string | null;
       /** Watsonx Space Id */
       watsonx_space_id?: string | null;
-    };
-    /** CreateProviderBuildRequest */
-    CreateProviderBuildRequest: {
-      location: components['schemas']['GithubUrl'];
     };
     /** CreateProviderRequest */
     CreateProviderRequest: {
@@ -2285,11 +2346,6 @@ export interface components {
     GithubRegistryLocation: components['schemas']['GithubUrl'];
     /** GithubUrl */
     GithubUrl: string;
-    /**
-     * GithubVersionType
-     * @enum {string}
-     */
-    GithubVersionType: 'head' | 'tag';
     /** GlobalPermissionGrant */
     GlobalPermissionGrant: {
       /**
@@ -2860,20 +2916,6 @@ export interface components {
       /** Total Count */
       total_count: number;
     };
-    /** PaginatedResult[ProviderBuild] */
-    PaginatedResult_ProviderBuild_: {
-      /**
-       * Has More
-       * @default false
-       */
-      has_more: boolean;
-      /** Items */
-      items: components['schemas']['ProviderBuild'][];
-      /** Next Page Token */
-      readonly next_page_token: string | null;
-      /** Total Count */
-      total_count: number;
-    };
     /** PaginatedResult[ProviderWithState] */
     PaginatedResult_ProviderWithState_: {
       /**
@@ -2940,27 +2982,6 @@ export interface components {
       /** Tokenurl */
       tokenUrl: string;
     };
-    /** ProviderBuild */
-    ProviderBuild: {
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at?: string;
-      /**
-       * Created By
-       * Format: uuid
-       */
-      created_by: string;
-      destination: components['schemas']['DockerImageID'];
-      /**
-       * Id
-       * Format: uuid
-       */
-      id?: string;
-      source: components['schemas']['ResolvedGithubUrl'];
-      status: components['schemas']['BuildState'];
-    };
     /**
      * ProviderDeploymentState
      * @enum {string}
@@ -2989,6 +3010,11 @@ export interface components {
        * Format: date-time
        */
       created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
       /** Env */
       readonly env: components['schemas']['EnvVar'][];
       /**
@@ -3017,25 +3043,6 @@ export interface components {
       state: components['schemas']['ProviderDeploymentState'];
     } & {
       [key: string]: unknown;
-    };
-    /** ResolvedGithubUrl */
-    ResolvedGithubUrl: {
-      /** Commit Hash */
-      commit_hash: string;
-      /**
-       * Host
-       * @default github.com
-       */
-      host: string;
-      /** Org */
-      org: string;
-      /** Path */
-      path?: string | null;
-      /** Repo */
-      repo: string;
-      /** Version */
-      version: string;
-      version_type: components['schemas']['GithubVersionType'];
     };
     /** ResourceIdPermission */
     ResourceIdPermission: {
@@ -3298,7 +3305,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__patch: {
+  proxy_request_api_v1_a2a__provider_id__delete: {
     parameters: {
       query?: {
         path?: string;
@@ -3331,7 +3338,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__patch: {
+  proxy_request_api_v1_a2a__provider_id__delete: {
     parameters: {
       query?: {
         path?: string;
@@ -3364,7 +3371,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__patch: {
+  proxy_request_api_v1_a2a__provider_id__delete: {
     parameters: {
       query?: {
         path?: string;
@@ -3397,7 +3404,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__patch: {
+  proxy_request_api_v1_a2a__provider_id__delete: {
     parameters: {
       query?: {
         path?: string;
@@ -3430,7 +3437,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__patch: {
+  proxy_request_api_v1_a2a__provider_id__delete: {
     parameters: {
       query?: {
         path?: string;
@@ -3463,7 +3470,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__patch: {
+  proxy_request_api_v1_a2a__provider_id__delete: {
     parameters: {
       query?: {
         path?: string;
@@ -3496,7 +3503,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__patch: {
+  proxy_request_api_v1_a2a__provider_id__delete: {
     parameters: {
       query?: {
         path?: string;
@@ -3560,7 +3567,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__patch: {
+  proxy_request_api_v1_a2a__provider_id___path__delete: {
     parameters: {
       query?: never;
       header?: never;
@@ -3592,7 +3599,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__patch: {
+  proxy_request_api_v1_a2a__provider_id___path__delete: {
     parameters: {
       query?: never;
       header?: never;
@@ -3624,7 +3631,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__patch: {
+  proxy_request_api_v1_a2a__provider_id___path__delete: {
     parameters: {
       query?: never;
       header?: never;
@@ -3656,7 +3663,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__patch: {
+  proxy_request_api_v1_a2a__provider_id___path__delete: {
     parameters: {
       query?: never;
       header?: never;
@@ -3688,7 +3695,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__patch: {
+  proxy_request_api_v1_a2a__provider_id___path__delete: {
     parameters: {
       query?: never;
       header?: never;
@@ -3720,7 +3727,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__patch: {
+  proxy_request_api_v1_a2a__provider_id___path__delete: {
     parameters: {
       query?: never;
       header?: never;
@@ -3752,7 +3759,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__patch: {
+  proxy_request_api_v1_a2a__provider_id___path__delete: {
     parameters: {
       query?: never;
       header?: never;
@@ -3936,6 +3943,41 @@ export interface operations {
       };
     };
   };
+  update_context_api_v1_contexts__context_id__put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        context_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ContextUpdateRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__11'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   delete_context_api_v1_contexts__context_id__delete: {
     parameters: {
       query?: never;
@@ -4023,6 +4065,41 @@ export interface operations {
         };
         content: {
           'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  patch_context_metadata_api_v1_contexts__context_id__metadata_patch: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        context_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ContextPatchMetadataRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__12'];
         };
       };
       /** @description Validation Error */
@@ -4864,153 +4941,11 @@ export interface operations {
       };
     };
   };
-  list_provider_build_api_v1_provider_builds_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['PaginatedResult_ProviderBuild_'];
-        };
-      };
-    };
-  };
-  create_provider_build_api_v1_provider_builds_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateProviderBuildRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProviderBuild'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_provider_build_api_v1_provider_builds__id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProviderBuild'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  delete_api_v1_provider_builds__id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  stream_logs_api_v1_provider_builds__id__logs_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
   list_providers_api_v1_providers_get: {
     parameters: {
-      query?: never;
+      query?: {
+        user_owned?: boolean;
+      };
       header?: never;
       path?: never;
       cookie?: never;
@@ -5024,6 +4959,15 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['PaginatedResult_ProviderWithState_'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
         };
       };
     };
@@ -5286,6 +5230,59 @@ export interface operations {
       };
     };
   };
+  list_user_variables_api_v1_variables_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ListVariablesSchema'];
+        };
+      };
+    };
+  };
+  update_user_variables_api_v1_variables_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateVariablesRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   create_vector_store_api_v1_vector_stores_post: {
     parameters: {
       query?: {
@@ -5307,7 +5304,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__11'];
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__13'];
         };
       };
       /** @description Validation Error */
@@ -5340,7 +5337,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__12'];
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__14'];
         };
       };
       /** @description Validation Error */

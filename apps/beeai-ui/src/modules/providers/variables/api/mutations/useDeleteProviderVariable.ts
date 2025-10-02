@@ -7,14 +7,14 @@ import { useMutation } from '@tanstack/react-query';
 
 import { providerKeys } from '#modules/providers/api/keys.ts';
 
-import { deleteVariable } from '..';
-import { variableKeys } from '../keys';
+import { deleteProviderVariable } from '..';
+import { providerVariableKeys } from '../keys';
 
-export function useDeleteVariable() {
+export function useDeleteProviderVariable() {
   const mutation = useMutation({
-    mutationFn: deleteVariable,
+    mutationFn: deleteProviderVariable,
     meta: {
-      invalidates: [variableKeys.lists(), providerKeys.lists()],
+      invalidates: [providerVariableKeys.lists(), providerKeys.lists()],
       errorToast: {
         title: 'Failed to delete variable.',
         includeErrorMessage: true,

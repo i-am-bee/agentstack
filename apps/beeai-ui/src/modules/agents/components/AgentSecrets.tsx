@@ -10,7 +10,7 @@ import { SecretCard } from '#modules/runs/secrets/SecretCard.tsx';
 import classes from './AgentSecrets.module.scss';
 
 export function AgentSecrets() {
-  const { secrets, updateSecret } = useAgentSecrets();
+  const { secrets } = useAgentSecrets();
 
   return (
     <div className={classes.root}>
@@ -18,7 +18,7 @@ export function AgentSecrets() {
         <ul className={classes.list}>
           {secrets.map((secret) => (
             <li key={secret.key}>
-              <SecretCard secret={secret} updateSecret={updateSecret} variant="inline" />
+              <SecretCard secret={secret} variant="inline" />
             </li>
           ))}
         </ul>

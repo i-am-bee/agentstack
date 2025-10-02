@@ -9,17 +9,16 @@ import classes from './SecretCardsList.module.scss';
 
 interface Props {
   secrets: AgentSecret[];
-  updateSecret: (key: string, value: string) => void;
   onCloseAddModal?: () => void;
   onOpenAddModal?: () => void;
 }
 
-export function SecretCardsList({ secrets, updateSecret, ...props }: Props) {
+export function SecretCardsList({ secrets, ...props }: Props) {
   return (
     <ul className={classes.root}>
       {secrets.map((secret) => (
         <li key={secret.key}>
-          <SecretCard secret={secret} updateSecret={updateSecret} {...props} />
+          <SecretCard secret={secret} {...props} />
         </li>
       ))}
     </ul>

@@ -21,7 +21,7 @@ import { Modal } from '#components/Modal/Modal.tsx';
 import type { ModalProps } from '#contexts/Modal/modal-context.ts';
 import { useListProviders } from '#modules/providers/api/queries/useListProviders.ts';
 
-import { useUpdateVariable } from '../api/mutations/useUpdateVariable';
+import { useUpdateProviderVariable } from '../api/mutations/useUpdateProviderVariable';
 import classes from './AddVariableModal.module.scss';
 
 export function AddVariableModal({ onRequestClose, ...modalProps }: ModalProps) {
@@ -29,7 +29,7 @@ export function AddVariableModal({ onRequestClose, ...modalProps }: ModalProps) 
 
   const { data, isPending: isProvidersPending } = useListProviders();
 
-  const { mutate: updateVariable, isPending } = useUpdateVariable({
+  const { mutate: updateVariable, isPending } = useUpdateProviderVariable({
     onSuccess: onRequestClose,
   });
 

@@ -16,10 +16,9 @@ import classes from './SecretsAddModal.module.scss';
 interface Props extends ModalProps {
   secret: AgentSecret;
   className?: string;
-  updateSecret: (key: string, value: string) => void;
 }
 
-export function SecretsAddModal({ secret, className, updateSecret, ...modalProps }: Props) {
+export function SecretsAddModal({ secret, className, ...modalProps }: Props) {
   const { name, description } = secret;
 
   return (
@@ -38,7 +37,7 @@ export function SecretsAddModal({ secret, className, updateSecret, ...modalProps
       </ModalHeader>
 
       <ModalBody>
-        <EditSecretForm secret={secret} updateSecret={updateSecret} onSuccess={modalProps.onRequestClose} />
+        <EditSecretForm secret={secret} onSuccess={modalProps.onRequestClose} />
       </ModalBody>
     </Modal>
   );

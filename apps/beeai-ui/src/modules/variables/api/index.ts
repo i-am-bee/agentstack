@@ -6,27 +6,17 @@
 import { api } from '#api/index.ts';
 import { ensureData } from '#api/utils.ts';
 
-import type { DeleteVariableParams, ListVariablesPath, UpdateVariableParams } from './types';
+import type { UpdateVariablesParams } from './types';
 
-export async function listVariables(path: ListVariablesPath) {
-  const response = await api.GET('/api/v1/providers/{id}/variables', { params: { path } });
+export async function listVariables() {
+  const response = await api.GET('/api/v1/variables');
 
   return ensureData(response);
 }
 
-export async function updateVariable({ id, variables }: UpdateVariableParams) {
-  const response = await api.PUT('/api/v1/providers/{id}/variables', {
-    params: { path: { id } },
+export async function updateVariable({ variables }: UpdateVariablesParams) {
+  const response = await api.PUT('/api/v1/variables', {
     body: { variables },
-  });
-
-  return ensureData(response);
-}
-
-export async function deleteVariable({ id, name }: DeleteVariableParams) {
-  const response = await api.PUT('/api/v1/providers/{id}/variables', {
-    params: { path: { id } },
-    body: { variables: { [name]: null } },
   });
 
   return ensureData(response);
