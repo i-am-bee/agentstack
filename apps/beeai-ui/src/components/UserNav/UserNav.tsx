@@ -22,7 +22,10 @@ import classes from './UserNav.module.scss';
 
 export function UserNav() {
   const { transitionTo } = useRouteTransition();
-  const { setNavigationOpen, isAuthEnabled } = useApp();
+  const {
+    setNavigationOpen,
+    config: { isAuthEnabled },
+  } = useApp();
   const isMaxUp = useBreakpointUp('max');
 
   const items: NavItem[] = useMemo(

@@ -21,7 +21,9 @@ import type { FeatureName } from '#utils/feature-flags.ts';
 import { ThemeView } from './ThemeView';
 
 export function SettingsView() {
-  const { featureFlags } = useApp();
+  const {
+    config: { featureFlags },
+  } = useApp();
 
   const items = useMemo(
     () => ITEMS.filter(({ featureName }) => !featureName || featureFlags[featureName]),

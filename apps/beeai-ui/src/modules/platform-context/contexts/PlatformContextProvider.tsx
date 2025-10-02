@@ -24,7 +24,9 @@ export function PlatformContextProvider<UIGenericPart>({
   agentClient,
 }: PropsWithChildren<Props<UIGenericPart>>) {
   const { getRequestSecrets } = useAgentSecrets();
-  const { featureFlags } = useApp();
+  const {
+    config: { featureFlags },
+  } = useApp();
   const [contextId, setContextId] = useState<string | null>(null);
 
   const [selectedEmbeddingProviders, setSelectedEmbeddingProviders] = useState<Record<string, string>>({});

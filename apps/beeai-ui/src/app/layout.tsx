@@ -8,9 +8,9 @@ import '#styles/style.scss';
 import type { Metadata } from 'next';
 
 import { AppProvider } from '#contexts/App/AppProvider.tsx';
+import { getRuntimeConfig } from '#contexts/App/runtime-config.ts';
 import Providers from '#providers.tsx';
-import { APP_FAVICON_SVG, APP_NAME, BASE_PATH, OIDC_ENABLED } from '#utils/constants.ts';
-import { parseFeatureFlags } from '#utils/feature-flags.ts';
+import { APP_FAVICON_SVG, BASE_PATH } from '#utils/constants.ts';
 
 const darkModeScript = `
 (() => {
@@ -33,8 +33,10 @@ const darkModeScript = `
 
 const icon = `${BASE_PATH}${APP_FAVICON_SVG}`;
 
+const runtimeConfig = getRuntimeConfig();
+
 export const metadata: Metadata = {
-  title: APP_NAME,
+  title: runtimeConfig.appName,
   icons: {
     icon: icon,
     shortcut: icon,
@@ -52,7 +54,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: darkModeScript }} />
       </head>
       <body>
-        <AppProvider featureFlags={parseFeatureFlags(process.env.FEATURE_FLAGS)} isAuthEnabled={OIDC_ENABLED}>
+        <AppProvider config={runtimeConfig}>
           <Providers>{children}</Providers>
         </AppProvider>
       </body>

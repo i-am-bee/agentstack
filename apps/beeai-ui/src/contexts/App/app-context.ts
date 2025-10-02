@@ -7,18 +7,15 @@
 
 import { createContext, type Dispatch, type SetStateAction } from 'react';
 
-import type { FeatureFlags } from '#utils/feature-flags.ts';
-
-import type { SidePanelVariant } from './types';
+import type { RuntimeConfig, SidePanelVariant } from './types';
 
 export const AppContext = createContext<AppContextValue | undefined>(undefined);
 
 interface AppContextValue {
-  featureFlags: FeatureFlags;
+  config: RuntimeConfig;
   navigationOpen: boolean;
   closeNavOnClickOutside: boolean;
   activeSidePanel: SidePanelVariant | null;
-  isAuthEnabled: boolean;
   setNavigationOpen: Dispatch<SetStateAction<boolean>>;
   setCloseNavOnClickOutside: Dispatch<SetStateAction<boolean>>;
   openSidePanel: (variant: SidePanelVariant) => void;

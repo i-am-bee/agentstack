@@ -7,17 +7,14 @@
 import type { PropsWithChildren } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 
-import type { FeatureFlags } from '#utils/feature-flags.ts';
-
 import { AppContext } from './app-context';
-import type { SidePanelVariant } from './types';
+import type { RuntimeConfig, SidePanelVariant } from './types';
 
 interface Props {
-  featureFlags: FeatureFlags;
-  isAuthEnabled: boolean;
+  config: RuntimeConfig;
 }
 
-export function AppProvider({ featureFlags, isAuthEnabled, children }: PropsWithChildren<Props>) {
+export function AppProvider({ config, children }: PropsWithChildren<Props>) {
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [closeNavOnClickOutside, setCloseNavOnClickOutside] = useState(false);
   const [activeSidePanel, setActiveSidePanel] = useState<SidePanelVariant | null>(null);
@@ -32,25 +29,16 @@ export function AppProvider({ featureFlags, isAuthEnabled, children }: PropsWith
 
   const contextValue = useMemo(
     () => ({
-      featureFlags,
+      config,
       navigationOpen,
       closeNavOnClickOutside,
       activeSidePanel,
-      isAuthEnabled,
       setNavigationOpen,
       setCloseNavOnClickOutside,
       openSidePanel,
       closeSidePanel,
     }),
-    [
-      featureFlags,
-      navigationOpen,
-      closeNavOnClickOutside,
-      activeSidePanel,
-      isAuthEnabled,
-      openSidePanel,
-      closeSidePanel,
-    ],
+    [config, navigationOpen, closeNavOnClickOutside, activeSidePanel, openSidePanel, closeSidePanel],
   );
 
   return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;

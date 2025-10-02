@@ -7,9 +7,9 @@ import { parseNav } from '#modules/nav/parseNav.ts';
 
 export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
-export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? 'BeeAI';
+export const APP_NAME = process.env.APP_NAME ?? 'BeeAI';
 
-export const COMPANY_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME;
+export const COMPANY_NAME = process.env.COMPANY_NAME;
 
 export const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
 
