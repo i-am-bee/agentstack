@@ -7,7 +7,7 @@ import NextAuth from 'next-auth';
 import type { Provider } from 'next-auth/providers';
 
 import { getProviderConstructor } from '#app/(auth)/providers/providers.ts';
-import { OIDC_ENABLED } from '#utils/constants.ts';
+import { runtimeConfig } from '#contexts/App/runtime-config.ts';
 import { routes } from '#utils/router.ts';
 
 import type { ProviderConfig } from './types';
@@ -19,7 +19,9 @@ const providers: Provider[] = [];
 
 export const AUTH_COOKIE_NAME = 'beeai-platform';
 
-if (OIDC_ENABLED) {
+const { isAuthEnabled } = runtimeConfig;
+
+if (isAuthEnabled) {
   try {
     const providersJson = process.env.OIDC_PROVIDERS;
     if (!providersJson) {
@@ -68,7 +70,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   session: { strategy: 'jwt' },
   trustHost: true,
   // Prevents nextauth errors when authentication is disabled and NEXTAUTH_SECRET is not provided
-  secret: OIDC_ENABLED ? process.env.NEXTAUTH_SECRET : 'dummy_secret',
+  secret: isAuthEnabled ? process.env.NEXTAUTH_SECRET : 'dummy_secret',
   cookies: {
     sessionToken: {
       name: AUTH_COOKIE_NAME,
@@ -81,7 +83,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   callbacks: {
     authorized: ({ auth }) => {
-      return OIDC_ENABLED ? Boolean(auth) : true;
+      return isAuthEnabled ? Boolean(auth) : true;
     },
     jwt: async ({ token, account, trigger, session }) => {
       if (trigger === 'update') {

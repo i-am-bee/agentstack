@@ -8,7 +8,7 @@ import '#styles/style.scss';
 import type { Metadata } from 'next';
 
 import { AppProvider } from '#contexts/App/AppProvider.tsx';
-import { getRuntimeConfig } from '#contexts/App/runtime-config.ts';
+import { runtimeConfig } from '#contexts/App/runtime-config.ts';
 import Providers from '#providers.tsx';
 import { APP_FAVICON_SVG, BASE_PATH } from '#utils/constants.ts';
 
@@ -32,8 +32,6 @@ const darkModeScript = `
 `;
 
 const icon = `${BASE_PATH}${APP_FAVICON_SVG}`;
-
-const runtimeConfig = getRuntimeConfig();
 
 export const metadata: Metadata = {
   title: runtimeConfig.appName,

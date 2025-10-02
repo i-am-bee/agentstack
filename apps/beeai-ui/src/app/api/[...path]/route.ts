@@ -7,7 +7,8 @@ import { redirect } from 'next/navigation';
 import type { NextRequest } from 'next/server';
 
 import { ensureToken } from '#app/(auth)/rsc.tsx';
-import { API_URL, OIDC_ENABLED } from '#utils/constants.ts';
+import { runtimeConfig } from '#contexts/App/runtime-config.ts';
+import { API_URL } from '#utils/constants.ts';
 import { routes } from '#utils/router.ts';
 
 import { transformAgentManifestBody } from './body-transformers';
@@ -31,7 +32,7 @@ async function handler(request: NextRequest, context: RouteContext) {
   }
   targetUrl += search;
 
-  if (OIDC_ENABLED) {
+  if (runtimeConfig.isAuthEnabled) {
     const token = await ensureToken(request);
 
     if (!token) {

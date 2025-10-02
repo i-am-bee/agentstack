@@ -6,12 +6,12 @@
 import { cookies } from 'next/headers';
 import { getToken } from 'next-auth/jwt';
 
-import { OIDC_ENABLED } from '#utils/constants.ts';
+import { runtimeConfig } from '#contexts/App/runtime-config.ts';
 
 import { auth, AUTH_COOKIE_NAME } from './auth';
 
 export const ensureToken = async (request: Request) => {
-  if (!OIDC_ENABLED) {
+  if (!runtimeConfig.isAuthEnabled) {
     return null;
   }
 
