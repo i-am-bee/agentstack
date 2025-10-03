@@ -129,9 +129,7 @@ class FormResponse(BaseModel):
                 case FileFieldValue():
                     yield (
                         key,
-                        [{"uri": file.uri, "name": file.name, "mime_type": file.mime_type} for file in value.value]
-                        if value.value
-                        else None,
+                        [file.model_dump() for file in value.value] if value.value else None,
                     )
                 case _:
                     yield key, value.value
