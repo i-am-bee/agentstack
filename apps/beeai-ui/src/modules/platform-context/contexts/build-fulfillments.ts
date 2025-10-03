@@ -130,16 +130,6 @@ export const buildFullfilments = ({
           //   throw new Error(`Selected provider for LLM demand ${demandKey} not found`);
           // }
 
-          // memo.llm_fulfillments[demandKey] = {
-          //   identifier: 'llm_proxy',
-          //   // api_base: '{platform_url}/api/v1/openai/',
-          //   // api_key: contextToken.token,
-          //   // api_model: selectedLLMProviders[demandKey],
-          //   api_base: 'https://openrouter.ai/api/v1/',
-          //   api_key: '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',
-          //   api_model: 'openai/gpt-4o-mini',
-          // };
-
           return memo;
         },
         { llm_fulfillments: {} },
