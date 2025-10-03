@@ -37,11 +37,8 @@ export function MessageSources({ message }: Props) {
       } else {
         openSidePanel(SidePanelVariant.Sources);
       }
-    } else {
-      if (taskId) {
-        setActiveSource({ number: null, taskId });
-      }
-
+    } else if (taskId) {
+      setActiveSource({ number: null, taskId });
       openSidePanel(SidePanelVariant.Sources);
     }
   }, [isMessageActive, isPanelOpen, taskId, openSidePanel, closeSidePanel, setActiveSource]);
