@@ -11,6 +11,7 @@ import { processMessageMetadata, processParts } from '#api/a2a/part-processors.t
 import { Role } from '#modules/messages/api/types.ts';
 import type { UIAgentMessage, UIUserMessage } from '#modules/messages/types.ts';
 import { type UIMessage, UIMessageStatus } from '#modules/messages/types.ts';
+import { addTranformedMessagePart } from '#modules/messages/utils.ts';
 import type { ContextHistoryItem } from '#modules/platform-context/api/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 
@@ -28,16 +29,23 @@ export function convertHistoryToUIMessages(history: ContextHistoryItem[]): UIMes
           lastTaskId = message.taskId;
 
           return match(message)
-            .with(
-              { role: 'agent' },
-              (): UIAgentMessage => ({
+            .with({ role: 'agent' }, (): UIAgentMessage => {
+              const message: UIAgentMessage = {
                 id: uuid(),
                 role: Role.Agent,
                 status: UIMessageStatus.Completed,
                 taskId: lastTaskId,
-                parts,
-              }),
-            )
+                parts: [],
+              };
+
+              parts.forEach((part) => {
+                const transformedParts = addTranformedMessagePart(part, message);
+
+                message.parts = transformedParts;
+              });
+
+              return message;
+            })
             .with(
               { role: 'user' },
               (): UIUserMessage => ({
