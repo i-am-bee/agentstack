@@ -12,7 +12,6 @@ import fastapi
 import ibm_watsonx_ai
 import ibm_watsonx_ai.foundation_models.embeddings
 import openai
-import openai.pagination
 import openai.types.chat
 from fastapi import Depends, HTTPException
 from fastapi.concurrency import run_in_threadpool
@@ -43,6 +42,22 @@ async def create_chat_completion(
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Model does not support chat completions")
 
     api_key = await model_provider_service.get_provider_api_key(model_provider_id=provider.id)
+
+    if provider.type == ModelProviderType.AWS_BEDROCK:
+        import aws_bedrock_token_generator
+        import botocore.credentials
+
+        # exchange aws_secret_access_key for short-lived Bedrock API key
+        api_key = await run_in_threadpool(
+            aws_bedrock_token_generator.provide_token,
+            region=provider.aws_region,
+            aws_credentials_provider=botocore.credentials.EnvProvider(
+                {
+                    "AWS_ACCESS_KEY_ID": provider.aws_access_key_id,
+                    "AWS_SECRET_ACCESS_KEY": api_key,
+                }
+            ),
+        )
 
     if provider.type == ModelProviderType.WATSONX:
         model = ibm_watsonx_ai.foundation_models.ModelInference(

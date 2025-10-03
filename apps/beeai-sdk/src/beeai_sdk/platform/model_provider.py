@@ -12,6 +12,7 @@ from beeai_sdk.platform.client import PlatformClient, get_platform_client
 
 class ModelProviderType(StrEnum):
     ANTHROPIC = "anthropic"
+    AWS_BEDROCK = "aws_bedrock"
     CEREBRAS = "cerebras"
     CHUTES = "chutes"
     COHERE = "cohere"
@@ -52,6 +53,7 @@ class ModelProvider(pydantic.BaseModel):
     base_url: pydantic.HttpUrl
     watsonx_project_id: str | None = None
     watsonx_space_id: str | None = None
+    aws_access_key_id: str | None = None
     created_at: pydantic.AwareDatetime
     capabilities: set[ModelCapability]
 
@@ -64,6 +66,7 @@ class ModelProvider(pydantic.BaseModel):
         base_url: str | pydantic.HttpUrl,
         watsonx_project_id: str | None = None,
         watsonx_space_id: str | None = None,
+        aws_access_key_id: str | None = None,
         api_key: str,
         client: PlatformClient | None = None,
     ) -> ModelProvider:
@@ -79,6 +82,7 @@ class ModelProvider(pydantic.BaseModel):
                             "base_url": str(base_url),
                             "watsonx_project_id": watsonx_project_id,
                             "watsonx_space_id": watsonx_space_id,
+                            "aws_access_key_id": aws_access_key_id,
                             "api_key": api_key,
                         },
                     )

@@ -44,6 +44,7 @@ def _ollama_exe() -> str:
 
 RECOMMENDED_LLM_MODELS = [
     f"{ModelProviderType.WATSONX}:ibm/granite-3-3-8b-instruct",
+    f"{ModelProviderType.AWS_BEDROCK}:anthropic.claude-3-sonnet-20240229-v1:0",
     f"{ModelProviderType.OPENAI}:gpt-4o",
     f"{ModelProviderType.ANTHROPIC}:claude-sonnet-4-20250514",
     f"{ModelProviderType.CEREBRAS}:llama-3.3-70b",
@@ -73,8 +74,16 @@ RECOMMENDED_EMBEDDING_MODELS = [
 
 LLM_PROVIDERS = [
     Choice(
+        name="Amazon Bedrock".ljust(20),
+        value=(ModelProviderType.AWS_BEDROCK, "Amazon Bedrock", None),
+    ),
+    Choice(
         name="Anthropic Claude".ljust(20),
-        value=(ModelProviderType.ANTHROPIC, "Anthropic Claude", "https://api.anthropic.com/v1"),
+        value=(
+            ModelProviderType.ANTHROPIC,
+            "Anthropic Claude",
+            "https://api.anthropic.com/v1",
+        ),
     ),
     Choice(
         name="Cerebras".ljust(20) + "🆓 has a free tier",
@@ -86,23 +95,44 @@ LLM_PROVIDERS = [
     ),
     Choice(
         name="Cohere".ljust(20) + "🆓 has a free tier",
-        value=(ModelProviderType.COHERE, "Cohere", "https://api.cohere.ai/compatibility/v1"),
+        value=(
+            ModelProviderType.COHERE,
+            "Cohere",
+            "https://api.cohere.ai/compatibility/v1",
+        ),
     ),
-    Choice(name="DeepSeek", value=(ModelProviderType.DEEPSEEK, "DeepSeek", "https://api.deepseek.com/v1")),
+    Choice(
+        name="DeepSeek",
+        value=(ModelProviderType.DEEPSEEK, "DeepSeek", "https://api.deepseek.com/v1"),
+    ),
     Choice(
         name="Google Gemini".ljust(20) + "🆓 has a free tier",
-        value=(ModelProviderType.GEMINI, "Google Gemini", "https://generativelanguage.googleapis.com/v1beta/openai"),
+        value=(
+            ModelProviderType.GEMINI,
+            "Google Gemini",
+            "https://generativelanguage.googleapis.com/v1beta/openai",
+        ),
     ),
     Choice(
         name="GitHub Models".ljust(20) + "🆓 has a free tier",
-        value=(ModelProviderType.GITHUB, "GitHub Models", "https://models.github.ai/inference"),
+        value=(
+            ModelProviderType.GITHUB,
+            "GitHub Models",
+            "https://models.github.ai/inference",
+        ),
     ),
     Choice(
         name="Groq".ljust(20) + "🆓 has a free tier",
         value=(ModelProviderType.GROQ, "Groq", "https://api.groq.com/openai/v1"),
     ),
-    Choice(name="IBM watsonx".ljust(20), value=(ModelProviderType.WATSONX, "IBM watsonx", None)),
-    Choice(name="Jan".ljust(20) + "💻 local", value=(ModelProviderType.JAN, "Jan", "http://localhost:1337/v1")),
+    Choice(
+        name="IBM watsonx".ljust(20),
+        value=(ModelProviderType.WATSONX, "IBM watsonx", None),
+    ),
+    Choice(
+        name="Jan".ljust(20) + "💻 local",
+        value=(ModelProviderType.JAN, "Jan", "http://localhost:1337/v1"),
+    ),
     Choice(
         name="Mistral".ljust(20) + "🆓 has a free tier",
         value=(ModelProviderType.MISTRAL, "Mistral", "https://api.mistral.ai/v1"),
@@ -113,7 +143,11 @@ LLM_PROVIDERS = [
     ),
     Choice(
         name="NVIDIA NIM".ljust(20),
-        value=(ModelProviderType.NVIDIA, "NVIDIA NIM", "https://integrate.api.nvidia.com/v1"),
+        value=(
+            ModelProviderType.NVIDIA,
+            "NVIDIA NIM",
+            "https://integrate.api.nvidia.com/v1",
+        ),
     ),
     Choice(
         name="Ollama".ljust(20) + "💻 local",
@@ -125,7 +159,11 @@ LLM_PROVIDERS = [
     ),
     Choice(
         name="OpenRouter".ljust(20) + "🆓 has some free models",
-        value=(ModelProviderType.OPENROUTER, "OpenRouter", "https://openrouter.ai/api/v1"),
+        value=(
+            ModelProviderType.OPENROUTER,
+            "OpenRouter",
+            "https://openrouter.ai/api/v1",
+        ),
     ),
     Choice(
         name="Perplexity".ljust(20),
@@ -133,7 +171,11 @@ LLM_PROVIDERS = [
     ),
     Choice(
         name="Together.ai".ljust(20) + "🆓 has a free tier",
-        value=(ModelProviderType.TOGETHER, "together.ai", "https://api.together.xyz/v1"),
+        value=(
+            ModelProviderType.TOGETHER,
+            "together.ai",
+            "https://api.together.xyz/v1",
+        ),
     ),
     Choice(
         name="🛠️  Other (RITS, Amazon Bedrock, vLLM, ..., any OpenAI-compatible API)",
@@ -182,6 +224,7 @@ async def _add_provider(capability: ModelCapability, use_true_localhost: bool = 
     provider_name: str
     base_url: str
     watsonx_project_id, watsonx_space_id = None, None
+    aws_region, aws_access_key_id = None, None
     choices = LLM_PROVIDERS if capability == ModelCapability.LLM else EMBEDDING_PROVIDERS
     provider_type, provider_name, base_url = await inquirer.fuzzy(  # type: ignore
         message=f"Select {capability} provider (type to search):", choices=choices
@@ -231,14 +274,46 @@ async def _add_provider(capability: ModelCapability, use_true_localhost: bool = 
         watsonx_project_id = watsonx_project_or_space_id if watsonx_project_or_space == "project" else None
         watsonx_space_id = watsonx_project_or_space_id if watsonx_project_or_space == "space" else None
 
-    if (api_key := os.environ.get(f"{provider_type.upper()}_API_KEY")) is None or not await inquirer.confirm(  # type: ignore
+    if provider_type == ModelProviderType.AWS_BEDROCK:
+        aws_region = await inquirer.select(  # type: ignore
+            message="Select AWS region:",
+            choices=[
+                "us-east-1",
+                "us-west-2",
+                "eu-central-1",
+                "ap-northeast-1",
+                "ap-southeast-2",
+            ],
+            default="us-east-1",
+        ).execute_async()
+        base_url = f"https://bedrock-runtime.{aws_region}.amazonaws.com/openai/v1"
+        if (
+            os.environ.get("AWS_ACCESS_KEY_ID")
+            and os.environ.get("AWS_SECRET_ACCESS_KEY")
+            and await inquirer.confirm(  # type: ignore
+                message="Use AWS credentials from environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)?",
+                default=True,
+            ).execute_async()
+        ):
+            aws_access_key_id = os.environ.get("AWS_ACCESS_KEY_ID")
+            api_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
+        else:
+            aws_access_key_id = await inquirer.text(  # type: ignore
+                message="Enter AWS Access Key ID:", validate=EmptyInputValidator()
+            ).execute_async()
+            api_key = await inquirer.secret(  # type: ignore
+                message="Enter AWS Secret Access Key:", validate=EmptyInputValidator()
+            ).execute_async()
+    elif (api_key := os.environ.get(f"{provider_type.upper()}_API_KEY")) is None or not await inquirer.confirm(  # type: ignore
         message=f"Use the API key from environment variable '{provider_type.upper()}_API_KEY'?",
         default=True,
     ).execute_async():
-        api_key: str = (
+        api_key = (
             "dummy"
             if provider_type in {ModelProviderType.OLLAMA, ModelProviderType.JAN}
-            else await inquirer.secret(message="Enter API key:", validate=EmptyInputValidator()).execute_async()  # type: ignore
+            else await inquirer.secret(  # type: ignore
+                message="Enter API key:", validate=EmptyInputValidator()
+            ).execute_async()
         )
 
     try:
@@ -286,9 +361,10 @@ async def _add_provider(capability: ModelCapability, use_true_localhost: bool = 
                 name=provider_name,
                 type=ModelProviderType(provider_type),
                 base_url=base_url,
-                api_key=api_key,
+                api_key=api_key or "",
                 watsonx_space_id=watsonx_space_id,
                 watsonx_project_id=watsonx_project_id,
+                aws_access_key_id=aws_access_key_id,
             )
 
     except httpx.HTTPError as e:
