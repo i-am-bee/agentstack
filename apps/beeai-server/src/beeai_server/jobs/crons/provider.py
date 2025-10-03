@@ -4,6 +4,7 @@
 import logging
 from contextlib import suppress
 from datetime import timedelta
+from uuid import UUID
 
 import anyio
 import httpx
@@ -15,6 +16,7 @@ from pydantic import RootModel
 from beeai_server import get_configuration
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.provider import ProviderLocation
+from beeai_server.domain.models.registry import ProviderRegistryRecord, RegistryLocation
 from beeai_server.exceptions import EntityNotFoundError
 from beeai_server.jobs.queues import Queues
 from beeai_server.service_layer.services.providers import ProviderService
@@ -49,8 +51,8 @@ async def check_registry(
 
     user = await user_service.get_user_by_email("admin@beeai.dev")
 
-    registry_by_provider_id = {}
-    desired_providers = {}
+    registry_by_provider_id: dict[UUID, RegistryLocation] = {}
+    desired_providers: dict[UUID, ProviderRegistryRecord] = {}
     errors = []
 
     try:
@@ -59,10 +61,10 @@ async def check_registry(
         errors.extend(ex.exceptions if isinstance(ex, ExceptionGroup) else [ex])
 
     for registry in configuration.agent_registry.locations.values():
-        for provider_location in await registry.load():
+        for provider_record in await registry.load():
             try:
-                provider_id = RootModel[ProviderLocation](root=provider_location).root.provider_id
-                desired_providers[provider_id] = provider_location
+                provider_id = RootModel[ProviderLocation](root=provider_record.location).root.provider_id
+                desired_providers[provider_id] = provider_record
                 registry_by_provider_id[provider_id] = registry
             except ValueError as e:
                 errors.append(e)
@@ -79,31 +81,41 @@ async def check_registry(
     for provider_id in old_providers:
         provider = managed_providers[provider_id]
         try:
-            await provider_service.delete_provider(provider_id=provider.id)
+            await provider_service.delete_provider(provider_id=provider.id, user=user)
             logger.info(f"Removed provider {provider.source}")
         except Exception as ex:
             errors.append(RuntimeError(f"[{provider.source}]: Failed to remove provider: {ex}"))
 
     for provider_id in new_providers:
-        provider_location = desired_providers[provider_id]
+        provider_record = desired_providers[provider_id]
         try:
             await provider_service.create_provider(
                 user=user,
-                location=provider_location,
+                location=provider_record.location,
                 registry=registry_by_provider_id[provider_id],
+                auto_stop_timeout=provider_record.auto_stop_timeout,
             )
-            logger.info(f"Added provider {provider_location}")
+            if provider_record.variables:
+                await provider_service.update_provider_env(
+                    provider_id=provider_id, env=provider_record.variables, user=user
+                )
+            logger.info(f"Added provider {provider_record}")
         except Exception as ex:
-            errors.append(RuntimeError(f"[{provider_location}]: Failed to add provider: {ex}"))
+            errors.append(RuntimeError(f"[{provider_record}]: Failed to add provider: {ex}"))
 
     for provider_id in existing_providers:
-        provider_location = desired_providers[provider_id]
+        provider_record = desired_providers[provider_id]
         try:
-            result = await provider_service.upgrade_provider(provider_id=provider_id, location=provider_location)
+            result = await provider_service.upgrade_provider(
+                provider_id=provider_id,
+                location=provider_record.location,
+                auto_stop_timeout=provider_record.auto_stop_timeout,
+                env=provider_record.variables,
+            )
             if managed_providers[provider_id].source.root != result.source.root:
-                logger.info(f"Upgraded provider {provider_location}")
+                logger.info(f"Upgraded provider {provider_record}")
         except Exception as ex:
-            errors.append(RuntimeError(f"[{provider_location}]: Failed to add provider: {ex}"))
+            errors.append(RuntimeError(f"[{provider_record}]: Failed to add provider: {ex}"))
 
     if errors:
         raise ExceptionGroup("Exceptions occurred when reloading providers", errors)

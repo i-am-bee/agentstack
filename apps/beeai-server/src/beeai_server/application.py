@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
+import time
 from collections.abc import Iterable
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 
 import procrastinate
 from fastapi import APIRouter, FastAPI, HTTPException
@@ -11,6 +12,7 @@ from fastapi.exception_handlers import http_exception_handler
 from fastapi.responses import ORJSONResponse
 from kink import Container, di, inject
 from opentelemetry.metrics import CallbackOptions, Observation, get_meter
+from procrastinate.exceptions import AlreadyEnqueued
 from starlette.requests import Request
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_500_INTERNAL_SERVER_ERROR
 
@@ -34,6 +36,7 @@ from beeai_server.exceptions import (
     ManifestLoadError,
     PlatformError,
 )
+from beeai_server.jobs.crons.provider import check_registry
 from beeai_server.run_workers import run_workers
 from beeai_server.service_layer.services.mcp import McpService
 from beeai_server.telemetry import INSTRUMENTATION_NAME, shutdown_telemetry
@@ -149,6 +152,9 @@ def app(*, dependency_overrides: Container | None = None) -> FastAPI:
         try:
             register_telemetry()
             async with procrastinate_app.open_async(), run_workers(app=procrastinate_app), mcp_service:
+                with suppress(AlreadyEnqueued):
+                    # Force initial sync of the registry immediately
+                    await check_registry.defer_async(timestamp=int(time.time()))
                 try:
                     yield
                 finally:

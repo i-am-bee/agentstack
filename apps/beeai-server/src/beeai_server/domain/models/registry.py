@@ -1,12 +1,12 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-
+from datetime import timedelta
 from typing import TYPE_CHECKING, Any
 
 import httpx
 import yaml
 from anyio import Path
-from pydantic import BaseModel, FileUrl, HttpUrl, RootModel
+from pydantic import BaseModel, Field, FileUrl, HttpUrl, RootModel, computed_field, field_validator
 
 from beeai_server.utils.github import GithubUrl
 
@@ -16,22 +16,42 @@ if TYPE_CHECKING:
     from beeai_server.domain.models.provider import ProviderLocation
 
 
-def parse_providers_manifest(content: dict[str, Any]) -> list["ProviderLocation"]:
+class ProviderRegistryRecord(BaseModel, extra="allow"):
+    location: "ProviderLocation"
+    auto_stop_timeout_sec: int | None = Field(default=int(timedelta(minutes=5).total_seconds()), ge=0)
+    variables: dict[str, str] = {}
+
+    @computed_field
+    @property
+    def auto_stop_timeout(self) -> timedelta | None:
+        return timedelta(seconds=self.auto_stop_timeout_sec) if self.auto_stop_timeout_sec else None
+
+    @field_validator("variables", mode="before")
+    @classmethod
+    def convert_variables_to_str(cls, v: Any | None):
+        if not v:
+            return None
+        if not isinstance(v, dict):
+            raise ValueError("env must be a dictionary")
+        return {str(k): str(v) for k, v in v.items()}
+
+
+class RegistryManifest(BaseModel):
+    providers: list[ProviderRegistryRecord]
+
+
+def parse_providers_manifest(content: dict[str, Any]) -> list[ProviderRegistryRecord]:
     from beeai_server.domain.models.provider import ProviderLocation
 
-    class ProviderRegistryRecord(BaseModel, extra="allow"):
-        location: ProviderLocation
+    _ = ProviderLocation  # make sure this is imported
 
-    class RegistryManifest(BaseModel):
-        providers: list[ProviderRegistryRecord]
-
-    return [p.location for p in RegistryManifest.model_validate(content).providers]
+    return RegistryManifest.model_validate(content).providers
 
 
 class NetworkRegistryLocation(RootModel):
     root: HttpUrl
 
-    async def load(self) -> list["ProviderLocation"]:
+    async def load(self) -> list[ProviderRegistryRecord]:
         async with httpx.AsyncClient(
             headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"}
         ) as client:
@@ -42,7 +62,7 @@ class NetworkRegistryLocation(RootModel):
 class GithubRegistryLocation(RootModel):
     root: GithubUrl
 
-    async def load(self) -> list["ProviderLocation"]:
+    async def load(self) -> list[ProviderRegistryRecord]:
         resolved_url = await self.root.resolve_version()
         url = await resolved_url.get_raw_url()
         network_location = NetworkRegistryLocation(root=HttpUrl(url))
@@ -52,7 +72,7 @@ class GithubRegistryLocation(RootModel):
 class FileSystemRegistryLocation(RootModel):
     root: FileUrl
 
-    async def load(self) -> list["ProviderLocation"]:
+    async def load(self) -> list[ProviderRegistryRecord]:
         content = await Path(self.root.path).read_text()
         return parse_providers_manifest(yaml.safe_load(content))
 

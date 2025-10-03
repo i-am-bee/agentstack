@@ -27,7 +27,7 @@ class EnvVar(pydantic.BaseModel):
 
 class Provider(pydantic.BaseModel):
     id: str
-    auto_stop_timeout: timedelta
+    auto_stop_timeout: timedelta | None = None
     source: str
     registry: str | None = None
     auto_remove: bool = False

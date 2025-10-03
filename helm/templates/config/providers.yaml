@@ -1,9 +1,10 @@
 {{- $root := . }}
 apiVersion: v1
-kind: ConfigMap
+kind: Secret
 metadata:
-  name: beeai-platform-providers-cm
-data:
+  name: beeai-platform-providers-secret
+type: Opaque
+stringData:
   registry.yaml: |
     {{- if or .Values.providers .Values.unmanagedProviders }}
     providers:
@@ -11,7 +12,7 @@ data:
       - location: "http://{{ include "agent.fullname" (dict "root" $root "image" $p.location) }}:{{ $root.Values.agent.service.port }}"
       {{- end }}
       {{- range $idx, $p := $root.Values.providers }}
-      - location: {{ $p.location }}
+      - {{ $p | toYaml | nindent 8 | trim }}
       {{- end }}
     {{- else }}
     providers: [ ]

@@ -139,6 +139,10 @@ class SqlAlchemyEnvVariableRepository(IEnvVariableRepository):
                 )
             )
 
+    async def delete(self, parent_entity: EnvStoreEntity, parent_entity_id: UUID):
+        query = variables_table.delete().where(self._parent_filter(parent_entity, parent_entity_id))
+        await self.connection.execute(query)
+
     async def get(
         self,
         *,
