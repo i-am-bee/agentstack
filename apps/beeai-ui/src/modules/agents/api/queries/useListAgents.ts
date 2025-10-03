@@ -17,7 +17,7 @@ interface Props {
 export function useListAgents({ onlyUiSupported, sort }: Props = {}) {
   const query = useQuery({
     queryKey: providerKeys.list(),
-    queryFn: listProviders,
+    queryFn: () => listProviders(),
     select: (response) => {
       let agents = response?.items?.map(buildAgent) ?? [];
 

@@ -8,7 +8,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { providerKeys } from '#modules/providers/api/keys.ts';
 
 import { deleteProvider } from '..';
-import type { ProvidersListResponse } from '../types';
+import type { ListProvidersResponse } from '../types';
 
 export function useDeleteProvider() {
   const queryClient = useQueryClient();
@@ -16,7 +16,7 @@ export function useDeleteProvider() {
   const mutation = useMutation({
     mutationFn: deleteProvider,
     onSuccess: (_data, variables) => {
-      queryClient.setQueryData<ProvidersListResponse>(providerKeys.lists(), (data) => {
+      queryClient.setQueryData<ListProvidersResponse>(providerKeys.lists(), (data) => {
         if (!data) {
           return data;
         }

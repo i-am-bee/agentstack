@@ -6,66 +6,65 @@
 import {
   Button,
   InlineLoading,
+  InlineNotification,
   ModalBody,
   ModalFooter,
   ModalHeader,
   RadioButton,
   RadioButtonGroup,
+  Select,
+  SelectItem,
   TextInput,
 } from '@carbon/react';
-import { useCallback, useEffect, useId, useState } from 'react';
+import clsx from 'clsx';
+import { useCallback, useEffect, useId } from 'react';
 import { useController, useForm } from 'react-hook-form';
 
 import { CodeSnippet } from '#components/CodeSnippet/CodeSnippet.tsx';
-import { CopySnippet } from '#components/CopySnippet/CopySnippet.tsx';
 import { Modal } from '#components/Modal/Modal.tsx';
 import type { ModalProps } from '#contexts/Modal/modal-context.ts';
-import { useImportProvider } from '#modules/providers/api/mutations/useImportProvider.ts';
-import type { Provider, RegisterProviderRequest } from '#modules/providers/api/types.ts';
-import { ProviderSourcePrefixes } from '#modules/providers/constants.ts';
 import { ProviderSource } from '#modules/providers/types.ts';
 
-import { useAgent } from '../api/queries/useAgent';
+import { useImportAgent } from '../hooks/useImportAgent';
+import type { ImportAgentFormValues } from '../types';
 import classes from './ImportAgentsModal.module.scss';
 
 export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps) {
   const id = useId();
-  const [registeredProvider, setRegisteredProvider] = useState<Provider>();
-  const { data: agent } = useAgent({ providerId: registeredProvider?.id });
 
-  const { mutateAsync: importProvider, isPending } = useImportProvider({
-    onSuccess: (provider) => {
-      if (provider) {
-        setRegisteredProvider(provider);
-      }
-    },
-  });
+  const { agent, logs, actionRequired, providersToUpdate, isPending, error, importAgent } = useImportAgent();
 
   const {
     register,
     handleSubmit,
-    setValue,
+    resetField,
     formState: { isValid },
     control,
-  } = useForm<FormValues>({
+  } = useForm<ImportAgentFormValues>({
     mode: 'onChange',
     defaultValues: {
       source: ProviderSource.Docker,
     },
   });
 
-  const { field: sourceField } = useController<FormValues, 'source'>({ name: 'source', control });
+  const { field: sourceField } = useController<ImportAgentFormValues, 'source'>({ name: 'source', control });
+  const { field: actionField } = useController<ImportAgentFormValues, 'action'>({ name: 'action', control });
+
+  const showLogs = isPending && logs.length > 0;
 
   const onSubmit = useCallback(
-    async ({ location, source }: FormValues) => {
-      await importProvider({ location: `${ProviderSourcePrefixes[source]}${location}` });
+    async (values: ImportAgentFormValues) => {
+      await importAgent(values);
+
+      resetField('action');
+      resetField('providerId');
     },
-    [importProvider],
+    [importAgent, resetField],
   );
 
   useEffect(() => {
-    setValue('location', '');
-  }, [sourceField.value, setValue]);
+    resetField('location');
+  }, [sourceField.value, resetField]);
 
   return (
     <Modal {...modalProps}>
@@ -74,54 +73,99 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
       </ModalHeader>
 
       <ModalBody>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          {!registeredProvider && (
+        <form onSubmit={handleSubmit(onSubmit)} className={clsx(classes.form, { [classes.showLogs]: showLogs })}>
+          {agent ? (
+            <p>
+              <strong>{agent.name}</strong> agent installed successfully.
+            </p>
+          ) : isPending ? (
+            <>
+              <InlineLoading className={classes.loading} description="Importing agent&hellip;" />
+
+              {showLogs && (
+                <CodeSnippet className={classes.logs} forceExpand withBorder autoScroll>
+                  {logs.join('\n')}
+                </CodeSnippet>
+              )}
+            </>
+          ) : actionRequired ? (
+            <div className={classes.stack}>
+              <h3 className={classes.subheading}>Existing agents detected. What would you like to do?</h3>
+
+              <RadioButtonGroup
+                name={actionField.name}
+                legendText="Action"
+                valueSelected={actionField.value}
+                onChange={actionField.onChange}
+                disabled={isPending}
+                orientation="vertical"
+              >
+                <RadioButton labelText="Add new agent" value="add_provider" />
+                <RadioButton labelText="Update existing agent" value="update_provider" />
+              </RadioButtonGroup>
+
+              {actionField.value === 'update_provider' && providersToUpdate && (
+                <Select
+                  id={`${id}:provider`}
+                  labelText="Select agent to update"
+                  {...register('providerId', { required: true, disabled: isPending })}
+                >
+                  {providersToUpdate.map(({ id, source }) => (
+                    <SelectItem key={id} text={source} value={id} />
+                  ))}
+                </Select>
+              )}
+            </div>
+          ) : (
             <div className={classes.stack}>
               <RadioButtonGroup
                 name={sourceField.name}
                 legendText="Select the source of your agent provider"
                 valueSelected={sourceField.value}
                 onChange={sourceField.onChange}
+                disabled={isPending}
               >
                 <RadioButton labelText="GitHub" value={ProviderSource.GitHub} />
                 <RadioButton labelText="Docker image" value={ProviderSource.Docker} />
               </RadioButtonGroup>
 
               {sourceField.value === ProviderSource.GitHub ? (
-                <div className={classes.githubInfo}>
-                  <span>Use CLI to import provider from a public Github repository URL.</span>
-                  <CopySnippet>
-                    <CodeSnippet>beeai add {`<github-url>`}</CodeSnippet>
-                  </CopySnippet>
-                </div>
+                <TextInput
+                  id={`${id}:location`}
+                  size="lg"
+                  labelText="GitHub repository URL"
+                  placeholder="Type your GitHub repository URL"
+                  {...register('location', { required: true, disabled: isPending })}
+                />
               ) : (
                 <TextInput
                   id={`${id}:location`}
                   size="lg"
-                  className={classes.locationInput}
                   labelText="Docker image URL"
                   placeholder="Type your Docker image URL"
-                  {...register('location', { required: true })}
+                  {...register('location', { required: true, disabled: isPending })}
                 />
               )}
             </div>
           )}
 
-          {registeredProvider && agent && (
-            <p className={classes.agents}>
-              <strong>{agent.name}</strong> agent installed successfully.
-            </p>
+          {error && !isPending && (
+            <InlineNotification kind="error" title={error.title} subtitle={error.message} lowContrast />
           )}
         </form>
       </ModalBody>
 
       <ModalFooter>
         <Button kind="ghost" onClick={() => onRequestClose()}>
-          {isPending || registeredProvider ? 'Close' : 'Cancel'}
+          {isPending ? 'Cancel' : 'Close'}
         </Button>
 
-        {!registeredProvider && (
-          <Button onClick={() => handleSubmit(onSubmit)()} disabled={isPending || !isValid}>
+        {!agent && (
+          <Button
+            type="submit"
+            onClick={handleSubmit(onSubmit)}
+            disabled={isPending || !isValid || (actionRequired && !actionField.value)}
+          >
             {isPending ? <InlineLoading description="Importing&hellip;" /> : 'Continue'}
           </Button>
         )}
@@ -129,5 +173,3 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
     </Modal>
   );
 }
-
-type FormValues = RegisterProviderRequest & { source: ProviderSource };

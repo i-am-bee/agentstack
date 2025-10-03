@@ -144,6 +144,9 @@ importers:
       date-fns:
         specifier: 4.1.0
         version: 4.1.0
+      eventsource-parser:
+        specifier: ^3.0.6
+        version: 3.0.6
       fetch-event-stream:
         specifier: ^0.1.5
         version: 0.1.5
@@ -4530,6 +4533,10 @@ packages:
 
   events-universal@1.0.1:
     resolution: {integrity: sha512-LUd5euvbMLpwOF8m6ivPCbhQeSiYVNb8Vs0fQ8QjXo0JTkEHpz8pxdQf0gStltaPpw0Cca8b39KxvK9cfKRiAw==}
+
+  eventsource-parser@3.0.6:
+    resolution: {integrity: sha512-Vo1ab+QXPzZ4tCa8SwIHJFaSzy4R6SHf7BY79rFBDf0idraZWAkYrDjDj8uWaSm3S2TK+hJ7/t1CEmZ7jXw+pg==}
+    engines: {node: '>=18.0.0'}
 
   express@4.21.2:
     resolution: {integrity: sha512-28HqgMZAmih1Czt9ny7qr6ek2qddF4FclbMzwhCREB6OFfH+rXAnuNCwo1/wFvrtbgsQDb4kSbX9de9lFbrXnA==}
@@ -13170,6 +13177,8 @@ snapshots:
   events-universal@1.0.1:
     dependencies:
       bare-events: 2.7.0
+
+  eventsource-parser@3.0.6: {}
 
   express@4.21.2:
     dependencies:

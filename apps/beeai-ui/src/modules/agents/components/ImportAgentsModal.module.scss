@@ -3,19 +3,34 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+.form {
+  display: flex;
+  flex-direction: column;
+  row-gap: $spacing-04;
+  &.showLogs {
+    max-block-size: 100%;
+  }
+}
+
 .stack {
   display: flex;
   flex-direction: column;
   row-gap: $spacing-05;
+  :global(.cds--form-item:last-child .cds--radio-button-group) {
+    padding-block-end: $spacing-02;
+  }
 }
 
-.locationInput {
-  min-block-size: rem(92px);
+.subheading {
+  @include type-style(heading-03);
 }
 
-.githubInfo {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-04;
-  padding-block-end: $spacing-04;
+.loading {
+  flex-shrink: 0;
+  min-block-size: rem(24px);
+}
+
+.logs {
+  max-block-size: rem(256px);
+  overflow-y: auto;
 }

@@ -5,16 +5,14 @@
 
 import { useMutation } from '@tanstack/react-query';
 
-import { registerManagedProvider } from '..';
-import { providerKeys } from '../keys';
+import { previewProviderBuild } from '..';
 
-export function useImportProvider() {
+export function usePreviewProviderBuild() {
   const mutation = useMutation({
-    mutationFn: registerManagedProvider,
+    mutationFn: previewProviderBuild,
     meta: {
-      invalidates: [providerKeys.lists()],
       errorToast: {
-        title: 'Failed to import provider.',
+        title: 'Failed to preview provider build.',
         includeErrorMessage: true,
       },
     },

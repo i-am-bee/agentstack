@@ -24,6 +24,10 @@
   }
 }
 
+.cds--text-input:disabled {
+  border-block-end-color: $border-subtle-00;
+}
+
 .cds--text-area {
   padding-block: $spacing-05;
 }

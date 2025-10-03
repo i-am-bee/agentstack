@@ -22,8 +22,8 @@ export async function createContext(body: CreateContextParams) {
   return ensureData(response);
 }
 
-export async function listContexts({ query }: ListContextsParams) {
-  const response = await api.GET('/api/v1/contexts', { params: { query } });
+export async function listContexts(params: ListContextsParams) {
+  const response = await api.GET('/api/v1/contexts', { params });
 
   return ensureData(response);
 }

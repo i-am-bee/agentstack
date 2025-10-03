@@ -5,16 +5,14 @@
 
 import { useMutation } from '@tanstack/react-query';
 
-import { registerManagedProvider } from '..';
-import { providerKeys } from '../keys';
+import { createProviderBuild } from '..';
 
-export function useImportProvider() {
+export function useCreateProviderBuild() {
   const mutation = useMutation({
-    mutationFn: registerManagedProvider,
+    mutationFn: createProviderBuild,
     meta: {
-      invalidates: [providerKeys.lists()],
       errorToast: {
-        title: 'Failed to import provider.',
+        title: 'Failed to create provider build.',
         includeErrorMessage: true,
       },
     },

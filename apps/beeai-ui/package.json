@@ -26,6 +26,7 @@
     "cacheable": "2.1.0",
     "clsx": "catalog:",
     "date-fns": "4.1.0",
+    "eventsource-parser": "^3.0.6",
     "fetch-event-stream": "^0.1.5",
     "framer-motion": "^12.23.21",
     "humanize-duration": "^3.33.1",
