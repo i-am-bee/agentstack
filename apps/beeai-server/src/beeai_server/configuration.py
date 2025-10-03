@@ -85,6 +85,7 @@ class OidcConfiguration(BaseModel):
     admin_emails: list[str] = Field(default_factory=list)
     providers: list[OidcProvider] = Field(default_factory=list)
     scope: list[str] = ["openid", "email", "profile"]
+    validate_audience: bool = True
 
     @field_validator("admin_emails")
     @classmethod

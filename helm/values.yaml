@@ -43,6 +43,7 @@ auth:
     nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
     providers_path: "/providers"
     nextauth_url: "https://beeai.localhost:8336"
+    validate_audience: true
     providers: [
       {
         "name": "w3id",

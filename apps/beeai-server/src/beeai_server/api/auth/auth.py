@@ -216,8 +216,8 @@ async def validate_jwt(token: str, *, provider: OidcProvider, aud: str | None = 
                 "sub": {"essential": True},
                 "exp": {"essential": True},
                 "iss": {"essential": True, "value": str(provider.issuer)},
-                "aud": {"essential": True, "value": aud},
-            },
+            }
+            | ({"aud": {"essential": True, "value": aud}} if aud is not None else {}),
         )
         claims.validate()
         return claims
@@ -249,8 +249,8 @@ async def introspect_token(token: str, *, provider: OidcProvider, aud: str | Non
                     header={},
                     options={
                         "iss": {"value": str(provider.issuer)},
-                        "aud": {"value": aud},
-                    },
+                    }
+                    | ({"aud": {"value": aud}} if aud is not None else {}),
                 )
                 claims.validate()
                 return claims

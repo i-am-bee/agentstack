@@ -5,10 +5,11 @@ import logging
 from typing import Annotated
 from uuid import UUID
 
+from beeai_server.api.auth.utils import create_resource_uri
 from fastapi import Depends, HTTPException, Path, Query, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBasic, HTTPBasicCredentials, HTTPBearer
 from kink import di
-from pydantic import ConfigDict
+from pydantic import AnyUrl, ConfigDict
 
 from beeai_server.api.auth.auth import (
     ROLE_PERMISSIONS,
@@ -69,7 +70,10 @@ async def authenticate_oauth_user(
             detail=f"Invalid Authorization header: {e}",
         ) from e
 
-    expected_audience = str(request.url.replace(path="/"))
+    expected_audience = (
+        create_resource_uri(request.url.replace(path="/")) if configuration.auth.oidc.validate_audience else None
+    )
+
     try:
         claims, provider = await validate_oauth_access_token(
             token=token, aud=expected_audience, configuration=configuration
