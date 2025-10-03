@@ -5,11 +5,10 @@ import logging
 from typing import Annotated
 from uuid import UUID
 
-from beeai_server.api.auth.utils import create_resource_uri
 from fastapi import Depends, HTTPException, Path, Query, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBasic, HTTPBasicCredentials, HTTPBearer
 from kink import di
-from pydantic import AnyUrl, ConfigDict
+from pydantic import ConfigDict
 
 from beeai_server.api.auth.auth import (
     ROLE_PERMISSIONS,
@@ -18,6 +17,7 @@ from beeai_server.api.auth.auth import (
     validate_oauth_access_token,
     verify_internal_jwt,
 )
+from beeai_server.api.auth.utils import create_resource_uri
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.permissions import AuthorizedUser, Permissions
 from beeai_server.domain.models.user import UserRole
