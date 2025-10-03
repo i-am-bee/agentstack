@@ -164,7 +164,13 @@ class PersistenceConfiguration(BaseModel):
         connect_args = kwargs.pop("connect_args", {}).copy()
         ssl_context = None
         if self.db_use_ssl:
-            ssl_context = ssl.create_default_context(cafile=self.db_ssl_cert)
+            ssl_context = ssl.create_default_context()
+            # Some root certificates (e.g. ibmclouddb) do not contain the required extensions:
+            # Error: CA certificate does not include key usage extension
+            # Since python 3.13 the default verify flags include VERIFY_X509_STRICT:
+            # https://docs.python.org/3/whatsnew/3.13.html#ssl
+            ssl_context.verify_flags &= ~ssl.VERIFY_X509_STRICT
+            ssl_context.load_verify_locations(cafile=self.db_ssl_cert)
             ssl_context.verify_mode = ssl.CERT_REQUIRED
         connect_args["ssl"] = ssl_context
         return create_async_engine(str(self.db_url.get_secret_value()), connect_args=connect_args, **kwargs)
