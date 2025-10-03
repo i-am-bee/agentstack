@@ -34,7 +34,7 @@ export function InlineCitations({ sources = [], children }: PropsWithChildren<Pr
 
       <span className={classes.list}>
         {sources.map((source) => {
-          const { id, messageId, number } = source;
+          const { id, taskId, number } = source;
           const isActive = activeSidePanel === SidePanelVariant.Sources && isSourceActive(source, activeSource);
 
           return (
@@ -43,7 +43,7 @@ export function InlineCitations({ sources = [], children }: PropsWithChildren<Pr
                 source={source}
                 isActive={isActive}
                 onClick={() => {
-                  setActiveSource({ number, messageId });
+                  setActiveSource({ number, taskId });
                   openSidePanel(SidePanelVariant.Sources);
                 }}
               />
