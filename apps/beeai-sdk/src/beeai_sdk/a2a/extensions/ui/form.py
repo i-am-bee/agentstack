@@ -4,10 +4,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, TypeVar, cast
 
 from a2a.types import Message as A2AMessage
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, TypeAdapter, model_validator
 
 from beeai_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 from beeai_sdk.a2a.types import AgentMessage, InputRequired
@@ -123,29 +123,47 @@ class FormResponse(BaseModel):
     id: str
     values: dict[str, FormFieldValue]
 
+    def __iter__(self):
+        for key, value in self.values.items():
+            match value:
+                case FileFieldValue():
+                    yield (
+                        key,
+                        [{"uri": file.uri, "name": file.name, "mime_type": file.mime_type} for file in value.value]
+                        if value.value
+                        else None,
+                    )
+                case _:
+                    yield key, value.value
+
 
 class FormExtensionSpec(BaseExtensionSpec[FormRender | None]):
     URI: str = "https://a2a-extensions.beeai.dev/ui/form/v1"
 
 
+T = TypeVar("T")
+
+
 class FormExtensionServer(BaseExtensionServer[FormExtensionSpec, FormResponse]):
+    context: RunContext
+
     def handle_incoming_message(self, message: A2AMessage, context: RunContext):
         super().handle_incoming_message(message, context)
         self.context = context
 
-    async def request_form(self, *, form: FormRender) -> FormResponse:
-        resume = await self.context.yield_async(
+    async def request_form(self, *, form: FormRender, model: type[T] = FormResponse) -> T | None:
+        message = await self.context.yield_async(
             InputRequired(message=AgentMessage(text=form.title, metadata={self.spec.URI: form}))
         )
-        if isinstance(resume, A2AMessage):
-            return self.parse_form_response(message=resume)
-        else:
-            raise ValueError("Form data has not been provided in response.")
+        return self.parse_form_response(message=message, model=model) if message else None
 
-    def parse_form_response(self, *, message: A2AMessage):
-        if not message or not message.metadata or not (data := message.metadata.get(self.spec.URI)):
-            raise ValueError("Form data has not been provided in response.")
-        return FormResponse.model_validate(data)
+    def parse_form_response(self, *, message: A2AMessage, model: type[T] = FormResponse) -> T | None:
+        form_response = self.parse_client_metadata(message)
+        if form_response is None:
+            return None
+        if model is FormResponse:
+            return cast(T, form_response)
+        return TypeAdapter(model).validate_python(dict(form_response))
 
 
 class FormExtensionClient(BaseExtensionClient[FormExtensionSpec, FormRender]): ...

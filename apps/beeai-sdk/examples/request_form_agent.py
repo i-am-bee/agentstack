@@ -64,6 +64,10 @@ async def request_form_agent(
             )
         )
 
+        if form_data is None:
+            yield "No form data received."
+            return
+
         response = "Form data received:\n"
         for field_id, field_value in form_data.values.items():
             response += f"- {field_id}: {field_value.value}\n"
