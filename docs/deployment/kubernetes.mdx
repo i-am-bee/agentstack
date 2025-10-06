@@ -63,7 +63,7 @@ helm upgrade --install beeai -f config.yaml oci://ghcr.io/i-am-bee/beeai-platfor
 By default, ingress is not configured. You can port-forward the service to access the platform. In a separate terminal, run:
 
 ```shell
-kubectl port-forward svc/beeai-platform-svc 8333:8333
+kubectl port-forward svc/beeai-platform-svc 8333:8333 &
 ```
 
 ### Step 4: Setup LLM
@@ -74,11 +74,11 @@ After the beeai-platform becomes ready, it's necessary to perform model setup:
 BEEAI__ADMIN_PASSWORD="my-secret-password" beeai model setup
 ```
 
-## Use the Platform
+### Step 5: Test the Deployment
 
 ```shell
-beeai list
-beeai run chat hi
+BEEAI__ADMIN_PASSWORD="my-secret-password" beeai list
+BEEAI__ADMIN_PASSWORD="my-secret-password" beeai run chat hi
 ```
 
 ## Configuration Options
