@@ -10,6 +10,6 @@ import type { RuntimeConfig } from './types';
 export const runtimeConfig: RuntimeConfig = {
   featureFlags: parseFeatureFlags(process.env.FEATURE_FLAGS),
   isAuthEnabled: process.env.OIDC_ENABLED === 'true',
-  appName: process.env.APP_NAME ?? 'BeeAI',
+  appName: process.env.APP_NAME || 'BeeAI',
   companyName: process.env.COMPANY_NAME,
 };
