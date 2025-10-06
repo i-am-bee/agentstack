@@ -24,6 +24,10 @@ export function createSendFeedbackPayload({
 }): SendFeedbackRequest {
   const { vote, categories, comment } = values;
 
+  if (!message.taskId) {
+    throw new Error('Message is missing task ID');
+  }
+
   return {
     rating: vote === FeedbackVote.Up ? 1 : -1,
     comment_tags: categories?.map(({ id }) => id),
@@ -31,6 +35,6 @@ export function createSendFeedbackPayload({
     message: getMessageRawContent(message),
     provider_id: agent.provider.id,
     context_id: contextId,
-    task_id: message.taskId!,
+    task_id: message.taskId,
   };
 }

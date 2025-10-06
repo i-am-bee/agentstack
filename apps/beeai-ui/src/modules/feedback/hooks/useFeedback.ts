@@ -67,16 +67,24 @@ export function useFeedback({ message, onOpenChange }: Props) {
       async (values) => {
         const contextId = getContextId();
 
-        await sendFeedback(createSendFeedbackPayload({ agent, message, values, contextId }));
+        try {
+          await sendFeedback(createSendFeedbackPayload({ agent, message, values, contextId }));
 
-        addToast({
-          kind: 'info',
-          title: 'Thank you for your feedback!',
-          caption: undefined,
-          icon: CheckmarkFilled,
-          inlineIcon: true,
-          timeout: 5_000,
-        });
+          addToast({
+            kind: 'info',
+            title: 'Thank you for your feedback!',
+            caption: undefined,
+            icon: CheckmarkFilled,
+            inlineIcon: true,
+            timeout: 5_000,
+          });
+        } catch (error) {
+          addToast({
+            kind: 'error',
+            title: 'Failed to send feedback',
+            subtitle: error instanceof Error ? error.message : 'An unknown error occurred',
+          });
+        }
 
         if (shouldCloseFrom) {
           closeForm();

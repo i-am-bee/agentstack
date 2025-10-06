@@ -43,6 +43,8 @@ export function useFetchNextPage({
     ...inViewProps,
   });
 
+  // For cases where the guard element stays in view after the new page fetch
+  // so the onChange doesn't trigger again
   useEffect(() => {
     if (inViewReturn.entry?.isIntersecting && !isFetching && hasNextPage) {
       fetchNextPage();
