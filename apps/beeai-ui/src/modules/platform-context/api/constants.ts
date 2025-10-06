@@ -7,4 +7,4 @@ import type { ListContextHistoryQuery, ListContextsQuery } from './types';
 
 export const LIST_CONTEXTS_DEFAULT_QUERY: ListContextsQuery = { limit: 10, include_empty: false };
 
-export const LIST_CONTEXT_HISTORY_DEFAULT_QUERY: ListContextHistoryQuery = { limit: 100 };
+export const LIST_CONTEXT_HISTORY_DEFAULT_QUERY: ListContextHistoryQuery = { limit: 10 };

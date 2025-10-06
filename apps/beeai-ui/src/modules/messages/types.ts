@@ -34,6 +34,7 @@ export interface UIUserMessage extends UIMessageBase {
 export interface UIAgentMessage extends UIMessageBase {
   role: Role.Agent;
   status: UIMessageStatus;
+  artifactId?: string;
 }
 
 export type UIMessage = UIUserMessage | UIAgentMessage;

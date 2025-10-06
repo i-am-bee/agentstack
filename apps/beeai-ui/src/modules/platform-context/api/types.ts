@@ -34,3 +34,7 @@ export type MatchModelProvidersRequest = ApiRequest<'/api/v1/model_providers/mat
 export type MatchModelProvidersParams = Omit<MatchModelProvidersRequest, 'score_cutoff' | 'capability'> & {
   capability: ModelCapability;
 };
+
+export type HistoryItem = ApiResponse<'/api/v1/contexts/{context_id}/history'>['items'][number]['data'];
+export type HistoryMessage = Extract<HistoryItem, { kind: 'message' }>;
+export type HistoryArtifact = Extract<HistoryItem, { artifactId: string }>;

@@ -34,8 +34,9 @@ export function useListContextHistory(params: Params) {
       });
     },
     initialPageParam: undefined,
-    getNextPageParam: (lastPage) =>
-      lastPage?.has_more && lastPage.next_page_token ? lastPage.next_page_token : undefined,
+    getNextPageParam: (lastPage) => {
+      return lastPage?.has_more && lastPage.next_page_token ? lastPage.next_page_token : undefined;
+    },
     select: (data) => {
       if (!data) {
         return undefined;

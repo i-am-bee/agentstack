@@ -15,20 +15,17 @@ import { type AgentA2AClient, type ChatRun, RunResultType } from '#api/a2a/types
 import { createTextPart } from '#api/a2a/utils.ts';
 import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
-import { useImmerWithGetter } from '#hooks/useImmerWithGetter.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { FileUploadProvider } from '#modules/files/contexts/FileUploadProvider.tsx';
 import { useFileUpload } from '#modules/files/contexts/index.ts';
 import { convertFilesToUIFileParts } from '#modules/files/utils.ts';
-import { convertHistoryToUIMessages } from '#modules/history/utils.ts';
 import { Role } from '#modules/messages/api/types.ts';
+import { useMessages } from '#modules/messages/contexts/Messages/index.ts';
 import { MessagesProvider } from '#modules/messages/contexts/Messages/MessagesProvider.tsx';
-import type { UIAgentMessage, UIMessage, UIMessageForm, UIUserMessage } from '#modules/messages/types.ts';
+import type { UIAgentMessage, UIMessageForm, UIUserMessage } from '#modules/messages/types.ts';
 import { UIMessagePartKind, UIMessageStatus } from '#modules/messages/types.ts';
 import { addTranformedMessagePart, isAgentMessage } from '#modules/messages/utils.ts';
-import { LIST_CONTEXT_HISTORY_DEFAULT_QUERY } from '#modules/platform-context/api/constants.ts';
 import { contextKeys } from '#modules/platform-context/api/keys.ts';
-import { useListContextHistory } from '#modules/platform-context/api/queries/useListContextHistory.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 import { useEnsurePlatformContext } from '#modules/platform-context/hooks/useEnsurePlatformContext.ts';
 import { useBuildA2AClient } from '#modules/runs/api/queries/useBuildA2AClient.ts';
@@ -57,12 +54,6 @@ export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>)
     providerId: agent.provider.id,
     extensions: agent.capabilities.extensions ?? [],
   });
-  const { contextId, history: initialHistory } = usePlatformContext();
-  const { data: history } = useListContextHistory({
-    contextId: contextId ?? undefined,
-    query: LIST_CONTEXT_HISTORY_DEFAULT_QUERY,
-    initialData: initialHistory,
-  });
 
   useEnsurePlatformContext(agent);
 
@@ -70,13 +61,11 @@ export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>)
     <AgentSecretsProvider agent={agent} agentClient={agentClient}>
       <AgentDemandsProvider agentClient={agentClient}>
         <FileUploadProvider allowedContentTypes={agent.defaultInputModes}>
-          <AgentRunProvider
-            agent={agent}
-            agentClient={agentClient}
-            initialMessages={history ? convertHistoryToUIMessages([...history].reverse()) : undefined}
-          >
-            {children}
-          </AgentRunProvider>
+          <MessagesProvider>
+            <AgentRunProvider agent={agent} agentClient={agentClient}>
+              {children}
+            </AgentRunProvider>
+          </MessagesProvider>
         </FileUploadProvider>
       </AgentDemandsProvider>
     </AgentSecretsProvider>
@@ -85,20 +74,15 @@ export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>)
 
 interface AgentRunProviderProps extends Props {
   agentClient?: AgentA2AClient;
-  initialMessages?: UIMessage[];
 }
 
-function AgentRunProvider({
-  agent,
-  agentClient,
-  initialMessages = [],
-  children,
-}: PropsWithChildren<AgentRunProviderProps>) {
+function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<AgentRunProviderProps>) {
   const queryClient = useQueryClient();
   const router = useRouter();
   const errorHandler = useHandleError();
 
-  const [messages, getMessages, setMessages] = useImmerWithGetter<UIMessage[]>(initialMessages);
+  const { messages, getMessages, setMessages } = useMessages();
+
   const [input, setInput] = useState<string>();
   const [isPending, setIsPending] = useState(false);
   const [stats, setStats] = useState<RunStats>();
@@ -120,7 +104,7 @@ function AgentRunProvider({
   const updateCurrentAgentMessage = useCallback(
     (updater: (message: UIAgentMessage) => void) => {
       setMessages((messages) => {
-        const lastMessage = messages.at(-1);
+        const lastMessage = messages.at(0);
 
         if (lastMessage && isAgentMessage(lastMessage)) {
           updater(lastMessage);
@@ -181,7 +165,7 @@ function AgentRunProvider({
   }, []);
 
   const cancelPendingTask = useCallback(() => {
-    const lastMessage = getMessages().at(-1);
+    const lastMessage = getMessages().at(0);
     if (
       lastMessage &&
       isAgentMessage(lastMessage) &&
@@ -218,7 +202,7 @@ function AgentRunProvider({
       };
 
       setMessages((messages) => {
-        messages.push(message, agentMessage);
+        messages.unshift(agentMessage, message);
       });
 
       try {
@@ -421,9 +405,7 @@ function AgentRunProvider({
   return (
     <AgentStatusProvider agent={agent} isMonitorStatusEnabled={isPending}>
       <SourcesProvider sources={sources}>
-        <MessagesProvider messages={getMessages()}>
-          <AgentRunContext.Provider value={contextValue}>{children}</AgentRunContext.Provider>
-        </MessagesProvider>
+        <AgentRunContext.Provider value={contextValue}>{children}</AgentRunContext.Provider>
       </SourcesProvider>
     </AgentStatusProvider>
   );

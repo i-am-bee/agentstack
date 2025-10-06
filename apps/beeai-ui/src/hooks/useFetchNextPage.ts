@@ -36,6 +36,8 @@ export function useFetchNextPage({
     skip: skip ?? !hasNextPage,
     rootMargin,
     onChange: (inView) => {
+      console.log({ inView, isFetching, hasNextPage });
+
       if (inView && !isFetching) {
         fetchNextPage();
       }
@@ -47,6 +49,7 @@ export function useFetchNextPage({
   // so the onChange doesn't trigger again
   useEffect(() => {
     if (inViewReturn.entry?.isIntersecting && !isFetching && hasNextPage) {
+      console.log('fetching next page');
       fetchNextPage();
     }
   }, [hasNextPage, inViewReturn.entry?.isIntersecting, isFetching, fetchNextPage]);
