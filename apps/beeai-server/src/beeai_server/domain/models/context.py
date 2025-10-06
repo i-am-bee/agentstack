@@ -1,10 +1,11 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 from enum import StrEnum
+from typing import Literal
 from uuid import UUID, uuid4
 
 from a2a.types import Artifact, Message
-from pydantic import AwareDatetime, BaseModel, Field
+from pydantic import AwareDatetime, BaseModel, Field, computed_field
 
 from beeai_server.domain.models.common import Metadata
 from beeai_server.utils.utils import utc_now
@@ -17,6 +18,11 @@ class ContextHistoryItem(BaseModel):
     data: ContextHistoryItemData
     created_at: AwareDatetime = Field(default_factory=utc_now)
     context_id: UUID
+
+    @computed_field
+    @property
+    def kind(self) -> Literal["message", "artifact"]:
+        return getattr(self.data, "kind", "artifact")
 
 
 class Context(BaseModel):

@@ -22,6 +22,7 @@ class ContextHistoryItem(BaseModel):
     data: Artifact | Message
     created_at: AwareDatetime
     context_id: UUID
+    kind: Literal["message", "artifact"]
 
 
 class ContextToken(pydantic.BaseModel):
