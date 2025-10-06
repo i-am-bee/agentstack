@@ -32,7 +32,8 @@ async def history_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server
     async def history_agent(input: Message, context: RunContext) -> AsyncGenerator[RunYield]:
         input.metadata = {"test": "metadata"}
         await context.store(input)
-        async for message in context.load_history():
+        history = [message async for message in context.load_history()]
+        async for message in history:
             message.role = Role.agent
             assert message.metadata == {"test": "metadata"}
             yield message
