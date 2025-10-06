@@ -114,5 +114,6 @@ declare module 'next-auth/jwt' {
     access_token?: string;
     expires_at?: number;
     refresh_token?: string;
+    provider?: string;
   }
 }
