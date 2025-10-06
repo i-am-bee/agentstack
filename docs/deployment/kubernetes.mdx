@@ -28,7 +28,7 @@ Create a value file with the minimum configuration:
 ```yaml
 # If you want to include agents from the default catalog (change release/tag accordingly):
 externalRegistries:
-  public_github: "https://github.com/i-am-bee/beeai-platform@v0.2.14#path=agent-registry.yaml"
+  public_github: "https://github.com/i-am-bee/beeai-platform@v0.3.5#path=agent-registry.yaml"
 # Your custom agents as docker images
 providers:
   # e.g.
@@ -57,6 +57,8 @@ Then install the chart using:
 ```shell
 helm upgrade --install beeai -f config.yaml oci://ghcr.io/i-am-bee/beeai-platform/beeai-platform-chart/beeai-platform:0.3.5
 ```
+
+It will take a few minutes for the pods to start.
 
 ### Step 3: Port-Forwarding
 
@@ -90,19 +92,6 @@ BEEAI__ADMIN_PASSWORD="my-secret-password" beeai run chat hi
   For any deployment beyond local testing, carefully consider your security
   requirements and network access controls.
 </Warning>
-
-For development/testing environments with authentication:
-
-```yaml
-# config.yaml
-auth:
-  enabled: true
-  adminPassword: "use-a-strong-password-here"
-  jwtSecretKey: "use-a-strong-key-here"
-
-# Generate a secure encryption key
-encryptionKey: "your-32-byte-base64-encoded-key"
-```
 
 For local testing environments without authentication:
 
@@ -146,7 +135,7 @@ externalRegistries:
 To upgrade to a newer version of the beeai platform, use:
 
 ```shell
-helm upgrade --install -f config.yaml beeai oci://ghcr.io/i-am-bee/beeai-platform/beeai-platform-chart/beeai-platform:<newer-version>
+helm upgrade --install beeai -f config.yaml oci://ghcr.io/i-am-bee/beeai-platform/beeai-platform-chart/beeai-platform:<newer-version>
 ```
 
 ### View Current Configuration
