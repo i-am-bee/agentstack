@@ -29,8 +29,8 @@ class ProviderRegistryRecord(BaseModel, extra="allow"):
     @field_validator("variables", mode="before")
     @classmethod
     def convert_variables_to_str(cls, v: Any | None):
-        if not v:
-            return None
+        if v is None:
+            return {}
         if not isinstance(v, dict):
             raise ValueError("env must be a dictionary")
         return {str(k): str(v) for k, v in v.items()}
