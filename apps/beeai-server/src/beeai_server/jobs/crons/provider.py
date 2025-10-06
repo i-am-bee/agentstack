@@ -94,11 +94,8 @@ async def check_registry(
                 location=provider_record.location,
                 registry=registry_by_provider_id[provider_id],
                 auto_stop_timeout=provider_record.auto_stop_timeout,
+                variables=provider_record.variables,
             )
-            if provider_record.variables:
-                await provider_service.update_provider_env(
-                    provider_id=provider_id, env=provider_record.variables, user=user
-                )
             logger.info(f"Added provider {provider_record}")
         except Exception as ex:
             errors.append(RuntimeError(f"[{provider_record}]: Failed to add provider: {ex}"))
