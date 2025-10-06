@@ -4,18 +4,17 @@
  */
 
 import NextAuth from 'next-auth';
-import type { Provider } from 'next-auth/providers';
 
 import { getProviderConstructor } from '#app/(auth)/providers/providers.ts';
 import { OIDC_ENABLED } from '#utils/constants.ts';
 import { routes } from '#utils/router.ts';
 
-import type { ProviderConfig } from './types';
+import type { ProviderConfig, ProviderWithId } from './types';
 import { jwtWithRefresh, RefreshTokenError } from './utils';
 
 let providersConfig: ProviderConfig[] = [];
 
-const providers: Provider[] = [];
+const providers: ProviderWithId[] = [];
 
 export const AUTH_COOKIE_NAME = 'beeai-platform';
 
