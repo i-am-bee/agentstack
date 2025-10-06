@@ -9,8 +9,8 @@ import type { ChangeEvent } from 'react';
 import { useId, useMemo } from 'react';
 
 import { Tooltip } from '#components/Tooltip/Tooltip.tsx';
-import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 
+import { useAgentDemands } from '../contexts/agent-demands';
 import classes from './ModelProviders.module.scss';
 
 export function ModelProviders() {
@@ -21,7 +21,7 @@ export function ModelProviders() {
     matchedEmbeddingProviders,
     selectedEmbeddingProviders,
     selectEmbeddingProvider,
-  } = usePlatformContext();
+  } = useAgentDemands();
 
   const htmlId = useId();
 

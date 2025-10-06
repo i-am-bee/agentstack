@@ -8,6 +8,8 @@
 import { Suspense } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
+import { PlatformContextProvider } from '#modules/platform-context/contexts/PlatformContextProvider.tsx';
+
 import { ComposeView } from './components/ComposeView';
 import type { SequentialFormValues } from './contexts/compose-context';
 import { ComposeProvider } from './contexts/ComposeProvider';
@@ -21,9 +23,11 @@ export function ComposeSequential() {
   return (
     <Suspense>
       <FormProvider {...formReturn}>
-        <ComposeProvider>
-          <ComposeView />
-        </ComposeProvider>
+        <PlatformContextProvider>
+          <ComposeProvider>
+            <ComposeView />
+          </ComposeProvider>
+        </PlatformContextProvider>
       </FormProvider>
     </Suspense>
   );

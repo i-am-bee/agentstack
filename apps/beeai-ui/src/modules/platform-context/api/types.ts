@@ -11,6 +11,7 @@ type CreateContextRequest = ApiRequest<'/api/v1/contexts'>;
 export type CreateContextParams = CreateContextRequest & {
   metadata: Required<Pick<ContextMetadata, 'agent_name' | 'provider_id'>>;
 };
+export type CreateContextResponse = ApiResponse<'/api/v1/contexts', 'post', 'application/json', 201>;
 
 export type ListContextsQuery = ApiQuery<'/api/v1/contexts'>;
 export type ListContextsResponse = ApiResponse<'/api/v1/contexts'>;

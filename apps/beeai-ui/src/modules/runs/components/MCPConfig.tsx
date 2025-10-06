@@ -6,8 +6,7 @@
 import { TextInput } from '@carbon/react';
 import { useId } from 'react';
 
-import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
-
+import { useAgentDemands } from '../contexts/agent-demands';
 import classes from './MCPConfig.module.scss';
 
 /**
@@ -15,7 +14,7 @@ import classes from './MCPConfig.module.scss';
  */
 export function MCPConfig() {
   const id = useId();
-  const { selectedMCPServers, selectMCPServer } = usePlatformContext();
+  const { selectedMCPServers, selectMCPServer } = useAgentDemands();
 
   return (
     <div className={classes.root}>
