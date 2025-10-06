@@ -3,15 +3,17 @@
 
 import base64
 import logging
+import ssl
 from collections import defaultdict
 from datetime import timedelta
 from functools import cache
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import AnyUrl, BaseModel, Field, Secret, ValidationError, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from beeai_server.domain.models.registry import RegistryLocation
 from beeai_server.domain.models.user import UserRole
@@ -83,6 +85,7 @@ class OidcConfiguration(BaseModel):
     admin_emails: list[str] = Field(default_factory=list)
     providers: list[OidcProvider] = Field(default_factory=list)
     scope: list[str] = ["openid", "email", "profile"]
+    validate_audience: bool = True
 
     @field_validator("admin_emails")
     @classmethod
@@ -147,12 +150,31 @@ class ObjectStorageConfiguration(BaseModel):
 
 
 class PersistenceConfiguration(BaseModel):
+    db_use_ssl: bool = False
+    db_ssl_cert: Path | None = None
     db_url: Secret[AnyUrl] = Secret(AnyUrl("postgresql+asyncpg://beeai-user:password@postgresql:5432/beeai"))
     encryption_key: Secret[str] | None = None
     finished_requests_remove_after_sec: int = int(timedelta(minutes=30).total_seconds())
     stale_requests_remove_after_sec: int = int(timedelta(hours=1).total_seconds())
     vector_db_schema: str = Field(default="vector_db", pattern=r"^[a-zA-Z0-9_]+$")
     procrastinate_schema: str = Field(default="procrastinate", pattern=r"^[a-zA-Z0-9_]+$")
+    variable_store_limit_per_users: int = 100
+
+    def create_async_engine(self, **kwargs: Any) -> AsyncEngine:
+        kwargs = kwargs.copy()
+        connect_args = kwargs.pop("connect_args", {}).copy()
+        ssl_context = None
+        if self.db_use_ssl:
+            ssl_context = ssl.create_default_context()
+            # Some root certificates (e.g. ibmclouddb) do not contain the required extensions:
+            # Error: CA certificate does not include key usage extension
+            # Since python 3.13 the default verify flags include VERIFY_X509_STRICT:
+            # https://docs.python.org/3/whatsnew/3.13.html#ssl
+            ssl_context.verify_flags &= ~ssl.VERIFY_X509_STRICT
+            ssl_context.load_verify_locations(cafile=self.db_ssl_cert)
+            ssl_context.verify_mode = ssl.CERT_REQUIRED
+        connect_args["ssl"] = ssl_context
+        return create_async_engine(str(self.db_url.get_secret_value()), connect_args=connect_args, **kwargs)
 
 
 class VectorStoresConfiguration(BaseModel):

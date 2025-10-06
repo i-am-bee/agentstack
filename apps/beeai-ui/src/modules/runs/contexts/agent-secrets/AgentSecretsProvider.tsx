@@ -10,7 +10,6 @@ import z from 'zod';
 
 import type { AgentA2AClient } from '#api/a2a/types.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
-import { useUpdateVariable } from '#modules/variables/api/mutations/useUpdateVariable.ts';
 import { useListVariables } from '#modules/variables/api/queries/useListVariables.ts';
 
 import { AgentSecretsContext } from './agent-secrets-context';
@@ -46,10 +45,8 @@ const secretsLocalStorageOptions = {
 export function AgentSecretsProvider({ agent, agentClient, children }: PropsWithChildren<Props>) {
   const [agentSecrets, setAgentSecrets] = useLocalStorage<Secrets>(STORAGE_KEY, {}, secretsLocalStorageOptions);
 
-  const { data } = useListVariables({ providerId: agent.provider.id });
+  const { data } = useListVariables();
   const variables = data ? data.variables : null;
-
-  const { mutate: updateVariable } = useUpdateVariable();
 
   const hasSeenModal = useMemo(() => {
     return agentSecrets[agent.provider.id]?.modalSeen ?? false;
@@ -58,25 +55,6 @@ export function AgentSecretsProvider({ agent, agentClient, children }: PropsWith
   const secretDemands = useMemo(() => {
     return agentClient?.secretDemands ?? null;
   }, [agentClient]);
-
-  const updateSecret = useCallback(
-    (key: string, value: string) => {
-      updateVariable({ id: agent.provider.id, variables: { [key]: value } });
-    },
-    [agent.provider.id, updateVariable],
-  );
-
-  const storeSecrets = useCallback(
-    (secrets: Record<string, string>) => {
-      if (Object.keys(secrets).length) {
-        updateVariable({
-          id: agent.provider.id,
-          variables: secrets,
-        });
-      }
-    },
-    [agent.provider.id, updateVariable],
-  );
 
   const markModalAsSeen = useCallback(() => {
     setAgentSecrets((prev) => ({
@@ -124,10 +102,8 @@ export function AgentSecretsProvider({ agent, agentClient, children }: PropsWith
       hasSeenModal,
       markModalAsSeen,
       getRequestSecrets,
-      updateSecret,
-      storeSecrets,
     }),
-    [secrets, hasSeenModal, markModalAsSeen, getRequestSecrets, updateSecret, storeSecrets],
+    [secrets, hasSeenModal, markModalAsSeen, getRequestSecrets],
   );
 
   return <AgentSecretsContext.Provider value={contextValue}>{children}</AgentSecretsContext.Provider>;

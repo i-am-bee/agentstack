@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+from datetime import timedelta
+
 from a2a.server.agent_execution import RequestContextBuilder
 from a2a.server.apps.jsonrpc import A2AFastAPIApplication
 from a2a.server.apps.rest import A2ARESTFastAPIApplication
@@ -29,13 +31,14 @@ def create_app(
     lifespan: Lifespan[AppType] | None = None,
     dependencies: list[Depends] | None = None,  # pyright: ignore [reportGeneralTypeIssues]
     override_interfaces: bool = True,
+    task_timeout: timedelta = timedelta(minutes=10),
     **kwargs,
 ) -> FastAPI:
     queue_manager = queue_manager or InMemoryQueueManager()
     task_store = task_store or InMemoryTaskStore()
     context_store = context_store or InMemoryContextStore()
     http_handler = DefaultRequestHandler(
-        agent_executor=Executor(agent.execute, queue_manager, context_store=context_store),
+        agent_executor=Executor(agent.execute, queue_manager, context_store=context_store, task_timeout=task_timeout),
         task_store=task_store,
         queue_manager=queue_manager,
         push_config_store=push_config_store,

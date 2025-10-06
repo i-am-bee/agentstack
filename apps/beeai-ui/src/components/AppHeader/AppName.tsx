@@ -3,16 +3,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { APP_NAME, COMPANY_NAME } from '#utils/constants.ts';
+import { useApp } from '#contexts/App/index.ts';
 
 import classes from './AppName.module.scss';
 
 export function AppName() {
+  const {
+    config: { appName, companyName },
+  } = useApp();
+
   return (
     <span className={classes.root}>
-      {COMPANY_NAME && <span className={classes.companyName}>{COMPANY_NAME}</span>}
+      {companyName && <span className={classes.companyName}>{companyName}</span>}
 
-      <span className={classes.appName}>{APP_NAME}</span>
+      <span className={classes.appName}>{appName}</span>
     </span>
   );
 }

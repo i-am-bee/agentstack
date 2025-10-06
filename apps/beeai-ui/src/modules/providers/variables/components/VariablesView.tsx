@@ -24,16 +24,16 @@ import { TableViewToolbar } from '#components/TableView/TableViewToolbar.tsx';
 import { useModal } from '#contexts/Modal/index.tsx';
 import { useTableSearch } from '#hooks/useTableSearch.ts';
 
-import { useDeleteVariable } from '../api/mutations/useDeleteVariable';
-import { useListAllVariables } from '../api/queries/useListAllVariables';
+import { useDeleteProviderVariable } from '../api/mutations/useDeleteProviderVariable';
+import { useListAllProvidersVariables } from '../api/queries/useListAllProvidersVariables';
 import { maskSecretValue } from '../utils';
 import { AddVariableModal } from './AddVariableModal';
 import classes from './VariablesView.module.scss';
 
 export function VariablesView() {
   const { openModal, openConfirmation } = useModal();
-  const { data, isPending } = useListAllVariables();
-  const { mutate: deleteVariable } = useDeleteVariable();
+  const { data, isPending } = useListAllProvidersVariables();
+  const { mutate: deleteVariable } = useDeleteProviderVariable();
 
   const entries = useMemo(
     () =>

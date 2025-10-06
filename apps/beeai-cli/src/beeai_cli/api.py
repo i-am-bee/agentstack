@@ -110,6 +110,7 @@ async def a2a_client(agent_card: AgentCard, use_auth: bool = True) -> AsyncItera
             else {}
         ),
         follow_redirects=True,
+        timeout=timedelta(hours=1).total_seconds(),
     ) as httpx_client:
         yield ClientFactory(ClientConfig(httpx_client=httpx_client)).create(card=agent_card)
 

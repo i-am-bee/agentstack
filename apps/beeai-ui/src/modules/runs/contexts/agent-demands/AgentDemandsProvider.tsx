@@ -30,7 +30,9 @@ export function AgentDemandsProvider<UIGenericPart>({
   const [selectedEmbeddingProviders, setSelectedEmbeddingProviders] = useState<Record<string, string>>({});
   const [selectedLLMProviders, setSelectedLLMProviders] = useState<Record<string, string>>({});
 
-  const { featureFlags } = useApp();
+  const {
+    config: { featureFlags },
+  } = useApp();
   const { contextId } = usePlatformContext();
 
   const { mutateAsync: createContextToken } = useCreateContextToken();

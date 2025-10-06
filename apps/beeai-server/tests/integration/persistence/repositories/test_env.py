@@ -27,15 +27,15 @@ def encryption_config() -> Configuration:
 
 
 @pytest.fixture
-async def provider_id(db_transaction: AsyncConnection) -> UUID:
+async def provider_id(db_transaction: AsyncConnection, admin_user: UUID) -> UUID:
     """Test provider ID with actual provider record in database."""
     provider_id = uuid.uuid4()
     # Create a minimal provider record to satisfy foreign key constraint
     await db_transaction.execute(
         text(
             """
-            INSERT INTO providers (id, source, auto_stop_timeout_sec, auto_remove, created_at, last_active_at, agent_card)
-            VALUES (:id, :source, :timeout, :auto_remove, :created_at, :last_active_at, :agent_card)
+            INSERT INTO providers (id, source, auto_stop_timeout_sec, auto_remove, created_at, last_active_at, agent_card, created_by)
+            VALUES (:id, :source, :timeout, :auto_remove, :created_at, :last_active_at, :agent_card, :created_by)
             """
         ),
         {
@@ -46,6 +46,7 @@ async def provider_id(db_transaction: AsyncConnection) -> UUID:
             "created_at": utc_now(),
             "last_active_at": utc_now(),
             "agent_card": "{}",
+            "created_by": admin_user,
         },
     )
     return provider_id
@@ -309,8 +310,7 @@ async def test_variable_isolation_between_entities(
 
 
 async def test_get_all_multiple_entities(
-    db_transaction: AsyncConnection,
-    encryption_config: Configuration,
+    db_transaction: AsyncConnection, encryption_config: Configuration, admin_user: UUID
 ):
     """Test get_all method with multiple parent entities of the same type."""
     repository = SqlAlchemyEnvVariableRepository(connection=db_transaction, configuration=encryption_config)
@@ -325,8 +325,8 @@ async def test_get_all_multiple_entities(
         await db_transaction.execute(
             text(
                 """
-                INSERT INTO providers (id, source, auto_stop_timeout_sec, auto_remove, created_at, last_active_at, agent_card)
-                VALUES (:id, :source, :timeout, :auto_remove, :created_at, :last_active_at, :agent_card)
+                INSERT INTO providers (id, source, auto_stop_timeout_sec, auto_remove, created_at, last_active_at, agent_card, created_by)
+                VALUES (:id, :source, :timeout, :auto_remove, :created_at, :last_active_at, :agent_card, :created_by)
                 """
             ),
             {
@@ -337,6 +337,7 @@ async def test_get_all_multiple_entities(
                 "created_at": utc_now(),
                 "last_active_at": utc_now(),
                 "agent_card": "{}",
+                "created_by": admin_user,
             },
         )
 
@@ -413,6 +414,7 @@ async def test_get_all_empty_ids_list(
 async def test_variable_isolation_between_entity_types(
     db_transaction: AsyncConnection,
     encryption_config: Configuration,
+    admin_user: UUID,
 ):
     """Test that the same entity ID with different entity types are isolated."""
     repository = SqlAlchemyEnvVariableRepository(connection=db_transaction, configuration=encryption_config)
@@ -424,8 +426,8 @@ async def test_variable_isolation_between_entity_types(
     await db_transaction.execute(
         text(
             """
-            INSERT INTO providers (id, source, auto_stop_timeout_sec, auto_remove, created_at, last_active_at, agent_card)
-            VALUES (:id, :source, :timeout, :auto_remove, :created_at, :last_active_at, :agent_card)
+            INSERT INTO providers (id, source, auto_stop_timeout_sec, auto_remove, created_at, last_active_at, agent_card, created_by)
+            VALUES (:id, :source, :timeout, :auto_remove, :created_at, :last_active_at, :agent_card, :created_by)
             """
         ),
         {
@@ -436,6 +438,7 @@ async def test_variable_isolation_between_entity_types(
             "created_at": utc_now(),
             "last_active_at": utc_now(),
             "agent_card": "{}",
+            "created_by": admin_user,
         },
     )
 

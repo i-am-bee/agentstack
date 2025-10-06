@@ -8,23 +8,23 @@ import { useQuery } from '@tanstack/react-query';
 import type { QueryMetadata } from '#contexts/QueryProvider/types.ts';
 import { useListProviders } from '#modules/providers/api/queries/useListProviders.ts';
 
-import { listVariables } from '..';
-import { variableKeys } from '../keys';
+import { listProviderVariables } from '..';
+import { providerVariableKeys } from '../keys';
 
 interface Props {
   errorToast?: QueryMetadata['errorToast'];
   retry?: boolean;
 }
 
-export function useListAllVariables({ errorToast, retry }: Props = {}) {
+export function useListAllProvidersVariables({ errorToast, retry }: Props = {}) {
   const { data: providers } = useListProviders();
 
   const query = useQuery({
-    queryKey: variableKeys.lists(),
+    queryKey: providerVariableKeys.lists(),
     queryFn: async () => {
       return Promise.all(
         providers?.items.map(async (provider) => {
-          const result = await listVariables({ id: provider.id });
+          const result = await listProviderVariables({ id: provider.id });
 
           return { provider, variables: result?.variables ?? {} };
         }) || [],

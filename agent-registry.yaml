@@ -1,4 +1,4 @@
 providers:
-  - location: ghcr.io/i-am-bee/beeai-platform/agents/chat:0.3.5-rc3
-  - location: ghcr.io/i-am-bee/beeai-platform/agents/rag:0.3.5-rc3
-  - location: ghcr.io/i-am-bee/beeai-platform/agents/form:0.3.5-rc3
+  - location: ghcr.io/i-am-bee/beeai-platform/agents/chat:0.3.5
+  - location: ghcr.io/i-am-bee/beeai-platform/agents/rag:0.3.5
+  - location: ghcr.io/i-am-bee/beeai-platform/agents/form:0.3.5

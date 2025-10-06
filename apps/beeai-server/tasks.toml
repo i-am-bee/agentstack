@@ -1,6 +1,7 @@
 # setup
 
 ["beeai-server:setup"]
+depends = ["beeai-sdk:setup"]
 dir = "{{config_root}}/apps/beeai-server"
 run = "uv sync --all-extras --dev"
 sources = ["uv.lock", "pyproject.toml"]

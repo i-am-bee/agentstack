@@ -28,6 +28,7 @@ class Permissions(BaseModel):
     files: SerializeAsAny[set[Literal["read", "write", "extract", "*"]]] = set()
     feedback: SerializeAsAny[set[Literal["write"]]] = set()
     vector_stores: SerializeAsAny[set[Literal["read", "write", "extract", "*"]]] = set()
+    variables: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
 
     # openai proxy
     model_providers: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()

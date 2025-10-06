@@ -8,14 +8,9 @@ import { useQuery } from '@tanstack/react-query';
 import { listVariables } from '..';
 import { variableKeys } from '../keys';
 
-interface Props {
-  providerId?: string;
-}
-
-export function useListVariables({ providerId = '' }: Props) {
+export function useListVariables() {
   return useQuery({
-    queryKey: variableKeys.list(providerId),
-    queryFn: () => listVariables({ id: providerId }),
-    enabled: Boolean(providerId),
+    queryKey: variableKeys.lists(),
+    queryFn: () => listVariables(),
   });
 }

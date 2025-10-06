@@ -134,7 +134,8 @@ export interface paths {
     };
     /** Get Context */
     get: operations['get_context_api_v1_contexts__context_id__get'];
-    put?: never;
+    /** Update Context */
+    put: operations['update_context_api_v1_contexts__context_id__put'];
     post?: never;
     /** Delete Context */
     delete: operations['delete_context_api_v1_contexts__context_id__delete'];
@@ -159,6 +160,23 @@ export interface paths {
     options?: never;
     head?: never;
     patch?: never;
+    trace?: never;
+  };
+  '/api/v1/contexts/{context_id}/metadata': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Patch Context Metadata */
+    patch: operations['patch_context_metadata_api_v1_contexts__context_id__metadata_patch'];
     trace?: never;
   };
   '/api/v1/contexts/{context_id}/token': {
@@ -600,6 +618,24 @@ export interface paths {
     put?: never;
     /** User Feedback */
     post: operations['user_feedback_api_v1_user_feedback_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/variables': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List User Variables */
+    get: operations['list_user_variables_api_v1_variables_get'];
+    /** Update User Variables */
+    put: operations['update_user_variables_api_v1_variables_put'];
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -1405,8 +1441,72 @@ export interface components {
        */
       updated_at?: string;
     };
-    /** VectorStoreResponse */
+    /** ContextResponse */
     beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__11: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Last Active At
+       * Format: date-time
+       */
+      last_active_at?: string;
+      /** Metadata */
+      metadata?: {
+        [key: string]: string;
+      } | null;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at?: string;
+    };
+    /** ContextResponse */
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__12: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Last Active At
+       * Format: date-time
+       */
+      last_active_at?: string;
+      /** Metadata */
+      metadata?: {
+        [key: string]: string;
+      } | null;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at?: string;
+    };
+    /** VectorStoreResponse */
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__13: {
       /** Context Id */
       context_id?: string | null;
       /**
@@ -1438,7 +1538,7 @@ export interface components {
       stats?: components['schemas']['VectorStoreStats'] | null;
     };
     /** VectorStoreResponse */
-    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__12: {
+    beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__14: {
       /** Context Id */
       context_id?: string | null;
       /**
@@ -1944,6 +2044,19 @@ export interface components {
     ContextHistoryItemCreateRequest: components['schemas']['ContextHistoryItemData-Input'];
     'ContextHistoryItemData-Input': components['schemas']['Artifact-Input'] | components['schemas']['Message-Input'];
     'ContextHistoryItemData-Output': components['schemas']['Artifact-Output'] | components['schemas']['Message-Output'];
+    /**
+     * ContextPatchMetadataRequest
+     * @description Request schema for patching context metadata.
+     */
+    ContextPatchMetadataRequest: {
+      /**
+       * Metadata
+       * @description Metadata update, will add or overwrite existing keys, None will delete the key from metadata.
+       */
+      metadata: {
+        [key: string]: string | null;
+      };
+    };
     /** ContextPermissionsGrant */
     ContextPermissionsGrant: {
       /**
@@ -2003,6 +2116,16 @@ export interface components {
       expires_at: string | null;
       /** Token */
       token: string;
+    };
+    /**
+     * ContextUpdateRequest
+     * @description Request schema for context update.
+     */
+    ContextUpdateRequest: {
+      /** Metadata */
+      metadata?: {
+        [key: string]: string;
+      } | null;
     };
     /** CreateMcpProviderRequest */
     CreateMcpProviderRequest: {
@@ -2887,6 +3010,11 @@ export interface components {
        * Format: date-time
        */
       created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
       /** Env */
       readonly env: components['schemas']['EnvVar'][];
       /**
@@ -3815,6 +3943,41 @@ export interface operations {
       };
     };
   };
+  update_context_api_v1_contexts__context_id__put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        context_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ContextUpdateRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__11'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   delete_context_api_v1_contexts__context_id__delete: {
     parameters: {
       query?: never;
@@ -3902,6 +4065,41 @@ export interface operations {
         };
         content: {
           'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  patch_context_metadata_api_v1_contexts__context_id__metadata_patch: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        context_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ContextPatchMetadataRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__12'];
         };
       };
       /** @description Validation Error */
@@ -4745,7 +4943,9 @@ export interface operations {
   };
   list_providers_api_v1_providers_get: {
     parameters: {
-      query?: never;
+      query?: {
+        user_owned?: boolean;
+      };
       header?: never;
       path?: never;
       cookie?: never;
@@ -4759,6 +4959,15 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['PaginatedResult_ProviderWithState_'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
         };
       };
     };
@@ -5021,6 +5230,59 @@ export interface operations {
       };
     };
   };
+  list_user_variables_api_v1_variables_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ListVariablesSchema'];
+        };
+      };
+    };
+  };
+  update_user_variables_api_v1_variables_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateVariablesRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   create_vector_store_api_v1_vector_stores_post: {
     parameters: {
       query?: {
@@ -5042,7 +5304,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__11'];
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__13'];
         };
       };
       /** @description Validation Error */
@@ -5075,7 +5337,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__12'];
+          'application/json': components['schemas']['beeai_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__14'];
         };
       };
       /** @description Validation Error */

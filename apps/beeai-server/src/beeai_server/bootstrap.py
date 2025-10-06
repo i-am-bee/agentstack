@@ -8,7 +8,7 @@ import anyio
 import kr8s
 import procrastinate
 from kink import Container, di
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 from beeai_server.configuration import Configuration, get_configuration
 from beeai_server.domain.repositories.file import IObjectStorageRepository, ITextExtractionBackend
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 def setup_database_engine(config: Configuration) -> AsyncEngine:
-    return create_async_engine(str(config.persistence.db_url.get_secret_value()), isolation_level="READ COMMITTED")
+    return config.persistence.create_async_engine(isolation_level="READ COMMITTED")
 
 
 async def setup_kubernetes_client(namespace: str | None = None, kubeconfig: pathlib.Path | str | dict | None = None):
@@ -80,7 +80,7 @@ async def bootstrap_dependencies(dependency_overrides: Container | None = None):
 
     # Register object storage repository and file service
     _set_di(IObjectStorageRepository, S3ObjectStorageRepository(di[Configuration]))
-    _set_di(procrastinate.App, create_app())
+    _set_di(procrastinate.App, create_app(di[Configuration]))
 
     _set_di(ITextExtractionBackend, DoclingTextExtractionBackend(di[Configuration].text_extraction))
 

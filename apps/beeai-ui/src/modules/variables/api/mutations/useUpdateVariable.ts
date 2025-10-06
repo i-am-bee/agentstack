@@ -5,8 +5,6 @@
 
 import { useMutation } from '@tanstack/react-query';
 
-import { providerKeys } from '#modules/providers/api/keys.ts';
-
 import { updateVariable } from '..';
 import { variableKeys } from '../keys';
 
@@ -19,7 +17,7 @@ export function useUpdateVariable({ onSuccess }: Props = {}) {
     mutationFn: updateVariable,
     onSuccess,
     meta: {
-      invalidates: [variableKeys.lists(), providerKeys.lists()],
+      invalidates: [variableKeys.lists()],
       errorToast: {
         title: 'Failed to update variable.',
         includeErrorMessage: true,

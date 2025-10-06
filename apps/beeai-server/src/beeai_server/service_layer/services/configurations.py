@@ -8,7 +8,7 @@ from kink import inject
 from beeai_server.domain.models.configuration import SystemConfiguration
 from beeai_server.domain.models.user import User
 from beeai_server.exceptions import EntityNotFoundError
-from beeai_server.service_layer.services.model_provider import ModelProviderService
+from beeai_server.service_layer.services.model_providers import ModelProviderService
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
 
 logger = logging.getLogger(__name__)

@@ -73,105 +73,105 @@ RECOMMENDED_EMBEDDING_MODELS = [
 
 LLM_PROVIDERS = [
     Choice(
-        name="Anthropic Claude".ljust(25),
+        name="Anthropic Claude".ljust(20),
         value=(ModelProviderType.ANTHROPIC, "Anthropic Claude", "https://api.anthropic.com/v1"),
     ),
     Choice(
-        name="Cerebras".ljust(25) + "🆓 has a free tier",
+        name="Cerebras".ljust(20) + "🆓 has a free tier",
         value=(ModelProviderType.CEREBRAS, "Cerebras", "https://api.cerebras.ai/v1"),
     ),
     Choice(
-        name="Chutes".ljust(25) + "🆓 has a free tier",
+        name="Chutes".ljust(20) + "🆓 has a free tier",
         value=(ModelProviderType.CHUTES, "Chutes", "https://llm.chutes.ai/v1"),
     ),
     Choice(
-        name="Cohere".ljust(25) + "🆓 has a free tier",
+        name="Cohere".ljust(20) + "🆓 has a free tier",
         value=(ModelProviderType.COHERE, "Cohere", "https://api.cohere.ai/compatibility/v1"),
     ),
     Choice(name="DeepSeek", value=(ModelProviderType.DEEPSEEK, "DeepSeek", "https://api.deepseek.com/v1")),
     Choice(
-        name="Google Gemini".ljust(25) + "🆓 has a free tier",
+        name="Google Gemini".ljust(20) + "🆓 has a free tier",
         value=(ModelProviderType.GEMINI, "Google Gemini", "https://generativelanguage.googleapis.com/v1beta/openai"),
     ),
     Choice(
-        name="GitHub Models".ljust(25) + "🆓 has a free tier",
+        name="GitHub Models".ljust(20) + "🆓 has a free tier",
         value=(ModelProviderType.GITHUB, "GitHub Models", "https://models.github.ai/inference"),
     ),
     Choice(
-        name="Groq".ljust(25) + "🆓 has a free tier",
+        name="Groq".ljust(20) + "🆓 has a free tier",
         value=(ModelProviderType.GROQ, "Groq", "https://api.groq.com/openai/v1"),
     ),
-    Choice(name="IBM watsonx".ljust(25), value=(ModelProviderType.WATSONX, "IBM watsonx", None)),
-    Choice(name="Jan".ljust(25) + "💻 local", value=(ModelProviderType.JAN, "Jan", "http://localhost:1337/v1")),
+    Choice(name="IBM watsonx".ljust(20), value=(ModelProviderType.WATSONX, "IBM watsonx", None)),
+    Choice(name="Jan".ljust(20) + "💻 local", value=(ModelProviderType.JAN, "Jan", "http://localhost:1337/v1")),
     Choice(
-        name="Mistral".ljust(25) + "🆓 has a free tier",
+        name="Mistral".ljust(20) + "🆓 has a free tier",
         value=(ModelProviderType.MISTRAL, "Mistral", "https://api.mistral.ai/v1"),
     ),
     Choice(
-        name="Moonshot AI".ljust(25),
+        name="Moonshot AI".ljust(20),
         value=(ModelProviderType.MOONSHOT, "Moonshot AI", "https://api.moonshot.ai/v1"),
     ),
     Choice(
-        name="NVIDIA NIM".ljust(25),
+        name="NVIDIA NIM".ljust(20),
         value=(ModelProviderType.NVIDIA, "NVIDIA NIM", "https://integrate.api.nvidia.com/v1"),
     ),
     Choice(
-        name="Ollama".ljust(25) + "💻 local",
+        name="Ollama".ljust(20) + "💻 local",
         value=(ModelProviderType.OLLAMA, "Ollama", "http://localhost:11434/v1"),
     ),
     Choice(
-        name="OpenAI".ljust(25),
+        name="OpenAI".ljust(20),
         value=(ModelProviderType.OPENAI, "OpenAI", "https://api.openai.com/v1"),
     ),
     Choice(
-        name="OpenRouter".ljust(25) + "🆓 has some free models",
+        name="OpenRouter".ljust(20) + "🆓 has some free models",
         value=(ModelProviderType.OPENROUTER, "OpenRouter", "https://openrouter.ai/api/v1"),
     ),
     Choice(
-        name="Perplexity".ljust(25),
+        name="Perplexity".ljust(20),
         value=(ModelProviderType.PERPLEXITY, "Perplexity", "https://api.perplexity.ai"),
     ),
     Choice(
-        name="together.ai".ljust(25) + "🆓 has a free tier",
+        name="Together.ai".ljust(20) + "🆓 has a free tier",
         value=(ModelProviderType.TOGETHER, "together.ai", "https://api.together.xyz/v1"),
     ),
     Choice(
-        name="Other (RITS, vLLM, ...)".ljust(25) + "🔧 provide API URL",
+        name="🛠️  Other (RITS, Amazon Bedrock, vLLM, ..., any OpenAI-compatible API)",
         value=(ModelProviderType.OTHER, "Other", None),
     ),
 ]
 
 EMBEDDING_PROVIDERS = [
     Choice(
-        name="Cohere".ljust(25) + "🆓 has a free tier",
+        name="Cohere".ljust(20) + "🆓 has a free tier",
         value=(ModelProviderType.COHERE, "Cohere", "https://api.cohere.ai/compatibility/v1"),
     ),
     Choice(
-        name="Google Gemini".ljust(25) + "🆓 has a free tier",
+        name="Google Gemini".ljust(20) + "🆓 has a free tier",
         value=(ModelProviderType.GEMINI, "Gemini", "https://generativelanguage.googleapis.com/v1beta/openai"),
     ),
     Choice(
-        name="IBM watsonx".ljust(25),
+        name="IBM watsonx".ljust(20),
         value=(ModelProviderType.WATSONX, "IBM watsonx", None),
     ),
     Choice(
-        name="Mistral".ljust(25) + "🆓 has a free tier",
+        name="Mistral".ljust(20) + "🆓 has a free tier",
         value=(ModelProviderType.MISTRAL, "Mistral", "https://api.mistral.ai/v1"),
     ),
     Choice(
-        name=ModelProviderType.OLLAMA.ljust(25) + "💻 local",
+        name="Ollama".ljust(20) + "💻 local",
         value=(ModelProviderType.OLLAMA, "Ollama", "http://localhost:11434/v1"),
     ),
     Choice(
-        name="OpenAI".ljust(25),
+        name="OpenAI".ljust(20),
         value=(ModelProviderType.OPENAI, "OpenAI", "https://api.openai.com/v1"),
     ),
     Choice(
-        name="Voyage".ljust(25),
+        name="Voyage".ljust(20),
         value=(ModelProviderType.VOYAGE, "Voyage", "https://api.voyageai.com/v1"),
     ),
     Choice(
-        name="Other (vLLM, ...)".ljust(25) + "🔧 provide API URL",
+        name="🛠️  Other (Amazon Bedrock, vLLM, ..., any OpenAI-compatible API)",
         value=(ModelProviderType.OTHER, "Other", None),
     ),
 ]

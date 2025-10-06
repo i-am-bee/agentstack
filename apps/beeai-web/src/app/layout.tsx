@@ -5,9 +5,10 @@
 
 import '../styles/style.scss';
 
-import { APP_FAVICON_SVG, APP_NAME, BASE_PATH } from '@i-am-bee/beeai-ui';
+import { APP_FAVICON_SVG, BASE_PATH } from '@i-am-bee/beeai-ui';
 import type { Metadata } from 'next';
 
+import { APP_NAME } from '@/constants';
 import AppLayout from '@/layouts/AppLayout';
 
 import Providers from './providers';

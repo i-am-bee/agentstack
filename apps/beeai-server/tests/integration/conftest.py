@@ -1,13 +1,17 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-
+import uuid
 from collections.abc import Callable
 
+import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
 from kink import Container
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncConnection
 
 from beeai_server.application import app
+from beeai_server.utils.utils import utc_now
 
 
 @pytest_asyncio.fixture(scope="module", loop_scope="module")
@@ -21,3 +25,15 @@ async def beeai_server() -> Callable[[Container | None], TestClient]:
         return client
 
     yield server_factory
+
+
+@pytest.fixture
+async def admin_user(db_transaction: AsyncConnection) -> uuid.UUID:
+    uid = uuid.uuid4()
+    await db_transaction.execute(
+        text("INSERT INTO users (id, email, created_at, role) VALUES (:id, :email, :created_at, :role)"),
+        [
+            {"id": uid, "email": "dummy@beeai.dev", "created_at": utc_now(), "role": "admin"},
+        ],
+    )
+    return uid

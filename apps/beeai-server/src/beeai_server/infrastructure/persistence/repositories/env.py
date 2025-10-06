@@ -44,22 +44,28 @@ variables_table = Table(
     Column("parent_entity", sql_enum(EnvStoreEntity), nullable=False),
     # Foreign key columns
     Column("provider_id", SQL_UUID, ForeignKey("providers.id", ondelete="CASCADE"), nullable=True),
+    Column("user_id", SQL_UUID, ForeignKey("users.id", ondelete="CASCADE"), nullable=True),
     Column("model_provider_id", SQL_UUID, ForeignKey("model_providers.id", ondelete="CASCADE"), nullable=True),
     # Constraints
     CheckConstraint(
-        "(provider_id IS NOT NULL)::int + (model_provider_id IS NOT NULL)::int= 1",
+        "(provider_id IS NOT NULL)::int + (model_provider_id IS NOT NULL)::int + (user_id IS NOT NULL)::int= 1",
         name="exactly_one_reference",
     ),
     CheckConstraint(
-        "(parent_entity = 'provider' AND provider_id IS NOT NULL) OR "
-        "(parent_entity = 'model_provider' AND model_provider_id IS NOT NULL)",
+        (
+            "(parent_entity = 'provider' AND provider_id IS NOT NULL) OR "
+            "(parent_entity = 'model_provider' AND model_provider_id IS NOT NULL) OR"
+            "(parent_entity = 'user' AND user_id IS NOT NULL)"
+        ),
         name="parent_entity_matches_reference",
     ),
     UniqueConstraint("key", "parent_entity", "provider_id", name="uk_provider"),
     UniqueConstraint("key", "parent_entity", "model_provider_id", name="uk_model_provider"),
+    UniqueConstraint("key", "parent_entity", "user_id", name="uk_user"),
     # Indexes
     Index("idx_entity_attributes_provider", "provider_id"),
     Index("idx_entity_attributes_model_provider", "model_provider_id"),
+    Index("idx_entity_attributes_user", "user_id"),
 )
 
 
@@ -79,6 +85,8 @@ class SqlAlchemyEnvVariableRepository(IEnvVariableRepository):
                 return variables_table.c.provider_id
             case EnvStoreEntity.MODEL_PROVIDER:
                 return variables_table.c.model_provider_id
+            case EnvStoreEntity.USER:
+                return variables_table.c.user_id
             case _:
                 raise ValueError(f"Unknown parent entity type: {parent_entity}")
 

@@ -6,6 +6,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import uuid
 from collections.abc import AsyncIterator, Callable
 from uuid import UUID
 
@@ -21,6 +22,7 @@ from beeai_server.domain.models.provider import (
     ProviderWithState,
 )
 from beeai_server.domain.models.registry import RegistryLocation
+from beeai_server.domain.models.user import User, UserRole
 from beeai_server.domain.repositories.env import EnvStoreEntity
 from beeai_server.exceptions import ManifestLoadError
 from beeai_server.service_layer.deployment_manager import (
@@ -42,6 +44,7 @@ class ProviderService:
     async def create_provider(
         self,
         *,
+        user: User,
         location: ProviderLocation,
         registry: RegistryLocation | None = None,
         auto_remove: bool = False,
@@ -51,7 +54,9 @@ class ProviderService:
         try:
             if not agent_card:
                 agent_card = await location.load_agent_card()
-            provider = Provider(source=location, registry=registry, auto_remove=auto_remove, agent_card=agent_card)
+            provider = Provider(
+                source=location, registry=registry, auto_remove=auto_remove, agent_card=agent_card, created_by=user.id
+            )
         except ValueError as ex:
             raise ManifestLoadError(location=location, message=str(ex), status_code=HTTP_400_BAD_REQUEST) from ex
         except Exception as ex:
@@ -101,7 +106,7 @@ class ProviderService:
         try:
             if not agent_card:
                 agent_card = await location.load_agent_card()
-            provider = Provider(source=location, agent_card=agent_card)
+            provider = Provider(source=location, agent_card=agent_card, created_by=uuid.uuid4())
             [provider_response] = await self._get_providers_with_state(providers=[provider])
             return provider_response
         except ValueError as ex:
@@ -134,10 +139,11 @@ class ProviderService:
                 )
         return result_providers
 
-    async def delete_provider(self, *, provider_id: UUID):
+    async def delete_provider(self, *, provider_id: UUID, user: User) -> None:
+        user_id = user.id if user.role != UserRole.ADMIN else None
         async with self._uow() as uow:
-            provider = await uow.providers.get(provider_id=provider_id)
-            await uow.providers.delete(provider_id=provider_id)
+            provider = await uow.providers.get(provider_id=provider_id, user_id=user_id)
+            await uow.providers.delete(provider_id=provider_id, user_id=user_id)
             if provider.managed:
                 await self._deployment_manager.delete(provider_id=provider_id)
             await uow.commit()
@@ -164,9 +170,12 @@ class ProviderService:
             existing_providers = [p.id async for p in uow.providers.list()]
         await self._deployment_manager.remove_orphaned_providers(existing_providers=existing_providers)
 
-    async def list_providers(self) -> list[ProviderWithState]:
+    async def list_providers(self, user: User | None = None) -> list[ProviderWithState]:
+        user_id = user.id if user else None
         async with self._uow() as uow:
-            return await self._get_providers_with_state(providers=[p async for p in uow.providers.list()])
+            return await self._get_providers_with_state(
+                providers=[p async for p in uow.providers.list(user_id=user_id)]
+            )
 
     async def get_provider(self, provider_id: UUID) -> ProviderWithState:
         providers = [provider for provider in await self.list_providers() if provider.id == provider_id]
@@ -174,7 +183,12 @@ class ProviderService:
             raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail=f"Provider with ID: {provider_id!s} not found")
         return providers[0]
 
-    async def stream_logs(self, provider_id: UUID) -> Callable[..., AsyncIterator[str]]:
+    async def stream_logs(self, provider_id: UUID, user: User) -> Callable[..., AsyncIterator[str]]:
+        user_id = user.id if user.role != UserRole.ADMIN else None
+        async with self._uow() as uow:
+            # check provider exists and user ownership
+            await uow.providers.get(provider_id=provider_id, user_id=user_id)
+
         logs_container = LogsContainer()
 
         logs_task = asyncio.create_task(
@@ -202,11 +216,12 @@ class ProviderService:
         ):
             await self._deployment_manager.create_or_replace(provider=provider, env=env)
 
-    async def update_provider_env(self, *, provider_id: UUID, env: dict[str, str | None]):
+    async def update_provider_env(self, *, provider_id: UUID, env: dict[str, str | None], user: User) -> None:
+        user_id = user.id if user.role != UserRole.ADMIN else None
         provider = None
         try:
             async with self._uow() as uow:
-                provider = await uow.providers.get(provider_id=provider_id)
+                provider = await uow.providers.get(provider_id=provider_id, user_id=user_id)
                 await uow.env.update(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_id=provider_id, variables=env)
                 new_env = await uow.env.get_all(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_ids=[provider_id])
                 new_env = new_env[provider_id]
@@ -229,8 +244,9 @@ class ProviderService:
                     logger.error(f"Failed to rollback provider: {provider.id}")
             raise
 
-    async def list_provider_env(self, *, provider_id: UUID) -> dict[str, str]:
+    async def list_provider_env(self, *, provider_id: UUID, user: User) -> dict[str, str]:
+        user_id = user.id if user.role != UserRole.ADMIN else None
         async with self._uow() as uow:
-            await uow.providers.get(provider_id=provider_id)
+            await uow.providers.get(provider_id=provider_id, user_id=user_id)
             env = await uow.env.get_all(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_ids=[provider_id])
             return env[provider_id]

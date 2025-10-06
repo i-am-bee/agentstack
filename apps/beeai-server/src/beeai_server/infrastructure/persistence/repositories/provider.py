@@ -6,7 +6,7 @@ from datetime import timedelta
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import JSON, Boolean, Column, DateTime, Integer, Row, String, Table
+from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, Integer, Row, String, Table
 from sqlalchemy import UUID as SQL_UUID
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncConnection
@@ -27,6 +27,7 @@ providers_table = Table(
     Column("auto_stop_timeout_sec", Integer, nullable=True),
     Column("auto_remove", Boolean, default=False, nullable=False),
     Column("created_at", DateTime(timezone=True), nullable=False),
+    Column("created_by", ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
     Column("last_active_at", DateTime(timezone=True), nullable=False),
     Column("agent_card", JSON, nullable=False),
 )
@@ -60,6 +61,7 @@ class SqlAlchemyProviderRepository(IProviderRepository):
             "auto_remove": provider.auto_remove,
             "agent_card": provider.agent_card.model_dump(mode="json"),
             "created_at": provider.created_at,
+            "created_by": provider.created_by,
             "last_active_at": provider.last_active_at,
         }
 
@@ -75,12 +77,15 @@ class SqlAlchemyProviderRepository(IProviderRepository):
                 "auto_remove": row.auto_remove,
                 "last_active_at": row.last_active_at,
                 "created_at": row.created_at,
+                "created_by": row.created_by,
                 "agent_card": row.agent_card,
             }
         )
 
-    async def get(self, *, provider_id: UUID) -> Provider:
+    async def get(self, *, provider_id: UUID, user_id: UUID | None = None) -> Provider:
         query = select(providers_table).where(providers_table.c.id == provider_id)
+        if user_id is not None:
+            query = query.where(providers_table.c.created_by == user_id)
         result = await self.connection.execute(query)
         if not (row := result.fetchone()):
             raise EntityNotFoundError(entity="provider", id=provider_id)
@@ -91,15 +96,21 @@ class SqlAlchemyProviderRepository(IProviderRepository):
         query = providers_table.update().where(providers_table.c.id == provider_id).values(last_active_at=utc_now())
         await self.connection.execute(query)
 
-    async def delete(self, *, provider_id: UUID) -> int:
+    async def delete(self, *, provider_id: UUID, user_id: UUID | None = None) -> int:
         query = delete(providers_table).where(providers_table.c.id == provider_id)
+        if user_id is not None:
+            query = query.where(providers_table.c.created_by == user_id)
         result = await self.connection.execute(query)
         if not result.rowcount:
             raise EntityNotFoundError(entity="provider", id=provider_id)
         return result.rowcount
 
-    async def list(self, *, auto_remove_filter: bool | None = None) -> AsyncIterator[Provider]:
+    async def list(
+        self, *, auto_remove_filter: bool | None = None, user_id: UUID | None = None
+    ) -> AsyncIterator[Provider]:
         query = providers_table.select()
+        if user_id is not None:
+            query = query.where(providers_table.c.created_by == user_id)
         if auto_remove_filter is not None:
             query = query.where(providers_table.c.auto_remove == auto_remove_filter)
         async for row in await self.connection.stream(query):

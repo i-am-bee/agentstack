@@ -15,13 +15,15 @@ import { ViewHeader } from '#components/ViewHeader/ViewHeader.tsx';
 import { ViewStack } from '#components/ViewStack/ViewStack.tsx';
 import { useApp } from '#contexts/App/index.ts';
 import { ProvidersView } from '#modules/providers/components/ProvidersView.tsx';
-import { VariablesView } from '#modules/variables/components/VariablesView.tsx';
+import { VariablesView } from '#modules/providers/variables/components/VariablesView.tsx';
 import type { FeatureName } from '#utils/feature-flags.ts';
 
 import { ThemeView } from './ThemeView';
 
 export function SettingsView() {
-  const { featureFlags } = useApp();
+  const {
+    config: { featureFlags },
+  } = useApp();
 
   const items = useMemo(
     () => ITEMS.filter(({ featureName }) => !featureName || featureFlags[featureName]),

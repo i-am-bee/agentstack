@@ -30,9 +30,11 @@ async def history_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server
     """Agent that tests context.store.load_history() functionality."""
 
     async def history_agent(input: Message, context: RunContext) -> AsyncGenerator[RunYield]:
+        input.metadata = {"test": "metadata"}
         await context.store(input)
         async for message in context.load_history():
             message.role = Role.agent
+            assert message.metadata == {"test": "metadata"}
             yield message
             await context.store(message)
 
@@ -58,14 +60,17 @@ async def test_agent_history(history_agent, subtests):
 
         final_task = await get_final_task_from_stream(client.send_message(create_message(token, "first message")))
         agent_messages = [msg.parts[0].root.text for msg in final_task.history]
+        assert all(msg.metadata == {"test": "metadata"} for msg in final_task.history)
         assert agent_messages == ["first message"]
 
         final_task = await get_final_task_from_stream(client.send_message(create_message(token, "second message")))
         agent_messages = [msg.parts[0].root.text for msg in final_task.history]
+        assert all(msg.metadata == {"test": "metadata"} for msg in final_task.history)
         assert agent_messages == ["first message", "first message", "second message"]
 
         final_task = await get_final_task_from_stream(client.send_message(create_message(token, "third message")))
         agent_messages = [msg.parts[0].root.text for msg in final_task.history]
+        assert all(msg.metadata == {"test": "metadata"} for msg in final_task.history)
         assert agent_messages == [
             # first run
             "first message",

@@ -128,6 +128,17 @@ class SqlAlchemyContextRepository(IContextRepository):
             raise EntityNotFoundError("context", context_id)
         return self._row_to_context(row)
 
+    async def update(self, *, context: Context) -> None:
+        query = (
+            contexts_table.update()
+            .where(contexts_table.c.id == context.id)
+            .values(
+                metadata=context.metadata,
+                updated_at=context.updated_at,
+            )
+        )
+        await self._connection.execute(query)
+
     async def delete(self, *, context_id: UUID, user_id: UUID | None = None) -> int:
         query = delete(contexts_table).where(contexts_table.c.id == context_id)
         if user_id is not None:

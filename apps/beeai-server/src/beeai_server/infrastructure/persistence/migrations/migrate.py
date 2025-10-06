@@ -45,8 +45,7 @@ async def create_vector_extension(wait_for_db: bool = True):
     if wait_for_db:
         await _wait_for_db()
 
-    db_url = str(get_configuration().persistence.db_url.get_secret_value())
-    engine = create_async_engine(db_url)
+    engine = get_configuration().persistence.create_async_engine()
     async with engine.connect() as connection, connection.begin() as transaction:
         await connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         await connection.execute(text("SET maintenance_work_mem = '512MB'"))

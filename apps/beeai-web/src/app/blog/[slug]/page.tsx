@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { APP_NAME, Container } from '@i-am-bee/beeai-ui';
+import { Container } from '@i-am-bee/beeai-ui';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
+import { APP_NAME } from '@/constants';
 import { MainContentView } from '@/layouts/MainContentView';
 import { getAllPosts, getPostBySlug } from '@/modules/blog/api';
 import { PostDetail } from '@/modules/blog/components/PostDetail';

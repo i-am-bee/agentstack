@@ -38,7 +38,9 @@ export function RunInput({ promptExamples, onMessageSent }: Props) {
 
   const [promptExamplesOpen, setPromptExamplesOpen] = useState(false);
 
-  const { featureFlags } = useApp();
+  const {
+    config: { featureFlags },
+  } = useApp();
 
   const {
     agent: {
