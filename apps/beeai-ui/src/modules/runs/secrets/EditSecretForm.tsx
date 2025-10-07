@@ -25,7 +25,7 @@ export function EditSecretForm({ secret, onSuccess }: Props) {
 
   const { key, isReady } = secret;
 
-  const { mutate: updateVariable } = useUpdateVariable();
+  const { mutate: updateVariable } = useUpdateVariable({ onSuccess });
 
   const {
     register,
@@ -39,7 +39,6 @@ export function EditSecretForm({ secret, onSuccess }: Props) {
 
   const onSubmit = ({ value }: FormValues) => {
     updateVariable({ key, value });
-    onSuccess?.();
   };
 
   return (

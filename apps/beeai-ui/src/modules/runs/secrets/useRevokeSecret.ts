@@ -12,7 +12,7 @@ import type { AgentSecret } from '../contexts/agent-secrets/types';
 
 export function useRevokeSecret({ onSuccess }: { onSuccess?: () => void } = {}) {
   const { openConfirmation } = useModal();
-  const { mutate: updateVariable } = useUpdateVariable();
+  const { mutate: updateVariable } = useUpdateVariable({ onSuccess });
 
   const revokeSecret = useCallback(
     ({ key }: AgentSecret) =>
@@ -21,12 +21,9 @@ export function useRevokeSecret({ onSuccess }: { onSuccess?: () => void } = {}) 
         body: 'Are you sure you want to remove this API key?',
         danger: true,
         primaryButtonText: 'Remove',
-        onSubmit: () => {
-          updateVariable({ key, value: null });
-          onSuccess?.();
-        },
+        onSubmit: () => updateVariable({ key, value: null }),
       }),
-    [openConfirmation, updateVariable, onSuccess],
+    [openConfirmation, updateVariable],
   );
 
   return useMemo(() => ({ revokeSecret }), [revokeSecret]);
