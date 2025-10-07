@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { providers } from '../../../auth';
-import { getTokenEndpoint } from '../../../token-endpoint';
+import { providers } from '../../../../(auth)/auth';
+import { getTokenEndpoint } from '../../../../(auth)/token-endpoint';
 
 export async function POST(req: Request, { params }: { params: Promise<{ providerId: string }> }) {
   const body = await req.text();
