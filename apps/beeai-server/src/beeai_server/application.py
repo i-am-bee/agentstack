@@ -169,3 +169,6 @@ def app(*, dependency_overrides: Container | None = None) -> FastAPI:
     mount_routes(app)
     register_global_exception_handlers(app)
     return app
+
+
+# just a comment to trigger e2e tests
