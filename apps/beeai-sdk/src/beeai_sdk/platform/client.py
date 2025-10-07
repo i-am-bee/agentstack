@@ -37,7 +37,7 @@ class PlatformClient(httpx.AsyncClient):
         proxy: ProxyTypes | None = None,
         mounts: None | (typing.Mapping[str, AsyncBaseTransport | None]) = None,
         timeout: TimeoutTypes = DEFAULT_TIMEOUT_CONFIG,
-        follow_redirects: bool = False,
+        follow_redirects: bool = True,
         limits: Limits = DEFAULT_LIMITS,
         max_redirects: int = DEFAULT_MAX_REDIRECTS,
         event_hooks: None | (typing.Mapping[str, list[EventHook]]) = None,
