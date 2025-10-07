@@ -7,17 +7,21 @@ import type { ApiPath, ApiQuery, ApiRequest, ApiResponse } from '#@types/utils.t
 
 import type { ContextMetadata, ModelCapability } from '../types';
 
-type CreateContextRequest = ApiRequest<'/api/v1/contexts'>;
-export type CreateContextParams = CreateContextRequest & {
-  metadata: Required<Pick<ContextMetadata, 'agent_name' | 'provider_id'>>;
-};
+export type CreateContextRequest = ApiRequest<'/api/v1/contexts'>;
+export type CreateContextParams = CreateContextRequest;
 export type CreateContextResponse = ApiResponse<'/api/v1/contexts', 'post', 'application/json', 201>;
 
 export type ListContextsQuery = ApiQuery<'/api/v1/contexts'>;
 export type ListContextsResponse = ApiResponse<'/api/v1/contexts'>;
 export type ListContextsParams = { query?: ListContextsQuery };
 
-type DeleteContextPath = ApiPath<'/api/v1/contexts/{context_id}'>;
+export type UpdateContextPath = ApiPath<'/api/v1/contexts/{context_id}', 'put'>;
+export type UpdateContextRequest = ApiRequest<'/api/v1/contexts/{context_id}', 'put'> & {
+  metadata: Pick<ContextMetadata, 'agent_name' | 'provider_id'>;
+};
+export type UpdateContextParams = UpdateContextPath & UpdateContextRequest;
+
+export type DeleteContextPath = ApiPath<'/api/v1/contexts/{context_id}'>;
 export type DeleteContextParams = DeleteContextPath;
 
 export type ListContextHistoryQuery = ApiQuery<'/api/v1/contexts/{context_id}/history'>;

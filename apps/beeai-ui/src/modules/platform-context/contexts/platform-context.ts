@@ -3,12 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { UseMutateAsyncFunction } from '@tanstack/react-query';
 import { createContext } from 'react';
 
 import type { Agent } from '#modules/agents/api/types.ts';
 import type { ContextId } from '#modules/tasks/api/types.ts';
 
-import type { ListContextHistoryResponse } from '../api/types';
+import type { CreateContextParams, CreateContextResponse, ListContextHistoryResponse } from '../api/types';
 
 export type ContextToken = {
   token: string;
@@ -21,7 +22,8 @@ interface PlatformContextValue {
 
   getContextId: () => ContextId;
   resetContext: () => void;
-  createContext: (agent: Agent) => Promise<void>;
+  createContext: UseMutateAsyncFunction<CreateContextResponse | undefined, Error, CreateContextParams>;
+  updateContextWithAgentMetadata: (agent: Agent) => Promise<void>;
 }
 
 export const PlatformContext = createContext<PlatformContextValue | null>(null);

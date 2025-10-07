@@ -106,7 +106,7 @@ function AgentRunProvider({
   const pendingSubscription = useRef<() => void>(undefined);
   const pendingRun = useRef<ChatRun>(undefined);
 
-  const { contextId, getContextId } = usePlatformContext();
+  const { contextId, getContextId, updateContextWithAgentMetadata } = usePlatformContext();
   const { getFullfilments } = useAgentDemands();
   const { files, clearFiles } = useFileUpload();
 
@@ -203,6 +203,7 @@ function AgentRunProvider({
       }
 
       checkPendingRun();
+      updateContextWithAgentMetadata(agent);
       setIsPending(true);
       setStats({ startTime: Date.now() });
 
@@ -295,6 +296,8 @@ function AgentRunProvider({
       getFullfilments,
       setMessages,
       agentClient,
+      agent,
+      updateContextWithAgentMetadata,
       updateCurrentAgentMessage,
       handleError,
     ],

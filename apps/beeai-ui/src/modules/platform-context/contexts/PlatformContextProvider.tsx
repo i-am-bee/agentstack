@@ -9,6 +9,7 @@ import { useParamsFromUrl } from '#hooks/useParamsFromUrl.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 
 import { useCreateContext } from '../api/mutations/useCreateContext';
+import { useUpdateContext } from '../api/mutations/useUpdateContext';
 import type { ListContextHistoryResponse } from '../api/types';
 import { PlatformContext } from './platform-context';
 
@@ -24,7 +25,7 @@ export function PlatformContextProvider({ history, children }: PropsWithChildren
     setContextId(urlContextId ?? null);
   }, [urlContextId]);
 
-  const { mutateAsync: createContextMutate } = useCreateContext({
+  const { mutateAsync: createContext } = useCreateContext({
     onSuccess: (context) => {
       if (!context) {
         throw new Error(`Context has not been created`);
@@ -34,20 +35,27 @@ export function PlatformContextProvider({ history, children }: PropsWithChildren
     },
   });
 
+  const { mutateAsync: updateContext } = useUpdateContext();
+
   const resetContext = useCallback(() => {
     setContextId(null);
   }, []);
 
-  const createContext = useCallback(
+  const updateContextWithAgentMetadata = useCallback(
     async (agent: Agent) => {
-      await createContextMutate({
+      if (!contextId) {
+        return;
+      }
+
+      await updateContext({
+        context_id: contextId,
         metadata: {
           agent_name: agent.name ?? '',
           provider_id: agent.provider.id ?? '',
         },
       });
     },
-    [createContextMutate],
+    [contextId, updateContext],
   );
 
   const getContextId = useCallback(() => {
@@ -66,6 +74,7 @@ export function PlatformContextProvider({ history, children }: PropsWithChildren
         createContext,
         getContextId,
         resetContext,
+        updateContextWithAgentMetadata,
       }}
     >
       {children}

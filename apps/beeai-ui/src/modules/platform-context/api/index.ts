@@ -13,6 +13,7 @@ import type {
   ListContextHistoryParams,
   ListContextsParams,
   MatchModelProvidersParams,
+  UpdateContextParams,
 } from './types';
 
 export async function createContext(body: CreateContextParams) {
@@ -27,8 +28,17 @@ export async function listContexts({ query }: ListContextsParams) {
   return ensureData(response);
 }
 
-export async function deleteContext({ context_id }: DeleteContextParams) {
-  const response = await api.DELETE('/api/v1/contexts/{context_id}', { params: { path: { context_id } } });
+export async function updateContext({ context_id, metadata }: UpdateContextParams) {
+  const response = await api.PUT('/api/v1/contexts/{context_id}', {
+    body: { metadata },
+    params: { path: { context_id } },
+  });
+
+  return ensureData(response);
+}
+
+export async function deleteContext(path: DeleteContextParams) {
+  const response = await api.DELETE('/api/v1/contexts/{context_id}', { params: { path } });
 
   return ensureData(response);
 }
