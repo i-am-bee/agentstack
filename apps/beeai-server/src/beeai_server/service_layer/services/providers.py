@@ -91,8 +91,12 @@ class ProviderService:
         env = env or {}
         async with self._uow() as uow:
             provider = await uow.providers.get(provider_id=provider_id)
-            old_env = await uow.env.get_all(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_ids=[provider.id])
-            old_env = old_env[provider.id]
+            old_env = (
+                await uow.env.get_all(
+                    parent_entity=EnvStoreEntity.PROVIDER,
+                    parent_entity_ids=[provider.id],
+                )
+            )[provider.id]
 
         should_update = (
             provider.source.root != location.root
