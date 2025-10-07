@@ -15,4 +15,12 @@ export interface ProviderConfig {
 
 export type ProviderWithId = Provider & {
   id: string;
+  options?: OIDCProviderOptions;
 };
+
+export interface OIDCProviderOptions {
+  clientId?: string;
+  clientSecret?: string;
+  issuer?: string;
+  [key: string]: unknown;
+}

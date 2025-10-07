@@ -9,13 +9,6 @@ import type { JWT } from 'next-auth/jwt';
 import { getTokenEndpoint } from './token-endpoint';
 import type { ProviderWithId } from './types';
 
-interface OIDCProviderOptions {
-  clientId: string;
-  clientSecret: string;
-  issuer: string;
-  [key: string]: unknown;
-}
-
 export async function jwtWithRefresh(
   token: JWT,
   account: Account | null | undefined,
@@ -42,7 +35,7 @@ export async function jwtWithRefresh(
     }
 
     // Type assertion to ensure we have the OIDC options
-    const providerOptions = tokenProvider.options as OIDCProviderOptions | undefined;
+    const providerOptions = tokenProvider.options;
 
     if (!providerOptions?.clientId || !providerOptions?.clientSecret || !providerOptions?.issuer) {
       throw new TypeError('Missing clientId, clientSecret, or issuer in provider configuration');

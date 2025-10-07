@@ -119,5 +119,6 @@ export function IBMProvider(config: OIDCConfig<IbmProfile>): OIDCConfig<IbmProfi
     idToken: true,
     style: { text: '#ffffff', bg: '#252525' },
     options: config,
+    token: `${process.env.NEXTAUTH_URL}/auth/token-proxy/${config.id}`,
   };
 }

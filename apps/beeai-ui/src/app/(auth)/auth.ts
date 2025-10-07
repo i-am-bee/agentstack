@@ -14,7 +14,7 @@ import { jwtWithRefresh, RefreshTokenError } from './utils';
 
 let providersConfig: ProviderConfig[] = [];
 
-const providers: ProviderWithId[] = [];
+export const providers: ProviderWithId[] = [];
 
 export const AUTH_COOKIE_NAME = 'beeai-platform';
 
