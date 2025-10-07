@@ -32,6 +32,16 @@ $divider-height: 1px;
     block-size: rem(28px);
   }
 
+  .cds--overflow-menu-options__option--danger {
+    .cds--overflow-menu-options__btn {
+      color: $text-error;
+      &:hover,
+      &:focus {
+        color: $text-inverse;
+      }
+    }
+  }
+
   .cds--overflow-menu-options__option--group-label {
     block-size: rem(16px);
     margin-block-end: $spacing-02;

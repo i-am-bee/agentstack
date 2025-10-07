@@ -11,6 +11,7 @@ import { useUpdateVariable } from '#modules/variables/api/mutations/useUpdateVar
 
 import type { AgentSecret } from '../contexts/agent-secrets/types';
 import classes from './EditSecretForm.module.scss';
+import { useRevokeSecret } from './useRevokeSecret';
 
 interface Props {
   secret: AgentSecret;
@@ -20,7 +21,9 @@ interface Props {
 export function EditSecretForm({ secret, onSuccess }: Props) {
   const id = useId();
 
-  const { key } = secret;
+  const { revokeSecret } = useRevokeSecret({ onSuccess });
+
+  const { key, isReady } = secret;
 
   const { mutate: updateVariable } = useUpdateVariable();
 
@@ -35,7 +38,7 @@ export function EditSecretForm({ secret, onSuccess }: Props) {
   });
 
   const onSubmit = ({ value }: FormValues) => {
-    updateVariable({ variables: { [key]: value.length ? value : null } });
+    updateVariable({ key, value });
     onSuccess?.();
   };
 
@@ -49,8 +52,13 @@ export function EditSecretForm({ secret, onSuccess }: Props) {
           data-modal-initial-focus
           showPasswordLabel="Show API Key"
           hidePasswordLabel="Hide API Key"
-          {...register('value')}
+          {...register('value', { required: true })}
         />
+        {isReady && (
+          <Button kind="danger--ghost" size="sm" className={classes.buttonRevoke} onClick={() => revokeSecret(secret)}>
+            Delete key
+          </Button>
+        )}
       </div>
 
       <Button type="submit" className={classes.button} disabled={!isDirty || !isValid}>

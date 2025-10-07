@@ -12,7 +12,7 @@ import type { UIAgentMessage } from '#modules/messages/types.ts';
 import { getMessageSecret } from '#modules/messages/utils.ts';
 import { useAgentRun } from '#modules/runs/contexts/agent-run/index.ts';
 import type { AgentRequestSecrets } from '#modules/runs/contexts/agent-secrets/types.ts';
-import { useUpdateVariable } from '#modules/variables/api/mutations/useUpdateVariable.ts';
+import { useUpdateVariables } from '#modules/variables/api/mutations/useUpdateVariables.ts';
 
 import classes from './MessageSecretsForm.module.scss';
 
@@ -24,7 +24,7 @@ export function MessageSecretsForm({ message }: Props) {
   const id = useId();
   const secretPart = getMessageSecret(message);
   const { submitSecrets } = useAgentRun();
-  const { mutate: updateVariables } = useUpdateVariable();
+  const { mutate: updateVariables } = useUpdateVariables();
   const { messages } = useMessages();
 
   const { register, handleSubmit } = useForm({ mode: 'onChange' });
