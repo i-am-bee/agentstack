@@ -6,7 +6,5 @@
 .root {
   display: flex;
   flex-direction: column;
-  row-gap: $spacing-07;
-  margin-block: auto;
-  padding-block-end: var(--header-height);
+  row-gap: $spacing-05;
 }

@@ -6,11 +6,15 @@
 import uniq from 'lodash/uniq';
 import uniqWith from 'lodash/uniqWith';
 
+import { agentDetailExtension } from '#api/a2a/extensions/ui/agent-detail.ts';
+import { extractUiExtensionData } from '#api/a2a/extensions/utils.ts';
 import type { Provider } from '#modules/providers/api/types.ts';
 import { SupportedUis } from '#modules/runs/constants.ts';
 import { compareStrings, isNotNull } from '#utils/helpers.ts';
 
-import { type Agent, AGENT_EXTENSION_URI, type AgentExtension, type UiExtension } from './api/types';
+import type { Agent, AgentExtension } from './api/types';
+
+const extractAgentDetail = extractUiExtensionData(agentDetailExtension);
 
 export const getAgentsProgrammingLanguages = (agents: Agent[] | undefined) => {
   return uniq(
@@ -31,14 +35,22 @@ export function isAgentUiSupported(agent: Agent) {
   return interaction_mode && SupportedUis.includes(interaction_mode);
 }
 
-function isAgentUiExtension(extension: AgentExtension): extension is UiExtension {
-  return extension.uri === AGENT_EXTENSION_URI;
+export function getAgentDetail(extensions: AgentExtension[]) {
+  const uri = agentDetailExtension.getUri();
+  const metadata = extensions.find((extension) => extension.uri === uri)?.params;
+
+  if (!metadata) {
+    return {};
+  }
+
+  return extractAgentDetail({ [uri]: metadata }) ?? {};
 }
 
 export function buildAgent(provider: Provider): Agent {
   const { agent_card, ...providerData } = provider;
 
-  const ui = agent_card.capabilities.extensions?.find(isAgentUiExtension)?.params ?? {};
+  const extensions = agent_card.capabilities.extensions ?? [];
+  const ui = getAgentDetail(extensions);
 
   return {
     ...agent_card,

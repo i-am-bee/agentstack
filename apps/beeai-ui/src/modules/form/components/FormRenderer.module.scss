@@ -9,10 +9,6 @@
   row-gap: $spacing-06;
 }
 
-.heading {
-  @include type-style(heading-06);
-}
-
 .fields {
   display: grid;
   column-gap: $spacing-04;

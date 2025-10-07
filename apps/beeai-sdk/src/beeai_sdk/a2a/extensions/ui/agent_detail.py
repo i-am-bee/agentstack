@@ -25,6 +25,7 @@ class AgentDetailContributor(pydantic.BaseModel):
 class AgentDetail(pydantic.BaseModel, extra="allow"):
     interaction_mode: str | None = pydantic.Field("multi-turn", examples=["multi-turn", "single-turn"])
     user_greeting: str | None = None
+    input_placeholder: str | None = None
     tools: list[AgentDetailTool] | None = None
     framework: str | None = None
     license: str | None = None

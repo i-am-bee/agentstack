@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { AgentDetailTool } from '#api/a2a/extensions/ui/agent-detail.ts';
 import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
 
-import type { AgentTool } from '../api/types';
 import classes from './AgentTool.module.scss';
 
 interface Props {
-  tool: AgentTool;
+  tool: AgentDetailTool;
 }
 
 export function AgentTool({ tool }: Props) {
