@@ -14,11 +14,17 @@ import type { ListContextHistoryParams, ListContextHistoryResponse } from '../ty
 
 type Params = PartialBy<ListContextHistoryParams, 'contextId'> & {
   initialData?: ListContextHistoryResponse;
+  enabled?: boolean;
+  initialPageParam?: string;
 };
 
-export function useListContextHistory(params: Params) {
-  const { contextId, query: queryParams, initialData } = params;
-
+export function useListContextHistory({
+  contextId,
+  query: queryParams,
+  initialData,
+  initialPageParam,
+  enabled = true,
+}: Params) {
   const query = useInfiniteQuery({
     queryKey: contextKeys.history({
       contextId: contextId!,
@@ -33,7 +39,7 @@ export function useListContextHistory(params: Params) {
         },
       });
     },
-    initialPageParam: initialData?.next_page_token ?? undefined,
+    initialPageParam,
     getNextPageParam: (lastPage) => {
       return lastPage?.has_more && lastPage.next_page_token ? lastPage.next_page_token : undefined;
     },
@@ -46,7 +52,7 @@ export function useListContextHistory(params: Params) {
 
       return items;
     },
-    enabled: Boolean(contextId && initialData),
+    enabled: Boolean(contextId) && enabled,
     initialData: initialData ? { pages: [initialData], pageParams: [undefined] } : undefined,
   });
 
