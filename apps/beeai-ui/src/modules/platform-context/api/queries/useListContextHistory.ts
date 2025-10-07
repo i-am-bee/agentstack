@@ -33,7 +33,7 @@ export function useListContextHistory(params: Params) {
         },
       });
     },
-    initialPageParam: undefined,
+    initialPageParam: initialData?.next_page_token ?? undefined,
     getNextPageParam: (lastPage) => {
       return lastPage?.has_more && lastPage.next_page_token ? lastPage.next_page_token : undefined;
     },
@@ -46,7 +46,7 @@ export function useListContextHistory(params: Params) {
 
       return items;
     },
-    enabled: Boolean(contextId),
+    enabled: Boolean(contextId && initialData),
     initialData: initialData ? { pages: [initialData], pageParams: [undefined] } : undefined,
   });
 
