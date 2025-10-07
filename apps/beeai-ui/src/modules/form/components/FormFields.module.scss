@@ -1,0 +1,13 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.root {
+  --field-gap: #{$spacing-04};
+  --file-field-max-width: calc(50% - (var(--field-gap) / 2));
+  display: grid;
+  column-gap: var(--field-gap);
+  row-gap: $spacing-06;
+  grid-template-columns: repeat(var(--grid-columns, 1), minmax(0, 1fr));
+}

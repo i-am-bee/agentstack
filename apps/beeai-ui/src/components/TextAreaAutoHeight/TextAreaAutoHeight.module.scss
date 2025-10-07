@@ -49,6 +49,11 @@ $padding-inline: $spacing-05;
         opacity: 0.5;
       }
     }
+    &:disabled {
+      cursor: not-allowed;
+      color: $text-disabled;
+      background-color: $field;
+    }
   }
 
   &::after,

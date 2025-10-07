@@ -176,4 +176,10 @@ export function getFilePlatformUrl(id: string) {
   return `${PLATFORM_FILE_CONTENT_URL_BASE}${id}`;
 }
 
+export function getFileIdFromFilePlatformUrl(url: string) {
+  const fileId = url.replace(PLATFORM_FILE_CONTENT_URL_BASE, '');
+
+  return fileId;
+}
+
 const MAX_CONTENT_CHARS_LENGTH = 16000;
