@@ -227,6 +227,7 @@ class PlatformClient(httpx.AsyncClient):
         finally:
             server.should_exit = True
             await server_task
+            self._auth = None
 
 
 get_platform_client, set_platform_client = resource_context(factory=PlatformClient, default_factory=PlatformClient)
