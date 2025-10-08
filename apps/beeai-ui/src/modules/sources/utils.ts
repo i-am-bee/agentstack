@@ -39,21 +39,23 @@ export function transformSourcePart(sourcePart: UISourcePart): UITransformPart {
 }
 
 export function getMessagesSourcesMap(messages: UIMessage[]) {
-  const sources = messages.reduce<MessageSourcesMap>(
-    (data, message) => ({
-      ...data,
-      [message.id]: getMessageSources(message),
-    }),
-    {},
-  );
+  const sources = messages.reduce<MessageSourcesMap>((data, message) => {
+    const { taskId } = message;
+
+    if (taskId) {
+      data[taskId] = getMessageSources(message);
+    }
+
+    return data;
+  }, {});
 
   return sources;
 }
 
 export function isSourceActive(source: UISourcePart, activeSource: ActiveSource | null) {
-  const { messageId, number } = source;
+  const { taskId, number } = source;
 
-  return activeSource?.messageId === messageId && isNotNull(number) && activeSource?.number === number;
+  return activeSource?.taskId === taskId && isNotNull(number) && activeSource?.number === number;
 }
 
 export function getUniqueSources(sources: UISourcePart[]) {

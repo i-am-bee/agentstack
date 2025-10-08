@@ -111,11 +111,14 @@ async def agent(
 
 
 def serve():
-    server.run(
-        host=os.getenv("HOST", "127.0.0.1"),
-        port=int(os.getenv("PORT", 10001)),
-        configure_telemetry=True,
-    )
+    try:
+        server.run(
+            host=os.getenv("HOST", "127.0.0.1"),
+            port=int(os.getenv("PORT", 10001)),
+            configure_telemetry=True,
+        )
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == "__main__":

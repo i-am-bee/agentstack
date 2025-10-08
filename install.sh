@@ -6,7 +6,7 @@ set -eu
 
 # These get updated by `mise release`:
 LATEST_STABLE_BEEAI_VERSION=0.3.5
-LATEST_BEEAI_VERSION=0.3.5
+LATEST_BEEAI_VERSION=0.3.6-rc2
 
 error() {
     printf "\n💥 \033[31mERROR:\033[0m: BeeAI installation has failed. Please report the above error: https://github.com/i-am-bee/beeai-platform/issues\n" >&2

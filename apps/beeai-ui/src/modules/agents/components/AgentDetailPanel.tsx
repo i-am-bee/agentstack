@@ -12,7 +12,7 @@ import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx
 import { SidePanel } from '#components/SidePanel/SidePanel.tsx';
 import { useApp } from '#contexts/App/index.ts';
 import { SidePanelVariant } from '#contexts/App/types.ts';
-import { useProviderIdFromUrl } from '#hooks/useProviderIdFromUrl.ts';
+import { useParamsFromUrl } from '#hooks/useParamsFromUrl.ts';
 
 import { useAgent } from '../api/queries/useAgent';
 import { AgentCredits } from './AgentCredits';
@@ -22,8 +22,8 @@ import { AgentTags } from './AgentTags';
 import { AgentToolsList } from './AgentToolsList';
 
 export function AgentDetailPanel() {
-  const providerId = useProviderIdFromUrl();
-  const { data: agent, isPending } = useAgent({ providerId });
+  const { providerId } = useParamsFromUrl();
+  const { data: agent, isPending } = useAgent({ providerId: providerId ?? '' });
   const { activeSidePanel } = useApp();
 
   if (!agent) return null;

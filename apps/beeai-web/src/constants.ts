@@ -26,3 +26,5 @@ export const DISCORD_LINK = 'https://discord.gg/NradeA6ZNF';
 export const YOUTUBE_LINK = 'https://www.youtube.com/@BeeAIAgents';
 
 export const BLUESKY_LINK = 'https://bsky.app/profile/beeaiagents.bsky.social';
+
+export const APP_NAME = 'BeeAI';

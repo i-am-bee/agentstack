@@ -334,8 +334,8 @@ spec:
             secretName: beeai-platform-secret
         {{- end }}
         - name: beeai-platform-providers
-          configMap:
-            name: beeai-platform-providers-cm
+          secret:
+            secretName: beeai-platform-providers-secret
         - name: beeai-platform-manifest-templates
           configMap:
             name: beeai-platform-manifest-templates-cm

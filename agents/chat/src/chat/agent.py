@@ -292,16 +292,18 @@ async def chat(
             continue
 
         last_step = event.state.steps[-1] if event.state.steps else None
-        if last_step and last_step.tool is not None:
+        if last_step and last_step.tool is not None and last_step.tool.name != FinalAnswerTool.name:
             trajectory_content = TrajectoryContent(
                 input=last_step.input,
                 output=last_step.output,
                 error=last_step.error,
             )
-            yield trajectory.trajectory_metadata(
+            metadata = trajectory.trajectory_metadata(
                 title=last_step.tool.name,
                 content=trajectory_content.model_dump_json(),
             )
+            yield metadata
+            await context.store(AgentMessage(metadata=metadata))
 
             if isinstance(last_step.output, FileCreatorToolOutput):
                 result = last_step.output.result
@@ -328,12 +330,15 @@ async def chat(
 
 
 def serve():
-    server.run(
-        host=os.getenv("HOST", "127.0.0.1"),
-        port=int(os.getenv("PORT", 8000)),
-        configure_telemetry=True,
-        context_store=PlatformContextStore(),
-    )
+    try:
+        server.run(
+            host=os.getenv("HOST", "127.0.0.1"),
+            port=int(os.getenv("PORT", 8000)),
+            configure_telemetry=True,
+            context_store=PlatformContextStore(),
+        )
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == "__main__":

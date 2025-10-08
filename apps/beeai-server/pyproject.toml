@@ -1,10 +1,10 @@
 [project]
 name = "beeai-server"
-version = "0.3.5"
+version = "0.3.6-rc2"
 description = "BeeAI server"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
-requires-python = ">=3.13,<4.0"
+requires-python = ">=3.13,<3.14"
 dependencies = [
     "a2a-sdk~=0.3.5",
     "aiohttp>=3.11.11",
@@ -67,7 +67,7 @@ create-buckets = "beeai_server:create_buckets"
 create-vector-extension = "beeai_server:create_vector_extension"
 
 [build-system]
-requires = ["uv_build>=0.7.12,<0.8.0"]
+requires = ["uv_build>=0.9.0,<0.10.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]

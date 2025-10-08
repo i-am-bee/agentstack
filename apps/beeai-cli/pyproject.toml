@@ -1,10 +1,10 @@
 [project]
 name = "beeai-cli"
-version = "0.3.5"
+version = "0.3.6-rc2"
 description = "BeeAI CLI"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
-requires-python = ">=3.13,<4.0"
+requires-python = ">=3.13,<3.14"
 dependencies = [
     "anyio~=4.10.0",
     "pydantic~=2.11.7",
@@ -41,7 +41,7 @@ beeai = "beeai_cli:app"
 beeai-cli = "beeai_cli:app"
 
 [build-system]
-requires = ["uv_build>=0.7.12,<0.8.0"]
+requires = ["uv_build>=0.9.0,<0.10.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]

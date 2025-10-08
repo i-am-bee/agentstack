@@ -29,15 +29,18 @@ import { RunSubmit } from './RunSubmit';
 
 interface Props {
   promptExamples?: string[];
+  onMessageSent?: () => void;
 }
 
-export function RunInput({ promptExamples }: Props) {
+export function RunInput({ promptExamples, onMessageSent }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const [promptExamplesOpen, setPromptExamplesOpen] = useState(false);
 
-  const { featureFlags } = useApp();
+  const {
+    config: { featureFlags },
+  } = useApp();
 
   const {
     agent: {
@@ -107,6 +110,8 @@ export function RunInput({ promptExamples }: Props) {
 
           handleSubmit(async ({ input }) => {
             resetForm();
+
+            onMessageSent?.();
 
             await chat(input);
           })();

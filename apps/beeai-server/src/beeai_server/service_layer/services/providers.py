@@ -8,6 +8,7 @@ import json
 import logging
 import uuid
 from collections.abc import AsyncIterator, Callable
+from datetime import timedelta
 from uuid import UUID
 
 from a2a.types import AgentCard
@@ -46,6 +47,7 @@ class ProviderService:
         *,
         user: User,
         location: ProviderLocation,
+        auto_stop_timeout: timedelta | None,
         registry: RegistryLocation | None = None,
         auto_remove: bool = False,
         agent_card: AgentCard | None = None,
@@ -55,7 +57,12 @@ class ProviderService:
             if not agent_card:
                 agent_card = await location.load_agent_card()
             provider = Provider(
-                source=location, registry=registry, auto_remove=auto_remove, agent_card=agent_card, created_by=user.id
+                source=location,
+                registry=registry,
+                auto_remove=auto_remove,
+                agent_card=agent_card,
+                created_by=user.id,
+                auto_stop_timeout=auto_stop_timeout,
             )
         except ValueError as ex:
             raise ManifestLoadError(location=location, message=str(ex), status_code=HTTP_400_BAD_REQUEST) from ex
@@ -73,13 +80,33 @@ class ProviderService:
         return provider_response
 
     async def upgrade_provider(
-        self, *, provider_id: UUID, location: ProviderLocation, force: bool = False
+        self,
+        *,
+        provider_id: UUID,
+        location: ProviderLocation,
+        force: bool = False,
+        auto_stop_timeout: timedelta | None,
+        env: dict[str, str] | None = None,
     ) -> ProviderWithState:
+        env = env or {}
         async with self._uow() as uow:
             provider = await uow.providers.get(provider_id=provider_id)
+            old_env = (
+                await uow.env.get_all(
+                    parent_entity=EnvStoreEntity.PROVIDER,
+                    parent_entity_ids=[provider.id],
+                )
+            )[provider.id]
 
-        if provider.source.root == location.root and not force:
-            return (await self._get_providers_with_state([provider]))[0]
+        should_update = (
+            provider.source.root != location.root
+            or provider.auto_stop_timeout != auto_stop_timeout
+            or env != old_env
+            or force
+        )
+
+        if not should_update:
+            return (await self._get_providers_with_state(providers=[provider]))[0]
 
         try:
             agent_card = await location.load_agent_card()
@@ -90,12 +117,16 @@ class ProviderService:
 
         provider.source = location
         provider.agent_card = agent_card
+        provider.auto_stop_timeout = auto_stop_timeout
 
         async with self._uow() as uow:
             await uow.providers.update(provider=provider)
-            env = await uow.env.get_all(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_ids=[provider.id])
+
+            if old_env != env:
+                await uow.env.delete(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_id=provider.id)
+                await uow.env.update(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_id=provider.id, variables=env)
             # Rotate the provider (inside the transaction)
-            await self._rotate_provider(provider=provider, env=env[provider.id])
+            await self._rotate_provider(provider=provider, env=env)
             await uow.commit()
         [provider_response] = await self._get_providers_with_state(providers=[provider])
         return provider_response
@@ -216,7 +247,9 @@ class ProviderService:
         ):
             await self._deployment_manager.create_or_replace(provider=provider, env=env)
 
-    async def update_provider_env(self, *, provider_id: UUID, env: dict[str, str | None], user: User) -> None:
+    async def update_provider_env(
+        self, *, provider_id: UUID, env: dict[str, str | None] | dict[str, str], user: User
+    ) -> None:
         user_id = user.id if user.role != UserRole.ADMIN else None
         provider = None
         try:

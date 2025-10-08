@@ -118,10 +118,10 @@ export function getFileUrl(file: FilePart['file']): string {
   return `data:${mimeType};base64,${bytes}`;
 }
 
-export function createSourcePart(citation: Citation, messageId: string | undefined): UISourcePart | null {
+export function createSourcePart(citation: Citation, taskId: string | undefined): UISourcePart | null {
   const { url, start_index, end_index, title, description } = citation;
 
-  if (!url || !messageId) {
+  if (!url || !taskId) {
     return null;
   }
 
@@ -129,7 +129,7 @@ export function createSourcePart(citation: Citation, messageId: string | undefin
     kind: UIMessagePartKind.Source,
     id: uuid(),
     url,
-    messageId,
+    taskId,
     number: null,
     startIndex: start_index ?? undefined,
     endIndex: end_index ?? undefined,

@@ -168,6 +168,23 @@ Here's what you need to know to add form capabilities to your agent:
 - **MultiSelectField**: Returns `list[str] | None` (list of selected option IDs)
 - **CheckboxField**: Returns `bool | None`
 
+As a convenient shortcut, you may use a custom model (Pydantic model, `TypedDict`, `dataclass`, or any class supported by `pydantic.TypeAdapter`) to load form data. For example, we can define a following model:
+
+```python
+from pydantic import BaseModel
+
+class ContactInfo(BaseModel):
+    email: str | None
+    phone: str | None
+    company: str | None
+```
+
+Then, in agent code, pass `model=ContactInfo` to `parse_form_response(...)` or `request_form(...)` to get the form data directly as an instance of `ContactInfo`:
+
+```python
+contact_info: ContactInfo = form.parse_form_response(message=message, model=ContactInfo)
+```
+
 ## Form Field Types
 
 The BeeAI platform supports various field types for collecting different kinds of structured data:

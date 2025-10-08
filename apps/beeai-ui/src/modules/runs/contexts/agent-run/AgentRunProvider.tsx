@@ -4,7 +4,10 @@
  */
 
 'use client';
-import { type PropsWithChildren, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+import type { PropsWithChildren } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
 import type { AgentSettings } from '#api/a2a/extensions/ui/settings.ts';
@@ -17,12 +20,17 @@ import type { Agent } from '#modules/agents/api/types.ts';
 import { FileUploadProvider } from '#modules/files/contexts/FileUploadProvider.tsx';
 import { useFileUpload } from '#modules/files/contexts/index.ts';
 import { convertFilesToUIFileParts } from '#modules/files/utils.ts';
+import { convertHistoryToUIMessages } from '#modules/history/utils.ts';
 import { Role } from '#modules/messages/api/types.ts';
+import { MessagesProvider } from '#modules/messages/contexts/Messages/MessagesProvider.tsx';
 import type { UIAgentMessage, UIMessage, UIMessageForm, UIUserMessage } from '#modules/messages/types.ts';
 import { UIMessagePartKind, UIMessageStatus } from '#modules/messages/types.ts';
 import { addTranformedMessagePart, isAgentMessage } from '#modules/messages/utils.ts';
+import { LIST_CONTEXT_HISTORY_DEFAULT_QUERY } from '#modules/platform-context/api/constants.ts';
+import { contextKeys } from '#modules/platform-context/api/keys.ts';
+import { useListContextHistory } from '#modules/platform-context/api/queries/useListContextHistory.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
-import { PlatformContextProvider } from '#modules/platform-context/contexts/PlatformContextProvider.tsx';
+import { useEnsurePlatformContext } from '#modules/platform-context/hooks/useEnsurePlatformContext.ts';
 import { useBuildA2AClient } from '#modules/runs/api/queries/useBuildA2AClient.ts';
 import { useStartOAuth } from '#modules/runs/hooks/useStartOAuth.ts';
 import { getSettingsRenderDefaultValues } from '#modules/runs/settings/utils.ts';
@@ -31,8 +39,10 @@ import { SourcesProvider } from '#modules/sources/contexts/SourcesProvider.tsx';
 import { getMessagesSourcesMap } from '#modules/sources/utils.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
+import { routes } from '#utils/router.ts';
 
-import { MessagesProvider } from '../../../messages/contexts/Messages/MessagesProvider';
+import { useAgentDemands } from '../agent-demands';
+import { AgentDemandsProvider } from '../agent-demands/AgentDemandsProvider';
 import { AgentSecretsProvider } from '../agent-secrets/AgentSecretsProvider';
 import type { AgentRequestSecrets } from '../agent-secrets/types';
 import { AgentStatusProvider } from '../agent-status/AgentStatusProvider';
@@ -47,37 +57,57 @@ export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>)
     providerId: agent.provider.id,
     extensions: agent.capabilities.extensions ?? [],
   });
+  const { contextId, history: initialHistory } = usePlatformContext();
+  const { data: history } = useListContextHistory({
+    contextId: contextId ?? undefined,
+    query: LIST_CONTEXT_HISTORY_DEFAULT_QUERY,
+    initialData: initialHistory,
+  });
+
+  useEnsurePlatformContext(agent);
 
   return (
     <AgentSecretsProvider agent={agent} agentClient={agentClient}>
-      <PlatformContextProvider agentClient={agentClient}>
+      <AgentDemandsProvider agentClient={agentClient}>
         <FileUploadProvider allowedContentTypes={agent.defaultInputModes}>
-          <AgentRunProvider agent={agent} agentClient={agentClient}>
+          <AgentRunProvider
+            agent={agent}
+            agentClient={agentClient}
+            initialMessages={history ? convertHistoryToUIMessages([...history].reverse()) : undefined}
+          >
             {children}
           </AgentRunProvider>
         </FileUploadProvider>
-      </PlatformContextProvider>
+      </AgentDemandsProvider>
     </AgentSecretsProvider>
   );
 }
 
 interface AgentRunProviderProps extends Props {
   agentClient?: AgentA2AClient;
+  initialMessages?: UIMessage[];
 }
 
-function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<AgentRunProviderProps>) {
-  const { contextId, getContextId, resetContext, getFullfilments } = usePlatformContext();
-  const [messages, getMessages, setMessages] = useImmerWithGetter<UIMessage[]>([]);
+function AgentRunProvider({
+  agent,
+  agentClient,
+  initialMessages = [],
+  children,
+}: PropsWithChildren<AgentRunProviderProps>) {
+  const queryClient = useQueryClient();
+  const router = useRouter();
+  const errorHandler = useHandleError();
+
+  const [messages, getMessages, setMessages] = useImmerWithGetter<UIMessage[]>(initialMessages);
   const [input, setInput] = useState<string>();
   const [isPending, setIsPending] = useState(false);
   const [stats, setStats] = useState<RunStats>();
   const settings = useRef<AgentSettings | undefined>(undefined);
-
   const pendingSubscription = useRef<() => void>(undefined);
   const pendingRun = useRef<ChatRun>(undefined);
 
-  const errorHandler = useHandleError();
-
+  const { contextId, getContextId, updateContextWithAgentMetadata } = usePlatformContext();
+  const { getFullfilments } = useAgentDemands();
   const { files, clearFiles } = useFileUpload();
 
   useEffect(() => {
@@ -137,11 +167,12 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
     setMessages([]);
     setStats(undefined);
     clearFiles();
-    resetContext();
     setIsPending(false);
     setInput(undefined);
     pendingRun.current = undefined;
-  }, [setMessages, clearFiles, resetContext]);
+
+    router.push(routes.agentRun({ providerId: agent.provider.id }));
+  }, [setMessages, clearFiles, router, agent.provider.id]);
 
   const checkPendingRun = useCallback(() => {
     if (pendingRun.current || pendingSubscription.current) {
@@ -172,6 +203,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
       }
 
       checkPendingRun();
+      updateContextWithAgentMetadata(agent);
       setIsPending(true);
       setStats({ startTime: Date.now() });
 
@@ -200,7 +232,12 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
         });
         pendingRun.current = run;
 
+        let isFirstIteration = true;
         pendingSubscription.current = run.subscribe(({ parts, taskId: responseTaskId }) => {
+          if (isFirstIteration) {
+            queryClient.invalidateQueries({ queryKey: contextKeys.lists() });
+          }
+
           updateCurrentAgentMessage((message) => {
             message.taskId = responseTaskId;
           });
@@ -211,6 +248,8 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
               message.parts = updatedParts;
             });
           });
+
+          isFirstIteration = false;
         });
 
         const result = await run.done;
@@ -245,9 +284,23 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
         setStats((stats) => ({ ...stats, endTime: Date.now() }));
         pendingRun.current = undefined;
         pendingSubscription.current = undefined;
+
+        queryClient.invalidateQueries({ queryKey: contextKeys.lists() });
+        queryClient.invalidateQueries({ queryKey: contextKeys.history({ contextId }) });
       }
     },
-    [checkPendingRun, getContextId, getFullfilments, setMessages, agentClient, updateCurrentAgentMessage, handleError],
+    [
+      queryClient,
+      checkPendingRun,
+      getContextId,
+      getFullfilments,
+      setMessages,
+      agentClient,
+      agent,
+      updateContextWithAgentMetadata,
+      updateCurrentAgentMessage,
+      handleError,
+    ],
   );
 
   const chat = useCallback(

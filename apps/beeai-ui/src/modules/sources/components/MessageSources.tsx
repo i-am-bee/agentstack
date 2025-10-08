@@ -9,6 +9,7 @@ import { useApp } from '#contexts/App/index.ts';
 import { SidePanelVariant } from '#contexts/App/types.ts';
 import type { UIAgentMessage } from '#modules/messages/types.ts';
 import { getMessageSources } from '#modules/messages/utils.ts';
+import { isNotNull } from '#utils/helpers.ts';
 
 import { useSources } from '../contexts';
 import { SourcesButton } from './SourcesButton';
@@ -21,12 +22,12 @@ export function MessageSources({ message }: Props) {
   const { activeSidePanel, openSidePanel, closeSidePanel } = useApp();
   const { activeSource, setActiveSource } = useSources();
 
-  const messageId = message.id;
+  const { taskId } = message;
   const sources = getMessageSources(message);
   const hasSources = sources.length > 0;
 
   const isPanelOpen = activeSidePanel === SidePanelVariant.Sources;
-  const isMessageActive = messageId === activeSource?.messageId;
+  const isMessageActive = isNotNull(taskId) && taskId === activeSource?.taskId;
   const isActive = isPanelOpen && isMessageActive;
 
   const handleButtonClick = useCallback(() => {
@@ -36,11 +37,11 @@ export function MessageSources({ message }: Props) {
       } else {
         openSidePanel(SidePanelVariant.Sources);
       }
-    } else {
-      setActiveSource({ number: null, messageId });
+    } else if (taskId) {
+      setActiveSource({ number: null, taskId });
       openSidePanel(SidePanelVariant.Sources);
     }
-  }, [isMessageActive, isPanelOpen, messageId, openSidePanel, closeSidePanel, setActiveSource]);
+  }, [isMessageActive, isPanelOpen, taskId, openSidePanel, closeSidePanel, setActiveSource]);
 
   if (!hasSources) {
     return null;

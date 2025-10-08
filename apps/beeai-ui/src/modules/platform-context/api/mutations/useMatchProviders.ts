@@ -21,7 +21,9 @@ export function useMatchEmbeddingProviders(
   demands: EmbeddingDemand['embedding_demands'],
   onSuccess: (data: MatchProvidersResult) => void,
 ) {
-  const { featureFlags } = useApp();
+  const {
+    config: { featureFlags },
+  } = useApp();
   const demandKey = Object.entries(demands)
     .map(([key, value]) => [key, ...(value.suggested ?? [])])
     .join();
@@ -36,7 +38,7 @@ export function useMatchEmbeddingProviders(
         demandKeys.map(async (demandKey) => {
           const result = await matchProviders({
             suggested_models: demands[demandKey].suggested ?? [],
-            capability: ModelCapability.EMBEDDING,
+            capability: ModelCapability.Embedding,
           });
           return {
             key: demandKey,
@@ -67,7 +69,9 @@ export function useMatchLLMProviders(
   demands: LLMDemand['llm_demands'],
   onSuccess: (data: MatchProvidersResult) => void,
 ) {
-  const { featureFlags } = useApp();
+  const {
+    config: { featureFlags },
+  } = useApp();
   const demandKey = Object.entries(demands)
     .map(([key, value]) => [key, ...(value.suggested ?? [])])
     .join();
@@ -82,7 +86,7 @@ export function useMatchLLMProviders(
         demandKeys.map(async (demandKey) => {
           const result = await matchProviders({
             suggested_models: demands[demandKey].suggested ?? [],
-            capability: ModelCapability.LLM,
+            capability: ModelCapability.Llm,
           });
           return {
             key: demandKey,

@@ -14,6 +14,15 @@ features:
 
 # -------- AGENTS ----------
 providers: [ ]
+# Example:
+# - location: ghcr.io/i-am-bee/beeai-platform/agent-1-example:0.1.0
+#   auto_stop_timeout_sec: null # disable agent downscaling
+#   variables:
+#     # Variables should be strings (or they will be converted)
+#     MY_API_KEY: "sk-..."
+#     MY_CONFIG_VAR: "42"
+# - location: ghcr.io/i-am-bee/beeai-platform/agent-2-example:0.1.0
+#   auto_stop_timeout_sec: 600 # downscale after 10 minutes
 
 # DEPRECATED: Unmanaged providers
 unmanagedProviders: [ ] # DEPRECATED: use providers instead

@@ -31,7 +31,7 @@ export type ApiResponse<
 
 export type ApiRequest<
   Path extends keyof paths,
-  Method extends keyof paths[Path] & ('get' | 'post' | 'delete' | 'put') = 'post',
+  Method extends keyof paths[Path] & ('get' | 'post' | 'delete' | 'put' | 'patch') = 'post',
   ContentType extends 'application/json' | 'multipart/form-data' = 'application/json',
 > = paths[Path][Method] extends {
   requestBody?: {
@@ -63,7 +63,7 @@ export type ApiQuery<
 
 export type ApiPath<
   Path extends keyof paths,
-  Method extends keyof paths[Path] & ('get' | 'post' | 'put' | 'delete') = 'get',
+  Method extends keyof paths[Path] & ('get' | 'post' | 'put' | 'delete' | 'patch') = 'get',
 > = paths[Path][Method] extends {
   parameters: { path?: infer P };
 }
@@ -75,3 +75,5 @@ export type ApiPath<
 export type RemoveIndexSignature<T> = {
   [K in keyof T as string extends K ? never : number extends K ? never : K]: T[K];
 };
+
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;

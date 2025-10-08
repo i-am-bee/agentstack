@@ -1,5 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
+from datetime import timedelta
 from typing import Annotated
 from uuid import UUID
 
@@ -37,6 +38,7 @@ async def create_provider(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Auto remove functionality is disabled")
     return await provider_service.create_provider(
         user=user.user,
+        auto_stop_timeout=timedelta(seconds=request.auto_stop_timeout_sec),
         location=request.location,
         agent_card=request.agent_card,
         auto_remove=auto_remove,

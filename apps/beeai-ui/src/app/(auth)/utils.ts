@@ -5,9 +5,9 @@
 
 import type { Account } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
-import type { Provider } from 'next-auth/providers';
 
 import { getTokenEndpoint } from './token-endpoint';
+import type { ProviderWithId } from './types';
 
 interface OIDCProviderOptions {
   clientId: string;
@@ -19,7 +19,7 @@ interface OIDCProviderOptions {
 export async function jwtWithRefresh(
   token: JWT,
   account: Account | null | undefined,
-  providers: Provider[],
+  providers: ProviderWithId[],
 ): Promise<JWT> {
   if (account) {
     // First-time login, save the `access_token`, its expiry and the `refresh_token`
@@ -36,7 +36,7 @@ export async function jwtWithRefresh(
     // Subsequent requests, `access_token` has expired, try to refresh it
     if (!token.refresh_token) throw new TypeError('Missing refresh_token');
 
-    const tokenProvider = providers.find(({ name }) => name === token.provider);
+    const tokenProvider = providers.find(({ id }) => id === token.provider);
     if (!tokenProvider) {
       throw new TypeError('No matching provider found');
     }

@@ -67,7 +67,7 @@ export type UISourcePart = {
   kind: UIMessagePartKind.Source;
   id: string;
   url: string;
-  messageId: string;
+  taskId: string;
   number: number | null;
   startIndex?: number;
   endIndex?: number;

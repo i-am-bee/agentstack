@@ -1,0 +1,86 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.root {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: $spacing-03;
+  column-gap: $spacing-02;
+  z-index: 0;
+}
+
+.link {
+  @include link-mask();
+  min-inline-size: 0;
+  flex-grow: 1;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  row-gap: $spacing-02;
+  &::before {
+    border-radius: $border-radius;
+    transition: background-color $duration-fast-01 motion(entrance, productive);
+    z-index: -1;
+  }
+  &:focus-visible {
+    outline: 0;
+  }
+  &:focus-visible::before {
+    @include focus-outline('outline');
+  }
+  &:hover::before {
+    background-color: $layer-02;
+  }
+  &:active::before {
+    background-color: $background-active;
+  }
+  .root.isActive &::before {
+    background-color: $layer-02;
+  }
+}
+
+.heading {
+  @include line-clamp();
+  font-size: rem(14px);
+  line-height: math.div(18, 14);
+  color: $text-dark;
+}
+
+.agentName {
+  @include line-clamp();
+  font-size: rem(12px);
+  line-height: math.div(14, 12);
+  color: $text-secondary;
+}
+
+.options {
+  flex-shrink: 0;
+  display: none;
+  .root.optionsOpen &,
+  .root:hover &,
+  .root:focus-within & {
+    display: block;
+  }
+
+  :global(.cds--overflow-menu) {
+    --cds-layer: #{$layer-hover};
+    .root.isActive & {
+      --cds-background-hover: #{$layer-01};
+    }
+    .root.optionsOpen:hover &:not(:hover),
+    .root.isActive.optionsOpen & {
+      --cds-layer-hover: #{$layer-01};
+    }
+  }
+}
+
+.skeleton {
+  &:global(.cds--btn.cds--skeleton) {
+    inline-size: 100%;
+    min-block-size: rem(52px);
+  }
+}

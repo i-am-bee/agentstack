@@ -5,6 +5,7 @@
 
 'use client';
 import { type Agent, InteractionMode } from '#modules/agents/api/types.ts';
+import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 
 import { ChatView } from '../chat/ChatView';
 import { HandsOffView } from '../hands-off/HandsOffView';
@@ -15,11 +16,13 @@ interface Props {
 }
 
 export function RunView({ agent }: Props) {
+  const { contextId } = usePlatformContext();
+
   switch (agent.ui?.interaction_mode) {
     case InteractionMode.MultiTurn:
-      return <ChatView agent={agent} key={agent.name} />;
+      return <ChatView agent={agent} key={contextId} />;
     case InteractionMode.SingleTurn:
-      return <HandsOffView agent={agent} key={agent.name} />;
+      return <HandsOffView agent={agent} key={contextId} />;
     default:
       return <UiNotAvailableView agent={agent} />;
   }
