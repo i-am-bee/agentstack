@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
 
 import { UnauthenticatedError } from '#api/errors.ts';
@@ -15,6 +15,7 @@ import { routes } from '#utils/router.ts';
 export function useHandleError() {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { addToast } = useToast();
 
   const handleError = useCallback(
@@ -24,7 +25,8 @@ export function useHandleError() {
       let errorTitle = 'An error occurred';
 
       if (error instanceof UnauthenticatedError) {
-        router.replace(routes.signIn({ callbackUrl: pathname }));
+        const callbackUrl = searchParams.toString() ? `${pathname}?${searchParams.toString()}` : pathname;
+        router.replace(routes.signIn({ callbackUrl }));
         errorTitle = error.message || 'You are not authenticated.';
       }
       if (errorToast !== false) {
@@ -38,7 +40,7 @@ export function useHandleError() {
         console.error(error);
       }
     },
-    [addToast, pathname, router],
+    [addToast, pathname, router, searchParams],
   );
 
   return handleError;

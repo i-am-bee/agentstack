@@ -21,10 +21,13 @@ export const ensureToken = async (request: Request) => {
   }
 
   // Ensure we have auth cookie, because it's not included in RSC requests
-  const cookieStore = await cookies();
-  request.headers.set('cookie', cookieStore.toString());
+  if (!request.headers.get('cookie')?.includes(`${AUTH_COOKIE_NAME}=`)) {
+    const cookieStore = await cookies();
+    request.headers.set('cookie', cookieStore.toString());
+  }
 
   const token = await getToken({ req: request, cookieName: AUTH_COOKIE_NAME, secret: process.env.NEXTAUTH_SECRET });
 
+  // Don't manually update cookies - let the client handle its own refresh
   return token;
 };

@@ -3,13 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { redirect } from 'next/navigation';
-import type { NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
+import { type NextRequest, NextResponse } from 'next/server';
 
 import { ensureToken } from '#app/(auth)/rsc.tsx';
 import { runtimeConfig } from '#contexts/App/runtime-config.ts';
 import { API_URL } from '#utils/constants.ts';
-import { routes } from '#utils/router.ts';
 
 import { transformAgentManifestBody } from './body-transformers';
 import { isApiAgentManifestUrl, isUrlTrailingSlashNeeded } from './utils';
@@ -36,7 +35,7 @@ async function handler(request: NextRequest, context: RouteContext) {
     const token = await ensureToken(request);
 
     if (!token) {
-      redirect(routes.signIn());
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
     if (token?.access_token) {
@@ -58,12 +57,17 @@ async function handler(request: NextRequest, context: RouteContext) {
     responseBody = await transformAgentManifestBody(res);
   }
 
-  return new Response(responseBody, {
+  const response = new NextResponse(responseBody, {
     status: res.status,
     headers: {
       'Content-Type': res.headers.get('Content-Type') || 'text/plain',
     },
   });
+
+  const cookieStore = await cookies();
+  response.headers.set('cookie', cookieStore.toString());
+
+  return response;
 }
 
 export { handler as DELETE, handler as GET, handler as PATCH, handler as POST, handler as PUT };
