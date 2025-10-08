@@ -9,7 +9,7 @@ import { useParamsFromUrl } from '#hooks/useParamsFromUrl.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 
 import { useCreateContext } from '../api/mutations/useCreateContext';
-import { useUpdateContext } from '../api/mutations/useUpdateContext';
+import { useUpdateContextMetadata } from '../api/mutations/useUpdateContextMetadata';
 import type { ListContextHistoryResponse } from '../api/types';
 import { PlatformContext } from './platform-context';
 
@@ -35,7 +35,7 @@ export function PlatformContextProvider({ history, children }: PropsWithChildren
     },
   });
 
-  const { mutateAsync: updateContext } = useUpdateContext();
+  const { mutateAsync: updateContextMetadata } = useUpdateContextMetadata();
 
   const resetContext = useCallback(() => {
     setContextId(null);
@@ -47,7 +47,7 @@ export function PlatformContextProvider({ history, children }: PropsWithChildren
         return;
       }
 
-      await updateContext({
+      await updateContextMetadata({
         context_id: contextId,
         metadata: {
           agent_name: agent.name ?? '',
@@ -55,7 +55,7 @@ export function PlatformContextProvider({ history, children }: PropsWithChildren
         },
       });
     },
-    [contextId, updateContext],
+    [contextId, updateContextMetadata],
   );
 
   const getContextId = useCallback(() => {

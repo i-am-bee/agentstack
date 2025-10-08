@@ -13,7 +13,7 @@ import type {
   ListContextHistoryParams,
   ListContextsParams,
   MatchModelProvidersParams,
-  UpdateContextParams,
+  UpdateContextMetadataParams,
 } from './types';
 
 export async function createContext(body: CreateContextParams) {
@@ -28,8 +28,8 @@ export async function listContexts({ query }: ListContextsParams) {
   return ensureData(response);
 }
 
-export async function updateContext({ context_id, metadata }: UpdateContextParams) {
-  const response = await api.PUT('/api/v1/contexts/{context_id}', {
+export async function updateContextMetadata({ context_id, metadata }: UpdateContextMetadataParams) {
+  const response = await api.PATCH('/api/v1/contexts/{context_id}/metadata', {
     body: { metadata },
     params: { path: { context_id } },
   });

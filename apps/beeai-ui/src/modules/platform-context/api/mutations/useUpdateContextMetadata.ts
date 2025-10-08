@@ -5,12 +5,12 @@
 
 import { useMutation } from '@tanstack/react-query';
 
-import { updateContext } from '..';
+import { updateContextMetadata } from '..';
 import { contextKeys } from '../keys';
 
-export function useUpdateContext() {
+export function useUpdateContextMetadata() {
   const mutation = useMutation({
-    mutationFn: updateContext,
+    mutationFn: updateContextMetadata,
     meta: {
       invalidates: [contextKeys.lists()],
     },
