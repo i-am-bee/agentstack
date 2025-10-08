@@ -50,8 +50,8 @@ export function PlatformContextProvider({ history, children }: PropsWithChildren
       await updateContextMetadata({
         context_id: contextId,
         metadata: {
-          agent_name: agent.name ?? '',
-          provider_id: agent.provider.id ?? '',
+          agent_name: agent.name,
+          provider_id: agent.provider.id,
         },
       });
     },
