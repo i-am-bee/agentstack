@@ -21,7 +21,8 @@ from sqlalchemy import (
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from beeai_server.configuration import Configuration
-from beeai_server.domain.repositories.env import NOT_SET, EnvStoreEntity, IEnvVariableRepository
+from beeai_server.domain.constants import Undefined, undefined
+from beeai_server.domain.repositories.env import EnvStoreEntity, IEnvVariableRepository
 from beeai_server.exceptions import EntityNotFoundError
 from beeai_server.infrastructure.persistence.repositories.db_metadata import metadata
 from beeai_server.infrastructure.persistence.repositories.utils import sql_enum
@@ -149,14 +150,14 @@ class SqlAlchemyEnvVariableRepository(IEnvVariableRepository):
         parent_entity: EnvStoreEntity,
         parent_entity_id: UUID,
         key: str,
-        default: str | None = NOT_SET,  # pyright: ignore [reportArgumentType]
+        default: str | None | Undefined = undefined,
     ) -> str | None:
         query = variables_table.select().where(
             self._parent_filter(parent_entity, parent_entity_id) & (variables_table.c.key == key)
         )
         result = await self.connection.execute(query)
         if not (row := result.fetchone()):
-            if default is NOT_SET:
+            if default is undefined:
                 raise EntityNotFoundError(entity="variable", id=key)
             return default
         return self.fernet.decrypt(row.value).decode()

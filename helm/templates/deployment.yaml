@@ -181,8 +181,6 @@ spec:
             {{/* see https://fastapi.tiangolo.com/deployment/https/?h=forwarded+allow+ips#proxy-forwarded-headers */}}
             - name: FORWARDED_ALLOW_IPS
               value: {{ .Values.forwardedAllowIps | quote }}
-            - name: FEATURE_FLAGS__UI__USER_NAVIGATION
-              value: {{ .Values.features.uiNavigation | quote }}
             - name: TEXT_EXTRACTION__ENABLED
               value: {{ .Values.docling.enabled | quote }}
             - name: AGENT_REGISTRY__SYNC_PERIOD_SEC

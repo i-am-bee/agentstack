@@ -16,6 +16,7 @@ from fastapi import HTTPException
 from kink import inject
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
+from beeai_server.domain.constants import Undefined, undefined
 from beeai_server.domain.models.provider import (
     Provider,
     ProviderDeploymentState,
@@ -47,6 +48,7 @@ class ProviderService:
         *,
         user: User,
         location: ProviderLocation,
+        origin: str | None = None,
         auto_stop_timeout: timedelta | None,
         registry: RegistryLocation | None = None,
         auto_remove: bool = False,
@@ -58,6 +60,7 @@ class ProviderService:
                 agent_card = await location.load_agent_card()
             provider = Provider(
                 source=location,
+                origin=origin or location.origin,
                 registry=registry,
                 auto_remove=auto_remove,
                 agent_card=agent_card,
@@ -79,56 +82,72 @@ class ProviderService:
         [provider_response] = await self._get_providers_with_state(providers=[provider])
         return provider_response
 
-    async def upgrade_provider(
+    async def patch_provider(
         self,
         *,
         provider_id: UUID,
-        location: ProviderLocation,
+        user: User,
+        location: ProviderLocation | None = None,
+        auto_stop_timeout: timedelta | None | Undefined = undefined,  # None means disable auto_stop_timeout
+        origin: str | None | Undefined = undefined,  # None means compute origin from location
+        agent_card: AgentCard | None = None,
+        variables: dict[str, str] | None = None,
+        allow_registry_update: bool = False,
         force: bool = False,
-        auto_stop_timeout: timedelta | None,
-        env: dict[str, str] | None = None,
     ) -> ProviderWithState:
-        env = env or {}
+        user_id = user.id if user.role != UserRole.ADMIN else None
+
         async with self._uow() as uow:
-            provider = await uow.providers.get(provider_id=provider_id)
-            old_env = (
+            provider = await uow.providers.get(provider_id=provider_id, user_id=user_id)
+            if not provider.managed:
+                raise ValueError("Cannot upgrade unmanaged provider")
+            if provider.registry and not allow_registry_update:
+                raise ValueError("Cannot update provider added from registry")
+            old_variables = (
                 await uow.env.get_all(
                     parent_entity=EnvStoreEntity.PROVIDER,
                     parent_entity_ids=[provider.id],
                 )
             )[provider.id]
 
-        should_update = (
-            provider.source.root != location.root
-            or provider.auto_stop_timeout != auto_stop_timeout
-            or env != old_env
-            or force
-        )
+        variables = old_variables if variables is None else variables
 
+        updated_provider = provider.model_copy()
+        updated_provider.source = location or updated_provider.source
+        updated_provider.agent_card = agent_card or updated_provider.agent_card
+
+        if origin is not undefined:
+            updated_provider.origin = origin or updated_provider.source.origin
+
+        if auto_stop_timeout is not undefined:
+            updated_provider.auto_stop_timeout = auto_stop_timeout
+
+        if not agent_card and location is not None and location != provider.source:
+            try:
+                updated_provider.agent_card = await location.load_agent_card()
+            except ValueError as ex:
+                raise ManifestLoadError(location=location, message=str(ex), status_code=HTTP_400_BAD_REQUEST) from ex
+            except Exception as ex:
+                raise ManifestLoadError(location=location, message=str(ex)) from ex
+
+        should_update = provider != updated_provider or variables != old_variables or force
         if not should_update:
             return (await self._get_providers_with_state(providers=[provider]))[0]
 
-        try:
-            agent_card = await location.load_agent_card()
-        except ValueError as ex:
-            raise ManifestLoadError(location=location, message=str(ex), status_code=HTTP_400_BAD_REQUEST) from ex
-        except Exception as ex:
-            raise ManifestLoadError(location=location, message=str(ex)) from ex
-
-        provider.source = location
-        provider.agent_card = agent_card
-        provider.auto_stop_timeout = auto_stop_timeout
+        updated_provider.updated_at = utc_now()
 
         async with self._uow() as uow:
-            await uow.providers.update(provider=provider)
+            await uow.providers.update(provider=updated_provider)
 
-            if old_env != env:
-                await uow.env.delete(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_id=provider.id)
-                await uow.env.update(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_id=provider.id, variables=env)
+            if old_variables != variables:
+                await uow.env.delete(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_id=provider_id)
+                await uow.env.update(
+                    parent_entity=EnvStoreEntity.PROVIDER, parent_entity_id=provider_id, variables=variables
+                )
             # Rotate the provider (inside the transaction)
-            await self._rotate_provider(provider=provider, env=env)
+            await self._rotate_provider(provider=updated_provider, env=variables)
             await uow.commit()
-        [provider_response] = await self._get_providers_with_state(providers=[provider])
+        [provider_response] = await self._get_providers_with_state(providers=[updated_provider])
         return provider_response
 
     async def preview_provider(
@@ -137,7 +156,7 @@ class ProviderService:
         try:
             if not agent_card:
                 agent_card = await location.load_agent_card()
-            provider = Provider(source=location, agent_card=agent_card, created_by=uuid.uuid4())
+            provider = Provider(source=location, origin=location.origin, agent_card=agent_card, created_by=uuid.uuid4())
             [provider_response] = await self._get_providers_with_state(providers=[provider])
             return provider_response
         except ValueError as ex:
@@ -201,11 +220,11 @@ class ProviderService:
             existing_providers = [p.id async for p in uow.providers.list()]
         await self._deployment_manager.remove_orphaned_providers(existing_providers=existing_providers)
 
-    async def list_providers(self, user: User | None = None) -> list[ProviderWithState]:
+    async def list_providers(self, user: User | None = None, origin: str | None = None) -> list[ProviderWithState]:
         user_id = user.id if user else None
         async with self._uow() as uow:
             return await self._get_providers_with_state(
-                providers=[p async for p in uow.providers.list(user_id=user_id)]
+                providers=[p async for p in uow.providers.list(user_id=user_id, origin=origin)]
             )
 
     async def get_provider(self, provider_id: UUID) -> ProviderWithState:
@@ -248,13 +267,20 @@ class ProviderService:
             await self._deployment_manager.create_or_replace(provider=provider, env=env)
 
     async def update_provider_env(
-        self, *, provider_id: UUID, env: dict[str, str | None] | dict[str, str], user: User
+        self,
+        *,
+        provider_id: UUID,
+        env: dict[str, str | None] | dict[str, str],
+        user: User,
+        allow_registry_update: bool = False,
     ) -> None:
         user_id = user.id if user.role != UserRole.ADMIN else None
         provider = None
         try:
             async with self._uow() as uow:
                 provider = await uow.providers.get(provider_id=provider_id, user_id=user_id)
+                if provider.registry and not allow_registry_update:
+                    raise ValueError("Cannot update variables for a provider added from registry")
                 await uow.env.update(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_id=provider_id, variables=env)
                 new_env = await uow.env.get_all(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_ids=[provider_id])
                 new_env = new_env[provider_id]

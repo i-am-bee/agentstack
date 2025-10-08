@@ -16,6 +16,7 @@ import anyio.abc
 import typer
 from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from anyio import open_process
+from beeai_sdk.platform import AddProvider
 from beeai_sdk.platform.provider_build import BuildState, ProviderBuild
 from httpx import AsyncClient, HTTPError
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, wait_fixed
@@ -136,18 +137,21 @@ async def server_side_build_experimental(
     github_url: typing.Annotated[
         str, typer.Argument(..., help="Github repository URL (public or private if supported by the platform instance)")
     ],
+    add: typing.Annotated[bool, typer.Option(help="Add agent to the platform after build")] = False,
 ):
     """EXPERIMENTAL: Build agent from github repository in the platform."""
     from beeai_cli.configuration import Configuration
 
     async with Configuration().use_platform_client():
-        build = await ProviderBuild.create(location=github_url)
+        build = await ProviderBuild.create(location=github_url, on_complete=AddProvider() if add else None)
         async for message in build.stream_logs():
             print_log(message, ansi_mode=True)
         build = await build.get()
         if build.status == BuildState.COMPLETED:
-            console.success(
-                f"Agent built successfully, add it to the platform using: [bold]beeai add {build.destination}[/bold]"
-            )
+            if add:
+                message = "Agent added successfully. List agents using [bold]beeai list[/bold]"
+            else:
+                message = f"Agent built successfully, add it to the platform using: [bold]beeai add {build.destination}[/bold]"
+            console.success(message)
         else:
             console.error("Agent build failed, see logs above for details.")

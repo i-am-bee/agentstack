@@ -1,11 +1,19 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-from enum import StrEnum
-from typing import Generic, TypeVar
+from enum import Enum, StrEnum
+from typing import Generic, Literal, TypeAlias, TypeVar
 
 from pydantic import BaseModel
 
 T = TypeVar("T", bound=BaseModel)
+
+
+class _Undefined(Enum):
+    undefined = "undefined"
+
+
+undefined = _Undefined.undefined
+Undefined: TypeAlias = Literal[_Undefined.undefined]
 
 
 class PaginatedResult(BaseModel, Generic[T]):

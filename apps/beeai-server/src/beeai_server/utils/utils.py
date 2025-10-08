@@ -11,22 +11,22 @@ from asyncio import CancelledError
 from collections.abc import AsyncIterable, Callable, Iterable
 from contextlib import suppress
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, cast
 
 import anyio.to_thread
 
 
 def filter_dict[T, V](map: dict[str, T | V], value_to_exclude: V = None) -> dict[str, T]:
     """Remove entries with unwanted values (None by default) from dictionary."""
-    return {filter: value for filter, value in map.items() if value is not value_to_exclude}
+    return {key: cast(T, value) for key, value in map.items() if value is not value_to_exclude}
 
 
 def pick[DictType: dict](dict: DictType, keys: Iterable[str]) -> DictType:
-    return {key: value for key, value in dict.items() if key in keys}
+    return cast(DictType, {key: value for key, value in dict.items() if key in keys})
 
 
 def omit[DictType: dict](dict: DictType, keys: Iterable[str]) -> DictType:
-    return {key: value for key, value in dict.items() if key not in keys}
+    return cast(DictType, {key: value for key, value in dict.items() if key not in keys})
 
 
 def extract_messages(exc):

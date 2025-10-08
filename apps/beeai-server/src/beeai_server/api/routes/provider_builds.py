@@ -29,7 +29,19 @@ if get_configuration().features.provider_builds:
         request: CreateProviderBuildRequest,
         provider_build_service: ProviderBuildServiceDependency,
     ) -> ProviderBuild:
-        return await provider_build_service.create_build(location=request.location, user=user.user)
+        return await provider_build_service.create_build(
+            location=request.location, user=user.user, on_complete=request.on_complete
+        )
+
+    @router.post("/preview")
+    async def preview_provider_build(
+        user: Annotated[AuthorizedUser, Depends(RequiresPermissions(provider_builds={"write"}))],
+        request: CreateProviderBuildRequest,
+        provider_build_service: ProviderBuildServiceDependency,
+    ) -> ProviderBuild:
+        return await provider_build_service.preview_build(
+            location=request.location, user=user.user, on_complete=request.on_complete
+        )
 
     @router.get("/{id}")
     async def get_provider_build(
