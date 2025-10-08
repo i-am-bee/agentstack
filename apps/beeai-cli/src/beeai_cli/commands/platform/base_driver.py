@@ -15,6 +15,7 @@ import yaml
 from tenacity import AsyncRetrying, stop_after_attempt
 
 import beeai_cli.commands.platform.istio
+import beeai_cli.commands.platform.network_policies
 from beeai_cli.configuration import Configuration
 
 
@@ -160,6 +161,7 @@ class BaseDriver(abc.ABC):
 
         if any("auth.oidc.enabled=true" in value.lower() for value in set_values_list):
             await beeai_cli.commands.platform.istio.install(driver=self)
+            await beeai_cli.commands.platform.network_policies.install(driver=self)
 
         kubeconfig_path = anyio.Path(Configuration().lima_home) / self.vm_name / "copied-from-guest" / "kubeconfig.yaml"
         await kubeconfig_path.parent.mkdir(parents=True, exist_ok=True)
