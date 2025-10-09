@@ -26,7 +26,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "beeai-framework[duckduckgo,wikipedia]>=0.1.50",
+    "beeai-framework[duckduckgo,wikipedia]>=0.1.55",
     "pyright>=1.1.403",
     "pytest>=8.4.1",
     "pytest-asyncio>=1.1.0",
