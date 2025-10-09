@@ -6,16 +6,12 @@
 
 import * as openidClient from 'openid-client';
 
-interface TokenEndpointCache {
-  [issuerUrl: string]: string;
-}
-
-// In-memory cache for discovered token endpoints
-const tokenEndpointCache: TokenEndpointCache = {};
+import { cache, cacheKeys } from '#utils/server-cache.ts';
 
 export async function getTokenEndpoint(issuerUrl: string, clientId: string, clientSecret: string): Promise<string> {
-  if (tokenEndpointCache[issuerUrl]) {
-    return tokenEndpointCache[issuerUrl];
+  const tokenEndpoint = (await cache.get(cacheKeys.tokenEndpointUrl(issuerUrl))) as string | undefined;
+  if (tokenEndpoint) {
+    return tokenEndpoint;
   }
 
   try {
@@ -27,7 +23,7 @@ export async function getTokenEndpoint(issuerUrl: string, clientId: string, clie
       throw new Error('Token endpoint not found in OIDC discovery');
     }
 
-    tokenEndpointCache[issuerUrl] = tokenEndpoint;
+    await cache.set(cacheKeys.tokenEndpointUrl(issuerUrl), tokenEndpoint);
 
     return tokenEndpoint;
   } catch (discoveryError) {

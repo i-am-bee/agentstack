@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { truncate } from 'lodash';
 import type { Account } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import { coalesceAsync } from 'promise-coalesce';
@@ -25,11 +24,6 @@ export async function jwtWithRefresh(
   account: Account | null | undefined,
   providers: ProviderWithId[],
 ): Promise<JWT> {
-  console.log('\n\njwtWithRefresh:\n', {
-    access_token: truncate(token.access_token, { length: 10 }),
-    expires: ((token.expires_at ?? 0) * 1000 - Date.now()) / 1000,
-  });
-
   if (account) {
     // First-time login, save the `access_token`, its expiry and the `refresh_token`
     return {
@@ -63,8 +57,6 @@ export async function jwtWithRefresh(
 
     const refreshTokenUrl = await getTokenEndpoint(issuerUrl, clientId, clientSecret);
 
-    console.log('\n\n\nRefreshing access_token\n', { refreshToken: token.refresh_token });
-
     const newTokens = await cache.getOrSet<RefreshTokenResult>(
       cacheKeys.refreshToken(token.refresh_token),
       async () => {
@@ -97,43 +89,6 @@ export async function jwtWithRefresh(
       throw new RefreshTokenError('Error refreshing access_token');
     }
 
-    // let newTokens = refreshTokenResultCache.get(token.refresh_token);
-
-    // if (!newTokens) {
-    //   newTokens = await coalesceAsync(token.refresh_token, async () => {
-    //     const response = await fetch(refreshTokenUrl, {
-    //       method: 'POST',
-    //       body: new URLSearchParams({
-    //         client_id: clientId,
-    //         client_secret: clientSecret,
-    //         grant_type: 'refresh_token',
-    //         refresh_token: token.refresh_token!,
-    //       }),
-    //     });
-
-    //     const tokensOrError = await response.json();
-
-    //     if (!response.ok) {
-    //       throw new RefreshTokenError('Error refreshing access_token', tokensOrError);
-    //     }
-
-    //     refreshTokenResultCache.set(token.refresh_token!, tokensOrError);
-
-    //     return tokensOrError as RefreshTokenResult;
-    //   });
-    // } else {
-    //   console.log('\n\n--------------------------------------\nUSING CACHED REFRESH RESULT');
-    // }
-
-    console.log(
-      `Refreshed access_token for provider\n`,
-      {
-        access_token: newTokens.access_token,
-        refreshToken: newTokens.refresh_token,
-      },
-      '\n\n',
-    );
-
     return {
       ...token,
       access_token: newTokens.access_token,
@@ -163,4 +118,4 @@ interface RefreshTokenResult {
   refresh_token?: string;
 }
 
-const refreshTokenResultCache = new Map<string, RefreshTokenResult>();
+// const refreshTokenResultCache = new Map<string, RefreshTokenResult>();
