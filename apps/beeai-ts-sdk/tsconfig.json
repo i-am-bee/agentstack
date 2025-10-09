@@ -10,6 +10,6 @@
     "skipLibCheck": true,
     "esModuleInterop": true
   },
-  "include": ["src/", "eslint.config.js"],
+  "include": ["src/"],
   "exclude": ["tests/", "dist/", "node_modules/"]
 }
