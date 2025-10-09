@@ -77,8 +77,6 @@ export async function jwtWithRefresh(
             throw new RefreshTokenError('Error refreshing access_token', tokensOrError);
           }
 
-          // refreshTokenResultCache.set(token.refresh_token!, tokensOrError);
-
           return tokensOrError as RefreshTokenResult;
         });
       },
@@ -117,5 +115,3 @@ interface RefreshTokenResult {
   expires_in: number;
   refresh_token?: string;
 }
-
-// const refreshTokenResultCache = new Map<string, RefreshTokenResult>();
