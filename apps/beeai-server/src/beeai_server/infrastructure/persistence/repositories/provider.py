@@ -25,7 +25,7 @@ providers_table = Table(
     Column("source", String(2048), nullable=False, unique=True),
     Column("origin", String(2048), nullable=False),
     Column("registry", String(2048), nullable=True),
-    Column("auto_stop_timeout_sec", Integer, nullable=True),
+    Column("auto_stop_timeout_sec", Integer, nullable=False),
     Column("auto_remove", Boolean, default=False, nullable=False),
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("updated_at", DateTime(timezone=True), nullable=False),
@@ -61,9 +61,7 @@ class SqlAlchemyProviderRepository(IProviderRepository):
     def _to_row(self, provider: Provider) -> dict[str, Any]:
         return {
             "id": provider.id,
-            "auto_stop_timeout_sec": (
-                int(provider.auto_stop_timeout.total_seconds()) if provider.auto_stop_timeout else None
-            ),
+            "auto_stop_timeout_sec": provider.auto_stop_timeout.total_seconds(),
             "source": str(provider.source.root),
             "origin": provider.origin,
             "registry": provider.registry and str(provider.registry.root),
@@ -82,9 +80,7 @@ class SqlAlchemyProviderRepository(IProviderRepository):
                 "source": row.source,
                 "origin": row.origin,
                 "registry": row.registry,
-                "auto_stop_timeout": (
-                    timedelta(seconds=row.auto_stop_timeout_sec) if row.auto_stop_timeout_sec else None
-                ),
+                "auto_stop_timeout": timedelta(seconds=row.auto_stop_timeout_sec),
                 "auto_remove": row.auto_remove,
                 "last_active_at": row.last_active_at,
                 "created_at": row.created_at,

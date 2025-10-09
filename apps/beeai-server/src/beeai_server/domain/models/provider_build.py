@@ -36,7 +36,7 @@ class AddProvider(BaseModel):
     """
 
     type: Literal["add_provider"] = "add_provider"
-    auto_stop_timeout_sec: int = Field(
+    auto_stop_timeout_sec: int | None = Field(
         default=int(DEFAULT_AUTO_STOP_TIMEOUT.total_seconds()),
         gt=0,
         le=600,
@@ -49,7 +49,7 @@ class AddProvider(BaseModel):
 
     @property
     def auto_stop_timeout(self) -> timedelta:
-        return timedelta(seconds=self.auto_stop_timeout_sec)
+        return timedelta(seconds=self.auto_stop_timeout_sec or int(DEFAULT_AUTO_STOP_TIMEOUT.total_seconds()))
 
 
 class UpdateProvider(BaseModel):

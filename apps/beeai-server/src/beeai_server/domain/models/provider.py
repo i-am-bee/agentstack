@@ -122,7 +122,7 @@ ProviderLocation = DockerImageProviderLocation | NetworkProviderLocation
 class Provider(BaseModel):
     source: ProviderLocation
     id: UUID = Field(default_factory=lambda data: data["source"].provider_id)
-    auto_stop_timeout: timedelta | None = Field(default=DEFAULT_AUTO_STOP_TIMEOUT)
+    auto_stop_timeout: timedelta = Field(default=DEFAULT_AUTO_STOP_TIMEOUT)
     origin: str
     registry: RegistryLocation | None = None
     auto_remove: bool = False

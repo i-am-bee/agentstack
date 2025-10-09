@@ -60,8 +60,8 @@ async def check_registry(
     for registry in configuration.agent_registry.locations.values():
         for provider_record in await registry.load():
             try:
-                desired_providers[provider_record.final_origin] = provider_record
-                registry_by_provider_origin[provider_record.final_origin] = registry
+                desired_providers[provider_record.origin] = provider_record
+                registry_by_provider_origin[provider_record.origin] = registry
             except ValueError as e:
                 errors.append(e)
 

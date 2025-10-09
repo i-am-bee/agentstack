@@ -11,7 +11,7 @@ from uuid import UUID
 import pydantic
 
 from beeai_sdk.platform.client import PlatformClient, get_platform_client
-from beeai_sdk.platform.common import PaginatedResult, ResolvedGithubUrl, Undefined, undefined
+from beeai_sdk.platform.common import PaginatedResult, ResolvedGithubUrl
 from beeai_sdk.util.utils import filter_dict, parse_stream
 
 
@@ -30,8 +30,8 @@ class AddProvider(pydantic.BaseModel):
     """
 
     type: Literal["add_provider"] = "add_provider"
-    auto_stop_timeout_sec: int | Undefined = pydantic.Field(
-        default=undefined,
+    auto_stop_timeout_sec: int | None = pydantic.Field(
+        default=None,
         gt=0,
         le=600,
         description=(
@@ -75,7 +75,7 @@ class ProviderBuild(pydantic.BaseModel):
                 (
                     await client.post(
                         url="/api/v1/provider_builds",
-                        json={"location": location, "on_complete": filter_dict(on_complete.model_dump(), undefined)},
+                        json={"location": location, "on_complete": on_complete.model_dump(exclude_none=True)},
                     )
                 )
                 .raise_for_status()
@@ -92,7 +92,7 @@ class ProviderBuild(pydantic.BaseModel):
                 (
                     await client.post(
                         url="/api/v1/provider_builds/preview",
-                        json={"location": location, "on_complete": filter_dict(on_complete.model_dump(), undefined)},
+                        json={"location": location, "on_complete": on_complete.model_dump(exclude_none=True)},
                     )
                 )
                 .raise_for_status()

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 import httpx
 import yaml
 from anyio import Path
-from pydantic import BaseModel, Field, FileUrl, HttpUrl, RootModel, computed_field, field_validator, model_validator
+from pydantic import BaseModel, Field, FileUrl, HttpUrl, RootModel, field_validator, model_validator
 
 from beeai_server.domain.constants import DEFAULT_AUTO_STOP_TIMEOUT
 from beeai_server.utils.github import GithubUrl
@@ -20,19 +20,17 @@ if TYPE_CHECKING:
 
 class ProviderRegistryRecord(BaseModel, extra="allow"):
     location: "ProviderLocation"
-    origin: str | None = None
-    auto_stop_timeout_sec: int | None = Field(default=int(DEFAULT_AUTO_STOP_TIMEOUT.total_seconds()), ge=0)
+    origin: str = Field(default_factory=lambda data: data["location"].origin)
+    auto_stop_timeout_sec: int = Field(
+        default=int(DEFAULT_AUTO_STOP_TIMEOUT.total_seconds()),
+        ge=0,
+        description="Downscale after this many seconds of inactivity. Set to 0 to disable downscaling.",
+    )
     variables: dict[str, str] = {}
 
-    @computed_field
     @property
-    def final_origin(self) -> str:
-        return self.origin or self.location.origin
-
-    @computed_field
-    @property
-    def auto_stop_timeout(self) -> timedelta | None:
-        return timedelta(seconds=self.auto_stop_timeout_sec) if self.auto_stop_timeout_sec else None
+    def auto_stop_timeout(self) -> timedelta:
+        return timedelta(seconds=self.auto_stop_timeout_sec)
 
     @field_validator("variables", mode="before")
     @classmethod

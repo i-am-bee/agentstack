@@ -31,6 +31,9 @@ def upgrade() -> None:
     )
     op.add_column("provider_builds", sa.Column("error_message", sa.Text(), nullable=True))
 
+    op.execute("UPDATE providers SET auto_stop_timeout_sec = 0 WHERE auto_stop_timeout_sec IS NULL")
+    op.alter_column("providers", "auto_stop_timeout_sec", existing_type=sa.INTEGER(), nullable=False)
+
     op.add_column("providers", sa.Column("origin", sa.String(length=2048), nullable=True))
     op.execute("UPDATE providers SET origin = SPLIT_PART(source, ':', 1)")
     op.alter_column("providers", "origin", nullable=False)

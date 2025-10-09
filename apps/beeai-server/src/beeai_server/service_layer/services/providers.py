@@ -16,7 +16,6 @@ from fastapi import HTTPException
 from kink import inject
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
-from beeai_server.domain.constants import Undefined, undefined
 from beeai_server.domain.models.provider import (
     Provider,
     ProviderDeploymentState,
@@ -49,7 +48,7 @@ class ProviderService:
         user: User,
         location: ProviderLocation,
         origin: str | None = None,
-        auto_stop_timeout: timedelta | None,
+        auto_stop_timeout: timedelta,
         registry: RegistryLocation | None = None,
         auto_remove: bool = False,
         agent_card: AgentCard | None = None,
@@ -88,8 +87,8 @@ class ProviderService:
         provider_id: UUID,
         user: User,
         location: ProviderLocation | None = None,
-        auto_stop_timeout: timedelta | None | Undefined = undefined,  # None means disable auto_stop_timeout
-        origin: str | None | Undefined = undefined,  # None means compute origin from location
+        auto_stop_timeout: timedelta | None = None,
+        origin: str | None = None,
         agent_card: AgentCard | None = None,
         variables: dict[str, str] | None = None,
         allow_registry_update: bool = False,
@@ -115,11 +114,9 @@ class ProviderService:
         updated_provider = provider.model_copy()
         updated_provider.source = location or updated_provider.source
         updated_provider.agent_card = agent_card or updated_provider.agent_card
+        updated_provider.origin = origin if origin != "auto" else updated_provider.source.origin
 
-        if origin is not undefined:
-            updated_provider.origin = origin or updated_provider.source.origin
-
-        if auto_stop_timeout is not undefined:
+        if auto_stop_timeout is not None:
             updated_provider.auto_stop_timeout = auto_stop_timeout
 
         if not agent_card and location is not None and location != provider.source:
