@@ -8,11 +8,9 @@ import { type PropsWithChildren, useCallback, useEffect, useState } from 'react'
 import type { AgentA2AClient } from '#api/a2a/types.ts';
 import { useApp } from '#contexts/App/index.ts';
 import { useCreateContextToken } from '#modules/platform-context/api/mutations/useCreateContextToken.ts';
-import {
-  useMatchEmbeddingProviders,
-  useMatchLLMProviders,
-} from '#modules/platform-context/api/mutations/useMatchProviders.ts';
+import { useMatchProviders } from '#modules/platform-context/api/mutations/useMatchProviders.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
+import { ModelCapability } from '#modules/platform-context/types.ts';
 
 import { useAgentSecrets } from '../agent-secrets';
 import { AgentDemandsContext } from './agent-demands-context';
@@ -54,10 +52,11 @@ export function AgentDemandsProvider<UIGenericPart>({
     [setSelectedLLMProviders],
   );
 
-  const { data: matchedLLMProviders } = useMatchLLMProviders(
-    agentClient?.llmDemands ?? {},
-    setDefaultSelectedLLMProviders,
-  );
+  const { data: matchedLLMProviders } = useMatchProviders({
+    demands: agentClient?.llmDemands ?? {},
+    onSuccess: setDefaultSelectedLLMProviders,
+    capability: ModelCapability.Llm,
+  });
 
   const setDefaultSelectedEmbeddingProviders = useCallback(
     (data: Record<string, string[]>) => {
@@ -76,10 +75,11 @@ export function AgentDemandsProvider<UIGenericPart>({
     [setSelectedEmbeddingProviders],
   );
 
-  const { data: matchedEmbeddingProviders } = useMatchEmbeddingProviders(
-    agentClient?.embeddingDemands ?? {},
-    setDefaultSelectedEmbeddingProviders,
-  );
+  const { data: matchedEmbeddingProviders } = useMatchProviders({
+    demands: agentClient?.embeddingDemands ?? {},
+    onSuccess: setDefaultSelectedEmbeddingProviders,
+    capability: ModelCapability.Embedding,
+  });
 
   const selectLLMProvider = useCallback(
     (key: string, value: string) => {
