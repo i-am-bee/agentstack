@@ -80,7 +80,8 @@ export async function jwtWithRefresh(
           return tokensOrError as RefreshTokenResult;
         });
       },
-      { ttl: '1d' },
+      // Prevent multiple refreshes until new access_token is populated to the auth cookie
+      { ttl: '1h' },
     );
 
     if (!newTokens) {
