@@ -22,6 +22,7 @@
     "@ibm/plex": "^6.4.1",
     "@radix-ui/react-slot": "^1.2.3",
     "@tanstack/react-query": "catalog:",
+    "beeai-sdk": "workspace:*",
     "cacheable": "2.1.0",
     "clsx": "catalog:",
     "fetch-event-stream": "^0.1.5",

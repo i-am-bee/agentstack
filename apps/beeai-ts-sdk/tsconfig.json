@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "declaration": true,
+    "target": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "outDir": "dist/",
+    "rootDir": "src/",
+    "skipLibCheck": true,
+    "esModuleInterop": true
+  },
+  "include": ["src/", "eslint.config.js"],
+  "exclude": ["tests/", "dist/", "node_modules/"]
+}
