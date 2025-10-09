@@ -38,6 +38,29 @@ async def install(driver: "BaseDriver"):
                 "ingress": [{}],
             },
         },
+        {
+            "apiVersion": "networking.k8s.io/v1",
+            "kind": "NetworkPolicy",
+            "metadata": {"name": "default-egress-dns-policy", "namespace": "default"},
+            "spec": {
+                "policyTypes": ["Egress"],
+                "podSelector": {},
+                "egress": [
+                    {
+                        "to": [
+                            {
+                                "namespaceSelector": {"matchLabels": {"kubernetes.io/metadata.name": "kube-system"}},
+                                "podSelector": {"matchLabels": {"k8s-app": "kube-dns"}},
+                            },
+                        ],
+                        "ports": [
+                            {"port": 53, "protocol": "UDP"},
+                            {"port": 53, "protocol": "TCP"},
+                        ],
+                    }
+                ],
+            },
+        },
     ]
 
     for resource in resources:
