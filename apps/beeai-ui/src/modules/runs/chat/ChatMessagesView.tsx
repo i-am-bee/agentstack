@@ -24,7 +24,10 @@ import { ChatUserMessage } from './ChatUserMessage';
 export function ChatMessagesView() {
   const { scrollElementRef, observeElementRef, isScrolled, scrollToBottom } = useIsScrolled();
   const { isPending, clear } = useAgentRun();
-  const { messages } = useMessages();
+  const {
+    messages,
+    queryControl: { hasNextPage, fetchNextPageInViewAnchorRef },
+  } = useMessages();
   const {
     status: { isNotInstalled, isStarting },
   } = useAgentStatus();
@@ -42,7 +45,7 @@ export function ChatMessagesView() {
               {messages.map((message, idx) => {
                 const isUser = isUserMessage(message);
                 const isAgent = isAgentMessage(message);
-                const isLast = idx == messages.length - 1;
+                const isLast = idx == 0; // messages are displayed in reverse order
 
                 return (
                   <li key={message.id} className={classes.message}>
@@ -54,6 +57,8 @@ export function ChatMessagesView() {
                   </li>
                 );
               })}
+
+              {hasNextPage && <li ref={fetchNextPageInViewAnchorRef}> </li>}
             </ol>
           </Container>
         </div>

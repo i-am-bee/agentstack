@@ -5,6 +5,8 @@
 
 .root {
   @include type-style(body-01);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 
   > * + * {
     margin-block-start: rem(20px);
@@ -14,8 +16,6 @@
     font-size: inherit;
     line-height: inherit;
     letter-spacing: inherit;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
   }
 
   ul {

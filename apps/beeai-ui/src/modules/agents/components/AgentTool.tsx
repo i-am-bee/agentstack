@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { OverflowMenu, OverflowMenuItem } from '@carbon/react';
-
 import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
 
 import type { AgentTool } from '../api/types';
@@ -23,12 +21,6 @@ export function AgentTool({ tool }: Props) {
         {/* <span className={classes.icon}></span> */}
 
         <p className={classes.name}>{name}</p>
-
-        <OverflowMenu menuOptionsClass={classes.options} size="sm" flipped>
-          <OverflowMenuItem itemText="Manage API Key" />
-
-          <OverflowMenuItem itemText="Revoke API Key" isDelete />
-        </OverflowMenu>
       </div>
 
       {description && (

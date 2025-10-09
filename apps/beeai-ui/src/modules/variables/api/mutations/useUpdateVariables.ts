@@ -12,15 +12,14 @@ interface Props {
   onSuccess?: () => void;
 }
 
-export function useUpdateVariable({ onSuccess }: Props = {}) {
+export function useUpdateVariables({ onSuccess }: Props = {}) {
   const mutation = useMutation({
-    mutationFn: ({ key, value }: { key: string; value: string | null }) =>
-      updateVariables({ variables: { [key]: value } }),
+    mutationFn: updateVariables,
     onSuccess,
     meta: {
       invalidates: [variableKeys.lists()],
       errorToast: {
-        title: 'Failed to update variable.',
+        title: 'Failed to update variables.',
         includeErrorMessage: true,
       },
     },

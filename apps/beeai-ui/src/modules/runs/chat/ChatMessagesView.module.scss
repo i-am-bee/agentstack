@@ -24,7 +24,7 @@ $zindex-buttons: 2;
 .scrollable {
   @include scrollbar();
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   position: relative;
 }
 
@@ -43,13 +43,13 @@ $zindex-buttons: 2;
 
 .messages {
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   row-gap: $messages-row-gap;
   padding-block-start: $messages-top-padding;
   block-size: 100%;
 }
 
-.message:last-child {
+.message:first-child {
   min-block-size: calc(
     100vh -
       (
@@ -97,7 +97,7 @@ $zindex-buttons: 2;
     padding-block-end: 0;
   }
 
-  .message:last-child {
+  .message:first-child {
     min-block-size: calc(
       100vh -
         (
