@@ -18,18 +18,18 @@ const MAX_PROVIDERS = 5;
 
 type MatchProvidersResult = Record<string, string[]>;
 
-const errorToast: QueryMetadataError = {
-  title: 'Failed to match model providers.',
-  message: 'Have you configured providers by running `beeai model setup`?',
+const getErrorToast = (isLocalExperience: boolean): QueryMetadataError => ({
+  title: 'Model providers query failed',
+  message: isLocalExperience ? 'Have you configured providers by running `beeai model setup`?' : undefined,
   includeErrorMessage: true,
-};
+});
 
 export function useMatchEmbeddingProviders(
   demands: EmbeddingDemand['embedding_demands'],
   onSuccess: (data: MatchProvidersResult) => void,
 ) {
   const {
-    config: { featureFlags },
+    config: { featureFlags, isAuthEnabled },
   } = useApp();
   const demandKey = Object.entries(demands)
     .map(([key, value]) => [key, ...(value.suggested ?? [])])
@@ -60,7 +60,7 @@ export function useMatchEmbeddingProviders(
       }, {});
     },
     meta: {
-      errorToast,
+      errorToast: getErrorToast(!isAuthEnabled),
     },
   });
 
@@ -80,7 +80,7 @@ export function useMatchLLMProviders(
   onSuccess: (data: MatchProvidersResult) => void,
 ) {
   const {
-    config: { featureFlags },
+    config: { featureFlags, isAuthEnabled },
   } = useApp();
   const demandKey = Object.entries(demands)
     .map(([key, value]) => [key, ...(value.suggested ?? [])])
@@ -111,7 +111,7 @@ export function useMatchLLMProviders(
       }, {});
     },
     meta: {
-      errorToast,
+      errorToast: getErrorToast(!isAuthEnabled),
     },
   });
 
