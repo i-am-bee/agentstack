@@ -27,8 +27,7 @@
       },
       "import": {
         "types": "./dist/types/index.d.ts"
-      },
-      "types": "./dist/types/index.d.ts"
+      }
     },
     "./package.json": "./package.json"
   },
