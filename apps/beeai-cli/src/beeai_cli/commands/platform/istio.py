@@ -147,6 +147,53 @@ async def install(driver: "BaseDriver"):
                 ],
             },
         },
+        {
+            "apiVersion": "gateway.networking.k8s.io/v1",
+            "kind": "HTTPRoute",
+            "metadata": {"name": "beeai-platform-well-known-oauth-protected-resource"},
+            "spec": {
+                "parentRefs": [{"name": "beeai-gateway", "namespace": "istio-system"}],
+                "hostnames": ["beeai-platform.testing", "beeai.localhost"],
+                "rules": [
+                    {
+                        "matches": [
+                            {"path": {"type": "PathPrefix", "value": "/\\.well-known/oauth-protected-resource"}}
+                        ],
+                        "backendRefs": [{"name": "beeai-platform-svc", "port": 8333}],
+                    }
+                ],
+            },
+        },
+        {
+            "apiVersion": "gateway.networking.k8s.io/v1",
+            "kind": "HTTPRoute",
+            "metadata": {"name": "beeai-platform-well-known-openid-configuration"},
+            "spec": {
+                "parentRefs": [{"name": "beeai-gateway", "namespace": "istio-system"}],
+                "hostnames": ["beeai-platform.testing", "beeai.localhost"],
+                "rules": [
+                    {
+                        "matches": [{"path": {"type": "PathPrefix", "value": "/\\.well-known/openid-configuration"}}],
+                        "backendRefs": [{"name": "beeai-platform-svc", "port": 8333}],
+                    }
+                ],
+            },
+        },
+        {
+            "apiVersion": "gateway.networking.k8s.io/v1",
+            "kind": "HTTPRoute",
+            "metadata": {"name": "beeai-platform-docs"},
+            "spec": {
+                "parentRefs": [{"name": "beeai-gateway", "namespace": "istio-system"}],
+                "hostnames": ["beeai-platform.testing", "beeai.localhost"],
+                "rules": [
+                    {
+                        "matches": [{"path": {"type": "PathPrefix", "value": "/api/v1/docs"}}],
+                        "backendRefs": [{"name": "beeai-platform-ui-svc", "port": 8333}],
+                    }
+                ],
+            },
+        },
     ]
     for resource in resources:
         await driver.run_in_vm(
