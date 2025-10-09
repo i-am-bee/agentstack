@@ -28,6 +28,5 @@ export const ensureToken = async (request: Request) => {
 
   const token = await getToken({ req: request, cookieName: AUTH_COOKIE_NAME, secret: process.env.NEXTAUTH_SECRET });
 
-  // Don't manually update cookies - let the client handle its own refresh
   return token;
 };

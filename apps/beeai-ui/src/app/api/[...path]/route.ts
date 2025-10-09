@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { cookies } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { ensureToken } from '#app/(auth)/rsc.tsx';
@@ -57,17 +56,12 @@ async function handler(request: NextRequest, context: RouteContext) {
     responseBody = await transformAgentManifestBody(res);
   }
 
-  const response = new NextResponse(responseBody, {
+  return new NextResponse(responseBody, {
     status: res.status,
     headers: {
       'Content-Type': res.headers.get('Content-Type') || 'text/plain',
     },
   });
-
-  const cookieStore = await cookies();
-  response.headers.set('cookie', cookieStore.toString());
-
-  return response;
 }
 
 export { handler as DELETE, handler as GET, handler as PATCH, handler as POST, handler as PUT };
