@@ -156,9 +156,7 @@ async def install(driver: "BaseDriver"):
                 "hostnames": ["beeai-platform.testing", "beeai.localhost"],
                 "rules": [
                     {
-                        "matches": [
-                            {"path": {"type": "PathPrefix", "value": "/\\.well-known/oauth-protected-resource"}}
-                        ],
+                        "matches": [{"path": {"type": "PathPrefix", "value": "/.well-known/oauth-protected-resource"}}],
                         "backendRefs": [{"name": "beeai-platform-svc", "port": 8333}],
                     }
                 ],
@@ -173,7 +171,7 @@ async def install(driver: "BaseDriver"):
                 "hostnames": ["beeai-platform.testing", "beeai.localhost"],
                 "rules": [
                     {
-                        "matches": [{"path": {"type": "PathPrefix", "value": "/\\.well-known/openid-configuration"}}],
+                        "matches": [{"path": {"type": "PathPrefix", "value": "/.well-known/openid-configuration"}}],
                         "backendRefs": [{"name": "beeai-platform-svc", "port": 8333}],
                     }
                 ],
