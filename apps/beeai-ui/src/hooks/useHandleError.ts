@@ -32,7 +32,8 @@ export function useHandleError() {
 
         addToast({
           title: errorToast?.title ?? errorTitle,
-          subtitle: errorMessage,
+          subtitle: errorToast?.message,
+          apiError: errorMessage,
         });
       } else {
         console.error(error);

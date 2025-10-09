@@ -7,13 +7,13 @@ import type { QueryKey } from '@tanstack/react-query';
 
 import type { useHandleError } from '#hooks/useHandleError.ts';
 
+export interface QueryMetadataError {
+  title?: string;
+  message?: string;
+  includeErrorMessage?: boolean;
+}
 export interface QueryMetadata extends Record<string, unknown> {
-  errorToast?:
-    | false
-    | {
-        title?: string;
-        includeErrorMessage?: boolean;
-      };
+  errorToast?: false | QueryMetadataError;
 }
 
 export type HandleError = ReturnType<typeof useHandleError>;

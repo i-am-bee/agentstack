@@ -9,6 +9,7 @@ import { useEffect } from 'react';
 import type { EmbeddingDemand } from '#api/a2a/extensions/services/embedding.ts';
 import type { LLMDemand } from '#api/a2a/extensions/services/llm.ts';
 import { useApp } from '#contexts/App/index.ts';
+import type { QueryMetadataError } from '#contexts/QueryProvider/types.ts';
 import { ModelCapability } from '#modules/platform-context/types.ts';
 
 import { matchProviders } from '..';
@@ -16,6 +17,12 @@ import { matchProviders } from '..';
 const MAX_PROVIDERS = 5;
 
 type MatchProvidersResult = Record<string, string[]>;
+
+const errorToast: QueryMetadataError = {
+  title: 'Failed to match model providers.',
+  message: 'Have you configured providers by running `beeai model setup`?',
+  includeErrorMessage: true,
+};
 
 export function useMatchEmbeddingProviders(
   demands: EmbeddingDemand['embedding_demands'],
@@ -51,6 +58,9 @@ export function useMatchEmbeddingProviders(
         acc[key] = providers;
         return acc;
       }, {});
+    },
+    meta: {
+      errorToast,
     },
   });
 
@@ -99,6 +109,9 @@ export function useMatchLLMProviders(
         acc[key] = providers;
         return acc;
       }, {});
+    },
+    meta: {
+      errorToast,
     },
   });
 
