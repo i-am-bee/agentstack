@@ -45,7 +45,7 @@ export function ChatMessagesView() {
               {messages.map((message, idx) => {
                 const isUser = isUserMessage(message);
                 const isAgent = isAgentMessage(message);
-                const isLast = idx == 0;
+                const isLast = idx == 0; // messages are displayed in reverse order
 
                 return (
                   <li key={message.id} className={classes.message}>

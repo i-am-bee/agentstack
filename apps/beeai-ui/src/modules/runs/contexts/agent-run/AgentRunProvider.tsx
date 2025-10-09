@@ -104,7 +104,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
   const updateCurrentAgentMessage = useCallback(
     (updater: (message: UIAgentMessage) => void) => {
       setMessages((messages) => {
-        const lastMessage = messages.at(0);
+        const lastMessage = messages.at(0); // messages are in reverse order
 
         if (lastMessage && isAgentMessage(lastMessage)) {
           updater(lastMessage);
@@ -165,7 +165,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
   }, []);
 
   const cancelPendingTask = useCallback(() => {
-    const lastMessage = getMessages().at(0);
+    const lastMessage = getMessages().at(0); // messages are in reverse order
     if (
       lastMessage &&
       isAgentMessage(lastMessage) &&
