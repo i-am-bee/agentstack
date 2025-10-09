@@ -42,3 +42,12 @@ dir = "{{config_root}}/apps/beeai-ts-sdk"
 run = "pnpm eslint . --fix"
 sources = ["src/**/*.ts"]
 outputs = { auto = true }
+
+# build
+
+["beeai-ts-sdk:build"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/beeai-ts-sdk"
+run = "pnpm build"
+sources = ["src/**/*", "package.json", "tsconfig.json"]
+outputs = { auto = true }
