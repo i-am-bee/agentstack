@@ -23,6 +23,7 @@ from beeai_framework.tools import Tool
 from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
 from beeai_framework.tools.search.wikipedia import WikipediaTool
 from beeai_framework.tools.weather import OpenMeteoTool
+from beeai_framework.backend import ChatModelParameters
 from beeai_sdk.a2a.extensions import (
     AgentDetail,
     AgentDetailContributor,
@@ -217,9 +218,8 @@ async def chat(
         ActAlwaysFirstRequirement(),  #  Enforces the ActTool to be used before any other tool execution.
     ]
 
-    llm = BeeAIPlatformChatModel()
     use_streaming = True
-    llm.parameters.stream = use_streaming
+    llm = BeeAIPlatformChatModel(parameters=ChatModelParameters(stream=use_streaming))
     llm.set_context(llm_ext)
 
     # Build dynamic instructions based on available files
