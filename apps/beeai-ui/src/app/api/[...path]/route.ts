@@ -44,6 +44,20 @@ async function handler(request: NextRequest, context: RouteContext) {
     }
   }
 
+  if (!headers.has('Forwarded')) {
+    headers.set('Forwarded', `host=${nextUrl.host};proto=${nextUrl.protocol.replace(/:$/, '')}`);
+  }
+
+  const forwarded_header = headers.get('forwarded');
+  const forwarded_host = nextUrl.host;
+  const forwarded_proto = nextUrl.protocol.replace(/:$/, '');
+  headers.set(
+    'forwarded',
+    [...(forwarded_header ? [forwarded_header] : []), `host=${forwarded_host};proto=${forwarded_proto}`].join(','),
+  );
+  headers.set('x-forwarded-host', forwarded_host);
+  headers.set('x-forwarded-proto', forwarded_proto);
+
   const res = await fetch(targetUrl, {
     method,
     headers,
