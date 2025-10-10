@@ -8,7 +8,7 @@ import type { NextRequest } from 'next/server';
 
 import { ensureToken } from '#app/(auth)/rsc.tsx';
 import { runtimeConfig } from '#contexts/App/runtime-config.ts';
-import { API_URL } from '#utils/constants.ts';
+import { API_URL, TRUST_PROXY_HEADERS } from '#utils/constants.ts';
 import { routes } from '#utils/router.ts';
 
 import { transformAgentManifestBody } from './body-transformers';
@@ -44,13 +44,13 @@ async function handler(request: NextRequest, context: RouteContext) {
     }
   }
 
-  if (!headers.has('Forwarded')) {
-    headers.set('Forwarded', `host=${nextUrl.host};proto=${nextUrl.protocol.replace(/:$/, '')}`);
-  }
+  const forwarded_host = (TRUST_PROXY_HEADERS && headers.get('x-forwarded-host')) || nextUrl.host;
+  const forwarded_proto =
+    (TRUST_PROXY_HEADERS && headers.get('x-forwarded-proto')) || nextUrl.protocol.replace(/:$/, '');
+  const forwarded_header = TRUST_PROXY_HEADERS
+    ? (headers.get('forwarded') ?? `host=${forwarded_host};proto=${forwarded_proto}`)
+    : null;
 
-  const forwarded_header = headers.get('forwarded');
-  const forwarded_host = nextUrl.host;
-  const forwarded_proto = nextUrl.protocol.replace(/:$/, '');
   headers.set(
     'forwarded',
     [...(forwarded_header ? [forwarded_header] : []), `host=${forwarded_host};proto=${forwarded_proto}`].join(','),
