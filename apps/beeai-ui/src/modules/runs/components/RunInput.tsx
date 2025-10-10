@@ -44,7 +44,7 @@ export function RunInput({ promptExamples, onMessageSent }: Props) {
 
   const {
     agent: {
-      ui: { interaction_mode },
+      ui: { interaction_mode, input_placeholder },
     },
     isReady,
     isPending,
@@ -123,7 +123,7 @@ export function RunInput({ promptExamples, onMessageSent }: Props) {
           rows={1}
           maxRows={7}
           autoFocus
-          placeholder="Ask anything…"
+          placeholder={input_placeholder ?? 'Ask anything…'}
           className={classes.textarea}
           onKeyDown={(event) => !isSubmitDisabled && submitFormOnEnter(event)}
           {...inputProps}

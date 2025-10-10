@@ -9,7 +9,7 @@ from a2a.client.helpers import create_text_message_object
 from a2a.types import (
     TaskState,
 )
-from beeai_sdk.platform import BuildState, Provider, ProviderBuild
+from beeai_sdk.platform import AddProvider, BuildState, Provider, ProviderBuild
 
 pytestmark = pytest.mark.e2e
 
@@ -23,8 +23,11 @@ async def test_remote_agent_build_and_start(
     get_final_task_from_stream,
     test_configuration,
 ):
+    with subtests.test("preview build"):
+        build = await ProviderBuild.preview(location=test_configuration.test_agent_build_repo)
+        assert build.destination
     with subtests.test("build example agent"):
-        build = await ProviderBuild.create(location=test_configuration.test_agent_build_repo)
+        build = await ProviderBuild.create(location=test_configuration.test_agent_build_repo, on_complete=AddProvider())
         async for message in build.stream_logs():
             logger.debug(json.dumps(message))
 
@@ -34,13 +37,13 @@ async def test_remote_agent_build_and_start(
                 break
             await asyncio.sleep(0.5)
 
-        assert build.status == BuildState.COMPLETED
+        assert build.status == BuildState.COMPLETED, f"Fail: {build.error_message}"
     with subtests.test("run example agent"):
-        _ = await Provider.create(location=build.destination)
         providers = await Provider.list()
         assert len(providers) == 1
         assert providers[0].source == build.destination
         assert providers[0].agent_card
+        assert test_configuration.test_agent_build_repo in providers[0].origin
 
         async with a2a_client_factory(providers[0].agent_card) as a2a_client:
             message = create_text_message_object(content="test of sirens")

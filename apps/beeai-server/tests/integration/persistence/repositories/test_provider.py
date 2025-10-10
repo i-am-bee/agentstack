@@ -29,8 +29,10 @@ def set_di_configuration(override_global_dependency):
 @pytest.fixture
 async def test_provider(set_di_configuration, admin_user: UUID) -> Provider:
     """Create a test provider for use in tests."""
+    source = NetworkProviderLocation(root="http://localhost:8000")
     return Provider(
-        source=NetworkProviderLocation(root="http://localhost:8000"),
+        source=source,
+        origin=source.origin,
         registry=None,
         agent_card=AgentCard(
             name="Hello World Agent",
@@ -96,10 +98,15 @@ async def test_get_provider(db_transaction: AsyncConnection, test_provider, admi
 
     await db_transaction.execute(
         text(
-            "INSERT INTO providers (id, source, registry, auto_stop_timeout_sec, auto_remove, agent_card, created_at, last_active_at, created_by) "
-            "VALUES (:id, :source, :registry, :auto_stop_timeout_sec, :auto_remove, :agent_card, :created_at, :last_active_at, :created_by)"
+            "INSERT INTO providers (id, source, origin, registry, auto_stop_timeout_sec, auto_remove, agent_card, created_at, updated_at, last_active_at, created_by) "
+            "VALUES (:id, :source, :origin, :registry, :auto_stop_timeout_sec, :auto_remove, :agent_card, :created_at, :updated_at, :last_active_at, :created_by)"
         ),
-        {**provider_data, "agent_card": json.dumps(provider_data["agent_card"])},
+        {
+            **provider_data,
+            "origin": source.origin,
+            "updated_at": utc_now(),
+            "agent_card": json.dumps(provider_data["agent_card"]),
+        },
     )
     # Get provider
     provider = await repository.get(provider_id=provider_data["id"])
@@ -193,12 +200,22 @@ async def test_list_providers(db_transaction: AsyncConnection, admin_user: UUID)
 
     await db_transaction.execute(
         text(
-            "INSERT INTO providers (id, source, registry, agent_card, created_at, last_active_at, auto_stop_timeout_sec, auto_remove, created_by) "
-            "VALUES (:id, :source, :registry, :agent_card, :created_at, :last_active_at, :auto_stop_timeout_sec, :auto_remove, :created_by)"
+            "INSERT INTO providers (id, source, origin, registry, agent_card, created_at, updated_at, last_active_at, auto_stop_timeout_sec, auto_remove, created_by) "
+            "VALUES (:id, :source, :origin, :registry, :agent_card, :created_at, :updated_at, :last_active_at, :auto_stop_timeout_sec, :auto_remove, :created_by)"
         ),
         [
-            {**first_provider, "agent_card": json.dumps(first_provider["agent_card"])},
-            {**second_provider, "agent_card": json.dumps(second_provider["agent_card"])},
+            {
+                **first_provider,
+                "origin": source.origin,
+                "updated_at": utc_now(),
+                "agent_card": json.dumps(first_provider["agent_card"]),
+            },
+            {
+                **second_provider,
+                "origin": source2.origin,
+                "updated_at": utc_now(),
+                "agent_card": json.dumps(second_provider["agent_card"]),
+            },
         ],
     )
 
@@ -238,8 +255,10 @@ async def test_create_duplicate_provider(db_transaction: AsyncConnection, test_p
     await repository.create(provider=test_provider)
 
     # Try to create provider with same ID (should succeed with auto_remove=False)
+    duplicate_source = NetworkProviderLocation(root="http://localhost:8000")  # Same source, will generate same ID
     duplicate_provider = Provider(
-        source=NetworkProviderLocation(root="http://localhost:8000"),  # Same source, will generate same ID
+        source=duplicate_source,
+        origin=duplicate_source.origin,
         registry=None,
         agent_card=test_provider.agent_card.model_copy(update={"name": "NEW_AGENT"}),
         auto_stop_timeout=timedelta(minutes=10),  # Different timeout
@@ -258,8 +277,10 @@ async def test_replace_transient_provider(db_transaction: AsyncConnection, test_
 
     test_provider.auto_remove = True  # This should allow replacement
     await repository.create(provider=test_provider)
+    new_source = NetworkProviderLocation(root="http://localhost:8000")  # Same source will generate same ID
     new_provider = Provider(
-        source=NetworkProviderLocation(root="http://localhost:8000"),  # Same source will generate same ID
+        source=new_source,
+        origin=new_source.origin,
         agent_card=test_provider.agent_card.model_copy(update={"name": "NEW_AGENT"}),
         auto_remove=True,
         created_by=admin_user,

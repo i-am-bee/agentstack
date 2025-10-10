@@ -12,7 +12,7 @@ from a2a.client import ClientConfig, ClientFactory
 from a2a.types import AgentCard
 
 from beeai_sdk.platform.client import PlatformClient, get_platform_client
-from beeai_sdk.util.utils import parse_stream
+from beeai_sdk.util.utils import filter_dict, parse_stream
 
 
 class ProviderErrorMessage(pydantic.BaseModel):
@@ -27,11 +27,13 @@ class EnvVar(pydantic.BaseModel):
 
 class Provider(pydantic.BaseModel):
     id: str
-    auto_stop_timeout: timedelta | None = None
+    auto_stop_timeout: timedelta
     source: str
+    origin: str
     registry: str | None = None
     auto_remove: bool = False
     created_at: pydantic.AwareDatetime
+    updated_at: pydantic.AwareDatetime
     last_active_at: pydantic.AwareDatetime
     agent_card: AgentCard
     state: typing.Literal["missing", "starting", "ready", "running", "error"] = "missing"
@@ -45,17 +47,66 @@ class Provider(pydantic.BaseModel):
         location: str,
         agent_card: AgentCard | None = None,
         auto_remove: bool = False,
+        origin: str | None = None,
+        auto_stop_timeout: timedelta | None = None,
+        variables: dict[str, str] | None = None,
         client: PlatformClient | None = None,
     ) -> "Provider":
+        auto_stop_timeout_sec = auto_stop_timeout.total_seconds() if auto_stop_timeout is not None else None
+
         async with client or get_platform_client() as client:
             return pydantic.TypeAdapter(Provider).validate_python(
                 (
                     await client.post(
                         url="/api/v1/providers",
-                        json={
-                            "location": location,
-                            "agent_card": agent_card.model_dump(mode="json") if agent_card else None,
-                        },
+                        json=filter_dict(
+                            {
+                                "location": location,
+                                "agent_card": agent_card.model_dump(mode="json") if agent_card else None,
+                                "origin": origin,
+                                "variables": variables,
+                                "auto_stop_timeout_sec": auto_stop_timeout_sec,
+                            }
+                        ),
+                        params={"auto_remove": auto_remove},
+                    )
+                )
+                .raise_for_status()
+                .json()
+            )
+
+    async def patch(
+        self: "Provider | str",
+        *,
+        location: str | None = None,
+        agent_card: AgentCard | None = None,
+        auto_remove: bool = False,
+        origin: str | None = None,
+        auto_stop_timeout: timedelta | None = None,
+        variables: dict[str, str] | None = None,
+        client: PlatformClient | None = None,
+    ) -> "Provider":
+        # `self` has a weird type so that you can call both `instance.patch()` to update an instance, or `Provider.patch("123", ...)` to update a provider
+
+        provider_id = self if isinstance(self, str) else self.id
+        payload = filter_dict(
+            {
+                "location": location,
+                "agent_card": agent_card.model_dump(mode="json") if agent_card else None,
+                "variables": variables,
+                "auto_stop_timeout_sec": None if auto_stop_timeout is None else auto_stop_timeout.total_seconds(),
+                "origin": origin,
+            }
+        )
+        if not payload:
+            return await Provider.get(self)
+
+        async with client or get_platform_client() as client:
+            return pydantic.TypeAdapter(Provider).validate_python(
+                (
+                    await client.patch(
+                        url=f"/api/v1/providers/{provider_id}",
+                        json=payload,
                         params={"auto_remove": auto_remove},
                     )
                 )

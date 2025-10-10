@@ -4,7 +4,7 @@ from enum import StrEnum
 from typing import Protocol, runtime_checkable
 from uuid import UUID
 
-NOT_SET = object()
+from beeai_server.domain.constants import Undefined, undefined
 
 
 class EnvStoreEntity(StrEnum):
@@ -21,7 +21,7 @@ class IEnvVariableRepository(Protocol):
         parent_entity: EnvStoreEntity,
         parent_entity_id: UUID,
         key: str,
-        default: str | None = NOT_SET,  # pyright: ignore [reportArgumentType]
+        default: str | None | Undefined = undefined,
     ) -> str | None: ...
 
     async def get_all(

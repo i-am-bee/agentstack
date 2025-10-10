@@ -4,18 +4,15 @@
 import logging
 from contextlib import suppress
 from datetime import timedelta
-from uuid import UUID
 
 import anyio
 import httpx
 from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from kink import inject
 from procrastinate import Blueprint
-from pydantic import RootModel
 
 from beeai_server import get_configuration
 from beeai_server.configuration import Configuration
-from beeai_server.domain.models.provider import ProviderLocation
 from beeai_server.domain.models.registry import ProviderRegistryRecord, RegistryLocation
 from beeai_server.exceptions import EntityNotFoundError
 from beeai_server.jobs.queues import Queues
@@ -51,8 +48,8 @@ async def check_registry(
 
     user = await user_service.get_user_by_email("admin@beeai.dev")
 
-    registry_by_provider_id: dict[UUID, RegistryLocation] = {}
-    desired_providers: dict[UUID, ProviderRegistryRecord] = {}
+    registry_by_provider_origin: dict[str, RegistryLocation] = {}
+    desired_providers: dict[str, ProviderRegistryRecord] = {}
     errors = []
 
     try:
@@ -63,14 +60,14 @@ async def check_registry(
     for registry in configuration.agent_registry.locations.values():
         for provider_record in await registry.load():
             try:
-                provider_id = RootModel[ProviderLocation](root=provider_record.location).root.provider_id
-                desired_providers[provider_id] = provider_record
-                registry_by_provider_id[provider_id] = registry
+                desired_providers[provider_record.origin] = provider_record
+                registry_by_provider_origin[provider_record.origin] = registry
             except ValueError as e:
                 errors.append(e)
 
+    # TODO: two providers with the same origin managed under registry are not supported
     managed_providers = {
-        provider.id: provider for provider in await provider_service.list_providers() if provider.registry
+        provider.origin: provider for provider in await provider_service.list_providers() if provider.registry
     }
 
     new_providers = desired_providers.keys() - managed_providers.keys()
@@ -78,21 +75,22 @@ async def check_registry(
     existing_providers = managed_providers.keys() & desired_providers.keys()
 
     # Remove old providers - to prevent agent name collisions
-    for provider_id in old_providers:
-        provider = managed_providers[provider_id]
+    for provider_origin in old_providers:
+        provider = managed_providers[provider_origin]
         try:
             await provider_service.delete_provider(provider_id=provider.id, user=user)
             logger.info(f"Removed provider {provider.source}")
         except Exception as ex:
             errors.append(RuntimeError(f"[{provider.source}]: Failed to remove provider: {ex}"))
 
-    for provider_id in new_providers:
-        provider_record = desired_providers[provider_id]
+    for provider_origin in new_providers:
+        provider_record = desired_providers[provider_origin]
         try:
             await provider_service.create_provider(
                 user=user,
                 location=provider_record.location,
-                registry=registry_by_provider_id[provider_id],
+                origin=provider_record.origin,
+                registry=registry_by_provider_origin[provider_origin],
                 auto_stop_timeout=provider_record.auto_stop_timeout,
                 variables=provider_record.variables,
             )
@@ -100,17 +98,21 @@ async def check_registry(
         except Exception as ex:
             errors.append(RuntimeError(f"[{provider_record}]: Failed to add provider: {ex}"))
 
-    for provider_id in existing_providers:
-        provider_record = desired_providers[provider_id]
+    for provider_origin in existing_providers:
+        provider_record = desired_providers[provider_origin]
+        provider = managed_providers[provider_origin]
         try:
-            result = await provider_service.upgrade_provider(
-                provider_id=provider_id,
+            result = await provider_service.patch_provider(
+                provider_id=provider.id,
+                user=user,
                 location=provider_record.location,
+                origin=provider_record.origin,
                 auto_stop_timeout=provider_record.auto_stop_timeout,
-                env=provider_record.variables,
+                variables=provider_record.variables,
+                allow_registry_update=True,
             )
-            if managed_providers[provider_id].source.root != result.source.root:
-                logger.info(f"Upgraded provider {provider_record}")
+            if managed_providers[provider_origin].source.root != result.source.root:
+                logger.info(f"Updated provider {provider_record}")
         except Exception as ex:
             errors.append(RuntimeError(f"[{provider_record}]: Failed to add provider: {ex}"))
 

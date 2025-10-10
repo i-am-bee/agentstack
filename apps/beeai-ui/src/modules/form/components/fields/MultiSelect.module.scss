@@ -11,9 +11,11 @@
 
 .option {
   &:global(.cds--tag) {
+    border-color: $layer-02;
     background-color: $layer-02;
     color: $text-primary;
     &:hover {
+      border-color: $layer-hover-02;
       background-color: $layer-hover-02;
     }
     &.isSelected {

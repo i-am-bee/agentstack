@@ -3,17 +3,18 @@
 import json
 import re
 from collections.abc import AsyncIterator
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
 import httpx
 from httpx import HTTPStatusError
 
+T = TypeVar("T")
 V = TypeVar("V")
 
 
-def filter_dict(map: dict[str, V], value_to_exclude: V = None) -> dict[str, V]:
+def filter_dict(map: dict[str, T | V], value_to_exclude: V = None) -> dict[str, T]:
     """Remove entries with unwanted values (None by default) from dictionary."""
-    return {filter: value for filter, value in map.items() if value is not value_to_exclude}
+    return {key: cast(T, value) for key, value in map.items() if value is not value_to_exclude}
 
 
 async def parse_stream(response: httpx.Response) -> AsyncIterator[dict[str, Any]]:

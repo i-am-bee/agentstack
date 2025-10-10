@@ -43,7 +43,7 @@ MetadataPatch = Annotated[
 ]
 
 
-class PaginatedResult[T: BaseModel](BaseModel):
+class PaginatedResult[T](BaseModel):
     items: list[T]
     total_count: int
     has_more: bool = False

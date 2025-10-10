@@ -33,42 +33,44 @@ class ContextListQuery(PaginationQuery):
 
 
 class ContextPermissionsGrant(BaseModel):
-    files: list[Literal["read", "write", "extract", "*"]] = []
-    vector_stores: list[Literal["read", "write", "extract", "*"]] = []
-    context_data: list[Literal["read", "write", "*"]] = []
+    files: list[Literal["read", "write", "extract", "*"]] = Field(default_factory=list)
+    vector_stores: list[Literal["read", "write", "extract", "*"]] = Field(default_factory=list)
+    context_data: list[Literal["read", "write", "*"]] = Field(default_factory=list)
 
 
 class GlobalPermissionGrant(BaseModel):
-    files: list[Literal["read", "write", "extract", "*"]] = []
-    feedback: list[Literal["write"]] = []
-    vector_stores: list[Literal["read", "write", "extract", "*"]] = []
+    files: list[Literal["read", "write", "extract", "*"]] = Field(default_factory=list)
+    feedback: list[Literal["write"]] = Field(default_factory=list)
+    vector_stores: list[Literal["read", "write", "extract", "*"]] = Field(default_factory=list)
 
     # openai proxy
-    llm: list[Literal["*"] | ResourceIdPermission] = []
-    embeddings: list[Literal["*"] | ResourceIdPermission] = []
-    model_providers: list[Literal["read", "write", "*"]] = []
+    llm: list[Literal["*"] | ResourceIdPermission] = Field(default_factory=list)
+    embeddings: list[Literal["*"] | ResourceIdPermission] = Field(default_factory=list)
+    model_providers: list[Literal["read", "write", "*"]] = Field(default_factory=list)
 
-    a2a_proxy: list[Literal["*"]] = []
+    a2a_proxy: list[Literal["*"]] = Field(default_factory=list)
 
     # agent providers
-    providers: list[Literal["read", "write", "*"]] = []  # write includes "show logs" permission
-    provider_variables: list[Literal["read", "write", "*"]] = []
+    providers: list[Literal["read", "write", "*"]] = Field(
+        default_factory=list
+    )  # write includes "show logs" permission
+    provider_variables: list[Literal["read", "write", "*"]] = Field(default_factory=list)
 
-    contexts: list[Literal["read", "write", "*"]] = []
-    context_data: list[Literal["read", "write", "*"]] = []
+    contexts: list[Literal["read", "write", "*"]] = Field(default_factory=list)
+    context_data: list[Literal["read", "write", "*"]] = Field(default_factory=list)
 
-    mcp_providers: list[Literal["read", "write", "*"]] = []
-    mcp_tools: list[Literal["read", "*"]] = []
-    mcp_proxy: list[Literal["*"]] = []
+    mcp_providers: list[Literal["read", "write", "*"]] = Field(default_factory=list)
+    mcp_tools: list[Literal["read", "*"]] = Field(default_factory=list)
+    mcp_proxy: list[Literal["*"]] = Field(default_factory=list)
 
 
 class ContextTokenCreateRequest(BaseModel):
     grant_global_permissions: GlobalPermissionGrant = Field(
-        default=GlobalPermissionGrant(),
+        default_factory=GlobalPermissionGrant,
         description="Global permissions granted by the token. Must be subset of the users permissions",
     )
     grant_context_permissions: ContextPermissionsGrant = Field(
-        default=ContextPermissionsGrant(),
+        default_factory=ContextPermissionsGrant,
         description="Context permissions granted by the token. Must be subset of the users permissions",
     )
 

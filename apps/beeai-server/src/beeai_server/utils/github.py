@@ -68,6 +68,11 @@ class ResolvedGithubUrl(BaseModel):
     async def get_github_token(self) -> str | None:
         return await get_github_token(self.host)
 
+    @property
+    def base(self) -> str:
+        path = f"#path={self.path}" if self.path else ""
+        return f"git+https://{self.host}/{self.org}/{self.repo}{path}"
+
     async def get_raw_url(self, path: str | None = None) -> AnyUrl:
         if not path and "." not in (self.path or ""):
             raise ValueError("Path is not specified or it is not a file")

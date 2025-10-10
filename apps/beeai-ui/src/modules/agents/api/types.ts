@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { AgentDetail } from '#api/a2a/extensions/ui/agent-detail.ts';
 import type { Provider } from '#modules/providers/api/types.ts';
 
 type AgentCard = Provider['agent_card'];
@@ -12,7 +13,7 @@ export interface Agent extends Omit<AgentCard, 'provider'> {
   provider: Omit<Provider, 'agent_card'> & {
     metadata?: AgentCardProvider;
   };
-  ui: UIExtensionParams;
+  ui: AgentDetail;
 }
 
 export type AgentExtension = NonNullable<Agent['capabilities']['extensions']>[number];
@@ -20,35 +21,4 @@ export type AgentExtension = NonNullable<Agent['capabilities']['extensions']>[nu
 export enum InteractionMode {
   MultiTurn = 'multi-turn',
   SingleTurn = 'single-turn',
-}
-
-export interface AgentTool {
-  name: string;
-  description: string;
-}
-
-export interface UIExtensionParams {
-  interaction_mode?: InteractionMode | string;
-  user_greeting?: string;
-  tools?: AgentTool[];
-  framework?: string;
-  license?: string;
-  programming_language?: string;
-  homepage_url?: string;
-  source_code_url?: string;
-  container_image_url?: string;
-  author?: AgentContributor;
-  contributors?: AgentContributor[];
-}
-
-export const AGENT_EXTENSION_URI = 'https://a2a-extensions.beeai.dev/ui/agent-detail/v1';
-export interface UiExtension extends AgentExtension {
-  uri: typeof AGENT_EXTENSION_URI;
-  params: UIExtensionParams & { [key: string]: unknown };
-}
-
-export interface AgentContributor {
-  name: string;
-  email?: string;
-  url?: string;
 }
