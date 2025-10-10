@@ -149,9 +149,9 @@ async def server_side_build_experimental(
         build = await build.get()
         if build.status == BuildState.COMPLETED:
             if add:
-                message = "Agent added successfully. List agents using [bold]beeai list[/bold]"
+                message = "Agent added successfully. List agents using [green]beeai list[/green]"
             else:
-                message = f"Agent built successfully, add it to the platform using: [bold]beeai add {build.destination}[/bold]"
+                message = f"Agent built successfully, add it to the platform using: [green]beeai add {build.destination}[/green]"
             console.success(message)
         else:
             console.error("Agent build failed, see logs above for details.")

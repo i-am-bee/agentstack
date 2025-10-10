@@ -28,9 +28,9 @@ from pydantic import (
 
 from beeai_server.configuration import Configuration
 from beeai_server.domain.constants import (
+    AGENT_DETAIL_EXTENSION_URI,
     DEFAULT_AUTO_STOP_TIMEOUT,
     DOCKER_MANIFEST_LABEL_NAME,
-    REQUIRED_ENV_EXTENSION_URI,
 )
 from beeai_server.domain.models.registry import RegistryLocation
 from beeai_server.domain.utils import bridge_k8s_to_localhost, bridge_localhost_to_k8s
@@ -110,7 +110,7 @@ class NetworkProviderLocation(RootModel):
                 raise ValueError(f"Unable to load agents from location: {self.root}: {ex}") from ex
 
 
-class EnvVar(BaseModel):
+class EnvVar(BaseModel, extra="allow"):
     name: str
     description: str | None = None
     required: bool = False
@@ -148,8 +148,9 @@ class Provider(BaseModel):
     def env(self) -> list[EnvVar]:
         try:
             extensions = self.agent_card.capabilities.extensions or []
-            env = next(ext for ext in extensions if ext.uri == REQUIRED_ENV_EXTENSION_URI).params["env"]
-            return [EnvVar.model_validate(var) for var in env]
+            agent_detail = next(ext for ext in extensions if ext.uri == AGENT_DETAIL_EXTENSION_URI)
+            variables = agent_detail.model_dump().get("variables") or []
+            return [EnvVar.model_validate(v) for v in variables]
         except StopIteration:
             return []
 

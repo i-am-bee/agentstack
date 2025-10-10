@@ -114,7 +114,7 @@ class ProviderService:
         updated_provider = provider.model_copy()
         updated_provider.source = location or updated_provider.source
         updated_provider.agent_card = agent_card or updated_provider.agent_card
-        updated_provider.origin = origin if origin != "auto" else updated_provider.source.origin
+        updated_provider.origin = origin or updated_provider.source.origin
 
         if auto_stop_timeout is not None:
             updated_provider.auto_stop_timeout = auto_stop_timeout

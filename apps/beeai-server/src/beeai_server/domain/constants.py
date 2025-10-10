@@ -18,6 +18,6 @@ Undefined: TypeAlias = Literal[_Undefined.undefined]  # noqa: UP040
 DEFAULT_AUTO_STOP_TIMEOUT: Final[timedelta] = timedelta(minutes=5)
 
 # A2A platform constants
-REQUIRED_ENV_EXTENSION_URI: Final[str] = "required_env"
+AGENT_DETAIL_EXTENSION_URI: Final[str] = "https://a2a-extensions.beeai.dev/ui/agent-detail/v1"
 
 MODEL_API_KEY_SECRET_NAME = "MODEL_API_KEY"
