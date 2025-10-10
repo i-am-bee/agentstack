@@ -67,6 +67,8 @@ spec:
                   "MCPOAuth": {{ .Values.features.uiMCPOauth }},
                   "MCP": {{ .Values.features.uiMCP }}
                 }
+            - name: TRUST_PROXY_HEADERS
+              value: {{ .Values.trustProxyHeaders | quote }}
           {{- if and .Values.auth.enabled .Values.auth.oidc.enabled }}
             - name: OIDC__PROVIDERS_PATH
               value: {{ .Values.auth.oidc.providers_path }}

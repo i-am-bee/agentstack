@@ -175,7 +175,7 @@ def app(*, dependency_overrides: Container | None = None) -> FastAPI:
     logger.info("Mounting routes...")
     mount_routes(app)
 
-    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=configuration.forwarded_allow_ips)
+    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*" if configuration.trust_proxy_headers else "")
     register_global_exception_handlers(app)
 
     return app

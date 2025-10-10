@@ -274,7 +274,7 @@ class Configuration(BaseSettings):
 
     platform_service_url: str = "beeai-platform-svc:8333"
     port: int = 8333
-    forwarded_allow_ips: str = ""
+    trust_proxy_headers: bool = False
 
     @model_validator(mode="after")
     def _oci_registry_defaultdict(self):
