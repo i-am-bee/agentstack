@@ -1,4 +1,4 @@
-name: beeai-sdk-test
+name: beeai-sdk-py-test
 
 permissions:
   contents: read
@@ -7,14 +7,14 @@ on:
   workflow_dispatch: { }
   pull_request:
     paths:
-      - 'apps/beeai-sdk/**'
+      - 'apps/beeai-sdk-py/**'
   push:
     branches:
       - main
     paths:
-      - 'apps/beeai-sdk/**'
+      - 'apps/beeai-sdk-py/**'
 jobs:
-  beeai-sdk-test:
+  beeai-sdk-py-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,4 +29,4 @@ jobs:
       - uses: ./.github/actions/setup
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: mise run beeai-sdk:e2e-test
+      - run: mise run beeai-sdk-py:e2e-test

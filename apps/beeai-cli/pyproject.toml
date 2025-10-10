@@ -34,7 +34,7 @@ dev = [
 ]
 
 [tool.uv.sources]
-beeai-sdk = { path = "../beeai-sdk", editable = true }
+beeai-sdk = { path = "../beeai-sdk-py", editable = true }
 
 [project.scripts]
 beeai = "beeai_cli:app"

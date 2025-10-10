@@ -1,53 +1,53 @@
 # check
 
-["beeai-ts-sdk:check"]
-depends = ["beeai-ts-sdk:check:*"]
+["beeai-sdk-ts:check"]
+depends = ["beeai-sdk-ts:check:*"]
 
-["beeai-ts-sdk:check:prettier"]
+["beeai-sdk-ts:check:prettier"]
 depends = ["common:setup:pnpm"]
-dir = "{{config_root}}/apps/beeai-ts-sdk"
+dir = "{{config_root}}/apps/beeai-sdk-ts"
 run = "pnpm prettier --log-level silent --check src"
 sources = ["src/**/*.ts"]
 outputs = { auto = true }
 
-["beeai-ts-sdk:check:eslint"]
+["beeai-sdk-ts:check:eslint"]
 depends = ["common:setup:pnpm"]
-dir = "{{config_root}}/apps/beeai-ts-sdk"
+dir = "{{config_root}}/apps/beeai-sdk-ts"
 run = "pnpm eslint ."
 sources = ["src/**/*.ts"]
 outputs = { auto = true }
 
-["beeai-ts-sdk:check:tsc"]
+["beeai-sdk-ts:check:tsc"]
 depends = ["common:setup:pnpm"]
-dir = "{{config_root}}/apps/beeai-ts-sdk"
+dir = "{{config_root}}/apps/beeai-sdk-ts"
 run = "pnpm tsc --noEmit -p tsconfig.check.json"
 sources = ["src/**/*.ts"]
 outputs = { auto = true }
 
 # fix
 
-["beeai-ts-sdk:fix"]
-depends = ["beeai-ts-sdk:fix:*"]
+["beeai-sdk-ts:fix"]
+depends = ["beeai-sdk-ts:fix:*"]
 
-["beeai-ts-sdk:fix:prettier"]
+["beeai-sdk-ts:fix:prettier"]
 depends = ["common:setup:pnpm"]
-dir = "{{config_root}}/apps/beeai-ts-sdk"
+dir = "{{config_root}}/apps/beeai-sdk-ts"
 run = "pnpm prettier --log-level silent --write src"
 sources = ["src/**/*.ts"]
 outputs = { auto = true }
 
-["beeai-ts-sdk:fix:lint"]
+["beeai-sdk-ts:fix:lint"]
 depends = ["common:setup:pnpm"]
-dir = "{{config_root}}/apps/beeai-ts-sdk"
+dir = "{{config_root}}/apps/beeai-sdk-ts"
 run = "pnpm eslint . --fix"
 sources = ["src/**/*.ts"]
 outputs = { auto = true }
 
 # build
 
-["beeai-ts-sdk:build"]
+["beeai-sdk-ts:build"]
 depends = ["common:setup:pnpm"]
-dir = "{{config_root}}/apps/beeai-ts-sdk"
+dir = "{{config_root}}/apps/beeai-sdk-ts"
 run = "pnpm build"
 sources = ["src/**/*", "package.json", "tsconfig.json"]
 outputs = { auto = true }

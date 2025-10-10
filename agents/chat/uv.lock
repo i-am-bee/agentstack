@@ -187,7 +187,7 @@ wikipedia = [
 [[package]]
 name = "beeai-sdk"
 version = "0.3.6rc3"
-source = { editable = "../../apps/beeai-sdk" }
+source = { editable = "../../apps/beeai-sdk-py" }
 dependencies = [
     { name = "a2a-sdk" },
     { name = "anyio" },
@@ -356,7 +356,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "beeai-framework", extras = ["duckduckgo", "wikipedia", "beeai-platform"], specifier = ">=0.1.50" },
-    { name = "beeai-sdk", editable = "../../apps/beeai-sdk" },
+    { name = "beeai-sdk", editable = "../../apps/beeai-sdk-py" },
     { name = "openai", specifier = ">=1.107.1" },
     { name = "openinference-instrumentation-beeai", specifier = ">=0.1.11" },
     { name = "pydantic-settings", specifier = ">=2.9.0" },

@@ -18,7 +18,7 @@ sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
 outputs = { auto = true }
 
 ["beeai-ui:check:tsc"]
-depends = ["common:setup:pnpm", "beeai-ts-sdk:build"]
+depends = ["common:setup:pnpm", "beeai-sdk-ts:build"]
 dir = "{{config_root}}/apps/beeai-ui"
 run = "pnpm tsc --noEmit -p tsconfig.check.json"
 sources = ["src/**/*.ts", "src/**/*.tsx"]
@@ -66,7 +66,7 @@ dir = "{{config_root}}/apps/beeai-ui"
 run = "pnpm next start"
 
 ["beeai-ui:run:dev"]
-depends = ["common:setup:pnpm", "beeai-ts-sdk:build"]
+depends = ["common:setup:pnpm", "beeai-sdk-ts:build"]
 env.NODE_OPTIONS = "--no-experimental-global-navigator"
 dir = "{{config_root}}/apps/beeai-ui"
 run = "pnpm next dev"
@@ -79,7 +79,7 @@ dir = "{{config_root}}"
 run = "docker build -t ghcr.io/i-am-bee/beeai-platform/beeai-ui:local -f ./apps/beeai-ui/Dockerfile --load ."
 
 ["beeai-ui:build:nextjs"]
-depends = ["common:setup:pnpm", "beeai-ts-sdk:build"]
+depends = ["common:setup:pnpm", "beeai-sdk-ts:build"]
 dir = "{{config_root}}/apps/beeai-ui"
 env.NODE_OPTIONS = "--no-experimental-global-navigator"
 run = "pnpm next build"
