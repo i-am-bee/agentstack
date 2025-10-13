@@ -37,7 +37,7 @@ class AddProvider(BaseModel):
 
     type: Literal["add_provider"] = "add_provider"
     auto_stop_timeout_sec: int | None = Field(
-        default=int(DEFAULT_AUTO_STOP_TIMEOUT.total_seconds()),
+        default=None,
         gt=0,
         le=600,
         description=(

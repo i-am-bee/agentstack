@@ -34,19 +34,19 @@ export interface paths {
       cookie?: never;
     };
     /** Proxy Request */
-    get: operations['proxy_request_api_v1_a2a__provider_id__delete'];
+    get: operations['proxy_request_api_v1_a2a__provider_id__post'];
     /** Proxy Request */
-    put: operations['proxy_request_api_v1_a2a__provider_id__delete'];
+    put: operations['proxy_request_api_v1_a2a__provider_id__post'];
     /** Proxy Request */
-    post: operations['proxy_request_api_v1_a2a__provider_id__delete'];
+    post: operations['proxy_request_api_v1_a2a__provider_id__post'];
     /** Proxy Request */
-    delete: operations['proxy_request_api_v1_a2a__provider_id__delete'];
+    delete: operations['proxy_request_api_v1_a2a__provider_id__post'];
     /** Proxy Request */
-    options: operations['proxy_request_api_v1_a2a__provider_id__delete'];
+    options: operations['proxy_request_api_v1_a2a__provider_id__post'];
     /** Proxy Request */
-    head: operations['proxy_request_api_v1_a2a__provider_id__delete'];
+    head: operations['proxy_request_api_v1_a2a__provider_id__post'];
     /** Proxy Request */
-    patch: operations['proxy_request_api_v1_a2a__provider_id__delete'];
+    patch: operations['proxy_request_api_v1_a2a__provider_id__post'];
     trace?: never;
   };
   '/api/v1/a2a/{provider_id}/.well-known/agent-card.json': {
@@ -74,19 +74,19 @@ export interface paths {
       cookie?: never;
     };
     /** Proxy Request */
-    get: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
+    get: operations['proxy_request_api_v1_a2a__provider_id___path__post'];
     /** Proxy Request */
-    put: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
+    put: operations['proxy_request_api_v1_a2a__provider_id___path__post'];
     /** Proxy Request */
-    post: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
+    post: operations['proxy_request_api_v1_a2a__provider_id___path__post'];
     /** Proxy Request */
-    delete: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
+    delete: operations['proxy_request_api_v1_a2a__provider_id___path__post'];
     /** Proxy Request */
-    options: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
+    options: operations['proxy_request_api_v1_a2a__provider_id___path__post'];
     /** Proxy Request */
-    head: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
+    head: operations['proxy_request_api_v1_a2a__provider_id___path__post'];
     /** Proxy Request */
-    patch: operations['proxy_request_api_v1_a2a__provider_id___path__delete'];
+    patch: operations['proxy_request_api_v1_a2a__provider_id___path__post'];
     trace?: never;
   };
   '/api/v1/configurations/system': {
@@ -848,9 +848,8 @@ export interface components {
       /**
        * Auto Stop Timeout Sec
        * @description Timeout after which the agent provider will be automatically downscaled if unused.Contact administrator if you need to increase this value.
-       * @default 300
        */
-      auto_stop_timeout_sec: number | null;
+      auto_stop_timeout_sec?: number | null;
       /**
        * Type
        * @default add_provider
@@ -2446,6 +2445,8 @@ export interface components {
        * @default false
        */
       required: boolean;
+    } & {
+      [key: string]: unknown;
     };
     /** ExtractionMetadata */
     ExtractionMetadata: {
@@ -3599,7 +3600,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__delete: {
+  proxy_request_api_v1_a2a__provider_id__post: {
     parameters: {
       query?: {
         path?: string;
@@ -3632,7 +3633,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__delete: {
+  proxy_request_api_v1_a2a__provider_id__post: {
     parameters: {
       query?: {
         path?: string;
@@ -3665,7 +3666,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__delete: {
+  proxy_request_api_v1_a2a__provider_id__post: {
     parameters: {
       query?: {
         path?: string;
@@ -3698,7 +3699,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__delete: {
+  proxy_request_api_v1_a2a__provider_id__post: {
     parameters: {
       query?: {
         path?: string;
@@ -3731,7 +3732,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__delete: {
+  proxy_request_api_v1_a2a__provider_id__post: {
     parameters: {
       query?: {
         path?: string;
@@ -3764,7 +3765,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__delete: {
+  proxy_request_api_v1_a2a__provider_id__post: {
     parameters: {
       query?: {
         path?: string;
@@ -3797,7 +3798,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id__delete: {
+  proxy_request_api_v1_a2a__provider_id__post: {
     parameters: {
       query?: {
         path?: string;
@@ -3861,7 +3862,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__delete: {
+  proxy_request_api_v1_a2a__provider_id___path__post: {
     parameters: {
       query?: never;
       header?: never;
@@ -3893,7 +3894,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__delete: {
+  proxy_request_api_v1_a2a__provider_id___path__post: {
     parameters: {
       query?: never;
       header?: never;
@@ -3925,7 +3926,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__delete: {
+  proxy_request_api_v1_a2a__provider_id___path__post: {
     parameters: {
       query?: never;
       header?: never;
@@ -3957,7 +3958,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__delete: {
+  proxy_request_api_v1_a2a__provider_id___path__post: {
     parameters: {
       query?: never;
       header?: never;
@@ -3989,7 +3990,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__delete: {
+  proxy_request_api_v1_a2a__provider_id___path__post: {
     parameters: {
       query?: never;
       header?: never;
@@ -4021,7 +4022,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__delete: {
+  proxy_request_api_v1_a2a__provider_id___path__post: {
     parameters: {
       query?: never;
       header?: never;
@@ -4053,7 +4054,7 @@ export interface operations {
       };
     };
   };
-  proxy_request_api_v1_a2a__provider_id___path__delete: {
+  proxy_request_api_v1_a2a__provider_id___path__post: {
     parameters: {
       query?: never;
       header?: never;
