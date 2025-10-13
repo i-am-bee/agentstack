@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { A2AServiceExtension } from 'beeai-sdk';
 import { z } from 'zod';
+
+import type { A2AServiceExtension } from '../types';
 
 const URI = 'https://a2a-extensions.beeai.dev/services/llm/v1';
 
@@ -13,12 +14,12 @@ const llmDemandSchema = z.object({
   suggested: z.array(z.string()).nullable(),
 });
 
-export const demandsSchema = z.object({
+const llmDemandsSchema = z.object({
   llm_demands: z.record(z.string(), llmDemandSchema),
 });
-export type LLMDemand = z.infer<typeof demandsSchema>;
+export type LLMDemand = z.infer<typeof llmDemandsSchema>;
 
-const fulfillmentSchema = z.object({
+const llmFulfillmentSchema = z.object({
   llm_fulfillments: z.record(
     z.string(),
     z.object({
@@ -29,10 +30,10 @@ const fulfillmentSchema = z.object({
     }),
   ),
 });
-export type LLMFulfillment = z.infer<typeof fulfillmentSchema>;
+export type LLMFulfillment = z.infer<typeof llmFulfillmentSchema>;
 
-export const llmExtension: A2AServiceExtension<typeof URI, z.infer<typeof demandsSchema>, LLMFulfillment> = {
+export const llmExtension: A2AServiceExtension<typeof URI, z.infer<typeof llmDemandsSchema>, LLMFulfillment> = {
   getUri: () => URI,
-  getDemandsSchema: () => demandsSchema,
-  getFulfillmentSchema: () => fulfillmentSchema,
+  getDemandsSchema: () => llmDemandsSchema,
+  getFulfillmentSchema: () => llmFulfillmentSchema,
 };

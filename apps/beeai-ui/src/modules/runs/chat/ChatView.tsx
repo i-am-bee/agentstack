@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { AgentExtension } from '@a2a-js/sdk';
+import { extractServiceExtensionDemands, formExtension } from 'beeai-sdk';
 import { useMemo } from 'react';
 
-import { formExtension } from '#api/a2a/extensions/ui/form.ts';
-import { extractServiceExtensionDemands } from '#api/a2a/extensions/utils.ts';
 import { MainContent } from '#components/layouts/MainContent.tsx';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { AgentDetailPanel } from '#modules/agents/components/AgentDetailPanel.tsx';
@@ -39,7 +39,7 @@ function Chat() {
 
   // TODO: move extraction into the agent run context (or a2a client)
   const formRender = useMemo(() => {
-    const { extensions } = agent.capabilities;
+    const { extensions } = agent.capabilities as { extensions: AgentExtension[] };
     const formRender = extensions && formExtensionExtractor(extensions);
 
     return formRender ?? undefined;

@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { A2AUiExtension } from 'beeai-sdk';
 import { z } from 'zod';
 
-import { InteractionMode } from '#modules/agents/api/types.ts';
+import { interactionModeSchema } from '../../../../types';
+import type { A2AUiExtension } from '../types';
 
 const URI = 'https://a2a-extensions.beeai.dev/ui/agent-detail/v1';
 
@@ -23,7 +23,7 @@ const toolSchema = z.object({
 
 const schema = z
   .object({
-    interaction_mode: z.union([z.enum(InteractionMode), z.string()]).nullable(),
+    interaction_mode: z.union([interactionModeSchema, z.string()]).nullable(),
     user_greeting: z.string().nullable(),
     input_placeholder: z.string().nullable(),
     tools: z.array(toolSchema).nullable(),
@@ -40,7 +40,6 @@ const schema = z
 
 export type AgentDetailTool = z.infer<typeof toolSchema>;
 export type AgentDetailContributor = z.infer<typeof contributorSchema>;
-
 export type AgentDetail = z.infer<typeof schema>;
 
 export const agentDetailExtension: A2AUiExtension<typeof URI, AgentDetail> = {

@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { A2AServiceExtension, A2AUiExtension } from 'beeai-sdk';
 import { z } from 'zod';
+
+import type { A2AServiceExtension, A2AUiExtension } from '../types';
 
 const URI = 'https://a2a-extensions.beeai.dev/auth/secrets/v1';
 
@@ -14,12 +15,12 @@ const secretDemandSchema = z.object({
 });
 export type SecretDemand = z.infer<typeof secretDemandSchema>;
 
-export const demandsSchema = z.object({
+const secretDemandsSchema = z.object({
   secret_demands: z.record(z.string(), secretDemandSchema),
 });
-export type SecretDemands = z.infer<typeof demandsSchema>;
+export type SecretDemands = z.infer<typeof secretDemandsSchema>;
 
-const fulfillmentSchema = z.object({
+const secretFulfillmentSchema = z.object({
   secret_fulfillments: z.record(
     z.string(),
     z.object({
@@ -27,15 +28,19 @@ const fulfillmentSchema = z.object({
     }),
   ),
 });
-export type SecretFulfillment = z.infer<typeof fulfillmentSchema>;
+export type SecretFulfillment = z.infer<typeof secretFulfillmentSchema>;
 
-export const secretsExtension: A2AServiceExtension<typeof URI, z.infer<typeof demandsSchema>, SecretFulfillment> = {
+export const secretsExtension: A2AServiceExtension<
+  typeof URI,
+  z.infer<typeof secretDemandsSchema>,
+  SecretFulfillment
+> = {
   getUri: () => URI,
-  getDemandsSchema: () => demandsSchema,
-  getFulfillmentSchema: () => fulfillmentSchema,
+  getDemandsSchema: () => secretDemandsSchema,
+  getFulfillmentSchema: () => secretFulfillmentSchema,
 };
 
 export const secretsMessageExtension: A2AUiExtension<typeof URI, SecretDemands> = {
-  getMessageMetadataSchema: () => z.object({ [URI]: demandsSchema }).partial(),
+  getMessageMetadataSchema: () => z.object({ [URI]: secretDemandsSchema }).partial(),
   getUri: () => URI,
 };

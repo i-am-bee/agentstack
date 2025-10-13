@@ -4,10 +4,9 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
+import type { EmbeddingDemand, LLMDemand } from 'beeai-sdk';
 import { useEffect } from 'react';
 
-import type { EmbeddingDemand } from '#api/a2a/extensions/services/embedding.ts';
-import type { LLMDemand } from '#api/a2a/extensions/services/llm.ts';
 import { useApp } from '#contexts/App/index.ts';
 import { ModelCapability } from '#modules/platform-context/types.ts';
 

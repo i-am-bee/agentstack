@@ -4,13 +4,14 @@
  */
 
 'use client';
+import type { AgentExtension } from '@a2a-js/sdk';
 import { useQueryClient } from '@tanstack/react-query';
+import type { AgentSettings } from 'beeai-sdk';
 import { useRouter } from 'next/navigation';
 import type { PropsWithChildren } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
-import type { AgentSettings } from '#api/a2a/extensions/ui/settings.ts';
 import { type AgentA2AClient, type ChatRun, RunResultType } from '#api/a2a/types.ts';
 import { createTextPart } from '#api/a2a/utils.ts';
 import { getErrorCode } from '#api/utils.ts';
@@ -52,7 +53,7 @@ interface Props {
 export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>) {
   const { agentClient } = useBuildA2AClient({
     providerId: agent.provider.id,
-    extensions: agent.capabilities.extensions ?? [],
+    extensions: (agent.capabilities.extensions ?? []) as AgentExtension[],
   });
 
   useEnsurePlatformContext(agent);

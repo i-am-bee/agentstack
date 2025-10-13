@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { A2AServiceExtension } from 'beeai-sdk';
 import { z } from 'zod';
+
+import type { A2AServiceExtension } from '../types';
 
 const URI = 'https://a2a-extensions.beeai.dev/ui/settings/v1';
 
@@ -60,13 +61,13 @@ const agentRunSettingsSchema = z.object({
   values: agentSettings,
 });
 
-export type CheckboxField = z.infer<typeof checkboxField>;
-export type CheckboxGroupField = z.infer<typeof checkboxGroupField>;
-export type OptionItem = z.infer<typeof optionItem>;
-export type SingleSelectField = z.infer<typeof singleSelectField>;
-export type CheckboxFieldValue = z.infer<typeof checkboxFieldValue>;
-export type CheckboxGroupFieldValue = z.infer<typeof checkboxGroupFieldValue>;
-export type SingleSelectFieldValue = z.infer<typeof singleSelectFieldValue>;
+export type SettingsCheckboxField = z.infer<typeof checkboxField>;
+export type SettingsCheckboxGroupField = z.infer<typeof checkboxGroupField>;
+export type SettingsOptionItem = z.infer<typeof optionItem>;
+export type SettingsSingleSelectField = z.infer<typeof singleSelectField>;
+export type SettingsCheckboxFieldValue = z.infer<typeof checkboxFieldValue>;
+export type SettingsCheckboxGroupFieldValue = z.infer<typeof checkboxGroupFieldValue>;
+export type SettingsSingleSelectFieldValue = z.infer<typeof singleSelectFieldValue>;
 export type SettingsFieldValue = z.infer<typeof settingsFieldValue>;
 
 export type SettingsRender = z.infer<typeof settingsRenderSchema>;

@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { A2AServiceExtension } from 'beeai-sdk';
 import { z } from 'zod';
+
+import type { A2AServiceExtension } from '../types';
 
 const URI = 'https://a2a-extensions.beeai.dev/auth/oauth/v1';
 
@@ -12,12 +13,12 @@ const oauthDemandSchema = z.object({
   redirect_uri: z.boolean(),
 });
 
-export const demandsSchema = z.object({
+const oauthDemandsSchema = z.object({
   oauth_demands: z.record(z.string(), oauthDemandSchema),
 });
-export type OAuthDemand = z.infer<typeof demandsSchema>;
+export type OAuthDemand = z.infer<typeof oauthDemandsSchema>;
 
-const fulfillmentSchema = z.object({
+const oauthFulfillmentSchema = z.object({
   oauth_fulfillments: z.record(
     z.string(),
     z.object({
@@ -25,11 +26,11 @@ const fulfillmentSchema = z.object({
     }),
   ),
 });
-export type OAuthFulfillment = z.infer<typeof fulfillmentSchema>;
+export type OAuthFulfillment = z.infer<typeof oauthFulfillmentSchema>;
 
 export const oauthProviderExtension: A2AServiceExtension<
   typeof URI,
-  z.infer<typeof demandsSchema>,
+  z.infer<typeof oauthDemandsSchema>,
   {
     oauth_fulfillments: Record<
       string,
@@ -40,8 +41,8 @@ export const oauthProviderExtension: A2AServiceExtension<
   }
 > = {
   getUri: () => URI,
-  getDemandsSchema: () => demandsSchema,
-  getFulfillmentSchema: () => fulfillmentSchema,
+  getDemandsSchema: () => oauthDemandsSchema,
+  getFulfillmentSchema: () => oauthFulfillmentSchema,
 };
 
 export const oauthMessageSchema = z.object({

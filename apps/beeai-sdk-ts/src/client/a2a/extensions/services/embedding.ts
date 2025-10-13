@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { A2AServiceExtension } from 'beeai-sdk';
 import { z } from 'zod';
+
+import type { A2AServiceExtension } from '../types';
 
 const URI = 'https://a2a-extensions.beeai.dev/services/embedding/v1';
 
@@ -13,12 +14,12 @@ const embeddingDemandSchema = z.object({
   suggested: z.array(z.string()).nullable(),
 });
 
-export const demandsSchema = z.object({
+const embeddingDemandsSchema = z.object({
   embedding_demands: z.record(z.string(), embeddingDemandSchema),
 });
-export type EmbeddingDemand = z.infer<typeof demandsSchema>;
+export type EmbeddingDemand = z.infer<typeof embeddingDemandsSchema>;
 
-const fulfillmentSchema = z.object({
+const embeddingFulfillmentSchema = z.object({
   embedding_fulfillments: z.record(
     z.string(),
     z.object({
@@ -29,14 +30,14 @@ const fulfillmentSchema = z.object({
     }),
   ),
 });
-export type EmbeddingFulfillment = z.infer<typeof fulfillmentSchema>;
+export type EmbeddingFulfillment = z.infer<typeof embeddingFulfillmentSchema>;
 
 export const embeddingExtension: A2AServiceExtension<
   typeof URI,
-  z.infer<typeof demandsSchema>,
+  z.infer<typeof embeddingDemandsSchema>,
   EmbeddingFulfillment
 > = {
   getUri: () => URI,
-  getDemandsSchema: () => demandsSchema,
-  getFulfillmentSchema: () => fulfillmentSchema,
+  getDemandsSchema: () => embeddingDemandsSchema,
+  getFulfillmentSchema: () => embeddingFulfillmentSchema,
 };

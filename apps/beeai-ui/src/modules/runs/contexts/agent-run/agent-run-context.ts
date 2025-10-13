@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 'use client';
+import type { AgentSettings, SettingsRender } from 'beeai-sdk';
 import { createContext } from 'react';
 
-import type { AgentSettings, SettingsRender } from '#api/a2a/extensions/ui/settings.ts';
 import type { AgentA2AClient } from '#api/a2a/types.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 import type { UIMessageForm } from '#modules/messages/types.ts';

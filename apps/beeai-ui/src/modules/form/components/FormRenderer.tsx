@@ -4,10 +4,10 @@
  */
 
 import { Button } from '@carbon/react';
+import type { FormRender } from 'beeai-sdk';
 import type { CSSProperties } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
-import type { FormRender } from '#api/a2a/extensions/ui/form.ts';
 import { AgentHeader } from '#modules/agents/components/AgentHeader.tsx';
 import { AgentName } from '#modules/agents/components/AgentName.tsx';
 import { AgentWelcomeMessage } from '#modules/agents/components/AgentWelcomeMessage.tsx';

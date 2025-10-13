@@ -4,8 +4,8 @@
  */
 
 import type { TaskStatusUpdateEvent } from '@a2a-js/sdk';
+import { extractUiExtensionData } from 'beeai-sdk';
 
-import { extractUiExtensionData } from '#api/a2a/extensions/utils.ts';
 import type { UIDataPart } from '#modules/messages/types.ts';
 import { UIMessagePartKind } from '#modules/messages/types.ts';
 

@@ -5,10 +5,10 @@
 
 import { Add } from '@carbon/icons-react';
 import { Button, FormGroup } from '@carbon/react';
+import type { FileField } from 'beeai-sdk';
 import { useEffect } from 'react';
 import { useController, useFormContext } from 'react-hook-form';
 
-import type { FileField } from '#api/a2a/extensions/ui/form.ts';
 import { FileCard } from '#modules/files/components/FileCard.tsx';
 import { FileCardsList } from '#modules/files/components/FileCardsList.tsx';
 import { FileUploadProvider } from '#modules/files/contexts/FileUploadProvider.tsx';

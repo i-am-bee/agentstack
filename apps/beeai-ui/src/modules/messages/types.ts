@@ -4,9 +4,8 @@
  */
 
 import type { Task } from '@a2a-js/sdk';
+import type { FormRender, FormResponse, SecretDemands } from 'beeai-sdk';
 
-import type { SecretDemands } from '#api/a2a/extensions/services/secrets.ts';
-import type { FormRender, FormResponse } from '#api/a2a/extensions/ui/form.ts';
 import type { AgentRequestSecrets } from '#modules/runs/contexts/agent-secrets/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 

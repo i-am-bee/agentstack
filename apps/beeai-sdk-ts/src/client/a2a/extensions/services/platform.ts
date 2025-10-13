@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ContextToken } from '#modules/platform-context/contexts/platform-context.ts';
+import type { ContextToken } from '../../../context/types';
 
 const URI = 'https://a2a-extensions.beeai.dev/services/platform_api/v1';
 

@@ -4,6 +4,7 @@
  */
 'use client';
 
+import type { AgentExtension } from '@a2a-js/sdk';
 import { useSearchParams } from 'next/navigation';
 import type { PropsWithChildren } from 'react';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
@@ -41,7 +42,7 @@ export function ComposeProvider({ children }: PropsWithChildren) {
 
   const { agentClient } = useBuildA2AClient({
     providerId: sequentialAgent?.provider.id,
-    extensions: sequentialAgent?.capabilities.extensions ?? [],
+    extensions: (sequentialAgent?.capabilities.extensions ?? []) as AgentExtension[],
     onStatusUpdate: handleTaskStatusUpdate,
   });
 

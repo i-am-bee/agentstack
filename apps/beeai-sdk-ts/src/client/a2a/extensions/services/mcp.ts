@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { A2AServiceExtension } from 'beeai-sdk';
 import { z } from 'zod';
+
+import type { A2AServiceExtension } from '../types';
 
 const URI = 'https://a2a-extensions.beeai.dev/services/mcp/v1';
 
@@ -17,12 +18,12 @@ const mcpDemandSchema = z.object({
   allowed_transports: z.array(mcpTransportTypesEnum).nullable(),
 });
 
-export const demandsSchema = z.object({
+const mcpDemandsSchema = z.object({
   mcp_demands: z.record(z.string(), mcpDemandSchema),
 });
-export type MCPDemand = z.infer<typeof demandsSchema>;
+export type MCPDemand = z.infer<typeof mcpDemandsSchema>;
 
-const fulfillmentSchema = z.object({
+const mcpFulfillmentSchema = z.object({
   mcp_fulfillments: z.record(
     z.string(),
     z.object({
@@ -33,11 +34,11 @@ const fulfillmentSchema = z.object({
     }),
   ),
 });
-export type MCPFulfillment = z.infer<typeof fulfillmentSchema>;
+export type MCPFulfillment = z.infer<typeof mcpFulfillmentSchema>;
 
 export const mcpExtension: A2AServiceExtension<
   typeof URI,
-  z.infer<typeof demandsSchema>,
+  z.infer<typeof mcpDemandsSchema>,
   {
     mcp_fulfillments: Record<
       string,
@@ -51,6 +52,6 @@ export const mcpExtension: A2AServiceExtension<
   }
 > = {
   getUri: () => URI,
-  getDemandsSchema: () => demandsSchema,
-  getFulfillmentSchema: () => fulfillmentSchema,
+  getDemandsSchema: () => mcpDemandsSchema,
+  getFulfillmentSchema: () => mcpFulfillmentSchema,
 };

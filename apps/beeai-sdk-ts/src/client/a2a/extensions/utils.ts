@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { A2AServiceExtension, A2AUiExtension } from 'beeai-sdk';
+import type { AgentExtension } from '@a2a-js/sdk';
 
-import type { AgentExtension } from '#modules/agents/api/types.ts';
+import type { A2AServiceExtension, A2AUiExtension } from './types';
 
 export function extractUiExtensionData<U extends string, D>(extension: A2AUiExtension<U, D>) {
   const schema = extension.getMessageMetadataSchema();

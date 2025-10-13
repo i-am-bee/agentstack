@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { A2AUiExtension } from 'beeai-sdk';
 import { z } from 'zod';
+
+import type { A2AUiExtension } from '../types';
 
 const URI = 'https://a2a-extensions.beeai.dev/ui/citation/v1';
 
@@ -23,7 +24,6 @@ const schema = z.object({
 });
 
 export type CitationMetadata = z.infer<typeof schema>;
-
 export type Citation = z.infer<typeof citationSchema>;
 
 export const citationExtension: A2AUiExtension<typeof URI, CitationMetadata> = {

@@ -3,10 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { EmbeddingDemand } from '#api/a2a/extensions/services/embedding.ts';
-import type { SecretDemands } from '#api/a2a/extensions/services/secrets.ts';
+import type { ContextToken, EmbeddingDemand, SecretDemands } from 'beeai-sdk';
+
 import type { Fulfillments } from '#api/a2a/types.ts';
-import type { ContextToken } from '#modules/platform-context/contexts/platform-context.ts';
 import type { AgentRequestSecrets } from '#modules/runs/contexts/agent-secrets/types.ts';
 import { BASE_URL } from '#utils/constants.ts';
 import type { FeatureFlags } from '#utils/feature-flags.ts';

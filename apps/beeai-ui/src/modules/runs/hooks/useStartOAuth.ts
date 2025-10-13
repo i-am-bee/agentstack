@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { oauthMessageSchema } from 'beeai-sdk';
 import { useCallback } from 'react';
 
-import { oauthMessageSchema } from '#api/a2a/extensions/services/oauth-provider.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 
 interface Props {

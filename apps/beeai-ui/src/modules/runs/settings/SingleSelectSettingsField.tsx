@@ -5,11 +5,10 @@
 
 import { Checkmark } from '@carbon/icons-react';
 import { RadioButton, RadioButtonGroup } from '@carbon/react';
+import type { SettingsSingleSelectFieldValue } from 'beeai-sdk';
 import clsx from 'clsx';
 import { useId } from 'react';
 import { useController } from 'react-hook-form';
-
-import type { SingleSelectFieldValue } from '#api/a2a/extensions/ui/settings.ts';
 
 import classes from './SingleSelectSettingsField.module.scss';
 
@@ -23,7 +22,7 @@ export function SingleSelectSettingsField({
 
   const {
     field: { onChange, value },
-  } = useController<{ [key: string]: SingleSelectFieldValue }, `${typeof id}.value`>({
+  } = useController<{ [key: string]: SettingsSingleSelectFieldValue }, `${typeof id}.value`>({
     name: `${id}.value`,
   });
 

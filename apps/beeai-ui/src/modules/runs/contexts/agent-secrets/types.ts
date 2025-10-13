@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { SecretDemand } from '#api/a2a/extensions/services/secrets.ts';
+import type { SecretDemand } from 'beeai-sdk';
 
 export type ReadySecretDemand = SecretDemand & { isReady: true; value: string };
 export type NonReadySecretDemand = SecretDemand & { isReady: false };

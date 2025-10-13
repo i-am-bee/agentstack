@@ -3,17 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { CheckboxField, DateField, FileField, FormField, MultiSelectField, TextField } from 'beeai-sdk';
 import { useMemo } from 'react';
 import { match } from 'ts-pattern';
 
-import type {
-  CheckboxField,
-  DateField,
-  FileField,
-  FormField,
-  MultiSelectField,
-  TextField,
-} from '#api/a2a/extensions/ui/form.ts';
 import { getFileUrl } from '#api/a2a/utils.ts';
 import { FileCard } from '#modules/files/components/FileCard.tsx';
 import type { ValueOfField } from '#modules/form/types.ts';
