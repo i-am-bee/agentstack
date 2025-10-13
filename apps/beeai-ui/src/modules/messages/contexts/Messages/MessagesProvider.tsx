@@ -46,7 +46,7 @@ export function MessagesProvider({ children }: PropsWithChildren) {
             )
           : null;
 
-        const historyContainsLastMessage = lastMessageHistoryIndex !== null && lastMessageHistoryIndex > 0;
+        const historyContainsLastMessage = lastMessageHistoryIndex !== null && lastMessageHistoryIndex >= 0;
         const newItems = historyContainsLastMessage ? history.slice(lastMessageHistoryIndex) : history;
 
         // Remove last message and convert it again from history, because

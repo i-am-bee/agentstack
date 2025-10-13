@@ -73,18 +73,17 @@ export function convertHistoryToUIMessages(history: ContextHistoryItem[]): UIMes
       const lastMessage = messages.at(-1);
       const shouldGroup = lastMessage && lastMessage.role === message.role && lastMessage.taskId === message.taskId;
 
-      const messagesNew = shouldGroup
-        ? [
-            ...messages.slice(0, -1),
-            {
-              ...lastMessage,
-              parts: [...lastMessage.parts, ...message.parts],
-            },
-          ]
-        : [...messages, message];
+      if (shouldGroup) {
+        messages.splice(-1, 1, {
+          ...lastMessage,
+          parts: [...lastMessage.parts, ...message.parts],
+        });
+      } else {
+        messages.push(message);
+      }
 
       return {
-        messages: messagesNew,
+        messages,
         taskId: lastTaskId,
       };
     },
