@@ -31,7 +31,7 @@ export default async function AgentRunPage({ searchParams }: Props) {
       agent = buildAgent(provider);
     }
   } catch (error) {
-    handleApiError(error);
+    await handleApiError(error);
     console.error('Error fetching agent:', error);
   }
 

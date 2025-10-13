@@ -13,7 +13,7 @@ import { routes } from '#utils/router.ts';
 
 import { auth, AUTH_COOKIE_NAME } from './auth';
 
-export const ensureToken = async (request: Request) => {
+export async function ensureToken(request: Request) {
   if (!runtimeConfig.isAuthEnabled) {
     return null;
   }
@@ -32,9 +32,9 @@ export const ensureToken = async (request: Request) => {
   const token = await getToken({ req: request, cookieName: AUTH_COOKIE_NAME, secret: process.env.NEXTAUTH_SECRET });
 
   return token;
-};
+}
 
-export function handleApiError(error: unknown) {
+export async function handleApiError(error: unknown) {
   if (error instanceof UnauthenticatedError) {
     redirect(routes.signIn());
   }

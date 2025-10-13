@@ -25,7 +25,7 @@ export default async function LandingPage() {
 
     firstAgentProviderId = agents?.at(0)?.provider.id;
   } catch (err) {
-    handleApiError(err);
+    await handleApiError(err);
 
     console.log(err);
 
