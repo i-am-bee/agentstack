@@ -18,7 +18,7 @@ sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
 outputs = { auto = true }
 
 ["beeai-web:check:tsc"]
-depends = ["common:setup:pnpm"]
+depends = ["common:setup:pnpm", "beeai-sdk-ts:build"]
 dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm tsc --noEmit -p tsconfig.json"
 sources = ["src/**/*.ts", "src/**/*.tsx"]
