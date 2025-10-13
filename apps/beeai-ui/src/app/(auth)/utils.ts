@@ -58,7 +58,7 @@ export async function jwtWithRefresh(
     const refreshTokenUrl = await getTokenEndpoint(issuerUrl, clientId, clientSecret);
 
     const newTokens = await cache.getOrSet<RefreshTokenResult>(
-      cacheKeys.refreshToken(token.refresh_token),
+      await cacheKeys.refreshToken(token.refresh_token),
       async () => {
         return await coalesceAsync(token.refresh_token!, async () => {
           const response = await fetch(refreshTokenUrl, {
