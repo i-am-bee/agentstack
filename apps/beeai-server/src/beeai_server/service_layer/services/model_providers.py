@@ -43,6 +43,7 @@ class ModelProviderService:
         base_url: HttpUrl,
         watsonx_project_id: str | None = None,
         watsonx_space_id: str | None = None,
+        aws_access_key_id: str | None = None,
         api_key: str,
     ) -> ModelProvider:
         model_provider = ModelProvider(
@@ -52,6 +53,7 @@ class ModelProviderService:
             base_url=base_url,
             watsonx_project_id=watsonx_project_id,
             watsonx_space_id=watsonx_space_id,
+            aws_access_key_id=aws_access_key_id,
         )
         # Check if models are available
         await self._get_provider_models(provider=model_provider, api_key=api_key, raise_error=True)

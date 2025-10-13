@@ -33,6 +33,7 @@ async def create_model_provider(
         base_url=request.base_url,
         watsonx_project_id=request.watsonx_project_id,
         watsonx_space_id=request.watsonx_space_id,
+        aws_access_key_id=request.aws_access_key_id,
         api_key=request.api_key.get_secret_value(),
     )
     return EntityModel(model_provider)

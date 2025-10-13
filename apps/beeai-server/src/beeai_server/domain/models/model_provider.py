@@ -1,6 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+import re
 from datetime import datetime
 from enum import StrEnum
 from typing import Any, Literal
@@ -15,6 +16,7 @@ from beeai_server.utils.utils import utc_now
 
 class ModelProviderType(StrEnum):
     ANTHROPIC = "anthropic"
+    AWS_BEDROCK = "aws_bedrock"
     CEREBRAS = "cerebras"
     CHUTES = "chutes"
     COHERE = "cohere"
@@ -75,12 +77,26 @@ class ModelProvider(BaseModel):
         exclude=True,
     )
 
+    # AWS Bedrock specific fields
+    aws_access_key_id: str | None = Field(None, description="AWS access key ID for Bedrock", exclude=True)
+
     @model_validator(mode="after")
-    def validate_watsonx_config(self):
+    def validate_provider_config(self):
         """Validate that watsonx providers have either project_id or space_id."""
         if self.type == ModelProviderType.WATSONX and not (bool(self.watsonx_project_id) ^ bool(self.watsonx_space_id)):
             raise ValueError("WatsonX providers must have either watsonx_project_id or watsonx_space_id")
+        if self.type == ModelProviderType.AWS_BEDROCK and not self.aws_access_key_id:
+            raise ValueError("AWS Bedrock providers must have aws_access_key_id")
         return self
+
+    @computed_field
+    @property
+    def aws_region(self) -> str | None:
+        if self.type == ModelProviderType.AWS_BEDROCK:
+            match = re.search(r"bedrock-runtime\.([^.]+)\.amazonaws\.com", str(self.base_url))
+            if match:
+                return match.group(1)
+        return None
 
     @computed_field
     @property
@@ -99,6 +115,26 @@ class ModelProvider(BaseModel):
     async def load_models(self, api_key: str) -> list[Model]:
         async with AsyncClient() as client:
             match self.type:
+                case ModelProviderType.AWS_BEDROCK:
+                    import boto3
+
+                    response = boto3.client(
+                        "bedrock",
+                        region_name=self.aws_region,
+                        aws_access_key_id=self.aws_access_key_id,
+                        aws_secret_access_key=api_key,
+                    ).list_foundation_models(byInferenceType="ON_DEMAND")
+                    return [
+                        Model(
+                            id=f"{self.type}:{model['modelId']}",
+                            created=int(datetime.now().timestamp()),
+                            object="model",
+                            owned_by=model["providerName"],
+                            provider=self._model_provider_info,
+                        )
+                        for model in response["modelSummaries"]
+                        if "TEXT" in model["outputModalities"]
+                    ]
                 case ModelProviderType.WATSONX:
                     response = await client.get(f"{self.base_url}/ml/v1/foundation_model_specs?version=2025-08-27")
                     response_models = response.raise_for_status().json()["resources"]
@@ -189,6 +225,7 @@ class ModelWithScore(BaseModel):
 
 _PROVIDER_CAPABILITIES: dict[ModelProviderType, set[ModelCapability]] = {
     ModelProviderType.ANTHROPIC: {ModelCapability.LLM},
+    ModelProviderType.AWS_BEDROCK: {ModelCapability.LLM, ModelCapability.EMBEDDING},
     ModelProviderType.CEREBRAS: {ModelCapability.LLM},
     ModelProviderType.CHUTES: {ModelCapability.LLM},
     ModelProviderType.COHERE: {ModelCapability.LLM, ModelCapability.EMBEDDING},

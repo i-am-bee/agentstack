@@ -25,6 +25,7 @@ model_providers_table = Table(
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("watsonx_project_id", String(256), nullable=True),
     Column("watsonx_space_id", String(256), nullable=True),
+    Column("aws_access_key_id", String(256), nullable=True),
     Column("description", Text, nullable=True),
 )
 
@@ -43,6 +44,7 @@ class SqlAlchemyModelProviderRepository(IModelProviderRepository):
                 "created_at": model_provider.created_at,
                 "watsonx_project_id": model_provider.watsonx_project_id,
                 "watsonx_space_id": model_provider.watsonx_space_id,
+                "aws_access_key_id": model_provider.aws_access_key_id,
                 "description": model_provider.description,
             }
         )
@@ -84,5 +86,6 @@ class SqlAlchemyModelProviderRepository(IModelProviderRepository):
             created_at=row.created_at,
             watsonx_project_id=row.watsonx_project_id,
             watsonx_space_id=row.watsonx_space_id,
+            aws_access_key_id=row.aws_access_key_id,
             description=row.description,
         )

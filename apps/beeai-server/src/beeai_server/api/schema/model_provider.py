@@ -13,6 +13,7 @@ class CreateModelProviderRequest(BaseModel):
     base_url: HttpUrl
     watsonx_project_id: str | None = None
     watsonx_space_id: str | None = None
+    aws_access_key_id: str | None = None
     api_key: Secret[str]
 
 

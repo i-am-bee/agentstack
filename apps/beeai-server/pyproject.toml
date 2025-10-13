@@ -42,6 +42,7 @@ dependencies = [
     "openai>=1.97.0",
     "authlib>=1.6.4",
     "async-lru>=2.0.5",
+    "aws-bedrock-token-generator>=1.1.0",
 ]
 
 [dependency-groups]
