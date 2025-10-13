@@ -4,9 +4,12 @@
  */
 'use server';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { getToken } from 'next-auth/jwt';
 
+import { UnauthenticatedError } from '#api/errors.ts';
 import { runtimeConfig } from '#contexts/App/runtime-config.ts';
+import { routes } from '#utils/router.ts';
 
 import { auth, AUTH_COOKIE_NAME } from './auth';
 
@@ -30,3 +33,9 @@ export const ensureToken = async (request: Request) => {
 
   return token;
 };
+
+export function handleApiError(error: unknown) {
+  if (error instanceof UnauthenticatedError) {
+    redirect(routes.signIn());
+  }
+}

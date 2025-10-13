@@ -5,6 +5,7 @@
 
 import { notFound } from 'next/navigation';
 
+import { handleApiError } from '#app/(auth)/rsc.tsx';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { buildAgent } from '#modules/agents/utils.ts';
 import { LIST_CONTEXT_HISTORY_DEFAULT_QUERY } from '#modules/platform-context/api/constants.ts';
@@ -30,6 +31,7 @@ export default async function AgentRunPage({ searchParams }: Props) {
       agent = buildAgent(provider);
     }
   } catch (error) {
+    handleApiError(error);
     console.error('Error fetching agent:', error);
   }
 
