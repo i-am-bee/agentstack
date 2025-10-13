@@ -3,14 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { headers } from 'next/headers';
 import type { Middleware } from 'openapi-fetch';
 import createClient from 'openapi-fetch';
 
 import { ensureToken } from '#app/(auth)/rsc.tsx';
 import { runtimeConfig } from '#contexts/App/runtime-config.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
-import { NEXTAUTH_URL } from '#utils/constants.ts';
 
 import type { paths } from './schema';
 import { getProxyHeaders } from './utils';
