@@ -32,7 +32,8 @@ async def history_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server
     async def history_agent(input: Message, context: RunContext) -> AsyncGenerator[RunYield]:
         input.metadata = {"test": "metadata"}
         await context.store(input)
-        async for message in context.load_history():
+        history = [message async for message in context.load_history()]
+        for message in history:
             message.role = Role.agent
             assert message.metadata == {"test": "metadata"}
             yield message
@@ -61,23 +62,34 @@ async def test_agent_history(history_agent, subtests):
         final_task = await get_final_task_from_stream(client.send_message(create_message(token, "first message")))
         agent_messages = [msg.parts[0].root.text for msg in final_task.history]
         assert all(msg.metadata == {"test": "metadata"} for msg in final_task.history)
-        assert agent_messages == ["first message"]
+        assert agent_messages == ["first message", "first message"]
 
         final_task = await get_final_task_from_stream(client.send_message(create_message(token, "second message")))
         agent_messages = [msg.parts[0].root.text for msg in final_task.history]
         assert all(msg.metadata == {"test": "metadata"} for msg in final_task.history)
-        assert agent_messages == ["first message", "first message", "second message"]
+        assert agent_messages == [
+            "first message",
+            "first message",
+            "second message",  # input
+            "first message",
+            "first message",
+            "second message",
+        ]
 
         final_task = await get_final_task_from_stream(client.send_message(create_message(token, "third message")))
         agent_messages = [msg.parts[0].root.text for msg in final_task.history]
         assert all(msg.metadata == {"test": "metadata"} for msg in final_task.history)
         assert agent_messages == [
-            # first run
             "first message",
-            # second run
             "first message",
             "second message",
-            # third run
+            "first message",
+            "first message",
+            "second message",
+            "third message",  # input
+            "first message",
+            "first message",
+            "second message",
             "first message",
             "first message",
             "second message",
@@ -92,7 +104,7 @@ async def test_agent_history(history_agent, subtests):
         token = await context2.generate_token(grant_context_permissions=ContextPermissions(context_data={"*"}))
         final_task = await get_final_task_from_stream(client.send_message(create_message(token, "first message")))
         agent_messages = [msg.parts[0].root.text for msg in final_task.history]
-        assert agent_messages == ["first message"]
+        assert agent_messages == ["first message", "first message"]
 
         context1_history = await Context.list_history(context1.id)
         assert context1_history.total_count == 14
