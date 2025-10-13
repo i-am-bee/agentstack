@@ -7,6 +7,7 @@ import type { ServerSentEventMessage } from 'fetch-event-stream';
 import type { FetchResponse } from 'openapi-fetch';
 import type { MediaType } from 'openapi-typescript-helpers';
 
+import { NEXTAUTH_URL, TRUST_PROXY_HEADERS } from '#utils/constants.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { ApiError, ApiValidationError, HttpError, UnauthenticatedError } from './errors';
@@ -80,4 +81,17 @@ export async function fetchEntity<T>(fetchFn: () => Promise<T>): Promise<T | und
 
     return undefined;
   }
+}
+
+export async function getProxyHeaders(headers: Headers, url?: URL) {
+  const forwardedHost = (TRUST_PROXY_HEADERS && headers.get('x-forwarded-host')) || url?.host || NEXTAUTH_URL?.host;
+  const forwardedProto =
+    (TRUST_PROXY_HEADERS && headers.get('x-forwarded-proto')) ||
+    (url?.protocol ?? NEXTAUTH_URL?.protocol)?.replace(/:$/, '');
+  const forwarded = [
+    ...(TRUST_PROXY_HEADERS ? [headers.get('forwarded') ?? `host=${forwardedHost};proto=${forwardedProto}`] : []),
+    `host=${forwardedHost};proto=${forwardedProto}`,
+  ].join(',');
+
+  return { forwardedHost, forwardedProto, forwarded };
 }

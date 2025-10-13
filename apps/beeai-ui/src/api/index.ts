@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { headers } from 'next/headers';
 import type { Middleware } from 'openapi-fetch';
 import createClient from 'openapi-fetch';
 
@@ -11,6 +12,7 @@ import { runtimeConfig } from '#contexts/App/runtime-config.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 
 import type { paths } from './schema';
+import { getProxyHeaders } from './utils';
 
 const authMiddleware: Middleware = {
   async onRequest({ request }) {
@@ -31,8 +33,19 @@ const authMiddleware: Middleware = {
   },
 };
 
+const proxyMiddleware: Middleware = {
+  async onRequest({ request }) {
+    const { forwarded, forwardedHost, forwardedProto } = await getProxyHeaders(await headers());
+    request.headers.set('forwarded', forwarded);
+    if (forwardedHost) request.headers.set('x-forwarded-host', forwardedHost);
+    if (forwardedProto) request.headers.set('x-forwarded-proto', forwardedProto);
+    return request;
+  },
+};
+
 export const api = createClient<paths>({
   baseUrl: getBaseUrl(),
 });
 
 api.use(authMiddleware);
+api.use(proxyMiddleware);

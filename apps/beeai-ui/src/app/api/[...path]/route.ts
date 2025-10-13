@@ -5,9 +5,10 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 
+import { getProxyHeaders } from '#api/utils.ts';
 import { ensureToken } from '#app/(auth)/rsc.tsx';
 import { runtimeConfig } from '#contexts/App/runtime-config.ts';
-import { API_URL, TRUST_PROXY_HEADERS } from '#utils/constants.ts';
+import { API_URL } from '#utils/constants.ts';
 
 import { transformAgentManifestBody } from './body-transformers';
 import { isApiAgentManifestUrl, isUrlTrailingSlashNeeded } from './utils';
@@ -42,19 +43,10 @@ async function handler(request: NextRequest, context: RouteContext) {
     }
   }
 
-  const forwarded_host = (TRUST_PROXY_HEADERS && headers.get('x-forwarded-host')) || nextUrl.host;
-  const forwarded_proto =
-    (TRUST_PROXY_HEADERS && headers.get('x-forwarded-proto')) || nextUrl.protocol.replace(/:$/, '');
-  const forwarded_header = TRUST_PROXY_HEADERS
-    ? (headers.get('forwarded') ?? `host=${forwarded_host};proto=${forwarded_proto}`)
-    : null;
-
-  headers.set(
-    'forwarded',
-    [...(forwarded_header ? [forwarded_header] : []), `host=${forwarded_host};proto=${forwarded_proto}`].join(','),
-  );
-  headers.set('x-forwarded-host', forwarded_host);
-  headers.set('x-forwarded-proto', forwarded_proto);
+  const { forwarded, forwardedHost, forwardedProto } = await getProxyHeaders(headers, nextUrl);
+  headers.set('forwarded', forwarded);
+  if (forwardedHost) headers.set('x-forwarded-host', forwardedHost);
+  if (forwardedProto) headers.set('x-forwarded-proto', forwardedProto);
 
   const res = await fetch(targetUrl, {
     method,
