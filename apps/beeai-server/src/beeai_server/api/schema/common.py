@@ -7,10 +7,10 @@ from pydantic import BaseModel, Field
 
 
 class PaginationQuery(BaseModel):
-    limit: int = Field(default=40, ge=1, le=100)
+    limit: int = Field(default_factory=lambda: 40, ge=1, le=100)
     page_token: UUID | None = None
-    order: str = Field(default="desc", pattern="^(asc|desc)$")
-    order_by: str = Field(default="created_at", pattern="^created_at|updated_at$")
+    order: str = Field(default_factory=lambda: "desc", pattern="^(asc|desc)$")
+    order_by: str = Field(default_factory=lambda: "created_at", pattern="^created_at|updated_at$")
 
 
 class ErrorStreamResponseError(BaseModel, extra="allow"):

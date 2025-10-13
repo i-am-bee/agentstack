@@ -14,7 +14,7 @@ export async function listVariables() {
   return ensureData(response);
 }
 
-export async function updateVariable({ variables }: UpdateVariablesParams) {
+export async function updateVariables({ variables }: UpdateVariablesParams) {
   const response = await api.PUT('/api/v1/variables', {
     body: { variables },
   });

@@ -11,7 +11,7 @@ import type { UIMessage } from '#modules/messages/types.ts';
 
 import { useAgentRun } from '../../runs/contexts/agent-run';
 import { Role } from '../api/types';
-import { getMessageContent, getMessageSecret, getMessageSources } from '../utils';
+import { checkMessageStatus, getMessageContent, getMessageSecret, getMessageSources, isAgentMessage } from '../utils';
 import classes from './MessageContent.module.scss';
 import { MessageFormResponse } from './MessageFormResponse';
 
@@ -30,6 +30,8 @@ export const MessageContent = memo(function MessageContent({ message }: Props) {
   const hasContent = content || form || auth;
   const sources = getMessageSources(message);
 
+  const status = isAgentMessage(message) ? checkMessageStatus(message) : null;
+
   if (hasContent) {
     if (form) {
       return <MessageFormResponse form={form} />;
@@ -44,7 +46,7 @@ export const MessageContent = memo(function MessageContent({ message }: Props) {
         {content}
       </MarkdownContent>
     );
-  } else if (secretPart) {
+  } else if (secretPart || status?.isError) {
     return null;
   } else {
     return <div className={clsx(classes.empty, classes.root)}>Message has no content</div>;

@@ -22,11 +22,13 @@ providers_table = Table(
     "providers",
     metadata,
     Column("id", SQL_UUID, primary_key=True),
-    Column("source", String(2048), nullable=False),
+    Column("source", String(2048), nullable=False, unique=True),
+    Column("origin", String(2048), nullable=False),
     Column("registry", String(2048), nullable=True),
-    Column("auto_stop_timeout_sec", Integer, nullable=True),
+    Column("auto_stop_timeout_sec", Integer, nullable=False),
     Column("auto_remove", Boolean, default=False, nullable=False),
     Column("created_at", DateTime(timezone=True), nullable=False),
+    Column("updated_at", DateTime(timezone=True), nullable=False),
     Column("created_by", ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
     Column("last_active_at", DateTime(timezone=True), nullable=False),
     Column("agent_card", JSON, nullable=False),
@@ -38,9 +40,15 @@ class SqlAlchemyProviderRepository(IProviderRepository):
         self.connection = connection
 
     async def create(self, *, provider: Provider) -> None:
-        query = providers_table.insert().values(self._to_row(provider))
+        provider_row = self._to_row(provider)
+        query = providers_table.insert().values(provider_row)
         if provider.auto_remove:
-            await self.connection.execute(providers_table.delete().where(providers_table.c.id == provider.id))
+            await self.connection.execute(
+                providers_table.delete().where(
+                    providers_table.c.source == provider_row["source"],
+                    providers_table.c.created_by == provider_row["created_by"],
+                )
+            )
         try:
             await self.connection.execute(query)
         except IntegrityError as e:
@@ -53,14 +61,14 @@ class SqlAlchemyProviderRepository(IProviderRepository):
     def _to_row(self, provider: Provider) -> dict[str, Any]:
         return {
             "id": provider.id,
-            "auto_stop_timeout_sec": (
-                int(provider.auto_stop_timeout.total_seconds()) if provider.auto_stop_timeout else None
-            ),
+            "auto_stop_timeout_sec": provider.auto_stop_timeout.total_seconds(),
             "source": str(provider.source.root),
+            "origin": provider.origin,
             "registry": provider.registry and str(provider.registry.root),
             "auto_remove": provider.auto_remove,
             "agent_card": provider.agent_card.model_dump(mode="json"),
             "created_at": provider.created_at,
+            "updated_at": provider.updated_at,
             "created_by": provider.created_by,
             "last_active_at": provider.last_active_at,
         }
@@ -68,15 +76,15 @@ class SqlAlchemyProviderRepository(IProviderRepository):
     def _to_provider(self, row: Row) -> Provider:
         return Provider.model_validate(
             {
-                # ID is determined by source
+                "id": row.id,
                 "source": row.source,
+                "origin": row.origin,
                 "registry": row.registry,
-                "auto_stop_timeout": (
-                    timedelta(seconds=row.auto_stop_timeout_sec) if row.auto_stop_timeout_sec else None
-                ),
+                "auto_stop_timeout": timedelta(seconds=row.auto_stop_timeout_sec),
                 "auto_remove": row.auto_remove,
                 "last_active_at": row.last_active_at,
                 "created_at": row.created_at,
+                "updated_at": row.updated_at,
                 "created_by": row.created_by,
                 "agent_card": row.agent_card,
             }
@@ -106,11 +114,13 @@ class SqlAlchemyProviderRepository(IProviderRepository):
         return result.rowcount
 
     async def list(
-        self, *, auto_remove_filter: bool | None = None, user_id: UUID | None = None
+        self, *, auto_remove_filter: bool | None = None, user_id: UUID | None = None, origin: str | None = None
     ) -> AsyncIterator[Provider]:
         query = providers_table.select()
         if user_id is not None:
             query = query.where(providers_table.c.created_by == user_id)
+        if origin is not None:
+            query = query.where(providers_table.c.origin == origin)
         if auto_remove_filter is not None:
             query = query.where(providers_table.c.auto_remove == auto_remove_filter)
         async for row in await self.connection.stream(query):

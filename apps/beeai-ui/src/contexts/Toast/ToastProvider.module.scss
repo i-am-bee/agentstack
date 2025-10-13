@@ -45,8 +45,6 @@
   margin-block-start: $spacing-02;
   font-size: rem(12px);
   font-family: font-family('mono');
-  background: $background-inverse;
-  color: $text-inverse;
-  padding: $spacing-03;
+  padding-block: $spacing-03;
   max-block-size: 10.2rem;
 }

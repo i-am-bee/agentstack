@@ -1,6 +1,5 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-from datetime import timedelta
 from typing import Annotated
 from uuid import UUID
 
@@ -16,8 +15,9 @@ from beeai_server.api.dependencies import (
     RequiresPermissions,
 )
 from beeai_server.api.routes.a2a import create_proxy_agent_card
+from beeai_server.api.schema.common import EntityModel
 from beeai_server.api.schema.env import ListVariablesSchema, UpdateVariablesRequest
-from beeai_server.api.schema.provider import CreateProviderRequest
+from beeai_server.api.schema.provider import CreateProviderRequest, PatchProviderRequest
 from beeai_server.domain.models.common import PaginatedResult
 from beeai_server.domain.models.permissions import AuthorizedUser
 from beeai_server.domain.models.provider import ProviderWithState
@@ -38,10 +38,29 @@ async def create_provider(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Auto remove functionality is disabled")
     return await provider_service.create_provider(
         user=user.user,
-        auto_stop_timeout=timedelta(seconds=request.auto_stop_timeout_sec),
+        auto_stop_timeout=request.auto_stop_timeout,
         location=request.location,
+        origin=request.origin,
         agent_card=request.agent_card,
         auto_remove=auto_remove,
+        variables=request.variables,
+    )
+
+
+@router.patch("/{id}")
+async def patch_provider(
+    id: UUID,
+    user: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"write"}))],
+    request: PatchProviderRequest,
+    provider_service: ProviderServiceDependency,
+) -> ProviderWithState:
+    return await provider_service.patch_provider(
+        provider_id=id,
+        user=user.user,
+        auto_stop_timeout=request.auto_stop_timeout,
+        location=request.location,
+        origin=request.origin,
+        agent_card=request.agent_card,
         variables=request.variables,
     )
 
@@ -61,15 +80,16 @@ async def list_providers(
     request: Request,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}), use_cache=False)],
     user_owned: Annotated[bool, Query()] = False,
-) -> PaginatedResult[ProviderWithState]:
+    origin: Annotated[str | None, Query()] = None,
+) -> PaginatedResult[EntityModel[ProviderWithState]]:
     providers = []
-    for provider in await provider_service.list_providers(user=user.user if user_owned else None):
+    for provider in await provider_service.list_providers(user=user.user if user_owned else None, origin=origin):
         new_provider = provider.model_copy(
             update={
                 "agent_card": create_proxy_agent_card(provider.agent_card, provider_id=provider.id, request=request)
             }
         )
-        providers.append(new_provider)
+        providers.append(EntityModel(new_provider))
 
     return PaginatedResult(items=providers, total_count=len(providers))
 
@@ -80,10 +100,14 @@ async def get_provider(
     provider_service: ProviderServiceDependency,
     request: Request,
     _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}))],
-) -> ProviderWithState:
+) -> EntityModel[ProviderWithState]:
     provider = await provider_service.get_provider(provider_id=id)
-    return provider.model_copy(
-        update={"agent_card": create_proxy_agent_card(provider.agent_card, provider_id=provider.id, request=request)}
+    return EntityModel(
+        provider.model_copy(
+            update={
+                "agent_card": create_proxy_agent_card(provider.agent_card, provider_id=provider.id, request=request)
+            }
+        )
     )
 
 

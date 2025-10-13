@@ -4,6 +4,7 @@
  */
 
 .root {
+  min-block-size: rem(48px);
   position: relative;
   display: flex;
   align-items: center;

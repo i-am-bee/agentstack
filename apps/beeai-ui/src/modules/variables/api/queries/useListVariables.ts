@@ -11,6 +11,6 @@ import { variableKeys } from '../keys';
 export function useListVariables() {
   return useQuery({
     queryKey: variableKeys.lists(),
-    queryFn: () => listVariables(),
+    queryFn: listVariables,
   });
 }

@@ -5,7 +5,8 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from datetime import timedelta
 from enum import StrEnum
-from typing import Any, Literal
+from typing import Any, Literal, TypeAlias
+from uuid import UUID
 
 import pydantic
 
@@ -17,8 +18,42 @@ from beeai_sdk.util.utils import filter_dict, parse_stream
 class BuildState(StrEnum):
     MISSING = "missing"
     IN_PROGRESS = "in_progress"
+    BUILD_COMPLETED = "build_completed"
     COMPLETED = "completed"
     FAILED = "failed"
+
+
+class AddProvider(pydantic.BaseModel):
+    """
+    Will add a new provider or update an existing one with the same base docker image ID
+    (docker registry + repository, excluding tag)
+    """
+
+    type: Literal["add_provider"] = "add_provider"
+    auto_stop_timeout_sec: int | None = pydantic.Field(
+        default=None,
+        gt=0,
+        le=600,
+        description=(
+            "Timeout after which the agent provider will be automatically downscaled if unused."
+            "Contact administrator if you need to increase this value."
+        ),
+    )
+    variables: dict[str, str] | None = None
+
+
+class UpdateProvider(pydantic.BaseModel):
+    """Will update provider specified by ID"""
+
+    type: Literal["update_provider"] = "update_provider"
+    provider_id: UUID
+
+
+class NoAction(pydantic.BaseModel):
+    type: Literal["no_action"] = "no_action"
+
+
+OnCompleteAction: TypeAlias = AddProvider | UpdateProvider | NoAction
 
 
 class ProviderBuild(pydantic.BaseModel):
@@ -28,12 +63,38 @@ class ProviderBuild(pydantic.BaseModel):
     source: ResolvedGithubUrl
     destination: str
     created_by: str
+    error_message: str | None = None
 
     @staticmethod
-    async def create(*, location: str, client: PlatformClient | None = None) -> ProviderBuild:
+    async def create(
+        *, location: str, client: PlatformClient | None = None, on_complete: OnCompleteAction | None = None
+    ) -> ProviderBuild:
+        on_complete = on_complete or NoAction()
         async with client or get_platform_client() as client:
             return pydantic.TypeAdapter(ProviderBuild).validate_python(
-                (await client.post(url="/api/v1/provider_builds", json={"location": location}))
+                (
+                    await client.post(
+                        url="/api/v1/provider_builds",
+                        json={"location": location, "on_complete": on_complete.model_dump(exclude_none=True)},
+                    )
+                )
+                .raise_for_status()
+                .json()
+            )
+
+    @staticmethod
+    async def preview(
+        *, location: str, client: PlatformClient | None = None, on_complete: OnCompleteAction | None = None
+    ) -> ProviderBuild:
+        on_complete = on_complete or NoAction()
+        async with client or get_platform_client() as client:
+            return pydantic.TypeAdapter(ProviderBuild).validate_python(
+                (
+                    await client.post(
+                        url="/api/v1/provider_builds/preview",
+                        json={"location": location, "on_complete": on_complete.model_dump(exclude_none=True)},
+                    )
+                )
                 .raise_for_status()
                 .json()
             )

@@ -3,11 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import clsx from 'clsx';
 import { memo } from 'react';
 
 import { type Agent, InteractionMode } from '../api/types';
-import classes from './AgentGreeting.module.scss';
+import { AgentWelcomeMessage } from './AgentWelcomeMessage';
 
 interface Props {
   agent: Agent;
@@ -24,9 +23,7 @@ export const AgentGreeting = memo(function AgentGreeting({ agent }: Props) {
     : DEFAULT_GREETINGS[InteractionMode.MultiTurn];
   const userGreeting = renderVariables(user_greeting ?? defaultGreeting, { name });
 
-  return (
-    <p className={clsx(classes.root, { [classes[`ui--${interaction_mode}`]]: interaction_mode })}>{userGreeting}</p>
-  );
+  return <AgentWelcomeMessage>{userGreeting}</AgentWelcomeMessage>;
 });
 
 function renderVariables(str: string, variables: Record<string, string>): string {

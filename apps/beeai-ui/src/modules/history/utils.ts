@@ -17,8 +17,8 @@ import type { TaskId } from '#modules/tasks/api/types.ts';
 
 export function convertHistoryToUIMessages(history: ContextHistoryItem[]): UIMessage[] {
   const { messages } = history.reduce<{ messages: UIMessage[]; taskId?: TaskId }>(
-    (acc, { data }) => {
-      let lastTaskId = acc.taskId;
+    ({ messages, taskId }, { data }) => {
+      let lastTaskId = taskId;
 
       const message = match(data)
         .with({ kind: 'message' }, (message: Message) => {
@@ -27,11 +27,12 @@ export function convertHistoryToUIMessages(history: ContextHistoryItem[]): UIMes
           const parts = [...metadataParts, ...contentParts];
 
           lastTaskId = message.taskId;
+          const { messageId } = message;
 
           return match(message)
             .with({ role: 'agent' }, (): UIAgentMessage => {
-              const message: UIAgentMessage = {
-                id: uuid(),
+              const uiMessage: UIAgentMessage = {
+                id: messageId,
                 role: Role.Agent,
                 status: UIMessageStatus.Completed,
                 taskId: lastTaskId,
@@ -39,17 +40,17 @@ export function convertHistoryToUIMessages(history: ContextHistoryItem[]): UIMes
               };
 
               parts.forEach((part) => {
-                const transformedParts = addTranformedMessagePart(part, message);
+                const transformedParts = addTranformedMessagePart(part, uiMessage);
 
-                message.parts = transformedParts;
+                uiMessage.parts = transformedParts;
               });
 
-              return message;
+              return uiMessage;
             })
             .with(
               { role: 'user' },
               (): UIUserMessage => ({
-                id: uuid(),
+                id: messageId,
                 role: Role.User,
                 taskId: lastTaskId,
                 parts,
@@ -69,18 +70,7 @@ export function convertHistoryToUIMessages(history: ContextHistoryItem[]): UIMes
           };
         });
 
-      const lastMessage = acc.messages.at(-1);
-      const shouldGroup = lastMessage && lastMessage.role === message.role && lastMessage.taskId === message.taskId;
-
-      const messages = shouldGroup
-        ? [
-            ...acc.messages.slice(0, -1),
-            {
-              ...lastMessage,
-              parts: [...lastMessage.parts, ...message.parts],
-            },
-          ]
-        : [...acc.messages, message];
+      messages.push(message);
 
       return {
         messages,

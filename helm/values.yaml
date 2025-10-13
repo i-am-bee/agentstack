@@ -6,17 +6,19 @@
 hostNetwork: false
 
 features:
-  # Enables variable configuration - should be disabled in production (correlates with auth.enabled)
-  uiNavigation: false
   selfRegistration: false
   generateConversationTitle: false
-  providerBuilds: false
 
+  # UI only features
+  uiVariables: true
+  uiModelProviders: true
+  uiMCPOauth: true
+  uiMCP: true
 # -------- AGENTS ----------
 providers: [ ]
 # Example:
 # - location: ghcr.io/i-am-bee/beeai-platform/agent-1-example:0.1.0
-#   auto_stop_timeout_sec: null # disable agent downscaling
+#   auto_stop_timeout_sec: 0 # disable agent downscaling
 #   variables:
 #     # Variables should be strings (or they will be converted)
 #     MY_API_KEY: "sk-..."
@@ -68,7 +70,7 @@ auth:
 # For example https://beeai.example.com/api/v1/providers/{provider_id} will return an agent cart with URL for
 # https://beeai.example.com, without respecting the headers, the URL would be "http://beeai.example.com",
 # See https://www.uvicorn.org/settings/#application-interface
-forwardedAllowIps: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+trustProxyHeaders: false
 
 # --- EXTERNAL REGISTRIES ---
 # GitHub configuration for accessing private repositories
