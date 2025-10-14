@@ -25,7 +25,7 @@ export function MessageSecretsForm({ message }: Props) {
   const secretPart = getMessageSecret(message);
   const { submitSecrets } = useAgentRun();
   const { mutate: updateVariables } = useUpdateVariables();
-  const { messages } = useMessages();
+  const { isLastMessage } = useMessages();
 
   const { register, handleSubmit } = useForm({ mode: 'onChange' });
 
@@ -51,11 +51,11 @@ export function MessageSecretsForm({ message }: Props) {
     submitSecrets(secretsFulfillment, secretPart.taskId);
   };
 
-  const isLastMessage = messages.at(-1)?.id === message.id;
+  const isCurrentMessageLast = isLastMessage(message);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <fieldset disabled={!isLastMessage} className={classes.root}>
+      <fieldset disabled={!isCurrentMessageLast} className={classes.root}>
         {secretDemandsEntries.map(([key, { name, description }], idx) => {
           return (
             <div key={key} className={classes.demand}>
@@ -70,7 +70,7 @@ export function MessageSecretsForm({ message }: Props) {
           );
         })}
 
-        {isLastMessage && (
+        {isCurrentMessageLast && (
           <Button size="md" type="submit">
             Submit
           </Button>

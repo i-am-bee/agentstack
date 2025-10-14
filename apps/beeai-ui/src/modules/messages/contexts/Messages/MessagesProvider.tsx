@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { type PropsWithChildren, useEffect, useMemo } from 'react';
+import { type PropsWithChildren, useCallback, useEffect, useMemo } from 'react';
 
 import { useFetchNextPage } from '#hooks/useFetchNextPage.ts';
 import { useImmerWithGetter } from '#hooks/useImmerWithGetter.ts';
@@ -67,17 +67,27 @@ export function MessagesProvider({ children }: PropsWithChildren) {
     hasNextPage,
   });
 
+  const isLastMessage = useCallback(
+    (message: UIMessage) => {
+      const currentMessages = getMessages();
+      // messages are in reverse order
+      return currentMessages.length > 0 && currentMessages.at(0)?.id === message.id;
+    },
+    [getMessages],
+  );
+
   const value = useMemo(
     () => ({
       messages,
       getMessages,
       setMessages,
+      isLastMessage,
       queryControl: {
         ...queryRest,
         fetchNextPageInViewAnchorRef,
       },
     }),
-    [messages, getMessages, setMessages, queryRest, fetchNextPageInViewAnchorRef],
+    [messages, getMessages, setMessages, isLastMessage, queryRest, fetchNextPageInViewAnchorRef],
   );
 
   return <MessagesContext.Provider value={value}>{children}</MessagesContext.Provider>;
