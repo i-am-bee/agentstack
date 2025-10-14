@@ -152,7 +152,7 @@ wheels = [
 
 [[package]]
 name = "beeai-framework"
-version = "0.1.55"
+version = "0.1.56"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -166,9 +166,9 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b5/ec/9e356e459544f16c27964aa2a0710a8f0bad38fcf6f659e8d97ef40bf1a7/beeai_framework-0.1.55.tar.gz", hash = "sha256:031fda6a3c1e776dceabb4bf014052b3f11dbf4dae677706f4957d3e7e2ba457", size = 157552, upload-time = "2025-10-09T15:41:46.214Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/46/c1/87748a8a0dbdbd4aebfcdb404f56647ad9d898dc4c6d624e5d330e570713/beeai_framework-0.1.56.tar.gz", hash = "sha256:e19a00311a1c6d5a73977ca2f61dd653e7fab013b85ce97e0d633e5e3ac8c750", size = 158064, upload-time = "2025-10-14T11:59:44.388Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/08/33/3fafe78517ca5282b3f7d4a83a3cf93c0ad54718382e1c1df1d899937adc/beeai_framework-0.1.55-py3-none-any.whl", hash = "sha256:61916449445e4928bb06576f8d2345751ff62312f054e4d57f829ffc670574ed", size = 291625, upload-time = "2025-10-09T15:41:45.005Z" },
+    { url = "https://files.pythonhosted.org/packages/83/dd/79447e44e1f1325b0bee7db7ef4c85c96a9e9e2763c50574f1002fceecb1/beeai_framework-0.1.56-py3-none-any.whl", hash = "sha256:a3537632503d84ef7b4e9dde3db6eb0ce35fbc991307537c5e3c7fa06ec9b48e", size = 292304, upload-time = "2025-10-14T11:59:42.954Z" },
 ]
 
 [package.optional-dependencies]
@@ -355,7 +355,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "beeai-framework", extras = ["beeai-platform", "duckduckgo", "wikipedia"], specifier = ">=0.1.55" },
+    { name = "beeai-framework", extras = ["beeai-platform", "duckduckgo", "wikipedia"], specifier = ">=0.1.56" },
     { name = "beeai-sdk", editable = "../../apps/beeai-sdk" },
     { name = "openai", specifier = ">=1.107.1" },
     { name = "openinference-instrumentation-beeai", specifier = ">=0.1.12" },
