@@ -17,19 +17,23 @@ const MAX_PROVIDERS = 5;
 
 type MatchProvidersResult = Record<string, string[]>;
 
-export function useMatchEmbeddingProviders(
-  demands: EmbeddingDemand['embedding_demands'],
-  onSuccess: (data: MatchProvidersResult) => void,
-) {
+interface Props {
+  demands: EmbeddingDemand['embedding_demands'] | LLMDemand['llm_demands'];
+  onSuccess: (data: MatchProvidersResult) => void;
+  capability: ModelCapability;
+}
+
+export function useMatchProviders({ demands, onSuccess, capability }: Props) {
   const {
-    config: { featureFlags },
+    config: { featureFlags, isAuthEnabled },
   } = useApp();
+
   const demandKey = Object.entries(demands)
     .map(([key, value]) => [key, ...(value.suggested ?? [])])
     .join();
 
   const query = useQuery({
-    queryKey: ['matchEmbeddingProviders', demandKey],
+    queryKey: [capability === ModelCapability.Embedding ? 'matchEmbeddingProviders' : 'matchLLMProviders', demandKey],
     enabled: featureFlags.ModelProviders && Object.keys(demands).length > 0,
     queryFn: async () => {
       const demandKeys = Object.keys(demands);
@@ -38,7 +42,7 @@ export function useMatchEmbeddingProviders(
         demandKeys.map(async (demandKey) => {
           const result = await matchProviders({
             suggested_models: demands[demandKey].suggested ?? [],
-            capability: ModelCapability.Embedding,
+            capability,
           });
           return {
             key: demandKey,
@@ -52,53 +56,12 @@ export function useMatchEmbeddingProviders(
         return acc;
       }, {});
     },
-  });
-
-  const { isSuccess, data } = query;
-
-  useEffect(() => {
-    if (isSuccess && data) {
-      onSuccess(data);
-    }
-  }, [isSuccess, data, onSuccess]);
-
-  return query;
-}
-
-export function useMatchLLMProviders(
-  demands: LLMDemand['llm_demands'],
-  onSuccess: (data: MatchProvidersResult) => void,
-) {
-  const {
-    config: { featureFlags },
-  } = useApp();
-  const demandKey = Object.entries(demands)
-    .map(([key, value]) => [key, ...(value.suggested ?? [])])
-    .join();
-
-  const query = useQuery({
-    queryKey: ['matchLLMProviders', demandKey],
-    enabled: featureFlags.ModelProviders && Object.keys(demands).length > 0,
-    queryFn: async () => {
-      const demandKeys = Object.keys(demands);
-
-      const allProviders = await Promise.all(
-        demandKeys.map(async (demandKey) => {
-          const result = await matchProviders({
-            suggested_models: demands[demandKey].suggested ?? [],
-            capability: ModelCapability.Llm,
-          });
-          return {
-            key: demandKey,
-            providers: result?.items.map((item) => item.model_id).slice(0, MAX_PROVIDERS) ?? [],
-          };
-        }),
-      );
-
-      return allProviders.reduce<MatchProvidersResult>((acc, { key, providers }) => {
-        acc[key] = providers;
-        return acc;
-      }, {});
+    meta: {
+      errorToast: {
+        title: 'Model providers query failed',
+        message: !isAuthEnabled ? 'Have you configured providers by running `beeai model setup`?' : undefined,
+        includeErrorMessage: true,
+      },
     },
   });
 

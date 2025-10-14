@@ -38,10 +38,11 @@ includes = [
     "./tasks.toml",
     "helm/tasks.toml",
     "apps/beeai-cli/tasks.toml",
-    "apps/beeai-sdk/tasks.toml",
+    "apps/beeai-sdk-py/tasks.toml",
     "apps/beeai-server/tasks.toml",
     "apps/beeai-ui/tasks.toml",
     "apps/beeai-web/tasks.toml",
+    "apps/beeai-sdk-ts/tasks.toml",
     "docs/tasks.toml",
 ]
 

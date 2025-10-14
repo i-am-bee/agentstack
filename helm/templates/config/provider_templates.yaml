@@ -113,7 +113,6 @@ data:
           securityContext:
             fsGroup: 1000
           restartPolicy: Never
-          shareProcessNamespace: true
           initContainers:
             - name: git-clone
               image: ghcr.io/i-am-bee/alpine/git:v2.49.1

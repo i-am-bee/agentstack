@@ -5,6 +5,9 @@
 
 import type { Account } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
+import { coalesceAsync } from 'promise-coalesce';
+
+import { cache, cacheKeys } from '#utils/server-cache.ts';
 
 import { getTokenEndpoint } from './token-endpoint';
 import type { ProviderWithId } from './types';
@@ -34,7 +37,9 @@ export async function jwtWithRefresh(
     return token;
   } else {
     // Subsequent requests, `access_token` has expired, try to refresh it
-    if (!token.refresh_token) throw new TypeError('Missing refresh_token');
+    if (!token.refresh_token) {
+      throw new TypeError('Missing refresh_token');
+    }
 
     const tokenProvider = providers.find(({ id }) => id === token.provider);
     if (!tokenProvider) {
@@ -52,27 +57,36 @@ export async function jwtWithRefresh(
 
     const refreshTokenUrl = await getTokenEndpoint(issuerUrl, clientId, clientSecret);
 
-    const response = await fetch(refreshTokenUrl, {
-      method: 'POST',
-      body: new URLSearchParams({
-        client_id: clientId,
-        client_secret: clientSecret,
-        grant_type: 'refresh_token',
-        refresh_token: token.refresh_token!,
-      }),
-    });
+    const newTokens = await cache.getOrSet<RefreshTokenResult>(
+      await cacheKeys.refreshToken(token.refresh_token),
+      async () => {
+        return await coalesceAsync(token.refresh_token!, async () => {
+          const response = await fetch(refreshTokenUrl, {
+            method: 'POST',
+            body: new URLSearchParams({
+              client_id: clientId,
+              client_secret: clientSecret,
+              grant_type: 'refresh_token',
+              refresh_token: token.refresh_token!,
+            }),
+          });
 
-    const tokensOrError = await response.json();
+          const tokensOrError = await response.json();
 
-    if (!response.ok) {
-      throw new RefreshTokenError('Error refreshing access_token', tokensOrError);
+          if (!response.ok) {
+            throw new RefreshTokenError('Error refreshing access_token', tokensOrError);
+          }
+
+          return tokensOrError as RefreshTokenResult;
+        });
+      },
+      // Prevent multiple refreshes until new access_token is populated to the auth cookie
+      { ttl: '1h' },
+    );
+
+    if (!newTokens) {
+      throw new RefreshTokenError('Error refreshing access_token');
     }
-
-    const newTokens = tokensOrError as {
-      access_token: string;
-      expires_in: number;
-      refresh_token?: string;
-    };
 
     return {
       ...token,
@@ -95,4 +109,10 @@ export class RefreshTokenError extends Error {
     super(message);
     this.errorResponse = errorResponse;
   }
+}
+
+interface RefreshTokenResult {
+  access_token: string;
+  expires_in: number;
+  refresh_token?: string;
 }

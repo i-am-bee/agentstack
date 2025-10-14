@@ -4,19 +4,21 @@
  */
 
 import { Button } from '@carbon/react';
-import type { CSSProperties } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import type { FormRender } from '#api/a2a/extensions/ui/form.ts';
+import { AgentHeader } from '#modules/agents/components/AgentHeader.tsx';
+import { AgentName } from '#modules/agents/components/AgentName.tsx';
+import { AgentWelcomeMessage } from '#modules/agents/components/AgentWelcomeMessage.tsx';
 
 import type { RunFormValues } from '../types';
 import { getDefaultValues } from '../utils';
-import { FormField } from './FormField';
+import { FormFields } from './FormFields';
 import classes from './FormRenderer.module.scss';
 
 interface Props {
   definition: FormRender;
-  defaultHeading?: string;
+  defaultHeading?: string | null;
   showHeading?: boolean;
   isDisabled?: boolean;
   onSubmit: (values: RunFormValues) => void;
@@ -30,20 +32,22 @@ export function FormRenderer({ definition, defaultHeading, showHeading = true, i
   const form = useForm<RunFormValues>({ defaultValues });
 
   const heading = title ?? defaultHeading;
+  const hasHeading = Boolean(showHeading && heading);
+  const showHeader = hasHeading || description;
 
   return (
     <FormProvider {...form}>
       <form id={id} onSubmit={form.handleSubmit(onSubmit)}>
         <fieldset disabled={isDisabled} className={classes.root}>
-          {showHeading && heading && <h2 className={classes.heading}>{heading}</h2>}
+          {showHeader && (
+            <AgentHeader>
+              {hasHeading && <AgentName>{heading}</AgentName>}
 
-          {description && <p>{description}</p>}
+              {description && <AgentWelcomeMessage>{description}</AgentWelcomeMessage>}
+            </AgentHeader>
+          )}
 
-          <div className={classes.fields} style={{ '--grid-columns': columns } as CSSProperties}>
-            {fields.map((field) => (
-              <FormField key={field.id} field={field} />
-            ))}
-          </div>
+          <FormFields fields={fields} columns={columns} />
 
           {!isDisabled && (
             <>

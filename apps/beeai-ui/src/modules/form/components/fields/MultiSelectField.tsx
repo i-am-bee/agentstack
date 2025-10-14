@@ -47,7 +47,7 @@ export function MultiSelectField({ field }: Props) {
                   <OperationalTag
                     text={label}
                     size="lg"
-                    className={clsx(classes.option, { [classes.isSelected]: isSelected })}
+                    className={clsx(classes.option, { ['cds--tag--selected']: isSelected })}
                     onClick={() => toggle({ value: value ?? [], id, onChange })}
                   />
                 </li>

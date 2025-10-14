@@ -30,3 +30,7 @@ export const RUN_LINK = `${DOCUMENTATION_LINK}/how-to/run-agents`;
 export const COMPOSE_LINK = `${DOCUMENTATION_LINK}/how-to/compose-agents`;
 
 export const LF_PROJECTS_LINK = 'https://lfprojects.org/';
+
+export const TRUST_PROXY_HEADERS = (process.env.TRUST_PROXY_HEADERS ?? 'false').toLowerCase() === 'true';
+
+export const NEXTAUTH_URL = process.env.NEXTAUTH_URL ? new URL(process.env.NEXTAUTH_URL) : undefined;

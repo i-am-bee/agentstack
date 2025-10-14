@@ -23,7 +23,7 @@ class ProcessLogType(StrEnum):
 
 
 class ProcessLogMessage(BaseModel, extra="allow"):
-    stream: ProcessLogType
+    stream: ProcessLogType = ProcessLogType.STDOUT
     message: str
     time: datetime = Field(default_factory=utc_now)
 

@@ -3,13 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { redirect } from 'next/navigation';
-import type { NextRequest } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
+import { getProxyHeaders } from '#api/utils.ts';
 import { ensureToken } from '#app/(auth)/rsc.tsx';
 import { runtimeConfig } from '#contexts/App/runtime-config.ts';
 import { API_URL } from '#utils/constants.ts';
-import { routes } from '#utils/router.ts';
 
 import { transformAgentManifestBody } from './body-transformers';
 import { isApiAgentManifestUrl, isUrlTrailingSlashNeeded } from './utils';
@@ -36,13 +35,18 @@ async function handler(request: NextRequest, context: RouteContext) {
     const token = await ensureToken(request);
 
     if (!token) {
-      redirect(routes.signIn());
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
     if (token?.access_token) {
       headers.set('Authorization', `Bearer ${token.access_token}`);
     }
   }
+
+  const { forwarded, forwardedHost, forwardedProto } = await getProxyHeaders(headers, nextUrl);
+  headers.set('forwarded', forwarded);
+  if (forwardedHost) headers.set('x-forwarded-host', forwardedHost);
+  if (forwardedProto) headers.set('x-forwarded-proto', forwardedProto);
 
   const res = await fetch(targetUrl, {
     method,
@@ -58,7 +62,7 @@ async function handler(request: NextRequest, context: RouteContext) {
     responseBody = await transformAgentManifestBody(res);
   }
 
-  return new Response(responseBody, {
+  return new NextResponse(responseBody, {
     status: res.status,
     headers: {
       'Content-Type': res.headers.get('Content-Type') || 'text/plain',

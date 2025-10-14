@@ -5,7 +5,7 @@ from collections.abc import AsyncIterator
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import JSON, Column, DateTime, ForeignKey, Row, String, Table
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Row, String, Table, Text
 from sqlalchemy import UUID as SQL_UUID
 from sqlalchemy.ext.asyncio import AsyncConnection
 from sqlalchemy.sql import select
@@ -26,6 +26,8 @@ provider_builds_table = Table(
     # The CASCADE might leave some k8s jobs orphaned without cancellation, but jobs have timeout and self-deletion
     Column("created_by", ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
     Column("status", sql_enum(BuildState), nullable=False),
+    Column("on_complete", JSON, nullable=False),
+    Column("error_message", Text, nullable=True),
     Column("destination", String(512), nullable=False),
 )
 
@@ -53,7 +55,9 @@ class SqlAlchemyProviderBuildRepository(IProviderBuildRepository):
             "created_at": provider_build.created_at,
             "status": provider_build.status,
             "created_by": provider_build.created_by,
+            "on_complete": provider_build.on_complete.model_dump(mode="json"),
             "destination": str(provider_build.destination),
+            "error_message": provider_build.error_message,
         }
 
     def _to_provider_build(self, row: Row) -> ProviderBuild:
@@ -64,7 +68,9 @@ class SqlAlchemyProviderBuildRepository(IProviderBuildRepository):
                 "destination": row.destination,
                 "created_at": row.created_at,
                 "created_by": row.created_by,
+                "on_complete": row.on_complete,
                 "status": row.status,
+                "error_message": row.error_message,
             }
         )
 

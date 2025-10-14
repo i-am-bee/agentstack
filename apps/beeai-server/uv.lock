@@ -256,8 +256,8 @@ wheels = [
 
 [[package]]
 name = "beeai-sdk"
-version = "0.3.6rc2"
-source = { editable = "../beeai-sdk" }
+version = "0.3.6rc3"
+source = { editable = "../beeai-sdk-py" }
 dependencies = [
     { name = "a2a-sdk" },
     { name = "anyio" },
@@ -309,7 +309,7 @@ dev = [
 
 [[package]]
 name = "beeai-server"
-version = "0.3.6rc2"
+version = "0.3.6rc3"
 source = { editable = "." }
 dependencies = [
     { name = "a2a-sdk" },
@@ -397,7 +397,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "beeai-sdk", editable = "../beeai-sdk" },
+    { name = "beeai-sdk", editable = "../beeai-sdk-py" },
     { name = "pyright", specifier = ">=1.1.399" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-asyncio", specifier = ">=0.25.3" },

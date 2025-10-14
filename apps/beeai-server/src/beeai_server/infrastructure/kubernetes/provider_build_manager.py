@@ -80,7 +80,7 @@ class KubernetesProviderBuildManager(IProviderBuildManager):
         conditions = job.status.get("conditions", [])
         for condition in conditions:
             if condition.get("type") == "Complete" and condition.get("status") == "True":
-                return BuildState.COMPLETED
+                return BuildState.BUILD_COMPLETED
             elif condition.get("type") == "Failed" and condition.get("status") == "True":
                 return BuildState.FAILED
         return BuildState.IN_PROGRESS

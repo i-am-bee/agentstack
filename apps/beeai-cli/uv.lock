@@ -84,7 +84,7 @@ wheels = [
 
 [[package]]
 name = "beeai-cli"
-version = "0.3.6rc2"
+version = "0.3.6rc3"
 source = { editable = "." }
 dependencies = [
     { name = "a2a-sdk" },
@@ -119,7 +119,7 @@ requires-dist = [
     { name = "a2a-sdk" },
     { name = "anyio", specifier = "~=4.10.0" },
     { name = "authlib", specifier = "~=1.6.3" },
-    { name = "beeai-sdk", editable = "../beeai-sdk" },
+    { name = "beeai-sdk", editable = "../beeai-sdk-py" },
     { name = "gnureadline", marker = "sys_platform != 'win32'", specifier = "~=8.2.13" },
     { name = "inquirerpy", specifier = "~=0.3.4" },
     { name = "jsf", specifier = "~=0.11.2" },
@@ -145,8 +145,8 @@ dev = [
 
 [[package]]
 name = "beeai-sdk"
-version = "0.3.6rc2"
-source = { editable = "../beeai-sdk" }
+version = "0.3.6rc3"
+source = { editable = "../beeai-sdk-py" }
 dependencies = [
     { name = "a2a-sdk" },
     { name = "anyio" },

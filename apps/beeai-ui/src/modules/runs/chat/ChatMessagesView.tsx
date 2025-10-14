@@ -4,7 +4,7 @@
  */
 'use client';
 import { ArrowDown } from '@carbon/icons-react';
-import { IconButton } from '@carbon/react';
+import { IconButton, InlineLoading } from '@carbon/react';
 
 import { Container } from '#components/layouts/Container.tsx';
 import { useIsScrolled } from '#hooks/useIsScrolled.ts';
@@ -26,7 +26,7 @@ export function ChatMessagesView() {
   const { isPending, clear } = useAgentRun();
   const {
     messages,
-    queryControl: { hasNextPage, fetchNextPageInViewAnchorRef },
+    queryControl: { hasNextPage, fetchNextPageInViewAnchorRef, isFetchingNextPage },
   } = useMessages();
   const {
     status: { isNotInstalled, isStarting },
@@ -59,6 +59,12 @@ export function ChatMessagesView() {
               })}
 
               {hasNextPage && <li ref={fetchNextPageInViewAnchorRef}> </li>}
+
+              {isFetchingNextPage && (
+                <li className={classes.loading}>
+                  <InlineLoading description="Loading more messages..." />
+                </li>
+              )}
             </ol>
           </Container>
         </div>

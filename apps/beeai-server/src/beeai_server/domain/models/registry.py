@@ -1,13 +1,15 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
+from collections import Counter
 from datetime import timedelta
 from typing import TYPE_CHECKING, Any
 
 import httpx
 import yaml
 from anyio import Path
-from pydantic import BaseModel, Field, FileUrl, HttpUrl, RootModel, computed_field, field_validator
+from pydantic import BaseModel, Field, FileUrl, HttpUrl, RootModel, field_validator, model_validator
 
+from beeai_server.domain.constants import DEFAULT_AUTO_STOP_TIMEOUT
 from beeai_server.utils.github import GithubUrl
 
 if TYPE_CHECKING:
@@ -18,13 +20,17 @@ if TYPE_CHECKING:
 
 class ProviderRegistryRecord(BaseModel, extra="allow"):
     location: "ProviderLocation"
-    auto_stop_timeout_sec: int | None = Field(default=int(timedelta(minutes=5).total_seconds()), ge=0)
+    origin: str = Field(default_factory=lambda data: data["location"].origin)
+    auto_stop_timeout_sec: int = Field(
+        default=int(DEFAULT_AUTO_STOP_TIMEOUT.total_seconds()),
+        ge=0,
+        description="Downscale after this many seconds of inactivity. Set to 0 to disable downscaling.",
+    )
     variables: dict[str, str] = {}
 
-    @computed_field
     @property
-    def auto_stop_timeout(self) -> timedelta | None:
-        return timedelta(seconds=self.auto_stop_timeout_sec) if self.auto_stop_timeout_sec else None
+    def auto_stop_timeout(self) -> timedelta:
+        return timedelta(seconds=self.auto_stop_timeout_sec)
 
     @field_validator("variables", mode="before")
     @classmethod
@@ -38,6 +44,14 @@ class ProviderRegistryRecord(BaseModel, extra="allow"):
 
 class RegistryManifest(BaseModel):
     providers: list[ProviderRegistryRecord]
+
+    @model_validator(mode="after")
+    def unique_origin(self):
+        origin_counts = Counter(p.origin for p in self.providers if p.origin is not None)
+        assert all(count == 1 for count in origin_counts.values()), (
+            f"Registry origins must be unique: {origin_counts.most_common()}"
+        )
+        return self
 
 
 def parse_providers_manifest(content: dict[str, Any]) -> list[ProviderRegistryRecord]:

@@ -27,7 +27,11 @@ from pydantic import (
 )
 
 from beeai_server.configuration import Configuration
-from beeai_server.domain.constants import DOCKER_MANIFEST_LABEL_NAME, REQUIRED_ENV_EXTENSION_URI
+from beeai_server.domain.constants import (
+    AGENT_DETAIL_EXTENSION_URI,
+    DEFAULT_AUTO_STOP_TIMEOUT,
+    DOCKER_MANIFEST_LABEL_NAME,
+)
 from beeai_server.domain.models.registry import RegistryLocation
 from beeai_server.domain.utils import bridge_k8s_to_localhost, bridge_localhost_to_k8s
 from beeai_server.exceptions import MissingConfigurationError
@@ -42,12 +46,16 @@ class DockerImageProviderLocation(RootModel):
 
     @property
     def provider_id(self) -> UUID:
-        location_digest = hashlib.sha256(self.root.base.encode()).digest()
+        location_digest = hashlib.sha256(str(self.root).encode()).digest()
         return UUID(bytes=location_digest[:16])
 
     @property
     def is_on_host(self) -> bool:
         return False
+
+    @property
+    def origin(self) -> str:
+        return self.root.base
 
     @inject
     async def load_agent_card(self) -> AgentCard:
@@ -61,6 +69,10 @@ class DockerImageProviderLocation(RootModel):
 
 class NetworkProviderLocation(RootModel):
     root: HttpUrl
+
+    @property
+    def origin(self) -> str:
+        return str(self.root)
 
     @model_validator(mode="wrap")
     @classmethod
@@ -98,7 +110,7 @@ class NetworkProviderLocation(RootModel):
                 raise ValueError(f"Unable to load agents from location: {self.root}: {ex}") from ex
 
 
-class EnvVar(BaseModel):
+class EnvVar(BaseModel, extra="allow"):
     name: str
     description: str | None = None
     required: bool = False
@@ -108,11 +120,14 @@ ProviderLocation = DockerImageProviderLocation | NetworkProviderLocation
 
 
 class Provider(BaseModel):
-    auto_stop_timeout: timedelta | None = Field(default=timedelta(minutes=5))
     source: ProviderLocation
+    id: UUID = Field(default_factory=lambda data: data["source"].provider_id)
+    auto_stop_timeout: timedelta = Field(default=DEFAULT_AUTO_STOP_TIMEOUT)
+    origin: str
     registry: RegistryLocation | None = None
     auto_remove: bool = False
     created_at: AwareDatetime = Field(default_factory=utc_now)
+    updated_at: AwareDatetime = Field(default_factory=utc_now)
     created_by: UUID
     last_active_at: AwareDatetime = Field(default_factory=utc_now)
     agent_card: AgentCard
@@ -133,15 +148,11 @@ class Provider(BaseModel):
     def env(self) -> list[EnvVar]:
         try:
             extensions = self.agent_card.capabilities.extensions or []
-            env = next(ext for ext in extensions if ext.uri == REQUIRED_ENV_EXTENSION_URI).params["env"]
-            return [EnvVar.model_validate(var) for var in env]
+            agent_detail = next(ext for ext in extensions if ext.uri == AGENT_DETAIL_EXTENSION_URI)
+            variables = agent_detail.model_dump().get("variables") or []
+            return [EnvVar.model_validate(v) for v in variables]
         except StopIteration:
             return []
-
-    @computed_field
-    @property
-    def id(self) -> UUID:
-        return self.source.provider_id
 
     def check_env(self, env: dict[str, str] | None = None, raise_error: bool = True) -> list[EnvVar]:
         env = env or {}
@@ -152,11 +163,6 @@ class Provider(BaseModel):
         if missing_required_env and raise_error:
             raise MissingConfigurationError(missing_env=missing_env)
         return missing_env
-
-    def extract_env(self, env: dict[str, str] | None = None) -> dict[str, str]:
-        env = env or {}
-        declared_env_vars = {var.name for var in self.env}
-        return {var: env[var] for var in env if var in declared_env_vars}
 
 
 class ProviderDeploymentState(StrEnum):

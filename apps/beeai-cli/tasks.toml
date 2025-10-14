@@ -1,7 +1,7 @@
 # setup
 
 ["beeai-cli:setup"]
-depends = ["beeai-sdk:setup"]
+depends = ["beeai-sdk-py:setup"]
 dir = "{{config_root}}/apps/beeai-cli"
 run = "uv sync --all-extras --dev"
 sources = ["uv.lock", "pyproject.toml"]
@@ -83,7 +83,7 @@ sources = ["{{config_root}}/helm/dist/beeai-platform-*.tgz"]
 outputs = ["./src/beeai_cli/data/helm-chart.tgz"]
 
 ["beeai-cli:build"]
-depends = ["beeai-cli:setup", "beeai-cli:build:*", "beeai-sdk:build"]
+depends = ["beeai-cli:setup", "beeai-cli:build:*", "beeai-sdk-py:build"]
 dir = "{{config_root}}/apps/beeai-cli"
 sources = ["src/**/*", "hatch_build.py", "pyproject.toml", "vendor/lima/**/*"]
 outputs = ["dist/**/*"]
@@ -120,7 +120,7 @@ uv run wheel pack "$tmpdir" --dest-dir ./dist >/dev/null
 rm -rf "$tmpdir"
 
 # Verify that the wheel works
-if ! uv tool run --isolated --from "$universal_wheel" --with ../beeai-sdk/dist/beeai_sdk-*-py3-none-any.whl -- beeai version; then
+if ! uv tool run --isolated --from "$universal_wheel" --with ../beeai-sdk-py/dist/beeai_sdk-*-py3-none-any.whl -- beeai version; then
   echo "Failed to install $universal_wheel"
   exit 1
 fi

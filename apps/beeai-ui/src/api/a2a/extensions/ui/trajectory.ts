@@ -3,9 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { A2AUiExtension } from 'beeai-sdk';
 import { z } from 'zod';
-
-import type { A2AUiExtension } from '../types';
 
 const URI = 'https://a2a-extensions.beeai.dev/ui/trajectory/v1';
 

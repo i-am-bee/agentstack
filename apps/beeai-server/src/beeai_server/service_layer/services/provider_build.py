@@ -17,14 +17,20 @@ from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, w
 from beeai_server.api.schema.common import PaginationQuery
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.common import PaginatedResult
-from beeai_server.domain.models.provider_build import BuildState, ProviderBuild
+from beeai_server.domain.models.provider_build import (
+    BuildState,
+    NoAction,
+    OnCompleteAction,
+    ProviderBuild,
+    UpdateProvider,
+)
 from beeai_server.domain.models.user import User, UserRole
 from beeai_server.exceptions import BuildAlreadyFinishedError, EntityNotFoundError, InvalidGithubReferenceError
 from beeai_server.service_layer.build_manager import IProviderBuildManager
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
 from beeai_server.utils.docker import DockerImageID
-from beeai_server.utils.github import GithubUrl
-from beeai_server.utils.logs_container import LogsContainer, ProcessLogMessage, ProcessLogType
+from beeai_server.utils.github import GithubUrl, ResolvedGithubUrl
+from beeai_server.utils.logs_container import LogsContainer, ProcessLogMessage
 from beeai_server.utils.utils import cancel_task
 
 logger = logging.getLogger(__name__)
@@ -37,9 +43,7 @@ class ProviderBuildService:
         self._build_manager = build_manager
         self._config = configuration
 
-    async def create_build(self, location: GithubUrl, user: User) -> ProviderBuild:
-        from beeai_server.jobs.tasks.provider_build import build_provider as task
-
+    async def _resolve_version(self, location: GithubUrl) -> tuple[ResolvedGithubUrl, DockerImageID]:
         try:
             version = await location.resolve_version()
         except ValueError as e:
@@ -56,13 +60,49 @@ class ProviderBuildService:
                 commit_hash=version.commit_hash.lower(),
             )
         )
+        return version, destination
 
-        build = ProviderBuild(status=BuildState.MISSING, source=version, destination=destination, created_by=user.id)
+    async def preview_build(
+        self, location: GithubUrl, user: User, on_complete: OnCompleteAction | None = None
+    ) -> ProviderBuild:
+        version, destination = await self._resolve_version(location)
+        return ProviderBuild(
+            status=BuildState.MISSING,
+            source=version,
+            destination=destination,
+            created_by=user.id,
+            on_complete=on_complete or NoAction(),
+        )
+
+    async def create_build(
+        self, location: GithubUrl, user: User, on_complete: OnCompleteAction | None = None
+    ) -> ProviderBuild:
+        from beeai_server.jobs.tasks.provider_build import build_provider as task
+
+        version, destination = await self._resolve_version(location)
+
+        build = ProviderBuild(
+            status=BuildState.MISSING,
+            source=version,
+            destination=destination,
+            created_by=user.id,
+            on_complete=on_complete or NoAction(),
+        )
         async with self._uow() as uow:
+            match on_complete:
+                case UpdateProvider(provider_id=provider_id):
+                    # check permissions to update
+                    _ = await uow.providers.get(provider_id=provider_id, user_id=user.id)
+
             await uow.provider_builds.create(provider_build=build)
             await task.configure(queueing_lock=str(build.id)).defer_async(provider_build_id=str(build.id))
             await uow.commit()
         return build
+
+    async def update_build(self, *, provider_build: ProviderBuild):
+        async with self._uow() as uow:
+            await uow.provider_builds.update(provider_build=provider_build)
+            await uow.commit()
 
     async def get_build(self, provider_build_id: UUID) -> ProviderBuild:
         async with self._uow() as uow:
@@ -82,7 +122,7 @@ class ProviderBuildService:
                 status=status,
             )
 
-    async def build_provider(self, provider_build_id: UUID):
+    async def build_provider(self, provider_build_id: UUID) -> ProviderBuild:
         async with self._uow() as uow:
             build = await uow.provider_builds.get(provider_build_id=provider_build_id)
             if build.status != BuildState.MISSING:
@@ -103,12 +143,16 @@ class ProviderBuildService:
         try:
             # This can take very long, opening transaction after
             build.status = await self._build_manager.wait_for_completion(provider_build_id=build.id)
+            if build.status == BuildState.FAILED:
+                build.error_message = "Build Job failed, please retry and watch log stream for more details"
             async with self._uow() as uow:
                 await uow.provider_builds.update(provider_build=build)
                 await uow.commit()
+            return build
         except Exception as e:
             logger.warning(f"Failed to build provider: {e}")
             build.status = BuildState.FAILED
+            build.error_message = str(e)
             async with self._uow() as uow:
                 await uow.provider_builds.update(provider_build=build)
                 await uow.commit()
@@ -144,6 +188,7 @@ class ProviderBuildService:
         async def watch_for_completion():
             logs_container.add_stdout("Waiting for build job to be scheduled...")
             state = BuildState.FAILED
+            on_complete = NoAction()
             try:
                 async for attempt in AsyncRetrying(
                     stop=stop_after_delay(wait_for_start_timeout),
@@ -156,23 +201,34 @@ class ProviderBuildService:
                             # If the build or worker fails to deploy the job, the wait would get stuck retrying
                             # waiting for a k8s job that will never be created. Hence, we check database state:
                             build = await uow.provider_builds.get(provider_build_id=provider_build_id)
+                            on_complete = build.on_complete
                             if build.status in {BuildState.FAILED, BuildState.COMPLETED}:
                                 state = build.status
                                 break
                         state = await self._build_manager.wait_for_completion(provider_build_id=provider_build_id)
             except EntityNotFoundError:
-                logs_container.add(
-                    ProcessLogMessage(
-                        stream=ProcessLogType.STDOUT,
-                        message=(
-                            "Wait timeout for job to be scheduled exceeded, the job queue might be busy at the moment."
-                            "The job will continue to run in the background when the queue is available."
-                        ),
-                        error=True,
-                    )
+                message = (
+                    "Wait timeout for job to be scheduled exceeded, the job queue might be busy at the moment."
+                    "The job will continue to run in the background when the queue is available."
                 )
+                logs_container.add(ProcessLogMessage(message=message, error=True))
                 return
-            logs_container.add(ProcessLogMessage(stream=ProcessLogType.STDOUT, message=f"Job {state}.", finished=True))
+
+            # Wait for post-build action to complete
+            if state == BuildState.BUILD_COMPLETED:
+                logs_container.add_stdout(f"Processing post-build action: {on_complete.type}")
+                await asyncio.sleep(0.5)
+                try:
+                    async with asyncio.timeout(timedelta(seconds=10).total_seconds()):
+                        while True:
+                            async with self._uow() as uow:
+                                build = await uow.provider_builds.get(provider_build_id=provider_build_id)
+                                if build.status in {BuildState.FAILED, BuildState.COMPLETED}:
+                                    break
+                            await asyncio.sleep(1)
+                except TimeoutError:
+                    logs_container.add(ProcessLogMessage(message="Waiting for action timed out.", error=True))
+            logs_container.add(ProcessLogMessage(message=f"Job {state}.", finished=True))
 
         watch_for_completion_task = asyncio.create_task(watch_for_completion())
 

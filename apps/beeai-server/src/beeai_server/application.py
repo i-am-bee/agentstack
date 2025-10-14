@@ -40,6 +40,7 @@ from beeai_server.jobs.crons.provider import check_registry
 from beeai_server.run_workers import run_workers
 from beeai_server.service_layer.services.mcp import McpService
 from beeai_server.telemetry import INSTRUMENTATION_NAME, shutdown_telemetry
+from beeai_server.utils.fastapi import ProxyHeadersMiddleware
 
 logger = logging.getLogger(__name__)
 
@@ -173,5 +174,8 @@ def app(*, dependency_overrides: Container | None = None) -> FastAPI:
 
     logger.info("Mounting routes...")
     mount_routes(app)
+
+    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*" if configuration.trust_proxy_headers else "")
     register_global_exception_handlers(app)
+
     return app

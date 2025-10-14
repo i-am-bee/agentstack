@@ -6,7 +6,7 @@ set -eu
 
 # These get updated by `mise release`:
 LATEST_STABLE_BEEAI_VERSION=0.3.5
-LATEST_BEEAI_VERSION=0.3.6-rc2
+LATEST_BEEAI_VERSION=0.3.6-rc3
 
 error() {
     printf "\n💥 \033[31mERROR:\033[0m: BeeAI installation has failed. Please report the above error: https://github.com/i-am-bee/beeai-platform/issues\n" >&2
@@ -23,10 +23,10 @@ echo "Installing uv..."
 curl -LsSf https://astral.sh/uv/install.sh | UV_PRINT_QUIET=1 sh || error
 
 # Separately uninstall potential old version of beeai-cli to remove envs created with wrong Python versions
-# --no-bin to avoid putting it in PATH (not necessary)
 uv tool uninstall --quiet beeai-cli >/dev/null 2>&1 || true
 
 # Install a uv-managed Python version (uv should do that automatically but better be explicit)
+# --no-bin to avoid putting it in PATH (not necessary)
 echo "Installing Python..."
 uv python install --quiet --managed-python --no-bin 3.13 || error
 

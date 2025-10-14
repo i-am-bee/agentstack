@@ -1,6 +1,6 @@
 [project]
 name = "beeai-cli"
-version = "0.3.6-rc2"
+version = "0.3.6-rc3"
 description = "BeeAI CLI"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
@@ -34,7 +34,7 @@ dev = [
 ]
 
 [tool.uv.sources]
-beeai-sdk = { path = "../beeai-sdk", editable = true }
+beeai-sdk = { path = "../beeai-sdk-py", editable = true }
 
 [project.scripts]
 beeai = "beeai_cli:app"

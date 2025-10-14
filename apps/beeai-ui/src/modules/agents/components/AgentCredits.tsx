@@ -5,15 +5,15 @@
 
 import { memo, useMemo } from 'react';
 
+import type { AgentDetailContributor } from '#api/a2a/extensions/ui/agent-detail.ts';
 import { ExternalLink } from '#components/MarkdownContent/components/ExternalLink.tsx';
 import { Tooltip } from '#components/Tooltip/Tooltip.tsx';
 
-import type { AgentContributor } from '../api/types';
 import classes from './AgentCredits.module.scss';
 
 interface Props {
-  author?: AgentContributor;
-  contributors?: AgentContributor[];
+  author?: AgentDetailContributor | null;
+  contributors?: AgentDetailContributor[] | null;
 }
 
 export const AgentCredits = memo(function AgentCredits({ author, contributors }: Props) {
@@ -55,7 +55,7 @@ export const AgentCredits = memo(function AgentCredits({ author, contributors }:
   );
 });
 
-function AuthorView({ name, email, url }: AgentContributor) {
+function AuthorView({ name, email, url }: AgentDetailContributor) {
   const displayName = name ? name : email;
 
   return url ? (

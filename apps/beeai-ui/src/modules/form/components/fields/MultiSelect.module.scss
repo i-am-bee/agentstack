@@ -11,15 +11,27 @@
 
 .option {
   &:global(.cds--tag) {
-    background-color: $layer-02;
     color: $text-primary;
+    border-color: $layer-02;
+    background-color: $layer-02;
     &:hover {
+      border-color: $layer-hover-02;
       background-color: $layer-hover-02;
     }
-    &.isSelected {
+    &:disabled {
+      cursor: not-allowed;
+      color: $text-disabled;
+      border-color: $field;
+      background-color: $field;
+    }
+    &:global(.cds--tag--selected) {
+      color: $text-inverse;
       border-color: $text-primary;
       background-color: $text-primary;
-      color: $text-inverse;
+      &:disabled {
+        border-color: $layer-selected-disabled;
+        background-color: $layer-selected-disabled;
+      }
     }
   }
 }

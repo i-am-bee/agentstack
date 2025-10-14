@@ -19,9 +19,7 @@ interface Props {
 export function MessageForm({ message }: Props) {
   const formPart = getMessageForm(message);
   const { submitForm } = useAgentRun();
-  const { messages } = useMessages();
-
-  const isLastMessage = messages.at(-1)?.id === message.id;
+  const { isLastMessage } = useMessages();
 
   if (!formPart) {
     return null;
@@ -31,7 +29,7 @@ export function MessageForm({ message }: Props) {
     <FormRenderer
       definition={formPart}
       showHeading={false}
-      isDisabled={!isLastMessage}
+      isDisabled={!isLastMessage(message)}
       onSubmit={(values: RunFormValues) => {
         const form = {
           request: formPart,

@@ -142,10 +142,10 @@ jobs:
       - run: echo '${{ secrets.GITHUB_TOKEN }}' | helm registry login --username '${{ github.actor }}' --password-stdin ghcr.io
       - run: helm push ./helm/dist/beeai-platform-*.tgz 'oci://ghcr.io/${{ github.repository }}/beeai-platform-chart'
 
-      - run: mise run beeai-sdk:build
+      - run: mise run beeai-sdk-py:build
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: apps/beeai-sdk/dist
+          packages-dir: apps/beeai-sdk-py/dist
 
       - run: mise run beeai-cli:build
       - uses: pypa/gh-action-pypi-publish@release/v1

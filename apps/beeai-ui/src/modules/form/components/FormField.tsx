@@ -4,28 +4,34 @@
  */
 
 import type { CSSProperties } from 'react';
-import { match } from 'ts-pattern';
+import { match, P } from 'ts-pattern';
 
-import type { FormField } from '#api/a2a/extensions/ui/form.ts';
+import type { FormField, FormResponseValue } from '#api/a2a/extensions/ui/form.ts';
 
 import { CheckboxField } from './fields/CheckboxField';
 import { DateField } from './fields/DateField';
 import { FileField } from './fields/FileField';
+import { FileFieldValue } from './fields/FileFieldValue';
 import { MultiSelectField } from './fields/MultiSelectField';
 import { TextField } from './fields/TextField';
 import classes from './FormField.module.scss';
 
 interface Props {
   field: FormField;
+  value?: FormResponseValue;
 }
 
-export function FormField({ field }: Props) {
+export function FormField({ field, value }: Props) {
   const { col_span } = field;
 
   const component = match(field)
     .with({ type: 'text' }, (field) => <TextField field={field} />)
     .with({ type: 'date' }, (field) => <DateField field={field} />)
-    .with({ type: 'file' }, (field) => <FileField field={field} />)
+    .with({ type: 'file' }, (field) =>
+      match(value)
+        .with({ type: 'file', value: P.nonNullable }, ({ value }) => <FileFieldValue field={field} value={value} />)
+        .otherwise(() => <FileField field={field} />),
+    )
     .with({ type: 'multiselect' }, (field) => <MultiSelectField field={field} />)
     .with({ type: 'checkbox' }, (field) => <CheckboxField field={field} />)
     .exhaustive();

@@ -5,6 +5,10 @@
 
 @use 'styles/common' as *;
 
+.cds--label {
+  vertical-align: top;
+}
+
 .cds--text-area,
 .cds--text-input,
 .cds--date-picker__input {

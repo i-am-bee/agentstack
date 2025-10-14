@@ -5,6 +5,7 @@
 
 import { redirect } from 'next/navigation';
 
+import { handleApiError } from '#app/(auth)/rsc.tsx';
 import EntityNotFound from '#components/EntityNotFound/EntityNotFound.tsx';
 import { ErrorPage } from '#components/ErrorPage/ErrorPage.tsx';
 import { buildAgent, isAgentUiSupported, sortAgentsByName } from '#modules/agents/utils.ts';
@@ -24,6 +25,8 @@ export default async function LandingPage() {
 
     firstAgentProviderId = agents?.at(0)?.provider.id;
   } catch (err) {
+    await handleApiError(err);
+
     console.log(err);
 
     // TODO: Process 503 Service unavailable

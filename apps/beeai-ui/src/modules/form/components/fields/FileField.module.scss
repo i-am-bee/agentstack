@@ -4,13 +4,24 @@
  */
 
 .button {
-  &:global(.cds--btn:hover) {
-    background-color: $layer-hover-02;
+  &:global(.cds--btn) {
+    &:hover {
+      background-color: $layer-hover-02;
+    }
+    &:disabled {
+      &,
+      &:hover {
+        color: $text-disabled;
+        background-color: $field;
+        border-color: $border-subtle-00;
+      }
+    }
   }
 }
 
 .files {
+  column-gap: var(--field-gap);
   > li {
-    max-inline-size: calc(50% - #{math.div($spacing-04, 2)});
+    max-inline-size: var(--file-field-max-width);
   }
 }
