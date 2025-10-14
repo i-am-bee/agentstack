@@ -14,6 +14,7 @@ import { isNotNull } from '#utils/helpers.ts';
 
 import { Container } from '../layouts/Container';
 import { AgentDetailButton } from './AgentDetailButton';
+import { AgentShareButton } from './AgentShareButton';
 import classes from './AppHeader.module.scss';
 import { AppHeaderNav } from './AppHeaderNav';
 
@@ -39,7 +40,8 @@ export function AppHeader({ className }: Props) {
             <>
               <p className={classes.agentName}>{agent.name}</p>
 
-              <div className={classes.agentDetailButtonContainer}>
+              <div className={classes.buttons}>
+                <AgentShareButton agent={agent} />
                 <AgentDetailButton />
               </div>
             </>
