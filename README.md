@@ -87,7 +87,7 @@ beeai run example_agent "Alice"  # Test your agent
 You should see: "Ciao Alice!" 🎉
 
 > [!TIP]
-> Follow the [Hello World tutorial](https://docs.beeai.dev/build-agents/hello-world) for a step-by-step guide to building your first agent.
+> Follow the [Hello World tutorial](https://docs.beeai.dev/introduction/hello-world) for a step-by-step guide to building your first agent.
 
 ## Documentation
 
