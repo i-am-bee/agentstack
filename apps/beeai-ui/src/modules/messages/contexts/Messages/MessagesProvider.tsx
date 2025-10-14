@@ -67,14 +67,7 @@ export function MessagesProvider({ children }: PropsWithChildren) {
     hasNextPage,
   });
 
-  const isLastMessage = useCallback(
-    (message: UIMessage) => {
-      const currentMessages = getMessages();
-      // messages are in reverse order
-      return currentMessages.length > 0 && currentMessages.at(0)?.id === message.id;
-    },
-    [getMessages],
-  );
+  const isLastMessage = useCallback((message: UIMessage) => getMessages().at(0)?.id === message.id, [getMessages]);
 
   const value = useMemo(
     () => ({
