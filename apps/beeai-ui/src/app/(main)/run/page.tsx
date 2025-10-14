@@ -9,10 +9,12 @@ import { handleApiError } from '#app/(auth)/rsc.tsx';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { buildAgent } from '#modules/agents/utils.ts';
 import { LIST_CONTEXT_HISTORY_DEFAULT_QUERY } from '#modules/platform-context/api/constants.ts';
-import { fetchContextHistory } from '#modules/platform-context/api/index.ts';
+import { fetchContextHistory, matchProviders } from '#modules/platform-context/api/index.ts';
 import type { ListContextHistoryResponse } from '#modules/platform-context/api/types.ts';
 import { PlatformContextProvider } from '#modules/platform-context/contexts/PlatformContextProvider.tsx';
+import { ModelCapability } from '#modules/platform-context/types.ts';
 import { listProviders } from '#modules/providers/api/index.ts';
+import { NoModelSelectedErrorPage } from '#modules/runs/components/NoModelSelectedErrorPage.tsx';
 import { RunView } from '#modules/runs/components/RunView.tsx';
 
 interface Props {
@@ -37,6 +39,14 @@ export default async function AgentRunPage({ searchParams }: Props) {
 
   if (!agent) {
     notFound();
+  }
+
+  // Check if default model is configured
+  try {
+    await matchProviders({ capability: ModelCapability.Llm });
+  } catch (error) {
+    console.error('Error matching default model providers:', error);
+    return <NoModelSelectedErrorPage />;
   }
 
   let initialData: ListContextHistoryResponse | undefined;
