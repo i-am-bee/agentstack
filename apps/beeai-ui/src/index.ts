@@ -16,7 +16,7 @@ export * from './contexts/Theme/types';
 export * from './contexts/TransitionContext/RouteTransitionProvider';
 export * from './hooks/useScrollableContainer';
 export type * from './modules/agents/api/types';
-export * from './modules/agents/components/BeeBadge';
+export * from './modules/compose/components/BeeBadge';
 export * from './utils/commands';
 export * from './utils/constants';
 export * from './utils/fadeProps';

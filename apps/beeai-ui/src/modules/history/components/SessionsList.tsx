@@ -3,13 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { NoItemsMessage } from '#components/NoItemsMessage/NoItemsMessage.tsx';
 import { SkeletonItems } from '#components/SkeletonItems/SkeletonItems.tsx';
 
 import { SessionItem } from './SessionItem';
 import classes from './SessionsList.module.scss';
 
 interface Props {
-  items?: SessionItem[];
+  items: SessionItem[] | undefined;
   isLoading?: boolean;
 }
 
@@ -17,14 +18,7 @@ export function SessionsList({ items = [], isLoading }: Props) {
   const noItems = items.length === 0 && !isLoading;
 
   if (noItems) {
-    return (
-      <>
-        <p className={classes.empty}>
-          <strong>No sessions yet</strong>
-          <span>Start a conversation to see it here.</span>
-        </p>
-      </>
-    );
+    return <NoItemsMessage message="No session history" className={classes.empty} />;
   }
 
   return (

@@ -28,6 +28,13 @@ export function sortAgentsByName(a: Agent, b: Agent) {
   return compareStrings(a.name, b.name);
 }
 
+export function sortProvidersByCreatedAt(a: Provider, b: Provider) {
+  const aCreatedAt = a.created_at ? Date.parse(a.created_at) : 0;
+  const bCreatedAt = b.created_at ? Date.parse(b.created_at) : 0;
+
+  return bCreatedAt - aCreatedAt;
+}
+
 export function isAgentUiSupported(agent: Agent) {
   const interaction_mode = agent.ui?.interaction_mode;
 

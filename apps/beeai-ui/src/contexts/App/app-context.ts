@@ -13,11 +13,11 @@ export const AppContext = createContext<AppContextValue | undefined>(undefined);
 
 interface AppContextValue {
   config: RuntimeConfig;
-  navigationOpen: boolean;
-  closeNavOnClickOutside: boolean;
+  sidebarOpen: boolean;
+  closeSidebarOnClickOutside: boolean;
   activeSidePanel: SidePanelVariant | null;
-  setNavigationOpen: Dispatch<SetStateAction<boolean>>;
-  setCloseNavOnClickOutside: Dispatch<SetStateAction<boolean>>;
+  setSidebarOpen: Dispatch<SetStateAction<boolean>>;
+  setCloseSidebarOnClickOutside: Dispatch<SetStateAction<boolean>>;
   openSidePanel: (variant: SidePanelVariant) => void;
   closeSidePanel: () => void;
 }

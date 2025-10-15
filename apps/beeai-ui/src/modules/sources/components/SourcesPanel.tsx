@@ -34,7 +34,7 @@ export function SourcesPanel() {
   }, [hasSources, closeSidePanel]);
 
   return (
-    <SidePanel variant="right" isOpen={isOpen}>
+    <SidePanel isOpen={isOpen}>
       <div className={classes.root}>
         <header className={classes.header}>
           <h2 className={classes.heading}>Sources</h2>

@@ -1,0 +1,16 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.root {
+  background-color: $background;
+  padding-block: $spacing-05;
+  min-inline-size: 0;
+}
+
+@include breakpoint-up(xlg) {
+  .root {
+    --cds-grid-margin: #{$spacing-06};
+  }
+}

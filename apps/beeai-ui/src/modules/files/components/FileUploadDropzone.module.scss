@@ -5,11 +5,16 @@
 
 .root {
   position: fixed;
-  inset: calc(var(--header-height) + var(--header-border-height)) 0 0;
+  inset: 0;
+  inset-inline-start: var(--sidebar-collapsed-width);
   z-index: z('modal') + 1;
   background-color: $file-upload-dropzone-background;
   padding: $grid-margin;
   display: flex;
+
+  :global(.sidebar-open) & {
+    inset-inline-start: var(--sidebar-width);
+  }
 }
 
 .content {

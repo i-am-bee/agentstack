@@ -3,18 +3,22 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { type PropsWithChildren, Suspense } from 'react';
+'use client';
 
-import { AppHeader } from '#components/AppHeader/AppHeader.tsx';
+import clsx from 'clsx';
+import type { PropsWithChildren } from 'react';
+
+import { Sidebar } from '#components/Sidebar/Sidebar.tsx';
+import { useApp } from '#contexts/App/index.ts';
 
 import classes from './AppLayout.module.scss';
 
 export function AppLayout({ children }: PropsWithChildren) {
+  const { sidebarOpen } = useApp();
+
   return (
-    <div className={classes.root}>
-      <Suspense>
-        <AppHeader className={classes.header} />
-      </Suspense>
+    <div className={clsx(classes.root, { ['sidebar-open']: sidebarOpen })}>
+      <Sidebar className={classes.sidebar} />
 
       <main className={classes.main} data-route-transition>
         {children}

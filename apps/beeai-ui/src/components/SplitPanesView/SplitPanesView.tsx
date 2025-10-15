@@ -10,8 +10,7 @@ import { type PropsWithChildren, type ReactNode, useEffect } from 'react';
 import type { MainContentProps } from '#components/layouts/MainContent.tsx';
 import { MainContent } from '#components/layouts/MainContent.tsx';
 import { useApp } from '#contexts/App/index.ts';
-import { useScrollbarWidth } from '#hooks/useScrollbarWidth.ts';
-import { createScrollbarStyles } from '#utils/createScrollbarStyles.ts';
+import { useScrollbar } from '#hooks/useScrollbar.ts';
 
 import classes from './SplitPanesView.module.scss';
 
@@ -24,33 +23,33 @@ interface Props {
 }
 
 export function SplitPanesView({ leftPane, rightPane, mainContent, isSplit, spacing }: Props) {
-  const { ref: leftPaneRef, scrollbarWidth } = useScrollbarWidth();
-  const { navigationOpen, activeSidePanel, setNavigationOpen, setCloseNavOnClickOutside, closeSidePanel } = useApp();
+  const scrollbarProps = useScrollbar();
+  const { sidebarOpen, activeSidePanel, setSidebarOpen, setCloseSidebarOnClickOutside, closeSidePanel } = useApp();
 
   useEffect(() => {
     if (isSplit) {
-      setNavigationOpen(false);
+      setSidebarOpen(false);
       closeSidePanel();
     }
-  }, [isSplit, setNavigationOpen, closeSidePanel]);
+  }, [isSplit, setSidebarOpen, closeSidePanel]);
 
   useEffect(() => {
-    if (navigationOpen && isSplit) {
-      setCloseNavOnClickOutside(true);
+    if (sidebarOpen && isSplit) {
+      setCloseSidebarOnClickOutside(true);
     } else {
-      setCloseNavOnClickOutside(false);
+      setCloseSidebarOnClickOutside(false);
     }
 
     return () => {
-      setCloseNavOnClickOutside(false);
+      setCloseSidebarOnClickOutside(false);
     };
-  }, [isSplit, navigationOpen, setCloseNavOnClickOutside]);
+  }, [isSplit, sidebarOpen, setCloseSidebarOnClickOutside]);
 
   return (
     <AnimatePresence mode="wait">
       {isSplit && !activeSidePanel ? (
         <Wrapper key="split-view" className={classes.splitView} immediateExit>
-          <div className={classes.leftPane} ref={leftPaneRef} {...createScrollbarStyles({ width: scrollbarWidth })}>
+          <div className={classes.leftPane} {...scrollbarProps}>
             <div className={classes.content}>{leftPane}</div>
           </div>
 

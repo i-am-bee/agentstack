@@ -1,0 +1,37 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+$container: agent-cards-list;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  row-gap: $spacing-06;
+
+  container-type: inline-size;
+  container-name: $container;
+}
+
+.heading {
+  @include type-style(heading-03);
+}
+
+.list {
+  display: grid;
+  gap: $spacing-06;
+  grid-template-columns: repeat(var(--grid-columns, 1), minmax(0, 1fr));
+}
+
+@include container($container, 'sm') {
+  .list {
+    --grid-columns: 2;
+  }
+}
+
+@include container($container, 'md') {
+  .list {
+    --grid-columns: 3;
+  }
+}

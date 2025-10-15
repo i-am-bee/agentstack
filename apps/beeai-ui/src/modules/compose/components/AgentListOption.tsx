@@ -9,10 +9,10 @@ import type { MouseEvent } from 'react';
 
 import { TagsList } from '#components/TagsList/TagsList.tsx';
 import type { Agent } from '#modules/agents/api/types.ts';
-import { AgentTags } from '#modules/agents/components/AgentTags.tsx';
-import { BeeBadge } from '#modules/agents/components/BeeBadge.tsx';
+import { AgentTags } from '#modules/agents/components/detail/AgentTags.tsx';
 
 import classes from './AgentListOption.module.scss';
+import { BeeBadge } from './BeeBadge';
 
 interface Props {
   agent: Agent;
