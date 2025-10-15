@@ -8,11 +8,11 @@ import { notFound } from 'next/navigation';
 import { handleApiError } from '#app/(auth)/rsc.tsx';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { buildAgent } from '#modules/agents/utils.ts';
+import { readConfigurationsSystem } from '#modules/configurations/api/index.ts';
 import { LIST_CONTEXT_HISTORY_DEFAULT_QUERY } from '#modules/platform-context/api/constants.ts';
-import { fetchContextHistory, matchProviders } from '#modules/platform-context/api/index.ts';
+import { fetchContextHistory } from '#modules/platform-context/api/index.ts';
 import type { ListContextHistoryResponse } from '#modules/platform-context/api/types.ts';
 import { PlatformContextProvider } from '#modules/platform-context/contexts/PlatformContextProvider.tsx';
-import { ModelCapability } from '#modules/platform-context/types.ts';
 import { listProviders } from '#modules/providers/api/index.ts';
 import { NoModelSelectedErrorPage } from '#modules/runs/components/NoModelSelectedErrorPage.tsx';
 import { RunView } from '#modules/runs/components/RunView.tsx';
@@ -41,12 +41,13 @@ export default async function AgentRunPage({ searchParams }: Props) {
     notFound();
   }
 
-  // Check if default model is configured
   try {
-    await matchProviders({ capability: ModelCapability.Llm });
+    const config = await readConfigurationsSystem();
+    if (!config?.default_llm_model) {
+      return <NoModelSelectedErrorPage />;
+    }
   } catch (error) {
-    console.error('Error matching default model providers:', error);
-    return <NoModelSelectedErrorPage />;
+    await handleApiError(error);
   }
 
   let initialData: ListContextHistoryResponse | undefined;

@@ -4,6 +4,8 @@
  */
 
 import { CopySnippet } from '#components/CopySnippet/CopySnippet.tsx';
+import { ExternalLink } from '#components/MarkdownContent/components/ExternalLink.tsx';
+import { DOCUMENTATION_LINK } from '#utils/constants.ts';
 
 import NoModelImage from './NoModelImage.svg';
 import classes from './NoModelSelectedErrorPage.module.scss';
@@ -23,6 +25,9 @@ export function NoModelSelectedErrorPage() {
           You can configure a model by running <CopySnippet className={classes.snippet}>beeai model setup</CopySnippet>{' '}
           in your terminal.
         </div>
+      </div>
+      <div className={classes.footer}>
+        Need more information? Visit our <ExternalLink href={DOCUMENTATION_LINK}>documentation</ExternalLink>.
       </div>
     </div>
   );
