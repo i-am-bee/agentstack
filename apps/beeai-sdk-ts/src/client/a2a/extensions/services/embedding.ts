@@ -17,9 +17,9 @@ const embeddingDemandSchema = z.object({
 const embeddingDemandsSchema = z.object({
   embedding_demands: z.record(z.string(), embeddingDemandSchema),
 });
-export type EmbeddingDemand = z.infer<typeof embeddingDemandsSchema>;
+export type EmbeddingDemands = z.infer<typeof embeddingDemandsSchema>;
 
-const embeddingFulfillmentSchema = z.object({
+const embeddingFulfillmentsSchema = z.object({
   embedding_fulfillments: z.record(
     z.string(),
     z.object({
@@ -30,14 +30,14 @@ const embeddingFulfillmentSchema = z.object({
     }),
   ),
 });
-export type EmbeddingFulfillment = z.infer<typeof embeddingFulfillmentSchema>;
+export type EmbeddingFulfillments = z.infer<typeof embeddingFulfillmentsSchema>;
 
 export const embeddingExtension: A2AServiceExtension<
   typeof URI,
   z.infer<typeof embeddingDemandsSchema>,
-  EmbeddingFulfillment
+  EmbeddingFulfillments
 > = {
   getUri: () => URI,
   getDemandsSchema: () => embeddingDemandsSchema,
-  getFulfillmentSchema: () => embeddingFulfillmentSchema,
+  getFulfillmentSchema: () => embeddingFulfillmentsSchema,
 };

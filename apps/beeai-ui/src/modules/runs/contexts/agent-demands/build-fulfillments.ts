@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ContextToken, EmbeddingDemand, SecretDemands } from 'beeai-sdk';
+import type { ContextToken, EmbeddingDemands, SecretDemands } from 'beeai-sdk';
 
 import type { Fulfillments } from '#api/a2a/types.ts';
 import type { AgentRequestSecrets } from '#modules/runs/contexts/agent-secrets/types.ts';
@@ -74,7 +74,7 @@ export const buildFullfilments = ({
       }
     },
 
-    embedding: async ({ embedding_demands }: EmbeddingDemand) => {
+    embedding: async ({ embedding_demands }: EmbeddingDemands) => {
       const allDemands = Object.keys(embedding_demands);
 
       return allDemands.reduce(

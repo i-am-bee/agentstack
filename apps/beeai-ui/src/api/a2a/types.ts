@@ -6,8 +6,8 @@
 import type {
   AgentSettings,
   ContextToken,
-  EmbeddingDemand,
-  EmbeddingFulfillment,
+  EmbeddingDemands,
+  EmbeddingFulfillments,
   FormRender,
   LLMDemand,
   LLMFulfillment,
@@ -82,7 +82,7 @@ export interface Fulfillments {
   llm: (demand: LLMDemand) => Promise<LLMFulfillment>;
   oauth: (demand: OAuthDemand) => Promise<OAuthFulfillment | null>;
   getContextToken: () => ContextToken;
-  embedding: (demand: EmbeddingDemand) => Promise<EmbeddingFulfillment>;
+  embedding: (demand: EmbeddingDemands) => Promise<EmbeddingFulfillments>;
   secrets: (demand: SecretDemands, runtimeFullfilledDemands?: AgentRequestSecrets) => Promise<SecretFulfillment>;
 }
 
