@@ -84,7 +84,7 @@ wheels = [
 
 [[package]]
 name = "beeai-cli"
-version = "0.3.6rc3"
+version = "0.3.7"
 source = { editable = "." }
 dependencies = [
     { name = "a2a-sdk" },
@@ -145,7 +145,7 @@ dev = [
 
 [[package]]
 name = "beeai-sdk"
-version = "0.3.6rc3"
+version = "0.3.7"
 source = { editable = "../beeai-sdk-py" }
 dependencies = [
     { name = "a2a-sdk" },
@@ -188,7 +188,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.50" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.56" },
     { name = "pyright", specifier = ">=1.1.403" },
     { name = "pytest", specifier = ">=8.4.1" },
     { name = "pytest-asyncio", specifier = ">=1.1.0" },

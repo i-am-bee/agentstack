@@ -13,6 +13,19 @@
   inline-size: 100%;
 }
 
+.cds--date-picker {
+  .cds--date-picker__input {
+    background-color: $background;
+    &:disabled {
+      background-color: $field;
+      &,
+      &:hover {
+        border-block-end-color: $border-subtle-00;
+      }
+    }
+  }
+}
+
 .cds--date-picker__calendar {
   border-radius: $border-radius;
 

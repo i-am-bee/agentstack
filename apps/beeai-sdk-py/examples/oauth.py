@@ -8,8 +8,8 @@ import pydantic
 from a2a.types import Message, Role
 from a2a.utils.message import get_message_text
 from beeai_framework.adapters.openai import OpenAIChatModel
-from beeai_framework.agents.experimental import RequirementAgent
-from beeai_framework.agents.experimental.requirements.conditional import ConditionalRequirement
+from beeai_framework.agents.requirement import RequirementAgent
+from beeai_framework.agents.requirement.requirements.conditional import ConditionalRequirement
 from beeai_framework.backend import AssistantMessage, UserMessage
 from beeai_framework.backend.types import ChatModelParameters
 from beeai_framework.tools.mcp import MCPTool

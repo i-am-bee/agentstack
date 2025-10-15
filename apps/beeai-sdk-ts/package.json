@@ -1,7 +1,7 @@
 {
   "name": "beeai-sdk",
   "author": "IBM Corp.",
-  "version": "0.3.6-rc3",
+  "version": "0.3.7",
   "type": "module",
   "scripts": {
     "build": "rimraf dist && microbundle --format modern,cjs,umd",

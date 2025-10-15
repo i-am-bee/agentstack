@@ -4,13 +4,14 @@
  */
 
 import { Cacheable } from 'cacheable';
-import { createHash } from 'crypto';
+
+import { sha256Hash } from './hash';
 
 export const cache = new Cacheable({
   ttl: 0, // cache items never expire by default
 });
 
 export const cacheKeys = {
-  refreshToken: (refreshToken: string) => `refreshToken:${createHash('sha256').update(refreshToken).digest('hex')}`,
+  refreshToken: async (refreshToken: string) => `refreshToken:${await sha256Hash(refreshToken)}`,
   tokenEndpointUrl: (issuerUrl: string) => `tokenEndpoint:${issuerUrl}`,
 };

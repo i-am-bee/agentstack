@@ -176,7 +176,7 @@ wheels = [
 
 [[package]]
 name = "beeai-framework"
-version = "0.1.50"
+version = "0.1.56"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -190,9 +190,9 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d6/e4/1fb8f236cd59b05803d913b08c4e3a9dceddd8d7a30e7050a262874b46ed/beeai_framework-0.1.50.tar.gz", hash = "sha256:4572088570208b41b22f667563a9bfe19e1f3568840ab1910e0d09c3b71d1475", size = 146887, upload-time = "2025-09-26T15:26:05.089Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/46/c1/87748a8a0dbdbd4aebfcdb404f56647ad9d898dc4c6d624e5d330e570713/beeai_framework-0.1.56.tar.gz", hash = "sha256:e19a00311a1c6d5a73977ca2f61dd653e7fab013b85ce97e0d633e5e3ac8c750", size = 158064, upload-time = "2025-10-14T11:59:44.388Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d0/4f/65f030f26b853d6949daf0d839b6f58410fede9af11875c6b25bf509d98b/beeai_framework-0.1.50-py3-none-any.whl", hash = "sha256:cc47362c4604e1ba8ede310f085df0b44825029f937e57a07ce4baddb9bb9602", size = 268280, upload-time = "2025-09-26T15:26:03.744Z" },
+    { url = "https://files.pythonhosted.org/packages/83/dd/79447e44e1f1325b0bee7db7ef4c85c96a9e9e2763c50574f1002fceecb1/beeai_framework-0.1.56-py3-none-any.whl", hash = "sha256:a3537632503d84ef7b4e9dde3db6eb0ce35fbc991307537c5e3c7fa06ec9b48e", size = 292304, upload-time = "2025-10-14T11:59:42.954Z" },
 ]
 
 [package.optional-dependencies]
@@ -205,7 +205,7 @@ wikipedia = [
 
 [[package]]
 name = "beeai-sdk"
-version = "0.3.6rc3"
+version = "0.3.7"
 source = { editable = "." }
 dependencies = [
     { name = "a2a-sdk" },
@@ -258,7 +258,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.50" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.56" },
     { name = "pyright", specifier = ">=1.1.403" },
     { name = "pytest", specifier = ">=8.4.1" },
     { name = "pytest-asyncio", specifier = ">=1.1.0" },
@@ -951,11 +951,11 @@ wheels = [
 
 [[package]]
 name = "json-repair"
-version = "0.39.1"
+version = "0.52.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/95/60/6d1599bc01070d9fe3840d245ae80fd24b981c732d962842825ce7a9fde6/json_repair-0.39.1.tar.gz", hash = "sha256:e90a489f247e1a8fc86612a5c719872a3dbf9cbaffd6d55f238ec571a77740fa", size = 30040, upload-time = "2025-02-23T11:26:13.834Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f3/63/2c3c3c8cc1c28a0a20a9ab0eff5439c989ce3cc5956d8a4c7cf1eae0a06e/json_repair-0.52.0.tar.gz", hash = "sha256:0eee59cb3145b462b0734d4cf3246b797686caa669d52eee8dd30e09ea6d7876", size = 35384, upload-time = "2025-10-05T17:18:12.387Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ff/b9/2e445481555422b907dab468b53574bc1e995099ca1a1201d0d876ca05e9/json_repair-0.39.1-py3-none-any.whl", hash = "sha256:3001409a2f319249f13e13d6c622117a5b70ea7e0c6f43864a0233cdffc3a599", size = 20686, upload-time = "2025-02-23T11:26:12.582Z" },
+    { url = "https://files.pythonhosted.org/packages/c6/7f/3a4e456da9a0f9ac54d9842ed51e96960826a98456f0826a9b3e808713c4/json_repair-0.52.0-py3-none-any.whl", hash = "sha256:c783069906a456f62e2a553fbef32a420a4745ff943e2014411728edcc7bf60a", size = 26350, upload-time = "2025-10-05T17:18:10.859Z" },
 ]
 
 [[package]]

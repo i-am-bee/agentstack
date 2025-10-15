@@ -89,6 +89,13 @@ $zindex-buttons: 2;
   }
 }
 
+.loading {
+  :global(.cds--inline-loading) {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
 @include breakpoint-up(lg) {
   .header {
     margin: 0 #{-$spacing-09} #{-$spacing-07} auto;

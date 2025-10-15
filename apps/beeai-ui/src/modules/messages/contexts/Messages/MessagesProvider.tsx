@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { type PropsWithChildren, useEffect, useMemo } from 'react';
+import { type PropsWithChildren, useCallback, useEffect, useMemo } from 'react';
 
 import { useFetchNextPage } from '#hooks/useFetchNextPage.ts';
 import { useImmerWithGetter } from '#hooks/useImmerWithGetter.ts';
@@ -14,7 +14,6 @@ import { LIST_CONTEXT_HISTORY_DEFAULT_QUERY } from '#modules/platform-context/ap
 import { useListContextHistory } from '#modules/platform-context/api/queries/useListContextHistory.ts';
 import { isHistoryMessage } from '#modules/platform-context/api/utils.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
-import { isNotNull } from '#utils/helpers.ts';
 
 import { MessagesContext } from './messages-context';
 
@@ -38,14 +37,23 @@ export function MessagesProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     if (history) {
       setMessages((messages) => {
-        const messageIds = new Set(messages.map(({ id }) => id));
-        const artifactIds = new Set(
-          messages.map((message) => (isAgentMessage(message) ? message.artifactId : null)).filter(isNotNull),
-        );
+        const lastMessage = messages.at(-1);
+        const lastMessageHistoryIndex = lastMessage
+          ? history.findIndex(({ data }) =>
+              isHistoryMessage(data)
+                ? data.messageId === lastMessage?.id
+                : isAgentMessage(lastMessage) && data.artifactId === lastMessage?.artifactId,
+            )
+          : null;
 
-        const newItems = history.filter(({ data }) =>
-          isHistoryMessage(data) ? !messageIds.has(data.messageId) : !artifactIds.has(data.artifactId),
-        );
+        const historyContainsLastMessage = lastMessageHistoryIndex !== null && lastMessageHistoryIndex >= 0;
+        const newItems = historyContainsLastMessage ? history.slice(lastMessageHistoryIndex) : history;
+
+        // Remove last message and convert it again from history, because
+        // newly fetched history can contain subsequent trajectories of the message
+        if (historyContainsLastMessage) {
+          messages.splice(-1, 1);
+        }
 
         messages.push(...convertHistoryToUIMessages(newItems));
       });
@@ -59,17 +67,20 @@ export function MessagesProvider({ children }: PropsWithChildren) {
     hasNextPage,
   });
 
+  const isLastMessage = useCallback((message: UIMessage) => getMessages().at(0)?.id === message.id, [getMessages]);
+
   const value = useMemo(
     () => ({
       messages,
       getMessages,
       setMessages,
+      isLastMessage,
       queryControl: {
         ...queryRest,
         fetchNextPageInViewAnchorRef,
       },
     }),
-    [messages, getMessages, setMessages, queryRest, fetchNextPageInViewAnchorRef],
+    [messages, getMessages, setMessages, isLastMessage, queryRest, fetchNextPageInViewAnchorRef],
   );
 
   return <MessagesContext.Provider value={value}>{children}</MessagesContext.Provider>;

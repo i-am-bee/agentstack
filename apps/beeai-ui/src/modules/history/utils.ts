@@ -70,7 +70,17 @@ export function convertHistoryToUIMessages(history: ContextHistoryItem[]): UIMes
           };
         });
 
-      messages.push(message);
+      const lastMessage = messages.at(-1);
+      const shouldGroup = lastMessage && lastMessage.role === message.role && lastMessage.taskId === message.taskId;
+
+      if (shouldGroup) {
+        messages.splice(-1, 1, {
+          ...lastMessage,
+          parts: [...lastMessage.parts, ...message.parts],
+        });
+      } else {
+        messages.push(message);
+      }
 
       return {
         messages,

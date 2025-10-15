@@ -14,6 +14,7 @@ export const MessagesContext = createContext<MessagesContextValue | null>(null);
 
 export interface MessagesContextValue {
   messages: UIMessage[];
+  isLastMessage: (message: UIMessage) => boolean;
   getMessages: () => UIMessage[];
   setMessages: Updater<UIMessage[]>;
   queryControl: {

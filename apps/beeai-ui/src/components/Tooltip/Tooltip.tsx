@@ -34,9 +34,19 @@ interface Props {
   placement?: Placement;
   size?: 'sm' | 'md' | 'lg';
   asChild?: boolean;
+  isEnabled?: boolean;
+  isOpen?: boolean;
 }
 
-export function Tooltip({ content, placement = 'bottom', size = 'md', asChild, children }: PropsWithChildren<Props>) {
+export function Tooltip({
+  content,
+  placement = 'bottom',
+  size = 'md',
+  asChild,
+  isEnabled = true,
+  isOpen: isOpenControlled,
+  children,
+}: PropsWithChildren<Props>) {
   const arrowRef = useRef(null);
 
   const SIZE = {
@@ -59,10 +69,12 @@ export function Tooltip({ content, placement = 'bottom', size = 'md', asChild, c
 
   const [isOpen, setIsOpen] = useState(false);
 
+  const isControlled = isOpenControlled !== undefined;
+
   const { refs, floatingStyles, context } = useFloating({
     placement,
-    open: isOpen,
-    onOpenChange: setIsOpen,
+    open: isControlled ? isOpenControlled : isOpen,
+    onOpenChange: isControlled ? undefined : setIsOpen,
     whileElementsMounted: autoUpdate,
     middleware: [
       offset(SIZE.ArrowHeight + SIZE.Offset),
@@ -76,8 +88,12 @@ export function Tooltip({ content, placement = 'bottom', size = 'md', asChild, c
     ],
   });
 
-  const hover = useHover(context, { move: false, handleClose: safePolygon() });
-  const focus = useFocus(context);
+  const hover = useHover(context, {
+    move: false,
+    handleClose: safePolygon(),
+    enabled: !isControlled,
+  });
+  const focus = useFocus(context, { enabled: !isControlled });
   const dismiss = useDismiss(context);
   const role = useRole(context, { role: 'tooltip' });
 
@@ -91,7 +107,7 @@ export function Tooltip({ content, placement = 'bottom', size = 'md', asChild, c
         {children}
       </Comp>
 
-      {isOpen && (
+      {(isControlled ? isOpenControlled : isOpen) && isEnabled && (
         <FloatingPortal>
           <div
             ref={refs.setFloating}
