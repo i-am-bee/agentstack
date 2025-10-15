@@ -4,7 +4,6 @@
  */
 'use client';
 
-import type { AgentExtension } from '@a2a-js/sdk';
 import { useSearchParams } from 'next/navigation';
 import type { PropsWithChildren } from 'react';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
@@ -13,7 +12,7 @@ import { match } from 'ts-pattern';
 import { v4 as uuid } from 'uuid';
 
 import type { AgentA2AClient, ChatRun } from '#api/a2a/types.ts';
-import { getErrorCode } from '#api/utils.ts';
+import { agentExtensionGuard, getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 import { usePrevious } from '#hooks/usePrevious.ts';
 import { useUpdateSearchParams } from '#hooks/useUpdateSearchParams.ts';
@@ -42,7 +41,7 @@ export function ComposeProvider({ children }: PropsWithChildren) {
 
   const { agentClient } = useBuildA2AClient({
     providerId: sequentialAgent?.provider.id,
-    extensions: (sequentialAgent?.capabilities.extensions ?? []) as AgentExtension[],
+    extensions: (sequentialAgent?.capabilities.extensions ?? []).filter(agentExtensionGuard),
     onStatusUpdate: handleTaskStatusUpdate,
   });
 
