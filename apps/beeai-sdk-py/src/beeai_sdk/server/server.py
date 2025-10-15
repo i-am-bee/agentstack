@@ -5,15 +5,14 @@ import asyncio
 import functools
 import os
 import re
+import urllib.parse
 from collections.abc import AsyncGenerator, Awaitable, Callable
 from configparser import RawConfigParser
 from contextlib import asynccontextmanager, nullcontext, suppress
 from datetime import timedelta
 from ssl import CERT_NONE
 from typing import IO, Any, Literal
-from urllib.parse import urljoin
 
-import httpx
 import uvicorn
 import uvicorn.config as uvicorn_config
 from a2a.server.agent_execution import RequestContextBuilder
@@ -22,11 +21,19 @@ from a2a.server.tasks import PushNotificationConfigStore, PushNotificationSender
 from a2a.types import AgentExtension
 from fastapi import FastAPI
 from fastapi.applications import AppType
-from httpx import AsyncClient, HTTPError, HTTPStatusError
+from httpx import HTTPError, HTTPStatusError
 from pydantic import AnyUrl
 from starlette.types import Lifespan
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_attempt, wait_exponential
 
+from beeai_sdk.a2a.extensions import AgentDetail, AgentDetailExtensionSpec
+from beeai_sdk.a2a.extensions.services.platform import (
+    _PlatformSelfRegistrationExtensionParams,
+    _PlatformSelfRegistrationExtensionSpec,
+)
+from beeai_sdk.platform import get_platform_client
+from beeai_sdk.platform.client import PlatformClient
+from beeai_sdk.platform.provider import Provider
 from beeai_sdk.server.agent import Agent, AgentFactory
 from beeai_sdk.server.agent import agent as agent_decorator
 from beeai_sdk.server.logging import configure_logger as configure_logger_func
@@ -43,7 +50,10 @@ class Server:
         self._agent: Agent | None = None
         self.server: uvicorn.Server | None = None
         self._context_store: ContextStore | None = None
-        self._self_registration_client_factory: Callable[[], httpx.AsyncClient] | None = None
+        self._self_registration_client: PlatformClient | None = None
+        self._self_registration_id: str | None = None
+        self._provider_id: str | None = None
+        self._all_configured_variables: set[str] = set()
 
     @functools.wraps(agent_decorator)
     def agent(*args, **kwargs) -> Callable:
@@ -63,6 +73,7 @@ class Server:
         configure_logger: bool = True,
         configure_telemetry: bool = False,
         self_registration: bool = True,
+        self_registration_id: str | None = None,
         task_store: TaskStore | None = None,
         context_store: ContextStore | None = None,
         queue_manager: QueueManager | None = None,
@@ -118,7 +129,7 @@ class Server:
         headers: list[tuple[str, str]] | None = None,
         factory: bool = False,
         h11_max_incomplete_event_size: int | None = None,
-        self_registration_client_factory: Callable[[], httpx.AsyncClient] | None = None,
+        self_registration_client_factory: Callable[[], PlatformClient] | None = None,
     ) -> None:
         if self.server:
             raise RuntimeError("The server is already running")
@@ -132,6 +143,7 @@ class Server:
         self._self_registration_client = (
             self_registration_client_factory() if self_registration_client_factory else None
         )
+        self._self_registration_id = urllib.parse.quote(self_registration_id or self._agent.card.name)
 
         if headers is None:
             headers = [("server", "a2a")]
@@ -144,17 +156,32 @@ class Server:
 
         @asynccontextmanager
         async def _lifespan_fn(app: FastAPI) -> AsyncGenerator[None, None]:
-            register_task = asyncio.create_task(self._register_agent()) if self_registration else None
-            try:
-                async with lifespan_fn(app) if lifespan_fn else nullcontext():  # pyright: ignore [reportArgumentType]
-                    yield
-            finally:
-                if register_task:
-                    await cancel_task(register_task)
+            async with self._self_registration_client or nullcontext():
+                register_task = asyncio.create_task(self._register_agent()) if self_registration else None
+                reload_task = asyncio.create_task(self._reload_variables_periodically()) if self_registration else None
+
+                try:
+                    async with lifespan_fn(app) if lifespan_fn else nullcontext():  # pyright: ignore [reportArgumentType]
+                        yield
+                finally:
+                    if register_task:
+                        with suppress(Exception):
+                            await cancel_task(register_task)
+                    if reload_task:
+                        with suppress(Exception):
+                            await cancel_task(reload_task)
 
         card_url = AnyUrl(self._agent.card.url)
         if card_url.host == "invalid":
             self._agent.card.url = f"http://{host}:{port}"
+
+        if self_registration:
+            self._agent.card.capabilities.extensions = [
+                *(self._agent.card.capabilities.extensions or []),
+                *_PlatformSelfRegistrationExtensionSpec(
+                    _PlatformSelfRegistrationExtensionParams(self_registration_id=self._self_registration_id)
+                ).to_agent_card_extensions(),
+            ]
 
         app = create_app(
             self._agent,
@@ -241,65 +268,87 @@ class Server:
         if self.server:
             self.server.should_exit = value
 
+    @property
+    def _platform_url(self) -> str:
+        return os.getenv("PLATFORM_URL", "http://127.0.0.1:8333")
+
+    @property
+    def _production_mode(self) -> bool:
+        return os.getenv("PRODUCTION_MODE", "").lower() in ["true", "1"]
+
+    async def _reload_variables_periodically(self):
+        while True:
+            await asyncio.sleep(5)
+            await self._load_variables()
+
+    async def _load_variables(self, first_run: bool = False) -> None:
+        assert self.server and self._agent
+        if not self._provider_id:
+            return
+
+        variables = await Provider.list_variables(self._provider_id, client=self._self_registration_client)
+        old_variables = self._all_configured_variables.copy()
+
+        for variable in list(self._all_configured_variables - variables.keys()):  # reset removed variables
+            os.environ.pop(variable, None)
+            self._all_configured_variables.remove(variable)
+
+        os.environ.update(variables)
+        self._all_configured_variables.update(variables.keys())
+
+        if dirty := old_variables != self._all_configured_variables:
+            logger.info(f"Environment variables reloaded dynamically: {self._all_configured_variables}")
+
+        if first_run or dirty:
+            for extension in self._agent.card.capabilities.extensions or []:
+                match extension:
+                    case AgentExtension(uri=AgentDetailExtensionSpec.URI, params=params):
+                        variables = AgentDetail.model_validate(params).variables or []
+                        if missing_keys := [env for env in variables if env.required and os.getenv(env.name) is None]:
+                            logger.warning(
+                                f"Missing required env variables: {missing_keys}, "
+                                f"add them using `beeai env add <agent> key=value`"
+                            )
+
     async def _register_agent(self) -> None:
         """If not in PRODUCTION mode, register agent to the beeai platform and provide missing env variables"""
         assert self.server and self._agent
-        if os.getenv("PRODUCTION_MODE", "").lower() in ["true", "1"]:
+        if self._production_mode:
             logger.debug("Agent is not automatically registered in the production mode.")
             return
 
-        url = os.getenv("PLATFORM_URL", "http://127.0.0.1:8333")
         host = re.sub(r"localhost|127\.0\.0\.1", "host.docker.internal", self.server.config.host)
-        request_data = {"location": f"http://{host}:{self.server.config.port}"}
+        provider_location = f"http://{host}:{self.server.config.port}#{self._self_registration_id}"
         logger.info("Registering agent to the beeai platform")
         try:
-            envs = {}
-            async with self._self_registration_client or AsyncClient() as client:
-                async for attempt in AsyncRetrying(
-                    stop=stop_after_attempt(10),
-                    wait=wait_exponential(max=10),
-                    retry=retry_if_exception_type(HTTPError),
-                    reraise=True,
-                ):
-                    base_url = "" if str(client.base_url) else urljoin(url, "/api/v1/")
-                    with attempt:
-                        resp = await client.get(urljoin(base_url, "providers"))
-                        resp.raise_for_status()
-
-                        resp = await client.post(
-                            urljoin(base_url, "providers"), json=request_data, params={"auto_remove": True}
+            async for attempt in AsyncRetrying(
+                stop=stop_after_attempt(10),
+                wait=wait_exponential(max=10),
+                retry=retry_if_exception_type(HTTPError),
+                reraise=True,
+            ):
+                with attempt:
+                    try:
+                        provider = await Provider.get_by_location(
+                            location=provider_location, client=self._self_registration_client
                         )
-                        resp = resp.raise_for_status().json()
-
-                        logger.debug("Agent registered to the beeai server.")
-
-                        env_resp = await client.get(urljoin(base_url, f"providers/{resp['id']}/variables"))
-                        envs_request = env_resp.raise_for_status().json()
-                        envs = envs_request.get("env")
-
-                for extension in self._agent.card.capabilities.extensions or []:
-                    # TODO - env extension?
-                    match extension:
-                        case AgentExtension(
-                            uri="https://a2a-extensions.beeai.dev/variables",
-                            params=params,
-                            required=required,
-                        ):
-                            # register all available envs
-                            missing_keyes = []
-                            for env in (params or {}).get("env", {}):
-                                # Those envs are set to use LLM gateway from platform server
-                                if env["name"] in {"LLM_MODEL", "LLM_API_KEY", "LLM_API_BASE"}:
-                                    continue
-                                server_env = envs.get(env.get("name"))
-                                if server_env:
-                                    logger.debug(f"Env variable {env['name']} = '{server_env}' added dynamically")
-                                    os.environ[env["name"]] = server_env
-                                elif env.get("required"):
-                                    missing_keyes.append(env)
-                            if len(missing_keyes) and required:
-                                logger.debug(f"Can not run agent, missing required env variables: {missing_keyes}")
-                                raise Exception("Missing env variables")
+                        await provider.patch(agent_card=self._agent.card, client=self._self_registration_client)
+                    except HTTPStatusError as error:
+                        if error.response.status_code != 404:
+                            raise
+                        try:
+                            provider = await Provider.create(
+                                location=provider_location,
+                                client=self._self_registration_client,
+                                agent_card=self._agent.card,
+                            )
+                        except Exception as error:
+                            print(error)
+                            raise
+                    self._provider_id = provider.id
+                    logger.debug("Agent registered to the beeai server.")
+                    await self._load_variables()
+                    logger.debug("Environment variables loaded dynamically.")
             logger.info("Agent registered successfully")
         except HTTPStatusError as e:
             with suppress(Exception):
@@ -308,6 +357,6 @@ class Server:
                     return
             logger.info(f"Agent can not be registered to beeai server: {e}")
         except HTTPError as e:
-            logger.info(f"Can not reach server, check if running on {url} : {e}")
+            logger.info(f"Can not reach server, check if running on {get_platform_client().base_url} : {e}")
         except Exception as e:
             logger.info(f"Agent can not be registered to beeai server: {e}")

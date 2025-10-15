@@ -25,7 +25,11 @@ from beeai_server.domain.models.provider_build import (
     UpdateProvider,
 )
 from beeai_server.domain.models.user import User, UserRole
-from beeai_server.exceptions import BuildAlreadyFinishedError, EntityNotFoundError, InvalidGithubReferenceError
+from beeai_server.exceptions import (
+    BuildAlreadyFinishedError,
+    EntityNotFoundError,
+    VersionResolveError,
+)
 from beeai_server.service_layer.build_manager import IProviderBuildManager
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
 from beeai_server.utils.docker import DockerImageID
@@ -46,8 +50,8 @@ class ProviderBuildService:
     async def _resolve_version(self, location: GithubUrl) -> tuple[ResolvedGithubUrl, DockerImageID]:
         try:
             version = await location.resolve_version()
-        except ValueError as e:
-            raise InvalidGithubReferenceError(str(e)) from e
+        except Exception as e:
+            raise VersionResolveError(str(location), str(e)) from e
         if not self._config.provider_build.oci_build_registry_prefix:
             raise RuntimeError("OCI build registry is not configured")
 

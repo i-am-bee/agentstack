@@ -34,13 +34,13 @@ async def build_provider(
                         provider_id=provider_id,
                         user=user,
                         location=DockerImageProviderLocation(root=build.destination),
-                        origin=build.provider_origin,
+                        origin=build.source,
                     )
                 case AddProvider() as add_provider:
                     await provider_service.create_provider(
                         user=user,
                         location=DockerImageProviderLocation(root=build.destination),
-                        origin=build.provider_origin,
+                        origin=build.source,
                         auto_stop_timeout=add_provider.auto_stop_timeout,
                         variables=add_provider.variables,
                     )

@@ -1,11 +1,12 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
+import os
 from collections.abc import AsyncGenerator, AsyncIterator
 from typing import Annotated
 from uuid import uuid4
 
 import pytest
-from a2a.client import Client
+from a2a.client import Client, create_text_message_object
 from a2a.types import FilePart, Message, Role, TaskState
 from beeai_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionClient,
@@ -13,10 +14,11 @@ from beeai_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionSpec,
 )
 from beeai_sdk.a2a.types import RunYield
-from beeai_sdk.platform import File
+from beeai_sdk.platform import File, Provider
 from beeai_sdk.platform.context import Context, ContextPermissions
 from beeai_sdk.server import Server
 from beeai_sdk.util.file import load_file
+from tenacity import AsyncRetrying, stop_after_delay, wait_fixed
 
 pytestmark = pytest.mark.e2e
 
@@ -89,3 +91,51 @@ async def test_platform_api_extension(file_reader_writer, permissions, should_fa
         # check that the agent uploaded a new file with correct context_id as content
         async with load_file(task.history[2].parts[0].root) as file:
             assert file.text == context.id
+
+
+SELF_REGISTRATION_TEST_VAR_NAME = "_SELF_REGISTRATION_TEST_VAR"
+
+
+@pytest.fixture
+async def self_registration_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server, Client]]:
+    async def self_registration_agent() -> AsyncIterator[RunYield]:
+        yield os.environ.get(SELF_REGISTRATION_TEST_VAR_NAME, "empty")
+
+    async with create_server_with_agent(self_registration_agent) as (server, test_client):
+        yield server, test_client
+
+
+@pytest.mark.usefixtures("clean_up", "setup_platform_client")
+async def test_self_registration_with_variables(
+    self_registration_agent, get_final_task_from_stream, subtests, test_configuration
+):
+    os.environ.pop(SELF_REGISTRATION_TEST_VAR_NAME, None)
+    _, client = self_registration_agent
+    task = await get_final_task_from_stream(client.send_message(create_text_message_object(content="hi")))
+    assert task.history[-1].parts[0].root.text == "empty"
+
+    with subtests.test("register provider"):
+        async for attempt in AsyncRetrying(stop=stop_after_delay(6), wait=wait_fixed(0.5), reraise=True):
+            with attempt:
+                providers = await Provider.list()
+                assert len(providers) == 1, "Provider not registered"
+                provider = providers[0]
+
+        assert provider.state == "online"
+        assert "self_registration_agent" in provider.source
+
+    with subtests.test("update provider variables"):
+        await provider.update_variables(variables={SELF_REGISTRATION_TEST_VAR_NAME: "test"})
+
+        async for attempt in AsyncRetrying(stop=stop_after_delay(6), wait=wait_fixed(0.5), reraise=True):
+            with attempt:
+                task = await get_final_task_from_stream(client.send_message(create_text_message_object(content="hi")))
+                assert task.history[-1].parts[0].root.text == "test"
+
+    with subtests.test("remove provider variable"):
+        await provider.update_variables(variables={SELF_REGISTRATION_TEST_VAR_NAME: None})
+
+        async for attempt in AsyncRetrying(stop=stop_after_delay(6), wait=wait_fixed(0.5), reraise=True):
+            with attempt:
+                task = await get_final_task_from_stream(client.send_message(create_text_message_object(content="hi")))
+                assert task.history[-1].parts[0].root.text == "empty"

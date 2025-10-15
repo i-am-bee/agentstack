@@ -103,3 +103,15 @@ class PlatformApiExtensionClient(BaseExtensionClient[PlatformApiExtensionSpec, N
                 "auth_token": auth_token if isinstance(auth_token, str) else auth_token.get_secret_value(),
             }
         }
+
+
+class _PlatformSelfRegistrationExtension(pydantic.BaseModel):
+    """Internal extension"""
+
+
+class _PlatformSelfRegistrationExtensionParams(pydantic.BaseModel):
+    self_registration_id: str
+
+
+class _PlatformSelfRegistrationExtensionSpec(BaseExtensionSpec[_PlatformSelfRegistrationExtensionParams]):
+    URI: str = "https://a2a-extensions.beeai.dev/services/platform-self-registration/v1"

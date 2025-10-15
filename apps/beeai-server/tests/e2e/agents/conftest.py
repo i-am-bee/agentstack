@@ -10,9 +10,12 @@ import pytest
 from a2a.client import Client, ClientFactory
 from a2a.types import AgentCard
 from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
+from beeai_sdk.platform import PlatformClient
 from beeai_sdk.server import Server
 from beeai_sdk.server.store.context_store import ContextStore
 from tenacity import AsyncRetrying, stop_after_attempt, wait_fixed
+
+from tests.conftest import TestConfiguration
 
 
 @asynccontextmanager
@@ -24,7 +27,7 @@ async def run_server(
             asyncio.to_thread(
                 server.run,
                 port=port,
-                self_registration_client_factory=lambda: httpx.AsyncClient(auth=("admin", "test-password")),
+                self_registration_client_factory=lambda: PlatformClient(auth=("admin", "test-password")),
                 context_store=context_store,
             )
         )
@@ -48,7 +51,7 @@ async def run_server(
 
 
 @pytest.fixture
-def create_server_with_agent(free_port):
+def create_server_with_agent(free_port, test_configuration: TestConfiguration):
     """Factory fixture that creates a server with the given agent function."""
 
     @asynccontextmanager

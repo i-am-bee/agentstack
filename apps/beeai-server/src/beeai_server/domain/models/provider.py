@@ -7,8 +7,8 @@ import json
 import logging
 from datetime import timedelta
 from enum import StrEnum
-from functools import cached_property
 from typing import Any
+from urllib.parse import quote, urljoin
 from uuid import UUID
 
 from a2a.types import AgentCard
@@ -31,18 +31,28 @@ from beeai_server.domain.constants import (
     AGENT_DETAIL_EXTENSION_URI,
     DEFAULT_AUTO_STOP_TIMEOUT,
     DOCKER_MANIFEST_LABEL_NAME,
+    SELF_REGISTRATION_EXTENSION_URI,
 )
 from beeai_server.domain.models.registry import RegistryLocation
 from beeai_server.domain.utils import bridge_k8s_to_localhost, bridge_localhost_to_k8s
-from beeai_server.exceptions import MissingConfigurationError
-from beeai_server.utils.docker import DockerImageID
+from beeai_server.exceptions import MissingConfigurationError, VersionResolveError
+from beeai_server.utils.a2a import get_extension
+from beeai_server.utils.docker import DockerImageID, ResolvedDockerImageID
+from beeai_server.utils.github import ResolvedGithubUrl
 from beeai_server.utils.utils import utc_now
 
 logger = logging.getLogger(__name__)
 
 
+class VersionInfo(BaseModel):
+    docker: ResolvedDockerImageID | None = None
+    github: ResolvedGithubUrl | None = None
+
+
 class DockerImageProviderLocation(RootModel):
     root: DockerImageID
+
+    _resolved_version: ResolvedDockerImageID | None = None
 
     @property
     def provider_id(self) -> UUID:
@@ -57,11 +67,23 @@ class DockerImageProviderLocation(RootModel):
     def origin(self) -> str:
         return self.root.base
 
+    async def get_resolved_version(self) -> ResolvedDockerImageID:
+        if not self._resolved_version:
+            try:
+                self._resolved_version = await self.root.resolve_version()
+            except Exception as ex:
+                raise VersionResolveError(str(self.root), str(ex)) from ex
+        return self._resolved_version
+
+    async def get_version_info(self) -> VersionInfo:
+        return VersionInfo(docker=await self.get_resolved_version())
+
     @inject
     async def load_agent_card(self) -> AgentCard:
         from a2a.types import AgentCard
 
-        _, labels = await self.root.get_registry_image_config_and_labels()
+        resolved_version = await self.get_resolved_version()
+        labels = await resolved_version.get_labels()
         if DOCKER_MANIFEST_LABEL_NAME not in labels:
             raise ValueError(f"Docker image labels must contain 'beeai.dev.agent.json': {self.root!s}")
         return AgentCard.model_validate(json.loads(base64.b64decode(labels[DOCKER_MANIFEST_LABEL_NAME])))
@@ -73,6 +95,20 @@ class NetworkProviderLocation(RootModel):
     @property
     def origin(self) -> str:
         return str(self.root)
+
+    @property
+    def a2a_url(self):
+        """Clean url with no query or fragment parts"""
+        assert self.root.host, "Host is required"
+        return HttpUrl.build(
+            scheme=self.root.scheme,
+            host=self.root.host,
+            port=self.root.port,
+            path=self.root.path.lstrip("/") if self.root.path else None,
+        )
+
+    async def get_version_info(self) -> VersionInfo:
+        return VersionInfo()
 
     @model_validator(mode="wrap")
     @classmethod
@@ -103,9 +139,17 @@ class NetworkProviderLocation(RootModel):
 
         async with AsyncClient() as client:
             try:
-                response = await client.get(f"{str(self.root).rstrip('/')}{AGENT_CARD_WELL_KNOWN_PATH}", timeout=1)
+                response = await client.get(urljoin(str(self.a2a_url), AGENT_CARD_WELL_KNOWN_PATH), timeout=1)
                 response.raise_for_status()
-                return AgentCard.model_validate(response.json())
+                card = AgentCard.model_validate(response.json())
+                if ext := get_extension(card, SELF_REGISTRATION_EXTENSION_URI):
+                    assert ext.params
+                    self_registration_id = ext.params["self_registration_id"]
+                    if quote(self.root.fragment or "", safe="") != quote(self_registration_id, safe=""):
+                        raise ValueError(
+                            f"Self registration id does not match: {self.root.fragment} != {self_registration_id}"
+                        )
+                return card
             except Exception as ex:
                 raise ValueError(f"Unable to load agents from location: {self.root}: {ex}") from ex
 
@@ -116,6 +160,16 @@ class EnvVar(BaseModel, extra="allow"):
     required: bool = False
 
 
+class UnmanagedState(StrEnum):
+    ONLINE = "online"
+    OFFLINE = "offline"
+
+
+class ProviderType(StrEnum):
+    MANAGED = "managed"
+    UNMANAGED = "unmanaged"
+
+
 ProviderLocation = DockerImageProviderLocation | NetworkProviderLocation
 
 
@@ -123,43 +177,47 @@ class Provider(BaseModel):
     source: ProviderLocation
     id: UUID = Field(default_factory=lambda data: data["source"].provider_id)
     auto_stop_timeout: timedelta = Field(default=DEFAULT_AUTO_STOP_TIMEOUT)
-    origin: str
+    origin: str  # docker or github respository
+    version_info: VersionInfo = Field(default_factory=VersionInfo)
     registry: RegistryLocation | None = None
-    auto_remove: bool = False
     created_at: AwareDatetime = Field(default_factory=utc_now)
     updated_at: AwareDatetime = Field(default_factory=utc_now)
     created_by: UUID
     last_active_at: AwareDatetime = Field(default_factory=utc_now)
     agent_card: AgentCard
+    unmanaged_state: UnmanagedState | None = Field(default=None, exclude=True)
+
+    @computed_field
+    @property
+    def type(self) -> ProviderType:
+        return ProviderType.MANAGED if isinstance(self.source, DockerImageProviderLocation) else ProviderType.UNMANAGED
 
     @model_validator(mode="after")
-    def auto_remove_only_unmanaged(self):
-        if self.auto_remove and self.managed:
-            raise ValueError("auto_remove can only be set for unmanaged providers")
+    def unmanaged_fields_discrimination(self):
+        if self.unmanaged_state and self.type == ProviderType.MANAGED:
+            raise ValueError("unmanaged_state can only be set for unmanaged providers")
         return self
 
-    @computed_field()
-    @cached_property
+    @computed_field
+    @property
     def managed(self) -> bool:
-        return isinstance(self.source, DockerImageProviderLocation)
+        return self.type == ProviderType.MANAGED
 
-    @computed_field()
-    @cached_property
+    @computed_field
+    @property
     def env(self) -> list[EnvVar]:
-        try:
-            extensions = self.agent_card.capabilities.extensions or []
-            agent_detail = next(ext for ext in extensions if ext.uri == AGENT_DETAIL_EXTENSION_URI)
-            variables = agent_detail.model_dump().get("variables") or []
+        if agent_detail := get_extension(self.agent_card, AGENT_DETAIL_EXTENSION_URI):
+            variables = agent_detail.model_dump()["params"].get("variables") or []
             return [EnvVar.model_validate(v) for v in variables]
-        except StopIteration:
-            return []
+        return []
 
     def check_env(self, env: dict[str, str] | None = None, raise_error: bool = True) -> list[EnvVar]:
         env = env or {}
-        required_env = {var.name for var in self.env if var.required}
-        all_env = {var.name for var in self.env}
-        missing_env = [var for var in self.env if var.name in all_env - env.keys()]
-        missing_required_env = [var for var in self.env if var.name in required_env - env.keys()]
+        provider_env = self.env
+        required_env = {var.name for var in provider_env if var.required}
+        all_env = {var.name for var in provider_env}
+        missing_env = [var for var in provider_env if var.name in all_env - env.keys()]
+        missing_required_env = [var for var in provider_env if var.name in required_env - env.keys()]
         if missing_required_env and raise_error:
             raise MissingConfigurationError(missing_env=missing_env)
         return missing_env
@@ -178,6 +236,6 @@ class ProviderErrorMessage(BaseModel):
 
 
 class ProviderWithState(Provider, extra="allow"):
-    state: ProviderDeploymentState
+    state: ProviderDeploymentState | UnmanagedState
     last_error: ProviderErrorMessage | None = None
     missing_configuration: list[EnvVar] = Field(default_factory=list)

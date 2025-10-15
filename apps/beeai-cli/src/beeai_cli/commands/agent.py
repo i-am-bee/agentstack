@@ -801,7 +801,7 @@ async def run_agent(
 
     if provider.state == "missing":
         console.print("Starting provider (this might take a while)...")
-    if provider.state not in {"ready", "running", "starting", "missing"}:
+    if provider.state not in {"ready", "running", "starting", "missing", "online", "offline"}:
         err_console.print(f":boom: Agent is not in a ready state: {provider.state}, {provider.last_error}\nRetrying...")
 
     ui_annotations = ProviderUtils.detail(provider) or {}
@@ -934,9 +934,11 @@ async def list_agents():
                     state or "<unknown>",
                     {
                         "running": "green",
+                        "online": "green",
                         "ready": "blue",
                         "starting": "blue",
                         "missing": "grey",
+                        "offline": "grey",
                         "error": "red",
                     },
                 ),

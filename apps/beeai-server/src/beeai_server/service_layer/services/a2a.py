@@ -14,7 +14,10 @@ from kink import inject
 from structlog.contextvars import bind_contextvars, unbind_contextvars
 
 from beeai_server.configuration import Configuration
-from beeai_server.domain.models.provider import ProviderDeploymentState
+from beeai_server.domain.models.provider import (
+    NetworkProviderLocation,
+    ProviderDeploymentState,
+)
 from beeai_server.service_layer.deployment_manager import IProviderDeploymentManager
 from beeai_server.service_layer.services.users import UserService
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
@@ -101,7 +104,9 @@ class A2AProxyService:
                 await uow.commit()
 
             if not provider.managed:
-                return ProxyClient(httpx.AsyncClient(base_url=str(provider.source.root), timeout=None))
+                if not isinstance(provider.source, NetworkProviderLocation):
+                    raise ValueError(f"Unmanaged provider location type is not supported: {type(provider.source)}")
+                return ProxyClient(httpx.AsyncClient(base_url=str(provider.source.a2a_url), timeout=None))
 
             provider_url = await self._deploy_manager.get_provider_url(provider_id=provider.id)
             [state] = await self._deploy_manager.state(provider_ids=[provider.id])

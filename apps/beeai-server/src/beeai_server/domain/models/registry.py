@@ -10,6 +10,7 @@ from anyio import Path
 from pydantic import BaseModel, Field, FileUrl, HttpUrl, RootModel, field_validator, model_validator
 
 from beeai_server.domain.constants import DEFAULT_AUTO_STOP_TIMEOUT
+from beeai_server.exceptions import VersionResolveError
 from beeai_server.utils.github import GithubUrl
 
 if TYPE_CHECKING:
@@ -77,7 +78,10 @@ class GithubRegistryLocation(RootModel):
     root: GithubUrl
 
     async def load(self) -> list[ProviderRegistryRecord]:
-        resolved_url = await self.root.resolve_version()
+        try:
+            resolved_url = await self.root.resolve_version()
+        except Exception as ex:
+            raise VersionResolveError(str(self.root), str(ex)) from ex
         url = await resolved_url.get_raw_url()
         network_location = NetworkRegistryLocation(root=HttpUrl(url))
         return await network_location.load()

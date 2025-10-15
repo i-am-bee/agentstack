@@ -28,3 +28,10 @@ class ResolvedGithubUrl(BaseModel):
     version_type: GithubVersionType
     commit_hash: str
     path: str | None = None
+
+
+class ResolvedDockerImageID(BaseModel):
+    registry: str
+    repository: str
+    tag: str
+    digest: str

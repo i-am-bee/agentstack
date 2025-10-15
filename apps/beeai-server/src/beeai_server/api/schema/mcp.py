@@ -6,9 +6,9 @@ from datetime import datetime
 from pydantic import BaseModel
 
 from beeai_server.domain.models.mcp_provider import (
-    McpProviderDeploymentState,
     McpProviderLocation,
     McpProviderTransport,
+    McpProviderUnmanagedState,
 )
 
 
@@ -23,7 +23,7 @@ class McpProvider(BaseModel):
     name: str
     location: McpProviderLocation
     transport: McpProviderTransport
-    state: McpProviderDeploymentState
+    state: McpProviderUnmanagedState
 
 
 class Tool(BaseModel):

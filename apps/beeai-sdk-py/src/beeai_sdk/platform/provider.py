@@ -3,6 +3,7 @@
 
 
 import typing
+import urllib.parse
 from contextlib import asynccontextmanager
 from datetime import timedelta
 from uuid import UUID
@@ -12,6 +13,7 @@ from a2a.client import ClientConfig, ClientFactory
 from a2a.types import AgentCard
 
 from beeai_sdk.platform.client import PlatformClient, get_platform_client
+from beeai_sdk.platform.common import ResolvedDockerImageID, ResolvedGithubUrl
 from beeai_sdk.util.utils import filter_dict, parse_stream
 
 
@@ -25,18 +27,24 @@ class EnvVar(pydantic.BaseModel):
     required: bool = False
 
 
+class VersionInfo(pydantic.BaseModel):
+    docker: ResolvedDockerImageID | None = None
+    github: ResolvedGithubUrl | None = None
+
+
 class Provider(pydantic.BaseModel):
     id: str
     auto_stop_timeout: timedelta
     source: str
     origin: str
+    version_info: VersionInfo = pydantic.Field(default_factory=VersionInfo)
     registry: str | None = None
-    auto_remove: bool = False
     created_at: pydantic.AwareDatetime
     updated_at: pydantic.AwareDatetime
     last_active_at: pydantic.AwareDatetime
     agent_card: AgentCard
-    state: typing.Literal["missing", "starting", "ready", "running", "error"] = "missing"
+    state: typing.Literal["missing", "starting", "ready", "running", "error", "online", "offline"] = "missing"
+    managed: bool
     last_error: ProviderErrorMessage | None = None
     created_by: UUID
     missing_configuration: list[EnvVar] = pydantic.Field(default_factory=list)
@@ -46,7 +54,6 @@ class Provider(pydantic.BaseModel):
         *,
         location: str,
         agent_card: AgentCard | None = None,
-        auto_remove: bool = False,
         origin: str | None = None,
         auto_stop_timeout: timedelta | None = None,
         variables: dict[str, str] | None = None,
@@ -68,7 +75,6 @@ class Provider(pydantic.BaseModel):
                                 "auto_stop_timeout_sec": auto_stop_timeout_sec,
                             }
                         ),
-                        params={"auto_remove": auto_remove},
                     )
                 )
                 .raise_for_status()
@@ -80,7 +86,6 @@ class Provider(pydantic.BaseModel):
         *,
         location: str | None = None,
         agent_card: AgentCard | None = None,
-        auto_remove: bool = False,
         origin: str | None = None,
         auto_stop_timeout: timedelta | None = None,
         variables: dict[str, str] | None = None,
@@ -103,15 +108,7 @@ class Provider(pydantic.BaseModel):
 
         async with client or get_platform_client() as client:
             return pydantic.TypeAdapter(Provider).validate_python(
-                (
-                    await client.patch(
-                        url=f"/api/v1/providers/{provider_id}",
-                        json=payload,
-                        params={"auto_remove": auto_remove},
-                    )
-                )
-                .raise_for_status()
-                .json()
+                (await client.patch(url=f"/api/v1/providers/{provider_id}", json=payload)).raise_for_status().json()
             )
 
     @asynccontextmanager
@@ -152,6 +149,15 @@ class Provider(pydantic.BaseModel):
             self.__dict__.update(result.__dict__)
             return self
         return result
+
+    @staticmethod
+    async def get_by_location(*, location: str, client: PlatformClient | None = None) -> "Provider":
+        async with client or get_platform_client() as client:
+            return pydantic.TypeAdapter(Provider).validate_json(
+                (await client.get(url=f"/api/v1/providers/by-location/{urllib.parse.quote(location, safe='')}"))
+                .raise_for_status()
+                .content
+            )
 
     async def delete(self: "Provider | str", *, client: PlatformClient | None = None) -> None:
         # `self` has a weird type so that you can call both `instance.delete()` or `Provider.delete("123")`
@@ -196,8 +202,16 @@ class Provider(pydantic.BaseModel):
             return result.raise_for_status().json()["variables"]
 
     @staticmethod
-    async def list(*, client: PlatformClient | None = None) -> list["Provider"]:
+    async def list(*, origin: str | None = None, client: PlatformClient | None = None) -> list["Provider"]:
         async with client or get_platform_client() as client:
+            params = {"origin": origin} if origin else None
             return pydantic.TypeAdapter(list[Provider]).validate_python(
-                (await client.get(url="/api/v1/providers")).raise_for_status().json()["items"]
+                (
+                    await client.get(
+                        url="/api/v1/providers",
+                        params=params,
+                    )
+                )
+                .raise_for_status()
+                .json()["items"]
             )

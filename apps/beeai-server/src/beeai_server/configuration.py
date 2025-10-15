@@ -135,7 +135,6 @@ class AuthConfiguration(BaseModel):
 class McpConfiguration(BaseModel):
     gateway_endpoint_url: AnyUrl = AnyUrl("http://forge-svc:4444")
     toolkit_expiration_seconds: int = 24 * 60 * 60  # TODO bind to context together with vector stores
-    auto_remove_enabled: bool = False
 
 
 class ObjectStorageConfiguration(BaseModel):
@@ -213,7 +212,6 @@ class DockerConfigJson(BaseModel):
 
 
 class ManagedProviderConfiguration(BaseModel):
-    auto_remove_enabled: bool = False
     manifest_template_dir: Path | None = None
     self_registration_use_local_network: bool = Field(
         default=False,

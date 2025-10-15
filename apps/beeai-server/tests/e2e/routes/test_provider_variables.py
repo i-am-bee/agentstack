@@ -5,16 +5,18 @@ import pytest
 from a2a.types import AgentCapabilities, AgentCard
 from beeai_sdk.platform import Provider
 
+from tests.conftest import TestConfiguration
+
 pytestmark = pytest.mark.e2e
 
 
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
-async def test_provider_variables(subtests):
+async def test_provider_variables(subtests, test_configuration: TestConfiguration):
     """Test provider environment variables operations."""
 
     # First create a real test provider
     provider = await Provider.create(
-        location="ghcr.io/test-image:0.0.1",
+        location=test_configuration.test_agent_image,
         agent_card=AgentCard(
             capabilities=AgentCapabilities(),
             default_input_modes=[],
