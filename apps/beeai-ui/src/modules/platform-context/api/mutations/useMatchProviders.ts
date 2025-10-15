@@ -4,7 +4,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import type { EmbeddingDemands, LLMDemand } from 'beeai-sdk';
+import type { EmbeddingDemands, LLMDemands } from 'beeai-sdk';
 import { useEffect } from 'react';
 
 import { useApp } from '#contexts/App/index.ts';
@@ -17,7 +17,7 @@ const MAX_PROVIDERS = 5;
 type MatchProvidersResult = Record<string, string[]>;
 
 interface Props {
-  demands: EmbeddingDemands['embedding_demands'] | LLMDemand['llm_demands'];
+  demands: EmbeddingDemands['embedding_demands'] | LLMDemands['llm_demands'];
   onSuccess: (data: MatchProvidersResult) => void;
   capability: ModelCapability;
 }

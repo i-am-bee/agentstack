@@ -9,8 +9,8 @@ import type {
   EmbeddingDemands,
   EmbeddingFulfillments,
   FormRender,
-  LLMDemand,
-  LLMFulfillment,
+  LLMDemands,
+  LLMFulfillments,
   MCPDemand,
   MCPFulfillment,
   OAuthDemand,
@@ -79,7 +79,7 @@ export interface ChatRun<UIGenericPart = never> {
 
 export interface Fulfillments {
   mcp: (demand: MCPDemand) => Promise<MCPFulfillment | null>;
-  llm: (demand: LLMDemand) => Promise<LLMFulfillment>;
+  llm: (demand: LLMDemands) => Promise<LLMFulfillments>;
   oauth: (demand: OAuthDemand) => Promise<OAuthFulfillment | null>;
   getContextToken: () => ContextToken;
   embedding: (demand: EmbeddingDemands) => Promise<EmbeddingFulfillments>;

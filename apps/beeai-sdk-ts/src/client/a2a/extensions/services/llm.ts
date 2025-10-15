@@ -17,7 +17,7 @@ const llmDemandSchema = z.object({
 const llmDemandsSchema = z.object({
   llm_demands: z.record(z.string(), llmDemandSchema),
 });
-export type LLMDemand = z.infer<typeof llmDemandsSchema>;
+export type LLMDemands = z.infer<typeof llmDemandsSchema>;
 
 const llmFulfillmentSchema = z.object({
   llm_fulfillments: z.record(
@@ -30,9 +30,9 @@ const llmFulfillmentSchema = z.object({
     }),
   ),
 });
-export type LLMFulfillment = z.infer<typeof llmFulfillmentSchema>;
+export type LLMFulfillments = z.infer<typeof llmFulfillmentSchema>;
 
-export const llmExtension: A2AServiceExtension<typeof URI, z.infer<typeof llmDemandsSchema>, LLMFulfillment> = {
+export const llmExtension: A2AServiceExtension<typeof URI, z.infer<typeof llmDemandsSchema>, LLMFulfillments> = {
   getUri: () => URI,
   getDemandsSchema: () => llmDemandsSchema,
   getFulfillmentSchema: () => llmFulfillmentSchema,
