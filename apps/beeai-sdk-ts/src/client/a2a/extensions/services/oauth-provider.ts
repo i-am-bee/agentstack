@@ -16,7 +16,7 @@ const oauthDemandSchema = z.object({
 const oauthDemandsSchema = z.object({
   oauth_demands: z.record(z.string(), oauthDemandSchema),
 });
-export type OAuthDemand = z.infer<typeof oauthDemandsSchema>;
+export type OAuthDemands = z.infer<typeof oauthDemandsSchema>;
 
 const oauthFulfillmentSchema = z.object({
   oauth_fulfillments: z.record(
@@ -26,7 +26,7 @@ const oauthFulfillmentSchema = z.object({
     }),
   ),
 });
-export type OAuthFulfillment = z.infer<typeof oauthFulfillmentSchema>;
+export type OAuthFulfillments = z.infer<typeof oauthFulfillmentSchema>;
 
 export const oauthProviderExtension: A2AServiceExtension<
   typeof URI,

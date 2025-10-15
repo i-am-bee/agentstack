@@ -28,12 +28,12 @@ const secretFulfillmentSchema = z.object({
     }),
   ),
 });
-export type SecretFulfillment = z.infer<typeof secretFulfillmentSchema>;
+export type SecretFulfillments = z.infer<typeof secretFulfillmentSchema>;
 
 export const secretsExtension: A2AServiceExtension<
   typeof URI,
   z.infer<typeof secretDemandsSchema>,
-  SecretFulfillment
+  SecretFulfillments
 > = {
   getUri: () => URI,
   getDemandsSchema: () => secretDemandsSchema,

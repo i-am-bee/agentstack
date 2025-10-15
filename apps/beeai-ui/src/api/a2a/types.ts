@@ -13,10 +13,10 @@ import type {
   LLMFulfillments,
   MCPDemands,
   MCPFulfillments,
-  OAuthDemand,
-  OAuthFulfillment,
+  OAuthDemands,
+  OAuthFulfillments,
   SecretDemands,
-  SecretFulfillment,
+  SecretFulfillments,
 } from 'beeai-sdk';
 
 import type { UIMessagePart, UIUserMessage } from '#modules/messages/types.ts';
@@ -80,10 +80,10 @@ export interface ChatRun<UIGenericPart = never> {
 export interface Fulfillments {
   mcp: (demand: MCPDemands) => Promise<MCPFulfillments | null>;
   llm: (demand: LLMDemands) => Promise<LLMFulfillments>;
-  oauth: (demand: OAuthDemand) => Promise<OAuthFulfillment | null>;
+  oauth: (demand: OAuthDemands) => Promise<OAuthFulfillments | null>;
   getContextToken: () => ContextToken;
   embedding: (demand: EmbeddingDemands) => Promise<EmbeddingFulfillments>;
-  secrets: (demand: SecretDemands, runtimeFullfilledDemands?: AgentRequestSecrets) => Promise<SecretFulfillment>;
+  secrets: (demand: SecretDemands, runtimeFullfilledDemands?: AgentRequestSecrets) => Promise<SecretFulfillments>;
 }
 
 export type AgentA2AClient<UIGenericPart = never> = Awaited<ReturnType<typeof buildA2AClient<UIGenericPart>>>;
