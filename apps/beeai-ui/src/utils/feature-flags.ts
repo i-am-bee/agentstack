@@ -13,6 +13,7 @@ const featureFlagsSchema = z.strictObject({
   ModelProviders: booleanProp(true),
   MCPOAuth: booleanProp(true),
   MCP: booleanProp(),
+  LocalSetup: booleanProp(),
 });
 
 export type FeatureFlags = z.infer<typeof featureFlagsSchema>;

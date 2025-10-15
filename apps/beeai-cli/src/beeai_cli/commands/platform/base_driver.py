@@ -115,6 +115,7 @@ class BaseDriver(abc.ABC):
             "features": {
                 "uiNavigation": True,
                 "selfRegistration": True,
+                "localSetup": True,
                 "generateConversationTitle": False,  # TODO: enable when UI implementation is ready
             },
             "auth": {"enabled": False},

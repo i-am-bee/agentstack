@@ -24,7 +24,7 @@ interface Props {
 
 export function useMatchProviders({ demands, onSuccess, capability }: Props) {
   const {
-    config: { featureFlags, isAuthEnabled },
+    config: { featureFlags },
   } = useApp();
 
   const demandKey = Object.entries(demands)
@@ -58,7 +58,7 @@ export function useMatchProviders({ demands, onSuccess, capability }: Props) {
     meta: {
       errorToast: {
         title: 'Model providers query failed',
-        message: !isAuthEnabled ? 'Have you configured providers by running `beeai model setup`?' : undefined,
+        message: featureFlags.LocalSetup ? 'Have you configured providers by running `beeai model setup`?' : undefined,
         includeErrorMessage: true,
       },
     },

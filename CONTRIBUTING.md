@@ -117,7 +117,6 @@ oidc:
   admin_emails: "a comma separated list of email addresses"
   nextauth_trust_host: true
   nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
-  providers_path: "/providers"
   nextauth_url: "http://localhost:8336"
   nextauth_providers: [
     {

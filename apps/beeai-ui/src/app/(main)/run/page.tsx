@@ -6,6 +6,8 @@
 import { notFound } from 'next/navigation';
 
 import { handleApiError } from '#app/(auth)/rsc.tsx';
+import { ErrorPage } from '#components/ErrorPage/ErrorPage.tsx';
+import { runtimeConfig } from '#contexts/App/runtime-config.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { buildAgent } from '#modules/agents/utils.ts';
 import { readConfigurationsSystem } from '#modules/configurations/api/index.ts';
@@ -41,13 +43,16 @@ export default async function AgentRunPage({ searchParams }: Props) {
     notFound();
   }
 
-  try {
-    const config = await readConfigurationsSystem();
-    if (!config?.default_llm_model) {
-      return <NoModelSelectedErrorPage />;
+  if (runtimeConfig.featureFlags.LocalSetup) {
+    try {
+      const config = await readConfigurationsSystem();
+      if (!config?.default_llm_model) {
+        return <NoModelSelectedErrorPage />;
+      }
+    } catch (error) {
+      await handleApiError(error);
+      return <ErrorPage message="There was an error loading system configuration." />;
     }
-  } catch (error) {
-    await handleApiError(error);
   }
 
   let initialData: ListContextHistoryResponse | undefined;
