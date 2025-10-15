@@ -8,7 +8,7 @@ import type { ServerSentEventMessage } from 'fetch-event-stream';
 import type { FetchResponse } from 'openapi-fetch';
 import type { MediaType } from 'openapi-typescript-helpers';
 
-import type { AgentExtension } from '#modules/agents/api/types.ts';
+import type { Agent } from '#modules/agents/api/types.ts';
 import { NEXTAUTH_URL, TRUST_PROXY_HEADERS } from '#utils/constants.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
@@ -85,8 +85,15 @@ export async function fetchEntity<T>(fetchFn: () => Promise<T>): Promise<T | und
   }
 }
 
-export function agentExtensionGuard(agentExtension: AgentExtension): agentExtension is A2AAgentExtension {
-  return agentExtension.description !== null && agentExtension.params !== null && agentExtension.required !== null;
+export function getAgentExtensions(agent?: Agent): A2AAgentExtension[] {
+  return (
+    agent?.capabilities.extensions?.map(({ description, params, required, ...rest }) => ({
+      ...rest,
+      description: description ?? undefined,
+      params: params ?? undefined,
+      required: required !== null ? required : undefined,
+    })) ?? []
+  );
 }
 
 export async function getProxyHeaders(headers: Headers, url?: URL) {

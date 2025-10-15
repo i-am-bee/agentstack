@@ -12,7 +12,7 @@ import { match } from 'ts-pattern';
 import { v4 as uuid } from 'uuid';
 
 import type { AgentA2AClient, ChatRun } from '#api/a2a/types.ts';
-import { agentExtensionGuard, getErrorCode } from '#api/utils.ts';
+import { getAgentExtensions, getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 import { usePrevious } from '#hooks/usePrevious.ts';
 import { useUpdateSearchParams } from '#hooks/useUpdateSearchParams.ts';
@@ -41,7 +41,7 @@ export function ComposeProvider({ children }: PropsWithChildren) {
 
   const { agentClient } = useBuildA2AClient({
     providerId: sequentialAgent?.provider.id,
-    extensions: (sequentialAgent?.capabilities.extensions ?? []).filter(agentExtensionGuard),
+    extensions: getAgentExtensions(sequentialAgent),
     onStatusUpdate: handleTaskStatusUpdate,
   });
 

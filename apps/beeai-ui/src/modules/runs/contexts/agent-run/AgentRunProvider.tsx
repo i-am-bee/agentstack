@@ -13,7 +13,7 @@ import { v4 as uuid } from 'uuid';
 
 import { type AgentA2AClient, type ChatRun, RunResultType } from '#api/a2a/types.ts';
 import { createTextPart } from '#api/a2a/utils.ts';
-import { agentExtensionGuard, getErrorCode } from '#api/utils.ts';
+import { getAgentExtensions, getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { FileUploadProvider } from '#modules/files/contexts/FileUploadProvider.tsx';
@@ -52,7 +52,7 @@ interface Props {
 export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>) {
   const { agentClient } = useBuildA2AClient({
     providerId: agent.provider.id,
-    extensions: (agent.capabilities.extensions ?? []).filter(agentExtensionGuard),
+    extensions: getAgentExtensions(agent),
   });
 
   useEnsurePlatformContext(agent);
