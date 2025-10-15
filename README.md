@@ -96,7 +96,7 @@ You should see: "Ciao Alice!" 🎉
 
 ## Reference Agents
 
-Reference implementations demonstrating BeeAI Framework and BeeAI SDK capabilities.
+Reference implementations demonstrating core BeeAI capabilities.
 
 - [BeeAI Showcase Agent](https://github.com/jenna-winkler/beeai-showcase-agent) - Full-featured chat assistant demonstrating RequirementAgent with conditional tool use, web search (DuckDuckGo), advanced reasoning (ThinkTool), file handling (PDF/CSV/JSON), streaming, UI feature toggles, trajectory logging, and citation extraction.
 - [Serper Search Agent](https://github.com/jenna-winkler/serper-search-agent) - Web search agent showing runtime secrets management (Secrets Extension), custom tool creation (SerperSearchTool), automatic query term extraction, and structured results with citations.
