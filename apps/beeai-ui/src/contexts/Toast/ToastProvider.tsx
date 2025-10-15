@@ -94,16 +94,27 @@ function ElapsedTime({ date }: { date: Date }) {
 
   useEffect(() => {
     const interval = setInterval(() => {
+      if (Date.now() - date.getTime() > MAX_REFRESH_INTERVAL_DURATION) {
+        clearInterval(interval);
+      }
       setTick((tick) => tick + 1);
     }, TIME_REFRESH_INTERVAL);
     return () => clearInterval(interval);
-  }, []);
+  }, [date]);
 
-  if (Date.now() - date.getTime() < 5_000) {
-    return 'Just now';
-  }
+  const millisecondsAgo = Date.now() - date.getTime();
 
-  return formatDistanceToNow(date, { addSuffix: true, includeSeconds: true });
+  return (
+    <time dateTime={date.toISOString()}>
+      {millisecondsAgo < JUST_NOW
+        ? 'Just now'
+        : millisecondsAgo > MAX_REFRESH_INTERVAL_DURATION
+          ? 'More than an hour ago'
+          : formatDistanceToNow(date, { addSuffix: true, includeSeconds: true })}
+    </time>
+  );
 }
 
-const TIME_REFRESH_INTERVAL = 10_000; // 10 seconds
+const JUST_NOW = 5_000; // 5 seconds
+const TIME_REFRESH_INTERVAL = 1_000; // 10 seconds
+const MAX_REFRESH_INTERVAL_DURATION = 3_600_000; // 1 hour
