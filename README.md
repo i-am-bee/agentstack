@@ -21,6 +21,7 @@
 <p align="center">
     <a href="#key-features">Key Features</a> •
     <a href="#quickstart">Quickstart</a> •
+    <a href="#reference-agents">Reference Agents</a> •
     <a href="#documentation">Documentation</a>
 </p>
 
@@ -48,6 +49,8 @@ Built on the [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) and hosted 
 | 🚀 Effortless Deployment | Go from container to production-ready. We handle database, storage, scaling, and RAG so you can focus on your agent. |
 | 🔄 Multi-Provider Playground | Test across OpenAI, Anthropic, Gemini, IBM watsonx, Ollama and more. Instantly compare performance and cost to find the optimal model. |
 | 🔧 Framework-Agnostic | Run agents from LangChain, CrewAI, BeeAI and more on a single platform. Enable cross-framework collaboration without rewriting your code. |
+
+---
 
 ## Quickstart
 
@@ -88,6 +91,32 @@ You should see: "Ciao Alice!" 🎉
 
 > [!TIP]
 > Follow the [Hello World tutorial](https://docs.beeai.dev/introduction/hello-world) for a step-by-step guide to building your first agent.
+
+---
+
+## Reference Agents
+
+Reference implementations demonstrating BeeAI Framework and BeeAI SDK capabilities.
+
+- [BeeAI Showcase Agent](https://github.com/jenna-winkler/beeai-showcase-agent) - Full-featured chat assistant demonstrating RequirementAgent with conditional tool execution, web search (DuckDuckGo), advanced reasoning (ThinkTool), file processing (PDF/CSV/JSON), streaming responses, UI settings (toggle features and response style), trajectory logging, and citation extraction from search results
+- [Serper Search Agent](https://github.com/jenna-winkler/serper-search-agent) - Intelligent web search agent showcasing runtime secrets management with the Secrets Extension, custom tool creation (SerperSearchTool), automatic search term extraction from natural language queries, and structured result formatting with citations
+- [GitHub Issue Writer](https://github.com/jenna-winkler/github_issue_writer) - Single-turn workflow agent demonstrating the Form Extension with multi-field input collection (text fields, multi-select options), AI-enhanced issue generation using ThinkTool for structured thinking, and professional markdown formatting for GitHub issues
+- [Chat Agent](https://github.com/i-am-bee/beeai-platform/tree/main/agents/chat) - Multi-turn conversational agent with RequirementAgent architecture, ActTool for enforced reasoning sequences, ClarificationTool for handling ambiguous requests, integrated tools (DuckDuckGo search, Wikipedia, OpenMeteo weather, file operations), UnconstrainedMemory for full conversation history, streaming responses, automatic citation extraction from markdown links, and OpenTelemetry instrumentation
+- [Form Agent](https://github.com/i-am-bee/beeai-platform/tree/main/agents/form) - Single-turn form-based interaction demonstrating Form Extension with multi-field input collection (TextField, DateField, FileField, CheckboxField, MultiSelectField), customizable form layouts with column spans, file upload support with MIME type restrictions, default values and validation, and structured data parsing from form submissions
+- [RAG Agent](https://github.com/i-am-bee/beeai-platform/tree/main/agents/rag) - Retrieval-Augmented Generation agent supporting 12+ file formats (PDF, DOCX, XLSX, PPTX, images), dynamic vector store creation with embedding models, VectorSearchTool for semantic search within documents, FileReaderTool for complete document summaries, intelligent tool selection logic (vector search for targeted queries vs. file reader for full summaries), and citation tracking with document URLs
+- [OAuth Agent](https://github.com/i-am-bee/beeai-platform/blob/main/apps/beeai-sdk-py/examples/oauth.py) - Authentication flow demonstration using OAuth Extension with MCP integration, browser-based authorization flow with local redirect handling, secure token management, and Stripe MCP server integration showcasing authenticated external service access
+- [Dynamic Form Request Agent] - Multi-step form workflow demonstrating both initial static form presented at conversation start followed by a mid-conversation dynamic form request via `await form.request_form()` that presents a second form, showcasing conditional form flows where the agent decides what additional information to collect based on initial responses
+
+## Community Agents
+
+A growing collection of community-built agents showcasing various use cases and integrations.
+
+> [!NOTE]
+> Community agents are maintained by their respective authors. Please review each agent's documentation before use.
+
+- Coming soon! Share your agent in our [Discord](https://discord.com/invite/NradeA6ZNF) to be featured.
+
+---
 
 ## Documentation
 
