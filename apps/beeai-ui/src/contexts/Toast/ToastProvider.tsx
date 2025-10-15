@@ -5,8 +5,9 @@
 
 import { Button, ToastNotification } from '@carbon/react';
 import clsx from 'clsx';
+import { formatDistanceToNow } from 'date-fns';
 import type { PropsWithChildren } from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
 import type { Toast, ToastWithKey } from './toast-context';
@@ -23,11 +24,7 @@ export function ToastProvider({ children }: PropsWithChildren) {
           lowContrast: true,
           timeout: 10000,
           key: uuid(),
-          caption: new Date().toLocaleString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-          }),
+          date: new Date(),
         };
         return [{ ...defaults, ...toast }, ...existing];
       });
@@ -49,33 +46,64 @@ export function ToastProvider({ children }: PropsWithChildren) {
           </div>
         )}
 
-        {toasts.map(({ key, icon: Icon, caption, title, subtitle, apiError, inlineIcon, ...toast }) => (
-          <ToastNotification
-            key={key}
-            {...toast}
+        {toasts.map((toast) => (
+          <Toast
+            key={toast.key}
+            toast={toast}
             onClose={() => {
-              setToasts((existing) => existing.filter((toast) => toast.key !== key));
+              setToasts((existing) => existing.filter(({ key }) => key !== toast.key));
             }}
-            className={clsx({
-              'cds--toast-notification--custom-icon': Icon,
-              'cds--toast-notification--inline-icon': inlineIcon,
-            })}
-          >
-            {Icon && <Icon className="cds--toast-notification__icon" />}
-
-            {caption && <div className="cds--toast-notification__caption">{caption}</div>}
-
-            {title && <div className="cds--toast-notification__title">{title}</div>}
-
-            {(subtitle || apiError) && (
-              <div className="cds--toast-notification__subtitle">
-                {subtitle && <div className={classes.subtitle}>{subtitle}</div>}
-                {apiError && <div className={classes.apiError}>{apiError}</div>}
-              </div>
-            )}
-          </ToastNotification>
+          />
         ))}
       </div>
     </ToastContext.Provider>
   );
 }
+
+function Toast({ toast, onClose }: { toast: ToastWithKey; onClose: () => void }) {
+  const { key, icon: Icon, date, title, subtitle, apiError, inlineIcon, hideTimeElapsed, ...otherProps } = toast;
+
+  return (
+    <ToastNotification
+      key={key}
+      {...otherProps}
+      onClose={onClose}
+      className={clsx({
+        'cds--toast-notification--custom-icon': Boolean(Icon),
+        'cds--toast-notification--inline-icon': Boolean(inlineIcon),
+      })}
+    >
+      {Icon && <Icon className="cds--toast-notification__icon" />}
+
+      <div className="cds--toast-notification__caption">{!hideTimeElapsed && date && <ElapsedTime date={date} />}</div>
+
+      {title && <div className="cds--toast-notification__title">{title}</div>}
+
+      {(subtitle || apiError) && (
+        <div className="cds--toast-notification__subtitle">
+          {subtitle && <div className={classes.subtitle}>{subtitle}</div>}
+          {apiError && <div className={classes.apiError}>{apiError}</div>}
+        </div>
+      )}
+    </ToastNotification>
+  );
+}
+
+function ElapsedTime({ date }: { date: Date }) {
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick((tick) => tick + 1);
+    }, TIME_REFRESH_INTERVAL);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (Date.now() - date.getTime() < 5_000) {
+    return 'Just now';
+  }
+
+  return formatDistanceToNow(date, { addSuffix: true, includeSeconds: true });
+}
+
+const TIME_REFRESH_INTERVAL = 10_000; // 10 seconds

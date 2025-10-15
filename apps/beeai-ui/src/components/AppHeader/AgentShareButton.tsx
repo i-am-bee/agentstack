@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Share } from '@carbon/icons-react';
+import { Link, Share } from '@carbon/icons-react';
 import { Button } from '@carbon/react';
 import { useCopyToClipboard } from 'usehooks-ts';
 
@@ -21,7 +21,7 @@ export function AgentShareButton({ agent }: Props) {
 
   const handleShare = () => {
     copy(`${window.location.origin}${routes.agentRun({ providerId: agent.provider.id })}`);
-    addToast({ kind: 'info', title: 'Link has been copied to clipboard!' });
+    addToast({ kind: 'info', subtitle: 'Link has been copied to clipboard!', icon: Link });
   };
 
   return (

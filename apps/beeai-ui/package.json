@@ -25,6 +25,7 @@
     "beeai-sdk": "workspace:*",
     "cacheable": "2.1.0",
     "clsx": "catalog:",
+    "date-fns": "4.1.0",
     "fetch-event-stream": "^0.1.5",
     "framer-motion": "^12.23.21",
     "humanize-duration": "^3.33.1",
