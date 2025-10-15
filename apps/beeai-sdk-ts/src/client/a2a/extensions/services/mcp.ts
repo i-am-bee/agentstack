@@ -21,7 +21,7 @@ const mcpDemandSchema = z.object({
 const mcpDemandsSchema = z.object({
   mcp_demands: z.record(z.string(), mcpDemandSchema),
 });
-export type MCPDemand = z.infer<typeof mcpDemandsSchema>;
+export type MCPDemands = z.infer<typeof mcpDemandsSchema>;
 
 const mcpFulfillmentSchema = z.object({
   mcp_fulfillments: z.record(
@@ -34,7 +34,7 @@ const mcpFulfillmentSchema = z.object({
     }),
   ),
 });
-export type MCPFulfillment = z.infer<typeof mcpFulfillmentSchema>;
+export type MCPFulfillments = z.infer<typeof mcpFulfillmentSchema>;
 
 export const mcpExtension: A2AServiceExtension<
   typeof URI,

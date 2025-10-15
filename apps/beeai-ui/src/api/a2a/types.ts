@@ -11,8 +11,8 @@ import type {
   FormRender,
   LLMDemands,
   LLMFulfillments,
-  MCPDemand,
-  MCPFulfillment,
+  MCPDemands,
+  MCPFulfillments,
   OAuthDemand,
   OAuthFulfillment,
   SecretDemands,
@@ -78,7 +78,7 @@ export interface ChatRun<UIGenericPart = never> {
 }
 
 export interface Fulfillments {
-  mcp: (demand: MCPDemand) => Promise<MCPFulfillment | null>;
+  mcp: (demand: MCPDemands) => Promise<MCPFulfillments | null>;
   llm: (demand: LLMDemands) => Promise<LLMFulfillments>;
   oauth: (demand: OAuthDemand) => Promise<OAuthFulfillment | null>;
   getContextToken: () => ContextToken;
