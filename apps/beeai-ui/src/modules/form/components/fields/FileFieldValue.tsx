@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FileField, FormResponseValue } from 'beeai-sdk';
 import { FormGroup } from '@carbon/react';
+import type { FileField, FormResponseValue } from 'beeai-sdk';
 
 import { getFileIdFromFilePlatformUrl } from '#api/a2a/utils.ts';
 import { FileCard } from '#modules/files/components/FileCard.tsx';
