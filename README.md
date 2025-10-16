@@ -114,7 +114,10 @@ A growing collection of community-built agents showcasing various use cases and 
 > [!NOTE]
 > Community agents are maintained by their respective authors. Please review each agent's documentation before use.
 
-- Coming soon! Share your agent in our [Discord](https://discord.com/invite/NradeA6ZNF) to be featured.
+- Coming soon! You can add your agent here via a PR to be featured.
+
+> [!TIP]
+> Before contributing, please review our [Contribution Guidelines](./CONTRIBUTING.md) to ensure a smooth experience.
 
 ---
 
