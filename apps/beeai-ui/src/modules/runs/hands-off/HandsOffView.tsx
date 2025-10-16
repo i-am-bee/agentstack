@@ -39,8 +39,8 @@ function HandsOff() {
 
   // TODO: move extraction into the agent run context (or a2a client)
   const formRender = useMemo(() => {
-    const { extensions } = agent.capabilities;
-    const formRender = extensions && formExtensionExtractor(getAgentExtensions(agent));
+    const agentExtensions = getAgentExtensions(agent);
+    const formRender = formExtensionExtractor(agentExtensions);
 
     return formRender ?? undefined;
   }, [agent]);

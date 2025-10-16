@@ -86,14 +86,17 @@ export async function fetchEntity<T>(fetchFn: () => Promise<T>): Promise<T | und
 }
 
 export function getAgentExtensions(agent?: Agent): A2AAgentExtension[] {
-  return (
-    agent?.capabilities.extensions?.map(({ description, params, required, ...rest }) => ({
-      ...rest,
-      description: description ?? undefined,
-      params: params ?? undefined,
-      required: required !== null ? required : undefined,
-    })) ?? []
-  );
+  const extensions = agent?.capabilities.extensions;
+  if (!extensions) {
+    return [];
+  }
+
+  return extensions.map(({ description, params, required, ...rest }) => ({
+    ...rest,
+    description: description ?? undefined,
+    params: params ?? undefined,
+    required: required ?? undefined,
+  }));
 }
 
 export async function getProxyHeaders(headers: Headers, url?: URL) {
