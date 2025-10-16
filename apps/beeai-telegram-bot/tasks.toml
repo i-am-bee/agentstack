@@ -1,0 +1,53 @@
+# check
+
+["beeai-telegram-bot:check"]
+depends = ["beeai-telegram-bot:check:*"]
+
+["beeai-telegram-bot:check:prettier"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/beeai-telegram-bot"
+run = "pnpm prettier --log-level silent --check src"
+sources = ["src/**/*.ts"]
+outputs = { auto = true }
+
+["beeai-telegram-bot:check:eslint"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/beeai-telegram-bot"
+run = "pnpm eslint ."
+sources = ["src/**/*.ts"]
+outputs = { auto = true }
+
+["beeai-telegram-bot:check:tsc"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/beeai-telegram-bot"
+run = "pnpm tsc --noEmit -p tsconfig.check.json"
+sources = ["src/**/*.ts"]
+outputs = { auto = true }
+
+# fix
+
+["beeai-telegram-bot:fix"]
+depends = ["beeai-telegram-bot:fix:*"]
+
+["beeai-telegram-bot:fix:prettier"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/beeai-telegram-bot"
+run = "pnpm prettier --log-level silent --write src"
+sources = ["src/**/*.ts"]
+outputs = { auto = true }
+
+["beeai-telegram-bot:fix:lint"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/beeai-telegram-bot"
+run = "pnpm eslint . --fix"
+sources = ["src/**/*.ts"]
+outputs = { auto = true }
+
+# build
+
+["beeai-telegram-bot:build"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/beeai-telegram-bot"
+run = "pnpm build"
+sources = ["src/**/*", "package.json", "tsconfig.json"]
+outputs = { auto = true }

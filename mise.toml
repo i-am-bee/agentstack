@@ -43,6 +43,7 @@ includes = [
     "apps/beeai-ui/tasks.toml",
     "apps/beeai-web/tasks.toml",
     "apps/beeai-sdk-ts/tasks.toml",
+    "apps/beeai-telegram-bot/tasks.toml",
     "docs/tasks.toml",
 ]
 

@@ -3,6 +3,7 @@ packages:
   - apps/beeai-web
   - apps/lint-config
   - apps/beeai-sdk-ts
+  - apps/beeai-telegram-bot
   - docs
 
 catalog:
