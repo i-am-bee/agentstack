@@ -7,7 +7,6 @@ import { notFound } from 'next/navigation';
 
 import { LIST_CONTEXT_HISTORY_DEFAULT_QUERY } from '#modules/platform-context/api/constants.ts';
 import { fetchContextHistory } from '#modules/platform-context/api/index.ts';
-import type { ListContextHistoryResponse } from '#modules/platform-context/api/types.ts';
 import { PlatformContextProvider } from '#modules/platform-context/contexts/PlatformContextProvider.tsx';
 import { RunView } from '#modules/runs/components/RunView.tsx';
 
@@ -20,19 +19,16 @@ interface Props {
 export default async function AgentRunPage({ params }: Props) {
   const { providerId, contextId } = await params;
 
-  const agent = await fetchAgent(providerId);
-
-  let initialData: ListContextHistoryResponse | undefined;
-
-  if (contextId) {
-    initialData = await fetchContextHistory({
+  const [agent, initialData] = await Promise.all([
+    fetchAgent(providerId),
+    fetchContextHistory({
       contextId,
       query: LIST_CONTEXT_HISTORY_DEFAULT_QUERY,
-    });
+    }),
+  ]);
 
-    if (!initialData) {
-      notFound();
-    }
+  if (!initialData) {
+    notFound();
   }
 
   return (

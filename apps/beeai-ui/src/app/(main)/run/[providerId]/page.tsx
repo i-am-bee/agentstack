@@ -20,6 +20,8 @@ interface Props {
 export default async function AgentRunPage({ params }: Props) {
   const { providerId } = await params;
 
+  const agentPromise = fetchAgent(providerId);
+
   if (runtimeConfig.featureFlags.LocalSetup) {
     try {
       const config = await readConfigurationsSystem();
@@ -32,7 +34,7 @@ export default async function AgentRunPage({ params }: Props) {
     }
   }
 
-  const agent = await fetchAgent(providerId);
+  const agent = await agentPromise;
 
   return (
     <PlatformContextProvider>

@@ -5,7 +5,7 @@
 
 import type { ApiErrorCode, ApiErrorResponse, ApiValidationErrorResponse, StreamErrorResponse } from './types';
 
-abstract class CustomError extends Error {
+export class ErrorWithResponse extends Error {
   name: string;
   response?: Response;
 
@@ -19,7 +19,7 @@ abstract class CustomError extends Error {
   }
 }
 
-export class ApiError extends CustomError {
+export class ApiError extends ErrorWithResponse {
   error: ApiErrorResponse;
   code: ApiErrorCode;
 
@@ -31,7 +31,7 @@ export class ApiError extends CustomError {
   }
 }
 
-export class HttpError extends CustomError {
+export class HttpError extends ErrorWithResponse {
   code: number;
 
   constructor({ message, response }: { message?: string; response: Response }) {
@@ -41,7 +41,7 @@ export class HttpError extends CustomError {
   }
 }
 
-export class ApiValidationError extends CustomError {
+export class ApiValidationError extends ErrorWithResponse {
   error: ApiValidationErrorResponse;
 
   constructor({ error, response }: { error: ApiValidationErrorResponse; response?: Response }) {
@@ -51,7 +51,7 @@ export class ApiValidationError extends CustomError {
   }
 }
 
-export class StreamError extends CustomError {
+export class StreamError extends ErrorWithResponse {
   error: StreamErrorResponse;
   code: StreamErrorResponse['status_code'];
 
@@ -63,4 +63,4 @@ export class StreamError extends CustomError {
   }
 }
 
-export class UnauthenticatedError extends CustomError {}
+export class UnauthenticatedError extends ErrorWithResponse {}
