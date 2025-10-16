@@ -75,7 +75,11 @@ function Toast({ toast, onClose }: { toast: ToastWithKey; onClose: () => void })
     >
       {Icon && <Icon className="cds--toast-notification__icon" />}
 
-      <div className="cds--toast-notification__caption">{!hideTimeElapsed && date && <ElapsedTime date={date} />}</div>
+      {!hideTimeElapsed && date && (
+        <div className="cds--toast-notification__caption">
+          <ElapsedTime date={date} />
+        </div>
+      )}
 
       {title && <div className="cds--toast-notification__title">{title}</div>}
 
