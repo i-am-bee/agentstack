@@ -3,15 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import queryString from 'query-string';
-
 export const routes = {
   home: () => '/' as const,
   signIn: ({ callbackUrl }: { callbackUrl?: string } = {}) =>
     `/signin${callbackUrl ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ''}`,
   notFound: () => '/not-found' as const,
   agentRun: ({ providerId, contextId }: AgentRunParams) =>
-    `/run?${queryString.stringify({ p: providerId, c: contextId })}`,
+    `/run/${encodeURIComponent(providerId)}${contextId ? `/c/${encodeURIComponent(contextId)}` : ''}`,
   playground: () => '/playground' as const,
   playgroundSequential: () => '/playground/sequential' as const,
   settings: () => '/settings' as const,
