@@ -4,17 +4,20 @@
  */
 
 .root {
-  display: grid;
-  grid-template-rows: 1fr max-content;
-  justify-content: center;
   inline-size: 100%;
   block-size: 100%;
   padding-inline: $spacing-08;
   overflow-y: auto;
 }
 
+.container {
+  display: grid;
+  grid-template-rows: 1fr max-content;
+  justify-content: center;
+  block-size: 100%;
+}
+
 .content {
-  max-inline-size: rem(800px);
   display: flex;
   flex-direction: column;
   align-items: center;

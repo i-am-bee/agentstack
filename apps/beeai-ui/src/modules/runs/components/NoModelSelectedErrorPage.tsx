@@ -4,6 +4,7 @@
  */
 
 import { CopySnippet } from '#components/CopySnippet/CopySnippet.tsx';
+import { Container } from '#components/layouts/Container.tsx';
 import { ExternalLink } from '#components/MarkdownContent/components/ExternalLink.tsx';
 import { DOCUMENTATION_LINK } from '#utils/constants.ts';
 
@@ -13,22 +14,24 @@ import classes from './NoModelSelectedErrorPage.module.scss';
 export function NoModelSelectedErrorPage() {
   return (
     <div className={classes.root}>
-      <div className={classes.content}>
-        <NoModelImage />
-        <h1>
-          Oooh, buzzkill.
-          <br />
-          There is no model selected.
-        </h1>
+      <Container size="md" className={classes.container}>
+        <div className={classes.content}>
+          <NoModelImage />
+          <h1>
+            Oooh, buzzkill.
+            <br />
+            There is no model selected.
+          </h1>
 
-        <div className={classes.description}>
-          You can configure a model by running <CopySnippet className={classes.snippet}>beeai model setup</CopySnippet>{' '}
-          in your terminal.
+          <div className={classes.description}>
+            You can configure a model by running{' '}
+            <CopySnippet className={classes.snippet}>beeai model setup</CopySnippet> in your terminal.
+          </div>
         </div>
-      </div>
-      <div className={classes.footer}>
-        Need more information? Visit our <ExternalLink href={DOCUMENTATION_LINK}>documentation</ExternalLink>.
-      </div>
+        <div className={classes.footer}>
+          Need more information? Visit our <ExternalLink href={DOCUMENTATION_LINK}>documentation</ExternalLink>.
+        </div>
+      </Container>
     </div>
   );
 }
