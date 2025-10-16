@@ -36,15 +36,17 @@ async def build_provider(
                         location=DockerImageProviderLocation(root=build.destination),
                         origin=build.source,
                     )
+                    build.provider_id = provider_id
                 case AddProvider() as add_provider:
-                    await provider_service.create_provider(
+                    provider = await provider_service.create_provider(
                         user=user,
                         location=DockerImageProviderLocation(root=build.destination),
                         origin=build.source,
                         auto_stop_timeout=add_provider.auto_stop_timeout,
                         variables=add_provider.variables,
                     )
-        build.status = BuildState.COMPLETED
+                    build.provider_id = provider.id
+            build.status = BuildState.COMPLETED
     except Exception as ex:
         build.status = BuildState.FAILED
         build.error_message = f"Failed to process {build.on_complete.type} action: {ex}"

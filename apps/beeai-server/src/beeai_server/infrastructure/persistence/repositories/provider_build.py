@@ -26,6 +26,8 @@ provider_builds_table = Table(
     # The CASCADE might leave some k8s jobs orphaned without cancellation, but jobs have timeout and self-deletion
     Column("created_by", ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
     Column("status", sql_enum(BuildState), nullable=False),
+    Column("build_configuration", JSON, nullable=True),
+    Column("provider_id", SQL_UUID, ForeignKey("providers.id", ondelete="SET NULL"), nullable=True),
     Column("on_complete", JSON, nullable=False),
     Column("error_message", Text, nullable=True),
     Column("destination", String(512), nullable=False),
@@ -56,6 +58,12 @@ class SqlAlchemyProviderBuildRepository(IProviderBuildRepository):
             "status": provider_build.status,
             "created_by": provider_build.created_by,
             "on_complete": provider_build.on_complete.model_dump(mode="json"),
+            "build_configuration": (
+                provider_build.build_configuration.model_dump(mode="json")
+                if provider_build.build_configuration
+                else None
+            ),
+            "provider_id": provider_build.provider_id,
             "destination": str(provider_build.destination),
             "error_message": provider_build.error_message,
         }
@@ -69,6 +77,8 @@ class SqlAlchemyProviderBuildRepository(IProviderBuildRepository):
                 "created_at": row.created_at,
                 "created_by": row.created_by,
                 "on_complete": row.on_complete,
+                "provider_id": row.provider_id,
+                "build_configuration": row.build_configuration,
                 "status": row.status,
                 "error_message": row.error_message,
             }

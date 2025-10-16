@@ -10,13 +10,14 @@ import typing
 import uuid
 from contextlib import suppress
 from datetime import timedelta
+from pathlib import Path
 
 import anyio
 import anyio.abc
 import typer
 from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from anyio import open_process
-from beeai_sdk.platform import AddProvider
+from beeai_sdk.platform import AddProvider, BuildConfiguration, Provider, UpdateProvider
 from beeai_sdk.platform.provider_build import BuildState, ProviderBuild
 from httpx import AsyncClient, HTTPError
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, wait_fixed
@@ -137,13 +138,38 @@ async def server_side_build_experimental(
     github_url: typing.Annotated[
         str, typer.Argument(..., help="Github repository URL (public or private if supported by the platform instance)")
     ],
+    dockerfile: typing.Annotated[
+        str | None, typer.Option(help="Use custom dockerfile path, relative to github url sub-path")
+    ] = None,
+    replace: typing.Annotated[
+        str | None, typer.Option(help="Short ID, agent name or part of the provider location")
+    ] = None,
     add: typing.Annotated[bool, typer.Option(help="Add agent to the platform after build")] = False,
 ):
     """EXPERIMENTAL: Build agent from github repository in the platform."""
+    from beeai_cli.commands.agent import select_provider
     from beeai_cli.configuration import Configuration
 
+    if replace and add:
+        raise ValueError("Cannot specify both replace and add options.")
+
+    build_configuration = None
+    if dockerfile:
+        build_configuration = BuildConfiguration(dockerfile_path=Path(dockerfile))
+
     async with Configuration().use_platform_client():
-        build = await ProviderBuild.create(location=github_url, on_complete=AddProvider() if add else None)
+        on_complete = None
+        if replace:
+            provider = select_provider(replace, await Provider.list())
+            on_complete = UpdateProvider(provider_id=uuid.UUID(provider.id))
+        elif add:
+            on_complete = AddProvider()
+
+        build = await ProviderBuild.create(
+            location=github_url,
+            on_complete=on_complete,
+            build_configuration=build_configuration,
+        )
         async for message in build.stream_logs():
             print_log(message, ansi_mode=True)
         build = await build.get()
@@ -154,4 +180,5 @@ async def server_side_build_experimental(
                 message = f"Agent built successfully, add it to the platform using: [green]beeai add {build.destination}[/green]"
             console.success(message)
         else:
-            console.error("Agent build failed, see logs above for details.")
+            error = build.error_message or "see logs above for details"
+            console.error(f"Agent build failed: {error}")

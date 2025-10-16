@@ -59,7 +59,7 @@ spec:
           image: ghcr.io/kaniko-build/dist/chainguard-dev-kaniko/executor:v1.25.2-slim
           args:
             - --context=/workspace
-            - --dockerfile=Dockerfile
+            - "--dockerfile=/workspace/{{ dockerfile_path }}"
             - --no-push
             - --tar-path=/tmp/image.tar
           volumeMounts:

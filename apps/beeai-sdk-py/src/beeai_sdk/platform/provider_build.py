@@ -5,10 +5,12 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from datetime import timedelta
 from enum import StrEnum
+from pathlib import Path
 from typing import Any, Literal, TypeAlias
 from uuid import UUID
 
 import pydantic
+from pydantic import Field
 
 from beeai_sdk.platform.client import PlatformClient, get_platform_client
 from beeai_sdk.platform.common import PaginatedResult, ResolvedGithubUrl
@@ -53,6 +55,16 @@ class NoAction(pydantic.BaseModel):
     type: Literal["no_action"] = "no_action"
 
 
+class BuildConfiguration(pydantic.BaseModel):
+    dockerfile_path: Path | None = Field(
+        default=None,
+        description=(
+            "Path to Dockerfile relative to the repository path "
+            "(provider_build.source.path or repository root if not defined)"
+        ),
+    )
+
+
 OnCompleteAction: TypeAlias = AddProvider | UpdateProvider | NoAction
 
 
@@ -62,12 +74,18 @@ class ProviderBuild(pydantic.BaseModel):
     status: BuildState
     source: ResolvedGithubUrl
     destination: str
+    provider_id: str | None = None
+    build_configuration: BuildConfiguration | None = None
     created_by: str
     error_message: str | None = None
 
     @staticmethod
     async def create(
-        *, location: str, client: PlatformClient | None = None, on_complete: OnCompleteAction | None = None
+        *,
+        location: str,
+        client: PlatformClient | None = None,
+        on_complete: OnCompleteAction | None = None,
+        build_configuration: BuildConfiguration | None = None,
     ) -> ProviderBuild:
         on_complete = on_complete or NoAction()
         async with client or get_platform_client() as client:
@@ -75,7 +93,13 @@ class ProviderBuild(pydantic.BaseModel):
                 (
                     await client.post(
                         url="/api/v1/provider_builds",
-                        json={"location": location, "on_complete": on_complete.model_dump(exclude_none=True)},
+                        json={
+                            "location": location,
+                            "on_complete": on_complete.model_dump(exclude_none=True, mode="json"),
+                            "build_configuration": build_configuration.model_dump(exclude_none=True, mode="json")
+                            if build_configuration
+                            else None,
+                        },
                     )
                 )
                 .raise_for_status()

@@ -18,6 +18,7 @@ from beeai_server.api.schema.common import PaginationQuery
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.common import PaginatedResult
 from beeai_server.domain.models.provider_build import (
+    BuildConfiguration,
     BuildState,
     NoAction,
     OnCompleteAction,
@@ -79,7 +80,11 @@ class ProviderBuildService:
         )
 
     async def create_build(
-        self, location: GithubUrl, user: User, on_complete: OnCompleteAction | None = None
+        self,
+        location: GithubUrl,
+        user: User,
+        on_complete: OnCompleteAction | None = None,
+        build_configuration: BuildConfiguration | None = None,
     ) -> ProviderBuild:
         from beeai_server.jobs.tasks.provider_build import build_provider as task
 
@@ -91,6 +96,7 @@ class ProviderBuildService:
             destination=destination,
             created_by=user.id,
             on_complete=on_complete or NoAction(),
+            build_configuration=build_configuration,
         )
         async with self._uow() as uow:
             match on_complete:

@@ -3,6 +3,7 @@
 import logging
 from datetime import timedelta
 from enum import StrEnum
+from pathlib import Path
 from typing import Literal
 from uuid import UUID, uuid4
 
@@ -65,12 +66,24 @@ class NoAction(BaseModel):
 type OnCompleteAction = AddProvider | UpdateProvider | NoAction
 
 
+class BuildConfiguration(BaseModel):
+    dockerfile_path: Path | None = Field(
+        default=None,
+        description=(
+            "Path to Dockerfile relative to the repository path "
+            "(provider_build.source.path or repository root if not defined)"
+        ),
+    )
+
+
 class ProviderBuild(BaseModel):
     id: UUID = Field(default_factory=uuid4)
     created_at: AwareDatetime = Field(default_factory=utc_now)
     status: BuildState
     source: ResolvedGithubUrl
     destination: DockerImageID
+    build_configuration: BuildConfiguration | None = None
+    provider_id: UUID | None = Field(default=None, description="ID of the provider added or modified by this build")
     created_by: UUID
     on_complete: OnCompleteAction = NoAction()
     error_message: str | None = None

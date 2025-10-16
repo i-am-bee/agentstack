@@ -101,6 +101,10 @@ class KubernetesProviderBuildManager(IProviderBuildManager):
                     api=api,
                 )
 
+            dockerfile_path = Path("Dockerfile")
+            if provider_build.build_configuration and provider_build.build_configuration.dockerfile_path:
+                dockerfile_path = provider_build.build_configuration.dockerfile_path
+
             job = Job(
                 await self._render_template(
                     job_timeout_seconds=int(job_timeout.total_seconds()),
@@ -114,6 +118,7 @@ class KubernetesProviderBuildManager(IProviderBuildManager):
                     git_ref=provider_build.source.commit_hash,
                     destination=str(provider_build.destination),
                     git_token_secret_name=f"{name}-secret",
+                    dockerfile_path=str(dockerfile_path).lstrip("/"),
                 ),
                 api=api,
             )

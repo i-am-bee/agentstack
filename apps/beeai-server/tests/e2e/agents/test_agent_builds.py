@@ -42,6 +42,7 @@ async def test_remote_agent_build_and_start(
         providers = await Provider.list()
         assert len(providers) == 1
         assert providers[0].source == build.destination
+        assert providers[0].id == build.provider_id
         assert providers[0].agent_card
         assert test_configuration.test_agent_build_repo in providers[0].origin
 
