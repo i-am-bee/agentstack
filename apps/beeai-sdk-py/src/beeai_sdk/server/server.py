@@ -336,15 +336,11 @@ class Server:
                     except HTTPStatusError as error:
                         if error.response.status_code != 404:
                             raise
-                        try:
-                            provider = await Provider.create(
-                                location=provider_location,
-                                client=self._self_registration_client,
-                                agent_card=self._agent.card,
-                            )
-                        except Exception as error:
-                            print(error)
-                            raise
+                        provider = await Provider.create(
+                            location=provider_location,
+                            client=self._self_registration_client,
+                            agent_card=self._agent.card,
+                        )
                     self._provider_id = provider.id
                     logger.debug("Agent registered to the beeai server.")
                     await self._load_variables()
