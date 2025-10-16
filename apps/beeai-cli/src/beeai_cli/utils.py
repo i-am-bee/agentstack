@@ -5,8 +5,6 @@ import contextlib
 import functools
 import json
 import os
-import socket
-import ssl
 import subprocess
 import sys
 from collections.abc import AsyncIterator
@@ -15,7 +13,6 @@ from contextvars import ContextVar
 from copy import deepcopy
 from io import BytesIO
 from typing import TYPE_CHECKING, Any
-from urllib.parse import urlparse
 
 import anyio
 import anyio.abc
@@ -264,29 +261,6 @@ def verbosity(verbose: bool, show_success_status: bool = True):
         VERBOSE.reset(token)
         IN_VERBOSITY_CONTEXT.set(False)
         SHOW_SUCCESS_STATUS.reset(token_command_status)
-
-
-async def get_verify_option(server_url: str):
-    """
-    Get value for httpx `verify` argument, with certificate pinning.
-    """
-    from beeai_cli.configuration import Configuration
-
-    parsed = urlparse(server_url)
-    if parsed.scheme == "http":
-        return True
-
-    ca_cert_file = Configuration().ca_cert_dir / f"{parsed.netloc}_ca.crt"
-    if not ca_cert_file.exists():
-        with (
-            socket.create_connection((parsed.hostname, parsed.port or 443)) as sock,
-            ssl._create_unverified_context().wrap_socket(sock, server_hostname=parsed.hostname) as ssock,
-        ):
-            der_cert = ssock.getpeercert(binary_form=True)
-            if not der_cert:
-                raise RuntimeError(f"No certificate received from {server_url}")
-            ca_cert_file.write_text(ssl.DER_cert_to_PEM_cert(der_cert))
-    return str(ca_cert_file)
 
 
 def print_log(line, ansi_mode=False):

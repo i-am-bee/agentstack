@@ -20,7 +20,6 @@ from InquirerPy.base.control import Choice
 
 from beeai_cli.async_typer import AsyncTyper, console
 from beeai_cli.configuration import Configuration
-from beeai_cli.utils import get_verify_option
 
 app = AsyncTyper()
 
@@ -125,7 +124,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                 sys.exit(1)
     else:
         console.info("No authentication tokens found for this server. Proceeding to log in.")
-        async with httpx.AsyncClient(verify=await get_verify_option(server)) as client:
+        async with httpx.AsyncClient() as client:
             resp = await client.get(f"{server}/.well-known/oauth-protected-resource/", follow_redirects=True)
             if resp.is_error:
                 console.error("This server does not appear to run a compatible version of BeeAI Platform.")
