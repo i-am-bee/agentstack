@@ -1,0 +1,110 @@
+---
+title: Observability
+description: Monitor traces, logs, and metrics from your agents and platform
+---
+
+BeeAI Platform includes built-in observability through [OpenTelemetry (OTLP)](https://opentelemetry.io/), with [Arize Phoenix](https://docs.arize.com/phoenix) available out-of-the-box for immediate use. Additional backends like Langfuse can be configured for advanced analytics.
+
+```mermaid
+graph LR
+    %% Sources
+    BeeAI[BeeAI Server] 
+    Agent[Agent Providers]
+    
+    %% Collector
+    OTLP[OpenTelemetry<br/>Collector<br/>:4318]
+    
+    %% Destinations
+    Phoenix[Phoenix<br/>:6006<br/>✓ Built-in]
+    Langfuse[Langfuse<br/>Cloud<br/>⚙ Config Required]
+    Custom[Custom<br/>Backend<br/>⚙ Config Required]
+    
+    %% Data flows
+    BeeAI -->|traces/metrics| OTLP
+    Agent -->|traces/metrics| OTLP
+    
+    OTLP --> Phoenix
+    OTLP --> Langfuse
+    OTLP --> Custom
+    
+    %% Simple styling
+    classDef default fill:#f9f9f9,stroke:#333,stroke-width:2px
+    classDef collector fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef builtin fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    classDef optional fill:#fff3e0,stroke:#f57c00,stroke-width:2px,stroke-dasharray: 5 5
+    
+    class OTLP collector
+    class Phoenix builtin
+    class Langfuse,Custom optional
+```
+
+## Quickstart
+
+### Enable Pheonix Observability
+
+<Steps>
+<Step title="Start platform with Phoenix enabled">
+```bash
+beeai platform start --set phoenix.enabled=true
+```
+</Step>
+<Step title="Access Phoenix UI">
+
+Navigate to http://localhost:6006 in your browser to view traces, spans, and LLM interactions.
+
+</Step>
+</Steps>
+
+### Configure Langfuse Integration
+
+[Langfuse](https://langfuse.com/) is an LLM observability platform that can be integrated with the BeeAI Platform through OpenTelemetry.
+
+<Steps>
+<Step title="Get Langfuse credentials">
+1. Sign up at [cloud.langfuse.com](https://cloud.langfuse.com)
+2. Create a project and generate API keys
+3. Encode your keys: `echo -n "public_key:secret_key" | base64`
+</Step>
+<Step title="Create a configuration file (config.yaml):">
+```yaml
+collector:
+  processors:
+    batch:
+    memory_limiter:
+      # 80% of maximum memory up to 2G
+      limit_mib: 1500
+      # 25% of limit up to 2G
+      spike_limit_mib: 512
+      check_interval: 5s
+   
+  exporters:
+    otlphttp/langfuse:
+      endpoint: "https://cloud.langfuse.com/api/public/otel"  # EU data region
+      # endpoint: "https://us.cloud.langfuse.com/api/public/otel"  # US data region
+      headers:
+        Authorization: "Basic ${AUTH_STRING}"  # Base64 encoded API keys
+
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlphttp/langfuse]
+```
+</Step>
+<Step title="Start the platform with the configuration">
+```bash
+beeai platform start -f config.yaml
+```
+</Step>
+<Step title="Access Langfuse UI">
+Check your Langfuse project dashboard for incoming traces and metrics.
+</Step>
+</Steps>
+
+## Additional Resources
+
+- **OpenTelemetry Docs**: https://opentelemetry.io/docs/
+- **Langfuse Docs**: https://langfuse.com/docs
+- **Phoenix Docs**: https://docs.arize.com/phoenix
+- **Prometheus Docs**: https://prometheus.io/docs/
+- **Grafana Docs**: https://grafana.com/docs/
