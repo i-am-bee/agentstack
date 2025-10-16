@@ -4,81 +4,20 @@
  */
 
 .root {
-  border-block-end: 1px solid $border-subtle-00;
-}
-
-.header {
   display: flex;
-  align-items: center;
-  column-gap: $spacing-03;
-  position: relative;
-  padding-block: $spacing-02;
-  padding-inline-start: $spacing-07;
-  min-block-size: rem(40px);
-}
-
-.button {
-  @include hide-popover();
-  margin-inline-end: -$spacing-03;
-  margin-inline-start: -$spacing-07;
-  &:global(.cds--popover-container:not(.cds--popover--auto-align)) {
-    position: static;
-  }
-  :global(.cds--btn) {
-    @include link-mask();
-    @include reset-focus();
-    position: static;
-    &:hover {
-      background-color: transparent;
-    }
-
-    .root.isOpen & svg {
-      transform: scaleY(-1);
-    }
-  }
+  flex-direction: column;
+  gap: $spacing-04;
 }
 
 .name {
-  @include type-style(body-01);
+  font-size: rem(18px);
+  line-height: math.div(26, 18);
   font-weight: 600;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-}
-
-.icon {
-  inline-size: rem(24px);
-  block-size: rem(24px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.message {
-  @include type-style(body-01);
-  @include line-clamp();
-  color: $text-secondary;
-
-  .root.isOpen & {
-    display: none;
-  }
 }
 
 .body {
-  display: grid;
-  grid-template-rows: 0fr;
-  grid-template-columns: 100%;
-  transition: grid-template-rows $duration-moderate-02 motion(standard, expressive);
-
-  .root.isOpen & {
-    grid-template-rows: 1fr;
-  }
-}
-
-.panel {
-  .root:not(.isOpen) &,
-  .root.isAnimating & {
-    overflow: hidden;
-  }
+  inline-size: 100%;
+  font-size: rem(14px);
+  line-height: math.div(20, 14);
+  letter-spacing: $letter-spacing;
 }

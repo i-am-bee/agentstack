@@ -3,86 +3,67 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { ChevronDown } from '@carbon/icons-react';
-import { IconButton } from '@carbon/react';
 import clsx from 'clsx';
-import truncate from 'lodash/truncate';
-import type { TransitionEventHandler } from 'react';
-import { useCallback, useState } from 'react';
+import has from 'lodash/has';
+import { useMemo } from 'react';
+import { match } from 'ts-pattern';
 
+import { CodeSnippet } from '#components/CodeSnippet/CodeSnippet.tsx';
+import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
 import type { UITrajectoryPart } from '#modules/messages/types.ts';
-import { isNotNull } from '#utils/helpers.ts';
+import { maybeParseJson } from '#modules/runs/utils.ts';
 
 import classes from './TrajectoryItem.module.scss';
-import { TrajectoryItemContent } from './TrajectoryItemContent';
 
 interface Props {
   trajectory: UITrajectoryPart;
 }
 
 export function TrajectoryItem({ trajectory }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
-
   const { title, content } = trajectory;
 
-  const isToggleable = isNotNull(content);
+  const parsed = useMemo(() => maybeParseJson(content), [content]);
 
-  const handleToggle = useCallback(() => {
-    setIsAnimating(true);
-    setIsOpen((state) => !state);
-  }, []);
-
-  const handleTransitionEnd: TransitionEventHandler = useCallback((event) => {
-    const { target, currentTarget, propertyName } = event;
-
-    if (target === currentTarget && propertyName === 'grid-template-rows') {
-      setIsAnimating(false);
+  const name = useMemo(() => {
+    if (isThoughtTrajectory(parsed?.parsed)) {
+      return 'Thought';
     }
-  }, []);
+
+    return title;
+  }, [parsed, title]);
+
+  if (!parsed) {
+    return null;
+  }
 
   return (
-    <div
-      className={clsx(classes.root, {
-        [classes.isOpen]: isOpen,
-        [classes.isAnimating]: isAnimating,
-      })}
-    >
-      <header className={classes.header}>
-        {isToggleable && (
-          <IconButton
-            kind="ghost"
-            size="sm"
-            label={isOpen ? 'Collapse' : 'Expand'}
-            wrapperClasses={classes.button}
-            onClick={handleToggle}
-          >
-            <ChevronDown />
-          </IconButton>
-        )}
+    <div className={clsx(classes.root)}>
+      {name && <h3 className={classes.name}>{name}</h3>}
 
-        {title && (
-          <h3 className={classes.name}>
-            {/* <span className={classes.icon}>
-            <Icon />
-          </span> */}
-
-            <span>{title}</span>
-          </h3>
-        )}
-
-        {content && <div className={classes.message}>{truncate(content, { length: MAX_CONTENT_PREVIEW_LENGTH })}</div>}
-      </header>
-
-      {isToggleable && (
-        <div className={classes.body} onTransitionEnd={handleTransitionEnd}>
-          <div className={classes.panel}>
-            <TrajectoryItemContent trajectory={trajectory} />
-          </div>
-        </div>
-      )}
+      <div className={classes.body}>
+        {match(parsed)
+          .with({ type: 'string' }, ({ value }) => <LineClampText lines={5}>{value}</LineClampText>)
+          .otherwise(({ value, parsed }) => {
+            if (isThoughtTrajectory(parsed)) {
+              return <LineClampText lines={5}>{parsed.input.thought}</LineClampText>;
+            }
+            return (
+              <CodeSnippet canCopy withBorder>
+                {value}
+              </CodeSnippet>
+            );
+          })}
+      </div>
     </div>
   );
 }
 
-const MAX_CONTENT_PREVIEW_LENGTH = 120;
+interface ThoughtTrajectory {
+  input: {
+    thought: string;
+  };
+}
+
+function isThoughtTrajectory(trajectory: unknown): trajectory is ThoughtTrajectory {
+  return has(trajectory, 'input.thought');
+}

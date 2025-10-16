@@ -50,11 +50,15 @@ function Message({ message, onShow }: Props) {
 
   return (
     <div {...props} className={classes.root}>
-      {isPending ? (
+      {isPending && (
         <div className={classes.spinner}>
           <Spinner center />
         </div>
-      ) : (
+      )}
+
+      <MessageTrajectories message={message} autoScroll={isPending} toggleable={!isPending || hasContent} />
+
+      {!isPending && (
         <>
           <div className={classes.content} ref={contentRef}>
             <MessageContent message={message} />
@@ -67,8 +71,6 @@ function Message({ message, onShow }: Props) {
       <MessageFiles message={message} />
 
       <MessageSources message={message} />
-
-      <MessageTrajectories message={message} />
 
       <MessageForm message={message} />
 
