@@ -203,7 +203,7 @@ export function useImportAgent() {
   useEffect(() => {
     const normalizedBuildError = buildErrorMessage ? new Error(buildErrorMessage) : buildError;
 
-    const error = importError ?? normalizedBuildError ?? providersError ?? previewError;
+    const error = previewError ?? providersError ?? normalizedBuildError ?? importError;
 
     if (error) {
       setErrorMessage(error.message);
