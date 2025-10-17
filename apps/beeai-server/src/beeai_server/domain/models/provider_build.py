@@ -11,6 +11,7 @@ from pydantic import (
     AwareDatetime,
     BaseModel,
     Field,
+    computed_field,
 )
 
 from beeai_server.domain.constants import DEFAULT_AUTO_STOP_TIMEOUT
@@ -87,3 +88,8 @@ class ProviderBuild(BaseModel):
     created_by: UUID
     on_complete: OnCompleteAction = NoAction()
     error_message: str | None = None
+
+    @computed_field
+    @property
+    def provider_origin(self) -> str:
+        return self.source.base

@@ -78,6 +78,7 @@ class ProviderBuild(pydantic.BaseModel):
     build_configuration: BuildConfiguration | None = None
     created_by: str
     error_message: str | None = None
+    provider_origin: str
 
     @staticmethod
     async def create(
