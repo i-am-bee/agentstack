@@ -220,7 +220,8 @@ run = """
     --vm-name=beeai-local-test \
     --set externalRegistries=null \
     --set providerBuilds.enabled=true \
-    --set localDockerRegistry.enabled=true
+    --set localDockerRegistry.enabled=true \
+    {{arg(name="cli-args", var=true, default="--")}}
 """
 
 ["beeai-server:dev:test:delete"]

@@ -7,6 +7,7 @@ from typing import Self
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, AsyncTransaction
 
 from beeai_server.configuration import Configuration
+from beeai_server.domain.repositories.a2a_request import IA2ARequestRepository
 from beeai_server.domain.repositories.configurations import IConfigurationsRepository
 from beeai_server.domain.repositories.context import IContextRepository
 from beeai_server.domain.repositories.env import IEnvVariableRepository
@@ -23,6 +24,7 @@ from beeai_server.infrastructure.persistence.repositories.file import SqlAlchemy
 from beeai_server.infrastructure.persistence.repositories.model_provider import SqlAlchemyModelProviderRepository
 from beeai_server.infrastructure.persistence.repositories.provider import SqlAlchemyProviderRepository
 from beeai_server.infrastructure.persistence.repositories.provider_build import SqlAlchemyProviderBuildRepository
+from beeai_server.infrastructure.persistence.repositories.requests import SqlAlchemyA2ARequestRepository
 from beeai_server.infrastructure.persistence.repositories.user import SqlAlchemyUserRepository
 from beeai_server.infrastructure.persistence.repositories.user_feedback import SqlAlchemyUserFeedbackRepository
 from beeai_server.infrastructure.persistence.repositories.vector_store import SqlAlchemyVectorStoreRepository
@@ -36,6 +38,7 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
     Works purely with SQLAlchemy Core objects (insert(), update(), text(), …).
     """
 
+    a2a_requests: IA2ARequestRepository
     providers: IProviderRepository
     model_providers: IModelProviderRepository
     contexts: IContextRepository
@@ -60,6 +63,7 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
             self._connection = await self._engine.connect()
             self._transaction = await self._connection.begin()
 
+            self.a2a_requests = SqlAlchemyA2ARequestRepository(self._connection)
             self.providers = SqlAlchemyProviderRepository(self._connection)
             self.model_providers = SqlAlchemyModelProviderRepository(self._connection)
             self.provider_builds = SqlAlchemyProviderBuildRepository(self._connection)

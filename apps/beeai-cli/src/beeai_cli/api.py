@@ -12,7 +12,7 @@ from typing import Any
 import httpx
 import openai
 from a2a.client import Client, ClientConfig, ClientFactory
-from a2a.types import AgentCard
+from a2a.types import AgentCard, TransportProtocol
 from httpx import HTTPStatusError
 from httpx._types import RequestFiles
 
@@ -112,7 +112,13 @@ async def a2a_client(agent_card: AgentCard, use_auth: bool = True) -> AsyncItera
         follow_redirects=True,
         timeout=timedelta(hours=1).total_seconds(),
     ) as httpx_client:
-        yield ClientFactory(ClientConfig(httpx_client=httpx_client)).create(card=agent_card)
+        yield ClientFactory(
+            ClientConfig(
+                httpx_client=httpx_client,
+                supported_transports=[TransportProtocol.http_json],
+                use_client_preference=True,
+            )
+        ).create(card=agent_card)
 
 
 @asynccontextmanager

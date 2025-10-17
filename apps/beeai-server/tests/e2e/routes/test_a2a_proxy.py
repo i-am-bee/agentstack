@@ -7,6 +7,7 @@ import asyncio
 import contextlib
 import socket
 import time
+import uuid
 from contextlib import closing
 from threading import Thread
 from typing import Any
@@ -36,6 +37,7 @@ from a2a.types import (
     SendMessageSuccessResponse,
     Task,
     TaskArtifactUpdateEvent,
+    TaskNotFoundError,
     TaskPushNotificationConfig,
     TaskState,
     TaskStatus,
@@ -46,6 +48,7 @@ from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from a2a.utils.errors import MethodNotImplementedError
 from fastapi import FastAPI
 from httpx import Client
+from sqlalchemy import text
 from starlette.applications import Starlette
 from starlette.authentication import (
     AuthCredentials,
@@ -58,6 +61,8 @@ from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.requests import HTTPConnection
 from starlette.responses import JSONResponse
 from starlette.routing import Route
+
+from beeai_server.infrastructure.persistence.repositories.user import users_table
 
 pytestmark = pytest.mark.e2e
 
@@ -159,6 +164,7 @@ def free_port() -> int:
 def create_test_server(free_port: int, app: A2AStarletteApplication, test_configuration, clean_up_fn):
     server_instance: uvicorn.Server | None = None
     thread: Thread | None = None
+    app.agent_card.url = f"http://host.docker.internal:{free_port}"
 
     def _create_test_server(custom_app: Starlette | FastAPI | None = None) -> Client:
         custom_app = custom_app or app.build()
@@ -207,11 +213,27 @@ def create_test_server(free_port: int, app: A2AStarletteApplication, test_config
 
 
 @pytest.fixture
+@pytest.mark.usefixtures("clean_up")
+async def ensure_mock_task(db_transaction):
+    res = await db_transaction.execute(users_table.select().where(users_table.c.email == "admin@beeai.dev"))
+    admin_user = res.fetchone().id
+    await db_transaction.execute(
+        text(
+            "INSERT INTO a2a_request_tasks (task_id, created_by, provider_id, created_at, last_accessed_at) "
+            "VALUES (:task_id, :created_by, :provider_id, NOW(), NOW())"
+        ),
+        {"task_id": "task1", "created_by": admin_user, "provider_id": uuid.uuid4()},
+    )
+    await db_transaction.commit()
+
+
+@pytest.fixture
 def client(create_test_server, test_configuration):
     """Create a test client with the Starlette app."""
     return create_test_server()
 
 
+# --------------------------------------- TESTS PORTED FROM A2A TEST SUITE ---------------------------------------------
 # === BASIC FUNCTIONALITY TESTS ===
 
 
@@ -253,6 +275,7 @@ def test_authenticated_extended_agent_card_endpoint_not_supported_fastapi(
     assert response.status_code == 404  # FastAPI's default for no route
 
 
+@pytest.mark.skip(reason="Extended agent card is not supported at the moment. # TODO")
 def test_authenticated_extended_agent_card_endpoint_supported_with_specific_extended_card_starlette(
     create_test_server,
     agent_card: AgentCard,
@@ -275,6 +298,7 @@ def test_authenticated_extended_agent_card_endpoint_supported_with_specific_exte
     assert any(skill["id"] == "skill-extended" for skill in data["skills"]), "Extended skill not found in served card"
 
 
+@pytest.mark.skip(reason="Extended agent card is not supported at the moment. # TODO")
 def test_authenticated_extended_agent_card_endpoint_supported_with_specific_extended_card_fastapi(
     create_test_server,
     agent_card: AgentCard,
@@ -306,11 +330,14 @@ def test_agent_card_custom_url(create_test_server, app: A2AStarletteApplication,
     assert data["name"] == agent_card.name
 
 
-def test_starlette_rpc_endpoint_custom_url(create_test_server, app: A2AStarletteApplication, handler: mock.AsyncMock):
+@pytest.mark.skip(reason="Custom RPC urls are not supported at the moment.")
+def test_starlette_rpc_endpoint_custom_url(
+    create_test_server, app: A2AStarletteApplication, handler: mock.AsyncMock, ensure_mock_task
+):
     """Test the RPC endpoint with a custom URL."""
     # Provide a valid Task object as the return value
     task_status = TaskStatus(**MINIMAL_TASK_STATUS)
-    task = Task(id="task1", contextId="ctx1", state="completed", status=task_status)
+    task = Task(id="task1", context_id="ctx1", state="completed", status=task_status)
     handler.on_get_task.return_value = task
     client = create_test_server(app.build(rpc_url="/api/rpc"))
     response = client.post(
@@ -327,11 +354,12 @@ def test_starlette_rpc_endpoint_custom_url(create_test_server, app: A2AStarlette
     assert data["result"]["id"] == "task1"
 
 
+@pytest.mark.skip(reason="Custom RPC urls are not supported at the moment.")
 def test_fastapi_rpc_endpoint_custom_url(create_test_server, app: A2AFastAPIApplication, handler: mock.AsyncMock):
     """Test the RPC endpoint with a custom URL."""
     # Provide a valid Task object as the return value
     task_status = TaskStatus(**MINIMAL_TASK_STATUS)
-    task = Task(id="task1", contextId="ctx1", state="completed", status=task_status)
+    task = Task(id="task1", context_id="ctx1", state="completed", status=task_status)
     handler.on_get_task.return_value = task
     client = create_test_server(app.build(rpc_url="/api/rpc"))
     response = client.post(
@@ -348,6 +376,7 @@ def test_fastapi_rpc_endpoint_custom_url(create_test_server, app: A2AFastAPIAppl
     assert data["result"]["id"] == "task1"
 
 
+@pytest.mark.skip(reason="Custom routes are not supported by the proxy.")
 def test_starlette_build_with_extra_routes(create_test_server, app: A2AStarletteApplication, agent_card: AgentCard):
     """Test building the app with additional routes."""
 
@@ -370,6 +399,7 @@ def test_starlette_build_with_extra_routes(create_test_server, app: A2AStarlette
     assert data["name"] == agent_card.name
 
 
+@pytest.mark.skip(reason="Custom routes are not supported by the proxy.")
 def test_fastapi_build_with_extra_routes(create_test_server, app: A2AFastAPIApplication, agent_card: AgentCard):
     """Test building the app with additional routes."""
 
@@ -395,13 +425,13 @@ def test_fastapi_build_with_extra_routes(create_test_server, app: A2AFastAPIAppl
 # === REQUEST METHODS TESTS ===
 
 
-def test_send_message(create_test_server, handler: mock.AsyncMock, agent_card):
+def test_send_message(create_test_server, handler: mock.AsyncMock, agent_card, ensure_mock_task):
     """Test sending a message."""
     # Prepare mock response
     task_status = TaskStatus(**MINIMAL_TASK_STATUS)
     mock_task = Task(
         id="task1",
-        contextId="session-xyz",
+        context_id="session-xyz",
         status=task_status,
     )
     handler.on_message_send.return_value = mock_task
@@ -439,12 +469,12 @@ def test_send_message(create_test_server, handler: mock.AsyncMock, agent_card):
     handler.on_message_send.assert_awaited_once()
 
 
-def test_cancel_task(client: Client, handler: mock.AsyncMock):
+async def test_cancel_task(client: Client, handler: mock.AsyncMock, ensure_mock_task):
     """Test cancelling a task."""
     # Setup mock response
     task_status = TaskStatus(**MINIMAL_TASK_STATUS)
     task_status.state = TaskState.canceled  # 'cancelled' #
-    task = Task(id="task1", contextId="ctx1", state="cancelled", status=task_status)
+    task = Task(id="task1", context_id="ctx1", state="cancelled", status=task_status)
     handler.on_cancel_task.return_value = task
 
     # Send request
@@ -468,11 +498,11 @@ def test_cancel_task(client: Client, handler: mock.AsyncMock):
     handler.on_cancel_task.assert_awaited_once()
 
 
-def test_get_task(client: Client, handler: mock.AsyncMock):
+async def test_get_task(client: Client, handler: mock.AsyncMock, ensure_mock_task):
     """Test getting a task."""
     # Setup mock response
     task_status = TaskStatus(**MINIMAL_TASK_STATUS)
-    task = Task(id="task1", contextId="ctx1", state="completed", status=task_status)
+    task = Task(id="task1", context_id="ctx1", state="completed", status=task_status)
     handler.on_get_task.return_value = task  # JSONRPCResponse(root=task)
 
     # Send request
@@ -495,12 +525,12 @@ def test_get_task(client: Client, handler: mock.AsyncMock):
     handler.on_get_task.assert_awaited_once()
 
 
-def test_set_push_notification_config(client: Client, handler: mock.AsyncMock):
+def test_set_push_notification_config(client: Client, handler: mock.AsyncMock, ensure_mock_task):
     """Test setting push notification configuration."""
     # Setup mock response
     task_push_config = TaskPushNotificationConfig(
-        taskId="t2",
-        pushNotificationConfig=PushNotificationConfig(url="https://example.com", token="secret-token"),
+        task_id="task1",
+        push_notification_config=PushNotificationConfig(url="https://example.com", token="secret-token"),
     )
     handler.on_set_task_push_notification_config.return_value = task_push_config
 
@@ -512,7 +542,7 @@ def test_set_push_notification_config(client: Client, handler: mock.AsyncMock):
             "id": "123",
             "method": "tasks/pushNotificationConfig/set",
             "params": {
-                "taskId": "t2",
+                "taskId": "task1",
                 "pushNotificationConfig": {
                     "url": "https://example.com",
                     "token": "secret-token",
@@ -530,12 +560,12 @@ def test_set_push_notification_config(client: Client, handler: mock.AsyncMock):
     handler.on_set_task_push_notification_config.assert_awaited_once()
 
 
-def test_get_push_notification_config(client: Client, handler: mock.AsyncMock):
+def test_get_push_notification_config(client: Client, handler: mock.AsyncMock, ensure_mock_task):
     """Test getting push notification configuration."""
     # Setup mock response
     task_push_config = TaskPushNotificationConfig(
-        taskId="task1",
-        pushNotificationConfig=PushNotificationConfig(url="https://example.com", token="secret-token"),
+        task_id="task1",
+        push_notification_config=PushNotificationConfig(url="https://example.com", token="secret-token"),
     )
 
     handler.on_get_task_push_notification_config.return_value = task_push_config
@@ -560,7 +590,7 @@ def test_get_push_notification_config(client: Client, handler: mock.AsyncMock):
     handler.on_get_task_push_notification_config.assert_awaited_once()
 
 
-def test_server_auth(create_test_server, app: A2AStarletteApplication, handler: mock.AsyncMock):
+def test_server_auth(create_test_server, app: A2AStarletteApplication, handler: mock.AsyncMock, ensure_mock_task):
     class TestAuthMiddleware(AuthenticationBackend):
         async def authenticate(self, conn: HTTPConnection) -> tuple[AuthCredentials, BaseUser] | None:
             # For the purposes of this test, all requests are authenticated!
@@ -572,8 +602,8 @@ def test_server_auth(create_test_server, app: A2AStarletteApplication, handler: 
 
     # Set the output message to be the authenticated user name
     handler.on_message_send.side_effect = lambda params, context: Message(
-        contextId="session-xyz",
-        messageId="112",
+        context_id="session-xyz",
+        message_id="112",
         role=Role.agent,
         parts=[
             Part(TextPart(text=context.user.user_name)),
@@ -616,7 +646,9 @@ def test_server_auth(create_test_server, app: A2AStarletteApplication, handler: 
 # === STREAMING TESTS ===
 
 
-async def test_message_send_stream(create_test_server, app: A2AStarletteApplication, handler: mock.AsyncMock) -> None:
+async def test_message_send_stream(
+    create_test_server, app: A2AStarletteApplication, handler: mock.AsyncMock, ensure_mock_task
+) -> None:
     """Test streaming message sending."""
 
     # Setup mock streaming response
@@ -625,14 +657,14 @@ async def test_message_send_stream(create_test_server, app: A2AStarletteApplicat
             text_part = TextPart(**TEXT_PART_DATA)
             data_part = DataPart(**DATA_PART_DATA)
             artifact = Artifact(
-                artifactId=f"artifact-{i}",
+                artifact_id=f"artifact-{i}",
                 name="result_data",
                 parts=[Part(root=text_part), Part(root=data_part)],
             )
             last = [False, False, True]
             task_artifact_update_event_data: dict[str, Any] = {
                 "artifact": artifact,
-                "taskId": "task_id",
+                "taskId": "task1",
                 "contextId": "session-xyz",
                 "append": False,
                 "lastChunk": last[i],
@@ -661,7 +693,7 @@ async def test_message_send_stream(create_test_server, app: A2AStarletteApplicat
                         "parts": [{"kind": "text", "text": "Hello"}],
                         "messageId": "111",
                         "kind": "message",
-                        "taskId": "taskId",
+                        "taskId": "task1",
                         "contextId": "session-xyz",
                     }
                 },
@@ -693,7 +725,9 @@ async def test_message_send_stream(create_test_server, app: A2AStarletteApplicat
         await asyncio.sleep(0.1)
 
 
-async def test_task_resubscription(create_test_server, app: A2AStarletteApplication, handler: mock.AsyncMock) -> None:
+async def test_task_resubscription(
+    create_test_server, app: A2AStarletteApplication, handler: mock.AsyncMock, ensure_mock_task
+) -> None:
     """Test task resubscription streaming."""
 
     # Setup mock streaming response
@@ -702,14 +736,14 @@ async def test_task_resubscription(create_test_server, app: A2AStarletteApplicat
             text_part = TextPart(**TEXT_PART_DATA)
             data_part = DataPart(**DATA_PART_DATA)
             artifact = Artifact(
-                artifactId=f"artifact-{i}",
+                artifact_id=f"artifact-{i}",
                 name="result_data",
                 parts=[Part(root=text_part), Part(root=data_part)],
             )
             last = [False, False, True]
             task_artifact_update_event_data: dict[str, Any] = {
                 "artifact": artifact,
-                "taskId": "task_id",
+                "taskId": "task1",
                 "contextId": "session-xyz",
                 "append": False,
                 "lastChunk": last[i],
@@ -792,7 +826,7 @@ def test_invalid_request_structure(client: Client):
     assert data["error"]["code"] == InvalidRequestError().code
 
 
-def test_method_not_implemented(client: Client, handler: mock.AsyncMock):
+def test_method_not_implemented(client: Client, handler: mock.AsyncMock, ensure_mock_task):
     """Test handling MethodNotImplementedError."""
     handler.on_get_task.side_effect = MethodNotImplementedError()
 
@@ -852,7 +886,7 @@ def test_validation_error(client: Client):
     assert data["error"]["code"] == InvalidParamsError().code
 
 
-def test_unhandled_exception(client: Client, handler: mock.AsyncMock):
+def test_unhandled_exception(client: Client, handler: mock.AsyncMock, ensure_mock_task):
     """Test handling unhandled exception."""
     handler.on_get_task.side_effect = Exception("Unexpected error")
 
@@ -886,3 +920,275 @@ def test_non_dict_json(client: Client):
     data = response.json()
     assert "error" in data
     assert data["error"]["code"] == InvalidRequestError().code
+
+
+# ------------------------------------- TESTS SPECIFIC TO PLATFORM PERMISSIONS -----------------------------------------
+
+
+def test_task_ownership_different_user_cannot_access_task(client: Client, handler: mock.AsyncMock, ensure_mock_task):
+    """Test that a task owned by admin cannot be accessed by default user."""
+    # Task is already created by ensure_mock_task for admin user
+
+    # Setup mock response
+    task_status = TaskStatus(**MINIMAL_TASK_STATUS)
+    task = Task(id="task1", context_id="ctx1", state="completed", status=task_status)
+    handler.on_get_task.return_value = task
+
+    # Try to access as default user (without auth)
+    client.auth = None
+    response = client.post(
+        "/",
+        json={"jsonrpc": "2.0", "id": "123", "method": "tasks/get", "params": {"id": "task1"}},
+    )
+
+    # Should fail with error (forbidden or not found)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["error"]["code"] in [TaskNotFoundError().code]
+
+    # Now try as admin user (who owns it)
+    client.auth = ("admin", "test-password")
+    response = client.post(
+        "/",
+        json={"jsonrpc": "2.0", "id": "123", "method": "tasks/get", "params": {"id": "task1"}},
+    )
+
+    # Should succeed
+    assert response.status_code == 200
+    data = response.json()
+    assert "result" in data
+    assert data["result"]["id"] == "task1"
+
+
+async def test_task_ownership_new_task_creation_via_message_send(
+    client: Client, handler: mock.AsyncMock, db_transaction
+):
+    """Test that sending a message creates a new task owned by the user."""
+    # Setup mock response - server returns a new task
+    task_status = TaskStatus(**MINIMAL_TASK_STATUS)
+    mock_task = Task(
+        id="new-task-123",
+        context_id="session-xyz",
+        status=task_status,
+    )
+    handler.on_message_send.return_value = mock_task
+
+    # Send message as admin which should create new task ownership
+    client.auth = ("admin", "test-password")
+    response = client.post(
+        "/",
+        json={
+            "jsonrpc": "2.0",
+            "id": "123",
+            "method": "message/send",
+            "params": {
+                "message": {
+                    "role": "agent",
+                    "parts": [{"kind": "text", "text": "Hello"}],
+                    "messageId": "111",
+                    "kind": "message",
+                    "contextId": "session-xyz",
+                }
+            },
+        },
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["result"]["id"] == "new-task-123"
+
+    # Verify task was recorded in database for admin user
+    result = await db_transaction.execute(
+        text("SELECT * FROM a2a_request_tasks WHERE task_id = :task_id"),
+        {"task_id": "new-task-123"},
+    )
+    row = result.fetchone()
+    assert row is not None
+    assert row.task_id == "new-task-123"
+
+    # Verify we can access it as admin
+    task = Task(id="new-task-123", context_id="ctx1", state="completed", status=task_status)
+    handler.on_get_task.return_value = task
+
+    response = client.post(
+        "/",
+        json={"jsonrpc": "2.0", "id": "124", "method": "tasks/get", "params": {"id": "new-task-123"}},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["result"]["id"] == "new-task-123"
+
+    # Verify default user cannot access it
+    client.auth = None
+    response = client.post(
+        "/",
+        json={"jsonrpc": "2.0", "id": "125", "method": "tasks/get", "params": {"id": "new-task-123"}},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["error"]["code"] in [TaskNotFoundError().code]
+
+
+async def test_context_ownership_cannot_be_claimed_by_different_user(
+    client: Client, handler: mock.AsyncMock, db_transaction
+):
+    """Test that a context_id owned by one user cannot be used by another."""
+    task_status = TaskStatus(**MINIMAL_TASK_STATUS)
+
+    # Admin creates a message with a specific context
+    client.auth = ("admin", "test-password")
+    mock_task = Task(id="task-ctx-1", context_id="shared-context-789", status=task_status)
+    handler.on_message_send.return_value = mock_task
+
+    response = client.post(
+        "/",
+        json={
+            "jsonrpc": "2.0",
+            "id": "123",
+            "method": "message/send",
+            "params": {
+                "message": {
+                    "role": "agent",
+                    "parts": [{"kind": "text", "text": "Hello"}],
+                    "messageId": "111",
+                    "kind": "message",
+                    "contextId": "shared-context-789",
+                }
+            },
+        },
+    )
+
+    assert response.status_code == 200
+
+    # Verify context was recorded for admin
+    context_result = await db_transaction.execute(
+        text("SELECT * FROM a2a_request_contexts WHERE context_id = :context_id"),
+        {"context_id": "shared-context-789"},
+    )
+    context_row = context_result.fetchone()
+    assert context_row is not None
+
+    # Now default user tries to use the same context - should fail
+    client.auth = None
+    mock_task2 = Task(
+        id="task-ctx-2",
+        context_id="shared-context-789",  # Same context!
+        status=task_status,
+    )
+    handler.on_message_send.return_value = mock_task2
+
+    response = client.post(
+        "/",
+        json={
+            "jsonrpc": "2.0",
+            "id": "124",
+            "method": "message/send",
+            "params": {
+                "message": {
+                    "role": "agent",
+                    "parts": [{"kind": "text", "text": "Hello"}],
+                    "messageId": "112",
+                    "kind": "message",
+                    "contextId": "shared-context-789",
+                }
+            },
+        },
+    )
+
+    # Should fail
+    assert response.status_code == 200
+    data = response.json()
+    assert data["error"]["code"] == InvalidRequestError().code
+    assert "insufficient permissions" in data["error"]["message"].lower()
+
+
+async def test_task_update_last_accessed_at(client: Client, handler: mock.AsyncMock, db_transaction):
+    """Test that accessing a task updates last_accessed_at timestamp."""
+    client.auth = ("admin", "test-password")
+
+    mock_task = Task(id="task1", context_id="shared-context-789", status=TaskStatus(state=TaskState.submitted))
+    handler.on_message_send.return_value = mock_task
+    message_data = {
+        "jsonrpc": "2.0",
+        "id": "123",
+        "method": "message/send",
+        "params": {
+            "message": {
+                "role": "agent",
+                "parts": [{"kind": "text", "text": "Hello"}],
+                "messageId": "111",
+                "kind": "message",
+                "contextId": "shared-context-789",
+            }
+        },
+    }
+
+    response = client.post("/", json=message_data)
+    # Get initial timestamp
+    result = await db_transaction.execute(
+        text("SELECT last_accessed_at FROM a2a_request_tasks WHERE task_id = :task_id"), {"task_id": "task1"}
+    )
+    initial_timestamp = result.fetchone().last_accessed_at
+
+    # Wait a bit to ensure timestamp difference
+    await asyncio.sleep(0.1)
+
+    # Access the task
+    task_status = TaskStatus(**MINIMAL_TASK_STATUS)
+    task = Task(id="task1", context_id="ctx1", state="completed", status=task_status)
+    handler.on_get_task.return_value = task
+
+    response = client.post("/", json=message_data)
+    assert response.status_code == 200
+
+    # Check that timestamp was updated
+    result = await db_transaction.execute(
+        text("SELECT last_accessed_at FROM a2a_request_tasks WHERE task_id = :task_id"),
+        {"task_id": "task1"},
+    )
+    new_timestamp = result.fetchone().last_accessed_at
+    assert new_timestamp > initial_timestamp
+
+
+async def test_task_and_context_both_specified_single_query(client: Client, handler: mock.AsyncMock, db_transaction):
+    """Test that both task_id and context_id are tracked in a single query when both are specified."""
+    client.auth = ("admin", "test-password")
+
+    task_status = TaskStatus(**MINIMAL_TASK_STATUS)
+    mock_task = Task(id="dual-task-123", context_id="dual-context-456", status=task_status)
+    handler.on_message_send.return_value = mock_task
+
+    message_data = {
+        "jsonrpc": "2.0",
+        "id": "123",
+        "method": "message/send",
+        "params": {
+            "message": {
+                "role": "agent",
+                "parts": [{"kind": "text", "text": "Hello"}],
+                "messageId": "111",
+                "kind": "message",
+                "contextId": "dual-context-456",
+            }
+        },
+    }
+    response = client.post("/", json=message_data)
+    assert response.status_code == 200
+    message_data["params"]["message"]["taskId"] = "dual-task-123"
+
+    response = client.post("/", json=message_data)
+    assert response.status_code == 200
+
+    # Verify both were recorded in database
+    task_result = await db_transaction.execute(
+        text("SELECT * FROM a2a_request_tasks WHERE task_id = :task_id"),
+        {"task_id": "dual-task-123"},
+    )
+    assert task_result.fetchone() is not None
+
+    context_result = await db_transaction.execute(
+        text("SELECT * FROM a2a_request_contexts WHERE context_id = :context_id"),
+        {"context_id": "dual-context-456"},
+    )
+    assert context_result.fetchone() is not None
