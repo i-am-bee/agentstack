@@ -70,27 +70,16 @@ Navigate to http://localhost:6006 in your browser to view traces, spans, and LLM
 <Step title="Create a configuration file (config.yaml):">
 ```yaml
 collector:
-  processors:
-    batch:
-    memory_limiter:
-      # 80% of maximum memory up to 2G
-      limit_mib: 1500
-      # 25% of limit up to 2G
-      spike_limit_mib: 512
-      check_interval: 5s
-   
   exporters:
     otlphttp/langfuse:
-      endpoint: "https://cloud.langfuse.com/api/public/otel"  # EU data region
-      # endpoint: "https://us.cloud.langfuse.com/api/public/otel"  # US data region
+      endpoint: "https://cloud.langfuse.com/api/public/otel" # EU data region
       headers:
-        Authorization: "Basic ${AUTH_STRING}"  # Base64 encoded API keys
-
+        Authorization: "Basic <auth-string>"
   pipelines:
     traces:
-      receivers: [otlp]
-      processors: [memory_limiter, batch]
-      exporters: [otlphttp/langfuse]
+      receivers: [ otlp ]
+      processors: [ memory_limiter, filter/phoenix, batch ]
+      exporters: [ otlphttp/langfuse ]
 ```
 </Step>
 <Step title="Start the platform with the configuration">
