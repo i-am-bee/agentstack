@@ -36,7 +36,15 @@ export function CodeSnippet({ forceExpand, canCopy, withBorder, ...props }: Prop
         </div>
       )}
 
-      <div className={classes.content}>{forceExpand ? code : <LineClampText lines={5}>{code}</LineClampText>}</div>
+      <div className={classes.content}>
+        {forceExpand ? (
+          code
+        ) : (
+          <LineClampText lines={5} useBlockElement>
+            {code}
+          </LineClampText>
+        )}
+      </div>
     </div>
   );
 }
