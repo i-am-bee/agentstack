@@ -14,7 +14,15 @@ spec:
       imagePullSecrets:
         - name: beeai-platform-registry-secret
       securityContext:
-        fsGroup: 1000
+        fsGroup: {{ sandbox_fs_group }}
+        runAsGroup: {{ sandbox_run_as_group }}
+        runAsUser: {{ sandbox_run_as_user }}
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      {% if sandbox_runtime_class %}
+      runtimeClassName: "{{ sandbox_runtime_class }}"
+      {% endif %}
       restartPolicy: Never
       initContainers:
         - name: git-clone
@@ -49,11 +57,15 @@ spec:
             - name: workspace
               mountPath: /workspace
           securityContext:
+            allowPrivilegeEscalation: false
             capabilities:
               drop:
                 - ALL
-            runAsUser: 1000
-            runAsGroup: 1000
+            runAsUser: {{ sandbox_run_as_user }}
+            runAsGroup: {{ sandbox_run_as_group }}
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
         # Build image with Kaniko (no securityContext required)
         - name: kaniko-build
           image: ghcr.io/kaniko-build/dist/chainguard-dev-kaniko/executor:v1.25.2-slim
@@ -68,7 +80,13 @@ spec:
             - name: image-tar
               mountPath: /tmp
           securityContext:
-            runAsUser: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
         # Main container: Step 3 Push the intermediary image
         - name: crane-push
           image: ghcr.io/i-am-bee/alpine/crane:0.20.6
@@ -88,11 +106,15 @@ spec:
               subPath: .dockerconfigjson
               readOnly: true
           securityContext:
+            allowPrivilegeEscalation: false
             capabilities:
               drop:
                 - ALL
-            runAsUser: 1000
-            runAsGroup: 1000
+            runAsUser: {{ sandbox_run_as_user }}
+            runAsGroup: {{ sandbox_run_as_group }}
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
           resources:
             requests:
               memory: "256Mi"
@@ -109,11 +131,15 @@ spec:
             - name: HOST
               value: "0.0.0.0"
           securityContext:
+            allowPrivilegeEscalation: false
             capabilities:
               drop:
                 - ALL
-            runAsUser: 1000
-            runAsGroup: 1000
+            runAsUser: {{ sandbox_run_as_user }}
+            runAsGroup: {{ sandbox_run_as_group }}
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
           resources:
             requests:
               memory: "512Mi"
@@ -165,11 +191,15 @@ spec:
               subPath: .dockerconfigjson
               readOnly: true
           securityContext:
+            allowPrivilegeEscalation: false
             capabilities:
               drop:
                 - ALL
-            runAsUser: 1000
-            runAsGroup: 1000
+            runAsUser: {{ sandbox_run_as_user }}
+            runAsGroup: {{ sandbox_run_as_group }}
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
           resources:
             requests:
               memory: "256Mi"
