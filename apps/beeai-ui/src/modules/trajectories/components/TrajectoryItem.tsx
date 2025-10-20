@@ -4,6 +4,7 @@
  */
 
 import clsx from 'clsx';
+import { AnimatePresence, motion } from 'framer-motion';
 import has from 'lodash/has';
 import { useMemo } from 'react';
 import { match } from 'ts-pattern';
@@ -12,6 +13,7 @@ import { CodeSnippet } from '#components/CodeSnippet/CodeSnippet.tsx';
 import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
 import type { UITrajectoryPart } from '#modules/messages/types.ts';
 import { maybeParseJson } from '#modules/runs/utils.ts';
+import { fadeProps } from '#utils/fadeProps.ts';
 
 import classes from './TrajectoryItem.module.scss';
 
@@ -37,24 +39,26 @@ export function TrajectoryItem({ trajectory }: Props) {
   }
 
   return (
-    <div className={clsx(classes.root)}>
-      {name && <h3 className={classes.name}>{name}</h3>}
+    <AnimatePresence>
+      <motion.div {...fadeProps()} className={clsx(classes.root)}>
+        {name && <h3 className={classes.name}>{name}</h3>}
 
-      <div className={classes.body}>
-        {match(parsed)
-          .with({ type: 'string' }, ({ value }) => <LineClampText lines={5}>{value}</LineClampText>)
-          .otherwise(({ value, parsed }) => {
-            if (isThoughtTrajectory(parsed)) {
-              return <LineClampText lines={5}>{parsed.input.thought}</LineClampText>;
-            }
-            return (
-              <CodeSnippet canCopy withBorder>
-                {value}
-              </CodeSnippet>
-            );
-          })}
-      </div>
-    </div>
+        <div className={classes.body}>
+          {match(parsed)
+            .with({ type: 'string' }, ({ value }) => <LineClampText lines={5}>{value}</LineClampText>)
+            .otherwise(({ value, parsed }) => {
+              if (isThoughtTrajectory(parsed)) {
+                return <LineClampText lines={5}>{parsed.input.thought}</LineClampText>;
+              }
+              return (
+                <CodeSnippet canCopy withBorder>
+                  {value}
+                </CodeSnippet>
+              );
+            })}
+        </div>
+      </motion.div>
+    </AnimatePresence>
   );
 }
 

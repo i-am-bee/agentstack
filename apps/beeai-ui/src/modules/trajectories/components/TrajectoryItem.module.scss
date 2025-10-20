@@ -17,7 +17,8 @@
 
 .body {
   inline-size: 100%;
-  font-size: rem(14px);
-  line-height: math.div(20, 14);
+  font-size: rem(16px);
+  line-height: math.div(24, 16);
+  color: $text-secondary;
   letter-spacing: $letter-spacing;
 }

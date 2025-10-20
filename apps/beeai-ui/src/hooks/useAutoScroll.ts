@@ -4,12 +4,16 @@
  */
 'use client';
 
+import { animate } from 'framer-motion';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useScrollableContainer } from './useScrollableContainer';
 
-export function useAutoScroll(dependencies: unknown[]) {
-  const ref = useRef<HTMLDivElement>(null);
+export function useAutoScroll<T extends HTMLElement = HTMLDivElement>(
+  dependencies: unknown[],
+  { duration }: { duration?: number } = {},
+) {
+  const ref = useRef<T>(null);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const scrollableContainer = useScrollableContainer(ref.current);
 
@@ -45,7 +49,19 @@ export function useAutoScroll(dependencies: unknown[]) {
 
   useEffect(() => {
     if (shouldAutoScroll) {
-      ref.current?.scrollIntoView();
+      if (duration && ref.current && scrollableContainer) {
+        const scrollFrom = scrollableContainer.scrollTop;
+        const scrollTo = ref.current.getBoundingClientRect().bottom;
+        console.log({ scrollTo });
+
+        animate(scrollFrom, scrollTo, {
+          duration,
+          ease: 'easeInOut',
+          onUpdate: (value) => scrollableContainer.scrollTo(0, value),
+        });
+      } else {
+        ref.current?.scrollIntoView();
+      }
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
