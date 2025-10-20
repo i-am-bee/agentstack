@@ -40,7 +40,6 @@
     "openapi-typescript-helpers": "^0.0.15",
     "openid-client": "^6.8.0",
     "pluralize": "^8.0.0",
-    "query-string": "^9.3.0",
     "promise-coalesce": "1.1.2",
     "react": "catalog:",
     "react-aria": "^3.43.2",
