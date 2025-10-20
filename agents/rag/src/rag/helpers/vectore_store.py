@@ -67,7 +67,6 @@ async def chunk_and_embed(embedding_function: EmbeddingFunction, file: File, vec
     """
 
     vector_store = await VectorStore.get(vector_store_id)
-    model_id = vector_store.model_id
 
     async with file.load_text_content() as loaded_file:
         text = loaded_file.text
@@ -89,6 +88,7 @@ async def chunk_and_embed(embedding_function: EmbeddingFunction, file: File, vec
         return
 
     embedding = await embedding_function(input=chunks)
+    model_id = vector_store.model_id or embedding.model
 
     vector_items = []
     for i, (chunk, embedding_data) in enumerate(zip(chunks, embedding.data, strict=False)):
@@ -96,7 +96,7 @@ async def chunk_and_embed(embedding_function: EmbeddingFunction, file: File, vec
             VectorStoreItem(
                 document_id=file.id,
                 document_type="platform_file",
-                model_id=embedding.model,
+                model_id=model_id,
                 text=chunk,
                 embedding=embedding_data.embedding,
                 metadata={
