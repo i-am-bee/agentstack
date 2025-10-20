@@ -74,6 +74,7 @@ async def preview_provider(
 @router.get("")
 async def list_providers(
     provider_service: ProviderServiceDependency,
+    configuration: ConfigurationDependency,
     request: Request,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}), use_cache=False)],
     user_owned: Annotated[bool | None, Query()] = None,
@@ -83,7 +84,9 @@ async def list_providers(
     for provider in await provider_service.list_providers(user=user.user, user_owned=user_owned, origin=origin):
         new_provider = provider.model_copy(
             update={
-                "agent_card": create_proxy_agent_card(provider.agent_card, provider_id=provider.id, request=request)
+                "agent_card": create_proxy_agent_card(
+                    provider.agent_card, provider_id=provider.id, request=request, configuration=configuration
+                )
             }
         )
         providers.append(EntityModel(new_provider))
@@ -95,6 +98,7 @@ async def list_providers(
 async def get_provider(
     id: UUID,
     provider_service: ProviderServiceDependency,
+    configuration: ConfigurationDependency,
     request: Request,
     _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}))],
 ) -> EntityModel[ProviderWithState]:
@@ -102,7 +106,9 @@ async def get_provider(
     return EntityModel(
         provider.model_copy(
             update={
-                "agent_card": create_proxy_agent_card(provider.agent_card, provider_id=provider.id, request=request)
+                "agent_card": create_proxy_agent_card(
+                    provider.agent_card, provider_id=provider.id, request=request, configuration=configuration
+                )
             }
         )
     )
@@ -112,6 +118,7 @@ async def get_provider(
 async def get_provider_by_location(
     location: str,
     provider_service: ProviderServiceDependency,
+    configuration: ConfigurationDependency,
     request: Request,
     _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}))],
 ) -> EntityModel[ProviderWithState]:
@@ -123,7 +130,9 @@ async def get_provider_by_location(
     return EntityModel(
         provider.model_copy(
             update={
-                "agent_card": create_proxy_agent_card(provider.agent_card, provider_id=provider.id, request=request)
+                "agent_card": create_proxy_agent_card(
+                    provider.agent_card, provider_id=provider.id, request=request, configuration=configuration
+                )
             }
         )
     )

@@ -9,23 +9,40 @@ import fastapi
 import fastapi.responses
 from a2a.server.apps import A2AFastAPIApplication
 from a2a.server.apps.rest.rest_adapter import RESTAdapter
-from a2a.types import AgentCard, AgentInterface, TransportProtocol
+from a2a.types import AgentCard, AgentInterface, HTTPAuthSecurityScheme, SecurityScheme, TransportProtocol
 from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from fastapi import Depends, HTTPException, Request
 
 from agentstack_server.api.dependencies import (
     A2AProxyServiceDependency,
+    ConfigurationDependency,
     ProviderServiceDependency,
     RequiresPermissions,
 )
+from agentstack_server.configuration import Configuration
 from agentstack_server.domain.models.permissions import AuthorizedUser
 from agentstack_server.service_layer.services.a2a import A2AServerResponse
 
 router = fastapi.APIRouter()
 
 
-def create_proxy_agent_card(agent_card: AgentCard, *, provider_id: UUID, request: Request) -> AgentCard:
+def create_proxy_agent_card(
+    agent_card: AgentCard, *, provider_id: UUID, request: Request, configuration: Configuration
+) -> AgentCard:
     proxy_base = str(request.url_for(a2a_proxy_jsonrpc_transport.__name__, provider_id=provider_id))
+
+    proxy_security = []
+    proxy_security_schemes = {}
+    if not configuration.auth.disable_auth:
+        # Note that we're purposefully not using oAuth but a more generic http scheme.
+        # This is because we don't want to declare the auth metadata but prefer discovery through related RFCs
+        # The http scheme also covers internal jwt tokens
+        proxy_security.append({"bearer": []})
+        proxy_security_schemes["bearer"] = SecurityScheme(HTTPAuthSecurityScheme(scheme="bearer"))
+        if configuration.auth.basic.enabled:
+            proxy_security.append({"basic": []})
+            proxy_security_schemes["basic"] = SecurityScheme(HTTPAuthSecurityScheme(scheme="basic"))
+
     return agent_card.model_copy(
         update={
             "preferred_transport": TransportProtocol.jsonrpc,
@@ -34,6 +51,8 @@ def create_proxy_agent_card(agent_card: AgentCard, *, provider_id: UUID, request
                 AgentInterface(transport=TransportProtocol.http_json, url=urljoin(proxy_base, "http")),
                 AgentInterface(transport=TransportProtocol.jsonrpc, url=proxy_base),
             ],
+            "security": proxy_security,
+            "security_schemes": proxy_security_schemes,
         }
     )
 
@@ -51,10 +70,13 @@ async def get_agent_card(
     provider_id: UUID,
     request: Request,
     provider_service: ProviderServiceDependency,
+    configuration: ConfigurationDependency,
     _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}))],
 ) -> AgentCard:
     provider = await provider_service.get_provider(provider_id=provider_id)
-    return create_proxy_agent_card(provider.agent_card, provider_id=provider.id, request=request)
+    return create_proxy_agent_card(
+        provider.agent_card, provider_id=provider.id, request=request, configuration=configuration
+    )
 
 
 @router.post("/{provider_id}")
@@ -64,10 +86,13 @@ async def a2a_proxy_jsonrpc_transport(
     request: fastapi.requests.Request,
     a2a_proxy: A2AProxyServiceDependency,
     provider_service: ProviderServiceDependency,
+    configuration: ConfigurationDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(a2a_proxy={"*"}))],
 ):
     provider = await provider_service.get_provider(provider_id=provider_id)
-    agent_card = create_proxy_agent_card(provider.agent_card, provider_id=provider.id, request=request)
+    agent_card = create_proxy_agent_card(
+        provider.agent_card, provider_id=provider.id, request=request, configuration=configuration
+    )
 
     handler = await a2a_proxy.get_request_handler(provider=provider, user=user.user)
     app = A2AFastAPIApplication(agent_card=agent_card, http_handler=handler)
@@ -83,11 +108,14 @@ async def a2a_proxy_http_transport(
     request: fastapi.requests.Request,
     a2a_proxy: A2AProxyServiceDependency,
     provider_service: ProviderServiceDependency,
+    configuration: ConfigurationDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(a2a_proxy={"*"}))],
     path: str = "",
 ):
     provider = await provider_service.get_provider(provider_id=provider_id)
-    agent_card = create_proxy_agent_card(provider.agent_card, provider_id=provider.id, request=request)
+    agent_card = create_proxy_agent_card(
+        provider.agent_card, provider_id=provider.id, request=request, configuration=configuration
+    )
 
     handler = await a2a_proxy.get_request_handler(provider=provider, user=user.user)
     adapter = RESTAdapter(agent_card=agent_card, http_handler=handler)
