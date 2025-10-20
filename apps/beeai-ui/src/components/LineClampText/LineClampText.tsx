@@ -50,9 +50,11 @@ export function LineClampText({
     const element = textRef.current;
     const { anchorNode, focusNode } = selection;
 
-    return Boolean(
-      element && ((anchorNode && element.contains(anchorNode)) || (focusNode && element.contains(focusNode))),
-    );
+    if (!element || !anchorNode || !focusNode) {
+      return false;
+    }
+
+    return element.contains(anchorNode) || element.contains(focusNode);
   }, [isExpanded]);
 
   const handleToggle = useCallback(() => {
