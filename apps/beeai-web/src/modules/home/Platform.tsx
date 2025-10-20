@@ -4,13 +4,12 @@
  */
 
 'use client';
-import { Deploy, Gui, Unlocked } from '@carbon/icons-react';
+import { Deploy, Gui, IbmDeployableArchitecture, Unlocked } from '@carbon/icons-react';
 import Image from 'next/image';
 
 import { PLATFORM_INTRO_LINK } from '@/constants';
 import { LayoutContainer } from '@/layouts/LayoutContainer';
 
-import InterfaceUsageAlt from './assets/interface-usage-alt.svg';
 import screenshotsImage from './assets/platform.png';
 import type { FeatureItem } from './components/FeaturesList';
 import { FeaturesList } from './components/FeaturesList';
@@ -52,7 +51,7 @@ const FEATURES_ITEMS: FeatureItem[] = [
       "Generate a shareable front-end from your code in minutes. Focus on your agent's logic, not UI frameworks.",
   },
   {
-    icon: InterfaceUsageAlt,
+    icon: Deploy,
     title: 'Effortless deployment',
     content:
       'Go from container to production-ready. We handle database, storage, scaling, and RAG so you can focus on your agent.',
@@ -64,7 +63,7 @@ const FEATURES_ITEMS: FeatureItem[] = [
       'Test across OpenAI, Anthropic, Gemini, IBM watsonx, Ollama and more. Instantly compare performance and cost to find the optimal model.',
   },
   {
-    icon: Deploy,
+    icon: IbmDeployableArchitecture,
     title: 'Framework-agnostic',
     content:
       'Run agents from LangChain, CrewAI, BeeAI and more on a single platform. Enable cross-framework collaboration without rewriting your code.',
