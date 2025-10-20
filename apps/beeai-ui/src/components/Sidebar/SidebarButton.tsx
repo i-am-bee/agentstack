@@ -14,11 +14,12 @@ export function SidebarButton() {
   const {
     config: { appName },
     sidebarOpen,
-    setSidebarOpen,
+    openSidebar,
+    closeSidebar,
   } = useApp();
 
   return (
-    <Button className={classes.root} kind="ghost" size="sm" onClick={() => setSidebarOpen((state) => !state)}>
+    <Button className={classes.root} kind="ghost" size="sm" onClick={sidebarOpen ? closeSidebar : openSidebar}>
       <div className={classes.icon}>
         <Menu />
 

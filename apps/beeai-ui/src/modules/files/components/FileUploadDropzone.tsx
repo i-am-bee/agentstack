@@ -4,12 +4,17 @@
  */
 
 import { CloudUpload } from '@carbon/icons-react';
+import clsx from 'clsx';
+
+import { useApp } from '#contexts/App/index.ts';
 
 import classes from './FileUploadDropzone.module.scss';
 
 export function FileUploadDropzone() {
+  const { sidebarOpen } = useApp();
+
   return (
-    <div className={classes.root}>
+    <div className={clsx(classes.root, { [classes.sidebarOpen]: sidebarOpen })}>
       <div className={classes.content}>
         <CloudUpload size={96} />
 

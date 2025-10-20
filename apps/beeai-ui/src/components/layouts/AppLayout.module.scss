@@ -6,7 +6,7 @@
 .root {
   display: grid;
   block-size: 100dvh;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: var(--sidebar-collapsed-width) 1fr;
   grid-template-areas: 'sidebar main';
 }
 
@@ -24,4 +24,10 @@
   align-items: stretch;
   overflow: hidden;
   view-transition-name: main;
+}
+
+@include breakpoint-up(rem(912px)) {
+  .root {
+    grid-template-columns: auto 1fr;
+  }
 }

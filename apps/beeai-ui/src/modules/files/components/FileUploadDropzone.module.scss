@@ -12,7 +12,7 @@
   padding: $grid-margin;
   display: flex;
 
-  :global(.sidebar-open) & {
+  &.sidebarOpen {
     inset-inline-start: var(--sidebar-width);
   }
 }

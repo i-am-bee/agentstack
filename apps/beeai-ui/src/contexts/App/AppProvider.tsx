@@ -16,8 +16,15 @@ interface Props {
 
 export function AppProvider({ config, children }: PropsWithChildren<Props>) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [closeSidebarOnClickOutside, setCloseSidebarOnClickOutside] = useState(false);
   const [activeSidePanel, setActiveSidePanel] = useState<SidePanelVariant | null>(null);
+
+  const openSidebar = useCallback(() => {
+    setSidebarOpen(true);
+  }, []);
+
+  const closeSidebar = useCallback(() => {
+    setSidebarOpen(false);
+  }, []);
 
   const openSidePanel = useCallback((variant: SidePanelVariant) => {
     setActiveSidePanel(variant);
@@ -31,14 +38,13 @@ export function AppProvider({ config, children }: PropsWithChildren<Props>) {
     () => ({
       config,
       sidebarOpen,
-      closeSidebarOnClickOutside,
       activeSidePanel,
-      setSidebarOpen,
-      setCloseSidebarOnClickOutside,
+      openSidebar,
+      closeSidebar,
       openSidePanel,
       closeSidePanel,
     }),
-    [config, sidebarOpen, closeSidebarOnClickOutside, activeSidePanel, openSidePanel, closeSidePanel],
+    [config, sidebarOpen, activeSidePanel, openSidebar, closeSidebar, openSidePanel, closeSidePanel],
   );
 
   return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;

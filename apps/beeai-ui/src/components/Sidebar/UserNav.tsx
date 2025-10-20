@@ -24,8 +24,8 @@ import classes from './UserNav.module.scss';
 export function UserNav() {
   const { transitionTo } = useRouteTransition();
   const {
-    setSidebarOpen,
     config: { isAuthEnabled },
+    closeSidebar,
   } = useApp();
   const isMaxUp = useBreakpointUp('max');
 
@@ -72,7 +72,7 @@ export function UserNav() {
                 transitionTo(href);
 
                 if (!isMaxUp) {
-                  setSidebarOpen(false);
+                  closeSidebar();
                 }
 
                 event.preventDefault();

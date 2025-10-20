@@ -7,7 +7,6 @@
 
 import clsx from 'clsx';
 import { useRef } from 'react';
-import { useOnClickOutside } from 'usehooks-ts';
 
 import { useApp } from '#contexts/App/index.ts';
 import { SessionsNav } from '#modules/history/components/SessionsNav.tsx';
@@ -26,13 +25,7 @@ interface Props {
 export function Sidebar({ className }: Props) {
   const navRef = useRef<HTMLDivElement>(null);
 
-  const { sidebarOpen, closeSidebarOnClickOutside, setSidebarOpen } = useApp();
-
-  useOnClickOutside(navRef, () => {
-    if (closeSidebarOnClickOutside) {
-      setSidebarOpen(false);
-    }
-  });
+  const { sidebarOpen } = useApp();
 
   return (
     <div ref={navRef} className={clsx(classes.root, className, { [classes.isOpen]: sidebarOpen })}>

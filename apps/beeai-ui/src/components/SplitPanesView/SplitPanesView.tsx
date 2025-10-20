@@ -24,26 +24,14 @@ interface Props {
 
 export function SplitPanesView({ leftPane, rightPane, mainContent, isSplit, spacing }: Props) {
   const scrollbarProps = useScrollbar();
-  const { sidebarOpen, activeSidePanel, setSidebarOpen, setCloseSidebarOnClickOutside, closeSidePanel } = useApp();
+  const { activeSidePanel, closeSidebar, closeSidePanel } = useApp();
 
   useEffect(() => {
     if (isSplit) {
-      setSidebarOpen(false);
+      closeSidebar();
       closeSidePanel();
     }
-  }, [isSplit, setSidebarOpen, closeSidePanel]);
-
-  useEffect(() => {
-    if (sidebarOpen && isSplit) {
-      setCloseSidebarOnClickOutside(true);
-    } else {
-      setCloseSidebarOnClickOutside(false);
-    }
-
-    return () => {
-      setCloseSidebarOnClickOutside(false);
-    };
-  }, [isSplit, sidebarOpen, setCloseSidebarOnClickOutside]);
+  }, [isSplit, closeSidebar, closeSidePanel]);
 
   return (
     <AnimatePresence mode="wait">
