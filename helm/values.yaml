@@ -40,6 +40,13 @@ externalRegistries: { }
 
 # ------- SECURITY ---------
 
+# How long task_id and context_id ownership will be tracked
+#   Performance considerations: all context IDs are recorded for this period
+#   Security Considerations:
+#     Agents should clear all local state stored under context_id within this time period
+#     No security implication for task_id (tasks ids can be generated only server-side in the agent)
+a2aProxyRequestsExpireAfterDays: 14
+
 encryptionKey: ""
 auth:
   enabled: false # Warning, disable only for local deployments

@@ -132,11 +132,11 @@ run = """
 EXCEPT='{{option(name="except", default="")}}'
 
 {% raw %}
-TO_DELETE="$(LIMA_HOME=~/.beeai/lima limactl list -f '{{.Name}}' 2>/dev/null | sed '/^[^a-z]*$/d' | sed "/^$EXCEPT$/d")"
+TO_STOP="$(LIMA_HOME=~/.beeai/lima limactl list -f '{{.Name}};{{.Status}}' | grep -v "Stopped" | cut -d';' -f1 2>/dev/null | sed '/^[^a-z]*$/d' | sed "/^$EXCEPT$/d")"
 {% endraw %}
 
 {% raw %}
-echo "$TO_DELETE" | xargs -rn 1 -I"{}" mise run beeai-cli:run -- platform stop --vm-name="{}"
+echo "$TO_STOP" | xargs -rn 1 -I"{}" mise run beeai-cli:run -- platform stop --vm-name="{}"
 {% endraw %}
 """
 

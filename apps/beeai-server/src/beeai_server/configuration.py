@@ -230,6 +230,11 @@ class ContextConfiguration(BaseModel):
     resource_expire_after_days: int = 7  # Expires files and vector_stores attached to a context
 
 
+class A2AProxyConfiguration(BaseModel):
+    # Expires a2a_request_tasks and a2a_request_contexts (WARNING: has security implications!)
+    requests_expire_after_days: int = 14
+
+
 class FeatureConfiguration(BaseModel):
     generate_conversation_title: bool = True
     provider_builds: bool = True
@@ -265,6 +270,7 @@ class Configuration(BaseSettings):
     vector_stores: VectorStoresConfiguration = Field(default_factory=VectorStoresConfiguration)
     text_extraction: DoclingExtractionConfiguration = Field(default_factory=DoclingExtractionConfiguration)
     context: ContextConfiguration = Field(default_factory=ContextConfiguration)
+    a2a_proxy: A2AProxyConfiguration = Field(default_factory=A2AProxyConfiguration)
     k8s_namespace: str | None = None
     k8s_kubeconfig: Path | None = None
 

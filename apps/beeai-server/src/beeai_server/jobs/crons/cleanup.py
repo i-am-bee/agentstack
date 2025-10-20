@@ -6,6 +6,7 @@ from kink import inject
 from procrastinate import Blueprint, JobContext, builtin_tasks
 
 from beeai_server.jobs.queues import Queues
+from beeai_server.service_layer.services.a2a import A2AProxyService
 from beeai_server.service_layer.services.contexts import ContextService
 
 blueprint = Blueprint()
@@ -14,11 +15,20 @@ logger = logging.getLogger(__name__)
 
 
 @blueprint.periodic(cron="5 * * * *")
-@blueprint.task(queueing_lock="cleanup_expired_vector_stores", queue=str(Queues.CRON_CLEANUP))
+@blueprint.task(queueing_lock="cleanup_expired_context_resources", queue=str(Queues.CRON_CLEANUP))
 @inject
 async def cleanup_expired_context_resources(timestamp: int, context: ContextService) -> None:
     """Delete resources of contexts that haven't been used for several days."""
     deleted_stats = await context.expire_resources()
+    logger.info(f"Deleted: {deleted_stats}")
+
+
+@blueprint.periodic(cron="10 * * * *")
+@blueprint.task(queueing_lock="cleanup_expired_a2a_requests", queue=str(Queues.CRON_CLEANUP))
+@inject
+async def cleanup_expired_a2a_tasks(timestamp: int, a2a_proxy: A2AProxyService) -> None:
+    """Delete tracked request objects that haven't been used for several days."""
+    deleted_stats = await a2a_proxy.expire_requests()
     logger.info(f"Deleted: {deleted_stats}")
 
 

@@ -167,7 +167,7 @@ run = """
 #!/bin/bash
 VM_NAME='{{option(name="vm-name", default="beeai-local-dev")}}'
 {{ mise_bin }} run beeai-server:dev:disconnect --vm-name="$VM_NAME"
-{{ mise_bin }} run beeai-platform:stop --vm-name=beeai-local-dev
+{{ mise_bin }} run beeai-platform:stop --vm-name="$VM_NAME"
 """
 
 ["beeai-server:dev:delete"]
@@ -200,7 +200,9 @@ VM_NAME='{{option(name="vm-name", default="beeai-local-dev")}}'
 eval "$( {{ mise_bin }} run beeai-platform:shell --vm-name="$VM_NAME" )"
 
 tele="telepresence --use .*${NAMESPACE}.*"
-$tele uninstall --all-agents || true
+if ! ($tele status --output json | jq '.user_daemon.status' | grep -q "Not connected"); then
+    $tele uninstall --all-agents || true
+fi
 $tele quit
 """
 
@@ -220,8 +222,13 @@ run = """
     --vm-name=beeai-local-test \
     --set externalRegistries=null \
     --set providerBuilds.enabled=true \
-    --set localDockerRegistry.enabled=true
+    --set localDockerRegistry.enabled=true \
+    {{arg(name="cli-args", var=true, default="--")}}
 """
+
+["beeai-server:dev:test:stop"]
+dir = "{{config_root}}/apps/beeai-server"
+run = "{{ mise_bin }} run beeai-server:dev:stop --vm-name=beeai-local-test"
 
 ["beeai-server:dev:test:delete"]
 dir = "{{config_root}}/apps/beeai-server"

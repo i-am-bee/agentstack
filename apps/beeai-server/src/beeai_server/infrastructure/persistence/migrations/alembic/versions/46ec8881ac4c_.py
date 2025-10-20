@@ -1,7 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""empty message
+"""add model providers and configurations
 
 Revision ID: 46ec8881ac4c
 Revises: 5dec926744d0
