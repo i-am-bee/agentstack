@@ -84,7 +84,7 @@ spec:
             capabilities:
               drop:
                 - ALL
-            runAsNonRoot: true
+            runAsUser: 0
             seccompProfile:
               type: RuntimeDefault
         # Main container: Step 3 Push the intermediary image
