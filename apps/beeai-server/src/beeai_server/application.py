@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
+import os
 import time
 from collections.abc import Iterable
 from contextlib import asynccontextmanager, suppress
@@ -169,7 +170,7 @@ def app(*, dependency_overrides: Container | None = None) -> FastAPI:
         default_response_class=ORJSONResponse,  # better performance then default + handle NaN floats
         docs_url="/api/v1/docs",
         openapi_url="/api/v1/openapi.json",
-        servers=[{"url": f"http://localhost:{configuration.port}"}],
+        servers=[{"url": os.getenv("HOST", f"http://localhost:{configuration.port}")}],
     )
 
     logger.info("Mounting routes...")
