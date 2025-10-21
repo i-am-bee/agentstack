@@ -3,11 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { agentDetailExtension, extractUiExtensionData } from 'beeai-sdk';
 import uniq from 'lodash/uniq';
 import uniqWith from 'lodash/uniqWith';
 
-import { agentDetailExtension } from '#api/a2a/extensions/ui/agent-detail.ts';
-import { extractUiExtensionData } from '#api/a2a/extensions/utils.ts';
 import type { Provider } from '#modules/providers/api/types.ts';
 import { SupportedUis } from '#modules/runs/constants.ts';
 import { compareStrings, isNotNull } from '#utils/helpers.ts';
@@ -27,6 +26,13 @@ export const getAgentsProgrammingLanguages = (agents: Agent[] | undefined) => {
 
 export function sortAgentsByName(a: Agent, b: Agent) {
   return compareStrings(a.name, b.name);
+}
+
+export function sortProvidersByCreatedAt(a: Provider, b: Provider) {
+  const aCreatedAt = a.created_at ? Date.parse(a.created_at) : 0;
+  const bCreatedAt = b.created_at ? Date.parse(b.created_at) : 0;
+
+  return bCreatedAt - aCreatedAt;
 }
 
 export function isAgentUiSupported(agent: Agent) {

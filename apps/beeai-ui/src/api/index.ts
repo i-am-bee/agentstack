@@ -11,6 +11,7 @@ import { runtimeConfig } from '#contexts/App/runtime-config.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 
 import type { paths } from './schema';
+import { getProxyHeaders } from './utils';
 
 const authMiddleware: Middleware = {
   async onRequest({ request }) {
@@ -31,8 +32,23 @@ const authMiddleware: Middleware = {
   },
 };
 
+const proxyMiddleware: Middleware = {
+  async onRequest({ request }) {
+    const isServer = typeof window === 'undefined';
+    if (isServer) {
+      const { headers } = await import('next/headers');
+      const { forwarded, forwardedHost, forwardedProto } = await getProxyHeaders(await headers());
+      request.headers.set('forwarded', forwarded);
+      if (forwardedHost) request.headers.set('x-forwarded-host', forwardedHost);
+      if (forwardedProto) request.headers.set('x-forwarded-proto', forwardedProto);
+    }
+    return request;
+  },
+};
+
 export const api = createClient<paths>({
   baseUrl: getBaseUrl(),
 });
 
 api.use(authMiddleware);
+api.use(proxyMiddleware);

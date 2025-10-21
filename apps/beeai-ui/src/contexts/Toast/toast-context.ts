@@ -13,7 +13,6 @@ export interface Toast {
    * Provide a description for "close" icon button that can be read by screen readers
    */
   ariaLabel?: string;
-  caption?: string;
   children?: ReactNode;
   hideCloseButton?: boolean;
   kind?: 'error' | 'info' | 'info-square' | 'success' | 'warning' | 'warning-alt';
@@ -25,9 +24,11 @@ export interface Toast {
   /** Specify an optional duration the notification should be closed in */
   timeout?: number;
   title?: string;
+  hideTimeElapsed?: boolean;
   apiError?: string;
   icon?: ComponentType<IconProps>;
   inlineIcon?: boolean;
+  date?: Date;
 }
 
 export interface ToastContextValue {

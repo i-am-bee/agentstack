@@ -3,6 +3,70 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+.root {
+  display: flex;
+  flex-direction: column;
+  row-gap: rem(10px);
+}
+
 .empty {
   color: $text-disabled;
+}
+
+.submission {
+  border-inline-start: 2px solid $border-subtle-00;
+  padding-inline-start: $spacing-05;
+  &[disabled] {
+    :global(.cds--label) {
+      color: $text-secondary;
+    }
+    textarea,
+    :global(.cds--date-picker__input) {
+      color: $text-primary;
+      background-color: transparent;
+    }
+    :global(.cds--checkbox:disabled + .cds--checkbox-label) {
+      color: $text-secondary;
+      &::before {
+        border-color: $icon-secondary;
+      }
+    }
+    :global(.cds--checkbox:checked:disabled + .cds--checkbox-label) {
+      color: $text-primary;
+      &::before {
+        background-color: $icon-primary;
+      }
+    }
+    :global(.cds--tag:disabled) {
+      background-color: $layer-03;
+      border-color: $layer-03;
+      color: $text-dark;
+      &:global(.cds--tag--selected) {
+        background-color: $background-inverse;
+        border-color: $background-inverse;
+        color: $text-inverse;
+      }
+    }
+  }
+}
+
+.toggleButton:global(.cds--btn) {
+  padding: 0;
+  border: 0;
+  min-block-size: 0;
+  font-size: rem(14px);
+  line-height: math.div(22, 14);
+  color: $text-secondary;
+  &:hover,
+  &:active {
+    background-color: transparent;
+  }
+  &:focus {
+    box-shadow: none;
+  }
+  &:focus-visible {
+    @include focus-outline('outline');
+    outline-offset: 0;
+    border-radius: $spacing-02;
+  }
 }

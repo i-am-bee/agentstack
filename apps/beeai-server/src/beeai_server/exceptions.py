@@ -9,16 +9,26 @@ from httpx import HTTPError
 from tenacity import retry_base, retry_if_exception
 
 from beeai_server.domain.models.model_provider import ModelProvider
-from beeai_server.domain.models.provider_build import BuildState
 
 if TYPE_CHECKING:
     from beeai_server.domain.models.provider import EnvVar, ProviderLocation
+    from beeai_server.domain.models.provider_build import BuildState
 
 
 class PlatformError(Exception):
     def __init__(self, message: str | None = None, status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR):
         self.status_code = status_code
         super().__init__(message or "An unexpected platform error occurred")
+
+
+class VersionResolveError(PlatformError):
+    def __init__(
+        self,
+        location: str,
+        message: str | None = None,
+        status_code: int = status.HTTP_400_BAD_REQUEST,
+    ):
+        super().__init__(f"Failed to resolve version for '{location}': {message}", status_code)
 
 
 class ManifestLoadError(PlatformError):
@@ -101,16 +111,11 @@ class DuplicateEntityError(PlatformError):
 
 
 class BuildAlreadyFinishedError(PlatformError):
-    def __init__(self, platform_build_id: UUID, state: BuildState, status_code: int = status.HTTP_400_BAD_REQUEST):
+    def __init__(self, platform_build_id: UUID, state: "BuildState", status_code: int = status.HTTP_400_BAD_REQUEST):
         super().__init__(
             message=f"Build with ID {platform_build_id} already finished in state: {state}",
             status_code=status_code,
         )
-
-
-class InvalidGithubReferenceError(PlatformError):
-    def __init__(self, message: str, status_code: int = status.HTTP_400_BAD_REQUEST):
-        super().__init__(message, status_code)
 
 
 def retry_if_exception_grp_type(*exception_types: type[BaseException]) -> retry_base:

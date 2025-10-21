@@ -14,5 +14,4 @@ export interface RuntimeConfig {
   featureFlags: FeatureFlags;
   isAuthEnabled: boolean;
   appName: string;
-  companyName?: string;
 }

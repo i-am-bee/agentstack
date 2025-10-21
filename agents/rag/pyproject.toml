@@ -7,10 +7,10 @@ authors = [
 ]
 requires-python = ">=3.13,<3.14"
 dependencies = [
-    "beeai-framework[duckduckgo,wikipedia]>=0.1.50",
+    "beeai-framework[duckduckgo,wikipedia]>=0.1.56",
     "beeai-sdk",
     "openai>=1.107.1",
-    "openinference-instrumentation-beeai>=0.1.11",
+    "openinference-instrumentation-beeai>=0.1.12",
     "pydantic-settings>=2.9.0",
     "tenacity>=9.1.2",
     "langchain-text-splitters>=0.3.0",
@@ -21,7 +21,7 @@ dependencies = [
 line-length = 120
 
 [tool.uv.sources]
-beeai-sdk = { path = "../../apps/beeai-sdk", editable = true }
+beeai-sdk = { path = "../../apps/beeai-sdk-py", editable = true }
 
 [project.scripts]
 server = "rag.agent:serve"

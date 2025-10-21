@@ -34,21 +34,23 @@ async def provider_id(db_transaction: AsyncConnection, admin_user: UUID) -> UUID
     await db_transaction.execute(
         text(
             """
-            INSERT INTO providers (id, source, origin, auto_stop_timeout_sec, auto_remove, created_at, updated_at, last_active_at, agent_card, created_by)
-            VALUES (:id, :source, :origin, :timeout, :auto_remove, :created_at, :updated_at, :last_active_at, :agent_card, :created_by)
+            INSERT INTO providers (id, type, source, origin, version_info, auto_stop_timeout_sec, created_at, updated_at, last_active_at, agent_card, created_by, unmanaged_state)
+            VALUES (:id, :type, :source, :origin, :version_info, :timeout, :created_at, :updated_at, :last_active_at, :agent_card, :created_by, :unmanaged_state)
             """
         ),
         {
             "id": provider_id,
+            "type": "unmanaged",
             "source": "test://provider",
             "origin": "test",
+            "version_info": "{}",
             "timeout": 3600,
-            "auto_remove": False,
             "created_at": utc_now(),
             "updated_at": utc_now(),
             "last_active_at": utc_now(),
             "agent_card": "{}",
             "created_by": admin_user,
+            "unmanaged_state": None,
         },
     )
     return provider_id
@@ -327,21 +329,23 @@ async def test_get_all_multiple_entities(
         await db_transaction.execute(
             text(
                 """
-                INSERT INTO providers (id, source, origin, auto_stop_timeout_sec, auto_remove, created_at, updated_at, last_active_at, agent_card, created_by)
-                VALUES (:id, :source, :origin, :timeout, :auto_remove, :created_at, :updated_at, :last_active_at, :agent_card, :created_by)
+                INSERT INTO providers (id, type, source, origin, version_info, auto_stop_timeout_sec, created_at, updated_at, last_active_at, agent_card, created_by, unmanaged_state)
+                VALUES (:id, :type, :source, :origin, :version_info, :timeout, :created_at, :updated_at, :last_active_at, :agent_card, :created_by, :unmanaged_state)
                 """
             ),
             {
                 "id": provider_id,
+                "type": "unmanaged",
                 "source": f"test://provider{i}",
                 "origin": "test",
+                "version_info": "{}",
                 "timeout": 3600,
-                "auto_remove": False,
                 "created_at": utc_now(),
                 "updated_at": utc_now(),
                 "last_active_at": utc_now(),
                 "agent_card": "{}",
                 "created_by": admin_user,
+                "unmanaged_state": None,
             },
         )
 
@@ -430,21 +434,23 @@ async def test_variable_isolation_between_entity_types(
     await db_transaction.execute(
         text(
             """
-            INSERT INTO providers (id, source, origin, auto_stop_timeout_sec, auto_remove, created_at, updated_at, last_active_at, agent_card, created_by)
-            VALUES (:id, :source, :origin, :timeout, :auto_remove, :created_at, :updated_at, :last_active_at, :agent_card, :created_by)
+            INSERT INTO providers (id, type, source, origin, version_info, auto_stop_timeout_sec, created_at, updated_at, last_active_at, agent_card, created_by, unmanaged_state)
+            VALUES (:id, :type, :source, :origin, :version_info, :timeout, :created_at, :updated_at, :last_active_at, :agent_card, :created_by, :unmanaged_state)
             """
         ),
         {
             "id": entity_id,
+            "type": "unmanaged",
             "source": "test://provider",
             "origin": "test",
+            "version_info": "{}",
             "timeout": 3600,
-            "auto_remove": False,
             "created_at": utc_now(),
             "updated_at": utc_now(),
             "last_active_at": utc_now(),
             "agent_card": "{}",
             "created_by": admin_user,
+            "unmanaged_state": None,
         },
     )
 

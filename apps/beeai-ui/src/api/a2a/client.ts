@@ -3,32 +3,33 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from '@a2a-js/sdk';
+import type { AgentExtension, TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from '@a2a-js/sdk';
 import { A2AClient } from '@a2a-js/sdk/client';
+import {
+  activePlatformExtension,
+  embeddingExtension,
+  extractServiceExtensionDemands,
+  extractUiExtensionData,
+  formExtension,
+  formMessageExtension,
+  fulfillServiceExtensionDemand,
+  llmExtension,
+  mcpExtension,
+  oauthProviderExtension,
+  oauthRequestExtension,
+  secretsExtension,
+  secretsMessageExtension,
+  settingsExtension,
+} from 'beeai-sdk';
 import { defaultIfEmpty, filter, lastValueFrom, Subject } from 'rxjs';
 import { match } from 'ts-pattern';
 
 import { UnauthenticatedError } from '#api/errors.ts';
-import type { AgentExtension } from '#modules/agents/api/types.ts';
 import type { UIMessagePart } from '#modules/messages/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 
 import { AGENT_ERROR_MESSAGE } from './constants';
-import { embeddingExtension } from './extensions/services/embedding';
-import { llmExtension } from './extensions/services/llm';
-import { mcpExtension } from './extensions/services/mcp';
-import { oauthProviderExtension } from './extensions/services/oauth-provider';
-import { activePlatformExtension } from './extensions/services/platform';
-import { secretsExtension, secretsMessageExtension } from './extensions/services/secrets';
-import { formExtension, formMessageExtension } from './extensions/ui/form';
-import { oauthRequestExtension } from './extensions/ui/oauth';
-import { settingsExtension } from './extensions/ui/settings';
-import {
-  extractServiceExtensionDemands,
-  extractUiExtensionData,
-  fulfillServiceExtensionDemand,
-} from './extensions/utils';
 import { processMessageMetadata, processParts } from './part-processors';
 import type { ChatResult, FormRequiredResult, OAuthRequiredResult, SecretRequiredResult } from './types';
 import { type ChatParams, type ChatRun, RunResultType } from './types';

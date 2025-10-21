@@ -3,10 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { AgentExtension as A2AAgentExtension } from '@a2a-js/sdk';
 import type { ServerSentEventMessage } from 'fetch-event-stream';
 import type { FetchResponse } from 'openapi-fetch';
 import type { MediaType } from 'openapi-typescript-helpers';
 
+import type { Agent } from '#modules/agents/api/types.ts';
+import { NEXTAUTH_URL, TRUST_PROXY_HEADERS } from '#utils/constants.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { ApiError, ApiValidationError, HttpError, UnauthenticatedError } from './errors';
@@ -80,4 +83,31 @@ export async function fetchEntity<T>(fetchFn: () => Promise<T>): Promise<T | und
 
     return undefined;
   }
+}
+
+export function getAgentExtensions(agent?: Agent): A2AAgentExtension[] {
+  const extensions = agent?.capabilities.extensions;
+  if (!extensions) {
+    return [];
+  }
+
+  return extensions.map(({ description, params, required, ...rest }) => ({
+    ...rest,
+    description: description ?? undefined,
+    params: params ?? undefined,
+    required: required ?? undefined,
+  }));
+}
+
+export async function getProxyHeaders(headers: Headers, url?: URL) {
+  const forwardedHost = (TRUST_PROXY_HEADERS && headers.get('x-forwarded-host')) || url?.host || NEXTAUTH_URL?.host;
+  const forwardedProto =
+    (TRUST_PROXY_HEADERS && headers.get('x-forwarded-proto')) ||
+    (url?.protocol ?? NEXTAUTH_URL?.protocol)?.replace(/:$/, '');
+  const forwarded = [
+    ...(TRUST_PROXY_HEADERS ? [headers.get('forwarded') ?? `host=${forwardedHost};proto=${forwardedProto}`] : []),
+    `host=${forwardedHost};proto=${forwardedProto}`,
+  ].join(',');
+
+  return { forwardedHost, forwardedProto, forwarded };
 }

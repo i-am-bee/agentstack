@@ -16,7 +16,7 @@ interface Props {
 export function useAgent({ providerId }: Props) {
   return useQuery({
     queryKey: providerKeys.list(),
-    queryFn: listProviders,
+    queryFn: () => listProviders(),
     select: (response) => {
       const agentProvider = response?.items.find(({ id }) => id === providerId);
       return agentProvider ? buildAgent(agentProvider) : undefined;

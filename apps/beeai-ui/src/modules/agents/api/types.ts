@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentDetail } from '#api/a2a/extensions/ui/agent-detail.ts';
+import type { AgentDetail } from 'beeai-sdk';
+
 import type { Provider } from '#modules/providers/api/types.ts';
 
 type AgentCard = Provider['agent_card'];

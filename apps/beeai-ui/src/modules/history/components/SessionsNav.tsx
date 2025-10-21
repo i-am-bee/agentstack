@@ -5,7 +5,7 @@
 
 import { useMemo } from 'react';
 
-import { NavGroup } from '#components/SidePanel/NavGroup.tsx';
+import { NavGroup } from '#components/Sidebar/NavGroup.tsx';
 import { useFetchNextPage } from '#hooks/useFetchNextPage.ts';
 import { useParamsFromUrl } from '#hooks/useParamsFromUrl.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
@@ -56,7 +56,7 @@ export function SessionsNav() {
   );
 
   return (
-    <NavGroup heading="Sessions" toggleable>
+    <NavGroup heading="Sessions">
       <SessionsList items={items} isLoading={isLoading} />
 
       {hasNextPage && <div ref={fetchNextPageRef} />}

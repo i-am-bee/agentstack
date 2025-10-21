@@ -10,13 +10,5 @@
 }
 
 .empty {
-  display: flex;
-  flex-direction: column;
-  row-gap: $spacing-02;
-  font-size: rem(14px);
-  line-height: math.div(18, 14);
-  padding: $spacing-03;
-  span {
-    color: $text-secondary;
-  }
+  padding: rem(7px) $spacing-03;
 }

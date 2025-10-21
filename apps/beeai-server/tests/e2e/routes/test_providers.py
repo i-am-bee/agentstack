@@ -20,7 +20,7 @@ async def test_provider_crud(subtests, test_configuration):
         assert await provider.list_variables() == variables
 
     with subtests.test("patch provider"):
-        new_source = "docker.io/library/test-agent-image:nonexistent"
+        new_source = test_configuration.test_agent_image
         new_agent_card = AgentCard(
             name="test",
             description="test",

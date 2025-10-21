@@ -18,6 +18,7 @@ from beeai_server.api.schema.common import PaginationQuery
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.common import PaginatedResult
 from beeai_server.domain.models.provider_build import (
+    BuildConfiguration,
     BuildState,
     NoAction,
     OnCompleteAction,
@@ -25,7 +26,11 @@ from beeai_server.domain.models.provider_build import (
     UpdateProvider,
 )
 from beeai_server.domain.models.user import User, UserRole
-from beeai_server.exceptions import BuildAlreadyFinishedError, EntityNotFoundError, InvalidGithubReferenceError
+from beeai_server.exceptions import (
+    BuildAlreadyFinishedError,
+    EntityNotFoundError,
+    VersionResolveError,
+)
 from beeai_server.service_layer.build_manager import IProviderBuildManager
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
 from beeai_server.utils.docker import DockerImageID
@@ -46,8 +51,8 @@ class ProviderBuildService:
     async def _resolve_version(self, location: GithubUrl) -> tuple[ResolvedGithubUrl, DockerImageID]:
         try:
             version = await location.resolve_version()
-        except ValueError as e:
-            raise InvalidGithubReferenceError(str(e)) from e
+        except Exception as e:
+            raise VersionResolveError(str(location), str(e)) from e
         if not self._config.provider_build.oci_build_registry_prefix:
             raise RuntimeError("OCI build registry is not configured")
 
@@ -75,7 +80,11 @@ class ProviderBuildService:
         )
 
     async def create_build(
-        self, location: GithubUrl, user: User, on_complete: OnCompleteAction | None = None
+        self,
+        location: GithubUrl,
+        user: User,
+        on_complete: OnCompleteAction | None = None,
+        build_configuration: BuildConfiguration | None = None,
     ) -> ProviderBuild:
         from beeai_server.jobs.tasks.provider_build import build_provider as task
 
@@ -87,6 +96,7 @@ class ProviderBuildService:
             destination=destination,
             created_by=user.id,
             on_complete=on_complete or NoAction(),
+            build_configuration=build_configuration,
         )
         async with self._uow() as uow:
             match on_complete:

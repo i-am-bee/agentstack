@@ -73,7 +73,7 @@ export function useFeedback({ message, onOpenChange }: Props) {
           addToast({
             kind: 'info',
             title: 'Thank you for your feedback!',
-            caption: undefined,
+            hideTimeElapsed: true,
             icon: CheckmarkFilled,
             inlineIcon: true,
             timeout: 5_000,

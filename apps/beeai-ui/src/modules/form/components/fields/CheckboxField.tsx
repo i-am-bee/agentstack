@@ -4,9 +4,9 @@
  */
 
 import { Checkbox, FormGroup } from '@carbon/react';
+import type { CheckboxField } from 'beeai-sdk';
 import { useFormContext } from 'react-hook-form';
 
-import type { CheckboxField } from '#api/a2a/extensions/ui/form.ts';
 import type { ValuesOfField } from '#modules/form/types.ts';
 
 interface Props {

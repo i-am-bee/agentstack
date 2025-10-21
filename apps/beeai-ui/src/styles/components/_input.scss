@@ -5,6 +5,10 @@
 
 @use 'styles/common' as *;
 
+.cds--label {
+  vertical-align: top;
+}
+
 .cds--text-area,
 .cds--text-input,
 .cds--date-picker__input {
@@ -18,6 +22,10 @@
   &:focus-within {
     outline: 2px solid $background-inverse;
   }
+}
+
+.cds--text-input:disabled {
+  border-block-end-color: $border-subtle-00;
 }
 
 .cds--text-area {

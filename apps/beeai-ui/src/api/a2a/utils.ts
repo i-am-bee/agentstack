@@ -4,6 +4,15 @@
  */
 
 import type { FilePart, FileWithUri, Message, Part, TextPart } from '@a2a-js/sdk';
+import {
+  type Citation,
+  citationExtension,
+  extractUiExtensionData,
+  formMessageExtension,
+  type FormRender,
+  trajectoryExtension,
+  type TrajectoryMetadata,
+} from 'beeai-sdk';
 import truncate from 'lodash/truncate';
 import { v4 as uuid } from 'uuid';
 
@@ -21,18 +30,9 @@ import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { PLATFORM_FILE_CONTENT_URL_BASE } from './constants';
-import type { Citation } from './extensions/ui/citation';
-import { citationExtension } from './extensions/ui/citation';
-import type { FormRender } from './extensions/ui/form';
-import { formMessageExtension } from './extensions/ui/form';
-import type { TrajectoryMetadata } from './extensions/ui/trajectory';
-import { trajectoryExtension } from './extensions/ui/trajectory';
-import { extractUiExtensionData } from './extensions/utils';
 
 export const extractCitation = extractUiExtensionData(citationExtension);
-
 export const extractTrajectory = extractUiExtensionData(trajectoryExtension);
-
 export const extractForm = extractUiExtensionData(formMessageExtension);
 
 export function extractTextFromMessage(message: Message | undefined) {
@@ -174,6 +174,12 @@ export function createFormPart(form: FormRender): UIFormPart | null {
 
 export function getFilePlatformUrl(id: string) {
   return `${PLATFORM_FILE_CONTENT_URL_BASE}${id}`;
+}
+
+export function getFileIdFromFilePlatformUrl(url: string) {
+  const fileId = url.replace(PLATFORM_FILE_CONTENT_URL_BASE, '');
+
+  return fileId;
 }
 
 const MAX_CONTENT_CHARS_LENGTH = 16000;

@@ -2,6 +2,7 @@ packages:
   - apps/beeai-ui
   - apps/beeai-web
   - apps/lint-config
+  - apps/beeai-sdk-ts
   - docs
 
 catalog:

@@ -35,6 +35,9 @@
 .content {
   font-size: rem(16px);
   line-height: math.div(26, 16);
+  &:empty {
+    display: none;
+  }
 }
 
 .actions {

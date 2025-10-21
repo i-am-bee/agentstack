@@ -16,11 +16,14 @@ from fastapi import HTTPException
 from kink import inject
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
+from beeai_server.domain.constants import SELF_REGISTRATION_EXTENSION_URI
 from beeai_server.domain.models.provider import (
+    DockerImageProviderLocation,
     Provider,
     ProviderDeploymentState,
     ProviderLocation,
     ProviderWithState,
+    UnmanagedState,
 )
 from beeai_server.domain.models.registry import RegistryLocation
 from beeai_server.domain.models.user import User, UserRole
@@ -30,6 +33,8 @@ from beeai_server.service_layer.deployment_manager import (
     IProviderDeploymentManager,
 )
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
+from beeai_server.utils.a2a import get_extension
+from beeai_server.utils.github import ResolvedGithubUrl
 from beeai_server.utils.logs_container import LogsContainer
 from beeai_server.utils.utils import cancel_task, utc_now
 
@@ -47,25 +52,33 @@ class ProviderService:
         *,
         user: User,
         location: ProviderLocation,
-        origin: str | None = None,
+        origin: str | ResolvedGithubUrl | None = None,
         auto_stop_timeout: timedelta,
         registry: RegistryLocation | None = None,
-        auto_remove: bool = False,
         agent_card: AgentCard | None = None,
         variables: dict[str, str] | None = None,
     ) -> ProviderWithState:
         try:
             if not agent_card:
                 agent_card = await location.load_agent_card()
+            version_info = await location.get_version_info()
+
+            if isinstance(origin, ResolvedGithubUrl):
+                version_info.github = origin
+                origin = origin.base
+
             provider = Provider(
                 source=location,
                 origin=origin or location.origin,
                 registry=registry,
-                auto_remove=auto_remove,
+                version_info=version_info,
                 agent_card=agent_card,
                 created_by=user.id,
                 auto_stop_timeout=auto_stop_timeout,
             )
+            if not provider.managed and get_extension(agent_card, SELF_REGISTRATION_EXTENSION_URI):
+                provider.unmanaged_state = UnmanagedState.ONLINE
+
         except ValueError as ex:
             raise ManifestLoadError(location=location, message=str(ex), status_code=HTTP_400_BAD_REQUEST) from ex
         except Exception as ex:
@@ -88,7 +101,7 @@ class ProviderService:
         user: User,
         location: ProviderLocation | None = None,
         auto_stop_timeout: timedelta | None = None,
-        origin: str | None = None,
+        origin: str | ResolvedGithubUrl | None = None,
         agent_card: AgentCard | None = None,
         variables: dict[str, str] | None = None,
         allow_registry_update: bool = False,
@@ -96,10 +109,13 @@ class ProviderService:
     ) -> ProviderWithState:
         user_id = user.id if user.role != UserRole.ADMIN else None
 
+        github_version_info: ResolvedGithubUrl | None = None
+        if isinstance(origin, ResolvedGithubUrl):
+            github_version_info = origin
+            origin = origin.base
+
         async with self._uow() as uow:
             provider = await uow.providers.get(provider_id=provider_id, user_id=user_id)
-            if not provider.managed:
-                raise ValueError("Cannot upgrade unmanaged provider")
             if provider.registry and not allow_registry_update:
                 raise ValueError("Cannot update provider added from registry")
             old_variables = (
@@ -119,13 +135,33 @@ class ProviderService:
         if auto_stop_timeout is not None:
             updated_provider.auto_stop_timeout = auto_stop_timeout
 
-        if not agent_card and location is not None and location != provider.source:
-            try:
-                updated_provider.agent_card = await location.load_agent_card()
-            except ValueError as ex:
-                raise ManifestLoadError(location=location, message=str(ex), status_code=HTTP_400_BAD_REQUEST) from ex
-            except Exception as ex:
-                raise ManifestLoadError(location=location, message=str(ex)) from ex
+        # this is a bit heuristic, self-registered agents send a card in this format, but technically somebody else
+        # can send it without the agent actually being online
+        if agent_card and get_extension(agent_card, SELF_REGISTRATION_EXTENSION_URI):
+            updated_provider.unmanaged_state = UnmanagedState.ONLINE
+
+        # Some migrated docker providers may not have a docker version_info field, update during the patch
+        if (
+            isinstance(updated_provider.source, DockerImageProviderLocation)
+            and updated_provider.version_info.docker is None
+        ):
+            updated_provider.version_info = await provider.source.get_version_info()
+
+        if location is not None and location != provider.source:
+            updated_provider.version_info = await location.get_version_info()
+
+            if not agent_card:
+                try:
+                    updated_provider.agent_card = await location.load_agent_card()
+                except ValueError as ex:
+                    raise ManifestLoadError(
+                        location=location, message=str(ex), status_code=HTTP_400_BAD_REQUEST
+                    ) from ex
+                except Exception as ex:
+                    raise ManifestLoadError(location=location, message=str(ex)) from ex
+
+        if github_version_info:
+            updated_provider.version_info.github = github_version_info
 
         should_update = provider != updated_provider or variables != old_variables or force
         if not should_update:
@@ -153,7 +189,13 @@ class ProviderService:
         try:
             if not agent_card:
                 agent_card = await location.load_agent_card()
-            provider = Provider(source=location, origin=location.origin, agent_card=agent_card, created_by=uuid.uuid4())
+            provider = Provider(
+                source=location,
+                origin=location.origin,
+                version_info=await location.get_version_info(),
+                agent_card=agent_card,
+                created_by=uuid.uuid4(),
+            )
             [provider_response] = await self._get_providers_with_state(providers=[provider])
             return provider_response
         except ValueError as ex:
@@ -170,13 +212,13 @@ class ProviderService:
             providers_env = await uow.env.get_all(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_ids=provider_ids)
 
             for provider, state in zip(providers, provider_states, strict=False):
+                final_state = state
+                if not provider.managed:
+                    final_state = provider.unmanaged_state if provider.unmanaged_state else UnmanagedState.OFFLINE
                 result_providers.append(
                     ProviderWithState(
                         **provider.model_dump(),
-                        # We blatantly report a ready state for unmanaged providers
-                        # (calling each provider over HTTP is too expensive for a simple list_providers request)
-                        # TODO: In-memory state caching for unmanaged providers
-                        state=state if provider.managed else ProviderDeploymentState.READY,
+                        state=final_state,
                         missing_configuration=[
                             var
                             for var in provider.check_env(providers_env[provider.id], raise_error=False)
@@ -224,8 +266,16 @@ class ProviderService:
                 providers=[p async for p in uow.providers.list(user_id=user_id, origin=origin)]
             )
 
-    async def get_provider(self, provider_id: UUID) -> ProviderWithState:
-        providers = [provider for provider in await self.list_providers() if provider.id == provider_id]
+    async def get_provider(
+        self, provider_id: UUID | None = None, location: ProviderLocation | None = None
+    ) -> ProviderWithState:
+        if not (bool(provider_id) ^ bool(location)):
+            raise ValueError("Either provider_id or location must be provided")
+        providers = [
+            provider
+            for provider in await self.list_providers()
+            if provider.id == provider_id or provider.source == location
+        ]
         if not providers:
             raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail=f"Provider with ID: {provider_id!s} not found")
         return providers[0]

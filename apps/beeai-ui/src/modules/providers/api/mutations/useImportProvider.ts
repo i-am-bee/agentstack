@@ -7,16 +7,10 @@ import { useMutation } from '@tanstack/react-query';
 
 import { registerManagedProvider } from '..';
 import { providerKeys } from '../keys';
-import type { Provider } from '../types';
 
-interface Props {
-  onSuccess?: (data?: Provider) => void;
-}
-
-export function useImportProvider({ onSuccess }: Props = {}) {
+export function useImportProvider() {
   const mutation = useMutation({
     mutationFn: registerManagedProvider,
-    onSuccess,
     meta: {
       invalidates: [providerKeys.lists()],
       errorToast: {

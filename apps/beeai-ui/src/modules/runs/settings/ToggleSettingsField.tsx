@@ -4,9 +4,8 @@
  */
 
 import { Toggle } from '@carbon/react';
+import type { SettingsCheckboxFieldValue } from 'beeai-sdk';
 import { useController } from 'react-hook-form';
-
-import type { CheckboxFieldValue } from '#api/a2a/extensions/ui/settings.ts';
 
 import classes from './ToggleSettingsField.module.scss';
 
@@ -15,7 +14,7 @@ export function ToggleSettingsField({ field }: { field: { label: string; id: str
 
   const {
     field: { onChange, value },
-  } = useController<{ [key: string]: CheckboxFieldValue }>({
+  } = useController<{ [key: string]: SettingsCheckboxFieldValue }>({
     name: `${id}.value`,
   });
 

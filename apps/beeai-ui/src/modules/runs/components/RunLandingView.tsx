@@ -6,9 +6,8 @@
 import { useCallback, useMemo } from 'react';
 
 import { Container } from '#components/layouts/Container.tsx';
-import { AgentGreeting } from '#modules/agents/components/AgentGreeting.tsx';
-import { AgentHeader } from '#modules/agents/components/AgentHeader.tsx';
-import { AgentName } from '#modules/agents/components/AgentName.tsx';
+import { AgentRunGreeting } from '#modules/agents/components/detail/AgentRunGreeting.tsx';
+import { AgentRunHeader } from '#modules/agents/components/detail/AgentRunHeader.tsx';
 import { getAgentPromptExamples } from '#modules/agents/utils.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 import { routes } from '#utils/router.ts';
@@ -41,11 +40,9 @@ export function RunLandingView() {
   return (
     <FileUpload>
       <Container size="sm" className={classes.root}>
-        <AgentHeader>
-          <AgentName>{agent.name}</AgentName>
-
-          <AgentGreeting agent={agent} />
-        </AgentHeader>
+        <AgentRunHeader heading={agent.name}>
+          <AgentRunGreeting agent={agent} />
+        </AgentRunHeader>
 
         <RunInput promptExamples={promptExamples} onMessageSent={handleMessageSent} />
       </Container>

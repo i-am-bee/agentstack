@@ -3,7 +3,7 @@ RUN apt-get update && apt-get install -y build-essential
 COPY --from=ghcr.io/astral-sh/uv:0.8.17 /uv /bin/
 WORKDIR /agents/rag
 COPY ./agents/rag/ ./
-COPY ./apps/beeai-sdk/ /apps/beeai-sdk/
+COPY ./apps/beeai-sdk-py/ /apps/beeai-sdk-py/
 RUN uv sync --no-cache --link-mode copy
 
 FROM python:3.13-slim-bookworm

@@ -1,24 +1,26 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-
+import asyncio
 import logging
-from contextlib import suppress
 from datetime import timedelta
 
-import anyio
 import httpx
+from a2a.types import AgentCard
 from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
+from httpx import HTTPError
 from kink import inject
 from procrastinate import Blueprint
 
 from beeai_server import get_configuration
 from beeai_server.configuration import Configuration
+from beeai_server.domain.constants import SELF_REGISTRATION_EXTENSION_URI
+from beeai_server.domain.models.provider import NetworkProviderLocation, Provider, ProviderType, UnmanagedState
 from beeai_server.domain.models.registry import ProviderRegistryRecord, RegistryLocation
-from beeai_server.exceptions import EntityNotFoundError
 from beeai_server.jobs.queues import Queues
 from beeai_server.service_layer.services.providers import ProviderService
 from beeai_server.service_layer.services.users import UserService
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
+from beeai_server.utils.a2a import get_extension
 from beeai_server.utils.utils import extract_messages
 
 logger = logging.getLogger(__name__)
@@ -120,31 +122,40 @@ async def check_registry(
         raise ExceptionGroup("Exceptions occurred when reloading providers", errors)
 
 
-if get_configuration().provider.auto_remove_enabled:
+@blueprint.periodic(cron="* * * * * */5")
+@blueprint.task(queueing_lock="check_unmanaged_providers", queue=str(Queues.CRON_PROVIDER))
+@inject
+async def refresh_unmanaged_provider_state(timestamp: int, uow_f: IUnitOfWorkFactory):
+    timeout_sec = timedelta(seconds=20).total_seconds()
 
-    @blueprint.periodic(cron="* * * * * */5")
-    @blueprint.task(queueing_lock="auto_remove_providers", queue=str(Queues.CRON_PROVIDER))
-    @inject
-    async def auto_remove_providers(
-        timestamp: int,
-        uow_f: IUnitOfWorkFactory,
-        provider_service: ProviderService,
-        user_service: UserService,
-    ):
-        async with uow_f() as uow:
-            auto_remove_providers = [provider async for provider in uow.providers.list(auto_remove_filter=True)]
+    async def _check_provider(provider: Provider):
+        state = UnmanagedState.OFFLINE
 
-        for provider in auto_remove_providers:
-            try:
-                timeout_sec = timedelta(seconds=30).total_seconds()
-                with anyio.fail_after(delay=timeout_sec):
-                    async with httpx.AsyncClient(base_url=str(provider.source.root), timeout=timeout_sec) as client:
-                        resp = await client.get(AGENT_CARD_WELL_KNOWN_PATH)
-                        resp.raise_for_status()
-            except Exception as ex:
-                logger.error(f"Provider {provider.id} failed to respond to ping in 30 seconds: {extract_messages(ex)}")
-                with suppress(EntityNotFoundError):
-                    # Provider might be already deleted by another instance of this job
-                    user = await user_service.get_user_by_email("admin@beeai.dev")
-                    await provider_service.delete_provider(provider_id=provider.id, user=user)
-                    logger.info(f"Provider {provider.id} was automatically removed")
+        try:
+            assert isinstance(provider.source, NetworkProviderLocation)
+            async with httpx.AsyncClient(base_url=str(provider.source.a2a_url), timeout=timeout_sec) as client:
+                resp_card = AgentCard.model_validate(
+                    (await client.get(AGENT_CARD_WELL_KNOWN_PATH)).raise_for_status().json()
+                )
+                # For self-registered provider we need to check their self-registration ID, because their URL
+                # might overlap (more agents on the same URL, only one can be online)
+                provider_self_reg_ext = get_extension(provider.agent_card, SELF_REGISTRATION_EXTENSION_URI)
+                resp_self_reg_ext = get_extension(resp_card, SELF_REGISTRATION_EXTENSION_URI)
+                if provider_self_reg_ext is not None and resp_self_reg_ext is not None:
+                    if provider_self_reg_ext.params == resp_self_reg_ext.params:
+                        state = UnmanagedState.ONLINE
+                else:
+                    state = UnmanagedState.ONLINE
+
+        except HTTPError as ex:
+            logger.warning(f"Provider {provider.id} failed to respond to ping in 30 seconds: {extract_messages(ex)}")
+            state = UnmanagedState.OFFLINE
+        finally:
+            if state != provider.unmanaged_state:
+                async with uow_f() as uow:
+                    await uow.providers.update_unmanaged_state(provider_id=provider.id, state=state)
+                    await uow.commit()
+
+    async with asyncio.TaskGroup() as tg, uow_f() as uow:
+        async for provider in uow.providers.list(type=ProviderType.UNMANAGED):
+            tg.create_task(_check_provider(provider))

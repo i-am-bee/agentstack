@@ -9,13 +9,12 @@ import type { PropsWithChildren, ReactNode } from 'react';
 import { mergeRefs } from 'react-merge-refs';
 
 import { useIsScrolled } from '#hooks/useIsScrolled.ts';
-import { useScrollbarWidth } from '#hooks/useScrollbarWidth.ts';
-import { createScrollbarStyles } from '#utils/createScrollbarStyles.ts';
+import { useScrollbar } from '#hooks/useScrollbar.ts';
 
 import classes from './MainContent.module.scss';
 
 export interface MainContentProps extends PropsWithChildren {
-  spacing?: 'md' | 'lg' | false;
+  spacing?: 'sm' | 'md' | 'lg' | false;
   scrollable?: boolean;
   className?: string;
   footer?: ReactNode;
@@ -23,7 +22,7 @@ export interface MainContentProps extends PropsWithChildren {
 
 export function MainContent({ spacing = 'lg', scrollable = true, className, footer, children }: MainContentProps) {
   const { scrollElementRef, observeElementRef, isScrolled } = useIsScrolled();
-  const { ref: scrollbarRef, scrollbarWidth } = useScrollbarWidth();
+  const { ref: scrollbarRef, ...scrollbarProps } = useScrollbar();
 
   const spacingClassName = spacing ? classes[spacing] : null;
 
@@ -39,7 +38,7 @@ export function MainContent({ spacing = 'lg', scrollable = true, className, foot
         },
         className,
       )}
-      {...createScrollbarStyles({ width: scrollbarWidth })}
+      {...scrollbarProps}
       data-scrolled={isScrolled}
     >
       <div className={classes.topRef} ref={observeElementRef} />

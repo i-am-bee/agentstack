@@ -8,12 +8,14 @@ hostNetwork: false
 features:
   selfRegistration: false
   generateConversationTitle: false
+  localSetup: false
 
   # UI only features
   uiVariables: true
   uiModelProviders: true
   uiMCPOauth: true
   uiMCP: true
+
 # -------- AGENTS ----------
 providers: [ ]
 # Example:
@@ -52,7 +54,6 @@ auth:
       - example.admin@ibm.com
     nextauth_trust_host: true
     nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
-    providers_path: "/providers"
     nextauth_url: "https://beeai.localhost:8336"
     validate_audience: true
     providers: [
@@ -70,7 +71,7 @@ auth:
 # For example https://beeai.example.com/api/v1/providers/{provider_id} will return an agent cart with URL for
 # https://beeai.example.com, without respecting the headers, the URL would be "http://beeai.example.com",
 # See https://www.uvicorn.org/settings/#application-interface
-forwardedAllowIps: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+trustProxyHeaders: false
 
 # --- EXTERNAL REGISTRIES ---
 # GitHub configuration for accessing private repositories

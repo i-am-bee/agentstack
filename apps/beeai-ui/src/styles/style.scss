@@ -14,8 +14,9 @@
 @use 'components';
 
 :root {
-  --header-height: #{rem(56px)};
-  --header-border-height: #{rem(1px)};
+  --sidebar-width: #{rem(272px)};
+  --sidebar-collapsed-width: #{rem(64px)};
+  --app-header-height: #{rem(64px)};
 }
 
 :root,

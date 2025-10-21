@@ -7,6 +7,7 @@ import fastapi
 from fastapi import HTTPException, status
 from fastapi.params import Depends, Query
 from fastapi.requests import Request
+from pydantic import TypeAdapter
 from starlette.responses import StreamingResponse
 
 from beeai_server.api.dependencies import (
@@ -20,7 +21,7 @@ from beeai_server.api.schema.env import ListVariablesSchema, UpdateVariablesRequ
 from beeai_server.api.schema.provider import CreateProviderRequest, PatchProviderRequest
 from beeai_server.domain.models.common import PaginatedResult
 from beeai_server.domain.models.permissions import AuthorizedUser
-from beeai_server.domain.models.provider import ProviderWithState
+from beeai_server.domain.models.provider import ProviderLocation, ProviderWithState
 from beeai_server.utils.fastapi import streaming_response
 
 router = fastapi.APIRouter()
@@ -32,17 +33,13 @@ async def create_provider(
     request: CreateProviderRequest,
     provider_service: ProviderServiceDependency,
     configuration: ConfigurationDependency,
-    auto_remove: Annotated[bool, Query()] = False,
 ) -> ProviderWithState:
-    if auto_remove and not configuration.provider.auto_remove_enabled:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Auto remove functionality is disabled")
     return await provider_service.create_provider(
         user=user.user,
         auto_stop_timeout=request.auto_stop_timeout,
         location=request.location,
         origin=request.origin,
         agent_card=request.agent_card,
-        auto_remove=auto_remove,
         variables=request.variables,
     )
 
@@ -102,6 +99,27 @@ async def get_provider(
     _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}))],
 ) -> EntityModel[ProviderWithState]:
     provider = await provider_service.get_provider(provider_id=id)
+    return EntityModel(
+        provider.model_copy(
+            update={
+                "agent_card": create_proxy_agent_card(provider.agent_card, provider_id=provider.id, request=request)
+            }
+        )
+    )
+
+
+@router.get("/by-location/{location:path}")
+async def get_provider_by_location(
+    location: str,
+    provider_service: ProviderServiceDependency,
+    request: Request,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}))],
+) -> EntityModel[ProviderWithState]:
+    try:
+        parsed_location: ProviderLocation = TypeAdapter(ProviderLocation).validate_python(location)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
+    provider = await provider_service.get_provider(location=parsed_location)
     return EntityModel(
         provider.model_copy(
             update={

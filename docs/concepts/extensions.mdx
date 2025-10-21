@@ -1,31 +1,38 @@
---- 
+---
 title: Platform Extensions
 ---
 
-Platform extensions let agents access external services and UI components via dependency injection. They provide configured services automatically, make agents portable, support user-configured services, handle authentication, and remain optional.
+Platform extensions enable agents to access external services and UI components through dependency injection. They provide automatic configuration, portable agent code, user-configured services with authentication, and remain entirely optional.
 
 ## Extension Types
 
 ### Service Extensions
 
-Provide access to external services with automatic configuration:
+Service extensions provide configured access to external services:
 
-- **LLM Service**: Access to language models (OpenAI, Ollama, IBM Granite, etc.)
-- **Embedding Service**: Text embedding generation for RAG and similarity search
-- **Platform API**: File storage, vector databases, and platform services
-- **MCP**: Integration with Model Context Protocol tools
+- **LLM Service**: Language model access (OpenAI, Ollama, IBM Granite, and more)
+- **Embedding Service**: Text embedding generation for RAG and semantic search
+- **Platform API**: File storage, vector databases, and other platform services
+- **MCP**: Model Context Protocol integration
 
 ### UI Extensions
 
-Enhance the user interface with rich components:
+UI extensions add rich interactive components to the user interface:
 
-- **Trajectory**: Step-by-step agent reasoning visualization
-- **Citation**: Source references with clickable links
-- **Form**: Interactive forms for structured user input
+- **Trajectory**: Visualize agent reasoning with step-by-step execution traces
+- **Citation**: Display source references with clickable inline links
+- **Form**: Collect structured user input through interactive forms
+- **Settings**: Let users configure agent behavior and preferences
 
-## Dependency Injection Pattern
+### Authentication Extensions
 
-Extensions are injected using `Annotated` type hints:
+Authentication extensions handle secure access to protected resources:
+- **OAuth**: Standardized OAuth-based authentication and token management
+- **Secrets**: Secure storage and retrieval of API keys and credentials
+
+## Using Extensions with Dependency Injection
+
+Extensions are injected into agent functions using `Annotated` type hints:
 
 ```python
 from typing import Annotated
@@ -40,9 +47,9 @@ async def my_agent(
     pass
 ```
 
-## Extension Availability
+## Checking Extension Availability
 
-Extensions are optional by design. Always check if provided:
+Extensions are optional by design. Always verify an extension is provided before using it:
 
 ```python
 if llm:
@@ -53,9 +60,9 @@ else:
     yield "LLM not configured"
 ```
 
-## Model Suggestions
+## Suggesting Preferred Models
 
-Service extensions accept suggested models in preference order:
+Service extensions accept model suggestions in priority order. The platform selects the first available model:
 
 ```python
 LLMServiceExtensionSpec.single_demand(
@@ -63,6 +70,49 @@ LLMServiceExtensionSpec.single_demand(
 )
 ```
 
-Platform selects the first available model from suggestions.
+## Extension Reference
 
-Extensions make agents adaptable to different deployment environments while providing rich user experiences.
+### OAuth Extension
+
+Enables OAuth-based authentication for secure access to protected resources on behalf of users. Particularly useful for MCP clients that need user identity for third-party tools.
+
+- **Example:** [beeai-sdk-py/examples/oauth.py](https://github.com/i-am-bee/beeai-platform/blob/main/apps/beeai-sdk-py/examples/oauth.py)
+
+### Secrets Extension
+
+Provides secure storage and retrieval of sensitive data like API keys and tokens. Secrets can be requested before conversation start or dynamically during runtime.
+
+- **Example:** [beeai-sdk-py/examples/secrets_agent.py](https://github.com/i-am-bee/beeai-platform/blob/main/apps/beeai-sdk-py/examples/secrets_agent.py)
+- **Documentation:** [Secrets Guide](/build-agents/secrets)
+
+### Citation Extension
+
+Renders inline citation icons with source information, optionally marking text ranges. Makes agent responses more transparent and verifiable.
+
+- **Documentation:** [Citations Guide](/build-agents/citations)
+
+### Trajectory Extension
+
+Tracks and visualizes agent reasoning steps and tool execution. Provides transparency into the agent's decision-making process.
+
+- **Documentation:** [Trajectory Guide](/build-agents/trajectory)
+
+### Form Extension
+
+Collects structured data through interactive forms with fields like text inputs, dropdowns, date pickers, file uploads, and checkboxes. Forms can be presented initially or requested dynamically during conversations.
+
+- **Example:** [beeai-sdk-py/examples/request_form_agent.py](https://github.com/i-am-bee/beeai-platform/blob/main/apps/beeai-sdk-py/examples/request_form_agent.py)  
+- **Documentation:** [Forms Guide](/build-agents/forms)
+
+### Settings Extension
+
+Gives users control over agent behavior through configurable parameters like thinking mode, response style, and other agent-specific options.
+
+- **Example:** [beeai-sdk-py/examples/settings_agent.py](https://github.com/i-am-bee/beeai-platform/blob/main/apps/beeai-sdk-py/examples/settings_agent.py)  
+- **Documentation:** [Agent Settings Guide](/build-agents/agent-settings)
+
+---
+
+## Key Benefits
+
+Extensions make agents adaptable across deployment environments while providing rich, interactive user experiences. The dependency injection pattern ensures agents remain portable and testable, while optional extension checking enables graceful degradation when services aren't available.

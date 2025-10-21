@@ -2,6 +2,7 @@
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
  * SPDX-License-Identifier: Apache-2.0
  */
+'use client';
 
 import { useSearchParams } from 'next/navigation';
 import type { PropsWithChildren } from 'react';
@@ -11,7 +12,7 @@ import { match } from 'ts-pattern';
 import { v4 as uuid } from 'uuid';
 
 import type { AgentA2AClient, ChatRun } from '#api/a2a/types.ts';
-import { getErrorCode } from '#api/utils.ts';
+import { getAgentExtensions, getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 import { usePrevious } from '#hooks/usePrevious.ts';
 import { useUpdateSearchParams } from '#hooks/useUpdateSearchParams.ts';
@@ -40,7 +41,7 @@ export function ComposeProvider({ children }: PropsWithChildren) {
 
   const { agentClient } = useBuildA2AClient({
     providerId: sequentialAgent?.provider.id,
-    extensions: sequentialAgent?.capabilities.extensions ?? [],
+    extensions: getAgentExtensions(sequentialAgent),
     onStatusUpdate: handleTaskStatusUpdate,
   });
 
@@ -58,7 +59,7 @@ interface Props {
 function ComposeProviderWithContext({ agentClient, children }: PropsWithChildren<Props>) {
   const { getContextId } = usePlatformContext();
   const { getFullfilments } = useAgentDemands();
-  const { data: agents } = useListAgents({ onlyUiSupported: true, sort: true });
+  const { data: agents } = useListAgents({ onlyUiSupported: true });
 
   const searchParams = useSearchParams();
   const { updateSearchParams } = useUpdateSearchParams();

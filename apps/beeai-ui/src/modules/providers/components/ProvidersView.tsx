@@ -3,12 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { TrashCan } from '@carbon/icons-react';
 import {
   Button,
   DataTable,
   DataTableSkeleton,
-  IconButton,
   Table,
   TableBody,
   TableCell,
@@ -24,27 +22,26 @@ import { TableViewToolbar } from '#components/TableView/TableViewToolbar.tsx';
 import { useModal } from '#contexts/Modal/index.tsx';
 import { useTableSearch } from '#hooks/useTableSearch.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
-import { ImportAgentsModal } from '#modules/agents/components/ImportAgentsModal.tsx';
+import { ImportAgentsModal } from '#modules/agents/components/import/ImportAgentsModal.tsx';
 import { getAgentsProgrammingLanguages } from '#modules/agents/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
-import { useDeleteProvider } from '../api/mutations/useDeleteProvider';
 import { useListProviders } from '../api/queries/useListProviders';
 import { groupAgentsByProvider } from '../utils';
-import classes from './ProvidersView.module.scss';
+import { DeleteProviderButton } from './DeleteProviderButton';
 
 export function ProvidersView() {
-  const { openModal, openConfirmation } = useModal();
+  const { openModal } = useModal();
   const { data: providers, isPending: isProvidersPending } = useListProviders();
-  const { mutate: deleteProvider } = useDeleteProvider();
-  const { data: agents, isPending: isAgentsPending } = useListAgents({ onlyUiSupported: true, sort: true });
+  const { data: agents, isPending: isAgentsPending } = useListAgents({ onlyUiSupported: true, orderBy: 'createdAt' });
   const agentsByProvider = groupAgentsByProvider(agents);
 
   const entries = useMemo(
     () =>
       providers
         ? providers.items
-            .map(({ id, source }) => {
+            .map((provider) => {
+              const { id, source } = provider;
               const agents = agentsByProvider[id];
               const agentsCount = agents?.length ?? 0;
 
@@ -59,34 +56,14 @@ export function ProvidersView() {
                 agents: agentsCount,
                 actions: (
                   <TableViewActions>
-                    <IconButton
-                      label="Delete provider"
-                      kind="ghost"
-                      size="sm"
-                      onClick={() =>
-                        openConfirmation({
-                          title: (
-                            <>
-                              Delete <span className={classes.deleteModalProviderId}>{source}</span>?
-                            </>
-                          ),
-                          body: 'Are you sure you want to delete this provider? It can’t be undone.',
-                          primaryButtonText: 'Delete',
-                          danger: true,
-                          onSubmit: () => deleteProvider({ id }),
-                        })
-                      }
-                      align="left"
-                    >
-                      <TrashCan />
-                    </IconButton>
+                    <DeleteProviderButton provider={provider} />
                   </TableViewActions>
                 ),
               };
             })
             .filter(isNotNull)
         : [],
-    [providers, agentsByProvider, deleteProvider, openConfirmation],
+    [providers, agentsByProvider],
   );
   const { items: rows, onSearch } = useTableSearch({ entries, fields: ['id', 'source', 'runtime'] });
   const isPending = isProvidersPending || isAgentsPending;

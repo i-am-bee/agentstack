@@ -13,12 +13,9 @@ class McpProviderLocation(RootModel):
     root: HttpUrl
 
 
-class McpProviderDeploymentState(StrEnum):
-    MISSING = "missing"
-    STARTING = "starting"
-    READY = "ready"
-    RUNNING = "running"
-    ERROR = "error"
+class McpProviderUnmanagedState(StrEnum):
+    ONLINE = "online"
+    OFFLINE = "offline"
 
 
 class McpProviderTransport(StrEnum):

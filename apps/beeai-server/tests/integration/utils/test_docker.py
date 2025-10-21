@@ -33,6 +33,7 @@ def configuration():
         DockerImageID(root="registry.goharbor.io/nightly/goharbor/harbor-log:v1.10.0"),
     ],
 )
-async def test_get_registry_image_config_and_labels(image, configuration):
-    config, _ = await image.get_registry_image_config_and_labels()
-    assert config
+async def test_get_image_labels(image, configuration):
+    resolved_image = await image.resolve_version()
+    assert resolved_image.digest
+    await resolved_image.get_labels()

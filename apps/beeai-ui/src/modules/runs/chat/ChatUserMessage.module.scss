@@ -10,15 +10,23 @@
 }
 
 .content {
+  inline-size: 100%;
   background-color: $layer-02;
-  inline-size: max-content;
-  max-inline-size: rem(368px);
   padding: $spacing-04 $spacing-05;
   border-radius: $border-radius;
   font-size: rem(14px);
   line-height: math.div(22, 14);
   margin-inline-start: auto;
   position: relative;
+  &.limitWidth {
+    inline-size: max-content;
+    max-inline-size: rem(368px);
+  }
+  p {
+    font-size: inherit;
+    line-height: inherit;
+    letter-spacing: inherit;
+  }
 }
 
 .files {

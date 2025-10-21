@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { FormField } from 'beeai-sdk';
 import { match } from 'ts-pattern';
 
-import type { FormField } from '#api/a2a/extensions/ui/form.ts';
 import { getFilePlatformUrl } from '#api/a2a/utils.ts';
 import type { FileEntity } from '#modules/files/types.ts';
 

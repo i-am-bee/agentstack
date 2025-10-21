@@ -15,9 +15,9 @@ from kink import inject
 from beeai_server.api.schema.mcp import McpProvider, Tool, Toolkit
 from beeai_server.configuration import Configuration
 from beeai_server.domain.models.mcp_provider import (
-    McpProviderDeploymentState,
     McpProviderLocation,
     McpProviderTransport,
+    McpProviderUnmanagedState,
 )
 from beeai_server.domain.models.user import User
 from beeai_server.domain.utils import bridge_k8s_to_localhost, bridge_localhost_to_k8s
@@ -198,18 +198,20 @@ class McpService:
             state=self._gateway_to_provider_status(gateway),
         )
 
-    def _gateway_to_provider_status(self, gateway: dict) -> McpProviderDeploymentState:
+    def _gateway_to_provider_status(self, gateway: dict) -> McpProviderUnmanagedState:
         if gateway["reachable"]:
-            return McpProviderDeploymentState.RUNNING
+            return McpProviderUnmanagedState.ONLINE
         else:
-            return McpProviderDeploymentState.MISSING
+            return McpProviderUnmanagedState.OFFLINE
 
-    def _gateway_to_provider_transport(self, gateway: dict) -> McpProviderDeploymentState:
+    def _gateway_to_provider_transport(self, gateway: dict) -> McpProviderTransport:
         match gateway["transport"]:
             case "SSE":
                 return McpProviderTransport.SSE
             case "STREAMABLEHTTP":
                 return McpProviderTransport.STREAMABLE_HTTP
+            case _:
+                raise NotImplementedError(f"Invalid transport: {gateway['transport']}")
 
     def _provider_to_gateway_transport(self, transport: McpProviderTransport) -> str:
         match transport:

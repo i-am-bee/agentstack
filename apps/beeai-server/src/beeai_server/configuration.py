@@ -135,7 +135,6 @@ class AuthConfiguration(BaseModel):
 class McpConfiguration(BaseModel):
     gateway_endpoint_url: AnyUrl = AnyUrl("http://forge-svc:4444")
     toolkit_expiration_seconds: int = 24 * 60 * 60  # TODO bind to context together with vector stores
-    auto_remove_enabled: bool = False
 
 
 class ObjectStorageConfiguration(BaseModel):
@@ -213,7 +212,6 @@ class DockerConfigJson(BaseModel):
 
 
 class ManagedProviderConfiguration(BaseModel):
-    auto_remove_enabled: bool = False
     manifest_template_dir: Path | None = None
     self_registration_use_local_network: bool = Field(
         default=False,
@@ -274,6 +272,7 @@ class Configuration(BaseSettings):
 
     platform_service_url: str = "beeai-platform-svc:8333"
     port: int = 8333
+    trust_proxy_headers: bool = False
 
     @model_validator(mode="after")
     def _oci_registry_defaultdict(self):

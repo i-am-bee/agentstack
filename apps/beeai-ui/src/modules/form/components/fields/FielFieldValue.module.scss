@@ -1,0 +1,15 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.files {
+  column-gap: var(--field-gap);
+  > li {
+    max-inline-size: var(--file-field-max-width);
+  }
+}
+
+.empty {
+  color: $text-secondary;
+}

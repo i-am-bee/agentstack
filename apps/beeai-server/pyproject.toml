@@ -1,6 +1,6 @@
 [project]
 name = "beeai-server"
-version = "0.3.6-rc2"
+version = "0.3.7"
 description = "BeeAI server"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
@@ -58,7 +58,7 @@ dev = [
 ]
 
 [tool.uv.sources]
-beeai-sdk = { path = "../beeai-sdk", editable = true }
+beeai-sdk = { path = "../beeai-sdk-py", editable = true }
 
 [project.scripts]
 beeai-server = "beeai_server:serve"

@@ -20,7 +20,11 @@
       },
       {
         "group": "Core Concepts",
-        "pages": ["concepts/a2a", "concepts/extensions"]
+        "pages": [
+          "concepts/a2a", 
+          "concepts/extensions",
+          "concepts/observability"
+        ]
       },
       {
         "group": "Building Agents",

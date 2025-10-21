@@ -13,6 +13,9 @@
   &.scrollable {
     @include scrollbar();
   }
+  &.sm {
+    padding-block: $spacing-05;
+  }
   &.md {
     padding-block: $spacing-07;
   }

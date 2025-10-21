@@ -10,9 +10,11 @@ from a2a.types import (
     Message,
 )
 from beeai_framework.adapters.beeai_platform.backend.chat import BeeAIPlatformChatModel
-from beeai_framework.agents.experimental import RequirementAgent
-from beeai_framework.agents.experimental.events import RequirementAgentSuccessEvent
-from beeai_framework.agents.experimental.utils._tool import FinalAnswerTool
+from beeai_framework.agents.requirement import RequirementAgent
+from beeai_framework.agents.requirement.events import (
+    RequirementAgentSuccessEvent,
+)
+from beeai_framework.agents.requirement.utils._tool import FinalAnswerTool
 from beeai_framework.emitter import EventMeta
 from beeai_framework.memory import UnconstrainedMemory
 from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
@@ -20,6 +22,7 @@ from beeai_framework.tools import Tool
 from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
 from beeai_framework.tools.search.wikipedia import WikipediaTool
 from beeai_framework.tools.weather import OpenMeteoTool
+from beeai_framework.backend import ChatModelParameters
 from beeai_sdk.a2a.extensions import (
     AgentDetail,
     AgentDetailContributor,
@@ -175,6 +178,10 @@ async def chat(
 ):
     """Agent with memory and access to web search, Wikipedia, and weather."""
     await context.store(input)
+
+    # Send initial trajectory
+    yield trajectory.trajectory_metadata(title="Starting", content="Received your request")
+
     history = [message async for message in context.load_history() if isinstance(message, Message) and message.parts]
     extracted_files = await extract_files(history=history)
 
@@ -214,7 +221,8 @@ async def chat(
         ActAlwaysFirstRequirement(),  #  Enforces the ActTool to be used before any other tool execution.
     ]
 
-    llm = BeeAIPlatformChatModel()
+    use_streaming = True
+    llm = BeeAIPlatformChatModel(parameters=ChatModelParameters(stream=use_streaming))
     llm.set_context(llm_ext)
 
     # Build dynamic instructions based on available files
@@ -325,7 +333,8 @@ async def chat(
             text=clean_text,
             metadata=(citation.citation_metadata(citations=citations) if citations else None),
         )
-        yield message
+        if not use_streaming:
+            yield message
         await context.store(message)
 
 

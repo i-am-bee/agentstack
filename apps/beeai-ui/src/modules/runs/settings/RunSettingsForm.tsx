@@ -3,11 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { AgentSettings, SettingsRender } from 'beeai-sdk';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';
-
-import type { AgentSettings, SettingsRender } from '#api/a2a/extensions/ui/settings.ts';
 
 import { useAgentRun } from '../contexts/agent-run';
 import classes from './RunSettingsForm.module.scss';

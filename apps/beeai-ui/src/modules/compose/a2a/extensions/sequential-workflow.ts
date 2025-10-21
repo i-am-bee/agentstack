@@ -3,9 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { A2AUiExtension } from 'beeai-sdk';
 import { z } from 'zod';
-
-import type { A2AUiExtension } from '#api/a2a/extensions/types.ts';
 
 const URI = 'beeai-sequential-workflow';
 

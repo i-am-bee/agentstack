@@ -3,9 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 'use client';
-import { type PropsWithChildren, useCallback, useEffect, useState } from 'react';
+import { type PropsWithChildren, useCallback, useState } from 'react';
 
-import { useParamsFromUrl } from '#hooks/useParamsFromUrl.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 
 import { useCreateContext } from '../api/mutations/useCreateContext';
@@ -14,16 +13,12 @@ import type { ListContextHistoryResponse } from '../api/types';
 import { PlatformContext } from './platform-context';
 
 interface Props {
+  contextId?: string;
   history?: ListContextHistoryResponse;
 }
 
-export function PlatformContextProvider({ history, children }: PropsWithChildren<Props>) {
-  const { contextId: urlContextId } = useParamsFromUrl();
-  const [contextId, setContextId] = useState<string | null>(urlContextId ?? null);
-
-  useEffect(() => {
-    setContextId(urlContextId ?? null);
-  }, [urlContextId]);
+export function PlatformContextProvider({ history, contextId: contextIdProp, children }: PropsWithChildren<Props>) {
+  const [contextId, setContextId] = useState<string | null>(contextIdProp ?? null);
 
   const { mutateAsync: createContext } = useCreateContext({
     onSuccess: (context) => {

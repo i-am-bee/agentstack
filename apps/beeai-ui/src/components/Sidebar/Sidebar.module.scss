@@ -1,0 +1,69 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+$row-gap: $spacing-05;
+$padding: $spacing-05;
+
+.root {
+  position: relative;
+  z-index: z('floating');
+  transition: inline-size $duration-moderate-02 motion(exit, expressive);
+  inline-size: var(--sidebar-width);
+
+  &:not(.isOpen) {
+    inline-size: var(--sidebar-collapsed-width);
+    transition-timing-function: motion(entrance, expressive);
+  }
+}
+
+.content {
+  background-color: $background;
+  box-shadow: $box-shadow;
+  block-size: 100%;
+  display: grid;
+  grid-template-rows: max-content 1fr max-content;
+  row-gap: $row-gap;
+  padding: $padding;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  row-gap: $row-gap;
+  min-inline-size: 0;
+}
+
+.body {
+  display: flex;
+  padding-block-start: $spacing-05;
+  padding-inline: $padding;
+  margin-inline: -$padding;
+  min-inline-size: 0;
+  min-block-size: 0;
+  overflow: hidden;
+}
+
+.bodyContent {
+  display: grid;
+  grid-template-rows: max-content 1fr;
+  row-gap: $spacing-07;
+  inline-size: calc(var(--sidebar-width) - 2 * $padding);
+  min-inline-size: 0;
+  min-block-size: 0;
+  flex-shrink: 0;
+  transition:
+    visibility,
+    opacity $duration-moderate-02 motion(exit, expressive);
+
+  .root:not(.isOpen) & {
+    opacity: 0;
+    visibility: hidden;
+    transition-timing-function: motion(entrance, expressive);
+  }
+}
+
+.agentsNav {
+  --nav-group-max-height: #{(5 * rem(32px)) + (4 * $spacing-02)};
+}

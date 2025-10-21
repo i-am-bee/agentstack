@@ -3,18 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { type PropsWithChildren, Suspense } from 'react';
+import type { PropsWithChildren } from 'react';
 
-import { AppHeader } from '#components/AppHeader/AppHeader.tsx';
+import { Sidebar } from '#components/Sidebar/Sidebar.tsx';
 
 import classes from './AppLayout.module.scss';
 
 export function AppLayout({ children }: PropsWithChildren) {
   return (
     <div className={classes.root}>
-      <Suspense>
-        <AppHeader className={classes.header} />
-      </Suspense>
+      <Sidebar className={classes.sidebar} />
 
       <main className={classes.main} data-route-transition>
         {children}

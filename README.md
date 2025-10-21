@@ -21,6 +21,7 @@
 <p align="center">
     <a href="#key-features">Key Features</a> •
     <a href="#quickstart">Quickstart</a> •
+    <a href="#reference-agents">Reference Agents</a> •
     <a href="#documentation">Documentation</a>
 </p>
 
@@ -48,6 +49,8 @@ Built on the [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) and hosted 
 | 🚀 Effortless Deployment | Go from container to production-ready. We handle database, storage, scaling, and RAG so you can focus on your agent. |
 | 🔄 Multi-Provider Playground | Test across OpenAI, Anthropic, Gemini, IBM watsonx, Ollama and more. Instantly compare performance and cost to find the optimal model. |
 | 🔧 Framework-Agnostic | Run agents from LangChain, CrewAI, BeeAI and more on a single platform. Enable cross-framework collaboration without rewriting your code. |
+
+---
 
 ## Quickstart
 
@@ -87,7 +90,36 @@ beeai run example_agent "Alice"  # Test your agent
 You should see: "Ciao Alice!" 🎉
 
 > [!TIP]
-> Follow the [Hello World tutorial](https://docs.beeai.dev/build-agents/hello-world) for a step-by-step guide to building your first agent.
+> Follow the [Hello World tutorial](https://docs.beeai.dev/introduction/hello-world) for a step-by-step guide to building your first agent.
+
+---
+
+## Reference Agents
+
+Reference implementations demonstrating core BeeAI capabilities.
+
+- [BeeAI Showcase Agent](https://github.com/jenna-winkler/beeai-showcase-agent) - Full-featured chat assistant demonstrating RequirementAgent with conditional tool use, web search (DuckDuckGo), advanced reasoning (ThinkTool), file handling (PDF/CSV/JSON), streaming, UI feature toggles, trajectory logging, and citation extraction.
+- [Serper Search Agent](https://github.com/jenna-winkler/serper-search-agent) - Web search agent showing runtime secrets management (Secrets Extension), custom tool creation (SerperSearchTool), automatic query term extraction, and structured results with citations.
+- [GitHub Issue Writer](https://github.com/jenna-winkler/github_issue_writer) - Single-turn workflow using the Form Extension for multi-field input, AI-enhanced issue drafting with ThinkTool, and professional Markdown formatting.
+- [Chat Agent](https://github.com/i-am-bee/beeai-platform/tree/main/agents/chat) - Multi-turn conversational agent using RequirementAgent, ActTool for reasoning sequences, and ClarificationTool for ambiguous queries. Integrates DuckDuckGo, Wikipedia, OpenMeteo, and file tools with UnconstrainedMemory, streaming, citation extraction, and OpenTelemetry instrumentation.
+- [Form Agent](https://github.com/i-am-bee/beeai-platform/tree/main/agents/form) - Single-turn form interaction using Form Extension with multiple field types, customizable layouts, file uploads, validation, and structured output.
+- [RAG Agent](https://github.com/i-am-bee/beeai-platform/tree/main/agents/rag) - Retrieval-Augmented Generation agent supporting 12+ file formats, dynamic vector stores, semantic search (VectorSearchTool), document summaries (FileReaderTool), intelligent tool selection, and citation tracking with document URLs.
+- [OAuth Agent](https://github.com/i-am-bee/beeai-platform/blob/main/apps/beeai-sdk-py/examples/oauth.py) - OAuth Extension demo with MCP integration, browser-based authorization, secure token management, and Stripe MCP server access.
+- [Dynamic Form Request Agent](https://github.com/i-am-bee/beeai-platform/blob/main/apps/beeai-sdk-py/examples/request_form_agent.py) - Multi-step form workflow showing both static and dynamic form generation, where the agent conditionally requests additional input mid-conversation.
+
+## Community Agents
+
+A growing collection of community-built agents showcasing various use cases and integrations.
+
+> [!NOTE]
+> Community agents are maintained by their respective authors. Please review each agent's documentation before use.
+
+- Coming soon! You can add your agent here via a PR to be featured.
+
+> [!TIP]
+> Before contributing, please review our [Contribution Guidelines](./CONTRIBUTING.md) to ensure a smooth experience.
+
+---
 
 ## Documentation
 

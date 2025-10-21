@@ -3,19 +3,27 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type {
+  AgentSettings,
+  ContextToken,
+  EmbeddingDemands,
+  EmbeddingFulfillments,
+  FormRender,
+  LLMDemands,
+  LLMFulfillments,
+  MCPDemands,
+  MCPFulfillments,
+  OAuthDemands,
+  OAuthFulfillments,
+  SecretDemands,
+  SecretFulfillments,
+} from 'beeai-sdk';
+
 import type { UIMessagePart, UIUserMessage } from '#modules/messages/types.ts';
-import type { ContextToken } from '#modules/platform-context/contexts/platform-context.ts';
 import type { AgentRequestSecrets } from '#modules/runs/contexts/agent-secrets/types.ts';
 import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
 
 import type { buildA2AClient } from './client';
-import type { EmbeddingDemand, EmbeddingFulfillment } from './extensions/services/embedding';
-import type { LLMDemand, LLMFulfillment } from './extensions/services/llm';
-import type { MCPDemand, MCPFulfillment } from './extensions/services/mcp';
-import type { OAuthDemand, OAuthFulfillment } from './extensions/services/oauth-provider';
-import type { SecretDemands, SecretFulfillment } from './extensions/services/secrets';
-import type { FormRender } from './extensions/ui/form';
-import type { AgentSettings } from './extensions/ui/settings';
 
 export enum RunResultType {
   FormRequired = 'form-required',
@@ -70,12 +78,12 @@ export interface ChatRun<UIGenericPart = never> {
 }
 
 export interface Fulfillments {
-  mcp: (demand: MCPDemand) => Promise<MCPFulfillment | null>;
-  llm: (demand: LLMDemand) => Promise<LLMFulfillment>;
-  oauth: (demand: OAuthDemand) => Promise<OAuthFulfillment | null>;
+  mcp: (demand: MCPDemands) => Promise<MCPFulfillments | null>;
+  llm: (demand: LLMDemands) => Promise<LLMFulfillments>;
+  oauth: (demand: OAuthDemands) => Promise<OAuthFulfillments | null>;
   getContextToken: () => ContextToken;
-  embedding: (demand: EmbeddingDemand) => Promise<EmbeddingFulfillment>;
-  secrets: (demand: SecretDemands, runtimeFullfilledDemands?: AgentRequestSecrets) => Promise<SecretFulfillment>;
+  embedding: (demand: EmbeddingDemands) => Promise<EmbeddingFulfillments>;
+  secrets: (demand: SecretDemands, runtimeFullfilledDemands?: AgentRequestSecrets) => Promise<SecretFulfillments>;
 }
 
 export type AgentA2AClient<UIGenericPart = never> = Awaited<ReturnType<typeof buildA2AClient<UIGenericPart>>>;

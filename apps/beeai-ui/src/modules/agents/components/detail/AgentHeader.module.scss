@@ -1,0 +1,23 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.root {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  column-gap: $spacing-05;
+}
+
+.agentName {
+  @include line-clamp();
+  line-height: math.div(18, 16);
+  color: $text-dark;
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  column-gap: $spacing-03;
+}

@@ -3,31 +3,30 @@ title: "Build Hello World"
 description: "Start building your own agent with a simple Hello World example"
 ---
 
-Now that your BeeAI Platform is up and running, and you have a basic understanding of how to run the agent via either the GUI or CLI, let’s get to some coding.
+Now that your BeeAI Platform is up and running, and you know how to run an agent via the GUI or CLI, it’s time to create your first agent.
 
-To build an agent that automatically appears in the platform, all you need to do is use the BeeAI SDK library, which handles the registration process for you.
+With the BeeAI SDK, you can build an agent that automatically registers with the platform — no extra setup required.
 
-Although building a “Hello World” agent is straightforward, we’ve streamlined the process for you with a starter repository that you can begin editing right away.
-
+To make things even easier, we’ve provided a starter repository. You can clone it and start coding immediately, so you can focus on your agent logic instead of boilerplate setup.
 
 ## Prerequisites
 
-- BeeAI Platform installed (see [Quickstart](/introduction/quickstart))
+- BeeAI Platform installed ([Quickstart](/introduction/quickstart))
 - [uv](https://docs.astral.sh/uv/) package manager (should be already installed if you followed the quickstart)
 
 ## Start From Template
 
 <Steps>
-<Step title="Use the official starter template to get started quickly.">
+<Step title="Use the official starter template">
 <Tabs>
-<Tab title="Clone Directly">
+<Tab title="Clone directly">
 ```bash
 git clone https://github.com/i-am-bee/beeai-platform-agent-starter my-agent
 cd my-agent
 ```
 </Tab>
 <Tab title="Use as a GitHub template">
-1. Go to [the template repository](https://github.com/i-am-bee/beeai-platform-agent-starter)
+1. Go to the [template repository](https://github.com/i-am-bee/beeai-platform-agent-starter)
 2. Click "Use this template" → "Create a new repository"
 3. Clone your new repository locally
 </Tab>
@@ -40,9 +39,17 @@ cd my-agent
 uv run server
 ```
 
-</Step>
-<Step title="Then in another terminal">
+<Tip>
+**Enable auto-reload during development:** Add `watchfiles` to automatically restart your server when code changes:
+```bash
+uv run watchfiles beeai_agents.agent.run
+```
+</Tip>
 
+</Step>
+<Step title="Run your agent">
+
+In another terminal:
 
 ```bash
 beeai run example_agent "Alice"
@@ -52,13 +59,13 @@ beeai run example_agent "Alice"
 
 You should see: "Ciao Alice!" 🎉
 
-With your first agent up and running, you can now modify the code to do whatever you want.
+With your first agent running, you can now modify it to do anything you want.
 
 ## Implement Your Agent Logic
 
-Navigate to [src/beeai_agents/agent.py](https://github.com/i-am-bee/beeai-platform-agent-starter/blob/main/src/beeai_agents/agent.py) and replace the example with your agent implementation.
+Navigate to [src/beeai_agents/agent.py](https://github.com/i-am-bee/beeai-platform-agent-starter/blob/main/src/beeai_agents/agent.py) and replace the example with your agent logic.
 
-The example implementation doesn’t do much. It’s intended purely for demonstration purposes.
+The starter example is minimal and intended for demonstration purposes only:
 
 ```python
 import os
@@ -98,7 +105,7 @@ Add the `@server.agent` decorator to your function so the platform recognizes it
 </Step>
 
 <Step title="Name your agent">
-Whatever you name the function will be the agent’s name in the platform.
+The function name becomes the agent’s name in the platform.
 </Step>
 
 <Step title="Describe your agent">
@@ -127,19 +134,20 @@ The agent function should be asynchronous and yield results as they’re ready.
 
 ## Starting from Scratch
 
-Want to build your agent without using our starter repo?  
+If you prefer not to use the starter repo:
+- Create an empty Python project
+- Install `beeai-sdk`
+- Copy the example code above
 
-All you need to do is set up an empty Python project, install `beeai-sdk` as a dependency, and then use the code above.
-
-There’s no magic in the starter repo. It simply provides some basic Python scaffolding, a simple GitHub workflow, and a Dockerfile, most of which are entirely optional.
+The starter repo mainly provides basic scaffolding, a GitHub workflow, and a Dockerfile — all optional.
 
 ## Next Steps
 
-Now that you've built your Hello World agent, you can:
-- Explore how to provide more [GUI configuration](/build-agents/agent-details) options through the concept of `AgentDetail`
-- Leverage [LLM Access](/build-agents/llm-access) in your agent
-- Understand how [Messages](/build-agents/messages) are used for communication between Agent and the Client
-- Build beautiful GUI for your agents with [GUI Components](/build-agents/gui-components)
-- Request structured input from the user using [forms](/build-agents/forms)
-- Learn how to work with [files](/build-agents/files)
-- [Share your agent](/how-to/share-agents) with the others
+After building your Hello World agent, you can:
+- Provide more [GUI configuration](/build-agents/agent-details) via `AgentDetail`
+- Leverage [LLM Configuration](/build-agents/llm-configuration)
+- Explore [Messages](/build-agents/messages) for communication between agents and clients
+- Build beautiful GUIs for your agents with [GUI components](/build-agents/gui-components)
+- Request structured inputs with [forms](/build-agents/forms)
+- Work with [files](/build-agents/files)
+- [Share your agent](/how-to/share-agents) with others

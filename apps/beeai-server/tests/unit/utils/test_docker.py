@@ -29,12 +29,20 @@ pytestmark = pytest.mark.unit
         ),
         ("user/repo:tag", {"repository": "user/repo", "tag": "tag"}),
         (
+            "beeai-platform-registry-svc.default:5001/i-am-bee/beeai-platform-agent-starter/agent:036bb38e871dbf0d92d049b0237ae1bcac14e136",
+            {
+                "registry": "beeai-platform-registry-svc.default:5001",
+                "repository": "i-am-bee/beeai-platform-agent-starter/agent",
+                "tag": "036bb38e871dbf0d92d049b0237ae1bcac14e136",
+            },
+        ),
+        (
             "custom.registry/team/product/component:v1.2.3",
             {"registry": "custom.registry", "repository": "team/product/component", "tag": "v1.2.3"},
         ),
     ],
 )
-def test_parses_github_url(image_id, expected):
+def test_parses_docker_url(image_id, expected):
     image_id = DockerImageID(image_id)
     expected = {"registry": "docker.io", "tag": "latest", **expected}
     assert (

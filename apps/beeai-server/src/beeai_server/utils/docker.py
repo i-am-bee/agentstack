@@ -1,14 +1,26 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import re
+from datetime import timedelta
 from enum import StrEnum
 from functools import cached_property
-from typing import Any
+from typing import Any, NamedTuple
 
 import httpx
+from async_lru import alru_cache
 from kink import inject
-from pydantic import ModelWrapValidatorHandler, PrivateAttr, RootModel, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    ModelWrapValidatorHandler,
+    PrivateAttr,
+    RootModel,
+    computed_field,
+    model_validator,
+)
 
 from beeai_server.configuration import Configuration, OCIRegistryConfiguration
 
@@ -26,13 +38,30 @@ AUTH_URL_PER_REGISTRY = {
     "registry-1.docker.io": "https://auth.docker.io/token?service=registry.docker.io&scope=repository:{repository}:{permissions}",
 }
 
+base_headers = {
+    "Accept": (
+        "application/vnd.oci.image.index.v1+json,"
+        "application/vnd.oci.image.manifest.v1+json,"
+        "application/vnd.docker.distribution.manifest.list.v2+json,"
+        "application/vnd.docker.distribution.manifest.v2+json"
+    )
+}
+
+
+class ManifestResponse(NamedTuple):
+    manifest: dict[str, Any]
+    digest: str
+
 
 class DockerImageID(RootModel):
     root: str
+    model_config = ConfigDict(frozen=True)
 
     _registry: str | None = PrivateAttr(None)
     _repository: str = PrivateAttr()
     _tag: str | None = PrivateAttr(None)
+    _digest: str | None = PrivateAttr(None)
+    _manifest: dict[str, Any] | None = PrivateAttr(None)
 
     @property  # pyright: ignore [reportArgumentType]
     @inject
@@ -53,7 +82,8 @@ class DockerImageID(RootModel):
 
     @cached_property
     def get_manifest_url(self) -> str:
-        return f"{self.manifest_base_url}/{self.tag}"
+        version = self.digest or self.tag
+        return f"{self.manifest_base_url}/{version}"
 
     @property
     def registry(self) -> str:
@@ -70,13 +100,20 @@ class DockerImageID(RootModel):
         return f"{self.registry}/{self.repository}"
 
     @property
-    def tag(self) -> str | None:
+    def tag(self) -> str:
         return self._tag or "latest"
+
+    @property
+    def digest(self) -> str | None:
+        return self._digest or None
 
     @model_validator(mode="wrap")
     @classmethod
     def _parse(cls, data: Any, handler: ModelWrapValidatorHandler):
-        image_id: DockerImageID = handler(data)
+        if isinstance(data, DockerImageID):
+            return data
+        if not isinstance(data, str):
+            raise ValueError(f"Invalid Docker image: {data}")
 
         pattern = r"""
             # Forbid starting with http:// or https://
@@ -90,21 +127,28 @@ class DockerImageID(RootModel):
             # Repository (required) - final component before any tag
             (?P<repository>[^:]+)
 
-            # Tag (optional) - everything after the colon
-            (?::(?P<tag>[^:]+))?
+            # Tag (optional) - everything after the colon before @
+            (?::(?P<tag>[^@]+))?
+
+            # Digest (optional) - everything after @
+            (?:@(?P<digest>.+))?
         """
-        match = re.match(pattern, image_id.root, re.VERBOSE)
+        match = re.match(pattern, data, re.VERBOSE)
         if not match:
             raise ValueError(f"Invalid Docker image: {data}")
+
+        image_id = handler(data)
         for name, value in match.groupdict().items():
             setattr(image_id, f"_{name}", value)
-        image_id.root = str(image_id)  # normalize url
-        return image_id
+
+        # we need to construct a new object, because this is a frozen instance
+        return image_id.model_copy(update={"root": str(image_id)})
 
     def __str__(self):
-        return f"{self.base}:{self.tag}"
+        digest = f"@{self.digest}" if self.digest else ""
+        return f"{self.base}:{self.tag}{digest}"
 
-    async def _get_auth_endpoint(self) -> str | None:
+    async def get_registry_auth_endpoint(self) -> str | None:
         if self.registry not in AUTH_URL_PER_REGISTRY:
             async with httpx.AsyncClient() as client:
                 registry_resp = await client.get(self.get_manifest_url, follow_redirects=True)
@@ -123,45 +167,10 @@ class DockerImageID(RootModel):
 
         return AUTH_URL_PER_REGISTRY[self.registry]
 
-    async def get_registry_token(
-        self, permissions: tuple[RegistryPermissions] = (RegistryPermissions.PULL,)
-    ) -> str | None:
-        try:
-            token_endpoint = await self._get_auth_endpoint()
-        except Exception as ex:
-            raise Exception(f"Image registry does not exist or is not accessible: {self.get_manifest_url}") from ex
+    async def get_manifest(self) -> ManifestResponse:
+        headers = base_headers.copy()
 
-        if token_endpoint:
-            async with httpx.AsyncClient() as client:
-                if token_endpoint:
-                    token_endpoint = token_endpoint.format(
-                        repository=self.repository, permissions=",".join(str(p) for p in permissions)
-                    )
-                    auth_resp = await client.get(
-                        token_endpoint,
-                        follow_redirects=True,
-                        headers={"Authorization": f"Basic {self.registry_config.basic_auth_str}"}
-                        if self.registry_config.basic_auth_str
-                        else {},
-                    )
-                    if auth_resp.status_code != 200:
-                        raise Exception(f"Failed to authenticate: {auth_resp.status_code}, {auth_resp.text}")
-                    return auth_resp.json()["token"]
-        return None
-
-    @inject
-    async def get_registry_image_config_and_labels(self) -> tuple[dict, dict]:
-        # Parse image name to determine registry and repository
-        headers = {
-            "Accept": (
-                "application/vnd.oci.image.index.v1+json,"
-                "application/vnd.oci.image.manifest.v1+json,"
-                "application/vnd.docker.distribution.manifest.list.v2+json,"
-                "application/vnd.docker.distribution.manifest.v2+json"
-            )
-        }
-
-        if token := await self.get_registry_token(permissions=(RegistryPermissions.PULL,)):
+        if token := await get_registry_token(docker_image_id=self, permissions=(RegistryPermissions.PULL,)):
             headers["Authorization"] = f"Bearer {token}"
 
         async with httpx.AsyncClient() as client:
@@ -170,23 +179,99 @@ class DockerImageID(RootModel):
             if manifest_resp.status_code != 200:
                 raise Exception(f"Failed to get manifest: {manifest_resp.status_code}, {manifest_resp.text}")
 
-            manifest = manifest_resp.json()
+            return ManifestResponse(
+                manifest=manifest_resp.raise_for_status().json(),
+                digest=manifest_resp.headers["Docker-Content-Digest"],
+            )
 
+    @inject
+    async def resolve_version(self) -> ResolvedDockerImageID:
+        manifest = await self.get_manifest()
+        digest = manifest.digest
+        result = ResolvedDockerImageID(
+            registry=self.registry,
+            repository=self.repository,
+            tag=self.tag,
+            digest=digest,
+        )
+        result._manifest = manifest.manifest
+        return result
+
+
+class ResolvedDockerImageID(BaseModel):
+    registry: str
+    repository: str
+    tag: str
+    digest: str
+    _manifest: dict[str, Any] | None = PrivateAttr(None)
+
+    @computed_field
+    @cached_property
+    def image_id(self) -> DockerImageID:
+        return DockerImageID(root=f"{self.registry}/{self.repository}:{self.tag}@{self.digest}")
+
+    async def get_manifest(self):
+        if not self._manifest:
+            self._manifest, _ = await self.image_id.get_manifest()
+        return self._manifest
+
+    async def get_labels(self) -> dict[str, str]:
+        manifest = await self.get_manifest()
+
+        headers = base_headers.copy()
+        headers["Authorization"] = f"Bearer {await get_registry_token(docker_image_id=self.image_id)}"
+
+        async with httpx.AsyncClient() as client:
             if "manifests" in manifest:
                 manifest_resp = await client.get(
-                    f"{self.manifest_base_url}/{manifest['manifests'][0]['digest']}",
+                    f"{self.image_id.manifest_base_url}/{manifest['manifests'][0]['digest']}",
                     headers=headers,
                     follow_redirects=True,
                 )
-                manifest = manifest_resp.json()
+                manifest = manifest_resp.raise_for_status().json()
 
             config_digest = manifest["config"]["digest"]
-            config_url = f"{self.registry_base_url}/v2/{self.repository}/blobs/{config_digest}"
+            config_url = f"{self.image_id.registry_base_url}/v2/{self.repository}/blobs/{config_digest}"
             config_resp = await client.get(config_url, headers=headers, follow_redirects=True)
 
             if config_resp.status_code != 200:
                 raise Exception(f"Failed to get config: {config_resp.status_code}, {config_resp.text}")
 
             config = config_resp.json()
-            labels = config.get("config", {}).get("Labels", {})
-            return config, labels
+            return config.get("config", {}).get("Labels", {})
+
+    def __str__(self) -> str:
+        return str(self.image_id)
+
+
+@alru_cache(ttl=timedelta(minutes=5).total_seconds())
+@inject
+async def get_registry_token(
+    *,
+    docker_image_id: DockerImageID,
+    permissions: tuple[RegistryPermissions] = (RegistryPermissions.PULL,),
+) -> str | None:
+    try:
+        token_endpoint = await docker_image_id.get_registry_auth_endpoint()
+    except Exception as ex:
+        raise Exception(
+            f"Image registry does not exist or is not accessible: {docker_image_id.get_manifest_url}"
+        ) from ex
+
+    if token_endpoint:
+        async with httpx.AsyncClient() as client:
+            if token_endpoint:
+                token_endpoint = token_endpoint.format(
+                    repository=docker_image_id.repository, permissions=",".join(str(p) for p in permissions)
+                )
+                auth_resp = await client.get(
+                    token_endpoint,
+                    follow_redirects=True,
+                    headers={"Authorization": f"Basic {docker_image_id.registry_config.basic_auth_str}"}
+                    if docker_image_id.registry_config.basic_auth_str
+                    else {},
+                )
+                if auth_resp.status_code != 200:
+                    raise Exception(f"Failed to authenticate: {auth_resp.status_code}, {auth_resp.text}")
+                return auth_resp.json()["token"]
+    return None

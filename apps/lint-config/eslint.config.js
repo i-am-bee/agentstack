@@ -15,7 +15,7 @@ const compat = new FlatCompat({ baseDirectory: import.meta.dirname });
 /** @type {import('eslint').Linter.Config[]} */
 const base = [
   {
-    ignores: ['node_modules/**', '.next/**', 'out/**', 'build/**', 'next-env.d.ts'],
+    ignores: ['node_modules/**', '.next/**', 'out/**', 'build/**', 'next-env.d.ts', 'dist/**'],
   },
   {
     rules: {

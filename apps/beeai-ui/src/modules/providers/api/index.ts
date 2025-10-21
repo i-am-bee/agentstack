@@ -6,10 +6,10 @@
 import { api } from '#api/index.ts';
 import { ensureData } from '#api/utils.ts';
 
-import type { DeleteProviderPath, ReadProviderPath, RegisterProviderRequest } from './types';
+import type { DeleteProviderPath, ListProvidersParams, ReadProviderPath, RegisterProviderRequest } from './types';
 
-export async function listProviders() {
-  const response = await api.GET('/api/v1/providers');
+export async function listProviders(params: ListProvidersParams = {}) {
+  const response = await api.GET('/api/v1/providers', { params });
 
   return ensureData(response);
 }

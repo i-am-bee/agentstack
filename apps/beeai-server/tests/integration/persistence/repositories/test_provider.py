@@ -45,7 +45,6 @@ async def test_provider(set_di_configuration, admin_user: UUID) -> Provider:
             skills=[],
         ),
         auto_stop_timeout=timedelta(minutes=5),
-        auto_remove=False,
         created_by=admin_user,
     )
 
@@ -65,7 +64,7 @@ async def test_create_provider(db_transaction: AsyncConnection, test_provider: P
     assert row.source == str(test_provider.source.root)
     assert row.registry == (str(test_provider.registry.root) if test_provider.registry else None)
     assert row.auto_stop_timeout_sec == int(test_provider.auto_stop_timeout.total_seconds())
-    assert row.auto_remove == test_provider.auto_remove
+    assert row.type == test_provider.type
 
 
 @pytest.mark.usefixtures("set_di_configuration")
@@ -92,20 +91,23 @@ async def test_get_provider(db_transaction: AsyncConnection, test_provider, admi
             "version": "1.0.0",
         },
         "auto_stop_timeout_sec": 300,  # 5 minutes
-        "auto_remove": False,
+        "type": "unmanaged",
+        "version_info": {"docker": None, "github": None},
+        "unmanaged_state": None,
         "created_by": admin_user,
     }
 
     await db_transaction.execute(
         text(
-            "INSERT INTO providers (id, source, origin, registry, auto_stop_timeout_sec, auto_remove, agent_card, created_at, updated_at, last_active_at, created_by) "
-            "VALUES (:id, :source, :origin, :registry, :auto_stop_timeout_sec, :auto_remove, :agent_card, :created_at, :updated_at, :last_active_at, :created_by)"
+            "INSERT INTO providers (id, type, source, origin, version_info, registry, auto_stop_timeout_sec, agent_card, created_at, updated_at, last_active_at, created_by, unmanaged_state) "
+            "VALUES (:id, :type, :source, :origin, :version_info, :registry, :auto_stop_timeout_sec, :agent_card, :created_at, :updated_at, :last_active_at, :created_by, :unmanaged_state)"
         ),
         {
             **provider_data,
             "origin": source.origin,
             "updated_at": utc_now(),
             "agent_card": json.dumps(provider_data["agent_card"]),
+            "version_info": json.dumps(provider_data["version_info"]),
         },
     )
     # Get provider
@@ -116,7 +118,7 @@ async def test_get_provider(db_transaction: AsyncConnection, test_provider, admi
     assert str(provider.source.root) == provider_data["source"]
     assert provider.registry is None
     assert provider.auto_stop_timeout == timedelta(seconds=provider_data["auto_stop_timeout_sec"])
-    assert provider.auto_remove == provider_data["auto_remove"]
+    assert provider.type == provider_data["type"]
 
 
 async def test_get_provider_not_found(db_transaction: AsyncConnection):
@@ -173,7 +175,9 @@ async def test_list_providers(db_transaction: AsyncConnection, admin_user: UUID)
             "version": "1.0.0",
         },
         "auto_stop_timeout_sec": 300,
-        "auto_remove": False,
+        "type": "unmanaged",
+        "version_info": {"docker": None, "github": None},
+        "unmanaged_state": None,
         "created_by": admin_user,
     }
     second_provider = {
@@ -194,14 +198,16 @@ async def test_list_providers(db_transaction: AsyncConnection, admin_user: UUID)
             "version": "1.0.0",
         },
         "auto_stop_timeout_sec": 600,
-        "auto_remove": True,
+        "type": "unmanaged",
+        "version_info": {"docker": None, "github": None},
+        "unmanaged_state": None,
         "created_by": admin_user,
     }
 
     await db_transaction.execute(
         text(
-            "INSERT INTO providers (id, source, origin, registry, agent_card, created_at, updated_at, last_active_at, auto_stop_timeout_sec, auto_remove, created_by) "
-            "VALUES (:id, :source, :origin, :registry, :agent_card, :created_at, :updated_at, :last_active_at, :auto_stop_timeout_sec, :auto_remove, :created_by)"
+            "INSERT INTO providers (id, type, source, origin, version_info, registry, agent_card, created_at, updated_at, last_active_at, auto_stop_timeout_sec, created_by, unmanaged_state) "
+            "VALUES (:id, :type, :source, :origin, :version_info, :registry, :agent_card, :created_at, :updated_at, :last_active_at, :auto_stop_timeout_sec, :created_by, :unmanaged_state)"
         ),
         [
             {
@@ -209,12 +215,14 @@ async def test_list_providers(db_transaction: AsyncConnection, admin_user: UUID)
                 "origin": source.origin,
                 "updated_at": utc_now(),
                 "agent_card": json.dumps(first_provider["agent_card"]),
+                "version_info": json.dumps(first_provider["version_info"]),
             },
             {
                 **second_provider,
                 "origin": source2.origin,
                 "updated_at": utc_now(),
                 "agent_card": json.dumps(second_provider["agent_card"]),
+                "version_info": json.dumps(second_provider["version_info"]),
             },
         ],
     )
@@ -228,23 +236,13 @@ async def test_list_providers(db_transaction: AsyncConnection, admin_user: UUID)
     assert providers[first_provider["id"]].auto_stop_timeout == timedelta(
         seconds=first_provider["auto_stop_timeout_sec"]
     )
-    assert providers[first_provider["id"]].auto_remove == first_provider["auto_remove"]
+    assert providers[first_provider["id"]].type == first_provider["type"]
 
     assert str(providers[second_provider["id"]].source.root) == second_provider["source"]
     assert providers[second_provider["id"]].auto_stop_timeout == timedelta(
         seconds=second_provider["auto_stop_timeout_sec"]
     )
-    assert providers[second_provider["id"]].auto_remove == second_provider["auto_remove"]
-
-    # List providers with auto_remove filter
-    auto_remove_providers = {provider.id: provider async for provider in repository.list(auto_remove_filter=True)}
-    assert len(auto_remove_providers) == 1
-    assert second_provider["id"] in auto_remove_providers
-
-    # List providers with auto_remove=False filter
-    non_auto_remove_providers = {provider.id: provider async for provider in repository.list(auto_remove_filter=False)}
-    assert len(non_auto_remove_providers) == 1
-    assert first_provider["id"] in non_auto_remove_providers
+    assert providers[second_provider["id"]].type == second_provider["type"]
 
 
 async def test_create_duplicate_provider(db_transaction: AsyncConnection, test_provider: Provider, admin_user: UUID):
@@ -254,7 +252,7 @@ async def test_create_duplicate_provider(db_transaction: AsyncConnection, test_p
     # Create provider
     await repository.create(provider=test_provider)
 
-    # Try to create provider with same ID (should succeed with auto_remove=False)
+    # Try to create provider with same source (will generate same ID)
     duplicate_source = NetworkProviderLocation(root="http://localhost:8000")  # Same source, will generate same ID
     duplicate_provider = Provider(
         source=duplicate_source,
@@ -262,35 +260,9 @@ async def test_create_duplicate_provider(db_transaction: AsyncConnection, test_p
         registry=None,
         agent_card=test_provider.agent_card.model_copy(update={"name": "NEW_AGENT"}),
         auto_stop_timeout=timedelta(minutes=10),  # Different timeout
-        auto_remove=False,
         created_by=admin_user,
     )
 
     # This should raise a DuplicateEntityError because the source is the same
     with pytest.raises(DuplicateEntityError):
         await repository.create(provider=duplicate_provider)
-
-
-async def test_replace_transient_provider(db_transaction: AsyncConnection, test_provider: Provider, admin_user: UUID):
-    repository = SqlAlchemyProviderRepository(connection=db_transaction)
-    # Create provider with auto_remove=True (should succeed by replacing the existing one)
-
-    test_provider.auto_remove = True  # This should allow replacement
-    await repository.create(provider=test_provider)
-    new_source = NetworkProviderLocation(root="http://localhost:8000")  # Same source will generate same ID
-    new_provider = Provider(
-        source=new_source,
-        origin=new_source.origin,
-        agent_card=test_provider.agent_card.model_copy(update={"name": "NEW_AGENT"}),
-        auto_remove=True,
-        created_by=admin_user,
-    )
-
-    # This should succeed
-    await repository.create(provider=new_provider)
-
-    # Verify provider was updated
-    result = await db_transaction.execute(text("SELECT * FROM providers WHERE id = :id"), {"id": test_provider.id})
-    row = result.fetchone()
-    assert row is not None
-    assert row.agent_card["name"] == "NEW_AGENT"

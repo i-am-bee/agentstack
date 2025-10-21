@@ -3,10 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+@use 'breakpoints' as *;
 @use '@carbon/styles/scss/theme' as *;
 @use '@carbon/styles/scss/spacing' as *;
 @use '@carbon/styles/scss/utilities/convert' as *;
 @use 'sass:math';
+@use 'sass:map';
 
 @mixin line-clamp($lines: 1) {
   overflow: hidden;
@@ -74,5 +76,19 @@
   &:focus:not(:focus-visible) {
     box-shadow: none;
     border-color: transparent;
+  }
+}
+
+@mixin container($name, $breakpoint) {
+  $bp: map.get($breakpoints, $breakpoint);
+
+  @if not $bp {
+    @error "Invalid breakpoint `#{$breakpoint}`. Must be one of: #{map-keys($breakpoints)}.";
+  }
+
+  $width: map.get($bp, width);
+
+  @container #{$name} (min-width: #{$width}) {
+    @content;
   }
 }

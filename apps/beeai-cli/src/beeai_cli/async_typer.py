@@ -5,6 +5,7 @@ import asyncio
 import functools
 import inspect
 import re
+import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
 
@@ -95,6 +96,7 @@ class AsyncTyper(typer.Typer):
                         )
                     if DEBUG:
                         raise
+                    sys.exit(1)
 
             parent_decorator(wrapped_f)
             return f

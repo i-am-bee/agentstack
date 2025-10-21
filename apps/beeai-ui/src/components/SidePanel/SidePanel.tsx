@@ -4,36 +4,25 @@
  */
 
 import clsx from 'clsx';
-import { forwardRef, type PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 
-import { NAV_ITEMS } from '#utils/constants.ts';
+import { useScrollbar } from '#hooks/useScrollbar.ts';
 
 import classes from './SidePanel.module.scss';
 
-interface Props {
-  variant: 'left' | 'right';
+interface Props extends PropsWithChildren {
   isOpen?: boolean;
   className?: string;
 }
 
-export const SidePanel = forwardRef<HTMLElement, PropsWithChildren<Props>>(function SidePanel(
-  { variant, isOpen, className, children },
-  ref,
-) {
+export function SidePanel({ isOpen, className, children }: Props) {
+  const scrollbarProps = useScrollbar();
+
   return (
-    <aside
-      ref={ref}
-      className={clsx(
-        classes.root,
-        [classes[variant]],
-        {
-          [classes.isOpen]: isOpen,
-          [classes.hasNav]: NAV_ITEMS.length > 0,
-        },
-        className,
-      )}
-    >
-      <div className={classes.content}>{children}</div>
+    <aside className={clsx(classes.root, { [classes.isOpen]: isOpen }, className)}>
+      <div className={classes.content} {...scrollbarProps}>
+        {children}
+      </div>
     </aside>
   );
-});
+}

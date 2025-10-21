@@ -788,20 +788,20 @@ async def run_agent(
     """Run an agent."""
     async with configuration.use_platform_client():
         providers = await Provider.list()
-        context = await Context.create()
+        await ensure_llm_provider()
+        provider = select_provider(search_path, providers=providers)
+
+        context = await Context.create(metadata={"provider_id": provider.id, "agent_name": provider.agent_card.name})
         context_token = await context.generate_token(
             grant_global_permissions=Permissions(llm={"*"}, embeddings={"*"}, a2a_proxy={"*"}),
             grant_context_permissions=ContextPermissions(files={"*"}, vector_stores={"*"}, context_data={"*"}),
         )
 
-    await ensure_llm_provider()
-
-    provider = select_provider(search_path, providers=providers)
     agent = provider.agent_card
 
     if provider.state == "missing":
         console.print("Starting provider (this might take a while)...")
-    if provider.state not in {"ready", "running", "starting", "missing"}:
+    if provider.state not in {"ready", "running", "starting", "missing", "online", "offline"}:
         err_console.print(f":boom: Agent is not in a ready state: {provider.state}, {provider.last_error}\nRetrying...")
 
     ui_annotations = ProviderUtils.detail(provider) or {}
@@ -934,9 +934,11 @@ async def list_agents():
                     state or "<unknown>",
                     {
                         "running": "green",
+                        "online": "green",
                         "ready": "blue",
                         "starting": "blue",
                         "missing": "grey",
+                        "offline": "grey",
                         "error": "red",
                     },
                 ),

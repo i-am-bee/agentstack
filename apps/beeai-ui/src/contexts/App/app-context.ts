@@ -5,7 +5,7 @@
 
 'use client';
 
-import { createContext, type Dispatch, type SetStateAction } from 'react';
+import { createContext } from 'react';
 
 import type { RuntimeConfig, SidePanelVariant } from './types';
 
@@ -13,11 +13,10 @@ export const AppContext = createContext<AppContextValue | undefined>(undefined);
 
 interface AppContextValue {
   config: RuntimeConfig;
-  navigationOpen: boolean;
-  closeNavOnClickOutside: boolean;
+  sidebarOpen: boolean;
   activeSidePanel: SidePanelVariant | null;
-  setNavigationOpen: Dispatch<SetStateAction<boolean>>;
-  setCloseNavOnClickOutside: Dispatch<SetStateAction<boolean>>;
+  openSidebar: () => void;
+  closeSidebar: () => void;
   openSidePanel: (variant: SidePanelVariant) => void;
   closeSidePanel: () => void;
 }

@@ -3,63 +3,29 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-$leftPanelWidth: rem(272px);
-$rightPanelWidth: rem(432px);
+$panel-width: rem(432px);
 
 .root {
-  position: fixed;
-  inset-block-start: calc(var(--header-height) + var(--header-border-height));
-  inset-block-end: 0;
+  grid-column: 2 / -1;
+  grid-row: 1 / -1;
+  position: relative;
   z-index: 1;
-  transition: transform $duration-moderate-02 motion(exit, expressive);
-  &.left {
-    inset-inline-start: 0;
-    inline-size: $leftPanelWidth;
-    &:not(.isOpen) {
-      transform: translateX(calc(-100% - rem(8px)));
-    }
-  }
-  &.right {
-    inset: 0;
-    position: relative;
-    inline-size: $rightPanelWidth;
-    transition: inline-size $duration-moderate-02 motion(exit, expressive);
-    overflow: hidden;
-    grid-column: 2 / -1;
-    grid-row: 1 / -1;
-
-    &:not(.isOpen) {
-      inline-size: 0;
-    }
-  }
+  inline-size: $panel-width;
+  overflow: hidden;
+  transition: inline-size $duration-moderate-02 motion(exit, expressive);
 
   &:not(.isOpen) {
+    inline-size: 0;
     transition-timing-function: motion(entrance, expressive);
-  }
-
-  &.hasNav {
-    @include breakpoint-up(md) {
-      display: none;
-    }
   }
 }
 
 .content {
+  @include scrollbar();
   background-color: $background;
-  box-shadow: $box-shadow;
+  inline-size: $panel-width;
   block-size: 100%;
-
-  .left & {
-    padding-block: $spacing-06;
-    padding-inline-end: 0;
-  }
-
-  .right & {
-    @include scrollbar();
-    padding-inline: $spacing-05;
-    padding-block: $spacing-05 $spacing-06;
-    box-shadow: none;
-    inline-size: $rightPanelWidth;
-    border-inline-start: 1px solid $border-subtle;
-  }
+  border-inline-start: 1px solid $border-subtle;
+  padding: $spacing-05;
+  padding-inline-end: calc($spacing-05 - var(--scrollbar-width));
 }

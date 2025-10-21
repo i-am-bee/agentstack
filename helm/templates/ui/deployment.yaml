@@ -65,11 +65,12 @@ spec:
                   "Variables": {{ .Values.features.uiVariables }},
                   "ModelProviders": {{ .Values.features.uiModelProviders }},
                   "MCPOAuth": {{ .Values.features.uiMCPOauth }},
-                  "MCP": {{ .Values.features.uiMCP }}
+                  "MCP": {{ .Values.features.uiMCP }},
+                  "LocalSetup": {{ .Values.features.localSetup }}
                 }
+            - name: TRUST_PROXY_HEADERS
+              value: {{ .Values.trustProxyHeaders | quote }}
           {{- if and .Values.auth.enabled .Values.auth.oidc.enabled }}
-            - name: OIDC__PROVIDERS_PATH
-              value: {{ .Values.auth.oidc.providers_path }}
             - name: NEXTAUTH_URL
               value: {{ .Values.auth.oidc.nextauth_url }}
             - name: NEXTAUTH_SECRET

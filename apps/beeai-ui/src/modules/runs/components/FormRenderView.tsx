@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FormRender } from '#api/a2a/extensions/ui/form.ts';
+import type { FormRender } from 'beeai-sdk';
+
 import { Container } from '#components/layouts/Container.tsx';
 import { FormRenderer } from '#modules/form/components/FormRenderer.tsx';
 import type { RunFormValues } from '#modules/form/types.ts';

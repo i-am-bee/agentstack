@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FormField, FormResponseValue } from '#api/a2a/extensions/ui/form.ts';
+import type { FormField, FormResponseValue } from 'beeai-sdk';
 
 export type RunFormValues = Record<string, FormResponseValue>;
 

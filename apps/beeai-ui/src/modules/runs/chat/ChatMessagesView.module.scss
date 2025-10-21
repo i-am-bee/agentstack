@@ -53,9 +53,8 @@ $zindex-buttons: 2;
   min-block-size: calc(
     100vh -
       (
-        var(--header-height) + var(--header-border-height) + #{(2 * $content-block-padding) +
-          $new-session-button-height + $user-message-height + (2 * $messages-row-gap) + $holder-row-gap +
-          $input-height + rem(48px) + $messages-top-padding}
+        var(--app-header-height) + #{(2 * $content-block-padding) + $new-session-button-height + $user-message-height +
+          (2 * $messages-row-gap) + $holder-row-gap + $input-height + rem(48px) + $messages-top-padding}
       )
   );
 }
@@ -89,6 +88,13 @@ $zindex-buttons: 2;
   }
 }
 
+.loading {
+  :global(.cds--inline-loading) {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
 @include breakpoint-up(lg) {
   .header {
     margin: 0 #{-$spacing-09} #{-$spacing-07} auto;
@@ -101,8 +107,8 @@ $zindex-buttons: 2;
     min-block-size: calc(
       100vh -
         (
-          var(--header-height) + var(--header-border-height) + #{2 * $content-block-padding + $user-message-height +
-            $messages-row-gap + $holder-row-gap + $input-height}
+          var(--app-header-height) + #{2 * $content-block-padding + $user-message-height + $messages-row-gap +
+            $holder-row-gap + $input-height}
         )
     );
   }

@@ -3,15 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { parseNav } from '#modules/nav/parseNav.ts';
-
 export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
 export const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
 
 export const APP_FAVICON_SVG = process.env.NEXT_PUBLIC_APP_FAVICON_SVG ?? '/bee.svg';
-
-export const NAV_ITEMS = parseNav(process.env.NEXT_PUBLIC_NAV_ITEMS);
 
 export const API_URL = process.env.API_URL ?? 'http://127.0.0.1:8333';
 
@@ -30,3 +26,7 @@ export const RUN_LINK = `${DOCUMENTATION_LINK}/how-to/run-agents`;
 export const COMPOSE_LINK = `${DOCUMENTATION_LINK}/how-to/compose-agents`;
 
 export const LF_PROJECTS_LINK = 'https://lfprojects.org/';
+
+export const TRUST_PROXY_HEADERS = (process.env.TRUST_PROXY_HEADERS ?? 'false').toLowerCase() === 'true';
+
+export const NEXTAUTH_URL = process.env.NEXTAUTH_URL ? new URL(process.env.NEXTAUTH_URL) : undefined;

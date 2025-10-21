@@ -4,11 +4,11 @@
  */
 
 import { FormGroup, OperationalTag } from '@carbon/react';
+import type { MultiSelectField } from 'beeai-sdk';
 import clsx from 'clsx';
 import { useCallback } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
-import type { MultiSelectField } from '#api/a2a/extensions/ui/form.ts';
 import type { ValuesOfField } from '#modules/form/types.ts';
 
 import classes from './MultiSelect.module.scss';
@@ -47,7 +47,7 @@ export function MultiSelectField({ field }: Props) {
                   <OperationalTag
                     text={label}
                     size="lg"
-                    className={clsx(classes.option, { [classes.isSelected]: isSelected })}
+                    className={clsx(classes.option, { ['cds--tag--selected']: isSelected })}
                     onClick={() => toggle({ value: value ?? [], id, onChange })}
                   />
                 </li>

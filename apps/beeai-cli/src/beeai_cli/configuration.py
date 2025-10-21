@@ -16,7 +16,6 @@ from pydantic import HttpUrl, SecretStr
 
 from beeai_cli.auth_manager import AuthManager
 from beeai_cli.console import console
-from beeai_cli.utils import get_verify_option
 
 
 @functools.cache
@@ -50,13 +49,6 @@ class Configuration(pydantic_settings.BaseSettings):
         return self.home / "auth.json"
 
     @property
-    def ca_cert_dir(self) -> pathlib.Path:
-        """Return ca certs directory path"""
-        path = self.home / "cacerts"
-        path.mkdir(parents=True, exist_ok=True)
-        return path
-
-    @property
     def auth_manager(self) -> AuthManager:
         return AuthManager(self.auth_file)
 
@@ -72,6 +64,5 @@ class Configuration(pydantic_settings.BaseSettings):
             auth=("admin", self.admin_password.get_secret_value()) if self.admin_password else None,
             auth_token=self.auth_manager.load_auth_token(),
             base_url=self.auth_manager.active_server + "/",
-            verify=await get_verify_option(self.auth_manager.active_server),
         ) as client:
             yield client
