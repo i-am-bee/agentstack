@@ -4,21 +4,18 @@
  */
 
 .root {
-  block-size: 100vh;
   display: flex;
   align-items: center;
 }
 
-.loginWrapper {
+.container {
   display: flex;
   flex-direction: column;
-  gap: $spacing-06;
-  padding-inline: $spacing-10;
+  row-gap: $spacing-06;
 }
 
-.loginMain {
-  font-size: 2rem;
-  .bolded {
-    font-weight: 600;
+@include breakpoint-up(lg) {
+  .root {
+    --cds-grid-margin: #{$spacing-10};
   }
 }
