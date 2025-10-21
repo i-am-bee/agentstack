@@ -187,7 +187,7 @@ async def install(driver: "BaseDriver"):
                 "rules": [
                     {
                         "matches": [{"path": {"type": "PathPrefix", "value": "/api/v1/docs"}}],
-                        "backendRefs": [{"name": "beeai-platform-ui-svc", "port": 8333}],
+                        "backendRefs": [{"name": "beeai-platform-svc", "port": 8333}],
                     }
                 ],
             },
