@@ -21,7 +21,7 @@
 <p align="center">
     <a href="#key-features">Key Features</a> •
     <a href="#quickstart">Quickstart</a> •
-    <a href="#reference-agents">Reference Agents</a> •
+    <a href="#agent-catalog">Agent Catalog</a> •
     <a href="#documentation">Documentation</a>
 </p>
 
@@ -94,7 +94,9 @@ You should see: "Ciao Alice!" 🎉
 
 ---
 
-## Reference Agents
+## Agent Catalog
+
+### Reference Agents
 
 Reference implementations demonstrating core BeeAI capabilities.
 
@@ -107,7 +109,7 @@ Reference implementations demonstrating core BeeAI capabilities.
 - [OAuth Agent](https://github.com/i-am-bee/beeai-platform/blob/main/apps/beeai-sdk-py/examples/oauth.py) - OAuth Extension demo with MCP integration, browser-based authorization, secure token management, and Stripe MCP server access.
 - [Dynamic Form Request Agent](https://github.com/i-am-bee/beeai-platform/blob/main/apps/beeai-sdk-py/examples/request_form_agent.py) - Multi-step form workflow showing both static and dynamic form generation, where the agent conditionally requests additional input mid-conversation.
 
-## Community Agents
+### Community Agents
 
 A growing collection of community-built agents showcasing various use cases and integrations.
 
