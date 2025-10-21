@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, AsyncTransactio
 from beeai_server.configuration import Configuration
 from beeai_server.domain.repositories.a2a_request import IA2ARequestRepository
 from beeai_server.domain.repositories.configurations import IConfigurationsRepository
+from beeai_server.domain.repositories.connector import IConnectorRepository
 from beeai_server.domain.repositories.context import IContextRepository
 from beeai_server.domain.repositories.env import IEnvVariableRepository
 from beeai_server.domain.repositories.file import IFileRepository
@@ -18,6 +19,7 @@ from beeai_server.domain.repositories.user import IUserRepository
 from beeai_server.domain.repositories.user_feedback import IUserFeedbackRepository
 from beeai_server.domain.repositories.vector_store import IVectorDatabaseRepository, IVectorStoreRepository
 from beeai_server.infrastructure.persistence.repositories.configuration import SqlAlchemyConfigurationsRepository
+from beeai_server.infrastructure.persistence.repositories.connector import SqlAlchemyConnectorRepository
 from beeai_server.infrastructure.persistence.repositories.context import SqlAlchemyContextRepository
 from beeai_server.infrastructure.persistence.repositories.env import SqlAlchemyEnvVariableRepository
 from beeai_server.infrastructure.persistence.repositories.file import SqlAlchemyFileRepository
@@ -49,6 +51,7 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
     vector_stores: IVectorStoreRepository
     vector_database: IVectorDatabaseRepository
     user_feedback: IUserFeedbackRepository
+    connectors: IConnectorRepository
 
     def __init__(self, engine: AsyncEngine, config: Configuration) -> None:
         self._engine: AsyncEngine = engine
@@ -77,6 +80,7 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
                 self._connection, schema_name=self._config.persistence.vector_db_schema
             )
             self.user_feedback = SqlAlchemyUserFeedbackRepository(self._connection)
+            self.connectors = SqlAlchemyConnectorRepository(self._connection)
 
         except Exception as e:
             if self._connection:

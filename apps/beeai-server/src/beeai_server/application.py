@@ -19,6 +19,7 @@ from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_500_INTERNAL_SERVER_ERR
 from beeai_server.api.routes.a2a import router as a2a_router
 from beeai_server.api.routes.auth import well_known_router as auth_well_known_router
 from beeai_server.api.routes.configurations import router as configuration_router
+from beeai_server.api.routes.connectors import router as connectors_router
 from beeai_server.api.routes.contexts import router as contexts_router
 from beeai_server.api.routes.files import router as files_router
 from beeai_server.api.routes.mcp import router as mcp_router
@@ -102,6 +103,7 @@ def mount_routes(app: FastAPI):
     server_router.include_router(openai_router, prefix="/openai", tags=["openai"])
     server_router.include_router(vector_stores_router, prefix="/vector_stores", tags=["vector_stores"])
     server_router.include_router(user_feedback_router, prefix="/user_feedback", tags=["user_feedback"])
+    server_router.include_router(connectors_router, prefix="/connectors", tags=["connectors"])
 
     well_known_router = APIRouter()
     well_known_router.include_router(auth_well_known_router, prefix="")

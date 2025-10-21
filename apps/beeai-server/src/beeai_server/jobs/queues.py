@@ -9,6 +9,7 @@ class Queues(StrEnum):
     CRON_CLEANUP = "cron:cleanup"
     CRON_MCP_PROVIDER = "cron:mcp_provider"
     CRON_PROVIDER = "cron:provider"
+    CRON_CONNECTOR = "cron:connector"
     # tasks
     GENERATE_CONVERSATION_TITLE = "generate_conversation_title"
     TEXT_EXTRACTION = "text_extraction"

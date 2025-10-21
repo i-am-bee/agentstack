@@ -25,6 +25,7 @@ from beeai_server.exceptions import EntityNotFoundError
 from beeai_server.service_layer.services.a2a import A2AProxyService
 from beeai_server.service_layer.services.auth import AuthService
 from beeai_server.service_layer.services.configurations import ConfigurationService
+from beeai_server.service_layer.services.connector import ConnectorService
 from beeai_server.service_layer.services.contexts import ContextService
 from beeai_server.service_layer.services.files import FileService
 from beeai_server.service_layer.services.mcp import McpService
@@ -48,6 +49,7 @@ VectorStoreServiceDependency = Annotated[VectorStoreService, Depends(lambda: di[
 UserFeedbackServiceDependency = Annotated[UserFeedbackService, Depends(lambda: di[UserFeedbackService])]
 AuthServiceDependency = Annotated[AuthService, Depends(lambda: di[AuthService])]
 ModelProviderServiceDependency = Annotated[ModelProviderService, Depends(lambda: di[ModelProviderService])]
+ConnectorServiceDependency = Annotated[ConnectorService, Depends(lambda: di[ConnectorService])]
 
 logger = logging.getLogger(__name__)
 
