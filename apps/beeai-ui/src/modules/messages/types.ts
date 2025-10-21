@@ -4,9 +4,8 @@
  */
 
 import type { Task } from '@a2a-js/sdk';
-import type { FormRender, FormResponse, SecretDemands } from 'beeai-sdk';
+import type { FormDemands, FormFullfillments, SecretDemands } from 'beeai-sdk';
 
-import type { AgentRequestSecrets } from '#modules/runs/contexts/agent-secrets/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 
 import type { Role } from './api/types';
@@ -27,7 +26,6 @@ export interface UIUserMessage extends UIMessageBase {
   role: Role.User;
   form?: UIMessageForm;
   auth?: string;
-  runtimeFullfilledDemands?: AgentRequestSecrets;
 }
 
 export interface UIAgentMessage extends UIMessageBase {
@@ -83,7 +81,7 @@ export type UITrajectoryPart = {
   content?: string;
 };
 
-export type UIFormPart = FormRender & {
+export type UIFormPart = FormDemands & {
   kind: UIMessagePartKind.Form;
 };
 
@@ -145,6 +143,6 @@ export enum UITransformType {
 }
 
 export interface UIMessageForm {
-  request: FormRender;
-  response?: FormResponse;
+  request: FormDemands;
+  response?: FormFullfillments;
 }

@@ -6,18 +6,16 @@
 import noop from 'lodash/noop';
 import { createContext } from 'react';
 
-import type { AgentRequestSecrets, AgentSecret } from './types';
+import type { AgentSecret } from './types';
 
 export const AgentSecretsContext = createContext<AgentSecretsContextValue>({
-  secrets: [],
+  demandedSecrets: [],
   hasSeenModal: false,
   markModalAsSeen: noop,
-  getRequestSecrets: () => ({}),
 });
 
 interface AgentSecretsContextValue {
-  secrets: AgentSecret[];
+  demandedSecrets: AgentSecret[];
   hasSeenModal: boolean;
   markModalAsSeen: () => void;
-  getRequestSecrets: () => AgentRequestSecrets;
 }

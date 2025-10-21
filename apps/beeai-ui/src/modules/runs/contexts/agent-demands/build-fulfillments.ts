@@ -3,10 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ContextToken, EmbeddingDemands, SecretDemands } from 'beeai-sdk';
+import type { AgentSettings, ContextToken, EmbeddingDemands, Fulfillments } from 'beeai-sdk';
 
-import type { Fulfillments } from '#api/a2a/types.ts';
-import type { AgentRequestSecrets } from '#modules/runs/contexts/agent-secrets/types.ts';
 import { BASE_URL } from '#utils/constants.ts';
 import type { FeatureFlags } from '#utils/feature-flags.ts';
 
@@ -15,7 +13,8 @@ interface BuildFullfilmentsParams {
   selectedLLMProviders: Record<string, string>;
   selectedEmbeddingProviders: Record<string, string>;
   selectedMCPServers: Record<string, string>;
-  requestedSecrets: AgentRequestSecrets;
+  providedSecrets: Record<string, string>;
+  selectedSettings: AgentSettings;
   featureFlags: FeatureFlags;
 }
 
@@ -24,54 +23,31 @@ export const buildFullfilments = ({
   selectedLLMProviders,
   selectedEmbeddingProviders,
   selectedMCPServers,
-  requestedSecrets,
+  selectedSettings,
+  providedSecrets,
   featureFlags,
 }: BuildFullfilmentsParams): Fulfillments => {
   return {
     getContextToken: () => contextToken,
 
-    secrets: async ({ secret_demands }: SecretDemands, runtimeFullfilledDemands?: AgentRequestSecrets) => {
-      const demanded_fullfilments = Object.entries(secret_demands).reduce(
-        (memo, [key]) => {
-          const getFullfilment = () => {
-            const fullfilment = requestedSecrets[key];
-            if (fullfilment.isReady) {
-              return fullfilment.value;
-            }
+    settings: async () => {
+      return {
+        values: selectedSettings,
+      };
+    },
 
-            return null;
+    secrets: async () => {
+      const resolvedSecrets = Object.entries(providedSecrets).reduce(
+        (memo, [key, value]) => {
+          memo.secret_fulfillments[key] = {
+            secret: value,
           };
-
-          const fullfilment = getFullfilment();
-
-          if (fullfilment !== null) {
-            memo.secret_fulfillments[key] = {
-              secret: fullfilment,
-            };
-          }
-
           return memo;
         },
         { secret_fulfillments: {} },
       );
 
-      if (runtimeFullfilledDemands) {
-        return {
-          ...demanded_fullfilments,
-          secret_fulfillments: {
-            ...demanded_fullfilments.secret_fulfillments,
-            ...Object.entries(runtimeFullfilledDemands).reduce((memo, [key, value]) => {
-              if (value.isReady) {
-                memo[key] = { secret: value.value };
-              }
-
-              return memo;
-            }, {}),
-          },
-        };
-      } else {
-        return demanded_fullfilments;
-      }
+      return resolvedSecrets;
     },
 
     embedding: async ({ embedding_demands }: EmbeddingDemands) => {
@@ -129,7 +105,9 @@ export const buildFullfilments = ({
     },
     mcp: async ({ mcp_demands }) => {
       if (!featureFlags.MCP) {
-        return null;
+        return {
+          mcp_fulfillments: {},
+        };
       }
 
       const allDemands = Object.keys(mcp_demands);
@@ -149,8 +127,9 @@ export const buildFullfilments = ({
       );
     },
     oauth: async () => {
-      if (!featureFlags.MCPOAuth) {
-        return null;
+      if (!featureFlags.MCP) {
+        // TODO:
+        throw new Error();
       }
 
       return {

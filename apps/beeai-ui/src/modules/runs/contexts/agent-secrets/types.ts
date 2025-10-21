@@ -5,7 +5,7 @@
 
 import type { SecretDemand } from 'beeai-sdk';
 
-export type ReadySecretDemand = SecretDemand & { isReady: true; value: string };
+export type ReadySecretDemand = SecretDemand & { isReady: true; value: string; key: string };
 export type NonReadySecretDemand = SecretDemand & { isReady: false };
 export type AgentSecret = SecretDemand & { key: string } & (ReadySecretDemand | NonReadySecretDemand);
 

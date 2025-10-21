@@ -18,7 +18,7 @@ interface Props {
 
 export function MessageForm({ message }: Props) {
   const formPart = getMessageForm(message);
-  const { submitForm } = useAgentRun();
+  const { submitRuntimeForm } = useAgentRun();
   const { isLastMessage } = useMessages();
 
   if (!formPart) {
@@ -36,7 +36,11 @@ export function MessageForm({ message }: Props) {
           response: { id: formPart.id, values },
         };
 
-        submitForm(form, message.taskId);
+        if (!message.taskId) {
+          throw new Error('Illegal State');
+        }
+
+        submitRuntimeForm(form, message.taskId);
 
         blurActiveElement();
       }}

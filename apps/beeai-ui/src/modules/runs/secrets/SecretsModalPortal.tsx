@@ -10,21 +10,20 @@ import { useAgentSecrets } from '../contexts/agent-secrets';
 import { SecretsModal } from './SecretsModal';
 
 export function SecretsModalPortal() {
-  const { secrets, hasSeenModal, markModalAsSeen } = useAgentSecrets();
+  const { hasSeenModal, markModalAsSeen, demandedSecrets } = useAgentSecrets();
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     if (hasSeenModal) {
       return;
     }
-
-    const unresolvedSecrets = secrets.filter((s) => !s.isReady);
+    const unresolvedSecrets = demandedSecrets.filter((s) => !s.isReady);
 
     if (unresolvedSecrets.length > 0) {
       markModalAsSeen();
       setIsOpen(true);
     }
-  }, [hasSeenModal, markModalAsSeen, secrets]);
+  }, [hasSeenModal, markModalAsSeen, demandedSecrets]);
 
   if (!isOpen || typeof document === 'undefined') {
     return null;

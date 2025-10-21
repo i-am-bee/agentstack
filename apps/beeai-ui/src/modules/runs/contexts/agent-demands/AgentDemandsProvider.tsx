@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { AgentSettings } from 'beeai-sdk';
 import { type PropsWithChildren, useCallback, useEffect, useState } from 'react';
 
 import type { AgentA2AClient } from '#api/a2a/types.ts';
@@ -11,8 +12,10 @@ import { useCreateContextToken } from '#modules/platform-context/api/mutations/u
 import { useMatchProviders } from '#modules/platform-context/api/mutations/useMatchProviders.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 import { ModelCapability } from '#modules/platform-context/types.ts';
+import { getSettingsRenderDefaultValues } from '#modules/runs/settings/utils.ts';
 
 import { useAgentSecrets } from '../agent-secrets';
+import type { FullfillmentsContext } from './agent-demands-context';
 import { AgentDemandsContext } from './agent-demands-context';
 import { buildFullfilments } from './build-fulfillments';
 
@@ -24,9 +27,11 @@ export function AgentDemandsProvider<UIGenericPart>({
   agentClient,
   children,
 }: PropsWithChildren<Props<UIGenericPart>>) {
-  const { getRequestSecrets } = useAgentSecrets();
+  const { demandedSecrets } = useAgentSecrets();
+
   const [selectedEmbeddingProviders, setSelectedEmbeddingProviders] = useState<Record<string, string>>({});
   const [selectedLLMProviders, setSelectedLLMProviders] = useState<Record<string, string>>({});
+  const [selectedSettings, setSelectedSettings] = useState<AgentSettings>({});
 
   const {
     config: { featureFlags },
@@ -34,6 +39,16 @@ export function AgentDemandsProvider<UIGenericPart>({
   const { contextId } = usePlatformContext();
 
   const { mutateAsync: createContextToken } = useCreateContextToken();
+
+  useEffect(() => {
+    if (agentClient?.demands.settingsDemands) {
+      setSelectedSettings(getSettingsRenderDefaultValues(agentClient.demands.settingsDemands));
+    }
+  }, [agentClient?.demands.settingsDemands]);
+
+  const onUpdateSettings = useCallback((value: AgentSettings) => {
+    setSelectedSettings(value);
+  }, []);
 
   const setDefaultSelectedLLMProviders = useCallback(
     (data: Record<string, string[]>) => {
@@ -53,7 +68,7 @@ export function AgentDemandsProvider<UIGenericPart>({
   );
 
   const { data: matchedLLMProviders } = useMatchProviders({
-    demands: agentClient?.llmDemands ?? {},
+    demands: agentClient?.demands.llmDemands?.llm_demands ?? {},
     onSuccess: setDefaultSelectedLLMProviders,
     capability: ModelCapability.Llm,
   });
@@ -76,7 +91,7 @@ export function AgentDemandsProvider<UIGenericPart>({
   );
 
   const { data: matchedEmbeddingProviders } = useMatchProviders({
-    demands: agentClient?.embeddingDemands ?? {},
+    demands: agentClient?.demands.embeddingDemands?.embedding_demands ?? {},
     onSuccess: setDefaultSelectedEmbeddingProviders,
     capability: ModelCapability.Embedding,
   });
@@ -99,7 +114,7 @@ export function AgentDemandsProvider<UIGenericPart>({
 
   useEffect(() => {
     setSelectedMCPServers(
-      Object.keys(agentClient?.mcpDemands ?? {}).reduce(
+      Object.keys(agentClient?.demands.mcpDemands?.mcp_demands ?? {}).reduce(
         (memo, value) => ({
           ...memo,
           [value]: '',
@@ -107,7 +122,7 @@ export function AgentDemandsProvider<UIGenericPart>({
         {},
       ),
     );
-  }, [agentClient?.mcpDemands]);
+  }, [agentClient?.demands.mcpDemands?.mcp_demands]);
 
   const selectMCPServer = useCallback(
     (key: string, value: string) => {
@@ -153,24 +168,37 @@ export function AgentDemandsProvider<UIGenericPart>({
     return contextToken;
   }, [contextId, createContextToken]);
 
-  const getFullfilments = useCallback(async () => {
-    const contextToken = await getContextToken();
-    return buildFullfilments({
-      contextToken,
+  const getFullfilments = useCallback(
+    async (fullfillmentsContext: FullfillmentsContext) => {
+      const contextToken = await getContextToken();
+
+      const providedSecrets = demandedSecrets.reduce((memo, secret) => {
+        if (secret.isReady) {
+          memo[secret.key] = secret.value;
+        }
+        return memo;
+      }, fullfillmentsContext.providedSecrets ?? {});
+
+      return buildFullfilments({
+        contextToken,
+        selectedLLMProviders,
+        selectedEmbeddingProviders,
+        selectedMCPServers,
+        providedSecrets,
+        featureFlags,
+        selectedSettings,
+      });
+    },
+    [
+      getContextToken,
       selectedLLMProviders,
       selectedEmbeddingProviders,
       selectedMCPServers,
-      requestedSecrets: getRequestSecrets(),
       featureFlags,
-    });
-  }, [
-    getContextToken,
-    selectedLLMProviders,
-    selectedEmbeddingProviders,
-    selectedMCPServers,
-    getRequestSecrets,
-    featureFlags,
-  ]);
+      selectedSettings,
+      demandedSecrets,
+    ],
+  );
 
   return (
     <AgentDemandsContext.Provider
@@ -184,6 +212,9 @@ export function AgentDemandsProvider<UIGenericPart>({
         selectEmbeddingProvider,
         selectMCPServer,
         selectedMCPServers,
+        selectedSettings,
+        settingsDemands: agentClient?.demands.settingsDemands ?? null,
+        onUpdateSettings,
       }}
     >
       {children}

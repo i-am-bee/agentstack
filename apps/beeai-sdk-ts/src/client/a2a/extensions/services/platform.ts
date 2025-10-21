@@ -14,7 +14,7 @@ const getMetadata = (contextToken: ContextToken) => {
   };
 };
 
-export const activePlatformExtension = (metadata: Record<string, unknown>, contextToken: ContextToken) => {
+export const platformApiExtension = (metadata: Record<string, unknown>, contextToken: ContextToken) => {
   return {
     ...metadata,
     [URI]: getMetadata(contextToken),

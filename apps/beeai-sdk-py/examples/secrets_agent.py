@@ -22,22 +22,26 @@ async def secrets_agent(
     input: Message,
     secrets: Annotated[
         SecretsExtensionServer,
-        SecretsExtensionSpec.single_demand(name="Slack", description="Slack API key"),
+        SecretsExtensionSpec(
+            params=SecretsServiceExtensionParams(
+                secret_demands={"ibm_cloud": SecretDemand(description="IBM Cloud API key", name="IBM Cloud")}
+            )
+        )
     ],
 ):
     """Agent that uses request a secret that can be provided during runtime"""
     if secrets and secrets.data and secrets.data.secret_fulfillments:
-        yield f"Slack API key: {secrets.data.secret_fulfillments['default'].secret}"
+        yield f"Slack API key: {secrets.data.secret_fulfillments['slack'].secret}"
     else:
         runtime_provided_secrets = await secrets.request_secrets(
             params=SecretsServiceExtensionParams(
-                secret_demands={"default": SecretDemand(description="I really need Slack Key", name="Slack")}
+                secret_demands={"ibm_cloud": SecretDemand(description="I really need IBM Cloud Key", name="IBM Cloud")}
             )
         )
         if runtime_provided_secrets and runtime_provided_secrets.secret_fulfillments:
-            yield f"Slack API key: {runtime_provided_secrets.secret_fulfillments['default'].secret}"
+            yield f"IBM Cloud API key: {runtime_provided_secrets.secret_fulfillments['ibm_cloud'].secret}"
         else:
-            yield "No Slack API key provided"
+            yield "No IBM Cloud API key provided"
 
 
 def run():

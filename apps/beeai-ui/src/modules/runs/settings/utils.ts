@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentSettings, SettingsCheckboxFieldValue, SettingsRender } from 'beeai-sdk';
+import type { AgentSettings, SettingsCheckboxFieldValue, SettingsDemands } from 'beeai-sdk';
 import { match } from 'ts-pattern';
 
-export function getSettingsRenderDefaultValues(settingsRender: SettingsRender) {
+export function getSettingsRenderDefaultValues(settingsRender: SettingsDemands) {
   const defaults = settingsRender?.fields.reduce<AgentSettings>((valuesAcc, field) => {
     valuesAcc[field.id] = match(field)
       .with({ type: 'checkbox_group' }, ({ fields }) => {

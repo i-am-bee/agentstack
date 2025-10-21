@@ -17,7 +17,7 @@ export function useUpdateVariables({ onSuccess }: Props = {}) {
     mutationFn: updateVariables,
     onSuccess,
     meta: {
-      invalidates: [variableKeys.lists()],
+      invalidates: [variableKeys.lists(), variableKeys.all()],
       errorToast: {
         title: 'Failed to update variables.',
         includeErrorMessage: true,

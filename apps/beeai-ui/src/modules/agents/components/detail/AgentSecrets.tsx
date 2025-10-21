@@ -10,13 +10,13 @@ import { SecretCard } from '#modules/runs/secrets/SecretCard.tsx';
 import classes from './AgentSecrets.module.scss';
 
 export function AgentSecrets() {
-  const { secrets } = useAgentSecrets();
+  const { demandedSecrets } = useAgentSecrets();
 
   return (
     <div className={classes.root}>
-      {secrets.length ? (
+      {demandedSecrets.length ? (
         <ul className={classes.list}>
-          {secrets.map((secret) => (
+          {demandedSecrets.map((secret) => (
             <li key={secret.key}>
               <SecretCard secret={secret} variant="inline" />
             </li>

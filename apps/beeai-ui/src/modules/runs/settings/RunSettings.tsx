@@ -5,7 +5,7 @@
 
 import { SettingsAdjust } from '@carbon/icons-react';
 
-import { useAgentRun } from '../contexts/agent-run';
+import { useAgentDemands } from '../contexts/agent-demands';
 import { RunDialogButton } from './RunDialogButton';
 import { RunSettingsForm } from './RunSettingsForm';
 import type { RunSettingsDialogReturn } from './useRunSettingsDialog';
@@ -16,15 +16,15 @@ interface Props {
 }
 
 export function RunSettings({ dialog, iconOnly }: Props) {
-  const { settingsRender } = useAgentRun();
+  const { settingsDemands } = useAgentDemands();
 
-  if (!settingsRender?.fields.length) {
+  if (!settingsDemands?.fields.length) {
     return null;
   }
 
   return (
     <RunDialogButton dialog={dialog} label="Settings" icon={SettingsAdjust} iconOnly={iconOnly}>
-      <RunSettingsForm settingsRender={settingsRender} />
+      <RunSettingsForm settingsDemands={settingsDemands} />
     </RunDialogButton>
   );
 }

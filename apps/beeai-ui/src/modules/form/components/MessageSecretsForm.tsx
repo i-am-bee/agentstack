@@ -11,7 +11,6 @@ import { useMessages } from '#modules/messages/contexts/Messages/index.ts';
 import type { UIAgentMessage } from '#modules/messages/types.ts';
 import { getMessageSecret } from '#modules/messages/utils.ts';
 import { useAgentRun } from '#modules/runs/contexts/agent-run/index.ts';
-import type { AgentRequestSecrets } from '#modules/runs/contexts/agent-secrets/types.ts';
 import { useUpdateVariables } from '#modules/variables/api/mutations/useUpdateVariables.ts';
 
 import classes from './MessageSecretsForm.module.scss';
@@ -40,15 +39,7 @@ export function MessageSecretsForm({ message }: Props) {
 
   const onSubmit = async (values: FormValues) => {
     updateVariables({ variables: values });
-
-    const secretsFulfillment = secretDemandsEntries.reduce<AgentRequestSecrets>((acc, [key, demand]) => {
-      const value = values[key];
-      if (value) {
-        acc[key] = { ...demand, isReady: true, value };
-      }
-      return acc;
-    }, {});
-    submitSecrets(secretsFulfillment, secretPart.taskId);
+    submitSecrets(secretPart.taskId, values);
   };
 
   const isCurrentMessageLast = isLastMessage(message);
