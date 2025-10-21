@@ -15,7 +15,7 @@ class _Undefined(Enum):
 undefined = _Undefined.undefined
 Undefined: TypeAlias = Literal[_Undefined.undefined]  # noqa: UP040
 
-DEFAULT_AUTO_STOP_TIMEOUT: Final[timedelta] = timedelta(minutes=5)
+DEFAULT_AUTO_STOP_TIMEOUT: Final[timedelta] = timedelta(minutes=20)
 
 # A2A platform constants
 AGENT_DETAIL_EXTENSION_URI: Final[str] = "https://a2a-extensions.beeai.dev/ui/agent-detail/v1"

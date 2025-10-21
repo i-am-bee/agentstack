@@ -178,6 +178,10 @@ async def chat(
 ):
     """Agent with memory and access to web search, Wikipedia, and weather."""
     await context.store(input)
+
+    # Send initial trajectory
+    yield trajectory.trajectory_metadata(title="Starting", content="Received your request")
+
     history = [message async for message in context.load_history() if isinstance(message, Message) and message.parts]
     extracted_files = await extract_files(history=history)
 
