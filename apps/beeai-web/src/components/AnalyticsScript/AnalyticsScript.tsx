@@ -16,7 +16,7 @@ export function AnalyticsScript() {
 
   const isEnabled = Boolean(ANALYTICS_APP_NAME && ANALYTICS_CATEGORY) && isTopWindow();
 
-  // Init config and inject IBM Analyticsscript
+  // Init config and inject IBM Analytics script
   useEffect(() => {
     if (!isEnabled) return;
 
