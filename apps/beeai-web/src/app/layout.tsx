@@ -8,6 +8,7 @@ import '../styles/style.scss';
 import { APP_FAVICON_SVG, BASE_PATH } from '@i-am-bee/beeai-ui';
 import type { Metadata } from 'next';
 
+import { AnalyticsScript } from '@/components/AnalyticsScript/AnalyticsScript';
 import { APP_NAME } from '@/constants';
 import AppLayout from '@/layouts/AppLayout';
 
@@ -51,6 +52,8 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: darkModeScript }} />
+
+        <AnalyticsScript />
       </head>
       <body>
         <Providers>
