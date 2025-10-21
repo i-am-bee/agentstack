@@ -25,7 +25,7 @@ class CreateProviderRequest(BaseModel):
     auto_stop_timeout_sec: int | None = Field(
         default=None,
         gt=0,
-        le=600,
+        le=1800,
         description=(
             "Timeout after which the agent provider will be automatically downscaled if unused."
             "Contact administrator if you need to increase this value."
@@ -52,7 +52,7 @@ class PatchProviderRequest(BaseModel):
     auto_stop_timeout_sec: int | None = Field(
         default=None,
         gt=0,
-        le=600,
+        le=1800,
         description=(
             "Timeout after which the agent provider will be automatically downscaled if unused."
             "Contact administrator if you need to increase this value."
