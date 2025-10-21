@@ -57,6 +57,24 @@ const fileFieldValue = z.object({
     .nullish(),
 });
 
+const singleSelectField = baseField.extend({
+  type: z.literal('singleselect'),
+  options: z
+    .array(
+      z.object({
+        id: z.string().nonempty(),
+        label: z.string().nonempty(),
+      }),
+    )
+    .nonempty(),
+  default_value: z.string().nullish(),
+});
+
+const singleSelectFieldValue = z.object({
+  type: singleSelectField.shape.type,
+  value: z.string().nullish(),
+});
+
 const multiSelectField = baseField.extend({
   type: z.literal('multiselect'),
   options: z
@@ -86,7 +104,14 @@ const checkboxFieldValue = z.object({
   value: z.boolean().nullish(),
 });
 
-const fieldSchema = z.discriminatedUnion('type', [textField, dateField, fileField, multiSelectField, checkboxField]);
+const fieldSchema = z.discriminatedUnion('type', [
+  textField,
+  dateField,
+  fileField,
+  singleSelectField,
+  multiSelectField,
+  checkboxField,
+]);
 
 const renderSchema = z.object({
   id: z.string().nonempty(),
@@ -105,6 +130,7 @@ const responseSchema = z.object({
       textFieldValue,
       dateFieldValue,
       fileFieldValue,
+      singleSelectFieldValue,
       multiSelectFieldValue,
       checkboxFieldValue,
     ]),
@@ -114,6 +140,7 @@ const responseSchema = z.object({
 export type TextField = z.infer<typeof textField>;
 export type DateField = z.infer<typeof dateField>;
 export type FileField = z.infer<typeof fileField>;
+export type SingleSelectField = z.infer<typeof singleSelectField>;
 export type MultiSelectField = z.infer<typeof multiSelectField>;
 export type CheckboxField = z.infer<typeof checkboxField>;
 

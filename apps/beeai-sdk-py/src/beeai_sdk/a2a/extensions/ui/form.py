@@ -52,6 +52,20 @@ class OptionItem(BaseModel):
     label: str
 
 
+class SingleSelectField(BaseField):
+    type: Literal["singleselect"] = "singleselect"
+    options: list[OptionItem]
+    default_value: str | None = None
+
+    @model_validator(mode="after")
+    def default_value_validator(self):
+        if self.default_value:
+            valid_values = {opt.id for opt in self.options}
+            if self.default_value not in valid_values:
+                raise ValueError(f"Invalid default_value: {self.default_value}. Must be one of {valid_values}")
+        return self
+
+
 class MultiSelectField(BaseField):
     type: Literal["multiselect"] = "multiselect"
     options: list[OptionItem]
@@ -73,7 +87,7 @@ class CheckboxField(BaseField):
     default_value: bool = False
 
 
-FormField = TextField | DateField | FileField | MultiSelectField | CheckboxField
+FormField = TextField | DateField | FileField | SingleSelectField | MultiSelectField | CheckboxField
 
 
 class FormRender(BaseModel):
@@ -106,6 +120,11 @@ class FileFieldValue(BaseModel):
     value: list[FileInfo] | None = None
 
 
+class SingleSelectFieldValue(BaseModel):
+    type: Literal["singleselect"] = "singleselect"
+    value: str | None = None
+
+
 class MultiSelectFieldValue(BaseModel):
     type: Literal["multiselect"] = "multiselect"
     value: list[str] | None = None
@@ -116,7 +135,14 @@ class CheckboxFieldValue(BaseModel):
     value: bool | None = None
 
 
-FormFieldValue = TextFieldValue | DateFieldValue | FileFieldValue | MultiSelectFieldValue | CheckboxFieldValue
+FormFieldValue = (
+    TextFieldValue
+    | DateFieldValue
+    | FileFieldValue
+    | SingleSelectFieldValue
+    | MultiSelectFieldValue
+    | CheckboxFieldValue
+)
 
 
 class FormResponse(BaseModel):

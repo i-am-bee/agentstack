@@ -18,6 +18,7 @@ export function getDefaultValues(fields: FormField[]) {
         .with(
           { type: 'text' },
           { type: 'date' },
+          { type: 'singleselect' },
           { type: 'multiselect' },
           { type: 'checkbox' },
           ({ id, type, default_value }) => [id, { type, value: default_value }],

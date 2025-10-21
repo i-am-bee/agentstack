@@ -11,20 +11,19 @@
 
 .cds--text-area,
 .cds--text-input,
-.cds--date-picker__input {
+.cds--date-picker__input,
+.cds--select-input {
   border: 1px solid $border-subtle-00;
   border-radius: $border-radius;
-  background-color: $layer;
-  &,
-  .cds--modal & {
-    background-color: transparent;
-  }
+  background-color: $background;
   &:focus-within {
     outline: 2px solid $background-inverse;
   }
 }
 
-.cds--text-input:disabled {
+.cds--text-input:disabled,
+.cds--select-input:disabled,
+.cds--select-input:hover:disabled {
   border-block-end-color: $border-subtle-00;
 }
 

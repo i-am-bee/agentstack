@@ -165,6 +165,7 @@ Here's what you need to know to add form capabilities to your agent:
 
 - **TextField/DateField**: Returns `str | None`
 - **FileField**: Returns `list[FileInfo] | None` where each `FileInfo` has `uri`, `name`, and `mime_type`
+- **SingleSelectField**: Returns `str | None` (selected option ID)
 - **MultiSelectField**: Returns `list[str] | None` (list of selected option IDs)
 - **CheckboxField**: Returns `bool | None`
 
@@ -233,6 +234,27 @@ FileField(
     col_span=2,
     required=True,
     accept=["application/pdf", "image/jpeg", "image/png"]
+)
+```
+
+### SingleSelectField
+Single-select dropdown fields for choosing single option from a list.
+
+```python
+from beeai_sdk.a2a.extensions.ui.form import OptionItem, SingleSelectField
+
+SingleSelectField(
+    id="contact_method", 
+    label="Preferred Contact Method",
+    col_span=2,
+    required=False,
+    options=[
+        OptionItem(id="email", label="Email"),
+        OptionItem(id="phone", label="Phone"),
+        OptionItem(id="sms", label="SMS"),
+        OptionItem(id="none", label="Do not contact")
+    ],
+    default_value=["email"]
 )
 ```
 
