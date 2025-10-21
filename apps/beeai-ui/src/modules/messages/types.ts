@@ -144,5 +144,5 @@ export enum UITransformType {
 
 export interface UIMessageForm {
   request: FormDemands;
-  response?: FormFullfillments;
+  response: FormFullfillments;
 }

@@ -307,7 +307,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
         form,
       };
 
-      return run(message, { taskId });
+      return run(message, { taskId, formFullfillments: form.response });
     },
     [checkPendingRun, run],
   );
@@ -323,7 +323,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
         form,
       };
 
-      return run(message, {});
+      return run(message, { formFullfillments: form.response });
     },
     [checkPendingRun, run],
   );

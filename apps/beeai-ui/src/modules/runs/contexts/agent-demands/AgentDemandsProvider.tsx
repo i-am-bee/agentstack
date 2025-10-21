@@ -187,6 +187,7 @@ export function AgentDemandsProvider<UIGenericPart>({
         providedSecrets,
         featureFlags,
         selectedSettings,
+        formFullfillments: fullfillmentsContext.formFullfillments ?? null,
       });
     },
     [

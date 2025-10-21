@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentSettings, Fulfillments, SettingsDemands } from 'beeai-sdk';
+import type { AgentSettings, FormFullfillments, Fulfillments, SettingsDemands } from 'beeai-sdk';
 import { createContext } from 'react';
 
 import type { TaskId } from '#modules/tasks/api/types.ts';
@@ -11,6 +11,7 @@ import type { TaskId } from '#modules/tasks/api/types.ts';
 export type FullfillmentsContext = Partial<{
   taskId: TaskId;
   providedSecrets: Record<string, string>;
+  formFullfillments: FormFullfillments;
 }>;
 
 interface AgentDemandsContextValue {

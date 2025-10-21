@@ -32,7 +32,7 @@ export interface Fulfillments {
   // TODO: demand + fullfillemnt
   settings: (demand: SettingsDemands) => Promise<SettingsFullfillments>;
   secrets: (demand: SecretDemands) => Promise<SecretFulfillments>;
-  form: (demand: FormDemands) => Promise<FormFullfillments>;
+  form: (demand: FormDemands) => Promise<FormFullfillments | null>;
 }
 
 const mcpExtensionExtractor = extractServiceExtensionDemands(mcpExtension);
@@ -92,7 +92,10 @@ export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) 
     }
 
     if (formDemands) {
-      fullfilledMetadata = fullfillFormDemand(fullfilledMetadata, await fullfillments.form(formDemands));
+      const formFullfilment = await fullfillments.form(formDemands);
+      if (formFullfilment) {
+        fullfilledMetadata = fullfillFormDemand(fullfilledMetadata, formFullfilment);
+      }
     }
 
     // TODO: Auth
