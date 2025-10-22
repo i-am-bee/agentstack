@@ -11,11 +11,12 @@ import { signOut } from 'next-auth/react';
 import type { PropsWithChildren } from 'react';
 import { useMemo } from 'react';
 
-import UserAvatar from '#components/UserAvatar/UserAvatar.tsx';
+import UserAvatar from '#components/Sidebar/UserAvatar.tsx';
 import { useRouteTransition } from '#contexts/TransitionContext/index.ts';
 import { routes } from '#utils/router.ts';
 
 import type { NavItemProps } from './NavItem';
+import { UserName } from './UserName';
 import classes from './UserNav.module.scss';
 
 export function UserNav() {
@@ -67,6 +68,8 @@ export function UserNav() {
           );
         })}
       </OverflowMenu>
+
+      <UserName />
     </div>
   );
 }

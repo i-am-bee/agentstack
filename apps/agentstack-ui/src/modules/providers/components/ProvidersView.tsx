@@ -22,6 +22,7 @@ import { TableViewToolbar } from '#components/TableView/TableViewToolbar.tsx';
 import { useModal } from '#contexts/Modal/index.tsx';
 import { useTableSearch } from '#hooks/useTableSearch.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
+import { ListAgentsOrderBy } from '#modules/agents/api/types.ts';
 import { ImportAgentsModal } from '#modules/agents/components/import/ImportAgentsModal.tsx';
 import { getAgentsProgrammingLanguages } from '#modules/agents/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
@@ -36,7 +37,7 @@ export function ProvidersView() {
   const { data: agents, isPending: isAgentsPending } = useListAgents({
     includeOffline: true,
     includeUnsupportedUi: true,
-    orderBy: 'createdAt',
+    orderBy: ListAgentsOrderBy.CreatedAt,
   });
   const agentsByProvider = groupAgentsByProvider(agents);
 

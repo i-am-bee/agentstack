@@ -8,6 +8,7 @@
 import { NoItemsMessage } from '#components/NoItemsMessage/NoItemsMessage.tsx';
 import { SkeletonItems } from '#components/SkeletonItems/SkeletonItems.tsx';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
+import { ListAgentsOrderBy } from '#modules/agents/api/types.ts';
 
 import { AgentCard } from './AgentCard';
 import classes from './AgentCardsList.module.scss';
@@ -18,7 +19,7 @@ interface Props {
 }
 
 export function AgentCardsList({ heading, description }: Props) {
-  const { data: agents = [], isLoading } = useListAgents({ orderBy: 'createdAt' });
+  const { data: agents = [], isLoading } = useListAgents({ orderBy: ListAgentsOrderBy.CreatedAt });
 
   const noItems = agents.length === 0 && !isLoading;
 
