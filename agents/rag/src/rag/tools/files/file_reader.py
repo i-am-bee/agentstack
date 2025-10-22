@@ -12,7 +12,7 @@ from beeai_framework.tools import (
 from beeai_sdk.platform import File
 from pydantic import BaseModel, Field, create_model
 
-from rag.tools.files.utils import File, format_size
+from rag.tools.files.utils import format_size
 
 
 class FileReaderToolResult(BaseModel):
@@ -116,7 +116,6 @@ def create_file_reader_tool_class(files: list[File]) -> type[Tool]:
                 # pull the first (only) MessagePart from the async-generator
                 async with file.load_text_content() as loaded_file:
                     content = loaded_file.text
-                    content_type = loaded_file.content_type
 
                 if content is None:
                     raise ValueError(f"File content is None for {filename}.")

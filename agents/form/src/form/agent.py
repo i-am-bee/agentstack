@@ -14,10 +14,7 @@ from a2a.types import (
     Message,
 )
 
-from a2a.utils.message import get_message_text
-
 from beeai_sdk.server import Server
-from beeai_sdk.server.context import RunContext
 
 import beeai_sdk.a2a.extensions
 from beeai_sdk.a2a.extensions.ui.form import (

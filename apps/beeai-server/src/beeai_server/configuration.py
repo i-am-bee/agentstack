@@ -235,6 +235,13 @@ class FeatureConfiguration(BaseModel):
     provider_builds: bool = True
 
 
+class ProviderBuildSandboxConfiguration(BaseModel):
+    runtime_class_name: str | None = None
+    run_as_user: int = 1000
+    run_as_group: int = 1000
+    fs_group: int = 1000
+
+
 class ProviderBuildConfiguration(BaseModel):
     oci_build_registry_prefix: str | None = None
     image_format: str = "{registry_prefix}/{org}/{repo}/{path}:{commit_hash}"
@@ -242,6 +249,7 @@ class ProviderBuildConfiguration(BaseModel):
     manifest_template_dir: Path | None = None
     k8s_namespace: str | None = None
     k8s_kubeconfig: Path | None = None
+    sandbox: ProviderBuildSandboxConfiguration = Field(default_factory=ProviderBuildSandboxConfiguration)
 
 
 class Configuration(BaseSettings):

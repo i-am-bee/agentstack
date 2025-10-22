@@ -119,6 +119,10 @@ class KubernetesProviderBuildManager(IProviderBuildManager):
                     destination=str(provider_build.destination),
                     git_token_secret_name=f"{name}-secret",
                     dockerfile_path=str(dockerfile_path).lstrip("/"),
+                    sandbox_run_as_user=self._configuration.provider_build.sandbox.run_as_user,
+                    sandbox_run_as_group=self._configuration.provider_build.sandbox.run_as_group,
+                    sandbox_fs_group=self._configuration.provider_build.sandbox.fs_group,
+                    sandbox_runtime_class=self._configuration.provider_build.sandbox.runtime_class_name,
                 ),
                 api=api,
             )

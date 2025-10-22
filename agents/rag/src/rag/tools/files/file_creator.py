@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-import typing
 from beeai_framework.emitter import Emitter
 from beeai_framework.tools import JSONToolOutput, Tool, ToolRunOptions
 from beeai_sdk.platform import File
@@ -53,7 +52,7 @@ class FileCreatorTool(
         )
 
     async def _run(self, input: FileCreatorInput, options, context) -> FileCreatorToolOutput:
-        files: list[FileCreatorFile] = []
+        files: list[File] = []
         for item in input.files:
             file = await File.create(
                 filename=item.filename,
