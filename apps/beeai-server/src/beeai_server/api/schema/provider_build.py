@@ -16,4 +16,4 @@ class CreateProviderBuildRequest(BaseModel):
 
 class ProviderBuildListQuery(PaginationQuery):
     status: BuildState | None = None
-    user_owned: bool = False
+    user_owned: bool | None = None

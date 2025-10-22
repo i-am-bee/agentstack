@@ -76,11 +76,11 @@ async def list_providers(
     provider_service: ProviderServiceDependency,
     request: Request,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}), use_cache=False)],
-    user_owned: Annotated[bool, Query()] = False,
+    user_owned: Annotated[bool | None, Query()] = None,
     origin: Annotated[str | None, Query()] = None,
 ) -> PaginatedResult[EntityModel[ProviderWithState]]:
     providers = []
-    for provider in await provider_service.list_providers(user=user.user if user_owned else None, origin=origin):
+    for provider in await provider_service.list_providers(user=user.user, user_owned=user_owned, origin=origin):
         new_provider = provider.model_copy(
             update={
                 "agent_card": create_proxy_agent_card(provider.agent_card, provider_id=provider.id, request=request)

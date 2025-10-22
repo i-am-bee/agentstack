@@ -165,6 +165,7 @@ class ProviderBuild(pydantic.BaseModel):
         limit: int | None = None,
         order: Literal["asc"] | Literal["desc"] | None = "asc",
         order_by: Literal["created_at"] | Literal["updated_at"] | None = None,
+        user_owned: bool | None = None,
         client: PlatformClient | None = None,
     ) -> PaginatedResult[ProviderBuild]:
         # `self` has a weird type so that you can call both `instance.list_history()` or `ProviderBuild.list_history("123")`
@@ -174,7 +175,13 @@ class ProviderBuild(pydantic.BaseModel):
                     await platform_client.get(
                         url="/api/v1/provider_builds",
                         params=filter_dict(
-                            {"page_token": page_token, "limit": limit, "order": order, "order_by": order_by}
+                            {
+                                "page_token": page_token,
+                                "limit": limit,
+                                "order": order,
+                                "order_by": order_by,
+                                "user_owned": user_owned,
+                            }
                         ),
                     )
                 )
