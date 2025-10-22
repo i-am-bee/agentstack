@@ -12,8 +12,8 @@ const URI = 'https://a2a-extensions.beeai.dev/ui/agent-detail/v1';
 
 const contributorSchema = z.object({
   name: z.string(),
-  email: z.email().nullable(),
-  url: z.url().nullable(),
+  email: z.string().nullable(),
+  url: z.string().nullable(),
 });
 
 const toolSchema = z.object({
