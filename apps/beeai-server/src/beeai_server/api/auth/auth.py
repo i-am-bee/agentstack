@@ -166,9 +166,9 @@ async def discover_issuer(provider: OidcProvider) -> AuthorizationServerMetadata
                     metadata.validate_issuer()
                     metadata.validate_jwks_uri()
                     metadata.validate_introspection_endpoint()
-                except Exception:
-                    logger.warning(f"Issuer discovery fallback failed for provider {provider.issuer}: {e}")
-                    raise e  # noqa: B904
+                except Exception as fallback_e:
+                    logger.warning(f"Issuer discovery fallback failed for provider {provider.issuer}: {fallback_e}")
+                    raise fallback_e from e
         return metadata
     except Exception as e:
         logger.warning(f"Issuer discovery failed for provider {provider.issuer}: {e}")
