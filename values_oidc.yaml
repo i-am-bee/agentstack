@@ -1,0 +1,25 @@
+auth:
+  enabled: true
+  jwtSecretKey: "my-secret-key"
+  basic:
+    enabled: false
+    adminPassword: ""
+  oidc:
+    enabled: true
+    default_new_user_role: "user"
+    admin_emails:
+      - example.admin@ibm.com
+    nextauth_trust_host: true
+    nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
+    nextauth_url: "https://beeai.localhost:8336"
+    validate_audience: true
+    providers: [
+      {
+        "name": "IBMid",
+        "id": "IBMid-id",
+        "class": "IBM",
+        "client_id": "7c61d218-6b0f-4603-9bf0-89309210acb2",
+        "client_secret": "CSSzFHpCqI",
+        "issuer": "https://bam.verify.ibm.com/oidc/endpoint/default",
+      }
+    ]

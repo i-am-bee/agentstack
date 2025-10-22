@@ -14,9 +14,21 @@ export function HomeView() {
   return (
     <MainContent spacing="sm">
       <Container className={classes.root}>
-        <h1 className={classes.heading}>Welcome to IBM’s Agent Testbed</h1>
+        <AgentCardsList
+          heading="Recently added by me"
+          userOwned={true}
+          fallback={
+            <h2 className={classes.heading}>
+              Welcome to IBM’s Agent&nbsp;Testbed. No&nbsp;agents&nbsp;yet — discover what’s possible.
+            </h2>
+          }
+        />
 
-        <AgentCardsList heading="Discover an agent" />
+        <AgentCardsList
+          heading="Discover agents"
+          description="See working agents in action and try them instantly."
+          userOwned={false}
+        />
 
         <footer className={classes.footer}>
           <p className={classes.infoText}>

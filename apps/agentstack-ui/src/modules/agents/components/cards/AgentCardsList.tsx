@@ -5,6 +5,8 @@
 
 'use client';
 
+import type { ReactNode } from 'react';
+
 import { NoItemsMessage } from '#components/NoItemsMessage/NoItemsMessage.tsx';
 import { SkeletonItems } from '#components/SkeletonItems/SkeletonItems.tsx';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
@@ -15,19 +17,33 @@ import classes from './AgentCardsList.module.scss';
 
 interface Props {
   heading?: string;
+  description?: string;
+  userOwned?: boolean;
+  fallback?: ReactNode;
 }
 
-export function AgentCardsList({ heading }: Props) {
+export function AgentCardsList({ heading, description, userOwned, fallback }: Props) {
   const { data: agents = [], isLoading } = useListAgents({
+    query: { user_owned: userOwned },
     onlyUiSupported: true,
     orderBy: ListAgentsOrderBy.CreatedAt,
   });
 
   const noItems = agents.length === 0 && !isLoading;
 
+  if (noItems && fallback) {
+    return fallback;
+  }
+
   return (
-    <div className={classes.root}>
-      {heading && <h2 className={classes.heading}>{heading}</h2>}
+    <section className={classes.root}>
+      {(heading || description) && (
+        <header className={classes.header}>
+          {heading && <h2 className={classes.heading}>{heading}</h2>}
+
+          {description && <p className={classes.description}>{description}</p>}
+        </header>
+      )}
 
       {noItems ? (
         <NoItemsMessage message="No agent added" />
@@ -40,6 +56,6 @@ export function AgentCardsList({ heading }: Props) {
           )}
         </div>
       )}
-    </div>
+    </section>
   );
 }

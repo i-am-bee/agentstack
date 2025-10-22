@@ -1249,7 +1249,7 @@ export interface components {
       /**
        * Auto Stop Timeout
        * Format: duration
-       * @default PT5M
+       * @default PT20M
        */
       auto_stop_timeout: string;
       /**
@@ -1307,7 +1307,7 @@ export interface components {
       /**
        * Auto Stop Timeout
        * Format: duration
-       * @default PT5M
+       * @default PT20M
        */
       auto_stop_timeout: string;
       /**
@@ -1365,7 +1365,7 @@ export interface components {
       /**
        * Auto Stop Timeout
        * Format: duration
-       * @default PT5M
+       * @default PT20M
        */
       auto_stop_timeout: string;
       /**
@@ -1687,6 +1687,8 @@ export interface components {
       metadata?: {
         [key: string]: string;
       } | null;
+      /** Provider Id */
+      provider_id?: string | null;
       /**
        * Updated At
        * Format: date-time
@@ -1719,6 +1721,8 @@ export interface components {
       metadata?: {
         [key: string]: string;
       } | null;
+      /** Provider Id */
+      provider_id?: string | null;
       /**
        * Updated At
        * Format: date-time
@@ -1751,6 +1755,8 @@ export interface components {
       metadata?: {
         [key: string]: string;
       } | null;
+      /** Provider Id */
+      provider_id?: string | null;
       /**
        * Updated At
        * Format: date-time
@@ -1783,6 +1789,8 @@ export interface components {
       metadata?: {
         [key: string]: string;
       } | null;
+      /** Provider Id */
+      provider_id?: string | null;
       /**
        * Updated At
        * Format: date-time
@@ -2302,6 +2310,8 @@ export interface components {
       metadata?: {
         [key: string]: string;
       } | null;
+      /** Provider Id */
+      provider_id?: string | null;
       /**
        * Updated At
        * Format: date-time
@@ -2317,6 +2327,8 @@ export interface components {
       metadata?: {
         [key: string]: string;
       } | null;
+      /** Provider Id */
+      provider_id?: string | null;
     };
     /** ContextHistoryItem */
     ContextHistoryItem: {
@@ -3339,7 +3351,7 @@ export interface components {
       /**
        * Auto Stop Timeout
        * Format: duration
-       * @default PT5M
+       * @default PT20M
        */
       auto_stop_timeout: string;
       /**
@@ -4257,6 +4269,7 @@ export interface operations {
         order?: string;
         order_by?: string;
         page_token?: string | null;
+        provider_id?: string | null;
       };
       header?: never;
       path?: never;
@@ -5354,7 +5367,7 @@ export interface operations {
         order_by?: string;
         page_token?: string | null;
         status?: components['schemas']['BuildState'] | null;
-        user_owned?: boolean;
+        user_owned?: boolean | null;
       };
       header?: never;
       path?: never;
@@ -5543,7 +5556,7 @@ export interface operations {
     parameters: {
       query?: {
         origin?: string | null;
-        user_owned?: boolean;
+        user_owned?: boolean | null;
       };
       header?: never;
       path?: never;

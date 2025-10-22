@@ -24,10 +24,20 @@ export function RecentlyUsedAgentsNav({ className }: Props) {
 
   const items = useMemo(
     () =>
-      agents?.map(({ name, provider: { id } }) => ({
-        label: name,
-        href: routes.agentRun({ providerId: id }),
-      })),
+      agents
+        ?.filter(({ provider: { created_at: createdAt, last_active_at: lastActiveAt } }) => {
+          if (!createdAt || !lastActiveAt) {
+            return false;
+          }
+
+          const diff = new Date(lastActiveAt).getTime() - new Date(createdAt).getTime();
+
+          return diff > RECENT_THRESHOLD_MS;
+        })
+        .map(({ name, provider: { id } }) => ({
+          label: name,
+          href: routes.agentRun({ providerId: id }),
+        })),
     [agents],
   );
 
@@ -37,3 +47,5 @@ export function RecentlyUsedAgentsNav({ className }: Props) {
     </NavGroup>
   );
 }
+
+const RECENT_THRESHOLD_MS = 60_000;

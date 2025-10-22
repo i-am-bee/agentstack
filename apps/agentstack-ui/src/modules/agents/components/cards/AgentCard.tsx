@@ -5,6 +5,7 @@
 
 import { SkeletonText } from '@carbon/react';
 import clsx from 'clsx';
+import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 
 import type { Agent } from '#modules/agents/api/types.ts';
@@ -17,7 +18,12 @@ interface Props {
 }
 
 export function AgentCard({ agent }: Props) {
-  const { name, provider, description } = agent;
+  const {
+    name,
+    provider,
+    description,
+    provider: { updated_at: updatedAt },
+  } = agent;
 
   return (
     <article className={classes.root}>
@@ -28,6 +34,12 @@ export function AgentCard({ agent }: Props) {
       </h3>
 
       <p className={classes.description}>{description}</p>
+
+      {updatedAt && (
+        <div className={classes.footer}>
+          <p className={classes.timeAgo}>{getDistance(updatedAt)}</p>
+        </div>
+      )}
     </article>
   );
 }
@@ -41,3 +53,17 @@ AgentCard.Skeleton = function AgentCardSkeleton() {
     </article>
   );
 };
+
+function getDistance(date: string) {
+  const timeAgo = Date.now() - new Date(date).getTime();
+
+  if (timeAgo < JUST_NOW) {
+    return 'Just now';
+  }
+
+  return formatDistanceToNow(date, { addSuffix: true })
+    .replace(/\b(about|almost|over)\b/g, '')
+    .trim();
+}
+
+const JUST_NOW = 60_000;
