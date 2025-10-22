@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { buildAgent, isAgentUiSupported, sortAgentsByName, sortProvidersBy } from '#modules/agents/utils.ts';
 import { listProviders } from '#modules/providers/api/index.ts';
 import { providerKeys } from '#modules/providers/api/keys.ts';
-import type { ListProvidersParams } from '#modules/providers/api/types.ts';
+import type { ListProvidersParams, ListProvidersResponse } from '#modules/providers/api/types.ts';
 
 import { ListAgentsOrderBy } from '../types';
 
@@ -16,9 +16,10 @@ interface Props extends ListProvidersParams {
   includeUnsupportedUi?: boolean;
   includeOffline?: boolean;
   orderBy?: ListAgentsOrderBy;
+  initialData?: ListProvidersResponse;
 }
 
-export function useListAgents({ includeUnsupportedUi, includeOffline, orderBy, ...params }: Props = {}) {
+export function useListAgents({ includeUnsupportedUi, includeOffline, orderBy, initialData, ...params }: Props = {}) {
   const query = useQuery({
     queryKey: providerKeys.list(params),
     queryFn: () => listProviders(params),
@@ -46,6 +47,7 @@ export function useListAgents({ includeUnsupportedUi, includeOffline, orderBy, .
       return agents;
     },
     refetchInterval: 30_000,
+    initialData,
   });
 
   return query;
