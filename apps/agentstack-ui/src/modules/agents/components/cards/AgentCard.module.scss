@@ -40,3 +40,18 @@
     @include line-clamp(3);
   }
 }
+
+.footer {
+  display: flex;
+  align-items: flex-end;
+  column-gap: $spacing-04;
+  margin-block-start: auto;
+  padding-block-start: $spacing-04;
+}
+
+.timeAgo {
+  @include type-style(body-01);
+  color: $text-secondary;
+  margin-inline-start: auto;
+  text-align: end;
+}

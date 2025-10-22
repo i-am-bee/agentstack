@@ -7,9 +7,8 @@ import { useMemo } from 'react';
 
 import { useModal } from '#contexts/Modal/index.tsx';
 import { useParamsFromUrl } from '#hooks/useParamsFromUrl.ts';
-import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
-import { ListAgentsOrderBy } from '#modules/agents/api/types.ts';
 import { ImportAgentsModal } from '#modules/agents/components/import/ImportAgentsModal.tsx';
+import { useRecentlyAddedAgents } from '#modules/home/hooks/useRecentlyAddedAgents.ts';
 import { routes } from '#utils/router.ts';
 
 import { NavGroup } from './NavGroup';
@@ -23,11 +22,7 @@ export function AgentsNav({ className }: Props) {
   const { providerId } = useParamsFromUrl();
   const { openModal } = useModal();
 
-  const { data: agents, isLoading } = useListAgents({
-    query: { user_owned: true },
-    onlyUiSupported: true,
-    orderBy: ListAgentsOrderBy.CreatedAt,
-  });
+  const { data: agents, isLoading } = useRecentlyAddedAgents();
 
   const action = useMemo(
     () => ({

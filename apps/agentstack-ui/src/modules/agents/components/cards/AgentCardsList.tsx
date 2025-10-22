@@ -5,29 +5,28 @@
 
 'use client';
 
-import { NoItemsMessage } from '#components/NoItemsMessage/NoItemsMessage.tsx';
 import { SkeletonItems } from '#components/SkeletonItems/SkeletonItems.tsx';
-import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
-import { ListAgentsOrderBy } from '#modules/agents/api/types.ts';
+import type { Agent } from '#modules/agents/api/types.ts';
 
 import { AgentCard } from './AgentCard';
 import classes from './AgentCardsList.module.scss';
 
 interface Props {
+  agents: Agent[] | undefined;
+  isLoading: boolean;
   heading?: string;
   description?: string;
 }
 
-export function AgentCardsList({ heading, description }: Props) {
-  const { data: agents = [], isLoading } = useListAgents({
-    onlyUiSupported: true,
-    orderBy: ListAgentsOrderBy.CreatedAt,
-  });
-
+export function AgentCardsList({ heading, description, agents = [], isLoading }: Props) {
   const noItems = agents.length === 0 && !isLoading;
 
+  if (noItems) {
+    return null;
+  }
+
   return (
-    <div className={classes.root}>
+    <section className={classes.root}>
       {(heading || description) && (
         <header className={classes.header}>
           {heading && <h2 className={classes.heading}>{heading}</h2>}
@@ -36,17 +35,13 @@ export function AgentCardsList({ heading, description }: Props) {
         </header>
       )}
 
-      {noItems ? (
-        <NoItemsMessage message="No agent added" />
-      ) : (
-        <div className={classes.list}>
-          {isLoading ? (
-            <SkeletonItems count={6} render={(idx) => <AgentCard.Skeleton key={idx} />} />
-          ) : (
-            agents.map((agent) => <AgentCard agent={agent} key={agent.provider.id} />)
-          )}
-        </div>
-      )}
-    </div>
+      <div className={classes.list}>
+        {isLoading ? (
+          <SkeletonItems count={6} render={(idx) => <AgentCard.Skeleton key={idx} />} />
+        ) : (
+          agents.map((agent) => <AgentCard agent={agent} key={agent.provider.id} />)
+        )}
+      </div>
+    </section>
   );
 }

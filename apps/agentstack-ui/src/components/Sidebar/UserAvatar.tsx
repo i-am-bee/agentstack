@@ -8,25 +8,15 @@
 import { SkeletonIcon } from '@carbon/react';
 import { useSession } from 'next-auth/react';
 
+import { getNameInitials } from '#utils/helpers.ts';
+
 import classes from './UserAvatar.module.scss';
-
-const getUserInitials = (name: string | null | undefined) => {
-  if (!name) {
-    return '';
-  }
-
-  // Names can have unicode characters in them, use unicode aware regex
-  const matches = [...name.matchAll(/(\p{L}{1})\p{L}+/gu)];
-  const initials = (matches.at(0)?.at(1) ?? '') + (matches.at(-1)?.at(1) ?? '');
-
-  return initials.toUpperCase();
-};
 
 export default function UserAvatar() {
   const { data: session, status } = useSession();
 
   const isLoading = status === 'loading';
-  const userInitials = getUserInitials(session?.user?.name);
+  const userInitials = getNameInitials(session?.user?.name);
 
   if (isLoading) {
     return <UserAvatar.Skeleton />;

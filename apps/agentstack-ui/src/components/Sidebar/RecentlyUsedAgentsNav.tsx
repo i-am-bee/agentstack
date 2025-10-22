@@ -5,8 +5,7 @@
 
 import { useMemo } from 'react';
 
-import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
-import { ListAgentsOrderBy } from '#modules/agents/api/types.ts';
+import { useRecentlyUsedAgents } from '#modules/home/hooks/useRecentlyUsedAgents.ts';
 import { routes } from '#utils/router.ts';
 
 import { NavGroup } from './NavGroup';
@@ -17,10 +16,7 @@ interface Props {
 }
 
 export function RecentlyUsedAgentsNav({ className }: Props) {
-  const { data: agents, isLoading } = useListAgents({
-    onlyUiSupported: true,
-    orderBy: ListAgentsOrderBy.LastActiveAt,
-  });
+  const { data: agents, isLoading } = useRecentlyUsedAgents();
 
   const items = useMemo(
     () =>
