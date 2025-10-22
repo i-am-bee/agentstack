@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { Add } from '@carbon/icons-react';
+import { IconButton } from '@carbon/react';
 import clsx from 'clsx';
 import type { PropsWithChildren } from 'react';
 
@@ -12,17 +14,33 @@ import classes from './NavGroup.module.scss';
 
 interface Props extends PropsWithChildren {
   heading?: string;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
   className?: string;
 }
 
-export function NavGroup({ heading, className, children }: Props) {
+export function NavGroup({ heading, action, className, children }: Props) {
   const scrollbarProps = useScrollbar();
 
   return (
     <nav className={clsx(classes.root, className)}>
-      {heading && (
+      {(heading || action) && (
         <div className={classes.header}>
-          <h2 className={classes.heading}>{heading}</h2>
+          {heading && <h2 className={classes.heading}>{heading}</h2>}
+
+          {action && (
+            <IconButton
+              kind="ghost"
+              size="xs"
+              label={action.label}
+              wrapperClasses={classes.action}
+              onClick={action.onClick}
+            >
+              <Add />
+            </IconButton>
+          )}
         </div>
       )}
 

@@ -22,7 +22,7 @@ export interface NavItemProps {
   onClick?: MouseEventHandler<HTMLElement>;
 }
 
-export function NavItem({ label, href, Icon, isActive, isExternal }: NavItemProps) {
+export function NavItem({ label, href, Icon, isActive, isExternal, onClick }: NavItemProps) {
   return (
     <li>
       <Button
@@ -30,7 +30,8 @@ export function NavItem({ label, href, Icon, isActive, isExternal }: NavItemProp
         kind="ghost"
         size="sm"
         className={clsx(classes.button, { [classes.isActive]: isActive })}
-        {...(isExternal ? { target: '_blank', rel: 'noreferrer' } : { as: TransitionLink })}
+        onClick={onClick}
+        {...(isExternal ? { target: '_blank', rel: 'noreferrer' } : href ? { as: TransitionLink } : {})}
       >
         {Icon && <Icon className={classes.icon} />}
 

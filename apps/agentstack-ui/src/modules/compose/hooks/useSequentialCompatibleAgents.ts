@@ -4,9 +4,10 @@
  */
 
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
+import { ListAgentsOrderBy } from '#modules/agents/api/types.ts';
 
 export function useSequentialCompatibleAgents() {
-  const { data: agents, isPending } = useListAgents({ onlyUiSupported: true, orderBy: 'name' });
+  const { data: agents, isPending } = useListAgents({ onlyUiSupported: true, orderBy: ListAgentsOrderBy.Name });
 
   return { agents, isPending };
 }

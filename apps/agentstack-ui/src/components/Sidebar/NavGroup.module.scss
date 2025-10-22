@@ -26,8 +26,11 @@
   letter-spacing: $letter-spacing;
 }
 
+.action {
+  margin-inline: auto (-$spacing-02);
+}
+
 .body {
   @include scrollbar(false);
   margin-inline-end: calc(var(--scrollbar-width) * -1);
-  max-block-size: var(--nav-group-max-height, auto);
 }

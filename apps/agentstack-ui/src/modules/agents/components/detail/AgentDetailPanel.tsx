@@ -36,7 +36,7 @@ export function AgentDetailPanel() {
   const isOpen = activeSidePanel === SidePanelVariant.AgentDetail;
 
   return (
-    <SidePanel isOpen={isOpen}>
+    <SidePanel isOpen={isOpen} showCloseButton>
       <div className={classes.tabs}>
         <Tabs>
           <TabList>

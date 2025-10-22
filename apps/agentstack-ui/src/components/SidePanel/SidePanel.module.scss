@@ -20,8 +20,18 @@ $panel-width: rem(432px);
   }
 }
 
+.closeButton {
+  &:global(.cds--popover-container) {
+    position: absolute;
+    inset-block-start: $spacing-02;
+    inset-inline-end: calc($spacing-02 - var(--scrollbar-width));
+    z-index: 1;
+  }
+}
+
 .content {
   @include scrollbar();
+  position: relative;
   background-color: $background;
   inline-size: $panel-width;
   block-size: 100%;
