@@ -30,7 +30,8 @@ node.gpg_verify = false # tends to randomly fail; sha is checked by lockfile
 [hooks]
 postinstall = "{{ mise_bin }} setup"
 
-# TASKS
+[env]
+UV_PYTHON_PREFERENCE = "only-managed"
 
 [task_config]
 includes = [
@@ -44,4 +45,3 @@ includes = [
     "apps/beeai-sdk-ts/tasks.toml",
     "docs/tasks.toml",
 ]
-
