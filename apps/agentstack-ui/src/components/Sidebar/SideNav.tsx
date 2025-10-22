@@ -3,25 +3,29 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Document } from '@carbon/icons-react';
+import { Settings } from '@carbon/icons-react';
+import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
 
-import { DOCUMENTATION_LINK } from '#utils/constants.ts';
+import { routes } from '#utils/router.ts';
 
 import { NavList } from './NavList';
 
 export function SideNav() {
-  const items = useMemo(
-    () => [
+  const pathname = usePathname();
+
+  const items = useMemo(() => {
+    const settingsHref = routes.settings();
+
+    return [
       {
-        label: 'Documentation',
-        href: DOCUMENTATION_LINK,
-        Icon: Document,
-        isExternal: true,
+        label: 'Settings',
+        href: settingsHref,
+        Icon: Settings,
+        isActive: pathname === settingsHref,
       },
-    ],
-    [],
-  );
+    ];
+  }, [pathname]);
 
   return <NavList items={items} />;
 }

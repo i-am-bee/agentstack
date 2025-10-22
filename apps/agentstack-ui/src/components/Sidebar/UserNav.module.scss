@@ -3,6 +3,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+.root {
+  display: flex;
+  align-items: center;
+  column-gap: $spacing-05;
+  :global(.cds--overflow-menu__wrapper) {
+    flex-shrink: 0;
+  }
+}
+
+.button {
+  border: 1px solid $border-subtle;
+  border-radius: 50%;
+}
+
 .menu {
   transform: translate(0, -$spacing-02);
 }

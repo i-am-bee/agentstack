@@ -10,4 +10,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+
+  &:global(.cds--icon--skeleton) {
+    margin: rem(-1px);
+    overflow: hidden;
+  }
 }

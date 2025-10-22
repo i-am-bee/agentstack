@@ -5,7 +5,7 @@
 
 import '#styles/style.scss';
 
-import { SignInLayout } from '#components/layouts/TMP_SignInLayout.tsx';
+import { SignInLayout } from '#components/layouts/SignInLayout.tsx';
 
 export default function RootLayout({
   children,

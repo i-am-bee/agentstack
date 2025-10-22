@@ -11,7 +11,7 @@ import type { Provider } from '#modules/providers/api/types.ts';
 import { SupportedUis } from '#modules/runs/constants.ts';
 import { compareStrings, isNotNull } from '#utils/helpers.ts';
 
-import type { Agent, AgentExtension } from './api/types';
+import type { Agent, AgentExtension, ListAgentsOrderBy } from './api/types';
 
 const extractAgentDetail = extractUiExtensionData(agentDetailExtension);
 
@@ -28,11 +28,15 @@ export function sortAgentsByName(a: Agent, b: Agent) {
   return compareStrings(a.name, b.name);
 }
 
-export function sortProvidersByCreatedAt(a: Provider, b: Provider) {
-  const aCreatedAt = a.created_at ? Date.parse(a.created_at) : 0;
-  const bCreatedAt = b.created_at ? Date.parse(b.created_at) : 0;
+export function sortProvidersBy(
+  a: Provider,
+  b: Provider,
+  orderBy: ListAgentsOrderBy.CreatedAt | ListAgentsOrderBy.LastActiveAt,
+) {
+  const aDate = a[orderBy] ? Date.parse(a[orderBy]) : 0;
+  const bDate = b[orderBy] ? Date.parse(b[orderBy]) : 0;
 
-  return bCreatedAt - aCreatedAt;
+  return bDate - aDate;
 }
 
 export function isAgentUiSupported(agent: Agent) {
