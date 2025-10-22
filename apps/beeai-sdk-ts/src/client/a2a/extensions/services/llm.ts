@@ -10,8 +10,8 @@ import type { A2AServiceExtension } from '../types';
 const URI = 'https://a2a-extensions.beeai.dev/services/llm/v1';
 
 const llmDemandSchema = z.object({
-  description: z.string().nullable(),
-  suggested: z.array(z.string()).nullable(),
+  description: z.string().nullish(),
+  suggested: z.array(z.string()).nullish(),
 });
 
 const llmDemandsSchema = z.object({
@@ -23,7 +23,7 @@ const llmFulfillmentSchema = z.object({
   llm_fulfillments: z.record(
     z.string(),
     z.object({
-      identifier: z.string().optional(),
+      identifier: z.string().nullish(),
       api_base: z.string(),
       api_key: z.string(),
       api_model: z.string(),

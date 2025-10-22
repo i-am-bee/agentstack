@@ -146,8 +146,8 @@ export function createTrajectoryPart(metadata: TrajectoryMetadata): UITrajectory
   const trajectoryPart: UITrajectoryPart = {
     kind: UIMessagePartKind.Trajectory,
     id: uuid(),
-    title,
-    content: truncate(content, { length: MAX_CONTENT_CHARS_LENGTH }),
+    title: title ?? undefined,
+    content: truncate(content ?? undefined, { length: MAX_CONTENT_CHARS_LENGTH }),
   };
 
   return trajectoryPart;
