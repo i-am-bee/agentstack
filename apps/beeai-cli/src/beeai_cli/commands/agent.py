@@ -791,7 +791,11 @@ async def run_agent(
         await ensure_llm_provider()
         provider = select_provider(search_path, providers=providers)
 
-        context = await Context.create(metadata={"provider_id": provider.id, "agent_name": provider.agent_card.name})
+        context = await Context.create(
+            provider_id=provider.id,
+            # TODO: remove metadata after UI migration
+            metadata={"provider_id": provider.id, "agent_name": provider.agent_card.name},
+        )
         context_token = await context.generate_token(
             grant_global_permissions=Permissions(llm={"*"}, embeddings={"*"}, a2a_proxy={"*"}),
             grant_context_permissions=ContextPermissions(files={"*"}, vector_stores={"*"}, context_data={"*"}),

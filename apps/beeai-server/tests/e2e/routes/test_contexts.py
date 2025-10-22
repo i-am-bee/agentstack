@@ -184,3 +184,88 @@ async def test_context_update_and_patch(subtests):
 
     with subtests.test("exceed metadata size"), pytest.raises(HTTPStatusError):
         await context.patch_metadata(metadata={str(i): str(i) for i in range(15)})
+
+
+@pytest.mark.usefixtures("clean_up", "setup_platform_client")
+async def test_context_provider_filtering(subtests):
+    """Test creating contexts with provider_id and filtering by provider_id."""
+    from a2a.types import AgentCapabilities, AgentCard
+    from beeai_sdk.platform import Provider
+
+    provider1 = None
+    provider2 = None
+    context_with_provider1 = None
+    context_with_provider2 = None
+    context_without_provider = None
+
+    with subtests.test("create dummy providers"):
+        # Create first dummy provider with network URL
+        agent_card1 = AgentCard(
+            name="Test Provider 1",
+            description="First test provider",
+            url="http://localhost:9001/",
+            version="1.0.0",
+            default_input_modes=["text"],
+            default_output_modes=["text"],
+            capabilities=AgentCapabilities(),
+            skills=[],
+        )
+        provider1 = await Provider.create(location="http://localhost:9001", agent_card=agent_card1)
+        assert provider1.id is not None
+
+        # Create second dummy provider with network URL
+        agent_card2 = AgentCard(
+            name="Test Provider 2",
+            description="Second test provider",
+            url="http://localhost:9002/",
+            version="1.0.0",
+            default_input_modes=["text"],
+            default_output_modes=["text"],
+            capabilities=AgentCapabilities(),
+            skills=[],
+        )
+        provider2 = await Provider.create(location="http://localhost:9002", agent_card=agent_card2)
+        assert provider2.id is not None
+        assert provider1.id != provider2.id
+
+    with subtests.test("create contexts with and without provider_id"):
+        # Create context associated with provider1
+        context_with_provider1 = await Context.create(metadata={"name": "context_provider1"}, provider_id=provider1.id)
+        assert context_with_provider1.provider_id == provider1.id
+
+        # Create context associated with provider2
+        context_with_provider2 = await Context.create(metadata={"name": "context_provider2"}, provider_id=provider2.id)
+        assert context_with_provider2.provider_id == provider2.id
+
+        # Create context without provider
+        context_without_provider = await Context.create(metadata={"name": "context_no_provider"})
+        assert context_without_provider.provider_id is None
+
+    with subtests.test("list all contexts without filter"):
+        all_contexts = await Context.list()
+        assert len(all_contexts.items) == 3
+        context_ids = [ctx.id for ctx in all_contexts.items]
+        assert context_with_provider1.id in context_ids
+        assert context_with_provider2.id in context_ids
+        assert context_without_provider.id in context_ids
+
+    with subtests.test("filter contexts by provider1"):
+        provider1_contexts = await Context.list(provider_id=provider1.id)
+        assert len(provider1_contexts.items) == 1
+        assert provider1_contexts.items[0].id == context_with_provider1.id
+        assert provider1_contexts.items[0].provider_id == provider1.id
+
+    with subtests.test("filter contexts by provider2"):
+        provider2_contexts = await Context.list(provider_id=provider2.id)
+        assert len(provider2_contexts.items) == 1
+        assert provider2_contexts.items[0].id == context_with_provider2.id
+        assert provider2_contexts.items[0].provider_id == provider2.id
+
+    with subtests.test("filter by non-existent provider returns empty list"):
+        nonexistent_provider_id = str(uuid.uuid4())
+        no_contexts = await Context.list(provider_id=nonexistent_provider_id)
+        assert len(no_contexts.items) == 0
+
+    with subtests.test("get context includes provider_id"):
+        fetched_context = await Context.get(context_with_provider1.id)
+        assert fetched_context.provider_id == provider1.id

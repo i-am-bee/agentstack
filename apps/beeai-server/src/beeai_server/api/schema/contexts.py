@@ -1,6 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 from typing import Literal
+from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel, Field, RootModel
 
@@ -14,6 +15,7 @@ class ContextCreateRequest(BaseModel):
     """Request schema for context creation."""
 
     metadata: Metadata | None = None
+    provider_id: UUID | None = None
 
 
 class ContextUpdateRequest(BaseModel):
@@ -30,6 +32,7 @@ class ContextPatchMetadataRequest(BaseModel):
 
 class ContextListQuery(PaginationQuery):
     include_empty: bool = True
+    provider_id: UUID | None = None
 
 
 class ContextPermissionsGrant(BaseModel):

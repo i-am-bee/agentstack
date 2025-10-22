@@ -20,6 +20,7 @@ class IContextRepository(Protocol):
         self,
         *,
         user_id: UUID | None = None,
+        provider_id: UUID | None = None,
         limit: int = 20,
         page_token: UUID | None = None,
         order: str = "desc",

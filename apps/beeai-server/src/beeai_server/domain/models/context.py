@@ -33,6 +33,7 @@ class Context(BaseModel):
     updated_at: AwareDatetime = Field(default_factory=utc_now)
     last_active_at: AwareDatetime = Field(default_factory=utc_now)
     created_by: UUID
+    provider_id: UUID | None = None
     metadata: Metadata | None = None
 
 
