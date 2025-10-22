@@ -9,6 +9,7 @@ from a2a.types import Message
 
 from beeai_sdk.a2a.extensions.ui.settings import (
     CheckboxField,
+    SingleSelectField,
     CheckboxGroupField,
     SettingsExtensionServer,
     SettingsExtensionSpec,
@@ -39,7 +40,17 @@ async def settings_agent(
                                 default_value=True,
                             )
                         ],
-                    )
+                    ),
+                    SingleSelectField(
+                        id="response_style",
+                        label="Response Style",
+                        options=[
+                            {"label": "Concise", "value": "concise"},
+                            {"label": "Detailed", "value": "detailed"},
+                            {"label": "Humorous", "value": "humorous"},
+                        ],
+                        default_value="concise",
+                    ),
                 ],
             ),
         ),

@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { rem } from '@carbon/layout';
 import {
   autoUpdate,
   offset,
@@ -13,16 +14,15 @@ import {
   useInteractions,
   useRole,
 } from '@floating-ui/react';
-import type { RefObject } from 'react';
 import { useState } from 'react';
 
 import { useAgentRun } from '../contexts/agent-run';
 
 interface Props {
-  containerRef: RefObject<HTMLElement | null>;
+  maxWidth?: 'container' | { widthPx: number };
 }
 
-export function useRunSettingsDialog({ containerRef }: Props) {
+export function useRunSettingsDialog({ maxWidth = 'container' }: Props = {}) {
   const { hasMessages } = useAgentRun();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -32,16 +32,19 @@ export function useRunSettingsDialog({ containerRef }: Props) {
     onOpenChange: setIsOpen,
     whileElementsMounted: autoUpdate,
     middleware: [
-      offset(hasMessages ? OFFSET_CHAT : OFFSET_LANDING),
+      offset(hasMessages ? OFFSET_CHAT : maxWidth === 'container' ? OFFSET_LANDING_CONTAINER : OFFSET_LANDING),
       size({
         apply({ elements }) {
-          const container = containerRef.current;
+          const container = elements.reference;
 
-          if (container) {
-            Object.assign(elements.floating.style, {
-              maxWidth: `${container.offsetWidth}px`,
-            });
+          if (maxWidth === 'container' && !container) {
+            return;
           }
+
+          const widthValue = maxWidth === 'container' ? container.getBoundingClientRect().width : maxWidth.widthPx;
+          Object.assign(elements.floating.style, {
+            maxWidth: rem(widthValue),
+          });
         },
       }),
     ],
@@ -63,11 +66,17 @@ export function useRunSettingsDialog({ containerRef }: Props) {
   };
 }
 
+export type RunSettingsDialogReturn = ReturnType<typeof useRunSettingsDialog>;
+
 const OFFSET_LANDING = {
-  mainAxis: 20,
+  mainAxis: 7,
   crossAxis: -12,
 };
+const OFFSET_LANDING_CONTAINER = {
+  mainAxis: -4,
+  crossAxis: 0,
+};
 const OFFSET_CHAT = {
-  mainAxis: 56,
-  crossAxis: -12,
+  mainAxis: 8,
+  crossAxis: 0,
 };

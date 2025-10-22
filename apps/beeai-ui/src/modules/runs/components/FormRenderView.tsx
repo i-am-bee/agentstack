@@ -27,6 +27,7 @@ export function FormRenderView({ formRender }: Props) {
     <Container size="sm" className={classes.root}>
       <FormRenderer
         definition={formRender}
+        showRunSettings
         onSubmit={(values: RunFormValues) => {
           const form = {
             request: formRender,

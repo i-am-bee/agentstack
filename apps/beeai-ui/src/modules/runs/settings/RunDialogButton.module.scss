@@ -31,9 +31,8 @@
   background-color: $background;
   border-radius: $border-radius;
   box-shadow: $box-shadow;
-  padding: $spacing-03;
-  display: flex;
-  flex-direction: column;
-  row-gap: $spacing-06;
+  padding-inline: $spacing-03;
+  padding-block: $spacing-05;
+  inline-size: 100%;
   max-block-size: rem(294px);
 }
