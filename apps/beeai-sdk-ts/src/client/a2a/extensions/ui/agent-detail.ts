@@ -30,9 +30,9 @@ const schema = z
     framework: z.string().nullable(),
     license: z.string().nullable(),
     programming_language: z.string().nullable(),
-    homepage_url: z.url().nullable(),
-    source_code_url: z.url().nullable(),
-    container_image_url: z.url().nullable(),
+    homepage_url: z.string().nullable(),
+    source_code_url: z.string().nullable(),
+    container_image_url: z.string().nullable(),
     author: contributorSchema.nullable(),
     contributors: z.array(contributorSchema).nullable(),
   })

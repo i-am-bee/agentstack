@@ -12,7 +12,11 @@ export function extractUiExtensionData<U extends string, D>(extension: A2AUiExte
   const uri = extension.getUri();
 
   return function (metadata: Record<string, unknown> | undefined) {
-    const { success, data: parsed } = schema.safeParse(metadata ?? {});
+    const { success, data: parsed, error } = schema.safeParse(metadata ?? {});
+
+    if (!success) {
+      console.warn(error);
+    }
 
     if (!success) {
       return null;
