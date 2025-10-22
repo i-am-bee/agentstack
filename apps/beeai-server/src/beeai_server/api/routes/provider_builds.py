@@ -63,7 +63,8 @@ if get_configuration().features.provider_builds:
         return await provider_build_service.list_builds(
             pagination=query,
             status=query.status,
-            user=user.user if query.user_owned else None,
+            user=user.user,
+            user_owned=query.user_owned,
         )
 
     @router.get("/{id}/logs")

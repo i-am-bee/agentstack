@@ -25,6 +25,7 @@ class IProviderBuildRepository(Protocol):
         order_by: str = "created_at",
         status: BuildState | None = None,
         user_id: UUID | None = None,
+        exclude_user_id: UUID | None = None,
     ) -> PaginatedResult[ProviderBuild]: ...
 
     async def create(self, *, provider_build: ProviderBuild) -> None: ...

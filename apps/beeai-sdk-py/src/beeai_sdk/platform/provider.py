@@ -202,9 +202,11 @@ class Provider(pydantic.BaseModel):
             return result.raise_for_status().json()["variables"]
 
     @staticmethod
-    async def list(*, origin: str | None = None, client: PlatformClient | None = None) -> list["Provider"]:
+    async def list(
+        *, origin: str | None = None, user_owned: bool | None = None, client: PlatformClient | None = None
+    ) -> list["Provider"]:
         async with client or get_platform_client() as client:
-            params = {"origin": origin} if origin else None
+            params = filter_dict({"origin": origin, "user_owned": user_owned})
             return pydantic.TypeAdapter(list[Provider]).validate_python(
                 (
                     await client.get(

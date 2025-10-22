@@ -60,10 +60,6 @@ checksum = "blake3:502db5ea7eeeccf6307a8af184d2a63acdf88cdb3346d7fb0d55617e807d1
 size = 62649648
 url = "https://github.com/pnpm/pnpm/releases/download/v10.15.1/pnpm-macos-arm64"
 
-[[tools.python]]
-version = "3.13.7"
-backend = "core:python"
-
 [[tools."ubi:google/addlicense"]]
 version = "1.2.0"
 backend = "ubi:google/addlicense"
@@ -79,13 +75,13 @@ backend = "ubi:telepresenceio/telepresence"
 checksum = "blake3:1d8fc5495ba38b306e2b7b01da21446312eb6fe2111c83d520a56fa5a0b69cb5"
 
 [[tools.uv]]
-version = "0.8.17"
+version = "0.9.5"
 backend = "aqua:astral-sh/uv"
 
 [tools.uv.platforms.macos-arm64]
-checksum = "sha256:e4d4859d7726298daa4c12e114f269ff282b2cfc2b415dc0b2ca44ae2dbd358e"
-size = 17968067
-url = "https://github.com/astral-sh/uv/releases/download/0.8.17/uv-aarch64-apple-darwin.tar.gz"
+checksum = "sha256:dc098ff224d78ed418e121fd374f655949d2c7031a70f6f6604eaf016a130433"
+size = 18341942
+url = "https://github.com/astral-sh/uv/releases/download/0.9.5/uv-aarch64-apple-darwin.tar.gz"
 
 [[tools.yq]]
 version = "4.47.2"

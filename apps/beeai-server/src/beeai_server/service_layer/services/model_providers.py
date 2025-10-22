@@ -4,6 +4,7 @@ import difflib
 import logging
 from asyncio import TaskGroup
 from collections import defaultdict
+from contextlib import suppress
 from datetime import timedelta
 from uuid import UUID
 
@@ -106,13 +107,13 @@ class ModelProviderService:
         self, provider: ModelProvider, api_key: str, raise_error: bool = False
     ) -> list[Model]:
         try:
-            if not self._provider_models.get(provider.id):
+            if self._provider_models.get(provider.id) is None:
                 self._provider_models[provider.id] = await provider.load_models(api_key=api_key)
             return self._provider_models[provider.id]
         except HTTPError as ex:
             if raise_error:
                 raise ModelLoadFailedError(provider=provider, exception=ex) from ex
-            logger.warning(f"Failed to load models for provider {provider.id}: {ex}")
+            logger.warning(f"Failed to load models for {provider.type} provider {provider.id}: {ex}")
         return []
 
     async def get_all_models(self) -> dict[str, tuple[ModelProvider, Model]]:
@@ -130,7 +131,7 @@ class ModelProviderService:
 
         result = {}
         for provider in providers:
-            for model in self._provider_models[provider.id]:
+            for model in self._provider_models.get(provider.id, []):
                 result[model.id] = (provider, model)
         return result
 
@@ -143,16 +144,18 @@ class ModelProviderService:
             m_id for m_id, (provider, model) in all_models.items() if capability in provider.capabilities
         ]
 
-        async with self._uow() as uow:
-            configuration = await uow.configuration.get_system_configuration()
+        configuration = None
+        with suppress(EntityNotFoundError):
+            async with self._uow() as uow:
+                configuration = await uow.configuration.get_system_configuration()
 
         return self._match_models(
             available_models=available_models,
             suggested_models=suggested_models,
             capability=capability,
             score_cutoff=score_cutoff,
-            default_llm_model=configuration.default_llm_model,
-            default_embedding_model=configuration.default_embedding_model,
+            default_llm_model=configuration.default_llm_model if configuration else None,
+            default_embedding_model=configuration.default_embedding_model if configuration else None,
         )
 
     def _match_models(

@@ -38,6 +38,7 @@ contexts_table = Table(
     Column("updated_at", DateTime(timezone=True), nullable=False),
     Column("last_active_at", DateTime(timezone=True), nullable=True),
     Column("created_by", ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
+    Column("provider_id", ForeignKey("providers.id", ondelete="CASCADE"), nullable=True),
     Column("metadata", JSON, nullable=True),
 )
 
@@ -74,6 +75,7 @@ class SqlAlchemyContextRepository(IContextRepository):
         self,
         *,
         user_id: UUID | None = None,
+        provider_id: UUID | None = None,
         limit: int = 20,
         page_token: UUID | None = None,
         order: str = "desc",
@@ -83,6 +85,8 @@ class SqlAlchemyContextRepository(IContextRepository):
         query = contexts_table.select()
         if user_id is not None:
             query = query.where(contexts_table.c.created_by == user_id)
+        if provider_id is not None:
+            query = query.where(contexts_table.c.provider_id == provider_id)
         if not include_empty:
             # Use EXISTS subquery to find contexts that have at least one history record
             subquery = select(context_history_table.c.context_id).where(
@@ -113,6 +117,7 @@ class SqlAlchemyContextRepository(IContextRepository):
             updated_at=context.updated_at,
             last_active_at=context.last_active_at,
             created_by=context.created_by,
+            provider_id=context.provider_id,
             metadata=context.metadata,
         )
         await self._connection.execute(query)
@@ -219,5 +224,6 @@ class SqlAlchemyContextRepository(IContextRepository):
             updated_at=row.updated_at,
             last_active_at=row.last_active_at,
             created_by=row.created_by,
+            provider_id=row.provider_id,
             metadata=row.metadata,
         )

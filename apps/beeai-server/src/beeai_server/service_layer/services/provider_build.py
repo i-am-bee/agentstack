@@ -119,12 +119,23 @@ class ProviderBuildService:
             return await uow.provider_builds.get(provider_build_id=provider_build_id)
 
     async def list_builds(
-        self, pagination: PaginationQuery, status: BuildState | None = None, user: User | None = None
+        self,
+        pagination: PaginationQuery,
+        status: BuildState | None = None,
+        user: User | None = None,
+        user_owned: bool | None = None,
     ) -> PaginatedResult[ProviderBuild]:
-        user_id = user.id if user else None
+        # user_owned: True -> show user owned entities
+        # user_owned: False -> show all but user owned entities
+        # user_owned: None -> show all entities
+
+        if user_owned is not None and user is None:
+            raise ValueError("user_owned cannot be specified without a user")
+
         async with self._uow() as uow:
             return await uow.provider_builds.list_paginated(
-                user_id=user_id,
+                user_id=user.id if user_owned is True else None,
+                exclude_user_id=user.id if user_owned is False else None,
                 limit=pagination.limit,
                 page_token=pagination.page_token,
                 order=pagination.order,

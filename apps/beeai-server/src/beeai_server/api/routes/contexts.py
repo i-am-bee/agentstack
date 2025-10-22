@@ -40,7 +40,9 @@ async def create_context(
     context_service: ContextServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(contexts={"write"}))],
 ) -> EntityModel[Context]:
-    return EntityModel(await context_service.create(user=user.user, metadata=request.metadata))
+    return EntityModel(
+        await context_service.create(user=user.user, metadata=request.metadata, provider_id=request.provider_id)
+    )
 
 
 @router.get("")
@@ -49,7 +51,9 @@ async def list_context(
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(contexts={"read"}))],
     query: Annotated[ContextListQuery, Query()],
 ) -> PaginatedResult[Context]:
-    return await context_service.list(user=user.user, pagination=query, include_empty=query.include_empty)
+    return await context_service.list(
+        user=user.user, pagination=query, include_empty=query.include_empty, provider_id=query.provider_id
+    )
 
 
 @router.get("/{context_id}")

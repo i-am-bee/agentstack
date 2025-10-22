@@ -11,7 +11,12 @@ from beeai_server.domain.models.provider import Provider, ProviderType, Unmanage
 @runtime_checkable
 class IProviderRepository(Protocol):
     async def list(
-        self, *, type: ProviderType | None = None, user_id: UUID | None = None, origin: str | None = None
+        self,
+        *,
+        type: ProviderType | None = None,
+        user_id: UUID | None = None,
+        exclude_user_id: UUID | None = None,
+        origin: str | None = None,
     ) -> AsyncIterator[Provider]:
         yield ...  # type: ignore
 

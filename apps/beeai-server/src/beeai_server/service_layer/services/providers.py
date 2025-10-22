@@ -259,11 +259,26 @@ class ProviderService:
             existing_providers = [p.id async for p in uow.providers.list()]
         await self._deployment_manager.remove_orphaned_providers(existing_providers=existing_providers)
 
-    async def list_providers(self, user: User | None = None, origin: str | None = None) -> list[ProviderWithState]:
-        user_id = user.id if user else None
+    async def list_providers(
+        self, user: User | None = None, user_owned: bool | None = None, origin: str | None = None
+    ) -> list[ProviderWithState]:
+        # user_owned: True -> show user owned entities
+        # user_owned: False -> show all but user owned entities
+        # user_owned: None -> show all entities
+
+        if user_owned is not None and user is None:
+            raise ValueError("user_owned cannot be specified without a user")
+
         async with self._uow() as uow:
             return await self._get_providers_with_state(
-                providers=[p async for p in uow.providers.list(user_id=user_id, origin=origin)]
+                providers=[
+                    p
+                    async for p in uow.providers.list(
+                        user_id=user.id if user_owned is True else None,
+                        exclude_user_id=user.id if user_owned is False else None,
+                        origin=origin,
+                    )
+                ]
             )
 
     async def get_provider(

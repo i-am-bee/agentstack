@@ -12,8 +12,8 @@ const URI = 'https://a2a-extensions.beeai.dev/ui/agent-detail/v1';
 
 const contributorSchema = z.object({
   name: z.string(),
-  email: z.email().nullable(),
-  url: z.url().nullable(),
+  email: z.string().nullable(),
+  url: z.string().nullable(),
 });
 
 const toolSchema = z.object({
@@ -30,9 +30,9 @@ const schema = z
     framework: z.string().nullable(),
     license: z.string().nullable(),
     programming_language: z.string().nullable(),
-    homepage_url: z.url().nullable(),
-    source_code_url: z.url().nullable(),
-    container_image_url: z.url().nullable(),
+    homepage_url: z.string().nullable(),
+    source_code_url: z.string().nullable(),
+    container_image_url: z.string().nullable(),
     author: contributorSchema.nullable(),
     contributors: z.array(contributorSchema).nullable(),
   })

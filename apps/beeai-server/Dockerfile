@@ -1,13 +1,7 @@
-FROM python:3.13-alpine3.21 AS builder
-ENV UV_COMPILE_BYTECODE=1 \
-    HOME="/tmp" \
-    AGENT_REGISTRY__LOCATIONS__FILE="file:///app/registry.yaml"
-RUN --mount=type=cache,target=/tmp/.cache/uv \
-    --mount=type=bind,source=dist/requirements.txt,target=/requirements.txt \
-    --mount=type=bind,from=ghcr.io/astral-sh/uv:0.8.9,source=/uv,target=/bin/uv \
-    uv pip install --system -r /requirements.txt
-RUN --mount=type=cache,target=/tmp/.cache/uv \
-    --mount=type=bind,source=dist,target=/dist \
-    --mount=type=bind,from=ghcr.io/astral-sh/uv:0.8.9,source=/uv,target=/bin/uv \
-    uv pip install --system /dist/*.tar.gz
+FROM registry.access.redhat.com/ubi9/python-312
+ENV AGENT_REGISTRY__LOCATIONS__FILE="file:///app/registry.yaml"
+RUN --mount=type=bind,source=dist/requirements.txt,target=requirements.txt \
+    pip install -r requirements.txt
+RUN --mount=type=bind,source=dist,target=dist \
+    pip install dist/*.tar.gz
 CMD ["beeai-server"]

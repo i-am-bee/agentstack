@@ -44,6 +44,21 @@ async def test_provider_crud(subtests, test_configuration):
         provider = await provider.patch(variables={})
         assert await provider.list_variables() == {}
 
+    with subtests.test("test user_owned filtering"):
+        # Test user_owned=True (should see exactly 1 provider - admin's)
+        admin_providers = await Provider.list(user_owned=True)
+        assert len(admin_providers) == 1
+        assert admin_providers[0].id == provider.id
+
+        # Test user_owned=False (should see 0 providers - no other users' providers)
+        others_providers = await Provider.list(user_owned=False)
+        assert len(others_providers) == 0
+
+        # Test user_owned=None (should see exactly 1 provider - all providers)
+        all_providers = await Provider.list(user_owned=None)
+        assert len(all_providers) == 1
+        assert all_providers[0].id == provider.id
+
     with subtests.test("delete provider"):
         await provider.delete()
         with pytest.raises(HTTPError, match="404 Not Found"):

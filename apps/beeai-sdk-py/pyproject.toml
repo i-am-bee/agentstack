@@ -4,7 +4,7 @@ version = "0.3.7"
 description = "BeeAI SDK"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.14"
 dependencies = [
     "a2a-sdk==0.3.7",
     "objprint>=0.3.0",

@@ -118,11 +118,18 @@ class SqlAlchemyProviderRepository(IProviderRepository):
         return result.rowcount
 
     async def list(
-        self, *, type: ProviderType | None = None, user_id: UUID | None = None, origin: str | None = None
+        self,
+        *,
+        type: ProviderType | None = None,
+        user_id: UUID | None = None,
+        exclude_user_id: UUID | None = None,
+        origin: str | None = None,
     ) -> AsyncIterator[Provider]:
         query = providers_table.select()
         if user_id is not None:
             query = query.where(providers_table.c.created_by == user_id)
+        if exclude_user_id is not None:
+            query = query.where(providers_table.c.created_by != exclude_user_id)
         if origin is not None:
             query = query.where(providers_table.c.origin == origin)
         if type is not None:

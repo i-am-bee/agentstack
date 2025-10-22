@@ -22,20 +22,24 @@ export PATH="${XDG_BIN_HOME:+${XDG_BIN_HOME}:}${XDG_DATA_HOME:+$(realpath -m ${X
 echo "Installing uv..."
 curl -LsSf https://astral.sh/uv/install.sh | UV_PRINT_QUIET=1 sh || error
 
-# Separately uninstall potential old version of beeai-cli to remove envs created with wrong Python versions
-uv tool uninstall --quiet beeai-cli >/dev/null 2>&1 || true
-
 # Install a uv-managed Python version (uv should do that automatically but better be explicit)
 # --no-bin to avoid putting it in PATH (not necessary)
 echo "Installing Python..."
-uv python install --quiet --managed-python --no-bin 3.13 || error
+uv python install --quiet --python-preference=only-managed --no-bin 3.13 || error
+
+# Separately uninstall potential old version of beeai-cli to remove envs created with wrong Python versions
+# Also remove obsolete version from Homebrew and any local executables potentially left behind by Homebrew or old uv versions
+echo "Removing old versions of beeai-cli..."
+uv tool uninstall --quiet beeai-cli >/dev/null 2>&1 || true
+brew uninstall beeai >/dev/null 2>&1 || true
+while command -v beeai >/dev/null && rm $(command -v beeai); do true; done
 
 # Install beeai-cli using a uv-managed Python version
 # We set the versions of beeai-cli and beeai-sdk to error out on platforms incompatible with the latest version
 # It also avoids accidentally installing prereleases of dependencies by only allowing explicitly set ones
 echo "Installing beeai-cli..."
 case "${BEEAI_VERSION:-latest}" in "latest") BEEAI_VERSION=$LATEST_STABLE_BEEAI_VERSION ;; "pre") BEEAI_VERSION=$LATEST_BEEAI_VERSION ;; esac
-uv tool install --quiet --managed-python --python=3.13 --refresh --prerelease if-necessary-or-explicit --with "beeai-sdk==$BEEAI_VERSION" "beeai-cli==$BEEAI_VERSION" || error
+uv tool install --quiet --python-preference=only-managed --python=3.13 --refresh --prerelease if-necessary-or-explicit --with "beeai-sdk==$BEEAI_VERSION" "beeai-cli==$BEEAI_VERSION" || error
 
 # Finish set up using CLI (install QEMU on Linux, start platform, set up API keys, run UI, ...)
 beeai self install

@@ -122,10 +122,13 @@ class SqlAlchemyProviderBuildRepository(IProviderBuildRepository):
         order_by: str = "created_at",
         status: BuildState | None = None,
         user_id: UUID | None = None,
+        exclude_user_id: UUID | None = None,
     ) -> PaginatedResult[ProviderBuild]:
         query = provider_builds_table.select()
         if user_id:
             query = query.where(provider_builds_table.c.created_by == user_id)
+        if exclude_user_id:
+            query = query.where(provider_builds_table.c.created_by != exclude_user_id)
         if status is not None:
             query = query.where(provider_builds_table.c.status == status)
 

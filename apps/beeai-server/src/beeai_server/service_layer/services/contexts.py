@@ -33,8 +33,8 @@ class ContextService:
         self._configuration = configuration
         self._expire_resources_after = timedelta(days=configuration.context.resource_expire_after_days)
 
-    async def create(self, *, user: User, metadata: Metadata) -> Context:
-        context = Context(created_by=user.id, metadata=metadata)
+    async def create(self, *, user: User, metadata: Metadata, provider_id: UUID | None = None) -> Context:
+        context = Context(created_by=user.id, metadata=metadata, provider_id=provider_id)
         async with self._uow() as uow:
             await uow.contexts.create(context=context)
             await uow.commit()
@@ -45,11 +45,12 @@ class ContextService:
             return await uow.contexts.get(context_id=context_id, user_id=user.id)
 
     async def list(
-        self, *, user: User, pagination: PaginationQuery, include_empty: bool = True
+        self, *, user: User, pagination: PaginationQuery, include_empty: bool = True, provider_id: UUID | None = None
     ) -> PaginatedResult[Context]:
         async with self._uow() as uow:
             return await uow.contexts.list_paginated(
                 user_id=user.id,
+                provider_id=provider_id,
                 limit=pagination.limit,
                 page_token=pagination.page_token,
                 order=pagination.order,

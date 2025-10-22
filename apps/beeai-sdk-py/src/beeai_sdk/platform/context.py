@@ -63,17 +63,26 @@ class Context(pydantic.BaseModel):
     updated_at: pydantic.AwareDatetime
     last_active_at: pydantic.AwareDatetime
     created_by: str
+    provider_id: str | None = None
     metadata: Metadata | None = None
 
     @staticmethod
     async def create(
         *,
         metadata: Metadata | None = None,
+        provider_id: str | None = None,
         client: PlatformClient | None = None,
     ) -> Context:
         async with client or get_platform_client() as client:
             return pydantic.TypeAdapter(Context).validate_python(
-                (await client.post(url="/api/v1/contexts", json={"metadata": metadata})).raise_for_status().json()
+                (
+                    await client.post(
+                        url="/api/v1/contexts",
+                        json=filter_dict({"metadata": metadata, "provider_id": provider_id}),
+                    )
+                )
+                .raise_for_status()
+                .json()
             )
 
     @staticmethod
@@ -85,6 +94,7 @@ class Context(pydantic.BaseModel):
         order: Literal["asc"] | Literal["desc"] | None = None,
         order_by: Literal["created_at"] | Literal["updated_at"] | None = None,
         include_empty: bool = True,
+        provider_id: str | None = None,
     ) -> PaginatedResult[Context]:
         # `self` has a weird type so that you can call both `instance.get()` to update an instance, or `File.get("123")` to obtain a new instance
         async with client or get_platform_client() as client:
@@ -99,6 +109,7 @@ class Context(pydantic.BaseModel):
                                 "order": order,
                                 "order_by": order_by,
                                 "include_empty": include_empty,
+                                "provider_id": provider_id,
                             }
                         ),
                     )
