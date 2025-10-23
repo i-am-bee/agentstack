@@ -5,13 +5,7 @@
 
 import type { TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from '@a2a-js/sdk';
 import { A2AClient } from '@a2a-js/sdk/client';
-import {
-  extractUiExtensionData,
-  formMessageExtension,
-  handleAgentCard,
-  handleTaskStatusUpdate,
-  TaskStatusUpdateType,
-} from 'beeai-sdk';
+import { handleAgentCard, handleTaskStatusUpdate } from 'beeai-sdk';
 import { defaultIfEmpty, filter, lastValueFrom, Subject } from 'rxjs';
 import { match } from 'ts-pattern';
 
@@ -22,11 +16,9 @@ import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 
 import { AGENT_ERROR_MESSAGE } from './constants';
 import { processMessageMetadata, processParts } from './part-processors';
-import type { ChatResult, FormRequiredResult, OAuthRequiredResult, SecretRequiredResult } from './types';
+import type { ChatResult, TaskStatusUpdateResultWithTaskId } from './types';
 import { type ChatParams, type ChatRun, RunResultType } from './types';
 import { createUserMessage, extractTextFromMessage } from './utils';
-
-const extractForm = extractUiExtensionData(formMessageExtension);
 
 function handleStatusUpdate<UIGenericPart = never>(
   event: TaskStatusUpdateEvent,
@@ -90,8 +82,7 @@ export const buildA2AClient = async <UIGenericPart = never>({
       const taskResult = lastValueFrom(
         messageSubject.asObservable().pipe(
           filter(
-            (result: ChatResult): result is FormRequiredResult | OAuthRequiredResult | SecretRequiredResult =>
-              result.type !== RunResultType.Parts,
+            (result: ChatResult): result is TaskStatusUpdateResultWithTaskId => result.type !== RunResultType.Parts,
           ),
           defaultIfEmpty(null),
         ),
@@ -104,45 +95,16 @@ export const buildA2AClient = async <UIGenericPart = never>({
           })
           .with({ kind: 'status-update' }, (event) => {
             taskId = event.taskId;
-            if (event.status.state === 'input-required') {
-              const form = extractForm(event.status.message?.metadata);
-              if (form) {
-                messageSubject.next({
-                  type: RunResultType.FormRequired,
-                  taskId,
-                  form,
-                });
-              } else {
-                throw new Error(`Illegal State - form extension data missing on input-required event`);
-              }
-            }
 
             handleTaskStatusUpdate(event).forEach((result) => {
               if (!taskId) {
                 throw new Error(`Illegal State - taskId missing on status-update event`);
               }
 
-              if (result.type === TaskStatusUpdateType.SecretRequired) {
-                messageSubject.next({
-                  type: RunResultType.SecretRequired,
-                  taskId,
-                  demands: result.demands,
-                });
-              } else if (result.type === TaskStatusUpdateType.FormRequired) {
-                // TOOD: this remapping might not be needed
-                // maybe we can just use the results directly from the SDK
-                messageSubject.next({
-                  type: RunResultType.FormRequired,
-                  taskId,
-                  form: result.form,
-                });
-              } else if (result.type === TaskStatusUpdateType.OAuthRequired) {
-                messageSubject.next({
-                  type: RunResultType.OAuthRequired,
-                  taskId,
-                  url: result.url,
-                });
-              }
+              messageSubject.next({
+                taskId,
+                ...result,
+              });
             });
 
             const parts: (UIMessagePart | UIGenericPart)[] = handleStatusUpdate(event, onStatusUpdate);

@@ -4,7 +4,11 @@
  */
 
 export { type Fulfillments, handleAgentCard } from './client/a2a/extensions/handle-agent-card';
-export { handleTaskStatusUpdate, TaskStatusUpdateType } from './client/a2a/extensions/handle-task-status-update';
+export {
+  handleTaskStatusUpdate,
+  type TaskStatusUpdateResult,
+  TaskStatusUpdateType,
+} from './client/a2a/extensions/handle-task-status-update';
 export * from './client/a2a/extensions/services/embedding';
 export * from './client/a2a/extensions/services/llm';
 export * from './client/a2a/extensions/services/mcp';

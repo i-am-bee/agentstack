@@ -20,8 +20,6 @@ export function MessageError({ message }: Props) {
     return;
   }
 
-  console.log(error);
-
   return (
     <ErrorMessage
       title={isFailed ? 'Failed to generate an agent message.' : 'Message generation has been cancelled.'}

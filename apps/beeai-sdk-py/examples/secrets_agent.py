@@ -31,7 +31,7 @@ async def secrets_agent(
 ):
     """Agent that uses request a secret that can be provided during runtime"""
     if secrets and secrets.data and secrets.data.secret_fulfillments:
-        yield f"Slack API key: {secrets.data.secret_fulfillments['slack'].secret}"
+        yield f"IBM Cloud API key: {secrets.data.secret_fulfillments['ibm_cloud'].secret}"
     else:
         runtime_provided_secrets = await secrets.request_secrets(
             params=SecretsServiceExtensionParams(

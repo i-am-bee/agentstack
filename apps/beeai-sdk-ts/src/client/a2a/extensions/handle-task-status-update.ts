@@ -22,22 +22,22 @@ export enum TaskStatusUpdateType {
   OAuthRequired = 'oauth-required',
 }
 
-interface SecretRequiredResult {
+export interface SecretRequiredResult {
   type: TaskStatusUpdateType.SecretRequired;
   demands: SecretDemands;
 }
 
-interface FormRequiredResult {
+export interface FormRequiredResult {
   type: TaskStatusUpdateType.FormRequired;
   form: FormDemands;
 }
 
-interface OAuthRequiredResult {
+export interface OAuthRequiredResult {
   type: TaskStatusUpdateType.OAuthRequired;
   url: string;
 }
 
-type TaskStatusUpdateResult = SecretRequiredResult | FormRequiredResult | OAuthRequiredResult;
+export type TaskStatusUpdateResult = SecretRequiredResult | FormRequiredResult | OAuthRequiredResult;
 
 export const handleTaskStatusUpdate = (event: TaskStatusUpdateEvent): TaskStatusUpdateResult[] => {
   const results: TaskStatusUpdateResult[] = [];

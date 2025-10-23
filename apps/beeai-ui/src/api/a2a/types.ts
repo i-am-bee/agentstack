@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FormDemands, Fulfillments, SecretDemands } from 'beeai-sdk';
+import type { Fulfillments, TaskStatusUpdateResult } from 'beeai-sdk';
 
 import type { UIMessagePart, UIUserMessage } from '#modules/messages/types.ts';
 import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
@@ -11,28 +11,7 @@ import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
 import type { buildA2AClient } from './client';
 
 export enum RunResultType {
-  FormRequired = 'form-required',
-  OAuthRequired = 'oauth-required',
-  SecretRequired = 'secret-required',
   Parts = 'parts',
-}
-
-export interface FormRequiredResult {
-  type: RunResultType.FormRequired;
-  taskId: TaskId;
-  form: FormDemands;
-}
-
-export interface OAuthRequiredResult {
-  type: RunResultType.OAuthRequired;
-  taskId: TaskId;
-  url: string;
-}
-
-export interface SecretRequiredResult {
-  type: RunResultType.SecretRequired;
-  taskId: TaskId;
-  demands: SecretDemands;
 }
 
 export interface PartsResult<UIGenericPart = never> {
@@ -41,11 +20,11 @@ export interface PartsResult<UIGenericPart = never> {
   parts: Array<UIMessagePart | UIGenericPart>;
 }
 
-export type ChatResult<UIGenericPart = never> =
-  | PartsResult<UIGenericPart>
-  | FormRequiredResult
-  | OAuthRequiredResult
-  | SecretRequiredResult;
+export type TaskStatusUpdateResultWithTaskId = TaskStatusUpdateResult & {
+  taskId: TaskId;
+};
+
+export type ChatResult<UIGenericPart = never> = PartsResult<UIGenericPart> | TaskStatusUpdateResultWithTaskId;
 
 export interface ChatParams {
   message: UIUserMessage;
@@ -56,7 +35,7 @@ export interface ChatParams {
 
 export interface ChatRun<UIGenericPart = never> {
   taskId?: TaskId;
-  done: Promise<null | FormRequiredResult | OAuthRequiredResult | SecretRequiredResult>;
+  done: Promise<null | TaskStatusUpdateResultWithTaskId>;
   subscribe: (fn: (data: { parts: (UIMessagePart | UIGenericPart)[]; taskId: TaskId }) => void) => () => void;
   cancel: () => Promise<void>;
 }

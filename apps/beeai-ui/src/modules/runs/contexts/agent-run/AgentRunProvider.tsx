@@ -5,12 +5,13 @@
 
 'use client';
 import { useQueryClient } from '@tanstack/react-query';
+import { TaskStatusUpdateType } from 'beeai-sdk';
 import { useRouter } from 'next/navigation';
 import type { PropsWithChildren } from 'react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
-import { type AgentA2AClient, type ChatRun, RunResultType } from '#api/a2a/types.ts';
+import type { AgentA2AClient, ChatRun } from '#api/a2a/types.ts';
 import { createTextPart } from '#api/a2a/utils.ts';
 import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
@@ -225,17 +226,17 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
         });
 
         const result = await run.done;
-        if (result && result.type === RunResultType.FormRequired) {
+        if (result && result.type === TaskStatusUpdateType.FormRequired) {
           updateCurrentAgentMessage((message) => {
             message.status = UIMessageStatus.InputRequired;
             message.parts.push({ kind: UIMessagePartKind.Form, ...result.form });
           });
-        } else if (result && result.type === RunResultType.OAuthRequired) {
+        } else if (result && result.type === TaskStatusUpdateType.OAuthRequired) {
           updateCurrentAgentMessage((message) => {
             message.status = UIMessageStatus.InputRequired;
             message.parts.push({ kind: UIMessagePartKind.OAuth, url: result.url, taskId: result.taskId });
           });
-        } else if (result && result.type === RunResultType.SecretRequired) {
+        } else if (result && result.type === TaskStatusUpdateType.SecretRequired) {
           updateCurrentAgentMessage((message) => {
             message.status = UIMessageStatus.InputRequired;
 
