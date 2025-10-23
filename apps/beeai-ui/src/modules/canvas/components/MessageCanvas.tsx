@@ -13,8 +13,6 @@ interface Props {
 }
 
 export function MessageCanvas({ message }: Props) {
-  return null;
-
   console.log(message);
 
   return (

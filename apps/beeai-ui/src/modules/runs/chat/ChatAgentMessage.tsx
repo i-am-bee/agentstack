@@ -6,7 +6,6 @@
 import { useEffect, useRef } from 'react';
 
 import { Spinner } from '#components/Spinner/Spinner.tsx';
-import { MessageCanvas } from '#modules/canvas/components/MessageCanvas.tsx';
 import { MessageFiles } from '#modules/files/components/MessageFiles.tsx';
 import { MessageAuth } from '#modules/form/components/MessageAuth.tsx';
 import { MessageForm } from '#modules/form/components/MessageForm.tsx';
@@ -66,8 +65,6 @@ function Message({ message, onShow }: Props) {
       )}
 
       <MessageFiles message={message} />
-
-      <MessageCanvas message={message} />
 
       <MessageSources message={message} />
 
