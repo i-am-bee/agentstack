@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FormRender, Fulfillments, SecretDemands } from 'beeai-sdk';
+import type { FormDemands, Fulfillments, SecretDemands } from 'beeai-sdk';
 
 import type { UIMessagePart, UIUserMessage } from '#modules/messages/types.ts';
 import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
@@ -20,7 +20,7 @@ export enum RunResultType {
 export interface FormRequiredResult {
   type: RunResultType.FormRequired;
   taskId: TaskId;
-  form: FormRender;
+  form: FormDemands;
 }
 
 export interface OAuthRequiredResult {

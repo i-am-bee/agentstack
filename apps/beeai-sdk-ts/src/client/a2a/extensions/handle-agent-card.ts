@@ -17,22 +17,26 @@ import { oauthProviderExtension } from './services/oauth-provider';
 import { platformApiExtension } from './services/platform';
 import type { SecretDemands, SecretFulfillments } from './services/secrets';
 import { secretsExtension } from './services/secrets';
+import type { FormDemands, FormFullfillments } from './ui/form';
+import { formExtension } from './ui/form';
+import { oauthRequestExtension } from './ui/oauth';
 import type { SettingsDemands, SettingsFullfillments } from './ui/settings';
 import { settingsExtension } from './ui/settings';
 import { extractServiceExtensionDemands, fulfillServiceExtensionDemand } from './utils';
-import { FormDemands, formExtension, FormFullfillments } from './ui/form';
 
 export interface Fulfillments {
   llm: (demand: LLMDemands) => Promise<LLMFulfillments>;
   embedding: (demand: EmbeddingDemands) => Promise<EmbeddingFulfillments>;
   mcp: (demand: MCPDemands) => Promise<MCPFulfillments>;
   oauth: (demand: OAuthDemands) => Promise<OAuthFulfillments>;
+
   getContextToken: () => ContextToken;
 
   // TODO: demand + fullfillemnt
   settings: (demand: SettingsDemands) => Promise<SettingsFullfillments>;
   secrets: (demand: SecretDemands) => Promise<SecretFulfillments>;
   form: (demand: FormDemands) => Promise<FormFullfillments | null>;
+  oauthRedirectUri: () => string | null;
 }
 
 const mcpExtensionExtractor = extractServiceExtensionDemands(mcpExtension);
@@ -98,16 +102,15 @@ export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) 
       }
     }
 
-    // TODO: Auth
-
-    // if (message.auth) {
-    //   metadata = {
-    //     ...metadata,
-    //     [oauthRequestExtension.getUri()]: {
-    //       redirect_uri: message.auth,
-    //     },
-    //   };
-    // }
+    const oauthRedirectUri = fullfillments.oauthRedirectUri();
+    if (oauthRedirectUri) {
+      fullfilledMetadata = {
+        ...fullfilledMetadata,
+        [oauthRequestExtension.getUri()]: {
+          redirect_uri: oauthRedirectUri,
+        },
+      };
+    }
 
     return fullfilledMetadata;
   };

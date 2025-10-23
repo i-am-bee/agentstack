@@ -136,29 +136,14 @@ export const buildA2AClient = async <UIGenericPart = never>({
                   taskId,
                   form: result.form,
                 });
+              } else if (result.type === TaskStatusUpdateType.OAuthRequired) {
+                messageSubject.next({
+                  type: RunResultType.OAuthRequired,
+                  taskId,
+                  url: result.url,
+                });
               }
             });
-
-            // if (event.status.state === 'auth-required') {
-            //   const oauth = oauthRequestExtensionExtractor(event.status.message?.metadata);
-            //   const secret = secretsMessageExtensionExtractor(event.status.message?.metadata);
-
-            //   if (oauth) {
-            //     messageSubject.next({
-            //       type: RunResultType.OAuthRequired,
-            //       taskId,
-            //       url: oauth.authorization_endpoint_url,
-            //     });
-            //   } else if (secret) {
-            //     messageSubject.next({
-            //       type: RunResultType.SecretRequired,
-            //       taskId,
-            //       secret,
-            //     });
-            //   } else {
-            //     throw new Error(`Illegal State - oauth extension data missing on auth-required event`);
-            //   }
-            // }
 
             const parts: (UIMessagePart | UIGenericPart)[] = handleStatusUpdate(event, onStatusUpdate);
 

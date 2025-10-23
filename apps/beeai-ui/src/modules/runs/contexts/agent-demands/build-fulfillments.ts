@@ -3,14 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type {
-  AgentSettings,
-  ContextToken,
-  EmbeddingDemands,
-  FormFullfillments,
-  FormResponseValue,
-  Fulfillments,
-} from 'beeai-sdk';
+import type { AgentSettings, ContextToken, EmbeddingDemands, FormFullfillments, Fulfillments } from 'beeai-sdk';
 
 import { BASE_URL } from '#utils/constants.ts';
 import type { FeatureFlags } from '#utils/feature-flags.ts';
@@ -23,6 +16,7 @@ interface BuildFullfilmentsParams {
   providedSecrets: Record<string, string>;
   selectedSettings: AgentSettings;
   formFullfillments: FormFullfillments | null;
+  oauthRedirectUri: string | null;
   featureFlags: FeatureFlags;
 }
 
@@ -34,6 +28,7 @@ export const buildFullfilments = ({
   selectedSettings,
   providedSecrets,
   formFullfillments,
+  oauthRedirectUri,
   featureFlags,
 }: BuildFullfilmentsParams): Fulfillments => {
   return {
@@ -140,11 +135,6 @@ export const buildFullfilments = ({
       );
     },
     oauth: async () => {
-      if (!featureFlags.MCP) {
-        // TODO:
-        throw new Error();
-      }
-
       return {
         oauth_fulfillments: {
           default: {
@@ -152,6 +142,9 @@ export const buildFullfilments = ({
           },
         },
       };
+    },
+    oauthRedirectUri: () => {
+      return oauthRedirectUri;
     },
   };
 };

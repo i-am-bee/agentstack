@@ -8,8 +8,8 @@ import {
   type Citation,
   citationExtension,
   extractUiExtensionData,
+  type FormDemands,
   formMessageExtension,
-  type FormRender,
   trajectoryExtension,
   type TrajectoryMetadata,
 } from 'beeai-sdk';
@@ -163,7 +163,7 @@ export function createTextPart(text: string): UITextPart {
   return textPart;
 }
 
-export function createFormPart(form: FormRender): UIFormPart | null {
+export function createFormPart(form: FormDemands): UIFormPart | null {
   const formPart: UIFormPart = {
     kind: UIMessagePartKind.Form,
     ...form,

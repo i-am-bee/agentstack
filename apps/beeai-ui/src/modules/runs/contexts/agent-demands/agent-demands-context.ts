@@ -12,6 +12,7 @@ export type FullfillmentsContext = Partial<{
   taskId: TaskId;
   providedSecrets: Record<string, string>;
   formFullfillments: FormFullfillments;
+  oauthRedirectUri: string;
 }>;
 
 interface AgentDemandsContextValue {

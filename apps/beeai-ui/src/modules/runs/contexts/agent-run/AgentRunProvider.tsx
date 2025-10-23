@@ -337,7 +337,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
         auth: redirectUri,
       };
 
-      await run(userMessage, { taskId });
+      await run(userMessage, { taskId, oauthRedirectUri: redirectUri });
     },
   });
 

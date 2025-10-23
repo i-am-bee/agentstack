@@ -7,15 +7,19 @@ import type { TaskStatusUpdateEvent } from '@a2a-js/sdk';
 
 import type { SecretDemands } from './services/secrets';
 import { secretsMessageExtension } from './services/secrets';
+import type { FormDemands } from './ui/form';
+import { formMessageExtension } from './ui/form';
+import { oauthRequestExtension } from './ui/oauth';
 import { extractUiExtensionData } from './utils';
-import { formMessageExtension, FormDemands } from './ui/form';
 
 const secretsMessageExtensionExtractor = extractUiExtensionData(secretsMessageExtension);
 const formMessageExtensionExtractor = extractUiExtensionData(formMessageExtension);
+const oauthRequestExtensionExtractor = extractUiExtensionData(oauthRequestExtension);
 
 export enum TaskStatusUpdateType {
   SecretRequired = 'secret-required',
   FormRequired = 'form-required',
+  OAuthRequired = 'oauth-required',
 }
 
 interface SecretRequiredResult {
@@ -28,13 +32,26 @@ interface FormRequiredResult {
   form: FormDemands;
 }
 
-type TaskStatusUpdateResult = SecretRequiredResult | FormRequiredResult;
+interface OAuthRequiredResult {
+  type: TaskStatusUpdateType.OAuthRequired;
+  url: string;
+}
+
+type TaskStatusUpdateResult = SecretRequiredResult | FormRequiredResult | OAuthRequiredResult;
 
 export const handleTaskStatusUpdate = (event: TaskStatusUpdateEvent): TaskStatusUpdateResult[] => {
   const results: TaskStatusUpdateResult[] = [];
 
   if (event.status.state === 'auth-required') {
     const secretRequired = secretsMessageExtensionExtractor(event.status.message?.metadata);
+    const oauthRequired = oauthRequestExtensionExtractor(event.status.message?.metadata);
+
+    if (oauthRequired) {
+      results.push({
+        type: TaskStatusUpdateType.OAuthRequired,
+        url: oauthRequired.authorization_endpoint_url,
+      });
+    }
 
     if (secretRequired) {
       results.push({
@@ -51,8 +68,6 @@ export const handleTaskStatusUpdate = (event: TaskStatusUpdateEvent): TaskStatus
       });
     }
   }
-
-  // TODO: OAuth
 
   return results;
 };

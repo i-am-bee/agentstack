@@ -172,7 +172,7 @@ function ComposeProviderWithContext({ agentClient, children }: PropsWithChildren
                 : undefined,
           });
         });
-        const fulfillments = await getFullfilments();
+        const fulfillments = await getFullfilments({});
 
         const userMessage: UIUserMessage = {
           id: uuid(),

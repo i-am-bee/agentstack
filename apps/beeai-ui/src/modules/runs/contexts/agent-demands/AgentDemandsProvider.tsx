@@ -188,6 +188,7 @@ export function AgentDemandsProvider<UIGenericPart>({
         featureFlags,
         selectedSettings,
         formFullfillments: fullfillmentsContext.formFullfillments ?? null,
+        oauthRedirectUri: fullfillmentsContext.oauthRedirectUri ?? null,
       });
     },
     [
