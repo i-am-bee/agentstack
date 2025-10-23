@@ -68,12 +68,7 @@ export function RunDialogButton({
         {isOpen && (
           <FloatingPortal>
             <FloatingFocusManager context={context}>
-              <div
-                ref={refs.setFloating}
-                style={floatingStyles}
-                className={clsx(classes.modal, { [classes.limitWidth]: !hasMessages })}
-                {...getFloatingProps()}
-              >
+              <div ref={refs.setFloating} style={floatingStyles} className={classes.modal} {...getFloatingProps()}>
                 <motion.div
                   {...fadeProps({
                     hidden: {

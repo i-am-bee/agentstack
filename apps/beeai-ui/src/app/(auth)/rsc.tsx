@@ -30,7 +30,6 @@ export async function ensureToken(request: Request) {
   }
 
   const token = await getToken({ req: request, cookieName: AUTH_COOKIE_NAME, secret: process.env.NEXTAUTH_SECRET });
-  console.log({ token });
 
   return token;
 }

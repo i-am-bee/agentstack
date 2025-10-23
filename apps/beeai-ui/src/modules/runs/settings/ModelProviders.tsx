@@ -39,9 +39,7 @@ export function ModelProviders() {
           label={llmProviderList.length == 1 ? 'LLM' : `LLM: ${key}`}
           value={selectedLLMProviders[key]}
           options={items.map((item) => ({ label: item, value: item }))}
-          onChange={(value) => {
-            selectLLMProvider(key, value);
-          }}
+          onChange={(value) => selectLLMProvider(key, value)}
         />
       ))}
       {embeddingProviderList.map(({ key, items }) => (
@@ -51,9 +49,7 @@ export function ModelProviders() {
           label={embeddingProviderList.length == 1 ? 'Embedding' : `Embedding: ${key}`}
           value={selectedEmbeddingProviders[key]}
           options={items.map((item) => ({ label: item, value: item }))}
-          onChange={(value) => {
-            selectEmbeddingProvider(key, value);
-          }}
+          onChange={(value) => selectEmbeddingProvider(key, value)}
         />
       ))}
     </div>
