@@ -19,32 +19,40 @@ import { useState } from 'react';
 import { useAgentRun } from '../contexts/agent-run';
 
 interface Props {
-  maxWidth?: 'container' | { widthPx: number };
+  maxWidth?: number;
+  blockOffset?: number;
 }
 
-export function useRunSettingsDialog({ maxWidth = 'container' }: Props = {}) {
-  const { hasMessages } = useAgentRun();
+export function useRunSettingsDialog({ maxWidth, blockOffset }: Props = {}) {
   const [isOpen, setIsOpen] = useState(false);
+  const { hasMessages } = useAgentRun();
+
+  const align = hasMessages ? 'top' : 'bottom';
+  const alignWithContainer = !maxWidth;
 
   const { refs, floatingStyles, context } = useFloating({
-    placement: hasMessages ? 'top-start' : 'bottom-start',
+    placement: `${align}-start`,
     open: isOpen,
     onOpenChange: setIsOpen,
     whileElementsMounted: autoUpdate,
     middleware: [
-      offset(hasMessages ? OFFSET_CHAT : maxWidth === 'container' ? OFFSET_LANDING_CONTAINER : OFFSET_LANDING),
+      offset(() => {
+        const offsets =
+          align === 'top' ? OFFSET_ALIGN_TOP : alignWithContainer ? OFFSET_ALIGN_BOTTOM_CONTAINER : OFFSET_ALIGN_BOTTOM;
+        if (blockOffset) {
+          offsets.mainAxis = blockOffset;
+        }
+        return offsets;
+      }),
       size({
         apply({ elements }) {
           const container = elements.reference;
-
-          if (maxWidth === 'container' && !container) {
-            return;
+          const widthValue = !maxWidth ? container?.getBoundingClientRect().width : maxWidth;
+          if (widthValue) {
+            Object.assign(elements.floating.style, {
+              maxWidth: rem(widthValue),
+            });
           }
-
-          const widthValue = maxWidth === 'container' ? container.getBoundingClientRect().width : maxWidth.widthPx;
-          Object.assign(elements.floating.style, {
-            maxWidth: rem(widthValue),
-          });
         },
       }),
     ],
@@ -68,15 +76,15 @@ export function useRunSettingsDialog({ maxWidth = 'container' }: Props = {}) {
 
 export type RunSettingsDialogReturn = ReturnType<typeof useRunSettingsDialog>;
 
-const OFFSET_LANDING = {
+const OFFSET_ALIGN_BOTTOM = {
   mainAxis: 7,
   crossAxis: -12,
 };
-const OFFSET_LANDING_CONTAINER = {
-  mainAxis: -4,
+const OFFSET_ALIGN_BOTTOM_CONTAINER = {
+  mainAxis: -3,
   crossAxis: 0,
 };
-const OFFSET_CHAT = {
+const OFFSET_ALIGN_TOP = {
   mainAxis: 8,
   crossAxis: 0,
 };

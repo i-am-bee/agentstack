@@ -53,7 +53,8 @@ export function RunDialogButton({
       ) : (
         <Button
           kind="ghost"
-          size="sm"
+          size="xs"
+          className={clsx(classes.button, { [classes.isOpen]: isOpen })}
           {...getReferenceProps()}
           ref={useButtonReference ? refs.setPositionReference : null}
         >

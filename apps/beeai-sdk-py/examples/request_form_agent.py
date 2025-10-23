@@ -15,19 +15,6 @@ from beeai_sdk.a2a.extensions.ui.form import (
     OptionItem,
     TextField,
 )
-from beeai_sdk.a2a.extensions.ui.settings import (
-    CheckboxField,
-    SingleSelectField,
-    SettingsExtensionServer,
-    SettingsExtensionSpec,
-    SettingsRender,
-)
-from beeai_sdk.a2a.extensions import (
-    LLMDemand,
-    LLMServiceExtensionParams,
-    LLMServiceExtensionServer,
-    LLMServiceExtensionSpec,
-)
 from beeai_sdk.server import Server
 
 server = Server()
@@ -43,36 +30,6 @@ async def request_form_agent(
                 id="initial_form",
                 title="How are you?",
                 fields=[TextField(id="mood", label="Mood", type="text", col_span=1)],
-            )
-        ),
-    ],
-    settings: Annotated[
-        SettingsExtensionServer,
-        SettingsExtensionSpec(
-            params=SettingsRender(
-                fields=[
-                    SingleSelectField(
-                        id="response_style",
-                        label="Response Style",
-                        options=[
-                            {"label": "Concise", "value": "concise"},
-                            {"label": "Detailed", "value": "detailed"},
-                            {"label": "Humorous", "value": "humorous"},
-                        ],
-                        default_value="concise",
-                    ),
-                ],
-            ),
-        ),
-    ],
-    llm: Annotated[
-        LLMServiceExtensionServer,
-        LLMServiceExtensionSpec(
-            params=LLMServiceExtensionParams(
-                llm_demands={
-                    "fast": LLMDemand(suggested=("openai/gpt-4o-mini",)),
-                    "smart": LLMDemand(suggested=("openai/gpt-5",)),
-                }
             )
         ),
     ],

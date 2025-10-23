@@ -24,8 +24,8 @@ export function FormActionBar({ isDisabled, submitLabel, showRunSettings }: Prop
     config: { featureFlags },
   } = useApp();
 
-  const modelsDialog = useRunSettingsDialog();
-  const settingsDialog = useRunSettingsDialog();
+  const modelsDialog = useRunSettingsDialog({ blockOffset: 8 });
+  const settingsDialog = useRunSettingsDialog({ blockOffset: 8 });
   const formRefs = useMergeRefs([modelsDialog.refs.setPositionReference, settingsDialog.refs.setPositionReference]);
 
   return (

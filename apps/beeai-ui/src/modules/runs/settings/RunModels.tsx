@@ -26,7 +26,13 @@ export function RunModels({ dialog, iconOnly = true }: Props) {
   }
 
   return (
-    <RunDialogButton dialog={dialog} label="Models" icon={Cube} useButtonReference={iconOnly && !hasMessages}>
+    <RunDialogButton
+      dialog={dialog}
+      label="Models"
+      icon={Cube}
+      useButtonReference={iconOnly && !hasMessages}
+      iconOnly={iconOnly}
+    >
       <ModelProviders />
     </RunDialogButton>
   );

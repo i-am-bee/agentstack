@@ -5,6 +5,7 @@
 
 .root {
   display: flex;
+  align-items: center;
   :global(.#{$prefix}--btn) {
     &:hover,
     &:active,
@@ -35,4 +36,20 @@
   padding-block: $spacing-05;
   inline-size: 100%;
   max-block-size: rem(294px);
+}
+
+.button {
+  padding-inline: $spacing-03;
+  display: flex;
+  gap: $spacing-03;
+  align-items: center;
+  block-size: rem(28px);
+}
+
+.statusIcon {
+  transition: transform $duration-fast-01 ease-in-out;
+
+  .isOpen & {
+    transform: rotate(180deg);
+  }
 }

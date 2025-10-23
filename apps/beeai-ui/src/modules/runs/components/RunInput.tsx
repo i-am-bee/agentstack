@@ -101,7 +101,7 @@ export function RunInput({ promptExamples, onMessageSent }: Props) {
   );
 
   const modelsDialog = useRunSettingsDialog({
-    maxWidth: hasMessages ? 'container' : { widthPx: 482 },
+    maxWidth: hasMessages ? undefined : MODELS_DIALOG_MAX_WIDTH,
   });
   const settingsDialog = useRunSettingsDialog();
   const formRefs = useMergeRefs([
@@ -146,13 +146,13 @@ export function RunInput({ promptExamples, onMessageSent }: Props) {
 
         <div className={classes.actionBar}>
           <div className={classes.actionBarStart}>
-            <RunSettings dialog={settingsDialog} />
+            <RunSettings dialog={settingsDialog} iconOnly />
 
             {!isFileUploadDisabled && <FileUploadButton />}
 
             {featureFlags.MCP && <MCPConfig />}
 
-            {featureFlags.ModelProviders && <RunModels dialog={modelsDialog} />}
+            {featureFlags.ModelProviders && <RunModels dialog={modelsDialog} iconOnly />}
           </div>
 
           <div className={classes.submit}>
@@ -182,3 +182,5 @@ export function RunInput({ promptExamples, onMessageSent }: Props) {
     </FormProvider>
   );
 }
+
+const MODELS_DIALOG_MAX_WIDTH = 482;
