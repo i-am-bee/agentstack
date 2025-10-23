@@ -26,7 +26,7 @@ async def secrets_agent(
             params=SecretsServiceExtensionParams(
                 secret_demands={"ibm_cloud": SecretDemand(description="IBM Cloud API key", name="IBM Cloud")}
             )
-        )
+        ),
     ],
 ):
     """Agent that uses request a secret that can be provided during runtime"""
