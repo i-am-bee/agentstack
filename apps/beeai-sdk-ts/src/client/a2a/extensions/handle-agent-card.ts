@@ -29,14 +29,11 @@ export interface Fulfillments {
   embedding: (demand: EmbeddingDemands) => Promise<EmbeddingFulfillments>;
   mcp: (demand: MCPDemands) => Promise<MCPFulfillments>;
   oauth: (demand: OAuthDemands) => Promise<OAuthFulfillments>;
-
-  getContextToken: () => ContextToken;
-
-  // TODO: demand + fullfillemnt
   settings: (demand: SettingsDemands) => Promise<SettingsFullfillments>;
   secrets: (demand: SecretDemands) => Promise<SecretFulfillments>;
   form: (demand: FormDemands) => Promise<FormFullfillments | null>;
   oauthRedirectUri: () => string | null;
+  getContextToken: () => ContextToken;
 }
 
 const mcpExtensionExtractor = extractServiceExtensionDemands(mcpExtension);
