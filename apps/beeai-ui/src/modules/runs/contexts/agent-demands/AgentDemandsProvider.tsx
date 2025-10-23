@@ -15,7 +15,7 @@ import { ModelCapability } from '#modules/platform-context/types.ts';
 import { getSettingsRenderDefaultValues } from '#modules/runs/settings/utils.ts';
 
 import { useAgentSecrets } from '../agent-secrets';
-import type { FullfillmentsContext } from './agent-demands-context';
+import type { FulfillmentsContext } from './agent-demands-context';
 import { AgentDemandsContext } from './agent-demands-context';
 import { buildFullfilments } from './build-fulfillments';
 
@@ -169,7 +169,7 @@ export function AgentDemandsProvider<UIGenericPart>({
   }, [contextId, createContextToken]);
 
   const getFullfilments = useCallback(
-    async (fullfillmentsContext: FullfillmentsContext) => {
+    async (fulfillmentsContext: FulfillmentsContext) => {
       const contextToken = await getContextToken();
 
       const providedSecrets = demandedSecrets.reduce((memo, secret) => {
@@ -177,7 +177,7 @@ export function AgentDemandsProvider<UIGenericPart>({
           memo[secret.key] = secret.value;
         }
         return memo;
-      }, fullfillmentsContext.providedSecrets ?? {});
+      }, fulfillmentsContext.providedSecrets ?? {});
 
       return buildFullfilments({
         contextToken,
@@ -187,8 +187,8 @@ export function AgentDemandsProvider<UIGenericPart>({
         providedSecrets,
         featureFlags,
         selectedSettings,
-        formFullfillments: fullfillmentsContext.formFullfillments ?? null,
-        oauthRedirectUri: fullfillmentsContext.oauthRedirectUri ?? null,
+        formFullfillments: fulfillmentsContext.formFullfillments ?? null,
+        oauthRedirectUri: fulfillmentsContext.oauthRedirectUri ?? null,
       });
     },
     [

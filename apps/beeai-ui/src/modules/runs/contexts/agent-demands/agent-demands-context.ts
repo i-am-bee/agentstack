@@ -8,7 +8,7 @@ import { createContext } from 'react';
 
 import type { TaskId } from '#modules/tasks/api/types.ts';
 
-export type FullfillmentsContext = Partial<{
+export type FulfillmentsContext = Partial<{
   taskId: TaskId;
   providedSecrets: Record<string, string>;
   formFullfillments: FormFullfillments;
@@ -20,7 +20,7 @@ interface AgentDemandsContextValue {
   selectedLLMProviders: Record<string, string>;
   matchedEmbeddingProviders?: Record<string, string[]>;
   selectedEmbeddingProviders: Record<string, string>;
-  getFullfilments: (context: FullfillmentsContext) => Promise<Fulfillments>;
+  getFullfilments: (context: FulfillmentsContext) => Promise<Fulfillments>;
   selectLLMProvider: (key: string, value: string) => void;
   selectEmbeddingProvider: (key: string, value: string) => void;
   selectMCPServer: (key: string, value: string) => void;

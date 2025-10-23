@@ -37,7 +37,7 @@ import { isNotNull } from '#utils/helpers.ts';
 import { routes } from '#utils/router.ts';
 
 import { useAgentDemands } from '../agent-demands';
-import type { FullfillmentsContext } from '../agent-demands/agent-demands-context';
+import type { FulfillmentsContext } from '../agent-demands/agent-demands-context';
 import { AgentDemandsProvider } from '../agent-demands/AgentDemandsProvider';
 import { AgentSecretsProvider } from '../agent-secrets/AgentSecretsProvider';
 import { AgentStatusProvider } from '../agent-status/AgentStatusProvider';
@@ -170,7 +170,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
   }, [agentClient, errorHandler, getMessages]);
 
   const run = useCallback(
-    async (message: UIUserMessage, fullfillmentsContext: FullfillmentsContext) => {
+    async (message: UIUserMessage, fulfillmentsContext: FulfillmentsContext) => {
       if (!agentClient) {
         throw new Error('Agent client is not initialized');
       }
@@ -182,7 +182,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
 
       const contextId = getContextId();
 
-      const fulfillments = await getFullfilments(fullfillmentsContext);
+      const fulfillments = await getFullfilments(fulfillmentsContext);
 
       const agentMessage: UIAgentMessage = {
         id: uuid(),
@@ -200,7 +200,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
           message,
           contextId,
           fulfillments,
-          taskId: fullfillmentsContext.taskId,
+          taskId: fulfillmentsContext.taskId,
         });
         pendingRun.current = run;
 
@@ -277,7 +277,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
   );
 
   const chat = useCallback(
-    (input: string, fullfillmentsContext: FullfillmentsContext) => {
+    (input: string, fulfillmentsContext: FulfillmentsContext) => {
       checkPendingRun();
       cancelPendingTask();
 
@@ -291,7 +291,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
 
       clearFiles();
 
-      return run(message, fullfillmentsContext);
+      return run(message, fulfillmentsContext);
     },
     [cancelPendingTask, checkPendingRun, clearFiles, files, run],
   );
