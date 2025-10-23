@@ -90,7 +90,7 @@ beeai run example_agent "Alice"  # Test your agent
 You should see: "Ciao Alice!" 🎉
 
 > [!TIP]
-> See [Start Building Agents](https://docs.beeai.dev/introduction/building-agents) for a step-by-step guide to building your first agent.
+> See [Start Building Agents](https://docs.beeai.dev/introduction/start-building-agents) for a step-by-step guide to building your first agent.
 
 ---
 
