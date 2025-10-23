@@ -1,29 +1,28 @@
 ---
-title: "Kubernetes"
-description: "Deploy BeeAI to Kubernetes using Helm"
+title: "Deployment Guide"
+description: "Deploy BeeAI Platform to Kubernetes for internal team use"
 ---
 
-## Prerequisites
-
-- Kubernetes cluster (local or cloud)
-- Helm 3.x installed
-- kubectl configured to access your cluster
-- BeeAI installed for post-deployment configuration
+Use Helm to deploy the BeeAI Platform on Kubernetes, creating a centralized environment where your team can quickly test, share, and iterate on agents.
 
 <Warning>
-  This deployment guide is intended for development and testing environments. We
-  don't recommend public deployments at this time as the platform is still
-  evolving and lacks production-ready security features like user management and
-  rate limiting.
+**Intended Use:** BeeAI Platform is designed for internal team deployments behind VPNs or firewalls. Basic authentication protects administrative operations (agent management, secrets, model configuration), but authenticated users can freely use agents, upload files, and create vector stores without per-user limits. Deploy only in trusted environments where you control who has access. Public internet deployments are not recommended.
 </Warning>
 
-## Installation
+## Requirements
+
+- BeeAI installed for post-deployment configuration
+- Kubernetes 1.24+ with admin access
+- kubectl configured to access your cluster
+- Helm 3.8+
+- Persistent storage (20GB+ for PostgreSQL)
+- LLM provider API access (OpenAI, Anthropic, etc.)
+
+## Get Started
 
 ### Step 1: Create Configuration File
 
-Create a value file with the minimum configuration:
-
-`config.yaml`:
+Create a `config.yaml` file with your desired configuration:
 
 ```yaml
 # If you want to include agents from the default catalog (change release/tag accordingly):
@@ -70,7 +69,7 @@ kubectl port-forward svc/beeai-platform-svc 8333:8333 &
 
 ### Step 4: Setup LLM
 
-After the beeai-platform becomes ready, it's necessary to perform model setup:
+After the platform becomes ready, it's time to set up your model provider:
 
 ```shell
 BEEAI__ADMIN_PASSWORD="my-secret-password" beeai model setup
