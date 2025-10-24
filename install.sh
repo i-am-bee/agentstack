@@ -15,6 +15,12 @@ error() {
 
 echo "Starting the BeeAI installer..."
 
+# Check if this is WSL (not supported)
+if [ -n "${WSL_DISTRO_NAME-}" ] || (uname -r | grep -q -i "microsoft"); then
+    printf "\n💥 \033[31mERROR:\033[0m: BeeAI CLI is not supported on WSL. Please follow the Windows installation instructions to install in PowerShell instead.\n" >&2
+    exit 1
+fi
+
 # Ensure that we have uv on PATH
 export PATH="${XDG_BIN_HOME:+${XDG_BIN_HOME}:}${XDG_DATA_HOME:+$(realpath -m ${XDG_DATA_HOME}/../bin):}${HOME:+${HOME}/.local/bin:}$PATH"
 

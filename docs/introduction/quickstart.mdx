@@ -1,6 +1,6 @@
 ---
 title: "Quickstart"
-description: "Get BeeAI running locally in minutes"
+description: "Get a running instance in minutes and explore pre-built agents"
 ---
 
 ## Prerequisites
@@ -104,7 +104,7 @@ Close and reopen your terminal after installation.
 <Step title="Install BeeAI">
 
 ```bash
-uv tool install --refresh --quiet --force beeai-cli && beeai self install
+uv tool install --force --python-preference=only-managed --python=3.13 beeai-cli && beeai self install
 ```
 
 Follow the interactive prompts to finish the installation and setup.

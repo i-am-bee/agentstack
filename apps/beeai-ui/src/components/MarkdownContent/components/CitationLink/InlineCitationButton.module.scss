@@ -5,6 +5,7 @@
 
 .root {
   &:global(.cds--btn) {
+    @include reset-focus();
     font-family: font-family(sans);
     padding: 0;
     inline-size: rem(16px);
@@ -22,10 +23,6 @@
     &.isActive,
     &:hover {
       background-color: $source-number-active-background;
-    }
-    &:focus:not(:focus-visible) {
-      box-shadow: none;
-      border-color: transparent;
     }
   }
 }

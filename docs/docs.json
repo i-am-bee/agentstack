@@ -15,7 +15,8 @@
         "pages": [
           "introduction/welcome",
           "introduction/quickstart",
-          "introduction/hello-world"
+          "introduction/add-your-a2a-agent",
+          "introduction/start-building-agents"
         ]
       },
       {
@@ -47,8 +48,7 @@
           "how-to/discover-agents",
           "how-to/run-agents",
           "how-to/observe-agents",
-          "how-to/import-agents",
-          "how-to/share-agents"
+          "how-to/add-agents"
         ]
       },
       {
@@ -61,8 +61,8 @@
         ]
       },
       {
-        "group": "Deployment",
-        "pages": ["deployment/overview", "deployment/kubernetes"]
+        "group": "Deploy for Your Team",
+        "pages": ["how-to/deployment-guide"]
       },
       {
         "group": "Community & Support",
