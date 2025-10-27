@@ -3,6 +3,7 @@
 
 import functools
 import importlib.metadata
+import os
 import pathlib
 import re
 import sys
@@ -37,7 +38,10 @@ class Configuration(pydantic_settings.BaseSettings):
     admin_password: SecretStr | None = None
     oidc_enabled: bool = False
     server_metadata_ttl: int = 86400
-    client_id: str = "df82a687-d647-4247-838b-7080d7d83f6c"  # pre-registered with AS
+    # allow the developer to override the baked in public client id.
+    client_id: str = os.environ.get(
+        "AUTH__OIDC__CLIENT_ID", "df82a687-d647-4247-838b-7080d7d83f6c"
+    )  # pre-registered with AS
 
     @property
     def lima_home(self) -> pathlib.Path:
