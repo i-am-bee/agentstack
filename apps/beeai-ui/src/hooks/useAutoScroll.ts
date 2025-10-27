@@ -53,7 +53,7 @@ export function useAutoScroll<T extends HTMLElement = HTMLDivElement>(
         const scrollFrom = scrollableContainer.scrollTop;
         const elementRect = ref.current.getBoundingClientRect();
         const containerRect = scrollableContainer.getBoundingClientRect();
-        const scrollTo = scrollFrom + (elementRect.bottom - containerRect.top);
+        const scrollTo = scrollFrom + (elementRect.top - containerRect.top);
 
         animate(scrollFrom, scrollTo, {
           duration,

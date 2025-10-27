@@ -4,7 +4,7 @@
  */
 
 import clsx from 'clsx';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useMemo } from 'react';
 import { match } from 'ts-pattern';
 
@@ -30,25 +30,23 @@ export function TrajectoryItem({ trajectory }: Props) {
   }
 
   return (
-    <AnimatePresence>
-      <motion.div {...fadeProps()} className={clsx(classes.root)}>
-        {title && <h3 className={classes.name}>{title}</h3>}
+    <motion.div {...fadeProps()} className={clsx(classes.root)}>
+      {title && <h3 className={classes.name}>{title}</h3>}
 
-        <div className={classes.body}>
-          {match(parsed)
-            .with({ type: 'string' }, ({ value }) => <LineClampText lines={5}>{value}</LineClampText>)
-            .otherwise(({ value }) => {
-              // if (hasDescription) {
-              //   return <LineClampText lines={5}>{parsed.input.thought}</LineClampText>;
-              // }
-              return (
-                <CodeSnippet canCopy withBorder>
-                  {value}
-                </CodeSnippet>
-              );
-            })}
-        </div>
-      </motion.div>
-    </AnimatePresence>
+      <div className={classes.body}>
+        {match(parsed)
+          .with({ type: 'string' }, ({ value }) => <LineClampText lines={5}>{value}</LineClampText>)
+          .otherwise(({ value }) => {
+            // if (hasDescription) {
+            //   return <LineClampText lines={5}>{parsed.input.thought}</LineClampText>;
+            // }
+            return (
+              <CodeSnippet canCopy withBorder>
+                {value}
+              </CodeSnippet>
+            );
+          })}
+      </div>
+    </motion.div>
   );
 }
