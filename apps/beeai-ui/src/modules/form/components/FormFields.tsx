@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FormDemands, FormFulfillments } from 'beeai-sdk';
+import type { FormDemands, FormFulfillments } from 'agentstack-sdk';
 import type { CSSProperties } from 'react';
 
 import { FormField } from './FormField';

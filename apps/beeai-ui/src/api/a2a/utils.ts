@@ -12,7 +12,7 @@ import {
   formMessageExtension,
   trajectoryExtension,
   type TrajectoryMetadata,
-} from 'beeai-sdk';
+} from 'agentstack-sdk';
 import truncate from 'lodash/truncate';
 import { v4 as uuid } from 'uuid';
 

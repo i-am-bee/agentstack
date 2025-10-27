@@ -4,7 +4,7 @@
  */
 
 import { Toggle } from '@carbon/react';
-import type { SettingsCheckboxFieldValue } from 'beeai-sdk';
+import type { SettingsCheckboxFieldValue } from 'agentstack-sdk';
 import { useController } from 'react-hook-form';
 
 import classes from './ToggleSettingsField.module.scss';

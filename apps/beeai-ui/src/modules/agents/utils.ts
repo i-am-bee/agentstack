@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { agentDetailExtension, extractUiExtensionData } from 'beeai-sdk';
+import { agentDetailExtension, extractUiExtensionData } from 'agentstack-sdk';
 import uniq from 'lodash/uniq';
 import uniqWith from 'lodash/uniqWith';
 

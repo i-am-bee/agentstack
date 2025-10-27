@@ -4,7 +4,7 @@
  */
 
 import { TextInput } from '@carbon/react';
-import type { TextField } from 'beeai-sdk';
+import type { TextField } from 'agentstack-sdk';
 import { useFormContext } from 'react-hook-form';
 
 import { TextAreaAutoHeight } from '#components/TextAreaAutoHeight/TextAreaAutoHeight.tsx';

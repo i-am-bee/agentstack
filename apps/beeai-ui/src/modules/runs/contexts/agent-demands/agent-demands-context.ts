@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentSettings, FormFulfillments, Fulfillments, SettingsDemands } from 'beeai-sdk';
+import type { AgentSettings, FormFulfillments, Fulfillments, SettingsDemands } from 'agentstack-sdk';
 import { createContext } from 'react';
 
 import type { TaskId } from '#modules/tasks/api/types.ts';

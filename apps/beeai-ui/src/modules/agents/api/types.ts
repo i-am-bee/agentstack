@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentDetail } from 'beeai-sdk';
+import type { AgentDetail } from 'agentstack-sdk';
 
 import type { Provider } from '#modules/providers/api/types.ts';
 

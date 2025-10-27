@@ -4,7 +4,7 @@
  */
 
 import { Select, SelectItem } from '@carbon/react';
-import type { SingleSelectField } from 'beeai-sdk';
+import type { SingleSelectField } from 'agentstack-sdk';
 import { useFormContext } from 'react-hook-form';
 
 import type { ValuesOfField } from '#modules/form/types.ts';

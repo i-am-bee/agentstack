@@ -5,7 +5,7 @@
 
 'use client';
 import { useQueryClient } from '@tanstack/react-query';
-import { TaskStatusUpdateType } from 'beeai-sdk';
+import { TaskStatusUpdateType } from 'agentstack-sdk';
 import { useRouter } from 'next/navigation';
 import type { PropsWithChildren } from 'react';
 import { useCallback, useMemo, useRef, useState } from 'react';

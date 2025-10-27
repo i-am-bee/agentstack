@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentSettings } from 'beeai-sdk';
+import type { AgentSettings } from 'agentstack-sdk';
 import { type PropsWithChildren, useCallback, useEffect, useState } from 'react';
 
 import type { AgentA2AClient } from '#api/a2a/types.ts';

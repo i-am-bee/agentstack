@@ -4,7 +4,7 @@
  */
 
 import { FormGroup } from '@carbon/react';
-import type { FileField, FormResponseValue } from 'beeai-sdk';
+import type { FileField, FormResponseValue } from 'agentstack-sdk';
 
 import { getFileIdFromFilePlatformUrl } from '#api/a2a/utils.ts';
 import { FileCard } from '#modules/files/components/FileCard.tsx';

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FormDemands } from 'beeai-sdk';
+import type { FormDemands } from 'agentstack-sdk';
 
 import { Container } from '#components/layouts/Container.tsx';
 import { FormRenderer } from '#modules/form/components/FormRenderer.tsx';

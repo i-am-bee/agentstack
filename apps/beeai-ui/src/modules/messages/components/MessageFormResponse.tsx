@@ -12,7 +12,7 @@ import type {
   MultiSelectField,
   SingleSelectField,
   TextField,
-} from 'beeai-sdk';
+} from 'agentstack-sdk';
 import { useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';

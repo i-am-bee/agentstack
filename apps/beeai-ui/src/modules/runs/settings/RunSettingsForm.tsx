@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentSettings, SettingsDemands } from 'beeai-sdk';
+import type { AgentSettings, SettingsDemands } from 'agentstack-sdk';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';

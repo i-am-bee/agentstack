@@ -1,5 +1,5 @@
 /**
- * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * Copyright 2025 © Agent Stack a Series of LF Projects, LLC
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 import type { A2AServiceExtension } from '../types';
 
-const URI = 'https://a2a-extensions.beeai.dev/services/mcp/v1';
+const URI = 'https://a2a-extensions.agentstack.dev/services/mcp/v1';
 
 const mcpTransportTypesEnum = z.enum(['streamable_http', 'stdio']);
 type MCPTransportType = z.infer<typeof mcpTransportTypesEnum>;

@@ -4,7 +4,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import type { EmbeddingDemands, LLMDemands } from 'beeai-sdk';
+import type { EmbeddingDemands, LLMDemands } from 'agentstack-sdk';
 import { useEffect } from 'react';
 
 import { useApp } from '#contexts/App/index.ts';

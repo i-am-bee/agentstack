@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentDetailContributor } from 'beeai-sdk';
+import type { AgentDetailContributor } from 'agentstack-sdk';
 import { memo, useMemo } from 'react';
 
 import { ExternalLink } from '#components/MarkdownContent/components/ExternalLink.tsx';

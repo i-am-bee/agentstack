@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentSettings, ContextToken, EmbeddingDemands, FormFulfillments, Fulfillments } from 'beeai-sdk';
+import type { AgentSettings, ContextToken, EmbeddingDemands, FormFulfillments, Fulfillments } from 'agentstack-sdk';
 
 import { BASE_URL } from '#utils/constants.ts';
 import type { FeatureFlags } from '#utils/feature-flags.ts';

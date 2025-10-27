@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { extractServiceExtensionDemands, formExtension } from 'beeai-sdk';
+import { extractServiceExtensionDemands, formExtension } from 'agentstack-sdk';
 import { useMemo } from 'react';
 
 import { getAgentExtensions } from '#api/utils.ts';

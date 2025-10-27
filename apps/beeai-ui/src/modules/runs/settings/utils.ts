@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentSettings, SettingsCheckboxFieldValue, SettingsDemands } from 'beeai-sdk';
+import type { AgentSettings, SettingsCheckboxFieldValue, SettingsDemands } from 'agentstack-sdk';
 import { match } from 'ts-pattern';
 
 export function getSettingsDemandsDefaultValues(settingsDemands: SettingsDemands) {

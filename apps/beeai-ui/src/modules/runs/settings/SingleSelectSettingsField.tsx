@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { SettingsSingleSelectFieldValue } from 'beeai-sdk';
+import type { SettingsSingleSelectFieldValue } from 'agentstack-sdk';
 import { useController } from 'react-hook-form';
 
 import { RadioSelect } from '#components/RadioSelect/RadioSelect.tsx';
