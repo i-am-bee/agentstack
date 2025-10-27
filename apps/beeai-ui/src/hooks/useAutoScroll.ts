@@ -51,8 +51,9 @@ export function useAutoScroll<T extends HTMLElement = HTMLDivElement>(
     if (shouldAutoScroll) {
       if (duration && ref.current && scrollableContainer) {
         const scrollFrom = scrollableContainer.scrollTop;
-        const scrollTo = ref.current.getBoundingClientRect().bottom;
-        console.log({ scrollTo });
+        const elementRect = ref.current.getBoundingClientRect();
+        const containerRect = scrollableContainer.getBoundingClientRect();
+        const scrollTo = scrollFrom + (elementRect.bottom - containerRect.top);
 
         animate(scrollFrom, scrollTo, {
           duration,
@@ -60,6 +61,7 @@ export function useAutoScroll<T extends HTMLElement = HTMLDivElement>(
           onUpdate: (value) => scrollableContainer.scrollTo(0, value),
         });
       } else {
+        // Use native scrollIntoView duration is not specified
         ref.current?.scrollIntoView();
       }
     }

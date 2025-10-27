@@ -21,7 +21,7 @@ interface Props {
 }
 
 export function TrajectoryList({ trajectories, isOpen, autoScroll }: Props) {
-  const { ref: autoScrollRef } = useAutoScroll<HTMLLIElement>([trajectories.length], { duration: 1.4 });
+  const { ref: autoScrollRef } = useAutoScroll<HTMLLIElement>([trajectories.length], { duration: AUTOSCROLL_DURATION });
   const listRef = useRef<HTMLUListElement>(null);
   const [listHeight, setListHeight] = useState<number>(0);
 
@@ -41,8 +41,6 @@ export function TrajectoryList({ trajectories, isOpen, autoScroll }: Props) {
 
     return () => resizeObserver.disconnect();
   }, [autoScroll, trajectories.length]);
-
-  console.log({ trajectories });
 
   return (
     <AnimatePresence>
@@ -71,3 +69,5 @@ export function TrajectoryList({ trajectories, isOpen, autoScroll }: Props) {
     </AnimatePresence>
   );
 }
+
+const AUTOSCROLL_DURATION = 1.4;

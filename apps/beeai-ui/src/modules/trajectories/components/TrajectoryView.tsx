@@ -16,7 +16,6 @@ interface Props {
   trajectories: UITrajectoryPart[];
   toggleable?: boolean;
   autoScroll?: boolean;
-  initialOpened?: boolean;
 }
 
 export function TrajectoryView({ trajectories, toggleable, autoScroll }: Props) {
