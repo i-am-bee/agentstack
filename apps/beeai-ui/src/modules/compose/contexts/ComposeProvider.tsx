@@ -44,6 +44,10 @@ export function ComposeProvider({ children }: PropsWithChildren) {
     onStatusUpdate: handleTaskStatusUpdate,
   });
 
+  if (!agentClient) {
+    return <></>;
+  }
+
   return (
     <AgentDemandsProvider agentClient={agentClient}>
       <ComposeProviderWithContext agentClient={agentClient}>{children}</ComposeProviderWithContext>

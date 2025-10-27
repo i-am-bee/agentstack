@@ -163,7 +163,7 @@ export function createTextPart(text: string): UITextPart {
   return textPart;
 }
 
-export function createFormPart(form: FormDemands): UIFormPart | null {
+export function createFormPart(form: FormDemands): UIFormPart {
   const formPart: UIFormPart = {
     kind: UIMessagePartKind.Form,
     ...form,

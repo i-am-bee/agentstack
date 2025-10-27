@@ -38,11 +38,7 @@ export function processMessageMetadata(message: Message): UIMessagePart[] {
     parts.push(...sourceParts);
   }
   if (form) {
-    const formPart = createFormPart(form);
-
-    if (formPart) {
-      parts.push(formPart);
-    }
+    return [createFormPart(form)];
   }
 
   return parts;

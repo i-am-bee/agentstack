@@ -25,7 +25,7 @@ interface AgentRunContextValue {
   input?: string;
   stats?: RunStats;
   hasMessages: boolean;
-  chat: (input: string, fulfillmentsContext: FulfillmentsContext) => Promise<void>;
+  chat: (input: string, fulfillmentsContext?: FulfillmentsContext) => Promise<void>;
   submitForm: (form: UIMessageForm) => Promise<void>;
   submitRuntimeForm: (form: UIMessageForm, taskId: TaskId) => Promise<void>;
   startAuth: (url: string, taskId: TaskId) => void;

@@ -55,6 +55,10 @@ export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>)
 
   useEnsurePlatformContext(agent);
 
+  if (!agentClient) {
+    return <></>;
+  }
+
   return (
     <AgentSecretsProvider agent={agent} agentClient={agentClient}>
       <AgentDemandsProvider agentClient={agentClient}>
@@ -278,7 +282,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
   );
 
   const chat = useCallback(
-    (input: string, fulfillmentsContext: FulfillmentsContext) => {
+    (input: string, fulfillmentsContext: FulfillmentsContext = {}) => {
       checkPendingRun();
       cancelPendingTask();
 

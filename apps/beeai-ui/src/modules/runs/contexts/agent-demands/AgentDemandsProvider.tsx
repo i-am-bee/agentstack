@@ -20,7 +20,7 @@ import { AgentDemandsContext } from './agent-demands-context';
 import { buildFulfillments } from './build-fulfillments';
 
 interface Props<UIGenericPart> {
-  agentClient?: AgentA2AClient<UIGenericPart>;
+  agentClient: AgentA2AClient<UIGenericPart>;
 }
 
 export function AgentDemandsProvider<UIGenericPart>({
@@ -31,7 +31,9 @@ export function AgentDemandsProvider<UIGenericPart>({
 
   const [selectedEmbeddingProviders, setSelectedEmbeddingProviders] = useState<Record<string, string>>({});
   const [selectedLLMProviders, setSelectedLLMProviders] = useState<Record<string, string>>({});
-  const [selectedSettings, setSelectedSettings] = useState<AgentSettings>({});
+  const [selectedSettings, setSelectedSettings] = useState<AgentSettings>(
+    getSettingsDemandsDefaultValues(agentClient.demands.settingsDemands ?? { fields: [] }),
+  );
 
   const {
     config: { featureFlags },
@@ -39,12 +41,6 @@ export function AgentDemandsProvider<UIGenericPart>({
   const { contextId } = usePlatformContext();
 
   const { mutateAsync: createContextToken } = useCreateContextToken();
-
-  useEffect(() => {
-    if (agentClient?.demands.settingsDemands) {
-      setSelectedSettings(getSettingsDemandsDefaultValues(agentClient.demands.settingsDemands));
-    }
-  }, [agentClient?.demands.settingsDemands]);
 
   const onUpdateSettings = useCallback((value: AgentSettings) => {
     setSelectedSettings(value);
