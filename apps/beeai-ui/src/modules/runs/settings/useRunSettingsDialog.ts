@@ -42,19 +42,23 @@ export function useRunSettingsDialog({ maxWidth, blockOffset }: Props = {}) {
         if (blockOffset) {
           offsets.mainAxis = blockOffset;
         }
+
         return offsets;
-      }),
-      size({
-        apply({ elements }) {
-          const container = elements.reference;
-          const widthValue = !maxWidth ? container?.getBoundingClientRect().width : maxWidth;
-          if (widthValue) {
-            Object.assign(elements.floating.style, {
-              maxWidth: rem(widthValue),
-            });
-          }
+      }, [align, alignWithContainer, blockOffset]),
+      size(
+        {
+          apply({ elements }) {
+            const container = elements.reference;
+            const widthValue = !maxWidth ? container?.getBoundingClientRect().width : maxWidth;
+            if (widthValue) {
+              Object.assign(elements.floating.style, {
+                maxWidth: rem(widthValue),
+              });
+            }
+          },
         },
-      }),
+        [maxWidth],
+      ),
     ],
   });
 

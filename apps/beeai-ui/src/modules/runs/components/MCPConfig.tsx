@@ -16,9 +16,14 @@ export function MCPConfig() {
   const id = useId();
   const { selectedMCPServers, selectMCPServer } = useAgentDemands();
 
+  const entries = Object.entries(selectedMCPServers);
+  if (!entries.length) {
+    return null;
+  }
+
   return (
     <div className={classes.root}>
-      {Object.entries(selectedMCPServers).map(([key, value]) => (
+      {entries.map(([key, value]) => (
         <TextInput
           value={value}
           onChange={(e) => selectMCPServer(key, e.target.value)}

@@ -8,10 +8,3 @@
   flex-direction: column;
   row-gap: $spacing-06;
 }
-
-.fields {
-  display: grid;
-  column-gap: $spacing-04;
-  row-gap: $spacing-06;
-  grid-template-columns: repeat(var(--grid-columns, 1), minmax(0, 1fr));
-}

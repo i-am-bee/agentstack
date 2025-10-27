@@ -43,7 +43,7 @@
 .actionBarStart {
   display: flex;
   align-items: center;
-  gap: $spacing-03;
+  column-gap: $spacing-01;
 }
 
 .submit {

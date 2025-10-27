@@ -14,12 +14,12 @@ import { useRunSettingsDialog } from '#modules/runs/settings/useRunSettingsDialo
 import classes from './FormActionBar.module.scss';
 
 interface Props {
-  isDisabled?: boolean;
+  showSubmitButton?: boolean;
   submitLabel: string;
   showRunSettings?: boolean;
 }
 
-export function FormActionBar({ isDisabled, submitLabel, showRunSettings }: Props) {
+export function FormActionBar({ showSubmitButton = true, submitLabel, showRunSettings }: Props) {
   const {
     config: { featureFlags },
   } = useApp();
@@ -36,7 +36,7 @@ export function FormActionBar({ isDisabled, submitLabel, showRunSettings }: Prop
           {featureFlags.ModelProviders && <RunModels dialog={modelsDialog} iconOnly={false} />}
         </div>
       )}
-      {!isDisabled && (
+      {showSubmitButton && (
         <div className={classes.buttons}>
           <Button type="submit" size="md">
             {submitLabel}

@@ -55,9 +55,9 @@ export function FormRenderer({
           <FormFields fields={fields} columns={columns} />
 
           <FormActionBar
-            isDisabled={isDisabled}
             submitLabel={submit_label ?? 'Submit'}
             showRunSettings={showRunSettings}
+            showSubmitButton={!isDisabled}
           />
         </fieldset>
       </form>
