@@ -17,10 +17,10 @@ import { oauthProviderExtension } from './services/oauth-provider';
 import { platformApiExtension } from './services/platform';
 import type { SecretDemands, SecretFulfillments } from './services/secrets';
 import { secretsExtension } from './services/secrets';
-import type { FormDemands, FormFullfillments } from './ui/form';
+import type { FormDemands, FormFulfillments } from './ui/form';
 import { formExtension } from './ui/form';
 import { oauthRequestExtension } from './ui/oauth';
-import type { SettingsDemands, SettingsFullfillments } from './ui/settings';
+import type { SettingsDemands, SettingsFulfillments } from './ui/settings';
 import { settingsExtension } from './ui/settings';
 import { extractServiceExtensionDemands, fulfillServiceExtensionDemand } from './utils';
 
@@ -29,9 +29,9 @@ export interface Fulfillments {
   embedding: (demand: EmbeddingDemands) => Promise<EmbeddingFulfillments>;
   mcp: (demand: MCPDemands) => Promise<MCPFulfillments>;
   oauth: (demand: OAuthDemands) => Promise<OAuthFulfillments>;
-  settings: (demand: SettingsDemands) => Promise<SettingsFullfillments>;
+  settings: (demand: SettingsDemands) => Promise<SettingsFulfillments>;
   secrets: (demand: SecretDemands) => Promise<SecretFulfillments>;
-  form: (demand: FormDemands) => Promise<FormFullfillments | null>;
+  form: (demand: FormDemands) => Promise<FormFulfillments | null>;
   oauthRedirectUri: () => string | null;
   getContextToken: () => ContextToken;
 }
@@ -44,13 +44,13 @@ const settingsExtensionExtractor = extractServiceExtensionDemands(settingsExtens
 const secretExtensionExtractor = extractServiceExtensionDemands(secretsExtension);
 const formExtensionExtractor = extractServiceExtensionDemands(formExtension);
 
-const fullfillMcpDemand = fulfillServiceExtensionDemand(mcpExtension);
-const fullfillLlmDemand = fulfillServiceExtensionDemand(llmExtension);
-const fullfillEmbeddingDemand = fulfillServiceExtensionDemand(embeddingExtension);
-const fullfillOAuthDemand = fulfillServiceExtensionDemand(oauthProviderExtension);
-const fullfillSettingsDemand = fulfillServiceExtensionDemand(settingsExtension);
-const fullfillSecretDemand = fulfillServiceExtensionDemand(secretsExtension);
-const fullfillFormDemand = fulfillServiceExtensionDemand(formExtension);
+const fulfillMcpDemand = fulfillServiceExtensionDemand(mcpExtension);
+const fulfillLlmDemand = fulfillServiceExtensionDemand(llmExtension);
+const fulfillEmbeddingDemand = fulfillServiceExtensionDemand(embeddingExtension);
+const fulfillOAuthDemand = fulfillServiceExtensionDemand(oauthProviderExtension);
+const fulfillSettingsDemand = fulfillServiceExtensionDemand(settingsExtension);
+const fulfillSecretDemand = fulfillServiceExtensionDemand(secretsExtension);
+const fulfillFormDemand = fulfillServiceExtensionDemand(formExtension);
 
 export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) => {
   const extensions = agentCard.capabilities.extensions ?? [];
@@ -63,53 +63,53 @@ export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) 
   const secretDemands = secretExtensionExtractor(extensions);
   const formDemands = formExtensionExtractor(extensions);
 
-  const resolveMetadata = async (fullfillments: Fulfillments) => {
-    let fullfilledMetadata = {};
+  const resolveMetadata = async (fulfillments: Fulfillments) => {
+    let fulfilledMetadata = {};
 
-    fullfilledMetadata = platformApiExtension(fullfilledMetadata, fullfillments.getContextToken());
+    fulfilledMetadata = platformApiExtension(fulfilledMetadata, fulfillments.getContextToken());
 
     if (llmDemands) {
-      fullfilledMetadata = fullfillLlmDemand(fullfilledMetadata, await fullfillments.llm(llmDemands));
+      fulfilledMetadata = fulfillLlmDemand(fulfilledMetadata, await fulfillments.llm(llmDemands));
     }
 
     if (embeddingDemands) {
-      fullfilledMetadata = fullfillEmbeddingDemand(fullfilledMetadata, await fullfillments.embedding(embeddingDemands));
+      fulfilledMetadata = fulfillEmbeddingDemand(fulfilledMetadata, await fulfillments.embedding(embeddingDemands));
     }
 
     if (mcpDemands) {
-      fullfilledMetadata = fullfillMcpDemand(fullfilledMetadata, await fullfillments.mcp(mcpDemands));
+      fulfilledMetadata = fulfillMcpDemand(fulfilledMetadata, await fulfillments.mcp(mcpDemands));
     }
 
     if (oauthDemands) {
-      fullfilledMetadata = fullfillOAuthDemand(fullfilledMetadata, await fullfillments.oauth(oauthDemands));
+      fulfilledMetadata = fulfillOAuthDemand(fulfilledMetadata, await fulfillments.oauth(oauthDemands));
     }
 
     if (settingsDemands) {
-      fullfilledMetadata = fullfillSettingsDemand(fullfilledMetadata, await fullfillments.settings(settingsDemands));
+      fulfilledMetadata = fulfillSettingsDemand(fulfilledMetadata, await fulfillments.settings(settingsDemands));
     }
 
     if (secretDemands) {
-      fullfilledMetadata = fullfillSecretDemand(fullfilledMetadata, await fullfillments.secrets(secretDemands));
+      fulfilledMetadata = fulfillSecretDemand(fulfilledMetadata, await fulfillments.secrets(secretDemands));
     }
 
     if (formDemands) {
-      const formFullfilment = await fullfillments.form(formDemands);
-      if (formFullfilment) {
-        fullfilledMetadata = fullfillFormDemand(fullfilledMetadata, formFullfilment);
+      const formFulfilment = await fulfillments.form(formDemands);
+      if (formFulfilment) {
+        fulfilledMetadata = fulfillFormDemand(fulfilledMetadata, formFulfilment);
       }
     }
 
-    const oauthRedirectUri = fullfillments.oauthRedirectUri();
+    const oauthRedirectUri = fulfillments.oauthRedirectUri();
     if (oauthRedirectUri) {
-      fullfilledMetadata = {
-        ...fullfilledMetadata,
+      fulfilledMetadata = {
+        ...fulfilledMetadata,
         [oauthRequestExtension.getUri()]: {
           redirect_uri: oauthRedirectUri,
         },
       };
     }
 
-    return fullfilledMetadata;
+    return fulfilledMetadata;
   };
 
   return {

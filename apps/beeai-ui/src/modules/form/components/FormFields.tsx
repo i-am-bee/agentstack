@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FormDemands, FormFullfillments } from 'beeai-sdk';
+import type { FormDemands, FormFulfillments } from 'beeai-sdk';
 import type { CSSProperties } from 'react';
 
 import { FormField } from './FormField';
@@ -12,7 +12,7 @@ import classes from './FormFields.module.scss';
 interface Props {
   fields: FormDemands['fields'];
   columns: FormDemands['columns'];
-  values?: FormFullfillments['values'];
+  values?: FormFulfillments['values'];
 }
 
 export function FormFields({ fields, columns, values }: Props) {

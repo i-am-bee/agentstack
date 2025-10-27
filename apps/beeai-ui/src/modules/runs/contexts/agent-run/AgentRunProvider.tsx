@@ -88,7 +88,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
   const pendingRun = useRef<ChatRun>(undefined);
 
   const { contextId, getContextId, updateContextWithAgentMetadata } = usePlatformContext();
-  const { getFullfilments } = useAgentDemands();
+  const { getFulfillments } = useAgentDemands();
   const { files, clearFiles } = useFileUpload();
 
   const updateCurrentAgentMessage = useCallback(
@@ -183,7 +183,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
 
       const contextId = getContextId();
 
-      const fulfillments = await getFullfilments(fulfillmentsContext);
+      const fulfillments = await getFulfillments(fulfillmentsContext);
 
       const agentMessage: UIAgentMessage = {
         id: uuid(),
@@ -267,7 +267,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
       queryClient,
       checkPendingRun,
       getContextId,
-      getFullfilments,
+      getFulfillments,
       setMessages,
       agentClient,
       agent,
@@ -308,7 +308,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
         form,
       };
 
-      return run(message, { taskId, formFullfillments: form.response });
+      return run(message, { taskId, formFulfillments: form.response });
     },
     [checkPendingRun, run],
   );
@@ -324,7 +324,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
         form,
       };
 
-      return run(message, { formFullfillments: form.response });
+      return run(message, { formFulfillments: form.response });
     },
     [checkPendingRun, run],
   );

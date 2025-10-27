@@ -12,12 +12,12 @@ import { useCreateContextToken } from '#modules/platform-context/api/mutations/u
 import { useMatchProviders } from '#modules/platform-context/api/mutations/useMatchProviders.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 import { ModelCapability } from '#modules/platform-context/types.ts';
-import { getSettingsRenderDefaultValues } from '#modules/runs/settings/utils.ts';
+import { getSettingsDemandsDefaultValues } from '#modules/runs/settings/utils.ts';
 
 import { useAgentSecrets } from '../agent-secrets';
 import type { FulfillmentsContext } from './agent-demands-context';
 import { AgentDemandsContext } from './agent-demands-context';
-import { buildFullfilments } from './build-fulfillments';
+import { buildFulfillments } from './build-fulfillments';
 
 interface Props<UIGenericPart> {
   agentClient?: AgentA2AClient<UIGenericPart>;
@@ -42,7 +42,7 @@ export function AgentDemandsProvider<UIGenericPart>({
 
   useEffect(() => {
     if (agentClient?.demands.settingsDemands) {
-      setSelectedSettings(getSettingsRenderDefaultValues(agentClient.demands.settingsDemands));
+      setSelectedSettings(getSettingsDemandsDefaultValues(agentClient.demands.settingsDemands));
     }
   }, [agentClient?.demands.settingsDemands]);
 
@@ -168,7 +168,7 @@ export function AgentDemandsProvider<UIGenericPart>({
     return contextToken;
   }, [contextId, createContextToken]);
 
-  const getFullfilments = useCallback(
+  const getFulfillments = useCallback(
     async (fulfillmentsContext: FulfillmentsContext) => {
       const contextToken = await getContextToken();
 
@@ -179,7 +179,7 @@ export function AgentDemandsProvider<UIGenericPart>({
         return memo;
       }, fulfillmentsContext.providedSecrets ?? {});
 
-      return buildFullfilments({
+      return buildFulfillments({
         contextToken,
         selectedLLMProviders,
         selectedEmbeddingProviders,
@@ -187,7 +187,7 @@ export function AgentDemandsProvider<UIGenericPart>({
         providedSecrets,
         featureFlags,
         selectedSettings,
-        formFullfillments: fulfillmentsContext.formFullfillments ?? null,
+        formFulfillments: fulfillmentsContext.formFulfillments ?? null,
         oauthRedirectUri: fulfillmentsContext.oauthRedirectUri ?? null,
       });
     },
@@ -209,7 +209,7 @@ export function AgentDemandsProvider<UIGenericPart>({
         selectedLLMProviders,
         matchedEmbeddingProviders,
         selectedEmbeddingProviders,
-        getFullfilments,
+        getFulfillments,
         selectLLMProvider,
         selectEmbeddingProvider,
         selectMCPServer,

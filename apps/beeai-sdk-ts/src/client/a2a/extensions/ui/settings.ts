@@ -71,12 +71,12 @@ export type SettingsSingleSelectFieldValue = z.infer<typeof singleSelectFieldVal
 export type SettingsFieldValue = z.infer<typeof settingsFieldValue>;
 
 export type SettingsDemands = z.infer<typeof settingsRenderSchema>;
-export type SettingsFullfillments = z.infer<typeof agentRunSettingsSchema>;
+export type SettingsFulfillments = z.infer<typeof agentRunSettingsSchema>;
 
 export const settingsExtension: A2AServiceExtension<
   typeof URI,
   z.infer<typeof settingsRenderSchema>,
-  SettingsFullfillments
+  SettingsFulfillments
 > = {
   getDemandsSchema: () => settingsRenderSchema,
   getFulfillmentSchema: () => agentRunSettingsSchema,

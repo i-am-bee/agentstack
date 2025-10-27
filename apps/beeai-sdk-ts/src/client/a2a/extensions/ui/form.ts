@@ -147,14 +147,14 @@ export type CheckboxField = z.infer<typeof checkboxField>;
 export type FormField = z.infer<typeof fieldSchema>;
 
 export type FormDemands = z.infer<typeof renderSchema>;
-export type FormFullfillments = z.infer<typeof responseSchema>;
-export type FormResponseValue = FormFullfillments['values'][string];
+export type FormFulfillments = z.infer<typeof responseSchema>;
+export type FormResponseValue = FormFulfillments['values'][string];
 
 export const formMessageExtension: A2AUiExtension<typeof URI, FormDemands> = {
   getMessageMetadataSchema: () => z.object({ [URI]: renderSchema }).partial(),
   getUri: () => URI,
 };
-export const formExtension: A2AServiceExtension<typeof URI, z.infer<typeof renderSchema>, FormFullfillments> = {
+export const formExtension: A2AServiceExtension<typeof URI, z.infer<typeof renderSchema>, FormFulfillments> = {
   getDemandsSchema: () => renderSchema,
   getFulfillmentSchema: () => responseSchema,
   getUri: () => URI,

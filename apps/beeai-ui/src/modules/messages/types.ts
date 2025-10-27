@@ -4,7 +4,7 @@
  */
 
 import type { Task } from '@a2a-js/sdk';
-import type { FormDemands, FormFullfillments, SecretDemands } from 'beeai-sdk';
+import type { FormDemands, FormFulfillments, SecretDemands } from 'beeai-sdk';
 
 import type { TaskId } from '#modules/tasks/api/types.ts';
 
@@ -144,5 +144,5 @@ export enum UITransformType {
 
 export interface UIMessageForm {
   request: FormDemands;
-  response: FormFullfillments;
+  response: FormFulfillments;
 }

@@ -6,8 +6,8 @@
 import type { AgentSettings, SettingsCheckboxFieldValue, SettingsDemands } from 'beeai-sdk';
 import { match } from 'ts-pattern';
 
-export function getSettingsRenderDefaultValues(settingsRender: SettingsDemands) {
-  const defaults = settingsRender?.fields.reduce<AgentSettings>((valuesAcc, field) => {
+export function getSettingsDemandsDefaultValues(settingsDemands: SettingsDemands) {
+  const defaults = settingsDemands?.fields.reduce<AgentSettings>((valuesAcc, field) => {
     valuesAcc[field.id] = match(field)
       .with({ type: 'checkbox_group' }, ({ fields }) => {
         const values = fields.reduce<Record<string, SettingsCheckboxFieldValue>>((acc, field) => {

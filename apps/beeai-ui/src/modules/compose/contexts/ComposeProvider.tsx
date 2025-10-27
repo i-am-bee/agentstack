@@ -57,7 +57,7 @@ interface Props {
 
 function ComposeProviderWithContext({ agentClient, children }: PropsWithChildren<Props>) {
   const { getContextId } = usePlatformContext();
-  const { getFullfilments } = useAgentDemands();
+  const { getFulfillments } = useAgentDemands();
   const { data: agents } = useListAgents({ onlyUiSupported: true });
 
   const searchParams = useSearchParams();
@@ -172,7 +172,7 @@ function ComposeProviderWithContext({ agentClient, children }: PropsWithChildren
                 : undefined,
           });
         });
-        const fulfillments = await getFullfilments({});
+        const fulfillments = await getFulfillments({});
 
         const userMessage: UIUserMessage = {
           id: uuid(),
@@ -237,7 +237,7 @@ function ComposeProviderWithContext({ agentClient, children }: PropsWithChildren
         pendingSubscription.current = undefined;
       }
     },
-    [agentClient, getContextId, getFullfilments, updateStep, getActiveStepIdx, getValues, handleError, onDone],
+    [agentClient, getContextId, getFulfillments, updateStep, getActiveStepIdx, getValues, handleError, onDone],
   );
 
   const onSubmit = useCallback(() => {

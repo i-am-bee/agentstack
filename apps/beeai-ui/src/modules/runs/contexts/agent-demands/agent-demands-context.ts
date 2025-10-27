@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentSettings, FormFullfillments, Fulfillments, SettingsDemands } from 'beeai-sdk';
+import type { AgentSettings, FormFulfillments, Fulfillments, SettingsDemands } from 'beeai-sdk';
 import { createContext } from 'react';
 
 import type { TaskId } from '#modules/tasks/api/types.ts';
@@ -11,7 +11,7 @@ import type { TaskId } from '#modules/tasks/api/types.ts';
 export type FulfillmentsContext = Partial<{
   taskId: TaskId;
   providedSecrets: Record<string, string>;
-  formFullfillments: FormFullfillments;
+  formFulfillments: FormFulfillments;
   oauthRedirectUri: string;
 }>;
 
@@ -20,7 +20,7 @@ interface AgentDemandsContextValue {
   selectedLLMProviders: Record<string, string>;
   matchedEmbeddingProviders?: Record<string, string[]>;
   selectedEmbeddingProviders: Record<string, string>;
-  getFullfilments: (context: FulfillmentsContext) => Promise<Fulfillments>;
+  getFulfillments: (context: FulfillmentsContext) => Promise<Fulfillments>;
   selectLLMProvider: (key: string, value: string) => void;
   selectEmbeddingProvider: (key: string, value: string) => void;
   selectMCPServer: (key: string, value: string) => void;
