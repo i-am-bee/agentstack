@@ -79,6 +79,11 @@ async def authenticate_oauth_user(
             token=token, aud=expected_audience, configuration=configuration
         )
     except Exception as e:
+        logger.error(f"authenticate_oauth_user failed: {e!s}")
+        logger.error(f"Token: {token}")
+        if isinstance(e, ExceptionGroup):
+            for exception in e.exceptions:
+                logger.error(f"Nested exception: {exception}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token validation failed") from e
 
     try:
