@@ -12,11 +12,11 @@ import type { Agent } from '#modules/agents/api/types.ts';
 import { AgentDetailPanel } from '#modules/agents/components/detail/AgentDetailPanel.tsx';
 import { SourcesPanel } from '#modules/sources/components/SourcesPanel.tsx';
 
-import { useMessages } from '../../messages/contexts/Messages';
 import { FormRenderView } from '../components/FormRenderView';
 import { RunLandingView } from '../components/RunLandingView';
 import { useAgentRun } from '../contexts/agent-run';
 import { AgentRunProviders } from '../contexts/agent-run/AgentRunProvider';
+import { useSyncRunStateWithRoute } from '../hooks/useSyncRunStateWithRoute';
 import { ChatMessagesView } from './ChatMessagesView';
 
 const formExtensionExtractor = extractServiceExtensionDemands(formExtension);
@@ -34,8 +34,9 @@ export function ChatView({ agent }: Props) {
 }
 
 function Chat() {
-  const { isPending, agent } = useAgentRun();
-  const { messages } = useMessages();
+  const { isPending, agent, hasMessages } = useAgentRun();
+
+  useSyncRunStateWithRoute();
 
   // TODO: move extraction into the agent run context (or a2a client)
   const formRender = useMemo(() => {
@@ -45,7 +46,7 @@ function Chat() {
     return formRender ?? undefined;
   }, [agent]);
 
-  const isLanding = !isPending && !messages.length;
+  const isLanding = !isPending && !hasMessages;
 
   return (
     <>

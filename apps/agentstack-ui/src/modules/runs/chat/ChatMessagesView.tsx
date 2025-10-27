@@ -6,10 +6,12 @@
 import { ArrowDown } from '@carbon/icons-react';
 import { IconButton, InlineLoading } from '@carbon/react';
 import type { RefObject } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { Container } from '#components/layouts/Container.tsx';
 import { useIsScrolled } from '#hooks/useIsScrolled.ts';
 import { isAgentMessage, isUserMessage } from '#modules/messages/utils.ts';
+import { routes } from '#utils/router.ts';
 
 import { FileUpload } from '../../files/components/FileUpload';
 import { useMessages } from '../../messages/contexts/Messages';
@@ -24,7 +26,7 @@ import { ChatUserMessage } from './ChatUserMessage';
 
 export function ChatMessagesView() {
   const { scrollElementRef, observeElementRef, isScrolled, scrollToBottom } = useIsScrolled();
-  const { isPending, clear } = useAgentRun();
+  const { agent, isPending } = useAgentRun();
   const {
     messages,
     queryControl: { hasNextPage, fetchNextPageInViewAnchorRef, isFetchingNextPage },
@@ -32,6 +34,7 @@ export function ChatMessagesView() {
   const {
     status: { isNotInstalled, isStarting },
   } = useAgentStatus();
+  const router = useRouter();
 
   return (
     <FileUpload>
@@ -39,7 +42,11 @@ export function ChatMessagesView() {
         <div className={classes.scrollable} ref={scrollElementRef}>
           <Container size="sm" className={classes.container}>
             <header className={classes.header}>
-              <NewSessionButton onClick={clear} />
+              <NewSessionButton
+                onClick={() => {
+                  router.push(routes.agentRun({ providerId: agent.provider.id }));
+                }}
+              />
             </header>
 
             <ol className={classes.messages} aria-label="messages">
