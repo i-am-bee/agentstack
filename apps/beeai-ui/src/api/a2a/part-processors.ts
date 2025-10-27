@@ -38,7 +38,7 @@ export function processMessageMetadata(message: Message): UIMessagePart[] {
     parts.push(...sourceParts);
   }
   if (form) {
-    return [createFormPart(form)];
+    parts.push(createFormPart(form));
   }
 
   return parts;

@@ -93,9 +93,9 @@ export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) 
     }
 
     if (formDemands) {
-      const formFulfilment = await fulfillments.form(formDemands);
-      if (formFulfilment) {
-        fulfilledMetadata = fulfillFormDemand(fulfilledMetadata, formFulfilment);
+      const formFulfillment = await fulfillments.form(formDemands);
+      if (formFulfillment) {
+        fulfilledMetadata = fulfillFormDemand(fulfilledMetadata, formFulfillment);
       }
     }
 
