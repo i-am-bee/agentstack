@@ -61,10 +61,13 @@ async def install(driver: "BaseDriver"):
                 "--create-namespace",
                 "--set=profile=ambient",
                 "--set=global.platform=k3s",
+                "--set=pilot.env.PILOT_ENABLE_ALPHA_GATEWAY_API=true",
+                "--set=pilot.env.PILOT_USE_TARGET_PORT_FOR_GATEWAY_ROUTES=true",
                 "--wait",
             ],
             f"Installing Istio ({component})",
         )
+
     await driver.run_in_vm(
         ["k3s", "kubectl", "label", "namespace", "default", "istio.io/dataplane-mode=ambient"],
         "Labeling the default namespace",
@@ -101,6 +104,17 @@ async def install(driver: "BaseDriver"):
         {
             "apiVersion": "cert-manager.io/v1",
             "kind": "Certificate",
+            "metadata": {"name": "beeai-cli-tls", "namespace": "istio-system"},
+            "spec": {
+                "secretName": "beeai-cli-tls",
+                "commonName": "beeai-cli",
+                "dnsNames": ["beeai-cli", "beeai-cli.localhost"],
+                "issuerRef": {"name": "istio-system-issuer", "kind": "Issuer"},
+            },
+        },
+        {
+            "apiVersion": "cert-manager.io/v1",
+            "kind": "Certificate",
             "metadata": {"name": "ingestion-svc", "namespace": "default"},
             "spec": {
                 "secretName": "ingestion-svc-tls",
@@ -127,6 +141,24 @@ async def install(driver: "BaseDriver"):
                         "port": 8336,
                         "protocol": "HTTPS",
                         "tls": {"mode": "Terminate", "certificateRefs": [{"name": "beeai-platform-tls"}]},
+                        "allowedRoutes": {"namespaces": {"from": "All"}},
+                    }
+                ],
+            },
+        },
+        {
+            "apiVersion": "gateway.networking.k8s.io/v1",
+            "kind": "Gateway",
+            "metadata": {"name": "beeai-cli", "namespace": "istio-system"},
+            "spec": {
+                "gatewayClassName": "istio",
+                "listeners": [
+                    {
+                        "name": "https",
+                        "hostname": "beeai-cli.localhost",
+                        "port": 8338,
+                        "protocol": "HTTPS",
+                        "tls": {"mode": "Terminate", "certificateRefs": [{"name": "beeai-cli-tls"}]},
                         "allowedRoutes": {"namespaces": {"from": "All"}},
                     }
                 ],
@@ -192,6 +224,21 @@ async def install(driver: "BaseDriver"):
                 ],
             },
         },
+        {
+            "apiVersion": "gateway.networking.k8s.io/v1",
+            "kind": "HTTPRoute",
+            "metadata": {"name": "beeai-cli"},
+            "spec": {
+                "parentRefs": [{"name": "beeai-cli", "namespace": "istio-system"}],
+                "hostnames": ["beeai-cli.testing", "beeai-cli.localhost"],
+                "rules": [
+                    {
+                        "matches": [{"path": {"type": "PathPrefix", "value": "/"}}],
+                        "backendRefs": [{"name": "beeai-platform-svc", "port": 8333}],
+                    }
+                ],
+            },
+        },
     ]
     for resource in resources:
         await driver.run_in_vm(
@@ -199,6 +246,17 @@ async def install(driver: "BaseDriver"):
             f"Applying {resource['metadata']['name']} ({resource['kind']})",
             input=yaml.dump(resource, sort_keys=False).encode("utf-8"),
         )
+
+    # fix the hostPort of the beeai-cli gateway
+    # kubectl -n kube-system patch ds/$(kubectl -n kube-system get ds | grep "beeai-cli" | awk '{print $1}') --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/ports/0/hostPort", "value":15022}]'
+    await driver.run_in_vm(
+        [
+            "sh",
+            "-c",
+            'kubectl -n kube-system patch ds/$(kubectl -n kube-system get ds | grep "beeai-cli" | awk \'{print $1}\') --type=json -p=\'[{"op": "replace", "path": "/spec/template/spec/containers/0/ports/0/hostPort", "value":15022}]\'',
+        ],
+        "Updating beeai-cli hostPort of the beeai-cli gateway",
+    )
 
     # Extra services
     for addon in ["prometheus", "kiali"]:
