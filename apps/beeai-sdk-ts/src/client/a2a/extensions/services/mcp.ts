@@ -30,6 +30,7 @@ const mcpFulfillmentSchema = z.object({
       transport: z.object({
         type: mcpTransportTypesEnum,
         url: z.string(),
+        headers: z.record(z.string(), z.string()).optional(),
       }),
     }),
   ),
@@ -46,6 +47,7 @@ export const mcpExtension: A2AServiceExtension<
         transport: {
           type: MCPTransportType;
           url: string;
+          headers?: Record<string, string>;
         };
       }
     >;

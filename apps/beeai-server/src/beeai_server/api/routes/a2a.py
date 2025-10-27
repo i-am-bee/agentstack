@@ -7,12 +7,18 @@ from uuid import UUID
 
 import fastapi
 import fastapi.responses
-from a2a.types import AgentCard, TransportProtocol
+from a2a.types import (
+    AgentCard,
+    HTTPAuthSecurityScheme,
+    SecurityScheme,
+    TransportProtocol,
+)
 from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from fastapi import Depends, Request
 
 from beeai_server.api.dependencies import (
     A2AProxyServiceDependency,
+    ConfigurationDependency,
     ProviderServiceDependency,
     RequiresPermissions,
 )
@@ -29,7 +35,9 @@ def _create_proxy_url(url: str, *, proxy_base: str) -> str:
     return urljoin(proxy_base, urlparse(url).path.lstrip("/"))
 
 
-def create_proxy_agent_card(agent_card: AgentCard, *, provider_id: UUID, request: Request) -> AgentCard:
+def create_proxy_agent_card(
+    agent_card: AgentCard, *, provider_id: UUID, request: Request, configuration: ConfigurationDependency
+) -> AgentCard:
     proxy_base = str(request.url_for(proxy_request.__name__, provider_id=provider_id, path=""))
     proxy_interfaces = (
         [
@@ -40,11 +48,26 @@ def create_proxy_agent_card(agent_card: AgentCard, *, provider_id: UUID, request
         if agent_card.additional_interfaces is not None
         else None
     )
+
+    proxy_security = []
+    proxy_security_schemes = {}
+    if not configuration.auth.disable_auth:
+        # Note that we're purposefully not using oAuth but a more generic http scheme.
+        # This is because we don't want to declare the auth metadata but prefer discovery through related RFCs
+        # The http scheme also covers internal jwt tokens
+        proxy_security.append({"bearer": []})
+        proxy_security_schemes["bearer"] = SecurityScheme(HTTPAuthSecurityScheme(scheme="bearer"))
+        if configuration.auth.basic.enabled:
+            proxy_security.append({"basic": []})
+            proxy_security_schemes["basic"] = SecurityScheme(HTTPAuthSecurityScheme(scheme="basic"))
+
     if agent_card.preferred_transport in _SUPPORTED_TRANSPORTS:
         return agent_card.model_copy(
             update={
                 "url": _create_proxy_url(agent_card.url, proxy_base=proxy_base),
                 "additional_interfaces": proxy_interfaces,
+                "security": proxy_security,
+                "security_schemes": proxy_security_schemes,
             }
         )
     elif proxy_interfaces:
@@ -54,6 +77,8 @@ def create_proxy_agent_card(agent_card: AgentCard, *, provider_id: UUID, request
                 "url": interface.url,
                 "preferred_transport": interface.transport,
                 "additional_interfaces": proxy_interfaces,
+                "security": proxy_security,
+                "security_schemes": proxy_security_schemes,
             }
         )
     else:
@@ -73,10 +98,13 @@ async def get_agent_card(
     provider_id: UUID,
     request: Request,
     provider_service: ProviderServiceDependency,
+    configuration: ConfigurationDependency,
     _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}))],
 ) -> AgentCard:
     provider = await provider_service.get_provider(provider_id=provider_id)
-    return create_proxy_agent_card(provider.agent_card, provider_id=provider.id, request=request)
+    return create_proxy_agent_card(
+        provider.agent_card, provider_id=provider.id, request=request, configuration=configuration
+    )
 
 
 @router.api_route("/{provider_id}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"])
