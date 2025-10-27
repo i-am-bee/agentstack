@@ -30,5 +30,3 @@ export const BLUESKY_LINK = 'https://bsky.app/profile/beeaiagents.bsky.social';
 export const APP_NAME = 'BeeAI';
 
 export const ANALYTICS_APP_NAME = process.env.NEXT_PUBLIC_ANALYTICS_APP_NAME;
-
-export const ANALYTICS_CATEGORY = process.env.NEXT_PUBLIC_ANALYTICS_CATEGORY;

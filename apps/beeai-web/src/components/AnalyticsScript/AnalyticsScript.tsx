@@ -8,13 +8,13 @@
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 
-import { ANALYTICS_APP_NAME, ANALYTICS_CATEGORY } from '@/constants';
+import { ANALYTICS_APP_NAME } from '@/constants';
 
 export function AnalyticsScript() {
   const pathname = usePathname();
   const skipPageViewCall = useRef(true);
 
-  const isEnabled = Boolean(ANALYTICS_APP_NAME && ANALYTICS_CATEGORY) && isTopWindow();
+  const isEnabled = Boolean(ANALYTICS_APP_NAME) && isTopWindow();
 
   // Init config and inject IBM Analytics script
   useEffect(() => {
@@ -37,8 +37,7 @@ export function AnalyticsScript() {
       page: {
         pageInfo: {
           ibm: { siteId: ANALYTICS_APP_NAME },
-          analytics: { category: ANALYTICS_CATEGORY },
-          // productTitle: 'granite_playground',
+          analytics: { category: 'Beeai' },
         },
         category: { primaryCategory: 'PC340' },
       },
@@ -70,7 +69,13 @@ const IBM_COMMON_SRC = 'https://1.www.s81c.com/common/stats/ibm-common.js';
 
 // Avoid tracking when embedded in an iframe
 function isTopWindow() {
-  return typeof window !== 'undefined' && window.self === window.top;
+  try {
+    return window.self === window.top;
+  } catch (e) {
+    // Cross-origin iframe
+    console.error(e);
+    return false;
+  }
 }
 
 declare global {
