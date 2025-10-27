@@ -37,9 +37,9 @@ export function AnalyticsScript() {
       page: {
         pageInfo: {
           ibm: { siteId: ANALYTICS_APP_NAME },
-          analytics: { category: 'Beeai' },
+          analytics: { category: ANALYTICS_CATEGORY },
         },
-        category: { primaryCategory: 'PC340' },
+        category: { primaryCategory: ANALYTICSPRIMARY_CATEGORY },
       },
     };
 
@@ -92,3 +92,6 @@ declare global {
     };
   }
 }
+
+const ANALYTICS_CATEGORY = 'Beeai';
+const ANALYTICSPRIMARY_CATEGORY = 'PC340';
