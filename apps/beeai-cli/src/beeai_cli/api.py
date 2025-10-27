@@ -1,6 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+import os
 import re
 import urllib
 import urllib.parse
@@ -118,8 +119,15 @@ async def a2a_client(agent_card: AgentCard, use_auth: bool = True) -> AsyncItera
 @asynccontextmanager
 async def openai_client() -> AsyncIterator[openai.AsyncOpenAI]:
     async with Configuration().use_platform_client() as platform_client:
+        verify = os.environ.get("CLIENT_VERIFY_TLS", True)
+        if verify == "False":
+            verify = False
+        # need to remove the bearer token from the default headers
+        default_headers = platform_client.headers.copy()
+        default_headers.pop("Authorization", None)
         yield openai.AsyncOpenAI(
             api_key=platform_client.headers.get("Authorization", "").removeprefix("Bearer ") or "dummy",
             base_url=urllib.parse.urljoin(str(platform_client.base_url), urllib.parse.urljoin(API_BASE_URL, "openai")),
-            default_headers=platform_client.headers,
+            default_headers=default_headers,
+            http_client=httpx.AsyncClient(verify=verify),
         )
