@@ -43,21 +43,11 @@
         ]
       },
       {
-        "group": "Working with Agents",
-        "pages": [
-          "how-to/discover-agents",
-          "how-to/run-agents",
-          "how-to/observe-agents",
-          "how-to/add-agents"
-        ]
-      },
-      {
         "group": "Guides",
         "pages": [
-          "how-to/environment-configuration",
-          "how-to/mcp",
+          "how-to/cli-reference",
           "how-to/web-interface",
-          "how-to/cli-reference"
+          "how-to/environment-configuration"
         ]
       },
       {
