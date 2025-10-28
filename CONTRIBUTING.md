@@ -81,18 +81,19 @@ By default, authentication and authorization are disabled.
 Starting the platform with OIDC enabled:
 
 ```bash
-mise beeai-platform:start --set oidc.enabled=true
+mise beeai-platform:start --set auth.oidc.enabled=true --set auth.enabled=true --set auth.oidc.validate_audience=false
 ```
 
 This does the following:
 
 - Installs Istio in ambient mode.
-- Creates a gateway and routes for `https://beeai.localhost:8336/`.
+- Creates a gateway and routes for `https://beeai.localhost:8336/` and `https://beeai-cli.localhost:8338`
 - Installs the Kiali console.
 
 **Why TLS is used:**  
 OAuth tokens are returned to the browser only over HTTPS to avoid leakage over plain HTTP. Always access the UI via
-`https://beeai.localhost:8336/`.
+`https://beeai.localhost:8336/` 
+
 
 **Istio details:**  
 The default namespace is labeled `istio.io/dataplane-mode=ambient`. This ensures all intra-pod traffic is routed through
@@ -104,7 +105,9 @@ The default namespace is labeled `istio.io/dataplane-mode=ambient`. This ensures
 |----------------|--------------------------------------------|-------------------------------------|
 | Kiali Console  | –                                          | `http://localhost:20001`            |
 | BeeAI UI       | `https://beeai.localhost:8336`             | `http://localhost:8334`             |
+| BeeAI Client   | `https://beeai-cli.localhost:8338`         | `http://localhost:8333`             |
 | BeeAI API Docs | `https://beeai.localhost:8336/api/v1/docs` | `http://localhost:8333/api/v1/docs` |
+
 
 **OIDC configuration:**
 
@@ -127,9 +130,6 @@ oidc:
       "client_id": "<oidc_client_id>",
       "client_secret": "<oidc_client_secret>",
       "issuer": "<oidc_issuer>",
-      "jwks_url": "<oidc_jwks_endpoint>",
-      "nextauth_url": "http://localhost:8336",
-      "nextauth_redirect_proxy_url": "http://localhost:8336"
     },
     {
       "name": "IBMiD",
@@ -139,21 +139,15 @@ oidc:
       "client_id": "<oidc_client_id>",
       "client_secret": "<oidc_client_secret>",
       "issuer": "<oidc_issuer>",
-      "jwks_url": "<oidc_jwks_endpoint>",
-      "nextauth_url": "http://localhost:8336",
-      "nextauth_redirect_proxy_url": "http://localhost:8336"
     }
   ]
 ```
-
-Note: the `class` in the providers entry must be a valid provider supported by next-auth.
-see: https://github.com/nextauthjs/next-auth-example/blob/main/auth.ts
 
 - When debugging the ui component (See debugging individual components), copy the env.example as .env and update the
   following oidc specific values:
 
 ```JavaScript
-OIDC_PROVIDERS='[{"name": "w3id","id": "w3id","type": "oidc","class": "IBM","client_id": "<your_client_id>","client_secret": "<your_client_secret>","issuer": "your_issuer","jwks_url": "<your_jwks_url>","nextauth_url": "http://localhost:3000","nextauth_redirect_proxy_url": "http://localhost:3000"}]'
+OIDC_PROVIDERS='[{"name": "w3id","id": "w3id","type": "oidc","class": "IBM","client_id": "<your_client_id>","client_secret": "<your_client_secret>","issuer": "your_issuer"}]'
 NEXTAUTH_SECRET = "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
 NEXTAUTH_URL = "http://localhost:3000"
 OIDC_ENABLED = true
@@ -164,6 +158,22 @@ Optionally add:
 ```JavaScript
 NEXTAUTH_DEBUG = "true"
 ```
+
+*** cli login with oidc ***
+
+- mise beeai-cli:run -- server login 
+
+when prompted to, "Enter server URL:" enter `https://beeai-cli.localhost:8338`
+
+*** model setup ***
+
+- mise beeai-cli:run -- model setup 
+
+*** cli logout with oidc ***
+
+- mise beeai-cli:run -- server logout
+
+
 
 **To deploy the helm chart to OpenShift:**
 
