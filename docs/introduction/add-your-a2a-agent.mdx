@@ -13,7 +13,8 @@ No need to modify your agent’s code — just run one command and your agent wi
 
 - A running A2A agent with a valid agent card at `/.well-known/agent-card.json`
 - Node.js installed (for npx)
-- Agent Stack running (default: `http://127.0.0.1:8333`)
+- BeeAI Platform running (default: `http://127.0.0.1:8333`)
+- The proxy installed (`npx i-am-bee/beeai-a2a-proxy`)
 
 ### Connect Your Agent
 
@@ -21,7 +22,7 @@ No need to modify your agent’s code — just run one command and your agent wi
 
 2. **Run the proxy** pointing to your agent:
 ```bash
-npx tomkis/beeai-a2a-proxy start http://localhost:8080
+npx i-am-bee/beeai-a2a-proxy start http://localhost:8080
 ```
 
 That's it! Your agent is now registered with BeeAI and accessible through the interface.
@@ -44,28 +45,28 @@ The proxy supports agents using `jsonrpc` and `http_json` transport protocols.
 
 By default, the proxy runs on port 8000. To use a different port:
 ```bash
-npx tomkis/beeai-a2a-proxy start http://localhost:8080 --port 4000
+npx i-am-bee/beeai-a2a-proxy start http://localhost:8080 --port 4000
 ```
 
 ### Custom Platform URL
 
 If your BeeAI platform is running on a different URL:
 ```bash
-npx tomkis/beeai-a2a-proxy start http://localhost:8080 --platform-url http://localhost:9000
+npx i-am-bee/beeai-a2a-proxy start http://localhost:8080 --platform-url http://localhost:9000
 ```
 
 ### Disable Auto-Registration
 
 To run the proxy without automatically registering with BeeAI:
 ```bash
-npx tomkis/beeai-a2a-proxy start http://localhost:8080 --auto-register false
+npx i-am-bee/beeai-a2a-proxy start http://localhost:8080 --auto-register false
 ```
 
 ### Custom Agent Details
 
 You can customize the agent details extension data by providing a JSON file:
 ```bash
-npx tomkis/beeai-a2a-proxy start http://localhost:8080 --custom-data ./my-agent-details.json
+npx i-am-bee/beeai-a2a-proxy start http://localhost:8080 --custom-data ./my-agent-details.json
 ```
 
 ## Available Options
