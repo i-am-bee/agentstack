@@ -75,13 +75,13 @@ from a2a.types import (
 )
 from a2a.utils.message import get_message_text
 from beeai_sdk.server import Server
-from beeai_sdk.server.context import Context
+from beeai_sdk.server.context import RunContext
 from beeai_sdk.a2a.types import AgentMessage
 
 server = Server()
 
 @server.agent()
-async def example_agent(input: Message, context: Context):
+async def example_agent(input: Message, context: RunContext):
     """Polite agent that greets the user"""
     hello_template: str = os.getenv("HELLO_TEMPLATE", "Ciao %s!")
     yield AgentMessage(text=hello_template % get_message_text(input))
@@ -114,7 +114,7 @@ Write a docstring for the function; it will be extracted and shown as the agentâ
 
 <Step title="Understand the function arguments">
 - **First argument:** an [A2A `Message`](https://a2a-protocol.org/latest/specification/#64-message-object).
-- **Second argument:** a `Context` object with run details (e.g., `task_id`, `context_id`).
+- **Second argument:** a `RunContext` object with run details (e.g., `task_id`, `context_id`).
 </Step>
 
 <Step title="Extract text from Message">

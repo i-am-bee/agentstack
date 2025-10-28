@@ -23,7 +23,7 @@ from a2a.types import (
     Message,
 )
 from beeai_sdk.server import Server
-from beeai_sdk.server.context import Context
+from beeai_sdk.server.context import RunContext
 from beeai_sdk.a2a.extensions import AgentDetail, AgentDetailContributor, AgentDetailTool
 
 server = Server()
@@ -59,7 +59,7 @@ server = Server()
         ]
     )
 )
-async def example_agent(input: Message, context: Context):
+async def example_agent(input: Message, context: RunContext):
     """An example agent with detailed configuration"""
     yield "Hello World!"
 
