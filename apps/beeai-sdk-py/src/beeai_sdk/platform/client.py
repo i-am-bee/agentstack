@@ -48,6 +48,12 @@ class PlatformClient(httpx.AsyncClient):
     ) -> None:
         if not base_url:
             base_url = os.environ.get("PLATFORM_URL", "http://127.0.0.1:8333")
+        if auth_token:
+            headers = {"authorization": f"Bearer {auth_token}"}
+        verify = os.environ.get("CLIENT_VERIFY_TLS", verify)
+        if verify == "False":
+            verify = False
+
         super().__init__(
             auth=auth,
             params=params,
@@ -71,7 +77,7 @@ class PlatformClient(httpx.AsyncClient):
         )
         self.context_id = context_id
         if auth_token:
-            self.headers["Authorization"] = f"Bearer {auth_token}"
+            self.headers["authorization"] = f"Bearer {auth_token}"
         self._ref_count = 0
         self._context_manager_lock = asyncio.Lock()
 

@@ -3,6 +3,7 @@
 
 import asyncio
 import logging
+import os
 import sys
 import typing
 import webbrowser
@@ -124,7 +125,11 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                 sys.exit(1)
     else:
         console.info("No authentication tokens found for this server. Proceeding to log in.")
-        async with httpx.AsyncClient() as client:
+        # use case where a developer is spinning up the platform using the Certificate manager's TLS certs.
+        verify = os.environ.get("CLIENT_VERIFY_TLS", True)
+        if verify == "False":
+            verify = False
+        async with httpx.AsyncClient(verify=verify) as client:
             resp = await client.get(f"{server}/.well-known/oauth-protected-resource/", follow_redirects=True)
             if resp.is_error:
                 console.error("This server does not appear to run a compatible version of BeeAI Platform.")
@@ -146,7 +151,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
             if not auth_server:
                 raise RuntimeError("No authorization server selected.")
 
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(verify=verify) as client:
                 try:
                     resp = await client.get(f"{auth_server}/.well-known/openid-configuration")
                     resp.raise_for_status()
@@ -174,21 +179,33 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                 console.warning("Could not open browser. Please visit the above URL manually.")
 
             code = await _wait_for_auth_code()
+            console.info("got code [green]OK[/green].")
+            post_data = {
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": REDIRECT_URI,
+                "client_id": config.client_id,
+                "code_verifier": code_verifier,
+            }
+            # allow a developer to test using a client secret.
+            # In production this is not necessary, however some provisioners do not
+            # properly support authorization code with PKCE.
+            # Further, the oidc configuration must be registerd with the platform
+            # and in local mode in order to verify and validate access tokens.  The
+            # associated production confugration is not available on local.
+            client_secret = os.environ.get("CLIENT_SECRET", "")
+            if client_secret is not None and client_secret != "":
+                post_data["client_secret"] = client_secret
             async with httpx.AsyncClient() as client:
+                token_resp = None
                 try:
-                    token_resp = await client.post(
-                        oidc["token_endpoint"],
-                        data={
-                            "grant_type": "authorization_code",
-                            "code": code,
-                            "redirect_uri": REDIRECT_URI,
-                            "client_id": config.client_id,
-                            "code_verifier": code_verifier,
-                        },
-                    )
+                    token_resp = await client.post(oidc["token_endpoint"], data=post_data)
                     token_resp.raise_for_status()
                     token = token_resp.json()
                 except Exception as e:
+                    console.error(f"token request error: {e!s}")
+                    if token_resp is not None:
+                        console.error(f"token_resp: {token_resp.json()!s}")
                     raise RuntimeError(f"Token request failed: {e}") from e
 
             if not token:

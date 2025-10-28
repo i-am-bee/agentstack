@@ -7,7 +7,7 @@ from enum import StrEnum
 
 import pydantic
 
-from beeai_sdk.platform.client import PlatformClient, get_platform_client
+from beeai_sdk.platform.client import PlatformClient, use_platform_client
 
 
 class ModelProviderType(StrEnum):
@@ -67,7 +67,7 @@ class ModelProvider(pydantic.BaseModel):
         api_key: str,
         client: PlatformClient | None = None,
     ) -> ModelProvider:
-        async with client or get_platform_client() as client:
+        async with client or use_platform_client() as client:
             return pydantic.TypeAdapter(ModelProvider).validate_python(
                 (
                     await client.post(
@@ -89,7 +89,7 @@ class ModelProvider(pydantic.BaseModel):
 
     async def get(self: ModelProvider | str, *, client: PlatformClient | None = None) -> ModelProvider:
         model_provider_id = self if isinstance(self, str) else self.id
-        async with client or get_platform_client() as client:
+        async with client or use_platform_client() as client:
             result = pydantic.TypeAdapter(ModelProvider).validate_python(
                 (await client.get(url=f"/api/v1/model_providers/{model_provider_id}")).raise_for_status().json()
             )
@@ -101,7 +101,7 @@ class ModelProvider(pydantic.BaseModel):
     async def delete(self: ModelProvider | str, *, client: PlatformClient | None = None) -> None:
         # `self` has a weird type so that you can call both `instance.get()` to update an instance, or `File.get("123")` to obtain a new instance
         model_provider_id = self if isinstance(self, str) else self.id
-        async with client or get_platform_client() as client:
+        async with client or use_platform_client() as client:
             _ = (await client.delete(f"/api/v1/model_providers/{model_provider_id}")).raise_for_status()
 
     @staticmethod
@@ -111,7 +111,7 @@ class ModelProvider(pydantic.BaseModel):
         suggested_models: tuple[str, ...] | None = None,
         client: PlatformClient | None = None,
     ) -> list[ModelWithScore]:
-        async with client or get_platform_client() as client:
+        async with client or use_platform_client() as client:
             return pydantic.TypeAdapter(list[ModelWithScore]).validate_python(
                 (
                     await client.post(
@@ -125,7 +125,7 @@ class ModelProvider(pydantic.BaseModel):
 
     @staticmethod
     async def list(*, client: PlatformClient | None = None) -> list[ModelProvider]:
-        async with client or get_platform_client() as client:
+        async with client or use_platform_client() as client:
             return pydantic.TypeAdapter(list[ModelProvider]).validate_python(
                 (await client.get(url="/api/v1/model_providers")).raise_for_status().json()["items"]
             )

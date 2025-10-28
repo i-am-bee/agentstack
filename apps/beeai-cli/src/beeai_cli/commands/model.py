@@ -177,7 +177,9 @@ EMBEDDING_PROVIDERS = [
 ]
 
 
-async def _add_provider(capability: ModelCapability, use_true_localhost: bool = False) -> ModelProvider:
+async def _add_provider(
+    capability: ModelCapability, use_true_localhost: bool = False, client: typing.Any | None = None
+) -> ModelProvider:
     provider_type: str
     provider_name: str
     base_url: str
@@ -289,6 +291,7 @@ async def _add_provider(capability: ModelCapability, use_true_localhost: bool = 
                 api_key=api_key,
                 watsonx_space_id=watsonx_space_id,
                 watsonx_project_id=watsonx_project_id,
+                client=client,
             )
 
     except httpx.HTTPError as e:
@@ -401,11 +404,11 @@ async def list_models():
         console.print(model_table)
 
 
-async def _reset_configuration(existing_providers: list[ModelProvider] | None = None):
+async def _reset_configuration(existing_providers: list[ModelProvider] | None = None, client: typing.Any | None = None):
     if not existing_providers:
-        existing_providers = await ModelProvider.list()
+        existing_providers = await ModelProvider.list(client=client)
     for provider in existing_providers:
-        await provider.delete()
+        await provider.delete(client=client)
     await SystemConfiguration.update(default_embedding_model=None, default_llm_model=None)
 
 
@@ -417,9 +420,9 @@ async def setup(
     """Interactive setup for LLM and embedding provider environment variables"""
 
     with verbosity(verbose):
-        async with configuration.use_platform_client():
+        async with configuration.use_platform_client() as client:
             # Delete all existing providers
-            existing_providers = await ModelProvider.list()
+            existing_providers = await ModelProvider.list(client=client)
             if existing_providers:
                 console.warning("The following providers are already configured:\n")
                 _list_providers(existing_providers)
@@ -427,38 +430,48 @@ async def setup(
                 if await inquirer.confirm(  # type: ignore
                     message="Do you want to reset the configuration?", default=True
                 ).execute_async():
-                    with console.status("Resetting configuration...", spinner="dots"):
-                        await _reset_configuration(existing_providers)
+                    console.log("[orange]Resetting configuration...[/orange]")
+                    await _reset_configuration(existing_providers, client=client)
                 else:
                     console.print("[bold]Aborting[/bold] the setup.")
                     sys.exit(1)
 
             try:
                 console.print("[bold]Setting up LLM provider...[/bold]")
-                llm_provider = await _add_provider(ModelCapability.LLM, use_true_localhost=use_true_localhost)
+                llm_provider = await _add_provider(
+                    ModelCapability.LLM, use_true_localhost=use_true_localhost, client=client
+                )
+                # with console.status("selecting default model...", spinner="dots"):
+                console.log("Selecting default model...")
                 default_llm_model = await _select_default_model(ModelCapability.LLM)
-
                 default_embedding_model = None
                 if ModelCapability.EMBEDDING in llm_provider.capabilities:
+                    console.log("Selecting default embedding model...")
                     default_embedding_model = await _select_default_model(ModelCapability.EMBEDDING)
                 elif await inquirer.confirm(  # type: ignore
                     message="Do you want to configure an embedding provider? (recommended)", default=True
                 ).execute_async():
-                    console.print("[bold]Setting up embedding provider...[/bold]")
-                    await _add_provider(capability=ModelCapability.EMBEDDING, use_true_localhost=use_true_localhost)
+                    console.log("[bold]Setting up embedding provider...[/bold]")
+                    await _add_provider(
+                        capability=ModelCapability.EMBEDDING, use_true_localhost=use_true_localhost, client=client
+                    )
                     default_embedding_model = await _select_default_model(ModelCapability.EMBEDDING)
 
                 with console.status("Saving configuration...", spinner="dots"):
+                    console.log("Saving configuration...")
                     await SystemConfiguration.update(
                         default_llm_model=default_llm_model,
                         default_embedding_model=default_embedding_model,
+                        client=client,
                     )
+                    console.log("Configuration saved [green]OK[/green].")
                 console.print(
                     "\n[bold green]You're all set![/bold green] "
                     "(You can re-run this setup anytime with [blue]beeai model setup[/blue])"
                 )
             except Exception:
-                await _reset_configuration()
+                console.error("Caught an exception...")
+                await _reset_configuration(client=client)
                 raise
 
 
