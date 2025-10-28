@@ -74,10 +74,6 @@
       "href": "https://github.com/i-am-bee/beeai-platform"
     },
     "links": [
-      {
-        "label": "Agent Catalog",
-        "href": "https://beeai.dev/agents"
-      },
       { "label": "Discord", "href": "https://discord.gg/NradeA6ZNF" }
     ]
   },
@@ -85,8 +81,7 @@
     "socials": {
       "github": "https://github.com/i-am-bee/beeai-platform",
       "discord": "https://discord.gg/AZFrp3UF5k",
-      "bluesky": "https://bsky.app/profile/beeaiagents.bsky.social",
-      "youtube": "https://www.youtube.com/@BeeAIAgents"
+      "bluesky": "https://bsky.app/profile/beeaiagents.bsky.social"
     }
   },
   "redirects": [
