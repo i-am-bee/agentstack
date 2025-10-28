@@ -58,6 +58,12 @@ data:
           receivers: [ otlp ]
           processors: [ memory_limiter, filter/phoenix, batch ]
           exporters: [ otlp/phoenix ]
+        metrics/phoenix:
+          receivers: [ otlp ]
+          exporters: [ nop ]
+        logs/phoenix:
+          receivers: [ otlp ]
+          exporters: [ nop ]
         {{ else }}
         traces/nop:
           receivers: [ otlp ]
