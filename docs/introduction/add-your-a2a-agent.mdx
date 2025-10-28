@@ -31,7 +31,7 @@ That's it! Your agent is now registered with BeeAI and accessible through the in
 The proxy creates a bridge between your A2A agent and BeeAI by:
 
 1. **Intercepting agent card requests** - Captures `/.well-known/agent-card.json` requests from any A2A client
-2. **Adding AgentDetail extension** - Automatically injects the necessary [AgentDetail](/build-agents/agent-details) extension data that enables the agent to work within the BeeAI ecosystem
+2. **Adding Agent Details extension** - Automatically injects the necessary [AgentDetail](/build-agents/agent-details) extension data that enables the agent to work within the BeeAI ecosystem
 3. **Auto-registration** - Automatically registers the modified agent with the BeeAI platform, making it immediately available
 
 <Note>
@@ -81,7 +81,7 @@ npx tomkis/beeai-a2a-proxy start http://localhost:8080 --custom-data ./my-agent-
 
 The proxy is great for local development and testing. To deploy your agent to production, you'll need to:
 
-1. Add the [AgentDetail extension](build-agents/agent-details) directly to your agent's code (the proxy won't be available in production)
+1. Add the [Agent Details extension](build-agents/agent-details) directly to your agent's code (the proxy won't be available in production)
 2. Containerize your agent as a Docker image
 3. Deploy it as a managed provider
 
