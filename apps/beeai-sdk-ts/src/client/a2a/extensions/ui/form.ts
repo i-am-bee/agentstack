@@ -50,11 +50,29 @@ const fileFieldValue = z.object({
     .array(
       z.object({
         uri: z.string(),
-        name: z.string().optional(),
-        mime_type: z.string().optional(),
+        name: z.string().nullish(),
+        mime_type: z.string().nullish(),
       }),
     )
     .nullish(),
+});
+
+const singleSelectField = baseField.extend({
+  type: z.literal('singleselect'),
+  options: z
+    .array(
+      z.object({
+        id: z.string().nonempty(),
+        label: z.string().nonempty(),
+      }),
+    )
+    .nonempty(),
+  default_value: z.string().nullish(),
+});
+
+const singleSelectFieldValue = z.object({
+  type: singleSelectField.shape.type,
+  value: z.string().nullish(),
 });
 
 const multiSelectField = baseField.extend({
@@ -86,7 +104,14 @@ const checkboxFieldValue = z.object({
   value: z.boolean().nullish(),
 });
 
-const fieldSchema = z.discriminatedUnion('type', [textField, dateField, fileField, multiSelectField, checkboxField]);
+const fieldSchema = z.discriminatedUnion('type', [
+  textField,
+  dateField,
+  fileField,
+  singleSelectField,
+  multiSelectField,
+  checkboxField,
+]);
 
 const renderSchema = z.object({
   id: z.string().nonempty(),
@@ -105,6 +130,7 @@ const responseSchema = z.object({
       textFieldValue,
       dateFieldValue,
       fileFieldValue,
+      singleSelectFieldValue,
       multiSelectFieldValue,
       checkboxFieldValue,
     ]),
@@ -114,20 +140,21 @@ const responseSchema = z.object({
 export type TextField = z.infer<typeof textField>;
 export type DateField = z.infer<typeof dateField>;
 export type FileField = z.infer<typeof fileField>;
+export type SingleSelectField = z.infer<typeof singleSelectField>;
 export type MultiSelectField = z.infer<typeof multiSelectField>;
 export type CheckboxField = z.infer<typeof checkboxField>;
 
 export type FormField = z.infer<typeof fieldSchema>;
 
-export type FormRender = z.infer<typeof renderSchema>;
-export type FormResponse = z.infer<typeof responseSchema>;
-export type FormResponseValue = FormResponse['values'][string];
+export type FormDemands = z.infer<typeof renderSchema>;
+export type FormFulfillments = z.infer<typeof responseSchema>;
+export type FormResponseValue = FormFulfillments['values'][string];
 
-export const formMessageExtension: A2AUiExtension<typeof URI, FormRender> = {
+export const formMessageExtension: A2AUiExtension<typeof URI, FormDemands> = {
   getMessageMetadataSchema: () => z.object({ [URI]: renderSchema }).partial(),
   getUri: () => URI,
 };
-export const formExtension: A2AServiceExtension<typeof URI, z.infer<typeof renderSchema>, FormResponse> = {
+export const formExtension: A2AServiceExtension<typeof URI, z.infer<typeof renderSchema>, FormFulfillments> = {
   getDemandsSchema: () => renderSchema,
   getFulfillmentSchema: () => responseSchema,
   getUri: () => URI,

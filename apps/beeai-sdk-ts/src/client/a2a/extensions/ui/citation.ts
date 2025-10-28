@@ -9,15 +9,13 @@ import type { A2AUiExtension } from '../types';
 
 const URI = 'https://a2a-extensions.beeai.dev/ui/citation/v1';
 
-const citationSchema = z
-  .object({
-    url: z.string(),
-    start_index: z.number(),
-    end_index: z.number(),
-    title: z.string(),
-    description: z.string(),
-  })
-  .partial();
+const citationSchema = z.object({
+  url: z.string().nullish(),
+  start_index: z.number().nullish(),
+  end_index: z.number().nullish(),
+  title: z.string().nullish(),
+  description: z.string().nullish(),
+});
 
 const schema = z.object({
   citations: z.array(citationSchema),

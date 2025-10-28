@@ -13,6 +13,7 @@ from beeai_sdk.a2a.extensions.ui.form import (
     FormRender,
     MultiSelectField,
     OptionItem,
+    SingleSelectField,
     TextField,
 )
 from beeai_sdk.server import Server
@@ -45,6 +46,15 @@ async def request_form_agent(
                     TextField(id="text_field", label="Text Field", col_span=1),
                     DateField(id="date_field", label="Date Field", col_span=1),
                     FileField(id="file_field", label="File Field", accept=["*/*"], col_span=2),
+                    SingleSelectField(
+                        id="singleselect_field",
+                        label="Single-Select Field",
+                        options=[
+                            OptionItem(id="option1", label="Option 1"),
+                            OptionItem(id="option2", label="Option 2"),
+                        ],
+                        col_span=2,
+                    ),
                     MultiSelectField(
                         id="multiselect_field",
                         label="Multi-Select Field",

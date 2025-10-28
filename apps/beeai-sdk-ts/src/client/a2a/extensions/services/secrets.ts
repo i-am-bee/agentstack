@@ -11,7 +11,7 @@ const URI = 'https://a2a-extensions.beeai.dev/auth/secrets/v1';
 
 const secretDemandSchema = z.object({
   name: z.string(),
-  description: z.string().nullable(),
+  description: z.string().nullish(),
 });
 export type SecretDemand = z.infer<typeof secretDemandSchema>;
 

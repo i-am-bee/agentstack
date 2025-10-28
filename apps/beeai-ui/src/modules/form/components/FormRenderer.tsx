@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button } from '@carbon/react';
-import type { FormRender } from 'beeai-sdk';
+import type { FormDemands } from 'beeai-sdk';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { AgentRunHeader } from '#modules/agents/components/detail/AgentRunHeader.tsx';
@@ -13,14 +12,16 @@ import { isNotNull } from '#utils/helpers.ts';
 
 import type { RunFormValues } from '../types';
 import { getDefaultValues } from '../utils';
+import { FormActionBar } from './FormActionBar';
 import { FormFields } from './FormFields';
 import classes from './FormRenderer.module.scss';
 
 interface Props {
-  definition: FormRender;
+  definition: FormDemands;
   defaultHeading?: string | null;
   showHeading?: boolean;
   isDisabled?: boolean;
+  showRunSettings?: boolean;
   onSubmit: (values: RunFormValues) => void;
 }
 
@@ -28,6 +29,7 @@ export function FormRenderer({
   definition,
   defaultHeading,
   showHeading: showHeadingProp = true,
+  showRunSettings,
   isDisabled,
   onSubmit,
 }: Props) {
@@ -52,15 +54,11 @@ export function FormRenderer({
 
           <FormFields fields={fields} columns={columns} />
 
-          {!isDisabled && (
-            <>
-              <div className={classes.buttons}>
-                <Button type="submit" size="md">
-                  {submit_label ?? 'Submit'}
-                </Button>
-              </div>
-            </>
-          )}
+          <FormActionBar
+            submitLabel={submit_label ?? 'Submit'}
+            showRunSettings={showRunSettings}
+            showSubmitButton={!isDisabled}
+          />
         </fieldset>
       </form>
     </FormProvider>

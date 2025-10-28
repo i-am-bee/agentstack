@@ -3,37 +3,39 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentSettings, SettingsRender } from 'beeai-sdk';
+import type { AgentSettings, SettingsDemands } from 'beeai-sdk';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';
 
-import { useAgentRun } from '../contexts/agent-run';
+import { useAgentDemands } from '../contexts/agent-demands';
 import classes from './RunSettingsForm.module.scss';
 import { SingleSelectSettingsField } from './SingleSelectSettingsField';
 import { ToggleSettingsField } from './ToggleSettingsField';
 
 interface Props {
-  settingsRender: SettingsRender;
+  settingsDemands: SettingsDemands;
 }
 
-export function RunSettingsForm({ settingsRender }: Props) {
-  const { onUpdateSettings, getSettings } = useAgentRun();
+export function RunSettingsForm({ settingsDemands }: Props) {
+  const { selectedSettings, onUpdateSettings } = useAgentDemands();
 
   const form = useForm<AgentSettings>({
-    defaultValues: getSettings(),
+    defaultValues: selectedSettings,
   });
 
-  const values = form.watch();
-
   useEffect(() => {
-    onUpdateSettings(values);
-  }, [onUpdateSettings, values]);
+    const subscription = form.watch((values: AgentSettings) => {
+      onUpdateSettings(values);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form, onUpdateSettings]);
 
   return (
     <FormProvider {...form}>
       <form className={classes.root}>
-        {settingsRender.fields.map((group) => {
+        {settingsDemands.fields.map((group) => {
           return match(group)
             .with({ type: 'checkbox_group' }, ({ id, fields }) => (
               <div key={id}>

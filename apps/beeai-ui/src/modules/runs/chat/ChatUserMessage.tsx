@@ -21,13 +21,8 @@ interface Props {
 export function ChatUserMessage({ message }: Props) {
   const [showSubmission, setShowSubmission] = useState(false);
 
-  const { form, runtimeFullfilledDemands } = message;
+  const { form } = message;
   const hasFormWithResponse = Boolean(form?.response);
-
-  // TODO: show some visual feedback?
-  if (runtimeFullfilledDemands) {
-    return null;
-  }
 
   return (
     <MessageFormProvider showSubmission={showSubmission} setShowSubmission={setShowSubmission}>

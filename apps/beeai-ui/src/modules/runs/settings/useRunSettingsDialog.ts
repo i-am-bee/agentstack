@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { rem } from '@carbon/layout';
 import {
   autoUpdate,
   offset,
@@ -13,37 +14,51 @@ import {
   useInteractions,
   useRole,
 } from '@floating-ui/react';
-import type { RefObject } from 'react';
 import { useState } from 'react';
 
 import { useAgentRun } from '../contexts/agent-run';
 
 interface Props {
-  containerRef: RefObject<HTMLElement | null>;
+  maxWidth?: number;
+  blockOffset?: number;
 }
 
-export function useRunSettingsDialog({ containerRef }: Props) {
-  const { hasMessages } = useAgentRun();
+export function useRunSettingsDialog({ maxWidth, blockOffset }: Props = {}) {
   const [isOpen, setIsOpen] = useState(false);
+  const { hasMessages } = useAgentRun();
+
+  const align = hasMessages ? 'top' : 'bottom';
+  const alignWithContainer = !maxWidth;
 
   const { refs, floatingStyles, context } = useFloating({
-    placement: hasMessages ? 'top-start' : 'bottom-start',
+    placement: `${align}-start`,
     open: isOpen,
     onOpenChange: setIsOpen,
     whileElementsMounted: autoUpdate,
     middleware: [
-      offset(hasMessages ? OFFSET_CHAT : OFFSET_LANDING),
-      size({
-        apply({ elements }) {
-          const container = containerRef.current;
+      offset(() => {
+        const offsets =
+          align === 'top' ? OFFSET_ALIGN_TOP : alignWithContainer ? OFFSET_ALIGN_BOTTOM_CONTAINER : OFFSET_ALIGN_BOTTOM;
+        if (blockOffset) {
+          offsets.mainAxis = blockOffset;
+        }
 
-          if (container) {
-            Object.assign(elements.floating.style, {
-              maxWidth: `${container.offsetWidth}px`,
-            });
-          }
+        return offsets;
+      }, [align, alignWithContainer, blockOffset]),
+      size(
+        {
+          apply({ elements }) {
+            const container = elements.reference;
+            const widthValue = !maxWidth ? container?.getBoundingClientRect().width : maxWidth;
+            if (widthValue) {
+              Object.assign(elements.floating.style, {
+                maxWidth: rem(widthValue),
+              });
+            }
+          },
         },
-      }),
+        [maxWidth],
+      ),
     ],
   });
 
@@ -63,11 +78,17 @@ export function useRunSettingsDialog({ containerRef }: Props) {
   };
 }
 
-const OFFSET_LANDING = {
-  mainAxis: 20,
+export type RunSettingsDialogReturn = ReturnType<typeof useRunSettingsDialog>;
+
+const OFFSET_ALIGN_BOTTOM = {
+  mainAxis: 7,
   crossAxis: -12,
 };
-const OFFSET_CHAT = {
-  mainAxis: 56,
-  crossAxis: -12,
+const OFFSET_ALIGN_BOTTOM_CONTAINER = {
+  mainAxis: -3,
+  crossAxis: 0,
+};
+const OFFSET_ALIGN_TOP = {
+  mainAxis: 8,
+  crossAxis: 0,
 };

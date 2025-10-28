@@ -10,9 +10,11 @@ from a2a.types import Message
 from beeai_sdk.a2a.extensions.ui.settings import (
     CheckboxField,
     CheckboxGroupField,
+    OptionItem,
     SettingsExtensionServer,
     SettingsExtensionSpec,
     SettingsRender,
+    SingleSelectField,
 )
 from beeai_sdk.a2a.types import RunYield
 from beeai_sdk.server import Server
@@ -39,7 +41,17 @@ async def settings_agent(
                                 default_value=True,
                             )
                         ],
-                    )
+                    ),
+                    SingleSelectField(
+                        id="response_style",
+                        label="Response Style",
+                        options=[
+                            OptionItem(value="concise", label="Concise"),
+                            OptionItem(value="detailed", label="Detailed"),
+                            OptionItem(value="humorous", label="Humorous"),
+                        ],
+                        default_value="concise",
+                    ),
                 ],
             ),
         ),

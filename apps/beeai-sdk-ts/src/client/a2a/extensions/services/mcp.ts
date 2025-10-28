@@ -13,9 +13,9 @@ const mcpTransportTypesEnum = z.enum(['streamable_http', 'stdio']);
 type MCPTransportType = z.infer<typeof mcpTransportTypesEnum>;
 
 const mcpDemandSchema = z.object({
-  description: z.string().nullable(),
-  suggested: z.array(z.string()).nullable(),
-  allowed_transports: z.array(mcpTransportTypesEnum).nullable(),
+  description: z.string().nullish(),
+  suggested: z.array(z.string()).nullish(),
+  allowed_transports: z.array(mcpTransportTypesEnum).nullish(),
 });
 
 const mcpDemandsSchema = z.object({

@@ -17,7 +17,7 @@ import classes from './SecretsModal.module.scss';
 export function SecretsModal({ onRequestClose, ...modalProps }: ModalProps) {
   const [step, setStep] = useState(Step.Landing);
 
-  const { secrets } = useAgentSecrets();
+  const { demandedSecrets } = useAgentSecrets();
 
   const isLanding = step === Step.Landing;
 
@@ -43,7 +43,11 @@ export function SecretsModal({ onRequestClose, ...modalProps }: ModalProps) {
       </ModalHeader>
 
       <ModalBody>
-        <SecretCardsList secrets={secrets} onCloseAddModal={handleCloseAddModal} onOpenAddModal={handleOpendAddModal} />
+        <SecretCardsList
+          secrets={demandedSecrets}
+          onCloseAddModal={handleCloseAddModal}
+          onOpenAddModal={handleOpendAddModal}
+        />
       </ModalBody>
 
       <ModalFooter>
@@ -51,7 +55,7 @@ export function SecretsModal({ onRequestClose, ...modalProps }: ModalProps) {
           Skip for now
         </Button>
 
-        <Button disabled={secrets.some(({ isReady }) => !isReady)} onClick={() => onRequestClose()}>
+        <Button disabled={demandedSecrets.some(({ isReady }) => !isReady)} onClick={() => onRequestClose()}>
           Continue
         </Button>
       </ModalFooter>

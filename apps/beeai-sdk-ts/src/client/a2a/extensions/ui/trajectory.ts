@@ -9,12 +9,10 @@ import type { A2AUiExtension } from '../types';
 
 const URI = 'https://a2a-extensions.beeai.dev/ui/trajectory/v1';
 
-const schema = z
-  .object({
-    title: z.string(),
-    content: z.string(),
-  })
-  .partial();
+const schema = z.object({
+  title: z.string().nullish(),
+  content: z.string().nullish(),
+});
 
 export type TrajectoryMetadata = z.infer<typeof schema>;
 

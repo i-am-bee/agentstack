@@ -70,13 +70,13 @@ export type SettingsCheckboxGroupFieldValue = z.infer<typeof checkboxGroupFieldV
 export type SettingsSingleSelectFieldValue = z.infer<typeof singleSelectFieldValue>;
 export type SettingsFieldValue = z.infer<typeof settingsFieldValue>;
 
-export type SettingsRender = z.infer<typeof settingsRenderSchema>;
-export type AgentRunSettings = z.infer<typeof agentRunSettingsSchema>;
+export type SettingsDemands = z.infer<typeof settingsRenderSchema>;
+export type SettingsFulfillments = z.infer<typeof agentRunSettingsSchema>;
 
 export const settingsExtension: A2AServiceExtension<
   typeof URI,
   z.infer<typeof settingsRenderSchema>,
-  AgentRunSettings
+  SettingsFulfillments
 > = {
   getDemandsSchema: () => settingsRenderSchema,
   getFulfillmentSchema: () => agentRunSettingsSchema,

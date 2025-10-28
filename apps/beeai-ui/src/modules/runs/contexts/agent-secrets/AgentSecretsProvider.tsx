@@ -13,7 +13,7 @@ import type { Agent } from '#modules/agents/api/types.ts';
 import { useListVariables } from '#modules/variables/api/queries/useListVariables.ts';
 
 import { AgentSecretsContext } from './agent-secrets-context';
-import type { AgentRequestSecrets, NonReadySecretDemand, ReadySecretDemand } from './types';
+import type { NonReadySecretDemand, ReadySecretDemand } from './types';
 
 interface Props {
   agent: Agent;
@@ -53,7 +53,7 @@ export function AgentSecretsProvider({ agent, agentClient, children }: PropsWith
   }, [agentSecrets, agent.provider.id]);
 
   const secretDemands = useMemo(() => {
-    return agentClient?.secretDemands ?? null;
+    return agentClient?.demands.secretDemands ?? null;
   }, [agentClient]);
 
   const markModalAsSeen = useCallback(() => {
@@ -65,20 +65,21 @@ export function AgentSecretsProvider({ agent, agentClient, children }: PropsWith
     }));
   }, [agent.provider.id, setAgentSecrets]);
 
-  const secrets = useMemo(() => {
+  const demandedSecrets = useMemo(() => {
     if (secretDemands === null) {
       return [];
     }
 
-    return Object.entries(secretDemands).map(([key, demand]) => {
+    return Object.entries(secretDemands.secret_demands).map(([key, demand]) => {
       if (variables && key in variables) {
         const readyDemand: ReadySecretDemand = {
           ...demand,
+          key,
           isReady: true,
           value: variables[key],
         };
 
-        return { key, ...readyDemand };
+        return readyDemand;
       } else {
         const nonReadyDemand: NonReadySecretDemand = {
           ...demand,
@@ -90,20 +91,13 @@ export function AgentSecretsProvider({ agent, agentClient, children }: PropsWith
     });
   }, [secretDemands, variables]);
 
-  const getRequestSecrets = useCallback((): AgentRequestSecrets => {
-    return secrets.reduce<AgentRequestSecrets>((acc, secret) => {
-      return { ...acc, [secret.key]: secret };
-    }, {});
-  }, [secrets]);
-
   const contextValue = useMemo(
     () => ({
-      secrets,
       hasSeenModal,
       markModalAsSeen,
-      getRequestSecrets,
+      demandedSecrets,
     }),
-    [secrets, hasSeenModal, markModalAsSeen, getRequestSecrets],
+    [demandedSecrets, hasSeenModal, markModalAsSeen],
   );
 
   return <AgentSecretsContext.Provider value={contextValue}>{children}</AgentSecretsContext.Provider>;
