@@ -4,7 +4,7 @@
 """empty message
 
 Revision ID: 4036d0817d69
-Revises: c69e8ad9a82a
+Revises: 28725d931ca5
 Create Date: 2025-10-27 13:33:32.430453
 
 """
@@ -16,7 +16,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "4036d0817d69"
-down_revision: str | None = "c69e8ad9a82a"
+down_revision: str | None = "28725d931ca5"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -40,6 +40,7 @@ def upgrade() -> None:
         sa.Column("auth_state", sa.String(length=256), nullable=True),
         sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("url", "created_by", name="uk_url"),
     )
     op.create_index(op.f("ix_connectors_auth_state"), "connectors", ["auth_state"], unique=True)
     # ### end Alembic commands ###

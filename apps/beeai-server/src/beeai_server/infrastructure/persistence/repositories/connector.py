@@ -6,7 +6,7 @@ from typing import Any
 from uuid import UUID
 
 from kink import inject
-from sqlalchemy import JSON, Column, DateTime, ForeignKey, Row, String, Table
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Row, String, Table, UniqueConstraint
 from sqlalchemy import UUID as SQL_UUID
 from sqlalchemy.ext.asyncio import AsyncConnection
 
@@ -28,6 +28,7 @@ connectors = Table(
     Column("auth", JSON, nullable=True),
     # Duplicate to allow indexing
     Column("auth_state", String(256), nullable=True, unique=True, index=True),
+    UniqueConstraint("url", "created_by", name="uk_url"),
 )
 
 
