@@ -60,6 +60,8 @@ class ConnectorService:
 
     async def delete_connector(self, *, connector_id: UUID, user: User | None = None) -> None:
         async with self._uow() as uow:
+            connector = await uow.connectors.get(connector_id=connector_id, user_id=user.id if user else None)
+            await self._revoke_auth_token(connector=connector)
             await uow.connectors.delete(connector_id=connector_id, user_id=user.id if user else None)
             await uow.commit()
 
