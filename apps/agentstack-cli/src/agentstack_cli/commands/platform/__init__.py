@@ -14,22 +14,22 @@ import typing
 
 import httpx
 import typer
-from beeai_sdk.platform import Provider
+from agentstack_sdk.platform import Provider
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, wait_fixed
 
-from beeai_cli.async_typer import AsyncTyper
-from beeai_cli.commands.platform.base_driver import BaseDriver
-from beeai_cli.commands.platform.lima_driver import LimaDriver
-from beeai_cli.commands.platform.wsl_driver import WSLDriver
-from beeai_cli.console import console
-from beeai_cli.utils import verbosity
+from agentstack_cli.async_typer import AsyncTyper
+from agentstack_cli.commands.platform.base_driver import BaseDriver
+from agentstack_cli.commands.platform.lima_driver import LimaDriver
+from agentstack_cli.commands.platform.wsl_driver import WSLDriver
+from agentstack_cli.console import console
+from agentstack_cli.utils import verbosity
 
 app = AsyncTyper()
 
 
 @functools.cache
-def get_driver(vm_name: str = "beeai-platform") -> BaseDriver:
-    has_lima = (importlib.resources.files("beeai_cli") / "data" / "limactl").is_file() or shutil.which("limactl")
+def get_driver(vm_name: str = "agentstack-platform") -> BaseDriver:
+    has_lima = (importlib.resources.files("agentstack_cli") / "data" / "limactl").is_file() or shutil.which("limactl")
     has_vz = os.path.exists("/System/Library/Frameworks/Virtualization.framework")
     arch = "aarch64" if platform.machine().lower() == "arm64" else platform.machine().lower()
     has_qemu = bool(shutil.which(f"qemu-system-{arch}"))
@@ -65,17 +65,17 @@ async def start(
     import_images: typing.Annotated[
         list[str],
         typer.Option(
-            "--import", help="Import an image from a local Docker CLI into BeeAI platform", default_factory=list
+            "--import", help="Import an image from a local Docker CLI into Agent Stack platform", default_factory=list
         ),
     ],
     values_file: typing.Annotated[
         pathlib.Path | None, typer.Option("-f", help="Set Helm chart values using yaml values file")
     ] = None,
-    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack-platform",
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ):
-    """Start BeeAI platform."""
-    import beeai_cli.commands.server
+    """Start Agent Stack platform."""
+    import agentstack_cli.commands.server
 
     values_file_path = None
     if values_file:
@@ -89,7 +89,7 @@ async def start(
         await driver.install_tools()
         await driver.deploy(set_values_list=set_values_list, values_file=values_file_path, import_images=import_images)
 
-        with console.status("Waiting for BeeAI platform to be ready...", spinner="dots"):
+        with console.status("Waiting for Agent Stack platform to be ready...", spinner="dots"):
             timeout = datetime.timedelta(minutes=20)
             try:
                 async for attempt in AsyncRetrying(
@@ -105,7 +105,7 @@ async def start(
                     f"Server did not start in {timeout}. Please check your internet connection."
                 ) from ex
 
-        console.success("BeeAI platform started successfully!")
+        console.success("Agent Stack platform started successfully!")
 
         if any("phoenix.enabled=true" in value.lower() for value in set_values_list):
             console.print(
@@ -121,47 +121,47 @@ async def start(
                 style="dim",
             )
 
-        await beeai_cli.commands.server.server_login("http://localhost:8333")
+        await agentstack_cli.commands.server.server_login("http://localhost:8333")
 
 
 @app.command("stop")
 async def stop(
-    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack-platform",
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ):
-    """Stop BeeAI platform."""
+    """Stop Agent Stack platform."""
     with verbosity(verbose):
         driver = get_driver(vm_name=vm_name)
         if not await driver.status():
-            console.info("BeeAI platform not found. Nothing to stop.")
+            console.info("Agent Stack platform not found. Nothing to stop.")
             return
         await driver.stop()
-        console.success("BeeAI platform stopped successfully.")
+        console.success("Agent Stack platform stopped successfully.")
 
 
 @app.command("delete")
 async def delete(
-    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack-platform",
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ):
-    """Delete BeeAI platform."""
+    """Delete Agent Stack platform."""
     with verbosity(verbose):
         driver = get_driver(vm_name=vm_name)
         await driver.delete()
-        console.success("BeeAI platform deleted successfully.")
+        console.success("Agent Stack platform deleted successfully.")
 
 
 @app.command("import")
 async def import_image_cmd(
     tag: typing.Annotated[str, typer.Argument(help="Docker image tag to import")],
-    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack-platform",
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ):
-    """Import a local docker image into the BeeAI platform."""
+    """Import a local docker image into the Agent Stack platform."""
     with verbosity(verbose):
         driver = get_driver(vm_name=vm_name)
         if (await driver.status()) != "running":
-            console.error("BeeAI platform is not running.")
+            console.error("Agent Stack platform is not running.")
             sys.exit(1)
         await driver.import_image(tag)
 
@@ -169,13 +169,13 @@ async def import_image_cmd(
 @app.command("exec")
 async def exec_cmd(
     command: typing.Annotated[list[str] | None, typer.Argument()] = None,
-    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack-platform",
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ):
-    """For debugging -- execute a command inside the BeeAI platform VM."""
+    """For debugging -- execute a command inside the Agent Stack platform VM."""
     with verbosity(verbose, show_success_status=False):
         driver = get_driver(vm_name=vm_name)
         if (await driver.status()) != "running":
-            console.error("BeeAI platform is not running.")
+            console.error("Agent Stack platform is not running.")
             sys.exit(1)
         await driver.exec(command or ["/bin/bash"])

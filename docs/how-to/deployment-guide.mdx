@@ -72,14 +72,14 @@ kubectl port-forward svc/beeai-platform-svc 8333:8333 &
 After the platform becomes ready, it's time to set up your model provider:
 
 ```shell
-BEEAI__ADMIN_PASSWORD="my-secret-password" beeai model setup
+AGENTSTACK__ADMIN_PASSWORD="my-secret-password" agentstack model setup
 ```
 
 ### Step 5: Test the Deployment
 
 ```shell
-BEEAI__ADMIN_PASSWORD="my-secret-password" beeai list
-BEEAI__ADMIN_PASSWORD="my-secret-password" beeai run chat hi
+AGENTSTACK__ADMIN_PASSWORD="my-secret-password" agentstack list
+AGENTSTACK__ADMIN_PASSWORD="my-secret-password" agentstack run chat hi
 ```
 
 ## Configuration Options

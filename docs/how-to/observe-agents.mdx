@@ -10,7 +10,7 @@ BeeAI provides observability tools to monitor and debug your agents through logg
 Stream real-time logs from any running agent:
 
 ```bash
-beeai logs <agent-name>
+agentstack logs <agent-name>
 ```
 
 What you'll see:
@@ -58,10 +58,10 @@ The telemetry includes:
 <Steps>
    <Step title="Install Arize Phoenix">
 
-Install and start Phoenix using `beeai platform start` command:
+Install and start Phoenix using `agentstack platform start` command:
 
 ```sh
-beeai platform start --set phoenix.enabled=true
+agentstack platform start --set phoenix.enabled=true
 ```
 
        You can run this even if your platform is already running without loosing data.
@@ -77,7 +77,7 @@ beeai platform start --set phoenix.enabled=true
 Execute the following command to run an example chat agent:
 
 ```sh
-beeai run chat "Hello"
+agentstack run chat "Hello"
 ```
 
    </Step>

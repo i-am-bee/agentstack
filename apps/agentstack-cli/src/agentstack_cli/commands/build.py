@@ -16,15 +16,15 @@ import anyio
 import anyio.abc
 import typer
 from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
+from agentstack_sdk.platform import AddProvider, BuildConfiguration, Provider, UpdateProvider
+from agentstack_sdk.platform.provider_build import BuildState, ProviderBuild
 from anyio import open_process
-from beeai_sdk.platform import AddProvider, BuildConfiguration, Provider, UpdateProvider
-from beeai_sdk.platform.provider_build import BuildState, ProviderBuild
 from httpx import AsyncClient, HTTPError
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, wait_fixed
 
-from beeai_cli.async_typer import AsyncTyper
-from beeai_cli.console import console
-from beeai_cli.utils import capture_output, extract_messages, print_log, run_command, status, verbosity
+from agentstack_cli.async_typer import AsyncTyper
+from agentstack_cli.console import console
+from agentstack_cli.utils import capture_output, extract_messages, print_log, run_command, status, verbosity
 
 
 async def find_free_port():
@@ -46,14 +46,14 @@ async def build(
     multi_platform: bool | None = False,
     push: typing.Annotated[bool, typer.Option(help="Push the image to the target registry.")] = False,
     import_image: typing.Annotated[
-        bool, typer.Option("--import/--no-import", is_flag=True, help="Import the image into BeeAI platform")
+        bool, typer.Option("--import/--no-import", is_flag=True, help="Import the image into Agent Stack platform")
     ] = True,
-    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack-platform",
     verbose: typing.Annotated[bool, typer.Option("-v")] = False,
 ):
     with verbosity(verbose):
         await run_command(["which", "docker"], "Checking docker")
-        image_id = "beeai-agent-build-tmp:latest"
+        image_id = "agentstack-agent-build-tmp:latest"
         port = await find_free_port()
         dockerfile_args = ("-f", dockerfile) if dockerfile else ()
 
@@ -102,7 +102,7 @@ async def build(
         context_hash = hashlib.sha256((context + (dockerfile or "")).encode()).hexdigest()[:6]
         context_shorter = re.sub(r"https?://", "", context).replace(r".git", "")
         context_shorter = re.sub(r"[^a-zA-Z0-9_-]+", "-", context_shorter)[:32].lstrip("-") or "provider"
-        tag = (tag or f"beeai.local/{context_shorter}-{context_hash}:latest").lower()
+        tag = (tag or f"agentstack.local/{context_shorter}-{context_hash}:latest").lower()
         await run_command(
             command=[
                 *(
@@ -122,11 +122,11 @@ async def build(
         )
         console.success(f"Successfully built agent: {tag}")
         if import_image:
-            from beeai_cli.commands.platform import get_driver
+            from agentstack_cli.commands.platform import get_driver
 
             driver = get_driver(vm_name=vm_name)
             if (await driver.status()) != "running":
-                console.error("BeeAI platform is not running.")
+                console.error("Agent Stack platform is not running.")
                 sys.exit(1)
             await driver.import_image(tag)
 
@@ -147,8 +147,8 @@ async def server_side_build_experimental(
     add: typing.Annotated[bool, typer.Option(help="Add agent to the platform after build")] = False,
 ):
     """EXPERIMENTAL: Build agent from github repository in the platform."""
-    from beeai_cli.commands.agent import select_provider
-    from beeai_cli.configuration import Configuration
+    from agentstack_cli.commands.agent import select_provider
+    from agentstack_cli.configuration import Configuration
 
     if replace and add:
         raise ValueError("Cannot specify both replace and add options.")
@@ -175,9 +175,9 @@ async def server_side_build_experimental(
         build = await build.get()
         if build.status == BuildState.COMPLETED:
             if add:
-                message = "Agent added successfully. List agents using [green]beeai list[/green]"
+                message = "Agent added successfully. List agents using [green]agentstack list[/green]"
             else:
-                message = f"Agent built successfully, add it to the platform using: [green]beeai add {build.destination}[/green]"
+                message = f"Agent built successfully, add it to the platform using: [green]agentstack add {build.destination}[/green]"
             console.success(message)
         else:
             error = build.error_message or "see logs above for details"

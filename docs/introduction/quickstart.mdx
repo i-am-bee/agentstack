@@ -42,7 +42,7 @@ Install QEMU via package manager ([instructions](https://www.qemu.org/download/)
 Open a new terminal and run:
 
 ```bash
-uv tool install --refresh --quiet --force beeai-cli && beeai self install
+uv tool install --refresh --quiet --force agentstack-cli && agentstack self install
 ```
 
 Follow the interactive prompts to finish installation and setup.
@@ -104,7 +104,7 @@ Close and reopen your terminal after installation.
 <Step title="Install BeeAI">
 
 ```bash
-uv tool install --force --python-preference=only-managed --python=3.13 beeai-cli && beeai self install
+uv tool install --force --python-preference=only-managed --python=3.13 agentstack-cli && agentstack self install
 ```
 
 Follow the interactive prompts to finish the installation and setup.
@@ -117,21 +117,21 @@ Follow the interactive prompts to finish the installation and setup.
 ## Usage
 
 ```sh
-beeai ui                     # Launch web interface
-beeai list                   # See what agents are available
-beeai run chat "Hi!"         # Send a message to chat agent
-beeai run chat               # Try interactive mode
-beeai info chat              # View agent details
-beeai --help                 # See all options
+agentstack ui                     # Launch web interface
+agentstack list                   # See what agents are available
+agentstack run chat "Hi!"         # Send a message to chat agent
+agentstack run chat               # Try interactive mode
+agentstack info chat              # View agent details
+agentstack --help                 # See all options
 ```
 
 ## Platform Management
 
 ```sh
-beeai platform start        # Start platform
-beeai model setup           # Configure LLM provider
-beeai platform stop         # Stop (keeps data)
-beeai platform delete       # Delete all data
+agentstack platform start        # Start platform
+agentstack model setup           # Configure LLM provider
+agentstack platform stop         # Stop (keeps data)
+agentstack platform delete       # Delete all data
 ```
 
 ## Version & Upgrades
@@ -141,9 +141,9 @@ If you are having issues with these commands, you may be running an old version 
 </Warning>
 
 ```sh
-beeai self version          # Check version
-beeai self upgrade          # Update
-beeai self uninstall        # Remove completely
+agentstack self version          # Check version
+agentstack self upgrade          # Update
+agentstack self uninstall        # Remove completely
 ```
 
 Explore the rest of the documentation to learn how to connect MCP servers, build your own agents, use document retrieval, and more! 🐝

@@ -8,7 +8,7 @@ Once you've discovered agents and configured your environment, running them is s
 You can launch and interact with agents using the graphical interface or the command line. To open the GUI, run:
 
 ```bash
-beeai ui
+agentstack ui
 ```
 
 <Note>
@@ -20,24 +20,24 @@ Not all agents support GUI interaction.
 <Accordion title="Chat Agent">
 Start an interactive chat session:
 ```bash
-beeai run chat
+agentstack run chat
 ```
 
 Or send a single message:
 ```bash
-beeai run chat "Hello! How can you help me today?"
+agentstack run chat "Hello! How can you help me today?"
 ```
 </Accordion>
 
 <Accordion title="GPT Researcher">
 ```bash
-beeai run gpt_researcher "Research the latest developments in quantum computing"
+agentstack run gpt_researcher "Research the latest developments in quantum computing"
 ```
 </Accordion>
 
 <Accordion title="Aider - Code Assistant">
 ```bash
-beeai run aider "
+agentstack run aider "
 Review this Python function and suggest improvements:
 
 def calculate_fibonacci(n):
@@ -50,14 +50,14 @@ def calculate_fibonacci(n):
 
 <Accordion title="Prompt Chaining: GPT Researcher -> Chat Agent">
 ```bash
-beeai run gpt_researcher "Latest developments in renewable energy storage" | beeai run chat "Summarize this research in 3 key bullet points"
+agentstack run gpt_researcher "Latest developments in renewable energy storage" | agentstack run chat "Summarize this research in 3 key bullet points"
 ```
 </Accordion>
 
 ## Input Options
 
 <Note>
-Different agents may have different input expectations. Always refer to the agent’s documentation via `beeai info <agent-name>` for guidance.
+Different agents may have different input expectations. Always refer to the agent’s documentation via `agentstack info <agent-name>` for guidance.
 </Note>
 
 ### Interactive Mode
@@ -65,7 +65,7 @@ Different agents may have different input expectations. Always refer to the agen
 Opens a session where you can send multiple messages.
 
 ```bash
-beeai run chat
+agentstack run chat
 ```
 
 ### Direct Text Input
@@ -73,7 +73,7 @@ beeai run chat
 Run an agent with a single message or prompt.
 
 ```bash
-beeai run gpt_researcher "Research the latest developments in quantum computing"
+agentstack run gpt_researcher "Research the latest developments in quantum computing"
 ```
 
 ### Multi-line Input
@@ -81,7 +81,7 @@ beeai run gpt_researcher "Research the latest developments in quantum computing"
 Great for sharing code snippets.
 
 ```bash
-beeai run aider "
+agentstack run aider "
 Review this Python function and suggest improvements:
 
 def calculate_fibonacci(n):
@@ -96,7 +96,7 @@ def calculate_fibonacci(n):
 Send the contents of a file as input to an agent.
 
 ```bash
-beeai run chat < my_file.txt
+agentstack run chat < my_file.txt
 ```
 
 ### Pipe Between Agents
@@ -104,7 +104,7 @@ beeai run chat < my_file.txt
 Send output from one agent into another.
 
 ```bash
-beeai run gpt_researcher "Latest developments in renewable energy storage" | beeai run chat "Summarize this research in 3 key bullet points"
+agentstack run gpt_researcher "Latest developments in renewable energy storage" | agentstack run chat "Summarize this research in 3 key bullet points"
 ```
 
 ## Output Handling
@@ -114,7 +114,7 @@ beeai run gpt_researcher "Latest developments in renewable energy storage" | bee
 Save the agent’s output to a file:
 
 ```bash
-beeai run chat "Write a technical blog post about how large language models work" > ~/post.md
+agentstack run chat "Write a technical blog post about how large language models work" > ~/post.md
 ```
 
 ### Append to File
@@ -122,7 +122,7 @@ beeai run chat "Write a technical blog post about how large language models work
 Append output to an existing file:
 
 ```bash
-beeai run chat "Add a section on the challenges and limitations of large language models" >> ~/blog.md
+agentstack run chat "Add a section on the challenges and limitations of large language models" >> ~/blog.md
 ```
 
 <Tip>

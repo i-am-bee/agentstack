@@ -18,8 +18,8 @@ from fastapi.responses import HTMLResponse
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
 
-from beeai_cli.async_typer import AsyncTyper, console
-from beeai_cli.configuration import Configuration
+from agentstack_cli.async_typer import AsyncTyper, console
+from agentstack_cli.configuration import Configuration
 
 app = AsyncTyper()
 
@@ -51,7 +51,7 @@ async def _wait_for_auth_code(port: int = 9001) -> str:
             </head>
             <body>
                 <h1>Login successful!</h1>
-                <p>You can safely close this tab and return to the BeeAI CLI.</p>
+                <p>You can safely close this tab and return to the Agent Stack CLI.</p>
             </body>
             </html>
             """,
@@ -127,7 +127,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
         async with httpx.AsyncClient() as client:
             resp = await client.get(f"{server}/.well-known/oauth-protected-resource/", follow_redirects=True)
             if resp.is_error:
-                console.error("This server does not appear to run a compatible version of BeeAI Platform.")
+                console.error("This server does not appear to run a compatible version of Agent Stack Platform.")
                 sys.exit(1)
             metadata = resp.json()
 
@@ -217,7 +217,7 @@ def server_show():
     if not config.auth_manager.active_server:
         console.info("No server selected.")
         console.hint(
-            "Run [green]beeai server list[/green] to list available servers, and [green]beeai server login[/green] to select one."
+            "Run [green]agentstack server list[/green] to list available servers, and [green]agentstack server login[/green] to select one."
         )
         return
     console.info(f"Active server: [cyan]{config.auth_manager.active_server}[/cyan]")
@@ -228,7 +228,7 @@ def server_list():
     if not config.auth_manager.servers:
         console.info("No servers found.")
         console.hint(
-            "Run [green]beeai platform start[/green] to start a local server, or [green]beeai server login[/green] to connect to a remote one."
+            "Run [green]agentstack platform start[/green] to start a local server, or [green]agentstack server login[/green] to connect to a remote one."
         )
         return
     for server in config.auth_manager.servers:

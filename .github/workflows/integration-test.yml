@@ -8,13 +8,13 @@ on:
   pull_request:
     paths:
       - 'apps/beeai-server/**'
-      - 'apps/beeai-cli/**'
+      - 'apps/agentstack-cli/**'
   push:
     branches:
       - main
     paths:
       - 'apps/beeai-server/**'
-      - 'apps/beeai-cli/**'
+      - 'apps/agentstack-cli/**'
 jobs:
   integration-test:
     runs-on: ubuntu-latest

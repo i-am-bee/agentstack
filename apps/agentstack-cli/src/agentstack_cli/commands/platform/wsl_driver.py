@@ -15,10 +15,10 @@ import yaml
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
 
-from beeai_cli.commands.platform.base_driver import BaseDriver
-from beeai_cli.configuration import Configuration
-from beeai_cli.console import console
-from beeai_cli.utils import run_command
+from agentstack_cli.commands.platform.base_driver import BaseDriver
+from agentstack_cli.configuration import Configuration
+from agentstack_cli.console import console
+from agentstack_cli.utils import run_command
 
 
 class WSLDriver(BaseDriver):
@@ -45,7 +45,7 @@ class WSLDriver(BaseDriver):
             for status, cmd in [("running", ["--running"]), ("stopped", [])]:
                 result = await run_command(
                     ["wsl.exe", "--list", "--quiet", *cmd],
-                    f"Looking for {status} BeeAI platform in WSL",
+                    f"Looking for {status} Agent Stack platform in WSL",
                     env={"WSL_UTF8": "1", "WSLENV": os.getenv("WSLENV", "") + ":WSL_UTF8"},
                 )
                 if self.vm_name in result.stdout.decode().splitlines():
@@ -86,11 +86,11 @@ class WSLDriver(BaseDriver):
                 config.get("wsl2", "networkingMode", fallback=None) != "mirrored"
                 and await inquirer.select(  # type: ignore
                     textwrap.dedent("""\
-                    The BeeAI platform needs to switch WSL to `mirrored` networking mode in order to support connecting to Windows applications -- like Ollama or self-registered agents. If you skip this step, these features won't be available.
+                    The Agent Stack platform needs to switch WSL to `mirrored` networking mode in order to support connecting to Windows applications -- like Ollama or self-registered agents. If you skip this step, these features won't be available.
 
                     However, the default `nat` mode is required by some software, like Docker Desktop or Rancher Desktop, to function properly. If you use such software, you may want to keep the default `nat` mode.
 
-                    (It can be changed anytime later in C:/Users/<your name>/.wslconfig, followed by `wsl --shutdown` and `beeai platform start` to apply changes.)
+                    (It can be changed anytime later in C:/Users/<your name>/.wslconfig, followed by `wsl --shutdown` and `agentstack platform start` to apply changes.)
                     """),
                     choices=[
                         Choice(
@@ -111,7 +111,7 @@ class WSLDriver(BaseDriver):
 
                 if platform.system() == "Linux":
                     console.warning(
-                        "WSL networking mode updated. Please close WSL, run [green]wsl --shutdown[/green] from PowerShell, re-open WSL and run [green]beeai platform start[/green] again."
+                        "WSL networking mode updated. Please close WSL, run [green]wsl --shutdown[/green] from PowerShell, re-open WSL and run [green]agentstack platform start[/green] again."
                     )
                     sys.exit(1)
                 await run_command(["wsl.exe", "--shutdown"], "Updating WSL2 networking")
@@ -120,6 +120,9 @@ class WSLDriver(BaseDriver):
         if not await self.status():
             await run_command(
                 ["wsl.exe", "--unregister", self.vm_name], "Cleaning up remains of previous instance", check=False
+            )
+            await run_command(
+                ["wsl.exe", "--unregister", "beeai-platform"], "Cleaning up remains of legacy instance", check=False
             )
             await run_command(
                 ["wsl.exe", "--install", "--name", self.vm_name, "--no-launch", "--web-download"],
@@ -136,8 +139,8 @@ class WSLDriver(BaseDriver):
             check=False,
         )
 
-        await run_command(["wsl.exe", "--terminate", self.vm_name], "Restarting BeeAI VM")
-        await self.run_in_vm(["dbus-launch", "true"], "Ensuring persistence of BeeAI VM")
+        await run_command(["wsl.exe", "--terminate", self.vm_name], "Restarting Agent Stack VM")
+        await self.run_in_vm(["dbus-launch", "true"], "Ensuring persistence of Agent Stack VM")
 
     @typing.override
     async def deploy(
@@ -202,11 +205,11 @@ class WSLDriver(BaseDriver):
 
     @typing.override
     async def stop(self):
-        await run_command(["wsl.exe", "--terminate", self.vm_name], "Stopping BeeAI VM")
+        await run_command(["wsl.exe", "--terminate", self.vm_name], "Stopping Agent Stack VM")
 
     @typing.override
     async def delete(self):
-        await run_command(["wsl.exe", "--unregister", self.vm_name], "Deleting BeeAI platform", check=False)
+        await run_command(["wsl.exe", "--unregister", self.vm_name], "Deleting Agent Stack platform", check=False)
 
     @typing.override
     async def import_image(self, tag: str) -> None:

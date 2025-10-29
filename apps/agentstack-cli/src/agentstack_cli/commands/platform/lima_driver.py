@@ -15,18 +15,18 @@ import psutil
 import pydantic
 import yaml
 
-from beeai_cli.commands.platform.base_driver import BaseDriver
-from beeai_cli.configuration import Configuration
-from beeai_cli.console import console
-from beeai_cli.utils import run_command
+from agentstack_cli.commands.platform.base_driver import BaseDriver
+from agentstack_cli.configuration import Configuration
+from agentstack_cli.console import console
+from agentstack_cli.utils import run_command
 
 
 class LimaDriver(BaseDriver):
     limactl_exe: str
 
-    def __init__(self, vm_name: str = "beeai-platform"):
+    def __init__(self, vm_name: str = "agentstack-platform"):
         super().__init__(vm_name)
-        bundled_limactl_exe = importlib.resources.files("beeai_cli") / "data" / "limactl"
+        bundled_limactl_exe = importlib.resources.files("agentstack_cli") / "data" / "limactl"
         if bundled_limactl_exe.is_file():
             self.limactl_exe = str(bundled_limactl_exe)
         else:
@@ -54,7 +54,7 @@ class LimaDriver(BaseDriver):
         try:
             result = await run_command(
                 [self.limactl_exe, "--tty=false", "list", "--format=json"],
-                "Looking for existing BeeAI platform in Lima",
+                "Looking for existing Agent Stack platform in Lima",
                 env={"LIMA_HOME": str(Configuration().lima_home)},
                 cwd="/",
             )
@@ -85,10 +85,18 @@ class LimaDriver(BaseDriver):
                 cwd="/",
             )
 
+            await run_command(
+                [self.limactl_exe, "--tty=false", "delete", "--force", "beeai-platform"],
+                "Cleaning up remains of legacy instance",
+                env={"LIMA_HOME": str(Configuration().lima_home)},
+                check=False,
+                cwd="/",
+            )
+
             total_memory_gib = typing.cast(int, psutil.virtual_memory().total / (1024**3))
 
             if total_memory_gib < 4:
-                console.error("Not enough memory. BeeAI platform requires at least 4 GB of RAM.")
+                console.error("Not enough memory. Agent Stack platform requires at least 4 GB of RAM.")
                 sys.exit(1)
 
             if total_memory_gib < 8:
@@ -119,7 +127,9 @@ class LimaDriver(BaseDriver):
                                 },
                                 {"guestIP": "0.0.0.0", "proto": "any", "ignore": True},
                             ],
-                            "mounts": [{"location": "/tmp/beeai", "mountPoint": "/tmp/beeai", "writable": True}],
+                            "mounts": [
+                                {"location": "/tmp/agentstack", "mountPoint": "/tmp/agentstack", "writable": True}
+                            ],
                             "containerd": {"system": False, "user": False},
                             "hostResolver": {"hosts": {"host.docker.internal": "host.lima.internal"}},
                             "memory": f"{vm_memory_gib}GiB",
@@ -154,7 +164,7 @@ class LimaDriver(BaseDriver):
     async def stop(self):
         await run_command(
             [self.limactl_exe, "--tty=false", "stop", "--force", self.vm_name],
-            "Stopping BeeAI VM",
+            "Stopping Agent Stack VM",
             env={"LIMA_HOME": str(Configuration().lima_home)},
             cwd="/",
         )
@@ -163,7 +173,7 @@ class LimaDriver(BaseDriver):
     async def delete(self):
         await run_command(
             [self.limactl_exe, "--tty=false", "delete", "--force", self.vm_name],
-            "Deleting BeeAI platform",
+            "Deleting Agent Stack platform",
             env={"LIMA_HOME": str(Configuration().lima_home)},
             check=False,
             cwd="/",
@@ -171,7 +181,7 @@ class LimaDriver(BaseDriver):
 
     @typing.override
     async def import_image(self, tag: str):
-        image_dir = anyio.Path("/tmp/beeai")
+        image_dir = anyio.Path("/tmp/agentstack")
         await image_dir.mkdir(exist_ok=True, parents=True)
         image_file = str(uuid.uuid4())
         image_path = image_dir / image_file
@@ -181,8 +191,8 @@ class LimaDriver(BaseDriver):
                 ["docker", "image", "save", "-o", str(image_path), tag], f"Exporting image {tag} from Docker"
             )
             await self.run_in_vm(
-                ["/bin/sh", "-c", f"k3s ctr images import /tmp/beeai/{image_file}"],
-                f"Importing image {tag} into BeeAI platform",
+                ["/bin/sh", "-c", f"k3s ctr images import /tmp/agentstack/{image_file}"],
+                f"Importing image {tag} into Agent Stack platform",
             )
         finally:
             await image_path.unlink(missing_ok=True)

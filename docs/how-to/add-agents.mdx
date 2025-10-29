@@ -19,7 +19,7 @@ Most import methods require Docker to be running:
 Just want to get started? Try importing a ready-made agent:
 
 ```bash
-beeai add https://github.com/i-am-bee/beeai-platform-agent-starter.git
+agentstack add https://github.com/i-am-bee/beeai-platform-agent-starter.git
 ```
 
 ## How It Works
@@ -40,7 +40,7 @@ When you build agents locally using the BeeAI SDK, BeeAI automatically discovers
 uv run my_agent.py
 
 # Your agent automatically appears in BeeAI
-beeai list  # Shows your local agent
+agentstack list  # Shows your local agent
 ```
 
 Benefits:
@@ -58,19 +58,19 @@ Import agents directly from public GitHub repositories:
 
 ```bash
 # Basic import
-beeai add "https://github.com/username/my-agent.git"
+agentstack add "https://github.com/username/my-agent.git"
 
 # With specific version
-beeai add "https://github.com/username/my-agent.git#v1.0.0"
+agentstack add "https://github.com/username/my-agent.git#v1.0.0"
 
 # With specific branch
-beeai add "https://github.com/username/my-agent.git#develop"
+agentstack add "https://github.com/username/my-agent.git#develop"
 
 # From subdirectory
-beeai add "https://github.com/username/my-agent.git#:agents/my-agent"
+agentstack add "https://github.com/username/my-agent.git#:agents/my-agent"
 
 # Combined version and path
-beeai add "https://github.com/username/multi-agent-repo.git#v2.1.0:agents/specialized-agent"
+agentstack add "https://github.com/username/multi-agent-repo.git#v2.1.0:agents/specialized-agent"
 ```
 
 Requirements:
@@ -85,23 +85,23 @@ Build and add agents from your local machine:
 
 ```bash
 # Add from current directory
-beeai add .
+agentstack add .
 
 # Add from specific directory
-beeai add /path/to/my-agent
+agentstack add /path/to/my-agent
 ```
 
 **For advanced users:** If you need more control over the build process:
 
 ```bash
 # Build only (for testing)
-beeai build /path/to/my-agent --no-import
+agentstack build /path/to/my-agent --no-import
 
 # Build with custom tag
-beeai build . --tag my-custom-agent:dev
+agentstack build . --tag my-custom-agent:dev
 
 # Add the built image separately
-beeai add beeai.local/my-agent-hash:latest
+agentstack add agentstack.local/my-agent-hash:latest
 ```
 
 Requirements:
@@ -114,13 +114,13 @@ Add pre-built Docker images:
 
 ```bash
 # From GitHub Container Registry
-beeai add ghcr.io/i-am-bee/beeai-platform/agents/chat:latest
+agentstack add ghcr.io/i-am-bee/beeai-platform/agents/chat:latest
 
 # From Docker Hub
-beeai add myuser/my-agent:v1.0
+agentstack add myuser/my-agent:v1.0
 
 # From private registry
-beeai add registry.example.com/team/custom-agent:latest
+agentstack add registry.example.com/team/custom-agent:latest
 ```
 
 ## Managing Agents
@@ -128,7 +128,7 @@ beeai add registry.example.com/team/custom-agent:latest
 ### Check Agent Status
 
 ```bash
-beeai list
+agentstack list
 ```
 
 Shows all agents with their status, location, and any configuration issues.
@@ -136,18 +136,18 @@ Shows all agents with their status, location, and any configuration issues.
 ### Remove Agents
 
 ```bash
-beeai remove <agent-name>
+agentstack remove <agent-name>
 
 # Alternative commands
-beeai uninstall <agent-name>
-beeai delete <agent-name>
-beeai rm <agent-name>
+agentstack uninstall <agent-name>
+agentstack delete <agent-name>
+agentstack rm <agent-name>
 ```
 
 ### Get Agent Details
 
 ```bash
-beeai info <agent-name>
+agentstack info <agent-name>
 ```
 
 Shows documentation, capabilities, and configuration options.

@@ -10,7 +10,7 @@ Most agents require access to language models and other external services to fun
 The fastest way to get started is with the interactive setup wizard:
 
 ```bash
-beeai model setup
+agentstack model setup
 ```
 
 The setup wizard will then guide you through:
@@ -47,7 +47,7 @@ BeeAI supports a wide range of language model providers:
 
 ### Custom Providers via LLM Gateway
 
-If you have a custom OpenAI-compatible API endpoint, you can configure it during the interactive setup via `beeai model setup` by selecting "Other (RITS, vLLM, ...)" and providing your API URL.
+If you have a custom OpenAI-compatible API endpoint, you can configure it during the interactive setup via `agentstack model setup` by selecting "Other (RITS, vLLM, ...)" and providing your API URL.
 
 BeeAI includes a built-in LLM gateway that provides a unified OpenAI-compatible API endpoint. This is useful when you want to:
 - Point existing agents to BeeAI instead of directly to LLM providers
@@ -67,7 +67,7 @@ The gateway automatically handles:
 - Request validation and error responses
 
 <Important>
-The gateway uses whatever LLM provider you've configured with `beeai model setup`. Configure your preferred provider first, then use the gateway endpoint in your applications.
+The gateway uses whatever LLM provider you've configured with `agentstack model setup`. Configure your preferred provider first, then use the gateway endpoint in your applications.
 </Important>
 
 ## Agent-Specific Variables
@@ -78,17 +78,17 @@ Example variables that agents might declare:
 
 ```bash
 # Search APIs
-beeai env add TAVILY_API_KEY=your-tavily-key
-beeai env add SERP_API_KEY=your-serpapi-key
+agentstack env add TAVILY_API_KEY=your-tavily-key
+agentstack env add SERP_API_KEY=your-serpapi-key
 
 # Third-party services
-beeai env add GITHUB_TOKEN=your-github-token
-beeai env add DATABASE_URL=postgresql://user:pass@host:5432/db
+agentstack env add GITHUB_TOKEN=your-github-token
+agentstack env add DATABASE_URL=postgresql://user:pass@host:5432/db
 ```
 
 <Important>
-Agents can only access environment variables they explicitly declare. You can store any variables with `beeai env add`, but agents will only receive the ones they're configured to use.
-Use `beeai agent info <agent-name>` to see exactly what variables each agent needs.
+Agents can only access environment variables they explicitly declare. You can store any variables with `agentstack env add`, but agents will only receive the ones they're configured to use.
+Use `agentstack agent info <agent-name>` to see exactly what variables each agent needs.
 </Important>
 
 ## Manual Environment Management
@@ -97,22 +97,22 @@ Use `beeai agent info <agent-name>` to see exactly what variables each agent nee
 
 Set individual variables:
 ```bash
-beeai env add LLM_MODEL=gpt-4o
-beeai env add LLM_API_KEY=sk-...
-beeai env add LLM_API_BASE=https://api.openai.com/v1
+agentstack env add LLM_MODEL=gpt-4o
+agentstack env add LLM_API_KEY=sk-...
+agentstack env add LLM_API_BASE=https://api.openai.com/v1
 ```
 
 ### View Current Configuration
 
 List all configured environment variables:
 ```bash
-beeai env list
+agentstack env list
 ```
 
 ### Remove Variables
 
 Remove specific variables:
 ```bash
-beeai env remove LLM_API_KEY
-beeai env remove LLM_MODEL LLM_API_BASE
+agentstack env remove LLM_API_KEY
+agentstack env remove LLM_MODEL LLM_API_BASE
 ```

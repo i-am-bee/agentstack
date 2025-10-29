@@ -6,31 +6,32 @@ import importlib.metadata
 import pathlib
 import re
 import sys
+import typing
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 import pydantic
 import pydantic_settings
-from beeai_sdk.platform import PlatformClient, use_platform_client
+from agentstack_sdk.platform import PlatformClient, use_platform_client
 from pydantic import HttpUrl, SecretStr
 
-from beeai_cli.auth_manager import AuthManager
-from beeai_cli.console import console
+from agentstack_cli.auth_manager import AuthManager
+from agentstack_cli.console import console
 
 
 @functools.cache
 def version():
     # Python strips '-', we need to re-insert it: 1.2.3rc1 -> 1.2.3-rc1
-    return re.sub(r"([0-9])([a-z])", r"\1-\2", importlib.metadata.version("beeai-cli"))
+    return re.sub(r"([0-9])([a-z])", r"\1-\2", importlib.metadata.version("agentstack-cli"))
 
 
 @functools.cache
 class Configuration(pydantic_settings.BaseSettings):
     model_config = pydantic_settings.SettingsConfigDict(
-        env_file=None, env_prefix="BEEAI__", env_nested_delimiter="__", extra="allow"
+        env_file=None, env_prefix="AGENTSTACK__", env_nested_delimiter="__", extra="allow"
     )
     debug: bool = False
-    home: pathlib.Path = pathlib.Path.home() / ".beeai"
+    home: pathlib.Path = pydantic.Field(default_factory=lambda: pathlib.Path.home() / ".agentstack")
     agent_registry: pydantic.AnyUrl = HttpUrl(
         f"https://github.com/i-am-bee/beeai-platform@v{version()}#path=agent-registry.yaml"
     )
@@ -57,7 +58,7 @@ class Configuration(pydantic_settings.BaseSettings):
         if self.auth_manager.active_server is None:
             console.error("No server selected.")
             console.hint(
-                "Run [green]beeai platform start[/green] to start a local server, or [green]beeai server login[/green] to connect to a remote one."
+                "Run [green]agentstack platform start[/green] to start a local server, or [green]agentstack server login[/green] to connect to a remote one."
             )
             sys.exit(1)
         async with use_platform_client(
@@ -66,3 +67,10 @@ class Configuration(pydantic_settings.BaseSettings):
             base_url=self.auth_manager.active_server + "/",
         ) as client:
             yield client
+
+    @pydantic.model_validator(mode="after")
+    def _check_old_home(self) -> typing.Self:
+        old_home = pathlib.Path.home() / ".beeai"
+        if old_home.exists() and not self.home.exists():
+            old_home.rename(self.home)
+        return self

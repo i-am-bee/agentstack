@@ -45,7 +45,7 @@ you created earlier and your preferred LLM credentials, for example:
 ## Setup LLM
 
 ```shell
-beeai platform exec -- kubectl run curlpod --image=curlimages/curl -it --rm --restart=Never -- curl -X PUT \
+agentstack platform exec -- kubectl run curlpod --image=curlimages/curl -it --rm --restart=Never -- curl -X PUT \
   beeai-platform-svc:8333/api/v1/variables \
   -u beeai-admin:my-secret-password \
   -H "Content-Type: application/json" \
@@ -69,8 +69,8 @@ kubectl port-forward svc/beeai-platform-svc 8333:8333 &
 ```
 
 ```
-beeai list
-beeai run chat hi
+agentstack list
+agentstack run chat hi
 ```
 
 # Upgrading

@@ -6,7 +6,7 @@ import typing
 import yaml
 
 if typing.TYPE_CHECKING:
-    from beeai_cli.commands.platform.base_driver import BaseDriver
+    from agentstack_cli.commands.platform.base_driver import BaseDriver
 
 
 async def install(driver: "BaseDriver"):
@@ -90,11 +90,11 @@ async def install(driver: "BaseDriver"):
         {
             "apiVersion": "cert-manager.io/v1",
             "kind": "Certificate",
-            "metadata": {"name": "beeai-platform-tls", "namespace": "istio-system"},
+            "metadata": {"name": "agentstack-platform-tls", "namespace": "istio-system"},
             "spec": {
-                "secretName": "beeai-platform-tls",
-                "commonName": "beeai",
-                "dnsNames": ["beeai", "beeai.localhost"],
+                "secretName": "agentstack-platform-tls",
+                "commonName": "agentstack",
+                "dnsNames": ["agentstack", "agentstack.localhost"],
                 "issuerRef": {"name": "istio-system-issuer", "kind": "Issuer"},
             },
         },
@@ -117,16 +117,16 @@ async def install(driver: "BaseDriver"):
         {
             "apiVersion": "gateway.networking.k8s.io/v1",
             "kind": "Gateway",
-            "metadata": {"name": "beeai-gateway", "namespace": "istio-system"},
+            "metadata": {"name": "agentstack-gateway", "namespace": "istio-system"},
             "spec": {
                 "gatewayClassName": "istio",
                 "listeners": [
                     {
                         "name": "https",
-                        "hostname": "beeai.localhost",
+                        "hostname": "agentstack.localhost",
                         "port": 8336,
                         "protocol": "HTTPS",
-                        "tls": {"mode": "Terminate", "certificateRefs": [{"name": "beeai-platform-tls"}]},
+                        "tls": {"mode": "Terminate", "certificateRefs": [{"name": "agentstack-platform-tls"}]},
                         "allowedRoutes": {"namespaces": {"from": "All"}},
                     }
                 ],
@@ -135,14 +135,14 @@ async def install(driver: "BaseDriver"):
         {
             "apiVersion": "gateway.networking.k8s.io/v1",
             "kind": "HTTPRoute",
-            "metadata": {"name": "beeai-platform-ui"},
+            "metadata": {"name": "agentstack-platform-ui"},
             "spec": {
-                "parentRefs": [{"name": "beeai-gateway", "namespace": "istio-system"}],
-                "hostnames": ["beeai-platform.testing", "beeai.localhost"],
+                "parentRefs": [{"name": "agentstack-gateway", "namespace": "istio-system"}],
+                "hostnames": ["agentstack-platform.testing", "agentstack.localhost"],
                 "rules": [
                     {
                         "matches": [{"path": {"type": "PathPrefix", "value": "/"}}],
-                        "backendRefs": [{"name": "beeai-platform-ui-svc", "port": 8334}],
+                        "backendRefs": [{"name": "agentstack-platform-ui-svc", "port": 8334}],
                     }
                 ],
             },

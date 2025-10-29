@@ -18,7 +18,7 @@ export const commands = {
   beeai: {
     run(name: string, input?: string) {
       return [
-        'beeai run',
+        'agentstack run',
         isStringTerminalParameterSafe(name) ? name : `'${name}'`,
         input ? convertInputToCliArgument(input) : '',
       ]

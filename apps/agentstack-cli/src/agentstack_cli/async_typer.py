@@ -16,9 +16,9 @@ from rich.markdown import Heading, Markdown
 from rich.table import Table
 from typer.core import TyperGroup
 
-from beeai_cli.configuration import Configuration
-from beeai_cli.console import console, err_console
-from beeai_cli.utils import extract_messages, format_error
+from agentstack_cli.configuration import Configuration
+from agentstack_cli.console import console, err_console
+from agentstack_cli.utils import extract_messages, format_error
 
 DEBUG = Configuration().debug
 
@@ -88,11 +88,11 @@ class AsyncTyper(typer.Typer):
                         err_console.print()
                     if is_connect_error:
                         err_console.hint(
-                            "Start the BeeAI platform using: [green]beeai platform start[/green]. If that does not help, run [green]beeai platform delete[/green] to clean up, then [green]beeai platform start[/green] again."
+                            "Start the Agent Stack platform using: [green]agentstack platform start[/green]. If that does not help, run [green]agentstack platform delete[/green] to clean up, then [green]agentstack platform start[/green] again."
                         )
                     else:
                         err_console.hint(
-                            "Are you having consistent problems? If so, try these troubleshooting steps: [green]beeai platform delete[/green] to remove the platform, and [green]beeai platform start[/green] to recreate it."
+                            "Are you having consistent problems? If so, try these troubleshooting steps: [green]agentstack platform delete[/green] to remove the platform, and [green]agentstack platform start[/green] to recreate it."
                         )
                     if DEBUG:
                         raise

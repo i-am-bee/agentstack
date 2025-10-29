@@ -14,14 +14,14 @@ import pydantic
 import yaml
 from tenacity import AsyncRetrying, stop_after_attempt
 
-import beeai_cli.commands.platform.istio
-from beeai_cli.configuration import Configuration
+import agentstack_cli.commands.platform.istio
+from agentstack_cli.configuration import Configuration
 
 
 class BaseDriver(abc.ABC):
     vm_name: str
 
-    def __init__(self, vm_name: str = "beeai-platform"):
+    def __init__(self, vm_name: str = "agentstack-platform"):
         self.vm_name = vm_name
 
     @abc.abstractmethod
@@ -56,11 +56,11 @@ class BaseDriver(abc.ABC):
         registry_config = dedent(
             """\
             mirrors:
-              "beeai-platform-registry-svc.default:5001":
+              "agentstack-platform-registry-svc.default:5001":
                 endpoint:
                   - "http://localhost:30501"
             configs:
-              "beeai-platform-registry-svc.default:5001":
+              "agentstack-platform-registry-svc.default:5001":
                 tls:
                   insecure_skip_verify: true
             """
@@ -103,9 +103,9 @@ class BaseDriver(abc.ABC):
         import_images: list[str] | None = None,
     ) -> None:
         await self.run_in_vm(
-            ["sh", "-c", "mkdir -p /tmp/beeai && cat >/tmp/beeai/chart.tgz"],
+            ["sh", "-c", "mkdir -p /tmp/agentstack && cat >/tmp/agentstack/chart.tgz"],
             "Preparing Helm chart",
-            input=(importlib.resources.files("beeai_cli") / "data" / "helm-chart.tgz").read_bytes(),
+            input=(importlib.resources.files("agentstack_cli") / "data" / "helm-chart.tgz").read_bytes(),
         )
         values = {
             **{svc: {"service": {"type": "LoadBalancer"}} for svc in ["collector", "docling", "ui", "phoenix"]},
@@ -123,7 +123,7 @@ class BaseDriver(abc.ABC):
         if values_file:
             values.update(yaml.safe_load(values_file.read_text()))
         await self.run_in_vm(
-            ["sh", "-c", "cat >/tmp/beeai/values.yaml"],
+            ["sh", "-c", "cat >/tmp/agentstack/values.yaml"],
             "Preparing Helm values",
             input=yaml.dump(values).encode("utf-8"),
         )
@@ -133,7 +133,7 @@ class BaseDriver(abc.ABC):
                 [
                     "/bin/bash",
                     "-c",
-                    "helm template beeai /tmp/beeai/chart.tgz --values=/tmp/beeai/values.yaml "
+                    "helm template agentstack /tmp/agentstack/chart.tgz --values=/tmp/agentstack/values.yaml "
                     + " ".join(shlex.quote(f"--set={value}") for value in set_values_list)
                     + " | sed -n '/^\\s*image:/{ /{{/!{ s/.*image:\\s*//p } }'",
                 ],
@@ -160,7 +160,7 @@ class BaseDriver(abc.ABC):
                     )
 
         if any("auth.oidc.enabled=true" in value.lower() for value in set_values_list):
-            await beeai_cli.commands.platform.istio.install(driver=self)
+            await agentstack_cli.commands.platform.istio.install(driver=self)
 
         kubeconfig_path = anyio.Path(Configuration().lima_home) / self.vm_name / "copied-from-guest" / "kubeconfig.yaml"
         await kubeconfig_path.parent.mkdir(parents=True, exist_ok=True)
@@ -168,7 +168,7 @@ class BaseDriver(abc.ABC):
             (
                 await self.run_in_vm(
                     ["/bin/cat", "/etc/rancher/k3s/k3s.yaml"],
-                    "Copying kubeconfig from BeeAI platform",
+                    "Copying kubeconfig from Agent Stack platform",
                 )
             ).stdout.decode()
         )
@@ -178,17 +178,17 @@ class BaseDriver(abc.ABC):
                 "helm",
                 "upgrade",
                 "--install",
-                "beeai",
-                "/tmp/beeai/chart.tgz",
+                "agentstack",
+                "/tmp/agentstack/chart.tgz",
                 "--namespace=default",
                 "--create-namespace",
-                "--values=/tmp/beeai/values.yaml",
+                "--values=/tmp/agentstack/values.yaml",
                 "--timeout=5m",
                 "--wait",
                 "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
                 *(f"--set={value}" for value in set_values_list),
             ],
-            "Deploying BeeAI platform with Helm",
+            "Deploying Agent Stack platform with Helm",
         )
 
         if import_images:
@@ -209,11 +209,11 @@ class BaseDriver(abc.ABC):
                         "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
                         "ls",
                         "--namespace=default",
-                        "--filter=^beeai$",
+                        "--filter=^agentstack$",
                         "-o",
                         "json",
                     ],
-                    "Getting BeeAI platform version",
+                    "Getting Agent Stack platform version",
                 )
             ).stdout
         )

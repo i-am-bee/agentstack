@@ -66,12 +66,12 @@ sh -c "$(curl -LsSf https://raw.githubusercontent.com/i-am-bee/beeai-platform/HE
 ### Usage
 
 ```sh
-beeai ui                     # Launch web interface
-beeai list                   # See what agents are available
-beeai run chat "Hi!"         # Send a message to chat agent
-beeai run chat               # Try interactive mode
-beeai info chat              # View agent details
-beeai --help                 # See all options
+agentstack ui                     # Launch web interface
+agentstack list                   # See what agents are available
+agentstack run chat "Hi!"         # Send a message to chat agent
+agentstack run chat               # Try interactive mode
+agentstack info chat              # View agent details
+agentstack --help                 # See all options
 ```
 
 ### Build Your First Agent
@@ -84,7 +84,7 @@ uv run server               # Start your agent
 
 Then in another terminal:
 ```sh
-beeai run example_agent "Alice"  # Test your agent
+agentstack run example_agent "Alice"  # Test your agent
 ```
 
 You should see: "Ciao Alice!" 🎉

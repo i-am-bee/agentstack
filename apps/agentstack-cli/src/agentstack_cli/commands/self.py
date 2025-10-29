@@ -14,12 +14,12 @@ import pydantic
 import typer
 from InquirerPy import inquirer
 
-import beeai_cli.commands.platform
-from beeai_cli.async_typer import AsyncTyper
-from beeai_cli.commands.model import setup as model_setup
-from beeai_cli.configuration import Configuration
-from beeai_cli.console import console
-from beeai_cli.utils import run_command, verbosity
+import agentstack_cli.commands.platform
+from agentstack_cli.async_typer import AsyncTyper
+from agentstack_cli.commands.model import setup as model_setup
+from agentstack_cli.configuration import Configuration
+from agentstack_cli.console import console
+from agentstack_cli.utils import run_command, verbosity
 
 app = AsyncTyper()
 configuration = Configuration()
@@ -41,15 +41,15 @@ def _path() -> str:
 
 @app.command("version")
 async def version(verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False):
-    """Print version of the BeeAI CLI."""
+    """Print version of the Agent Stack CLI."""
     with verbosity(verbose=verbose):
-        cli_version = importlib.metadata.version("beeai-cli")
-        platform_version = await beeai_cli.commands.platform.get_driver().version()
+        cli_version = importlib.metadata.version("agentstack-cli")
+        platform_version = await agentstack_cli.commands.platform.get_driver().version()
 
         latest_cli_version: str | None = None
         with console.status("Checking for newer version...", spinner="dots"):
             async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.get("https://pypi.org/pypi/beeai-cli/json")
+                response = await client.get("https://pypi.org/pypi/agentstack-cli/json")
                 PyPIPackageInfo = typing.TypedDict("PyPIPackageInfo", {"version": str})
                 PyPIPackage = typing.TypedDict("PyPIPackage", {"info": PyPIPackageInfo})
                 if response.status_code == 200:
@@ -58,20 +58,20 @@ async def version(verbose: typing.Annotated[bool, typer.Option("-v", help="Show 
                     ]
 
         console.print()
-        console.print(f"     beeai-cli version: [bold]{cli_version}[/bold]")
+        console.print(f"     agentstack-cli version: [bold]{cli_version}[/bold]")
         console.print(
-            f"beeai-platform version: [bold]{platform_version.replace('-', '') if platform_version is not None else 'not running'}[/bold]"
+            f"agentstack-platform version: [bold]{platform_version.replace('-', '') if platform_version is not None else 'not running'}[/bold]"
         )
         console.print()
 
         if latest_cli_version and packaging.version.parse(latest_cli_version) > packaging.version.parse(cli_version):
             console.hint(
-                f"A newer version ([bold]{latest_cli_version}[/bold]) is available. Update using: [green]beeai self upgrade[/green]."
+                f"A newer version ([bold]{latest_cli_version}[/bold]) is available. Update using: [green]agentstack self upgrade[/green]."
             )
         elif platform_version is None:
-            console.hint("Start the BeeAI platform using: [green]beeai platform start[/green]")
+            console.hint("Start the Agent Stack platform using: [green]agentstack platform start[/green]")
         elif platform_version.replace("-", "") != cli_version:
-            console.hint("Update the BeeAI platform using: [green]beeai platform start[/green]")
+            console.hint("Update the Agent Stack platform using: [green]agentstack platform start[/green]")
         else:
             console.success("Everything is up to date!")
 
@@ -80,7 +80,7 @@ async def version(verbose: typing.Annotated[bool, typer.Option("-v", help="Show 
 async def install(
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ):
-    """Install BeeAI platform pre-requisites."""
+    """Install Agent Stack platform pre-requisites."""
     with verbosity(verbose=verbose):
         ready_to_start = False
         if platform.system() == "Linux":
@@ -109,7 +109,7 @@ async def install(
                             break
                         except (subprocess.CalledProcessError, FileNotFoundError):
                             console.warning(
-                                "Failed to install QEMU automatically. Please install QEMU manually before using BeeAI. Refer to https://www.qemu.org/download/ for instructions."
+                                "Failed to install QEMU automatically. Please install QEMU manually before using Agent Stack. Refer to https://www.qemu.org/download/ for instructions."
                             )
                             break
         elif platform.system() == "Darwin":
@@ -120,33 +120,34 @@ async def install(
         if (
             ready_to_start
             and await inquirer.confirm(  # pyright: ignore[reportPrivateImportUsage]
-                message="Do you want to start the BeeAI platform now? Will run: beeai platform start", default=True
+                message="Do you want to start the Agent Stack platform now? Will run: agentstack platform start",
+                default=True,
             ).execute_async()
         ):
             try:
-                await beeai_cli.commands.platform.start(set_values_list=[], import_images=[], verbose=verbose)
+                await agentstack_cli.commands.platform.start(set_values_list=[], import_images=[], verbose=verbose)
                 already_started = True
                 console.print()
             except Exception:
-                console.warning("Platform start failed. You can retry with [green]beeai platform start[/green].")
+                console.warning("Platform start failed. You can retry with [green]agentstack platform start[/green].")
 
         already_configured = False
         if (
             already_started
             and await inquirer.confirm(  # pyright: ignore[reportPrivateImportUsage]
-                message="Do you want to configure your LLM provider now? Will run: beeai model setup", default=True
+                message="Do you want to configure your LLM provider now? Will run: agentstack model setup", default=True
             ).execute_async()
         ):
             try:
                 await model_setup(verbose=verbose)
                 already_configured = True
             except Exception:
-                console.warning("Model setup failed. You can retry with [green]beeai model setup[/green].")
+                console.warning("Model setup failed. You can retry with [green]agentstack model setup[/green].")
 
         if (
             already_configured
             and await inquirer.confirm(  # pyright: ignore[reportPrivateImportUsage]
-                message="Do you want to open the web UI now? Will run: beeai ui", default=True
+                message="Do you want to open the web UI now? Will run: agentstack ui", default=True
             ).execute_async()
         ):
             import webbrowser
@@ -155,34 +156,34 @@ async def install(
 
         console.print()
         console.success("Installation complete!")
-        if not shutil.which("beeai", path=_path()):
-            console.hint("Open a new terminal window to use the [green]beeai[/green] command.")
+        if not shutil.which("agentstack", path=_path()):
+            console.hint("Open a new terminal window to use the [green]agentstack[/green] command.")
         if not already_started:
-            console.hint("Start the BeeAI platform using: [green]beeai platform start[/green]")
+            console.hint("Start the Agent Stack platform using: [green]agentstack platform start[/green]")
         if not already_configured:
-            console.hint("Configure your LLM provider using: [green]beeai model setup[/green]")
+            console.hint("Configure your LLM provider using: [green]agentstack model setup[/green]")
         console.hint(
-            "Use [green]beeai ui[/green] to open the web GUI, or [green]beeai run chat[/green] to talk to an agent on the command line."
+            "Use [green]agentstack ui[/green] to open the web GUI, or [green]agentstack run chat[/green] to talk to an agent on the command line."
         )
         console.hint(
-            "Run [green]beeai --help[/green] to learn about available commands, or check the documentation at https://docs.beeai.dev/"
+            "Run [green]agentstack --help[/green] to learn about available commands, or check the documentation at https://docs.beeai.dev/"
         )
 
 
 @app.command("upgrade")
 async def upgrade(verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False):
-    """Upgrade BeeAI CLI and Platform to the latest version."""
+    """Upgrade Agent Stack CLI and Platform to the latest version."""
     if not shutil.which("uv", path=_path()):
         console.error("Can't self-upgrade because 'uv' was not found.")
         raise typer.Exit(1)
 
     with verbosity(verbose=verbose):
         await run_command(
-            ["uv", "tool", "install", "--force", "beeai-cli"],
-            "Upgrading beeai-cli",
+            ["uv", "tool", "install", "--force", "agentstack-cli"],
+            "Upgrading agentstack-cli",
             env={"PATH": _path()},
         )
-        await beeai_cli.commands.platform.start(set_values_list=[], import_images=[], verbose=verbose)
+        await agentstack_cli.commands.platform.start(set_values_list=[], import_images=[], verbose=verbose)
         await version(verbose=verbose)
 
 
@@ -190,16 +191,16 @@ async def upgrade(verbose: typing.Annotated[bool, typer.Option("-v", help="Show 
 async def uninstall(
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ):
-    """Uninstall BeeAI CLI and Platform."""
+    """Uninstall Agent Stack CLI and Platform."""
     if not shutil.which("uv", path=_path()):
         console.error("Can't self-uninstall because 'uv' was not found.")
         raise typer.Exit(1)
 
     with verbosity(verbose=verbose):
-        await beeai_cli.commands.platform.delete(verbose=verbose)
+        await agentstack_cli.commands.platform.delete(verbose=verbose)
         await run_command(
-            ["uv", "tool", "uninstall", "beeai-cli"],
-            "Uninstalling beeai-cli",
+            ["uv", "tool", "uninstall", "agentstack-cli"],
+            "Uninstalling agentstack-cli",
             env={"PATH": _path()},
         )
-        console.success("BeeAI uninstalled successfully.")
+        console.success("Agent Stack uninstalled successfully.")

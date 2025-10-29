@@ -28,7 +28,7 @@ from pydantic import BaseModel
 from rich.console import Capture
 from rich.text import Text
 
-from beeai_cli.console import console, err_console
+from agentstack_cli.console import console, err_console
 
 if TYPE_CHECKING:
     from prompt_toolkit.completion import Completer

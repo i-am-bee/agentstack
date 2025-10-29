@@ -83,7 +83,7 @@ wheels = [
 ]
 
 [[package]]
-name = "beeai-cli"
+name = "agentstack-cli"
 version = "0.3.7"
 source = { editable = "." }
 dependencies = [

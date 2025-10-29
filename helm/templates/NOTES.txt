@@ -21,11 +21,11 @@ Getting started:
     # port-forward the API
     kubectl port-forward svc/beeai-platform-svc 8333:{{.Values.service.port}} &
 
-    # use the beeai CLI to setup the environment
+    # use the agentstack CLI to setup the environment
     {{- if .Values.auth.enabled }}
-    BEEAI__ADMIN_PASSWORD={{.Values.auth.adminPassword}} beeai model setup
+    AGENTSTACK__ADMIN_PASSWORD={{.Values.auth.adminPassword}} agentstack model setup
     {{- else}}
-    beeai model setup
+    agentstack model setup
     {{- end}}
     {{- if .Values.ui.enabled }}
 
@@ -33,7 +33,7 @@ Getting started:
     kubectl port-forward svc/beeai-platform-ui-svc 8334:{{.Values.service.port}} &
 
     # Open the UI in the browser
-    beeai ui
+    agentstack ui
     {{- end }}
 {{- end }}
 

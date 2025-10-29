@@ -11,7 +11,7 @@ from datetime import datetime
 
 import httpx
 import typer
-from beeai_sdk.platform import (
+from agentstack_sdk.platform import (
     ModelCapability,
     ModelProvider,
     ModelProviderType,
@@ -22,10 +22,10 @@ from InquirerPy.base.control import Choice
 from InquirerPy.validator import EmptyInputValidator
 from rich.table import Column
 
-from beeai_cli.api import openai_client
-from beeai_cli.async_typer import AsyncTyper, console, create_table
-from beeai_cli.configuration import Configuration
-from beeai_cli.utils import run_command, verbosity
+from agentstack_cli.api import openai_client
+from agentstack_cli.async_typer import AsyncTyper, console, create_table
+from agentstack_cli.configuration import Configuration
+from agentstack_cli.utils import run_command, verbosity
 
 app = AsyncTyper()
 configuration = Configuration()
@@ -324,7 +324,7 @@ async def _select_default_model(capability: ModelCapability) -> str | None:
     if not available_models:
         raise ModelProviderError(
             f"[bold]No models are available[/bold]\n"
-            f"Configure at least one working {capability} provider using `beeai model add` command."
+            f"Configure at least one working {capability} provider using `agentstack model add` command."
         )
 
     recommended_model = [m for m in recommended_models if m in available_models]
@@ -455,7 +455,7 @@ async def setup(
                     )
                 console.print(
                     "\n[bold green]You're all set![/bold green] "
-                    "(You can re-run this setup anytime with [blue]beeai model setup[/blue])"
+                    "(You can re-run this setup anytime with [blue]agentstack model setup[/blue])"
                 )
             except Exception:
                 await _reset_configuration()
@@ -613,12 +613,12 @@ async def ensure_llm_provider():
         if config.default_llm_model and not inconsistent:
             return
 
-    console.print("[bold]Welcome to 🐝 [red]BeeAI[/red]![/bold]")
+    console.print("[bold]Welcome to 🐝 [red]Agent Stack[/red]![/bold]")
     console.print("Let's start by configuring your LLM environment.\n")
     try:
         await setup()
     except Exception:
         console.error("Could not continue because the LLM environment is not properly set up.")
-        console.hint("Try re-entering your LLM API details with: [green]beeai model setup[/green]")
+        console.hint("Try re-entering your LLM API details with: [green]agentstack model setup[/green]")
         raise
     console.print()

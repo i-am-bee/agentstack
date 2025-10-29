@@ -23,7 +23,7 @@ from beeai_server.infrastructure.persistence.repositories.db_metadata import met
 
 class TestConfiguration(BaseSettings):
     model_config = SettingsConfigDict(extra="ignore")
-    kubeconfig: Path = Path.home() / ".beeai/lima/beeai-local-test/copied-from-guest/kubeconfig.yaml"
+    kubeconfig: Path = Path.home() / ".agentstack/lima/agenstack-local-test/copied-from-guest/kubeconfig.yaml"
     llm_api_base: str = "http://localhost:11434/v1"
     llm_model: str = "other:llama3.1:8b"
     llm_api_key: Secret[str] = Secret("dummy")
@@ -62,7 +62,7 @@ def pytest_configure(config):
 async def _get_kr8s_client():
     api = await kr8s.asyncio.api()
     kubeconfig = api.auth.kubeconfig
-    kubeconfig_regex = r".*/.beeai/(lima|docker)/.*test.*/copied-from-guest/kubeconfig.yaml$"
+    kubeconfig_regex = r".*/.agentstack/(lima|docker)/.*test.*/copied-from-guest/kubeconfig.yaml$"
     if not re.match(kubeconfig_regex, str(kubeconfig.path)):
         raise ValueError(
             f"Preventing e2e tests run with invalid kubeconfig path.\n"

@@ -74,7 +74,7 @@ jobs:
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/agents/${{ matrix.agent }}:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/agents/${{ matrix.agent }}:cache,mode=max
 
-  beeai-platform:
+  agentstack-platform:
     needs: agents
     runs-on: ubuntu-latest
     environment: release
@@ -90,7 +90,7 @@ jobs:
       - uses: ./.github/actions/setup
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: "Set up QEMU" # required by [beeai-cli:build]
+      - name: "Set up QEMU" # required by [agentstack-cli:build]
         id: "setup-qemu"
         shell: bash
         run: |
@@ -147,7 +147,7 @@ jobs:
         with:
           packages-dir: apps/agentstack-sdk-py/dist
 
-      - run: mise run beeai-cli:build
+      - run: mise run agentstack-cli:build
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: apps/beeai-cli/dist
+          packages-dir: apps/agentstack-cli/dist

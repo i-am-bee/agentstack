@@ -42,7 +42,7 @@ graph LR
 
 Stream real-time logs from any running agent:
 ```bash
-beeai logs
+agentstack logs
 ```
 
 What you'll see:
@@ -77,9 +77,9 @@ The telemetry includes:
 <Steps>
    <Step title="Install and Enable Arize Phoenix">
 
-Install and start Phoenix using the `beeai platform start` command:
+Install and start Phoenix using the `agentstack platform start` command:
 ```sh
-beeai platform start --set phoenix.enabled=true
+agentstack platform start --set phoenix.enabled=true
 ```
 
 You can run this even if your platform is already running without losing data.
@@ -94,7 +94,7 @@ Spinning up Phoenix can take a while, even after the `platform start` command re
 
 Execute the following command to run an example chat agent:
 ```sh
-beeai run chat "Hello"
+agentstack run chat "Hello"
 ```
 
    </Step>
@@ -138,7 +138,7 @@ collector:
 </Step>
 <Step title="Start the platform with the configuration">
 ```bash
-beeai platform start -f config.yaml
+agentstack platform start -f config.yaml
 ```
 </Step>
 <Step title="Access Langfuse UI">

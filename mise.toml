@@ -37,7 +37,7 @@ UV_PYTHON_PREFERENCE = "only-managed"
 includes = [
     "./tasks.toml",
     "helm/tasks.toml",
-    "apps/beeai-cli/tasks.toml",
+    "apps/agentstack-cli/tasks.toml",
     "apps/agentstack-sdk-py/tasks.toml",
     "apps/beeai-server/tasks.toml",
     "apps/beeai-ui/tasks.toml",

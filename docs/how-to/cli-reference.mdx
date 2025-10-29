@@ -10,13 +10,13 @@ BeeAI command-line interface (CLI) provides powerful tools to discover, run, and
 The basic syntax for BeeAI commands follows this pattern:
 
 ```bash
-beeai [command] [subcommand] [arguments] [options]
+agentstack [command] [subcommand] [arguments] [options]
 ```
 
 To see a list of all available commands:
 
 ```bash
-beeai --help
+agentstack --help
 ```
 
 ## Core Commands
@@ -26,7 +26,7 @@ beeai --help
 List all available agents:
 
 ```bash
-beeai list
+agentstack list
 ```
 
 This displays a table with agent names, statuses, descriptions, UI types, locations, missing environment variables, and error messages.
@@ -36,22 +36,22 @@ This displays a table with agent names, statuses, descriptions, UI types, locati
 Run an agent with specified input:
 
 ```bash
-beeai run <agent-name> [input]
+agentstack run <agent-name> [input]
 ```
 
 **Examples:**
 ```bash
 # Run chat agent interactively
-beeai run chat
+agentstack run chat
 
 # Run agent with direct input
-beeai run chat "Hello!"
+agentstack run chat "Hello!"
 
 # Run agent with input from file
-beeai run chat < input.txt
+agentstack run chat < input.txt
 
 # Pipe between agents
-beeai run gpt_researcher "Latest AI developments" | beeai run chat "Summarize in 3 points"
+agentstack run gpt_researcher "Latest AI developments" | agentstack run chat "Summarize in 3 points"
 ```
 
 ### Info
@@ -59,7 +59,7 @@ beeai run gpt_researcher "Latest AI developments" | beeai run chat "Summarize in
 Get detailed information about a specific agent:
 
 ```bash
-beeai info <agent-name>
+agentstack info <agent-name>
 ```
 
 Shows details including description, input/output schemas, examples, configuration options, and provider information.
@@ -69,11 +69,11 @@ Shows details including description, input/output schemas, examples, configurati
 Add an agent to your environment:
 
 ```bash
-beeai add <location>
+agentstack add <location>
 # Aliases: install
 ```
 
-Use `beeai add` when:
+Use `agentstack add` when:
 - You want to use an agent (one-step process)
 - You don't care about build details
 - You want the simplest workflow
@@ -82,19 +82,19 @@ Location formats:
 
 ```bash
 # From Docker image
-beeai add ghcr.io/i-am-bee/beeai-platform/agents/chat:latest
+agentstack add ghcr.io/i-am-bee/beeai-platform/agents/chat:latest
 
 # From GitHub repository
-beeai add "https://github.com/i-am-bee/custom-agent"
+agentstack add "https://github.com/i-am-bee/custom-agent"
 
 # From GitHub with version
-beeai add "https://github.com/i-am-bee/custom-agent#v1.0.0"
+agentstack add "https://github.com/i-am-bee/custom-agent#v1.0.0"
 
 # From GitHub with specific path
-beeai add "https://github.com/i-am-bee/repo#:agents/my-agent"
+agentstack add "https://github.com/i-am-bee/repo#:agents/my-agent"
 
 # From local path (builds Docker image)
-beeai add ./my-agent-directory
+agentstack add ./my-agent-directory
 ```
 
 ### Remove
@@ -102,7 +102,7 @@ beeai add ./my-agent-directory
 Remove an agent from your environment:
 
 ```bash
-beeai remove <agent-name>
+agentstack remove <agent-name>
 # Aliases: uninstall, rm, delete
 ```
 
@@ -111,7 +111,7 @@ beeai remove <agent-name>
 View and follow the logs for an agent:
 
 ```bash
-beeai logs <agent-name>
+agentstack logs <agent-name>
 ```
 
 This displays the agent's log output and continues streaming new logs as they are generated.
@@ -121,7 +121,7 @@ This displays the agent's log output and continues streaming new logs as they ar
 Build an agent from a local directory or repository:
 
 ```bash
-beeai build [context]
+agentstack build [context]
 ```
 
 Arguments:
@@ -132,7 +132,7 @@ Options:
 - `--multi-platform`: Build for multiple platforms
 - `--import / --no-import`: Import the image into BeeAI platform (default: true)
 
-Use `beeai build` when:
+Use `agentstack build` when:
 - You want to test builds before using them (`--no-import`)
 - You need custom build options (`--multi-platform`, custom `--tag`)
 - You're developing and want to control the build process
@@ -142,16 +142,16 @@ Examples:
 
 ```bash
 # Build from current directory
-beeai build .
+agentstack build .
 
 # Build with custom tag
-beeai build . --tag my-agent:latest
+agentstack build . --tag my-agent:latest
 
 # Build without importing
-beeai build . --no-import
+agentstack build . --no-import
 
 # Build from GitHub URL
-beeai build "https://github.com/user/repo"
+agentstack build "https://github.com/user/repo"
 ```
 
 ## Environment Management
@@ -161,7 +161,7 @@ beeai build "https://github.com/user/repo"
 Interactive setup for LLM provider environment variables:
 
 ```bash
-beeai model setup
+agentstack model setup
 ```
 
 This guides you through setting up the required environment variables for your chosen LLM provider.
@@ -172,21 +172,21 @@ Manage environment variables for agents:
 
 ```bash
 # List all environment variables
-beeai env list
+agentstack env list
 
 # Add or update an environment variable
-beeai env add KEY=VALUE
+agentstack env add KEY=VALUE
 
 # Remove an environment variable
-beeai env remove KEY
+agentstack env remove KEY
 ```
 
 **Examples:**
 ```bash
 # Set up an OpenAI-compatible API
-beeai env add LLM_MODEL=gpt-4o
-beeai env add LLM_API_BASE=https://api.openai.com/v1
-beeai env add LLM_API_KEY=sk_...
+agentstack env add LLM_MODEL=gpt-4o
+agentstack env add LLM_API_BASE=https://api.openai.com/v1
+agentstack env add LLM_API_KEY=sk_...
 ```
 
 ## System Commands
@@ -196,7 +196,7 @@ beeai env add LLM_API_KEY=sk_...
 Start the BeeAI server:
 
 ```bash
-beeai platform start
+agentstack platform start
 ```
 
 ### Stop
@@ -204,7 +204,7 @@ beeai platform start
 Stop the BeeAI server:
 
 ```bash
-beeai platform stop
+agentstack platform stop
 ```
 
 ### Delete
@@ -212,7 +212,7 @@ beeai platform stop
 Delete the BeeAI server:
 
 ```bash
-beeai platform delete
+agentstack platform delete
 ```
 
 ### UI
@@ -220,7 +220,7 @@ beeai platform delete
 Launch the web interface:
 
 ```bash
-beeai ui
+agentstack ui
 ```
 
 This runs the server in the foreground.
@@ -230,7 +230,7 @@ This runs the server in the foreground.
 Display version information:
 
 ```bash
-beeai version
+agentstack version
 ```
 
 ## Global Options

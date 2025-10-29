@@ -32,7 +32,7 @@ from a2a.types import (
     TaskStatusUpdateEvent,
     TextPart,
 )
-from beeai_sdk.a2a.extensions import (
+from agentstack_sdk.a2a.extensions import (
     EmbeddingFulfillment,
     EmbeddingServiceExtensionClient,
     EmbeddingServiceExtensionSpec,
@@ -44,7 +44,7 @@ from beeai_sdk.a2a.extensions import (
     TrajectoryExtensionClient,
     TrajectoryExtensionSpec,
 )
-from beeai_sdk.a2a.extensions.ui.form import (
+from agentstack_sdk.a2a.extensions.ui.form import (
     CheckboxField,
     CheckboxFieldValue,
     DateField,
@@ -58,9 +58,9 @@ from beeai_sdk.a2a.extensions.ui.form import (
     TextField,
     TextFieldValue,
 )
-from beeai_sdk.platform import ModelProvider, Provider
-from beeai_sdk.platform.context import Context, ContextPermissions, ContextToken, Permissions
-from beeai_sdk.platform.model_provider import ModelCapability
+from agentstack_sdk.platform import ModelProvider, Provider
+from agentstack_sdk.platform.context import Context, ContextPermissions, ContextToken, Permissions
+from agentstack_sdk.platform.model_provider import ModelCapability
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
 from InquirerPy.validator import EmptyInputValidator
@@ -71,9 +71,9 @@ from rich.panel import Panel
 from rich.rule import Rule
 from rich.text import Text
 
-from beeai_cli.commands.build import build
-from beeai_cli.commands.model import ensure_llm_provider
-from beeai_cli.configuration import Configuration
+from agentstack_cli.commands.build import build
+from agentstack_cli.commands.model import ensure_llm_provider
+from agentstack_cli.configuration import Configuration
 
 if sys.platform != "win32":
     try:
@@ -92,9 +92,9 @@ import typer
 from rich.markdown import Markdown
 from rich.table import Column
 
-from beeai_cli.api import a2a_client
-from beeai_cli.async_typer import AsyncTyper, console, create_table, err_console
-from beeai_cli.utils import (
+from agentstack_cli.api import a2a_client
+from agentstack_cli.async_typer import AsyncTyper, console, create_table, err_console
+from agentstack_cli.utils import (
     generate_schema_example,
     parse_env_var,
     print_log,
@@ -125,7 +125,7 @@ class ProviderUtils(BaseModel):
 
     @staticmethod
     def short_location(provider: Provider) -> str:
-        return re.sub(r"[a-z]*.io/i-am-bee/beeai-platform/", "", provider.source).lower()
+        return re.sub(r"[a-z]*.io/i-am-bee/agentstack-platform/", "", provider.source).lower()
 
 
 app = AsyncTyper()
@@ -152,7 +152,7 @@ async def add_agent(
         str, typer.Argument(help="Agent location (public docker image, local path or github url)")
     ],
     dockerfile: typing.Annotated[str | None, typer.Option(help="Use custom dockerfile path")] = None,
-    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "beeai-platform",
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack-platform",
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ) -> None:
     """Install discovered agent or add public docker image or github repository [aliases: install]"""

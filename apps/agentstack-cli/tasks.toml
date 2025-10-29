@@ -1,68 +1,68 @@
 # setup
 
-["beeai-cli:setup"]
+["agentstack-cli:setup"]
 depends = ["agentstack-sdk-py:setup"]
-dir = "{{config_root}}/apps/beeai-cli"
+dir = "{{config_root}}/apps/agentstack-cli"
 run = "uv sync --all-extras --dev"
 sources = ["uv.lock", "pyproject.toml"]
 outputs = { auto = true }
 
 # check
 
-["beeai-cli:check"]
-depends = ["beeai-cli:check:*"]
+["agentstack-cli:check"]
+depends = ["agentstack-cli:check:*"]
 
-["beeai-cli:check:ruff-check"]
-depends = ["beeai-cli:setup"]
-dir = "{{config_root}}/apps/beeai-cli"
+["agentstack-cli:check:ruff-check"]
+depends = ["agentstack-cli:setup"]
+dir = "{{config_root}}/apps/agentstack-cli"
 run = "uv run python -m ruff check --quiet"
 sources = ["src/**/*.py"]
 outputs = { auto = true }
 
-["beeai-cli:check:ruff-format"]
-depends = ["beeai-cli:setup"]
-dir = "{{config_root}}/apps/beeai-cli"
+["agentstack-cli:check:ruff-format"]
+depends = ["agentstack-cli:setup"]
+dir = "{{config_root}}/apps/agentstack-cli"
 run = "uv run python -m ruff format --quiet --check"
 sources = ["src/**/*.py"]
 outputs = { auto = true }
 
-["beeai-cli:check:pyright"]
-dir = "{{config_root}}/apps/beeai-cli"
+["agentstack-cli:check:pyright"]
+dir = "{{config_root}}/apps/agentstack-cli"
 run = "uv run python -m pyright"
 sources = ["src/**/*.py"]
 outputs = { auto = true }
 
 # fix
 
-["beeai-cli:fix"]
-depends = ["beeai-cli:fix:*"]
+["agentstack-cli:fix"]
+depends = ["agentstack-cli:fix:*"]
 
-["beeai-cli:fix:ruff-check"]
-depends = ["beeai-cli:setup"]
-dir = "{{config_root}}/apps/beeai-cli"
+["agentstack-cli:fix:ruff-check"]
+depends = ["agentstack-cli:setup"]
+dir = "{{config_root}}/apps/agentstack-cli"
 run = "uv run python -m ruff check --quiet --fix"
 sources = ["src/**/*.py"]
 outputs = { auto = true }
 
-["beeai-cli:fix:ruff-format"]
-depends = ["beeai-cli:setup"]
-dir = "{{config_root}}/apps/beeai-cli"
+["agentstack-cli:fix:ruff-format"]
+depends = ["agentstack-cli:setup"]
+dir = "{{config_root}}/apps/agentstack-cli"
 run = "uv run python -m ruff format --quiet"
 sources = ["src/**/*.py"]
 outputs = { auto = true }
 
 # run
 
-["beeai-cli:run"]
-description = "NOTE: Use double dash to pass extra args, like `mise beeai-cli:run -- provider list`"
-depends = ["beeai-cli:setup", "beeai-cli:build:copy-helm-chart"]
-dir = "{{config_root}}/apps/beeai-cli"
-run = "uv run beeai"
+["agentstack-cli:run"]
+description = "NOTE: Use double dash to pass extra args, like `mise agentstack-cli:run -- provider list`"
+depends = ["agentstack-cli:setup", "agentstack-cli:build:copy-helm-chart"]
+dir = "{{config_root}}/apps/agentstack-cli"
+run = "uv run agentstack"
 
 # build
 
-["beeai-cli:build:download-binaries"]
-dir = "{{config_root}}/apps/beeai-cli"
+["agentstack-cli:build:download-binaries"]
+dir = "{{config_root}}/apps/agentstack-cli"
 run = '''
 set -e
 LIMA_VERSION=$(yq -r '.tools["asdf:CrouchingMuppet/asdf-lima"]' ../../mise.toml)
@@ -75,16 +75,16 @@ echo '*' >./vendor/.gitignore
 wait
 '''
 
-["beeai-cli:build:copy-helm-chart"]
+["agentstack-cli:build:copy-helm-chart"]
 depends = ["helm:build"]
-dir = "{{config_root}}/apps/beeai-cli"
-run = "rm ./src/beeai_cli/data/helm-chart.tgz 2>/dev/null || true && cp {{config_root}}/helm/dist/beeai-platform-*.tgz ./src/beeai_cli/data/helm-chart.tgz"
+dir = "{{config_root}}/apps/agentstack-cli"
+run = "rm ./src/agentstack_cli/data/helm-chart.tgz 2>/dev/null || true && cp {{config_root}}/helm/dist/beeai-platform-*.tgz ./src/agentstack_cli/data/helm-chart.tgz"
 sources = ["{{config_root}}/helm/dist/beeai-platform-*.tgz"]
-outputs = ["./src/beeai_cli/data/helm-chart.tgz"]
+outputs = ["./src/agentstack_cli/data/helm-chart.tgz"]
 
-["beeai-cli:build"]
-depends = ["beeai-cli:setup", "beeai-cli:build:*", "agentstack-sdk-py:build"]
-dir = "{{config_root}}/apps/beeai-cli"
+["agentstack-cli:build"]
+depends = ["agentstack-cli:setup", "agentstack-cli:build:*", "agentstack-sdk-py:build"]
+dir = "{{config_root}}/apps/agentstack-cli"
 sources = ["src/**/*", "hatch_build.py", "pyproject.toml", "vendor/lima/**/*"]
 outputs = ["dist/**/*"]
 run = '''
@@ -96,15 +96,15 @@ rm -rf ./dist
 uv build -q --out-dir ./dist
 export lima_version=$(yq -r '.tools["asdf:CrouchingMuppet/asdf-lima"]' ../../mise.toml)
 export version="$(yq -r '.project.version' pyproject.toml | tr -d -)"
-export universal_wheel=$(realpath "./dist/beeai_cli-$version-py3-none-any.whl")
+export universal_wheel=$(realpath "./dist/agentstack_cli-$version-py3-none-any.whl")
 
 # Pin versions from uv.lock in wheel
 tmpdir="$(mktemp -d)"
 unzip -q "$universal_wheel" -d "$tmpdir"
 find "$tmpdir" -type f -exec chmod +r {} \;
-insert_line=$(awk '/^Requires-Dist:/ {print FNR-1; exit}' "$tmpdir/beeai_cli-${version}.dist-info/METADATA" | cut -d: -f1)
+insert_line=$(awk '/^Requires-Dist:/ {print FNR-1; exit}' "$tmpdir/agentstack_cli-${version}.dist-info/METADATA" | cut -d: -f1)
 (
-  head -n $insert_line "$tmpdir/beeai_cli-${version}.dist-info/METADATA"
+  head -n $insert_line "$tmpdir/agentstack_cli-${version}.dist-info/METADATA"
   uv export --no-editable --no-hashes --no-emit-workspace --format requirements-txt | sed '/^[[:space:]]*#/d' | while IFS= read -r dep; do
     if [[ "$dep" =~ ^[a-zA-Z] ]]; then
       echo "Requires-Dist: $dep"
@@ -112,15 +112,15 @@ insert_line=$(awk '/^Requires-Dist:/ {print FNR-1; exit}' "$tmpdir/beeai_cli-${v
       echo "Requires-Dist: $(yq -r '.project.name' "$dep/pyproject.toml")==$(yq -r '.project.version' "$dep/pyproject.toml" | tr -d '-')"
     fi
   done
-  awk -v insert_line="$insert_line" 'NR > insert_line && $0 !~ /^Requires-Dist:/' "$tmpdir/beeai_cli-${version}.dist-info/METADATA"
-) > "$tmpdir/beeai_cli-${version}.dist-info/METADATA.new"
-mv "$tmpdir/beeai_cli-${version}.dist-info/METADATA.new" "$tmpdir/beeai_cli-${version}.dist-info/METADATA"
+  awk -v insert_line="$insert_line" 'NR > insert_line && $0 !~ /^Requires-Dist:/' "$tmpdir/agentstack_cli-${version}.dist-info/METADATA"
+) > "$tmpdir/agentstack_cli-${version}.dist-info/METADATA.new"
+mv "$tmpdir/agentstack_cli-${version}.dist-info/METADATA.new" "$tmpdir/agentstack_cli-${version}.dist-info/METADATA"
 rm "$universal_wheel"
 uv run wheel pack "$tmpdir" --dest-dir ./dist >/dev/null
 rm -rf "$tmpdir"
 
 # Verify that the wheel works
-if ! uv tool run --isolated --from "$universal_wheel" --with ../agentstack-sdk-py/dist/beeai_sdk-*-py3-none-any.whl -- beeai version; then
+if ! uv tool run --isolated --from "$universal_wheel" --with ../agentstack-sdk-py/dist/agentstack_sdk-*-py3-none-any.whl -- agentstack version; then
   echo "Failed to install $universal_wheel"
   exit 1
 fi
@@ -136,13 +136,13 @@ build_wheel() {
   find "$tmpdir" -type f -exec chmod +r {} \;
 
   # Add Lima binaries
-  mkdir -p "$tmpdir/beeai_cli/data"
-  cp "./vendor/lima-$lima_version/$wheel_tag/bin/limactl" "$tmpdir/beeai_cli/data/"
-  cp "./vendor/lima-$lima_version/$wheel_tag/share/lima/lima-guestagent.Linux-$hostagent_arch"* "$tmpdir/beeai_cli/data/"
+  mkdir -p "$tmpdir/agentstack_cli/data"
+  cp "./vendor/lima-$lima_version/$wheel_tag/bin/limactl" "$tmpdir/agentstack_cli/data/"
+  cp "./vendor/lima-$lima_version/$wheel_tag/share/lima/lima-guestagent.Linux-$hostagent_arch"* "$tmpdir/agentstack_cli/data/"
   
   # Update WHEEL file
-  perl -pi -e "s/Root-Is-Purelib: true/Root-Is-Purelib: false/" "$tmpdir/beeai_cli-$version.dist-info/WHEEL"
-  perl -pi -e "s/Tag: .*/Tag: py3-none-$wheel_tag/" "$tmpdir/beeai_cli-$version.dist-info/WHEEL"
+  perl -pi -e "s/Root-Is-Purelib: true/Root-Is-Purelib: false/" "$tmpdir/agentstack_cli-$version.dist-info/WHEEL"
+  perl -pi -e "s/Tag: .*/Tag: py3-none-$wheel_tag/" "$tmpdir/agentstack_cli-$version.dist-info/WHEEL"
 
   uv run wheel pack "$tmpdir" --dest-dir ./dist >/dev/null
   rm -rf "$tmpdir"
@@ -156,6 +156,6 @@ for job in $(jobs -p); do wait $job; done
 
 # clean
 
-["beeai-cli:clean"]
-dir = "{{config_root}}/apps/beeai-cli"
+["agentstack-cli:clean"]
+dir = "{{config_root}}/apps/agentstack-cli"
 run = "rm -rf ./dist"

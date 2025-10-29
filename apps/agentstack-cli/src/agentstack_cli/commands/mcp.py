@@ -7,9 +7,9 @@ from enum import StrEnum
 import typer
 from rich.table import Column
 
-from beeai_cli.api import api_request
-from beeai_cli.async_typer import AsyncTyper, console, create_table
-from beeai_cli.utils import (
+from agentstack_cli.api import api_request
+from agentstack_cli.async_typer import AsyncTyper, console, create_table
+from agentstack_cli.utils import (
     status,
 )
 

@@ -8,14 +8,14 @@ on:
   pull_request:
     paths:
       - 'apps/beeai-server/**'
-      - 'apps/beeai-cli/**'
+      - 'apps/agentstack-cli/**'
       - 'helm/**'
   push:
     branches:
       - main
     paths:
       - 'apps/beeai-server/**'
-      - 'apps/beeai-cli/**'
+      - 'apps/agentstack-cli/**'
       - 'helm/**'
 jobs:
   e2e-test:

@@ -61,7 +61,7 @@ auth:
       - example.admin@ibm.com
     nextauth_trust_host: true
     nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
-    nextauth_url: "https://beeai.localhost:8336"
+    nextauth_url: "https://agentstack.localhost:8336"
     validate_audience: true
     providers: [
       {

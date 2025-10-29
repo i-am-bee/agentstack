@@ -41,7 +41,7 @@ Edit `[env]` in `mise.local.toml` in the project root ([documentation](https://m
 
 ### Running the platform from source
 
-Starting up the platform using the CLI (`beeai platform start`, even `mise beeai-cli:run -- platform start`) will use
+Starting up the platform using the CLI (`agentstack platform start`, even `mise agentstack-cli:run -- platform start`) will use
 **published images** by default. To use local images, you need to build them and import them into the platform.
 
 Instead, use:
@@ -87,12 +87,12 @@ mise beeai-platform:start --set oidc.enabled=true
 This does the following:
 
 - Installs Istio in ambient mode.
-- Creates a gateway and routes for `https://beeai.localhost:8336/`.
+- Creates a gateway and routes for `https://agentstack.localhost:8336/`.
 - Installs the Kiali console.
 
 **Why TLS is used:**  
 OAuth tokens are returned to the browser only over HTTPS to avoid leakage over plain HTTP. Always access the UI via
-`https://beeai.localhost:8336/`.
+`https://agentstack.localhost:8336/`.
 
 **Istio details:**  
 The default namespace is labeled `istio.io/dataplane-mode=ambient`. This ensures all intra-pod traffic is routed through
@@ -103,8 +103,8 @@ The default namespace is labeled `istio.io/dataplane-mode=ambient`. This ensures
 | Service        | HTTPS                                      | HTTP                                |
 |----------------|--------------------------------------------|-------------------------------------|
 | Kiali Console  | –                                          | `http://localhost:20001`            |
-| BeeAI UI       | `https://beeai.localhost:8336`             | `http://localhost:8334`             |
-| BeeAI API Docs | `https://beeai.localhost:8336/api/v1/docs` | `http://localhost:8333/api/v1/docs` |
+| BeeAI UI       | `https://agentstack.localhost:8336`             | `http://localhost:8334`             |
+| BeeAI API Docs | `https://agentstack.localhost:8336/api/v1/docs` | `http://localhost:8333/api/v1/docs` |
 
 **OIDC configuration:**
 
@@ -192,7 +192,7 @@ This will do the following:
 
 1. Create .env file if it doesn't exist yet (you can add your configuration here)
 2. Stop default platform VM ("beeai") if it exists
-3. Start a new VM named "beeai-local-dev" separate from the "beeai" VM used by default
+3. Start a new VM named "agentstack-local-dev" separate from the "beeai" VM used by default
 4. Install telepresence into the cluster
    > Note that this will require **root access** on your machine, due to setting up a networking stack.
 5. Replace beeai-platform in the cluster and forward any incoming traffic to localhost
@@ -203,7 +203,7 @@ After the command succeeds, you can:
   `curl http://<service-name>:<service-port>`.
 - connect to postgresql using the default credentials `postgresql://beeai-user:password@postgresql:5432/beeai`
 - now you can start your server from your IDE or using `mise run beeai-server:run` on port **18333**
-- run beeai-cli using `mise beeai-cli:run -- <command>` or HTTP requests to localhost:8333 or localhost:18333
+- run agentstack-cli using `mise agentstack-cli:run -- <command>` or HTTP requests to localhost:8333 or localhost:18333
     - localhost:8333 is port-forwarded from the cluster, so any requests will pass through the cluster networking to the
       beeai-platform pod, which is replaced by telepresence and forwarded back to your local machine to port 18333
     - localhost:18333 is where your local platform should be running
@@ -241,7 +241,7 @@ but you need to change kubeconfig location in your .env:
 
 ```shell
 # Use for developing e2e and integration tests locally
-K8S_KUBECONFIG=~/.beeai/lima/beeai-local-test/copied-from-guest/kubeconfig.yaml
+K8S_KUBECONFIG=~/.agentstack/lima/agenstack-local-test/copied-from-guest/kubeconfig.yaml
 ```
 
 and then run `beeai-server:dev:test:start`
@@ -256,7 +256,7 @@ and then run `beeai-server:dev:test:start`
 eval "$(mise run beeai-server:dev:shell)"
 
 # Start platform
-mise beeai-cli:run -- platform start --vm-name=beeai-local-dev # optional --tag [tag] --import-images
+mise agentstack-cli:run -- platform start --vm-name=agentstack-local-dev # optional --tag [tag] --import-images
 mise x -- telepresence helm install
 mise x -- telepresence connect
 
@@ -276,7 +276,7 @@ mise x -- telepresence quit
 If you want to run this local setup against Ollama you must use a special option when setting up the LLM:
 
 ```
-beeai model setup --use-true-localhost
+agentstack model setup --use-true-localhost
 ```
 
 ### Working with migrations
@@ -305,8 +305,8 @@ in [Running and debugging individual components](#running-and-debugging-individu
 #### CLI
 
 ```sh
-mise beeai-cli:run -- agent list
-mise beeai-cli:run -- agent run website_summarizer "summarize iambee.ai"
+mise agentstack-cli:run -- agent list
+mise agentstack-cli:run -- agent run website_summarizer "summarize iambee.ai"
 ```
 
 #### UI

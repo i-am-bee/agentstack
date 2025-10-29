@@ -146,14 +146,14 @@ run = "{{ mise_bin }} run beeai-server:migrations:alembic revision --autogenerat
 
 ["beeai-server:dev:shell"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "{{ mise_bin }} run beeai-platform:shell --vm-name=beeai-local-dev"
+run = "{{ mise_bin }} run beeai-platform:shell --vm-name=agentstack-local-dev"
 
 ["beeai-server:dev:start"]
 dir = "{{config_root}}/apps/beeai-server"
 run = """
 #!/bin/bash
 set -e
-VM_NAME='{{option(name="vm-name", default="beeai-local-dev")}}'
+VM_NAME='{{option(name="vm-name", default="agentstack-local-dev")}}'
 eval "$( {{ mise_bin }} run beeai-platform:shell --vm-name="$VM_NAME" )"
 {{ mise_bin }} run beeai-server:dev:disconnect --vm-name="$VM_NAME"
 {{ mise_bin }} run beeai-platform:stop-all --except "$VM_NAME"
@@ -165,7 +165,7 @@ eval "$( {{ mise_bin }} run beeai-platform:shell --vm-name="$VM_NAME" )"
 dir = "{{config_root}}/apps/beeai-server"
 run = """
 #!/bin/bash
-VM_NAME='{{option(name="vm-name", default="beeai-local-dev")}}'
+VM_NAME='{{option(name="vm-name", default="agentstack-local-dev")}}'
 {{ mise_bin }} run beeai-server:dev:disconnect --vm-name="$VM_NAME"
 {{ mise_bin }} run beeai-platform:stop --vm-name="$VM_NAME"
 """
@@ -173,8 +173,8 @@ VM_NAME='{{option(name="vm-name", default="beeai-local-dev")}}'
 ["beeai-server:dev:delete"]
 dir = "{{config_root}}/apps/beeai-server"
 run = """
-VM_NAME={{option(name="vm-name", default="beeai-local-dev")}}
-{{ mise_bin }} run beeai-cli:run -- platform delete --vm-name="$VM_NAME"
+VM_NAME={{option(name="vm-name", default="agentstack-local-dev")}}
+{{ mise_bin }} run agentstack-cli:run -- platform delete --vm-name="$VM_NAME"
 """
 
 ["beeai-server:dev:connect"]
@@ -182,7 +182,7 @@ dir = "{{config_root}}/apps/beeai-server"
 run = """
 #!/bin/bash
 NAMESPACE=default
-VM_NAME='{{option(name="vm-name", default="beeai-local-dev")}}'
+VM_NAME='{{option(name="vm-name", default="agentstack-local-dev")}}'
 eval "$( {{ mise_bin }} run beeai-platform:shell --vm-name="$VM_NAME" )"
 
 tele="telepresence --use .*${NAMESPACE}.*"
@@ -196,7 +196,7 @@ dir = "{{config_root}}/apps/beeai-server"
 run = """
 #!/bin/bash
 NAMESPACE=default
-VM_NAME='{{option(name="vm-name", default="beeai-local-dev")}}'
+VM_NAME='{{option(name="vm-name", default="agentstack-local-dev")}}'
 eval "$( {{ mise_bin }} run beeai-platform:shell --vm-name="$VM_NAME" )"
 
 tele="telepresence --use .*${NAMESPACE}.*"
@@ -209,7 +209,7 @@ $tele quit
 ["beeai-server:dev:reconnect"]
 dir = "{{config_root}}/apps/beeai-server"
 run = """
-VM_NAME='{{option(name="vm-name", default="beeai-local-dev")}}'
+VM_NAME='{{option(name="vm-name", default="agentstack-local-dev")}}'
 {{ mise_bin }} run beeai-server:dev:disconnect --vm-name="$VM_NAME"
 {{ mise_bin }} run beeai-server:dev:connect --vm-name="$VM_NAME"
 """
@@ -219,7 +219,7 @@ dir = "{{config_root}}/apps/beeai-server"
 run = """
 #!/bin/bash
 {{ mise_bin }} run beeai-server:dev:start \
-    --vm-name=beeai-local-test \
+    --vm-name=agenstack-local-test \
     --set externalRegistries=null \
     --set providerBuilds.enabled=true \
     --set localDockerRegistry.enabled=true \
@@ -228,27 +228,27 @@ run = """
 
 ["beeai-server:dev:test:stop"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "{{ mise_bin }} run beeai-server:dev:stop --vm-name=beeai-local-test"
+run = "{{ mise_bin }} run beeai-server:dev:stop --vm-name=agenstack-local-test"
 
 ["beeai-server:dev:test:delete"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "{{ mise_bin }} run beeai-server:dev:delete --vm-name=beeai-local-test"
+run = "{{ mise_bin }} run beeai-server:dev:delete --vm-name=agenstack-local-test"
 
 ["beeai-server:dev:test:shell"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "{{ mise_bin }} run beeai-platform:shell --vm-name=beeai-local-test"
+run = "{{ mise_bin }} run beeai-platform:shell --vm-name=agenstack-local-test"
 
 ["beeai-server:dev:test:connect"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "{{ mise_bin }} run beeai-server:dev:connect --vm-name=beeai-local-test"
+run = "{{ mise_bin }} run beeai-server:dev:connect --vm-name=agenstack-local-test"
 
 ["beeai-server:dev:test:disconnect"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "{{ mise_bin }} run beeai-server:dev:disconnect --vm-name=beeai-local-test"
+run = "{{ mise_bin }} run beeai-server:dev:disconnect --vm-name=agenstack-local-test"
 
 ["beeai-server:dev:test:reconnect"]
 dir = "{{config_root}}/apps/beeai-server"
-run = "{{ mise_bin }} run beeai-server:dev:reconnect --vm-name=beeai-local-test"
+run = "{{ mise_bin }} run beeai-server:dev:reconnect --vm-name=agenstack-local-test"
 
 ["beeai-server:test:e2e"]
 dir = "{{config_root}}/apps/beeai-server"
@@ -292,7 +292,7 @@ if [ $result -ne 0 ]; then
     kubectl get event
 fi
 
-{{ mise_bin }} run beeai-cli:run -- platform delete --vm-name=${VM_NAME}
+{{ mise_bin }} run agentstack-cli:run -- platform delete --vm-name=${VM_NAME}
 kill %1
 exit $result
 """

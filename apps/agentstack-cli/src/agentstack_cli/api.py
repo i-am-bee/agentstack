@@ -16,8 +16,8 @@ from a2a.types import AgentCard
 from httpx import HTTPStatusError
 from httpx._types import RequestFiles
 
-from beeai_cli import configuration
-from beeai_cli.configuration import Configuration
+from agentstack_cli import configuration
+from agentstack_cli.configuration import Configuration
 
 config = Configuration()
 
@@ -55,7 +55,7 @@ async def api_request(
             except Exception:
                 response.raise_for_status()
             if response.status_code == 401:
-                message = f'{error}\nexport BEEAI__ADMIN_PASSWORD="<PASSWORD>" to set the admin password.'
+                message = f'{error}\nexport AGENTSTACK__ADMIN_PASSWORD="<PASSWORD>" to set the admin password.'
                 raise HTTPStatusError(message=message, request=response.request, response=response)
             raise HTTPStatusError(message=error, request=response.request, response=response)
         if response.content:
