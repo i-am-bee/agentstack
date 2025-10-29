@@ -7,6 +7,10 @@
   Agent Stack
 </h1>
 
+<div align="center">
+🏗️ Under Construction: BeeAI Platform is being renamed to Agent Stack. More updates soon!
+</div>
+
 <h4 align="center">Test, debug, and share agents with complete UIs - add trajectory, citations, forms, file uploads, and more</h4>
 
 <div align="center">
