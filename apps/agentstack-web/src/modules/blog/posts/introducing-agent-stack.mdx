@@ -27,22 +27,19 @@ Agent Stack is a self-hostable stack for deploying and sharing AI agents. It sol
 built an agent (using any framework or even custom code), how do you actually deploy it somewhere people can use it?
 
 Agent Stack gives you:
-
 - **A server** you can self-host that runs your agents
 - **A web UI** where users interact with your deployed agents
 - **A CLI tool** to deploy and manage your agents
 - **Infrastructure services** that your agents can use:
-  - Runtime-configurable LLM providers - switch between Anthropic, watsonx.ai, OpenAI, Ollama, etc. without changing
-    agent code
-  - Embedding models for semantic search
-  - Vector stores for RAG
-  - File storage (S3-compatible)
-  - OAuth for third-party authentication
-  - Document extraction (Docling)
-  - Secret management for API keys
+   - Runtime-configurable LLMs - Switch between 15+ providers (Anthropic, OpenAI, watsonx.ai, Ollama) without code changes
+   - Embeddings & vector search - For RAG and semantic search
+   - File storage - S3-compatible uploads and downloads
+   - Document text extraction - Using Docling
+   - MCP connector infrastructure (bring your own connectors)
+   - External tool connections - Connect to databases, APIs, Slack, Google Drive, etc. via MCP protocol with built-in OAuth
+   - Secrets - Encrypted credential storage for API keys
 - **An SDK** that lets your agents request these services using standardized A2A protocol extensions
-- **A HELM Chart** that allows anyone to configure the platform as they want (plug in your own s3 compatible storage,
-  managed database, authentication, etc.)
+- **A HELM Chart** for custom infrastructure configuration (plug in your own S3 storage, database, auth, etc.)
 
 The SDK extensions work with any framework — if your agent is built on A2A, it can use these services regardless of
 whether you built it with LangGraph, CrewAI, BeeAI Framework, or something custom.
