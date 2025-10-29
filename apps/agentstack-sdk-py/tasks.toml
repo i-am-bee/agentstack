@@ -1,0 +1,90 @@
+# setup
+
+["agentstack-sdk-py:setup"]
+dir = "{{config_root}}/apps/agentstack-sdk-py"
+run = "uv sync --all-extras --dev"
+sources = ["uv.lock", "pyproject.toml"]
+outputs = { auto = true }
+
+# check
+
+["agentstack-sdk-py:check"]
+depends = ["agentstack-sdk-py:check:*"]
+
+["agentstack-sdk-py:check:ruff-check"]
+depends = ["agentstack-sdk-py:setup"]
+dir = "{{config_root}}/apps/agentstack-sdk-py"
+run = "uv run python -m ruff check --quiet"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+["agentstack-sdk-py:check:ruff-format"]
+depends = ["agentstack-sdk-py:setup"]
+dir = "{{config_root}}/apps/agentstack-sdk-py"
+run = "uv run python -m ruff format --quiet --check"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+["agentstack-sdk-py:check:pyright"]
+dir = "{{config_root}}/apps/agentstack-sdk-py"
+run = "uv run python -m pyright"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+
+["agentstack-sdk-py:check:pytest-marks"]
+depends = ["agentstack-sdk-py:setup"]
+dir = "{{config_root}}/apps/agentstack-sdk-py"
+run = """
+#!/bin/bash
+
+# Use pytest to collect tests that are not marked with unit, integration, or e2e
+unmarked_tests=$(uv run pytest --collect-only --no-header --no-summary -q -m "not (unit or integration or e2e)" tests/ 2>/dev/null)
+
+if echo "$unmarked_tests" | grep "tests collected" | grep -qv "no tests collected"; then
+    echo "ERROR: Found tests without required pytest marks:\n"
+    echo "$unmarked_tests" | grep 'tests collected'
+    echo ""
+    echo "All tests must be marked with @pytest.mark.unit, @pytest.mark.integration, or @pytest.mark.e2e"
+    exit 1
+else
+    echo "✓ All tests have pytest marks"
+fi
+"""
+sources = ["tests/**/*.py"]
+outputs = { auto = true }
+
+# fix
+
+["agentstack-sdk-py:fix"]
+depends = ["agentstack-sdk-py:fix:*"]
+
+["agentstack-sdk-py:fix:ruff-check"]
+depends = ["agentstack-sdk-py:setup"]
+dir = "{{config_root}}/apps/agentstack-sdk-py"
+run = "uv run python -m ruff check --quiet --fix"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+["agentstack-sdk-py:fix:ruff-format"]
+depends = ["agentstack-sdk-py:setup"]
+dir = "{{config_root}}/apps/agentstack-sdk-py"
+run = "uv run python -m ruff format --quiet"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+# test
+
+["agentstack-sdk-py:e2e-test"]
+depends = ["agentstack-sdk-py:setup"]
+dir = "{{config_root}}/apps/agentstack-sdk-py"
+run = "uv run pytest"
+
+# build
+
+["agentstack-sdk-py:build"]
+depends = ["agentstack-sdk-py:setup"]
+dir = "{{config_root}}/apps/agentstack-sdk-py"
+run = "rm ./dist/* 2>/dev/null || true; uv build --out-dir dist"
+sources = ["pyproject.toml", "uv.lock", "src/**/*.py"]
+outputs = ["dist/*"]

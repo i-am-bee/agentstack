@@ -65,8 +65,8 @@ version=$(
     yq -r .version              helm/Chart.yaml
     yq -r .appVersion           helm/Chart.yaml
     yq -r .project.version      apps/beeai-cli/pyproject.toml
-    yq -r .project.version      apps/beeai-sdk-py/pyproject.toml
-    yq -r .version              apps/beeai-sdk-ts/package.json
+    yq -r .project.version      apps/agentstack-sdk-py/pyproject.toml
+    yq -r .version              apps/agentstack-sdk-ts/package.json
     yq -r .project.version      apps/beeai-server/pyproject.toml
     yq -r .version              apps/beeai-ui/package.json
     yq -r .version              apps/beeai-web/package.json
@@ -221,11 +221,11 @@ fi
 # Update all version fields
 yq -i ".version = \"$new_version\"" helm/Chart.yaml
 yq -i ".appVersion = \"$new_version\"" helm/Chart.yaml
-(cd apps/beeai-sdk-py && toml set 'project.version' "$new_version" --toml-path pyproject.toml && uv lock)
+(cd apps/agentstack-sdk-py && toml set 'project.version' "$new_version" --toml-path pyproject.toml && uv lock)
 (cd apps/beeai-cli && toml set 'project.version' "$new_version" --toml-path pyproject.toml && uv lock)
 (cd apps/beeai-server && toml set 'project.version' "$new_version" --toml-path pyproject.toml && uv lock)
 for agent in agents/*; do (cd $agent && uv lock); done
-yq -i ".version = \"$new_version\"" apps/beeai-sdk-ts/package.json
+yq -i ".version = \"$new_version\"" apps/agentstack-sdk-ts/package.json
 yq -i ".version = \"$new_version\"" apps/beeai-ui/package.json
 yq -i ".version = \"$new_version\"" apps/beeai-web/package.json
 yq -i ".providers[].location |= sub(\":(.*)\$\"; \":\" + \"$new_version\")" agent-registry.yaml
