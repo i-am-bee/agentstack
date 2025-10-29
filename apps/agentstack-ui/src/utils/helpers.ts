@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import isValidMimeType from 'validator/lib/isMimeType';
+
 export const noop = () => {};
 
 /**
@@ -30,7 +32,7 @@ export function isMimeType(mimeType: string) {
     mimeType === 'image/*' ||
     mimeType === 'text/*' ||
     mimeType === 'application/*' ||
-    /\w+\/[-+.\w]+/g.test(mimeType)
+    isValidMimeType(mimeType)
   );
 }
 
