@@ -15,7 +15,7 @@
         "pages": [
           "introduction/welcome",
           "introduction/quickstart",
-          "introduction/connect-a2a-agent",
+          "introduction/connect-a2a-agents",
           "introduction/start-building-agents"
         ]
       },
