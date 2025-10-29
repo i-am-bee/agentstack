@@ -24,7 +24,7 @@ from pydantic import AnyUrl, BaseModel
 from beeai_server.domain.models.common import Metadata
 from beeai_server.domain.models.connector import Authorization, AuthorizationCodeFlow, Connector, ConnectorState, Token
 from beeai_server.domain.models.user import User
-from beeai_server.exceptions import PlatformError
+from beeai_server.exceptions import EntityNotFoundError, PlatformError
 from beeai_server.service_layer.unit_of_work import IUnitOfWorkFactory
 
 logger = logging.getLogger(__name__)
@@ -139,7 +139,11 @@ class ConnectorService:
                 )
 
             if connector.state not in (ConnectorState.auth_required):
-                raise PlatformError("Connector must be in auth_required state", status_code=status.HTTP_400_BAD_REQUEST)
+                return self._create_callback_response(
+                    redirect_url=redirect_url,
+                    error="invalid_state",
+                    error_description="Connector must be in auth_required state.",
+                )
 
             async with self._create_oauth_client(connector=connector) as client:
                 auth_metadata = await self._discover_auth_metadata(connector=connector)
@@ -156,17 +160,26 @@ class ConnectorService:
                 await self.probe_connector(connector=connector)
                 connector.state = ConnectorState.connected
             except Exception as err:
-                logger.error("Failed to probe resource with valid token", exc_info=True)
+                logger.error("Failed to probe resource with a valid token", exc_info=True)
                 connector.state = ConnectorState.disconnected
-                raise err
+                connector.disconnect_reason = str(err)
 
             async with self._uow() as uow:
                 await uow.connectors.update(connector=connector)
                 await uow.commit()
 
             return self._create_callback_response(redirect_url=redirect_url)
-        except Exception as err:
-            return self._create_callback_response(redirect_url=redirect_url, error=str(err))
+        except EntityNotFoundError:
+            return self._create_callback_response(
+                redirect_url=redirect_url, error="invalid_login", error_description="Invalid or expired login attempt."
+            )
+        except Exception:
+            logger.error("oAuth callback failed", exc_info=True)
+            return self._create_callback_response(
+                redirect_url=redirect_url,
+                error="internal_error",
+                error_description="An internal error has occurred. Please try again later.",
+            )
 
     def _create_callback_response(
         self, *, redirect_url: AnyUrl | None, error: str | None = None, error_description: str | None = None
