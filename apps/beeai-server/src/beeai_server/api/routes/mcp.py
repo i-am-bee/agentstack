@@ -7,7 +7,15 @@ import fastapi
 from fastapi import Depends
 
 from beeai_server.api.dependencies import McpServiceDependency, RequiresPermissions
-from beeai_server.api.schema.mcp import CreateMcpProviderRequest, CreateToolkitRequest, McpProvider, Tool, Toolkit
+from beeai_server.api.schema.mcp import (
+    CreateMcpProviderRequest,
+    CreateToolkitRequest,
+    McpProvider,
+    Resource,
+    ResourceMeta,
+    Tool,
+    Toolkit,
+)
 from beeai_server.api.utils import to_fastapi
 from beeai_server.domain.models.permissions import AuthorizedUser
 
@@ -47,6 +55,25 @@ async def delete_provider(
     _: Annotated[AuthorizedUser, Depends(RequiresPermissions(mcp_providers={"write"}))],
 ) -> None:
     await mcp_service.delete_provider(provider_id=provider_id)
+
+
+@router.get("/resources", response_model=list[ResourceMeta])
+async def list_resources(
+    mcp_service: McpServiceDependency,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(mcp_resources={"read"}))],
+):
+    resources = await mcp_service.list_resources()
+    return resources
+
+
+@router.get("/resources/{resource_id}", response_model=Resource)
+async def read_resource(
+    resource_id: str,
+    mcp_service: McpServiceDependency,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(mcp_resources={"read"}))],
+):
+    resource = await mcp_service.read_resource(resource_id=resource_id)
+    return resource
 
 
 @router.get("/tools")

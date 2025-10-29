@@ -522,7 +522,7 @@ docling:
 
 ## MCP Context Forge configuration
 forge:
-  image: ghcr.io/i-am-bee/mcp-context-forge:0.5.2
+  image: ghcr.io/i-am-bee/mcp-context-forge:0.6.1
   service:
     type: ClusterIP
     port: 4444
