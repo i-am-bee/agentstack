@@ -56,7 +56,7 @@ function Message({ message, onShow }: Props) {
         </div>
       )}
 
-      <MessageTrajectories message={message} autoScroll={isPending} toggleable={!isPending || hasContent} />
+      <MessageTrajectories message={message} autoScroll={isPending} toggleable={!isPending} />
 
       {!isPending && (
         <>

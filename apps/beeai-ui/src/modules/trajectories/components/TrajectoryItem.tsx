@@ -37,9 +37,6 @@ export function TrajectoryItem({ trajectory }: Props) {
         {match(parsed)
           .with({ type: 'string' }, ({ value }) => <LineClampText lines={5}>{value}</LineClampText>)
           .otherwise(({ value }) => {
-            // if (hasDescription) {
-            //   return <LineClampText lines={5}>{parsed.input.thought}</LineClampText>;
-            // }
             return (
               <CodeSnippet canCopy withBorder>
                 {value}
