@@ -29,7 +29,7 @@ export function RunLandingView() {
   const handleMessageSent = useCallback(() => {
     if (contextId) {
       window.history.pushState(
-        { contextId, messages },
+        null,
         '',
         routes.agentRun({
           providerId: agent.provider.id,
