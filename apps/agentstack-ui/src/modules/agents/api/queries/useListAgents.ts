@@ -19,8 +19,6 @@ export function useListAgents({ onlyUiSupported, orderBy }: Props = {}) {
     queryKey: providerKeys.list(),
     queryFn: () => listProviders(),
     select: (response) => {
-      console.log(response);
-
       let items = response?.items ?? [];
 
       if (orderBy === 'createdAt') {
