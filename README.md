@@ -61,7 +61,7 @@ sh -c "$(curl -LsSf https://raw.githubusercontent.com/i-am-bee/agentstack/HEAD/i
 ```
 
 > [!TIP]
-> The one-line script works on Linux and macOS. For manual setup or experimental Windows support, see the [quickstart guide](http://agentstack.beeai.dev/introduction/quickstart).
+> The one-line script works on Linux and macOS. For manual setup or experimental Windows support, see the [quickstart guide](https://agentstack.beeai.dev/introduction/quickstart).
 
 ### Usage
 
@@ -90,7 +90,7 @@ agentstack run example_agent "Alice"  # Test your agent
 You should see: "Ciao Alice!" 🎉
 
 > [!TIP]
-> Check out [Start Building Agents](http://agentstack.beeai.dev/introduction/start-building-agents) for a complete step-by-step guide to creating your first agent.
+> Check out [Start Building Agents](https://agentstack.beeai.dev/introduction/start-building-agents) for a complete step-by-step guide to creating your first agent.
 
 ---
 
@@ -125,7 +125,7 @@ A growing collection of community-built agents showcasing various use cases and 
 
 ## Documentation
 
-Visit [agentstack.beeai.dev](http://agentstack.beeai.dev) for full documentation.
+Visit [agentstack.beeai.dev](https://agentstack.beeai.dev) for full documentation.
 
 ## Community
 
@@ -151,7 +151,7 @@ Special thanks to our contributors for helping us improve BeeAI.
 
 ## Acknowledgements
 
-BeeAI builds upon the foundations established by several pioneering projects in the agent and protocol ecosystem:
+Agent builds upon the foundations established by several pioneering projects in the agent and protocol ecosystem:
 
 - [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) - The open standard enabling cross-framework agent communication
 - [Model Context Protocol](https://github.com/modelcontextprotocol) - Advancing how AI models interact with context
@@ -162,4 +162,4 @@ We're grateful to these communities for advancing the state of agent infrastruct
 
 ---
 
-Developed by contributors to the BeeAI project, this initiative is part of the [Linux Foundation AI & Data program](https://lfaidata.foundation/projects/). Its development follows open, collaborative, and community-driven practices.
+Developed by contributors to the Agent Stack project, this initiative is part of the [Linux Foundation AI & Data program](https://lfaidata.foundation/projects/). Its development follows open, collaborative, and community-driven practices.
