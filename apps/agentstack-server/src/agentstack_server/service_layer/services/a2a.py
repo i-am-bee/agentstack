@@ -1,11 +1,12 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
+
 import functools
 import inspect
 import logging
 import uuid
 from collections.abc import AsyncGenerator, AsyncIterable, AsyncIterator, Callable
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from datetime import timedelta
 from typing import NamedTuple, cast
 from urllib.parse import urljoin, urlparse
@@ -38,10 +39,11 @@ from a2a.types import (
 )
 from a2a.utils.errors import ServerError
 from kink import inject
-from pydantic import HttpUrl
+from pydantic import HttpUrl, ValidationError
 from structlog.contextvars import bind_contextvars, unbind_contextvars
 
 from agentstack_server.configuration import Configuration
+from agentstack_server.domain.models.connector import Connector, ConnectorState
 from agentstack_server.domain.models.provider import (
     NetworkProviderLocation,
     Provider,
@@ -49,9 +51,13 @@ from agentstack_server.domain.models.provider import (
 )
 from agentstack_server.domain.models.user import User
 from agentstack_server.exceptions import EntityNotFoundError, ForbiddenUpdateError
-from agentstack_server.service_layer.deployment_manager import IProviderDeploymentManager
+from agentstack_server.service_layer.deployment_manager import (
+    IProviderDeploymentManager,
+)
+from agentstack_server.service_layer.services.connector import ConnectorService
 from agentstack_server.service_layer.services.users import UserService
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
+from agentstack_server.utils.sdk import MCPServiceExtensionMetadata, MCPServiceExtensionURI
 
 logger = logging.getLogger(__name__)
 
@@ -126,11 +132,26 @@ def _handle_exception[T: Callable](fn: T) -> T:
 
 
 class ProxyRequestHandler(RequestHandler):
-    def __init__(self, agent_card: AgentCard, provider_id: UUID, uow: IUnitOfWorkFactory, user: User):
+    def __init__(
+        self,
+        agent_card: AgentCard,
+        provider_id: UUID,
+        uow: IUnitOfWorkFactory,
+        user: User,
+        connectors: list[Connector],
+    ):
         self._agent_card = agent_card
         self._provider_id = provider_id
         self._user = user
         self._uow = uow
+        self._injectable_connectors = {
+            connector.url: connector
+            for connector in connectors
+            if connector.state == ConnectorState.connected
+            and connector.auth
+            and connector.auth.token
+            and connector.auth.token.token_type == "bearer"
+        }
 
     @asynccontextmanager
     async def _client_transport(self) -> AsyncIterator[ClientTransport]:
@@ -146,7 +167,10 @@ class ProxyRequestHandler(RequestHandler):
             await uow.a2a_requests.get_task(task_id=task_id, user_id=self._user.id)
 
     async def _check_and_record_request(
-        self, task_id: str | None = None, context_id: str | None = None, allow_task_creation: bool = False
+        self,
+        task_id: str | None = None,
+        context_id: str | None = None,
+        allow_task_creation: bool = False,
     ):
         async with self._uow() as uow:
             # Consider: a bit paranoid check
@@ -169,6 +193,26 @@ class ProxyRequestHandler(RequestHandler):
     def _forward_context(self, context: ServerCallContext | None = None) -> ClientCallContext:
         return ClientCallContext(state={**(context.state if context else {}), "user_id": self._user.id})
 
+    def _inject_message_params(self, params: MessageSendParams):
+        metadata = params.message.metadata
+        if metadata:
+            mcp_ext = metadata.get(MCPServiceExtensionURI)
+            if mcp_ext:
+                with suppress(ValidationError):
+                    metadata = MCPServiceExtensionMetadata.model_validate(mcp_ext)
+                    for fulfillment in metadata.mcp_fulfillments.values():
+                        if fulfillment.transport.type == "streamable_http":
+                            connector = self._injectable_connectors.get(fulfillment.transport.url)
+                            if connector:
+                                assert connector.auth and connector.auth.token
+                                if not fulfillment.transport.headers:
+                                    fulfillment.transport.headers = {}
+                                if "authorization" not in fulfillment.transport.headers:
+                                    fulfillment.transport.headers["authorization"] = (
+                                        f"Bearer {connector.auth.token.access_token}"
+                                    )
+                    mcp_ext[MCPServiceExtensionURI] = metadata.model_dump(mode="json")
+
     @_handle_exception
     async def on_get_task(self, params: TaskQueryParams, context: ServerCallContext | None = None) -> Task | None:
         await self._check_task(params.id)
@@ -185,6 +229,8 @@ class ProxyRequestHandler(RequestHandler):
     async def on_message_send(
         self, params: MessageSendParams, context: ServerCallContext | None = None
     ) -> Task | Message:
+        self._inject_message_params(params)
+
         # we set task_id and context_id if not configured
         params.message.context_id = params.message.context_id or str(uuid.uuid4())
         await self._check_and_record_request(params.message.task_id, params.message.context_id)
@@ -203,6 +249,8 @@ class ProxyRequestHandler(RequestHandler):
     async def on_message_send_stream(
         self, params: MessageSendParams, context: ServerCallContext | None = None
     ) -> AsyncGenerator[Event]:
+        self._inject_message_params(params)
+
         # we set task_id and context_id if not configured
         params.message.context_id = params.message.context_id or str(uuid.uuid4())
         await self._check_and_record_request(params.message.task_id, params.message.context_id)
@@ -221,14 +269,18 @@ class ProxyRequestHandler(RequestHandler):
                             raise RuntimeError(f"Unexpected context_id returned from the agent: {context_id}")
                         if task_id and task_id not in seen_tasks:
                             await self._check_and_record_request(
-                                task_id=task_id, context_id=context_id, allow_task_creation=True
+                                task_id=task_id,
+                                context_id=context_id,
+                                allow_task_creation=True,
                             )
                             seen_tasks.add(task_id)
                 yield event
 
     @_handle_exception
     async def on_set_task_push_notification_config(
-        self, params: TaskPushNotificationConfig, context: ServerCallContext | None = None
+        self,
+        params: TaskPushNotificationConfig,
+        context: ServerCallContext | None = None,
     ) -> TaskPushNotificationConfig:
         await self._check_task(params.task_id)
         async with self._client_transport() as transport:
@@ -236,7 +288,9 @@ class ProxyRequestHandler(RequestHandler):
 
     @_handle_exception
     async def on_get_task_push_notification_config(
-        self, params: TaskIdParams | GetTaskPushNotificationConfigParams, context: ServerCallContext | None = None
+        self,
+        params: TaskIdParams | GetTaskPushNotificationConfigParams,
+        context: ServerCallContext | None = None,
     ) -> TaskPushNotificationConfig:
         await self._check_task(params.id)
         async with self._client_transport() as transport:
@@ -255,13 +309,17 @@ class ProxyRequestHandler(RequestHandler):
 
     @_handle_exception
     async def on_list_task_push_notification_config(
-        self, params: ListTaskPushNotificationConfigParams, context: ServerCallContext | None = None
+        self,
+        params: ListTaskPushNotificationConfigParams,
+        context: ServerCallContext | None = None,
     ) -> list[TaskPushNotificationConfig]:
         raise NotImplementedError("This is not supported by the client transport yet")
 
     @_handle_exception
     async def on_delete_task_push_notification_config(
-        self, params: DeleteTaskPushNotificationConfigParams, context: ServerCallContext | None = None
+        self,
+        params: DeleteTaskPushNotificationConfigParams,
+        context: ServerCallContext | None = None,
     ) -> None:
         raise NotImplementedError("This is not supported by the client transport yet")
 
@@ -275,18 +333,27 @@ class A2AProxyService:
         provider_deployment_manager: IProviderDeploymentManager,
         uow: IUnitOfWorkFactory,
         user_service: UserService,
+        connector_service: ConnectorService,
         configuration: Configuration,
     ):
         self._deploy_manager = provider_deployment_manager
         self._uow = uow
         self._user_service = user_service
+        self._connector_service = connector_service
         self._config = configuration
         self._expire_requests_after = timedelta(days=configuration.a2a_proxy.requests_expire_after_days)
 
     async def get_request_handler(self, *, provider: Provider, user: User) -> RequestHandler:
         url = await self.ensure_agent(provider_id=provider.id)
         agent_card = create_deployment_agent_card(provider.agent_card, deployment_base=str(url))
-        return ProxyRequestHandler(agent_card=agent_card, provider_id=provider.id, uow=self._uow, user=user)
+        connectors = await self._connector_service.list_connectors(user=user)
+        return ProxyRequestHandler(
+            agent_card=agent_card,
+            provider_id=provider.id,
+            uow=self._uow,
+            user=user,
+            connectors=connectors,
+        )
 
     async def expire_requests(self) -> dict[str, int]:
         async with self._uow() as uow:
@@ -321,10 +388,13 @@ class A2AProxyService:
                     | ProviderDeploymentState.READY
                 ):
                     async with self._uow() as uow:
-                        from agentstack_server.domain.repositories.env import EnvStoreEntity
+                        from agentstack_server.domain.repositories.env import (
+                            EnvStoreEntity,
+                        )
 
                         env = await uow.env.get_all(
-                            parent_entity=EnvStoreEntity.PROVIDER, parent_entity_ids=[provider.id]
+                            parent_entity=EnvStoreEntity.PROVIDER,
+                            parent_entity_ids=[provider.id],
                         )
                     modified = await self._deploy_manager.create_or_replace(provider=provider, env=env[provider.id])
                     should_wait = modified or state != ProviderDeploymentState.RUNNING

@@ -33,6 +33,7 @@ class StreamableHTTPTransport(pydantic.BaseModel):
     type: Literal["streamable_http"] = "streamable_http"
 
     url: pydantic.AnyHttpUrl
+    headers: dict[str, str] | None = None
 
 
 MCPTransport = Annotated[StdioTransport | StreamableHTTPTransport, pydantic.Field(discriminator="type")]
@@ -131,6 +132,7 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
             oauth = self._get_oauth_server()
             async with streamablehttp_client(
                 url=str(transport.url),
+                headers=transport.headers,
                 auth=await oauth.create_httpx_auth(resource_url=transport.url) if oauth else None,
             ) as (
                 read,
