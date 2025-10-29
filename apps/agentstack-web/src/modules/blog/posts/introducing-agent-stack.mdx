@@ -13,7 +13,7 @@ purpose as open infrastructure for deploying and sharing agents without framewor
 As BeeAI has evolved, we ended up with two projects with similar names:
 
 1. **BeeAI Framework** – for building reliable, intelligent agents
-2. **BeeAI Platform** – for deploying, running, and sharing those agents
+2. **BeeAI Platform** – for deploying and sharing those agents
 
 While both are essential parts of the BeeAI initiative under the Linux Foundation, the similar naming has led to some
 natural confusion about which tool does what. We've heard from community members that the distinction between
@@ -23,7 +23,7 @@ Agent Stack makes the purpose explicit—it's your deployment stack for agents.
 
 ## What is Agent Stack?
 
-Agent Stack is a self-hostable stack for deploying and running AI agents. It solves a specific problem: once you've
+Agent Stack is a self-hostable stack for deploying and sharing AI agents. It solves a specific problem: once you've
 built an agent (using any framework or even custom code), how do you actually deploy it somewhere people can use it?
 
 Agent Stack gives you:
@@ -41,6 +41,8 @@ Agent Stack gives you:
   - Document extraction (Docling)
   - Secret management for API keys
 - **An SDK** that lets your agents request these services using standardized A2A protocol extensions
+- **A HELM Chart** that allows anyone to configure the platform as they want (plug in your own s3 compatible storage,
+  managed database, authentication, etc.)
 
 The SDK extensions work with any framework — if your agent is built on A2A, it can use these services regardless of
 whether you built it with LangGraph, CrewAI, BeeAI Framework, or something custom.
@@ -132,6 +134,8 @@ pip install agentstack-sdk
 ```
 from agentstack_sdk import Server  # new
 ```
+
+**All agent images will need to be rebuilt to apply the appropriate change.**
 
 ## What’s Next
 

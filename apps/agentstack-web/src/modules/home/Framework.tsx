@@ -29,7 +29,7 @@ export function Framework() {
       <LayoutContainer asGrid>
         <TwoColumnGrid className={classes.info}>
           <HeadlineWithLink
-            title="beeai-framework"
+            title="BeeAI Framework"
             description="Build reliable, intelligent agents with our lightweight framework that goes beyond prompting and enforces rules."
             buttonProps={{ url: FRAMEWORK_INTRO_LINK }}
             inverse

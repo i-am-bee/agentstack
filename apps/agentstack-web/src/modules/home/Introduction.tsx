@@ -17,8 +17,9 @@ export function Introduction() {
         <div className={classes.headline}>
           <h1>
             <LogoBeeAI /> <br />
-            control and agency without compromise
+            Ecosystem <br />
           </h1>
+          A Series of Linux Foundation projects advancing AI agents
           <PrimaryCTALink />
         </div>
       </section>
