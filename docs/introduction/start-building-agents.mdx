@@ -3,15 +3,15 @@ title: "Start Building Agents"
 description: "Start building your own agent with a simple Hello World example"
 ---
 
-Now that your BeeAI Platform is up and running, and you know how to run an agent via the GUI or CLI, it’s time to create your first agent.
+Now that your Agent Stack is up and running, and you know how to run an agent via the GUI or CLI, it’s time to create your first agent.
 
-With the BeeAI SDK, you can build an agent that automatically registers with the platform — no extra setup required.
+With the Agent Stack SDK, you can build an agent that automatically registers with the Agent Stack — no extra setup required.
 
 To make things even easier, we’ve provided a starter repository. You can clone it and start coding immediately, so you can focus on your agent logic instead of boilerplate setup.
 
 ## Prerequisites
 
-- BeeAI Platform installed ([Quickstart](/introduction/quickstart))
+- Agent Stack installed ([Quickstart](/introduction/quickstart))
 - [uv](https://docs.astral.sh/uv/) package manager (should be already installed if you followed the quickstart)
 
 ## Start From Template
@@ -21,12 +21,12 @@ To make things even easier, we’ve provided a starter repository. You can clone
 <Tabs>
 <Tab title="Clone directly">
 ```bash
-git clone https://github.com/i-am-bee/beeai-platform-agent-starter my-agent
+git clone https://github.com/i-am-bee/agentstack-starter my-agent
 cd my-agent
 ```
 </Tab>
 <Tab title="Use as a GitHub template">
-1. Go to the [template repository](https://github.com/i-am-bee/beeai-platform-agent-starter)
+1. Go to the [template repository](https://github.com/i-am-bee/agentstack-starter)
 2. Click "Use this template" → "Create a new repository"
 3. Clone your new repository locally
 </Tab>
@@ -42,7 +42,7 @@ uv run server
 <Tip>
 **Enable auto-reload during development:** Add `watchfiles` to automatically restart your server when code changes:
 ```bash
-uv run watchfiles beeai_agents.agent.run
+uv run watchfiles agentstack_agents.agent.run
 ```
 </Tip>
 
@@ -63,7 +63,7 @@ With your first agent running, you can now modify it to do anything you want.
 
 ## Implement Your Agent Logic
 
-Navigate to [src/beeai_agents/agent.py](https://github.com/i-am-bee/beeai-platform-agent-starter/blob/main/src/beeai_agents/agent.py) and replace the example with your agent logic.
+Navigate to [src/agentstack_agents/agent.py](https://github.com/i-am-bee/agentstack-starter/blob/main/src/agentstack_agents/agent.py) and replace the example with your agent logic.
 
 The starter example is minimal and intended for demonstration purposes only:
 
@@ -74,9 +74,9 @@ from a2a.types import (
     Message,
 )
 from a2a.utils.message import get_message_text
-from beeai_sdk.server import Server
-from beeai_sdk.server.context import RunContext
-from beeai_sdk.a2a.types import AgentMessage
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
+from agentstack_sdk.a2a.types import AgentMessage
 
 server = Server()
 

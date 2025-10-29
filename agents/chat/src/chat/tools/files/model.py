@@ -6,7 +6,7 @@ from enum import StrEnum
 from a2a.types import Role
 from pydantic import BaseModel, computed_field
 
-from beeai_sdk.platform import File
+from agentstack_sdk.platform import File
 
 
 class OriginType(StrEnum):

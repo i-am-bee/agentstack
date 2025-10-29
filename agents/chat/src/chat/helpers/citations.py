@@ -3,7 +3,7 @@
 
 import re
 
-from beeai_sdk.a2a.extensions import Citation
+from agentstack_sdk.a2a.extensions import Citation
 
 
 def extract_citations(text: str) -> tuple[list[Citation], str]:

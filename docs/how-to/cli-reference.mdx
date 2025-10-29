@@ -1,13 +1,13 @@
 ---
 title: "CLI Reference"
-description: "Complete reference for the BeeAI command-line interface"
+description: "Complete reference for the Agent Stack command-line interface"
 ---
 
-BeeAI command-line interface (CLI) provides powerful tools to discover, run, and manage agents directly from your terminal. This document serves as a comprehensive reference for all available commands and options.
+Agent Stack command-line interface (CLI) provides powerful tools to discover, run, and manage agents directly from your terminal. This document serves as a comprehensive reference for all available commands and options.
 
 ## Basic Usage
 
-The basic syntax for BeeAI commands follows this pattern:
+The basic syntax for Agent Stack commands follows this pattern:
 
 ```bash
 agentstack [command] [subcommand] [arguments] [options]
@@ -82,7 +82,7 @@ Location formats:
 
 ```bash
 # From Docker image
-agentstack add ghcr.io/i-am-bee/beeai-platform/agents/chat:latest
+agentstack add ghcr.io/i-am-bee/agentstack/agents/chat:latest
 
 # From GitHub repository
 agentstack add "https://github.com/i-am-bee/custom-agent"
@@ -130,7 +130,7 @@ Arguments:
 Options:
 - `--tag <name>`: Docker tag for the agent
 - `--multi-platform`: Build for multiple platforms
-- `--import / --no-import`: Import the image into BeeAI platform (default: true)
+- `--import / --no-import`: Import the image into Agent Stack (default: true)
 
 Use `agentstack build` when:
 - You want to test builds before using them (`--no-import`)
@@ -193,7 +193,7 @@ agentstack env add LLM_API_KEY=sk_...
 
 ### Start
 
-Start the BeeAI server:
+Start the Agent Stack server:
 
 ```bash
 agentstack platform start
@@ -201,7 +201,7 @@ agentstack platform start
 
 ### Stop
 
-Stop the BeeAI server:
+Stop the Agent Stack server:
 
 ```bash
 agentstack platform stop
@@ -209,7 +209,7 @@ agentstack platform stop
 
 ### Delete
 
-Delete the BeeAI server:
+Delete the Agent Stack server:
 
 ```bash
 agentstack platform delete

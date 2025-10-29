@@ -46,7 +46,7 @@ you created earlier and your preferred LLM credentials, for example:
 
 ```shell
 agentstack platform exec -- kubectl run curlpod --image=curlimages/curl -it --rm --restart=Never -- curl -X PUT \
-  agentstack-svc:8333/api/v1/variables \
+  agentstack-server-svc:8333/api/v1/variables \
   -u admin:my-secret-password \
   -H "Content-Type: application/json" \
   -d '{
@@ -65,7 +65,7 @@ Test that the platform is working:
 # port-forward in a separate terminal
 
 ```shell
-kubectl port-forward svc/agentstack-svc 8333:8333 &
+kubectl port-forward svc/agentstack-server-svc 8333:8333 &
 ```
 
 ```

@@ -3,7 +3,7 @@ title: "File Handling"
 description: "Upload and generate files in agents"
 ---
 
-One of the most common use cases for AI agents is working with files. Your agent should be able to read files from user uploads and generate new files as outputs. The BeeAI platform makes this seamless through the A2A protocol's `FilePart`.
+One of the most common use cases for AI agents is working with files. Your agent should be able to read files from user uploads and generate new files as outputs. The Agent Stack makes this seamless through the A2A protocol's `FilePart`.
 
 ## Quickstart
 
@@ -13,7 +13,7 @@ Add the `default_input_modes` parameter to your agent decorator only if you want
 </Step>
 
 <Step title="Inject the Platform API extension">
-Import and use the `PlatformApiExtensionServer` to access file creation capabilities. This extension provides your agent with the proper context and authentication needed to use the BeeAI platform API for creating and managing files. If not provided, your agent will receive unauthorized responses when working with files.
+Import and use the `PlatformApiExtensionServer` to access file creation capabilities. This extension provides your agent with the proper context and authentication needed to use the Agent Stack API for creating and managing files. If not provided, your agent will receive unauthorized responses when working with files.
 </Step>
 
 <Step title="Process uploaded files">
@@ -34,14 +34,14 @@ import os
 
 from typing import Annotated
 
-from beeai_sdk.server import Server
-from beeai_sdk.a2a.types import Message
-from beeai_sdk.a2a.extensions.services.platform import (
+from agentstack_sdk.server import Server
+from agentstack_sdk.a2a.types import Message
+from agentstack_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionServer,
     PlatformApiExtensionSpec,
 )
-from beeai_sdk.platform import File
-from beeai_sdk.util.file import load_file
+from agentstack_sdk.platform import File
+from agentstack_sdk.util.file import load_file
 
 
 server = Server()

@@ -1,17 +1,17 @@
 ---
 title: "Deployment Guide"
-description: "Deploy BeeAI Platform to Kubernetes for internal team use"
+description: "Deploy Agent Stack to Kubernetes for internal team use"
 ---
 
-Use Helm to deploy the BeeAI Platform on Kubernetes, creating a centralized environment where your team can quickly test, share, and iterate on agents.
+Use Helm to deploy the Agent Stack on Kubernetes, creating a centralized environment where your team can quickly test, share, and iterate on agents.
 
 <Warning>
-**Intended Use:** BeeAI Platform is designed for internal team deployments behind VPNs or firewalls. Basic authentication protects administrative operations (agent management, secrets, model configuration), but authenticated users can freely use agents, upload files, and create vector stores without per-user limits. Deploy only in trusted environments where you control who has access. Public internet deployments are not recommended.
+**Intended Use:** Agent Stack is designed for internal team deployments behind VPNs or firewalls. Basic authentication protects administrative operations (agent management, secrets, model configuration), but authenticated users can freely use agents, upload files, and create vector stores without per-user limits. Deploy only in trusted environments where you control who has access. Public internet deployments are not recommended.
 </Warning>
 
 ## Requirements
 
-- BeeAI installed for post-deployment configuration
+- Agent Stack installed for post-deployment configuration
 - Kubernetes 1.24+ with admin access
 - kubectl configured to access your cluster
 - Helm 3.8+
@@ -27,11 +27,11 @@ Create a `config.yaml` file with your desired configuration:
 ```yaml
 # If you want to include agents from the default catalog (change release/tag accordingly):
 externalRegistries:
-  public_github: "https://github.com/i-am-bee/beeai-platform@v0.3.5#path=agent-registry.yaml"
+  public_github: "https://github.com/i-am-bee/agentstack@v0.4.0#path=agent-registry.yaml"
 # Your custom agents as docker images
 providers:
   # e.g.
-  # - location: ghcr.io/i-am-bee/beeai-platform-agent-starter/my-agent:latest
+  # - location: ghcr.io/i-am-bee/agentstack-starter/my-agent:latest
   - location: <docker-image-id>
 # Generate the encryption key:
 #  - using UV (https://docs.astral.sh/uv/getting-started/installation/)
@@ -54,7 +54,7 @@ auth:
 Then install the chart using:
 
 ```shell
-helm upgrade --install beeai -f config.yaml oci://ghcr.io/i-am-bee/beeai-platform/beeai-platform-chart/beeai-platform:0.3.5
+helm upgrade --install agentstack -f config.yaml oci://ghcr.io/i-am-bee/agentstack/agentstack-chart/agentstack:0.3.5
 ```
 
 It will take a few minutes for the pods to start.
@@ -64,7 +64,7 @@ It will take a few minutes for the pods to start.
 By default, ingress is not configured. You can port-forward the service to access the platform. In a separate terminal, run:
 
 ```shell
-kubectl port-forward svc/beeai-platform-svc 8333:8333 &
+kubectl port-forward svc/agentstack-svc 8333:8333 &
 ```
 
 ### Step 4: Setup LLM
@@ -108,9 +108,9 @@ Include specific agents in your deployment:
 # config.yaml
 providers:
   # Official agents
-  - location: ghcr.io/i-am-bee/beeai-platform/agents/chat:0.3.4
-  - location: ghcr.io/i-am-bee/beeai-platform/agents/rag:0.3.4
-  - location: ghcr.io/i-am-bee/beeai-platform/agents/form:0.3.4
+  - location: ghcr.io/i-am-bee/agentstack/agents/chat:0.3.4
+  - location: ghcr.io/i-am-bee/agentstack/agents/rag:0.3.4
+  - location: ghcr.io/i-am-bee/agentstack/agents/form:0.3.4
 
   # Your custom agents
   - location: your-registry.com/your-team/custom-agent:v1.0.0
@@ -123,7 +123,7 @@ Use the default agent registry instead of specifying individual agents:
 ```yaml
 # config.yaml
 externalRegistries:
-  public_github: "https://github.com/i-am-bee/beeai-platform@v0.3.5#path=agent-registry.yaml"
+  public_github: "https://github.com/i-am-bee/agentstack@v0.4.0#path=agent-registry.yaml"
 # Omit the 'providers' section to use only registry agents
 ```
 
@@ -131,30 +131,30 @@ externalRegistries:
 
 ### Upgrading
 
-To upgrade to a newer version of the beeai platform, use:
+To upgrade to a newer version of the Agent Stack, use:
 
 ```shell
-helm upgrade --install beeai -f config.yaml oci://ghcr.io/i-am-bee/beeai-platform/beeai-platform-chart/beeai-platform:<newer-version>
+helm upgrade --install agentstack -f config.yaml oci://ghcr.io/i-am-bee/agentstack/agentstack-chart/agentstack:<newer-version>
 ```
 
 ### View Current Configuration
 
 ```bash
-helm get values beeai
+helm get values agentstack
 ```
 
 ### Check Deployment Status
 
 ```bash
-helm status beeai
+helm status agentstack
 kubectl get pods
-kubectl logs deployment/beeai-platform
+kubectl logs deployment/agentstack
 ```
 
 ### Uninstall
 
 ```bash
-helm uninstall beeai
+helm uninstall agentstack
 ```
 
 ## Troubleshooting
@@ -165,7 +165,7 @@ helm uninstall beeai
 
 ```bash
 # Check pod logs
-kubectl logs deployment/beeai-platform
+kubectl logs deployment/agentstack
 
 # Check events
 kubectl get events --sort-by=.lastTimestamp
@@ -175,12 +175,12 @@ kubectl get events --sort-by=.lastTimestamp
 
 ```bash
 # Verify LLM configuration
-kubectl logs deployment/beeai-platform | grep -i llm
+kubectl logs deployment/agentstack | grep -i llm
 ```
 
 **Authentication issues:**
 
 ```bash
 # Check if authentication is properly configured
-kubectl get secret beeai-platform-secret -o yaml
+kubectl get secret agentstack-secret -o yaml
 ```

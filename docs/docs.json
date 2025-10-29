@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "maple",
-  "name": "BeeAI",
+  "name": "Agent Stack",
   "colors": {
     "primary": "#000000",
     "light": "#c5c5c5",
@@ -22,7 +22,7 @@
       {
         "group": "Core Concepts",
         "pages": [
-          "concepts/a2a", 
+          "concepts/a2a",
           "concepts/extensions",
           "concepts/observability"
         ]
@@ -71,15 +71,13 @@
     "primary": {
       "type": "button",
       "label": "GitHub",
-      "href": "https://github.com/i-am-bee/beeai-platform"
+      "href": "https://github.com/i-am-bee/agentstack"
     },
-    "links": [
-      { "label": "Discord", "href": "https://discord.gg/NradeA6ZNF" }
-    ]
+    "links": [{ "label": "Discord", "href": "https://discord.gg/NradeA6ZNF" }]
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/i-am-bee/beeai-platform",
+      "github": "https://github.com/i-am-bee/agentstack",
       "discord": "https://discord.gg/AZFrp3UF5k",
       "bluesky": "https://bsky.app/profile/beeaiagents.bsky.social"
     }

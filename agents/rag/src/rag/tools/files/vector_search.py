@@ -6,7 +6,7 @@ from typing import Any, Final
 
 from beeai_framework.context import RunContext
 
-from beeai_sdk.platform import VectorStore
+from agentstack_sdk.platform import VectorStore
 import httpx
 from beeai_framework.emitter import Emitter
 from beeai_framework.tools import Tool, ToolError, ToolOutput, ToolRunOptions

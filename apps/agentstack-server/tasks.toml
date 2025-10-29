@@ -129,7 +129,7 @@ set -a
 source .env
 set +a
 
-if ! telepresence list --replacements 2>/dev/null | grep -q platform; then
+if ! telepresence list --replacements 2>/dev/null | grep -q agentstack; then
     echo "Dev env not running, use 'mise run agentstack-server:dev:start' to start it..."
     exit 1
 fi
@@ -188,7 +188,7 @@ eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
 tele="telepresence --use .*${NAMESPACE}.*"
 $tele helm install || true
 $tele connect --namespace "$NAMESPACE"
-$tele replace agentstack --port 18333:8333
+$tele replace agentstack-server --port 18333:8333
 """
 
 ["agentstack-server:dev:disconnect"]
@@ -276,7 +276,7 @@ curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhos
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
 
 export SERVER_URL="http://localhost:8333"
-export DB_URL="postgresql+asyncpg://beeai-user:password@localhost:5432/beeai"
+export DB_URL="postgresql+asyncpg://agentstack-user:password@localhost:5432/agentstack"
 export LLM_API_BASE="${LLM_API_BASE:-http://host.docker.internal:11434/v1}"
 export OIDC__DISABLE_OIDC=true
 

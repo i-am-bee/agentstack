@@ -1,6 +1,6 @@
 packages:
-  - apps/beeai-ui
-  - apps/beeai-web
+  - apps/agentstack-ui
+  - apps/agentstack-web
   - apps/lint-config
   - apps/agentstack-sdk-ts
   - docs

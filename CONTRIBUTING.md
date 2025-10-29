@@ -51,7 +51,7 @@ Instead, use:
 mise agentstack:start
 ```
 
-This will build the images (`agentstack-server` and `beeai-ui`) and import them to the cluster. You can add other
+This will build the images (`agentstack-server` and `agentstack-ui`) and import them to the cluster. You can add other
 CLI arguments as you normally would when using `agentstack` CLI, for example:
 
 ```shell
@@ -202,7 +202,7 @@ After the command succeeds, you can:
 
 - send requests as if your machine was running inside the cluster. For example:
   `curl http://<service-name>:<service-port>`.
-- connect to postgresql using the default credentials `postgresql://beeai-user:password@postgresql:5432/beeai`
+- connect to postgresql using the default credentials `postgresql://agentstack-user:password@postgresql:5432/agentstack`
 - now you can start your server from your IDE or using `mise run agentstack-server:run` on port **18333**
 - run agentstack-cli using `mise agentstack-cli:run -- <command>` or HTTP requests to localhost:8333 or localhost:18333
     - localhost:8333 is port-forwarded from the cluster, so any requests will pass through the cluster networking to the
@@ -314,7 +314,7 @@ mise agentstack-cli:run -- agent run website_summarizer "summarize iambee.ai"
 
 ```sh
 # run the UI development server:
-mise beeai-ui:run
+mise agentstack-ui:run
 
 # UI is also available from agentstack-server (in static mode):
 mise agentstack-server:run

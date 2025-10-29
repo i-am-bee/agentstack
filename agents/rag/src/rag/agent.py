@@ -18,7 +18,7 @@ from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
 from beeai_framework.tools import Tool
 from openai import AsyncOpenAI
 
-from beeai_sdk.a2a.extensions import (
+from agentstack_sdk.a2a.extensions import (
     AgentDetail,
     CitationExtensionServer,
     CitationExtensionSpec,
@@ -29,14 +29,14 @@ from beeai_sdk.a2a.extensions import (
     EmbeddingServiceExtensionServer,
     EmbeddingServiceExtensionSpec,
 )
-from beeai_sdk.a2a.extensions.services.platform import (
+from agentstack_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionServer,
     PlatformApiExtensionSpec,
 )
 from beeai_framework.agents.experimental.utils._tool import FinalAnswerTool
-from beeai_sdk.a2a.types import AgentMessage, AgentArtifact
-from beeai_sdk.server import Server
-from beeai_sdk.server.context import RunContext
+from agentstack_sdk.a2a.types import AgentMessage, AgentArtifact
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
 from openinference.instrumentation.beeai import BeeAIInstrumentor
 from rag.helpers.citations import extract_citations
 from rag.helpers.trajectory import ToolCallTrajectoryEvent
@@ -62,7 +62,7 @@ from rag.tools.general.clarification import (
 )
 from rag.tools.general.current_time import CurrentTimeTool
 
-from beeai_sdk.server.store.platform_context_store import PlatformContextStore
+from agentstack_sdk.server.store.platform_context_store import PlatformContextStore
 
 BeeAIInstrumentor().instrument()
 ## TODO: https://github.com/phoenixframework/phoenix/issues/6224

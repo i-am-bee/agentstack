@@ -68,8 +68,8 @@ version=$(
     yq -r .project.version      apps/agentstack-sdk-py/pyproject.toml
     yq -r .version              apps/agentstack-sdk-ts/package.json
     yq -r .project.version      apps/agentstack-server/pyproject.toml
-    yq -r .version              apps/beeai-ui/package.json
-    yq -r .version              apps/beeai-web/package.json
+    yq -r .version              apps/agentstack-ui/package.json
+    yq -r .version              apps/agentstack-web/package.json
     yq -r '.providers[].location | split(":")[-1]' agent-registry.yaml
   } | sort -u
 )
@@ -105,8 +105,8 @@ UI_IMPORT=""
 UI_TAG=""
 
 if [[ ! "$*" =~ 'ui.enabled=false' ]]; then
-    {{ mise_bin }} run beeai-ui:build
-    UI_IMPORT="--import ghcr.io/i-am-bee/agentstack/beeai-ui:local"
+    {{ mise_bin }} run agentstack-ui:build
+    UI_IMPORT="--import ghcr.io/i-am-bee/agentstack/agentstack-ui:local"
     UI_TAG="--set ui.image.tag=local"
 fi
 
@@ -226,8 +226,8 @@ yq -i ".appVersion = \"$new_version\"" helm/Chart.yaml
 (cd apps/agentstack-server && toml set 'project.version' "$new_version" --toml-path pyproject.toml && uv lock)
 for agent in agents/*; do (cd $agent && uv lock); done
 yq -i ".version = \"$new_version\"" apps/agentstack-sdk-ts/package.json
-yq -i ".version = \"$new_version\"" apps/beeai-ui/package.json
-yq -i ".version = \"$new_version\"" apps/beeai-web/package.json
+yq -i ".version = \"$new_version\"" apps/agentstack-ui/package.json
+yq -i ".version = \"$new_version\"" apps/agentstack-web/package.json
 yq -i ".providers[].location |= sub(\":(.*)\$\"; \":\" + \"$new_version\")" agent-registry.yaml
 perl -pi -e "s/^(LATEST_AGENTSTACK_VERSION=).*/\${1}$new_version/" install.sh
 if [[ "$new_version" != *"-rc"* ]]; then perl -pi -e "s/^(LATEST_STABLE_AGENTSTACK_VERSION=).*/\${1}$new_version/" install.sh; fi

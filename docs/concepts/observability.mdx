@@ -3,12 +3,12 @@ title: Observability
 description: Monitor traces, logs, and metrics from your agents and platform
 ---
 
-BeeAI Platform includes built-in observability through [OpenTelemetry (OTLP)](https://opentelemetry.io/), with [Arize Phoenix](https://docs.arize.com/phoenix) available out-of-the-box for immediate use. Monitor your agents through logging, telemetry, and integration with external monitoring systems.
+Agent Stack includes built-in observability through [OpenTelemetry (OTLP)](https://opentelemetry.io/), with [Arize Phoenix](https://docs.arize.com/phoenix) available out-of-the-box for immediate use. Monitor your agents through logging, telemetry, and integration with external monitoring systems.
 
 ```mermaid
 graph LR
     %% Sources
-    BeeAI[BeeAI Server] 
+    AgentStack[Agent Stack Server] 
     Agent[Agent Providers]
     
     %% Collector
@@ -20,7 +20,7 @@ graph LR
     Custom[Custom<br/>Backend<br/>⚙ Config Required]
     
     %% Data flows
-    BeeAI -->|traces/metrics| OTLP
+    AgentStack -->|traces/metrics| OTLP
     Agent -->|traces/metrics| OTLP
     
     OTLP --> Phoenix
@@ -57,9 +57,9 @@ What you'll see:
 
 ## Telemetry Collection
 
-BeeAI includes OpenTelemetry instrumentation to collect traces and metrics. Telemetry data helps with performance monitoring, error tracking, usage analytics, and debugging agent interactions.
+Agent Stack includes OpenTelemetry instrumentation to collect traces and metrics. Telemetry data helps with performance monitoring, error tracking, usage analytics, and debugging agent interactions.
 
-By default, BeeAI sends telemetry to:
+By default, Agent Stack sends telemetry to:
 - **Local Phoenix instance** (if running) for trace visualization
 
 The telemetry includes:
@@ -71,7 +71,7 @@ The telemetry includes:
 [Arize Phoenix](https://phoenix.arize.com/) provides visualization for OpenTelemetry traces from your agents.
 
 <Warning>
-  **Important License Notice**: Phoenix is disabled by default in BeeAI. When you enable Phoenix, be aware that Arize Phoenix is licensed under the Elastic License v2 (ELv2), which has specific terms regarding commercial use and distribution. By enabling Phoenix, you acknowledge that you are responsible for ensuring compliance with the ELv2 license terms for your specific use case. Please review the [Phoenix license](https://github.com/Arize-ai/phoenix/blob/main/LICENSE) before enabling this feature in production environments.
+  **Important License Notice**: Phoenix is disabled by default in Agent Stack. When you enable Phoenix, be aware that Arize Phoenix is licensed under the Elastic License v2 (ELv2), which has specific terms regarding commercial use and distribution. By enabling Phoenix, you acknowledge that you are responsible for ensuring compliance with the ELv2 license terms for your specific use case. Please review the [Phoenix license](https://github.com/Arize-ai/phoenix/blob/main/LICENSE) before enabling this feature in production environments.
 </Warning>
 
 <Steps>
@@ -113,7 +113,7 @@ Open [http://localhost:6006](http://localhost:6006) in your browser and navigate
 
 ### Configure Langfuse Integration
 
-[Langfuse](https://langfuse.com/) is an LLM observability platform that can be integrated with the BeeAI Platform through OpenTelemetry.
+[Langfuse](https://langfuse.com/) is an LLM observability platform that can be integrated with the Agent Stack through OpenTelemetry.
 
 <Steps>
 <Step title="Get Langfuse credentials">

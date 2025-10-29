@@ -3,7 +3,7 @@ title: "Environment Configuration"
 description: "Learn how to configure LLM providers and environment variables"
 ---
 
-Most agents require access to language models and other external services to function. BeeAI makes it easy to configure these connections once and share them across all your agents.
+Most agents require access to language models and other external services to function. Agent Stack makes it easy to configure these connections once and share them across all your agents.
 
 ## Quickstart Interactive Setup
 
@@ -21,7 +21,7 @@ The setup wizard will then guide you through:
 
 ## Supported LLM Providers
 
-BeeAI supports a wide range of language model providers:
+Agent Stack supports a wide range of language model providers:
 
 ### Cloud Providers
 - Anthropic Claude
@@ -49,12 +49,12 @@ BeeAI supports a wide range of language model providers:
 
 If you have a custom OpenAI-compatible API endpoint, you can configure it during the interactive setup via `agentstack model setup` by selecting "Other (RITS, vLLM, ...)" and providing your API URL.
 
-BeeAI includes a built-in LLM gateway that provides a unified OpenAI-compatible API endpoint. This is useful when you want to:
-- Point existing agents to BeeAI instead of directly to LLM providers
+Agent Stack includes a built-in LLM gateway that provides a unified OpenAI-compatible API endpoint. This is useful when you want to:
+- Point existing agents to Agent Stack instead of directly to LLM providers
 - Centrally manage API keys and provider configurations
 - Switch providers without reconfiguring individual agents
 
-After configuring BeeAI with a provider, the gateway is available at: http://localhost:8333/api/v1/openai/chat/completions
+After configuring Agent Stack with a provider, the gateway is available at: http://localhost:8333/api/v1/openai/chat/completions
 
 <Note>
 This is a POST-only API endpoint for programmatic use. Use curl or OpenAI-compatible clients to interact with it.

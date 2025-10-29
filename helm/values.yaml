@@ -128,7 +128,7 @@ providerBuilds:
 # -------- SERVER ----------
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
-  repository: ghcr.io/i-am-bee/beeai-platform/beeai-server
+  repository: ghcr.io/i-am-bee/agentstack/agentstack-server
   # This sets the pull policy for images.
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
@@ -242,7 +242,7 @@ ui:
   replicaCount: 1
   enabled: true
   image:
-    repository: ghcr.io/i-am-bee/beeai-platform/beeai-ui
+    repository: ghcr.io/i-am-bee/agentstack/agentstack-ui
     pullPolicy: IfNotPresent
     tag: ""
     resources: { }
@@ -308,7 +308,7 @@ localDockerRegistry:
     nodePort: 30501
 
 phoenix:
-  # **Important License Notice**: Phoenix is disabled by default in BeeAI. When you enable Phoenix,
+  # **Important License Notice**: Phoenix is disabled by default in Agent Stack. When you enable Phoenix,
   # be aware that Arize Phoenix is licensed under the Elastic License v2 (ELv2), which has specific terms regarding
   # commercial use and distribution.By enabling Phoenix, you acknowledge that you are responsible for ensuring
   # compliance with the ELv2 license terms for your specific use case. Please review the
@@ -372,9 +372,9 @@ postgresql:
   auth:
     postgresPassword: "admin-password"
     enablePostgresUser: true
-    username: beeai-user
+    username: agentstack-user
     password: "password"
-    database: beeai
+    database: agentstack
     existingSecret: ""
     # TODO: bug - broken update password script: https://github.com/bitnami/charts/pull/34527
     usePasswordFiles: false
@@ -404,15 +404,15 @@ postgresql:
 ## @param externalDatabase.host Database host (ignored if externalDatabase.sqlConnection is set)
 ## @param externalDatabase.port Database port number (ignored if externalDatabase.sqlConnection is set)
 ## @param externalDatabase.user Non-root username for Agent Stack (ignored if externalDatabase.sqlConnection is set)
-## @param externalDatabase.password Password for the non-root username for Beeai (ignored if externalDatabase.sqlConnection or externalDatabase.existingSecret are set)
-## @param externalDatabase.database Beeai database name (ignored if externalDatabase.sqlConnection is set)
+## @param externalDatabase.password Password for the non-root username for Agent Stack (ignored if externalDatabase.sqlConnection or externalDatabase.existingSecret are set)
+## @param externalDatabase.database Agent Stack database name (ignored if externalDatabase.sqlConnection is set)
 ## @param externalDatabase.existingSecret Name of an existing secret resource containing the database credentials
 ##
 externalDatabase:
   host: ""
   port: 5432
-  user: beeai-user
-  database: beeai
+  user: agentstack-user
+  database: agentstack
   password: ""
   # Required when initContainers.createVectorDbExtension is enabled
   adminUser: ""
@@ -435,11 +435,11 @@ seaweedfs:
   enabled: true
   image:
     repository: ghcr.io/i-am-bee/
-  bucket: "beeai-files"
+  bucket: "agentstack-files"
   auth:
     admin:
-      accessKeyID: "beeai-admin-user"
-      accessKeySecret: "beeai-admin-password"
+      accessKeyID: "agentstack-admin-user"
+      accessKeySecret: "agentstack-admin-password"
     existingSecret: ""
   affinity: ""
   master:
@@ -457,7 +457,7 @@ seaweedfs:
   s3:
     port: 9009
     enableAuth: true
-    existingConfigSecret: beeai-seaweedfs-default-config-secret
+    existingConfigSecret: agentstack-seaweedfs-default-config-secret
 
   allInOne:
     nodeSelector: ""
@@ -490,7 +490,7 @@ externalS3:
   existingSecretAccessKeyIDKey: "root-user"
   existingSecretKeySecretKey: "root-password"
   protocol: "https"
-  bucket: "beeai-files"
+  bucket: "agentstack-files"
   region: "us-east-1"
 
 docling:

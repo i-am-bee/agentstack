@@ -3,14 +3,14 @@ title: "LLM Configuration"
 description: "Learn how to request and use LLM access within your agent"
 ---
 
-When building AI agents, one of the first requirements you might have is to connect your agent to a Large Language Model (LLM). Fortunately, the BeeAI platform helps with this by providing built-in OpenAI-compatible LLM inference.
+When building AI agents, one of the first requirements you might have is to connect your agent to a Large Language Model (LLM). Fortunately, the Agent Stack helps with this by providing built-in OpenAI-compatible LLM inference.
 
 The platform's OpenAI endpoints are model and provider agnostic, serving as a proxy to whatever is configured.
 
 For you as an agent builder, the usage is extremely simple because we've wrapped the usage into a Service Extension.
 
 <Tip>
-Service Extensions are a type of [A2A Extension](https://a2a-protocol.org/latest/topics/extensions/) that allows you to easily "inject dependencies" into your agent. This follows the inversion of control principle where your agent defines what it needs, and the platform (in this case, BeeAI) is responsible for providing those dependencies.
+Service Extensions are a type of [A2A Extension](https://a2a-protocol.org/latest/topics/extensions/) that allows you to easily "inject dependencies" into your agent. This follows the inversion of control principle where your agent defines what it needs, and the platform (in this case, Agent Stack) is responsible for providing those dependencies.
 </Tip>
 
 <Warning>
@@ -43,9 +43,9 @@ from typing import Annotated
 
 from a2a.types import Message
 from a2a.utils.message import get_message_text
-from beeai_sdk.server import Server
-from beeai_sdk.a2a.types import AgentMessage
-from beeai_sdk.a2a.extensions import LLMServiceExtensionServer, LLMServiceExtensionSpec
+from agentstack_sdk.server import Server
+from agentstack_sdk.a2a.types import AgentMessage
+from agentstack_sdk.a2a.extensions import LLMServiceExtensionServer, LLMServiceExtensionSpec
 
 server = Server()
 
@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
 Here's what you need to know to add LLM inference capabilities to your agent:
 
-**Import the extension**: Import `LLMServiceExtensionServer` and `LLMServiceExtensionSpec` from `beeai_sdk.a2a.extensions`.
+**Import the extension**: Import `LLMServiceExtensionServer` and `LLMServiceExtensionSpec` from `agentstack_sdk.a2a.extensions`.
 
 **Add the LLM parameter**: Add a third parameter to your agent function with the `Annotated` type hint for LLM access.
 

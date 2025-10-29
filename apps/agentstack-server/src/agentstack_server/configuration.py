@@ -139,9 +139,9 @@ class McpConfiguration(BaseModel):
 
 class ObjectStorageConfiguration(BaseModel):
     endpoint_url: AnyUrl = AnyUrl("http://seaweedfs-all-in-one:9009")
-    access_key_id: Secret[str] = Secret("beeai-admin-user")
-    access_key_secret: Secret[str] = Secret("beeai-admin-password")
-    bucket_name: str = "beeai-files"
+    access_key_id: Secret[str] = Secret("agentstack-admin-user")
+    access_key_secret: Secret[str] = Secret("agentstack-admin-password")
+    bucket_name: str = "agentstack-files"
     region: str = "us-east-1"
     use_ssl: bool = False
     storage_limit_per_user_bytes: int = 1 * (1024 * 1024 * 1024)  # 1GiB
@@ -151,7 +151,7 @@ class ObjectStorageConfiguration(BaseModel):
 class PersistenceConfiguration(BaseModel):
     db_use_ssl: bool = False
     db_ssl_cert: Path | None = None
-    db_url: Secret[AnyUrl] = Secret(AnyUrl("postgresql+asyncpg://beeai-user:password@postgresql:5432/beeai"))
+    db_url: Secret[AnyUrl] = Secret(AnyUrl("postgresql+asyncpg://agentstack-user:password@postgresql:5432/agentstack"))
     encryption_key: Secret[str] | None = None
     finished_requests_remove_after_sec: int = int(timedelta(minutes=30).total_seconds())
     stale_requests_remove_after_sec: int = int(timedelta(hours=1).total_seconds())
@@ -276,7 +276,7 @@ class Configuration(BaseSettings):
 
     provider: ManagedProviderConfiguration = Field(default_factory=ManagedProviderConfiguration)
 
-    platform_service_url: str = "agentstack-svc:8333"
+    platform_service_url: str = "agentstack-server-svc:8333"
     port: int = 8333
     trust_proxy_headers: bool = False
 

@@ -1,11 +1,11 @@
 ---
 title: ACP to A2A Migration Guide
-description: "Migrate from ACP (Agent Communication Protocol) to A2A (Agent2Agent) Protocol for BeeAI platform v0.3.x+."
+description: "Migrate from ACP (Agent Communication Protocol) to A2A (Agent2Agent) Protocol for Agent Stack v0.3.x+."
 ---
 
 ## Quick Migration Checklist
 
-✅ Update dependencies: `acp_sdk` → `beeai_sdk`
+✅ Update dependencies: `acp_sdk` → `agentstack_sdk`
 
 ✅ Update imports and function signature
 
@@ -42,17 +42,17 @@ dependencies = ["agentstack-sdk>=0.4.0"]
 
 ```py
 from a2a.types import AgentSkill, Message
-from beeai_sdk.server import Server
-from beeai_sdk.server.context import RunContext
-from beeai_sdk.a2a.extensions import (
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
+from agentstack_sdk.a2a.extensions import (
     AgentDetail, AgentDetailTool, 
     CitationExtensionServer, CitationExtensionSpec, 
     TrajectoryExtensionServer, TrajectoryExtensionSpec,
     LLMServiceExtensionServer, LLMServiceExtensionSpec
 )
-from beeai_sdk.a2a.extensions.services.platform import PlatformApiExtensionServer, PlatformApiExtensionSpec
-from beeai_sdk.a2a.types import AgentMessage, AgentArtifact
-from beeai_sdk.util.file import load_file
+from agentstack_sdk.a2a.extensions.services.platform import PlatformApiExtensionServer, PlatformApiExtensionSpec
+from agentstack_sdk.a2a.types import AgentMessage, AgentArtifact
+from agentstack_sdk.util.file import load_file
 ```
 
 ### 2. Update Agent Decorator & Function Signature
@@ -158,7 +158,7 @@ user_msg = input[-1].parts[0].content if input else "Hello"
 Use `PlatformApiExtensionServer` in your agent to get access to files.
 
 ```py
-from beeai_sdk.a2a.extensions.services.platform import (
+from agentstack_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionServer,
     PlatformApiExtensionSpec,
 )
@@ -182,7 +182,7 @@ for part in message.parts:
 
 # Simple file processing (if needed)
 if uploaded_files:
-    from beeai_sdk.util.file import load_file
+    from agentstack_sdk.util.file import load_file
     
     for file_part in uploaded_files:
         async with load_file(file_part) as loaded_content:

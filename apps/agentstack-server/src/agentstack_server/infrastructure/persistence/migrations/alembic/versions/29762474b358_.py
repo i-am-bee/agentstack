@@ -4,7 +4,7 @@
 """add a2a request tracking tables
 
 Revision ID: 29762474b358
-Revises: 28725d931ca5
+Revises: 4036d0817d69
 Create Date: 2025-10-20 09:44:21.015314
 
 """
@@ -16,7 +16,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "29762474b358"
-down_revision: str | None = "28725d931ca5"
+down_revision: str | None = "4036d0817d69"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

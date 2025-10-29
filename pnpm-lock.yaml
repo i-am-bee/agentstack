@@ -97,7 +97,7 @@ importers:
         specifier: 'catalog:'
         version: 5.9.2
 
-  apps/beeai-ui:
+  apps/agentstack-ui:
     dependencies:
       '@a2a-js/sdk':
         specifier: ^0.3.4
@@ -308,7 +308,7 @@ importers:
         specifier: 'catalog:'
         version: 5.9.2
 
-  apps/beeai-web:
+  apps/agentstack-web:
     dependencies:
       '@carbon/icons-react':
         specifier: 'catalog:'
@@ -316,9 +316,9 @@ importers:
       '@carbon/react':
         specifier: 'catalog:'
         version: 1.91.0(react-dom@19.1.1(react@19.1.1))(react-is@19.1.1)(react@19.1.1)(sass@1.93.2)
-      '@i-am-bee/beeai-ui':
+      '@i-am-bee/agentstack-ui':
         specifier: workspace:*
-        version: link:../beeai-ui
+        version: link:../agentstack-ui
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.90.2(react@19.1.1)

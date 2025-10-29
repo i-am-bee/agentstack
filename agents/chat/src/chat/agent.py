@@ -9,10 +9,10 @@ from a2a.types import (
     AgentSkill,
     Message,
 )
-from beeai_framework.adapters.beeai_platform.backend.chat import BeeAIPlatformChatModel
 from beeai_framework.agents.requirement import RequirementAgent
 from beeai_framework.agents.requirement.events import (
     RequirementAgentSuccessEvent,
+    RequirementAgentFinalAnswerEvent,
 )
 from beeai_framework.agents.requirement.utils._tool import FinalAnswerTool
 from beeai_framework.emitter import EventMeta
@@ -23,7 +23,7 @@ from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
 from beeai_framework.tools.search.wikipedia import WikipediaTool
 from beeai_framework.tools.weather import OpenMeteoTool
 from beeai_framework.backend import ChatModelParameters
-from beeai_sdk.a2a.extensions import (
+from agentstack_sdk.a2a.extensions import (
     AgentDetail,
     AgentDetailContributor,
     AgentDetailTool,
@@ -34,17 +34,18 @@ from beeai_sdk.a2a.extensions import (
     LLMServiceExtensionServer,
     LLMServiceExtensionSpec,
 )
-from beeai_sdk.a2a.extensions.services.platform import (
+from agentstack_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionServer,
     PlatformApiExtensionSpec,
 )
-from beeai_sdk.a2a.types import AgentMessage, AgentArtifact
-from beeai_sdk.server import Server
-from beeai_sdk.server.context import RunContext
+from agentstack_sdk.a2a.types import AgentMessage, AgentArtifact
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
 from openinference.instrumentation.beeai import BeeAIInstrumentor
 
 from chat.helpers.citations import extract_citations
 from chat.helpers.trajectory import TrajectoryContent
+from chat.tmp_chat_model import BeeAIPlatformChatModel
 from chat.tools.files.file_creator import FileCreatorTool, FileCreatorToolOutput
 from chat.tools.files.file_reader import create_file_reader_tool_class
 from chat.tools.files.utils import extract_files, to_framework_message
@@ -59,7 +60,7 @@ from chat.tools.general.clarification import (
 )
 from chat.tools.general.current_time import CurrentTimeTool
 
-from beeai_sdk.server.store.platform_context_store import PlatformContextStore
+from agentstack_sdk.server.store.platform_context_store import PlatformContextStore
 
 # Temporary instrument fix
 EventMeta.model_fields["context"].exclude = True
@@ -296,6 +297,8 @@ async def chat(
     new_messages = [to_framework_message(item, extracted_files) for item in history]
 
     async for event, meta in agent.run(new_messages):
+        if isinstance(event, RequirementAgentFinalAnswerEvent) and use_streaming:
+            yield event.delta
         if not isinstance(event, RequirementAgentSuccessEvent):
             continue
 

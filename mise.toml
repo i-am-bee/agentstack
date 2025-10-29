@@ -40,8 +40,8 @@ includes = [
     "apps/agentstack-cli/tasks.toml",
     "apps/agentstack-sdk-py/tasks.toml",
     "apps/agentstack-server/tasks.toml",
-    "apps/beeai-ui/tasks.toml",
-    "apps/beeai-web/tasks.toml",
+    "apps/agentstack-ui/tasks.toml",
+    "apps/agentstack-web/tasks.toml",
     "apps/agentstack-sdk-ts/tasks.toml",
     "docs/tasks.toml",
 ]

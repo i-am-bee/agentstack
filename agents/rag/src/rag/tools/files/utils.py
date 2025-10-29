@@ -7,8 +7,8 @@ import pydantic.type_adapter
 from a2a.types import FilePart, FileWithUri, Message, Role
 from beeai_framework.backend import AssistantMessage, UserMessage
 
-from beeai_sdk.platform import File
-from beeai_sdk.util.file import PlatformFileUrl
+from agentstack_sdk.platform import File
+from agentstack_sdk.util.file import PlatformFileUrl
 
 FrameworkMessage = UserMessage | AssistantMessage
 

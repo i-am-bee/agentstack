@@ -3,9 +3,9 @@ title: "Forms"
 description: "Collect structured input from users"
 ---
 
-One of the most powerful features of the BeeAI platform is the ability to request structured data from users through interactive forms. Instead of relying on free-form text input, your agent can present users with specific fields, dropdowns, and other form elements to gather precise information.
+One of the most powerful features of the Agent Stack is the ability to request structured data from users through interactive forms. Instead of relying on free-form text input, your agent can present users with specific fields, dropdowns, and other form elements to gather precise information.
 
-The BeeAI platform provides a Form extension that allows you to collect structured data from users in two ways:
+The Agent Stack provides a Form extension that allows you to collect structured data from users in two ways:
 
 1. **Initial form rendering** - Present a form as the first interaction before users start a conversation with your agent
 2. **Dynamic form requests** - Request forms at any point during a multi-turn conversation when your agent needs specific structured input
@@ -15,7 +15,7 @@ The BeeAI platform provides a Form extension that allows you to collect structur
 
 <Steps>
 <Step title="Import the Form extension">
-Import the necessary components from the BeeAI SDK form extension.
+Import the necessary components from the Agent Stack SDK form extension.
 </Step>
 
 <Step title="Add form parameter to your agent">
@@ -40,8 +40,8 @@ import os
 from typing import Annotated
 
 from a2a.types import Message
-from beeai_sdk.server import Server
-from beeai_sdk.a2a.extensions.ui.form import (
+from agentstack_sdk.server import Server
+from agentstack_sdk.a2a.extensions.ui.form import (
     FormExtensionServer,
     FormExtensionSpec,
     FormRender,
@@ -96,8 +96,8 @@ from typing import Annotated
 
 from a2a.types import Message
 from a2a.utils.message import get_message_text
-from beeai_sdk.server import Server
-from beeai_sdk.a2a.extensions.ui.form import (
+from agentstack_sdk.server import Server
+from agentstack_sdk.a2a.extensions.ui.form import (
     FormExtensionServer,
     FormExtensionSpec,
     FormRender,
@@ -153,7 +153,7 @@ if __name__ == "__main__":
 
 Here's what you need to know to add form capabilities to your agent:
 
-**Import the form extension**: Import `FormExtensionServer`, `FormExtensionSpec`, `FormRender`, and field types from `beeai_sdk.a2a.extensions.ui.form`.
+**Import the form extension**: Import `FormExtensionServer`, `FormExtensionSpec`, `FormRender`, and field types from `agentstack_sdk.a2a.extensions.ui.form`.
 
 **Inject the extension**: Add a form parameter to your agent function using the `Annotated` type hint with `FormExtensionServer` and `FormExtensionSpec`.
 
@@ -188,13 +188,13 @@ contact_info: ContactInfo = form.parse_form_response(message=message, model=Cont
 
 ## Form Field Types
 
-The BeeAI platform supports various field types for collecting different kinds of structured data:
+The Agent Stack supports various field types for collecting different kinds of structured data:
 
 ### TextField
 Basic text input fields for collecting strings, names, descriptions, etc.
 
 ```python
-from beeai_sdk.a2a.extensions.ui.form import TextField
+from agentstack_sdk.a2a.extensions.ui.form import TextField
 
 TextField(
     id="username", 
@@ -210,7 +210,7 @@ TextField(
 Date input fields for collecting dates and timestamps.
 
 ```python
-from beeai_sdk.a2a.extensions.ui.form import DateField
+from agentstack_sdk.a2a.extensions.ui.form import DateField
 
 DateField(
     id="birth_date", 
@@ -226,7 +226,7 @@ DateField(
 File upload fields for collecting files from users.
 
 ```python
-from beeai_sdk.a2a.extensions.ui.form import FileField
+from agentstack_sdk.a2a.extensions.ui.form import FileField
 
 FileField(
     id="document", 
@@ -241,7 +241,7 @@ FileField(
 Single-select dropdown fields for choosing single option from a list.
 
 ```python
-from beeai_sdk.a2a.extensions.ui.form import OptionItem, SingleSelectField
+from agentstack_sdk.a2a.extensions.ui.form import OptionItem, SingleSelectField
 
 SingleSelectField(
     id="contact_method", 
@@ -262,7 +262,7 @@ SingleSelectField(
 Multi-select dropdown fields for choosing multiple options from a list.
 
 ```python
-from beeai_sdk.a2a.extensions.ui.form import OptionItem, MultiSelectField
+from agentstack_sdk.a2a.extensions.ui.form import OptionItem, MultiSelectField
 
 MultiSelectField(
     id="interests", 
@@ -283,7 +283,7 @@ MultiSelectField(
 Single checkbox fields for boolean values.
 
 ```python
-from beeai_sdk.a2a.extensions.ui.form import CheckboxField
+from agentstack_sdk.a2a.extensions.ui.form import CheckboxField
 
 CheckboxField(
     id="newsletter", 

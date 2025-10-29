@@ -1,9 +1,9 @@
 ---
 title: "Troubleshooting"
-description: "Troubleshoot common BeeAI issues"
+description: "Troubleshoot common Agent Stack issues"
 ---
 
-Having issues with BeeAI? Here are the most common fixes:
+Having issues with Agent Stack? Here are the most common fixes:
 
 ## Quick Fixes
 
@@ -41,7 +41,7 @@ cluster directly using `agentstack platform exec`, for example:
 agentstack platform exec kubectl get pod
 
 # Get server logs
-agentstack platform exec kubectl logs svc/agentstack-svc
+agentstack platform exec kubectl logs svc/agentstack-server-svc
 
 # Inspect cluster using GUI
 export KUBECONFIG=~/.agentstack/lima/agentstack/copied-from-guest/kubeconfig.yaml
@@ -52,4 +52,4 @@ k9s
 
 Still stuck? 
 - [Discord Community](https://discord.gg/NradeA6ZNF)
-- [GitHub Issues](https://github.com/i-am-bee/beeai-platform/issues)
+- [GitHub Issues](https://github.com/i-am-bee/agentstack/issues)

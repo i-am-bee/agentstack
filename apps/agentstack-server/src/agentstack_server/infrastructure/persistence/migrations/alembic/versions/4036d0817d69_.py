@@ -1,7 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""empty message
+"""add connectors
 
 Revision ID: 4036d0817d69
 Revises: 28725d931ca5

@@ -9,9 +9,9 @@ from typing import Any, AsyncGenerator, Protocol
 
 from openai.types import CreateEmbeddingResponse
 
-from beeai_sdk.a2a.extensions import TrajectoryExtensionServer
-from beeai_sdk.platform import File, VectorStore
-from beeai_sdk.platform.vector_store import VectorStoreItem
+from agentstack_sdk.a2a.extensions import TrajectoryExtensionServer
+from agentstack_sdk.platform import File, VectorStore
+from agentstack_sdk.platform.vector_store import VectorStoreItem
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from rag.helpers.trajectory import TrajectoryEvent
 from tenacity import (
