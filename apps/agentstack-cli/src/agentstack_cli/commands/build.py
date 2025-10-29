@@ -48,7 +48,7 @@ async def build(
     import_image: typing.Annotated[
         bool, typer.Option("--import/--no-import", is_flag=True, help="Import the image into Agent Stack platform")
     ] = True,
-    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack-platform",
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v")] = False,
 ):
     with verbosity(verbose):

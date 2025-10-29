@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "beeai-platform.name" -}}
+{{- define "agentstack.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "beeai-platform.fullname" -}}
+{{- define "agentstack.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -34,16 +34,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "beeai-platform.chart" -}}
+{{- define "agentstack.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "beeai-platform.labels" -}}
-helm.sh/chart: {{ include "beeai-platform.chart" . }}
-{{ include "beeai-platform.selectorLabels" . }}
+{{- define "agentstack.labels" -}}
+helm.sh/chart: {{ include "agentstack.chart" . }}
+{{ include "agentstack.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -53,17 +53,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "beeai-platform.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "beeai-platform.name" . }}
+{{- define "agentstack.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "agentstack.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "beeai-platform.serviceAccountName" -}}
+{{- define "agentstack.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "beeai-platform.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "agentstack.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
@@ -78,18 +78,18 @@ Create the name of the service account to use
 Create a default fully qualified postgresql name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 */}}
-{{- define "beeai.postgresql.fullname" -}}
+{{- define "agentstack.postgresql.fullname" -}}
 {{- include "common.names.dependency.fullname" (dict "chartName" "postgresql" "chartValues" .Values.postgresql "context" $) -}}
 {{- end -}}
 {{/*
 Return the PostgreSQL Hostname
 */}}
-{{- define "beeai.databaseHost" -}}
+{{- define "agentstack.databaseHost" -}}
 {{- if .Values.postgresql.enabled }}
     {{- if eq .Values.postgresql.architecture "replication" }}
-        {{- printf "%s-%s" (include "beeai.postgresql.fullname" .) "primary" | trunc 63 | trimSuffix "-" -}}
+        {{- printf "%s-%s" (include "agentstack.postgresql.fullname" .) "primary" | trunc 63 | trimSuffix "-" -}}
     {{- else -}}
-        {{- print (include "beeai.postgresql.fullname" .) -}}
+        {{- print (include "agentstack.postgresql.fullname" .) -}}
     {{- end -}}
 {{- else -}}
     {{- print .Values.externalDatabase.host -}}
@@ -99,7 +99,7 @@ Return the PostgreSQL Hostname
 {{/*
 Return the PostgreSQL Port
 */}}
-{{- define "beeai.databasePort" -}}
+{{- define "agentstack.databasePort" -}}
 {{- if .Values.postgresql.enabled }}
     {{- print .Values.postgresql.primary.service.ports.postgresql -}}
 {{- else -}}
@@ -110,7 +110,7 @@ Return the PostgreSQL Port
 {{/*
 Return the PostgreSQL Database Name
 */}}
-{{- define "beeai.databaseName" -}}
+{{- define "agentstack.databaseName" -}}
 {{- if .Values.postgresql.enabled }}
     {{- print .Values.postgresql.auth.database -}}
 {{- else -}}
@@ -121,7 +121,7 @@ Return the PostgreSQL Database Name
 {{/*
 Return the PostgreSQL User
 */}}
-{{- define "beeai.databaseUser" -}}
+{{- define "agentstack.databaseUser" -}}
 {{- if .Values.postgresql.enabled }}
     {{- print .Values.postgresql.auth.username -}}
 {{- else -}}
@@ -132,7 +132,7 @@ Return the PostgreSQL User
 {{/*
 Return the PostgreSQL Admin Password
 */}}
-{{- define "beeai.databaseAdminUser" -}}
+{{- define "agentstack.databaseAdminUser" -}}
 {{- if .Values.postgresql.enabled }}
     {{- printf "postgres" -}}
 {{- else -}}
@@ -143,7 +143,7 @@ Return the PostgreSQL Admin Password
 {{/*
 Return the PostgreSQL Password
 */}}
-{{- define "beeai.databasePassword" -}}
+{{- define "agentstack.databasePassword" -}}
 {{- if .Values.postgresql.enabled }}
     {{- print .Values.postgresql.auth.password -}}
 {{- else -}}
@@ -154,7 +154,7 @@ Return the PostgreSQL Password
 {{/*
 Return the PostgreSQL Admin Password
 */}}
-{{- define "beeai.databaseAdminPassword" -}}
+{{- define "agentstack.databaseAdminPassword" -}}
 {{- if .Values.postgresql.enabled }}
     {{- print .Values.postgresql.auth.postgresPassword -}}
 {{- else -}}
@@ -166,24 +166,24 @@ Return the PostgreSQL Admin Password
 {{/*
 Return the PostgreSQL Secret Name
 */}}
-{{- define "beeai.databaseSecretName" -}}
+{{- define "agentstack.databaseSecretName" -}}
 {{- if .Values.postgresql.enabled }}
     {{- if .Values.postgresql.auth.existingSecret -}}
     {{- print .Values.postgresql.auth.existingSecret -}}
     {{- else -}}
-    {{- print "beeai-platform-secret" -}}
+    {{- print "agentstack-secret" -}}
     {{- end -}}
 {{- else if .Values.externalDatabase.existingSecret -}}
     {{- print .Values.externalDatabase.existingSecret -}}
 {{- else -}}
-    {{- print "beeai-platform-secret" -}}
+    {{- print "agentstack-secret" -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
 Return if SSL is enabled
 */}}
-{{- define "beeai.databaseSslEnabled" -}}
+{{- define "agentstack.databaseSslEnabled" -}}
 {{- if and (not .Values.postgresql.enabled) .Values.externalDatabase.ssl -}}
 true
 {{- end -}}
@@ -198,7 +198,7 @@ true
 {{/*
 Return the S3 backend host
 */}}
-{{- define "beeai.s3.host" -}}
+{{- define "agentstack.s3.host" -}}
     {{- if .Values.seaweedfs.enabled -}}
         {{- printf "seaweedfs-all-in-one" -}}
     {{- else -}}
@@ -209,7 +209,7 @@ Return the S3 backend host
 {{/*
 Return the S3 bucket
 */}}
-{{- define "beeai.s3.bucket" -}}
+{{- define "agentstack.s3.bucket" -}}
     {{- if .Values.seaweedfs.enabled -}}
         {{- print .Values.seaweedfs.bucket -}}
     {{- else -}}
@@ -220,7 +220,7 @@ Return the S3 bucket
 {{/*
 Return the S3 protocol
 */}}
-{{- define "beeai.s3.protocol" -}}
+{{- define "agentstack.s3.protocol" -}}
     {{- if .Values.seaweedfs.enabled -}}
         {{- ternary "https" "http" .Values.seaweedfs.global.enableSecurity -}}
     {{- else -}}
@@ -231,7 +231,7 @@ Return the S3 protocol
 {{/*
 Return the S3 region
 */}}
-{{- define "beeai.s3.region" -}}
+{{- define "agentstack.s3.region" -}}
     {{- if .Values.seaweedfs.enabled -}}
         {{- print "us-east-1"  -}}
     {{- else -}}
@@ -242,43 +242,43 @@ Return the S3 region
 {{/*
 Return the S3 port
 */}}
-{{- define "beeai.s3.port" -}}
+{{- define "agentstack.s3.port" -}}
 {{- ternary .Values.seaweedfs.s3.port .Values.externalS3.port .Values.seaweedfs.enabled -}}
 {{- end -}}
 
 {{/*
 Return the S3 endpoint
 */}}
-{{- define "beeai.s3.endpoint" -}}
-{{- $port := include "beeai.s3.port" . | int -}}
+{{- define "agentstack.s3.endpoint" -}}
+{{- $port := include "agentstack.s3.port" . | int -}}
 {{- $printedPort := "" -}}
 {{- if and (ne $port 80) (ne $port 443) -}}
     {{- $printedPort = printf ":%d" $port -}}
 {{- end -}}
-{{- printf "%s://%s%s" (include "beeai.s3.protocol" .) (include "beeai.s3.host" .) $printedPort -}}
+{{- printf "%s://%s%s" (include "agentstack.s3.protocol" .) (include "agentstack.s3.host" .) $printedPort -}}
 {{- end -}}
 
 {{/*
 Return the S3 credentials secret name
 */}}
-{{- define "beeai.s3.secretName" -}}
+{{- define "agentstack.s3.secretName" -}}
 {{- if .Values.seaweedfs.enabled -}}
     {{- if .Values.seaweedfs.auth.existingSecret -}}
     {{- print .Values.seaweedfs.auth.existingSecret -}}
     {{- else -}}
-    {{- print "beeai-platform-secret" -}}
+    {{- print "agentstack-secret" -}}
     {{- end -}}
 {{- else if .Values.externalS3.existingSecret -}}
     {{- print .Values.externalS3.existingSecret -}}
 {{- else -}}
-    {{- print "beeai-platform-secret" -}}
+    {{- print "agentstack-secret" -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
 Return the S3 access key id inside the secret
 */}}
-{{- define "beeai.s3.accessKeyID" -}}
+{{- define "agentstack.s3.accessKeyID" -}}
     {{- if .Values.seaweedfs.enabled -}}
         {{- print .Values.seaweedfs.auth.admin.accessKeyID -}}
     {{- else -}}
@@ -289,7 +289,7 @@ Return the S3 access key id inside the secret
 {{/*
 Return the S3 secret access key inside the secret
 */}}
-{{- define "beeai.s3.accessKeySecret" -}}
+{{- define "agentstack.s3.accessKeySecret" -}}
     {{- if .Values.seaweedfs.enabled -}}
         {{- print .Values.seaweedfs.auth.admin.accessKeySecret  -}}
     {{- else -}}
@@ -326,13 +326,13 @@ We need to set database.url otherwise migrations fail
 {{/*
 Generate imagePullSecrets including optional internal registry secret
 */}}
-{{- define "beeai-platform.imagePullSecrets" -}}
+{{- define "agentstack.imagePullSecrets" -}}
 {{- $secrets := list -}}
 {{- range .Values.imagePullSecrets -}}
   {{- $secrets = append $secrets . -}}
 {{- end -}}
 {{- if .Values.localDockerRegistry.enabled -}}
-  {{- $internalSecret := dict "name" "beeai-platform-registry-secret" -}}
+  {{- $internalSecret := dict "name" "agentstack-registry-secret" -}}
   {{- $secrets = append $secrets $internalSecret -}}
 {{- end -}}
 {{- if $secrets -}}
@@ -347,13 +347,13 @@ imagePullSecrets:
 {{/*
 Generate environment variables for registry docker configs
 */}}
-{{- define "beeai-platform.registryEnvVars" -}}
+{{- define "agentstack.registryEnvVars" -}}
 {{- $secrets := list -}}
 {{- range .Values.imagePullSecrets -}}
   {{- $secrets = append $secrets . -}}
 {{- end -}}
 {{- if .Values.localDockerRegistry.enabled -}}
-  {{- $internalSecret := dict "name" "beeai-platform-registry-secret" -}}
+  {{- $internalSecret := dict "name" "agentstack-registry-secret" -}}
   {{- $secrets = append $secrets $internalSecret -}}
 {{- end -}}
 {{- range $idx, $secret := $secrets }}

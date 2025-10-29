@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: beeai-platform-providers-secret
+  name: agentstack-providers-secret
 type: Opaque
 stringData:
   registry.yaml: |

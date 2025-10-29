@@ -1,8 +1,8 @@
-# Default values for beeai-platform.
+# Default values for agentstack.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-# Use host network for beeai-server: useful for accessing localhost (Ollama, local agents etc.)
+# Use host network for agentstack-server: useful for accessing localhost (Ollama, local agents etc.)
 hostNetwork: false
 
 features:
@@ -19,13 +19,13 @@ features:
 # -------- AGENTS ----------
 providers: [ ]
 # Example:
-# - location: ghcr.io/i-am-bee/beeai-platform/agent-1-example:0.1.0
+# - location: ghcr.io/i-am-bee/agentstack/agent-1-example:0.1.0
 #   auto_stop_timeout_sec: 0 # disable agent downscaling
 #   variables:
 #     # Variables should be strings (or they will be converted)
 #     MY_API_KEY: "sk-..."
 #     MY_CONFIG_VAR: "42"
-# - location: ghcr.io/i-am-bee/beeai-platform/agent-2-example:0.1.0
+# - location: ghcr.io/i-am-bee/agentstack/agent-2-example:0.1.0
 #   auto_stop_timeout_sec: 600 # downscale after 10 minutes
 
 # DEPRECATED: Unmanaged providers
@@ -34,7 +34,7 @@ variables: { } # DEPRECATED: use server API to manage variables instead
 
 # External registries in the format: [name: githubURL]
 # for example
-# github: "https://github.com/i-am-bee/beeai-platform@v0.2.14#path=agent-registry.yaml"
+# github: "https://github.com/i-am-bee/agentstack@v0.2.14#path=agent-registry.yaml"
 externalRegistries: { }
 
 
@@ -74,15 +74,15 @@ auth:
       }
     ]
 
-# In beeai-server this is used to determine the request origin and dynamically create agent card.
-# For example https://beeai.example.com/api/v1/providers/{provider_id} will return an agent cart with URL for
-# https://beeai.example.com, without respecting the headers, the URL would be "http://beeai.example.com",
+# In agentstack-server this is used to determine the request origin and dynamically create agent card.
+# For example https://agentstack.example.com/api/v1/providers/{provider_id} will return an agent cart with URL for
+# https://agentstack.example.com, without respecting the headers, the URL would be "http://agentstack.example.com",
 # See https://www.uvicorn.org/settings/#application-interface
 trustProxyHeaders: false
 
 # --- EXTERNAL REGISTRIES ---
 # GitHub configuration for accessing private repositories
-# This creates a .githubconfigjson file in the beeai-platform-secret
+# This creates a .githubconfigjson file in the agentstack-secret
 github:
   auths: { }
   # Example configurations:
@@ -106,9 +106,9 @@ providerBuilds:
   enabled: false
   buildBackend: "kaniko" # Options: "buildkit" or "kaniko"
   buildRegistry:
-    registryPrefix: "beeai-platform-registry-svc.default:5001" # This must include a dot
+    registryPrefix: "agentstack-registry-svc.default:5001" # This must include a dot
     imageFormat: "{registry_prefix}/{org}/{repo}/{path}:{commit_hash}"
-    secretName: "beeai-platform-registry-secret"
+    secretName: "agentstack-registry-secret"
     insecure: true
   kaniko:
     useSecurityContextCapabilities: false
@@ -403,7 +403,7 @@ postgresql:
 ## All of these values are only used when postgresql.enabled is set to false
 ## @param externalDatabase.host Database host (ignored if externalDatabase.sqlConnection is set)
 ## @param externalDatabase.port Database port number (ignored if externalDatabase.sqlConnection is set)
-## @param externalDatabase.user Non-root username for Beeai (ignored if externalDatabase.sqlConnection is set)
+## @param externalDatabase.user Non-root username for Agent Stack (ignored if externalDatabase.sqlConnection is set)
 ## @param externalDatabase.password Password for the non-root username for Beeai (ignored if externalDatabase.sqlConnection or externalDatabase.existingSecret are set)
 ## @param externalDatabase.database Beeai database name (ignored if externalDatabase.sqlConnection is set)
 ## @param externalDatabase.existingSecret Name of an existing secret resource containing the database credentials

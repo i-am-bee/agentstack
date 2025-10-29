@@ -5,7 +5,7 @@ metadata:
   name: docling-serve
   labels:
     app: docling-serve
-    {{- include "beeai-platform.labels" . | nindent 4 }}
+    {{- include "agentstack.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.docling.service.type }}
   ports:
@@ -23,14 +23,14 @@ metadata:
   labels:
     app: docling-serve
     component: docling-serve-api
-    {{- include "beeai-platform.labels" . | nindent 4 }}
+    {{- include "agentstack.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: docling-serve
       component: docling-serve-api
-      {{- include "beeai-platform.selectorLabels" . | nindent 6 }}
+      {{- include "agentstack.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.docling.podAnnotations }}
@@ -39,13 +39,13 @@ spec:
       labels:
         app: docling-serve
         component: docling-serve-api
-        {{- include "beeai-platform.labels" . | nindent 8 }}
+        {{- include "agentstack.labels" . | nindent 8 }}
         {{- with .Values.docling.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
       restartPolicy: Always
-      {{- include "beeai-platform.imagePullSecrets" . | nindent 6 }}
+      {{- include "agentstack.imagePullSecrets" . | nindent 6 }}
       {{- with .Values.docling.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}

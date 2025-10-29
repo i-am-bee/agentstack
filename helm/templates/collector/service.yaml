@@ -4,7 +4,7 @@ metadata:
   name: otel-collector-svc
   labels:
     app: otel-collector
-    {{- include "beeai-platform.labels" . | nindent 4 }}
+    {{- include "agentstack.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.collector.service.type }}
   ports:
@@ -18,4 +18,4 @@ spec:
       name: http
   selector:
     app: otel-collector
-    {{- include "beeai-platform.selectorLabels" . | nindent 4 }}
+    {{- include "agentstack.selectorLabels" . | nindent 4 }}

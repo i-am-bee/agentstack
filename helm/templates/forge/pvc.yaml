@@ -4,7 +4,7 @@ metadata:
   name: forge-pvc
   labels: 
     app: forge-pvc
-    {{- include "beeai-platform.labels" . | nindent 4 }}
+    {{- include "agentstack.labels" . | nindent 4 }}
 spec:
   accessModes:
     - ReadWriteOnce

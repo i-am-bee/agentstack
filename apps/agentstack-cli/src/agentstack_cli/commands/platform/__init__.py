@@ -28,7 +28,7 @@ app = AsyncTyper()
 
 
 @functools.cache
-def get_driver(vm_name: str = "agentstack-platform") -> BaseDriver:
+def get_driver(vm_name: str = "agentstack") -> BaseDriver:
     has_lima = (importlib.resources.files("agentstack_cli") / "data" / "limactl").is_file() or shutil.which("limactl")
     has_vz = os.path.exists("/System/Library/Frameworks/Virtualization.framework")
     arch = "aarch64" if platform.machine().lower() == "arm64" else platform.machine().lower()
@@ -71,7 +71,7 @@ async def start(
     values_file: typing.Annotated[
         pathlib.Path | None, typer.Option("-f", help="Set Helm chart values using yaml values file")
     ] = None,
-    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack-platform",
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ):
     """Start Agent Stack platform."""
@@ -126,7 +126,7 @@ async def start(
 
 @app.command("stop")
 async def stop(
-    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack-platform",
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ):
     """Stop Agent Stack platform."""
@@ -141,7 +141,7 @@ async def stop(
 
 @app.command("delete")
 async def delete(
-    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack-platform",
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ):
     """Delete Agent Stack platform."""
@@ -154,7 +154,7 @@ async def delete(
 @app.command("import")
 async def import_image_cmd(
     tag: typing.Annotated[str, typer.Argument(help="Docker image tag to import")],
-    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack-platform",
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ):
     """Import a local docker image into the Agent Stack platform."""
@@ -169,7 +169,7 @@ async def import_image_cmd(
 @app.command("exec")
 async def exec_cmd(
     command: typing.Annotated[list[str] | None, typer.Argument()] = None,
-    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack-platform",
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ):
     """For debugging -- execute a command inside the Agent Stack platform VM."""

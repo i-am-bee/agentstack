@@ -125,7 +125,7 @@ class ProviderUtils(BaseModel):
 
     @staticmethod
     def short_location(provider: Provider) -> str:
-        return re.sub(r"[a-z]*.io/i-am-bee/agentstack-platform/", "", provider.source).lower()
+        return re.sub(r"[a-z]*.io/i-am-bee/agentstack/", "", provider.source).lower()
 
 
 app = AsyncTyper()
@@ -152,7 +152,7 @@ async def add_agent(
         str, typer.Argument(help="Agent location (public docker image, local path or github url)")
     ],
     dockerfile: typing.Annotated[str | None, typer.Option(help="Use custom dockerfile path")] = None,
-    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack-platform",
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
 ) -> None:
     """Install discovered agent or add public docker image or github repository [aliases: install]"""

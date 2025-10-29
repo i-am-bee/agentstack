@@ -90,9 +90,9 @@ async def install(driver: "BaseDriver"):
         {
             "apiVersion": "cert-manager.io/v1",
             "kind": "Certificate",
-            "metadata": {"name": "agentstack-platform-tls", "namespace": "istio-system"},
+            "metadata": {"name": "agentstack-tls", "namespace": "istio-system"},
             "spec": {
-                "secretName": "agentstack-platform-tls",
+                "secretName": "agentstack-tls",
                 "commonName": "agentstack",
                 "dnsNames": ["agentstack", "agentstack.localhost"],
                 "issuerRef": {"name": "istio-system-issuer", "kind": "Issuer"},
@@ -126,7 +126,7 @@ async def install(driver: "BaseDriver"):
                         "hostname": "agentstack.localhost",
                         "port": 8336,
                         "protocol": "HTTPS",
-                        "tls": {"mode": "Terminate", "certificateRefs": [{"name": "agentstack-platform-tls"}]},
+                        "tls": {"mode": "Terminate", "certificateRefs": [{"name": "agentstack-tls"}]},
                         "allowedRoutes": {"namespaces": {"from": "All"}},
                     }
                 ],
@@ -135,14 +135,14 @@ async def install(driver: "BaseDriver"):
         {
             "apiVersion": "gateway.networking.k8s.io/v1",
             "kind": "HTTPRoute",
-            "metadata": {"name": "agentstack-platform-ui"},
+            "metadata": {"name": "agentstack-ui"},
             "spec": {
                 "parentRefs": [{"name": "agentstack-gateway", "namespace": "istio-system"}],
-                "hostnames": ["agentstack-platform.testing", "agentstack.localhost"],
+                "hostnames": ["agentstack.testing", "agentstack.localhost"],
                 "rules": [
                     {
                         "matches": [{"path": {"type": "PathPrefix", "value": "/"}}],
-                        "backendRefs": [{"name": "agentstack-platform-ui-svc", "port": 8334}],
+                        "backendRefs": [{"name": "agentstack-ui-svc", "port": 8334}],
                     }
                 ],
             },

@@ -41,10 +41,10 @@ cluster directly using `agentstack platform exec`, for example:
 agentstack platform exec kubectl get pod
 
 # Get server logs
-agentstack platform exec kubectl logs svc/beeai-platform-svc
+agentstack platform exec kubectl logs svc/agentstack-svc
 
 # Inspect cluster using GUI
-export KUBECONFIG=~/.agentstack/lima/beeai-platform/copied-from-guest/kubeconfig.yaml
+export KUBECONFIG=~/.agentstack/lima/agentstack/copied-from-guest/kubeconfig.yaml
 k9s
 ```
 

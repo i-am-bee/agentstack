@@ -1,0 +1,321 @@
+# setup
+
+["agentstack-server:setup"]
+depends = ["agentstack-sdk-py:setup"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = "uv sync --all-extras --dev"
+sources = ["uv.lock", "pyproject.toml"]
+outputs = { auto = true }
+
+# check
+
+["agentstack-server:check"]
+depends = ["agentstack-server:check:*"]
+
+["agentstack-server:check:pytest-marks"]
+depends = ["agentstack-server:setup"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = """
+#!/bin/bash
+
+# Use pytest to collect tests that are not marked with unit, integration, or e2e
+unmarked_tests=$(uv run pytest --collect-only --no-header --no-summary -q -m "not (unit or integration or e2e)" tests/ 2>/dev/null)
+
+if echo "$unmarked_tests" | grep "tests collected" | grep -qv "no tests collected"; then
+    echo "ERROR: Found tests without required pytest marks:\n"
+    echo "$unmarked_tests"
+    echo ""
+    echo "All tests must be marked with @pytest.mark.unit, @pytest.mark.integration, or @pytest.mark.e2e"
+    exit 1
+else
+    echo "✓ All tests have pytest marks"
+fi
+"""
+sources = ["tests/**/*.py"]
+outputs = { auto = true }
+
+["agentstack-server:check:ruff-check"]
+depends = ["agentstack-server:setup"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = "uv run ruff check --quiet"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+["agentstack-server:check:ruff-format"]
+depends = ["agentstack-server:setup"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = "uv run ruff format --quiet --check"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+# TODO: Enable and fix issues in separate PR
+# ["agentstack-server:check:pyright"]
+# depends = ["agentstack-server:setup"]
+# dir = "{{config_root}}/apps/agentstack-server"
+# run = "uv run pyright"
+# sources = ["src/**/*.py"]
+# outputs = { auto = true }
+
+# fix
+
+["agentstack-server:fix"]
+depends = ["agentstack-server:fix:*"]
+
+["agentstack-server:fix:ruff-check"]
+depends = ["agentstack-server:setup"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = "uv run ruff check --quiet --fix"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+["agentstack-server:fix:ruff-format"]
+depends = ["agentstack-server:setup"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = "uv run ruff format --quiet"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+# run
+
+["agentstack-server:run"]
+depends = ["agentstack-server:setup"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = "uv run agentstack-server"
+
+# build
+
+["agentstack-server:build"]
+depends = ["agentstack-server:build:*"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = "docker build -t ghcr.io/i-am-bee/agentstack/agentstack-server:local --load ."
+
+["agentstack-server:build:requirements"]
+depends = ["agentstack-server:setup"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = "mkdir -p dist && uv export --no-hashes --no-emit-workspace --no-dev --format requirements-txt > dist/requirements.txt"
+sources = ["uv.lock"]
+outputs = ["dist/requirements.txt"]
+
+["agentstack-server:build:sdist"]
+depends = ["agentstack-server:setup"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = "rm ./dist/*.tar.gz 2>/dev/null || true; uv build --sdist --out-dir dist"
+sources = ["pyproject.toml", "uv.lock", "src/**/*.py"]
+outputs = ["dist/*.tar.gz"]
+
+# migrations
+
+["agentstack-server:migrations:run"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = "uv run migrate"
+
+["agentstack-server:migrations:alembic:nocheck"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = """
+#!/bin/bash
+set -a
+source .env
+set +a
+
+cd src/agentstack_server/infrastructure/persistence/migrations
+uv run alembic {{arg(name="alembic_vars", var=true)}}
+"""
+
+["agentstack-server:migrations:alembic"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = """
+#!/bin/bash
+set -a
+source .env
+set +a
+
+if ! telepresence list --replacements 2>/dev/null | grep -q platform; then
+    echo "Dev env not running, use 'mise run agentstack-server:dev:start' to start it..."
+    exit 1
+fi
+
+cd src/agentstack_server/infrastructure/persistence/migrations
+uv run alembic {{arg(name="alembic_vars", var=true)}}
+"""
+
+["agentstack-server:migrations:generate"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = "{{ mise_bin }} run agentstack-server:migrations:alembic revision --autogenerate"
+
+# dev
+
+["agentstack-server:dev:shell"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = "{{ mise_bin }} run agentstack:shell --vm-name=agentstack-local-dev"
+
+["agentstack-server:dev:start"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = """
+#!/bin/bash
+set -e
+VM_NAME='{{option(name="vm-name", default="agentstack-local-dev")}}'
+eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
+{{ mise_bin }} run agentstack-server:dev:disconnect --vm-name="$VM_NAME"
+{{ mise_bin }} run agentstack:stop-all --except "$VM_NAME"
+{{ mise_bin }} agentstack:start --vm-name="$VM_NAME" {{arg(name="cli-args", var=true, default="--")}}
+{{ mise_bin }} run agentstack-server:dev:connect --vm-name="$VM_NAME"
+"""
+
+["agentstack-server:dev:stop"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = """
+#!/bin/bash
+VM_NAME='{{option(name="vm-name", default="agentstack-local-dev")}}'
+{{ mise_bin }} run agentstack-server:dev:disconnect --vm-name="$VM_NAME"
+{{ mise_bin }} run agentstack:stop --vm-name="$VM_NAME"
+"""
+
+["agentstack-server:dev:delete"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = """
+VM_NAME={{option(name="vm-name", default="agentstack-local-dev")}}
+{{ mise_bin }} run agentstack-cli:run -- platform delete --vm-name="$VM_NAME"
+"""
+
+["agentstack-server:dev:connect"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = """
+#!/bin/bash
+NAMESPACE=default
+VM_NAME='{{option(name="vm-name", default="agentstack-local-dev")}}'
+eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
+
+tele="telepresence --use .*${NAMESPACE}.*"
+$tele helm install || true
+$tele connect --namespace "$NAMESPACE"
+$tele replace agentstack --port 18333:8333
+"""
+
+["agentstack-server:dev:disconnect"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = """
+#!/bin/bash
+NAMESPACE=default
+VM_NAME='{{option(name="vm-name", default="agentstack-local-dev")}}'
+eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
+
+tele="telepresence --use .*${NAMESPACE}.*"
+if ! ($tele status --output json | jq '.user_daemon.status' | grep -q "Not connected"); then
+    $tele uninstall --all-agents || true
+fi
+$tele quit
+"""
+
+["agentstack-server:dev:reconnect"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = """
+VM_NAME='{{option(name="vm-name", default="agentstack-local-dev")}}'
+{{ mise_bin }} run agentstack-server:dev:disconnect --vm-name="$VM_NAME"
+{{ mise_bin }} run agentstack-server:dev:connect --vm-name="$VM_NAME"
+"""
+
+["agentstack-server:dev:test:start"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = """
+#!/bin/bash
+{{ mise_bin }} run agentstack-server:dev:start \
+    --vm-name=agentstack-local-test \
+    --set externalRegistries=null \
+    --set providerBuilds.enabled=true \
+    --set localDockerRegistry.enabled=true \
+    {{arg(name="cli-args", var=true, default="--")}}
+"""
+
+["agentstack-server:dev:test:stop"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = "{{ mise_bin }} run agentstack-server:dev:stop --vm-name=agentstack-local-test"
+
+["agentstack-server:dev:test:delete"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = "{{ mise_bin }} run agentstack-server:dev:delete --vm-name=agentstack-local-test"
+
+["agentstack-server:dev:test:shell"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = "{{ mise_bin }} run agentstack:shell --vm-name=agentstack-local-test"
+
+["agentstack-server:dev:test:connect"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = "{{ mise_bin }} run agentstack-server:dev:connect --vm-name=agentstack-local-test"
+
+["agentstack-server:dev:test:disconnect"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = "{{ mise_bin }} run agentstack-server:dev:disconnect --vm-name=agentstack-local-test"
+
+["agentstack-server:dev:test:reconnect"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = "{{ mise_bin }} run agentstack-server:dev:reconnect --vm-name=agentstack-local-test"
+
+["agentstack-server:test:e2e"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = """
+#!/bin/bash
+VM_NAME=e2e-test-run
+
+{{ mise_bin }} run agentstack:stop-all
+{{ mise_bin }} run agentstack:delete --vm-name=${VM_NAME}
+curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhost:8333 is already running" && exit 2
+
+{{ mise_bin }} run agentstack:start \
+    --vm-name=${VM_NAME} \
+    --set externalRegistries=null \
+    --set docling.enabled=true \
+    --set ui.enabled=false \
+    --set auth.enabled="true" \
+    --set auth.basic.enabled="true" \
+    --set auth.basic.adminPassword="test-password" \
+    --set auth.jwtSecretKey="test-secret-key" \
+    --set providerBuilds.enabled=true \
+    --set localDockerRegistry.enabled=true
+
+
+eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
+
+export SERVER_URL="http://localhost:8333"
+export DB_URL="postgresql+asyncpg://beeai-user:password@localhost:5432/beeai"
+export LLM_API_BASE="${LLM_API_BASE:-http://host.docker.internal:11434/v1}"
+export OIDC__DISABLE_OIDC=true
+
+kubectl port-forward svc/postgresql 5432:5432 2>/dev/null 1>&2 &
+uv run pytest -m e2e
+result=$?
+
+if [ $result -ne 0 ]; then
+    echo "Tests failed. Checking pod status..."
+    echo "------------- pods --------------"
+    kubectl get pod
+    echo "------------ events -------------"
+    kubectl get event
+fi
+
+{{ mise_bin }} run agentstack-cli:run -- platform delete --vm-name=${VM_NAME}
+kill %1
+exit $result
+"""
+
+["agentstack-server:test:integration"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = """
+#!/bin/bash
+VM_NAME=itegration-test-run
+
+{{ mise_bin }} run agentstack:delete --vm-name="$VM_NAME"
+
+{{ mise_bin }} run agentstack:start \
+    --vm-name="$VM_NAME" \
+    --set externalRegistries=null \
+    --set ui.enabled=false
+
+eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
+export OIDC__DISABLE_OIDC=True
+
+{{ mise_bin }} run agentstack-server:dev:connect --vm-name="$VM_NAME"
+
+uv run pytest -m integration
+result=$?
+exit $result
+"""

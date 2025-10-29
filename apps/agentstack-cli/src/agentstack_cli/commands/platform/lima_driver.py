@@ -24,7 +24,7 @@ from agentstack_cli.utils import run_command
 class LimaDriver(BaseDriver):
     limactl_exe: str
 
-    def __init__(self, vm_name: str = "agentstack-platform"):
+    def __init__(self, vm_name: str = "agentstack"):
         super().__init__(vm_name)
         bundled_limactl_exe = importlib.resources.files("agentstack_cli") / "data" / "limactl"
         if bundled_limactl_exe.is_file():

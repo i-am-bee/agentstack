@@ -2,9 +2,9 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "beeai-platform.fullname" . }}
+  name: {{ include "agentstack.fullname" . }}
   labels:
-    {{- include "beeai-platform.labels" . | nindent 4 }}
+    {{- include "agentstack.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -35,7 +35,7 @@ spec:
             {{- end }}
             backend:
               service:
-                name: beeai-platform-ui-svc
+                name: agentstack-ui-svc
                 port:
                   number: {{ $.Values.ui.service.port }}
           {{- end }}

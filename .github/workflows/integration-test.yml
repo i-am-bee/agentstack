@@ -7,13 +7,13 @@ on:
   workflow_dispatch: { }
   pull_request:
     paths:
-      - 'apps/beeai-server/**'
+      - 'apps/agentstack-server/**'
       - 'apps/agentstack-cli/**'
   push:
     branches:
       - main
     paths:
-      - 'apps/beeai-server/**'
+      - 'apps/agentstack-server/**'
       - 'apps/agentstack-cli/**'
 jobs:
   integration-test:
@@ -31,7 +31,7 @@ jobs:
       - uses: ./.github/actions/setup
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: mise run beeai-server:test:integration
+      - run: mise run agentstack-server:test:integration
         env:
           # TODO: use github models
           # LLM_API_BASE: "https://models.github.ai/inference"

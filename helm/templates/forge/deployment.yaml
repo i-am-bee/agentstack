@@ -4,7 +4,7 @@ metadata:
   name: forge
   labels:
     app: forge
-    {{- include "beeai-platform.labels" . | nindent 4 }}
+    {{- include "agentstack.labels" . | nindent 4 }}
 spec:
   replicas: 1
   strategy:
@@ -12,16 +12,16 @@ spec:
   selector:
     matchLabels:
       app: forge
-      {{- include "beeai-platform.selectorLabels" . | nindent 6 }}
+      {{- include "agentstack.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
         app: forge
-        {{- include "beeai-platform.labels" . | nindent 8 }}
+        {{- include "agentstack.labels" . | nindent 8 }}
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/forge/config.yaml") . | sha256sum }}
     spec:
-      {{- include "beeai-platform.imagePullSecrets" . | nindent 6 }}
+      {{- include "agentstack.imagePullSecrets" . | nindent 6 }}
       {{- with .Values.forge.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}

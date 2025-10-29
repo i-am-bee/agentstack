@@ -2,16 +2,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: beeai-platform-ui
+  name: agentstack-ui
   labels:
-    app: beeai-platform-ui
-    {{- include "beeai-platform.labels" . | nindent 4 }}
+    app: agentstack-ui
+    {{- include "agentstack.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.ui.replicaCount }}
   selector:
     matchLabels:
-      app: beeai-platform-ui
-      {{- include "beeai-platform.selectorLabels" . | nindent 6 }}
+      app: agentstack-ui
+      {{- include "agentstack.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -19,20 +19,20 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        app: beeai-platform-ui
-        {{- include "beeai-platform.labels" . | nindent 8 }}
+        app: agentstack-ui
+        {{- include "agentstack.labels" . | nindent 8 }}
         {{- with .Values.ui.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      {{- include "beeai-platform.imagePullSecrets" . | nindent 6 }}
-      serviceAccountName: {{ include "beeai-platform.serviceAccountName" . }}
+      {{- include "agentstack.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "agentstack.serviceAccountName" . }}
       {{- with .Values.ui.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: beeai-platform-ui
+        - name: agentstack-ui
           {{- with .Values.ui.securityContext }}
           securityContext:
             {{- toYaml . | nindent 12 }}
@@ -57,7 +57,7 @@ spec:
           {{- end }}
           env:
             - name: API_URL
-              value: "http://beeai-platform-svc:{{.Values.service.port}}"
+              value: "http://agentstack-svc:{{.Values.service.port}}"
             - name: FEATURE_FLAGS
               value: |
                 {
@@ -77,14 +77,14 @@ spec:
               valueFrom:
                 secretKeyRef:
                   key: authSecret
-                  name: beeai-next-auth
+                  name: agentstack-next-auth
             - name: OIDC_ENABLED
               value: "true"
             - name: OIDC_PROVIDERS
               valueFrom:
                 secretKeyRef:
                   key: providers.json
-                  name: beeai-oidc-providers
+                  name: agentstack-oidc-providers
           {{- else}}
             - name: OIDC_ENABLED
               value: "false"

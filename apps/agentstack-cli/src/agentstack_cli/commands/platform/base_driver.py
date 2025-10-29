@@ -21,7 +21,7 @@ from agentstack_cli.configuration import Configuration
 class BaseDriver(abc.ABC):
     vm_name: str
 
-    def __init__(self, vm_name: str = "agentstack-platform"):
+    def __init__(self, vm_name: str = "agentstack"):
         self.vm_name = vm_name
 
     @abc.abstractmethod
@@ -56,11 +56,11 @@ class BaseDriver(abc.ABC):
         registry_config = dedent(
             """\
             mirrors:
-              "agentstack-platform-registry-svc.default:5001":
+              "agentstack-registry-svc.default:5001":
                 endpoint:
                   - "http://localhost:30501"
             configs:
-              "agentstack-platform-registry-svc.default:5001":
+              "agentstack-registry-svc.default:5001":
                 tls:
                   insecure_skip_verify: true
             """

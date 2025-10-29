@@ -67,7 +67,7 @@ version=$(
     yq -r .project.version      apps/agentstack-cli/pyproject.toml
     yq -r .project.version      apps/agentstack-sdk-py/pyproject.toml
     yq -r .version              apps/agentstack-sdk-ts/package.json
-    yq -r .project.version      apps/beeai-server/pyproject.toml
+    yq -r .project.version      apps/agentstack-server/pyproject.toml
     yq -r .version              apps/beeai-ui/package.json
     yq -r .version              apps/beeai-web/package.json
     yq -r '.providers[].location | split(":")[-1]' agent-registry.yaml
@@ -94,8 +94,8 @@ run = "true" # Empty tests in case there are no tests
 
 # Platform tasks
 
-["beeai-platform:start"]
-depends = ["beeai-server:build"]
+["agentstack:start"]
+depends = ["agentstack-server:build"]
 dir = "{{config_root}}"
 run = """
 #!/bin/bash
@@ -106,25 +106,25 @@ UI_TAG=""
 
 if [[ ! "$*" =~ 'ui.enabled=false' ]]; then
     {{ mise_bin }} run beeai-ui:build
-    UI_IMPORT="--import ghcr.io/i-am-bee/beeai-platform/beeai-ui:local"
+    UI_IMPORT="--import ghcr.io/i-am-bee/agentstack/beeai-ui:local"
     UI_TAG="--set ui.image.tag=local"
 fi
 
 {{ mise_bin }} run agentstack-cli:run -- platform start \
-    --import "ghcr.io/i-am-bee/beeai-platform/beeai-server:local" \
+    --import "ghcr.io/i-am-bee/agentstack/agentstack-server:local" \
     $UI_IMPORT \
     --set image.tag=local \
     $UI_TAG "$@"
 """
 
-["beeai-platform:delete"]
+["agentstack:delete"]
 run = "{{ mise_bin }} run agentstack-cli:run -- platform delete"
 
-["beeai-platform:stop"]
+["agentstack:stop"]
 run = "{{ mise_bin }} run agentstack-cli:run -- platform stop"
 
 
-["beeai-platform:stop-all"]
+["agentstack:stop-all"]
 run = """
 #!/bin/bash
 # Stop all lima VMs
@@ -140,7 +140,7 @@ echo "$TO_STOP" | xargs -rn 1 -I"{}" mise run agentstack-cli:run -- platform sto
 {% endraw %}
 """
 
-["beeai-platform:shell"]
+["agentstack:shell"]
 raw = true
 shell = "echo"
 dir = "{{cwd}}"
@@ -164,7 +164,7 @@ while [[ -n "$__OLD_PS1" ]]; do
   deactivate;
 done
 
-VM_NAME={{option(name="vm-name", default="beeai-platform")}}
+VM_NAME={{option(name="vm-name", default="agentstack")}}
 echo "Activating environment for '$VM_NAME'..."
 
 export __OLD_PS1="$PS1"
@@ -223,7 +223,7 @@ yq -i ".version = \"$new_version\"" helm/Chart.yaml
 yq -i ".appVersion = \"$new_version\"" helm/Chart.yaml
 (cd apps/agentstack-sdk-py && toml set 'project.version' "$new_version" --toml-path pyproject.toml && uv lock)
 (cd apps/agentstack-cli && toml set 'project.version' "$new_version" --toml-path pyproject.toml && uv lock)
-(cd apps/beeai-server && toml set 'project.version' "$new_version" --toml-path pyproject.toml && uv lock)
+(cd apps/agentstack-server && toml set 'project.version' "$new_version" --toml-path pyproject.toml && uv lock)
 for agent in agents/*; do (cd $agent && uv lock); done
 yq -i ".version = \"$new_version\"" apps/agentstack-sdk-ts/package.json
 yq -i ".version = \"$new_version\"" apps/beeai-ui/package.json
@@ -245,7 +245,7 @@ if gum confirm "Release version $new_version now?"; then
     gum spin --title="Waiting for GitHub Action to start..." sleep 10
     gh run watch $(gh run list --workflow=Release --branch=v$new_version --limit=1 --json databaseId,status -q '.[0].databaseId') || true
   fi
-  echo "GitHub action started. Check the progress and result on: https://github.com/i-am-bee/beeai-platform/actions/workflows/release.yml"
+  echo "GitHub action started. Check the progress and result on: https://github.com/i-am-bee/agentstack/actions/workflows/release.yml"
 fi
 '''
 
@@ -271,7 +271,7 @@ images=$(helm template \
   --set localDockerRegistry.enabled=true \
   ./helm 2>/dev/null | \
     sed -n '/^[[:space:]]*image:/{ /{{/d; s/.*image:[[:space:]]*//p; }' | \
-    sed 's/"\([^"]*\)"/\1/' | grep -v 'beeai-platform')
+    sed 's/"\([^"]*\)"/\1/' | grep -v 'agentstack')
 
 echo "Found images:"
 echo "$images"

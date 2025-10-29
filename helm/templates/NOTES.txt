@@ -7,19 +7,19 @@ Getting started:
 {{- end }}
 {{- else if contains "NodePort" .Values.service.type }}
 
-  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "beeai-platform.fullname" . }})
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "agentstack.fullname" . }})
   export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
   echo http://$NODE_IP:$NODE_PORT
 {{- else if contains "LoadBalancer" .Values.service.type }}
 
      NOTE: It may take a few minutes for the LoadBalancer IP to be available.
-           You can watch its status by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w beeai-platform-svc'
-  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} --beeai-platform-svc --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+           You can watch its status by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w agentstack-svc'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} --agentstack-svc --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
   echo http://$SERVICE_IP:{{ .Values.service.port }}
 {{- else if contains "ClusterIP" .Values.service.type }}
 
     # port-forward the API
-    kubectl port-forward svc/beeai-platform-svc 8333:{{.Values.service.port}} &
+    kubectl port-forward svc/agentstack-svc 8333:{{.Values.service.port}} &
 
     # use the agentstack CLI to setup the environment
     {{- if .Values.auth.enabled }}
@@ -30,7 +30,7 @@ Getting started:
     {{- if .Values.ui.enabled }}
 
     # port-forward the UI
-    kubectl port-forward svc/beeai-platform-ui-svc 8334:{{.Values.service.port}} &
+    kubectl port-forward svc/agentstack-ui-svc 8334:{{.Values.service.port}} &
 
     # Open the UI in the browser
     agentstack ui
@@ -44,11 +44,11 @@ Resources:
     📚 Documentation: https://docs.beeai.dev
     🤖 Agent Catalog: https://beeai.dev/agents
     💬 Discord Community: https://discord.gg/NradeA6ZNF
-    📝 GitHub Issues: https://github.com/i-am-bee/beeai-platform/issues
+    📝 GitHub Issues: https://github.com/i-am-bee/agentstack/issues
 
 Upgrade platform:
 
-    helm upgrade {{ .Release.Name }} oci://ghcr.io/i-am-bee/beeai-platform/beeai-platform-chart/beeai-platform:<version>
+    helm upgrade {{ .Release.Name }} oci://ghcr.io/i-am-bee/agentstack/agentstack-chart/agentstack:<version>
 
 {{- if .Values.phoenix.enabled }}
 

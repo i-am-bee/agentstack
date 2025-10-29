@@ -2,21 +2,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: beeai-platform-registry
+  name: agentstack-registry
   labels:
-    app: beeai-platform-registry
-    {{- include "beeai-platform.labels" . | nindent 4 }}
+    app: agentstack-registry
+    {{- include "agentstack.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: beeai-platform-registry
-      {{- include "beeai-platform.selectorLabels" . | nindent 6 }}
+      app: agentstack-registry
+      {{- include "agentstack.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: beeai-platform-registry
-        {{- include "beeai-platform.labels" . | nindent 8 }}
+        app: agentstack-registry
+        {{- include "agentstack.labels" . | nindent 8 }}
     spec:
       containers:
         - name: registry

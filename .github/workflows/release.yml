@@ -70,11 +70,11 @@ jobs:
             ghcr.io/${{ github.repository }}/agents/${{ matrix.agent }}:${{ steps.version.outputs.version }}
             ghcr.io/${{ github.repository }}/agents/${{ matrix.agent }}:${{ steps.version.outputs.latestTag }}
           labels: |
-            beeai.dev.agent.json=${{ steps.agent-manifest.outputs.content }}
+            agentstack.dev.agent.json=${{ steps.agent-manifest.outputs.content }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/agents/${{ matrix.agent }}:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/agents/${{ matrix.agent }}:cache,mode=max
 
-  agentstack-platform:
+  agentstack:
     needs: agents
     runs-on: ubuntu-latest
     environment: release
@@ -111,18 +111,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: mise run 'beeai-server:build:*'
+      - run: mise run 'agentstack-server:build:*'
       - uses: docker/build-push-action@v6
         with:
-          context: ./apps/beeai-server
+          context: ./apps/agentstack-server
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ghcr.io/${{ github.repository }}/beeai-server:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/beeai-server:${{ steps.version.outputs.version }}
-            ghcr.io/${{ github.repository }}/beeai-server:${{ steps.version.outputs.latestTag }}
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/beeai-server:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/beeai-server:cache,mode=max
+            ghcr.io/${{ github.repository }}/agentstack-server:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/agentstack-server:${{ steps.version.outputs.version }}
+            ghcr.io/${{ github.repository }}/agentstack-server:${{ steps.version.outputs.latestTag }}
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/agentstack-server:cache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/agentstack-server:cache,mode=max
 
       - run: mise run 'beeai-ui:build:*'
       - uses: docker/build-push-action@v6
@@ -140,7 +140,7 @@ jobs:
 
       - run: mise run helm:build
       - run: echo '${{ secrets.GITHUB_TOKEN }}' | helm registry login --username '${{ github.actor }}' --password-stdin ghcr.io
-      - run: helm push ./helm/dist/beeai-platform-*.tgz 'oci://ghcr.io/${{ github.repository }}/beeai-platform-chart'
+      - run: helm push ./helm/dist/agentstack-*.tgz 'oci://ghcr.io/${{ github.repository }}/chart'
 
       - run: mise run agentstack-sdk-py:build
       - uses: pypa/gh-action-pypi-publish@release/v1

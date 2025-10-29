@@ -78,8 +78,8 @@ wait
 ["agentstack-cli:build:copy-helm-chart"]
 depends = ["helm:build"]
 dir = "{{config_root}}/apps/agentstack-cli"
-run = "rm ./src/agentstack_cli/data/helm-chart.tgz 2>/dev/null || true && cp {{config_root}}/helm/dist/beeai-platform-*.tgz ./src/agentstack_cli/data/helm-chart.tgz"
-sources = ["{{config_root}}/helm/dist/beeai-platform-*.tgz"]
+run = "rm ./src/agentstack_cli/data/helm-chart.tgz 2>/dev/null || true && cp {{config_root}}/helm/dist/agentstack-*.tgz ./src/agentstack_cli/data/helm-chart.tgz"
+sources = ["{{config_root}}/helm/dist/agentstack-*.tgz"]
 outputs = ["./src/agentstack_cli/data/helm-chart.tgz"]
 
 ["agentstack-cli:build"]

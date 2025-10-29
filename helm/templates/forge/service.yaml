@@ -4,7 +4,7 @@ metadata:
   name: forge-svc
   labels:
     app: forge
-    {{- include "beeai-platform.labels" . | nindent 4 }}
+    {{- include "agentstack.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.forge.service.type }}
   ports:
@@ -13,4 +13,4 @@ spec:
       name: http
   selector:
     app: forge
-    {{- include "beeai-platform.selectorLabels" . | nindent 4 }}
+    {{- include "agentstack.selectorLabels" . | nindent 4 }}
