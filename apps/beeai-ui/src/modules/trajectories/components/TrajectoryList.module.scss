@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-$list-gap: 28px;
+$list-gap: #{rem(28px)};
 
 .root {
   position: relative;
@@ -29,7 +29,7 @@ $list-gap: 28px;
   padding-block-end: $spacing-05;
   display: flex;
   flex-direction: column;
-  row-gap: rem($list-gap);
+  row-gap: $list-gap;
   position: relative;
 
   .autoScroll & {
@@ -38,6 +38,6 @@ $list-gap: 28px;
   }
 
   .scrollGuard {
-    margin-block-start: rem(-$list-gap);
+    margin-block-start: -$list-gap;
   }
 }
