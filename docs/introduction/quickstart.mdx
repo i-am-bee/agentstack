@@ -16,13 +16,13 @@ description: "Get a running instance in minutes and explore pre-built agents"
 
 ## One-Line Install
 
-Open the terminal and run this command to install BeeAI:
+Open the terminal and run this command to install Agent Stack:
 
 ```bash
-sh -c "$(curl -LsSf https://raw.githubusercontent.com/i-am-bee/beeai-platform/HEAD/install.sh)"
+sh -c "$(curl -LsSf https://raw.githubusercontent.com/i-am-bee/agentstack/HEAD/install.sh)"
 ```
 
-This interactive script installs BeeAI CLI, downloads and starts the platform, prompts you to configure your LLM API key, then launches the web interface.
+This interactive script installs Agent Stack CLI, downloads and starts the platform, prompts you to configure your LLM API key, then launches the web interface.
 
 <Accordion title="Manual Install">
 
@@ -37,7 +37,7 @@ Follow the [installation instructions](https://docs.astral.sh/uv/getting-started
 Install QEMU via package manager ([instructions](https://www.qemu.org/download/)).
 
 </Step>
-<Step title="Install BeeAI">
+<Step title="Install Agent Stack">
 
 Open a new terminal and run:
 
@@ -101,7 +101,7 @@ uv tool update-shell
 Close and reopen your terminal after installation.
 
 </Step>
-<Step title="Install BeeAI">
+<Step title="Install Agent Stack">
 
 ```bash
 uv tool install --force --python-preference=only-managed --python=3.13 agentstack-cli && agentstack self install
@@ -137,7 +137,7 @@ agentstack platform delete       # Delete all data
 ## Version & Upgrades
 
 <Warning>
-If you are having issues with these commands, you may be running an old version of BeeAI. Run the one-line install script above to upgrade to the latest version.
+If you are having issues with these commands, you may be running an old version of Agent Stack. Run the one-line install script above to upgrade to the latest version.
 </Warning>
 
 ```sh

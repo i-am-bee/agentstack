@@ -1,9 +1,9 @@
 ---
 title: "Agent Details"
-description: "Configure how your agent appears and behaves in the BeeAI Platform UI"
+description: "Configure how your agent appears and behaves in the Agent Stack UI"
 ---
 
-The BeeAI Platform displays agents in both the GUI and CLI. When building your agent, you can configure certain attributes that affect how it appears and behaves in the user interface. The `@server.agent` decorator accepts an `AgentDetails` parameter that controls the visual representation and behavior in the UI.
+The Agent Stack displays agents in both the GUI and CLI. When building your agent, you can configure certain attributes that affect how it appears and behaves in the user interface. The `@server.agent` decorator accepts an `AgentDetails` parameter that controls the visual representation and behavior in the UI.
 
 You can customize various aspects of your agent's presentation, such as:
 - The type of user interface the agent uses
@@ -22,9 +22,9 @@ import os
 from a2a.types import (
     Message,
 )
-from beeai_sdk.server import Server
-from beeai_sdk.server.context import RunContext
-from beeai_sdk.a2a.extensions import AgentDetail, AgentDetailContributor, AgentDetailTool
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
+from agentstack_sdk.a2a.extensions import AgentDetail, AgentDetailContributor, AgentDetailTool
 
 server = Server()
 
@@ -42,19 +42,19 @@ server = Server()
                 description="Get the weather for a given location",
             ),
         ],
-        homepage_url="https://github.com/beeai-dev/beeai-agents",
-        source_code_url="https://github.com/beeai-dev/beeai-agents",
-        container_image_url="ghcr.io/beeai-dev/beeai-agents:v0.0.1",
+        homepage_url="https://github.com/i-am-bee/agentstack/tree/main/agents",
+        source_code_url="https://github.com/i-am-bee/agentstack/tree/main/agents",
+        container_image_url="ghcr.io/agentstack/agentstack-agents:v0.0.1",
         author=AgentDetailContributor(
-            name="BeeAI",
-            email="info@beeai.dev",
-            url="https://beeai.dev",
+            name="AgentStack",
+            email="info@agentstack.dev",
+            url="https://agentstack.dev",
         ),
         contributors=[
             AgentDetailContributor(
                 name="Another Person",
-                email="another@beeai.dev",
-                url="https://beeai.dev",
+                email="another@agentstack.dev",
+                url="https://agentstack.dev",
             ),
         ]
     )

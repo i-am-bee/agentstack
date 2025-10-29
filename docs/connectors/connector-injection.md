@@ -1,8 +1,8 @@
 # Connector Injection
 
-Related PR: https://github.com/i-am-bee/beeai-platform/pull/1357
+Related PR: https://github.com/i-am-bee/agentstack/pull/1357
 
-This document describes how BeeAI Platform injects OAuth tokens from connectors into agent MCP clients at runtime, enabling secure access to protected MCP servers.
+This document describes how Agent Stack injects OAuth tokens from connectors into agent MCP clients at runtime, enabling secure access to protected MCP servers.
 
 ## Overview
 
@@ -26,7 +26,7 @@ Connector Injection is the mechanism that allows agents to use connectors withou
 sequenceDiagram
     autonumber
     participant Client as A2A Client
-    participant Platform as BeeAI Platform
+    participant Platform as AgentStack Platform
     participant Agent as Agent with MCP extension
     participant MCP as MCP Server
 

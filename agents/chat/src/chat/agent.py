@@ -23,7 +23,7 @@ from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
 from beeai_framework.tools.search.wikipedia import WikipediaTool
 from beeai_framework.tools.weather import OpenMeteoTool
 from beeai_framework.backend import ChatModelParameters
-from beeai_sdk.a2a.extensions import (
+from agentstack_sdk.a2a.extensions import (
     AgentDetail,
     AgentDetailContributor,
     AgentDetailTool,
@@ -34,13 +34,13 @@ from beeai_sdk.a2a.extensions import (
     LLMServiceExtensionServer,
     LLMServiceExtensionSpec,
 )
-from beeai_sdk.a2a.extensions.services.platform import (
+from agentstack_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionServer,
     PlatformApiExtensionSpec,
 )
-from beeai_sdk.a2a.types import AgentMessage, AgentArtifact
-from beeai_sdk.server import Server
-from beeai_sdk.server.context import RunContext
+from agentstack_sdk.a2a.types import AgentMessage, AgentArtifact
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
 from openinference.instrumentation.beeai import BeeAIInstrumentor
 
 from chat.helpers.citations import extract_citations
@@ -59,7 +59,7 @@ from chat.tools.general.clarification import (
 )
 from chat.tools.general.current_time import CurrentTimeTool
 
-from beeai_sdk.server.store.platform_context_store import PlatformContextStore
+from agentstack_sdk.server.store.platform_context_store import PlatformContextStore
 
 # Temporary instrument fix
 EventMeta.model_fields["context"].exclude = True

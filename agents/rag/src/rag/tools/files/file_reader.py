@@ -9,7 +9,7 @@ from beeai_framework.tools import (
     Tool,
     ToolRunOptions,
 )
-from beeai_sdk.platform import File
+from agentstack_sdk.platform import File
 from pydantic import BaseModel, Field, create_model
 
 from rag.tools.files.utils import File, format_size

@@ -5,7 +5,7 @@ description: "Allow users to configure agent behavior with interactive settings"
 
 Sometimes you need to give users control over how your agent behaves during a conversation. For example, users might want to enable or disable thinking mode, choose between different response styles, or configure other agent-specific parameters.
 
-The BeeAI platform provides a Settings extension that creates an interactive UI component where users can configure these options before or during their interaction with your agent.
+The Agent Stack platform provides a Settings extension that creates an interactive UI component where users can configure these options before or during their interaction with your agent.
 
 <Tip>
 Settings extensions are a type of [Platform Extension](/concepts/extensions) that allows you to easily "inject dependencies" into your agent. This follows the inversion of control principle where your agent defines what it needs, and the platform provides those dependencies.
@@ -15,7 +15,7 @@ Settings extensions are a type of [Platform Extension](/concepts/extensions) tha
 
 <Steps>
 <Step title="Import the Settings extension">
-Import the necessary components from the BeeAI SDK settings extension.
+Import the necessary components from the Agent Stack SDK settings extension.
 </Step>
 
 <Step title="Add settings parameter to your agent">
@@ -42,16 +42,16 @@ from typing import Annotated
 
 from a2a.types import Message
 
-from beeai_sdk.a2a.extensions.ui.settings import (
+from agentstack_sdk.a2a.extensions.ui.settings import (
     CheckboxField,
     CheckboxGroupField,
     SettingsExtensionServer,
     SettingsExtensionSpec,
     SettingsRender,
 )
-from beeai_sdk.a2a.types import RunYield
-from beeai_sdk.server import Server
-from beeai_sdk.server.context import RunContext
+from agentstack_sdk.a2a.types import RunYield
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
 
 server = Server()
 
@@ -105,7 +105,7 @@ if __name__ == "__main__":
 
 Here's what you need to know to add settings capabilities to your agent:
 
-**Import the settings extension**: Import `SettingsExtensionServer`, `SettingsExtensionSpec`, `SettingsRender`, and field types from `beeai_sdk.a2a.extensions.ui.settings`.
+**Import the settings extension**: Import `SettingsExtensionServer`, `SettingsExtensionSpec`, `SettingsRender`, and field types from `agentstack_sdk.a2a.extensions.ui.settings`.
 
 **Inject the extension**: Add a settings parameter to your agent function using the `Annotated` type hint with `SettingsExtensionServer` and `SettingsExtensionSpec`.
 
@@ -127,13 +127,13 @@ Always check if the settings extension is available before using it to comply wi
 
 ## Settings Field Types
 
-The BeeAI platform supports various field types for collecting different kinds of configuration data:
+The Agent Stack supports various field types for collecting different kinds of configuration data:
 
 ### CheckboxField
 Single checkbox fields for boolean configuration options.
 
 ```python
-from beeai_sdk.a2a.extensions.ui.settings import CheckboxField
+from agentstack_sdk.a2a.extensions.ui.settings import CheckboxField
 
 CheckboxField(
     id="debug_mode", 
@@ -146,7 +146,7 @@ CheckboxField(
 Groups multiple checkboxes together for related boolean options.
 
 ```python
-from beeai_sdk.a2a.extensions.ui.settings import CheckboxField, CheckboxGroupField
+from agentstack_sdk.a2a.extensions.ui.settings import CheckboxField, CheckboxGroupField
 
 CheckboxGroupField(
     id="features",
@@ -169,7 +169,7 @@ CheckboxGroupField(
 Dropdown fields for choosing a single option from a list.
 
 ```python
-from beeai_sdk.a2a.extensions.ui.settings import OptionItem, SingleSelectField
+from agentstack_sdk.a2a.extensions.ui.settings import OptionItem, SingleSelectField
 
 SingleSelectField(
     id="response_style", 

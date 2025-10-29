@@ -1,9 +1,9 @@
 ---
 title: "Multi-Turn Conversations"
-description: "Learn how to handle conversation history and state in BeeAI Agents"
+description: "Learn how to handle conversation history and state in Agent Stack"
 ---
 
-When building conversational AI agents, one of the key requirements is maintaining context across multiple interactions. While agent functions are essentially stateless by design, the BeeAI platform provides built-in mechanisms to access and manage conversation history.
+When building conversational AI agents, one of the key requirements is maintaining context across multiple interactions. While agent functions are essentially stateless by design, the Agent Stack provides built-in mechanisms to access and manage conversation history.
 
 You need to explicitly store messages in the context memory using `context.store()` to make them available for retrieval in future interactions.
 
@@ -45,9 +45,9 @@ import os
 from a2a.types import Message
 from a2a.utils.message import get_message_text
 
-from beeai_sdk.a2a.types import AgentMessage
-from beeai_sdk.server import Server
-from beeai_sdk.server.context import RunContext
+from agentstack_sdk.a2a.types import AgentMessage
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
 
 server = Server()
 
@@ -149,7 +149,7 @@ By default, conversation history is stored in memory, which means it's lost when
 To maintain conversation history across agent restarts, configure your server to use the platform's persistent context store:
 
 ```python
-from beeai_sdk.server.context import PlatformContextStore
+from agentstack_sdk.server.context import PlatformContextStore
 
 def run():
     server.run(
@@ -180,14 +180,14 @@ from beeai_framework.backend import AssistantMessage, UserMessage
 from beeai_framework.backend.types import ChatModelParameters
 from beeai_framework.tools.think import ThinkTool
 
-from beeai_sdk.a2a.extensions import (
+from agentstack_sdk.a2a.extensions import (
     LLMServiceExtensionServer,
     LLMServiceExtensionSpec,
 )
-from beeai_sdk.a2a.types import AgentMessage
-from beeai_sdk.server import Server
-from beeai_sdk.server.context import RunContext
-from beeai_sdk.server.store.platform_context_store import PlatformContextStore
+from agentstack_sdk.a2a.types import AgentMessage
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
+from agentstack_sdk.server.store.platform_context_store import PlatformContextStore
 
 server = Server()
 

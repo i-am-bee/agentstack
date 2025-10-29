@@ -1,9 +1,9 @@
 ---
 title: "Add Agents"
-description: "Learn how to add new agents to BeeAI"
+description: "Learn how to add new agents to Agent Stack"
 ---
 
-BeeAI provides multiple ways to add agents to your platform. This guide explains each method and when to use them.
+Agent Stack provides multiple ways to add agents to your platform. This guide explains each method and when to use them.
 
 ## Prerequisite
 
@@ -19,12 +19,12 @@ Most import methods require Docker to be running:
 Just want to get started? Try importing a ready-made agent:
 
 ```bash
-agentstack add https://github.com/i-am-bee/beeai-platform-agent-starter.git
+agentstack add https://github.com/i-am-bee/agentstack-starter.git
 ```
 
 ## How It Works
 
-BeeAI discovers and runs agents automatically by using BeeAI SDK. When you add an agent:
+Agent Stack discovers and runs agents automatically by using Agent Stack SDK. When you add an agent:
 1. **Auto-discovery:** Agents running locally are automatically detected
 2. **Containerization:** Remote agents are built into Docker containers
 3. **Registration:** All agents appear in both CLI and web interface
@@ -33,13 +33,13 @@ BeeAI discovers and runs agents automatically by using BeeAI SDK. When you add a
 
 ### Local Development (Recommended for Development)
 
-When you build agents locally using the BeeAI SDK, BeeAI automatically discovers them:
+When you build agents locally using the Agent Stack SDK, Agent Stack automatically discovers them:
 
 ```bash
 # Start your agent server
 uv run my_agent.py
 
-# Your agent automatically appears in BeeAI
+# Your agent automatically appears in Agent Stack
 agentstack list  # Shows your local agent
 ```
 
@@ -49,7 +49,7 @@ Benefits:
 - Changes reflected immediately
 
 Requirements:
-- Agent must be implement using BeeAI SDK
+- Agent must be implement using Agent Stack SDK
 - Must be running on accessible port
 
 ### From GitHub Repositories
@@ -75,7 +75,7 @@ agentstack add "https://github.com/username/multi-agent-repo.git#v2.1.0:agents/s
 
 Requirements:
 - Repository must contain a Dockerfile
-- Agent must be implemented using BeeAI SDK
+- Agent must be implemented using Agent Stack SDK
 - Repository must be publicly accessible
 - Docker must be running locally
 
@@ -114,7 +114,7 @@ Add pre-built Docker images:
 
 ```bash
 # From GitHub Container Registry
-agentstack add ghcr.io/i-am-bee/beeai-platform/agents/chat:latest
+agentstack add ghcr.io/i-am-bee/agentstack/agents/chat:latest
 
 # From Docker Hub
 agentstack add myuser/my-agent:v1.0

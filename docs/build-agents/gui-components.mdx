@@ -1,13 +1,13 @@
 ---
 title: "GUI Components"
-description: "Customize how your agents appear and behave in the BeeAI platform interface"
+description: "Customize how your agents appear and behave in the Agent Stack interface"
 ---
 
-Your agent can leverage certain features of the platform to achieve the best possible user experience. When you yield specific content types from your agent, the BeeAI platform automatically renders them with appropriate visual representations.
+Your agent can leverage certain features of the platform to achieve the best possible user experience. When you yield specific content types from your agent, the Agent Stack automatically renders them with appropriate visual representations.
 
 ## Markdown Support
 
-When you yield text content, the BeeAI platform automatically renders it as Markdown, providing rich formatting capabilities.
+When you yield text content, the Agent Stack automatically renders it as Markdown, providing rich formatting capabilities.
 
 ```python
 yield "This text can be **bold** or _italic_"
@@ -30,7 +30,7 @@ yield FilePart(file=FileWithUri(uri="https://www.ibm.com/us-en", mime_type="text
 
 ## GUI Extensions
 
-The BeeAI platform leverages the A2A extensions concept, which allows you to easily extend message metadata in specific formats that the GUI can render in specialized ways.
+The Agent Stack leverages the A2A extensions concept, which allows you to easily extend message metadata in specific formats that the GUI can render in specialized ways.
 
 GUI extensions are simple to use. You just need to inject the extension into your agent's function signature:
 
@@ -41,9 +41,9 @@ from typing import Annotated
 from a2a.types import (
     Message,
 )
-from beeai_sdk.server import Server
-from beeai_sdk.server.context import RunContext
-from beeai_sdk.a2a.extensions import TrajectoryExtensionServer, TrajectoryExtensionSpec
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
+from agentstack_sdk.a2a.extensions import TrajectoryExtensionServer, TrajectoryExtensionSpec
 
 server = Server()
 
@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
 ## Available Extensions
 
-The BeeAI platform currently supports two types of GUI extensions:
+The Agent Stack currently supports two types of GUI extensions:
 
 ### Trajectory Visualization
 
@@ -81,7 +81,7 @@ The platform provides built-in trajectory visualization to show the step-by-step
 Add the trajectory extension to your agent's function signature:
 
 ```python
-from beeai_sdk.a2a.extensions import TrajectoryExtensionServer, TrajectoryExtensionSpec
+from agentstack_sdk.a2a.extensions import TrajectoryExtensionServer, TrajectoryExtensionSpec
 
 @server.agent()
 async def example_agent(
@@ -113,7 +113,7 @@ For agents that reference external sources, the platform provides built-in citat
 Add the citation extension to your agent's function signature:
 
 ```python
-from beeai_sdk.a2a.extensions import CitationExtensionServer, CitationExtensionSpec
+from agentstack_sdk.a2a.extensions import CitationExtensionServer, CitationExtensionSpec
 
 @server.agent()
 async def example_agent(

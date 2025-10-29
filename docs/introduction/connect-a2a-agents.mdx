@@ -1,11 +1,11 @@
 ---
 title: "Connect Existing A2A Agents"
-description: "Link an existing A2A agent to BeeAI in minutes"
+description: "Link an existing A2A agent to Agent Stack in minutes"
 ---
 
-Got an existing A2A agent? You can connect it to BeeAI instantly using the BeeAI A2A Proxy — a lightweight tool that bridges your agent and the BeeAI Platform.
+Got an existing A2A agent? You can connect it to Agent Stack instantly using the Agent Stack A2A Proxy — a lightweight tool that bridges your agent and the Agent Stack.
 
-No need to modify your agent’s code — just run one command and your agent will appear live in the BeeAI interface.
+No need to modify your agent’s code — just run one command and your agent will appear live in the Agent Stack interface.
 
 ## Quickstart
 
@@ -13,8 +13,8 @@ No need to modify your agent’s code — just run one command and your agent wi
 
 - A running A2A agent with a valid agent card at `/.well-known/agent-card.json`
 - Node.js installed (for npx)
-- BeeAI Platform running (default: `http://127.0.0.1:8333`)
-- The proxy installed (`npx i-am-bee/beeai-a2a-proxy`)
+- Agent Stack running (default: `http://127.0.0.1:8333`)
+- The proxy installed (`npx i-am-bee/agentstack-a2a-proxy`)
 
 ### Connect Your Agent
 
@@ -22,18 +22,18 @@ No need to modify your agent’s code — just run one command and your agent wi
 
 2. **Run the proxy** pointing to your agent:
 ```bash
-npx i-am-bee/beeai-a2a-proxy start http://localhost:8080
+npx i-am-bee/agentstack-a2a-proxy start http://localhost:8080
 ```
 
-That's it! Your agent is now registered with BeeAI and accessible through the interface.
+That's it! Your agent is now registered with Agent Stack and accessible through the interface.
 
 ## How It Works
 
-The proxy creates a bridge between your A2A agent and BeeAI by:
+The proxy creates a bridge between your A2A agent and Agent Stack by:
 
 1. **Intercepting agent card requests** - Captures `/.well-known/agent-card.json` requests from any A2A client
-2. **Adding Agent Details extension** - Automatically injects the necessary [AgentDetail](/build-agents/agent-details) extension data that enables the agent to work within the BeeAI ecosystem
-3. **Auto-registration** - Automatically registers the modified agent with the BeeAI platform, making it immediately available
+2. **Adding Agent Details extension** - Automatically injects the necessary [AgentDetail](/build-agents/agent-details) extension data that enables the agent to work within the Agent Stack ecosystem
+3. **Auto-registration** - Automatically registers the modified agent with the Agent Stack, making it immediately available
 
 <Note>
 The proxy supports agents using `jsonrpc` and `http_json` transport protocols.
@@ -45,28 +45,28 @@ The proxy supports agents using `jsonrpc` and `http_json` transport protocols.
 
 By default, the proxy runs on port 8000. To use a different port:
 ```bash
-npx i-am-bee/beeai-a2a-proxy start http://localhost:8080 --port 4000
+npx i-am-bee/agentstack-a2a-proxy start http://localhost:8080 --port 4000
 ```
 
 ### Custom Platform URL
 
-If your BeeAI platform is running on a different URL:
+If your Agent Stack is running on a different URL:
 ```bash
-npx i-am-bee/beeai-a2a-proxy start http://localhost:8080 --platform-url http://localhost:9000
+npx i-am-bee/agentstack-a2a-proxy start http://localhost:8080 --platform-url http://localhost:9000
 ```
 
 ### Disable Auto-Registration
 
-To run the proxy without automatically registering with BeeAI:
+To run the proxy without automatically registering with Agent Stack:
 ```bash
-npx i-am-bee/beeai-a2a-proxy start http://localhost:8080 --auto-register false
+npx i-am-bee/agentstack-a2a-proxy start http://localhost:8080 --auto-register false
 ```
 
 ### Custom Agent Details
 
 You can customize the agent details extension data by providing a JSON file:
 ```bash
-npx i-am-bee/beeai-a2a-proxy start http://localhost:8080 --custom-data ./my-agent-details.json
+npx i-am-bee/agentstack-a2a-proxy start http://localhost:8080 --custom-data ./my-agent-details.json
 ```
 
 ## Available Options
@@ -74,7 +74,7 @@ npx i-am-bee/beeai-a2a-proxy start http://localhost:8080 --custom-data ./my-agen
 | Option | Alias | Description | Default |
 |--------|-------|-------------|---------|
 | `--port` | `-p` | Port to run the proxy server on | 8000 |
-| `--auto-register` | `-a` | Enable/disable auto-registration with BeeAI | true |
+| `--auto-register` | `-a` | Enable/disable auto-registration with Agent Stack | true |
 | `--platform-url` | `-P` | Platform URL to register with | http://127.0.0.1:8333 |
 | `--custom-data` | `-c` | Path to custom agent detail JSON file | - |
 
@@ -90,7 +90,7 @@ See the [Agent Details](/build-agents/agent-details) documentation to learn how 
 
 ## Next Steps
 
-- **Test your agent** in the BeeAI interface at `http://127.0.0.1:8333`
+- **Test your agent** in the Agent Stack interface at `http://127.0.0.1:8333`
 - **Explore [extensions](/concepts/extensions)** to add UI enhancements and service integrations
 - **Customize [agent details](/build-agents/agent-details)** to improve how your agent appears in the interface
 - **Ready to deploy?** Check out [Deploying Agents](/deploy-agents) when you want to publish your agent

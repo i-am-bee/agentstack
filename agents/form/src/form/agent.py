@@ -16,11 +16,11 @@ from a2a.types import (
 
 from a2a.utils.message import get_message_text
 
-from beeai_sdk.server import Server
-from beeai_sdk.server.context import RunContext
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
 
-import beeai_sdk.a2a.extensions
-from beeai_sdk.a2a.extensions.ui.form import (
+import agentstack_sdk.a2a.extensions
+from agentstack_sdk.a2a.extensions.ui.form import (
     DateField,
     TextField,
     FileField,
@@ -32,8 +32,8 @@ from beeai_sdk.a2a.extensions.ui.form import (
     FormRender,
 )
 
-agent_detail_extension_spec = beeai_sdk.a2a.extensions.AgentDetailExtensionSpec(
-    params=beeai_sdk.a2a.extensions.AgentDetail(
+agent_detail_extension_spec = agentstack_sdk.a2a.extensions.AgentDetailExtensionSpec(
+    params=agentstack_sdk.a2a.extensions.AgentDetail(
         interaction_mode="multi-turn",
     )
 )
