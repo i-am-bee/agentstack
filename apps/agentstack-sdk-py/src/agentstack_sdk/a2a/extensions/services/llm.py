@@ -62,7 +62,7 @@ class LLMServiceExtensionParams(pydantic.BaseModel):
 
 
 class LLMServiceExtensionSpec(BaseExtensionSpec[LLMServiceExtensionParams]):
-    URI: str = "https://a2a-extensions.agentstack.dev/services/llm/v1"
+    URI: str = "https://a2a-extensions.agentstack.beeai.dev/services/llm/v1"
 
     @classmethod
     def single_demand(

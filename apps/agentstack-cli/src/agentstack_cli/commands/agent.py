@@ -170,7 +170,7 @@ async def add_agent(
                 location, agent_card = await build(location, dockerfile, tag=None, vm_name=vm_name, import_image=True)
             else:
                 manifest = base64.b64decode(
-                    json.loads(process.stdout)[0]["Config"]["Labels"]["agentstack.dev.agent.json"]
+                    json.loads(process.stdout)[0]["Config"]["Labels"]["beeai.dev.agent.json"]
                 ).decode()
                 agent_card = json.loads(manifest)
             # If all build and inspect succeeded, use the local image, else use the original; maybe it exists remotely

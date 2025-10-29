@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 import type { A2AServiceExtension } from '../types';
 
-const URI = 'https://a2a-extensions.agentstack.dev/auth/oauth/v1';
+const URI = 'https://a2a-extensions.agentstack.beeai.dev/auth/oauth/v1';
 
 const oauthDemandSchema = z.object({
   redirect_uri: z.boolean(),

@@ -45,7 +45,7 @@ class OAuthExtensionParams(pydantic.BaseModel):
 
 
 class OAuthExtensionSpec(BaseExtensionSpec[OAuthExtensionParams]):
-    URI: str = "https://a2a-extensions.agentstack.dev/auth/oauth/v1"
+    URI: str = "https://a2a-extensions.agentstack.beeai.dev/auth/oauth/v1"
 
     @classmethod
     def single_demand(cls, name: str = _DEFAULT_DEMAND_NAME) -> Self:

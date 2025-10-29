@@ -85,7 +85,7 @@ class DockerImageProviderLocation(RootModel):
         resolved_version = await self.get_resolved_version()
         labels = await resolved_version.get_labels()
         if DOCKER_MANIFEST_LABEL_NAME not in labels:
-            raise ValueError(f"Docker image labels must contain 'agentstack.dev.agent.json': {self.root!s}")
+            raise ValueError(f"Docker image labels must contain 'beeai.dev.agent.json': {self.root!s}")
         return AgentCard.model_validate(json.loads(base64.b64decode(labels[DOCKER_MANIFEST_LABEL_NAME])))
 
 

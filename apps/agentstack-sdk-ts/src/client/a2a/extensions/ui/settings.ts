@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 import type { A2AServiceExtension } from '../types';
 
-const URI = 'https://a2a-extensions.agentstack.dev/ui/settings/v1';
+const URI = 'https://a2a-extensions.agentstack.beeai.dev/ui/settings/v1';
 
 const checkboxField = z.object({
   id: z.string().nonempty(),

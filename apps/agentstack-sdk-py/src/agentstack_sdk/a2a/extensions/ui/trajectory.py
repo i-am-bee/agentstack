@@ -42,7 +42,7 @@ class Trajectory(pydantic.BaseModel):
 
 
 class TrajectoryExtensionSpec(NoParamsBaseExtensionSpec):
-    URI: str = "https://a2a-extensions.agentstack.dev/ui/trajectory/v1"
+    URI: str = "https://a2a-extensions.agentstack.beeai.dev/ui/trajectory/v1"
 
 
 class TrajectoryExtensionServer(BaseExtensionServer[TrajectoryExtensionSpec, NoneType]):

@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 import type { A2AServiceExtension } from '../types';
 
-const URI = 'https://a2a-extensions.agentstack.dev/services/llm/v1';
+const URI = 'https://a2a-extensions.agentstack.beeai.dev/services/llm/v1';
 
 const llmDemandSchema = z.object({
   description: z.string().nullish(),

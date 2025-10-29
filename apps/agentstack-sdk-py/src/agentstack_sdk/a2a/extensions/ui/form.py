@@ -162,7 +162,7 @@ class FormResponse(BaseModel):
 
 
 class FormExtensionSpec(BaseExtensionSpec[FormRender | None]):
-    URI: str = "https://a2a-extensions.agentstack.dev/ui/form/v1"
+    URI: str = "https://a2a-extensions.agentstack.beeai.dev/ui/form/v1"
 
 
 T = TypeVar("T")

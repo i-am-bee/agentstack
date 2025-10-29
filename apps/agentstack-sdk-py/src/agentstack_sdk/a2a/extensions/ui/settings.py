@@ -62,7 +62,7 @@ class AgentRunSettings(BaseModel):
 
 
 class SettingsExtensionSpec(BaseExtensionSpec[SettingsRender | None]):
-    URI: str = "https://a2a-extensions.agentstack.dev/ui/settings/v1"
+    URI: str = "https://a2a-extensions.agentstack.beeai.dev/ui/settings/v1"
 
 
 class SettingsExtensionServer(BaseExtensionServer[SettingsExtensionSpec, AgentRunSettings]):

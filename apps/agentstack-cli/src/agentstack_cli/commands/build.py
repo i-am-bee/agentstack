@@ -115,7 +115,7 @@ async def build(
                 *dockerfile_args,
                 "-t",
                 tag,
-                f"--label=agentstack.dev.agent.json={base64.b64encode(json.dumps(agent_card).encode()).decode()}",
+                f"--label=beeai.dev.agent.json={base64.b64encode(json.dumps(agent_card).encode()).decode()}",
             ],
             message="Adding agent labels to container",
             check=True,

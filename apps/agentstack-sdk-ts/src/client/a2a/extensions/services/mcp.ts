@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 import type { A2AServiceExtension } from '../types';
 
-const URI = 'https://a2a-extensions.agentstack.dev/services/mcp/v1';
+const URI = 'https://a2a-extensions.agentstack.beeai.dev/services/mcp/v1';
 
 const mcpTransportTypesEnum = z.enum(['streamable_http', 'stdio']);
 type MCPTransportType = z.infer<typeof mcpTransportTypesEnum>;
