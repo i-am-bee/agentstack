@@ -15,7 +15,7 @@ As BeeAI has evolved, we ended up with two projects with similar names:
 1. **BeeAI Framework** – for building reliable, intelligent agents
 2. **BeeAI Platform** – for deploying and sharing those agents
 
-While both are essential parts of the BeeAI initiative under the Linux Foundation, the similar naming has led to some
+While both are essential parts of the BeeAI ecosystem under the Linux Foundation, the similar naming has led to some
 natural confusion about which tool does what. We've heard from community members that the distinction between
 "Framework" and "Platform" isn't always immediately clear, especially for newcomers.
 
@@ -23,8 +23,9 @@ Agent Stack makes the purpose explicit—it's your deployment stack for agents.
 
 ## What is Agent Stack?
 
-Agent Stack is a self-hostable stack for deploying and sharing AI agents. It solves a specific problem: once you've
-built an agent (using any framework or even custom code), how do you actually deploy it somewhere people can use it?
+Agent Stack is open infrastructure for deploying AI agents to production, regardless of how you built them. It gives you
+everything needed to go from "works on my laptop" to "other people can use it" - hosting, web UI, runtime services, and
+multi-tenancy - without framework or vendor lock-in.
 
 Agent Stack gives you:
 
@@ -42,16 +43,14 @@ Agent Stack gives you:
 - **An SDK** that lets your agents request these services using standardized A2A protocol extensions
 - **A HELM Chart** for custom infrastructure configuration (plug in your own S3 storage, database, auth, etc.)
 
-The SDK extensions work with any framework — if your agent is built on A2A, it can use these services regardless of
-whether you built it with LangGraph, CrewAI, BeeAI Framework, or something custom.
+Build your agent using agentstack-sdk with any framework you want inside (LangGraph, CrewAI, BeeAI Framework, or custom
+logic) - the SDK handles requesting infrastructure services at runtime.
 
-**The workflow:**
+The workflow:
 
-1. Build with any framework (LangGraph, CrewAI, etc.)
-2. Deploy with Agent Stack using a single CLI command
-3. Share via web UI with chat interface
-
-Agent Stack is designed to work flexibly with your infrastructure, your tools, your framework, and your LLM providers.
+1. Build your agent with agentstack-sdk and framework logic
+2. Deploy to Agent Stack with a single CLI command
+3. Users interact via the web UI
 
 ## Why This Matters
 
@@ -69,21 +68,18 @@ This matters if you:
 - Want infrastructure you control and can customize
 - Value keeping your options open as the space evolve
 
-Agent Stack provides self-hostable infrastructure that works with any A2A-compliant agent, giving teams flexibility
-while the agent market is still figuring itself out.
-
 ## What This Means for You
 
 ### For Existing Users
 
 This is purely a rename—the only changes are to repository URLs, CLI commands, and package names. The migration is
-straightforward (see below).
+straightforward:
 
-- **Repository**: github.com/i-am-bee/agentstack
+- **Repository**: [github.com/i-am-bee/agentstack](https://github.com/i-am-bee/agentstack)
 - **CLI**: agentstack prefix
-- **SDK**: agentstack-sdk
-- **Docs**: agentstack.beeai.dev
-- **Starter Template**: github.com/i-am-bee/agentstack-starter
+- **SDK**: [agentstack-sdk](https://pypi.org/project/agentstack-sdk/)
+- **Docs**: [agentstack.beeai.dev](https://agentstack.beeai.dev/)
+- **Starter Template**: [github.com/i-am-bee/agentstack-starter](https://github.com/i-am-bee/agentstack-starter)
 
 ### For New Users
 
@@ -121,6 +117,8 @@ agentstack [OPTIONS] COMMAND [ARGS]
 
 ### For Agent Builders
 
+**All container images will need to be rebuilt to apply the appropriate changes.**
+
 1. Update your SDK:
 
 ```
@@ -130,30 +128,30 @@ pip install agentstack-sdk
 2. Update your imports:
 
 ```
-from agentstack_sdk import Server  # new
+from agentstack_sdk import Server
 ```
 
-**All agent images will need to be rebuilt to apply the appropriate change.**
+3. Rebuild your container images.
 
 ## What’s Next
 
 Agent Stack is in incubation—this means we're actively exploring what agent deployment infrastructure should look like
-and learning from real-world usage. We're focused on:
+and learning from actual usage. We're focused on:
 
-- Making multi-framework deployment practical. We want to make it genuinely easy to deploy agents from different
+- **Making multi-framework deployment practical.** We want to make it genuinely easy to deploy agents from different
   frameworks without rebuilding infrastructure. This means continuing to refine A2A protocol extensions and improving
   the deployment experience.
-- Improving the development workflow. The CLI and web UI should get out of your way. We're gathering feedback on what
-  works and what doesn't, and iterating based on real usage.
-- Building ecosystem connections. As more frameworks adopt A2A, we want Agent Stack to work seamlessly with them. We're
-  also exploring better ways to discover and share agents.
-- Understanding real needs. Incubation means we don't have all the answers yet. We're learning what teams actually need
-  from deployment infrastructure—what's essential, what's nice-to-have, and what we got wrong.
+- **Improving the development workflow.** The CLI and web UI should get out of your way. We're gathering feedback on
+  what works and what doesn't, and iterating based on real usage.
+- **Building ecosystem connections.** As more frameworks adopt A2A, we want Agent Stack to work seamlessly with them.
+  We're also exploring better ways to discover and share agents.
+- **Understanding real needs.** Incubation means we don't have all the answers yet. We're learning what teams actually
+  need from deployment infrastructure—what's essential, what's nice-to-have, and what we got wrong.
 
 If you're building production agents, we'd love to hear what challenges you're facing with deployment. Your feedback
 shapes where Agent Stack goes next.
 
-## Questions?
+## Questions or Feedback?
 
-Reach out to us on [Discord](https://discord.gg/NradeA6ZNF) or [GitHub](https://github.com/i-am-bee/agentstack)—we’re
-here to help make the transition smooth.
+We’d love to hear from you. Share your thoughts, issues, or ideas on [Discord](https://discord.gg/NradeA6ZNF) or
+[GitHub](https://github.com/i-am-bee/agentstack).
