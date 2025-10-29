@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { LF_PROJECTS_LINK } from '@i-am-bee/beeai-ui';
+import { LF_PROJECTS_LINK } from '@i-am-bee/agentstack-ui';
 
 import { APP_NAME } from '@/constants';
 

@@ -7,7 +7,7 @@
 
 import { ArrowRight } from '@carbon/icons-react';
 import { Button } from '@carbon/react';
-import { ErrorPage, TransitionLink } from '@i-am-bee/beeai-ui';
+import { ErrorPage, TransitionLink } from '@i-am-bee/agentstack-ui';
 
 import { MainContentView } from '@/layouts/MainContentView';
 import { routeDefinitions } from '@/utils/router';

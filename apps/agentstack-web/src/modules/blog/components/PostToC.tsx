@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useScrollableContainer } from '@i-am-bee/beeai-ui';
+import { useScrollableContainer } from '@i-am-bee/agentstack-ui';
 import clsx from 'clsx';
 import { useMemo, useRef } from 'react';
 

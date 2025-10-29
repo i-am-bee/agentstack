@@ -51,7 +51,7 @@ Instead, use:
 mise agentstack:start
 ```
 
-This will build the images (`agentstack-server` and `beeai-ui`) and import them to the cluster. You can add other
+This will build the images (`agentstack-server` and `agentstack-ui`) and import them to the cluster. You can add other
 CLI arguments as you normally would when using `agentstack` CLI, for example:
 
 ```shell
@@ -314,7 +314,7 @@ mise agentstack-cli:run -- agent run website_summarizer "summarize iambee.ai"
 
 ```sh
 # run the UI development server:
-mise beeai-ui:run
+mise agentstack-ui:run
 
 # UI is also available from agentstack-server (in static mode):
 mise agentstack-server:run

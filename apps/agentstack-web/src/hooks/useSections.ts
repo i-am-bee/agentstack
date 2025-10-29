@@ -5,7 +5,7 @@
 
 'use client';
 
-import { isNotNull } from '@i-am-bee/beeai-ui';
+import { isNotNull } from '@i-am-bee/agentstack-ui';
 import debounce from 'lodash/debounce';
 import throttle from 'lodash/throttle';
 import type { MouseEvent } from 'react';

@@ -7,7 +7,7 @@
   "dependencies": {
     "@carbon/icons-react": "catalog:",
     "@carbon/react": "catalog:",
-    "@i-am-bee/beeai-ui": "workspace:*",
+    "@i-am-bee/agentstack-ui": "workspace:*",
     "@tanstack/react-query": "catalog:",
     "clsx": "catalog:",
     "estree-util-value-to-estree": "^3.4.0",

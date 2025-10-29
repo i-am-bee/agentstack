@@ -76,7 +76,7 @@ run = "pnpm next dev"
 ["agentstack-web:build"]
 depends = ["agentstack-web:build:*"]
 dir = "{{config_root}}"
-run = "docker build -t ghcr.io/i-am-bee/beeai-platform/agentstack-web:local -f ./apps/agentstack-web/Dockerfile --load ."
+run = "docker build -t ghcr.io/i-am-bee/agentstack/agentstack-web:local -f ./apps/agentstack-web/Dockerfile --load ."
 
 ["agentstack-web:build:nextjs"]
 depends = ["common:setup:pnpm", "agentstack-sdk-ts:build"]

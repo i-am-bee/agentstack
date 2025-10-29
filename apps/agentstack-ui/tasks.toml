@@ -1,0 +1,93 @@
+# check
+
+["agentstack-ui:check"]
+depends = ["agentstack-ui:check:*"]
+
+["agentstack-ui:check:prettier"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/agentstack-ui"
+run = "pnpm prettier --log-level silent --check src"
+sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx", "src/**/*.html", "src/**/*.css", "src/**/*.scss"]
+outputs = { auto = true }
+
+["agentstack-ui:check:eslint"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/agentstack-ui"
+run = "pnpm eslint ."
+sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
+outputs = { auto = true }
+
+["agentstack-ui:check:tsc"]
+depends = ["common:setup:pnpm", "agentstack-sdk-ts:build"]
+dir = "{{config_root}}/apps/agentstack-ui"
+run = "pnpm tsc --noEmit -p tsconfig.check.json"
+sources = ["src/**/*.ts", "src/**/*.tsx"]
+outputs = { auto = true }
+
+["agentstack-ui:check:stylelint"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/agentstack-ui"
+run = "pnpm stylelint \"src/**/*.css\" \"src/**/*.scss\""
+sources = ["src/**/*.css", "src/**/*.scss"]
+outputs = { auto = true }
+
+# fix
+
+["agentstack-ui:fix"]
+depends = ["agentstack-ui:fix:*"]
+
+["agentstack-ui:fix:prettier"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/agentstack-ui"
+run = "pnpm prettier --log-level silent --write src"
+sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx", "src/**/*.html", "src/**/*.css", "src/**/*.scss"]
+outputs = { auto = true }
+
+["agentstack-ui:fix:next"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/agentstack-ui"
+run = "pnpm eslint . --fix"
+sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
+outputs = { auto = true }
+
+["agentstack-ui:fix:stylelint"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/agentstack-ui"
+run = "pnpm stylelint --fix=lax \"src/**/*.css\" \"src/**/*.scss\""
+sources = ["src/**/*.css", "src/**/*.scss"]
+outputs = { auto = true }
+
+# run
+
+["agentstack-ui:run"]
+depends = ["agentstack-ui:build:nextjs"]
+env.NODE_OPTIONS = "--no-experimental-global-navigator"
+dir = "{{config_root}}/apps/agentstack-ui"
+run = "pnpm next start"
+
+["agentstack-ui:run:dev"]
+depends = ["common:setup:pnpm", "agentstack-sdk-ts:build"]
+env.NODE_OPTIONS = "--no-experimental-global-navigator"
+dir = "{{config_root}}/apps/agentstack-ui"
+run = "pnpm next dev"
+
+# build
+
+["agentstack-ui:build"]
+depends = ["agentstack-ui:build:*"]
+dir = "{{config_root}}"
+run = "docker build -t ghcr.io/i-am-bee/agentstack/agentstack-ui:local -f ./apps/agentstack-ui/Dockerfile --load ."
+
+["agentstack-ui:build:nextjs"]
+depends = ["common:setup:pnpm", "agentstack-sdk-ts:build"]
+dir = "{{config_root}}/apps/agentstack-ui"
+env.NODE_OPTIONS = "--no-experimental-global-navigator"
+run = "pnpm next build"
+sources = ["*.json", "*.js", "*.mjs", "*.ts", "public/**/*", "src/**/*"]
+outputs = { auto = true }
+
+# schema
+
+["agentstack-ui:schema:generate"]
+dir = "{{config_root}}/apps/agentstack-ui"
+run = "./scripts/generate-schema.sh http://localhost:8333/api/v1/openapi.json ./src/api/schema.d.ts"

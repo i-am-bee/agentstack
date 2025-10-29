@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { MainContentProps } from '@i-am-bee/beeai-ui';
-import { MainContent } from '@i-am-bee/beeai-ui';
+import type { MainContentProps } from '@i-am-bee/agentstack-ui';
+import { MainContent } from '@i-am-bee/agentstack-ui';
 import type { PropsWithChildren } from 'react';
 
 import { AppFooter } from './AppFooter';

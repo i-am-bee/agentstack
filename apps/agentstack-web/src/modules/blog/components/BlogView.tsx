@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Container } from '@i-am-bee/beeai-ui';
+import { Container } from '@i-am-bee/agentstack-ui';
 
 import { routeDefinitions } from '@/utils/router';
 

@@ -5,7 +5,7 @@
 
 import '../styles/style.scss';
 
-import { APP_FAVICON_SVG, BASE_PATH, THEME_STORAGE_KEY } from '@i-am-bee/beeai-ui';
+import { APP_FAVICON_SVG, BASE_PATH, THEME_STORAGE_KEY } from '@i-am-bee/agentstack-ui';
 import type { Metadata } from 'next';
 
 import { AnalyticsScript } from '@/components/AnalyticsScript/AnalyticsScript';

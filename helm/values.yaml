@@ -242,7 +242,7 @@ ui:
   replicaCount: 1
   enabled: true
   image:
-    repository: ghcr.io/i-am-bee/beeai-platform/beeai-ui
+    repository: ghcr.io/i-am-bee/beeai-platform/agentstack-ui
     pullPolicy: IfNotPresent
     tag: ""
     resources: { }

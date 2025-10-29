@@ -5,7 +5,7 @@
 
 'use client';
 import { Code, Constraint, FlowConnection, Plug, Shapes } from '@carbon/icons-react';
-import { Theme, useTheme } from '@i-am-bee/beeai-ui';
+import { Theme, useTheme } from '@i-am-bee/agentstack-ui';
 import { useIsClient } from 'usehooks-ts';
 
 import { FRAMEWORK_INTRO_LINK } from '@/constants';

@@ -124,19 +124,19 @@ jobs:
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/agentstack-server:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/agentstack-server:cache,mode=max
 
-      - run: mise run 'beeai-ui:build:*'
+      - run: mise run 'agentstack-ui:build:*'
       - uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./apps/beeai-ui/Dockerfile
+          file: ./apps/agentstack-ui/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ghcr.io/${{ github.repository }}/beeai-ui:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/beeai-ui:${{ steps.version.outputs.version }}
-            ghcr.io/${{ github.repository }}/beeai-ui:${{ steps.version.outputs.latestTag }}
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/beeai-ui:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/beeai-ui:cache,mode=max
+            ghcr.io/${{ github.repository }}/agentstack-ui:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/agentstack-ui:${{ steps.version.outputs.version }}
+            ghcr.io/${{ github.repository }}/agentstack-ui:${{ steps.version.outputs.latestTag }}
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/agentstack-ui:cache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/agentstack-ui:cache,mode=max
 
       - run: mise run helm:build
       - run: echo '${{ secrets.GITHUB_TOKEN }}' | helm registry login --username '${{ github.actor }}' --password-stdin ghcr.io

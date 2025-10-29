@@ -15,7 +15,7 @@ import { recmaExportToc } from '@/modules/blog/recma';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  transpilePackages: ['@i-am-bee/beeai-ui'],
+  transpilePackages: ['@i-am-bee/agentstack-ui'],
   sassOptions: {
     additionalData: `@use 'styles/common' as *; @use 'sass:math';`,
     // silenceDeprecations: ['mixed-decls', 'global-builtin'],
@@ -74,7 +74,7 @@ const nextConfig: NextConfig = {
     //
     // We get css modules styles twice but atleast the second css file overwrites them in correct order.
     //
-    // I think it's actually two issues, first is with sideEffects and external packages, because beeai-ui doesn't
+    // I think it's actually two issues, first is with sideEffects and external packages, because agentstack-ui doesn't
     // have `sideEffects: false` in package.json and I don't wanna add it because it's vite app, not a library
     // and we have single `index.ts` in it that exports everything, nextjs bundler doesn't tree shake and sees
     // all styles as required in a root layout. Having separate exports in package.json helps but doesn't mitigrate

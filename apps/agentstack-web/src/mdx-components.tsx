@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Code } from '@i-am-bee/beeai-ui';
+import { Code } from '@i-am-bee/agentstack-ui';
 import type { MDXComponents } from 'mdx/types';
 
 const components: MDXComponents = {

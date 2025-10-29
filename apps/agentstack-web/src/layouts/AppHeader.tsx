@@ -5,7 +5,7 @@
 'use client';
 import { ArrowUpRight } from '@carbon/icons-react';
 import { HeaderMenuButton } from '@carbon/react';
-import { MainNav } from '@i-am-bee/beeai-ui';
+import { MainNav } from '@i-am-bee/agentstack-ui';
 import clsx from 'clsx';
 import Link from 'next/link';
 import { useState } from 'react';

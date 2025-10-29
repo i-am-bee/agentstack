@@ -4,7 +4,7 @@
  */
 
 'use client';
-import { ProgressBarProvider, RouteTransitionProvider, ThemeProvider } from '@i-am-bee/beeai-ui';
+import { ProgressBarProvider, RouteTransitionProvider, ThemeProvider } from '@i-am-bee/agentstack-ui';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { PropsWithChildren } from 'react';
 
