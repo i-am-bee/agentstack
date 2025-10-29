@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 import type { A2AUiExtension } from '../types';
 
-const URI = 'https://a2a-extensions.agentstack.dev/ui/citation/v1';
+const URI = 'https://a2a-extensions.agentstack.beeai.dev/ui/citation/v1';
 
 const citationSchema = z.object({
   url: z.string().nullish(),

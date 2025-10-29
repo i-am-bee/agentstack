@@ -33,7 +33,7 @@ async def admin_user(db_transaction: AsyncConnection) -> uuid.UUID:
     await db_transaction.execute(
         text("INSERT INTO users (id, email, created_at, role) VALUES (:id, :email, :created_at, :role)"),
         [
-            {"id": uid, "email": "dummy@agentstack.dev", "created_at": utc_now(), "role": "admin"},
+            {"id": uid, "email": "dummy@beeai.dev", "created_at": utc_now(), "role": "admin"},
         ],
     )
     return uid

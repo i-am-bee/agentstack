@@ -8,13 +8,8 @@ import classes from './BlogHero.module.scss';
 export function BlogHero() {
   return (
     <div className={classes.root}>
-      <h1 className={classes.heading}>
-        Enterprise
-        <br />
-        AI agent
-        <br />
-        Framework
-      </h1>
+      <h1 className={classes.heading}>BeeAI Blog</h1>
+      <p className={classes.subheading}>Announcements and deep technical dives from the team building BeeAI</p>
     </div>
   );
 }

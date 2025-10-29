@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 import type { A2AServiceExtension, A2AUiExtension } from '../types';
 
-const URI = 'https://a2a-extensions.agentstack.dev/ui/form/v1';
+const URI = 'https://a2a-extensions.agentstack.beeai.dev/ui/form/v1';
 
 const baseField = z.object({
   id: z.string().nonempty(),

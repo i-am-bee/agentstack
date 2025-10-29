@@ -3,15 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export const GITHUB_REPO_LINK = 'https://github.com/i-am-bee/beeai-framework';
-
-export const FRAMEWORK_QUICKSTART_LINK = 'https://framework.beeai.dev/introduction/quickstart';
+export const GITHUB_LINK = 'https://github.com/i-am-bee';
 
 export const FRAMEWORK_DOCS_LINK = 'https://framework.beeai.dev';
 
+export const AGENT_STACK_DOCS_LINK = 'https://agentstack.beeai.dev';
+
 export const FRAMEWORK_INTRO_LINK = 'https://framework.beeai.dev/introduction/welcome';
 
-export const PLATFORM_INTRO_LINK = 'https://docs.beeai.dev/introduction/welcome';
+export const PLATFORM_INTRO_LINK = 'https://agentstack.beeai.dev/introduction/welcome';
 
 export const DISCORD_LINK = 'https://discord.gg/NradeA6ZNF';
 

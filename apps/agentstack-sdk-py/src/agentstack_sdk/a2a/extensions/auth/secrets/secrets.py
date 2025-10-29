@@ -32,7 +32,7 @@ class SecretsServiceExtensionMetadata(pydantic.BaseModel):
 
 
 class SecretsExtensionSpec(BaseExtensionSpec[SecretsServiceExtensionParams | None]):
-    URI: str = "https://a2a-extensions.agentstack.dev/auth/secrets/v1"
+    URI: str = "https://a2a-extensions.agentstack.beeai.dev/auth/secrets/v1"
 
     @classmethod
     def single_demand(cls, name: str, key: str | None = None, description: str | None = None) -> typing.Self:

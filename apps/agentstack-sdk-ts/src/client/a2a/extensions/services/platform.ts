@@ -5,7 +5,7 @@
 
 import type { ContextToken } from '../../../context/types';
 
-const URI = 'https://a2a-extensions.agentstack.dev/services/platform_api/v1';
+const URI = 'https://a2a-extensions.agentstack.beeai.dev/services/platform_api/v1';
 
 const getMetadata = (contextToken: ContextToken) => {
   return {

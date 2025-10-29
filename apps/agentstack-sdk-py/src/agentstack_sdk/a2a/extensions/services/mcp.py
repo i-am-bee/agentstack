@@ -65,7 +65,7 @@ class MCPServiceExtensionParams(pydantic.BaseModel):
 
 
 class MCPServiceExtensionSpec(BaseExtensionSpec[MCPServiceExtensionParams]):
-    URI: str = "https://a2a-extensions.agentstack.dev/services/mcp/v1"
+    URI: str = "https://a2a-extensions.agentstack.beeai.dev/services/mcp/v1"
 
     @classmethod
     def single_demand(

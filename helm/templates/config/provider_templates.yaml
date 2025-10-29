@@ -321,7 +321,7 @@ data:
                   LABEL_CONTENT=$(echo -n "$AGENT_CARD_CONTENT" | base64 -w 0)
                   echo "Label content size: $(echo -n $LABEL_CONTENT | wc -c) bytes"
                   crane mutate {{- if .Values.providerBuilds.buildRegistry.insecure }} --insecure{{- end }} {{`{{ destination }}`}} \
-                    --label "agentstack.dev.agent.json=${LABEL_CONTENT}"
+                    --label "beeai.dev.agent.json=${LABEL_CONTENT}"
 
               volumeMounts:
                 - name: docker-config

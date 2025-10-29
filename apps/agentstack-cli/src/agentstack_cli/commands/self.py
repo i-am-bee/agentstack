@@ -166,7 +166,7 @@ async def install(
             "Use [green]agentstack ui[/green] to open the web GUI, or [green]agentstack run chat[/green] to talk to an agent on the command line."
         )
         console.hint(
-            "Run [green]agentstack --help[/green] to learn about available commands, or check the documentation at https://docs.beeai.dev/"
+            "Run [green]agentstack --help[/green] to learn about available commands, or check the documentation at https://agentstack.beeai.dev/"
         )
 
 

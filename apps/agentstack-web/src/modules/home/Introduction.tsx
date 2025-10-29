@@ -16,11 +16,15 @@ export function Introduction() {
       <section className={classes.root}>
         <div className={classes.headline}>
           <h1>
-            <LogoBeeAI /> <br />
-            control and agency without compromise
+            <LogoBeeAI />
+            <br />
+            Ecosystem
           </h1>
-          <PrimaryCTALink />
+
+          <p>A series of Linux Foundation projects advancing AI agents</p>
         </div>
+
+        <PrimaryCTALink />
       </section>
     </LayoutContainer>
   );

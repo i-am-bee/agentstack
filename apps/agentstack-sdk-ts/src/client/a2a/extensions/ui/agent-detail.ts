@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { interactionModeSchema } from '../../../../types';
 import type { A2AUiExtension } from '../types';
 
-const URI = 'https://a2a-extensions.agentstack.dev/ui/agent-detail/v1';
+const URI = 'https://a2a-extensions.agentstack.beeai.dev/ui/agent-detail/v1';
 
 const contributorSchema = z.object({
   name: z.string(),

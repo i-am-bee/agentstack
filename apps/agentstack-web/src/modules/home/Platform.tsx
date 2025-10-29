@@ -25,7 +25,7 @@ export function Platform() {
           <div className={classes.infoLeft}>
             <HeadlineWithLink
               title="Agent Stack"
-              description="Test, debug, and share your agents in an interactive UI with out-of-the-box trajectory, citations, and more."
+              description="Deploy and share agents with open infrastructure, free from framework or vendor lock-in."
               buttonProps={{ url: PLATFORM_INTRO_LINK }}
             />
           </div>

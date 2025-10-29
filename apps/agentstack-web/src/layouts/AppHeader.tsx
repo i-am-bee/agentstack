@@ -10,8 +10,7 @@ import clsx from 'clsx';
 import Link from 'next/link';
 import { useState } from 'react';
 
-import { FRAMEWORK_DOCS_LINK } from '@/constants';
-import { APP_NAME } from '@/constants';
+import { AGENT_STACK_DOCS_LINK, APP_NAME, FRAMEWORK_DOCS_LINK } from '@/constants';
 import { routeDefinitions } from '@/utils/router';
 
 import classes from './AppHeader.module.scss';
@@ -60,8 +59,14 @@ export function AppHeader({ className }: Props) {
 
 const items = [
   {
-    label: 'Documentation',
+    label: 'BeeAI Framework Docs',
     href: FRAMEWORK_DOCS_LINK,
+    Icon: ArrowUpRight,
+    isExternal: true,
+  },
+  {
+    label: 'Agent Stack Docs',
+    href: AGENT_STACK_DOCS_LINK,
     Icon: ArrowUpRight,
     isExternal: true,
   },

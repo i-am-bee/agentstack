@@ -6,7 +6,7 @@
 import { ArrowRight } from '@carbon/icons-react';
 import { Button } from '@carbon/react';
 
-import { FRAMEWORK_QUICKSTART_LINK } from '@/constants';
+import { GITHUB_LINK } from '@/constants';
 
 import classes from './PrimaryCTALink.module.scss';
 
@@ -14,7 +14,7 @@ export function PrimaryCTALink() {
   return (
     <Button
       as="a"
-      href={FRAMEWORK_QUICKSTART_LINK}
+      href={GITHUB_LINK}
       target="_blank"
       rel="noreferrer"
       size="lg"
