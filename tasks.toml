@@ -69,7 +69,7 @@ version=$(
     yq -r .version              apps/agentstack-sdk-ts/package.json
     yq -r .project.version      apps/agentstack-server/pyproject.toml
     yq -r .version              apps/beeai-ui/package.json
-    yq -r .version              apps/beeai-web/package.json
+    yq -r .version              apps/agentstack-web/package.json
     yq -r '.providers[].location | split(":")[-1]' agent-registry.yaml
   } | sort -u
 )
@@ -227,7 +227,7 @@ yq -i ".appVersion = \"$new_version\"" helm/Chart.yaml
 for agent in agents/*; do (cd $agent && uv lock); done
 yq -i ".version = \"$new_version\"" apps/agentstack-sdk-ts/package.json
 yq -i ".version = \"$new_version\"" apps/beeai-ui/package.json
-yq -i ".version = \"$new_version\"" apps/beeai-web/package.json
+yq -i ".version = \"$new_version\"" apps/agentstack-web/package.json
 yq -i ".providers[].location |= sub(\":(.*)\$\"; \":\" + \"$new_version\")" agent-registry.yaml
 perl -pi -e "s/^(LATEST_AGENTSTACK_VERSION=).*/\${1}$new_version/" install.sh
 if [[ "$new_version" != *"-rc"* ]]; then perl -pi -e "s/^(LATEST_STABLE_AGENTSTACK_VERSION=).*/\${1}$new_version/" install.sh; fi

@@ -30,3 +30,5 @@ export const LF_PROJECTS_LINK = 'https://lfprojects.org/';
 export const TRUST_PROXY_HEADERS = (process.env.TRUST_PROXY_HEADERS ?? 'false').toLowerCase() === 'true';
 
 export const NEXTAUTH_URL = process.env.NEXTAUTH_URL ? new URL(process.env.NEXTAUTH_URL) : undefined;
+
+export const THEME_STORAGE_KEY = '@i-am-bee/agentstack/THEME';

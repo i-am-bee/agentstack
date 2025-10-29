@@ -1,11 +1,11 @@
-name: BeeAI Web
+name: Agent Stack Web
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'apps/beeai-web/**'
+      - 'apps/agentstack-web/**'
 
 permissions:
   contents: read
@@ -28,18 +28,18 @@ jobs:
       - uses: ./.github/actions/setup
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: mise run 'beeai-web:build:*'
+      - run: mise run 'agentstack-web:build:*'
       - uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./apps/beeai-web/Dockerfile
+          file: ./apps/agentstack-web/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/beeai-web:${{ github.sha }},ghcr.io/${{ github.repository }}/beeai-web:latest
+          tags: ghcr.io/${{ github.repository }}/agentstack-web:${{ github.sha }},ghcr.io/${{ github.repository }}/agentstack-web:latest
 
   deploy:
     needs: publish
     runs-on: [self-hosted]
     steps:
       - uses: azure/setup-kubectl@v4
-      - run: kubectl set image deployment/beeai-web beeai-web=ghcr.io/${{ github.repository }}/beeai-web:${{ github.sha }} -n ${{ secrets.CLUSTER_NAMESPACE }}
-      - run: kubectl rollout status deployment/beeai-web --timeout 5m -n ${{ secrets.CLUSTER_NAMESPACE }}
+      - run: kubectl set image deployment/agentstack-web agentstack-web=ghcr.io/${{ github.repository }}/agentstack-web:${{ github.sha }} -n ${{ secrets.CLUSTER_NAMESPACE }}
+      - run: kubectl rollout status deployment/agentstack-web --timeout 5m -n ${{ secrets.CLUSTER_NAMESPACE }}

@@ -9,16 +9,20 @@ import type { PropsWithChildren } from 'react';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useLocalStorage, useMediaQuery } from 'usehooks-ts';
 
+import { THEME_STORAGE_KEY } from '#utils/constants.ts';
+
 import { ThemeContext, ThemePreference } from './theme-context';
 import { Theme } from './types';
 import { getThemeClassName } from './utils';
 
 const MEDIA_QUERY = '(prefers-color-scheme: dark)';
-const STORAGE_KEY = '@i-am-bee/beeai/THEME';
 
 export function ThemeProvider({ children }: PropsWithChildren) {
   const isDarkModeOS = useMediaQuery(MEDIA_QUERY);
-  const [themePreference, setThemePreference] = useLocalStorage<ThemePreference>(STORAGE_KEY, ThemePreference.System);
+  const [themePreference, setThemePreference] = useLocalStorage<ThemePreference>(
+    THEME_STORAGE_KEY,
+    ThemePreference.System,
+  );
 
   const isDarkMode =
     themePreference === ThemePreference.System ? isDarkModeOS : themePreference === ThemePreference.Dark;

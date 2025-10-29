@@ -28,7 +28,7 @@
   },
   "include": [
     "next-env.d.ts",
-    "beeai-env.d.ts",
+    "agentstack-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"

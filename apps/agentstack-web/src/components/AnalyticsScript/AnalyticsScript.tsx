@@ -93,5 +93,5 @@ declare global {
   }
 }
 
-const ANALYTICS_CATEGORY = 'Beeai';
+const ANALYTICS_CATEGORY = 'AgentStack';
 const ANALYTICSPRIMARY_CATEGORY = 'PC340';

@@ -24,14 +24,14 @@ export function Platform() {
         <TwoColumnGrid className={classes.info}>
           <div className={classes.infoLeft}>
             <HeadlineWithLink
-              title="beeai-platform"
+              title="Agent Stack"
               description="Test, debug, and share your agents in an interactive UI with out-of-the-box trajectory, citations, and more."
               buttonProps={{ url: PLATFORM_INTRO_LINK }}
             />
           </div>
 
           <div className={classes.graphics}>
-            <Image src={screenshotsImage.src} width={1532} height={1126} alt="BeeAI UI & CLI" />
+            <Image src={screenshotsImage.src} width={1532} height={1126} alt="Agent Stack UI & CLI" />
           </div>
         </TwoColumnGrid>
 

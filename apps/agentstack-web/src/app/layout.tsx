@@ -5,7 +5,7 @@
 
 import '../styles/style.scss';
 
-import { APP_FAVICON_SVG, BASE_PATH } from '@i-am-bee/beeai-ui';
+import { APP_FAVICON_SVG, BASE_PATH, THEME_STORAGE_KEY } from '@i-am-bee/beeai-ui';
 import type { Metadata } from 'next';
 
 import { AnalyticsScript } from '@/components/AnalyticsScript/AnalyticsScript';
@@ -18,7 +18,7 @@ const darkModeScript = `
 (() => {
   try {
     const html = document.documentElement;
-    const storedTheme = window.localStorage.getItem('@i-am-bee/beeai/THEME');
+    const storedTheme = window.localStorage.getItem('${THEME_STORAGE_KEY}');
     const theme = typeof storedTheme === 'string' ? JSON.parse(storedTheme) : 'System'; 
     const isDarkMode = theme === 'Dark' || (theme === 'System' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 

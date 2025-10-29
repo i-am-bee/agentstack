@@ -3,14 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import packageJson from '../package.json';
-
-export const DOCKER_MANIFEST_LABEL_NAME = 'beeai.dev.agent.json';
-
-export const AGENT_REGISTRY_URL = `https://raw.githubusercontent.com/i-am-bee/beeai/refs/tags/v${packageJson.version}/agent-registry.yaml`;
-
-export const SupportedDockerRegistries = ['ghcr.io'];
-
 export const GITHUB_REPO_LINK = 'https://github.com/i-am-bee/beeai-framework';
 
 export const FRAMEWORK_QUICKSTART_LINK = 'https://framework.beeai.dev/introduction/quickstart';

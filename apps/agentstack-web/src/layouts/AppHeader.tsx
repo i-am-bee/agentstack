@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 import { FRAMEWORK_DOCS_LINK } from '@/constants';
+import { APP_NAME } from '@/constants';
 import { routeDefinitions } from '@/utils/router';
 
 import classes from './AppHeader.module.scss';
@@ -38,7 +39,7 @@ export function AppHeader({ className }: Props) {
             />
 
             <Link href={routeDefinitions.home} className={classes.logo}>
-              <strong>BeeAI</strong>
+              <strong>{APP_NAME}</strong>
             </Link>
 
             <div className={classes.navItems}>

@@ -11,13 +11,13 @@ import { Suspense } from 'react';
 import { AppProvider } from '#contexts/App/AppProvider.tsx';
 import { runtimeConfig } from '#contexts/App/runtime-config.ts';
 import Providers from '#providers.tsx';
-import { APP_FAVICON_SVG, BASE_PATH } from '#utils/constants.ts';
+import { APP_FAVICON_SVG, BASE_PATH, THEME_STORAGE_KEY } from '#utils/constants.ts';
 
 const darkModeScript = `
 (() => {
   try {
     const html = document.documentElement;
-    const storedTheme = window.localStorage.getItem('@i-am-bee/beeai/THEME');
+    const storedTheme = window.localStorage.getItem('${THEME_STORAGE_KEY}');
     const theme = typeof storedTheme === 'string' ? JSON.parse(storedTheme) : 'System';
     const isDarkMode = theme === 'Dark' || (theme === 'System' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
