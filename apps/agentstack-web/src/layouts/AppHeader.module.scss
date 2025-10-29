@@ -27,11 +27,11 @@
 }
 
 .navItems {
-  grid-column: 2 / 10;
+  grid-column: 2 / 12;
 }
 
 .right {
-  grid-column: 10 / -1;
+  grid-column: 12 / -1;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -43,9 +43,13 @@ button.toggleMenuBtn {
 
 @include breakpoint-down(lg) {
   .nav {
-    grid-column: 1 / 10;
+    grid-column: 1 / 15;
     display: flex;
     gap: $spacing-07;
+  }
+
+  .right {
+    grid-column: 15 / -1;
   }
 }
 
@@ -55,7 +59,7 @@ button.toggleMenuBtn {
   }
 
   .content {
-    grid-column: 1 / 16;
+    grid-column: 1 / 17;
     display: flex;
     justify-content: space-between;
   }

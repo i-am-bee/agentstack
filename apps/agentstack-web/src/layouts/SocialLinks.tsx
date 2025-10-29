@@ -5,7 +5,7 @@
 
 import { LogoDiscord, LogoGithub } from '@carbon/icons-react';
 
-import { DISCORD_LINK, GITHUB_REPO_LINK } from '@/constants';
+import { DISCORD_LINK, GITHUB_LINK } from '@/constants';
 
 import classes from './SocialLinks.module.scss';
 
@@ -26,5 +26,5 @@ export function SocialLinks() {
 
 const ITEMS = [
   { href: DISCORD_LINK, label: 'Discord', Icon: LogoDiscord },
-  { href: GITHUB_REPO_LINK, label: 'GitHub', Icon: LogoGithub },
+  { href: GITHUB_LINK, label: 'GitHub', Icon: LogoGithub },
 ];

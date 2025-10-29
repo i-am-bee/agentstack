@@ -12,7 +12,8 @@
 .headline {
   display: flex;
   flex-direction: column;
-  gap: $spacing-08;
+  gap: $spacing-05;
+  margin-block-end: $spacing-06;
 
   h1 {
     font-size: rem(80px);
@@ -20,6 +21,10 @@
     font-weight: 100;
     margin: 0;
     max-inline-size: rem(860px);
+  }
+
+  p {
+    font-size: rem(20px);
   }
 }
 

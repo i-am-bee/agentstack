@@ -22,7 +22,7 @@
     }
   }
 
-  @include breakpoint-down(md) {
+  @include breakpoint-down(lg) {
     span {
       display: none;
     }
