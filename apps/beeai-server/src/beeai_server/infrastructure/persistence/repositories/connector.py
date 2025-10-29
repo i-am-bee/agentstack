@@ -8,11 +8,12 @@ from uuid import UUID
 from kink import inject
 from sqlalchemy import JSON, Column, DateTime, ForeignKey, Row, String, Table, UniqueConstraint
 from sqlalchemy import UUID as SQL_UUID
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from beeai_server.domain.models.connector import Connector, ConnectorState
 from beeai_server.domain.repositories.connector import IConnectorRepository
-from beeai_server.exceptions import EntityNotFoundError
+from beeai_server.exceptions import DuplicateEntityError, EntityNotFoundError
 from beeai_server.infrastructure.persistence.repositories.db_metadata import metadata
 from beeai_server.infrastructure.persistence.repositories.utils import sql_enum
 
@@ -39,7 +40,10 @@ class SqlAlchemyConnectorRepository(IConnectorRepository):
 
     async def create(self, *, connector: Connector) -> None:
         query = connectors.insert().values(self._to_row(connector))
-        await self.connection.execute(query)
+        try:
+            await self.connection.execute(query)
+        except IntegrityError as e:
+            raise DuplicateEntityError(entity="connector", field="url", value=str(connector.url)) from e
 
     async def get(self, *, connector_id: UUID, user_id: UUID | None = None) -> Connector:
         query = connectors.select().where(connectors.c.id == connector_id)
