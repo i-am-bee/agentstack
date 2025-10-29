@@ -257,9 +257,9 @@ wheels = [
 ]
 
 [[package]]
-name = "beeai-sdk"
+name = "agentstack-sdk"
 version = "0.3.7"
-source = { editable = "../beeai-sdk-py" }
+source = { editable = "../agentstack-sdk-py" }
 dependencies = [
     { name = "a2a-sdk" },
     { name = "anyio" },
@@ -351,7 +351,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "beeai-sdk" },
+    { name = "agentstack-sdk" },
     { name = "pyright" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -401,7 +401,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "beeai-sdk", editable = "../beeai-sdk-py" },
+    { name = "agentstack-sdk", editable = "../agentstack-sdk-py" },
     { name = "pyright", specifier = ">=1.1.399" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-asyncio", specifier = ">=0.25.3" },

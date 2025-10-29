@@ -16,11 +16,11 @@ dependencies = [
     "prompt-toolkit~=3.0.52",
     "inquirerpy~=0.3.4",
     "psutil~=7.0.0",
-    "a2a-sdk", # version determined by beeai-sdk
+    "a2a-sdk", # version determined by agentstack-sdk
     "tenacity~=9.1.2",
     "typer~=0.17.4",
     "pyyaml~=6.0.2",
-    "beeai-sdk",
+    "agentstack-sdk",
     "authlib~=1.6.3",
     "openai~=1.107.1",
 ]
@@ -34,7 +34,7 @@ dev = [
 ]
 
 [tool.uv.sources]
-beeai-sdk = { path = "../beeai-sdk-py", editable = true }
+agentstack-sdk = { path = "../agentstack-sdk-py", editable = true }
 
 [project.scripts]
 beeai = "beeai_cli:app"

@@ -55,11 +55,11 @@ dev = [
     "reportlab>=4.4.2",
     "pyright>=1.1.399",
     "ruff>=0.8.5",
-    "beeai-sdk",
+    "agentstack-sdk",
 ]
 
 [tool.uv.sources]
-beeai-sdk = { path = "../beeai-sdk-py", editable = true }
+agentstack-sdk = { path = "../agentstack-sdk-py", editable = true }
 
 [project.scripts]
 beeai-server = "beeai_server:serve"

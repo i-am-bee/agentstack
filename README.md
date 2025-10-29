@@ -106,8 +106,8 @@ Reference implementations demonstrating core BeeAI capabilities.
 - [Chat Agent](https://github.com/i-am-bee/beeai-platform/tree/main/agents/chat) - Multi-turn conversational agent using RequirementAgent, ActTool for reasoning sequences, and ClarificationTool for ambiguous queries. Integrates DuckDuckGo, Wikipedia, OpenMeteo, and file tools with UnconstrainedMemory, streaming, citation extraction, and OpenTelemetry instrumentation.
 - [Form Agent](https://github.com/i-am-bee/beeai-platform/tree/main/agents/form) - Single-turn form interaction using Form Extension with multiple field types, customizable layouts, file uploads, validation, and structured output.
 - [RAG Agent](https://github.com/i-am-bee/beeai-platform/tree/main/agents/rag) - Retrieval-Augmented Generation agent supporting 12+ file formats, dynamic vector stores, semantic search (VectorSearchTool), document summaries (FileReaderTool), intelligent tool selection, and citation tracking with document URLs.
-- [OAuth Agent](https://github.com/i-am-bee/beeai-platform/blob/main/apps/beeai-sdk-py/examples/oauth.py) - OAuth Extension demo with MCP integration, browser-based authorization, secure token management, and Stripe MCP server access.
-- [Dynamic Form Request Agent](https://github.com/i-am-bee/beeai-platform/blob/main/apps/beeai-sdk-py/examples/request_form_agent.py) - Multi-step form workflow showing both static and dynamic form generation, where the agent conditionally requests additional input mid-conversation.
+- [OAuth Agent](https://github.com/i-am-bee/beeai-platform/blob/main/apps/agentstack-sdk-py/examples/oauth.py) - OAuth Extension demo with MCP integration, browser-based authorization, secure token management, and Stripe MCP server access.
+- [Dynamic Form Request Agent](https://github.com/i-am-bee/beeai-platform/blob/main/apps/agentstack-sdk-py/examples/request_form_agent.py) - Multi-step form workflow showing both static and dynamic form generation, where the agent conditionally requests additional input mid-conversation.
 
 ### Community Agents
 

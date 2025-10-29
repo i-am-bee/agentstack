@@ -405,7 +405,7 @@ async def _run_agent(
                             """\
                             ⚠️  [yellow]Warning[/yellow]:
                             Receiving message event outside of task is not supported.
-                            Please use beeai-sdk for writing your agents or ensure you always create a task first
+                            Please use agentstack-sdk for writing your agents or ensure you always create a task first
                             using TaskUpdater() from a2a SDK: see https://a2a-protocol.org/v0.3.0/topics/life-of-a-task
                             """
                         )

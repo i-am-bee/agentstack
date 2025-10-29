@@ -90,7 +90,7 @@ dependencies = [
     { name = "a2a-sdk" },
     { name = "anyio" },
     { name = "authlib" },
-    { name = "beeai-sdk" },
+    { name = "agentstack-sdk" },
     { name = "gnureadline", marker = "sys_platform != 'win32'" },
     { name = "inquirerpy" },
     { name = "jsf" },
@@ -119,7 +119,7 @@ requires-dist = [
     { name = "a2a-sdk" },
     { name = "anyio", specifier = "~=4.10.0" },
     { name = "authlib", specifier = "~=1.6.3" },
-    { name = "beeai-sdk", editable = "../beeai-sdk-py" },
+    { name = "agentstack-sdk", editable = "../agentstack-sdk-py" },
     { name = "gnureadline", marker = "sys_platform != 'win32'", specifier = "~=8.2.13" },
     { name = "inquirerpy", specifier = "~=0.3.4" },
     { name = "jsf", specifier = "~=0.11.2" },
@@ -144,9 +144,9 @@ dev = [
 ]
 
 [[package]]
-name = "beeai-sdk"
+name = "agentstack-sdk"
 version = "0.3.7"
-source = { editable = "../beeai-sdk-py" }
+source = { editable = "../agentstack-sdk-py" }
 dependencies = [
     { name = "a2a-sdk" },
     { name = "anyio" },
