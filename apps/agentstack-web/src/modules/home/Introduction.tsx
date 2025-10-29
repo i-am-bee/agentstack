@@ -21,7 +21,7 @@ export function Introduction() {
             Ecosystem
           </h1>
 
-          <p>A Series of Linux Foundation projects advancing AI agents</p>
+          <p>A series of Linux Foundation projects advancing AI agents</p>
         </div>
 
         <PrimaryCTALink />
