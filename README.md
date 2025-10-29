@@ -1,17 +1,8 @@
 <h1 align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/i-am-bee/beeai-platform/master/docs/logo/beeai_framework_light.svg">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/i-am-bee/beeai-platform/master/docs/logo/beeai_framework_dark.svg">
-    <img alt="Agent Stack" src="https://raw.githubusercontent.com/i-am-bee/beeai-platform/master/docs/logo/beeai_framework_dark.svg" width="60"><br><br>
-  </picture>
   Agent Stack
 </h1>
 
-<div align="center">
-🏗️ Under Construction: BeeAI Platform is being renamed to Agent Stack. More updates soon!
-</div>
-
-<h4 align="center">Test, debug, and share agents with complete UIs - add trajectory, citations, forms, file uploads, and more</h4>
+<h4 align="center">Open infrastructure for deploying and sharing agents without vendor lock-in</h4>
 
 <div align="center">
 
@@ -33,6 +24,10 @@
 
 </div>
 
+> [!WARNING]
+> 🏗️ **Under Construction:** BeeAI Platform is being renamed to **Agent Stack**. More updates soon!
+
+
 <div align="center">
   <img src="docs/images/ui-example2.png" alt="UI Example" width="650">
 </div>
@@ -52,7 +47,7 @@ Built on the [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) and hosted 
 | 🎯 Instant Agent UI | Generate a shareable front-end from your code in minutes. Focus on your agent's logic, not UI frameworks. |
 | 🚀 Effortless Deployment | Go from container to production-ready. We handle database, storage, scaling, and RAG so you can focus on your agent. |
 | 🔄 Multi-Provider Playground | Test across OpenAI, Anthropic, Gemini, IBM watsonx, Ollama and more. Instantly compare performance and cost to find the optimal model. |
-| 🔧 Framework-Agnostic | Run agents from LangChain, CrewAI, BeeAI and more on a single platform. Enable cross-framework collaboration without rewriting your code. |
+| 🔧 Framework-Agnostic | Run agents from LangChain, CrewAI, and more on a single platform. Enable cross-framework collaboration without rewriting your code. |
 
 ---
 
@@ -147,7 +142,7 @@ For information about maintainers, see [MAINTAINERS.md](./MAINTAINERS.md).
 
 Contributions to Agent Stack are always welcome and greatly appreciated. Before contributing, please review our [Contribution Guidelines](./CONTRIBUTING.md) to ensure a smooth experience.
 
-Special thanks to our contributors for helping us improve BeeAI.
+Special thanks to our contributors for helping us improve Agent Stack.
 
 <a href="https://github.com/i-am-bee/agentstack/graphs/contributors">
   <img alt="Contributors list" src="https://contrib.rocks/image?repo=i-am-bee/agentstack" />
@@ -166,4 +161,4 @@ We're grateful to these communities for advancing the state of agent infrastruct
 
 ---
 
-Developed by contributors to the Agent Stack project, this initiative is part of the [Linux Foundation AI & Data program](https://lfaidata.foundation/projects/). Its development follows open, collaborative, and community-driven practices.
+Developed by contributors to the BeeAI project, this initiative is part of the [Linux Foundation AI & Data program](https://lfaidata.foundation/projects/). Its development follows open, collaborative, and community-driven practices.
