@@ -39,6 +39,7 @@ function parseJsonLikeString(string: string): unknown {
 interface MaybeParsedJson {
   type: 'string' | 'json';
   value: string;
+  parsed?: unknown;
 }
 
 export function maybeParseJson(content: string | null | undefined): MaybeParsedJson | null {
@@ -61,6 +62,7 @@ export function maybeParseJson(content: string | null | undefined): MaybeParsedJ
     return {
       type: 'json',
       value: json,
+      parsed: maybeJson,
     };
   } catch {
     return {

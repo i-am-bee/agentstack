@@ -1,0 +1,81 @@
+[project]
+name = "agentstack-cli"
+version = "0.3.7"
+description = "Agent Stack CLI"
+readme = "README.md"
+authors = [{ name = "IBM Corp." }]
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "anyio~=4.10.0",
+    "pydantic~=2.11.7",
+    "pydantic-settings~=2.10.1",
+    "requests~=2.32.5",
+    "jsonschema~=4.25.1",
+    "jsf~=0.11.2",
+    'gnureadline~=8.2.13; sys_platform != "win32"',
+    "prompt-toolkit~=3.0.52",
+    "inquirerpy~=0.3.4",
+    "psutil~=7.0.0",
+    "a2a-sdk", # version determined by agentstack-sdk
+    "tenacity~=9.1.2",
+    "typer~=0.17.4",
+    "pyyaml~=6.0.2",
+    "agentstack-sdk",
+    "authlib~=1.6.3",
+    "openai~=1.107.1",
+]
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.399",
+    "pytest>=8.3.4",
+    "ruff>=0.8.5",
+    "wheel>=0.45.1",
+]
+
+[tool.uv.sources]
+agentstack-sdk = { path = "../agentstack-sdk-py", editable = true }
+
+[project.scripts]
+agentstack = "agentstack_cli:app"
+agentstack-cli = "agentstack_cli:app"
+
+[build-system]
+requires = ["uv_build>=0.9.0,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+source-include = ["src/agentstack_cli/data"]
+source-exclude = ["**/.DS_Store"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+lint.select = [
+    "E", # pycodestyle errors
+    "W", # pycodestyle warnings
+    "F", # pyflakes
+    "UP", # pyupgrade
+    "I", # isort
+    "B", # bugbear
+    "N", # pep8-naming
+    "C4", # Comprehensions
+    "Q", # Quotes
+    "SIM", # Simplify
+    "RUF", # Ruff
+    "TID", # tidy-imports
+    "ASYNC", # async
+    # TODO: add "DTZ",   # DatetimeZ
+    # TODO: add "ANN",   # annotations
+]
+lint.ignore = [
+    "E501", # line lenght (annyoing)
+    "UP013", # update TypedDict to longer syntax -- not necessary
+]
+force-exclude = true
+
+[tool.pyright]
+reportUnusedCallResult = false
+ignore = ["tests/**", "examples/cli.py"]
+venvPath = "."
+venv = ".venv"

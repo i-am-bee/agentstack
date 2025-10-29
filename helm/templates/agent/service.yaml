@@ -7,12 +7,12 @@ metadata:
   name: {{ include "agent.fullname" (dict "root" $root "image" $p.location) }}
   labels:
     app: {{ include "agent.fullname" (dict "root" $root "image" $p.location) }}
-    {{- include "beeai-platform.labels" $root | nindent 4 }}
+    {{- include "agentstack.labels" $root | nindent 4 }}
 spec:
   type: {{ $root.Values.agent.service.type }}
   selector:
     app: {{ include "agent.fullname" (dict "root" $root "image" $p.location) }}
-    {{- include "beeai-platform.selectorLabels" $root | nindent 4 }}
+    {{- include "agentstack.selectorLabels" $root | nindent 4 }}
   ports:
     - port: {{ $root.Values.agent.service.port }}
       targetPort: http

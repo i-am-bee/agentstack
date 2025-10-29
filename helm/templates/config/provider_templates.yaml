@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: beeai-platform-manifest-templates-cm
+  name: agentstack-manifest-templates-cm
 data:
   deployment.yaml: |
     apiVersion: apps/v1
@@ -10,7 +10,7 @@ data:
       name: "{{`{{ provider_deployment_name }}`}}"
       labels:
         app: "{{`{{ provider_app_label }}`}}"
-        managedBy: beeai-platform
+        managedBy: agentstack
       annotations:
         {{- with .Values.agent.deploymentAnnotations }}
         {{- toYaml . | nindent 8 }}
@@ -31,7 +31,7 @@ data:
             {{- toYaml . | nindent 12 }}
           {{- end }}
         spec:
-          {{- include "beeai-platform.imagePullSecrets" . | nindent 10 }}
+          {{- include "agentstack.imagePullSecrets" . | nindent 10 }}
           containers:
             - name: agent-container
               image: "{{`{{ image }}`}}"
@@ -98,7 +98,7 @@ data:
       name: "{{`{{ provider_build_name }}`}}"
       labels:
         app: "{{`{{ provider_build_label }}`}}"
-        managedBy: beeai-platform
+        managedBy: agentstack
     spec:
       backoffLimit: 0
       activeDeadlineSeconds: {{`{{ job_timeout_seconds }}`}}
@@ -321,7 +321,7 @@ data:
                   LABEL_CONTENT=$(echo -n "$AGENT_CARD_CONTENT" | base64 -w 0)
                   echo "Label content size: $(echo -n $LABEL_CONTENT | wc -c) bytes"
                   crane mutate {{- if .Values.providerBuilds.buildRegistry.insecure }} --insecure{{- end }} {{`{{ destination }}`}} \
-                    --label "beeai.dev.agent.json=${LABEL_CONTENT}"
+                    --label "agentstack.dev.agent.json=${LABEL_CONTENT}"
 
               volumeMounts:
                 - name: docker-config

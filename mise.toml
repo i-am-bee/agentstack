@@ -3,8 +3,7 @@
 "asdf:CrouchingMuppet/asdf-lima" = "1.2.1" # using lima from asdf since the aqua one fails to install in CI
 
 # Python
-python = "3.13"
-uv = "0.8.17"
+uv = "0.9.5"
 
 # Node.js
 nodejs = "22"
@@ -31,18 +30,18 @@ node.gpg_verify = false # tends to randomly fail; sha is checked by lockfile
 [hooks]
 postinstall = "{{ mise_bin }} setup"
 
-# TASKS
+[env]
+UV_PYTHON_PREFERENCE = "only-managed"
 
 [task_config]
 includes = [
     "./tasks.toml",
     "helm/tasks.toml",
-    "apps/beeai-cli/tasks.toml",
-    "apps/beeai-sdk-py/tasks.toml",
-    "apps/beeai-server/tasks.toml",
+    "apps/agentstack-cli/tasks.toml",
+    "apps/agentstack-sdk-py/tasks.toml",
+    "apps/agentstack-server/tasks.toml",
     "apps/beeai-ui/tasks.toml",
     "apps/beeai-web/tasks.toml",
-    "apps/beeai-sdk-ts/tasks.toml",
+    "apps/agentstack-sdk-ts/tasks.toml",
     "docs/tasks.toml",
 ]
-

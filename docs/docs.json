@@ -15,7 +15,8 @@
         "pages": [
           "introduction/welcome",
           "introduction/quickstart",
-          "introduction/hello-world"
+          "introduction/connect-a2a-agents",
+          "introduction/start-building-agents"
         ]
       },
       {
@@ -42,27 +43,16 @@
         ]
       },
       {
-        "group": "Working with Agents",
-        "pages": [
-          "how-to/discover-agents",
-          "how-to/run-agents",
-          "how-to/observe-agents",
-          "how-to/import-agents",
-          "how-to/share-agents"
-        ]
-      },
-      {
         "group": "Guides",
         "pages": [
-          "how-to/environment-configuration",
-          "how-to/mcp",
+          "how-to/cli-reference",
           "how-to/web-interface",
-          "how-to/cli-reference"
+          "how-to/environment-configuration"
         ]
       },
       {
-        "group": "Deployment",
-        "pages": ["deployment/overview", "deployment/kubernetes"]
+        "group": "Deploy for Your Team",
+        "pages": ["how-to/deployment-guide"]
       },
       {
         "group": "Community & Support",
@@ -84,10 +74,6 @@
       "href": "https://github.com/i-am-bee/beeai-platform"
     },
     "links": [
-      {
-        "label": "Agent Catalog",
-        "href": "https://beeai.dev/agents"
-      },
       { "label": "Discord", "href": "https://discord.gg/NradeA6ZNF" }
     ]
   },
@@ -95,8 +81,7 @@
     "socials": {
       "github": "https://github.com/i-am-bee/beeai-platform",
       "discord": "https://discord.gg/AZFrp3UF5k",
-      "bluesky": "https://bsky.app/profile/beeaiagents.bsky.social",
-      "youtube": "https://www.youtube.com/@BeeAIAgents"
+      "bluesky": "https://bsky.app/profile/beeaiagents.bsky.social"
     }
   },
   "redirects": [

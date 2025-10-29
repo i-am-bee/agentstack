@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 'use client';
-import type { AgentSettings, SettingsRender } from 'beeai-sdk';
 import { createContext } from 'react';
 
 import type { AgentA2AClient } from '#api/a2a/types.ts';
@@ -12,7 +11,7 @@ import type { UIMessageForm } from '#modules/messages/types.ts';
 import type { RunStats } from '#modules/runs/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 
-import type { AgentRequestSecrets } from '../agent-secrets/types';
+import type { FulfillmentsContext } from '../agent-demands/agent-demands-context';
 
 export const AgentRunContext = createContext<AgentRunContextValue | undefined>(undefined);
 
@@ -26,15 +25,13 @@ interface AgentRunContextValue {
   input?: string;
   stats?: RunStats;
   hasMessages: boolean;
-  settingsRender: SettingsRender | null;
-  chat: (input: string) => Promise<void>;
-  submitForm: (form: UIMessageForm, taskId?: string) => Promise<void>;
+  chat: (input: string, fulfillmentsContext?: FulfillmentsContext) => Promise<void>;
+  submitForm: (form: UIMessageForm) => Promise<void>;
+  submitRuntimeForm: (form: UIMessageForm, taskId: TaskId) => Promise<void>;
   startAuth: (url: string, taskId: TaskId) => void;
-  submitSecrets: (runtimeFullfilledDemands: AgentRequestSecrets, taskId: TaskId) => Promise<void>;
+  submitSecrets: (taskId: TaskId, secrets: Record<string, string>) => Promise<void>;
   cancel: () => void;
   clear: () => void;
-  onUpdateSettings: (values: AgentSettings) => void;
-  getSettings: () => AgentSettings | undefined;
 }
 
 export enum AgentRunStatus {

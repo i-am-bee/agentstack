@@ -7,15 +7,15 @@ on:
   workflow_dispatch: { }
   pull_request:
     paths:
-      - 'apps/beeai-server/**'
-      - 'apps/beeai-cli/**'
+      - 'apps/agentstack-server/**'
+      - 'apps/agentstack-cli/**'
       - 'helm/**'
   push:
     branches:
       - main
     paths:
-      - 'apps/beeai-server/**'
-      - 'apps/beeai-cli/**'
+      - 'apps/agentstack-server/**'
+      - 'apps/agentstack-cli/**'
       - 'helm/**'
 jobs:
   e2e-test:
@@ -33,7 +33,7 @@ jobs:
       - uses: ./.github/actions/setup
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: mise run beeai-server:test:e2e
+      - run: mise run agentstack-server:test:e2e
         env:
           # TODO: use github models
           # LLM_API_BASE: "https://models.github.ai/inference"

@@ -24,7 +24,7 @@ depends = ["helm:build:dependencies"]
 dir = "{{config_root}}/helm"
 run = "rm -rf dist/ && helm package . --destination dist/"
 sources = ["Chart.yaml", "Chart.lock", "values.yaml", ".helmignore", "charts/*", "templates/**/*"]
-outputs = ["dist/beeai-platform*.tgz"]
+outputs = ["dist/agentstack*.tgz"]
 
 ["helm:build:dependencies"]
 dir = "{{config_root}}/helm"

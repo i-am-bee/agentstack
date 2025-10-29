@@ -4,7 +4,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import type { EmbeddingDemands, LLMDemands } from 'beeai-sdk';
+import type { EmbeddingDemands, LLMDemands } from 'agentstack-sdk';
 import { useEffect } from 'react';
 
 import { useApp } from '#contexts/App/index.ts';
@@ -58,7 +58,9 @@ export function useMatchProviders({ demands, onSuccess, capability }: Props) {
     meta: {
       errorToast: {
         title: 'Model providers query failed',
-        message: featureFlags.LocalSetup ? 'Have you configured providers by running `beeai model setup`?' : undefined,
+        message: featureFlags.LocalSetup
+          ? 'Have you configured providers by running `agentstack model setup`?'
+          : undefined,
         includeErrorMessage: true,
       },
     },

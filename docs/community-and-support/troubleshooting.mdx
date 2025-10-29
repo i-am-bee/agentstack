@@ -9,21 +9,21 @@ Having issues with BeeAI? Here are the most common fixes:
 
 ### Restart the Platform
 ```bash
-beeai platform stop
-beeai platform start
+agentstack platform stop
+agentstack platform start
 ```
 
 ### Update to Latest Version
 Make sure you have the latest version:
 ```bash
-uv tool install --force beeai-cli
-beeai platform start
+uv tool install --force agentstack-cli
+agentstack platform start
 ```
 
 ### Check Your LLM Setup
 Agents need LLM configuration to work:
 ```bash
-beeai model setup
+agentstack model setup
 ```
 
 ### Using Ollama? Pull Your Model
@@ -33,18 +33,18 @@ ollama pull llama3.1:8b
 ```
 
 ### Advanced debugging
-You can inspect the agent logs and events using `beeai logs <agent-name>` or you can access the kubernetes
-cluster directly using `beeai platform exec`, for example:
+You can inspect the agent logs and events using `agentstack logs <agent-name>` or you can access the kubernetes
+cluster directly using `agentstack platform exec`, for example:
 
 ```bash
 # List running pods
-beeai platform exec kubectl get pod
+agentstack platform exec kubectl get pod
 
 # Get server logs
-beeai platform exec kubectl logs svc/beeai-platform-svc
+agentstack platform exec kubectl logs svc/agentstack-svc
 
 # Inspect cluster using GUI
-export KUBECONFIG=~/.beeai/lima/beeai-platform/copied-from-guest/kubeconfig.yaml
+export KUBECONFIG=~/.agentstack/lima/agentstack/copied-from-guest/kubeconfig.yaml
 k9s
 ```
 

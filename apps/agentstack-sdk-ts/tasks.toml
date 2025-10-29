@@ -1,0 +1,53 @@
+# check
+
+["agentstack-sdk-ts:check"]
+depends = ["agentstack-sdk-ts:check:*"]
+
+["agentstack-sdk-ts:check:prettier"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/agentstack-sdk-ts"
+run = "pnpm prettier --log-level silent --check src"
+sources = ["src/**/*.ts"]
+outputs = { auto = true }
+
+["agentstack-sdk-ts:check:eslint"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/agentstack-sdk-ts"
+run = "pnpm eslint ."
+sources = ["src/**/*.ts"]
+outputs = { auto = true }
+
+["agentstack-sdk-ts:check:tsc"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/agentstack-sdk-ts"
+run = "pnpm tsc --noEmit -p tsconfig.check.json"
+sources = ["src/**/*.ts"]
+outputs = { auto = true }
+
+# fix
+
+["agentstack-sdk-ts:fix"]
+depends = ["agentstack-sdk-ts:fix:*"]
+
+["agentstack-sdk-ts:fix:prettier"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/agentstack-sdk-ts"
+run = "pnpm prettier --log-level silent --write src"
+sources = ["src/**/*.ts"]
+outputs = { auto = true }
+
+["agentstack-sdk-ts:fix:lint"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/agentstack-sdk-ts"
+run = "pnpm eslint . --fix"
+sources = ["src/**/*.ts"]
+outputs = { auto = true }
+
+# build
+
+["agentstack-sdk-ts:build"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/agentstack-sdk-ts"
+run = "pnpm build"
+sources = ["src/**/*", "package.json", "tsconfig.json"]
+outputs = { auto = true }

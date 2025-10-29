@@ -4,6 +4,7 @@
  */
 
 import { InlineLoading } from '@carbon/react';
+import { useMergeRefs } from '@floating-ui/react';
 import { useCallback, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
@@ -17,10 +18,11 @@ import { dispatchInputEventOnTextarea, submitFormOnEnter } from '#utils/form-uti
 
 import { ChatDefaultTools } from '../chat/constants';
 import { useAgentRun } from '../contexts/agent-run';
+import { RunModels } from '../settings/RunModels';
 import { RunSettings } from '../settings/RunSettings';
+import { useRunSettingsDialog } from '../settings/useRunSettingsDialog';
 import type { RunRunFormValues } from '../types';
 import { MCPConfig } from './MCPConfig';
-import { ModelProviders } from './ModelProviders';
 import { PromptExamples } from './PromptExamples';
 import { RunFiles } from './RunFiles';
 import classes from './RunInput.module.scss';
@@ -41,6 +43,8 @@ export function RunInput({ promptExamples, onMessageSent }: Props) {
   const {
     config: { featureFlags },
   } = useApp();
+
+  const { hasMessages } = useAgentRun();
 
   const {
     agent: {
@@ -96,11 +100,21 @@ export function RunInput({ promptExamples, onMessageSent }: Props) {
     [setValue, dispatchInputEventAndFocus],
   );
 
+  const modelsDialog = useRunSettingsDialog({
+    maxWidth: hasMessages ? undefined : MODELS_DIALOG_MAX_WIDTH,
+  });
+  const settingsDialog = useRunSettingsDialog();
+  const formRefs = useMergeRefs([
+    hasMessages ? modelsDialog.refs.setPositionReference : null,
+    settingsDialog.refs.setPositionReference,
+    formRef,
+  ]);
+
   return (
     <FormProvider {...form}>
       <form
         className={classes.root}
-        ref={formRef}
+        ref={formRefs}
         onSubmit={(event) => {
           event.preventDefault();
 
@@ -132,13 +146,13 @@ export function RunInput({ promptExamples, onMessageSent }: Props) {
 
         <div className={classes.actionBar}>
           <div className={classes.actionBarStart}>
-            <RunSettings containerRef={formRef} />
+            <RunSettings dialog={settingsDialog} iconOnly />
 
             {!isFileUploadDisabled && <FileUploadButton />}
 
             {featureFlags.MCP && <MCPConfig />}
 
-            {featureFlags.ModelProviders && <ModelProviders />}
+            {featureFlags.ModelProviders && <RunModels dialog={modelsDialog} iconOnly />}
           </div>
 
           <div className={classes.submit}>
@@ -168,3 +182,5 @@ export function RunInput({ promptExamples, onMessageSent }: Props) {
     </FormProvider>
   );
 }
+
+const MODELS_DIALOG_MAX_WIDTH = 482;

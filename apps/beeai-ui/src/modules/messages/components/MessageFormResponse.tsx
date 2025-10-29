@@ -4,7 +4,15 @@
  */
 
 import { Button } from '@carbon/react';
-import type { CheckboxField, DateField, FileField, FormField, MultiSelectField, TextField } from 'beeai-sdk';
+import type {
+  CheckboxField,
+  DateField,
+  FileField,
+  FormField,
+  MultiSelectField,
+  SingleSelectField,
+  TextField,
+} from 'agentstack-sdk';
 import { useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';
@@ -79,6 +87,7 @@ function FormValueRenderer({ field }: { field: FieldWithValue }) {
       {match(field)
         .with({ type: 'text' }, { type: 'date' }, ({ value }) => value)
         .with({ type: 'checkbox' }, ({ value }) => (value ? 'yes' : 'no'))
+        .with({ type: 'singleselect' }, ({ value }) => value)
         .with({ type: 'multiselect' }, ({ value }) => value?.join(', '))
         .with({ type: 'file' }, ({ value }) => value?.map(({ name }) => name).join(', '))
         .otherwise(() => null)}
@@ -91,5 +100,6 @@ type FieldWithValue =
   | FieldWithValueMapper<TextField>
   | FieldWithValueMapper<DateField>
   | FieldWithValueMapper<CheckboxField>
+  | FieldWithValueMapper<SingleSelectField>
   | FieldWithValueMapper<MultiSelectField>
   | FieldWithValueMapper<FileField>;

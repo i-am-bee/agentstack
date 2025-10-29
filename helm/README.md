@@ -7,12 +7,12 @@ Create a value file with the minimum configuration
 ```yaml
 # If you want to include agents from the default catalog (change release/tag accordingly):
 externalRegistries:
-  public_github: "https://github.com/i-am-bee/beeai-platform@v0.2.14#path=agent-registry.yaml"
+  public_github: "https://github.com/i-am-bee/agentstack@v0.4.0#path=agent-registry.yaml"
 
 # Your custom agents as docker images
 providers:
   # e.g.
-  # - location: ghcr.io/i-am-bee/beeai-platform-agent-starter/my-agent:latest
+  # - location: ghcr.io/i-am-bee/agentstack-agent-starter/my-agent:latest
   - location: <docker-image-id>
 
 # Generate the encryption key:
@@ -36,18 +36,18 @@ auth:
 Then install the chart using
 
 ```shell
-helm install -f config.yaml beeai oci://ghcr.io/i-am-bee/beeai-platform/beeai-platform-chart/beeai-platform:0.2.10
+helm install -f config.yaml agentstack oci://ghcr.io/i-am-bee/agentstack/chart/agentstack:0.4.0
 ```
 
-After the beeai-platform becomes ready, it's necessary to configure the LLM provider. We will use the `admin-password`
+After the Agent Stack becomes ready, it's necessary to configure the LLM provider. We will use the `admin-password`
 you created earlier and your preferred LLM credentials, for example:
 
 ## Setup LLM
 
 ```shell
-beeai platform exec -- kubectl run curlpod --image=curlimages/curl -it --rm --restart=Never -- curl -X PUT \
-  beeai-platform-svc:8333/api/v1/variables \
-  -u beeai-admin:my-secret-password \
+agentstack platform exec -- kubectl run curlpod --image=curlimages/curl -it --rm --restart=Never -- curl -X PUT \
+  agentstack-svc:8333/api/v1/variables \
+  -u admin:my-secret-password \
   -H "Content-Type: application/json" \
   -d '{
     "env": {
@@ -65,20 +65,20 @@ Test that the platform is working:
 # port-forward in a separate terminal
 
 ```shell
-kubectl port-forward svc/beeai-platform-svc 8333:8333 &
+kubectl port-forward svc/agentstack-svc 8333:8333 &
 ```
 
 ```
-beeai list
-beeai run chat hi
+agentstack list
+agentstack run chat hi
 ```
 
 # Upgrading
 
-To upgrade to a newer version of the beeai platform, use
+To upgrade to a newer version of the Agent Stack, use
 
 ```
-helm upgrade --install -f config.yaml beeai oci://ghcr.io/i-am-bee/beeai-platform/beeai-platform-chart/beeai-platform:<newer-version>
+helm upgrade --install -f config.yaml agentstack oci://ghcr.io/i-am-bee/agentstack/chart/agentstack:<newer-version>
 ```
 
 ## External Services
@@ -114,7 +114,7 @@ SET hnsw.max_scan_tuples = 1000000;
 
 ### External S3 support
 
-You may want to have beeai platform connect to an external storage streaming rather than installing seaweedfs inside
+You may want to have Agent Stack connect to an external storage streaming rather than installing seaweedfs inside
 your cluster. To achieve this, the chart allows you to specify credentials for an external storage streaming with the
 `externalS3`. You should also disable the seaweedfs installation with the `seaweedfs.enabled`
 option. Here is an example:

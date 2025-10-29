@@ -41,34 +41,35 @@ Edit `[env]` in `mise.local.toml` in the project root ([documentation](https://m
 
 ### Running the platform from source
 
-Starting up the platform using the CLI (`beeai platform start`, even `mise beeai-cli:run -- platform start`) will use
+Starting up the platform using the CLI (`agentstack platform start`, even `mise agentstack-cli:run -- platform start`)
+will use
 **published images** by default. To use local images, you need to build them and import them into the platform.
 
 Instead, use:
 
 ```shell
-mise beeai-platform:start
+mise agentstack:start
 ```
 
-This will build the images (`beeai-server` and `beeai-ui`) and import them to the cluster. You can add other
-CLI arguments as you normally would when using `beeai` CLI, for example:
+This will build the images (`agentstack-server` and `beeai-ui`) and import them to the cluster. You can add other
+CLI arguments as you normally would when using `agentstack` CLI, for example:
 
 ```shell
-mise beeai-platform:start --set docling.enabled=true --set oidc.enabled=true
+mise agentstack:start --set docling.enabled=true --set oidc.enabled=true
 ```
 
 To stop or delete the platform use
 
 ```shell
-mise beeai-platform:stop
-mise beeai-platform:delete
+mise agentstack:stop
+mise agentstack:delete
 ```
 
 For debugging and direct access to kubernetes, setup `KUBECONFIG` and other environment variables using:
 
 ```shell
 # Activate environment
-eval "$(mise run beeai-platform:shell)"
+eval "$(mise run agentstack:shell)"
 
 # Deactivate environment
 deactivate
@@ -81,30 +82,30 @@ By default, authentication and authorization are disabled.
 Starting the platform with OIDC enabled:
 
 ```bash
-mise beeai-platform:start --set oidc.enabled=true
+mise agentstack:start --set oidc.enabled=true
 ```
 
 This does the following:
 
 - Installs Istio in ambient mode.
-- Creates a gateway and routes for `https://beeai.localhost:8336/`.
+- Creates a gateway and routes for `https://agentstack.localhost:8336/`.
 - Installs the Kiali console.
 
 **Why TLS is used:**  
 OAuth tokens are returned to the browser only over HTTPS to avoid leakage over plain HTTP. Always access the UI via
-`https://beeai.localhost:8336/`.
+`https://agentstack.localhost:8336/`.
 
 **Istio details:**  
 The default namespace is labeled `istio.io/dataplane-mode=ambient`. This ensures all intra-pod traffic is routed through
-`ztunnel`, except the `beeai-platform` pod, which uses `hostNetwork` and is not compatible with the Istio mesh.
+`ztunnel`, except the `agentstack` pod, which uses `hostNetwork` and is not compatible with the Istio mesh.
 
 **Available endpoints:**
 
-| Service        | HTTPS                                      | HTTP                                |
-|----------------|--------------------------------------------|-------------------------------------|
-| Kiali Console  | –                                          | `http://localhost:20001`            |
-| BeeAI UI       | `https://beeai.localhost:8336`             | `http://localhost:8334`             |
-| BeeAI API Docs | `https://beeai.localhost:8336/api/v1/docs` | `http://localhost:8333/api/v1/docs` |
+| Service        | HTTPS                                           | HTTP                                |
+|----------------|-------------------------------------------------|-------------------------------------|
+| Kiali Console  | –                                               | `http://localhost:20001`            |
+| BeeAI UI       | `https://agentstack.localhost:8336`             | `http://localhost:8334`             |
+| BeeAI API Docs | `https://agentstack.localhost:8336/api/v1/docs` | `http://localhost:8333/api/v1/docs` |
 
 **OIDC configuration:**
 
@@ -153,7 +154,7 @@ see: https://github.com/nextauthjs/next-auth-example/blob/main/auth.ts
   following oidc specific values:
 
 ```JavaScript
-OIDC_PROVIDERS='[{"name": "w3id","id": "w3id","type": "oidc","class": "IBM","client_id": "<your_client_id>","client_secret": "<your_client_secret>","issuer": "your_issuer","jwks_url": "<your_jwks_url>","nextauth_url": "http://localhost:3000","nextauth_redirect_proxy_url": "http://localhost:3000"}]'
+OIDC_PROVIDERS = '[{"name": "w3id","id": "w3id","type": "oidc","class": "IBM","client_id": "<your_client_id>","client_secret": "<your_client_secret>","issuer": "your_issuer","jwks_url": "<your_jwks_url>","nextauth_url": "http://localhost:3000","nextauth_redirect_proxy_url": "http://localhost:3000"}]'
 NEXTAUTH_SECRET = "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
 NEXTAUTH_URL = "http://localhost:3000"
 OIDC_ENABLED = true
@@ -175,7 +176,7 @@ NEXTAUTH_DEBUG = "true"
 ```
 
 - Update values.yaml so that the `nextauth_url` and the `nextauth_redirect_proxy_url` values reflect the URL for the
-  route created for the `beeai-platform-ui-svc`.
+  route created for the `agentstack-ui-svc`.
 - Ensure that the oidc.nextauth_providers array entries in values.yaml have valid/appropriate values
 
 ### Running and debugging individual components
@@ -185,34 +186,34 @@ OpenTelemetry, Arize Phoenix, ...). For this, we include [Telepresence](https://
 a Kubernetes container to your local machine. (Note that `sshfs` is not needed, since we don't use it in this setup.)
 
 ```sh
-mise run beeai-server:dev:start
+mise run agentstack-server:dev:start
 ```
 
 This will do the following:
 
 1. Create .env file if it doesn't exist yet (you can add your configuration here)
-2. Stop default platform VM ("beeai") if it exists
-3. Start a new VM named "beeai-local-dev" separate from the "beeai" VM used by default
+2. Stop default platform VM ("agentstack") if it exists
+3. Start a new VM named "agentstack-local-dev" separate from the "agentstack" VM used by default
 4. Install telepresence into the cluster
    > Note that this will require **root access** on your machine, due to setting up a networking stack.
-5. Replace beeai-platform in the cluster and forward any incoming traffic to localhost
+5. Replace agentstack in the cluster and forward any incoming traffic to localhost
 
 After the command succeeds, you can:
 
 - send requests as if your machine was running inside the cluster. For example:
   `curl http://<service-name>:<service-port>`.
 - connect to postgresql using the default credentials `postgresql://beeai-user:password@postgresql:5432/beeai`
-- now you can start your server from your IDE or using `mise run beeai-server:run` on port **18333**
-- run beeai-cli using `mise beeai-cli:run -- <command>` or HTTP requests to localhost:8333 or localhost:18333
+- now you can start your server from your IDE or using `mise run agentstack-server:run` on port **18333**
+- run agentstack-cli using `mise agentstack-cli:run -- <command>` or HTTP requests to localhost:8333 or localhost:18333
     - localhost:8333 is port-forwarded from the cluster, so any requests will pass through the cluster networking to the
-      beeai-platform pod, which is replaced by telepresence and forwarded back to your local machine to port 18333
+      agentstack pod, which is replaced by telepresence and forwarded back to your local machine to port 18333
     - localhost:18333 is where your local platform should be running
 
 To inspect cluster using `kubectl` or `k9s` and lima using `limactl`, activate the dev environment using:
 
 ```shell
 # Activate dev environment
-eval "$(mise run beeai-server:dev:shell)"
+eval "$(mise run agentstack-server:dev:shell)"
 
 # Deactivate dev environment
 deactivate
@@ -221,17 +222,17 @@ deactivate
 When you're done you can stop the development cluster and networking using
 
 ```shell
-mise run beeai-server:dev:stop
+mise run agentstack-server:dev:stop
 ```
 
 Or delete the cluster entirely using
 
 ```shell
-mise run beeai-server:dev:delete
+mise run agentstack-server:dev:delete
 ```
 
 > TIP: If you run into connection issues after sleep or longer period of inactivity
-> try `mise run beeai-server:dev:reconnect` first. You may not need to clean and restart
+> try `mise run agentstack-server:dev:reconnect` first. You may not need to clean and restart
 > the entire VM
 
 #### Developing tests
@@ -241,22 +242,22 @@ but you need to change kubeconfig location in your .env:
 
 ```shell
 # Use for developing e2e and integration tests locally
-K8S_KUBECONFIG=~/.beeai/lima/beeai-local-test/copied-from-guest/kubeconfig.yaml
+K8S_KUBECONFIG=~/.agentstack/lima/agentstack-local-test/copied-from-guest/kubeconfig.yaml
 ```
 
-and then run `beeai-server:dev:test:start`
+and then run `agentstack-server:dev:test:start`
 
-> TIP: Similarly to dev environment you can use `mise run beeai-server:dev:test:reconnect`
+> TIP: Similarly to dev environment you can use `mise run agentstack-server:dev:test:reconnect`
 
 <details>
 <summary> Lower-level networking using telepresence directly</summary>
 
 ```shell
 # Activate environment
-eval "$(mise run beeai-server:dev:shell)"
+eval "$(mise run agentstack-server:dev:shell)"
 
 # Start platform
-mise beeai-cli:run -- platform start --vm-name=beeai-local-dev # optional --tag [tag] --import-images
+mise agentstack-cli:run -- platform start --vm-name=agentstack-local-dev # optional --tag [tag] --import-images
 mise x -- telepresence helm install
 mise x -- telepresence connect
 
@@ -276,25 +277,25 @@ mise x -- telepresence quit
 If you want to run this local setup against Ollama you must use a special option when setting up the LLM:
 
 ```
-beeai model setup --use-true-localhost
+agentstack model setup --use-true-localhost
 ```
 
 ### Working with migrations
 
 The following commands can be used to create or run migrations in the dev environment above:
 
-- Run migrations: `mise run beeai-server:migrations:run`
-- Generate migrations: `mise run beeai-server:migrations:generate`
-- Use Alembic command directly: `mise run beeai-server:migrations:alembic`
+- Run migrations: `mise run agentstack-server:migrations:run`
+- Generate migrations: `mise run agentstack-server:migrations:generate`
+- Use Alembic command directly: `mise run agentstack-server:migrations:alembic`
 
 > NOTE: The dev setup will run the locally built image including its migrations before replacing it with your local
 > instance. If new migrations you just implemented are not working, the dev setup will not start properly and you need
-> to fix migrations first. You can activate the shell using `eval "$(mise run beeai-server:dev:shell)"` and use
+> to fix migrations first. You can activate the shell using `eval "$(mise run agentstack-server:dev:shell)"` and use
 > your favorite kubernetes IDE (e.g., k9s or kubectl) to see the migration logs.
 
 ### Running individual components
 
-To run BeeAI components in development mode (ensuring proper rebuilding), use the following commands.
+To run Agent Stack components in development mode (ensuring proper rebuilding), use the following commands.
 
 #### Server
 
@@ -305,8 +306,8 @@ in [Running and debugging individual components](#running-and-debugging-individu
 #### CLI
 
 ```sh
-mise beeai-cli:run -- agent list
-mise beeai-cli:run -- agent run website_summarizer "summarize iambee.ai"
+mise agentstack-cli:run -- agent list
+mise agentstack-cli:run -- agent run website_summarizer "summarize iambee.ai"
 ```
 
 #### UI
@@ -315,8 +316,8 @@ mise beeai-cli:run -- agent run website_summarizer "summarize iambee.ai"
 # run the UI development server:
 mise beeai-ui:run
 
-# UI is also available from beeai-server (in static mode):
-mise beeai-server:run
+# UI is also available from agentstack-server (in static mode):
+mise agentstack-server:run
 ```
 
 ## Releasing

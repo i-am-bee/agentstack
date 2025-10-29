@@ -7,9 +7,9 @@ authors = [
 ]
 requires-python = ">=3.13,<3.14"
 dependencies = [
-    "beeai-framework[duckduckgo,wikipedia]>=0.1.56",
+    "beeai-framework[duckduckgo,wikipedia]>=0.1.58",
     "openai==1.99.9",
-    "beeai-sdk",
+    "agentstack-sdk",
     "openinference-instrumentation-beeai>=0.1.12",
     "pydantic-settings>=2.9.0",
     "uvicorn>=0.35.0",
@@ -19,7 +19,7 @@ dependencies = [
 line-length = 120
 
 [tool.uv.sources]
-beeai-sdk = { path = "../../apps/beeai-sdk-py", editable = true }
+agentstack-sdk = { path = "../../apps/agentstack-sdk-py", editable = true }
 
 [project.scripts]
 server = "form.agent:serve"

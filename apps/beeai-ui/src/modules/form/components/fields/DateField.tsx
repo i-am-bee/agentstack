@@ -4,7 +4,7 @@
  */
 
 import { DatePicker, DatePickerInput } from '@carbon/react';
-import type { DateField } from 'beeai-sdk';
+import type { DateField } from 'agentstack-sdk';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import type { ValuesOfField } from '#modules/form/types.ts';

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FormField } from 'beeai-sdk';
+import type { FormField } from 'agentstack-sdk';
 import { match } from 'ts-pattern';
 
 import { getFilePlatformUrl } from '#api/a2a/utils.ts';
@@ -18,6 +18,7 @@ export function getDefaultValues(fields: FormField[]) {
         .with(
           { type: 'text' },
           { type: 'date' },
+          { type: 'singleselect' },
           { type: 'multiselect' },
           { type: 'checkbox' },
           ({ id, type, default_value }) => [id, { type, value: default_value }],

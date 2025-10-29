@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { A2AUiExtension } from 'beeai-sdk';
+import type { A2AUiExtension } from 'agentstack-sdk';
 import { z } from 'zod';
 
 const URI = 'beeai-sequential-workflow';

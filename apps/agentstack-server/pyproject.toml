@@ -1,0 +1,119 @@
+[project]
+name = "agentstack-server"
+version = "0.3.7"
+description = "Agent Stack server"
+readme = "README.md"
+authors = [{ name = "IBM Corp." }]
+requires-python = "==3.12.*"
+dependencies = [
+    "a2a-sdk~=0.3.9",
+    "aiohttp>=3.11.11",
+    "anyio>=4.9.0",
+    "asgiref>=3.8.1",
+    "fastapi[standard]>=0.115.7",
+    "httpx>=0.28.1",
+    "kink>=0.8.1",
+    "orjson>=3.10.15",
+    "pydantic>=2.10.6",
+    "pydantic-settings>=2.7.1",
+    "structlog>=25.1.0",
+    "uvicorn>=0.34.0",
+    "opentelemetry-sdk>=1.30.0",
+    "opentelemetry-api>=1.30.0",
+    "opentelemetry-exporter-otlp-proto-http>=1.30.0",
+    "aiodocker>=0.24.0",
+    "tenacity>=9.0.0",
+    "cachetools>=5.5.2",
+    "python-multipart>=0.0.20",
+    "kr8s>=0.20.7",
+    "alembic>=1.15.2",
+    "asyncpg>=0.30.0",
+    "sqlalchemy[asyncio]>=2.0.41",
+    "aioboto3>=14.3.0",
+    # !!! WARNING !!!
+    # Migrations need to be applied appropriately when upgrading procrastinate. Make sure to update the appropriate
+    # migration scripts in ./src/agentstack_server/infrastructure/peristence/migrations/alembic
+    # https://procrastinate.readthedocs.io/en/stable/howto/production/migrations.html#migrate-the-procrastinate-schema
+    "procrastinate==3.5.2",
+    "sqlparse>=0.5.3",
+    "pgvector>=0.4.1",
+    "ibm-watsonx-ai>=1.3.28",
+    "psycopg[binary]>=3.2.9",
+    "openai>=1.97.0",
+    "authlib>=1.6.4",
+    "async-lru>=2.0.5",
+    "starlette>=0.48.0",
+    "sse-starlette>=3.0.2",
+    "exceptiongroup>=1.3.0",
+    "mcp>=1.13.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.25.3",
+    "pytest-env>=1.1.5",
+    "pytest-httpx>=0.35.0",
+    "pytest-subtests>=0.14.1",
+    "reportlab>=4.4.2",
+    "pyright>=1.1.399",
+    "ruff>=0.8.5",
+    "agentstack-sdk",
+]
+
+[tool.uv.sources]
+agentstack-sdk = { path = "../agentstack-sdk-py", editable = true }
+
+[project.scripts]
+agentstack-server = "agentstack_server:serve"
+migrate = "agentstack_server:migrate"
+create-buckets = "agentstack_server:create_buckets"
+create-vector-extension = "agentstack_server:create_vector_extension"
+
+[build-system]
+requires = ["uv_build>=0.9.0,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+source-include = ["src/agentstack_server/static"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = ["e2e", "unit", "integration"]
+addopts = "-v --strict-markers"
+env = [
+    # Dummy encryption key
+    "PERSISTENCE__ENCRYPTION_KEY=3YwblH4IiFObl0igcHFqd-9BxV7csrrCrunaVotMda8=",
+    "AUTH__DISABLE_AUTH=true",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+lint.select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "UP",    # pyupgrade
+    "I",     # isort
+    "B",     # bugbear
+    "N",     # pep8-naming
+    "C4",    # Comprehensions
+    "Q",     # Quotes
+    "SIM",   # Simplify
+    "RUF",   # Ruff
+    "TID",   # tidy-imports
+    "ASYNC", # async
+    # TODO: add "DTZ",   # DatetimeZ
+    # TODO: add "ANN",   # annotations
+]
+lint.ignore = [
+    "E501", # line lenght (annyoing)
+    "N999", # invalid module name agentstack-server (yeah, we use a dash, deal with it)
+]
+
+[tool.pyright]
+ignore = ["tests/**"]
+venvPath = "."
+venv = ".venv"

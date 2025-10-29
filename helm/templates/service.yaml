@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: beeai-platform-svc
+  name: agentstack-svc
   labels:
-    app: beeai-platform-server
-    {{- include "beeai-platform.labels" . | nindent 4 }}
+    app: agentstack-server
+    {{- include "agentstack.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -16,5 +16,5 @@ spec:
       nodePort: {{ .Values.service.nodePort }}
       {{- end }}
   selector:
-    app: beeai-platform-server
-    {{- include "beeai-platform.selectorLabels" . | nindent 4 }}
+    app: agentstack-server
+    {{- include "agentstack.selectorLabels" . | nindent 4 }}

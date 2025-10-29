@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FormField, FormResponseValue } from 'beeai-sdk';
+import type { FormField, FormResponseValue } from 'agentstack-sdk';
 import type { CSSProperties } from 'react';
 import { match, P } from 'ts-pattern';
 
@@ -12,6 +12,7 @@ import { DateField } from './fields/DateField';
 import { FileField } from './fields/FileField';
 import { FileFieldValue } from './fields/FileFieldValue';
 import { MultiSelectField } from './fields/MultiSelectField';
+import { SingleSelectField } from './fields/SingleSelectField';
 import { TextField } from './fields/TextField';
 import classes from './FormField.module.scss';
 
@@ -31,6 +32,7 @@ export function FormField({ field, value }: Props) {
         .with({ type: 'file', value: P.nonNullable }, ({ value }) => <FileFieldValue field={field} value={value} />)
         .otherwise(() => <FileField field={field} />),
     )
+    .with({ type: 'singleselect' }, (field) => <SingleSelectField field={field} />)
     .with({ type: 'multiselect' }, (field) => <MultiSelectField field={field} />)
     .with({ type: 'checkbox' }, (field) => <CheckboxField field={field} />)
     .exhaustive();

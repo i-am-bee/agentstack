@@ -69,7 +69,7 @@ catalogs:
 
 importers:
 
-  apps/beeai-sdk-ts:
+  apps/agentstack-sdk-ts:
     dependencies:
       '@a2a-js/sdk':
         specifier: ^0.3.4
@@ -132,9 +132,9 @@ importers:
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.90.2(react@19.1.1)
-      beeai-sdk:
+      agentstack-sdk:
         specifier: workspace:*
-        version: link:../beeai-sdk-ts
+        version: link:../agentstack-sdk-ts
       cacheable:
         specifier: 2.1.0
         version: 2.1.0

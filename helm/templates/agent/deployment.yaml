@@ -7,7 +7,7 @@ metadata:
   name: {{ include "agent.fullname" (dict "root" $root "image" $p.location) }}
   labels:
     app: {{ include "agent.fullname" (dict "root" $root "image" $p.location) }}
-    {{- include "beeai-platform.labels" $root | nindent 4 }}
+    {{- include "agentstack.labels" $root | nindent 4 }}
   {{- with $root.Values.agent.deploymentAnnotations }}
   annotations:
     {{- toYaml . | nindent 8 }}
@@ -17,7 +17,7 @@ spec:
   selector:
     matchLabels:
       app: {{ include "agent.fullname" (dict "root" $root "image" $p.location) }}
-      {{- include "beeai-platform.selectorLabels" $root | nindent 6 }}
+      {{- include "agentstack.selectorLabels" $root | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -27,12 +27,12 @@ spec:
       {{- end }}
       labels:
         app: {{ include "agent.fullname" (dict "root" $root "image" $p.location) }}
-        {{- include "beeai-platform.labels" $root | nindent 8 }}
+        {{- include "agentstack.labels" $root | nindent 8 }}
         {{- with $root.Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      {{- include "beeai-platform.imagePullSecrets" $root | nindent 6 }}
+      {{- include "agentstack.imagePullSecrets" $root | nindent 6 }}
       {{- with $root.Values.agent.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}

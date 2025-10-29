@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: beeai-platform
+  name: agentstack-server
   labels:
-    app: beeai-platform-server
-    {{- include "beeai-platform.labels" . | nindent 4 }}
+    app: agentstack-server
+    {{- include "agentstack.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: beeai-platform-server
-      {{- include "beeai-platform.selectorLabels" . | nindent 6 }}
+      app: agentstack-server
+      {{- include "agentstack.selectorLabels" . | nindent 6 }}
   strategy:
     type: {{ ternary "Recreate" "RollingUpdate" .Values.hostNetwork }}
   template:
@@ -23,8 +23,8 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        app: beeai-platform-server
-        {{- include "beeai-platform.labels" . | nindent 8 }}
+        app: agentstack-server
+        {{- include "agentstack.labels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -33,8 +33,8 @@ spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       {{- end }}
-      {{- include "beeai-platform.imagePullSecrets" . | nindent 6 }}
-      serviceAccountName: {{ include "beeai-platform.serviceAccountName" . }}
+      {{- include "agentstack.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "agentstack.serviceAccountName" . }}
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -58,14 +58,14 @@ spec:
             - name: PERSISTENCE__ENCRYPTION_KEY
               valueFrom:
                 secretKeyRef:
-                  name: beeai-platform-secret
+                  name: agentstack-secret
                   key: encryptionKey
             - name: PERSISTENCE__DB_URL
               valueFrom:
                 secretKeyRef:
                   key: sqlConnectionSuperuser
-                  name: {{ include "beeai.databaseSecretName" . }}
-            {{- if include "beeai.databaseSslEnabled" . }}
+                  name: {{ include "agentstack.databaseSecretName" . }}
+            {{- if include "agentstack.databaseSslEnabled" . }}
             - name: PERSISTENCE__DB_USE_SSL
               value: "true"
             {{- if .Values.externalDatabase.sslRootCert }}
@@ -73,7 +73,7 @@ spec:
               value: /app/db.crt
             {{- end }}
             {{- end }}
-          {{- if and (include "beeai.databaseSslEnabled" .) .Values.externalDatabase.sslRootCert }}
+          {{- if and (include "agentstack.databaseSslEnabled" .) .Values.externalDatabase.sslRootCert }}
           volumeMounts:
             - name: db-ssl-cert
               mountPath: /app/db.crt
@@ -98,14 +98,14 @@ spec:
             - name: PERSISTENCE__ENCRYPTION_KEY
               valueFrom:
                 secretKeyRef:
-                  name: beeai-platform-secret
+                  name: agentstack-secret
                   key: encryptionKey
             - name: PERSISTENCE__DB_URL
               valueFrom:
                 secretKeyRef:
                   key: sqlConnection
-                  name: {{ include "beeai.databaseSecretName" . }}
-            {{- if include "beeai.databaseSslEnabled" . }}
+                  name: {{ include "agentstack.databaseSecretName" . }}
+            {{- if include "agentstack.databaseSslEnabled" . }}
             - name: PERSISTENCE__DB_USE_SSL
               value: "true"
             {{- if .Values.externalDatabase.sslRootCert }}
@@ -113,7 +113,7 @@ spec:
               value: /app/db.crt
             {{- end }}
             {{- end }}
-          {{- if and (include "beeai.databaseSslEnabled" .) .Values.externalDatabase.sslRootCert }}
+          {{- if and (include "agentstack.databaseSslEnabled" .) .Values.externalDatabase.sslRootCert }}
           volumeMounts:
             - name: db-ssl-cert
               mountPath: /app/db.crt
@@ -136,23 +136,23 @@ spec:
               value: "dummy"
             # Object Storage Configuration
             - name: OBJECT_STORAGE__ENDPOINT_URL
-              value: {{ include "beeai.s3.endpoint" . | quote }}
+              value: {{ include "agentstack.s3.endpoint" . | quote }}
             - name: OBJECT_STORAGE__ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "beeai.s3.secretName" . }}
+                  name: {{ include "agentstack.s3.secretName" . }}
                   key: s3AccessKeyId
             - name: OBJECT_STORAGE__ACCESS_KEY_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "beeai.s3.secretName" . }}
+                  name: {{ include "agentstack.s3.secretName" . }}
                   key: s3AccessKeySecret
             - name: OBJECT_STORAGE__BUCKET_NAME
-              value: {{ include "beeai.s3.bucket" . | quote }}
+              value: {{ include "agentstack.s3.bucket" . | quote }}
             - name: OBJECT_STORAGE__REGION
-              value: {{ include "beeai.s3.region" . | quote }}
+              value: {{ include "agentstack.s3.region" . | quote }}
             - name: OBJECT_STORAGE__USE_SSL
-              value: {{ ternary "true" "false" (eq (include "beeai.s3.protocol" .) "https") | quote}}
+              value: {{ ternary "true" "false" (eq (include "agentstack.s3.protocol" .) "https") | quote}}
       containers:
         - name: {{ .Chart.Name }}
           {{- with .Values.securityContext }}
@@ -181,11 +181,13 @@ spec:
             {{/* see https://fastapi.tiangolo.com/deployment/https/?h=forwarded+allow+ips#proxy-forwarded-headers */}}
             - name: TRUST_PROXY_HEADERS
               value: {{ .Values.trustProxyHeaders | quote }}
+            - name: A2A_PROXY__REQUESTS_EXPIRE_AFTER_DAYS
+              value: {{ .Values.a2aProxyRequestsExpireAfterDays | quote }}
             - name: TEXT_EXTRACTION__ENABLED
               value: {{ .Values.docling.enabled | quote }}
             - name: AGENT_REGISTRY__SYNC_PERIOD_SEC
               value: "30"
-            {{- include "beeai-platform.registryEnvVars" . | nindent 12 }}
+            {{- include "agentstack.registryEnvVars" . | nindent 12 }}
             - name: FEATURES__PROVIDER_BUILDS
               value: {{ .Values.providerBuilds.enabled | quote }}
             {{- if .Values.providerBuilds.enabled }}
@@ -206,7 +208,7 @@ spec:
             - name: GITHUB_REGISTRY_CONFIG_JSON
               valueFrom:
                 secretKeyRef:
-                  name: beeai-platform-secret
+                  name: agentstack-secret
                   key: .githubconfigjson
             {{- end }}
             - name: AGENT_REGISTRY__LOCATIONS__FILE
@@ -218,14 +220,14 @@ spec:
             - name: PERSISTENCE__ENCRYPTION_KEY
               valueFrom:
                 secretKeyRef:
-                  name: beeai-platform-secret
+                  name: agentstack-secret
                   key: encryptionKey
             - name: PERSISTENCE__DB_URL
               valueFrom:
                 secretKeyRef:
                   key: sqlConnection
-                  name: {{ include "beeai.databaseSecretName" . }}
-            {{- if include "beeai.databaseSslEnabled" . }}
+                  name: {{ include "agentstack.databaseSecretName" . }}
+            {{- if include "agentstack.databaseSslEnabled" . }}
             - name: PERSISTENCE__DB_USE_SSL
               value: "true"
             {{- if .Values.externalDatabase.sslRootCert }}
@@ -240,7 +242,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   key: jwtSecretKey
-                  name: beeai-platform-secret
+                  name: agentstack-secret
             {{- if .Values.auth.basic.enabled}}
             - name: AUTH__BASIC__ENABLED
               value: "true"
@@ -248,7 +250,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   key: adminPassword
-                  name: beeai-platform-secret
+                  name: agentstack-secret
             {{- end }}
             {{- if .Values.auth.oidc.enabled}}
             - name: AUTH__OIDC__ENABLED
@@ -265,7 +267,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   key: providers.json
-                  name: beeai-oidc-providers
+                  name: agentstack-oidc-providers
             {{- end }}
             {{- else }}
             - name: AUTH__DISABLE_AUTH
@@ -281,23 +283,23 @@ spec:
               value: /app/templates
             # Object Storage Configuration
             - name: OBJECT_STORAGE__ENDPOINT_URL
-              value: {{ include "beeai.s3.endpoint" . | quote }}
+              value: {{ include "agentstack.s3.endpoint" . | quote }}
             - name: OBJECT_STORAGE__ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "beeai.s3.secretName" . }}
+                  name: {{ include "agentstack.s3.secretName" . }}
                   key: s3AccessKeyId
             - name: OBJECT_STORAGE__ACCESS_KEY_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "beeai.s3.secretName" . }}
+                  name: {{ include "agentstack.s3.secretName" . }}
                   key: s3AccessKeySecret
             - name: OBJECT_STORAGE__BUCKET_NAME
-              value: {{ include "beeai.s3.bucket" . | quote }}
+              value: {{ include "agentstack.s3.bucket" . | quote }}
             - name: OBJECT_STORAGE__REGION
-              value: {{ include "beeai.s3.region" . | quote }}
+              value: {{ include "agentstack.s3.region" . | quote }}
             - name: OBJECT_STORAGE__USE_SSL
-              value: {{ ternary "true" "false" (eq (include "beeai.s3.protocol" .) "https") | quote}}
+              value: {{ ternary "true" "false" (eq (include "agentstack.s3.protocol" .) "https") | quote}}
           volumeMounts:
             {{- if .Values.providerBuilds.externalClusterExecutor.kubeconfig }}
             - name: provider-build-external-kubeconfig
@@ -305,16 +307,16 @@ spec:
               subPath: providerBuildExternalClusterKubeconfig
               readOnly: true
             {{- end }}
-            {{- if and (include "beeai.databaseSslEnabled" .) .Values.externalDatabase.sslRootCert }}
+            {{- if and (include "agentstack.databaseSslEnabled" .) .Values.externalDatabase.sslRootCert }}
             - name: db-ssl-cert
               mountPath: /app/db.crt
               subPath: sslRootCert
               readOnly: true
             {{- end }}
-            - name: beeai-platform-providers
+            - name: agentstack-providers
               mountPath: /app/config
               readOnly: true
-            - name: beeai-platform-manifest-templates
+            - name: agentstack-manifest-templates
               mountPath: /app/templates
               readOnly: true
             {{- with .Values.volumeMounts }}
@@ -324,19 +326,19 @@ spec:
         {{- if .Values.providerBuilds.externalClusterExecutor.kubeconfig }}
         - name: provider-build-external-kubeconfig
           secret:
-            secretName: beeai-platform-secret
+            secretName: agentstack-secret
         {{- end }}
-        {{- if and (include "beeai.databaseSslEnabled" .) .Values.externalDatabase.sslRootCert }}
+        {{- if and (include "agentstack.databaseSslEnabled" .) .Values.externalDatabase.sslRootCert }}
         - name: db-ssl-cert
           secret:
-            secretName: beeai-platform-secret
+            secretName: agentstack-secret
         {{- end }}
-        - name: beeai-platform-providers
+        - name: agentstack-providers
           secret:
-            secretName: beeai-platform-providers-secret
-        - name: beeai-platform-manifest-templates
+            secretName: agentstack-providers-secret
+        - name: agentstack-manifest-templates
           configMap:
-            name: beeai-platform-manifest-templates-cm
+            name: agentstack-manifest-templates-cm
         {{- with .Values.volumes }}
           {{- toYaml . | nindent 8 }}
         {{- end }}

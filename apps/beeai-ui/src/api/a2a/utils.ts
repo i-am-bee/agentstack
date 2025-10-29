@@ -8,11 +8,11 @@ import {
   type Citation,
   citationExtension,
   extractUiExtensionData,
+  type FormDemands,
   formMessageExtension,
-  type FormRender,
   trajectoryExtension,
   type TrajectoryMetadata,
-} from 'beeai-sdk';
+} from 'agentstack-sdk';
 import truncate from 'lodash/truncate';
 import { v4 as uuid } from 'uuid';
 
@@ -146,8 +146,8 @@ export function createTrajectoryPart(metadata: TrajectoryMetadata): UITrajectory
   const trajectoryPart: UITrajectoryPart = {
     kind: UIMessagePartKind.Trajectory,
     id: uuid(),
-    title,
-    content: truncate(content, { length: MAX_CONTENT_CHARS_LENGTH }),
+    title: title ?? undefined,
+    content: truncate(content ?? undefined, { length: MAX_CONTENT_CHARS_LENGTH }),
   };
 
   return trajectoryPart;
@@ -163,7 +163,7 @@ export function createTextPart(text: string): UITextPart {
   return textPart;
 }
 
-export function createFormPart(form: FormRender): UIFormPart | null {
+export function createFormPart(form: FormDemands): UIFormPart {
   const formPart: UIFormPart = {
     kind: UIMessagePartKind.Form,
     ...form,

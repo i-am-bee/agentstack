@@ -4,7 +4,7 @@
  */
 
 import { FormGroup, OperationalTag } from '@carbon/react';
-import type { MultiSelectField } from 'beeai-sdk';
+import type { MultiSelectField } from 'agentstack-sdk';
 import clsx from 'clsx';
 import { useCallback } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';

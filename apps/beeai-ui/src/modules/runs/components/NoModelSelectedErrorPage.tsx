@@ -25,7 +25,7 @@ export function NoModelSelectedErrorPage() {
 
           <div className={classes.description}>
             You can configure a model by running{' '}
-            <CopySnippet className={classes.snippet}>beeai model setup</CopySnippet> in your terminal.
+            <CopySnippet className={classes.snippet}>agentstack model setup</CopySnippet> in your terminal.
           </div>
         </div>
         <div className={classes.footer}>

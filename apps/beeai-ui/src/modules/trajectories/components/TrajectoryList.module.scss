@@ -1,0 +1,43 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+$list-gap: #{rem(28px)};
+
+.root {
+  position: relative;
+  padding-block-start: rem(2px);
+  display: flex;
+  overflow: hidden;
+
+  .border {
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: 0;
+    display: block;
+    inline-size: rem(2px);
+    block-size: 100%;
+    background-color: $border-subtle;
+    transition: block-size 1s ease-in-out;
+  }
+}
+
+.list {
+  block-size: 100%;
+  padding-inline-start: $spacing-05;
+  padding-block-end: $spacing-05;
+  display: flex;
+  flex-direction: column;
+  row-gap: $list-gap;
+  position: relative;
+
+  .autoScroll & {
+    max-block-size: rem(240px);
+    overflow-y: auto;
+  }
+
+  .scrollGuard {
+    margin-block-start: -$list-gap;
+  }
+}

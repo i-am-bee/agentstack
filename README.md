@@ -21,7 +21,7 @@
 <p align="center">
     <a href="#key-features">Key Features</a> •
     <a href="#quickstart">Quickstart</a> •
-    <a href="#reference-agents">Reference Agents</a> •
+    <a href="#agent-catalog">Agent Catalog</a> •
     <a href="#documentation">Documentation</a>
 </p>
 
@@ -66,12 +66,12 @@ sh -c "$(curl -LsSf https://raw.githubusercontent.com/i-am-bee/beeai-platform/HE
 ### Usage
 
 ```sh
-beeai ui                     # Launch web interface
-beeai list                   # See what agents are available
-beeai run chat "Hi!"         # Send a message to chat agent
-beeai run chat               # Try interactive mode
-beeai info chat              # View agent details
-beeai --help                 # See all options
+agentstack ui                     # Launch web interface
+agentstack list                   # See what agents are available
+agentstack run chat "Hi!"         # Send a message to chat agent
+agentstack run chat               # Try interactive mode
+agentstack info chat              # View agent details
+agentstack --help                 # See all options
 ```
 
 ### Build Your First Agent
@@ -84,17 +84,19 @@ uv run server               # Start your agent
 
 Then in another terminal:
 ```sh
-beeai run example_agent "Alice"  # Test your agent
+agentstack run example_agent "Alice"  # Test your agent
 ```
 
 You should see: "Ciao Alice!" 🎉
 
 > [!TIP]
-> Follow the [Hello World tutorial](https://docs.beeai.dev/introduction/hello-world) for a step-by-step guide to building your first agent.
+> Check out [Start Building Agents](https://docs.beeai.dev/introduction/start-building-agents) for a complete step-by-step guide to creating your first agent.
 
 ---
 
-## Reference Agents
+## Agent Catalog
+
+### Reference Agents
 
 Reference implementations demonstrating core BeeAI capabilities.
 
@@ -104,10 +106,10 @@ Reference implementations demonstrating core BeeAI capabilities.
 - [Chat Agent](https://github.com/i-am-bee/beeai-platform/tree/main/agents/chat) - Multi-turn conversational agent using RequirementAgent, ActTool for reasoning sequences, and ClarificationTool for ambiguous queries. Integrates DuckDuckGo, Wikipedia, OpenMeteo, and file tools with UnconstrainedMemory, streaming, citation extraction, and OpenTelemetry instrumentation.
 - [Form Agent](https://github.com/i-am-bee/beeai-platform/tree/main/agents/form) - Single-turn form interaction using Form Extension with multiple field types, customizable layouts, file uploads, validation, and structured output.
 - [RAG Agent](https://github.com/i-am-bee/beeai-platform/tree/main/agents/rag) - Retrieval-Augmented Generation agent supporting 12+ file formats, dynamic vector stores, semantic search (VectorSearchTool), document summaries (FileReaderTool), intelligent tool selection, and citation tracking with document URLs.
-- [OAuth Agent](https://github.com/i-am-bee/beeai-platform/blob/main/apps/beeai-sdk-py/examples/oauth.py) - OAuth Extension demo with MCP integration, browser-based authorization, secure token management, and Stripe MCP server access.
-- [Dynamic Form Request Agent](https://github.com/i-am-bee/beeai-platform/blob/main/apps/beeai-sdk-py/examples/request_form_agent.py) - Multi-step form workflow showing both static and dynamic form generation, where the agent conditionally requests additional input mid-conversation.
+- [OAuth Agent](https://github.com/i-am-bee/beeai-platform/blob/main/apps/agentstack-sdk-py/examples/oauth.py) - OAuth Extension demo with MCP integration, browser-based authorization, secure token management, and Stripe MCP server access.
+- [Dynamic Form Request Agent](https://github.com/i-am-bee/beeai-platform/blob/main/apps/agentstack-sdk-py/examples/request_form_agent.py) - Multi-step form workflow showing both static and dynamic form generation, where the agent conditionally requests additional input mid-conversation.
 
-## Community Agents
+### Community Agents
 
 A growing collection of community-built agents showcasing various use cases and integrations.
 

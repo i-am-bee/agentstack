@@ -107,6 +107,7 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
               {actionField.value === 'update_provider' && providersToUpdate && (
                 <Select
                   id={`${id}:provider`}
+                  size="lg"
                   labelText="Select agent to update"
                   {...register('providerId', { required: true, disabled: isPending })}
                 >

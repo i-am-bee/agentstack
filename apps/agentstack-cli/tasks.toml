@@ -1,0 +1,161 @@
+# setup
+
+["agentstack-cli:setup"]
+depends = ["agentstack-sdk-py:setup"]
+dir = "{{config_root}}/apps/agentstack-cli"
+run = "uv sync --all-extras --dev"
+sources = ["uv.lock", "pyproject.toml"]
+outputs = { auto = true }
+
+# check
+
+["agentstack-cli:check"]
+depends = ["agentstack-cli:check:*"]
+
+["agentstack-cli:check:ruff-check"]
+depends = ["agentstack-cli:setup"]
+dir = "{{config_root}}/apps/agentstack-cli"
+run = "uv run python -m ruff check --quiet"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+["agentstack-cli:check:ruff-format"]
+depends = ["agentstack-cli:setup"]
+dir = "{{config_root}}/apps/agentstack-cli"
+run = "uv run python -m ruff format --quiet --check"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+["agentstack-cli:check:pyright"]
+dir = "{{config_root}}/apps/agentstack-cli"
+run = "uv run python -m pyright"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+# fix
+
+["agentstack-cli:fix"]
+depends = ["agentstack-cli:fix:*"]
+
+["agentstack-cli:fix:ruff-check"]
+depends = ["agentstack-cli:setup"]
+dir = "{{config_root}}/apps/agentstack-cli"
+run = "uv run python -m ruff check --quiet --fix"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+["agentstack-cli:fix:ruff-format"]
+depends = ["agentstack-cli:setup"]
+dir = "{{config_root}}/apps/agentstack-cli"
+run = "uv run python -m ruff format --quiet"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+# run
+
+["agentstack-cli:run"]
+description = "NOTE: Use double dash to pass extra args, like `mise agentstack-cli:run -- provider list`"
+depends = ["agentstack-cli:setup", "agentstack-cli:build:copy-helm-chart"]
+dir = "{{config_root}}/apps/agentstack-cli"
+run = "uv run agentstack"
+
+# build
+
+["agentstack-cli:build:download-binaries"]
+dir = "{{config_root}}/apps/agentstack-cli"
+run = '''
+set -e
+LIMA_VERSION=$(yq -r '.tools["asdf:CrouchingMuppet/asdf-lima"]' ../../mise.toml)
+mkdir -p ./vendor
+echo '*' >./vendor/.gitignore
+( test -f ./vendor/lima-$LIMA_VERSION/manylinux_2_34_x86_64/bin/limactl  || ( mkdir -p ./vendor/lima-$LIMA_VERSION/manylinux_2_34_x86_64  && curl -fsL -H "Authorization: Bearer $GITHUB_TOKEN" https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Linux-x86_64.tar.gz  | tar -xzf - -C ./vendor/lima-$LIMA_VERSION/manylinux_2_34_x86_64  )) &
+( test -f ./vendor/lima-$LIMA_VERSION/manylinux_2_34_aarch64/bin/limactl || ( mkdir -p ./vendor/lima-$LIMA_VERSION/manylinux_2_34_aarch64 && curl -fsL -H "Authorization: Bearer $GITHUB_TOKEN" https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Linux-aarch64.tar.gz | tar -xzf - -C ./vendor/lima-$LIMA_VERSION/manylinux_2_34_aarch64 )) &
+( test -f ./vendor/lima-$LIMA_VERSION/macosx_12_0_x86_64/bin/limactl     || ( mkdir -p ./vendor/lima-$LIMA_VERSION/macosx_12_0_x86_64     && curl -fsL -H "Authorization: Bearer $GITHUB_TOKEN" https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Darwin-x86_64.tar.gz | tar -xzf - -C ./vendor/lima-$LIMA_VERSION/macosx_12_0_x86_64     )) &
+( test -f ./vendor/lima-$LIMA_VERSION/macosx_12_0_arm64/bin/limactl      || ( mkdir -p ./vendor/lima-$LIMA_VERSION/macosx_12_0_arm64      && curl -fsL -H "Authorization: Bearer $GITHUB_TOKEN" https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Darwin-arm64.tar.gz  | tar -xzf - -C ./vendor/lima-$LIMA_VERSION/macosx_12_0_arm64      )) &
+wait
+'''
+
+["agentstack-cli:build:copy-helm-chart"]
+depends = ["helm:build"]
+dir = "{{config_root}}/apps/agentstack-cli"
+run = "rm ./src/agentstack_cli/data/helm-chart.tgz 2>/dev/null || true && cp {{config_root}}/helm/dist/agentstack-*.tgz ./src/agentstack_cli/data/helm-chart.tgz"
+sources = ["{{config_root}}/helm/dist/agentstack-*.tgz"]
+outputs = ["./src/agentstack_cli/data/helm-chart.tgz"]
+
+["agentstack-cli:build"]
+depends = ["agentstack-cli:setup", "agentstack-cli:build:*", "agentstack-sdk-py:build"]
+dir = "{{config_root}}/apps/agentstack-cli"
+sources = ["src/**/*", "hatch_build.py", "pyproject.toml", "vendor/lima/**/*"]
+outputs = ["dist/**/*"]
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Build sdist and wheel
+rm -rf ./dist
+uv build -q --out-dir ./dist
+export lima_version=$(yq -r '.tools["asdf:CrouchingMuppet/asdf-lima"]' ../../mise.toml)
+export version="$(yq -r '.project.version' pyproject.toml | tr -d -)"
+export universal_wheel=$(realpath "./dist/agentstack_cli-$version-py3-none-any.whl")
+
+# Pin versions from uv.lock in wheel
+tmpdir="$(mktemp -d)"
+unzip -q "$universal_wheel" -d "$tmpdir"
+find "$tmpdir" -type f -exec chmod +r {} \;
+insert_line=$(awk '/^Requires-Dist:/ {print FNR-1; exit}' "$tmpdir/agentstack_cli-${version}.dist-info/METADATA" | cut -d: -f1)
+(
+  head -n $insert_line "$tmpdir/agentstack_cli-${version}.dist-info/METADATA"
+  uv export --no-editable --no-hashes --no-emit-workspace --format requirements-txt | sed '/^[[:space:]]*#/d' | while IFS= read -r dep; do
+    if [[ "$dep" =~ ^[a-zA-Z] ]]; then
+      echo "Requires-Dist: $dep"
+    else
+      echo "Requires-Dist: $(yq -r '.project.name' "$dep/pyproject.toml")==$(yq -r '.project.version' "$dep/pyproject.toml" | tr -d '-')"
+    fi
+  done
+  awk -v insert_line="$insert_line" 'NR > insert_line && $0 !~ /^Requires-Dist:/' "$tmpdir/agentstack_cli-${version}.dist-info/METADATA"
+) > "$tmpdir/agentstack_cli-${version}.dist-info/METADATA.new"
+mv "$tmpdir/agentstack_cli-${version}.dist-info/METADATA.new" "$tmpdir/agentstack_cli-${version}.dist-info/METADATA"
+rm "$universal_wheel"
+uv run wheel pack "$tmpdir" --dest-dir ./dist >/dev/null
+rm -rf "$tmpdir"
+
+# Verify that the wheel works
+if ! uv tool run --isolated --from "$universal_wheel" --with ../agentstack-sdk-py/dist/agentstack_sdk-*-py3-none-any.whl -- agentstack version; then
+  echo "Failed to install $universal_wheel"
+  exit 1
+fi
+
+# Make platform-specific wheels by bundling limactl
+build_wheel() {
+  wheel_tag="$1"
+  hostagent_arch="$2"
+  tmpdir="$(mktemp -d)"
+  
+  # Unzip wheel and fix permissions
+  unzip -q "$universal_wheel" -d "$tmpdir"
+  find "$tmpdir" -type f -exec chmod +r {} \;
+
+  # Add Lima binaries
+  mkdir -p "$tmpdir/agentstack_cli/data"
+  cp "./vendor/lima-$lima_version/$wheel_tag/bin/limactl" "$tmpdir/agentstack_cli/data/"
+  cp "./vendor/lima-$lima_version/$wheel_tag/share/lima/lima-guestagent.Linux-$hostagent_arch"* "$tmpdir/agentstack_cli/data/"
+  
+  # Update WHEEL file
+  perl -pi -e "s/Root-Is-Purelib: true/Root-Is-Purelib: false/" "$tmpdir/agentstack_cli-$version.dist-info/WHEEL"
+  perl -pi -e "s/Tag: .*/Tag: py3-none-$wheel_tag/" "$tmpdir/agentstack_cli-$version.dist-info/WHEEL"
+
+  uv run wheel pack "$tmpdir" --dest-dir ./dist >/dev/null
+  rm -rf "$tmpdir"
+}
+build_wheel manylinux_2_34_x86_64  x86_64  &
+build_wheel manylinux_2_34_aarch64 aarch64 &
+build_wheel macosx_12_0_x86_64     x86_64  &
+build_wheel macosx_12_0_arm64      aarch64 &
+for job in $(jobs -p); do wait $job; done
+'''
+
+# clean
+
+["agentstack-cli:clean"]
+dir = "{{config_root}}/apps/agentstack-cli"
+run = "rm -rf ./dist"

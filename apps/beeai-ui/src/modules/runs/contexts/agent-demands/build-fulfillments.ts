@@ -3,75 +3,59 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ContextToken, EmbeddingDemands, SecretDemands } from 'beeai-sdk';
+import type { AgentSettings, ContextToken, EmbeddingDemands, FormFulfillments, Fulfillments } from 'agentstack-sdk';
 
-import type { Fulfillments } from '#api/a2a/types.ts';
-import type { AgentRequestSecrets } from '#modules/runs/contexts/agent-secrets/types.ts';
 import { BASE_URL } from '#utils/constants.ts';
 import type { FeatureFlags } from '#utils/feature-flags.ts';
 
-interface BuildFullfilmentsParams {
+interface BuildFulfillmentsParams {
   contextToken: ContextToken;
   selectedLLMProviders: Record<string, string>;
   selectedEmbeddingProviders: Record<string, string>;
   selectedMCPServers: Record<string, string>;
-  requestedSecrets: AgentRequestSecrets;
+  providedSecrets: Record<string, string>;
+  selectedSettings: AgentSettings;
+  formFulfillments: FormFulfillments | null;
+  oauthRedirectUri: string | null;
   featureFlags: FeatureFlags;
 }
 
-export const buildFullfilments = ({
+export const buildFulfillments = ({
   contextToken,
   selectedLLMProviders,
   selectedEmbeddingProviders,
   selectedMCPServers,
-  requestedSecrets,
+  selectedSettings,
+  providedSecrets,
+  formFulfillments,
+  oauthRedirectUri,
   featureFlags,
-}: BuildFullfilmentsParams): Fulfillments => {
+}: BuildFulfillmentsParams): Fulfillments => {
   return {
     getContextToken: () => contextToken,
 
-    secrets: async ({ secret_demands }: SecretDemands, runtimeFullfilledDemands?: AgentRequestSecrets) => {
-      const demanded_fullfilments = Object.entries(secret_demands).reduce(
-        (memo, [key]) => {
-          const getFullfilment = () => {
-            const fullfilment = requestedSecrets[key];
-            if (fullfilment.isReady) {
-              return fullfilment.value;
-            }
+    settings: async () => {
+      return {
+        values: selectedSettings,
+      };
+    },
 
-            return null;
+    form: async () => {
+      return formFulfillments;
+    },
+
+    secrets: async () => {
+      const resolvedSecrets = Object.entries(providedSecrets).reduce(
+        (memo, [key, value]) => {
+          memo.secret_fulfillments[key] = {
+            secret: value,
           };
-
-          const fullfilment = getFullfilment();
-
-          if (fullfilment !== null) {
-            memo.secret_fulfillments[key] = {
-              secret: fullfilment,
-            };
-          }
-
           return memo;
         },
         { secret_fulfillments: {} },
       );
 
-      if (runtimeFullfilledDemands) {
-        return {
-          ...demanded_fullfilments,
-          secret_fulfillments: {
-            ...demanded_fullfilments.secret_fulfillments,
-            ...Object.entries(runtimeFullfilledDemands).reduce((memo, [key, value]) => {
-              if (value.isReady) {
-                memo[key] = { secret: value.value };
-              }
-
-              return memo;
-            }, {}),
-          },
-        };
-      } else {
-        return demanded_fullfilments;
-      }
+      return resolvedSecrets;
     },
 
     embedding: async ({ embedding_demands }: EmbeddingDemands) => {
@@ -129,7 +113,9 @@ export const buildFullfilments = ({
     },
     mcp: async ({ mcp_demands }) => {
       if (!featureFlags.MCP) {
-        return null;
+        return {
+          mcp_fulfillments: {},
+        };
       }
 
       const allDemands = Object.keys(mcp_demands);
@@ -149,10 +135,6 @@ export const buildFullfilments = ({
       );
     },
     oauth: async () => {
-      if (!featureFlags.MCPOAuth) {
-        return null;
-      }
-
       return {
         oauth_fulfillments: {
           default: {
@@ -160,6 +142,9 @@ export const buildFullfilments = ({
           },
         },
       };
+    },
+    oauthRedirectUri: () => {
+      return oauthRedirectUri;
     },
   };
 };

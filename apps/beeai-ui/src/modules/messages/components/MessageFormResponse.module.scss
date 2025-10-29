@@ -21,7 +21,8 @@
       color: $text-secondary;
     }
     textarea,
-    :global(.cds--date-picker__input) {
+    :global(.cds--date-picker__input),
+    :global(.cds--select-input) {
       color: $text-primary;
       background-color: transparent;
     }

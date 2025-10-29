@@ -5,7 +5,7 @@
 
 import { Add } from '@carbon/icons-react';
 import { Button, FormGroup } from '@carbon/react';
-import type { FileField } from 'beeai-sdk';
+import type { FileField } from 'agentstack-sdk';
 import { useEffect } from 'react';
 import { useController, useFormContext } from 'react-hook-form';
 
