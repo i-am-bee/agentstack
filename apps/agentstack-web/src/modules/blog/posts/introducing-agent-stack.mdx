@@ -1,0 +1,157 @@
+export const metadata = {
+  title: 'Introducing Agent Stack (formerly BeeAI Platform)',
+  date: '2025-10-30',
+  author: 'Jenna Winkler',
+};
+
+As our ecosystem has grown, we've heard feedback that having both "BeeAI Framework" and "BeeAI Platform" can be
+confusing. To make things clearer, we're renaming BeeAI Platform to Agent Stack—a name that more accurately reflects its
+purpose as open infrastructure for deploying and sharing agents without framework or vendor lock-in.
+
+## Why the Change?
+
+As BeeAI has evolved, we ended up with two projects with similar names:
+
+1. **BeeAI Framework** – for building reliable, intelligent agents
+2. **BeeAI Platform** – for deploying, running, and sharing those agents
+
+While both are essential parts of the BeeAI initiative under the Linux Foundation, the similar naming has led to some
+natural confusion about which tool does what. We've heard from community members that the distinction between
+"Framework" and "Platform" isn't always immediately clear, especially for newcomers.
+
+Agent Stack makes the purpose explicit—it's your deployment stack for agents.
+
+## What is Agent Stack?
+
+Agent Stack is a self-hostable stack for deploying and running AI agents. It solves a specific problem: once you've
+built an agent (using any framework or even custom code), how do you actually deploy it somewhere people can use it?
+
+Agent Stack gives you:
+
+- **A server** you can self-host that runs your agents
+- **A web UI** where users interact with your deployed agents
+- **A CLI tool** to deploy and manage your agents
+- **Infrastructure services** that your agents can use:
+  - Runtime-configurable LLM providers - switch between Anthropic, watsonx.ai, OpenAI, Ollama, etc. without changing
+    agent code
+  - Embedding models for semantic search
+  - Vector stores for RAG
+  - File storage (S3-compatible)
+  - OAuth for third-party authentication
+  - Document extraction (Docling)
+  - Secret management for API keys
+- **An SDK** that lets your agents request these services using standardized A2A protocol extensions
+
+The SDK extensions work with any framework — if your agent is built on A2A, it can use these services regardless of
+whether you built it with LangGraph, CrewAI, BeeAI Framework, or something custom.
+
+**The workflow:**
+
+1. Build with any framework (LangGraph, CrewAI, etc.)
+2. Deploy with Agent Stack using a single CLI command
+3. Share via web UI with chat interface
+
+Agent Stack is designed to work flexibly with your infrastructure, your tools, your framework, and your LLM providers.
+
+## Why This Matters
+
+The agent ecosystem is evolving rapidly. Teams are experimenting with LangGraph, CrewAI, custom code—choosing different
+tools for different problems. But when it comes to deployment, you face a choice: commit to one framework's hosting,
+integrate with an enterprise platform, or build everything yourself.
+
+Agent Stack explores a different path: open, self-hostable infrastructure that works across any framework.
+
+This matters if you:
+
+- Want to experiment with multiple frameworks without committing to one
+- Need to deploy agents quickly for internal use and testing
+- Have different teams using different tools
+- Want infrastructure you control and can customize
+- Value keeping your options open as the space evolve
+
+Agent Stack provides self-hostable infrastructure that works with any A2A-compliant agent, giving teams flexibility
+while the agent market is still figuring itself out.
+
+## What This Means for You
+
+### For Existing Users
+
+This is purely a rename—the only changes are to repository URLs, CLI commands, and package names. The migration is
+straightforward (see below).
+
+- **Repository**: github.com/i-am-bee/agentstack
+- **CLI**: agentstack prefix
+- **SDK**: agentstack-sdk
+- **Docs**: agentstack.beeai.dev
+- **Starter Template**: github.com/i-am-bee/agentstack-starter
+
+### For New Users
+
+If you're building agents and wrestling with deployment, Agent Stack might be worth exploring!
+
+Get up and running in one line:
+
+```
+sh -c "$(curl -LsSf https://raw.githubusercontent.com/i-am-bee/agentstack/HEAD/install.sh)"
+```
+
+Then check out our [Quickstart Guide](https://agentstack.beeai.dev/introduction/quickstart).
+
+## Migration Guide
+
+### For Users
+
+1. Uninstall the old platform:
+
+```
+beeai self uninstall
+```
+
+2. Install Agent Stack:
+
+```
+sh -c "$(curl -LsSf https://raw.githubusercontent.com/i-am-bee/agentstack/HEAD/install.sh)"
+```
+
+3. CLI command change:
+
+```
+agentstack [OPTIONS] COMMAND [ARGS]
+```
+
+### For Agent Builders
+
+1. Update your SDK:
+
+```
+pip install agentstack-sdk
+```
+
+2. Update your imports:
+
+```
+from agentstack_sdk import Server  # new
+```
+
+## What’s Next
+
+Agent Stack is in incubation—this means we're actively exploring what agent deployment infrastructure should look like
+and learning from real-world usage. We're focused on:
+
+- Making multi-framework deployment practical. We want to make it genuinely easy to deploy agents from different
+  frameworks without rebuilding infrastructure. This means continuing to refine A2A protocol extensions and improving
+  the deployment experience.
+- Improving the development workflow. The CLI and web UI should get out of your way. We're gathering feedback on what
+  works and what doesn't, and iterating based on real usage.
+- Building ecosystem connections. As more frameworks adopt A2A, we want Agent Stack to work seamlessly with them. We're
+  also exploring better ways to discover and share agents.
+- Understanding real needs. Incubation means we don't have all the answers yet. We're learning what teams actually need
+  from deployment infrastructure—what's essential, what's nice-to-have, and what we got wrong.
+
+If you're building production agents, we'd love to hear what challenges you're facing with deployment. Your feedback
+shapes where Agent Stack goes next.
+
+## Questions?
+
+Reach out to us on [Discord](https://discord.gg/NradeA6ZNF) or [GitHub](https://github.com/i-am-bee/agentstack)—we’re
+here to help make the transition smooth.
