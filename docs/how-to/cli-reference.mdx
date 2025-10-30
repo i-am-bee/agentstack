@@ -3,25 +3,23 @@ title: "CLI Reference"
 description: "Complete reference for the Agent Stack command-line interface"
 ---
 
-Agent Stack command-line interface (CLI) provides powerful tools to discover, run, and manage agents directly from your terminal. This document serves as a comprehensive reference for all available commands and options.
+The Agent Stack command-line interface (CLI) provides tools to manage agents, configure models, and control the platform directly from your terminal.
 
 ## Basic Usage
 
-The basic syntax for Agent Stack commands follows this pattern:
-
 ```bash
-agentstack [command] [subcommand] [arguments] [options]
+agentstack [COMMAND] [OPTIONS] [ARGUMENTS]
 ```
 
-To see a list of all available commands:
+To see all available commands:
 
 ```bash
 agentstack --help
 ```
 
-## Core Commands
+## Agent Commands
 
-### List
+### list
 
 List all available agents:
 
@@ -29,9 +27,9 @@ List all available agents:
 agentstack list
 ```
 
-This displays a table with agent names, statuses, descriptions, UI types, locations, missing environment variables, and error messages.
+Shows agent names, statuses, descriptions, locations, and any configuration issues.
 
-### Run
+### run
 
 Run an agent with specified input:
 
@@ -40,21 +38,28 @@ agentstack run <agent-name> [input]
 ```
 
 **Examples:**
+
 ```bash
-# Run chat agent interactively
+# Interactive mode
 agentstack run chat
 
-# Run agent with direct input
+# Direct input
 agentstack run chat "Hello!"
 
-# Run agent with input from file
+# Input from file
 agentstack run chat < input.txt
 
+# Output to file
+agentstack run chat "Summarize this" > output.txt
+
+# Append to file
+agentstack run chat "More analysis" >> output.txt
+
 # Pipe between agents
-agentstack run gpt_researcher "Latest AI developments" | agentstack run chat "Summarize in 3 points"
+agentstack run agent1 "input" | agentstack run agent2
 ```
 
-### Info
+### info
 
 Get detailed information about a specific agent:
 
@@ -62,85 +67,75 @@ Get detailed information about a specific agent:
 agentstack info <agent-name>
 ```
 
-Shows details including description, input/output schemas, examples, configuration options, and provider information.
+Shows description, input/output schemas, examples, and configuration options.
 
-### Add
+### add
 
 Add an agent to your environment:
 
 ```bash
 agentstack add <location>
-# Aliases: install
 ```
 
-Use `agentstack add` when:
-- You want to use an agent (one-step process)
-- You don't care about build details
-- You want the simplest workflow
-
-Location formats:
-
+**Location formats:**
 ```bash
 # From Docker image
 agentstack add ghcr.io/i-am-bee/agentstack/agents/chat:latest
 
 # From GitHub repository
-agentstack add "https://github.com/i-am-bee/custom-agent"
+agentstack add "https://github.com/user/repo"
 
-# From GitHub with version
-agentstack add "https://github.com/i-am-bee/custom-agent#v1.0.0"
+# From GitHub with version tag
+agentstack add "https://github.com/user/repo#v1.0.0"
 
 # From GitHub with specific path
-agentstack add "https://github.com/i-am-bee/repo#:agents/my-agent"
+agentstack add "https://github.com/user/repo#:agents/my-agent"
 
-# From local path (builds Docker image)
+# From local directory (builds Docker image)
 agentstack add ./my-agent-directory
 ```
 
-### Remove
+### remove
 
 Remove an agent from your environment:
 
 ```bash
 agentstack remove <agent-name>
-# Aliases: uninstall, rm, delete
 ```
 
-### Logs
+### logs
 
-View and follow the logs for an agent:
+View and stream logs for an agent:
 
 ```bash
 agentstack logs <agent-name>
 ```
 
-This displays the agent's log output and continues streaming new logs as they are generated.
+Displays the agent's log output and continues streaming new logs as they are generated.
 
-### Build
+### build
 
-Build an agent from a local directory or repository:
+Build an agent from a local directory or GitHub repository:
 
-```bash
+<Note>
+Requires Docker running
+</Note>
+
+```
 agentstack build [context]
 ```
 
-Arguments:
-- `context`: Docker context for the agent (default: current directory)
+**Arguments:**
+- `context`: Path to build context (default: current directory)
 
-Options:
+**Options:**
+- `--dockerfile <path>`: Use custom dockerfile path
 - `--tag <name>`: Docker tag for the agent
 - `--multi-platform`: Build for multiple platforms
-- `--import / --no-import`: Import the image into Agent Stack (default: true)
-- `--dockerfile=./Containerfile`: Specify your container file
+- `--push`: Push the image to the target registry
+- `--import/--no-import`: Import the image into Agent Stack (default: true)
 
-Use `agentstack build` when:
-- You want to test builds before using them (`--no-import`)
-- You need custom build options (`--multi-platform`, custom `--tag`)
-- You're developing and want to control the build process
-- You want to build images for sharing (not immediate use)
-
-Examples:
-
+**Examples:**
 ```bash
 # Build from current directory
 agentstack build .
@@ -148,75 +143,134 @@ agentstack build .
 # Build with custom tag
 agentstack build . --tag my-agent:latest
 
-# Build without importing
+# Build without importing to platform
 agentstack build . --no-import
 
 # Build from GitHub URL
 agentstack build "https://github.com/user/repo"
+
+# Build with custom dockerfile
+agentstack build . --dockerfile ./custom.Dockerfile
 ```
 
-## Environment Management
+### server-side-build
 
-### Environment Setup
+**EXPERIMENTAL:** Build agent from GitHub repository in the platform:
 
-Interactive setup for LLM provider environment variables:
+```bash
+agentstack server-side-build <github-url>
+```
+
+This builds the agent on the server side rather than locally.
+
+## Model Commands
+
+### model setup
+
+Interactive setup for LLM provider configuration:
 
 ```bash
 agentstack model setup
 ```
 
-This guides you through setting up the required environment variables for your chosen LLM provider.
+Guides you through configuring your LLM provider with the required API keys and settings.
 
-### Environment Variables
+## Platform Commands
 
-Manage environment variables for agents:
+### start
 
-```bash
-# List all environment variables
-agentstack env list
-
-# Add or update an environment variable
-agentstack env add KEY=VALUE
-
-# Remove an environment variable
-agentstack env remove KEY
-```
-
-**Examples:**
-```bash
-# Set up an OpenAI-compatible API
-agentstack env add LLM_MODEL=gpt-4o
-agentstack env add LLM_API_BASE=https://api.openai.com/v1
-agentstack env add LLM_API_KEY=sk_...
-```
-
-## System Commands
-
-### Start
-
-Start the Agent Stack server:
+Starts the platform:
 
 ```bash
 agentstack platform start
 ```
 
-### Stop
+### stop
 
-Stop the Agent Stack server:
+Stops the platform:
 
 ```bash
 agentstack platform stop
 ```
 
-### Delete
+Stops the platform but keeps all data intact.
 
-Delete the Agent Stack server:
+### delete
+
+Deletes the platform and all data:
 
 ```bash
 agentstack platform delete
 ```
 
-### UI
+<Warning>
+This removes all agents, configurations, and data permanently.
+</Warning>
+
+## MCP Commands
+
+### mcp
+
+Manage MCP servers and toolkits:
+```bash
+agentstack mcp [subcommand]
+```
+
+Use `agentstack mcp --help` for available subcommands.
+
+## Server Commands
+
+### server
+
+Manage Agent Stack servers and authentication:
+
+### login
+
+Login to a server or switch between logged in servers:
+
+```bash
+agentstack server login
+```
+
+### logout
+
+Logout from a server:
+
+```bash
+agentstack server logout
+```
+
+### show
+
+Show current server information:
+
+```bash
+agentstack server show
+```
+
+### list
+
+List all configured servers:
+
+```bash
+agentstack server list
+```
+
+## Environment Commands
+
+### env
+
+Manage environment variables:
+
+```bash
+agentstack env [subcommand]
+```
+
+Use `agentstack env --help` for available subcommands.
+
+## System Commands
+
+### ui
 
 Launch the web interface:
 
@@ -224,9 +278,9 @@ Launch the web interface:
 agentstack ui
 ```
 
-This runs the server in the foreground.
+Opens Agent Stack's graphical interface in your default browser.
 
-### Version
+### version
 
 Display version information:
 
@@ -234,8 +288,36 @@ Display version information:
 agentstack version
 ```
 
+### install
+
+Install Agent Stack CLI and platform:
+
+```bash
+agentstack self install
+```
+
+### upgrade
+
+Upgrade Agent Stack CLI and platform to the latest version:
+
+```bash
+agentstack self upgrade
+```
+
+### uninstall
+
+Uninstall Agent Stack CLI and platform:
+
+```bash
+agentstack self uninstall
+```
+
+Removes the CLI, stops the platform, and deletes all data.
+
 ## Global Options
 
-Most commands support these general options:
+Most commands support these options:
+
 - `--help`: Show help information for a command
-- `--debug`: Enable debug output for troubleshooting
+- `-v, --verbose`: Show verbose output
+- `--debug`: Enable debug output for troubleshooting (set via environment)

@@ -1,85 +1,67 @@
 ---
 title: Welcome to Agent Stack
-description: "Discover, run, and share agents from any framework"
+description: "Open infrastructure for deploying agents from any framework"
 ---
 
-<Info>
+Agent Stack is open, self-hostable infrastructure for deploying AI agents built with any framework. Hosted by the Linux Foundation and built on the [Agent2Agent Protocol (A2A)](https://a2a-protocol.org/), it gives you everything needed to move agents from local development to shared production environments—without vendor lock-in.
 
-### 🚀 IMPORTANT UPDATE
+## What Agent Stack Provides
 
-ACP is now part of A2A under the Linux Foundation!
+Everything you need to deploy and operate agents in production:
 
-👉 [Learn more](https://github.com/orgs/i-am-bee/discussions/5) &nbsp;|&nbsp; 🛠️ [Migration Guide](/community-and-support/acp-a2a-migration-guide)
+- **A self-hostable server** that runs your agents  
+- **A web UI** where users can test and share deployed agents  
+- **A CLI** for deploying and managing agents  
+- **Built-in infrastructure services** your agents can access at runtime:
+  - **Runtime-configurable LLMs** — Switch between 15+ providers (Anthropic, OpenAI, watsonx.ai, Ollama) without changing code  
+  - **Embeddings & vector search** — Power RAG and semantic search  
+  - **File storage** — S3-compatible uploads and downloads  
+  - **Document text extraction** — Via [Docling](https://www.docling.ai/)  
+  - **External integrations** — Connect to APIs, databases, Slack, Google Drive, and more via the MCP protocol with OAuth  
+  - **Secrets management** — Securely store and use API keys and credentials  
+- **An SDK** (`agentstack-sdk`) that lets your agents request these services through standardized A2A extensions  
+- **A HELM chart** for Kubernetes deployments with custom storage, databases, and auth  
 
-</Info>
+Build your agent using any framework—LangGraph, CrewAI, BeeAI Framework, or your own—and let the SDK handle runtime service requests automatically.
 
-Agent Stack is an open-source platform that makes it easy to **discover**, **run**, and **share** AI agents across frameworks. Built on the [Agent2Agent Protocol (A2A)](https://github.com/a2aproject/A2A) and hosted by the Linux Foundation, Agent Stack bridges the gap between different agent ecosystems.
+## How It Works
 
-## The Problem Agent Stack Solves
+Agent Stack provides the deployment layer between your agent code and production use:
 
-Teams building AI agents often run into three main challenges:
-- **Framework Fragmentation:** Multiple frameworks lead to silos and duplicated work.
-- **Deployment Complexity:** Each agent needs its own setup, slowing down scale.
-- **Discovery Challenges:** Finding and reusing agents is hard without a central hub.
+1. **Build** your agent using `agentstack-sdk` with your preferred framework
+2. **Deploy** with a single CLI command to your Agent Stack instance
+3. **Users interact** through the automatically generated web interface
 
-Agent Stack provides a standardized platform to discover, run, and share agents from any framework.
+Your agents request infrastructure services at runtime through the A2A protocol—no hardcoded dependencies on specific LLM providers or storage solutions.
 
-## Key Features
+**For development:** Run Agent Stack locally with full services for rapid iteration
 
-| Feature | What it does |
-| :------ | :----------- |
-| **Instant web interface** | Spin up a shareable front-end in minutes—focus on your agent, not UI frameworks. |
-| **Complete infrastructure** | Deploy your agent container instantly, with database, storage, scaling, monitoring, plus MCP gateway and RAG services. |
-| **Framework-agnostic** | Combine agents from BeeAI framework, LangChain, CrewAI, and more using A2A. |
-| **Multi-provider playground** | Test agents across OpenAI, Anthropic, Gemini, IBM watsonx, Ollama, and others to compare performance and cost instantly. |
+**For production:** Deploy to Kubernetes using the provided HELM chart and integrate with your existing infrastructure (SSO, databases, cloud storage)
 
-## How Agent Stack Works
+## When to Use Agent Stack
 
-Run Agent Stack locally, and your agents connect to the platform for discovery, testing, and sharing through a simple web interface.
+Agent Stack is designed for teams who need:
 
-You get:
-- Access to ready-to-use agents from our official catalog  
-- Easy testing across multiple LLM providers  
-- Framework-agnostic development via the Agent Stack SDK powered by A2A  
-- Ready-made web interfaces for all your agents  
+- **Fast iteration** across multiple agent frameworks without committing to one vendor's hosting
+- **Infrastructure control** to integrate with existing corporate systems and policies
+- **Internal deployment** where you run the infrastructure rather than using external SaaS
+- **Development velocity** without rebuilding deployment infrastructure for each new agent
 
-Note: Want to deploy Agent Stack for your team? Agent Stack can also run as a hosted platform with full Kubernetes infrastructure. Check out the [Deployment Guide](/how-to/deployment-guide).
+It complements enterprise AI platforms—use it for rapid prototyping and internal agents, while enterprise systems handle governance, security, and large-scale production workflows.
 
 ## Get Started
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="rocket" href="/introduction/quickstart">
-    Get up and running quickly
+    Get up and running in one command
   </Card>
-  <Card title="Agent Library" icon="robot" href="https://beeai.dev/agents">
-    Explore the collection of ready-to-use agents
+  <Card title="Connect A2A Agents" icon="plug" href="/introduction/connect-a2a-agents">
+    Deploy existing A2A-compatible agents to Agent Stack
   </Card>
-  <Card title="Architecture" icon="sitemap" href="/concepts/architecture">
-    Learn about the core concepts and architecture
+  <Card title="Start Building Agents" icon="code" href="/introduction/start-building-agents">
+    Build your first agent with the Agent Stack SDK
   </Card>
-  <Card
-    title="Agent2Agent (A2A) Protocol"
-    icon="network-wired"
-    href="https://agentcommunicationprotocol.dev"
-  >
-   See how Agent Stack connects diverse agent frameworks seamlessly
-  </Card>
-</CardGroup>
-
-## Join the Community
-
-<CardGroup cols={3}>
-  <Card title="Discord" icon="discord" href="https://discord.gg/NradeA6ZNF">
-    Support
-  </Card>
-  <Card
-    title="Bluesky"
-    icon="bluesky"
-    href="https://bsky.app/profile/beeaiagents.bsky.social"
-  >
-    Announcements
-  </Card>
-  <Card title="Youtube" icon="youtube" href="https://youtube.com/@BeeAIAgents">
-    Tutorials
+  <Card title="Deploy to Production" icon="server" href="/how-to/deployment-guide">
+    Deploy Agent Stack to Kubernetes for your team
   </Card>
 </CardGroup>
