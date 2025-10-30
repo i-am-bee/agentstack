@@ -5,6 +5,8 @@
 'use client';
 import { ArrowDown } from '@carbon/icons-react';
 import { IconButton, InlineLoading } from '@carbon/react';
+import type { RefObject } from 'react';
+import { Ref } from 'react';
 
 import { Container } from '#components/layouts/Container.tsx';
 import { useIsScrolled } from '#hooks/useIsScrolled.ts';
@@ -51,7 +53,14 @@ export function ChatMessagesView() {
                   <li key={message.id} className={classes.message}>
                     {isUser && <ChatUserMessage message={message} />}
 
-                    {isAgent && <ChatAgentMessage message={message} onShow={isLast ? scrollToBottom : undefined} />}
+                    {isAgent && (
+                      <ChatAgentMessage
+                        message={message}
+                        onShow={isLast ? scrollToBottom : undefined}
+                        isLast={isLast}
+                        containerScrollableRef={scrollElementRef as RefObject<HTMLDivElement>}
+                      />
+                    )}
 
                     {isLast && <div ref={observeElementRef} />}
                   </li>

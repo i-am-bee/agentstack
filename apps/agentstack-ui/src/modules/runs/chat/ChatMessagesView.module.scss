@@ -3,14 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-$content-block-padding: $spacing-07;
-$new-session-button-height: rem(32px);
-$user-message-height: rem(46px);
-$messages-row-gap: $spacing-07;
-$holder-row-gap: $spacing-06;
-$messages-top-padding: $spacing-03;
-$input-height: rem(88px);
-
 $zindex-messages: 1;
 $zindex-buttons: 2;
 
@@ -45,18 +37,7 @@ $zindex-buttons: 2;
   display: flex;
   flex-direction: column-reverse;
   row-gap: $messages-row-gap;
-  padding-block-start: $messages-top-padding;
   block-size: 100%;
-}
-
-.message:first-child {
-  min-block-size: calc(
-    100vh -
-      (
-        var(--app-header-height) + #{(2 * $content-block-padding) + $new-session-button-height + $user-message-height +
-          (2 * $messages-row-gap) + $holder-row-gap + $input-height + rem(48px) + $messages-top-padding}
-      )
-  );
 }
 
 .bottom {
@@ -101,15 +82,5 @@ $zindex-buttons: 2;
     max-inline-size: max-content;
     transform: translateX(100%);
     padding-block-end: 0;
-  }
-
-  .message:first-child {
-    min-block-size: calc(
-      100vh -
-        (
-          var(--app-header-height) + #{2 * $content-block-padding + $user-message-height + $messages-row-gap +
-            $holder-row-gap + $input-height}
-        )
-    );
   }
 }

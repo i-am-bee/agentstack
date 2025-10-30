@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useEffect, useRef } from 'react';
+import { rem } from '@carbon/layout';
+import { useCallback, useEffect, useRef } from 'react';
 
 import { Spinner } from '#components/Spinner/Spinner.tsx';
 import { MessageFiles } from '#modules/files/components/MessageFiles.tsx';
@@ -24,19 +25,22 @@ import classes from './ChatAgentMessage.module.scss';
 
 interface Props {
   message: UIAgentMessage;
+  isLast?: boolean;
+  containerScrollableRef?: React.RefObject<HTMLDivElement>;
   onShow?: () => void;
 }
 
-export function ChatAgentMessage({ message, onShow }: Props) {
+export function ChatAgentMessage(props: Props) {
   return (
     <MessageInteractionProvider>
-      <Message message={message} onShow={onShow} />
+      <Message {...props} />
     </MessageInteractionProvider>
   );
 }
 
-function Message({ message, onShow }: Props) {
+function Message({ message, isLast, containerScrollableRef, onShow }: Props) {
   const contentRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   const { props } = useMessageInteractionProps();
 
@@ -44,12 +48,42 @@ function Message({ message, onShow }: Props) {
     onShow?.();
   }, [onShow]);
 
+  const updateHeight = useCallback(() => {
+    if (!containerScrollableRef?.current || !rootRef.current) {
+      return;
+    }
+
+    if (!isLast) {
+      rootRef.current.style.minBlockSize = '';
+      return;
+    } else {
+      const containerHeight = containerScrollableRef.current.clientHeight;
+      const listItem = rootRef.current.closest('li');
+      const prevMessageElem = listItem?.nextElementSibling; // Messages are in reverse order
+
+      if (prevMessageElem instanceof HTMLElement) {
+        const nextSiblingHeight = prevMessageElem?.offsetHeight ?? 0;
+
+        const availableHeight = containerHeight - nextSiblingHeight - MESSAGES_GAP;
+        rootRef.current.style.minBlockSize = rem(availableHeight);
+      }
+    }
+  }, [isLast, containerScrollableRef]);
+
+  useEffect(() => {
+    updateHeight();
+
+    // Update height on window resize
+    window.addEventListener('resize', updateHeight);
+    return () => window.removeEventListener('resize', updateHeight);
+  }, [isLast, updateHeight]);
+
   const hasContent = checkMessageContent(message);
   const { isInProgress } = checkMessageStatus(message);
   const isPending = isInProgress && !hasContent;
 
   return (
-    <div {...props} className={classes.root}>
+    <div {...props} className={classes.root} ref={rootRef}>
       {isPending && (
         <div className={classes.spinner}>
           <Spinner center />
@@ -82,3 +116,5 @@ function Message({ message, onShow }: Props) {
     </div>
   );
 }
+
+const MESSAGES_GAP = 2 * 16; // 2rem
