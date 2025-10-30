@@ -183,7 +183,7 @@ class BaseDriver(abc.ABC):
                 "--namespace=default",
                 "--create-namespace",
                 "--values=/tmp/agentstack/values.yaml",
-                "--timeout=5m",
+                "--timeout=20m",
                 "--wait",
                 "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
                 *(f"--set={value}" for value in set_values_list),
