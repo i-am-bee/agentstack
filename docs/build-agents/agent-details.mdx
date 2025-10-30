@@ -26,38 +26,61 @@ from agentstack_sdk.a2a.extensions import AgentDetail, AgentDetailContributor, A
 server = Server()
 
 @server.agent(
-    name="Example Agent",
+    name="Example Research Assistant",
     detail=AgentDetail(
-        interaction_mode="multi-turn",  # or "single-turn"
-        user_greeting="Welcome! I'm here to help you with your tasks.",
-        input_placeholder="Ask anything...",
-        license="Apache 2.0",
-        programming_language="Python",
-        framework="BeeAI",
+        interaction_mode="multi-turn", # or single-turn
+        user_greeting="Hi there! I can help you research topics or summarize uploaded documents.",
         tools=[
             AgentDetailTool(
-                name="Weather",
-                description="Get the weather for a given location",
+                name="Web Search",
+                description="Looks up recent and relevant information from the web."
             ),
             AgentDetailTool(
-                name="Search",
-                description="Search the web for current information",
+                name="Document Reader",
+                description="Reads and extracts key insights from uploaded PDFs or text files."
             ),
         ],
-        source_code_url="https://github.com/i-am-bee/agentstack/tree/main/agents",
-        author=AgentDetailContributor(
-            name="AgentStack Team",
-            email="info@beeai.dev",
-            url="https://agentstack.dev",
-        ),
-        contributors=[
-            AgentDetailContributor(
-                name="Additional Contributor",
-                email="contributor@beeai.dev",
-                url="https://agentstack.dev",
+        framework="BeeAI Framework",
+        author={
+            "name": "Agent Stack Team",
+            "email": "team@example.com",
+        },
+        source_code_url="https://github.com/example/example-research-assistant",
+    ),
+    skills=[
+        AgentSkill(
+            id="research",
+            name="Research",
+            description=dedent(
+                """\
+                Finds up-to-date information on a given topic, synthesizes key points, 
+                and summarizes findings in clear, useful responses.
+                """
             ),
-        ]
-    )
+            tags=["Search", "Knowledge"],
+            examples=[
+                "Find recent news about AI ethics in 2025.",
+                "What are the main challenges in renewable energy adoption?",
+                "Give me an overview of current space exploration missions.",
+            ],
+        ),
+        AgentSkill(
+            id="summarization",
+            name="Summarization",
+            description=dedent(
+                """\
+                Reads and summarizes uploaded text or documents, highlighting the 
+                most important ideas, statistics, and conclusions.
+                """
+            ),
+            tags=["Documents", "Summaries"],
+            examples=[
+                "Summarize this PDF report about electric vehicle trends.",
+                "What are the main points from this research article?",
+                "Condense this document into a short summary I can share.",
+            ],
+        ),
+    ],
 )
 async def example_agent(input: Message, context: RunContext):
     """An example agent with detailed configuration"""
