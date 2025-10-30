@@ -314,7 +314,7 @@ importers:
         specifier: 'catalog:'
         version: 5.9.2
 
-  apps/agentstack-web:
+  apps/beeai-web:
     dependencies:
       '@carbon/icons-react':
         specifier: 'catalog:'
