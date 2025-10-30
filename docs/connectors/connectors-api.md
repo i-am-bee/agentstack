@@ -116,13 +116,13 @@ stateDiagram-v2
 
 ## Error handling
 
-The connectors API endpoints returns usual HTTP error statuses. Apart for that, there are two additional mechanisms used by connectors API to relay errors to the client.
+The connectors API endpoints return standard HTTP status codes in responses. Apart from that, there are two additional mechanisms used by connectors API to relay errors to the client.
 
 ### Authorization Code Flow
 
 An error may happen during the authorization code flow as described in [RFC6749 Section 4.1](https://www.rfc-editor.org/rfc/rfc6749#section-4.1.2.1).
 
-When no `redirect_url` has been provided by the client during connection initiation, a valid HTML page is rendered for the user to see, including the error. Otherwise, the user will be redirected to `redirect_url` instead and the `error` and `error_description` query parameters will be included in the redirect.
+When no `redirect_url` has been provided by the client during connection initiation, the server responds with a HTML page containing the error. Otherwise, the user will be redirected to `redirect_url` instead. The `error` and `error_description` query parameters will be included in the redirect.
 
 ### Disconnection
 
