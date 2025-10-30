@@ -107,7 +107,13 @@ if __name__ == "__main__":
 
 ### Tools
 - **`tools`**: List of `AgentDetailTool` objects describing your agent's capabilities
-  - Each tool has a `name` and `description` to help users understand what your agent can do
+  - Each tool has a `name` and `description` to help users understand each tool's purpose
+
+### Skills
+- **`skills`**: List of `AgentSkill` objects that represent distinct, user-facing abilities your agent can perform
+	- Each skill includes an id, name, description, tags, and examples
+	- Examples are displayed in the user interface as starter questions — they help users understand what kinds of requests your agent can handle and encourage exploration
+	- Skills define what your agent can do — for example, “Research” for finding and summarizing information, or “Summarization” for condensing long documents
 
 ### Links and Attribution
 - **`source_code_url`**: Link to the source code repository
