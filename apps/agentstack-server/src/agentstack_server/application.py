@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 
 def get_version():
     try:
-        __version__ = version("beeai-server")
+        __version__ = version("agentstack-server")
     except PackageNotFoundError:
         __version__ = "0.1.0"
 
