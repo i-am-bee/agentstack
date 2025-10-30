@@ -10,11 +10,12 @@ import { listProviders } from '#modules/providers/api/index.ts';
 import { providerKeys } from '#modules/providers/api/keys.ts';
 
 interface Props {
-  onlyUiSupported?: boolean;
+  includeUnsupportedUi?: boolean;
+  includeOffline?: boolean;
   orderBy?: 'name' | 'createdAt';
 }
 
-export function useListAgents({ onlyUiSupported, orderBy }: Props = {}) {
+export function useListAgents({ includeUnsupportedUi, includeOffline, orderBy }: Props = {}) {
   const query = useQuery({
     queryKey: providerKeys.list(),
     queryFn: () => listProviders(),
@@ -25,9 +26,13 @@ export function useListAgents({ onlyUiSupported, orderBy }: Props = {}) {
         items = items.sort(sortProvidersByCreatedAt);
       }
 
+      if (!includeOffline) {
+        items = items.filter(({ state }) => state !== 'offline');
+      }
+
       let agents = items.map(buildAgent);
 
-      if (onlyUiSupported) {
+      if (!includeUnsupportedUi) {
         agents = agents.filter(isAgentUiSupported);
       }
 

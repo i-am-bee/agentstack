@@ -33,7 +33,7 @@ import { DeleteProviderButton } from './DeleteProviderButton';
 export function ProvidersView() {
   const { openModal } = useModal();
   const { data: providers, isPending: isProvidersPending } = useListProviders();
-  const { data: agents, isPending: isAgentsPending } = useListAgents({ onlyUiSupported: true, orderBy: 'createdAt' });
+  const { data: agents, isPending: isAgentsPending } = useListAgents({ orderBy: 'createdAt' });
   const agentsByProvider = groupAgentsByProvider(agents);
 
   const entries = useMemo(
