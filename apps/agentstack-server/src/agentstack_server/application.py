@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager, suppress
 from importlib.metadata import PackageNotFoundError, version
 
 import procrastinate
-from fastapi import APIRouter, FastAPI, HTTPException
+from fastapi import APIRouter, FastAPI, HTTPException, Request
 from fastapi.exception_handlers import http_exception_handler
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
@@ -16,7 +16,6 @@ from fastapi.responses import JSONResponse, ORJSONResponse
 from kink import Container, di, inject
 from opentelemetry.metrics import CallbackOptions, Observation, get_meter
 from procrastinate.exceptions import AlreadyEnqueued
-from starlette.requests import Request
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_500_INTERNAL_SERVER_ERROR
 
 from agentstack_server.api.routes.a2a import router as a2a_router
@@ -131,15 +130,15 @@ def mount_routes(app: FastAPI):
             routes=app.routes,
         )
 
-        base_url = str(request.base_url).rstrip("/")
+        base_url = str(request.base_url)
         openapi_schema["servers"] = [{"url": base_url}]
 
         return JSONResponse(openapi_schema)
 
     @app.get("/api/v1/docs", include_in_schema=False)
     async def custom_docs(request: Request):
-        base_url = str(request.base_url).rstrip("/")
-        openapi_url = f"{base_url}/api/v1/openapi.json"
+        openapi_url = request.url_for(custom_openapi.__name__)
+
         return get_swagger_ui_html(
             openapi_url=openapi_url,
             title="BeeAI Platform API Docs",
