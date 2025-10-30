@@ -10,7 +10,7 @@ import clsx from 'clsx';
 import Link from 'next/link';
 import { useState } from 'react';
 
-import { AGENT_STACK_DOCS_LINK, APP_NAME, FRAMEWORK_DOCS_LINK } from '@/constants';
+import { APP_NAME, FRAMEWORK_DOCS_LINK, PLATFORM_DOCS_LINK } from '@/constants';
 import { routeDefinitions } from '@/utils/router';
 
 import classes from './AppHeader.module.scss';
@@ -66,7 +66,7 @@ const items = [
   },
   {
     label: 'Agent Stack Docs',
-    href: AGENT_STACK_DOCS_LINK,
+    href: PLATFORM_DOCS_LINK,
     Icon: ArrowUpRight,
     isExternal: true,
   },
