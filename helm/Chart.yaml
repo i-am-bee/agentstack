@@ -3,8 +3,8 @@ name: agentstack
 icon: https://raw.githubusercontent.com/i-am-bee/agentstack/main/docs/logo/beeai_framework_dark.svg
 description: A Helm chart for Kubernetes
 type: application
-version: 0.3.7
-appVersion: 0.3.7
+version: 0.4.0-rc1
+appVersion: 0.4.0-rc1
 dependencies:
   - name: common
     repository: oci://registry-1.docker.io/bitnamicharts

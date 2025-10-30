@@ -19,6 +19,120 @@ wheels = [
 ]
 
 [[package]]
+name = "agentstack-cli"
+version = "0.4.0rc1"
+source = { editable = "." }
+dependencies = [
+    { name = "a2a-sdk" },
+    { name = "agentstack-sdk" },
+    { name = "anyio" },
+    { name = "authlib" },
+    { name = "gnureadline", marker = "sys_platform != 'win32'" },
+    { name = "inquirerpy" },
+    { name = "jsf" },
+    { name = "jsonschema" },
+    { name = "openai" },
+    { name = "prompt-toolkit" },
+    { name = "psutil" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "pyyaml" },
+    { name = "requests" },
+    { name = "tenacity" },
+    { name = "typer" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pyright" },
+    { name = "pytest" },
+    { name = "ruff" },
+    { name = "wheel" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "a2a-sdk" },
+    { name = "agentstack-sdk", editable = "../agentstack-sdk-py" },
+    { name = "anyio", specifier = "~=4.10.0" },
+    { name = "authlib", specifier = "~=1.6.3" },
+    { name = "gnureadline", marker = "sys_platform != 'win32'", specifier = "~=8.2.13" },
+    { name = "inquirerpy", specifier = "~=0.3.4" },
+    { name = "jsf", specifier = "~=0.11.2" },
+    { name = "jsonschema", specifier = "~=4.25.1" },
+    { name = "openai", specifier = "~=1.107.1" },
+    { name = "prompt-toolkit", specifier = "~=3.0.52" },
+    { name = "psutil", specifier = "~=7.0.0" },
+    { name = "pydantic", specifier = "~=2.11.7" },
+    { name = "pydantic-settings", specifier = "~=2.10.1" },
+    { name = "pyyaml", specifier = "~=6.0.2" },
+    { name = "requests", specifier = "~=2.32.5" },
+    { name = "tenacity", specifier = "~=9.1.2" },
+    { name = "typer", specifier = "~=0.17.4" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pyright", specifier = ">=1.1.399" },
+    { name = "pytest", specifier = ">=8.3.4" },
+    { name = "ruff", specifier = ">=0.8.5" },
+    { name = "wheel", specifier = ">=0.45.1" },
+]
+
+[[package]]
+name = "agentstack-sdk"
+version = "0.4.0rc1"
+source = { editable = "../agentstack-sdk-py" }
+dependencies = [
+    { name = "a2a-sdk" },
+    { name = "anyio" },
+    { name = "asyncclick" },
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "janus" },
+    { name = "mcp" },
+    { name = "objprint" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-exporter-otlp-proto-http" },
+    { name = "opentelemetry-instrumentation-fastapi" },
+    { name = "opentelemetry-sdk" },
+    { name = "sse-starlette" },
+    { name = "starlette" },
+    { name = "tenacity" },
+    { name = "uvicorn" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "a2a-sdk", specifier = "==0.3.9" },
+    { name = "anyio", specifier = ">=4.9.0" },
+    { name = "asyncclick", specifier = ">=8.1.8" },
+    { name = "fastapi", specifier = ">=0.116.1" },
+    { name = "httpx" },
+    { name = "janus", specifier = ">=2.0.0" },
+    { name = "mcp", specifier = ">=1.12.3" },
+    { name = "objprint", specifier = ">=0.3.0" },
+    { name = "opentelemetry-api", specifier = ">=1.35.0" },
+    { name = "opentelemetry-exporter-otlp-proto-http", specifier = ">=1.35.0" },
+    { name = "opentelemetry-instrumentation-fastapi", specifier = ">=0.56b0" },
+    { name = "opentelemetry-sdk", specifier = ">=1.35.0" },
+    { name = "sse-starlette", specifier = ">=2.2.1" },
+    { name = "starlette", specifier = ">=0.47.2" },
+    { name = "tenacity", specifier = ">=9.1.2" },
+    { name = "uvicorn", specifier = ">=0.35.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.58" },
+    { name = "pyright", specifier = ">=1.1.403" },
+    { name = "pytest", specifier = ">=8.4.1" },
+    { name = "pytest-asyncio", specifier = ">=1.1.0" },
+    { name = "pytest-httpx", specifier = ">=0.35.0" },
+    { name = "ruff", specifier = ">=0.12.3" },
+]
+
+[[package]]
 name = "annotated-types"
 version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
@@ -80,120 +194,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/5d/c6/d9a9db2e71957827e23a34322bde8091b51cb778dcc38885b84c772a1ba9/authlib-1.6.3.tar.gz", hash = "sha256:9f7a982cc395de719e4c2215c5707e7ea690ecf84f1ab126f28c053f4219e610", size = 160836, upload-time = "2025-08-26T12:13:25.206Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/25/2f/efa9d26dbb612b774990741fd8f13c7cf4cfd085b870e4a5af5c82eaf5f1/authlib-1.6.3-py2.py3-none-any.whl", hash = "sha256:7ea0f082edd95a03b7b72edac65ec7f8f68d703017d7e37573aee4fc603f2a48", size = 240105, upload-time = "2025-08-26T12:13:23.889Z" },
-]
-
-[[package]]
-name = "agentstack-cli"
-version = "0.3.7"
-source = { editable = "." }
-dependencies = [
-    { name = "a2a-sdk" },
-    { name = "anyio" },
-    { name = "authlib" },
-    { name = "agentstack-sdk" },
-    { name = "gnureadline", marker = "sys_platform != 'win32'" },
-    { name = "inquirerpy" },
-    { name = "jsf" },
-    { name = "jsonschema" },
-    { name = "openai" },
-    { name = "prompt-toolkit" },
-    { name = "psutil" },
-    { name = "pydantic" },
-    { name = "pydantic-settings" },
-    { name = "pyyaml" },
-    { name = "requests" },
-    { name = "tenacity" },
-    { name = "typer" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "pyright" },
-    { name = "pytest" },
-    { name = "ruff" },
-    { name = "wheel" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "a2a-sdk" },
-    { name = "anyio", specifier = "~=4.10.0" },
-    { name = "authlib", specifier = "~=1.6.3" },
-    { name = "agentstack-sdk", editable = "../agentstack-sdk-py" },
-    { name = "gnureadline", marker = "sys_platform != 'win32'", specifier = "~=8.2.13" },
-    { name = "inquirerpy", specifier = "~=0.3.4" },
-    { name = "jsf", specifier = "~=0.11.2" },
-    { name = "jsonschema", specifier = "~=4.25.1" },
-    { name = "openai", specifier = "~=1.107.1" },
-    { name = "prompt-toolkit", specifier = "~=3.0.52" },
-    { name = "psutil", specifier = "~=7.0.0" },
-    { name = "pydantic", specifier = "~=2.11.7" },
-    { name = "pydantic-settings", specifier = "~=2.10.1" },
-    { name = "pyyaml", specifier = "~=6.0.2" },
-    { name = "requests", specifier = "~=2.32.5" },
-    { name = "tenacity", specifier = "~=9.1.2" },
-    { name = "typer", specifier = "~=0.17.4" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "pyright", specifier = ">=1.1.399" },
-    { name = "pytest", specifier = ">=8.3.4" },
-    { name = "ruff", specifier = ">=0.8.5" },
-    { name = "wheel", specifier = ">=0.45.1" },
-]
-
-[[package]]
-name = "agentstack-sdk"
-version = "0.3.7"
-source = { editable = "../agentstack-sdk-py" }
-dependencies = [
-    { name = "a2a-sdk" },
-    { name = "anyio" },
-    { name = "asyncclick" },
-    { name = "fastapi" },
-    { name = "httpx" },
-    { name = "janus" },
-    { name = "mcp" },
-    { name = "objprint" },
-    { name = "opentelemetry-api" },
-    { name = "opentelemetry-exporter-otlp-proto-http" },
-    { name = "opentelemetry-instrumentation-fastapi" },
-    { name = "opentelemetry-sdk" },
-    { name = "sse-starlette" },
-    { name = "starlette" },
-    { name = "tenacity" },
-    { name = "uvicorn" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "a2a-sdk", specifier = "==0.3.9" },
-    { name = "anyio", specifier = ">=4.9.0" },
-    { name = "asyncclick", specifier = ">=8.1.8" },
-    { name = "fastapi", specifier = ">=0.116.1" },
-    { name = "httpx" },
-    { name = "janus", specifier = ">=2.0.0" },
-    { name = "mcp", specifier = ">=1.12.3" },
-    { name = "objprint", specifier = ">=0.3.0" },
-    { name = "opentelemetry-api", specifier = ">=1.35.0" },
-    { name = "opentelemetry-exporter-otlp-proto-http", specifier = ">=1.35.0" },
-    { name = "opentelemetry-instrumentation-fastapi", specifier = ">=0.56b0" },
-    { name = "opentelemetry-sdk", specifier = ">=1.35.0" },
-    { name = "sse-starlette", specifier = ">=2.2.1" },
-    { name = "starlette", specifier = ">=0.47.2" },
-    { name = "tenacity", specifier = ">=9.1.2" },
-    { name = "uvicorn", specifier = ">=0.35.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.58" },
-    { name = "pyright", specifier = ">=1.1.403" },
-    { name = "pytest", specifier = ">=8.4.1" },
-    { name = "pytest-asyncio", specifier = ">=1.1.0" },
-    { name = "pytest-httpx", specifier = ">=0.35.0" },
-    { name = "ruff", specifier = ">=0.12.3" },
 ]
 
 [[package]]

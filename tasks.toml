@@ -236,7 +236,7 @@ if [[ "$new_version" != *"-rc"* ]]; then perl -pi -e "s/^(LATEST_STABLE_AGENTSTA
 if gum confirm "Release version $new_version now?"; then
   (
     set -eux -o pipefail
-    git add agent-registry.yaml helm/Chart.yaml apps/beeai-{cli,server,sdk-py}/{uv.lock,pyproject.toml} apps/beeai-{ui,web,sdk-ts}/package.json agents/*/uv.lock install.sh
+    git add .
     git commit -m "release: v$new_version"
     git tag "v$new_version"
     git push --atomic origin main "v$new_version"

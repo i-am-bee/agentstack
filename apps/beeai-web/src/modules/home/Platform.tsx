@@ -7,7 +7,7 @@
 import { Deploy, Gui, IbmDeployableArchitecture, Unlocked } from '@carbon/icons-react';
 import Image from 'next/image';
 
-import { PLATFORM_INTRO_LINK } from '@/constants';
+import { PLATFORM_DOCS_LINK } from '@/constants';
 import { LayoutContainer } from '@/layouts/LayoutContainer';
 
 import screenshotsImage from './assets/platform.png';
@@ -26,7 +26,7 @@ export function Platform() {
             <HeadlineWithLink
               title="Agent Stack"
               description="Deploy and share agents with open infrastructure, free from framework or vendor lock-in."
-              buttonProps={{ url: PLATFORM_INTRO_LINK }}
+              buttonProps={{ url: PLATFORM_DOCS_LINK }}
             />
           </div>
 
