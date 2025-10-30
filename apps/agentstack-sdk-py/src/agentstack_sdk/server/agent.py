@@ -3,6 +3,7 @@
 
 import asyncio
 import inspect
+import json
 from asyncio import CancelledError
 from collections.abc import AsyncGenerator, AsyncIterator, Callable, Generator
 from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
@@ -43,6 +44,7 @@ from agentstack_sdk.server.dependencies import extract_dependencies
 from agentstack_sdk.server.logging import logger
 from agentstack_sdk.server.store.context_store import ContextStore
 from agentstack_sdk.server.utils import cancel_task, close_queue
+from agentstack_sdk.util.utils import extract_messages
 
 AgentFunction: TypeAlias = Callable[[], AsyncGenerator[RunYield, RunYieldResume]]
 AgentFunctionFactory: TypeAlias = Callable[
@@ -453,7 +455,8 @@ class Executor(AgentExecutor):
             await task_updater.cancel()
         except Exception as ex:
             logger.error("Error when executing agent", exc_info=ex)
-            await task_updater.failed(task_updater.new_agent_message(parts=[Part(root=TextPart(text=str(ex)))]))
+            msg = json.dumps(extract_messages(ex), indent=2)
+            await task_updater.failed(task_updater.new_agent_message(parts=[Part(root=TextPart(text=msg))]))
         finally:  # cleanup
             await cancel_task(cancellation_task)
             is_cancelling = bool(current_task.cancelling())

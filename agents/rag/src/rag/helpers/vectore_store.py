@@ -55,7 +55,10 @@ async def extract_file(file: File) -> None:
             extraction = await file.get_extraction()
             final_status = extraction.status
             if final_status == "failed":
-                raise RuntimeError(f"Extraction for file {file_id} has failed: {extraction.model_dump_json()}")
+                raise RuntimeError(
+                    f"Extraction for file {file.filename} has failed. \n"
+                    f"Make sure you have docling enabled (`agentstack start --set docling.enabled=true`)"
+                )
             if final_status != "completed":
                 raise TimeoutError("Text extraction is not finished yet")
 

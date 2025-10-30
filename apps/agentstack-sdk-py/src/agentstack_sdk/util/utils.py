@@ -29,3 +29,10 @@ async def parse_stream(response: httpx.Response) -> AsyncIterator[dict[str, Any]
     async for line in response.aiter_lines():
         if line:
             yield json.loads(re.sub("^data:", "", line).strip())
+
+
+def extract_messages(exc: BaseException) -> list[tuple[str, str]]:
+    if isinstance(exc, BaseExceptionGroup):
+        return [(exc_type, msg) for e in exc.exceptions for exc_type, msg in extract_messages(e)]
+    else:
+        return [(type(exc).__name__, str(exc))]
