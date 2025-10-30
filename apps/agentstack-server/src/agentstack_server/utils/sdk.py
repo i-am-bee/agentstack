@@ -33,7 +33,7 @@ class MCPFulfillment(pydantic.BaseModel):
     transport: MCPTransport
 
 
-MCPServiceExtensionURI = "https://a2a-extensions.agentstack.dev/services/mcp/v1"
+MCPServiceExtensionURI = "https://a2a-extensions.agentstack.beeai.dev/services/mcp/v1"
 
 
 class MCPServiceExtensionMetadata(pydantic.BaseModel):

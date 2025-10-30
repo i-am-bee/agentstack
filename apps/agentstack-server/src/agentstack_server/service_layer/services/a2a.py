@@ -145,7 +145,7 @@ class ProxyRequestHandler(RequestHandler):
         self._user = user
         self._uow = uow
         self._injectable_connectors = {
-            connector.url: connector
+            str(connector.url): connector
             for connector in connectors
             if connector.state == ConnectorState.connected
             and connector.auth
@@ -199,10 +199,11 @@ class ProxyRequestHandler(RequestHandler):
             mcp_ext = metadata.get(MCPServiceExtensionURI)
             if mcp_ext:
                 with suppress(ValidationError):
-                    metadata = MCPServiceExtensionMetadata.model_validate(mcp_ext)
-                    for fulfillment in metadata.mcp_fulfillments.values():
+                    ext_meta = MCPServiceExtensionMetadata.model_validate(mcp_ext)
+                    for fulfillment in ext_meta.mcp_fulfillments.values():
                         if fulfillment.transport.type == "streamable_http":
-                            connector = self._injectable_connectors.get(fulfillment.transport.url)
+                            connector = self._injectable_connectors.get(str(fulfillment.transport.url))
+
                             if connector:
                                 assert connector.auth and connector.auth.token
                                 if not fulfillment.transport.headers:
@@ -211,7 +212,7 @@ class ProxyRequestHandler(RequestHandler):
                                     fulfillment.transport.headers["authorization"] = (
                                         f"Bearer {connector.auth.token.access_token}"
                                     )
-                    mcp_ext[MCPServiceExtensionURI] = metadata.model_dump(mode="json")
+                    metadata[MCPServiceExtensionURI] = ext_meta.model_dump(mode="json")
 
     @_handle_exception
     async def on_get_task(self, params: TaskQueryParams, context: ServerCallContext | None = None) -> Task | None:
