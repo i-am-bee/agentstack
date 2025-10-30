@@ -3,6 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import isMimeType from 'validator/lib/isMimeType';
+
+import { ALL_FILES_CONTENT_TYPE, NO_FILES_CONTENT_TYPE } from '#modules/files/constants.ts';
+
 export const noop = () => {};
 
 /**
@@ -23,14 +27,16 @@ export function compareStrings(a: string, b: string): number {
   return a.localeCompare(b, 'en', { sensitivity: 'base' });
 }
 
-export function isMimeType(mimeType: string) {
+export function isValidContentType(type: string) {
   return (
-    mimeType === 'audio/*' ||
-    mimeType === 'video/*' ||
-    mimeType === 'image/*' ||
-    mimeType === 'text/*' ||
-    mimeType === 'application/*' ||
-    /\w+\/[-+.\w]+/g.test(mimeType)
+    type === NO_FILES_CONTENT_TYPE ||
+    type === ALL_FILES_CONTENT_TYPE ||
+    type === 'audio/*' ||
+    type === 'video/*' ||
+    type === 'image/*' ||
+    type === 'text/*' ||
+    type === 'application/*' ||
+    isMimeType(type)
   );
 }
 

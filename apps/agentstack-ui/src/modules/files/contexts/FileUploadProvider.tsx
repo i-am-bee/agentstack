@@ -10,7 +10,7 @@ import { v4 as uuid } from 'uuid';
 
 import { useToast } from '#contexts/Toast/index.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
-import { isMimeType } from '#utils/helpers.ts';
+import { isValidContentType } from '#utils/helpers.ts';
 
 import { useDeleteFile } from '../api/mutations/useDeleteFile';
 import { useUploadFile } from '../api/mutations/useUploadFile';
@@ -100,7 +100,7 @@ export function FileUploadProvider({ allowedContentTypes = [], children }: Props
     [files],
   );
 
-  const validContentType = allowedContentTypes.filter(isMimeType);
+  const validContentType = allowedContentTypes.filter(isValidContentType);
 
   const isDisabled = validContentType.includes(NO_FILES_CONTENT_TYPE) || !validContentType.length;
   const accept = isDisabled

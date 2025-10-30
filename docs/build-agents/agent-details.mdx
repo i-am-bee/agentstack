@@ -1,27 +1,24 @@
 ---
 title: "Agent Details"
-description: "Configure how your agent appears and behaves in the Agent Stack UI"
+description: "Configure how your agent appears and behaves in the GUI"
 ---
 
-The Agent Stack displays agents in both the GUI and CLI. When building your agent, you can configure certain attributes that affect how it appears and behaves in the user interface. The `@server.agent` decorator accepts an `AgentDetails` parameter that controls the visual representation and behavior in the UI.
+When building your agent, you can configure certain attributes that affect how it appears and behaves in the user interface. The `@server.agent` decorator accepts a `detail` parameter with an `AgentDetail` object that controls the visual representation and behavior in the UI.
 
 You can customize various aspects of your agent's presentation, such as:
-- The type of user interface the agent uses
+- The type of user interface the agent uses (chat, form, etc.)
+- Custom user greetings
 - Metadata about tools the agent provides
 - Author and contributor information
-- License and source code details
-- Custom user greetings
+- License, framework, and source code details
 
 ## Basic Configuration
 
-Configuring agent details is straightforward. Import `AgentDetail` and use it in the decorator. Most fields are self-explanatory:
-
+Configuring agent details is straightforward. Import `AgentDetail` and related types, then pass them to the `detail` parameter in the `@server.agent` decorator:
 ```python
 import os
 
-from a2a.types import (
-    Message,
-)
+from a2a.types import Message
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
 from agentstack_sdk.a2a.extensions import AgentDetail, AgentDetailContributor, AgentDetailTool
@@ -29,35 +26,61 @@ from agentstack_sdk.a2a.extensions import AgentDetail, AgentDetailContributor, A
 server = Server()
 
 @server.agent(
+    name="Example Research Assistant",
     detail=AgentDetail(
-        ui_type="chat",
-        user_greeting="Welcome! I'm here to help you with your tasks.",
-        input_placeholder="Ask anything...",
-        license="Apache 2.0",
-        programming_language="Python",
-        framework="BeeAI",
+        interaction_mode="multi-turn", # or single-turn
+        user_greeting="Hi there! I can help you research topics or summarize uploaded documents.",
         tools=[
             AgentDetailTool(
-                name="Weather",
-                description="Get the weather for a given location",
+                name="Web Search",
+                description="Looks up recent and relevant information from the web."
+            ),
+            AgentDetailTool(
+                name="Document Reader",
+                description="Reads and extracts key insights from uploaded PDFs or text files."
             ),
         ],
-        homepage_url="https://github.com/i-am-bee/agentstack/tree/main/agents",
-        source_code_url="https://github.com/i-am-bee/agentstack/tree/main/agents",
-        container_image_url="ghcr.io/agentstack/agentstack-agents:v0.0.1",
-        author=AgentDetailContributor(
-            name="AgentStack",
-            email="info@beeai.dev",
-            url="https://agentstack.dev",
-        ),
-        contributors=[
-            AgentDetailContributor(
-                name="Another Person",
-                email="another@beeai.dev",
-                url="https://agentstack.dev",
+        framework="BeeAI Framework",
+        author={
+            "name": "Agent Stack Team",
+            "email": "team@example.com",
+        },
+        source_code_url="https://github.com/example/example-research-assistant",
+    ),
+    skills=[
+        AgentSkill(
+            id="research",
+            name="Research",
+            description=dedent(
+                """\
+                Finds up-to-date information on a given topic, synthesizes key points, 
+                and summarizes findings in clear, useful responses.
+                """
             ),
-        ]
-    )
+            tags=["Search", "Knowledge"],
+            examples=[
+                "Find recent news about AI ethics in 2025.",
+                "What are the main challenges in renewable energy adoption?",
+                "Give me an overview of current space exploration missions.",
+            ],
+        ),
+        AgentSkill(
+            id="summarization",
+            name="Summarization",
+            description=dedent(
+                """\
+                Reads and summarizes uploaded text or documents, highlighting the 
+                most important ideas, statistics, and conclusions.
+                """
+            ),
+            tags=["Documents", "Summaries"],
+            examples=[
+                "Summarize this PDF report about electric vehicle trends.",
+                "What are the main points from this research article?",
+                "Condense this document into a short summary I can share.",
+            ],
+        ),
+    ],
 )
 async def example_agent(input: Message, context: RunContext):
     """An example agent with detailed configuration"""
@@ -70,3 +93,33 @@ def run():
 if __name__ == "__main__":
     run()
 ```
+
+## Key Fields
+
+### UI Configuration
+- **`interaction_mode`**: Set to `"multi-turn"` for conversational agents or `"single-turn"` for one-shot agents
+- **`user_greeting`**: Welcome message displayed when users first interact with your agent
+
+### Metadata
+- **`framework`**: The framework used to build your agent (e.g., "BeeAI", "LangGraph", "CrewAI")
+- **`programming_language`**: Primary language (e.g., "Python", "JavaScript")
+- **`license`**: Software license (e.g., "Apache 2.0", "MIT")
+
+### Tools
+- **`tools`**: List of `AgentDetailTool` objects describing your agent's capabilities
+  - Each tool has a `name` and `description` to help users understand each tool's purpose
+
+### Skills
+- **`skills`**: List of `AgentSkill` objects that represent distinct, user-facing abilities your agent can perform
+	- Each skill includes an id, name, description, tags, and examples
+	- Examples are displayed in the user interface as starter questions — they help users understand what kinds of requests your agent can handle and encourage exploration
+	- Skills define what your agent can do — for example, “Research” for finding and summarizing information, or “Summarization” for condensing long documents
+
+### Links and Attribution
+- **`source_code_url`**: Link to the source code repository
+- **`author`**: Primary author information (name, email, url)
+- **`contributors`**: List of additional contributors
+
+<Tip>
+The Agent Details extension helps users understand your agent's capabilities before they start using it. Provide clear descriptions and accurate tool information to improve the user experience.
+</Tip>

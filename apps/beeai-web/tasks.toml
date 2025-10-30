@@ -1,86 +1,86 @@
 # check
 
-["agentstack-web:check"]
-depends = ["agentstack-web:check:*"]
+["beeai-web:check"]
+depends = ["beeai-web:check:*"]
 
-["agentstack-web:check:prettier"]
+["beeai-web:check:prettier"]
 depends = ["common:setup:pnpm"]
-dir = "{{config_root}}/apps/agentstack-web"
+dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm prettier --log-level silent --check src"
 sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx", "src/**/*.html", "src/**/*.css", "src/**/*.scss"]
 outputs = { auto = true }
 
-["agentstack-web:check:eslint"]
+["beeai-web:check:eslint"]
 depends = ["common:setup:pnpm"]
-dir = "{{config_root}}/apps/agentstack-web"
+dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm eslint ."
 sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
 outputs = { auto = true }
 
-["agentstack-web:check:tsc"]
+["beeai-web:check:tsc"]
 depends = ["common:setup:pnpm", "agentstack-sdk-ts:build"]
-dir = "{{config_root}}/apps/agentstack-web"
+dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm tsc --noEmit -p tsconfig.json"
 sources = ["src/**/*.ts", "src/**/*.tsx"]
 outputs = { auto = true }
 
-["agentstack-web:check:stylelint"]
+["beeai-web:check:stylelint"]
 depends = ["common:setup:pnpm"]
-dir = "{{config_root}}/apps/agentstack-web"
+dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm stylelint \"src/**/*.css\" \"src/**/*.scss\""
 sources = ["src/**/*.css", "src/**/*.scss"]
 outputs = { auto = true }
 
 # fix
 
-["agentstack-web:fix"]
-depends = ["agentstack-web:fix:*"]
+["beeai-web:fix"]
+depends = ["beeai-web:fix:*"]
 
-["agentstack-web:fix:prettier"]
+["beeai-web:fix:prettier"]
 depends = ["common:setup:pnpm"]
-dir = "{{config_root}}/apps/agentstack-web"
+dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm prettier --log-level silent --write src"
 sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx", "src/**/*.html", "src/**/*.css", "src/**/*.scss"]
 outputs = { auto = true }
 
-["agentstack-web:fix:next"]
+["beeai-web:fix:next"]
 depends = ["common:setup:pnpm"]
-dir = "{{config_root}}/apps/agentstack-web"
+dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm eslint . --fix"
 sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
 outputs = { auto = true }
 
-["agentstack-web:fix:stylelint"]
+["beeai-web:fix:stylelint"]
 depends = ["common:setup:pnpm"]
-dir = "{{config_root}}/apps/agentstack-web"
+dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm stylelint --fix=lax \"src/**/*.css\" \"src/**/*.scss\""
 sources = ["src/**/*.css", "src/**/*.scss"]
 outputs = { auto = true }
 
 # run
 
-["agentstack-web:run"]
-depends = ["agentstack-web:build:nextjs"]
+["beeai-web:run"]
+depends = ["beeai-web:build:nextjs"]
 env.NODE_OPTIONS = "--no-experimental-global-navigator"
-dir = "{{config_root}}/apps/agentstack-web"
+dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm next start"
 
-["agentstack-web:run:dev"]
+["beeai-web:run:dev"]
 depends = ["common:setup:pnpm"]
 env.NODE_OPTIONS = "--no-experimental-global-navigator"
-dir = "{{config_root}}/apps/agentstack-web"
+dir = "{{config_root}}/apps/beeai-web"
 run = "pnpm next dev"
 
 # build
 
-["agentstack-web:build"]
-depends = ["agentstack-web:build:*"]
+["beeai-web:build"]
+depends = ["beeai-web:build:*"]
 dir = "{{config_root}}"
-run = "docker build -t ghcr.io/i-am-bee/agentstack/agentstack-web:local -f ./apps/agentstack-web/Dockerfile --load ."
+run = "docker build -t ghcr.io/i-am-bee/agentstack/beeai-web:local -f ./apps/beeai-web/Dockerfile --load ."
 
-["agentstack-web:build:nextjs"]
+["beeai-web:build:nextjs"]
 depends = ["common:setup:pnpm", "agentstack-sdk-ts:build"]
-dir = "{{config_root}}/apps/agentstack-web"
+dir = "{{config_root}}/apps/beeai-web"
 env.NODE_OPTIONS = "--no-experimental-global-navigator"
 run = "pnpm next build"
 sources = ["*.json", "*.js", "*.mjs", "*.ts", "public/**/*", "src/**/*"]
