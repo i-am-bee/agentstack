@@ -95,43 +95,58 @@ Then check out our [Quickstart Guide](https://docs.beeai.dev/introduction/quicks
 
 ## Migration Guide
 
-### For Users
+The steps below cover all user types, whether you’re running locally, building agents, or hosting your own stack.
 
-1. Uninstall the old platform:
+### If You Run It Locally
+
+If you were using the old BeeAI Platform CLI or local server, you’ll just need to reinstall and switch to the new
+command prefix.
+
+1. Uninstall the old version
 
 ```
 beeai self uninstall
 ```
 
-2. Install Agent Stack:
+2. Install Agent Stack
 
 ```
 sh -c "$(curl -LsSf https://raw.githubusercontent.com/i-am-bee/agentstack/HEAD/install.sh)"
 ```
 
-3. CLI command change:
+3. Use the new CLI
 
 ```
 agentstack [OPTIONS] COMMAND [ARGS]
 ```
 
-### For Agent Builders
+All previous beeai commands now use the agentstack prefix.
 
-**All container images will need to be rebuilt to apply the appropriate changes.**
+### If You Build Agents
 
-1. Update your SDK:
+If you’ve built agents that run on BeeAI Platform, you’ll just need to update your SDK and imports.
+
+1. Install the new SDK
 
 ```
 pip install agentstack-sdk
 ```
 
-2. Update your imports:
+2. Update your imports
 
 ```
 from agentstack_sdk import Server
 ```
 
-3. Rebuild your container images.
+3. Rebuild your container images to apply naming and dependency changes - no code logic changes are required
+
+### If You Host Your Own Stack (via Helm)
+
+If you’re running your own instance using Helm, this release requires a clean reinstall. Simply uninstalling isn’t
+enough because Helm leaves persistent volumes behind. A full reinstall avoids configuration conflicts and ensures
+compatibility with the new version.
+
+**Note:** Old conversations, agent data, and configurations won’t carry over. Start fresh for a clean environment.
 
 ## What’s Next
 
