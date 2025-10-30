@@ -63,10 +63,6 @@
       }
     ]
   },
-  "logo": {
-    "light": "/logo/beeai-lockup.svg",
-    "dark": "/logo/beeai-lockup-white.svg"
-  },
   "navbar": {
     "primary": {
       "type": "button",
