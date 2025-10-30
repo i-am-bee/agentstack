@@ -113,3 +113,17 @@ stateDiagram-v2
     connected --> auth_required: Token expired/invalid
     disconnected --> [*]
 ```
+
+## Error handling
+
+The connectors API endpoints returns usual HTTP error statuses. Apart for that, there are two additional mechanisms used by connectors API to relay errors to the client.
+
+### Authorization Code Flow
+
+An error may happen during the authorization code flow as described in [RFC6749 Section 4.1](https://www.rfc-editor.org/rfc/rfc6749#section-4.1.2.1).
+
+When no `redirect_url` has been provided by the client during connection initiation, a valid HTML page is rendered for the user to see, including the error. Otherwise, the user will be redirected to `redirect_url` instead and the `error` and `error_description` query parameters will be included in the redirect.
+
+### Disconnection
+
+Connector can be asynchronously disconnected at any time. This happen be for various reason including intentional disconnect, refresh token expiration or an arbitrary error. The client MAY check for the `disconnected` state and read `disconnect_reason` to read the description of what happened.

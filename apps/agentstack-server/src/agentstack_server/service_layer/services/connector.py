@@ -149,7 +149,7 @@ class ConnectorService:
             if connector.state not in (ConnectorState.auth_required):
                 return self._create_callback_response(
                     redirect_url=redirect_url,
-                    error="invalid_state",
+                    error="invalid_request",
                     error_description="Connector must be in auth_required state.",
                 )
 
@@ -179,13 +179,15 @@ class ConnectorService:
             return self._create_callback_response(redirect_url=redirect_url)
         except EntityNotFoundError:
             return self._create_callback_response(
-                redirect_url=redirect_url, error="invalid_login", error_description="Invalid or expired login attempt."
+                redirect_url=redirect_url,
+                error="invalid_request",
+                error_description="Invalid or expired login attempt.",
             )
         except Exception:
             logger.error("oAuth callback failed", exc_info=True)
             return self._create_callback_response(
                 redirect_url=redirect_url,
-                error="internal_error",
+                error="server_error",
                 error_description="An internal error has occurred. Please try again later.",
             )
 
