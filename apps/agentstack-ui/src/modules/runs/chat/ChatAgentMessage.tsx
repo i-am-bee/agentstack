@@ -58,10 +58,10 @@ function Message({ message, isLast, containerScrollableRef, onShow }: Props) {
       return;
     } else {
       const containerHeight = containerScrollableRef.current.clientHeight;
-      const listItem = rootRef.current.closest('li');
-      const prevMessageElem = listItem?.nextElementSibling; // Messages are in reverse order
+      const listItemElem = rootRef.current.parentElement;
+      const prevMessageElem = listItemElem?.nextElementSibling; // Messages are in reverse order
 
-      if (prevMessageElem instanceof HTMLElement) {
+      if (prevMessageElem instanceof HTMLLIElement) {
         const nextSiblingHeight = prevMessageElem?.offsetHeight ?? 0;
 
         const availableHeight = containerHeight - nextSiblingHeight - MESSAGES_GAP;
