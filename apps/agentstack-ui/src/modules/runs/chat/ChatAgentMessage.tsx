@@ -59,12 +59,14 @@ function Message({ message, isLast, containerScrollableRef, onShow }: Props) {
     } else {
       const containerHeight = containerScrollableRef.current.clientHeight;
       const listItemElem = rootRef.current.parentElement;
+      const messagesElem = listItemElem?.parentElement;
       const prevMessageElem = listItemElem?.nextElementSibling; // Messages are in reverse order
 
-      if (prevMessageElem instanceof HTMLLIElement) {
+      if (prevMessageElem instanceof HTMLLIElement && messagesElem) {
         const nextSiblingHeight = prevMessageElem?.offsetHeight ?? 0;
+        const rowGap = parseFloat(window.getComputedStyle(messagesElem).rowGap);
 
-        const availableHeight = containerHeight - nextSiblingHeight - MESSAGES_GAP;
+        const availableHeight = Math.max(0, containerHeight - nextSiblingHeight - rowGap);
         rootRef.current.style.minBlockSize = rem(availableHeight);
       }
     }
@@ -116,5 +118,3 @@ function Message({ message, isLast, containerScrollableRef, onShow }: Props) {
     </div>
   );
 }
-
-const MESSAGES_GAP = 2 * 16; // 2rem
