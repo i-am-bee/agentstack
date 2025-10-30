@@ -6,7 +6,7 @@
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
 
 export function useSequentialCompatibleAgents() {
-  const { data: agents, isPending } = useListAgents({ onlyUiSupported: true, orderBy: 'name' });
+  const { data: agents, isPending } = useListAgents({ orderBy: 'name' });
 
   return { agents, isPending };
 }
