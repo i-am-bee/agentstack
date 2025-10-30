@@ -60,7 +60,7 @@ sh -c "$(curl -LsSf https://raw.githubusercontent.com/i-am-bee/agentstack/HEAD/i
 ```
 
 > [!TIP]
-> The one-line script works on Linux and macOS. For manual setup or experimental Windows support, see the [quickstart guide](https://agentstack.beeai.dev/introduction/quickstart).
+> The one-line script works on Linux and macOS. For manual setup or experimental Windows support, see the [quickstart guide](https://docs.beeai.dev/introduction/quickstart).
 
 ### Usage
 
@@ -89,7 +89,7 @@ agentstack run example_agent "Alice"  # Test your agent
 You should see: "Ciao Alice!" 🎉
 
 > [!TIP]
-> Check out [Start Building Agents](https://agentstack.beeai.dev/introduction/start-building-agents) for a complete step-by-step guide to creating your first agent.
+> Check out [Start Building Agents](https://docs.beeai.dev/introduction/start-building-agents) for a complete step-by-step guide to creating your first agent.
 
 ---
 
@@ -124,7 +124,7 @@ A growing collection of community-built agents showcasing various use cases and 
 
 ## Documentation
 
-Visit [agentstack.beeai.dev](https://agentstack.beeai.dev) for full documentation.
+Visit [docs.beeai.dev](https://docs.beeai.dev) for full documentation.
 
 ## Community
 
