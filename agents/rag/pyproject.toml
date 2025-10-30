@@ -7,10 +7,12 @@ authors = [
 ]
 requires-python = ">=3.13,<3.14"
 dependencies = [
-    "beeai-framework[duckduckgo,wikipedia]>=0.1.58",
+    "beeai-framework[duckduckgo,wikipedia]>=0.1.60",
+    "tiktoken>=0.12.0",  # constraint for beeai-framework dependency (first version with musl arm64 wheel)
+    "fastuuid>=0.14.0",  # constraint for beeai-framework dependency (first version with musl arm64 wheel)
     "agentstack-sdk",
     "openai>=1.107.1",
-    "openinference-instrumentation-beeai>=0.1.12",
+    "openinference-instrumentation-beeai>=0.1.13",
     "pydantic-settings>=2.9.0",
     "tenacity>=9.1.2",
     "langchain-text-splitters>=0.3.0",
@@ -27,10 +29,8 @@ agentstack-sdk = { path = "../../apps/agentstack-sdk-py", editable = true }
 server = "rag.agent:serve"
 
 [build-system]
-requires = [
-    "hatchling",
-]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.9.0,<0.10.0"]
+build-backend = "uv_build"
 
 [dependency-groups]
 dev = [

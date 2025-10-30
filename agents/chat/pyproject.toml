@@ -7,7 +7,9 @@ authors = [
 ]
 requires-python = ">=3.13,<3.14"
 dependencies = [
-    "beeai-framework[duckduckgo,wikipedia]>=0.1.58",
+    "beeai-framework[duckduckgo,wikipedia]>=0.1.60",
+    "tiktoken>=0.12.0",  # constraint for beeai-framework dependency (first version with musl arm64 wheel)
+    "fastuuid>=0.14.0",  # constraint for beeai-framework dependency (first version with musl arm64 wheel)
     "openai>=1.107.1",
     "agentstack-sdk",
     "openinference-instrumentation-beeai>=0.1.12",
@@ -25,10 +27,8 @@ agentstack-sdk = { path = "../../apps/agentstack-sdk-py", editable = true }
 server = "chat.agent:serve"
 
 [build-system]
-requires = [
-    "hatchling",
-]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.9.0,<0.10.0"]
+build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
