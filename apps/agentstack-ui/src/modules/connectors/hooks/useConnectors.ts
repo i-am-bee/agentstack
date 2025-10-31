@@ -4,8 +4,13 @@ import { useDisconnectConnector } from '../api/mutations/useDisconnectConnector'
 import { useConnectConnector } from '../api/mutations/useConnectConnector';
 import { useQueryClient } from '@tanstack/react-query';
 import { connectorKeys } from '../api/keys';
+import z from 'zod';
+import { useToast } from '#contexts/Toast/index.ts';
 
-const authorizeOauth = (url: string, onCallback: () => void) => {
+const authorizeOauth = (
+  url: string,
+  onCallback: (props: { error: string | null; errorDescription: string | null }) => void,
+) => {
   const popup = window.open(url);
   if (!popup) {
     throw new Error('Failed to open popup');
@@ -19,8 +24,20 @@ const authorizeOauth = (url: string, onCallback: () => void) => {
     }
   }, 500);
 
-  async function handler(_: unknown) {
-    onCallback();
+  async function handler(message: unknown) {
+    const { success, data: parsedMessage } = z
+      .object({ data: z.object({ redirect_uri: z.string() }) })
+      .safeParse(message);
+
+    if (!success) {
+      throw new Error('Invalid message');
+    }
+
+    const url = new URL(parsedMessage.data.redirect_uri);
+    const error = url.searchParams.get('error');
+    const errorDescription = url.searchParams.get('error_description');
+
+    onCallback({ error, errorDescription });
 
     if (popup) {
       window.removeEventListener('message', handler);
@@ -53,31 +70,45 @@ export const useDisconnect = () => {
   );
 };
 
-export const useConnect = () => {
+const useHandleAuthorizeCallback = () => {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
+
+  return useCallback(
+    ({ error, errorDescription }: { error: string | null; errorDescription: string | null }) => {
+      if (error) {
+        addToast({
+          title: error,
+          subtitle: errorDescription ?? 'An unknown error occurred',
+        });
+      } else {
+        queryClient.invalidateQueries({ queryKey: connectorKeys.list() });
+      }
+    },
+    [addToast, queryClient],
+  );
+};
+
+export const useConnect = () => {
   const { mutateAsync: connectConnector } = useConnectConnector();
+  const handleAuthorizeCallback = useHandleAuthorizeCallback();
 
   return useCallback(
     async (connectorId: string) => {
       const result = await connectConnector(connectorId);
-
-      authorizeOauth(result.auth_request.authorization_endpoint, () => {
-        queryClient.invalidateQueries({ queryKey: connectorKeys.list() });
-      });
+      authorizeOauth(result.auth_request.authorization_endpoint, handleAuthorizeCallback);
     },
-    [connectConnector, queryClient],
+    [connectConnector, handleAuthorizeCallback],
   );
 };
 
 export const useAuthorize = () => {
-  const queryClient = useQueryClient();
+  const handleAuthorizeCallback = useHandleAuthorizeCallback();
 
   return useCallback(
     (authorizationEndpoint: string) => {
-      authorizeOauth(authorizationEndpoint, () => {
-        queryClient.invalidateQueries({ queryKey: connectorKeys.list() });
-      });
+      authorizeOauth(authorizationEndpoint, handleAuthorizeCallback);
     },
-    [queryClient],
+    [handleAuthorizeCallback],
   );
 };
