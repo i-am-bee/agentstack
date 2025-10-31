@@ -14,6 +14,7 @@ import { MainContent } from '#components/layouts/MainContent.tsx';
 import { ViewHeader } from '#components/ViewHeader/ViewHeader.tsx';
 import { ViewStack } from '#components/ViewStack/ViewStack.tsx';
 import { useApp } from '#contexts/App/index.ts';
+import { ConnectorsView } from '#modules/connectors/components/ConnectorsView.tsx';
 import { ProvidersView } from '#modules/providers/components/ProvidersView.tsx';
 import { VariablesView } from '#modules/providers/variables/components/VariablesView.tsx';
 import type { FeatureName } from '#utils/feature-flags.ts';
@@ -59,4 +60,5 @@ const ITEMS: { title: string; component: ComponentType; featureName?: FeatureNam
   { title: 'Variables', component: VariablesView, featureName: 'Variables' },
   { title: 'Agent providers', component: ProvidersView, featureName: 'Providers' },
   { title: 'Theme', component: ThemeView },
+  { title: 'Connectors', component: ConnectorsView, featureName: 'Connectors' },
 ];
