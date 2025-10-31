@@ -4,14 +4,16 @@
  */
 
 import { useMutation } from '@tanstack/react-query';
-import { connectConnector } from '..';
+import { disconnectConnector } from '..';
+import { connectorKeys } from '../keys';
 
-export function useConnectConnector() {
+export function useDisconnectConnector() {
   const mutation = useMutation({
-    mutationFn: connectConnector,
+    mutationFn: disconnectConnector,
     meta: {
+      invalidates: [connectorKeys.list()],
       errorToast: {
-        title: 'Failed to connect service.',
+        title: 'Failed to disconnect service.',
         includeErrorMessage: true,
       },
     },

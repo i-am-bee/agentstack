@@ -3,6 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ApiRequest, ApiResponse } from '#@types/utils.ts';
+import type { ApiRequest } from '#@types/utils.ts';
 
 export type CreateConnectorRequest = ApiRequest<'/api/v1/connectors'>;
