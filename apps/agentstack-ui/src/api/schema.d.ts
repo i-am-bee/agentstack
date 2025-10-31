@@ -640,6 +640,76 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/provider_builds': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Provider Builds */
+    get: operations['list_provider_builds_api_v1_provider_builds_get'];
+    put?: never;
+    /** Create Provider Build */
+    post: operations['create_provider_build_api_v1_provider_builds_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/provider_builds/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Provider Build */
+    get: operations['get_provider_build_api_v1_provider_builds__id__get'];
+    put?: never;
+    post?: never;
+    /** Delete */
+    delete: operations['delete_api_v1_provider_builds__id__delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/provider_builds/{id}/logs': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Stream Logs */
+    get: operations['stream_logs_api_v1_provider_builds__id__logs_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/provider_builds/preview': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Preview Provider Build */
+    post: operations['preview_provider_build_api_v1_provider_builds_preview_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/providers': {
     parameters: {
       query?: never;
@@ -907,6 +977,28 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /**
+     * AddProvider
+     * @description Will add a new provider or update an existing one with the same base docker image ID
+     *     (docker registry + repository, excluding tag)
+     */
+    AddProvider: {
+      /**
+       * Auto Stop Timeout Sec
+       * @description Timeout after which the agent provider will be automatically downscaled if unused.Contact administrator if you need to increase this value.
+       */
+      auto_stop_timeout_sec?: number | null;
+      /**
+       * Type
+       * @default add_provider
+       * @constant
+       */
+      type: 'add_provider';
+      /** Variables */
+      variables?: {
+        [key: string]: string;
+      } | null;
+    };
     /**
      * AgentCapabilities
      * @description Defines optional capabilities supported by an agent.
@@ -1195,6 +1287,64 @@ export interface components {
       tags: string[];
     };
     /** ProviderWithStateResponse */
+    agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__2: {
+      agent_card: components['schemas']['AgentCard-Output'];
+      /**
+       * Auto Stop Timeout
+       * Format: duration
+       * @default PT20M
+       */
+      auto_stop_timeout: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      /** Env */
+      readonly env: components['schemas']['EnvVar'][];
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Last Active At
+       * Format: date-time
+       */
+      last_active_at?: string;
+      last_error?: components['schemas']['ProviderErrorMessage'] | null;
+      /** Managed */
+      readonly managed: boolean;
+      /** Missing Configuration */
+      missing_configuration?: components['schemas']['EnvVar'][];
+      /** Origin */
+      origin: string;
+      /** Registry */
+      registry?:
+        | components['schemas']['GithubRegistryLocation']
+        | components['schemas']['NetworkRegistryLocation']
+        | components['schemas']['FileSystemRegistryLocation']
+        | null;
+      /** Source */
+      source: components['schemas']['DockerImageProviderLocation'] | components['schemas']['NetworkProviderLocation'];
+      /** State */
+      state: components['schemas']['ProviderDeploymentState'] | components['schemas']['UnmanagedState'];
+      readonly type: components['schemas']['ProviderType'];
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at?: string;
+      version_info?: components['schemas']['VersionInfo-Output'];
+    } & {
+      [key: string]: unknown;
+    };
+    /** ProviderWithStateResponse */
     agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__3: {
       agent_card: components['schemas']['AgentCard-Output'];
       /**
@@ -1376,36 +1526,6 @@ export interface components {
     };
     /** FileResponse */
     agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__8: {
-      /** Content Type */
-      content_type: string;
-      /** Context Id */
-      context_id?: string | null;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at?: string;
-      /**
-       * Created By
-       * Format: uuid
-       */
-      created_by: string;
-      /** File Size Bytes */
-      file_size_bytes?: number | null;
-      /** @default user_upload */
-      file_type: components['schemas']['FileType'];
-      /** Filename */
-      filename: string;
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /** Parent File Id */
-      parent_file_id?: string | null;
-    };
-    /** FileResponse */
-    agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__9: {
       /** Content Type */
       content_type: string;
       /** Context Id */
@@ -1754,15 +1874,12 @@ export interface components {
     } & {
       [key: string]: unknown;
     };
-    /** ProviderWithStateResponse */
+    /** FileResponse */
     'agentstack_server__api__schema__common__EntityModel____class_getitem____<locals>__ModelOutput': {
-      agent_card: components['schemas']['AgentCard-Output'];
-      /**
-       * Auto Stop Timeout
-       * Format: duration
-       * @default PT20M
-       */
-      auto_stop_timeout: string;
+      /** Content Type */
+      content_type: string;
+      /** Context Id */
+      context_id?: string | null;
       /**
        * Created At
        * Format: date-time
@@ -1773,44 +1890,19 @@ export interface components {
        * Format: uuid
        */
       created_by: string;
-      /** Env */
-      readonly env: components['schemas']['EnvVar'][];
+      /** File Size Bytes */
+      file_size_bytes?: number | null;
+      /** @default user_upload */
+      file_type: components['schemas']['FileType'];
+      /** Filename */
+      filename: string;
       /**
        * Id
        * Format: uuid
        */
       id: string;
-      /**
-       * Last Active At
-       * Format: date-time
-       */
-      last_active_at?: string;
-      last_error?: components['schemas']['ProviderErrorMessage'] | null;
-      /** Managed */
-      readonly managed: boolean;
-      /** Missing Configuration */
-      missing_configuration?: components['schemas']['EnvVar'][];
-      /** Origin */
-      origin: string;
-      /** Registry */
-      registry?:
-        | components['schemas']['GithubRegistryLocation']
-        | components['schemas']['NetworkRegistryLocation']
-        | components['schemas']['FileSystemRegistryLocation']
-        | null;
-      /** Source */
-      source: components['schemas']['DockerImageProviderLocation'] | components['schemas']['NetworkProviderLocation'];
-      /** State */
-      state: components['schemas']['ProviderDeploymentState'] | components['schemas']['UnmanagedState'];
-      readonly type: components['schemas']['ProviderType'];
-      /**
-       * Updated At
-       * Format: date-time
-       */
-      updated_at?: string;
-      version_info?: components['schemas']['VersionInfo-Output'];
-    } & {
-      [key: string]: unknown;
+      /** Parent File Id */
+      parent_file_id?: string | null;
     };
     /**
      * APIKeySecurityScheme
@@ -1898,6 +1990,19 @@ export interface components {
        */
       file: string;
     };
+    /** BuildConfiguration */
+    BuildConfiguration: {
+      /**
+       * Dockerfile Path
+       * @description Path to Dockerfile relative to the repository path (provider_build.source.path or repository root if not defined)
+       */
+      dockerfile_path?: string | null;
+    };
+    /**
+     * BuildState
+     * @enum {string}
+     */
+    BuildState: 'missing' | 'in_progress' | 'build_completed' | 'completed' | 'failed';
     /** ChatCompletionAllowedToolChoiceParam */
     ChatCompletionAllowedToolChoiceParam: {
       allowed_tools: components['schemas']['ChatCompletionAllowedToolsParam'];
@@ -2488,6 +2593,12 @@ export interface components {
       watsonx_project_id?: string | null;
       /** Watsonx Space Id */
       watsonx_space_id?: string | null;
+    };
+    /** CreateProviderBuildRequest */
+    CreateProviderBuildRequest: {
+      build_configuration?: components['schemas']['BuildConfiguration'] | null;
+      location: components['schemas']['GithubUrl'];
+      on_complete?: components['schemas']['OnCompleteAction'];
     };
     /** CreateProviderRequest */
     CreateProviderRequest: {
@@ -3186,6 +3297,15 @@ export interface components {
      * Format: uri
      */
     NetworkRegistryLocation: string;
+    /** NoAction */
+    NoAction: {
+      /**
+       * Type
+       * @default no_action
+       * @constant
+       */
+      type: 'no_action';
+    };
     /**
      * OAuth2SecurityScheme
      * @description Defines a security scheme using OAuth 2.0.
@@ -3230,6 +3350,10 @@ export interface components {
       implicit?: components['schemas']['ImplicitOAuthFlow'] | null;
       password?: components['schemas']['PasswordOAuthFlow'] | null;
     };
+    OnCompleteAction:
+      | components['schemas']['AddProvider']
+      | components['schemas']['UpdateProvider']
+      | components['schemas']['NoAction'];
     /** Custom */
     openai__types__chat__chat_completion_message_custom_tool_call_param__Custom: {
       /** Input */
@@ -3362,6 +3486,20 @@ export interface components {
       /** Total Count */
       total_count: number;
     };
+    /** PaginatedResult[ProviderBuild] */
+    PaginatedResult_ProviderBuild_: {
+      /**
+       * Has More
+       * @default false
+       */
+      has_more: boolean;
+      /** Items */
+      items: components['schemas']['ProviderBuild'][];
+      /** Next Page Token */
+      readonly next_page_token: string | null;
+      /** Total Count */
+      total_count: number;
+    };
     /** PaginatedResult[VectorStoreDocument] */
     PaginatedResult_VectorStoreDocument_: {
       /**
@@ -3436,6 +3574,43 @@ export interface components {
       variables?: {
         [key: string]: string;
       } | null;
+    };
+    /** ProviderBuild */
+    ProviderBuild: {
+      build_configuration?: components['schemas']['BuildConfiguration'] | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      destination: components['schemas']['DockerImageID'];
+      /** Error Message */
+      error_message?: string | null;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id?: string;
+      /**
+       * @default {
+       *       "type": "no_action"
+       *     }
+       */
+      on_complete: components['schemas']['OnCompleteAction'];
+      /**
+       * Provider Id
+       * @description ID of the provider added or modified by this build
+       */
+      provider_id?: string | null;
+      /** Provider Origin */
+      readonly provider_origin: string;
+      source: components['schemas']['ResolvedGithubUrl'];
+      status: components['schemas']['BuildState'];
     };
     /**
      * ProviderDeploymentState
@@ -3669,6 +3844,23 @@ export interface components {
       default_embedding_model?: string | null;
       /** Default Llm Model */
       default_llm_model?: string | null;
+    };
+    /**
+     * UpdateProvider
+     * @description Will update provider specified by ID
+     */
+    UpdateProvider: {
+      /**
+       * Provider Id
+       * Format: uuid
+       */
+      provider_id: string;
+      /**
+       * Type
+       * @default update_provider
+       * @constant
+       */
+      type: 'update_provider';
     };
     /** UpdateVariablesRequest */
     UpdateVariablesRequest: {
@@ -5009,7 +5201,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__9'];
+          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem____<locals>__ModelOutput'];
         };
       };
       /** @description Validation Error */
@@ -5748,6 +5940,199 @@ export interface operations {
       };
     };
   };
+  list_provider_builds_api_v1_provider_builds_get: {
+    parameters: {
+      query?: {
+        limit?: number;
+        order?: string;
+        order_by?: string;
+        page_token?: string | null;
+        status?: components['schemas']['BuildState'] | null;
+        user_owned?: boolean | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PaginatedResult_ProviderBuild_'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  create_provider_build_api_v1_provider_builds_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateProviderBuildRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ProviderBuild'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_provider_build_api_v1_provider_builds__id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ProviderBuild'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  delete_api_v1_provider_builds__id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  stream_logs_api_v1_provider_builds__id__logs_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  preview_provider_build_api_v1_provider_builds_preview_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateProviderBuildRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ProviderBuild'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   list_providers_api_v1_providers_get: {
     parameters: {
       query?: {
@@ -5830,7 +6215,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem____<locals>__ModelOutput'];
+          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__2'];
         };
       };
       /** @description Validation Error */
