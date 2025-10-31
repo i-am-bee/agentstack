@@ -3,12 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { useCallback } from 'react';
 import { match } from 'ts-pattern';
+
 import { useCreateConnector } from '../api/mutations/useCreateConnector';
 import { useListConnectors } from '../api/queries/useListConnectors';
-import { AddConnectorForm, type CreateConnectorForm } from './AddConnectorForm';
 import { useAuthorize, useConnect, useDisconnect, useRemove } from '../hooks/useConnectors';
-import { useCallback } from 'react';
+import { AddConnectorForm, type CreateConnectorForm } from './AddConnectorForm';
 
 export const ConnectorsView = () => {
   const { mutate: createConnector, isPending: isCreating } = useCreateConnector();

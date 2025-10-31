@@ -5,8 +5,9 @@
 
 import { api } from '#api/index.ts';
 import { ensureData } from '#api/utils.ts';
-import { CreateConnectorRequest } from './types';
 import { BASE_URL } from '#utils/constants.ts';
+
+import type { CreateConnectorRequest } from './types';
 
 export async function createConnector(body: CreateConnectorRequest) {
   const response = await api.POST('/api/v1/connectors', { body });

@@ -3,14 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
+import z from 'zod';
+
+import { useToast } from '#contexts/Toast/index.ts';
+
+import { connectorKeys } from '../api/keys';
+import { useConnectConnector } from '../api/mutations/useConnectConnector';
 import { useDeleteConnector } from '../api/mutations/useDeleteConnector';
 import { useDisconnectConnector } from '../api/mutations/useDisconnectConnector';
-import { useConnectConnector } from '../api/mutations/useConnectConnector';
-import { useQueryClient } from '@tanstack/react-query';
-import { connectorKeys } from '../api/keys';
-import z from 'zod';
-import { useToast } from '#contexts/Toast/index.ts';
 
 const authorizeOauth = (
   url: string,

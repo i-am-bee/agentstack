@@ -14,9 +14,9 @@ import { MainContent } from '#components/layouts/MainContent.tsx';
 import { ViewHeader } from '#components/ViewHeader/ViewHeader.tsx';
 import { ViewStack } from '#components/ViewStack/ViewStack.tsx';
 import { useApp } from '#contexts/App/index.ts';
+import { ConnectorsView } from '#modules/connectors/components/ConnectorsView.tsx';
 import { ProvidersView } from '#modules/providers/components/ProvidersView.tsx';
 import { VariablesView } from '#modules/providers/variables/components/VariablesView.tsx';
-import { ConnectorsView } from '#modules/connectors/components/ConnectorsView.tsx';
 import type { FeatureName } from '#utils/feature-flags.ts';
 
 import { ThemeView } from './ThemeView';
