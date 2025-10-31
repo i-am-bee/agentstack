@@ -6,6 +6,7 @@
 import { api } from '#api/index.ts';
 import { ensureData } from '#api/utils.ts';
 import { CreateConnectorRequest } from './types';
+import { BASE_URL } from '#utils/constants.ts';
 
 export async function createConnector(body: CreateConnectorRequest) {
   const response = await api.POST('/api/v1/connectors', { body });
@@ -30,8 +31,7 @@ export async function connectConnector(connectorId: string) {
   const response = await api.POST('/api/v1/connectors/{connector_id}/connect', {
     params: { path: { connector_id: connectorId } },
     body: {
-      // TODO: proper URL
-      redirect_url: 'http://localhost:3000/oauth-callback',
+      redirect_url: `${BASE_URL}/oauth-callback`,
     },
   });
 
