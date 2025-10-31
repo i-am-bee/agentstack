@@ -10,17 +10,11 @@
   min-block-size: rem(32px);
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  column-gap: $spacing-03;
-  min-inline-size: 0;
-}
-
 .agentName {
   @include line-clamp();
   line-height: math.div(18, 16);
   color: $text-dark;
+  min-inline-size: 0;
 }
 
 .buttons {
