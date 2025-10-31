@@ -83,6 +83,7 @@ class Server:
         request_context_builder: RequestContextBuilder | None = None,
         host: str = "127.0.0.1",
         port: int = 10000,
+        url: str | None = None,
         uds: str | None = None,
         fd: int | None = None,
         loop: Literal["none", "auto", "asyncio", "uvloop"] = "auto",
@@ -138,7 +139,7 @@ class Server:
 
         context_store = context_store or InMemoryContextStore()
         self._agent = self._agent_factory(context_store)
-        self._agent.card.url = f"http://{host}:{port}"
+        self._agent.card.url = url.rstrip("/") if url else f"http://{host}:{port}"
 
         self._self_registration_client = (
             self_registration_client_factory() if self_registration_client_factory else None
