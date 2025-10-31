@@ -31,7 +31,7 @@ async def create_connector(
     request: ConnectorCreateRequest,
     connector_service: ConnectorServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(connectors={"write"}))],
-):
+) -> ConnectorResponse:
     return _to_response(
         await connector_service.create_connector(
             user=user.user,
@@ -48,7 +48,7 @@ async def read_connector(
     connector_id: UUID,
     connector_service: ConnectorServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(connectors={"read"}))],
-):
+) -> ConnectorResponse:
     return _to_response(await connector_service.read_connector(connector_id=connector_id, user=user.user))
 
 
@@ -57,7 +57,7 @@ async def delete_connector(
     connector_id: UUID,
     connector_service: ConnectorServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(connectors={"write"}))],
-):
+) -> None:
     return await connector_service.delete_connector(connector_id=connector_id, user=user.user)
 
 
@@ -65,7 +65,7 @@ async def delete_connector(
 async def list_connectors(
     connector_service: ConnectorServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(connectors={"read"}))],
-):
+) -> PaginatedResult[ConnectorResponse]:
     connectors = await connector_service.list_connectors(user=user.user)
     return PaginatedResult(items=[_to_response(connector) for connector in connectors], total_count=len(connectors))
 
@@ -77,7 +77,7 @@ async def connect_connector(
     connect_request: ConnectorConnectRequest,
     request: Request,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(connectors={"write"}))],
-):
+) -> ConnectorResponse:
     return _to_response(
         await connector_service.connect_connector(
             connector_id=connector_id,
@@ -93,7 +93,7 @@ async def disconnect_connector(
     connector_id: UUID,
     connector_service: ConnectorServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(connectors={"write"}))],
-):
+) -> ConnectorResponse:
     return _to_response(await connector_service.disconnect_connector(connector_id=connector_id, user=user.user))
 
 
