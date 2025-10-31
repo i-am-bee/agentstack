@@ -13,6 +13,7 @@ const featureFlagsSchema = z.strictObject({
   ProviderBuilds: booleanProp(),
   Providers: booleanProp(),
   Variables: booleanProp(),
+  OAuthConnectors: booleanProp(),
 });
 
 export type FeatureFlags = z.infer<typeof featureFlagsSchema>;
