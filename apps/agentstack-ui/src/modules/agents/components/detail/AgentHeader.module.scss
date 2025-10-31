@@ -5,9 +5,16 @@
 
 .root {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   column-gap: $spacing-05;
+  min-block-size: rem(32px);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  column-gap: $spacing-03;
+  min-inline-size: 0;
 }
 
 .agentName {
@@ -17,6 +24,7 @@
 }
 
 .buttons {
+  margin-inline-start: auto;
   display: flex;
   justify-content: flex-end;
   column-gap: $spacing-03;

@@ -5,7 +5,12 @@
 
 .root {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   column-gap: $spacing-05;
+  min-block-size: rem(32px);
+}
+
+.right {
+  margin-inline-start: auto;
 }

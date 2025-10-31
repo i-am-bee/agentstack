@@ -53,7 +53,6 @@ export function UserNav() {
       size="sm"
       aria-label="User navigation"
       direction="top"
-      className={classes.button}
       menuOptionsClass={classes.menu}
     >
       {items.map(({ label, href, Icon, isExternal, hasDivider, onClick }, idx) => {

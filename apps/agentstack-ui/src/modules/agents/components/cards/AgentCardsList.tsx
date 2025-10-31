@@ -14,16 +14,23 @@ import classes from './AgentCardsList.module.scss';
 
 interface Props {
   heading?: string;
+  description?: string;
 }
 
-export function AgentCardsList({ heading }: Props) {
+export function AgentCardsList({ heading, description }: Props) {
   const { data: agents = [], isLoading } = useListAgents({ onlyUiSupported: true, orderBy: 'createdAt' });
 
   const noItems = agents.length === 0 && !isLoading;
 
   return (
     <div className={classes.root}>
-      {heading && <h2 className={classes.heading}>{heading}</h2>}
+      {(heading || description) && (
+        <header className={classes.header}>
+          {heading && <h2 className={classes.heading}>{heading}</h2>}
+
+          {description && <p className={classes.description}>{description}</p>}
+        </header>
+      )}
 
       {noItems ? (
         <NoItemsMessage message="No agent added" />

@@ -1,0 +1,12 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.root {
+  @include line-clamp();
+  font-size: rem(16px);
+  line-height: math.div(18, 16);
+  font-weight: 600;
+  color: $text-dark;
+}

@@ -59,3 +59,15 @@ export function ensureBase64Uri(value: string, contentType?: string | null): str
 
   return `data:${contentType};base64,${value}`;
 }
+
+export function getNameInitials(name: string | null | undefined) {
+  if (!name) {
+    return '';
+  }
+
+  // Names can have unicode characters in them, use unicode aware regex
+  const matches = [...name.matchAll(/(\p{L}{1})\p{L}+/gu)];
+  const initials = (matches.at(0)?.at(1) ?? '') + (matches.at(-1)?.at(1) ?? '');
+
+  return initials.toUpperCase();
+}
