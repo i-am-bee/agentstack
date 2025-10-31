@@ -5,13 +5,15 @@
 
 import { useMutation } from '@tanstack/react-query';
 import { createConnector } from '..';
+import { connectorKeys } from '../keys';
 
 export function useCreateConnector() {
   const mutation = useMutation({
     mutationFn: createConnector,
     meta: {
+      invalidates: [connectorKeys.list()],
       errorToast: {
-        title: 'Failed to create OAuth connector.',
+        title: 'Failed to create connector.',
         includeErrorMessage: true,
       },
     },

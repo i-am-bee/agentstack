@@ -12,22 +12,63 @@ export async function createConnector(body: CreateConnectorRequest) {
   return ensureData(response);
 }
 
+export async function deleteConnector(connectorId: string) {
+  const response = await api.DELETE('/api/v1/connectors/{connector_id}', {
+    params: { path: { connector_id: connectorId } },
+  });
+  return ensureData(response);
+}
+
+export async function disconnectConnector(connectorId: string) {
+  const response = await api.POST('/api/v1/connectors/{connector_id}/disconnect', {
+    params: { path: { connector_id: connectorId } },
+  });
+  return ensureData(response);
+}
+
 export async function connectConnector(connectorId: string) {
   const response = await api.POST('/api/v1/connectors/{connector_id}/connect', {
     params: { path: { connector_id: connectorId } },
     body: {
       // TODO: proper URL
-      redirect_url: 'http://localhost:8333/api/v1/connectors/oauth/callback',
+      redirect_url: 'http://localhost:3000/oauth-callback',
     },
   });
 
-  // TODO: proper type
-  return ensureData(response);
+  return ensureData(response) as AuthRequired;
+}
+
+interface AuthRequired {
+  id: string;
+  url: string;
+  state: 'auth_required';
+  auth_request: {
+    authorization_endpoint: string;
+    type: string;
+  };
+}
+
+interface Connected {
+  id: string;
+  url: string;
+  state: 'connected';
+}
+
+interface Disconnected {
+  id: string;
+  url: string;
+  state: 'disconnected';
+}
+
+interface Created {
+  id: string;
+  url: string;
+  state: 'created';
 }
 
 // TODO: move
 type ListConnectorsResponse = {
-  items: Array<{ id: string; url: string; state: string }>;
+  items: Array<Created | Connected | Disconnected | AuthRequired>;
 };
 
 export async function listConnectors(): Promise<ListConnectorsResponse> {
