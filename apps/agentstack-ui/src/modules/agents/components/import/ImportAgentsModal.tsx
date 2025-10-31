@@ -43,7 +43,7 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
   } = useForm<ImportAgentFormValues>({
     mode: 'onChange',
     defaultValues: {
-      source: ProviderSource.Docker,
+      source: ProviderSource.GitHub,
     },
   });
 
@@ -69,18 +69,18 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
   return (
     <Modal {...modalProps}>
       <ModalHeader buttonOnClick={() => onRequestClose()}>
-        <h2>Import your agent</h2>
+        <h2>Add new agent</h2>
       </ModalHeader>
 
       <ModalBody>
         <form onSubmit={handleSubmit(onSubmit)} className={clsx(classes.form, { [classes.showLogs]: showLogs })}>
           {agent ? (
             <p>
-              <strong>{agent.name}</strong> agent installed successfully.
+              <strong>{agent.name}</strong> agent added successfully.
             </p>
           ) : isPending ? (
             <>
-              <InlineLoading className={classes.loading} description="Importing agent&hellip;" />
+              <InlineLoading className={classes.loading} description="Adding an agent&hellip;" />
 
               {showLogs && (
                 <CodeSnippet className={classes.logs} forceExpand withBorder autoScroll>
@@ -127,7 +127,7 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
                 disabled={isPending}
               >
                 <RadioButton labelText="GitHub" value={ProviderSource.GitHub} />
-                <RadioButton labelText="Docker image" value={ProviderSource.Docker} />
+                <RadioButton labelText="Container image" value={ProviderSource.Docker} />
               </RadioButtonGroup>
 
               {sourceField.value === ProviderSource.GitHub ? (
@@ -135,15 +135,15 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
                   id={`${id}:location`}
                   size="lg"
                   labelText="GitHub repository URL"
-                  placeholder="Type your GitHub repository URL"
+                  placeholder="Enter your agent’s GitHub repository URL"
                   {...register('location', { required: true, disabled: isPending })}
                 />
               ) : (
                 <TextInput
                   id={`${id}:location`}
                   size="lg"
-                  labelText="Docker image URL"
-                  placeholder="Type your Docker image URL"
+                  labelText="Container image URL"
+                  placeholder="Enter your agent’s container image URL"
                   {...register('location', { required: true, disabled: isPending })}
                 />
               )}
@@ -156,21 +156,17 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
         </form>
       </ModalBody>
 
-      <ModalFooter>
-        <Button kind="ghost" onClick={() => onRequestClose()}>
-          {isPending ? 'Cancel' : 'Close'}
-        </Button>
-
-        {!agent && (
+      {!agent && (
+        <ModalFooter>
           <Button
             type="submit"
             onClick={handleSubmit(onSubmit)}
             disabled={isPending || !isValid || (actionRequired && !actionField.value)}
           >
-            {isPending ? <InlineLoading description="Importing&hellip;" /> : 'Continue'}
+            {isPending ? <InlineLoading description="Adding&hellip;" /> : 'Add new agent'}
           </Button>
-        )}
-      </ModalFooter>
+        </ModalFooter>
+      )}
     </Modal>
   );
 }

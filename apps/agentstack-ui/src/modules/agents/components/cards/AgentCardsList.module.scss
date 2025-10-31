@@ -14,8 +14,18 @@ $container: agent-cards-list;
   container-name: $container;
 }
 
+.header {
+  display: flex;
+  flex-direction: column;
+  row-gap: $spacing-02;
+}
+
 .heading {
   @include type-style(heading-03);
+}
+
+.description {
+  color: $text-secondary;
 }
 
 .list {

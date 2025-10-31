@@ -5,6 +5,7 @@
 
 'use client';
 
+import { AppName } from '#components/AppName/AppName.tsx';
 import { AppHeader } from '#components/layouts/AppHeader.tsx';
 import { useParamsFromUrl } from '#hooks/useParamsFromUrl.ts';
 import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
@@ -20,6 +21,8 @@ export function AgentHeader() {
   return (
     <AppHeader>
       <div className={classes.root}>
+        <AppName />
+
         {agent && (
           <>
             <p className={classes.agentName}>{agent.name}</p>

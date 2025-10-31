@@ -8,15 +8,16 @@ import { MainContent } from '#components/layouts/MainContent.tsx';
 import { AgentCardsList } from '#modules/agents/components/cards/AgentCardsList.tsx';
 import { DOCUMENTATION_LINK } from '#utils/constants.ts';
 
+import { HomeHeading } from './HomeHeading';
 import classes from './HomeView.module.scss';
 
 export function HomeView() {
   return (
     <MainContent spacing="sm">
       <Container className={classes.root}>
-        <h1 className={classes.heading}>Welcome to IBM’s Agent Testbed</h1>
+        <HomeHeading />
 
-        <AgentCardsList heading="Discover an agent" />
+        <AgentCardsList heading="Discover agents" description="See working agents in action and try them instantly." />
 
         <footer className={classes.footer}>
           <p className={classes.infoText}>

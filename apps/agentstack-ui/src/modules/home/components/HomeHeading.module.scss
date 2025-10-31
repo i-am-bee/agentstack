@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-.menu {
-  transform: translate(0, -$spacing-02);
+.root {
+  @include type-style(heading-06);
+  margin-block-end: 0;
 }

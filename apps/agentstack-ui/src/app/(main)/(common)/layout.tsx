@@ -3,16 +3,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { CommonHeader } from '#components/layouts/CommonHeader.tsx';
 import { HeaderLayout } from '#components/layouts/HeaderLayout.tsx';
-import { HomeHeader } from '#modules/home/components/HomeHeader.tsx';
-import { HomeView } from '#modules/home/components/HomeView.tsx';
 
-export default async function HomePage() {
+export default function CommonLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <HeaderLayout>
-      <HomeHeader />
+      <CommonHeader />
 
-      <HomeView />
+      {children}
     </HeaderLayout>
   );
 }
