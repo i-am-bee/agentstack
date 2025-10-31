@@ -94,7 +94,7 @@ class ConnectorService:
                     connector.state = ConnectorState.auth_required
                 else:
                     raise PlatformError(
-                        (await err.response.aread()).decode(),
+                        (await err.response.aread()).decode(err.response.encoding or "utf-8"),
                         status_code=status.HTTP_502_BAD_GATEWAY,
                     ) from err
             elif isinstance(err, httpx.RequestError):
