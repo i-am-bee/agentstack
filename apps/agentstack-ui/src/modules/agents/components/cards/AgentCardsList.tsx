@@ -17,7 +17,7 @@ interface Props {
 }
 
 export function AgentCardsList({ heading }: Props) {
-  const { data: agents = [], isLoading } = useListAgents({ onlyUiSupported: true, orderBy: 'createdAt' });
+  const { data: agents = [], isLoading } = useListAgents({ orderBy: 'createdAt' });
 
   const noItems = agents.length === 0 && !isLoading;
 

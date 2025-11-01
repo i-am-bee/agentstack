@@ -62,7 +62,7 @@ interface Props {
 function ComposeProviderWithContext({ agentClient, children }: PropsWithChildren<Props>) {
   const { getContextId } = usePlatformContext();
   const { getFulfillments } = useAgentDemands();
-  const { data: agents } = useListAgents({ onlyUiSupported: true });
+  const { data: agents } = useListAgents();
 
   const searchParams = useSearchParams();
   const { updateSearchParams } = useUpdateSearchParams();
