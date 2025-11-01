@@ -35,7 +35,6 @@ import { SourcesProvider } from '#modules/sources/contexts/SourcesProvider.tsx';
 import { getMessagesSourcesMap } from '#modules/sources/utils.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
-import { routes } from '#utils/router.ts';
 
 import { useAgentDemands } from '../agent-demands';
 import type { FulfillmentsContext } from '../agent-demands/agent-demands-context';
@@ -80,7 +79,6 @@ interface AgentRunProviderProps extends Props {
 
 function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<AgentRunProviderProps>) {
   const queryClient = useQueryClient();
-  const router = useRouter();
   const errorHandler = useHandleError();
 
   const { messages, getMessages, setMessages } = useMessages();
@@ -148,9 +146,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
     setIsPending(false);
     setInput(undefined);
     pendingRun.current = undefined;
-
-    router.push(routes.agentRun({ providerId: agent.provider.id }));
-  }, [setMessages, clearFiles, router, agent.provider.id]);
+  }, [setMessages, clearFiles]);
 
   const checkPendingRun = useCallback(() => {
     if (pendingRun.current || pendingSubscription.current) {
