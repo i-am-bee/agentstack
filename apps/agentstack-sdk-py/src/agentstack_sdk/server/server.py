@@ -139,7 +139,8 @@ class Server:
 
         context_store = context_store or InMemoryContextStore()
         self._agent = self._agent_factory(context_store)
-        self._agent.card.url = url.rstrip("/") if url else f"http://{host}:{port}"
+        card_url = url and url.strip()
+        self._agent.card.url = card_url.rstrip("/") if card_url else f"http://{host}:{port}"
 
         self._self_registration_client = (
             self_registration_client_factory() if self_registration_client_factory else None
