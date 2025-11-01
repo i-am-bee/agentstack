@@ -52,7 +52,7 @@ export function TrajectoryList({ trajectories, isOpen, autoScroll }: Props) {
           })}
           className={clsx(classes.root, { [classes.autoScroll]: autoScroll })}
         >
-          <div>
+          <div className={classes.inner}>
             <div className={classes.border} style={{ blockSize: autoScroll ? `${listHeight}px` : undefined }} />
             <ul className={classes.list} ref={listRef}>
               {trajectories.map((trajectory) => (

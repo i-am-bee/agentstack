@@ -23,6 +23,11 @@ $list-gap: #{rem(28px)};
   }
 }
 
+.inner {
+  display: flex;
+  inline-size: 100%;
+}
+
 .list {
   block-size: 100%;
   padding-inline-start: $spacing-05;
@@ -31,6 +36,7 @@ $list-gap: #{rem(28px)};
   flex-direction: column;
   row-gap: $list-gap;
   position: relative;
+  inline-size: 100%;
 
   .autoScroll & {
     max-block-size: rem(240px);
