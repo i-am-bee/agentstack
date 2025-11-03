@@ -243,7 +243,19 @@ connector:
     - url: "https://mcp.stripe.com"
       metadata:
         name: "Stripe"
-
+        description: "Payment processing and financial infrastructure tools"
+    - url: "https://mcp.box.com"
+      client_id: "6wgwh50ydbozn0b8ft24ivn6ff8fitbj"
+      client_secret: "HbzoqCJchKO6pVLqyzmOk0fm5egDARRU" # Client is treated as public
+      metadata:
+        name: "Box"
+        description: "Search, access and get insights on your Box content"
+    - url: "https://api.githubcopilot.com/mcp"
+      client_id: "Ov23ctgYhFAk0Nk7XZuV"
+      client_secret: "0218882e149081f7ed7ed8db57c8fecf1174a399" # Client is treated as public
+      metadata:
+        name: "GitHub"
+        description: "Access and interact with your GitHub repositories and code intelligence"
 ui:
   replicaCount: 1
   enabled: true

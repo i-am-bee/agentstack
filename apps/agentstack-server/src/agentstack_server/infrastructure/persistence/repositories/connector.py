@@ -27,6 +27,7 @@ connectors = Table(
     Column("created_by", ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
     Column("state", sql_enum(ConnectorState), nullable=True),
     Column("auth", JSON, nullable=True),
+    Column("metadata", JSON, nullable=True),
     # Duplicate to allow indexing
     Column("auth_state", String(256), nullable=True, unique=True, index=True),
     UniqueConstraint("url", "created_by", name="uk_url"),
@@ -90,6 +91,7 @@ class SqlAlchemyConnectorRepository(IConnectorRepository):
             "created_by": connector.created_by,
             "state": connector.state,
             "auth": connector.auth.model_dump(mode="json") if connector.auth else None,
+            "metadata": connector.metadata,
             "auth_state": connector.auth.flow.state
             if connector.auth and connector.auth.flow and connector.auth.flow.type == "code"
             else None,
@@ -105,5 +107,6 @@ class SqlAlchemyConnectorRepository(IConnectorRepository):
                 "created_by": row.created_by,
                 "state": row.state,
                 "auth": row.auth,
+                "metadata": row.metadata,
             }
         )
