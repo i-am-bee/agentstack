@@ -31,7 +31,7 @@ router = APIRouter()
 @router.get("/presets")
 async def list_presets(
     connector_service: ConnectorServiceDependency,
-    user: Annotated[AuthorizedUser, Depends(RequiresPermissions(connectors={"write"}))],
+    user: Annotated[AuthorizedUser, Depends(RequiresPermissions(connectors={"read"}))],
 ) -> PaginatedResult[ConnectorPresetResponse]:
     presets = await connector_service.list_presets()
     return PaginatedResult(items=[_to_preset_response(presets) for presets in presets], total_count=len(presets))
