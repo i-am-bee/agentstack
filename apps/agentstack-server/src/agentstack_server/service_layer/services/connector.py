@@ -60,8 +60,9 @@ class ConnectorService:
 
         preset = self._find_preset(url=url) if match_preset else None
         if preset:
-            client_id = client_id or preset.client_id
-            client_secret = client_secret or preset.client_secret
+            if not client_id:
+                client_id = preset.client_id
+                client_secret = preset.client_secret
             metadata = metadata or preset.metadata
 
         connector = Connector(
