@@ -54,7 +54,7 @@ export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>)
   useEnsurePlatformContext(agent);
 
   if (!agentClient) {
-    return <></>;
+    return null;
   }
 
   return (
@@ -257,6 +257,15 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
         setStats((stats) => ({ ...stats, endTime: Date.now() }));
         pendingRun.current = undefined;
         pendingSubscription.current = undefined;
+
+        console.log('Invalidating contexts...', {
+          listsKey: contextKeys.lists(),
+          historyKey: contextKeys.history({ contextId }),
+          allQueries: queryClient
+            .getQueryCache()
+            .getAll()
+            .map((q) => q.queryKey),
+        });
 
         queryClient.invalidateQueries({ queryKey: contextKeys.lists() });
         queryClient.invalidateQueries({ queryKey: contextKeys.history({ contextId }) });

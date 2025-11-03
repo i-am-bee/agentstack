@@ -9,7 +9,6 @@ import { Container } from '#components/layouts/Container.tsx';
 import { AgentRunGreeting } from '#modules/agents/components/detail/AgentRunGreeting.tsx';
 import { AgentRunHeader } from '#modules/agents/components/detail/AgentRunHeader.tsx';
 import { getAgentPromptExamples } from '#modules/agents/utils.ts';
-import { useMessages } from '#modules/messages/contexts/Messages/index.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 import { routes } from '#utils/router.ts';
 
@@ -21,7 +20,6 @@ import classes from './RunLandingView.module.scss';
 
 export function RunLandingView() {
   const { agent } = useAgentRun();
-  const { messages } = useMessages();
   const { contextId } = usePlatformContext();
 
   const promptExamples = useMemo(() => getAgentPromptExamples(agent), [agent]);
@@ -37,7 +35,7 @@ export function RunLandingView() {
         }),
       );
     }
-  }, [agent, contextId, messages]);
+  }, [agent, contextId]);
 
   return (
     <FileUpload>

@@ -9,7 +9,7 @@ catalog:
   '@carbon/icons-react': ^11.67.0
   '@carbon/react': ^1.91.0
   '@svgr/webpack': ^8.1.0
-  '@tanstack/react-query': ^5.90.2
+  '@tanstack/react-query': ^5.90.6
   '@types/lodash': ^4.17.20
   '@types/node': ^22.18.6
   '@types/react': ^19.1.13

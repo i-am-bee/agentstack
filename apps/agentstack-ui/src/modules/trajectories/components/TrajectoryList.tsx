@@ -52,18 +52,16 @@ export function TrajectoryList({ trajectories, isOpen, autoScroll }: Props) {
           })}
           className={clsx(classes.root, { [classes.autoScroll]: autoScroll })}
         >
-          <div className={classes.inner}>
-            <div className={classes.border} style={{ blockSize: autoScroll ? `${listHeight}px` : undefined }} />
-            <ul className={classes.list} ref={listRef}>
-              {trajectories.map((trajectory) => (
-                <li key={trajectory.id}>
-                  <TrajectoryItem trajectory={trajectory} />
-                </li>
-              ))}
+          <div className={classes.border} style={{ blockSize: autoScroll ? `${listHeight}px` : undefined }} />
+          <ul className={classes.list} ref={listRef}>
+            {trajectories.map((trajectory) => (
+              <li key={trajectory.id}>
+                <TrajectoryItem trajectory={trajectory} />
+              </li>
+            ))}
 
-              {autoScroll && <li ref={autoScrollRef} className={classes.scrollGuard}></li>}
-            </ul>
-          </div>
+            {autoScroll && <li ref={autoScrollRef} className={classes.scrollGuard}></li>}
+          </ul>
         </motion.div>
       )}
     </AnimatePresence>

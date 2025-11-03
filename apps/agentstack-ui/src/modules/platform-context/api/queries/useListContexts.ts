@@ -33,6 +33,7 @@ export function useListContexts(params: ListContextsParams = {}) {
 
       return items as ContextWithMetadata[];
     },
+    staleTime: 5 * 60 * 1000,
   });
 
   return query;

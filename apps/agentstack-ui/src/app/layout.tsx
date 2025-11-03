@@ -6,7 +6,6 @@
 import '#styles/style.scss';
 
 import type { Metadata } from 'next';
-import { Suspense } from 'react';
 
 import { AppProvider } from '#contexts/App/AppProvider.tsx';
 import { runtimeConfig } from '#contexts/App/runtime-config.ts';
@@ -53,11 +52,9 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: darkModeScript }} />
       </head>
       <body>
-        <Suspense>
-          <AppProvider config={runtimeConfig}>
-            <Providers>{children}</Providers>
-          </AppProvider>
-        </Suspense>
+        <AppProvider config={runtimeConfig}>
+          <Providers>{children}</Providers>
+        </AppProvider>
       </body>
     </html>
   );

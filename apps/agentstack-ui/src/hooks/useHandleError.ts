@@ -2,7 +2,7 @@
  * Copyright 2025 © BeeAI a Series of LF Projects, LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
 
 import { UnauthenticatedError } from '#api/errors.ts';
@@ -13,8 +13,6 @@ import { routes } from '#utils/router.ts';
 
 export function useHandleError() {
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { addToast } = useToast();
 
   const handleError = useCallback(
@@ -24,7 +22,7 @@ export function useHandleError() {
       let errorTitle = 'An error occurred';
 
       if (error instanceof UnauthenticatedError) {
-        const callbackUrl = searchParams.toString() ? `${pathname}?${searchParams.toString()}` : pathname;
+        const callbackUrl = window ? window.location.pathname + window.location.search : undefined;
         router.replace(routes.signIn({ callbackUrl }));
         errorTitle = error.message || 'You are not authenticated.';
       }
@@ -40,7 +38,7 @@ export function useHandleError() {
         console.error(error);
       }
     },
-    [addToast, pathname, router, searchParams],
+    [addToast, router],
   );
 
   return handleError;

@@ -30,6 +30,7 @@ $list-gap: #{rem(28px)};
 
 .list {
   block-size: 100%;
+  inline-size: 100%;
   padding-inline-start: $spacing-05;
   padding-block-end: $spacing-05;
   display: flex;

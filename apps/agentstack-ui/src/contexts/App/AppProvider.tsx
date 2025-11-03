@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 'use client';
-
 import type { PropsWithChildren } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 

@@ -42,4 +42,10 @@ export function useSyncRunStateWithRoute() {
       router.replace(routes.agentRun({ providerId: agent.provider.id, contextId: contextIdUrl }));
     }
   }, [agent.provider.id, contextId, contextIdUrl, router]);
+
+  useEffect(() => {
+    if (contextId) {
+      router.refresh();
+    }
+  }, [contextId, router]);
 }

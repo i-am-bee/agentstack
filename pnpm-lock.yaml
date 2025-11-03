@@ -16,8 +16,8 @@ catalogs:
       specifier: ^8.1.0
       version: 8.1.0
     '@tanstack/react-query':
-      specifier: ^5.90.2
-      version: 5.90.2
+      specifier: ^5.90.6
+      version: 5.90.6
     '@types/lodash':
       specifier: ^4.17.20
       version: 4.17.20
@@ -131,7 +131,7 @@ importers:
         version: 1.2.3(@types/react@19.1.13)(react@19.1.1)
       '@tanstack/react-query':
         specifier: 'catalog:'
-        version: 5.90.2(react@19.1.1)
+        version: 5.90.6(react@19.1.1)
       agentstack-sdk:
         specifier: workspace:*
         version: link:../agentstack-sdk-ts
@@ -327,7 +327,7 @@ importers:
         version: link:../agentstack-ui
       '@tanstack/react-query':
         specifier: 'catalog:'
-        version: 5.90.2(react@19.1.1)
+        version: 5.90.6(react@19.1.1)
       clsx:
         specifier: 'catalog:'
         version: 2.1.1
@@ -3029,11 +3029,11 @@ packages:
     resolution: {integrity: sha512-+PmQX0PiAYPMeVYe237LJAYvOMYW1j2rH5YROyS3b4CTVJum34HfRvKvAzozHAQG0TnHNdUfY9nCeUyRAs//cw==}
     engines: {node: '>=14.16'}
 
-  '@tanstack/query-core@5.90.2':
-    resolution: {integrity: sha512-k/TcR3YalnzibscALLwxeiLUub6jN5EDLwKDiO7q5f4ICEoptJ+n9+7vcEFy5/x/i6Q+Lb/tXrsKCggf5uQJXQ==}
+  '@tanstack/query-core@5.90.6':
+    resolution: {integrity: sha512-AnZSLF26R8uX+tqb/ivdrwbVdGemdEDm1Q19qM6pry6eOZ6bEYiY7mWhzXT1YDIPTNEVcZ5kYP9nWjoxDLiIVw==}
 
-  '@tanstack/react-query@5.90.2':
-    resolution: {integrity: sha512-CLABiR+h5PYfOWr/z+vWFt5VsOA2ekQeRQBFSKlcoW6Ndx/f8rfyVmq4LbgOM4GG2qtxAxjLYLOpCNTYm4uKzw==}
+  '@tanstack/react-query@5.90.6':
+    resolution: {integrity: sha512-gB1sljYjcobZKxjPbKSa31FUTyr+ROaBdoH+wSSs9Dk+yDCmMs+TkTV3PybRRVLC7ax7q0erJ9LvRWnMktnRAw==}
     peerDependencies:
       react: ^18 || ^19
 
@@ -11511,11 +11511,11 @@ snapshots:
     dependencies:
       defer-to-connect: 2.0.1
 
-  '@tanstack/query-core@5.90.2': {}
+  '@tanstack/query-core@5.90.6': {}
 
-  '@tanstack/react-query@5.90.2(react@19.1.1)':
+  '@tanstack/react-query@5.90.6(react@19.1.1)':
     dependencies:
-      '@tanstack/query-core': 5.90.2
+      '@tanstack/query-core': 5.90.6
       react: 19.1.1
 
   '@tootallnate/quickjs-emscripten@0.23.0': {}
