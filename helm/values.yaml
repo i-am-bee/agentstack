@@ -238,6 +238,12 @@ tolerations: [ ]
 
 affinity: { }
 
+connector:
+  presets:
+    - url: "https://mcp.stripe.com"
+      metadata:
+        name: "Stripe"
+
 ui:
   replicaCount: 1
   enabled: true

@@ -300,6 +300,11 @@ spec:
               value: {{ include "agentstack.s3.region" . | quote }}
             - name: OBJECT_STORAGE__USE_SSL
               value: {{ ternary "true" "false" (eq (include "agentstack.s3.protocol" .) "https") | quote}}
+            - name: CONNECTOR__PRESETS
+              valueFrom:
+                secretKeyRef:
+                  key: presets.json
+                  name: agentstack-connectors-secret
           volumeMounts:
             {{- if .Values.providerBuilds.externalClusterExecutor.kubeconfig }}
             - name: provider-build-external-kubeconfig
