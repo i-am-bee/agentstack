@@ -18,6 +18,8 @@ class ConnectorCreateRequest(BaseModel):
 
     metadata: Metadata | None = None
 
+    match_preset: bool = True
+
 
 class AuthorizationCodeRequest(BaseModel):
     type: Literal["code"] = "code"
@@ -31,10 +33,15 @@ class ConnectorResponse(BaseModel):
     id: UUID
     url: AnyUrl
     state: ConnectorState
-    auth_request: AuthorizationRequest | None = None
-    disconnect_reason: str | None = None
-    metadata: Metadata | None = None
+    auth_request: AuthorizationRequest | None
+    disconnect_reason: str | None
+    metadata: Metadata | None
 
 
 class ConnectorConnectRequest(BaseModel):
     redirect_url: AnyUrl | None = None
+
+
+class ConnectorPresetResponse(BaseModel):
+    url: AnyUrl
+    metadata: Metadata | None

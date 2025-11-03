@@ -21,6 +21,7 @@ from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 from pydantic import AnyUrl, BaseModel
 
+from agentstack_server.configuration import Configuration, ConnectorPreset
 from agentstack_server.domain.models.common import Metadata
 from agentstack_server.domain.models.connector import (
     Authorization,
@@ -38,16 +39,30 @@ logger = logging.getLogger(__name__)
 
 @inject
 class ConnectorService:
-    def __init__(self, uow: IUnitOfWorkFactory):
+    def __init__(self, uow: IUnitOfWorkFactory, configuration: Configuration):
         self._uow = uow
+        self._configuration = configuration
 
     async def create_connector(
-        self, *, user: User, url: AnyUrl, client_id: str | None, client_secret: str | None, metadata: Metadata | None
+        self,
+        *,
+        user: User,
+        url: AnyUrl,
+        client_id: str | None,
+        client_secret: str | None,
+        metadata: Metadata | None,
+        match_preset: bool = True,
     ) -> Connector:
         if client_secret and not client_id:
             raise PlatformError(
                 "client_id must be present when client_secret is specified", status_code=status.HTTP_400_BAD_REQUEST
             )
+
+        preset = self._find_preset(url=url) if match_preset else None
+        if preset:
+            client_id = client_id or preset.client_id
+            client_secret = client_secret or preset.client_secret
+            metadata = metadata or preset.metadata
 
         connector = Connector(
             url=url,
@@ -225,6 +240,15 @@ class ConnectorService:
             async with self._uow() as uow:
                 await uow.connectors.update(connector=connector)
                 await uow.commit()
+
+    async def list_presets(self) -> list[ConnectorPreset]:
+        return self._configuration.connector.presets
+
+    def _find_preset(self, *, url: AnyUrl) -> ConnectorPreset | None:
+        for preset in self._configuration.connector.presets:
+            if preset.url == url:
+                return preset
+        return None
 
     async def _bootstrap_auth(self, *, connector: Connector, callback_url: str, redirect_url: AnyUrl | None) -> None:
         auth_metadata = await self._discover_auth_metadata(connector=connector)

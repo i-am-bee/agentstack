@@ -219,6 +219,17 @@ class ManagedProviderConfiguration(BaseModel):
     )
 
 
+class ConnectorPreset(BaseModel):
+    url: AnyUrl
+    client_id: str | None = None
+    client_secret: str | None = None
+    metadata: dict[str, str] | None = None
+
+
+class ConnectorConfiguration(BaseModel):
+    presets: list[ConnectorPreset] = Field(default_factory=list)
+
+
 class DoclingExtractionConfiguration(BaseModel):
     backend: Literal["docling"] = "docling"
     enabled: bool = False
@@ -271,6 +282,7 @@ class Configuration(BaseSettings):
     text_extraction: DoclingExtractionConfiguration = Field(default_factory=DoclingExtractionConfiguration)
     context: ContextConfiguration = Field(default_factory=ContextConfiguration)
     a2a_proxy: A2AProxyConfiguration = Field(default_factory=A2AProxyConfiguration)
+    connector: ConnectorConfiguration = Field(default_factory=ConnectorConfiguration)
     k8s_namespace: str | None = None
     k8s_kubeconfig: Path | None = None
 

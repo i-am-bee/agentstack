@@ -15,8 +15,10 @@ from agentstack_server.api.schema.connector import (
     AuthorizationCodeRequest,
     ConnectorConnectRequest,
     ConnectorCreateRequest,
+    ConnectorPresetResponse,
     ConnectorResponse,
 )
+from agentstack_server.configuration import ConnectorPreset
 from agentstack_server.domain.models.common import PaginatedResult
 from agentstack_server.domain.models.connector import Connector
 from agentstack_server.domain.models.permissions import AuthorizedUser
@@ -24,6 +26,15 @@ from agentstack_server.domain.models.permissions import AuthorizedUser
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+@router.get("/presets")
+async def list_presets(
+    connector_service: ConnectorServiceDependency,
+    user: Annotated[AuthorizedUser, Depends(RequiresPermissions(connectors={"write"}))],
+) -> PaginatedResult[ConnectorPresetResponse]:
+    presets = await connector_service.list_presets()
+    return PaginatedResult(items=[_to_preset_response(presets) for presets in presets], total_count=len(presets))
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
@@ -39,6 +50,7 @@ async def create_connector(
             client_id=request.client_id,
             client_secret=request.client_secret,
             metadata=request.metadata,
+            match_preset=request.match_preset,
         )
     )
 
@@ -126,3 +138,7 @@ def _to_response(connector: Connector) -> ConnectorResponse:
         disconnect_reason=connector.disconnect_reason,
         metadata=connector.metadata,
     )
+
+
+def _to_preset_response(preset: ConnectorPreset) -> ConnectorPresetResponse:
+    return ConnectorPresetResponse(url=preset.url, metadata=preset.metadata)
