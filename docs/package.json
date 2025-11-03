@@ -12,6 +12,6 @@
   "license": "ISC",
   "packageManager": "pnpm@9.9.0",
   "devDependencies": {
-    "mintlify": "^4.1.97"
+    "mintlify": "^4.2.186"
   }
 }
