@@ -17,7 +17,7 @@ import { oauthProviderExtension } from './services/oauth-provider';
 import { platformApiExtension } from './services/platform';
 import type { SecretDemands, SecretFulfillments } from './services/secrets';
 import { secretsExtension } from './services/secrets';
-import type { FormDemands, FormFulfillments } from './ui/form';
+import type { FormFulfillments } from './ui/form';
 import { formExtension } from './ui/form';
 import { oauthRequestExtension } from './ui/oauth';
 import type { SettingsDemands, SettingsFulfillments } from './ui/settings';
@@ -31,7 +31,7 @@ export interface Fulfillments {
   oauth: (demand: OAuthDemands) => Promise<OAuthFulfillments>;
   settings: (demand: SettingsDemands) => Promise<SettingsFulfillments>;
   secrets: (demand: SecretDemands) => Promise<SecretFulfillments>;
-  form: (demand: FormDemands) => Promise<FormFulfillments | null>;
+  form: () => Promise<FormFulfillments | null>;
   oauthRedirectUri: () => string | null;
   getContextToken: () => ContextToken;
 }
@@ -92,11 +92,9 @@ export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) 
       fulfilledMetadata = fulfillSecretDemand(fulfilledMetadata, await fulfillments.secrets(secretDemands));
     }
 
-    if (formDemands) {
-      const formFulfillment = await fulfillments.form(formDemands);
-      if (formFulfillment) {
-        fulfilledMetadata = fulfillFormDemand(fulfilledMetadata, formFulfillment);
-      }
+    const formFulfillment = await fulfillments.form();
+    if (formFulfillment) {
+      fulfilledMetadata = fulfillFormDemand(fulfilledMetadata, formFulfillment);
     }
 
     const oauthRedirectUri = fulfillments.oauthRedirectUri();
