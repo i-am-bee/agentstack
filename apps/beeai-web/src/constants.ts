@@ -5,7 +5,7 @@
 
 export const FRAMEWORK_DOCS_LINK = 'https://framework.beeai.dev/introduction/welcome';
 
-export const PLATFORM_DOCS_LINK = 'https://docs.beeai.dev/introduction/welcome';
+export const PLATFORM_DOCS_LINK = 'https://agentstack.beeai.dev/introduction/welcome';
 
 export const GITHUB_LINK = 'https://github.com/i-am-bee';
 

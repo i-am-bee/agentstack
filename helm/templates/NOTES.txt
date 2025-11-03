@@ -37,12 +37,11 @@ Getting started:
     {{- end }}
 {{- end }}
 
-📄 See the documentation for more details and troubleshooting steps: https://docs.beeai.dev/deployment/kubernetes
+📄 See the documentation for more details and troubleshooting steps: https://agentstack.beeai.dev/how-to/deployment-guide
 
 Resources:
 
-    📚 Documentation: https://docs.beeai.dev
-    🤖 Agent Catalog: https://beeai.dev/agents
+    📚 Documentation: https://agentstack.beeai.dev
     💬 Discord Community: https://discord.gg/NradeA6ZNF
     📝 GitHub Issues: https://github.com/i-am-bee/agentstack/issues
 
