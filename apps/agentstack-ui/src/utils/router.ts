@@ -10,8 +10,6 @@ export const routes = {
   notFound: () => '/not-found' as const,
   agentRun: ({ providerId, contextId }: AgentRunParams) =>
     `/run/${encodeURIComponent(providerId)}${contextId ? `/c/${encodeURIComponent(contextId)}` : ''}`,
-  playground: () => '/playground' as const,
-  playgroundSequential: () => '/playground/sequential' as const,
   settings: () => '/settings' as const,
 };
 

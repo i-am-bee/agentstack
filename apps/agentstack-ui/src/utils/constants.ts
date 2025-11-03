@@ -17,12 +17,6 @@ export const GET_SUPPORT_LINK = 'https://github.com/i-am-bee/agentstack/discussi
 
 export const DOCUMENTATION_LINK = 'https://docs.beeai.dev';
 
-export const TRY_LOCALLY_LINK = `${DOCUMENTATION_LINK}/introduction/quickstart`;
-
-export const RUN_LINK = `${DOCUMENTATION_LINK}/how-to/run-agents`;
-
-export const COMPOSE_LINK = `${DOCUMENTATION_LINK}/how-to/compose-agents`;
-
 export const LF_PROJECTS_LINK = 'https://lfprojects.org/';
 
 export const TRUST_PROXY_HEADERS = (process.env.TRUST_PROXY_HEADERS ?? 'false').toLowerCase() === 'true';

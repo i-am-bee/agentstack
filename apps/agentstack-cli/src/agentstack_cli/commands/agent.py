@@ -68,7 +68,6 @@ from pydantic import BaseModel
 from rich.box import HORIZONTALS
 from rich.console import ConsoleRenderable, Group, NewLine
 from rich.panel import Panel
-from rich.rule import Rule
 from rich.text import Text
 
 from agentstack_cli.commands.build import build
@@ -721,54 +720,6 @@ def _create_input_handler(
     return handler
 
 
-def _setup_sequential_workflow(providers: list[Provider], splash_screen: ConsoleRenderable | None = None):
-    prompt_agents = {
-        provider.agent_card.name: provider
-        for provider in providers
-        if (ProviderUtils.detail(provider) or {}).get("interaction_mode") == InteractionMode.SINGLE_TURN
-    }
-    steps = []
-
-    console.print(Rule(title="Configure Workflow", style="white"))
-
-    handle_input = _create_input_handler(
-        [], prompt="Agent: ", choice=list(prompt_agents), placeholder="Select agent", splash_screen=splash_screen
-    )
-    handle_instruction_input = _create_input_handler(
-        [], prompt="Instruction: ", placeholder="Enter agent instruction", splash_screen=splash_screen
-    )
-    i = 0
-
-    while True:
-        if not (agent := handle_input()):
-            console.print(Rule(style="white"))
-            break
-        instruction = handle_instruction_input()
-
-        if not steps:
-            # change prompt for other passes
-            handle_input = _create_input_handler(
-                [],
-                prompt="Agent: ",
-                placeholder="Select agent (Leave empty to execute)",
-                choice=list(prompt_agents),
-                optional=True,
-                splash_screen=splash_screen,
-            )
-            handle_instruction_input = _create_input_handler(
-                [],
-                prompt="Instruction: ",
-                placeholder="Enter agent instruction (leave empty to pass raw output from previous agent)",
-                optional=True,
-                splash_screen=splash_screen,
-            )
-        console.print(Rule(style="dim", characters="·"))
-        i += 1
-        steps.append({"provider_id": prompt_agents[agent].id, "instruction": instruction})
-
-    return steps
-
-
 @app.command("run")
 async def run_agent(
     search_path: typing.Annotated[
@@ -810,7 +761,6 @@ async def run_agent(
 
     ui_annotations = ProviderUtils.detail(provider) or {}
     interaction_mode = ui_annotations.get("interaction_mode")
-    is_sequential_workflow = agent.name in {"sequential_workflow"}
 
     user_greeting = ui_annotations.get("user_greeting", None) or "How can I help you?"
 
@@ -818,10 +768,7 @@ async def run_agent(
     handle_input = _create_input_handler([], splash_screen=splash_screen)
 
     if not input:
-        if (
-            interaction_mode not in {InteractionMode.MULTI_TURN, InteractionMode.SINGLE_TURN}
-            and not is_sequential_workflow
-        ):
+        if interaction_mode not in {InteractionMode.MULTI_TURN, InteractionMode.SINGLE_TURN}:
             err_console.error(
                 f"Agent {agent.name} does not use any supported UIs.\n"
                 + "Please use the agent according to the following examples and schema:"
@@ -862,19 +809,6 @@ async def run_agent(
                 await _run_agent(
                     client,
                     input=await _ask_form_questions(initial_form_render) if initial_form_render else handle_input(),
-                    agent_card=agent,
-                    context_token=context_token,
-                    dump_files_path=dump_files,
-                    handle_input=handle_input,
-                )
-        elif is_sequential_workflow:
-            workflow_steps = _setup_sequential_workflow(providers, splash_screen=splash_screen)
-            console.print()
-            message_part = DataPart(data={"steps": workflow_steps}, metadata={"kind": "configuration"})
-            async with a2a_client(provider.agent_card) as client:
-                await _run_agent(
-                    client,
-                    message_part,
                     agent_card=agent,
                     context_token=context_token,
                     dump_files_path=dump_files,
