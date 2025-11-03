@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export const FRAMEWORK_DOCS_LINK = 'https://framework.beeai.dev/introduction/welcome';
+export const FRAMEWORK_DOCS_LINK = 'https://framework.beeai.dev';
 
-export const PLATFORM_DOCS_LINK = 'https://agentstack.beeai.dev/introduction/welcome';
+export const PLATFORM_DOCS_LINK = 'https://agentstack.beeai.dev';
 
 export const GITHUB_LINK = 'https://github.com/i-am-bee';
 
