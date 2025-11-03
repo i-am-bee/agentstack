@@ -5,7 +5,7 @@
 'use client';
 
 import { matchQuery, MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import type { PropsWithChildren } from 'react';
+import { type PropsWithChildren, useMemo } from 'react';
 
 import { UnauthenticatedError } from '#api/errors.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
@@ -54,7 +54,7 @@ const createQueryClient = ({ handleError }: { handleError: HandleError }) => {
 
 export function QueryProvider({ children }: PropsWithChildren) {
   const handleError = useHandleError();
-  const queryClient = createQueryClient({ handleError });
+  const queryClient = useMemo(() => createQueryClient({ handleError }), [handleError]);
 
   return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 }
