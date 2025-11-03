@@ -5,8 +5,8 @@
 'use client';
 import { ArrowDown } from '@carbon/icons-react';
 import { IconButton, InlineLoading } from '@carbon/react';
-import type { RefObject } from 'react';
 import { useRouter } from 'next/navigation';
+import type { RefObject } from 'react';
 
 import { Container } from '#components/layouts/Container.tsx';
 import { useIsScrolled } from '#hooks/useIsScrolled.ts';
