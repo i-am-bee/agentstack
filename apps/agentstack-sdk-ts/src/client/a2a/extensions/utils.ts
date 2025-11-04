@@ -35,8 +35,7 @@ export function extractServiceExtensionDemands<U extends string, D, F>(extension
     if (!foundExtension?.params) {
       return null;
     }
-
-    const { success, data: parsed, error } = schema.safeParse(foundExtension?.params ?? {});
+    const { success, data: parsed, error } = schema.safeParse(foundExtension.params);
 
     if (!success) {
       console.warn(error);
