@@ -87,7 +87,7 @@ function Message({ message, isLast, isFirst, containerScrollableRef }: Props) {
   const isPending = isInProgress && !hasContent;
 
   return (
-    <div {...props} className={classes.root} ref={rootRef} data-last={isLast ? 'true' : 'false'}>
+    <div {...props} className={classes.root} ref={rootRef}>
       {isPending && (
         <div className={classes.spinner}>
           <Spinner center />
@@ -121,4 +121,4 @@ function Message({ message, isLast, isFirst, containerScrollableRef }: Props) {
   );
 }
 
-const MESSAGE_PLACEHOLDER_HEIGHT = 40;
+const MESSAGE_PLACEHOLDER_HEIGHT = 46; // Height in px to reserve for the last user message to avoid layout shift

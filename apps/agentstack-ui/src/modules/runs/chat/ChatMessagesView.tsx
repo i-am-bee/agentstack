@@ -58,7 +58,7 @@ export function ChatMessagesView() {
                 const isFirst = idx === messages.length - 1;
 
                 return (
-                  <li key={message.id} data-idx={idx}>
+                  <li key={message.id}>
                     {isUser && <ChatUserMessage message={message} />}
 
                     {isAgent && (
