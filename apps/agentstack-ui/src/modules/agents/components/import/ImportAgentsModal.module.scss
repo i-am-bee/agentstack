@@ -3,6 +3,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+.root {
+  :global(.cds--modal-header) {
+    h2 {
+      font-size: rem(24px);
+    }
+  }
+
+  :global(.cds--modal-footer .cds--btn) {
+    padding-inline-end: rem(15px);
+  }
+}
+
 .form {
   display: flex;
   flex-direction: column;
@@ -33,4 +45,12 @@
 .logs {
   max-block-size: rem(256px);
   overflow-y: auto;
+}
+
+@include breakpoint(md) {
+  .root {
+    :global(.cds--modal-header) {
+      padding-block-end: $spacing-05;
+    }
+  }
 }

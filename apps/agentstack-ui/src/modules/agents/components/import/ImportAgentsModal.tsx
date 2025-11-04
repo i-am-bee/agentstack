@@ -22,6 +22,7 @@ import { useController, useForm } from 'react-hook-form';
 
 import { CodeSnippet } from '#components/CodeSnippet/CodeSnippet.tsx';
 import { Modal } from '#components/Modal/Modal.tsx';
+import { useApp } from '#contexts/App/index.ts';
 import type { ModalProps } from '#contexts/Modal/modal-context.ts';
 import { useImportAgent } from '#modules/agents/hooks/useImportAgent.ts';
 import type { ImportAgentFormValues } from '#modules/agents/types.ts';
@@ -31,6 +32,10 @@ import classes from './ImportAgentsModal.module.scss';
 
 export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps) {
   const id = useId();
+
+  const {
+    config: { appName },
+  } = useApp();
 
   const { agent, logs, actionRequired, providersToUpdate, isPending, error, importAgent } = useImportAgent();
 
@@ -67,7 +72,7 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
   }, [sourceField.value, resetField]);
 
   return (
-    <Modal {...modalProps}>
+    <Modal {...modalProps} className={classes.root}>
       <ModalHeader buttonOnClick={() => onRequestClose()}>
         <h2>Add new agent</h2>
       </ModalHeader>
@@ -119,15 +124,16 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
             </div>
           ) : (
             <div className={classes.stack}>
+              <p>Once your agent is published, it will be visible to everyone with access to {appName}.</p>
+
               <RadioButtonGroup
                 name={sourceField.name}
-                legendText="Select the source of your agent provider"
                 valueSelected={sourceField.value}
                 onChange={sourceField.onChange}
                 disabled={isPending}
               >
-                <RadioButton labelText="GitHub" value={ProviderSource.GitHub} />
-                <RadioButton labelText="Container image" value={ProviderSource.Docker} />
+                <RadioButton labelText="Github respository URL" value={ProviderSource.GitHub} />
+                <RadioButton labelText="Container image URL" value={ProviderSource.Docker} />
               </RadioButtonGroup>
 
               {sourceField.value === ProviderSource.GitHub ? (
@@ -136,6 +142,7 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
                   size="lg"
                   labelText="GitHub repository URL"
                   placeholder="Enter your agent’s GitHub repository URL"
+                  hideLabel
                   {...register('location', { required: true, disabled: isPending })}
                 />
               ) : (
@@ -144,6 +151,7 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
                   size="lg"
                   labelText="Container image URL"
                   placeholder="Enter your agent’s container image URL"
+                  hideLabel
                   {...register('location', { required: true, disabled: isPending })}
                 />
               )}
@@ -160,6 +168,7 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
         <ModalFooter>
           <Button
             type="submit"
+            size="sm"
             onClick={handleSubmit(onSubmit)}
             disabled={isPending || !isValid || (actionRequired && !actionField.value)}
           >
