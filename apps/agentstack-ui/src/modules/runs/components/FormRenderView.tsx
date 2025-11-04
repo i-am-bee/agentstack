@@ -14,9 +14,10 @@ import classes from './FormRenderView.module.scss';
 
 interface Props {
   formRender: FormDemands;
+  onMessageSent?: () => void;
 }
 
-export function FormRenderView({ formRender }: Props) {
+export function FormRenderView({ formRender, onMessageSent }: Props) {
   const { agent, submitForm } = useAgentRun();
 
   if (!formRender) {
@@ -29,6 +30,7 @@ export function FormRenderView({ formRender }: Props) {
         definition={formRender}
         showRunSettings
         onSubmit={(values: RunFormValues) => {
+          onMessageSent?.();
           const form = {
             request: formRender,
             response: { id: formRender.id, values },

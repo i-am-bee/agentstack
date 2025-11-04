@@ -3,14 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 
 import { Container } from '#components/layouts/Container.tsx';
 import { AgentRunGreeting } from '#modules/agents/components/detail/AgentRunGreeting.tsx';
 import { AgentRunHeader } from '#modules/agents/components/detail/AgentRunHeader.tsx';
 import { getAgentPromptExamples } from '#modules/agents/utils.ts';
-import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
-import { routes } from '#utils/router.ts';
 
 import { FileUpload } from '../../files/components/FileUpload';
 import { useAgentRun } from '../contexts/agent-run';
@@ -18,24 +16,14 @@ import { SecretsModalPortal } from '../secrets/SecretsModalPortal';
 import { RunInput } from './RunInput';
 import classes from './RunLandingView.module.scss';
 
-export function RunLandingView() {
+interface Props {
+  onMessageSent?: () => void;
+}
+
+export function RunLandingView({ onMessageSent }: Props) {
   const { agent } = useAgentRun();
-  const { contextId } = usePlatformContext();
 
   const promptExamples = useMemo(() => getAgentPromptExamples(agent), [agent]);
-
-  const handleMessageSent = useCallback(() => {
-    if (contextId) {
-      window.history.pushState(
-        null,
-        '',
-        routes.agentRun({
-          providerId: agent.provider.id,
-          contextId,
-        }),
-      );
-    }
-  }, [agent, contextId]);
 
   return (
     <FileUpload>
@@ -44,7 +32,7 @@ export function RunLandingView() {
           <AgentRunGreeting agent={agent} />
         </AgentRunHeader>
 
-        <RunInput promptExamples={promptExamples} onMessageSent={handleMessageSent} />
+        <RunInput promptExamples={promptExamples} onMessageSent={onMessageSent} />
       </Container>
       <SecretsModalPortal />
     </FileUpload>
