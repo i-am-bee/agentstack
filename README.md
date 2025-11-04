@@ -24,10 +24,6 @@
 
 </div>
 
-> [!WARNING]
-> 🏗️ **Under Construction:** BeeAI Platform is being renamed to **Agent Stack**. More updates soon!
-
-
 <div align="center">
   <img src="docs/images/ui-example2.png" alt="UI Example" width="650">
 </div>
