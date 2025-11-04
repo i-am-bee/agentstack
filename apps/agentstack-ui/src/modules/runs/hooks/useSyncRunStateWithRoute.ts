@@ -43,6 +43,8 @@ export function useSyncRunStateWithRoute() {
     }
   }, [agent.provider.id, contextId, contextIdUrl, router]);
 
+  // We have no way to detect the history navigation reliably, so we refresh the route
+  // on each contextId change to refetch the context data.
   useEffect(() => {
     if (contextId) {
       router.refresh();

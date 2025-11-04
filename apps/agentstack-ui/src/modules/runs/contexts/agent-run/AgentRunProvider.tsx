@@ -258,15 +258,6 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
         pendingRun.current = undefined;
         pendingSubscription.current = undefined;
 
-        console.log('Invalidating contexts...', {
-          listsKey: contextKeys.lists(),
-          historyKey: contextKeys.history({ contextId }),
-          allQueries: queryClient
-            .getQueryCache()
-            .getAll()
-            .map((q) => q.queryKey),
-        });
-
         queryClient.invalidateQueries({ queryKey: contextKeys.lists() });
         queryClient.invalidateQueries({ queryKey: contextKeys.history({ contextId }) });
       }
