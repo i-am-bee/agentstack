@@ -62,7 +62,7 @@ async def setup_real_llm(test_configuration, setup_platform_client):
     await ModelProvider.create(
         name="test_config",
         type=test_configuration.llm_provider_type,
-        base_url=test_configuration.llm_api_base,
+        base_url=test_configuration.llm_api_base.get_secret_value(),
         api_key=test_configuration.llm_api_key.get_secret_value(),
     )
     await SystemConfiguration.update(default_llm_model=test_configuration.llm_model)

@@ -10,7 +10,7 @@ from httpx import AsyncClient
 from openai.types import Model as OpenAIModel
 from pydantic import AwareDatetime, BaseModel, Field, HttpUrl, computed_field, model_validator
 
-from agentstack_server.utils.utils import utc_now
+from agentstack_server.utils.utils import omit, utc_now
 
 
 class ModelProviderType(StrEnum):
@@ -161,14 +161,27 @@ class ModelProvider(BaseModel):
                         )
                         for model in models
                     ]
-
+                case ModelProviderType.GITHUB:
+                    model_url = f"{self.base_url.scheme}://{self.base_url.host}/catalog/models"
+                    response = await client.get(model_url, headers={"Authorization": f"Bearer {api_key}"})
+                    models = response.raise_for_status().json()
+                    return [
+                        Model(
+                            id=f"{self.type}:{model['id']}",
+                            display_name=model["name"],
+                            owned_by=model["publisher"],
+                            provider=self._model_provider_info,
+                            **omit(model, {"id", "name", "publisher"}),
+                        )
+                        for model in models
+                    ]
                 case ModelProviderType.RITS:
                     response = await client.get(f"{self.base_url}/models", headers={"RITS_API_KEY": api_key})
                     models = response.raise_for_status().json()["data"]
                     return [self._parse_openai_compatible_model(model) for model in models]
                 case _:
                     response = await client.get(
-                        f"{self.base_url}/models", headers={"Authorization": f"Bearer {api_key}"}
+                        f"{str(self.base_url).rstrip('/')}/models", headers={"Authorization": f"Bearer {api_key}"}
                     )
                     models = response.raise_for_status().json()["data"]
                     return [self._parse_openai_compatible_model(model) for model in models]

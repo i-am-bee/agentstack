@@ -23,7 +23,7 @@ async def test_system_configuration(subtests, test_configuration):
         await ModelProvider.create(
             name="test_config",
             type=test_configuration.llm_provider_type,
-            base_url=test_configuration.llm_api_base,
+            base_url=test_configuration.llm_api_base.get_secret_value(),
             api_key=test_configuration.llm_api_key.get_secret_value(),
         )
         updated_config = await SystemConfiguration.update(default_llm_model=test_configuration.llm_model)

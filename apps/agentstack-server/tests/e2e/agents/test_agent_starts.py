@@ -47,7 +47,10 @@ async def test_remote_agent(subtests, a2a_client_factory, get_final_task_from_st
             with subtests.test("run chat agent for the first time"):
                 num_parallel = 3
                 message = create_text_message_object(
-                    content="Repeat this exactly, use the act tool with final_answer: 'hello world'"
+                    content=(
+                        "How do you say informal hello in italian in 4 letters? "
+                        "Please don't say anything extra and give me a response directly using the final_answer tool"
+                    )
                 )
                 spec = LLMServiceExtensionSpec.from_agent_card(providers[0].agent_card)
                 platform_api_spec = PlatformApiExtensionSpec.from_agent_card(providers[0].agent_card)
@@ -68,7 +71,7 @@ async def test_remote_agent(subtests, a2a_client_factory, get_final_task_from_st
 
                 # Verify response
                 assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
-                assert "hello world" in extract_agent_text_from_stream(task)
+                assert "ciao" in extract_agent_text_from_stream(task).lower()
 
                 # Run 3 requests in parallel (test that each request waits)
                 run_results = await asyncio.gather(
@@ -77,9 +80,9 @@ async def test_remote_agent(subtests, a2a_client_factory, get_final_task_from_st
 
                 for task in run_results:
                     assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
-                    assert "hello world" in extract_agent_text_from_stream(task)
+                    assert "ciao" in extract_agent_text_from_stream(task).lower()
 
             with subtests.test("run chat agent for the second time"):
                 task = await get_final_task_from_stream(a2a_client.send_message(message))
                 assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
-                assert "hello world" in extract_agent_text_from_stream(task)
+                assert "ciao" in extract_agent_text_from_stream(task).lower()

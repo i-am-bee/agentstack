@@ -24,7 +24,7 @@ from agentstack_server.infrastructure.persistence.repositories.db_metadata impor
 class TestConfiguration(BaseSettings):
     model_config = SettingsConfigDict(extra="ignore")
     kubeconfig: Path = Path.home() / ".agentstack/lima/agentstack-local-test/copied-from-guest/kubeconfig.yaml"
-    llm_api_base: str = "http://localhost:11434/v1"
+    llm_api_base: Secret[str] = Secret("http://localhost:11434/v1")
     llm_model: str = "other:llama3.1:8b"
     llm_api_key: Secret[str] = Secret("dummy")
     test_agent_image: str = "ghcr.io/i-am-bee/agentstack/agents/chat:0.4.0-rc1"

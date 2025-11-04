@@ -33,10 +33,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: mise run agentstack-server:test:integration
         env:
-          # TODO: use github models
-          # LLM_API_BASE: "https://models.github.ai/inference"
-          # LLM_MODEL: "meta/Meta-Llama-3.1-8B-Instruct"
-          # LLM_API_KEY: "${{ secrets.GITHUB_TOKEN }}"
-          LLM_API_BASE: "https://api.groq.com/openai/v1"
-          LLM_MODEL: "groq:meta-llama/llama-4-maverick-17b-128e-instruct"
-          LLM_API_KEY: "${{ secrets.GROQ_API_KEY }}"
+          LLM_API_BASE: "${{ secrets.OPENAI_API_BASE }}"
+          LLM_MODEL: "${{ secrets.OPENAI_MODEL }}"
+          LLM_API_KEY: "${{ secrets.OPENAI_API_KEY }}"
+          # LLM_API_BASE: "https://api.groq.com/openai/v1"
+          # LLM_MODEL: "groq:meta-llama/llama-4-maverick-17b-128e-instruct"
+          # LLM_API_KEY: "${{ secrets.GROQ_API_KEY }}"
