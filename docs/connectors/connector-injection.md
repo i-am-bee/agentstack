@@ -1,7 +1,5 @@
 # Connector Injection
 
-Related PR: https://github.com/i-am-bee/agentstack/pull/1357
-
 This document describes how Agent Stack injects OAuth tokens from connectors into agent MCP clients at runtime, enabling secure access to protected MCP servers.
 
 ## Overview
