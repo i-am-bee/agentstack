@@ -3,7 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { useState } from 'react';
+
 import { Container } from '#components/layouts/Container.tsx';
+import { MessageFormProvider } from '#modules/form/contexts/MessageFormProvider.tsx';
 import { MessageFormResponse } from '#modules/messages/components/MessageFormResponse.tsx';
 import { checkMessageContent, isAgentMessage, isUserMessage } from '#modules/messages/utils.ts';
 
@@ -18,6 +21,7 @@ import { TaskStatusBar } from './TaskStatusBar';
 export function HandsOffOutputView() {
   const { input, isPending, cancel, clear } = useAgentRun();
   const { messages } = useMessages();
+  const [showSubmission, setShowSubmission] = useState(false);
 
   const form = messages.find(isUserMessage)?.form;
   const message = messages.find(isAgentMessage);
@@ -29,7 +33,15 @@ export function HandsOffOutputView() {
       <Container size={containerSize} className={classes.holder}>
         <header className={classes.header}>
           <div className={classes.headerContainer}>
-            <div className={classes.input}>{form ? <MessageFormResponse form={form} /> : <p>{input}</p>}</div>
+            <div className={classes.input}>
+              {form ? (
+                <MessageFormProvider showSubmission={showSubmission} setShowSubmission={setShowSubmission}>
+                  <MessageFormResponse form={form} />
+                </MessageFormProvider>
+              ) : (
+                <p>{input}</p>
+              )}
+            </div>
 
             <NewSessionButton onClick={clear} />
           </div>
