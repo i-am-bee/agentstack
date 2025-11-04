@@ -43,7 +43,10 @@ export function getMessagesSourcesMap(messages: UIMessage[]) {
     const { taskId } = message;
 
     if (taskId) {
-      data[taskId] = getMessageSources(message);
+      const prevSources = data[taskId] ?? [];
+      const newSources = getMessageSources(message);
+
+      data[taskId] = [...prevSources, ...newSources];
     }
 
     return data;
