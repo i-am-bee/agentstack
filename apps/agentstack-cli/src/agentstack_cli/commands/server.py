@@ -91,7 +91,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
     )
     server = server or await inquirer.text(message="Enter server URL:").execute_async()  #  type: ignore
 
-    if server is None:
+    if not server:
         raise RuntimeError("No server selected. Action cancelled.")
 
     if "://" not in server:
@@ -175,9 +175,11 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
 
             if not client_id:
                 client_id = await inquirer.text(  #  type: ignore
-                    message="Enter Client ID",
-                    instruction=f"(Redirect URI: {REDIRECT_URI}):",
+                    message="Enter Client ID:",
+                    instruction=f"(Redirect URI: {REDIRECT_URI})",
                 ).execute_async()
+                if not client_id:
+                    raise RuntimeError("Client ID is mandatory. Action cancelled.")
                 client_secret = (
                     await inquirer.text(  #  type: ignore
                         message="Enter Client Secret (optional):"
