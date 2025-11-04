@@ -18,6 +18,8 @@ class AuthToken(BaseModel):
 
 
 class AuthServer(BaseModel):
+    client_id: str = "df82a687-d647-4247-838b-7080d7d83f6c"  # Backwards compatibility default
+    client_secret: str | None = None
     token: AuthToken | None = None
 
 
@@ -48,9 +50,18 @@ class AuthManager:
     def _save(self) -> None:
         self._auth_path.write_text(self._auth.model_dump_json(indent=2))
 
-    def save_auth_token(self, server: str, auth_server: str | None = None, token: dict[str, Any] | None = None) -> None:
-        if auth_server is not None and token is not None:
-            self._auth.servers[server].authorization_servers[auth_server] = AuthServer(token=AuthToken(**token))
+    def save_auth_token(
+        self,
+        server: str,
+        auth_server: str | None = None,
+        client_id: str | None = None,
+        client_secret: str | None = None,
+        token: dict[str, Any] | None = None,
+    ) -> None:
+        if auth_server is not None and client_id is not None and token is not None:
+            self._auth.servers[server].authorization_servers[auth_server] = AuthServer(
+                client_id=client_id, client_secret=client_secret, token=AuthToken(**token)
+            )
         else:
             self._auth.servers[server]  # touch
         self._save()

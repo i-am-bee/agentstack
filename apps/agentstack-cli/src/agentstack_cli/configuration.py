@@ -36,9 +36,11 @@ class Configuration(pydantic_settings.BaseSettings):
         f"https://github.com/i-am-bee/agentstack@v{version()}#path=agent-registry.yaml"
     )
     admin_password: SecretStr | None = None
-    oidc_enabled: bool = False
     server_metadata_ttl: int = 86400
-    client_id: str = "df82a687-d647-4247-838b-7080d7d83f6c"  # pre-registered with AS
+
+    oidc_enabled: bool = False
+    client_id: str | None = None
+    client_secret: str | None = None
 
     @property
     def lima_home(self) -> pathlib.Path:

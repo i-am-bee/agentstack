@@ -134,6 +134,10 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
         auth_servers = metadata.get("authorization_servers", [])
         auth_server = None
         token = None
+
+        client_id = config.client_id
+        client_secret = config.client_secret
+
         if auth_servers:
             if len(auth_servers) == 1:
                 auth_server = auth_servers[0]
@@ -154,15 +158,41 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                 except Exception as e:
                     raise RuntimeError(f"OIDC discovery failed: {e}") from e
 
+            registration_endpoint = oidc["registration_endpoint"]
+            if not client_id and registration_endpoint:
+                async with httpx.AsyncClient() as client:
+                    try:
+                        resp = await client.post(
+                            registration_endpoint,
+                            json={"client_name": "Agent Stack CLI", "redirect_uris": [REDIRECT_URI]},
+                        )
+                        resp.raise_for_status()
+                        data = resp.json()
+                        client_id = data["client_id"]
+                        client_secret = data["client_secret"]
+                    except Exception:
+                        console.warning("Dynamic client registration failed. Proceed with manual input.")
+
+            if not client_id:
+                client_id = await inquirer.text(  #  type: ignore
+                    message="Enter Client ID:"
+                ).execute_async()
+                client_secret = (
+                    await inquirer.text(  #  type: ignore
+                        message="Enter Client Secret (optional):"
+                    ).execute_async()
+                    or None
+                )
+
             code_verifier = generate_token(64)
 
             auth_url = f"{oidc['authorization_endpoint']}?{
                 urlencode(
                     {
-                        'client_id': config.client_id,
+                        'client_id': client_id,
                         'response_type': 'code',
                         'redirect_uri': REDIRECT_URI,
-                        'scope': ' '.join(metadata.get('scopes_supported', ['openid'])),
+                        'scope': ' '.join(metadata.get('scopes_supported', ['openid', 'email', 'profile'])),
                         'code_challenge': typing.cast(str, create_s256_code_challenge(code_verifier)),
                         'code_challenge_method': 'S256',
                     }
@@ -182,7 +212,8 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                             "grant_type": "authorization_code",
                             "code": code,
                             "redirect_uri": REDIRECT_URI,
-                            "client_id": config.client_id,
+                            "client_id": client_id,
+                            "client_secret": client_secret,
                             "code_verifier": code_verifier,
                         },
                     )
@@ -194,7 +225,13 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
             if not token:
                 raise RuntimeError("Login timed out or not successful.")
 
-        config.auth_manager.save_auth_token(server, auth_server, token)
+        config.auth_manager.save_auth_token(
+            server=server,
+            auth_server=auth_server,
+            client_id=client_id,
+            client_secret=client_secret,
+            token=token,
+        )
 
     config.auth_manager.active_server = server
     config.auth_manager.active_auth_server = auth_server
