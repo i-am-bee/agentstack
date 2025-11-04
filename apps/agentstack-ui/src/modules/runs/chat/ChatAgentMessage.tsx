@@ -27,8 +27,8 @@ import classes from './ChatAgentMessage.module.scss';
 interface Props {
   message: UIAgentMessage;
   isLast?: boolean;
+  isFirst?: boolean;
   containerScrollableRef?: RefObject<HTMLDivElement | null>;
-  onShow?: () => void;
 }
 
 export function ChatAgentMessage(props: Props) {
@@ -39,15 +39,11 @@ export function ChatAgentMessage(props: Props) {
   );
 }
 
-function Message({ message, isLast, containerScrollableRef, onShow }: Props) {
+function Message({ message, isLast, isFirst, containerScrollableRef }: Props) {
   const contentRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
 
   const { props } = useMessageInteractionProps();
-
-  useEffect(() => {
-    onShow?.();
-  }, [onShow]);
 
   const updateHeight = useCallback(() => {
     if (!containerScrollableRef?.current || !rootRef.current) {
@@ -63,15 +59,20 @@ function Message({ message, isLast, containerScrollableRef, onShow }: Props) {
       const messagesElem = listItemElem?.parentElement;
       const prevMessageElem = listItemElem?.nextElementSibling; // Messages are in reverse order
 
-      if (prevMessageElem instanceof HTMLLIElement && messagesElem) {
-        const nextSiblingHeight = prevMessageElem?.offsetHeight ?? 0;
-        const rowGap = parseFloat(window.getComputedStyle(messagesElem).rowGap);
+      if (messagesElem) {
+        const nextSiblingHeight =
+          prevMessageElem instanceof HTMLLIElement
+            ? prevMessageElem.offsetHeight
+            : isFirst
+              ? MESSAGE_PLACEHOLDER_HEIGHT
+              : 0;
+        const rowGap = nextSiblingHeight ? parseFloat(window.getComputedStyle(messagesElem).rowGap) : 0;
 
         const availableHeight = Math.max(0, containerHeight - nextSiblingHeight - rowGap);
         rootRef.current.style.minBlockSize = rem(availableHeight);
       }
     }
-  }, [isLast, containerScrollableRef]);
+  }, [containerScrollableRef, isLast, isFirst]);
 
   useEffect(() => {
     updateHeight();
@@ -86,7 +87,7 @@ function Message({ message, isLast, containerScrollableRef, onShow }: Props) {
   const isPending = isInProgress && !hasContent;
 
   return (
-    <div {...props} className={classes.root} ref={rootRef}>
+    <div {...props} className={classes.root} ref={rootRef} data-last={isLast ? 'true' : 'false'}>
       {isPending && (
         <div className={classes.spinner}>
           <Spinner center />
@@ -119,3 +120,5 @@ function Message({ message, isLast, containerScrollableRef, onShow }: Props) {
     </div>
   );
 }
+
+const MESSAGE_PLACEHOLDER_HEIGHT = 40;

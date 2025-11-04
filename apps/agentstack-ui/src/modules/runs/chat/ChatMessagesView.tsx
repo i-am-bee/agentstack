@@ -52,27 +52,29 @@ export function ChatMessagesView() {
               {messages.map((message, idx) => {
                 const isUser = isUserMessage(message);
                 const isAgent = isAgentMessage(message);
-                const isLast = idx == 0; // messages are displayed in reverse order
+
+                // messages are displayed in reverse order
+                const isLast = idx === 0;
+                const isFirst = idx === messages.length - 1;
 
                 return (
-                  <li key={message.id} className={classes.message}>
+                  <li key={message.id} data-idx={idx}>
                     {isUser && <ChatUserMessage message={message} />}
 
                     {isAgent && (
                       <ChatAgentMessage
                         message={message}
-                        onShow={isLast ? scrollToBottom : undefined}
                         isLast={isLast}
+                        isFirst={isFirst}
                         containerScrollableRef={scrollElementRef}
                       />
                     )}
 
                     {isLast && <div ref={observeElementRef} />}
+                    {isFirst && hasNextPage && <div ref={fetchNextPageInViewAnchorRef} />}
                   </li>
                 );
               })}
-
-              {hasNextPage && <li ref={fetchNextPageInViewAnchorRef}> </li>}
 
               {isFetchingNextPage && (
                 <li className={classes.loading}>
