@@ -4,6 +4,7 @@
  */
 
 import { rem } from '@carbon/layout';
+import type { RefObject } from 'react';
 import { useCallback, useEffect, useRef } from 'react';
 
 import { Spinner } from '#components/Spinner/Spinner.tsx';
@@ -26,7 +27,7 @@ import classes from './ChatAgentMessage.module.scss';
 interface Props {
   message: UIAgentMessage;
   isLast?: boolean;
-  containerScrollableRef?: React.RefObject<HTMLDivElement>;
+  containerScrollableRef?: RefObject<HTMLDivElement | null>;
   onShow?: () => void;
 }
 

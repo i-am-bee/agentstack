@@ -6,7 +6,6 @@
 import { ArrowDown } from '@carbon/icons-react';
 import { IconButton, InlineLoading } from '@carbon/react';
 import { useRouter } from 'next/navigation';
-import type { RefObject } from 'react';
 
 import { Container } from '#components/layouts/Container.tsx';
 import { useIsScrolled } from '#hooks/useIsScrolled.ts';
@@ -64,7 +63,7 @@ export function ChatMessagesView() {
                         message={message}
                         onShow={isLast ? scrollToBottom : undefined}
                         isLast={isLast}
-                        containerScrollableRef={scrollElementRef as RefObject<HTMLDivElement>}
+                        containerScrollableRef={scrollElementRef}
                       />
                     )}
 

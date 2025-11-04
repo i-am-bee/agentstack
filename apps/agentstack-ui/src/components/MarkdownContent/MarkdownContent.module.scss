@@ -5,27 +5,31 @@
 
 .root {
   @include type-style(body-01);
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
 
   > * + * {
     margin-block-start: rem(20px);
   }
 
-  p {
+  p,
+  ol,
+  ul,
+  blockquote {
     font-size: inherit;
     line-height: inherit;
     letter-spacing: inherit;
   }
 
+  ul,
+  ol {
+    padding-inline-start: $spacing-06;
+  }
+
   ul {
     list-style: disc;
-    padding-inline-start: $spacing-06;
   }
 
   ol {
     list-style: decimal;
-    padding-inline-start: $spacing-06;
   }
 
   ol ul {
@@ -47,13 +51,24 @@
     }
   }
 
-  h2 {
-    @include type-style(heading-03);
+  h1 {
+    @include type-style(heading-04);
+    margin-block-end: 0;
   }
 
-  h3,
+  h2 {
+    @include type-style(heading-03);
+    font-weight: 600;
+  }
+
+  h3 {
+    font-size: rem(18px);
+    line-height: math.div(24, 18);
+    font-weight: 600;
+  }
+
   h4 {
-    @include type-style(heading-01);
+    @include type-style(heading-02);
   }
 
   h5,
@@ -72,5 +87,16 @@
 
   pre {
     white-space: pre-wrap;
+  }
+
+  blockquote {
+    padding-block: $spacing-03;
+    padding-inline-start: $spacing-05;
+    border-inline-start: $spacing-01 solid $border-subtle-00;
+    color: $text-secondary;
+  }
+
+  a {
+    overflow-wrap: anywhere;
   }
 }

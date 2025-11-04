@@ -11,6 +11,8 @@
 
 .table {
   @include type-style(body-01);
+  table-layout: fixed;
+  inline-size: 100%;
   &,
   th,
   td {
@@ -22,5 +24,8 @@
   }
   th {
     font-weight: bold;
+  }
+  thead th {
+    vertical-align: middle;
   }
 }
