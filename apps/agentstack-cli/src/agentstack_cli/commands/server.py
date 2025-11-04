@@ -175,7 +175,8 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
 
             if not client_id:
                 client_id = await inquirer.text(  #  type: ignore
-                    message="Enter Client ID:"
+                    message="Enter Client ID",
+                    instruction=f"(Redirect URI: {REDIRECT_URI}):",
                 ).execute_async()
                 client_secret = (
                     await inquirer.text(  #  type: ignore
