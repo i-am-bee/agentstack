@@ -6,7 +6,10 @@ description: "Deploy Agent Stack to Kubernetes with Helm for internal team use"
 Deploy Agent Stack on Kubernetes using Helm to create a centralized environment where your team can quickly test, share, and iterate on agents.
 
 <Warning>
-**Intended Use:** Agent Stack is designed for internal team deployments behind VPNs or firewalls. Basic authentication protects administrative operations (agent management, secrets, model configuration), but authenticated users can freely use agents, upload files, and create vector stores without per-user limits. Deploy only in trusted environments where you control who has access. Public internet deployments are not recommended.
+    **Intended Use:** Agent Stack is designed for internal team deployments behind VPNs or firewalls. Basic
+    authentication protects administrative operations (agent management, secrets, model configuration), but
+    authenticated users can freely use agents, upload files, and create vector stores without per-user limits. Deploy
+    only in trusted environments where you control who has access. Public internet deployments are not recommended.
 </Warning>
 
 ## Requirements
@@ -22,17 +25,20 @@ Deploy Agent Stack on Kubernetes using Helm to create a centralized environment 
 
 ### Step 1: Create Configuration File
 
-Create a `config.yaml` file with your desired configuration:
+Create a `config.yaml` file with your desired configuration, here is a minimal example, more advanced options
+are explained in the [Configuration Options](#configuration-options) section.
 
 ```yaml
 # If you want to include agents from the default catalog (change release/tag accordingly):
 externalRegistries:
-  public_github: "https://github.com/i-am-bee/agentstack@v0.4.0#path=agent-registry.yaml"
+  public_github: "https://github.com/i-am-bee/agentstack@v0.4.1#path=agent-registry.yaml"
+
 # Your custom agents as docker images
 providers:
   # e.g.
   # - location: ghcr.io/i-am-bee/agentstack-starter/my-agent:latest
   - location: <docker-image-id>
+
 # Generate the encryption key:
 #  - using UV (https://docs.astral.sh/uv/getting-started/installation/)
 #   $ uv run --with cryptography python3 -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'
@@ -40,11 +46,13 @@ providers:
 #   $ python3 -m pip install cryptography # (or use your preferred way to install the cryptography package)
 #   $ python3 -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'
 encryptionKey: "encryption-key-from-command"
-# this requires passing an admin password to certain endpoints, you can disable auth for insecure deployments
+
+# This requires passing an admin password to certain endpoints, you can disable auth for insecure deployments
 auth:
   enabled: true
   jwtSecretKey: "my-secret-key"
   basic:
+    # CAUTION: this leaves most features accessible without authentication, please read the authentication section below
     enabled: true
     adminPassword: "my-secret-password"
 ```
@@ -54,14 +62,15 @@ auth:
 Then install the chart using:
 
 ```shell
-helm upgrade --install agentstack -f config.yaml oci://ghcr.io/i-am-bee/agentstack/agentstack-chart/agentstack:0.3.5
+helm upgrade --install agentstack -f config.yaml oci://ghcr.io/i-am-bee/agentstack/chart/agentstack:0.4.1
 ```
 
 It will take a few minutes for the pods to start.
 
 ### Step 3: Port-Forwarding
 
-By default, ingress is not configured. You can port-forward the service to access the platform. In a separate terminal, run:
+By default, ingress is not configured. You can port-forward the service to access the platform.
+In a separate terminal, run:
 
 ```shell
 kubectl port-forward svc/agentstack-svc 8333:8333 &
@@ -78,8 +87,8 @@ AGENTSTACK__ADMIN_PASSWORD="my-secret-password" agentstack model setup
 ### Step 5: Test the Deployment
 
 ```shell
-AGENTSTACK__ADMIN_PASSWORD="my-secret-password" agentstack list
-AGENTSTACK__ADMIN_PASSWORD="my-secret-password" agentstack run chat hi
+agentstack list
+agentstack run chat hi
 ```
 
 ## Configuration Options
@@ -87,45 +96,249 @@ AGENTSTACK__ADMIN_PASSWORD="my-secret-password" agentstack run chat hi
 ### Security Settings
 
 <Warning>
-  The current authentication model is basic and intended for development use.
-  For any deployment beyond local testing, carefully consider your security
-  requirements and network access controls.
+    The current authentication model is basic and intended for development use.
+    For any deployment beyond local testing, carefully consider your security
+    requirements and network access controls.
 </Warning>
 
+#### Disable authentication
 For local testing environments without authentication:
 
 ```yaml
-# config.yaml - INSECURE, for testing only
+# CAUTION: INSECURE, for testing only
 auth:
   enabled: false
 ```
 
-### Agent Configuration
+#### Admin authentication
+The admin password protects only selected dangerous functionalities, for example, deployment and deletion of agents.
+It is intended for basic experimentation and POCs where a proper OIDC/OAuth provider is not available.
+```yaml
+auth:
+  enabled: true
+  jwtSecretKey: "my-secret-key" # fill in a strong secret
+  basic:
+    enabled: true
+    adminPassword: "my-admin-password" # fill in a strong admin password
+```
 
-Include specific agents in your deployment:
+#### OIDC authentication
+This is our most secure authentication method, supporting multi-user login with different roles.
 
 ```yaml
-# config.yaml
+trustProxyHeaders: true # This is important if validate_audience is enabled
+
+auth:
+  enabled: true
+  jwtSecretKey: "my-secret-key" # fill in a strong secret
+  oidc:
+    # Important: redirect URIs must be configured correctly in your provider:
+    #  - UI endpoint: "https://your-public-url/api/auth/callback"
+    #  - CLI endpoint: "http://localhost:9001/callback"
+    enabled: true
+    default_new_user_role: "user" # valid options: [user, developer]. Developers can deploy and configure their agents.
+    admin_emails: # one or more administrators
+      - example.admin@ibm.com
+    nextauth_trust_host: true
+    nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
+    nextauth_url: "https://agentstack.localhost:8336"
+    validate_audience: true # audience must be set to the public URL of your application in your OIDC provider
+    providers: [
+      {
+        "name": "w3id",
+        "id": "w3id",
+        "class": "IBM",
+        "client_id": "<oidc_client_id>",
+        "client_secret": "<oidc_client_secret>",
+        "issuer": "<oidc_issuer>",
+      }
+    ]
+```
+
+### Exposing the platform
+Ingress is not configured by default. You can expose the following services using your preferred way.
+- `agentstack-ui-svc`: access to the UI (which includes the API proxy)
+- `agentstack-server-svc` (optional): direct access to the server API, required for CLI
+
+Typically, this means creating a custom [ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/)
+or adding [routes](https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/ingress_and_load_balancing/configuring-routes)
+in OpenShift.
+
+### Agent Configuration
+
+You can add specific agents directly or use a remote registry to sync agents from an external catalog.
+
+
+#### Specify agents statically
+Configure specific agents in your deployment:
+
+```yaml
 providers:
   # Official agents
-  - location: ghcr.io/i-am-bee/agentstack/agents/chat:0.4.0
-  - location: ghcr.io/i-am-bee/agentstack/agents/rag:0.4.0
-  - location: ghcr.io/i-am-bee/agentstack/agents/form:0.4.0
+  - location: ghcr.io/i-am-bee/agentstack/agents/chat:0.4.1
+  - location: ghcr.io/i-am-bee/agentstack/agents/rag:0.4.1
+  - location: ghcr.io/i-am-bee/agentstack/agents/form:0.4.1
 
   # Your custom agents
   - location: your-registry.com/your-team/custom-agent:v1.0.0
+    auto_stop_timeout_sec: 0 # disable agent downscaling
+    # Variables should be strings (or they will be converted)
+    variables:
+      MY_API_KEY: "sk-..."
+      MY_CONFIG_VAR: "42"
 ```
 
-### External Agent Registry
+To upgrade an agent, change its version tag and redeploy using `helm upgrade`.
 
-Use the default agent registry instead of specifying individual agents:
+#### External Agent Registry
+
+You can use the concept of agent registries instead of specifying individual agents:
 
 ```yaml
-# config.yaml
 externalRegistries:
-  public_github: "https://github.com/i-am-bee/agentstack@v0.4.0#path=agent-registry.yaml"
-# Omit the 'providers' section to use only registry agents
+  public_github: "https://github.com/i-am-bee/agentstack@v0.4.1#path=agent-registry.yaml"
 ```
+
+To upgrade an agent, change its version in the registry and wait for automatic synchronization (up to 10 minutes).
+
+### Agent builds
+Agents can be built from a GitHub repository directly in the cluster. To enable this feature, you will need to
+setup a few things:
+- docker image registry credentials with write permissions, see [Private image registries](#private-image-registries)
+- [optional] github credentials (optional) to access private or enterprise GitHub repositories
+- [optional] external cluster (optional) for better security
+- [opsnehift only] service account with appropriate [SCC](https://www.redhat.com/en/blog/managing-sccs-in-openshift)
+to allow elevated container permissions
+
+```yaml
+providerBuilds:
+  enabled: true
+  buildBackend: "kaniko" # valid options: [kaniko, buildkit]
+  buildRegistry:
+    registryPrefix: "ghcr.io/github-org-name"
+    imageFormat: "{registry_prefix}/{org}/{repo}/{path}:{commit_hash}"
+    # Registry credentials with write access (see section about Private image registries below)
+    secretName: "custom-registry-secret"
+    insecure: false
+  kaniko:
+    useSecurityContextCapabilities: true
+  externalClusterExecutor:
+    serviceAccountName: ""
+    namespace: ""  # Kubernetes namespace for provider builds (defaults to current namespace if empty)
+    kubeconfig: "" # Kubeconfig YAML content for external cluster (optional)
+    # Example:
+    # kubeconfig: |
+    #   apiVersion: v1
+    #   kind: Config
+    #   clusters:
+    #   - cluster:
+    #       server: https://kubernetes.example.com
+    #   ...
+```
+
+
+### Configuring external services
+You may want to access or build agents from private registries or GitHub repositories, here is how to
+configure these options.
+
+#### Private image registries
+You can configure pull secrets to access agents in private docker registries using:
+```yaml
+imagePullSecrets:
+  - name: custom-registry-secret
+```
+where `custom-registry-secret` is the name of a kubernetes secret created according to the official
+[documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
+
+#### Private github repositories
+If you want to build agents from enterprise github or private github repositories, you can either create a
+[Personal Access Token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
+or use a [GitHub App](https://docs.github.com/en/apps/creating-github-apps/about-creating-github-apps/about-creating-github-apps)
+to access the repository. The configuration looks as follows:
+```yaml
+github:
+  auths:
+    github.com:
+      type: "pat"
+      token: "ghp_xxxxxxxxxxxxxxxxxxxx"
+    github.enterprise.com:
+      type: "app"
+      app_id: 123456
+      installation_id: 789012
+      private_key: |
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEpAIBAAKCAQEA...
+        -----END RSA PRIVATE KEY-----
+```
+
+### Storage
+By default, Agent Stack deployment includes postgresql and seaweedfs (s3 compatible object storage). It is not
+recommended to use these builtin versions of services in production. Instead, you should configure external databases
+(ideally managed by a cloud provider).
+
+#### External PostgreSQL
+
+If you prefer to use an external PostgreSQL instance instead of provisioning a new one within the cluster,
+you can disable the built-in PostgreSQL and provide the required connection details using the `externalDatabase` section.
+Below is an example configuration:
+
+```yaml
+postgresql:
+  enabled: false # disable builtin subchart
+externalDatabase:
+  host: "<your-postgres-host>"
+  port: 5432
+  user: "<your-postgres-user>"
+  database: "<your-postgres-database>"
+  password: "<your-postgres-password>"
+  # Required when initContainers.createVectorDbExtension is enabled
+  adminUser: "<postgres-admin-user>"
+  adminPassword: "<postgres-admin-password>"
+  ssl: true
+  sslRootCert: ""
+  # SSL certificate for the external database to ensure ssl connection, for example:
+  # sslRootCert: |
+  #   -----BEGIN CERTIFICATE-----
+  #   ...
+  #   -----END CERTIFICATE-----
+```
+
+If you encounter issues with installing `vector` extension during db migration, you can disable the creation by:
+
+```console
+initContainers.createVectorDbExtension=false
+```
+
+Then make sure the following SQL statements were executed in your database:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+SET maintenance_work_mem = '512MB';
+SET hnsw.ef_search = 1000;
+SET hnsw.iterative_scan = strict_order;
+SET hnsw.max_scan_tuples = 1000000;
+```
+
+#### External S3 support
+
+You may want to have Agent Stack connect to an external object storage rather than installing seaweedfs inside
+your cluster. To achieve this, the chart allows you to specify credentials for an external storage streaming with the
+`externalS3`. You should also disable the seaweedfs installation with the `seaweedfs.enabled`
+option. Here is an example:
+
+```console
+seaweedfs:
+    enabled: false
+externalS3:
+    host: <your-s3-host>
+    accessKeyID: <your-s3-access-key>
+    accessKeySecret: <your-s3-acess-key-secret>
+```
+
+### Advanced Configuration
+The list of all configuration options is available in the
+[values.yaml](https://github.com/i-am-bee/agentstack/blob/v0.4.1/helm/values.yaml) file. If you have specific
+requirements for the helm chart configuration which are not covered by the current options, please open an issue.
 
 ## Management Commands
 
@@ -134,7 +347,7 @@ externalRegistries:
 To upgrade to a newer version of the Agent Stack, use:
 
 ```shell
-helm upgrade --install agentstack -f config.yaml oci://ghcr.io/i-am-bee/agentstack/agentstack-chart/agentstack:<newer-version>
+helm upgrade --install agentstack -f config.yaml oci://ghcr.io/i-am-bee/agentstack/chart/agentstack:<newer-version>
 ```
 
 ### View Current Configuration
@@ -148,7 +361,7 @@ helm get values agentstack
 ```bash
 helm status agentstack
 kubectl get pods
-kubectl logs deployment/agentstack
+kubectl logs deployment/agentstack-server
 ```
 
 ### Uninstall
@@ -164,23 +377,25 @@ helm uninstall agentstack
 **Platform not starting:**
 
 ```bash
-# Check pod logs
-kubectl logs deployment/agentstack
+# Check pod status
+kubectl get pod
+
+# Check server logs
+kubectl logs deployment/agentstack-server
+# If server is not starting, check specific init container logs (e.g. migrations)
+kubectl logs deployment/agentstack-server -c run-migrations
 
 # Check events
 kubectl get events --sort-by=.lastTimestamp
 ```
 
-**Can't access agents:**
-
-```bash
-# Verify LLM configuration
-kubectl logs deployment/agentstack | grep -i llm
-```
-
 **Authentication issues:**
 
-```bash
-# Check if authentication is properly configured
-kubectl get secret agentstack-secret -o yaml
-```
+Make sure you have configured your OIDC provider correctly:
+- redirect URI should be the public URL + `/api/auth/callback` (e.g. `https://your-public-url.com/api/auth/callback`)
+- for CLI, the redirect URI should be `http://localhost:9001/callback`
+- consider creating a separate public OIDC application for the CLI
+- `audience` claim should be the public URL of your application without a trailing slash (e.g. `https://example.com`)
+- `trustProxyHeaders` must be enabled to correctly forward the request URL through proxies
+- if this is still not working, try to disable `auth.oidc.validate_audience`
+
