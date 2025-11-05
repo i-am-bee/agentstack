@@ -3,10 +3,25 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+$secrets-warning-height: rem(92px);
+$secrets-warning-gap: $spacing-05;
+
 .root {
+  &.hasSecretsWarning {
+    display: grid;
+    grid-template-rows: max-content 1fr;
+    gap: $secrets-warning-gap;
+  }
+}
+
+.content {
   display: flex;
   flex-direction: column;
   row-gap: $spacing-07;
   margin-block: auto;
   padding-block-end: var(--app-header-height);
+
+  .hasSecretsWarning & {
+    padding-block-end: calc(var(--app-header-height) + $secrets-warning-height + $secrets-warning-gap);
+  }
 }

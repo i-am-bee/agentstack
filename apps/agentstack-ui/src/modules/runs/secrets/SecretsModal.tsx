@@ -4,66 +4,41 @@
  */
 
 import { Button, ModalBody, ModalFooter, ModalHeader } from '@carbon/react';
-import clsx from 'clsx';
-import { useCallback, useState } from 'react';
 
 import { Modal } from '#components/Modal/Modal.tsx';
 import type { ModalProps } from '#contexts/Modal/modal-context.ts';
 
 import { useAgentSecrets } from '../contexts/agent-secrets';
-import { SecretCardsList } from './SecretCardsList';
 import classes from './SecretsModal.module.scss';
 
 export function SecretsModal({ onRequestClose, ...modalProps }: ModalProps) {
-  const [step, setStep] = useState(Step.Landing);
-
   const { demandedSecrets } = useAgentSecrets();
 
-  const isLanding = step === Step.Landing;
-
-  const handleOpendAddModal = useCallback(() => {
-    setStep(Step.Add);
-  }, []);
-  const handleCloseAddModal = useCallback(() => {
-    setStep(Step.Landing);
-  }, []);
-
   return (
-    <Modal
-      {...modalProps}
-      size="lg"
-      rootClassName={clsx(classes.root, { [classes.isHidden]: !isLanding })}
-      preventCloseOnClickOutside
-    >
+    <Modal {...modalProps} size="lg" rootClassName={classes.root} preventCloseOnClickOutside>
       <ModalHeader>
-        <p className={classes.description}>
+        <p className={classes.descrition}>
           This agent uses the following API keys. You can configure it now to get a full capability use or later at
           runtime
         </p>
       </ModalHeader>
 
       <ModalBody>
-        <SecretCardsList
-          secrets={demandedSecrets}
-          onCloseAddModal={handleCloseAddModal}
-          onOpenAddModal={handleOpendAddModal}
-        />
+        <ul className={classes.root}>
+          {demandedSecrets.map((secret) => (
+            <li key={secret.key}>
+              ...
+              {/* <SecretCard secret={secret} /> */}
+            </li>
+          ))}
+        </ul>
       </ModalBody>
 
       <ModalFooter>
-        <Button kind="ghost" onClick={() => onRequestClose()}>
-          Skip for now
-        </Button>
-
         <Button disabled={demandedSecrets.some(({ isReady }) => !isReady)} onClick={() => onRequestClose()}>
-          Continue
+          Save changes
         </Button>
       </ModalFooter>
     </Modal>
   );
-}
-
-enum Step {
-  Landing = 'landing',
-  Add = 'add',
 }

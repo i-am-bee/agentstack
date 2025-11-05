@@ -22,6 +22,7 @@ import { useSyncRunStateWithRoute } from '../hooks/useSyncRunStateWithRoute';
 import { ChatMessagesView } from './ChatMessagesView';
 
 const formExtensionExtractor = extractServiceExtensionDemands(formExtension);
+
 interface Props {
   agent: Agent;
 }
@@ -36,18 +37,26 @@ export function ChatView({ agent }: Props) {
 }
 
 function Chat() {
-  const { isPending, agent, hasMessages } = useAgentRun();
-  const { contextId } = usePlatformContext();
+  const { isPending, hasMessages } = useAgentRun();
 
   useSyncRunStateWithRoute();
 
-  // TODO: move extraction into the agent run context (or a2a client)
-  const formRender = useMemo(() => {
-    const agentExtensions = getAgentExtensions(agent);
-    const formRender = formExtensionExtractor(agentExtensions);
+  const isLanding = !isPending && !hasMessages;
 
-    return formRender ?? undefined;
-  }, [agent]);
+  return (
+    <>
+      <MainContent spacing="md" scrollable={isLanding}>
+        {isLanding ? <LandingView /> : <ChatMessagesView />}
+      </MainContent>
+
+      <SourcesPanel />
+    </>
+  );
+}
+
+function LandingView() {
+  const { agent } = useAgentRun();
+  const { contextId } = usePlatformContext();
 
   const handleMessageSent = useCallback(() => {
     if (contextId) {
@@ -62,23 +71,17 @@ function Chat() {
     }
   }, [agent, contextId]);
 
-  const isLanding = !isPending && !hasMessages;
+  // TODO: move extraction into the agent run context (or a2a client)
+  const formRender = useMemo(() => {
+    const agentExtensions = getAgentExtensions(agent);
+    const formRender = formExtensionExtractor(agentExtensions);
 
-  return (
-    <>
-      <MainContent spacing="md" scrollable={isLanding}>
-        {isLanding ? (
-          formRender ? (
-            <FormRenderView formRender={formRender} onMessageSent={handleMessageSent} />
-          ) : (
-            <RunLandingView onMessageSent={handleMessageSent} />
-          )
-        ) : (
-          <ChatMessagesView />
-        )}
-      </MainContent>
+    return formRender ?? undefined;
+  }, [agent]);
 
-      <SourcesPanel />
-    </>
-  );
+  if (formRender) {
+    return <FormRenderView formRender={formRender} onMessageSent={handleMessageSent} />;
+  }
+
+  return <RunLandingView onMessageSent={handleMessageSent} />;
 }

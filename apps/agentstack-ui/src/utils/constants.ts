@@ -31,6 +31,4 @@ export const NEXTAUTH_URL = process.env.NEXTAUTH_URL ? new URL(process.env.NEXTA
 
 export const THEME_STORAGE_KEY = '@i-am-bee/agentstack/THEME';
 
-export const AGENT_SECRETS_SETTINGS_STORAGE_KEY = '@i-am-bee/agentstack/AGENT-SECRETS-SETTINGS';
-
 export const MODEL_SETUP_COMMAND = 'agentstack model setup';

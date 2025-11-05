@@ -9,6 +9,15 @@
 .cds--actionable-notification {
   max-inline-size: none;
 
+  &.cds--actionable-notification--low-contrast {
+    border-width: 0;
+    border-radius: $border-radius;
+
+    &::before {
+      display: none;
+    }
+  }
+
   .cds--toast-notification__icon {
     margin-block-start: rem(14px);
   }

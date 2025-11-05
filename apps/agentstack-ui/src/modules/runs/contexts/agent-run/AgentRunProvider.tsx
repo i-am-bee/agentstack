@@ -58,7 +58,7 @@ export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>)
   }
 
   return (
-    <AgentSecretsProvider agent={agent} agentClient={agentClient}>
+    <AgentSecretsProvider agentClient={agentClient}>
       <AgentDemandsProvider agentClient={agentClient}>
         <FileUploadProvider allowedContentTypes={agent.defaultInputModes}>
           <MessagesProvider>
