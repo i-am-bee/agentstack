@@ -6,7 +6,7 @@ import inspect
 import logging
 import uuid
 from collections.abc import AsyncGenerator, AsyncIterable, AsyncIterator, Callable
-from contextlib import asynccontextmanager, suppress
+from contextlib import asynccontextmanager
 from datetime import timedelta
 from typing import NamedTuple, cast
 from urllib.parse import urljoin, urlparse
@@ -39,11 +39,10 @@ from a2a.types import (
 )
 from a2a.utils.errors import ServerError
 from kink import inject
-from pydantic import HttpUrl, ValidationError
+from pydantic import HttpUrl
 from structlog.contextvars import bind_contextvars, unbind_contextvars
 
 from agentstack_server.configuration import Configuration
-from agentstack_server.domain.models.connector import Connector, ConnectorState
 from agentstack_server.domain.models.provider import (
     NetworkProviderLocation,
     Provider,
@@ -54,10 +53,8 @@ from agentstack_server.exceptions import EntityNotFoundError, ForbiddenUpdateErr
 from agentstack_server.service_layer.deployment_manager import (
     IProviderDeploymentManager,
 )
-from agentstack_server.service_layer.services.connector import ConnectorService
 from agentstack_server.service_layer.services.users import UserService
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
-from agentstack_server.utils.sdk import MCPServiceExtensionMetadata, MCPServiceExtensionURI
 
 logger = logging.getLogger(__name__)
 
@@ -138,20 +135,11 @@ class ProxyRequestHandler(RequestHandler):
         provider_id: UUID,
         uow: IUnitOfWorkFactory,
         user: User,
-        connectors: list[Connector],
     ):
         self._agent_card = agent_card
         self._provider_id = provider_id
         self._user = user
         self._uow = uow
-        self._injectable_connectors = {
-            str(connector.url): connector
-            for connector in connectors
-            if connector.state == ConnectorState.connected
-            and connector.auth
-            and connector.auth.token
-            and connector.auth.token.token_type == "bearer"
-        }
 
     @asynccontextmanager
     async def _client_transport(self) -> AsyncIterator[ClientTransport]:
@@ -193,27 +181,6 @@ class ProxyRequestHandler(RequestHandler):
     def _forward_context(self, context: ServerCallContext | None = None) -> ClientCallContext:
         return ClientCallContext(state={**(context.state if context else {}), "user_id": self._user.id})
 
-    def _inject_message_params(self, params: MessageSendParams):
-        metadata = params.message.metadata
-        if metadata:
-            mcp_ext = metadata.get(MCPServiceExtensionURI)
-            if mcp_ext:
-                with suppress(ValidationError):
-                    ext_meta = MCPServiceExtensionMetadata.model_validate(mcp_ext)
-                    for fulfillment in ext_meta.mcp_fulfillments.values():
-                        if fulfillment.transport.type == "streamable_http":
-                            connector = self._injectable_connectors.get(str(fulfillment.transport.url))
-
-                            if connector:
-                                assert connector.auth and connector.auth.token
-                                if not fulfillment.transport.headers:
-                                    fulfillment.transport.headers = {}
-                                if "authorization" not in fulfillment.transport.headers:
-                                    fulfillment.transport.headers["authorization"] = (
-                                        f"Bearer {connector.auth.token.access_token}"
-                                    )
-                    metadata[MCPServiceExtensionURI] = ext_meta.model_dump(mode="json")
-
     @_handle_exception
     async def on_get_task(self, params: TaskQueryParams, context: ServerCallContext | None = None) -> Task | None:
         await self._check_task(params.id)
@@ -230,8 +197,6 @@ class ProxyRequestHandler(RequestHandler):
     async def on_message_send(
         self, params: MessageSendParams, context: ServerCallContext | None = None
     ) -> Task | Message:
-        self._inject_message_params(params)
-
         # we set task_id and context_id if not configured
         params.message.context_id = params.message.context_id or str(uuid.uuid4())
         await self._check_and_record_request(params.message.task_id, params.message.context_id)
@@ -250,8 +215,6 @@ class ProxyRequestHandler(RequestHandler):
     async def on_message_send_stream(
         self, params: MessageSendParams, context: ServerCallContext | None = None
     ) -> AsyncGenerator[Event]:
-        self._inject_message_params(params)
-
         # we set task_id and context_id if not configured
         params.message.context_id = params.message.context_id or str(uuid.uuid4())
         await self._check_and_record_request(params.message.task_id, params.message.context_id)
@@ -334,26 +297,22 @@ class A2AProxyService:
         provider_deployment_manager: IProviderDeploymentManager,
         uow: IUnitOfWorkFactory,
         user_service: UserService,
-        connector_service: ConnectorService,
         configuration: Configuration,
     ):
         self._deploy_manager = provider_deployment_manager
         self._uow = uow
         self._user_service = user_service
-        self._connector_service = connector_service
         self._config = configuration
         self._expire_requests_after = timedelta(days=configuration.a2a_proxy.requests_expire_after_days)
 
     async def get_request_handler(self, *, provider: Provider, user: User) -> RequestHandler:
         url = await self.ensure_agent(provider_id=provider.id)
         agent_card = create_deployment_agent_card(provider.agent_card, deployment_base=str(url))
-        connectors = await self._connector_service.list_connectors(user=user)
         return ProxyRequestHandler(
             agent_card=agent_card,
             provider_id=provider.id,
             uow=self._uow,
             user=user,
-            connectors=connectors,
         )
 
     async def expire_requests(self) -> dict[str, int]:

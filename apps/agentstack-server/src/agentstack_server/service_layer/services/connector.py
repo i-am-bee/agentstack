@@ -14,7 +14,7 @@ import httpx
 from async_lru import alru_cache
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 from authlib.oauth2.rfc8414 import AuthorizationServerMetadata, get_well_known_url
-from fastapi import status
+from fastapi import Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from kink import inject
 from mcp import ClientSession
@@ -32,6 +32,7 @@ from agentstack_server.domain.models.connector import (
 )
 from agentstack_server.domain.models.user import User
 from agentstack_server.exceptions import EntityNotFoundError, PlatformError
+from agentstack_server.service_layer.services.mcp import McpServerResponse
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
 
 logger = logging.getLogger(__name__)
@@ -362,6 +363,33 @@ class ConnectorService:
             if len(excgroup.exceptions) == 1:
                 raise excgroup.exceptions[0] from excgroup
             raise excgroup
+
+    async def mcp_proxy(self, *, connector_id: UUID, request: Request, user: User | None = None) -> McpServerResponse:
+        connector = await self.read_connector(connector_id=connector_id, user=user)
+
+        forward_headers = dict(request.headers)
+        del forward_headers["authorization"]
+
+        async with (
+            httpx.AsyncClient() as client,
+            client.stream(
+                request.method,
+                str(connector.url),
+                headers=forward_headers | {"authorization": f"Bearer {connector.auth.token.access_token}"}
+                if connector.state == ConnectorState.connected and connector.auth and connector.auth.token
+                else {},
+                content=await request.body(),
+            ) as response,
+        ):
+            common = {
+                "status_code": response.status_code,
+                "headers": response.headers,
+            }
+            is_stream = True
+            if is_stream:
+                return McpServerResponse(content=None, stream=response.aiter_bytes(), **common)
+            else:
+                return McpServerResponse(content=await response.aread(), stream=None, **common)
 
 
 @alru_cache(ttl=timedelta(days=1).seconds)

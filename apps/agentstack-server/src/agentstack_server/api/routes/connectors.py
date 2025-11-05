@@ -18,6 +18,7 @@ from agentstack_server.api.schema.connector import (
     ConnectorPresetResponse,
     ConnectorResponse,
 )
+from agentstack_server.api.utils import to_fastapi
 from agentstack_server.configuration import ConnectorPreset
 from agentstack_server.domain.models.common import PaginatedResult
 from agentstack_server.domain.models.connector import Connector
@@ -107,6 +108,18 @@ async def disconnect_connector(
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(connectors={"write"}))],
 ) -> ConnectorResponse:
     return _to_response(await connector_service.disconnect_connector(connector_id=connector_id, user=user.user))
+
+
+@router.post("/{connector_id}/mcp")
+@router.get("/{connector_id}/mcp")
+async def mcp(
+    connector_id: UUID,
+    request: Request,
+    connector_service: ConnectorServiceDependency,
+    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(connectors={"read"}))],
+):
+    response = await connector_service.mcp_proxy(connector_id=connector_id, request=request)
+    return to_fastapi(response)
 
 
 @router.get("/oauth/callback")
