@@ -21,7 +21,6 @@ async def form_agent(
         FormServiceExtensionServer,
         FormServiceExtensionSpec.demand(
             initial_form=FormRender(
-                id="initial_form",
                 title="How are you?",
                 fields=[TextField(id="mood", label="Mood", type="text", col_span=1)],
             )

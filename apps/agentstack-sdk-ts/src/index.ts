@@ -9,6 +9,7 @@ export {
   type TaskStatusUpdateResult,
   TaskStatusUpdateType,
 } from './client/a2a/extensions/handle-task-status-update';
+export { handleInputRequired, type InputRequiredResponses } from './client/a2a/extensions/handle-input-required';
 export * from './client/a2a/extensions/common/form';
 export * from './client/a2a/extensions/services/embedding';
 export * from './client/a2a/extensions/services/llm';

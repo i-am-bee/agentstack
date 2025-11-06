@@ -8,11 +8,13 @@ import { createContext } from 'react';
 
 import type { TaskId } from '#modules/tasks/api/types.ts';
 import { RunFormValues } from '#modules/form/types.ts';
+import { UIMessageForm } from '#modules/messages/types.ts';
 
 export type FulfillmentsContext = Partial<{
   taskId: TaskId;
   providedSecrets: Record<string, string>;
   oauthRedirectUri: string;
+  form: UIMessageForm;
 }>;
 
 interface AgentDemandsContextValue {
