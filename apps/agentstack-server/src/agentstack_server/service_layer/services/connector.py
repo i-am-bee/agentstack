@@ -44,7 +44,7 @@ class ConnectorService:
     def __init__(self, uow: IUnitOfWorkFactory, configuration: Configuration):
         self._uow = uow
         self._configuration = configuration
-        self._proxy_client = httpx.AsyncClient()
+        self._proxy_client = httpx.AsyncClient(timeout=None)
 
     async def create_connector(
         self,
