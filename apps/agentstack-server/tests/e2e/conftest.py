@@ -1,10 +1,10 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-
+import json
 import logging
 import socket
 from collections.abc import AsyncIterator, Awaitable, Callable
-from contextlib import asynccontextmanager, closing
+from contextlib import asynccontextmanager, closing, suppress
 from typing import Any
 
 import httpx
@@ -59,10 +59,15 @@ def free_port() -> int:
 
 @pytest.fixture()
 async def setup_real_llm(test_configuration, setup_platform_client):
-    await ModelProvider.create(
-        name="test_config",
-        type=test_configuration.llm_provider_type,
-        base_url=test_configuration.llm_api_base.get_secret_value(),
-        api_key=test_configuration.llm_api_key.get_secret_value(),
-    )
+    try:
+        await ModelProvider.create(
+            name="test_config",
+            type=test_configuration.llm_provider_type,
+            base_url=test_configuration.llm_api_base.get_secret_value(),
+            api_key=test_configuration.llm_api_key.get_secret_value(),
+        )
+    except httpx.HTTPStatusError as ex:
+        with suppress(Exception):
+            ex = Exception(str(f"Failed to setup LLM - {ex}\n{json.dumps(ex.response.text, indent=2)}"))
+        raise ex
     await SystemConfiguration.update(default_llm_model=test_configuration.llm_model)

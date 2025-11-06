@@ -220,6 +220,6 @@ _PROVIDER_CAPABILITIES: dict[ModelProviderType, set[ModelCapability]] = {
     ModelProviderType.PERPLEXITY: {ModelCapability.LLM},
     ModelProviderType.TOGETHER: {ModelCapability.LLM},
     ModelProviderType.VOYAGE: {ModelCapability.EMBEDDING},
-    ModelProviderType.RITS: {ModelCapability.LLM},
+    ModelProviderType.RITS: {ModelCapability.LLM, ModelCapability.EMBEDDING},
     ModelProviderType.OTHER: {ModelCapability.LLM, ModelCapability.EMBEDDING},  # Other can support both
 }

@@ -86,8 +86,10 @@ class StorageCapacityExceededError(PlatformError):
 
 class ModelLoadFailedError(PlatformError):
     def __init__(self, provider: ModelProvider, exception: HTTPError, status_code: int = status.HTTP_400_BAD_REQUEST):
+        from agentstack_server.application import extract_messages
+
         super().__init__(
-            f"Failed to load models from {provider.type} provider ({provider.base_url}): {exception}",
+            f"Failed to load models from {provider.type} provider ({provider.base_url}): {extract_messages(exception)}",
             status_code=status_code,
         )
 
