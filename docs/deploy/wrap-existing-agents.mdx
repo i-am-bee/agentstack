@@ -1,0 +1,122 @@
+---
+title: "Wrap Your Existing Agents"
+description: "Deploy your existing agent to Agent Stack by wrapping it with the Agent Stack server"
+---
+
+If you already have an agent built with any framework (LangGraph, CrewAI, or your own custom implementation), you can deploy it to Agent Stack by wrapping it with the Agent Stack server.
+
+This gives you instant access to the Agent Stack UI, observability features, and deployment infrastructure without rewriting your agent logic.
+
+## Prerequisites
+
+- Agent Stack installed ([Quickstart](/introduction/quickstart))
+- An existing agent implementation
+- Python 3.12+ environment
+
+## How It Works
+
+The Agent Stack server wraps your existing agent code and exposes it through the A2A protocol. Your agent logic stays exactly the same - you just add a thin server wrapper that handles:
+
+- Protocol translation (A2A)
+- Auto-registration with Agent Stack
+- Session management
+- Extension support
+
+## Quick Start
+
+### 1. Install the SDK
+
+```bash
+pip install agentstack-sdk
+```
+
+### 2. Create a Server Wrapper
+
+Create a new file (e.g., `server.py`) that wraps your existing agent:
+
+```python
+import os
+from a2a.types import Message
+from a2a.utils.message import get_message_text
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
+from agentstack_sdk.a2a.types import AgentMessage
+
+# Import your existing agent logic
+from my_agent import run_my_agent  # Your existing agent code
+
+server = Server()
+
+@server.agent()
+async def my_wrapped_agent(input: Message, context: RunContext):
+    """Wrapper around my existing agent"""
+    
+    # Extract the user's message
+    user_message = get_message_text(input)
+    
+    # Call your existing agent logic
+    # This can be synchronous or asynchronous
+    result = await run_my_agent(user_message)
+    
+    # Yield the response back to Agent Stack
+    yield AgentMessage(text=result)
+
+def run():
+    server.run(
+        host=os.getenv("HOST", "127.0.0.1"),
+        port=int(os.getenv("PORT", 8000))
+    )
+
+if __name__ == "__main__":
+    run()
+```
+
+### 3. Run Your Server
+
+```bash
+python server.py
+```
+
+Your agent will automatically register with Agent Stack!
+
+<Tip>
+**Enable auto-reload during development:** Add `watchfiles` to automatically restart your server when code changes:
+```bash
+uv run watchfiles agentstack_agents.agent.run
+```
+</Tip>
+
+## Integration Patterns
+
+### Streaming Responses
+
+If your agent generates responses incrementally, you can stream them:
+
+```python
+@server.agent()
+async def streaming_agent(input: Message, context: RunContext):
+    user_message = get_message_text(input)
+    
+    # Stream results as they come
+    async for chunk in my_streaming_agent(user_message):
+        yield AgentMessage(text=chunk)
+```
+
+### With Context History
+
+Access previous messages in the conversation:
+
+```python
+@server.agent()
+async def contextual_agent(input: Message, context: RunContext):
+    # Get conversation history
+    previous_messages = context.history
+    
+    # Your agent can use this context
+    result = await my_agent_with_context(
+        current_message=get_message_text(input),
+        history=previous_messages
+    )
+    
+    yield AgentMessage(text=result)
+```

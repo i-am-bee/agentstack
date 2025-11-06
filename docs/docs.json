@@ -11,56 +11,54 @@
   "navigation": {
     "groups": [
       {
-        "group": "Getting Started",
+        "group": "Introduction",
         "pages": [
           "introduction/welcome",
           "introduction/quickstart",
-          "introduction/connect-a2a-agents",
-          "introduction/start-building-agents"
+          "introduction/connect-a2a-agents"
         ]
       },
       {
-        "group": "Core Concepts",
+        "group": "Deploy to Agent Stack",
         "pages": [
-          "concepts/a2a",
-          "concepts/extensions",
-          "concepts/observability"
+          "deploy/wrap-existing-agents",
+          "introduction/start-building-agents",
+          "deploy/deploy-your-agents"
         ]
       },
       {
-        "group": "Building Agents",
+        "group": "Extensions",
         "pages": [
-          "build-agents/llm-configuration",
-          "build-agents/agent-details",
-          "build-agents/messages",
-          "build-agents/multi-turn",
-          "build-agents/files",
-          "build-agents/rag",
-          "build-agents/trajectory",
-          "build-agents/citations",
-          "build-agents/forms",
-          "build-agents/agent-settings",
-          "build-agents/secrets",
-          "build-agents/mcp-oauth"
+          "extensions/overview",
+          "extensions/agent-details",
+          "extensions/llm-service",
+          "extensions/trajectory",
+          "extensions/citations",
+          "extensions/forms",
+          "extensions/agent-settings",
+          "extensions/secrets",
+          "extensions/rag",
+          "extensions/mcp-oauth"
         ]
       },
       {
         "group": "Guides",
         "pages": [
-          "how-to/cli-reference",
-          "how-to/web-interface",
-          "how-to/environment-configuration"
-        ]
+          "guides/messages",
+          "guides/multi-turn",
+          "guides/files",
+          "guides/cli-reference",
+          "guides/observability"
+       ]
       },
       {
         "group": "Deploy for Your Team",
         "pages": ["how-to/deployment-guide"]
       },
       {
-        "group": "Community & Support",
+        "group": "Join Our Community",
         "pages": [
-          "community-and-support/troubleshooting",
-          "community-and-support/contribute"
+          "community/contribute"
         ]
       }
     ]

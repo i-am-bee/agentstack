@@ -1,5 +1,5 @@
 ---
-title: Welcome to Agent Stack
+title: Welcome
 description: "Open infrastructure for deploying agents from any framework"
 ---
 
@@ -9,45 +9,31 @@ Agent Stack is open, self-hostable infrastructure for deploying AI agents built 
 
 Everything you need to deploy and operate agents in production:
 
-- **A self-hostable server** that runs your agents  
-- **A web UI** where users can test and share deployed agents  
-- **A CLI** for deploying and managing agents  
-- **Built-in infrastructure services** your agents can access at runtime:
-  - **Runtime-configurable LLMs** — Switch between 15+ providers (Anthropic, OpenAI, watsonx.ai, Ollama) without changing code  
-  - **Embeddings & vector search** — Power RAG and semantic search  
-  - **File storage** — S3-compatible uploads and downloads  
-  - **Document text extraction** — Via [Docling](https://www.docling.ai/)  
-  - **External integrations** — Connect to APIs, databases, Slack, Google Drive, and more via the MCP protocol with OAuth  
-  - **Secrets management** — Securely store and use API keys and credentials  
-- **An SDK** (`agentstack-sdk`) that lets your agents request these services through standardized A2A extensions  
-- **A HELM chart** for Kubernetes deployments with custom storage, databases, and auth  
+- **Self-hostable server** to run your agents
+- **Web UI** for testing and sharing deployed agents
+- **CLI** for deploying and managing agents
+- **Runtime services** your agents can access:
+  - **LLM Service** — Switch between 15+ providers (Anthropic, OpenAI, watsonx.ai, Ollama) without code changes
+  - **Embeddings & vector search** for RAG and semantic search
+  - **File storage** — S3-compatible uploads/downloads
+  - **Document text extraction** via [Docling](https://www.docling.ai/)
+  - **External integrations** via MCP protocol (APIs, Slack, Google Drive, etc.) with OAuth
+  - **Secrets management** for API keys and credentials
+- **SDK (`agentstack-sdk`)** for standardized A2A service requests
+- **HELM chart** for Kubernetes deployments with customizable storage, databases, and auth
 
-Build your agent using any framework—LangGraph, CrewAI, BeeAI Framework, or your own—and let the SDK handle runtime service requests automatically.
+Build your agent using LangGraph, CrewAI, or your own framework—SDK handles runtime service requests automatically.
 
 ## How It Works
 
-Agent Stack provides the deployment layer between your agent code and production use:
+1. **Build** your agent using `agentstack-sdk`
+2. **Deploy** with a single CLI command
+3. **Users interact** through the auto-generated web UI
 
-1. **Build** your agent using `agentstack-sdk` with your preferred framework
-2. **Deploy** with a single CLI command to your Agent Stack instance
-3. **Users interact** through the automatically generated web interface
+Your agents request infrastructure services at runtime through A2A protocol extensions.
 
-Your agents request infrastructure services at runtime through the A2A protocol—no hardcoded dependencies on specific LLM providers or storage solutions.
-
-**For development:** Run Agent Stack locally with full services for rapid iteration
-
-**For production:** Deploy to Kubernetes using the provided HELM chart and integrate with your existing infrastructure (SSO, databases, cloud storage)
-
-## When to Use Agent Stack
-
-Agent Stack is designed for teams who need:
-
-- **Fast iteration** across multiple agent frameworks without committing to one vendor's hosting
-- **Infrastructure control** to integrate with existing corporate systems and policies
-- **Internal deployment** where you run the infrastructure rather than using external SaaS
-- **Development velocity** without rebuilding deployment infrastructure for each new agent
-
-It complements enterprise AI platforms—use it for rapid prototyping and internal agents, while enterprise systems handle governance, security, and large-scale production workflows.
+- **Development:** Run locally with full services for rapid iteration  
+- **Production:** Deploy to Kubernetes via HELM and integrate with your infrastructure
 
 ## Get Started
 
@@ -56,10 +42,10 @@ It complements enterprise AI platforms—use it for rapid prototyping and intern
     Get up and running in one command
   </Card>
   <Card title="Connect A2A Agents" icon="plug" href="/introduction/connect-a2a-agents">
-    Deploy existing A2A-compatible agents to Agent Stack
+    Run existing A2A-compatible agents for instance GUI
   </Card>
   <Card title="Start Building Agents" icon="code" href="/introduction/start-building-agents">
-    Build your first agent with the Agent Stack SDK
+    Build your first agent with the SDK
   </Card>
   <Card title="Deploy to Production" icon="server" href="/how-to/deployment-guide">
     Deploy Agent Stack to Kubernetes for your team

@@ -1,0 +1,143 @@
+---
+title: "Deploy Your Agents"
+description: "Package and deploy your agent to Agent Stack as a managed service"
+---
+
+Once you've wrapped your agent with the Agent Stack server, you need to containerize it so Agent Stack can run it as a managed service.
+
+## Prerequisites
+
+- Docker installed and running (or use GitHub Actions via template)
+- Agent wrapped with Agent Stack SDK ([Wrap Existing Agents](/deploy/wrap-existing-agent) or [Build New Agent](/deploy/build-new-agent))
+- Agent Stack installed ([Quickstart](/introduction/quickstart))
+
+## Containerize Your Agent
+
+### Option 1: Use the Starter Template (Recommended)
+
+The [agentstack-starter template](https://github.com/i-am-bee/agentstack-starter) includes everything you need:
+- Production-ready Dockerfile
+- GitHub Actions for automated builds
+- Agent Stack deployment configuration
+
+Clone it and modify for your agent:
+```bash
+git clone https://github.com/i-am-bee/agentstack-starter my-agent
+cd my-agent
+# Replace the example agent with your code
+```
+
+<Tip>
+You can push your repository to GitHub and tag it to leverage the automated GitHub workflow to build the image directly in GitHub, without running Docker locally.
+</Tip>
+
+### Option 2: Create Your Own Dockerfile
+
+If you're starting from scratch, create a `Dockerfile`:
+```dockerfile
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy agent code
+COPY . .
+
+# Configure server
+ENV HOST=0.0.0.0
+ENV PORT=10000
+EXPOSE 10000
+
+# Run agent server
+CMD ["python", "server.py"]
+```
+
+<Note>
+**Port Configuration:** The SDK defaults to port 10000. Make sure your Dockerfile `EXPOSE` and `ENV PORT` match, and that your `server.run()` call uses the same port via environment variable.
+</Note>
+
+## Deploy to Agent Stack
+
+### Build and Register
+
+From your agent directory, run:
+```bash
+agentstack build . --import
+```
+
+This automatically:
+1. ✓ Builds your Docker image
+2. ✓ Runs the container to extract agent metadata
+3. ✓ Registers the agent with Agent Stack
+4. ✓ Makes it available in the platform UI
+
+### Verify Deployment
+
+Check that your agent is registered:
+```bash
+agentstack list
+```
+
+Your agent should appear in the list with status information.
+
+### Test Your Agent
+
+Test via CLI:
+```bash
+agentstack run my-agent "Hello!"
+```
+
+Or open the web UI:
+```bash
+agentstack ui
+```
+
+Your agent will be available at `http://127.0.0.1:8333`
+
+## Advanced Build Options
+
+### Build Without Importing
+
+Test your build before registering:
+```bash
+agentstack build . --no-import
+```
+
+### Custom Image Tags
+
+Specify your own tag:
+```bash
+agentstack build . --tag my-agent:v1.0.0
+```
+
+### Multi-Platform Builds
+
+Build for multiple architectures:
+```bash
+agentstack build . --multi-platform
+```
+
+## Next Steps
+
+Now that your agent is deployed, enhance it with extensions:
+
+<CardGroup cols={2}>
+<Card title="LLM Service" icon="rotate" href="/extensions/llm-service">
+Change your agent's LLM at runtime and manage model connections dynamically
+</Card>
+
+<Card title="Agent Trajectory Vizualization" icon="list" href="/extensions/trajectory">
+Visualize your agent’s decision-making and interactions over time in the UI
+</Card>
+
+<Card title="Citations & Source Linking" icon="link" href="/extensions/citations">
+Display references and link sources for transparency, directly in the UI
+</Card>
+
+<Card title="Structured Inputs (Forms)" icon="square-poll-horizontal" href="/extensions/citations">
+Guide your users to provide consistent information with the form extension
+</Card>
+</CardGroup>
