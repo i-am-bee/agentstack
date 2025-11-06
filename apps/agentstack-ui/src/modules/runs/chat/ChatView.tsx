@@ -42,10 +42,9 @@ function Chat() {
   useSyncRunStateWithRoute();
 
   // TODO: move extraction into the agent run context (or a2a client)
-  const formRender = useMemo(() => {
+  const initialFormRender = useMemo(() => {
     const agentExtensions = getAgentExtensions(agent);
-    const formRender = formExtensionExtractor(agentExtensions);
-
+    const formRender = formExtensionExtractor(agentExtensions)?.form_demands.initial_form;
     return formRender ?? undefined;
   }, [agent]);
 
@@ -68,8 +67,8 @@ function Chat() {
     <>
       <MainContent spacing="md" scrollable={isLanding}>
         {isLanding ? (
-          formRender ? (
-            <FormRenderView formRender={formRender} onMessageSent={handleMessageSent} />
+          initialFormRender ? (
+            <FormRenderView formRender={initialFormRender} onMessageSent={handleMessageSent} />
           ) : (
             <RunLandingView onMessageSent={handleMessageSent} />
           )

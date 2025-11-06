@@ -15,7 +15,7 @@ interface BuildFulfillmentsParams {
   selectedMCPServers: Record<string, string>;
   providedSecrets: Record<string, string>;
   selectedSettings: AgentSettings;
-  formFulfillments: FormFulfillments | null;
+  formFulfillments: FormFulfillments;
   oauthRedirectUri: string | null;
   featureFlags: FeatureFlags;
 }
@@ -40,7 +40,11 @@ export const buildFulfillments = ({
       };
     },
 
-    form: async () => {
+    form: async (demands) => {
+      if (demands.form_demands.initial_form && !formFulfillments.form_fulfillments['initial_form']) {
+        throw new Error('Initial form has not been fulfilled albeit demanded.');
+      }
+
       return formFulfillments;
     },
 

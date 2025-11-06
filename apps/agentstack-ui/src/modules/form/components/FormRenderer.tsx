@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FormDemands } from 'agentstack-sdk';
+import type { FormRender } from 'agentstack-sdk';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { AgentRunHeader } from '#modules/agents/components/detail/AgentRunHeader.tsx';
@@ -17,7 +17,7 @@ import { FormFields } from './FormFields';
 import classes from './FormRenderer.module.scss';
 
 interface Props {
-  definition: FormDemands;
+  definition: FormRender;
   defaultHeading?: string | null;
   showHeading?: boolean;
   isDisabled?: boolean;
@@ -33,7 +33,7 @@ export function FormRenderer({
   isDisabled,
   onSubmit,
 }: Props) {
-  const { id, title: heading = defaultHeading, description, columns, submit_label, fields } = definition;
+  const { title: heading = defaultHeading, description, columns, submit_label, fields } = definition;
 
   const defaultValues = getDefaultValues(fields);
 
@@ -44,7 +44,7 @@ export function FormRenderer({
 
   return (
     <FormProvider {...form}>
-      <form id={id} onSubmit={form.handleSubmit(onSubmit)}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
         <fieldset disabled={isDisabled} className={classes.root}>
           {showHeader && (
             <AgentRunHeader heading={showHeading ? heading : undefined}>
