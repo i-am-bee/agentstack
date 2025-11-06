@@ -4,7 +4,7 @@
  */
 
 import type { Task } from '@a2a-js/sdk';
-import type { FormDemands, FormFulfillments, FormRender, SecretDemands } from 'agentstack-sdk';
+import type { FormRender, SecretDemands } from 'agentstack-sdk';
 
 import type { TaskId } from '#modules/tasks/api/types.ts';
 
@@ -82,8 +82,9 @@ export type UITrajectoryPart = {
   content?: string;
 };
 
-export type UIFormPart = FormDemands & {
+export type UIFormPart = {
   kind: UIMessagePartKind.Form;
+  render: FormRender;
 };
 
 export type UIAuthPart = {

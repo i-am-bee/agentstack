@@ -6,14 +6,14 @@
 import { z } from 'zod';
 
 import type { A2AServiceExtension } from '../types';
-import { renderSchema, responseSchema } from '../common/form';
+import { formRenderSchema, responseSchema } from '../common/form';
 
 const URI = 'https://a2a-extensions.agentstack.beeai.dev/services/form/v1';
 
 const formDemandSchema = z.object({
   form_demands: z
     .object({
-      initial_form: renderSchema,
+      initial_form: formRenderSchema,
       // TOOD: extra keys
     })
     .partial(),

@@ -41,7 +41,6 @@ import { AgentDemandsProvider } from '../agent-demands/AgentDemandsProvider';
 import { AgentSecretsProvider } from '../agent-secrets/AgentSecretsProvider';
 import { AgentStatusProvider } from '../agent-status/AgentStatusProvider';
 import { AgentRunContext, AgentRunStatus } from './agent-run-context';
-import { RunFormValues } from '#modules/form/types.ts';
 
 interface Props {
   agent: Agent;
@@ -201,6 +200,9 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
           message,
           contextId,
           fulfillments,
+          responses: {
+            form: message.form?.response ?? undefined,
+          },
           taskId: fulfillmentsContext.taskId,
         });
         pendingRun.current = run;
@@ -229,7 +231,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
         if (result && result.type === TaskStatusUpdateType.FormRequired) {
           updateCurrentAgentMessage((message) => {
             message.status = UIMessageStatus.InputRequired;
-            message.parts.push({ kind: UIMessagePartKind.Form, ...result.form });
+            message.parts.push({ kind: UIMessagePartKind.Form, render: result.form });
           });
         } else if (result && result.type === TaskStatusUpdateType.OAuthRequired) {
           updateCurrentAgentMessage((message) => {
@@ -305,12 +307,10 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
         id: uuid(),
         role: Role.User,
         parts: [],
-        // form,
+        form,
       };
 
-      // TODO: handle runtime form
-
-      return run(message, { taskId });
+      return run(message, { taskId, form });
     },
     [checkPendingRun, run],
   );

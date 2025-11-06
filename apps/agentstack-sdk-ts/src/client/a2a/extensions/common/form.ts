@@ -104,7 +104,7 @@ const fieldSchema = z.discriminatedUnion('type', [
   checkboxField,
 ]);
 
-export const renderSchema = z.object({
+export const formRenderSchema = z.object({
   title: z.string().nullish(),
   description: z.string().nullish(),
   columns: z.int().min(1).max(4).nullish(),
@@ -126,7 +126,7 @@ export const responseSchema = z.object({
   ),
 });
 
-export type FormRender = z.infer<typeof renderSchema>;
+export type FormRender = z.infer<typeof formRenderSchema>;
 
 export type TextField = z.infer<typeof textField>;
 export type DateField = z.infer<typeof dateField>;

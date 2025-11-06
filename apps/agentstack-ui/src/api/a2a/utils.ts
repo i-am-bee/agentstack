@@ -8,8 +8,6 @@ import {
   type Citation,
   citationExtension,
   extractUiExtensionData,
-  type FormDemands,
-  // formMessageExtension,
   trajectoryExtension,
   type TrajectoryMetadata,
 } from 'agentstack-sdk';
@@ -18,7 +16,6 @@ import { v4 as uuid } from 'uuid';
 
 import { getFileContentUrl } from '#modules/files/utils.ts';
 import type {
-  UIFormPart,
   UIMessagePart,
   UISourcePart,
   UITextPart,
@@ -33,7 +30,6 @@ import { PLATFORM_FILE_CONTENT_URL_BASE } from './constants';
 
 export const extractCitation = extractUiExtensionData(citationExtension);
 export const extractTrajectory = extractUiExtensionData(trajectoryExtension);
-// export const extractForm = extractUiExtensionData(formMessageExtension);
 
 export function extractTextFromMessage(message: Message | undefined) {
   const text = message?.parts
@@ -161,15 +157,6 @@ export function createTextPart(text: string): UITextPart {
   };
 
   return textPart;
-}
-
-export function createFormPart(form: FormDemands): UIFormPart {
-  const formPart: UIFormPart = {
-    kind: UIMessagePartKind.Form,
-    ...form,
-  };
-
-  return formPart;
 }
 
 export function getFilePlatformUrl(id: string) {

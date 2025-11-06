@@ -27,13 +27,13 @@ export function MessageForm({ message }: Props) {
 
   return (
     <FormRenderer
-      definition={formPart}
+      definition={formPart.render}
       showHeading={false}
       isDisabled={!isLastMessage(message)}
       onSubmit={(values: RunFormValues) => {
         const form = {
-          request: formPart,
-          response: { id: formPart.id, values },
+          request: formPart.render,
+          response: values,
         };
 
         if (!message.taskId) {
