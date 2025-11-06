@@ -52,8 +52,8 @@
        ]
       },
       {
-        "group": "Deploy for Your Team",
-        "pages": ["how-to/deployment-guide"]
+        "group": "Deploy Agent Stack for Your Team",
+        "pages": ["guides/deployment-guide"]
       },
       {
         "group": "Join Our Community",

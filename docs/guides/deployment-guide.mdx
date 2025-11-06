@@ -1,9 +1,9 @@
 ---
-title: "Team Deployment Guide"
-description: "Deploy Agent Stack to Kubernetes for internal team use"
+title: "Agent Stack Deployment Guide"
+description: "Deploy Agent Stack to Kubernetes with Helm for internal team use"
 ---
 
-Use Helm to deploy the Agent Stack on Kubernetes, creating a centralized environment where your team can quickly test, share, and iterate on agents.
+Deploy Agent Stack on Kubernetes using Helm to create a centralized environment where your team can quickly test, share, and iterate on agents.
 
 <Warning>
 **Intended Use:** Agent Stack is designed for internal team deployments behind VPNs or firewalls. Basic authentication protects administrative operations (agent management, secrets, model configuration), but authenticated users can freely use agents, upload files, and create vector stores without per-user limits. Deploy only in trusted environments where you control who has access. Public internet deployments are not recommended.
