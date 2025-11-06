@@ -19,26 +19,28 @@ interface OIDCProviderOptions {
   [key: string]: unknown;
 }
 
+function shortenToken(token?: string): string {
+  return token ? `${token.substring(0, 8)}...${token.substring(token.length - 8)}` : 'undefined';
+}
+
 export async function jwtWithRefresh(
   token: JWT,
-  account: Account | null | undefined,
   providers: ProviderWithId[],
+  earlyTokenRefresh: boolean = false,
 ): Promise<JWT> {
-  if (account) {
-    // First-time login, save the `access_token`, its expiry and the `refresh_token`
-    return {
-      ...token,
-      access_token: account.access_token,
-      expires_at: account.expires_at,
-      refresh_token: account.refresh_token,
-    };
-  } else if (token.expires_at && Date.now() < token.expires_at * 1000) {
-    // Subsequent requests, `access_token` is still valid
+  console.log('----', shortenToken(token?.accessToken));
+
+  if (
+    token.expiresAt &&
+    Date.now() < token.expiresAt * 1000 &&
+    !(earlyTokenRefresh && Date.now() > token.expiresAt * 1000 - EARLY_REFRESH_TTL)
+  ) {
+    // Subsequent requests, `accessToken` is still valid
     return token;
   } else {
-    // Subsequent requests, `access_token` has expired, try to refresh it
-    if (!token.refresh_token) {
-      throw new TypeError('Missing refresh_token');
+    // Subsequent requests, `accessToken` has expired, try to refresh it
+    if (!token.refreshToken) {
+      throw new TypeError('Missing refreshToken');
     }
 
     const tokenProvider = providers.find(({ id }) => id === token.provider);
@@ -57,46 +59,61 @@ export async function jwtWithRefresh(
 
     const refreshTokenUrl = await getTokenEndpoint(issuerUrl, clientId, clientSecret);
 
+    console.log('----------------------------------------');
+    console.log('--- Requesting new access token');
+    console.log(shortenToken(token.accessToken));
+
     const newTokens = await cache.getOrSet<RefreshTokenResult>(
-      await cacheKeys.refreshToken(token.refresh_token),
+      await cacheKeys.refreshToken(token.refreshToken),
       async () => {
-        return await coalesceAsync(token.refresh_token!, async () => {
+        return await coalesceAsync(token.refreshToken!, async () => {
+          console.log('--- Fetching access token for refreshToken:');
+          console.log(shortenToken(token.refreshToken));
+
           const response = await fetch(refreshTokenUrl, {
             method: 'POST',
             body: new URLSearchParams({
               client_id: clientId,
               client_secret: clientSecret,
-              grant_type: 'refresh_token',
-              refresh_token: token.refresh_token!,
+              grant_type: 'refreshToken',
+              refreshToken: token.refreshToken!,
             }),
           });
 
           const tokensOrError = await response.json();
 
           if (!response.ok) {
-            throw new RefreshTokenError('Error refreshing access_token', tokensOrError);
+            throw new RefreshTokenError('Error refreshing accessToken', tokensOrError);
           }
 
           return tokensOrError as RefreshTokenResult;
         });
       },
-      // Prevent multiple refreshes until new access_token is populated to the auth cookie
+      // Prevent multiple refreshes until new accessToken is populated to the auth cookie
       { ttl: '1h' },
     );
 
     if (!newTokens) {
-      throw new RefreshTokenError('Error refreshing access_token');
+      throw new RefreshTokenError('Error refreshing accessToken');
     }
+
+    console.log('------------------------------- SUCCESS:');
+    console.log(shortenToken(newTokens?.accessToken));
+    console.log(shortenToken(newTokens?.refreshToken));
+    console.log('------------------------------- SUCCESS');
 
     return {
       ...token,
-      access_token: newTokens.access_token,
-      expires_at: Math.floor(Date.now() / 1000 + newTokens.expires_in),
+      accessToken: newTokens.accessToken,
+      expiresAt: Math.floor(Date.now() / 1000 + newTokens.expires_in),
+      expiresIn: newTokens.expires_in,
       // Some providers only issue refresh tokens once, so preserve if we did not get a new one
-      refresh_token: newTokens.refresh_token ?? token.refresh_token,
+      refreshToken: newTokens.refreshToken ?? token.refreshToken,
     };
   }
 }
+
+const EARLY_REFRESH_TTL = 25_000; // 25 seconds
 
 interface RefreshTokenErrorResponse {
   error: string;
@@ -112,7 +129,7 @@ export class RefreshTokenError extends Error {
 }
 
 interface RefreshTokenResult {
-  access_token: string;
+  accessToken: string;
   expires_in: number;
-  refresh_token?: string;
+  refreshToken?: string;
 }

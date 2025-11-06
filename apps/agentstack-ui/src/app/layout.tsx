@@ -9,6 +9,7 @@ import type { Metadata } from 'next';
 
 import { AppProvider } from '#contexts/App/AppProvider.tsx';
 import { runtimeConfig } from '#contexts/App/runtime-config.ts';
+import { SessionRefresher } from '#modules/auth/SessionRefresher.tsx';
 import Providers from '#providers.tsx';
 import { APP_FAVICON_SVG, BASE_PATH, THEME_STORAGE_KEY } from '#utils/constants.ts';
 

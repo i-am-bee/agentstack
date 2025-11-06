@@ -88,15 +88,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (trigger === 'update') {
         token.name = session.user.name;
       }
+
       // pull the id token out of the account on signIn
       if (account) {
-        token['access_token'] = account.access_token;
-        token['provider'] = account.provider;
-        token['refresh_token'] = account.refresh_token;
+        token.accessToken = account.access_token;
+        token.provider = account.provider;
+        token.refreshToken = account.refresh_token;
+        token.expiresIn = account.expires_in;
       }
 
+      console.log(token);
+
       try {
-        return await jwtWithRefresh(token, account, providers);
+        const earlyTokenRefresh = trigger === 'update' && Boolean(session?.earlyTokenRefresh);
+        return await jwtWithRefresh(token, providers, earlyTokenRefresh);
       } catch (error) {
         console.error('Error while refreshing jwt token:', error);
 
@@ -112,9 +117,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 declare module 'next-auth/jwt' {
   /** Returned by the `jwt` callback and `auth`, when using JWT sessions */
   interface JWT {
-    access_token?: string;
-    expires_at?: number;
-    refresh_token?: string;
+    accessToken?: string;
+    expiresAt?: number;
+    refreshToken?: string;
     provider?: string;
+    expiresIn?: number;
+  }
+  interface Session {
+    earlyTokenRefresh?: boolean;
   }
 }
