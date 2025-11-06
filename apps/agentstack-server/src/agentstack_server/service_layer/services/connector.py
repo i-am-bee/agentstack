@@ -369,8 +369,7 @@ class ConnectorService:
     async def mcp_proxy(self, *, connector_id: UUID, request: Request, user: User | None = None) -> McpServerResponse:
         connector = await self.read_connector(connector_id=connector_id, user=user)
 
-        forward_headers = dict(request.headers)
-        del forward_headers["authorization"]
+        forward_headers = {key: request.headers[key] for key in ["accept", "content-type"] if key in request.headers}
 
         exit_stack = AsyncExitStack()
         try:
@@ -378,16 +377,27 @@ class ConnectorService:
                 self._proxy_client.stream(
                     request.method,
                     str(connector.url),
-                    headers=forward_headers | {"authorization": f"Bearer {connector.auth.token.access_token}"}
-                    if connector.state == ConnectorState.connected and connector.auth and connector.auth.token
-                    else {},
+                    headers=forward_headers
+                    | (
+                        {"authorization": f"Bearer {connector.auth.token.access_token}"}
+                        if connector.state == ConnectorState.connected
+                        and connector.auth
+                        and connector.auth.token
+                        and connector.auth.token.token_type == "bearer"
+                        else {}
+                    ),
                     content=await request.body(),
                 )
             )
 
-            content_type: str = response.headers.get("content-type")
-            common = {"status_code": response.status_code, "headers": response.headers, "media_type": content_type}
-            if content_type.startswith("text/event-stream"):
+            content_type: str | None = response.headers.get("content-type")
+            is_stream = content_type.startswith("text/event-stream") if content_type else False
+            common = {
+                "status_code": response.status_code,
+                "headers": response.headers,
+                "media_type": content_type if is_stream else None,
+            }
+            if is_stream:
 
                 async def stream_fn():
                     try:
