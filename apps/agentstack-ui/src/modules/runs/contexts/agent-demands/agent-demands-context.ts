@@ -7,11 +7,11 @@ import type { AgentSettings, FormFulfillments, Fulfillments, SettingsDemands } f
 import { createContext } from 'react';
 
 import type { TaskId } from '#modules/tasks/api/types.ts';
+import { RunFormValues } from '#modules/form/types.ts';
 
 export type FulfillmentsContext = Partial<{
   taskId: TaskId;
   providedSecrets: Record<string, string>;
-  formFulfillments: FormFulfillments;
   oauthRedirectUri: string;
 }>;
 
@@ -24,6 +24,7 @@ interface AgentDemandsContextValue {
   selectLLMProvider: (key: string, value: string) => void;
   selectEmbeddingProvider: (key: string, value: string) => void;
   selectMCPServer: (key: string, value: string) => void;
+  provideFormValues: (values: RunFormValues) => void;
   selectedMCPServers: Record<string, string>;
 
   onUpdateSettings: (settings: AgentSettings) => void;

@@ -9,7 +9,7 @@ import {
   citationExtension,
   extractUiExtensionData,
   type FormDemands,
-  formMessageExtension,
+  // formMessageExtension,
   trajectoryExtension,
   type TrajectoryMetadata,
 } from 'agentstack-sdk';
@@ -33,7 +33,7 @@ import { PLATFORM_FILE_CONTENT_URL_BASE } from './constants';
 
 export const extractCitation = extractUiExtensionData(citationExtension);
 export const extractTrajectory = extractUiExtensionData(trajectoryExtension);
-export const extractForm = extractUiExtensionData(formMessageExtension);
+// export const extractForm = extractUiExtensionData(formMessageExtension);
 
 export function extractTextFromMessage(message: Message | undefined) {
   const text = message?.parts

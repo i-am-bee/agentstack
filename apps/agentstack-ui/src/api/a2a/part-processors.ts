@@ -17,7 +17,7 @@ import {
   createTextPart,
   createTrajectoryPart,
   extractCitation,
-  extractForm,
+  // extractForm,
   extractTrajectory,
   getFileUrl,
 } from './utils';
@@ -25,7 +25,7 @@ import {
 export function processMessageMetadata(message: Message): UIMessagePart[] {
   const trajectory = extractTrajectory(message.metadata);
   const citations = extractCitation(message.metadata)?.citations;
-  const form = extractForm(message.metadata);
+  // const form = extractForm(message.metadata);
 
   const parts: UIMessagePart[] = [];
 
@@ -37,9 +37,9 @@ export function processMessageMetadata(message: Message): UIMessagePart[] {
 
     parts.push(...sourceParts);
   }
-  if (form) {
-    parts.push(createFormPart(form));
-  }
+  // if (form) {
+  //   parts.push(createFormPart(form));
+  // }
 
   return parts;
 }

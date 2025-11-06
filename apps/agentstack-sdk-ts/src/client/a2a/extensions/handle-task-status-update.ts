@@ -7,13 +7,11 @@ import type { TaskStatusUpdateEvent } from '@a2a-js/sdk';
 
 import type { SecretDemands } from './services/secrets';
 import { secretsMessageExtension } from './services/secrets';
-import type { FormDemands } from './ui/form';
-import { formMessageExtension } from './ui/form';
+import type { FormDemands } from './services/form';
 import { oauthRequestExtension } from './ui/oauth';
 import { extractUiExtensionData } from './utils';
 
 const secretsMessageExtensionExtractor = extractUiExtensionData(secretsMessageExtension);
-const formMessageExtensionExtractor = extractUiExtensionData(formMessageExtension);
 const oauthRequestExtensionExtractor = extractUiExtensionData(oauthRequestExtension);
 
 export enum TaskStatusUpdateType {
@@ -60,13 +58,14 @@ export const handleTaskStatusUpdate = (event: TaskStatusUpdateEvent): TaskStatus
       });
     }
   } else if (event.status.state === 'input-required') {
-    const formRequired = formMessageExtensionExtractor(event.status.message?.metadata);
-    if (formRequired) {
-      results.push({
-        type: TaskStatusUpdateType.FormRequired,
-        form: formRequired,
-      });
-    }
+    // TODO:
+    // const formRequired = formMessageExtensionExtractor(event.status.message?.metadata);
+    // if (formRequired) {
+    //   results.push({
+    //     type: TaskStatusUpdateType.FormRequired,
+    //     form: formRequired,
+    //   });
+    // }
   }
 
   return results;

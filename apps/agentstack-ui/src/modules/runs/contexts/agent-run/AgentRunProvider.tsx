@@ -41,6 +41,7 @@ import { AgentDemandsProvider } from '../agent-demands/AgentDemandsProvider';
 import { AgentSecretsProvider } from '../agent-secrets/AgentSecretsProvider';
 import { AgentStatusProvider } from '../agent-status/AgentStatusProvider';
 import { AgentRunContext, AgentRunStatus } from './agent-run-context';
+import { RunFormValues } from '#modules/form/types.ts';
 
 interface Props {
   agent: Agent;
@@ -304,10 +305,12 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
         id: uuid(),
         role: Role.User,
         parts: [],
-        form,
+        // form,
       };
 
-      return run(message, { taskId, formFulfillments: form.response });
+      // TODO: handle runtime form
+
+      return run(message, { taskId });
     },
     [checkPendingRun, run],
   );
@@ -323,7 +326,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
         form,
       };
 
-      return run(message, { formFulfillments: form.response });
+      return run(message, {});
     },
     [checkPendingRun, run],
   );

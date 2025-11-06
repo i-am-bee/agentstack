@@ -1,13 +1,4 @@
-/**
- * Copyright 2025 © BeeAI a Series of LF Projects, LLC
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import { z } from 'zod';
-
-import type { A2AServiceExtension, A2AUiExtension } from '../types';
-
-const URI = 'https://a2a-extensions.agentstack.beeai.dev/ui/form/v1';
+import z from 'zod';
 
 const baseField = z.object({
   id: z.string().nonempty(),
@@ -23,7 +14,7 @@ const textField = baseField.extend({
   auto_resize: z.boolean().default(true).nullish(),
 });
 
-const textFieldValue = z.object({
+export const textFieldValue = z.object({
   type: textField.shape.type,
   value: z.string().nullish(),
 });
@@ -34,7 +25,7 @@ const dateField = baseField.extend({
   default_value: z.string().nullish(),
 });
 
-const dateFieldValue = z.object({
+export const dateFieldValue = z.object({
   type: dateField.shape.type,
   value: z.string().nullish(),
 });
@@ -44,7 +35,7 @@ const fileField = baseField.extend({
   accept: z.array(z.string()),
 });
 
-const fileFieldValue = z.object({
+export const fileFieldValue = z.object({
   type: fileField.shape.type,
   value: z
     .array(
@@ -57,7 +48,7 @@ const fileFieldValue = z.object({
     .nullish(),
 });
 
-const singleSelectField = baseField.extend({
+export const singleSelectField = baseField.extend({
   type: z.literal('singleselect'),
   options: z
     .array(
@@ -70,12 +61,12 @@ const singleSelectField = baseField.extend({
   default_value: z.string().nullish(),
 });
 
-const singleSelectFieldValue = z.object({
+export const singleSelectFieldValue = z.object({
   type: singleSelectField.shape.type,
   value: z.string().nullish(),
 });
 
-const multiSelectField = baseField.extend({
+export const multiSelectField = baseField.extend({
   type: z.literal('multiselect'),
   options: z
     .array(
@@ -88,18 +79,18 @@ const multiSelectField = baseField.extend({
   default_value: z.array(z.string()).nullish(),
 });
 
-const multiSelectFieldValue = z.object({
+export const multiSelectFieldValue = z.object({
   type: multiSelectField.shape.type,
   value: z.array(z.string()).nullish(),
 });
 
-const checkboxField = baseField.extend({
+export const checkboxField = baseField.extend({
   type: z.literal('checkbox'),
   content: z.string(),
   default_value: z.boolean(),
 });
 
-const checkboxFieldValue = z.object({
+export const checkboxFieldValue = z.object({
   type: checkboxField.shape.type,
   value: z.boolean().nullish(),
 });
@@ -113,8 +104,7 @@ const fieldSchema = z.discriminatedUnion('type', [
   checkboxField,
 ]);
 
-const renderSchema = z.object({
-  id: z.string().nonempty(),
+export const renderSchema = z.object({
   title: z.string().nullish(),
   description: z.string().nullish(),
   columns: z.int().min(1).max(4).nullish(),
@@ -122,8 +112,7 @@ const renderSchema = z.object({
   fields: z.array(fieldSchema).nonempty(),
 });
 
-const responseSchema = z.object({
-  id: z.string().nonempty(),
+export const responseSchema = z.object({
   values: z.record(
     z.string(),
     z.discriminatedUnion('type', [
@@ -137,6 +126,8 @@ const responseSchema = z.object({
   ),
 });
 
+export type FormRender = z.infer<typeof renderSchema>;
+
 export type TextField = z.infer<typeof textField>;
 export type DateField = z.infer<typeof dateField>;
 export type FileField = z.infer<typeof fileField>;
@@ -145,17 +136,4 @@ export type MultiSelectField = z.infer<typeof multiSelectField>;
 export type CheckboxField = z.infer<typeof checkboxField>;
 
 export type FormField = z.infer<typeof fieldSchema>;
-
-export type FormDemands = z.infer<typeof renderSchema>;
-export type FormFulfillments = z.infer<typeof responseSchema>;
-export type FormResponseValue = FormFulfillments['values'][string];
-
-export const formMessageExtension: A2AUiExtension<typeof URI, FormDemands> = {
-  getMessageMetadataSchema: () => z.object({ [URI]: renderSchema }).partial(),
-  getUri: () => URI,
-};
-export const formExtension: A2AServiceExtension<typeof URI, z.infer<typeof renderSchema>, FormFulfillments> = {
-  getDemandsSchema: () => renderSchema,
-  getFulfillmentSchema: () => responseSchema,
-  getUri: () => URI,
-};
+export type FormResponseValue = z.infer<typeof responseSchema>['values'][string];

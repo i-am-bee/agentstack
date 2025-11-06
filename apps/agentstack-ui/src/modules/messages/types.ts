@@ -4,11 +4,12 @@
  */
 
 import type { Task } from '@a2a-js/sdk';
-import type { FormDemands, FormFulfillments, SecretDemands } from 'agentstack-sdk';
+import type { FormDemands, FormFulfillments, FormRender, SecretDemands } from 'agentstack-sdk';
 
 import type { TaskId } from '#modules/tasks/api/types.ts';
 
 import type { Role } from './api/types';
+import { RunFormValues } from '#modules/form/types.ts';
 
 export interface UITask extends Omit<Task, 'history'> {
   messages: UIMessage[];
@@ -143,6 +144,6 @@ export enum UITransformType {
 }
 
 export interface UIMessageForm {
-  request: FormDemands;
-  response: FormFulfillments;
+  request: FormRender;
+  response: RunFormValues;
 }

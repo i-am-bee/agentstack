@@ -31,7 +31,7 @@ interface Props {
 
 export function MessageFormResponse({ form }: Props) {
   const { showSubmission, setShowSubmission } = useMessageForm();
-  const formReturn = useForm<RunFormValues>({ values: form.response?.values });
+  const formReturn = useForm<RunFormValues>({ values: form.response });
 
   const data: FieldWithValue[] | null = useMemo(() => {
     if (!form.response) {
@@ -39,7 +39,7 @@ export function MessageFormResponse({ form }: Props) {
     }
     return form.request.fields
       .map((field) => {
-        const value = form.response?.values[field.id];
+        const value = form.response[field.id];
         return value && value.type === field.type ? ({ ...field, value: value.value } as FieldWithValue) : null;
       })
       .filter(isNotNull);
@@ -69,7 +69,7 @@ export function MessageFormResponse({ form }: Props) {
       {showSubmission && (
         <FormProvider {...formReturn}>
           <fieldset className={classes.submission} disabled>
-            <FormFields fields={fields} columns={columns} values={form.response?.values} />
+            <FormFields fields={fields} columns={columns} values={form.response} />
           </fieldset>
         </FormProvider>
       )}
