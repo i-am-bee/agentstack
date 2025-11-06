@@ -52,7 +52,7 @@
       },
       {
         "group": "Deploy Agent Stack for Your Team",
-        "pages": ["guides/deployment-guide"]
+        "pages": ["how-to/deployment-guide"]
       },
       {
         "group": "Join Our Community",

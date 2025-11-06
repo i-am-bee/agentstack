@@ -61,18 +61,21 @@ CMD ["python", "server.py"]
 
 ## Deploy to Agent Stack
 
-### Build and Register
+### One-Command Deployment
 
 From your agent directory, run:
 ```bash
-agentstack build . --import
+agentstack add .
 ```
 
 This automatically:
-1. ✓ Builds your Docker image
-2. ✓ Runs the container to extract agent metadata
-3. ✓ Registers the agent with Agent Stack
-4. ✓ Makes it available in the platform UI
+1. ✓ Builds your Docker image locally
+2. ✓ Copies the image into Agent Stack's VM
+3. ✓ Registers it as an available agent
+
+<Note>
+**Why "copy into VM"?** Agent Stack runs in an isolated VM (Lima on Mac/Linux, WSL on Windows). Even though Docker Desktop builds your image, Agent Stack needs it copied into its VM to run it. The `add` command handles this automatically.
+</Note>
 
 ### Verify Deployment
 
@@ -97,28 +100,42 @@ agentstack ui
 
 Your agent will be available at `http://127.0.0.1:8333`
 
-## Advanced Build Options
+## Advanced Options
 
-### Build Without Importing
+<Accordion title="Two-step build process">
+If you need more control over the build:
+```bash
+# Step 1: Build and copy to Agent Stack VM
+agentstack build . --import
 
-Test your build before registering:
+# Step 2: Register the agent
+agentstack add agentstack.local/my-agent-abc123:latest
+```
+
+The `--import` flag (enabled by default) copies your Docker image from Docker Desktop into Agent Stack's VM.
+</Accordion>
+
+<Accordion title="Build without importing">
+Test your Dockerfile builds without deploying:
 ```bash
 agentstack build . --no-import
 ```
 
-### Custom Image Tags
+This creates the image in Docker Desktop but doesn't copy it to Agent Stack. Useful for testing or if you plan to push to a registry instead.
+</Accordion>
 
-Specify your own tag:
+<Accordion title="Custom build options">
 ```bash
-agentstack build . --tag my-agent:v1.0.0
-```
+# Custom image tag
+agentstack build . --tag my-agent:v1.0.0 --import
 
-### Multi-Platform Builds
+# Build for multiple architectures
+agentstack build . --multi-platform --import
 
-Build for multiple architectures:
-```bash
-agentstack build . --multi-platform
+# Use custom Dockerfile location
+agentstack build . --dockerfile=./deploy/Containerfile --import
 ```
+</Accordion>
 
 ## Next Steps
 
