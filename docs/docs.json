@@ -29,9 +29,8 @@
       {
         "group": "Extensions",
         "pages": [
-          "extensions/overview",
           "extensions/agent-details",
-          "extensions/llm-service",
+          "extensions/llm-proxy-service",
           "extensions/trajectory",
           "extensions/citations",
           "extensions/forms",
