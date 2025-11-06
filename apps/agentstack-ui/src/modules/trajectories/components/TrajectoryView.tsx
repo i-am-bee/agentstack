@@ -29,30 +29,37 @@ export function TrajectoryView({ trajectories, toggleable, autoScroll }: Props) 
       return [];
     }
 
-    return filteredTrajectories.reduce((result: UITrajectoryPart[], trajectory) => {
-      const { groupId } = trajectory;
-
-      if (groupId && result.some((item) => item.groupId === groupId)) return result;
-
-      if (groupId) {
-        const groupedTrajectory = filteredTrajectories
-          .filter((item) => item.groupId === groupId && trajectory.id !== item.id)
-          .reduce(
-            (grouped: UITrajectoryPart, { title, content }) => ({
-              ...grouped,
-              title: title ?? grouped.title,
-              content: content ? [...(grouped.content ?? []), ...content] : grouped.content,
-            }),
-            trajectory,
-          );
-
-        result.push(groupedTrajectory);
-      } else {
-        result.push(trajectory);
+    const groupMap = new Map<string, UITrajectoryPart>();
+    filteredTrajectories.forEach((item) => {
+      if (item.groupId) {
+        const existingTrajectory = groupMap.get(item.groupId);
+        groupMap.set(
+          item.groupId,
+          !existingTrajectory
+            ? item
+            : {
+                ...existingTrajectory,
+                title: item.title ?? existingTrajectory?.title,
+                content: [...(existingTrajectory?.content ?? []), ...(item.content ?? [])],
+              },
+        );
       }
+    });
 
-      return result;
-    }, []);
+    const addedGroupIds = new Set<string>();
+    const grouped: UITrajectoryPart[] = [];
+    filteredTrajectories.forEach((item) => {
+      if (item.groupId) {
+        if (!addedGroupIds.has(item.groupId)) {
+          grouped.push(groupMap.get(item.groupId)!);
+          addedGroupIds.add(item.groupId);
+        }
+      } else {
+        grouped.push(item);
+      }
+    });
+
+    return grouped;
   }, [filteredTrajectories, hasTrajectories]);
 
   if (!hasTrajectories) {
