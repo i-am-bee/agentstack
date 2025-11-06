@@ -77,8 +77,9 @@ export type UISourcePart = {
 export type UITrajectoryPart = {
   kind: UIMessagePartKind.Trajectory;
   id: string;
+  groupId?: string;
   title?: string;
-  content?: string;
+  content?: string[];
 };
 
 export type UIFormPart = FormDemands & {
