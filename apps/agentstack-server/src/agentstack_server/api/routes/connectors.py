@@ -116,9 +116,9 @@ async def mcp(
     connector_id: UUID,
     request: Request,
     connector_service: ConnectorServiceDependency,
-    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(connectors={"read"}))],
+    user: Annotated[AuthorizedUser, Depends(RequiresPermissions(connectors={"read"}))],
 ):
-    response = await connector_service.mcp_proxy(connector_id=connector_id, request=request)
+    response = await connector_service.mcp_proxy(connector_id=connector_id, request=request, user=user.user)
     return to_fastapi(response)
 
 
