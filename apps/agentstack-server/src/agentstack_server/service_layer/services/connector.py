@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import html
 import logging
+from contextlib import AsyncExitStack
 from datetime import timedelta
 from secrets import token_urlsafe
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
@@ -43,6 +44,7 @@ class ConnectorService:
     def __init__(self, uow: IUnitOfWorkFactory, configuration: Configuration):
         self._uow = uow
         self._configuration = configuration
+        self._proxy_client = httpx.AsyncClient()
 
     async def create_connector(
         self,
@@ -370,26 +372,39 @@ class ConnectorService:
         forward_headers = dict(request.headers)
         del forward_headers["authorization"]
 
-        async with (
-            httpx.AsyncClient() as client,
-            client.stream(
-                request.method,
-                str(connector.url),
-                headers=forward_headers | {"authorization": f"Bearer {connector.auth.token.access_token}"}
-                if connector.state == ConnectorState.connected and connector.auth and connector.auth.token
-                else {},
-                content=await request.body(),
-            ) as response,
-        ):
-            common = {
-                "status_code": response.status_code,
-                "headers": response.headers,
-            }
-            is_stream = True
-            if is_stream:
-                return McpServerResponse(content=None, stream=response.aiter_bytes(), **common)
+        exit_stack = AsyncExitStack()
+        try:
+            response = await exit_stack.enter_async_context(
+                self._proxy_client.stream(
+                    request.method,
+                    str(connector.url),
+                    headers=forward_headers | {"authorization": f"Bearer {connector.auth.token.access_token}"}
+                    if connector.state == ConnectorState.connected and connector.auth and connector.auth.token
+                    else {},
+                    content=await request.body(),
+                )
+            )
+
+            content_type: str = response.headers.get("content-type")
+            common = {"status_code": response.status_code, "headers": response.headers, "media_type": content_type}
+            if content_type.startswith("text/event-stream"):
+
+                async def stream_fn():
+                    try:
+                        async for chunk in response.aiter_bytes():
+                            yield chunk
+                    finally:
+                        await exit_stack.pop_all().aclose()
+
+                return McpServerResponse(content=None, stream=stream_fn(), **common)
             else:
-                return McpServerResponse(content=await response.aread(), stream=None, **common)
+                try:
+                    return McpServerResponse(content=await response.aread(), stream=None, **common)
+                finally:
+                    await exit_stack.pop_all().aclose()
+        except BaseException:
+            await exit_stack.pop_all().aclose()
+            raise
 
 
 @alru_cache(ttl=timedelta(days=1).seconds)
