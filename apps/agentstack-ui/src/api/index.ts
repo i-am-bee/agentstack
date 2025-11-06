@@ -15,9 +15,11 @@ import { getProxyHeaders } from './utils';
 
 const authMiddleware: Middleware = {
   async onRequest({ request }) {
+    const { isAuthEnabled } = runtimeConfig;
+
     let accessToken: string | undefined = undefined;
 
-    if (runtimeConfig.isAuthEnabled) {
+    if (isAuthEnabled) {
       const token = await ensureToken(request);
 
       if (token?.access_token) {

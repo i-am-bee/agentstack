@@ -14,7 +14,9 @@ import { routes } from '#utils/router.ts';
 import { auth, AUTH_COOKIE_NAME } from './auth';
 
 export async function ensureToken(request: Request) {
-  if (!runtimeConfig.isAuthEnabled) {
+  const { isAuthEnabled } = runtimeConfig;
+
+  if (!isAuthEnabled) {
     return null;
   }
 

@@ -8,12 +8,11 @@ import { z } from 'zod';
 const booleanProp = (defaultValue: boolean | undefined = false) => z.boolean().optional().default(defaultValue);
 
 const featureFlagsSchema = z.strictObject({
-  Variables: booleanProp(),
-  Providers: booleanProp(),
-  ModelProviders: booleanProp(true),
-  MCPOAuth: booleanProp(true),
-  MCP: booleanProp(),
   LocalSetup: booleanProp(),
+  MCP: booleanProp(),
+  ProviderBuilds: booleanProp(),
+  Providers: booleanProp(),
+  Variables: booleanProp(),
 });
 
 export type FeatureFlags = z.infer<typeof featureFlagsSchema>;
@@ -30,5 +29,6 @@ export function parseFeatureFlags(data?: string) {
       console.error(error);
     }
   }
+
   return featureFlagsSchema.parse({});
 }

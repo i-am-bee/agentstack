@@ -34,7 +34,7 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
   const id = useId();
 
   const {
-    config: { appName },
+    config: { appName, featureFlags },
   } = useApp();
 
   const { agent, logs, actionRequired, providersToUpdate, isPending, error, importAgent } = useImportAgent();
@@ -48,7 +48,7 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
   } = useForm<ImportAgentFormValues>({
     mode: 'onChange',
     defaultValues: {
-      source: ProviderSource.GitHub,
+      source: featureFlags.ProviderBuilds ? ProviderSource.GitHub : ProviderSource.Docker,
     },
   });
 
@@ -132,7 +132,10 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
                 onChange={sourceField.onChange}
                 disabled={isPending}
               >
-                <RadioButton labelText="Github respository URL" value={ProviderSource.GitHub} />
+                {featureFlags.ProviderBuilds && (
+                  <RadioButton labelText="Github respository URL" value={ProviderSource.GitHub} />
+                )}
+
                 <RadioButton labelText="Container image URL" value={ProviderSource.Docker} />
               </RadioButtonGroup>
 

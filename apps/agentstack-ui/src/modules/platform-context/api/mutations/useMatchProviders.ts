@@ -32,12 +32,12 @@ export function useMatchProviders({ demands, onSuccess, capability }: Props) {
     .map(([key, value]) => [key, ...(value.suggested ?? [])])
     .join();
 
+  const demandKeys = Object.keys(demands);
+
   const query = useQuery({
     queryKey: [capability === ModelCapability.Embedding ? 'matchEmbeddingProviders' : 'matchLLMProviders', demandKey],
-    enabled: featureFlags.ModelProviders && Object.keys(demands).length > 0,
+    enabled: demandKeys.length > 0,
     queryFn: async () => {
-      const demandKeys = Object.keys(demands);
-
       const allProviders = await Promise.all(
         demandKeys.map(async (demandKey) => {
           const result = await matchProviders({
