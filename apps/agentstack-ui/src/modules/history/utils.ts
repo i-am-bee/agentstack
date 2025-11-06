@@ -26,8 +26,6 @@ export function convertHistoryToUIMessages(history: ContextHistoryItem[]): UIMes
           const contentParts = processParts(message.parts);
           const parts = [...metadataParts, ...contentParts];
 
-          console.log(parts, parts.at(0));
-
           lastTaskId = message.taskId;
           const { messageId } = message;
 
