@@ -49,7 +49,7 @@ class Permissions(BaseModel):
     mcp_proxy: SerializeAsAny[set[Literal["*"]]] = set()
 
     # connectors
-    connectors: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
+    connectors: SerializeAsAny[set[Literal["read", "write", "proxy", "*"]]] = set()
 
     allow_all: bool = Field(False, description="Admin override", init=False, exclude=True)
 
