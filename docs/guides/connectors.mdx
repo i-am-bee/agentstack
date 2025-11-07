@@ -66,8 +66,8 @@ stateDiagram-v2
 
 Usual flow works as follows:
 
-1. **Create**: Client creates a connector by calling `POST /connectors` with MCP server URL.
-2. **Connect**: Client initiates connection by calling `POST /connectors/{id}/connect`. If the MCP server requires user authorization, the response will contain an authorization URL.
+1. **Create**: Client creates a connector by calling `POST /api/v1/connectors` with MCP server URL.
+2. **Connect**: Client initiates connection by calling `POST /api/v1/connectors/{id}/connect`. If the MCP server requires user authorization, the response will contain an authorization URL.
 3. **Authorize**: User visits the authorization URL, authenticates and grants access. Authorization server redirects the user back to the platform with an authorization code.
 4. **Complete**: Platform exchanges the authorization code for access and refresh tokens. Once completed, the connector is in `connected` state and ready to be used.
 
