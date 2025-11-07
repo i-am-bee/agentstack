@@ -35,6 +35,7 @@ class Authorization(BaseModel):
     client_secret: str | None = None
     flow: AuthFlow | None = None
     token: Token | None = None
+    token_endpoint: AnyUrl | None = None
 
 
 class ConnectorState(StrEnum):
