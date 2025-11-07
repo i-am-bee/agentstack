@@ -141,7 +141,10 @@ class ConnectorService:
 
         await self._revoke_auth_token(connector=connector)
 
+        if connector.auth:
+            connector.auth.flow = None
         connector.state = ConnectorState.disconnected
+        connector.disconnect_reason = "Client request"
 
         async with self._uow() as uow:
             await uow.connectors.update(connector=connector)
@@ -239,6 +242,8 @@ class ConnectorService:
             await self.probe_connector(connector=connector)
         except Exception as err:
             await self._revoke_auth_token(connector=connector)
+            if connector.auth:
+                connector.auth.flow = None
             connector.state = ConnectorState.disconnected
             connector.disconnect_reason = str(err)
         finally:
