@@ -25,7 +25,7 @@ export function MermaidDiagram({ children }: MermaidDiagramProps) {
     let cancelled = false;
 
     (async () => {
-      if (typeof children !== 'string' || cancelled) {
+      if (typeof children !== 'string') {
         return;
       }
 
@@ -34,9 +34,13 @@ export function MermaidDiagram({ children }: MermaidDiagramProps) {
 
         const { svg } = await mermaid.render(id, children);
 
-        setDiagram(svg);
+        if (!cancelled) {
+          setDiagram(svg);
+        }
       } catch (error) {
-        console.warn(error);
+        if (!cancelled) {
+          console.warn(error);
+        }
       }
     })();
 
