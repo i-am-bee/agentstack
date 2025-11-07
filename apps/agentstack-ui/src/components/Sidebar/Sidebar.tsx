@@ -10,15 +10,10 @@ import { useCallback, useRef, useState } from 'react';
 
 import { useApp } from '#contexts/App/index.ts';
 
-// import { useParamsFromUrl } from '#hooks/useParamsFromUrl.ts';
-// import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
-// import { SessionsNav } from '#modules/history/components/SessionsNav.tsx';
-// import { AgentNav } from './AgentNav';
-import { AgentsNav } from './AgentsNav';
 import { MainNav } from './MainNav';
-import { RecentlyUsedAgentsNav } from './RecentlyUsedAgentsNav';
 import classes from './Sidebar.module.scss';
 import { SidebarButton } from './SidebarButton';
+import { SidebarMainContent } from './SidebarMainContent';
 import { SideNav } from './SideNav';
 import { UserNav } from './UserNav';
 
@@ -29,9 +24,6 @@ interface Props {
 export function Sidebar({ className }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [isAnimating, setIsAnimating] = useState(false);
-
-  // const { providerId } = useParamsFromUrl();
-  // const { data: agent } = useAgent({ providerId });
 
   const {
     config: { isAuthEnabled },
@@ -84,15 +76,7 @@ export function Sidebar({ className }: Props) {
         </header>
 
         <div className={classes.body}>
-          <div className={classes.bodyContent}>
-            <AgentsNav className={classes.agentsNav} />
-
-            <RecentlyUsedAgentsNav className={classes.recentlyUsed} />
-
-            {/* {agent && <AgentNav agent={agent} />} */}
-
-            {/* <SessionsNav /> */}
-          </div>
+          <SidebarMainContent className={classes.mainContent} />
         </div>
 
         <footer className={classes.stack}>

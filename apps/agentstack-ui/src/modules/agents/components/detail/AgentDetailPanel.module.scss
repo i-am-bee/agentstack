@@ -23,14 +23,3 @@
   flex-direction: column;
   row-gap: $spacing-03;
 }
-
-.docsLink {
-  display: flex;
-  align-items: center;
-  gap: $spacing-02;
-  color: $text-primary;
-  text-decoration: none;
-  max-inline-size: max-content;
-
-  @include type-style('body-01');
-}

@@ -11,7 +11,7 @@ export function groupAgentsByProvider(agents: Agent[] | undefined) {
   return groupBy(agents, (agent) => agent.provider.id);
 }
 
-export function isRecentlyUsedAgent(agent: Agent) {
+export function isUsedAgent(agent: Agent) {
   const {
     provider: { created_at: createdAt, last_active_at: lastActiveAt },
   } = agent;

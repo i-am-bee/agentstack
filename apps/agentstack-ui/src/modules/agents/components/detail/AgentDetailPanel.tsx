@@ -4,10 +4,8 @@
  */
 
 'use client';
-import { ArrowUpRight } from '@carbon/icons-react';
 import { SkeletonText, Tab, TabList, TabPanel, TabPanels, Tabs } from '@carbon/react';
 
-import { ExternalLink } from '#components/MarkdownContent/components/ExternalLink.tsx';
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 import { SidePanel } from '#components/SidePanel/SidePanel.tsx';
 import { useApp } from '#contexts/App/index.ts';
@@ -30,7 +28,7 @@ export function AgentDetailPanel() {
 
   const {
     description,
-    ui: { contributors, author, source_code_url },
+    ui: { contributors, author },
   } = agent;
 
   const isOpen = activeSidePanel === SidePanelVariant.AgentDetail;
@@ -57,12 +55,6 @@ export function AgentDetailPanel() {
                     </div>
 
                     <AgentTags agent={agent} />
-
-                    {source_code_url && (
-                      <ExternalLink href={source_code_url} className={classes.docsLink}>
-                        View source code <ArrowUpRight />
-                      </ExternalLink>
-                    )}
                   </>
                 ) : (
                   <SkeletonText paragraph lineCount={5} />

@@ -23,14 +23,6 @@ $zindex-buttons: 2;
   position: relative;
 }
 
-.header {
-  position: sticky;
-  inset-block-start: $spacing-03;
-  text-align: end;
-  padding-block-end: $spacing-06;
-  z-index: $zindex-buttons;
-}
-
 .container {
   position: relative;
   flex-grow: 1;

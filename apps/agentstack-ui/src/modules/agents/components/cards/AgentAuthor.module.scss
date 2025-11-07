@@ -11,18 +11,19 @@
   min-inline-size: 0;
 }
 
-.initials {
-  flex-shrink: 0;
-  inline-size: rem(16px);
-  block-size: rem(16px);
-  font-size: rem(7px);
-  color: $text-inverse;
-  background-color: $layer-inverse;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+// TODO: The icon should be added as a future enhancement
+// .icon {
+//   flex-shrink: 0;
+//   inline-size: rem(16px);
+//   block-size: rem(16px);
+//   font-size: rem(7px);
+//   color: $text-inverse;
+//   background-color: $layer-inverse;
+//   border-radius: 50%;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+// }
 
 .name {
   color: $text-secondary;
