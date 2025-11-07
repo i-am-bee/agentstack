@@ -42,7 +42,7 @@ function HandsOff() {
     const agentExtensions = getAgentExtensions(agent);
     const formRender = formExtensionExtractor(agentExtensions);
 
-    return formRender ?? undefined;
+    return formRender?.form_demands.initial_form ?? undefined;
   }, [agent]);
 
   const { messages } = useMessages();
