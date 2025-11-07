@@ -227,6 +227,7 @@ export function AgentDemandsProvider<UIGenericPart>({
         selectedMCPServers,
         selectedSettings,
         settingsDemands: agentClient?.demands.settingsDemands ?? null,
+        formDemands: agentClient?.demands.formDemands ?? null,
         onUpdateSettings,
       }}
     >

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentSettings, Fulfillments, SettingsDemands } from 'agentstack-sdk';
+import type { AgentSettings, FormDemands, Fulfillments, SettingsDemands } from 'agentstack-sdk';
 import { createContext } from 'react';
 
 import type { RunFormValues } from '#modules/form/types.ts';
@@ -32,6 +32,7 @@ interface AgentDemandsContextValue {
   onUpdateSettings: (settings: AgentSettings) => void;
   selectedSettings: AgentSettings | undefined;
   settingsDemands: SettingsDemands | null;
+  formDemands: FormDemands | null;
 }
 
 export const AgentDemandsContext = createContext<AgentDemandsContextValue | null>(null);

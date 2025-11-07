@@ -3,10 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { extractServiceExtensionDemands, formExtension } from 'agentstack-sdk';
-import { useMemo } from 'react';
-
-import { getAgentExtensions } from '#api/utils.ts';
 import { MainContent } from '#components/layouts/MainContent.tsx';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { AgentDetailPanel } from '#modules/agents/components/detail/AgentDetailPanel.tsx';
@@ -18,8 +14,6 @@ import { RunLandingView } from '../components/RunLandingView';
 import { useAgentRun } from '../contexts/agent-run';
 import { AgentRunProviders } from '../contexts/agent-run/AgentRunProvider';
 import { HandsOffOutputView } from './HandsOffOutputView';
-
-const formExtensionExtractor = extractServiceExtensionDemands(formExtension);
 
 interface Props {
   agent: Agent;
@@ -35,16 +29,7 @@ export function HandsOffView({ agent }: Props) {
 }
 
 function HandsOff() {
-  const { agent, isPending } = useAgentRun();
-
-  // TODO: move extraction into the agent run context (or a2a client)
-  const formRender = useMemo(() => {
-    const agentExtensions = getAgentExtensions(agent);
-    const formRender = formExtensionExtractor(agentExtensions);
-
-    return formRender?.form_demands.initial_form ?? undefined;
-  }, [agent]);
-
+  const { isPending, initialFormRender } = useAgentRun();
   const { messages } = useMessages();
 
   const isIdle = !(isPending || messages?.length);
@@ -52,7 +37,15 @@ function HandsOff() {
   return (
     <>
       <MainContent spacing="md">
-        {isIdle ? formRender ? <FormRenderView formRender={formRender} /> : <RunLandingView /> : <HandsOffOutputView />}
+        {isIdle ? (
+          initialFormRender ? (
+            <FormRenderView formRender={initialFormRender} />
+          ) : (
+            <RunLandingView />
+          )
+        ) : (
+          <HandsOffOutputView />
+        )}
       </MainContent>
 
       <SourcesPanel />
