@@ -60,12 +60,12 @@ export const handleTaskStatusUpdate = (event: TaskStatusUpdateEvent): TaskStatus
       });
     }
   } else if (event.status.state === 'input-required') {
-    const formsRequired = requestFormExtensionExtractor(event.status.message?.metadata);
+    const formRequired = requestFormExtensionExtractor(event.status.message?.metadata);
 
-    if (formsRequired) {
+    if (formRequired) {
       results.push({
         type: TaskStatusUpdateType.FormRequired,
-        form: formsRequired,
+        form: formRequired,
       });
     }
   }

@@ -42,7 +42,7 @@ export const buildFulfillments = ({
 
     form: async (demands) => {
       if (demands.form_demands.initial_form && !formFulfillments.form_fulfillments['initial_form']) {
-        throw new Error('Initial form has not been fulfilled albeit demanded.');
+        throw new Error('Initial form has not been fulfilled despite being demanded.');
       }
 
       return formFulfillments;
