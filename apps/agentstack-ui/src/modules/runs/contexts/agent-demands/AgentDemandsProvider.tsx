@@ -4,7 +4,7 @@
  */
 
 import type { AgentSettings, FormFulfillments } from 'agentstack-sdk';
-import { type PropsWithChildren, useCallback, useEffect, useState } from 'react';
+import { type PropsWithChildren, useCallback, useEffect, useRef, useState } from 'react';
 
 import type { AgentA2AClient } from '#api/a2a/types.ts';
 import { useApp } from '#contexts/App/index.ts';
@@ -32,7 +32,7 @@ export function AgentDemandsProvider<UIGenericPart>({
 
   const [selectedEmbeddingProviders, setSelectedEmbeddingProviders] = useState<Record<string, string>>({});
   const [selectedLLMProviders, setSelectedLLMProviders] = useState<Record<string, string>>({});
-  const [formFulfillments, setFormFulfillments] = useState<FormFulfillments>({ form_fulfillments: {} });
+  const formFulfillmentsRef = useRef<FormFulfillments>({ form_fulfillments: {} });
 
   const [selectedSettings, setSelectedSettings] = useState<AgentSettings>(
     getSettingsDemandsDefaultValues(agentClient.demands.settingsDemands ?? { fields: [] }),
@@ -109,15 +109,14 @@ export function AgentDemandsProvider<UIGenericPart>({
     [setSelectedEmbeddingProviders],
   );
 
-  const provideFormValues = useCallback(
-    (values: RunFormValues) => {
-      setFormFulfillments((prev) => {
-        prev.form_fulfillments['initial_form'] = { values };
-        return prev;
-      });
-    },
-    [setFormFulfillments],
-  );
+  const provideFormValues = useCallback((values: RunFormValues) => {
+    formFulfillmentsRef.current = {
+      form_fulfillments: {
+        ...formFulfillmentsRef.current.form_fulfillments,
+        initial_form: { values },
+      },
+    };
+  }, []);
 
   const [selectedMCPServers, setSelectedMCPServers] = useState<Record<string, string>>({});
 
@@ -196,7 +195,7 @@ export function AgentDemandsProvider<UIGenericPart>({
         providedSecrets,
         featureFlags,
         selectedSettings,
-        formFulfillments,
+        formFulfillments: formFulfillmentsRef.current,
         oauthRedirectUri: fulfillmentsContext.oauthRedirectUri ?? null,
       });
     },
@@ -208,7 +207,6 @@ export function AgentDemandsProvider<UIGenericPart>({
       featureFlags,
       selectedSettings,
       demandedSecrets,
-      formFulfillments,
     ],
   );
 
