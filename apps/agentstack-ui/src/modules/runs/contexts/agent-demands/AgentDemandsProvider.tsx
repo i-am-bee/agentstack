@@ -8,6 +8,7 @@ import { type PropsWithChildren, useCallback, useEffect, useState } from 'react'
 
 import type { AgentA2AClient } from '#api/a2a/types.ts';
 import { useApp } from '#contexts/App/index.ts';
+import type { RunFormValues } from '#modules/form/types.ts';
 import { useCreateContextToken } from '#modules/platform-context/api/mutations/useCreateContextToken.ts';
 import { useMatchProviders } from '#modules/platform-context/api/mutations/useMatchProviders.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
@@ -18,7 +19,6 @@ import { useAgentSecrets } from '../agent-secrets';
 import type { FulfillmentsContext } from './agent-demands-context';
 import { AgentDemandsContext } from './agent-demands-context';
 import { buildFulfillments } from './build-fulfillments';
-import { RunFormValues } from '#modules/form/types.ts';
 
 interface Props<UIGenericPart> {
   agentClient: AgentA2AClient<UIGenericPart>;
@@ -208,6 +208,7 @@ export function AgentDemandsProvider<UIGenericPart>({
       featureFlags,
       selectedSettings,
       demandedSecrets,
+      formFulfillments,
     ],
   );
 

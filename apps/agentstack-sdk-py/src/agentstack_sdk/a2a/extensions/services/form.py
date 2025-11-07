@@ -4,9 +4,9 @@
 
 from __future__ import annotations
 
-from typing import Self, TypedDict
+from typing import Self, TypedDict, TypeVar, cast
 
-import pydantic
+from pydantic import BaseModel, TypeAdapter
 
 from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 from agentstack_sdk.a2a.extensions.common.form import FormRender, FormResponse
@@ -17,11 +17,11 @@ class FormDemands(TypedDict):
     # TODO: We can put settings here too
 
 
-class FormServiceExtensionMetadata(pydantic.BaseModel):
+class FormServiceExtensionMetadata(BaseModel):
     form_fulfillments: dict[str, FormResponse] = {}
 
 
-class FormServiceExtensionParams(pydantic.BaseModel):
+class FormServiceExtensionParams(BaseModel):
     form_demands: FormDemands
 
 
@@ -30,12 +30,24 @@ class FormServiceExtensionSpec(BaseExtensionSpec[FormServiceExtensionParams]):
 
     @classmethod
     def demand(cls, initial_form: FormRender | None) -> Self:
-        return cls(
-            params=FormServiceExtensionParams(form_demands={"initial_form": initial_form})
-        )
+        return cls(params=FormServiceExtensionParams(form_demands={"initial_form": initial_form}))
 
 
-class FormServiceExtensionServer(BaseExtensionServer[FormServiceExtensionSpec, FormServiceExtensionMetadata]): ...
+T = TypeVar("T")
+
+
+class FormServiceExtensionServer(BaseExtensionServer[FormServiceExtensionSpec, FormServiceExtensionMetadata]):
+    def parse_initial_form(self, *, model: type[T] = FormResponse) -> T | None:
+        if self.data is None:
+            return None
+
+        intial_form = self.data.form_fulfillments["initial_form"]
+
+        if intial_form is None:
+            return None
+        if model is FormResponse:
+            return cast(T, intial_form)
+        return TypeAdapter(model).validate_python(dict(intial_form))
 
 
 class FormServiceExtensionClient(BaseExtensionClient[FormServiceExtensionSpec, FormRender]): ...

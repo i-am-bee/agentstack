@@ -5,12 +5,12 @@
 
 import type { TaskStatusUpdateEvent } from '@a2a-js/sdk';
 
+import type { FormRender } from './common/form';
 import type { SecretDemands } from './services/secrets';
 import { secretsMessageExtension } from './services/secrets';
 import { oauthRequestExtension } from './ui/oauth';
-import { extractUiExtensionData } from './utils';
 import { requestFormExtension } from './ui/request-form';
-import { FormRender } from './common/form';
+import { extractUiExtensionData } from './utils';
 
 const secretsMessageExtensionExtractor = extractUiExtensionData(secretsMessageExtension);
 const oauthRequestExtensionExtractor = extractUiExtensionData(oauthRequestExtension);

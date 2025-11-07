@@ -15,6 +15,7 @@ server = Server()
 class UserInfo(BaseModel):
     name: str | None
 
+
 @server.agent()
 async def request_form_agent(
     _message: Message,
@@ -29,9 +30,12 @@ async def request_form_agent(
             title="What is your name?",
             fields=[TextField(id="name", label="Name", type="text", col_span=1)],
         ),
-        model=UserInfo
+        model=UserInfo,
     )
-    yield f"Your name is {user_info.name}"
+    if user_info is None:
+        yield "No user info received."
+    else:
+        yield f"Your name is {user_info.name}"
 
 
 if __name__ == "__main__":
