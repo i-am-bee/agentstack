@@ -89,7 +89,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
   const pendingRun = useRef<ChatRun>(undefined);
 
   const { contextId, getContextId, updateContextWithAgentMetadata } = usePlatformContext();
-  const { getFulfillments } = useAgentDemands();
+  const { getFulfillments, formDemands } = useAgentDemands();
   const { files, clearFiles } = useFileUpload();
 
   const updateCurrentAgentMessage = useCallback(
@@ -371,6 +371,8 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
     return AgentRunStatus.Ready;
   }, [agentClient, contextId, isPending]);
 
+  const initialFormRender = useMemo(() => formDemands?.form_demands?.initial_form, [formDemands]);
+
   const contextValue = useMemo(() => {
     return {
       agent,
@@ -387,6 +389,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
       submitRuntimeForm,
       startAuth,
       submitSecrets,
+      initialFormRender,
       cancel,
       clear,
     };
@@ -404,6 +407,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
     submitForm,
     submitRuntimeForm,
     submitSecrets,
+    initialFormRender,
   ]);
 
   return (

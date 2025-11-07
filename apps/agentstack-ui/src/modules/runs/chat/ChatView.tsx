@@ -3,10 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { extractServiceExtensionDemands, formExtension } from 'agentstack-sdk';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 
-import { getAgentExtensions } from '#api/utils.ts';
 import { MainContent } from '#components/layouts/MainContent.tsx';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { AgentDetailPanel } from '#modules/agents/components/detail/AgentDetailPanel.tsx';
@@ -21,7 +19,6 @@ import { AgentRunProviders } from '../contexts/agent-run/AgentRunProvider';
 import { useSyncRunStateWithRoute } from '../hooks/useSyncRunStateWithRoute';
 import { ChatMessagesView } from './ChatMessagesView';
 
-const formExtensionExtractor = extractServiceExtensionDemands(formExtension);
 interface Props {
   agent: Agent;
 }
@@ -36,17 +33,10 @@ export function ChatView({ agent }: Props) {
 }
 
 function Chat() {
-  const { isPending, agent, hasMessages } = useAgentRun();
+  const { isPending, agent, hasMessages, initialFormRender } = useAgentRun();
   const { contextId } = usePlatformContext();
 
   useSyncRunStateWithRoute();
-
-  // TODO: move extraction into the agent run context (or a2a client)
-  const initialFormRender = useMemo(() => {
-    const agentExtensions = getAgentExtensions(agent);
-    const formRender = formExtensionExtractor(agentExtensions)?.form_demands.initial_form;
-    return formRender ?? undefined;
-  }, [agent]);
 
   const handleMessageSent = useCallback(() => {
     if (contextId) {
