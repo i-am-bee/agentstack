@@ -1,0 +1,152 @@
+---
+title: "Connectors"
+description: "Create and manage data connections to extenal services"
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [OAuth Authorization Flow](#oauth-authorization-flow)
+- [API Reference](#api-reference)
+- [Lifecycle](#lifecycle)
+- [Error handling](#error-handling)
+  - [Authorization Code Flow](#authorization-code-flow)
+  - [Disconnection](#disconnection)
+- [Connector Presets](#connector-presets)
+  - [Available Presets](#available-presets)
+  - [Using Presets](#using-presets)
+  - [Configuring Presets](#configuring-presets)
+
+## Overview
+
+Connectors are remote MCP servers registered into the Agent Stack. Effectively, they take some responsibilities away from MCP Clients to improve user experience and reduce overhead within the Agent Stack.
+
+Once connector is created and connected, it can be used as any regular remote MCP server by both clients and agents.
+
+## API Reference
+
+Core of connectors API consists of the following endpoints:
+
+| Endpoint                                  | Purpose                |
+| ----------------------------------------- | ---------------------- |
+| `POST /api/v1/connectors`                 | Create a connector     |
+| `GET /api/v1/connectors`                  | List all connectors    |
+| `GET /api/v1/connectors/{id}`             | Read a connector       |
+| `DELETE /api/v1/connectors/{id}`          | Delete a connector     |
+| `POST /api/v1/connectors/{id}/connect`    | Connect a connector    |
+| `POST /api/v1/connectors/{id}/disconnect` | Disconnect a connector |
+
+The connector can then be used by any MCP client at `/api/v1/connectors/{id}/mcp` endpoint. For example, to inspect a connector using MCP Inspector:
+
+```bash
+npx -y @modelcontextprotocol/inspector --transport http --server-url http://localhost:8333/api/v1/connectors/{id}/mcp
+```
+
+Additionally, the connectors API exposes a catalog of preconfigured presets for common connectors:
+
+| Endpoint                         | Purpose                |
+| -------------------------------- | ---------------------- |
+| `GET /api/v1/connectors/presets` | List connector presets |
+
+## Lifecycle
+
+Following diagram illustrates the lifecycle of a connector:
+
+```mermaid
+stateDiagram-v2
+    [*] --> created: Create
+    created --> auth_required: Connect (auth)
+    created --> connected: Connect (no auth)
+    auth_required --> connected: oAuth redirect
+    connected --> disconnected: Disconnect, auth expired, probe failed, ...
+    disconnected --> [*]: Delete
+    disconnected --> connected: Connect (no auth)
+    disconnected --> auth_required: Connect (auth)
+```
+
+Usual flow works as follows:
+
+1. **Create**: Client creates a connector by calling `POST /connectors` with MCP server URL.
+2. **Connect**: Client initiates connection by calling `POST /connectors/{id}/connect`. If the MCP server requires user authorization, the response will contain an authorization URL.
+3. **Authorize**: User visits the authorization URL, authenticates and grants access. Authorization server redirects the user back to the platform with an authorization code.
+4. **Complete**: Platform exchanges the authorization code for access and refresh tokens. Once completed, the connector is in `connected` state and ready to be used.
+
+## Error handling
+
+The connectors API endpoints return standard HTTP status codes in responses. Apart from that, there are two additional mechanisms used by connectors API to relay errors to the client.
+
+### Authorization Code Flow
+
+An error may happen during the authorization code flow as described in [RFC6749 Section 4.1](https://www.rfc-editor.org/rfc/rfc6749#section-4.1.2.1).
+
+When no `redirect_url` has been provided by the client during connection initiation, the server responds with a HTML page containing the error. Otherwise, the user will be redirected to `redirect_url` instead. The `error` and `error_description` query parameters will be included in the redirect.
+
+### Disconnection
+
+Connector can be asynchronously disconnected at any time. This happen be for various reason including intentional disconnect, refresh token expiration or an arbitrary error. The client MAY check for the `disconnected` state and read `disconnect_reason` to read the description of what happened.
+
+## Connector Presets
+
+Connector presets provide pre-configured settings for common MCP servers, simplifying the connector creation process. Presets can include:
+
+- **URL**: The MCP server endpoint
+- **Client credentials**: Pre-configured OAuth `client_id` and `client_secret` for public clients
+- **Metadata**: Display information such as name and description
+
+### Available Presets
+
+The platform comes with several built-in presets:
+
+| MCP Server | URL                                 | Description                                                             |
+| ---------- | ----------------------------------- | ----------------------------------------------------------------------- |
+| Stripe     | `https://mcp.stripe.com`            | Payment processing and financial infrastructure tools                   |
+| Box        | `https://mcp.box.com`               | Search, access and get insights on your Box content                     |
+| GitHub     | `https://api.githubcopilot.com/mcp` | Access and interact with your GitHub repositories and code intelligence |
+
+### Using Presets
+
+When creating a connector with `POST /connectors`, the system automatically matches the provided URL against available presets (this behavior is controlled by the `match_preset` parameter, which defaults to `true`). If a match is found:
+
+1. **Client credentials**: If no `client_id` is provided in the request, the preset's credentials are used automatically
+2. **Metadata**: If no metadata is provided in the request, the preset's metadata (name, description) is used
+
+This allows for simplified connector creation. For example, to create a GitHub connector:
+
+```json
+POST /connectors
+{
+  "url": "https://api.githubcopilot.com/mcp"
+}
+```
+
+The system will automatically apply the preset's client credentials and metadata.
+
+To disable preset matching and provide all credentials manually, set `match_preset: false` in the request.
+
+### Configuring Presets
+
+Connector presets are configurable via Helm values when deploying Agent Stack. The presets are defined in the `connector.presets` section of `values.yaml`:
+
+```yaml
+connector:
+  presets:
+    - url: "https://mcp.stripe.com"
+      metadata:
+        name: "Stripe"
+        description: "Payment processing and financial infrastructure tools"
+    - url: "https://mcp.box.com"
+      client_id: "YOUR_CLIENT_ID"
+      client_secret: "YOUR_CLIENT_SECRET"
+      metadata:
+        name: "Box"
+        description: "Search, access and get insights on your Box content"
+```
+
+The presets are injected into the platform via the `CONNECTOR__PRESETS` environment variable, which is populated from a Kubernetes Secret created by Helm. This allows administrators to:
+
+- Add custom MCP server presets for their organization
+- Modify or remove default presets
+- Configure client credentials for private MCP servers
+- Customize metadata (names, descriptions) for better user experience
+
+After modifying preset configuration in Helm values, redeploy the platform for changes to take effect.

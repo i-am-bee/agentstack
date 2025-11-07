@@ -46,9 +46,10 @@
           "guides/messages",
           "guides/multi-turn",
           "guides/files",
+          "guides/connectors",
           "guides/cli-reference",
           "guides/observability"
-       ]
+        ]
       },
       {
         "group": "Deploy Agent Stack for Your Team",
@@ -56,9 +57,7 @@
       },
       {
         "group": "Join Our Community",
-        "pages": [
-          "community/contribute"
-        ]
+        "pages": ["community/contribute"]
       }
     ]
   },
