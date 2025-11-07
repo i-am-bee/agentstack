@@ -112,7 +112,7 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
             if fullfilment.transport.type == "streamable_http":
                 try:
                     fullfilment.transport.url = pydantic.AnyHttpUrl(
-                        re.sub("{platform_url}", platform_url, str(fullfilment.transport.url))
+                        re.sub(r"^http[s]?://{platform_url}", platform_url, str(fullfilment.transport.url))
                     )
                 except Exception:
                     logger.warning("Platform URL substitution failed", exc_info=True)
