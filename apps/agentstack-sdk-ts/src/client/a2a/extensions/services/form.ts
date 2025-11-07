@@ -5,8 +5,8 @@
 
 import { z } from 'zod';
 
-import type { A2AServiceExtension } from '../types';
 import { formRenderSchema, responseSchema } from '../common/form';
+import type { A2AServiceExtension } from '../types';
 
 const URI = 'https://a2a-extensions.agentstack.beeai.dev/services/form/v1';
 

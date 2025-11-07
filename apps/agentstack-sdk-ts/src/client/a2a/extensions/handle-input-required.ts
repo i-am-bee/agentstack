@@ -1,4 +1,4 @@
-import { type FormResponseValue } from './common/form';
+import type { FormResponseValue } from './common/form';
 import { requestFormExtension } from './ui/request-form';
 
 export type RunFormValues = Record<string, FormResponseValue>;
