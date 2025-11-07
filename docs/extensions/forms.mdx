@@ -5,59 +5,62 @@ description: "Collect structured input from users"
 
 One of the most powerful features of the Agent Stack is the ability to request structured data from users through interactive forms. Instead of relying on free-form text input, your agent can present users with specific fields, dropdowns, and other form elements to gather precise information.
 
-The Agent Stack provides a Form extension that allows you to collect structured data from users in two ways:
+The Agent Stack provides a Form extensions that allows you to collect structured data from users in two ways:
 
 1. **Initial form rendering** - Present a form as the first interaction before users start a conversation with your agent
 2. **Dynamic form requests** - Request forms at any point during a multi-turn conversation when your agent needs specific structured input
 
+## Initial Form Rendering
 
-## Quickstart
+For initial form rendering, you specify the form structure when injecting the extension and then parse the response using a Pydantic model. The form is presented to users before they start a conversation with your agent.
+
+### Quickstart
 
 <Steps>
-<Step title="Import the Form extension">
-Import the necessary components from the Agent Stack SDK form extension.
+<Step title="Import the form extension">
+Import `FormServiceExtensionServer`, `FormServiceExtensionSpec`, `FormRender`, and field types from the Agent Stack SDK.
+</Step>
+
+<Step title="Define your form data model">
+Create a Pydantic model with fields matching your form field IDs.
 </Step>
 
 <Step title="Add form parameter to your agent">
-Inject the Form extension into your agent function using the `Annotated` type hint.
+Inject the form extension into your agent function using `FormServiceExtensionSpec.demand(initial_form=FormRender(...))`.
 </Step>
 
-<Step title="Define your form structure">
-Create a `FormRender` object with the fields you want to collect from users.
-</Step>
-
-<Step title="Process form data">
-Use either `parse_form_response()` for initial forms or `request_form()` for dynamic forms.
+<Step title="Parse form data">
+Call `form.parse_initial_form(model=YourModel)` to extract the submitted form data.
 </Step>
 </Steps>
 
-## Initial Form Rendering
-
-For initial form rendering, you specify the form structure when injecting the extension and then parse the response from the initial message:
-
 ```python
-import os
 from typing import Annotated
 
 from a2a.types import Message
+from pydantic import BaseModel
 from agentstack_sdk.server import Server
-from agentstack_sdk.a2a.extensions.ui.form import (
-    FormExtensionServer,
-    FormExtensionSpec,
-    FormRender,
-    TextField
+from agentstack_sdk.a2a.extensions.common.form import FormRender, TextField
+from agentstack_sdk.a2a.extensions.services.form import (
+    FormServiceExtensionServer,
+    FormServiceExtensionSpec,
 )
 
 server = Server()
 
+
+class UserInfo(BaseModel):
+    first_name: str | None
+    last_name: str | None
+
+
 @server.agent()
 async def initial_form_agent(
-    message: Message,
+    _message: Message,
     form: Annotated[
-        FormExtensionServer,
-        FormExtensionSpec(
-            params=FormRender(
-                id="user_info_form",
+        FormServiceExtensionServer,
+        FormServiceExtensionSpec.demand(
+            initial_form=FormRender(
                 title="Welcome! Please tell us about yourself",
                 columns=2,
                 fields=[
@@ -70,48 +73,71 @@ async def initial_form_agent(
 ):
     """Agent that collects user information through an initial form"""
     
-    # Parse the form data from the initial message
-    form_data = form.parse_form_response(message=message)
+    # Parse the form data using a Pydantic model
+    user_info = form.parse_initial_form(model=UserInfo)
     
-    # Access the form values
-    first_name = form_data.values['first_name'].value
-    last_name = form_data.values['last_name'].value
-    
-    yield f"Hello {first_name} {last_name}! Nice to meet you."
+    if user_info is None:
+        yield "No form data received."
+    else:
+        yield f"Hello {user_info.first_name} {user_info.last_name}! Nice to meet you."
 
-def run():
-    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
 
 if __name__ == "__main__":
-    run()
+    server.run()
 ```
 
 ## Dynamic Form Requests
 
-For dynamic form requests during conversation, you can request forms at any point when your agent needs structured input. This is useful when your agent needs to collect additional information based on the conversation flow:
+For dynamic form requests during conversation, you can request forms at any point when your agent needs structured input. This is useful when your agent needs to collect additional information based on the conversation flow.
+
+### Quickstart
+
+<Steps>
+<Step title="Import the request form extension">
+Import `RequestFormExtensionServer`, `RequestFormExtensionSpec`, `FormRender`, and field types from the Agent Stack SDK.
+</Step>
+
+<Step title="Define your form data model">
+Create a Pydantic model with fields matching your form field IDs.
+</Step>
+
+<Step title="Add request form parameter to your agent">
+Inject the request form extension into your agent function using `RequestFormExtensionSpec()`.
+</Step>
+
+<Step title="Request form dynamically">
+Call `await request_form.request_form(form=FormRender(...), model=YourModel)` when you need to collect structured input.
+</Step>
+</Steps>
 
 ```python
-import os
 from typing import Annotated
 
 from a2a.types import Message
 from a2a.utils.message import get_message_text
+from pydantic import BaseModel
 from agentstack_sdk.server import Server
-from agentstack_sdk.a2a.extensions.ui.form import (
-    FormExtensionServer,
-    FormExtensionSpec,
-    FormRender,
-    TextField
+from agentstack_sdk.a2a.extensions.common.form import FormRender, TextField
+from agentstack_sdk.a2a.extensions.ui.request_form import (
+    RequestFormExtensionServer,
+    RequestFormExtensionSpec,
 )
 
 server = Server()
 
+
+class ContactInfo(BaseModel):
+    email: str | None
+    phone: str | None
+    company: str | None
+
+
 @server.agent()
 async def dynamic_form_agent(
     message: Message,
-    form: Annotated[
-        FormExtensionServer,
-        FormExtensionSpec(params=None)
+    request_form: Annotated[
+        RequestFormExtensionServer,
+        RequestFormExtensionSpec(),
     ],
 ):
     """Agent that requests forms dynamically during conversation"""
@@ -121,9 +147,8 @@ async def dynamic_form_agent(
     # Check if user wants to provide contact information
     if "contact" in user_input.lower() or "reach" in user_input.lower():
         # Request contact form dynamically
-        form_data = await form.request_form(
+        contact_info = await request_form.request_form(
             form=FormRender(
-                id="contact_form",
                 title="Please provide your contact information",
                 columns=2,
                 fields=[
@@ -131,45 +156,38 @@ async def dynamic_form_agent(
                     TextField(id="phone", label="Phone Number", col_span=1),
                     TextField(id="company", label="Company", col_span=1),
                 ],
-            )
+            ),
+            model=ContactInfo,
         )
         
-        email = form_data.values['email'].value
-        phone = form_data.values['phone'].value
-        company = form_data.values['company'].value
-        
-        yield f"Thank you! I'll contact you at {email} or {phone} regarding {company}."
+        if contact_info is None:
+            yield "No contact information received."
+        else:
+            yield f"Thank you! I'll contact you at {contact_info.email} or {contact_info.phone} regarding {contact_info.company}."
     else:
         yield "Hello! If you'd like me to contact you, just let me know and I'll ask for your details."
 
-def run():
-    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
 
 if __name__ == "__main__":
-    run()
+    server.run()
 ```
 
 ## How to work with forms
 
 Here's what you need to know to add form capabilities to your agent:
 
-**Import the form extension**: Import `FormExtensionServer`, `FormExtensionSpec`, `FormRender`, and field types from `agentstack_sdk.a2a.extensions.ui.form`.
+**Import the form components**: 
+- For form fields and `FormRender`, import from `agentstack_sdk.a2a.extensions.common.form`
+- For initial forms, import `FormServiceExtensionServer` and `FormServiceExtensionSpec` from `agentstack_sdk.a2a.extensions.services.form`
+- For dynamic forms, import `RequestFormExtensionServer` and `RequestFormExtensionSpec` from `agentstack_sdk.a2a.extensions.ui.request_form`
 
-**Inject the extension**: Add a form parameter to your agent function using the `Annotated` type hint with `FormExtensionServer` and `FormExtensionSpec`.
+**Inject the extension**: Add a form parameter to your agent function using the `Annotated` type hint.
 
-**For initial forms**: Specify the form structure in the `FormExtensionSpec` parameters and use `parse_form_response()` to extract data from the initial message.
+**For initial forms**: Use `FormServiceExtensionSpec.demand(initial_form=FormRender(...))` to specify the form structure and call `form.parse_initial_form(model=YourModel)` to extract data.
 
-**For dynamic forms**: Use an empty `FormExtensionSpec()` and call `await form.request_form()` with your form definition when needed.
+**For dynamic forms**: Use `RequestFormExtensionSpec()` and call `await request_form.request_form(form=FormRender(...), model=YourModel)` when needed.
 
-**Access form data**: Use `form_data.values['field_id'].value` to access the submitted values from your form fields. Different field types return different value types:
-
-- **TextField/DateField**: Returns `str | None`
-- **FileField**: Returns `list[FileInfo] | None` where each `FileInfo` has `uri`, `name`, and `mime_type`
-- **SingleSelectField**: Returns `str | None` (selected option ID)
-- **MultiSelectField**: Returns `list[str] | None` (list of selected option IDs)
-- **CheckboxField**: Returns `bool | None`
-
-As a convenient shortcut, you may use a custom model (Pydantic model, `TypedDict`, `dataclass`, or any class supported by `pydantic.TypeAdapter`) to load form data. For example, we can define a following model:
+**Access form data**: The recommended approach is to use a Pydantic model (or `TypedDict`, `dataclass`, or any class supported by `pydantic.TypeAdapter`) to load form data. Define a model with fields matching your form field IDs:
 
 ```python
 from pydantic import BaseModel
@@ -180,11 +198,26 @@ class ContactInfo(BaseModel):
     company: str | None
 ```
 
-Then, in agent code, pass `model=ContactInfo` to `parse_form_response(...)` or `request_form(...)` to get the form data directly as an instance of `ContactInfo`:
+Then, pass `model=ContactInfo` to `parse_initial_form(...)` or `request_form(...)` to get the form data directly as an instance of `ContactInfo`:
 
 ```python
-contact_info: ContactInfo = form.parse_form_response(message=message, model=ContactInfo)
+# For initial forms
+contact_info: ContactInfo | None = form.parse_initial_form(model=ContactInfo)
+
+# For dynamic forms
+contact_info: ContactInfo | None = await request_form.request_form(
+    form=FormRender(...),
+    model=ContactInfo
+)
 ```
+
+If you don't use a model, the methods return `FormResponse` which has a `values` dictionary. You can access values using `form_data.values['field_id'].value`. Different field types return different value types:
+
+- **TextField/DateField**: Returns `str | None`
+- **FileField**: Returns `list[FileInfo] | None` where each `FileInfo` has `uri`, `name`, and `mime_type`
+- **SingleSelectField**: Returns `str | None` (selected option ID)
+- **MultiSelectField**: Returns `list[str] | None` (list of selected option IDs)
+- **CheckboxField**: Returns `bool | None`
 
 ## Form Field Types
 
@@ -194,7 +227,7 @@ The Agent Stack supports various field types for collecting different kinds of s
 Basic text input fields for collecting strings, names, descriptions, etc.
 
 ```python
-from agentstack_sdk.a2a.extensions.ui.form import TextField
+from agentstack_sdk.a2a.extensions.common.form import TextField
 
 TextField(
     id="username", 
@@ -202,7 +235,8 @@ TextField(
     col_span=1,
     required=True,
     placeholder="Enter your username",
-    default_value=""
+    default_value="",
+    type="text"  # Optional, defaults to "text"
 )
 ```
 
@@ -210,7 +244,7 @@ TextField(
 Date input fields for collecting dates and timestamps.
 
 ```python
-from agentstack_sdk.a2a.extensions.ui.form import DateField
+from agentstack_sdk.a2a.extensions.common.form import DateField
 
 DateField(
     id="birth_date", 
@@ -226,7 +260,7 @@ DateField(
 File upload fields for collecting files from users.
 
 ```python
-from agentstack_sdk.a2a.extensions.ui.form import FileField
+from agentstack_sdk.a2a.extensions.common.form import FileField
 
 FileField(
     id="document", 
@@ -241,7 +275,7 @@ FileField(
 Single-select dropdown fields for choosing single option from a list.
 
 ```python
-from agentstack_sdk.a2a.extensions.ui.form import OptionItem, SingleSelectField
+from agentstack_sdk.a2a.extensions.common.form import OptionItem, SingleSelectField
 
 SingleSelectField(
     id="contact_method", 
@@ -262,7 +296,7 @@ SingleSelectField(
 Multi-select dropdown fields for choosing multiple options from a list.
 
 ```python
-from agentstack_sdk.a2a.extensions.ui.form import OptionItem, MultiSelectField
+from agentstack_sdk.a2a.extensions.common.form import OptionItem, MultiSelectField
 
 MultiSelectField(
     id="interests", 
@@ -283,7 +317,7 @@ MultiSelectField(
 Single checkbox fields for boolean values.
 
 ```python
-from agentstack_sdk.a2a.extensions.ui.form import CheckboxField
+from agentstack_sdk.a2a.extensions.common.form import CheckboxField
 
 CheckboxField(
     id="newsletter", 
@@ -300,8 +334,9 @@ CheckboxField(
 Control how your form appears using the `FormRender` configuration:
 
 ```python
+from agentstack_sdk.a2a.extensions.common.form import FormRender
+
 FormRender(
-    id="my_form",
     title="Form Title",
     description="Optional description text below the title",
     columns=2,  # Number of columns in the form grid
@@ -313,11 +348,10 @@ FormRender(
 ```
 
 **FormRender properties**:
-- **`id`**: Unique identifier for the form (required)
-- **`title`**: Main heading displayed above the form
+- **`title`**: Main heading displayed above the form (optional)
 - **`description`**: Optional description text displayed below the title
-- **`columns`**: Number of columns in the form grid (1-4)
-- **`submit_label`**: Custom text for the submit button (default: "Submit")
+- **`columns`**: Number of columns in the form grid (1-4, optional)
+- **`submit_label`**: Custom text for the submit button (optional, default: "Submit")
 - **`fields`**: List of form field definitions (required)
 
 <Tip>
