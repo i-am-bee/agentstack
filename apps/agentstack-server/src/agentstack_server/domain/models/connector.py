@@ -5,7 +5,7 @@ from enum import StrEnum
 from typing import Annotated, Literal
 from uuid import UUID, uuid4
 
-from pydantic import AnyUrl, AwareDatetime, BaseModel, Field
+from pydantic import AnyUrl, AwareDatetime, BaseModel, ConfigDict, Field
 
 from agentstack_server.domain.models.common import Metadata
 from agentstack_server.utils.utils import utc_now
@@ -26,6 +26,8 @@ class Token(BaseModel):
     access_token: str
     refresh_token: str | None = None
     token_type: Literal["bearer"]
+
+    model_config = ConfigDict(extra="allow")
 
 
 class Authorization(BaseModel):
