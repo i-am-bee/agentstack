@@ -36,6 +36,7 @@
     "keycode-js": "^3.1.0",
     "lodash": "catalog:",
     "lottie-react": "catalog:",
+    "mermaid": "^11.12.1",
     "next": "catalog:",
     "next-auth": "5.0.0-beta.29",
     "openapi-fetch": "^0.14.0",

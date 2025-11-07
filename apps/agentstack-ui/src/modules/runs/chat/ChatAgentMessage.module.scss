@@ -24,6 +24,13 @@
   &:not(:has(.actions))::before {
     opacity: 0;
   }
+
+  li:first-child > & {
+    padding-block-end: $spacing-05;
+    &::before {
+      inset-block-end: 0;
+    }
+  }
 }
 
 .spinner {
