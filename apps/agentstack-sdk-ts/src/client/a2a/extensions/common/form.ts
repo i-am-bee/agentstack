@@ -117,7 +117,7 @@ export const formRenderSchema = z.object({
   fields: z.array(fieldSchema).nonempty(),
 });
 
-export const responseSchema = z.object({
+export const formResponseSchema = z.object({
   values: z.record(
     z.string(),
     z.discriminatedUnion('type', [
@@ -141,4 +141,4 @@ export type MultiSelectField = z.infer<typeof multiSelectField>;
 export type CheckboxField = z.infer<typeof checkboxField>;
 
 export type FormField = z.infer<typeof fieldSchema>;
-export type FormResponseValue = z.infer<typeof responseSchema>['values'][string];
+export type FormResponseValue = z.infer<typeof formResponseSchema>['values'][string];

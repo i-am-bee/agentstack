@@ -41,13 +41,13 @@ class FormServiceExtensionServer(BaseExtensionServer[FormServiceExtensionSpec, F
         if self.data is None:
             return None
 
-        intial_form = self.data.form_fulfillments["initial_form"]
+        initial_form = self.data.form_fulfillments.get("initial_form")
 
-        if intial_form is None:
+        if initial_form is None:
             return None
         if model is FormResponse:
-            return cast(T, intial_form)
-        return TypeAdapter(model).validate_python(dict(intial_form))
+            return cast(T, initial_form)
+        return TypeAdapter(model).validate_python(dict(initial_form))
 
 
 class FormServiceExtensionClient(BaseExtensionClient[FormServiceExtensionSpec, FormRender]): ...

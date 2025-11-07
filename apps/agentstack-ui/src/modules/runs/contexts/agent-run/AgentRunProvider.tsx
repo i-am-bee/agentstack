@@ -201,7 +201,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
           contextId,
           fulfillments,
           responses: {
-            form: message.form?.response ?? undefined,
+            form: message.form?.response,
           },
           taskId: fulfillmentsContext.taskId,
         });

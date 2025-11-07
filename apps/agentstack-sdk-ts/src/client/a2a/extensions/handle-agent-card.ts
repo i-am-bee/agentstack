@@ -64,7 +64,7 @@ export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) 
   const formDemands = formExtensionExtractor(extensions);
 
   const resolveMetadata = async (fulfillments: Fulfillments) => {
-    let fulfilledMetadata = {};
+    let fulfilledMetadata: Record<string, unknown> = {};
 
     fulfilledMetadata = platformApiExtension(fulfilledMetadata, fulfillments.getContextToken());
 

@@ -5,7 +5,7 @@
 
 import { z } from 'zod';
 
-import { formRenderSchema, responseSchema } from '../common/form';
+import { formRenderSchema, formResponseSchema } from '../common/form';
 import type { A2AServiceExtension } from '../types';
 
 const URI = 'https://a2a-extensions.agentstack.beeai.dev/services/form/v1';
@@ -20,11 +20,11 @@ const formDemandSchema = z.object({
 export type FormDemands = z.infer<typeof formDemandSchema>;
 
 const formFulfillmentSchema = z.object({
-  form_fulfillments: z.record(z.string(), responseSchema),
+  form_fulfillments: z.record(z.string(), formResponseSchema),
 });
 export type FormFulfillments = z.infer<typeof formFulfillmentSchema>;
 
-export const formExtension: A2AServiceExtension<typeof URI, z.infer<typeof formDemandSchema>, FormFulfillments> = {
+export const formExtension: A2AServiceExtension<typeof URI, FormDemands, FormFulfillments> = {
   getDemandsSchema: () => formDemandSchema,
   getFulfillmentSchema: () => formFulfillmentSchema,
   getUri: () => URI,
