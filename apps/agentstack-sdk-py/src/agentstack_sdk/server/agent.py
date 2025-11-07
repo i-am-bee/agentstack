@@ -41,9 +41,9 @@ from agentstack_sdk.a2a.types import ArtifactChunk, Metadata, RunYield, RunYield
 from agentstack_sdk.server.constants import _IMPLICIT_DEPENDENCY_PREFIX
 from agentstack_sdk.server.context import RunContext
 from agentstack_sdk.server.dependencies import extract_dependencies
-from agentstack_sdk.server.logging import logger
 from agentstack_sdk.server.store.context_store import ContextStore
 from agentstack_sdk.server.utils import cancel_task, close_queue
+from agentstack_sdk.util.logging import logger
 from agentstack_sdk.util.utils import extract_messages
 
 AgentFunction: TypeAlias = Callable[[], AsyncGenerator[RunYield, RunYieldResume]]

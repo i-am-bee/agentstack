@@ -3,9 +3,10 @@
 
 from __future__ import annotations
 
+import re
 from contextlib import asynccontextmanager
 from types import NoneType
-from typing import Annotated, Any, Literal, Self
+from typing import TYPE_CHECKING, Annotated, Any, Literal, Self
 
 import a2a.types
 import pydantic
@@ -14,6 +15,10 @@ from mcp.client.streamable_http import streamablehttp_client
 
 from agentstack_sdk.a2a.extensions.auth.oauth.oauth import OAuthExtensionServer
 from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
+from agentstack_sdk.util.logging import logger
+
+if TYPE_CHECKING:
+    from agentstack_sdk.server.context import RunContext
 
 _TRANSPORT_TYPES = Literal["streamable_http", "stdio"]
 
@@ -95,6 +100,23 @@ class MCPServiceExtensionMetadata(pydantic.BaseModel):
 
 
 class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCPServiceExtensionMetadata]):
+    def handle_incoming_message(self, message: a2a.types.Message, context: RunContext):
+        from agentstack_sdk.platform import get_platform_client
+
+        super().handle_incoming_message(message, context)
+        if not self.data:
+            return
+
+        platform_url = str(get_platform_client().base_url)
+        for fullfilment in self.data.mcp_fulfillments.values():
+            if fullfilment.transport.type == "streamable_http":
+                try:
+                    fullfilment.transport.url = pydantic.AnyHttpUrl(
+                        re.sub("{platform_url}", platform_url, str(fullfilment.transport.url))
+                    )
+                except Exception:
+                    logger.warning("Platform URL substitution failed", exc_info=True)
+
     def parse_client_metadata(self, message: a2a.types.Message) -> MCPServiceExtensionMetadata | None:
         metadata = super().parse_client_metadata(message)
         if metadata:

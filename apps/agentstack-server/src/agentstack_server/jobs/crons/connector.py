@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 blueprint = Blueprint()
 
 
-@blueprint.periodic(cron="* * * * * */15")
+@blueprint.periodic(cron="* * * * * */30")
 @blueprint.task(queueing_lock="refresh_connectors", queue=str(Queues.CRON_CONNECTOR))
 @inject
 async def refresh_connectors(timestamp: int, service: ConnectorService):

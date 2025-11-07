@@ -329,6 +329,7 @@ class ConnectorService:
             code_challenge_method="S256",
             headers=headers,
             timeout=timeout,
+            leeway=60,  # A job probes connectors every 30 seconds, ensuring the token is valid roughly for at least 30 seconds per request.
         )
 
     async def _discover_auth_metadata(self, *, connector: Connector) -> AuthorizationServerMetadata | None:

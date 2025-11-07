@@ -36,12 +36,12 @@ from agentstack_sdk.platform.client import PlatformClient
 from agentstack_sdk.platform.provider import Provider
 from agentstack_sdk.server.agent import Agent, AgentFactory
 from agentstack_sdk.server.agent import agent as agent_decorator
-from agentstack_sdk.server.logging import configure_logger as configure_logger_func
-from agentstack_sdk.server.logging import logger
 from agentstack_sdk.server.store.context_store import ContextStore
 from agentstack_sdk.server.store.memory_context_store import InMemoryContextStore
 from agentstack_sdk.server.telemetry import configure_telemetry as configure_telemetry_func
 from agentstack_sdk.server.utils import cancel_task
+from agentstack_sdk.util.logging import configure_logger as configure_logger_func
+from agentstack_sdk.util.logging import logger
 
 
 class Server:
