@@ -3,47 +3,60 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Information } from '@carbon/icons-react';
+import { Code, Information } from '@carbon/icons-react';
 import { useMemo } from 'react';
 
 import { useApp } from '#contexts/App/index.ts';
 import { SidePanelVariant } from '#contexts/App/types.ts';
-import type { Agent } from '#modules/agents/api/types.ts';
+import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
+import { isNotNull } from '#utils/helpers.ts';
 import { routes } from '#utils/router.ts';
 
-import NewSession from '../../modules/runs/components/NewSession.svg';
 import { NavGroup } from './NavGroup';
 import { NavList } from './NavList';
+import NewSession from './NewSession.svg';
 
 interface Props {
-  agent: Agent;
+  providerId: string;
 }
 
-export function AgentNav({ agent }: Props) {
+export function AgentNav({ providerId }: Props) {
   const { openSidePanel } = useApp();
+
+  const { data: agent, isLoading } = useAgent({ providerId });
+
+  const sourceCodeUrl = agent?.ui.source_code_url;
 
   const items = useMemo(() => {
     return [
       {
         label: 'New session',
-        href: routes.agentRun({ providerId: agent.provider.id }),
         Icon: NewSession,
+        href: routes.agentRun({ providerId }),
       },
       // {
-      //   label: 'Agent secrets',
+      //   label: 'Secrets',
       //   Icon: Password,
       // },
       {
-        label: 'About agent',
+        label: 'About',
         Icon: Information,
         onClick: () => openSidePanel(SidePanelVariant.AgentDetail),
       },
-    ];
-  }, [agent.provider.id, openSidePanel]);
+      sourceCodeUrl
+        ? {
+            label: 'View source code',
+            Icon: Code,
+            href: sourceCodeUrl,
+            isExternal: true,
+          }
+        : null,
+    ].filter(isNotNull);
+  }, [providerId, sourceCodeUrl, openSidePanel]);
 
   return (
-    <NavGroup heading={agent.name}>
-      <NavList items={items} />
+    <NavGroup heading={agent?.name} isLoading={isLoading}>
+      <NavList items={items} isLoading={isLoading} skeletonCount={4} />
     </NavGroup>
   );
 }

@@ -4,24 +4,25 @@
  */
 
 .root {
-  min-block-size: rem(48px);
+  min-block-size: rem(32px);
   position: relative;
   display: flex;
   align-items: center;
-  padding: $spacing-03;
+  padding: rem(7px) $spacing-03;
   column-gap: $spacing-02;
   z-index: 0;
 }
 
 .link {
   @include link-mask();
+  @include line-clamp();
   min-inline-size: 0;
   flex-grow: 1;
   text-decoration: none;
-  color: inherit;
-  display: flex;
-  flex-direction: column;
-  row-gap: $spacing-02;
+  font-size: rem(14px);
+  line-height: math.div(18, 14);
+  color: $text-dark;
+  display: block;
   &::before {
     border-radius: $border-radius;
     transition: background-color $duration-fast-01 motion(entrance, productive);
@@ -44,23 +45,11 @@
   }
 }
 
-.heading {
-  @include line-clamp();
-  font-size: rem(14px);
-  line-height: math.div(18, 14);
-  color: $text-dark;
-}
-
-.agentName {
-  @include line-clamp();
-  font-size: rem(12px);
-  line-height: math.div(14, 12);
-  color: $text-secondary;
-}
-
 .options {
   flex-shrink: 0;
   display: none;
+  margin-block: rem(-3px);
+  margin-inline-end: rem(-3px);
   .root.optionsOpen &,
   .root:hover &,
   .root:focus-within & {
@@ -69,6 +58,10 @@
 
   :global(.cds--overflow-menu) {
     --cds-layer: #{$layer-hover};
+    inline-size: rem(24px);
+    block-size: rem(24px);
+    min-block-size: 0;
+
     .root.isActive & {
       --cds-background-hover: #{$layer-01};
     }
@@ -82,6 +75,6 @@
 .skeleton {
   &:global(.cds--btn.cds--skeleton) {
     inline-size: 100%;
-    min-block-size: rem(52px);
+    min-block-size: rem(32px);
   }
 }

@@ -6,7 +6,6 @@
 import { useMemo } from 'react';
 
 import { useModal } from '#contexts/Modal/index.tsx';
-import { useParamsFromUrl } from '#hooks/useParamsFromUrl.ts';
 import { ImportAgentsModal } from '#modules/agents/components/import/ImportAgentsModal.tsx';
 import { useRecentlyAddedAgents } from '#modules/home/hooks/useRecentlyAddedAgents.ts';
 import { routes } from '#utils/router.ts';
@@ -19,7 +18,6 @@ interface Props {
 }
 
 export function AgentsNav({ className }: Props) {
-  const { providerId } = useParamsFromUrl();
   const { openModal } = useModal();
 
   const { data: agents, isLoading } = useRecentlyAddedAgents();
@@ -37,9 +35,8 @@ export function AgentsNav({ className }: Props) {
       agents?.map(({ name, provider: { id } }) => ({
         label: name,
         href: routes.agentRun({ providerId: id }),
-        isActive: providerId === id,
       })),
-    [agents, providerId],
+    [agents],
   );
 
   return (

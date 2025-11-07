@@ -10,7 +10,6 @@ import { AppHeader } from '#components/layouts/AppHeader.tsx';
 import { useParamsFromUrl } from '#hooks/useParamsFromUrl.ts';
 import { useAgent } from '#modules/agents/api/queries/useAgent.ts';
 
-import { AgentDetailButton } from './AgentDetailButton';
 import classes from './AgentHeader.module.scss';
 import { AgentShareButton } from './AgentShareButton';
 
@@ -29,8 +28,6 @@ export function AgentHeader() {
 
             <div className={classes.buttons}>
               <AgentShareButton agent={agent} />
-
-              <AgentDetailButton />
             </div>
           </>
         )}

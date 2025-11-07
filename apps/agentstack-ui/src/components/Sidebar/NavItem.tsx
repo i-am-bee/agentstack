@@ -6,7 +6,7 @@
 import type { CarbonIconType } from '@carbon/icons-react';
 import { Button, ButtonSkeleton } from '@carbon/react';
 import clsx from 'clsx';
-import type { MouseEventHandler } from 'react';
+import type { ComponentType, MouseEventHandler, SVGProps } from 'react';
 
 import { TransitionLink } from '#components/TransitionLink/TransitionLink.tsx';
 
@@ -15,7 +15,7 @@ import classes from './NavItem.module.scss';
 export interface NavItemProps {
   label: string;
   href?: string;
-  Icon?: CarbonIconType;
+  Icon?: CarbonIconType | ComponentType<SVGProps<SVGElement>>;
   isActive?: boolean;
   isExternal?: boolean;
   hasDivider?: boolean;

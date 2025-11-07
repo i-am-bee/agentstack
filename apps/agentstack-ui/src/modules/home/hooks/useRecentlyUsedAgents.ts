@@ -8,7 +8,7 @@ import { useMemo } from 'react';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
 import { ListAgentsOrderBy } from '#modules/agents/api/types.ts';
 import type { ListProvidersResponse } from '#modules/providers/api/types.ts';
-import { isRecentlyUsedAgent } from '#modules/providers/utils.ts';
+import { isUsedAgent } from '#modules/providers/utils.ts';
 
 import { USER_NOT_OWNED_AGENTS_LIST_PARAMS } from '../constants';
 
@@ -24,7 +24,7 @@ export function useRecentlyUsedAgents({ initialData }: Props = {}) {
     initialData,
   });
 
-  const agents = useMemo(() => data?.filter(isRecentlyUsedAgent), [data]);
+  const agents = useMemo(() => data?.filter(isUsedAgent), [data]);
 
   return {
     ...query,
