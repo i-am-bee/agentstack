@@ -238,6 +238,7 @@ class ConnectorService:
         try:
             await self.probe_connector(connector=connector)
         except Exception as err:
+            await self._revoke_auth_token(connector=connector)
             connector.state = ConnectorState.disconnected
             connector.disconnect_reason = str(err)
         finally:
