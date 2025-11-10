@@ -40,8 +40,13 @@ jobs:
       # 3️⃣ Get changed files
       - name: Get changed files
         run: |
-          git fetch origin main
-          git diff --name-only origin/main...HEAD > changed_files.txt
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+          if git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD > changed_files.txt 2>/dev/null; then
+            echo "✅ Found changed files"
+          else
+            echo "⚠️ Could not determine changed files, using empty list"
+            echo "" > changed_files.txt
+          fi
           cat changed_files.txt
 
       # 4️⃣ Enforce docs update unless skipped
