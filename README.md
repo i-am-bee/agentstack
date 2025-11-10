@@ -126,7 +126,7 @@ Have an idea for an agent that could solve a real problem? Want to build somethi
 ### How It Works
 
 1. **💡 Propose** - Share your agent idea using our [Agent Idea template](https://github.com/i-am-bee/agentstack/issues/new?template=agent_idea.md)
-2. **👍 Vote** - Browse [proposed ideas](https://github.com/i-am-bee/agentstack/labels/agent-idea) and upvote the ones you find exciting
+2. **👍 Vote** - Browse [proposed ideas](https://github.com/i-am-bee/agentstack/issues?q=is%3Aissue+is%3Aopen+label%3Aagent-idea+sort%3Areactions-%2B1-desc) and upvote the ones you find exciting
 3. **🛠️ Build** - Pick an idea (yours or someone else's) and bring it to life
 4. **🎉 Share** - Show off your creation and help others benefit from your work
 
