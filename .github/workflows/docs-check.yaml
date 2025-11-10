@@ -2,7 +2,6 @@ name: Docs Check
 
 on:
   pull_request:
-    # types: [ready_for_review]
     types: [opened, synchronize, reopened, edited]
 
 jobs:
@@ -15,7 +14,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1️⃣ Get PR body
       - name: Get PR body
         id: get_pr
         uses: actions/github-script@v7
@@ -26,7 +24,6 @@ jobs:
             fs.writeFileSync('pr_body.txt', body, 'utf8');
             core.setOutput("body", body);
 
-      # 2️⃣ Check if "No Docs Needed" is checked
       - name: Check for No Docs Needed checkbox
         id: skip
         run: |
@@ -37,7 +34,6 @@ jobs:
             echo "skip=false" >> $GITHUB_OUTPUT
           fi
 
-      # 3️⃣ Get changed files
       - name: Get changed files
         run: |
           git fetch origin ${{ github.event.pull_request.base.ref }}
@@ -49,7 +45,6 @@ jobs:
           fi
           cat changed_files.txt
 
-      # 4️⃣ Enforce docs update unless skipped
       - name: Enforce docs update
         run: |
           if [ "${{ steps.skip.outputs.skip }}" = "true" ]; then
