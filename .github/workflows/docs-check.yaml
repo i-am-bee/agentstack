@@ -1,0 +1,60 @@
+name: Docs Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+jobs:
+  docs-check:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1️⃣ Get PR body
+      - name: Get PR body
+        id: get_pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request.body || "";
+            core.setOutput("body", body);
+
+      # 2️⃣ Check if "No Docs Needed" is checked
+      - name: Check for No Docs Needed checkbox
+        id: skip
+        run: |
+          BODY="${{ steps.get_pr.outputs.body }}"
+          echo "$BODY" > pr_body.txt
+
+          if grep -Eiq '\[x\].*no docs needed' pr_body.txt; then
+            echo "🟡 'No Docs Needed' checked — skipping docs enforcement."
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      # 3️⃣ Get changed files
+      - name: Get changed files
+        run: |
+          git fetch origin main
+          git diff --name-only origin/main...HEAD > changed_files.txt
+          cat changed_files.txt
+
+      # 4️⃣ Enforce docs update unless skipped
+      - name: Enforce docs update
+        run: |
+          if [ "${{ steps.skip.outputs.skip }}" = "true" ]; then
+            echo "🟡 Skipping docs check (No Docs Needed checked)."
+            exit 0
+          fi
+
+          if grep -q '^docs/' changed_files.txt; then
+            echo "✅ Docs updated."
+          else
+            echo "❌ No docs changes found and 'No Docs Needed' not checked."
+            exit 1
+          fi
