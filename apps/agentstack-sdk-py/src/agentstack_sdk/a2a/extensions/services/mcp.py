@@ -15,6 +15,7 @@ from mcp.client.streamable_http import streamablehttp_client
 
 from agentstack_sdk.a2a.extensions.auth.oauth.oauth import OAuthExtensionServer
 from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
+from agentstack_sdk.a2a.extensions.services.platform import PlatformApiExtensionServer
 from agentstack_sdk.util.logging import logger
 
 if TYPE_CHECKING:
@@ -101,21 +102,24 @@ class MCPServiceExtensionMetadata(pydantic.BaseModel):
 
 class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCPServiceExtensionMetadata]):
     def handle_incoming_message(self, message: a2a.types.Message, context: RunContext):
-        from agentstack_sdk.platform import get_platform_client
-
         super().handle_incoming_message(message, context)
         if not self.data:
             return
 
-        platform_url = str(get_platform_client().base_url)
-        for fullfilment in self.data.mcp_fulfillments.values():
-            if fullfilment.transport.type == "streamable_http":
-                try:
-                    fullfilment.transport.url = pydantic.AnyHttpUrl(
-                        re.sub(r"^http[s]?://{platform_url}", platform_url, str(fullfilment.transport.url))
-                    )
-                except Exception:
-                    logger.warning("Platform URL substitution failed", exc_info=True)
+        platform = self._get_platform_server()
+        if platform and platform.data and platform.data.base_url:
+            for fullfilment in self.data.mcp_fulfillments.values():
+                if fullfilment.transport.type == "streamable_http":
+                    try:
+                        fullfilment.transport.url = pydantic.AnyHttpUrl(
+                            re.sub(
+                                r"^http[s]?://{platform_url}",
+                                str(platform.data.base_url).rstrip("/"),
+                                str(fullfilment.transport.url),
+                            )
+                        )
+                    except Exception:
+                        logger.warning("Platform URL substitution failed", exc_info=True)
 
     def parse_client_metadata(self, message: a2a.types.Message) -> MCPServiceExtensionMetadata | None:
         metadata = super().parse_client_metadata(message)
@@ -130,6 +134,12 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
     def _get_oauth_server(self):
         for dependency in self._dependencies.values():
             if isinstance(dependency, OAuthExtensionServer):
+                return dependency
+        return None
+
+    def _get_platform_server(self):
+        for dependency in self._dependencies.values():
+            if isinstance(dependency, PlatformApiExtensionServer):
                 return dependency
         return None
 
@@ -151,11 +161,10 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
             ):
                 yield (read, write)
         elif isinstance(transport, StreamableHTTPTransport):
-            oauth = self._get_oauth_server()
             async with streamablehttp_client(
                 url=str(transport.url),
                 headers=transport.headers,
-                auth=await oauth.create_httpx_auth(resource_url=transport.url) if oauth else None,
+                auth=await self._create_auth(transport),
             ) as (
                 read,
                 write,
@@ -164,6 +173,20 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
                 yield (read, write)
         else:
             raise NotImplementedError("Unsupported transport")
+
+    async def _create_auth(self, transport: StreamableHTTPTransport):
+        platform = self._get_platform_server()
+        if (
+            platform
+            and platform.data
+            and platform.data.base_url
+            and str(transport.url).startswith(str(platform.data.base_url))
+        ):
+            return await platform.create_httpx_auth()
+        oauth = self._get_oauth_server()
+        if oauth:
+            return await oauth.create_httpx_auth(resource_url=transport.url)
+        return None
 
 
 class MCPServiceExtensionClient(BaseExtensionClient[MCPServiceExtensionSpec, NoneType]):
