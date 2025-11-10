@@ -109,7 +109,8 @@ export class RefreshTokenError extends Error {
   }
 }
 
-const TOKEN_REFRESH_THRESHOLD = 0.2;
+const TOKEN_REFRESH_CHECK_THRESHOLD = 0.2;
+const TOKEN_REFRESH_CHECK_MIN_INTERVAL = 5;
 
 interface RefreshTokenResult {
   access_token: string;
@@ -124,7 +125,7 @@ export function getTokenRefreshSchedule(expiresAt?: number) {
 
   const expiresIn = expiresAt - Date.now() / 1000;
   return {
-    checkInterval: expiresIn * (TOKEN_REFRESH_THRESHOLD / 10),
-    refreshAt: expiresAt - expiresIn * TOKEN_REFRESH_THRESHOLD,
+    checkInterval: Math.max(expiresIn * (TOKEN_REFRESH_CHECK_THRESHOLD / 10), TOKEN_REFRESH_CHECK_MIN_INTERVAL),
+    refreshAt: expiresAt - expiresIn * TOKEN_REFRESH_CHECK_THRESHOLD,
   };
 }

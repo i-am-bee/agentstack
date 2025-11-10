@@ -17,8 +17,9 @@ export function TokenRefresher() {
       return;
     }
 
+    const { refreshAt, checkInterval } = refreshSchedule;
+
     async function proactiveTokenRefresh() {
-      const refreshAt = refreshSchedule?.refreshAt;
       if (!refreshAt || Date.now() / 1000 < refreshAt) {
         return;
       }
@@ -34,7 +35,7 @@ export function TokenRefresher() {
 
     const timer = setInterval(() => {
       proactiveTokenRefresh();
-    }, refreshSchedule.checkInterval * 1000);
+    }, checkInterval * 1000);
 
     return () => {
       window.removeEventListener('focus', handleRefreshEvent);
