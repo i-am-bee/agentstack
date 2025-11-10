@@ -1,3 +1,7 @@
+<h1 align="center">
+  Agent Stack
+</h1>
+
 <div align="center">
 
 [![Apache 2.0](https://img.shields.io/badge/Apache%202.0-License-EA7826?style=plastic&logo=apache&logoColor=white)](https://github.com/i-am-bee/beeai-framework?tab=Apache-2.0-1-ov-file#readme)
@@ -6,10 +10,6 @@
 [![LF AI & Data](https://img.shields.io/badge/LF%20AI%20%26%20Data-0072C6?style=plastic&logo=linuxfoundation&logoColor=white)](https://lfaidata.foundation/projects/)
 
 </div>
-
-<h1 align="center">
-  Agent Stack
-</h1>
 
 <h4 align="center">Open infrastructure for deploying and sharing agents without vendor lock-in</h4>
 
