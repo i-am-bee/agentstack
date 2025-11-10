@@ -4,7 +4,7 @@ export const metadata = {
   author: 'Eden Gilbert, Ken Ocheltree',
 };
 
-The BeeAI Framework provides native support for the Agent2Agent (A2A) Protocol, enabling you to build distributed multi-agent systems where different AI agents can communicate regardless of how or where they're deployed. In this guide, we'll walk through creating a BeeAI agent as an A2A server and how to connect to it from a client.
+The [BeeAI Framework](https://framework.beeai.dev/introduction/welcome) provides native support for the Agent2Agent (A2A) Protocol, enabling you to build distributed multi-agent systems where different AI agents can communicate regardless of how or where they're deployed. In this guide, we'll walk through creating a BeeAI agent as an A2A server and how to connect to it from a client.
 
 ## Understanding Agent2Agent (A2A) Communication
 
@@ -35,8 +35,9 @@ In this blog, we’ll build a small **FormatterService** (the server) and a **Wr
 
 ### Prerequisites
 - Python 3.10+  
-- `ollama` installed with `granite3.3:8b` running  
-- `uv` installed 
+- ollama installed with granite3.3:8b running  
+- uv installed 
+
 In a new project folder, create a virtual environment and install the BeeAI Framework with A2A
 extras:
 
@@ -83,7 +84,7 @@ Start your agent service from your terminal.
 uv run a2a_server.py
 ```
 
-Your BeeAI agent is now exposed at http://localhost:9999. Your computer may request to allow the port to show the service on your localhost.
+Your BeeAI agent is now exposed at [http://localhost:9999](http://localhost:9999). Your computer may request to allow the port to show the service on your localhost.
 
 ## Step 3: Call the Agent from a Client
 
@@ -133,6 +134,7 @@ How It Works
 
 - One agent per server: Keeps each service focused on one singular capability 
 
-The A2A protocol makes it simple to turn a BeeAI agent into a service that other agents can call. With just a few lines of Python, you can expose your agent over HTTP and begin composing multi-agent workflows, an essential step toward building scalable, modular agent ecosystems. Happy building!Get up and running with BeeAI Framework lighting fast with the quickstart or go deep on all the capabilities by taking the grand tour.
+## Conclusion
 
-Get up and running with BeeAI Framework lighting fast with the [quickstart](https://framework.beeai.dev/introduction/quickstart) or go deep on all the capabilities by taking the [grand tour](https://framework.beeai.dev/introduction/tour).
+The A2A protocol makes it simple to turn a BeeAI agent into a service that other agents can call. With just a few lines of Python, you can expose your agent over HTTP and begin composing multi-agent workflows, an essential step toward building scalable, modular agent ecosystems. 
+Get up and running with BeeAI Framework lighting fast with the [quickstart](https://framework.beeai.dev/introduction/quickstart) or go deep on all the capabilities by taking the [grand tour](https://framework.beeai.dev/introduction/tour). Happy building!
