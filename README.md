@@ -141,11 +141,11 @@ Have an idea for an agent that could solve a real problem? Want to build somethi
 
 Vote with 👍 on the ideas you find most valuable!
 
-| Agent | Description | Votes |
-|:------|:------------|:-----:|
-| [Q&A Builder Agent](https://github.com/i-am-bee/agentstack/issues/1506) | Watches Slack and Discord for questions, retrieves answers from docs, and proposes new Q&A entries | 👍 1 |
-| [Issue Sizing Agent](https://github.com/i-am-bee/agentstack/issues/1507) | Reviews GitHub issues and provides size estimates (S, M, L, XL) based on complexity and scope | 👍 1 |
-| [Issue Labeling Agent](https://github.com/i-am-bee/agentstack/issues/1509) | Automatically assigns the correct issue type and labels to GitHub issues and PRs | 👍 1 |
+| Agent | Description |
+|:------|:------------|
+| [Q&A Builder Agent](https://github.com/i-am-bee/agentstack/issues/1506) | Watches Slack and Discord for questions, retrieves answers from docs, and proposes new Q&A entries |
+| [Issue Sizing Agent](https://github.com/i-am-bee/agentstack/issues/1507) | Reviews GitHub issues and provides size estimates (S, M, L, XL) based on complexity and scope |
+| [Issue Labeling Agent](https://github.com/i-am-bee/agentstack/issues/1509) | Automatically assigns the correct issue type and labels to GitHub issues and PRs |
 
 [Browse all ideas →](https://github.com/i-am-bee/agentstack/labels/agent-idea)
 
