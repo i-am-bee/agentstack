@@ -13,7 +13,7 @@ import { QueryProvider } from '#contexts/QueryProvider/QueryProvider.tsx';
 import { ThemeProvider } from '#contexts/Theme/ThemeProvider.tsx';
 import { ToastProvider } from '#contexts/Toast/ToastProvider.tsx';
 import { RouteTransitionProvider } from '#contexts/TransitionContext/RouteTransitionProvider.tsx';
-import { SessionRefresher } from '#modules/auth/SessionRefresher.tsx';
+import { TokenRefresher } from '#modules/auth/TokenRefresher.tsx';
 
 export default function Providers({ children }: PropsWithChildren) {
   return (
@@ -29,7 +29,7 @@ export default function Providers({ children }: PropsWithChildren) {
           </ProgressBarProvider>
         </QueryProvider>
       </ToastProvider>
-      <SessionRefresher />
+      <TokenRefresher />
     </SessionProvider>
   );
 }

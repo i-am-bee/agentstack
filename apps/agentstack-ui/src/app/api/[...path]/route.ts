@@ -34,7 +34,7 @@ async function handler(request: NextRequest, context: RouteContext) {
   if (runtimeConfig.isAuthEnabled) {
     const token = await ensureToken(request);
 
-    if (!token) {
+    if (!token?.accessToken) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
