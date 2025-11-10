@@ -52,7 +52,7 @@ jobs:
             exit 0
           fi
 
-          if grep -q '^docs/' changed_files.txt; then
+          if grep -qE '^(docs/|CONTRIBUTING\.md$|README\.md$|CODE_OF_CONDUCT\.md$)' changed_files.txt; then
             echo "✅ Docs updated."
           else
             echo "❌ No docs changes found and 'No Docs Needed' not checked."
