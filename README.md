@@ -147,7 +147,7 @@ Vote with 👍 on the ideas you find most valuable!
 | [Issue Sizing Agent](https://github.com/i-am-bee/agentstack/issues/1507) | Reviews GitHub issues and provides size estimates (S, M, L, XL) based on complexity and scope |
 | [Issue Labeling Agent](https://github.com/i-am-bee/agentstack/issues/1509) | Automatically assigns the correct issue type and labels to GitHub issues and PRs |
 
-[Browse all ideas →](https://github.com/i-am-bee/agentstack/labels/agent-idea)
+[Browse all ideas →](https://github.com/i-am-bee/agentstack/issues?q=is%3Aissue+is%3Aopen+label%3Aagent-idea+sort%3Areactions-%2B1-desc)
 
 ### Ready to Contribute?
 
