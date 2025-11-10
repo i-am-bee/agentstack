@@ -85,8 +85,21 @@ if __name__ == "__main__":
 
 ## Usage with OAuth extension
 
-In the usual scenario where the specified MCP server requires OAuth authentication, the MCP extension automatically leverages the OAuth extension if activated. Technically, it does exactly what is described in [Authorize MCP with OAuth](mcp-oauth).
+In the usual scenario where the specified MCP server requires OAuth authentication, the MCP extension automatically leverages the OAuth extension if activated. Technically, it does exactly what is described in [Authorize MCP with OAuth](/extensions/mcp-oauth). However, the agent still needs to declare the extension:
+
+```python
+@server.agent()
+async def example_agent(
+    input: Message,
+    context: RunContext,
+    mcp: Annotated[
+        MCPServiceExtensionServer,
+        MCPServiceExtensionSpec.single_demand(),
+    ],
+    _: Annotated[OAuthExtensionServer, OAuthExtensionSpec.single_demand()],
+):
+```
 
 ## Usage with Connectors
 
-To further improve user experience, one can use [Connectors](../guides/connectors) and have the Agent Stack platform automatically manage access tokens, hence effectively skipping the aforementioned OAuth flow during agent execution. This is achieved by specifying a connector instead of the actual MCP server that backs the connector.
+To further improve user experience, one can use [Connectors](/guides/connectors) and have the Agent Stack platform automatically manage access tokens, hence effectively skipping the aforementioned OAuth flow during agent execution. This is achieved by specifying a connector instead of the actual MCP server that backs the connector.
