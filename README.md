@@ -151,7 +151,7 @@ Vote with 👍 on the ideas you find most valuable!
 
 ### Ready to Contribute?
 
-Whether you're [proposing your first idea](https://github.com/i-am-bee/agentstack/issues/new?template=agent_idea.md) or [implementing someone else's vision](https://github.com/i-am-bee/agentstack/labels/agent-idea), we'd love to have you involved!
+Whether you're [proposing your first idea](https://github.com/i-am-bee/agentstack/issues/new?template=agent_idea.md) or [implementing someone else's vision](https://github.com/i-am-bee/agentstack/issues?q=is%3Aissue+is%3Aopen+label%3Aagent-idea+sort%3Areactions-%2B1-desc), we'd love to have you involved!
 
 ---
 
