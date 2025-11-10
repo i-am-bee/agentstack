@@ -1,9 +1,9 @@
 ---
 title: "Dynamically select MCP Servers"
-description: "Learn how to inject MCP servers from the client on per-task basis"
+description: "Learn how to let the client dynamically select MCP servers on per-task basis"
 ---
 
-In scenarios where it is necessary to dynamically change the MCP server(s) used by an agent, the Agent Stack provides an MCP extension that allows clients to specify MCP server details at runtime.
+In scenarios where it is necessary to dynamically select MCP servers for the agent to use, the Agent Stack provides an MCP extension that allows clients to specify MCP server details at runtime.
 
 For you as an agent builder, the usage is extremely simple because we’ve wrapped the usage into an MCP Extension.
 
@@ -29,7 +29,7 @@ Import the necessary components and add the MCP service extension to your agent 
 </Step>
 
 <Step title="Configure your MCP request">
-  Specify which MCP server(s) your agent prefer(s).
+  Specify which MCP servers your agent prefers.
 </Step>
 
 <Step title="Use the MCP client in your agent">
@@ -63,7 +63,7 @@ async def example_agent(
         MCPServiceExtensionSpec.single_demand(),
     ],
 ):
-    """Agent that uses MCP to list tools"""
+    """Agent that uses MCP client to list tools"""
 
     if not mcp:
         yield "No tools available"
@@ -89,4 +89,4 @@ In the usual scenario where the specified MCP server requires OAuth authenticati
 
 ## Usage with Connectors
 
-To further improve user experience, one can use [Connectors](../guides/connectors) and have the Agent Stack platform automatically manage access tokens, hence effectively skipping the aforementioned OAuth flow during agent execution. This is achieved by injecting a connector instead of the actual MCP server that backs the connector.
+To further improve user experience, one can use [Connectors](../guides/connectors) and have the Agent Stack platform automatically manage access tokens, hence effectively skipping the aforementioned OAuth flow during agent execution. This is achieved by specifying a connector instead of the actual MCP server that backs the connector.
