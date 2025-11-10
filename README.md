@@ -1,9 +1,3 @@
-<h1 align="center">
-  Agent Stack
-</h1>
-
-<h4 align="center">Open infrastructure for deploying and sharing agents without vendor lock-in</h4>
-
 <div align="center">
 
 [![Apache 2.0](https://img.shields.io/badge/Apache%202.0-License-EA7826?style=plastic&logo=apache&logoColor=white)](https://github.com/i-am-bee/beeai-framework?tab=Apache-2.0-1-ov-file#readme)
@@ -13,11 +7,18 @@
 
 </div>
 
+<h1 align="center">
+  Agent Stack
+</h1>
+
+<h4 align="center">Open infrastructure for deploying and sharing agents without vendor lock-in</h4>
+
 <p align="center">
-    <a href="#key-features">Key Features</a> •
-    <a href="#quickstart">Quickstart</a> •
-    <a href="#agent-catalog">Agent Catalog</a> •
-    <a href="#documentation">Documentation</a>
+    <a href="#key-features"><b>Key Features</b></a> •
+    <a href="#quickstart"><b>Quickstart</b></a> •
+    <a href="#agent-catalog"><b>Agent Catalog</b></a> •
+    <a href="#agent-ideas"><b>Agent Ideas</b></a> •
+    <a href="#documentation"><b>Documentation</b></a>
 </p>
 
 <div align="center">
@@ -118,6 +119,42 @@ A growing collection of community-built agents showcasing various use cases and 
 
 ---
 
+## Agent Ideas
+
+Have an idea for an agent that could solve a real problem? Want to build something that others will find useful? **Agent Ideas** is where the community proposes, discusses, and builds the next generation of agents together.
+
+### How It Works
+
+1. **💡 Propose** - Share your agent idea using our [Agent Idea template](https://github.com/i-am-bee/agentstack/issues/new?template=agent_idea.md)
+2. **👍 Vote** - Browse [proposed ideas](https://github.com/i-am-bee/agentstack/labels/agent-idea) and upvote the ones you find exciting
+3. **🛠️ Build** - Pick an idea (yours or someone else's) and bring it to life
+4. **🎉 Share** - Show off your creation and help others benefit from your work
+
+### Why Get Involved?
+
+- **Build real agents** - Create practical agentic AI systems that solve actual problems
+- **Grow your AI engineering skills** - Develop expertise through hands-on projects
+- **Shape the ecosystem** - Help define what agents the community needs most
+- **Connect with others** - Collaborate with fellow builders and learn together
+
+### Current Ideas
+
+Vote with 👍 on the ideas you find most valuable!
+
+| Agent | Description | Votes |
+|:------|:------------|:-----:|
+| [Q&A Builder Agent](https://github.com/i-am-bee/agentstack/issues/1506) | Watches Slack and Discord for questions, retrieves answers from docs, and proposes new Q&A entries | 👍 1 |
+| [Issue Sizing Agent](https://github.com/i-am-bee/agentstack/issues/1507) | Reviews GitHub issues and provides size estimates (S, M, L, XL) based on complexity and scope | 👍 1 |
+| [Issue Labeling Agent](https://github.com/i-am-bee/agentstack/issues/1509) | Automatically assigns the correct issue type and labels to GitHub issues and PRs | 👍 1 |
+
+[Browse all ideas →](https://github.com/i-am-bee/agentstack/labels/agent-idea)
+
+### Ready to Contribute?
+
+Whether you're [proposing your first idea](https://github.com/i-am-bee/agentstack/issues/new?template=agent_idea.md) or [implementing someone else's vision](https://github.com/i-am-bee/agentstack/labels/agent-idea), we'd love to have you involved!
+
+---
+
 ## Documentation
 
 Visit [agentstack.beeai.dev](https://agentstack.beeai.dev) for full documentation.
@@ -150,8 +187,6 @@ Agent builds upon the foundations established by several pioneering projects in 
 
 - [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) - The open standard enabling cross-framework agent communication
 - [Model Context Protocol](https://github.com/modelcontextprotocol) - Advancing how AI models interact with context
-- [Language Server Protocol](https://github.com/microsoft/language-server-protocol) - Demonstrating the power of standardized tooling protocols
-- [JSON-RPC](https://www.jsonrpc.org/) - The specification underlying modern RPC communication
 
 We're grateful to these communities for advancing the state of agent infrastructure and interoperability.
 
