@@ -1,0 +1,92 @@
+---
+title: "Dynamically select MCP Servers"
+description: "Learn how to inject MCP servers from the client on per-task basis"
+---
+
+In scenarios where it is necessary to dynamically change the MCP server(s) used by an agent, the Agent Stack provides an MCP extension that allows clients to specify MCP server details at runtime.
+
+For you as an agent builder, the usage is extremely simple because we’ve wrapped the usage into an MCP Extension.
+
+<Tip>
+  Service Extensions are a type of [A2A
+  Extension](https://a2a-protocol.org/latest/topics/extensions/) that allows you
+  to easily "inject dependencies" into your agent. This follows the inversion of
+  control principle where your agent defines what it needs, and the client
+  (possibly in cooperation with the platform) is responsible for providing those
+  dependencies.
+</Tip>
+
+<Warning>
+  Service extensions are optional by definition, so you should always check if
+  they exist before using them.
+</Warning>
+
+## Quickstart
+
+<Steps>
+<Step title="Add MCP service extension to your agent">
+Import the necessary components and add the MCP service extension to your agent function.
+</Step>
+
+<Step title="Configure your MCP request">
+  Specify which MCP server(s) your agent prefer(s).
+</Step>
+
+<Step title="Use the MCP client in your agent">
+Access the optionally provided MCP extension and use it to create MCP client(s).
+</Step>
+</Steps>
+
+## Example of MCP extension
+
+Here's how to add MCP extension to your agent:
+
+```python
+import os
+from typing import Annotated
+
+from a2a.types import Message
+from mcp import ClientSession
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
+from agentstack_sdk.a2a.types import AgentMessage
+from agentstack_sdk.a2a.extensions import MCPServiceExtensionServer, MCPServiceExtensionSpec
+
+server = Server()
+
+@server.agent()
+async def example_agent(
+    input: Message,
+    context: RunContext,
+    mcp: Annotated[
+        MCPServiceExtensionServer,
+        MCPServiceExtensionSpec.single_demand(),
+    ],
+):
+    """Agent that uses MCP to list tools"""
+
+    if not mcp:
+        yield "No tools available"
+
+    async with mcp.create_client() as (read, write), ClientSession(read, write) as session:
+        await session.initialize()
+
+        tools = await session.list_tools()
+
+        yield "Available tools: \n"
+        yield "\n".join([t.name for t in tools.tools])
+
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+if __name__ == "__main__":
+    run()
+```
+
+## Usage with OAuth extension
+
+In the usual scenario where the specified MCP server requires OAuth authentication, the MCP extension automatically leverages the OAuth extension if activated. Technically, it does exactly what is described in [Authorize MCP with OAuth](mcp-oauth).
+
+## Usage with Connectors
+
+To further improve user experience, one can use [Connectors](../guides/connectors) and have the Agent Stack platform automatically manage access tokens, hence effectively skipping the OAuth flow during agent execution. This is achieved by injecting a connector instead of the actual MCP server that backs the connector.
