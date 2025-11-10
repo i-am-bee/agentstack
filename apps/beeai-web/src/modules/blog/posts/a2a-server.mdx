@@ -1,0 +1,138 @@
+export const metadata = {
+  title: 'How to Run a BeeAI Framework Agent as an A2A Server',
+  date: '2025-11-10',
+  author: 'Eden Gilbert, Ken Ocheltree',
+};
+
+The BeeAI Framework provides native support for the Agent2Agent (A2A) Protocol, enabling you to build distributed multi-agent systems where different AI agents can communicate regardless of how or where they're deployed. In this guide, we'll walk through creating a BeeAI agent as an A2A server and how to connect to it from a client.
+
+## Understanding Agent2Agent (A2A) Communication
+
+AI agents in production require reusable capabilities that work across repositories, languages, and teams. The [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/latest/) is a new standard for agent-to-agent communication, allowing different AI agents to interact no matter their original framework or implementation details. RPC (Remote Procedure Call) is the backbone of A2A: it lets one agent ask another to “run this function and give me the result” or hand off a task to another agent. BeeAI wraps this in a simple API, so your agent can expose or consume capabilities without having to worry about the networking details of the A2A protocol. With this, you get modular services from different specialized agents with clean handoffs and easy scaling. The BeeAI Framework is A2A Native with the ability to interoperate with any A2A agent system, providing built-in support without complex setup.
+
+### What A2A solves
+
+- **Interoperability:** enables agents to communicate across frameworks/runtimes without custom SDKs
+
+- **Reuse & separation of concerns:** turns capabilities into a service that other agents can call
+
+- **Cost & performance:** specializes agents and models per task, calls the right one on demand
+
+- **Reliability:** RPC contracts make the behavior predictable and debuggable 
+
+### When to run an A2A server, client, or both
+
+- **Server:** when exposing a capability for others (eg: “FormatterService” that normalizes or transforms text).
+
+- **Client:** you need to call other agents/services as part of your workflow (eg: an “Author” agent that asks a “Formatter” agent to clean output).
+
+- **Both:** your agent is reusable as a service and also calls other agents as a service
+
+In this blog, we’ll build a small **FormatterService** (the server) and a **Writer** (the client) so you can see the end-to-end process. 
+
+
+## Getting started
+
+### Prerequisites
+- Python 3.10+  
+- `ollama` installed with `granite3.3:8b` running  
+- `uv` installed 
+In a new project folder, create a virtual environment and install the BeeAI Framework with A2A
+extras:
+
+```bash
+uv init
+uv add 'beeai-framework[a2a]'
+```
+
+Open the new project in your IDE.
+
+## Step 1: Build the Server’s Agent Logic and Expose the Agent as an A2A Server
+
+Create a new file called **a2a_server.py** that wraps a single agent and makes it available over HTTP as an A2AServer . 
+
+```python
+# a2a_server.py
+from beeai_framework.adapters.a2a import A2AServer, A2AServerConfig
+from beeai_framework.agents.requirement import RequirementAgent
+from beeai_framework.backend import ChatModel
+from beeai_framework.memory import UnconstrainedMemory
+from beeai_framework.serve.utils import LRUMemoryManager
+
+def main() -> None:
+    llm = ChatModel.from_name("ollama:granite3.3:8b")
+    agent = RequirementAgent(
+        llm=llm,
+        memory=UnconstrainedMemory(),
+        instructions="You are an agent that reverses text input. Reverse the user's input exactly.",
+    )
+
+    # Register the agent with the A2A server and run the HTTP server
+    A2AServer(
+        config=A2AServerConfig(port=9999, protocol="jsonrpc"), memory_manager=LRUMemoryManager(maxsize=100)
+    ).register(agent, send_trajectory=True).serve()
+
+if __name__ == "__main__":
+    main()    
+```
+
+## Step 2: Running the Server
+Start your agent service from your terminal. 
+
+```python
+uv run a2a_server.py
+```
+
+Your BeeAI agent is now exposed at http://localhost:9999. Your computer may request to allow the port to show the service on your localhost.
+
+## Step 3: Call the Agent from a Client
+
+Save this simple python client as **a2a_client.py**:
+
+```python
+# a2a_client.py
+import asyncio
+from beeai_framework.adapters.a2a.agents import A2AAgent
+from beeai_framework.memory.unconstrained_memory import UnconstrainedMemory
+
+async def main() -> None:
+
+    agent = A2AAgent(url="http://127.0.0.1:9999", memory=UnconstrainedMemory())
+    
+    # Send a message
+    text = input("Enter input: ")
+    response = await agent.run(text)
+
+    # Print the response
+    print("Agent response:", response.last_message.text)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+Any client on your computer (another agent, application, or a script) can call your agent over A2A. 
+
+Note: If you had served your agent over a non-local IP address and allowed access on that port, that agent could be accessed by agents on other computers on your network. Caution is advised on making agents available beyond the localhost.
+
+The client is run by invoking it in a separate terminal:
+
+```python
+uv run a2a_client.py
+```
+The client agent dialog appears as follows:
+
+```python
+Enter input: Hello World
+Agent response: dlroW olleH
+```
+How It Works
+
+- A2AServer: Hosts a single BeeAI agent and makes it reachable on the same computer over HTTP.
+
+- A2AAgent (client): Sends request to that server and gets that agent’s response back 
+
+- One agent per server: Keeps each service focused on one singular capability 
+
+The A2A protocol makes it simple to turn a BeeAI agent into a service that other agents can call. With just a few lines of Python, you can expose your agent over HTTP and begin composing multi-agent workflows, an essential step toward building scalable, modular agent ecosystems. Happy building!Get up and running with BeeAI Framework lighting fast with the quickstart or go deep on all the capabilities by taking the grand tour.
+
+Get up and running with BeeAI Framework lighting fast with the [quickstart](https://framework.beeai.dev/introduction/quickstart) or go deep on all the capabilities by taking the [grand tour](https://framework.beeai.dev/introduction/tour).
