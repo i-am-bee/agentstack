@@ -33,6 +33,8 @@ Agent Stack is open infrastructure for taking AI agents from prototype to produc
 
 Built on the [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) and hosted by the **Linux Foundation**, Agent Stack bridges the gap between different agent ecosystems.
 
+---
+
 ## Key Features
 
 | Feature | Description |
@@ -41,8 +43,6 @@ Built on the [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) and hosted 
 | 🚀 Effortless Deployment | Go from container to production-ready. We handle database, storage, scaling, and RAG so you can focus on your agent. |
 | 🔄 Multi-Provider Playground | Test across OpenAI, Anthropic, Gemini, IBM watsonx, Ollama and more. Instantly compare performance and cost to find the optimal model. |
 | 🔧 Framework-Agnostic | Run agents from LangChain, CrewAI, and more on a single platform. Enable cross-framework collaboration without rewriting your code. |
-
----
 
 ## Quickstart
 
@@ -84,8 +84,6 @@ You should see: "Ciao Alice!" 🎉
 > [!TIP]
 > Check out [Start Building Agents](https://agentstack.beeai.dev/introduction/start-building-agents) for a complete step-by-step guide to creating your first agent.
 
----
-
 ## Agent Catalog
 
 ### Reference Agents
@@ -112,8 +110,6 @@ A growing collection of community-built agents showcasing various use cases and 
 
 > [!TIP]
 > Before contributing, please review our [Contribution Guidelines](./CONTRIBUTING.md) to ensure a smooth experience.
-
----
 
 ## Agent Ideas
 
@@ -149,7 +145,6 @@ Vote with 👍 on the ideas you find most valuable!
 
 Whether you're [proposing your first idea](https://github.com/i-am-bee/agentstack/issues/new?template=agent_idea.md) or [implementing someone else's vision](https://github.com/i-am-bee/agentstack/labels/agent-idea), we'd love to have you involved!
 
----
 
 ## Documentation
 
