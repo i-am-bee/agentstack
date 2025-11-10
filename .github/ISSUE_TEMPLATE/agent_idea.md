@@ -5,8 +5,6 @@ title: "[Agent] <agent name>"
 labels: ["agent-idea"]
 ---
 
-# Agent Idea: <agent name>
-
 **If you like this idea, vote with a 👍 reaction on this issue.**
 
 ---
@@ -52,7 +50,7 @@ _Examples:_
 ---
 
 ## 5. Rough architecture (very high level)
-Bullet points or simple diagrams are fine. Keep it lightweight.
+Bullet points or simple diagrams are fine.
 
 _Example:_  
 - Detect question  
