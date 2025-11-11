@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import 'katex/dist/katex.min.css';
+
 import clsx from 'clsx';
 import { useMemo } from 'react';
 import Markdown from 'react-markdown';

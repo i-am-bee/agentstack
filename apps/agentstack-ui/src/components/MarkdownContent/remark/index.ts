@@ -4,9 +4,17 @@
  */
 
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
 import type { PluggableList } from 'unified';
 
 import { remarkCitationLink } from './remarkCitationLink';
 import { remarkExternalLink } from './remarkExternalLink';
+import { remarkMermaid } from './remarkMermaid';
 
-export const remarkPlugins = [remarkGfm, remarkCitationLink, remarkExternalLink] satisfies PluggableList;
+export const remarkPlugins = [
+  remarkGfm,
+  [remarkMath, { singleDollarTextMath: false }],
+  remarkMermaid,
+  remarkCitationLink,
+  remarkExternalLink,
+] satisfies PluggableList;
