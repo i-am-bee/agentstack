@@ -20,7 +20,7 @@ from agentstack_server.jobs.queues import Queues
 from agentstack_server.service_layer.services.providers import ProviderService
 from agentstack_server.service_layer.services.users import UserService
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
-from agentstack_server.utils.a2a import get_extension
+from agentstack_server.utils.a2a import detect_card_changes, get_extension
 from agentstack_server.utils.utils import extract_messages
 
 logger = logging.getLogger(__name__)
@@ -137,6 +137,7 @@ async def refresh_unmanaged_provider_state(timestamp: int, uow_f: IUnitOfWorkFac
                 resp_card = AgentCard.model_validate(
                     (await client.get(AGENT_CARD_WELL_KNOWN_PATH)).raise_for_status().json()
                 )
+
                 # For self-registered provider we need to check their self-registration ID, because their URL
                 # might overlap (more agents on the same URL, only one can be online)
                 provider_self_reg_ext = get_extension(provider.agent_card, SELF_REGISTRATION_EXTENSION_URI)
@@ -146,6 +147,18 @@ async def refresh_unmanaged_provider_state(timestamp: int, uow_f: IUnitOfWorkFac
                         state = UnmanagedState.ONLINE
                 else:
                     state = UnmanagedState.ONLINE
+
+                # Update agent card if it changed (after state determination to avoid mutating provider during checks)
+                card_changes = detect_card_changes(provider.agent_card, resp_card)
+                if card_changes:
+                    logger.info(f"Provider {provider.id} agent card changed: {card_changes}")
+                    try:
+                        provider.agent_card = resp_card
+                        async with uow_f() as uow:
+                            await uow.providers.update(provider=provider)
+                            await uow.commit()
+                    except Exception as ex:
+                        logger.error(f"Failed to update agent card for provider {provider.id}: {extract_messages(ex)}")
 
         except HTTPError as ex:
             logger.warning(f"Provider {provider.id} failed to respond to ping in 30 seconds: {extract_messages(ex)}")
