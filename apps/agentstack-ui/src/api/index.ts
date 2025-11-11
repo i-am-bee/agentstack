@@ -20,8 +20,8 @@ const authMiddleware: Middleware = {
     if (runtimeConfig.isAuthEnabled) {
       const token = await ensureToken(request);
 
-      if (token?.access_token) {
-        accessToken = token.access_token;
+      if (token?.accessToken) {
+        accessToken = token.accessToken;
       }
     }
     // add Authorization header to every request
