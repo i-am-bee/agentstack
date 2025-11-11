@@ -147,7 +147,7 @@ oidc:
   following oidc specific values:
 
 ```JavaScript
-OIDC_PROVIDERS = '[{"name": "w3id","id": "w3id","type": "oidc","class": "IBM","client_id": "<oidc_client_id>","client_secret": "<oidc_client_secret>","issuer": "<oidc_issuer>"}]'
+OIDC_PROVIDERS = '[{"name": "w3id","id": "w3id","type": "oidc","app": "ui","client_id": "<oidc_client_id>","client_secret": "<oidc_client_secret>","issuer": "<oidc_issuer>"}]'
 NEXTAUTH_SECRET = "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
 NEXTAUTH_URL = "http://localhost:3000"
 OIDC_ENABLED = true
