@@ -65,7 +65,7 @@ class Configuration(pydantic_settings.BaseSettings):
             sys.exit(1)
         async with use_platform_client(
             auth=("admin", self.admin_password.get_secret_value()) if self.admin_password else None,
-            auth_token=self.auth_manager.load_auth_token(),
+            auth_token=await self.auth_manager.load_auth_token(),
             base_url=self.auth_manager.active_server + "/",
         ) as client:
             yield client

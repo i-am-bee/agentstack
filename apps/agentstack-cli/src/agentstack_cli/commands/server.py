@@ -135,20 +135,27 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
         auth_server = None
         token = None
 
-        client_id = config.client_id
+        client_id = None
         client_secret = config.client_secret
 
         if auth_servers:
             if len(auth_servers) == 1:
-                auth_server = auth_servers[0]
+                auth_server = auth_servers[0].server
+                client_id = auth_servers[0].client_id
             else:
-                auth_server = await inquirer.select(  # type: ignore
-                    message="Select an authorization server:",
-                    choices=auth_servers,
+                identity_providers = [p["name"] for p in auth_servers]
+                identity_provider = await inquirer.select(  # type: ignore
+                    message="Select an identity provider:",
+                    choices=identity_providers,
                 ).execute_async()
-
+                if identity_provider:
+                    index = identity_providers.index(identity_provider)
+                    auth_server = auth_servers[int(index)]
             if not auth_server:
                 raise RuntimeError("No authorization server selected.")
+
+            client_id = auth_server["client_id"]
+            auth_server = auth_server["server"]
 
             async with httpx.AsyncClient() as client:
                 try:
@@ -158,34 +165,36 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                 except Exception as e:
                     raise RuntimeError(f"OIDC discovery failed: {e}") from e
 
-            registration_endpoint = oidc["registration_endpoint"]
-            if not client_id and registration_endpoint:
-                async with httpx.AsyncClient() as client:
-                    try:
-                        resp = await client.post(
-                            registration_endpoint,
-                            json={"client_name": "Agent Stack CLI", "redirect_uris": [REDIRECT_URI]},
-                        )
-                        resp.raise_for_status()
-                        data = resp.json()
-                        client_id = data["client_id"]
-                        client_secret = data["client_secret"]
-                    except Exception:
-                        console.warning("Dynamic client registration failed. Proceed with manual input.")
+            # registration_endpoint = oidc["registration_endpoint"]
+            # if not client_id and registration_endpoint:
+            #     async with httpx.AsyncClient() as client:
+            #         try:
+            #             resp = await client.post(
+            #                 registration_endpoint,
+            #                 json={"client_name": "Agent Stack CLI", "redirect_uris": [REDIRECT_URI]},
+            #                 timeout=30.0
+            #             )
+            #             resp.raise_for_status()
+            #             data = resp.json()
+            #             client_id = data["client_id"]
+            #             client_secret = data["client_secret"]
+            #         except Exception as err:
+            #             console.warning("Dynamic client registration failed. Proceed with manual input.")
+            #             console.warning(f"details: {err!s}")
 
-            if not client_id:
-                client_id = await inquirer.text(  #  type: ignore
-                    message="Enter Client ID:",
-                    instruction=f"(Redirect URI: {REDIRECT_URI})",
-                ).execute_async()
-                if not client_id:
-                    raise RuntimeError("Client ID is mandatory. Action cancelled.")
-                client_secret = (
-                    await inquirer.text(  #  type: ignore
-                        message="Enter Client Secret (optional):"
-                    ).execute_async()
-                    or None
-                )
+            # if not client_id:
+            #     client_id = await inquirer.text(  #  type: ignore
+            #         message="Enter Client ID:",
+            #         instruction=f"(Redirect URI: {REDIRECT_URI})",
+            #     ).execute_async()
+            #     if not client_id:
+            #         raise RuntimeError("Client ID is mandatory. Action cancelled.")
+            #     client_secret = (
+            #         await inquirer.text(  #  type: ignore
+            #             message="Enter Client Secret (optional):"
+            #         ).execute_async()
+            #         or None
+            #     )
 
             code_verifier = generate_token(64)
 
