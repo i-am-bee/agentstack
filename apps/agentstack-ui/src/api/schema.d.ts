@@ -85,19 +85,19 @@ export interface paths {
       cookie?: never;
     };
     /** A2A Proxy Http Transport */
-    get: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options'];
+    get: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_patch'];
     /** A2A Proxy Http Transport */
-    put: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options'];
+    put: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_patch'];
     /** A2A Proxy Http Transport */
-    post: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options'];
+    post: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_patch'];
     /** A2A Proxy Http Transport */
-    delete: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options'];
+    delete: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_patch'];
     /** A2A Proxy Http Transport */
-    options: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options'];
+    options: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_patch'];
     /** A2A Proxy Http Transport */
-    head: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options'];
+    head: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_patch'];
     /** A2A Proxy Http Transport */
-    patch: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options'];
+    patch: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_patch'];
     trace?: never;
   };
   '/api/v1/a2a/{provider_id}/http/{path}': {
@@ -108,19 +108,19 @@ export interface paths {
       cookie?: never;
     };
     /** A2A Proxy Http Transport */
-    get: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options'];
+    get: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__patch'];
     /** A2A Proxy Http Transport */
-    put: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options'];
+    put: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__patch'];
     /** A2A Proxy Http Transport */
-    post: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options'];
+    post: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__patch'];
     /** A2A Proxy Http Transport */
-    delete: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options'];
+    delete: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__patch'];
     /** A2A Proxy Http Transport */
-    options: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options'];
+    options: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__patch'];
     /** A2A Proxy Http Transport */
-    head: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options'];
+    head: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__patch'];
     /** A2A Proxy Http Transport */
-    patch: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options'];
+    patch: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__patch'];
     trace?: never;
   };
   '/api/v1/configurations/system': {
@@ -211,6 +211,24 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/connectors/{connector_id}/mcp': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Mcp */
+    get: operations['mcp_api_v1_connectors__connector_id__mcp_get'];
+    put?: never;
+    /** Mcp */
+    post: operations['mcp_api_v1_connectors__connector_id__mcp_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/connectors/oauth/callback': {
     parameters: {
       query?: never;
@@ -220,6 +238,23 @@ export interface paths {
     };
     /** Oauth Callback */
     get: operations['oauth_callback_api_v1_connectors_oauth_callback_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/connectors/presets': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Presets */
+    get: operations['list_presets_api_v1_connectors_presets_get'];
     put?: never;
     post?: never;
     delete?: never;
@@ -640,76 +675,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/provider_builds': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List Provider Builds */
-    get: operations['list_provider_builds_api_v1_provider_builds_get'];
-    put?: never;
-    /** Create Provider Build */
-    post: operations['create_provider_build_api_v1_provider_builds_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/provider_builds/{id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get Provider Build */
-    get: operations['get_provider_build_api_v1_provider_builds__id__get'];
-    put?: never;
-    post?: never;
-    /** Delete */
-    delete: operations['delete_api_v1_provider_builds__id__delete'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/provider_builds/{id}/logs': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Stream Logs */
-    get: operations['stream_logs_api_v1_provider_builds__id__logs_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/provider_builds/preview': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Preview Provider Build */
-    post: operations['preview_provider_build_api_v1_provider_builds_preview_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   '/api/v1/providers': {
     parameters: {
       query?: never;
@@ -977,28 +942,6 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
-    /**
-     * AddProvider
-     * @description Will add a new provider or update an existing one with the same base docker image ID
-     *     (docker registry + repository, excluding tag)
-     */
-    AddProvider: {
-      /**
-       * Auto Stop Timeout Sec
-       * @description Timeout after which the agent provider will be automatically downscaled if unused.Contact administrator if you need to increase this value.
-       */
-      auto_stop_timeout_sec?: number | null;
-      /**
-       * Type
-       * @default add_provider
-       * @constant
-       */
-      type: 'add_provider';
-      /** Variables */
-      variables?: {
-        [key: string]: string;
-      } | null;
-    };
     /**
      * AgentCapabilities
      * @description Defines optional capabilities supported by an agent.
@@ -1287,6 +1230,64 @@ export interface components {
       tags: string[];
     };
     /** ProviderWithStateResponse */
+    agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__1: {
+      agent_card: components['schemas']['AgentCard-Output'];
+      /**
+       * Auto Stop Timeout
+       * Format: duration
+       * @default PT20M
+       */
+      auto_stop_timeout: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      /** Env */
+      readonly env: components['schemas']['EnvVar'][];
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Last Active At
+       * Format: date-time
+       */
+      last_active_at?: string;
+      last_error?: components['schemas']['ProviderErrorMessage'] | null;
+      /** Managed */
+      readonly managed: boolean;
+      /** Missing Configuration */
+      missing_configuration?: components['schemas']['EnvVar'][];
+      /** Origin */
+      origin: string;
+      /** Registry */
+      registry?:
+        | components['schemas']['GithubRegistryLocation']
+        | components['schemas']['NetworkRegistryLocation']
+        | components['schemas']['FileSystemRegistryLocation']
+        | null;
+      /** Source */
+      source: components['schemas']['DockerImageProviderLocation'] | components['schemas']['NetworkProviderLocation'];
+      /** State */
+      state: components['schemas']['ProviderDeploymentState'] | components['schemas']['UnmanagedState'];
+      readonly type: components['schemas']['ProviderType'];
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at?: string;
+      version_info?: components['schemas']['VersionInfo'];
+    } & {
+      [key: string]: unknown;
+    };
+    /** ProviderWithStateResponse */
     agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__2: {
       agent_card: components['schemas']['AgentCard-Output'];
       /**
@@ -1340,7 +1341,7 @@ export interface components {
        * Format: date-time
        */
       updated_at?: string;
-      version_info?: components['schemas']['VersionInfo-Output'];
+      version_info?: components['schemas']['VersionInfo'];
     } & {
       [key: string]: unknown;
     };
@@ -1398,7 +1399,7 @@ export interface components {
        * Format: date-time
        */
       updated_at?: string;
-      version_info?: components['schemas']['VersionInfo-Output'];
+      version_info?: components['schemas']['VersionInfo'];
     } & {
       [key: string]: unknown;
     };
@@ -1496,36 +1497,38 @@ export interface components {
        */
       updated_at?: string;
     };
-    /** SystemConfigurationResponse */
-    agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__7: {
+    /** FileResponse */
+    agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__8: {
+      /** Content Type */
+      content_type: string;
+      /** Context Id */
+      context_id?: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
       /**
        * Created By
        * Format: uuid
        */
       created_by: string;
-      /**
-       * Default Embedding Model
-       * @description Default embedding model (e.g., 'openai:text-embedding-3-small')
-       */
-      default_embedding_model?: string | null;
-      /**
-       * Default Llm Model
-       * @description Default LLM model (e.g., 'openai:gpt-4o')
-       */
-      default_llm_model?: string | null;
+      /** File Size Bytes */
+      file_size_bytes?: number | null;
+      /** @default user_upload */
+      file_type: components['schemas']['FileType'];
+      /** Filename */
+      filename: string;
       /**
        * Id
        * Format: uuid
        */
       id: string;
-      /**
-       * Updated At
-       * Format: date-time
-       */
-      updated_at?: string;
+      /** Parent File Id */
+      parent_file_id?: string | null;
     };
     /** FileResponse */
-    agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__8: {
+    agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__9: {
       /** Content Type */
       content_type: string;
       /** Context Id */
@@ -1816,93 +1819,33 @@ export interface components {
       name?: string | null;
       stats?: components['schemas']['VectorStoreStats'] | null;
     };
-    /** ProviderWithStateResponse */
-    'agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput-Output__1': {
-      agent_card: components['schemas']['AgentCard-Output'];
-      /**
-       * Auto Stop Timeout
-       * Format: duration
-       * @default PT20M
-       */
-      auto_stop_timeout: string;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at?: string;
+    /** SystemConfigurationResponse */
+    'agentstack_server__api__schema__common__EntityModel____class_getitem____<locals>__ModelOutput': {
       /**
        * Created By
        * Format: uuid
        */
       created_by: string;
-      /** Env */
-      readonly env: components['schemas']['EnvVar'][];
+      /**
+       * Default Embedding Model
+       * @description Default embedding model (e.g., 'openai:text-embedding-3-small')
+       */
+      default_embedding_model?: string | null;
+      /**
+       * Default Llm Model
+       * @description Default LLM model (e.g., 'openai:gpt-4o')
+       */
+      default_llm_model?: string | null;
       /**
        * Id
        * Format: uuid
        */
       id: string;
-      /**
-       * Last Active At
-       * Format: date-time
-       */
-      last_active_at?: string;
-      last_error?: components['schemas']['ProviderErrorMessage'] | null;
-      /** Managed */
-      readonly managed: boolean;
-      /** Missing Configuration */
-      missing_configuration?: components['schemas']['EnvVar'][];
-      /** Origin */
-      origin: string;
-      /** Registry */
-      registry?:
-        | components['schemas']['GithubRegistryLocation']
-        | components['schemas']['NetworkRegistryLocation']
-        | components['schemas']['FileSystemRegistryLocation']
-        | null;
-      /** Source */
-      source: components['schemas']['DockerImageProviderLocation'] | components['schemas']['NetworkProviderLocation'];
-      /** State */
-      state: components['schemas']['ProviderDeploymentState'] | components['schemas']['UnmanagedState'];
-      readonly type: components['schemas']['ProviderType'];
       /**
        * Updated At
        * Format: date-time
        */
       updated_at?: string;
-      version_info?: components['schemas']['VersionInfo-Output'];
-    } & {
-      [key: string]: unknown;
-    };
-    /** FileResponse */
-    'agentstack_server__api__schema__common__EntityModel____class_getitem____<locals>__ModelOutput': {
-      /** Content Type */
-      content_type: string;
-      /** Context Id */
-      context_id?: string | null;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at?: string;
-      /**
-       * Created By
-       * Format: uuid
-       */
-      created_by: string;
-      /** File Size Bytes */
-      file_size_bytes?: number | null;
-      /** @default user_upload */
-      file_type: components['schemas']['FileType'];
-      /** Filename */
-      filename: string;
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /** Parent File Id */
-      parent_file_id?: string | null;
     };
     /**
      * APIKeySecurityScheme
@@ -1982,6 +1925,19 @@ export interface components {
       /** Tokenurl */
       tokenUrl: string;
     };
+    /** AuthorizationCodeRequest */
+    AuthorizationCodeRequest: {
+      /**
+       * Authorization Endpoint
+       * Format: uri
+       */
+      authorization_endpoint: string;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'code';
+    };
     /** Body_upload_file_api_v1_files_post */
     Body_upload_file_api_v1_files_post: {
       /**
@@ -1990,19 +1946,6 @@ export interface components {
        */
       file: string;
     };
-    /** BuildConfiguration */
-    BuildConfiguration: {
-      /**
-       * Dockerfile Path
-       * @description Path to Dockerfile relative to the repository path (provider_build.source.path or repository root if not defined)
-       */
-      dockerfile_path?: string | null;
-    };
-    /**
-     * BuildState
-     * @enum {string}
-     */
-    BuildState: 'missing' | 'in_progress' | 'build_completed' | 'completed' | 'failed';
     /** ChatCompletionAllowedToolChoiceParam */
     ChatCompletionAllowedToolChoiceParam: {
       allowed_tools: components['schemas']['ChatCompletionAllowedToolsParam'];
@@ -2413,6 +2356,11 @@ export interface components {
       client_id?: string | null;
       /** Client Secret */
       client_secret?: string | null;
+      /**
+       * Match Preset
+       * @default true
+       */
+      match_preset: boolean;
       /** Metadata */
       metadata?: {
         [key: string]: string;
@@ -2423,6 +2371,45 @@ export interface components {
        */
       url: string;
     };
+    /** ConnectorPresetResponse */
+    ConnectorPresetResponse: {
+      /** Metadata */
+      metadata: {
+        [key: string]: string;
+      } | null;
+      /**
+       * Url
+       * Format: uri
+       */
+      url: string;
+    };
+    /** ConnectorResponse */
+    ConnectorResponse: {
+      /** Auth Request */
+      auth_request: components['schemas']['AuthorizationCodeRequest'] | null;
+      /** Disconnect Reason */
+      disconnect_reason: string | null;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Metadata */
+      metadata: {
+        [key: string]: string;
+      } | null;
+      state: components['schemas']['ConnectorState'];
+      /**
+       * Url
+       * Format: uri
+       */
+      url: string;
+    };
+    /**
+     * ConnectorState
+     * @enum {string}
+     */
+    ConnectorState: 'created' | 'auth_required' | 'connected' | 'disconnected';
     /**
      * Context
      * @description A context that groups files and vector stores for LLM proxy token generation.
@@ -2473,26 +2460,7 @@ export interface components {
       provider_id?: string | null;
     };
     /** ContextHistoryItem */
-    'ContextHistoryItem-Input': {
-      /**
-       * Context Id
-       * Format: uuid
-       */
-      context_id: string;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at?: string;
-      data: components['schemas']['ContextHistoryItemData-Input'];
-      /**
-       * Id
-       * Format: uuid
-       */
-      id?: string;
-    };
-    /** ContextHistoryItem */
-    'ContextHistoryItem-Output': {
+    ContextHistoryItem: {
       /**
        * Context Id
        * Format: uuid
@@ -2593,12 +2561,6 @@ export interface components {
       watsonx_project_id?: string | null;
       /** Watsonx Space Id */
       watsonx_space_id?: string | null;
-    };
-    /** CreateProviderBuildRequest */
-    CreateProviderBuildRequest: {
-      build_configuration?: components['schemas']['BuildConfiguration'] | null;
-      location: components['schemas']['GithubUrl'];
-      on_complete?: components['schemas']['OnCompleteAction'];
     };
     /** CreateProviderRequest */
     CreateProviderRequest: {
@@ -3051,33 +3013,7 @@ export interface components {
       taskId?: string | null;
     };
     /** Model */
-    'Model-Input': {
-      /**
-       * Created
-       * @default 0
-       */
-      created: number;
-      /** Display Name */
-      display_name?: string | null;
-      /** Id */
-      id: string;
-      /**
-       * Object
-       * @default model
-       * @constant
-       */
-      object: 'model';
-      /**
-       * Owned By
-       * @default unknown
-       */
-      owned_by: string;
-      provider: components['schemas']['ModelProviderInfo'];
-    } & {
-      [key: string]: unknown;
-    };
-    /** Model */
-    'Model-Output': {
+    Model: {
       /**
        * Created
        * @default 0
@@ -3107,103 +3043,8 @@ export interface components {
      * @enum {string}
      */
     ModelCapability: 'llm' | 'embedding';
-    /** ProviderWithStateResponse */
-    'ModelOutput-Input': {
-      agent_card: components['schemas']['AgentCard-Input'];
-      /**
-       * Auto Stop Timeout
-       * Format: duration
-       * @default PT20M
-       */
-      auto_stop_timeout: string;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at?: string;
-      /**
-       * Created By
-       * Format: uuid
-       */
-      created_by: string;
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /**
-       * Last Active At
-       * Format: date-time
-       */
-      last_active_at?: string;
-      last_error?: components['schemas']['ProviderErrorMessage'] | null;
-      /** Missing Configuration */
-      missing_configuration?: components['schemas']['EnvVar'][];
-      /** Origin */
-      origin: string;
-      /** Registry */
-      registry?:
-        | components['schemas']['GithubRegistryLocation']
-        | components['schemas']['NetworkRegistryLocation']
-        | components['schemas']['FileSystemRegistryLocation']
-        | null;
-      /** Source */
-      source: components['schemas']['DockerImageProviderLocation'] | components['schemas']['NetworkProviderLocation'];
-      /** State */
-      state: components['schemas']['ProviderDeploymentState'] | components['schemas']['UnmanagedState'];
-      unmanaged_state?: components['schemas']['UnmanagedState'] | null;
-      /**
-       * Updated At
-       * Format: date-time
-       */
-      updated_at?: string;
-      version_info?: components['schemas']['VersionInfo-Input'];
-    } & {
-      [key: string]: unknown;
-    };
     /** ModelProvider */
-    'ModelProvider-Input': {
-      /**
-       * Base Url
-       * Format: uri
-       * @description Base URL for the API (unique)
-       */
-      base_url: string;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at?: string;
-      /**
-       * Description
-       * @description Optional description of the provider
-       */
-      description?: string | null;
-      /**
-       * Id
-       * Format: uuid
-       */
-      id?: string;
-      /**
-       * Name
-       * @description Human-readable name for the model provider
-       */
-      name?: string | null;
-      /** @description Type of model provider */
-      type: components['schemas']['ModelProviderType'];
-      /**
-       * Watsonx Project Id
-       * @description WatsonX project ID (required for watsonx providers)
-       */
-      watsonx_project_id?: string | null;
-      /**
-       * Watsonx Space Id
-       * @description WatsonX space ID (alternative to project ID)
-       */
-      watsonx_space_id?: string | null;
-    };
-    /** ModelProvider */
-    'ModelProvider-Output': {
+    ModelProvider: {
       /**
        * Base Url
        * Format: uri
@@ -3297,15 +3138,6 @@ export interface components {
      * Format: uri
      */
     NetworkRegistryLocation: string;
-    /** NoAction */
-    NoAction: {
-      /**
-       * Type
-       * @default no_action
-       * @constant
-       */
-      type: 'no_action';
-    };
     /**
      * OAuth2SecurityScheme
      * @description Defines a security scheme using OAuth 2.0.
@@ -3350,10 +3182,6 @@ export interface components {
       implicit?: components['schemas']['ImplicitOAuthFlow'] | null;
       password?: components['schemas']['PasswordOAuthFlow'] | null;
     };
-    OnCompleteAction:
-      | components['schemas']['AddProvider']
-      | components['schemas']['UpdateProvider']
-      | components['schemas']['NoAction'];
     /** Custom */
     openai__types__chat__chat_completion_message_custom_tool_call_param__Custom: {
       /** Input */
@@ -3392,7 +3220,7 @@ export interface components {
     /** OpenAIPage[Model] */
     OpenAIPage_Model_: {
       /** Data */
-      data: components['schemas']['Model-Output'][];
+      data: components['schemas']['Model'][];
       /**
        * Object
        * @default list
@@ -3416,6 +3244,34 @@ export interface components {
        */
       type: 'openIdConnect';
     };
+    /** PaginatedResult[ConnectorPresetResponse] */
+    PaginatedResult_ConnectorPresetResponse_: {
+      /**
+       * Has More
+       * @default false
+       */
+      has_more: boolean;
+      /** Items */
+      items: components['schemas']['ConnectorPresetResponse'][];
+      /** Next Page Token */
+      readonly next_page_token: string | null;
+      /** Total Count */
+      total_count: number;
+    };
+    /** PaginatedResult[ConnectorResponse] */
+    PaginatedResult_ConnectorResponse_: {
+      /**
+       * Has More
+       * @default false
+       */
+      has_more: boolean;
+      /** Items */
+      items: components['schemas']['ConnectorResponse'][];
+      /** Next Page Token */
+      readonly next_page_token: string | null;
+      /** Total Count */
+      total_count: number;
+    };
     /** PaginatedResult[Context] */
     PaginatedResult_Context_: {
       /**
@@ -3438,7 +3294,7 @@ export interface components {
        */
       has_more: boolean;
       /** Items */
-      items: components['schemas']['ContextHistoryItem-Output'][];
+      items: components['schemas']['ContextHistoryItem'][];
       /** Next Page Token */
       readonly next_page_token: string | null;
       /** Total Count */
@@ -3452,7 +3308,7 @@ export interface components {
        */
       has_more: boolean;
       /** Items */
-      items: components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput-Output__1'][];
+      items: components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__1'][];
       /** Next Page Token */
       readonly next_page_token: string | null;
       /** Total Count */
@@ -3466,7 +3322,7 @@ export interface components {
        */
       has_more: boolean;
       /** Items */
-      items: components['schemas']['ModelProvider-Output'][];
+      items: components['schemas']['ModelProvider'][];
       /** Next Page Token */
       readonly next_page_token: string | null;
       /** Total Count */
@@ -3481,20 +3337,6 @@ export interface components {
       has_more: boolean;
       /** Items */
       items: components['schemas']['ModelWithScore'][];
-      /** Next Page Token */
-      readonly next_page_token: string | null;
-      /** Total Count */
-      total_count: number;
-    };
-    /** PaginatedResult[ProviderBuild] */
-    PaginatedResult_ProviderBuild_: {
-      /**
-       * Has More
-       * @default false
-       */
-      has_more: boolean;
-      /** Items */
-      items: components['schemas']['ProviderBuild'][];
       /** Next Page Token */
       readonly next_page_token: string | null;
       /** Total Count */
@@ -3522,7 +3364,7 @@ export interface components {
        */
       has_more: boolean;
       /** Items */
-      items: components['schemas']['VectorStoreSearchResult-Output'][];
+      items: components['schemas']['VectorStoreSearchResult'][];
       /** Next Page Token */
       readonly next_page_token: string | null;
       /** Total Count */
@@ -3574,43 +3416,6 @@ export interface components {
       variables?: {
         [key: string]: string;
       } | null;
-    };
-    /** ProviderBuild */
-    ProviderBuild: {
-      build_configuration?: components['schemas']['BuildConfiguration'] | null;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at?: string;
-      /**
-       * Created By
-       * Format: uuid
-       */
-      created_by: string;
-      destination: components['schemas']['DockerImageID'];
-      /** Error Message */
-      error_message?: string | null;
-      /**
-       * Id
-       * Format: uuid
-       */
-      id?: string;
-      /**
-       * @default {
-       *       "type": "no_action"
-       *     }
-       */
-      on_complete: components['schemas']['OnCompleteAction'];
-      /**
-       * Provider Id
-       * @description ID of the provider added or modified by this build
-       */
-      provider_id?: string | null;
-      /** Provider Origin */
-      readonly provider_origin: string;
-      source: components['schemas']['ResolvedGithubUrl'];
-      status: components['schemas']['BuildState'];
     };
     /**
      * ProviderDeploymentState
@@ -3681,23 +3486,12 @@ export interface components {
        * Format: date-time
        */
       updated_at?: string;
-      version_info?: components['schemas']['VersionInfo-Output'];
+      version_info?: components['schemas']['VersionInfo'];
     } & {
       [key: string]: unknown;
     };
     /** ResolvedDockerImageID */
-    'ResolvedDockerImageID-Input': {
-      /** Digest */
-      digest: string;
-      /** Registry */
-      registry: string;
-      /** Repository */
-      repository: string;
-      /** Tag */
-      tag: string;
-    };
-    /** ResolvedDockerImageID */
-    'ResolvedDockerImageID-Output': {
+    ResolvedDockerImageID: {
       /** Digest */
       digest: string;
       readonly image_id: components['schemas']['DockerImageID'];
@@ -3845,23 +3639,6 @@ export interface components {
       /** Default Llm Model */
       default_llm_model?: string | null;
     };
-    /**
-     * UpdateProvider
-     * @description Will update provider specified by ID
-     */
-    UpdateProvider: {
-      /**
-       * Provider Id
-       * Format: uuid
-       */
-      provider_id: string;
-      /**
-       * Type
-       * @default update_provider
-       * @constant
-       */
-      type: 'update_provider';
-    };
     /** UpdateVariablesRequest */
     UpdateVariablesRequest: {
       /** Variables */
@@ -3929,16 +3706,7 @@ export interface components {
      * VectorStoreSearchResult
      * @description Result of a vector store search operation containing full item data and similarity score.
      */
-    'VectorStoreSearchResult-Input': {
-      item: components['schemas']['VectorStoreItem'];
-      /** Score */
-      score: number;
-    };
-    /**
-     * VectorStoreSearchResult
-     * @description Result of a vector store search operation containing full item data and similarity score.
-     */
-    'VectorStoreSearchResult-Output': {
+    VectorStoreSearchResult: {
       item: components['schemas']['VectorStoreItem'];
       /** Score */
       score: number;
@@ -3951,13 +3719,8 @@ export interface components {
       usage_bytes: number;
     };
     /** VersionInfo */
-    'VersionInfo-Input': {
-      docker?: components['schemas']['ResolvedDockerImageID-Input'] | null;
-      github?: components['schemas']['ResolvedGithubUrl'] | null;
-    };
-    /** VersionInfo */
-    'VersionInfo-Output': {
-      docker?: components['schemas']['ResolvedDockerImageID-Output'] | null;
+    VersionInfo: {
+      docker?: components['schemas']['ResolvedDockerImageID'] | null;
       github?: components['schemas']['ResolvedGithubUrl'] | null;
     };
     /** WebSearchOptions */
@@ -4122,7 +3885,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_patch: {
     parameters: {
       query?: {
         path?: string;
@@ -4155,7 +3918,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_patch: {
     parameters: {
       query?: {
         path?: string;
@@ -4188,7 +3951,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_patch: {
     parameters: {
       query?: {
         path?: string;
@@ -4221,7 +3984,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_patch: {
     parameters: {
       query?: {
         path?: string;
@@ -4254,7 +4017,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_patch: {
     parameters: {
       query?: {
         path?: string;
@@ -4287,7 +4050,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_patch: {
     parameters: {
       query?: {
         path?: string;
@@ -4320,7 +4083,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_patch: {
     parameters: {
       query?: {
         path?: string;
@@ -4353,7 +4116,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__patch: {
     parameters: {
       query?: never;
       header?: never;
@@ -4385,7 +4148,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__patch: {
     parameters: {
       query?: never;
       header?: never;
@@ -4417,7 +4180,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__patch: {
     parameters: {
       query?: never;
       header?: never;
@@ -4449,7 +4212,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__patch: {
     parameters: {
       query?: never;
       header?: never;
@@ -4481,7 +4244,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__patch: {
     parameters: {
       query?: never;
       header?: never;
@@ -4513,7 +4276,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__patch: {
     parameters: {
       query?: never;
       header?: never;
@@ -4545,7 +4308,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__patch: {
     parameters: {
       query?: never;
       header?: never;
@@ -4616,7 +4379,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__7'];
+          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem____<locals>__ModelOutput'];
         };
       };
       /** @description Validation Error */
@@ -4645,7 +4408,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': unknown;
+          'application/json': components['schemas']['PaginatedResult_ConnectorResponse_'];
         };
       };
     };
@@ -4669,7 +4432,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': unknown;
+          'application/json': components['schemas']['ConnectorResponse'];
         };
       };
       /** @description Validation Error */
@@ -4700,7 +4463,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': unknown;
+          'application/json': components['schemas']['ConnectorResponse'];
         };
       };
       /** @description Validation Error */
@@ -4764,7 +4527,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': unknown;
+          'application/json': components['schemas']['ConnectorResponse'];
         };
       };
       /** @description Validation Error */
@@ -4779,6 +4542,68 @@ export interface operations {
     };
   };
   disconnect_connector_api_v1_connectors__connector_id__disconnect_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        connector_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ConnectorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  mcp_api_v1_connectors__connector_id__mcp_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        connector_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  mcp_api_v1_connectors__connector_id__mcp_post: {
     parameters: {
       query?: never;
       header?: never;
@@ -4838,6 +4663,26 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_presets_api_v1_connectors_presets_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PaginatedResult_ConnectorPresetResponse_'];
         };
       };
     };
@@ -5201,7 +5046,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem____<locals>__ModelOutput'];
+          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__9'];
         };
       };
       /** @description Validation Error */
@@ -5936,199 +5781,6 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['OpenAIPage_Model_'];
-        };
-      };
-    };
-  };
-  list_provider_builds_api_v1_provider_builds_get: {
-    parameters: {
-      query?: {
-        limit?: number;
-        order?: string;
-        order_by?: string;
-        page_token?: string | null;
-        status?: components['schemas']['BuildState'] | null;
-        user_owned?: boolean | null;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['PaginatedResult_ProviderBuild_'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  create_provider_build_api_v1_provider_builds_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateProviderBuildRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProviderBuild'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_provider_build_api_v1_provider_builds__id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProviderBuild'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  delete_api_v1_provider_builds__id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  stream_logs_api_v1_provider_builds__id__logs_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  preview_provider_build_api_v1_provider_builds_preview_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateProviderBuildRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProviderBuild'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
         };
       };
     };

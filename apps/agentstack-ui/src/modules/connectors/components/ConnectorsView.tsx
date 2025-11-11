@@ -25,6 +25,7 @@ export const ConnectorsView = () => {
         url: data.url,
         client_id: data.client_id,
         client_secret: data.client_secret,
+        match_preset: false,
       });
     },
     [createConnector],
@@ -43,9 +44,13 @@ export const ConnectorsView = () => {
               .with({ state: 'created' }, () => <button onClick={() => connect(connector.id)}>Connect</button>)
               .with({ state: 'connected' }, () => <button onClick={() => disconnect(connector.id)}>Disconnect</button>)
               .with({ state: 'disconnected' }, () => <button onClick={() => connect(connector.id)}>Connect</button>)
-              .with({ state: 'auth_required' }, (connector) => (
-                <button onClick={() => authorize(connector.auth_request.authorization_endpoint)}>Authorize</button>
-              ))
+              .with({ state: 'auth_required' }, ({ auth_request }) => {
+                if (auth_request) {
+                  return <button onClick={() => authorize(auth_request.authorization_endpoint)}>Authorize</button>;
+                }
+
+                return <></>;
+              })
               .exhaustive()}
             <button onClick={() => remove(connector.id)}>Remove</button>
           </div>

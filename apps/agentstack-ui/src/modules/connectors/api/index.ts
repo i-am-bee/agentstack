@@ -7,7 +7,7 @@ import { api } from '#api/index.ts';
 import { ensureData } from '#api/utils.ts';
 import { BASE_URL } from '#utils/constants.ts';
 
-import type { CreateConnectorRequest } from './types';
+import type { CreateConnectorRequest, ListConnectorsResponse } from './types';
 
 export async function createConnector(body: CreateConnectorRequest) {
   const response = await api.POST('/api/v1/connectors', { body });
@@ -67,12 +67,7 @@ interface Created {
   state: 'created';
 }
 
-// TODO: move
-type ListConnectorsResponse = {
-  items: Array<Created | Connected | Disconnected | AuthRequired>;
-};
-
-export async function listConnectors(): Promise<ListConnectorsResponse> {
+export async function listConnectors(): Promise<ListConnectorsResponse | undefined> {
   const response = await api.GET('/api/v1/connectors', {});
-  return ensureData(response) as ListConnectorsResponse;
+  return ensureData(response);
 }
