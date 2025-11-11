@@ -55,7 +55,7 @@ This will build the images (`agentstack-server` and `agentstack-ui`) and import 
 CLI arguments as you normally would when using `agentstack` CLI, for example:
 
 ```shell
-mise agentstack:start --set docling.enabled=true --set oidc.enabled=true
+mise agentstack:start --set docling.enabled=true --set oidc.enabled=true 
 ```
 
 To stop or delete the platform use
@@ -82,7 +82,7 @@ By default, authentication and authorization are disabled.
 Starting the platform with OIDC enabled:
 
 ```bash
-mise agentstack:start --set oidc.enabled=true
+mise agentstack:start --set auth.oidc.enabled=true --set auth.oidc.validate_audience=false --set auth.enabled=true
 ```
 
 This does the following:
@@ -114,47 +114,40 @@ The default namespace is labeled `istio.io/dataplane-mode=ambient`. This ensures
 ```YAML
 oidc:
   enabled: false
-  discovery_url: "<oidc_discovery_endpoint>"
-  admin_emails: "a comma separated list of email addresses"
+  default_new_user_role: "user"
+  admin_emails:
+    - admin@example.com
   nextauth_trust_host: true
   nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
   nextauth_url: "http://localhost:8336"
+  validate_audience: false
   nextauth_providers: [
     {
-      "name": "w3id",
-      "id": "w3id",
+      "name": "IBMiD-PKCE",
+      "id": "ibmid-pkce",
       "type": "oidc",
-      "class": "IBM",
-      "client_id": "<oidc_client_id>",
-      "client_secret": "<oidc_client_secret>",
-      "issuer": "<oidc_issuer>",
-      "jwks_url": "<oidc_jwks_endpoint>",
-      "nextauth_url": "http://localhost:8336",
-      "nextauth_redirect_proxy_url": "http://localhost:8336"
+      "class": "client",
+      "client_id": "<ibm_security_vierfy_openid_connect_app_client_id>",
+      "client_secret": "", # The client secret for a public client (PKCE) is an empty string.  This is the agentstack cli provider.
+      "issuer": "<ibm_security_verify_issuer>" # e.g. "https://isg-verify1.verify.ibm.com/oauth2",
     },
     {
-      "name": "IBMiD",
-      "id": "IBMiD",
+      "name": "IBM",
+      "id": "sso-provisioned",
       "type": "oidc",
-      "class": "IBM",
+      "class": "ui", # this is the ui provider.
       "client_id": "<oidc_client_id>",
       "client_secret": "<oidc_client_secret>",
       "issuer": "<oidc_issuer>",
-      "jwks_url": "<oidc_jwks_endpoint>",
-      "nextauth_url": "http://localhost:8336",
-      "nextauth_redirect_proxy_url": "http://localhost:8336"
     }
   ]
 ```
-
-Note: the `class` in the providers entry must be a valid provider supported by next-auth.
-see: https://github.com/nextauthjs/next-auth-example/blob/main/auth.ts
 
 - When debugging the ui component (See debugging individual components), copy the env.example as .env and update the
   following oidc specific values:
 
 ```JavaScript
-OIDC_PROVIDERS = '[{"name": "w3id","id": "w3id","type": "oidc","class": "IBM","client_id": "<your_client_id>","client_secret": "<your_client_secret>","issuer": "your_issuer","jwks_url": "<your_jwks_url>","nextauth_url": "http://localhost:3000","nextauth_redirect_proxy_url": "http://localhost:3000"}]'
+OIDC_PROVIDERS = '[{"name": "w3id","id": "w3id","type": "oidc","class": "IBM","client_id": "<oidc_client_id>","client_secret": "<oidc_client_secret>","issuer": "<oidc_issuer>"}]'
 NEXTAUTH_SECRET = "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
 NEXTAUTH_URL = "http://localhost:3000"
 OIDC_ENABLED = true
@@ -168,9 +161,12 @@ NEXTAUTH_DEBUG = "true"
 
 **To deploy the helm chart to OpenShift:**
 
-- Update values.yaml so that oidc.enabled is true. e.g.:
+- Update values.yaml so that auth.enabled and auth.oidc.enabled are true. e.g.:
 
 ```yaml
+auth:
+  enabled: true
+  ...
   odic:
     enabled: true
 ```
