@@ -39,6 +39,7 @@ class Trajectory(pydantic.BaseModel):
 
     title: str | None = None
     content: str | None = None
+    group_id: str | None = None
 
 
 class TrajectoryExtensionSpec(NoParamsBaseExtensionSpec):
@@ -46,8 +47,12 @@ class TrajectoryExtensionSpec(NoParamsBaseExtensionSpec):
 
 
 class TrajectoryExtensionServer(BaseExtensionServer[TrajectoryExtensionSpec, NoneType]):
-    def trajectory_metadata(self, *, title: str | None = None, content: str | None = None) -> Metadata[str, Any]:
-        return Metadata({self.spec.URI: Trajectory(title=title, content=content).model_dump(mode="json")})
+    def trajectory_metadata(
+        self, *, title: str | None = None, content: str | None = None, group_id: str | None = None
+    ) -> Metadata[str, Any]:
+        return Metadata(
+            {self.spec.URI: Trajectory(title=title, content=content, group_id=group_id).model_dump(mode="json")}
+        )
 
     def message(
         self,
