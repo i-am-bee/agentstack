@@ -16,9 +16,11 @@ interface Props {
 export function AgentToolsList({ agent }: Props) {
   const { tools } = agent.ui;
 
+  const hasTools = !!tools && tools.length > 0;
+
   return (
     <div className={classes.root}>
-      {tools?.length ? (
+      {hasTools ? (
         <ul className={classes.list}>
           {tools.map((tool, idx) => (
             <li key={idx}>
