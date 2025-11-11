@@ -4,7 +4,6 @@
  */
 
 'use client';
-
 import { Add } from '@carbon/icons-react';
 import { Button } from '@carbon/react';
 
@@ -23,12 +22,12 @@ export function CommonHeader() {
 
   const isAdmin = user?.role === 'admin';
 
-  const AddAgentButton = () => (
+  const addNewAgentButton = (
     <Button
       renderIcon={Add}
       size="sm"
       disabled={!isAdmin}
-      onClick={() => openModal((props) => isAdmin && <ImportAgentsModal {...props} />)}
+      onClick={() => openModal((props) => <ImportAgentsModal {...props} />)}
     >
       Add new agent
     </Button>
@@ -41,12 +40,10 @@ export function CommonHeader() {
 
         <div className={classes.right}>
           {isAdmin ? (
-            <AddAgentButton />
+            addNewAgentButton
           ) : (
             <Tooltip content="Adding agents requires elevated permissions." asChild placement="bottom-end">
-              <span className={classes.tooltipTrigger}>
-                <AddAgentButton />
-              </span>
+              {addNewAgentButton}
             </Tooltip>
           )}
         </div>
