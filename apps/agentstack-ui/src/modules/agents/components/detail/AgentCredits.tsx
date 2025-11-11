@@ -22,7 +22,9 @@ export const AgentCredits = memo(function AgentCredits({ author, contributors }:
     [contributors],
   );
 
-  if (!author && !validContributors?.length) {
+  const hasContributors = !!validContributors && validContributors.length > 0;
+
+  if (!author && !hasContributors) {
     return null;
   }
 
@@ -38,7 +40,7 @@ export const AgentCredits = memo(function AgentCredits({ author, contributors }:
         )}
       </span>
 
-      {validContributors?.length && (
+      {hasContributors && (
         <div className={classes.contributors}>
           (+
           <ul>
