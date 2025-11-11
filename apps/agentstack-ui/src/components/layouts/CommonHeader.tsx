@@ -21,8 +21,6 @@ export function CommonHeader() {
   const { openModal } = useModal();
   const { data: user } = useUser();
 
-  console.log({ user });
-
   const isAdmin = user?.role === 'admin';
 
   const AddAgentButton = () => (
