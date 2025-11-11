@@ -44,14 +44,22 @@ yield trajectory.trajectory_metadata(
 
 # Update with results
 yield trajectory.trajectory_metadata(
-    content="Found 8 results.",
+    content="Found 8 results",
+    group_id="websearch"
+)
+yield trajectory.trajectory_metadata(
+    content="Found 8 results\nAnalyzed 3/8 results",
+    group_id="websearch"
+)
+yield trajectory.trajectory_metadata(
+    content="Found 8 results\nAnalyzed 8/8 results",
     group_id="websearch"
 )
 
 # Final update
 yield trajectory.trajectory_metadata(
     title="Web search finished",
-    content="Found 8 results\nExtracted key information",
+    content="Found 8 results\nAnalyzed 3/8 results\nExtracted key information",
     group_id="websearch"
 )
 ```
@@ -75,17 +83,14 @@ yield trajectory.trajectory_metadata(
     content="Starting...",
     group_id="processing"
 )
-
 yield trajectory.trajectory_metadata(
     content="Processing batch 1/10...",
     group_id="processing"
 )
-
 yield trajectory.trajectory_metadata(
     content="Processing batch 10/10...",
     group_id="processing"
 )
-
 yield trajectory.trajectory_metadata(
     content="Processing complete! Processed 10 items",
     group_id="processing"
@@ -108,31 +113,6 @@ yield trajectory.trajectory_metadata(
     title="Retry Attempt",
     content="First attempt failed, trying alternative approach..."
 )
-```
-
-## API Reference
-
-### `trajectory_metadata()`
-
-Creates trajectory metadata that can be yielded to show the agent's reasoning process.
-
-**Parameters:**
-
-- `title` (str, optional): The heading for this trajectory step. Used as the section title in the UI.
-- `content` (str, optional): Detailed description of what the agent is doing or thinking.
-- `group_id` (str, optional): Identifier to group multiple trajectory updates together. Each update with the same `group_id` replaces the previous content (and title, if provided) in the UI.
-
-**Returns:** Metadata object that should be yielded to the client.
-
-**Example:**
-
-```python
-metadata = trajectory.trajectory_metadata(
-    title="Analyzing Data",
-    content="Examining user input for key patterns...",
-    group_id="analysis"
-)
-yield metadata
 ```
 
 Trajectory steps appear as expandable sections in the UI, helping users understand your agent's thought process.
