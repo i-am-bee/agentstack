@@ -56,6 +56,8 @@ class Permissions(ContextPermissions):
     mcp_tools: set[Literal["read", "*"]] = set()
     mcp_proxy: set[Literal["*"]] = set()
 
+    connectors: set[Literal["read", "write", "proxy", "*"]] = set()
+
 
 class Context(pydantic.BaseModel):
     id: str
