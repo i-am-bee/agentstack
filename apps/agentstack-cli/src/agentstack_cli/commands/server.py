@@ -140,8 +140,8 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
 
         if auth_servers:
             if len(auth_servers) == 1:
-                auth_server = auth_servers[0].server
-                client_id = auth_servers[0].client_id
+                auth_server = auth_servers[0].get("server", "")
+                client_id = auth_servers[0].get("client_id", "")
             else:
                 identity_providers = [p["name"] for p in auth_servers]
                 identity_provider = await inquirer.select(  # type: ignore
@@ -151,11 +151,10 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                 if identity_provider:
                     index = identity_providers.index(identity_provider)
                     auth_server = auth_servers[int(index)]
+                    client_id = auth_server["client_id"]
+                    auth_server = auth_server["server"]
             if not auth_server:
                 raise RuntimeError("No authorization server selected.")
-
-            client_id = auth_server["client_id"]
-            auth_server = auth_server["server"]
 
             async with httpx.AsyncClient() as client:
                 try:
