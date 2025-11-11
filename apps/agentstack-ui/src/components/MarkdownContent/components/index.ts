@@ -10,11 +10,14 @@ import type { CitationLinkBaseProps } from './CitationLink/CitationLink';
 import { Code } from './Code';
 import { ExternalLink, type ExternalLinkProps } from './ExternalLink';
 import { Img } from './Img';
+import type { MermaidDiagramProps } from './MermaidDiagram';
+import { MermaidDiagram } from './MermaidDiagram';
 import { Table } from './Table';
 
 export interface ExtendedComponents extends Components {
   citationLink?: (props: CitationLinkBaseProps) => JSX.Element;
   externalLink?: (props: ExternalLinkProps) => JSX.Element;
+  mermaidDiagram?: (props: MermaidDiagramProps) => JSX.Element;
 }
 
 export const components = {
@@ -22,4 +25,5 @@ export const components = {
   table: Table,
   img: Img,
   externalLink: ExternalLink,
+  mermaidDiagram: MermaidDiagram,
 } satisfies ExtendedComponents;

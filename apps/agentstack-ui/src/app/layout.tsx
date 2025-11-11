@@ -6,6 +6,7 @@
 import '#styles/style.scss';
 
 import type { Metadata } from 'next';
+import { connection } from 'next/server';
 
 import { AppProvider } from '#contexts/App/AppProvider.tsx';
 import { runtimeConfig } from '#contexts/App/runtime-config.ts';
@@ -41,11 +42,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  await connection();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>

@@ -84,17 +84,6 @@ export const buildFulfillments = ({
 
       return allDemands.reduce(
         (memo, demandKey) => {
-          if (!featureFlags.ModelProviders) {
-            memo.llm_fulfillments[demandKey] = {
-              identifier: 'llm_proxy',
-              api_base: '{platform_url}/api/v1/openai/',
-              api_key: contextToken.token,
-              api_model: 'dummy',
-            };
-
-            return memo;
-          }
-
           if (!selectedLLMProviders[demandKey]) {
             throw new Error(`Selected provider for LLM demand ${demandKey} not found`);
           }

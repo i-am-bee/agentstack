@@ -61,12 +61,11 @@ spec:
             - name: FEATURE_FLAGS
               value: |
                 {
-                  "Providers": {{ .Values.providerBuilds.enabled }},
-                  "Variables": {{ .Values.features.uiVariables }},
-                  "ModelProviders": {{ .Values.features.uiModelProviders }},
-                  "MCPOAuth": {{ .Values.features.uiMCPOauth }},
+                  "LocalSetup": {{ .Values.features.uiLocalSetup }},
                   "MCP": {{ .Values.features.uiMCP }},
-                  "LocalSetup": {{ .Values.features.localSetup }}
+                  "ProviderBuilds": {{ .Values.providerBuilds.enabled }},
+                  "Providers": {{ .Values.features.uiProviders }},
+                  "Variables": {{ .Values.features.uiVariables }}
                 }
             - name: TRUST_PROXY_HEADERS
               value: {{ .Values.trustProxyHeaders | quote }}

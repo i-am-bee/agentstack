@@ -10,7 +10,7 @@ import { runtimeConfig } from '#contexts/App/runtime-config.ts';
 import { routes } from '#utils/router.ts';
 
 import type { ProviderConfig, ProviderWithId } from './types';
-import { jwtWithRefresh, RefreshTokenError } from './utils';
+import { getTokenRefreshSchedule, jwtWithRefresh, RefreshTokenError } from './utils';
 
 let providersConfig: ProviderConfig[] = [];
 
@@ -88,15 +88,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (trigger === 'update') {
         token.name = session.user.name;
       }
+
       // pull the id token out of the account on signIn
       if (account) {
-        token['access_token'] = account.access_token;
-        token['provider'] = account.provider;
-        token['refresh_token'] = account.refresh_token;
+        token.accessToken = account.access_token;
+        token.provider = account.provider;
+        token.refreshToken = account.refresh_token;
+        token.expiresIn = account.expires_in;
+        token.expiresAt = account.expires_at;
+        token.refreshSchedule = getTokenRefreshSchedule(token.expiresAt);
       }
 
       try {
-        return await jwtWithRefresh(token, account, providers);
+        const proactiveTokenRefresh = trigger === 'update' && Boolean(session?.proactiveTokenRefresh);
+        return await jwtWithRefresh(token, providers, proactiveTokenRefresh);
       } catch (error) {
         console.error('Error while refreshing jwt token:', error);
 
@@ -107,14 +112,34 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return token;
       }
     },
+    session({ session, token }) {
+      session.refreshSchedule = token.refreshSchedule;
+
+      return session;
+    },
   },
 });
+
+interface TokenRefreshSchedule {
+  checkInterval: number;
+  refreshAt: number;
+}
+
 declare module 'next-auth/jwt' {
   /** Returned by the `jwt` callback and `auth`, when using JWT sessions */
   interface JWT {
-    access_token?: string;
-    expires_at?: number;
-    refresh_token?: string;
+    accessToken?: string;
+    expiresAt?: number;
+    refreshToken?: string;
     provider?: string;
+    expiresIn?: number;
+    refreshSchedule?: TokenRefreshSchedule;
+  }
+}
+
+declare module 'next-auth' {
+  interface Session {
+    proactiveTokenRefresh?: boolean;
+    refreshSchedule?: TokenRefreshSchedule;
   }
 }

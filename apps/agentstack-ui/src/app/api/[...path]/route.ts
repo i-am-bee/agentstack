@@ -20,6 +20,7 @@ type RouteContext = {
 };
 
 async function handler(request: NextRequest, context: RouteContext) {
+  const { isAuthEnabled } = runtimeConfig;
   const { method, headers, body, nextUrl } = request;
   const { path } = await context.params;
   const search = nextUrl.search;
@@ -31,15 +32,16 @@ async function handler(request: NextRequest, context: RouteContext) {
   }
   targetUrl += search;
 
-  if (runtimeConfig.isAuthEnabled) {
+  if (isAuthEnabled) {
     const token = await ensureToken(request);
 
-    if (!token) {
+    if (!token?.accessToken) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    if (token?.access_token) {
-      headers.set('Authorization', `Bearer ${token.access_token}`);
+    const { accessToken } = token;
+    if (accessToken) {
+      headers.set('Authorization', `Bearer ${accessToken}`);
     }
   }
 

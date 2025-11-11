@@ -141,13 +141,14 @@ export function createSourcePart(citation: Citation, taskId: string | undefined)
 }
 
 export function createTrajectoryPart(metadata: TrajectoryMetadata): UITrajectoryPart {
-  const { title, content } = metadata;
+  const { title, content, group_id } = metadata;
 
   const trajectoryPart: UITrajectoryPart = {
     kind: UIMessagePartKind.Trajectory,
     id: uuid(),
+    groupId: group_id ?? undefined,
     title: title ?? undefined,
-    content: truncate(content ?? undefined, { length: MAX_CONTENT_CHARS_LENGTH }),
+    content: [truncate(content ?? undefined, { length: MAX_CONTENT_CHARS_LENGTH })],
   };
 
   return trajectoryPart;

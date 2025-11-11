@@ -76,7 +76,7 @@ export function convertHistoryToUIMessages(history: ContextHistoryItem[]): UIMes
       if (shouldGroup) {
         messages.splice(-1, 1, {
           ...lastMessage,
-          parts: [...lastMessage.parts, ...message.parts],
+          parts: [...message.parts, ...lastMessage.parts],
         });
       } else {
         messages.push(message);

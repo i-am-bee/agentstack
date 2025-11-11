@@ -8,13 +8,12 @@ hostNetwork: false
 features:
   selfRegistration: false
   generateConversationTitle: false
-  localSetup: false
 
   # UI only features
-  uiVariables: true
-  uiModelProviders: true
-  uiMCPOauth: true
+  uiLocalSetup: false
   uiMCP: true
+  uiVariables: true
+  uiProviders: false
 
 # -------- AGENTS ----------
 providers: [ ]

@@ -15,13 +15,15 @@ import { getProxyHeaders } from './utils';
 
 const authMiddleware: Middleware = {
   async onRequest({ request }) {
+    const { isAuthEnabled } = runtimeConfig;
+
     let accessToken: string | undefined = undefined;
 
-    if (runtimeConfig.isAuthEnabled) {
+    if (isAuthEnabled) {
       const token = await ensureToken(request);
 
-      if (token?.access_token) {
-        accessToken = token.access_token;
+      if (token?.accessToken) {
+        accessToken = token.accessToken;
       }
     }
     // add Authorization header to every request

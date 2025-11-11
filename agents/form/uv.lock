@@ -20,7 +20,7 @@ wheels = [
 
 [[package]]
 name = "agentstack-sdk"
-version = "0.4.1rc2"
+version = "0.4.1"
 source = { editable = "../../apps/agentstack-sdk-py" }
 dependencies = [
     { name = "a2a-sdk" },

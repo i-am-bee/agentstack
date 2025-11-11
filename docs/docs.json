@@ -37,7 +37,8 @@
           "extensions/agent-settings",
           "extensions/secrets",
           "extensions/rag",
-          "extensions/mcp-oauth"
+          "extensions/mcp-oauth",
+          "extensions/mcp"
         ]
       },
       {

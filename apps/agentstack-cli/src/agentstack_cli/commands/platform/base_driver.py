@@ -113,10 +113,9 @@ class BaseDriver(abc.ABC):
             "externalRegistries": {"public_github": str(Configuration().agent_registry)},
             "encryptionKey": "Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc=",
             "features": {
-                "uiNavigation": True,
                 "selfRegistration": True,
-                "localSetup": True,
                 "generateConversationTitle": False,  # TODO: enable when UI implementation is ready
+                "uiLocalSetup": True,
             },
             "auth": {"enabled": False},
         }

@@ -12,6 +12,7 @@ const URI = 'https://a2a-extensions.agentstack.beeai.dev/ui/trajectory/v1';
 const schema = z.object({
   title: z.string().nullish(),
   content: z.string().nullish(),
+  group_id: z.string().nullish(),
 });
 
 export type TrajectoryMetadata = z.infer<typeof schema>;

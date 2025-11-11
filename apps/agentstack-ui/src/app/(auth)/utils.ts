@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Account } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import { coalesceAsync } from 'promise-coalesce';
 
@@ -21,27 +20,23 @@ interface OIDCProviderOptions {
 
 export async function jwtWithRefresh(
   token: JWT,
-  account: Account | null | undefined,
   providers: ProviderWithId[],
+  proactiveTokenRefresh: boolean = false,
 ): Promise<JWT> {
-  if (account) {
-    // First-time login, save the `access_token`, its expiry and the `refresh_token`
-    return {
-      ...token,
-      access_token: account.access_token,
-      expires_at: account.expires_at,
-      refresh_token: account.refresh_token,
-    };
-  } else if (token.expires_at && Date.now() < token.expires_at * 1000) {
-    // Subsequent requests, `access_token` is still valid
+  const triggerProactiveRefresh =
+    proactiveTokenRefresh && token.refreshSchedule?.refreshAt && Date.now() >= token.refreshSchedule.refreshAt * 1000;
+
+  if (token.expiresAt && Date.now() < token.expiresAt * 1000 && !triggerProactiveRefresh) {
+    // Subsequent requests, `accessToken` is still valid
     return token;
   } else {
-    // Subsequent requests, `access_token` has expired, try to refresh it
-    if (!token.refresh_token) {
-      throw new TypeError('Missing refresh_token');
+    const { refreshToken, provider } = token;
+    // Subsequent requests, `accessToken` has expired, try to refresh it
+    if (!refreshToken) {
+      throw new TypeError('Missing refreshToken');
     }
 
-    const tokenProvider = providers.find(({ id }) => id === token.provider);
+    const tokenProvider = providers.find(({ id }) => id === provider);
     if (!tokenProvider) {
       throw new TypeError('No matching provider found');
     }
@@ -58,42 +53,45 @@ export async function jwtWithRefresh(
     const refreshTokenUrl = await getTokenEndpoint(issuerUrl, clientId, clientSecret);
 
     const newTokens = await cache.getOrSet<RefreshTokenResult>(
-      await cacheKeys.refreshToken(token.refresh_token),
+      await cacheKeys.refreshToken(refreshToken),
       async () => {
-        return await coalesceAsync(token.refresh_token!, async () => {
+        return await coalesceAsync(refreshToken, async () => {
           const response = await fetch(refreshTokenUrl, {
             method: 'POST',
             body: new URLSearchParams({
               client_id: clientId,
               client_secret: clientSecret,
               grant_type: 'refresh_token',
-              refresh_token: token.refresh_token!,
+              refresh_token: refreshToken,
             }),
           });
 
           const tokensOrError = await response.json();
 
           if (!response.ok) {
-            throw new RefreshTokenError('Error refreshing access_token', tokensOrError);
+            throw new RefreshTokenError('Error refreshing accessToken', tokensOrError);
           }
 
           return tokensOrError as RefreshTokenResult;
         });
       },
-      // Prevent multiple refreshes until new access_token is populated to the auth cookie
+      // Prevent multiple refreshes until new accessToken is populated to the auth cookie
       { ttl: '1h' },
     );
 
     if (!newTokens) {
-      throw new RefreshTokenError('Error refreshing access_token');
+      throw new RefreshTokenError('Error refreshing accessToken');
     }
 
+    const expiresAt = Math.floor(Date.now() / 1000 + newTokens.expires_in);
     return {
       ...token,
-      access_token: newTokens.access_token,
-      expires_at: Math.floor(Date.now() / 1000 + newTokens.expires_in),
+      accessToken: newTokens.access_token,
+      expiresAt,
+      expiresIn: newTokens.expires_in,
       // Some providers only issue refresh tokens once, so preserve if we did not get a new one
-      refresh_token: newTokens.refresh_token ?? token.refresh_token,
+      refreshToken: newTokens.refresh_token ?? refreshToken,
+      refreshSchedule: getTokenRefreshSchedule(expiresAt),
     };
   }
 }
@@ -111,8 +109,23 @@ export class RefreshTokenError extends Error {
   }
 }
 
+const TOKEN_REFRESH_CHECK_THRESHOLD = 0.2;
+const TOKEN_REFRESH_CHECK_MIN_INTERVAL = 5;
+
 interface RefreshTokenResult {
   access_token: string;
   expires_in: number;
   refresh_token?: string;
+}
+
+export function getTokenRefreshSchedule(expiresAt?: number) {
+  if (!expiresAt) {
+    return undefined;
+  }
+
+  const expiresIn = expiresAt - Date.now() / 1000;
+  return {
+    checkInterval: Math.max(expiresIn * (TOKEN_REFRESH_CHECK_THRESHOLD / 10), TOKEN_REFRESH_CHECK_MIN_INTERVAL),
+    refreshAt: expiresAt - expiresIn * TOKEN_REFRESH_CHECK_THRESHOLD,
+  };
 }

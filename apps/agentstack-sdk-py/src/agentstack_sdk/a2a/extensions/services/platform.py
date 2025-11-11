@@ -21,6 +21,7 @@ from agentstack_sdk.a2a.extensions.base import (
 from agentstack_sdk.a2a.extensions.exceptions import ExtensionError
 from agentstack_sdk.platform import use_platform_client
 from agentstack_sdk.platform.client import PlatformClient
+from agentstack_sdk.util.httpx import BearerAuth
 
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
@@ -83,6 +84,11 @@ class PlatformApiExtensionServer(BaseExtensionServer[PlatformApiExtensionSpec, P
             auth_token=auth_token,
         ) as client:
             yield client
+
+    async def create_httpx_auth(self) -> BearerAuth:
+        if not self.data:
+            raise ExtensionError(self.spec, "Platform extension metadata was not provided")
+        return BearerAuth(token=self.data.auth_token.get_secret_value())
 
 
 class PlatformApiExtensionClient(BaseExtensionClient[PlatformApiExtensionSpec, NoneType]):

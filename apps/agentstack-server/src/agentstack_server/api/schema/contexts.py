@@ -66,6 +66,8 @@ class GlobalPermissionGrant(BaseModel):
     mcp_tools: list[Literal["read", "*"]] = Field(default_factory=list)
     mcp_proxy: list[Literal["*"]] = Field(default_factory=list)
 
+    connectors: list[Literal["read", "write", "proxy", "*"]] = Field(default_factory=list)
+
 
 class ContextTokenCreateRequest(BaseModel):
     grant_global_permissions: GlobalPermissionGrant = Field(
