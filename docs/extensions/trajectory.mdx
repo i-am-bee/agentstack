@@ -48,20 +48,10 @@ yield trajectory.trajectory_metadata(
     group_id="websearch"
 )
 
-# Update with progress
-yield trajectory.trajectory_metadata(
-    content="Analyzed 3/8 results",
-    group_id="websearch"
-)
-yield trajectory.trajectory_metadata(
-    content="Analyzed 8/8 results",
-    group_id="websearch"
-)
-
 # Final update
 yield trajectory.trajectory_metadata(
     title="Web search finished",
-    content="Analyzed 8/8 results\nExtracted key information",
+    content="Found 8 results\nExtracted key information",
     group_id="websearch"
 )
 ```
