@@ -41,7 +41,9 @@ async def example_agent(
 
     await asyncio.sleep(1)
 
-    metadata = trajectory.trajectory_metadata(title="Searching the web", content="Searching...", group_id="websearch")
+    metadata = trajectory.trajectory_metadata(
+        title="Web search", content="Querying search engines...", group_id="websearch"
+    )
     yield metadata
     await context.store(AgentMessage(metadata=metadata))
 
@@ -53,14 +55,22 @@ async def example_agent(
 
     await asyncio.sleep(1)
 
-    metadata = trajectory.trajectory_metadata(content="Analyzing the results...", group_id="websearch")
+    metadata = trajectory.trajectory_metadata(content="Found 8 results\nAnalyzed 3/8 results", group_id="websearch")
+    yield metadata
+    await context.store(AgentMessage(metadata=metadata))
+
+    await asyncio.sleep(2)
+
+    metadata = trajectory.trajectory_metadata(content="Found 8 results\nAnalyzed 8/8 results", group_id="websearch")
     yield metadata
     await context.store(AgentMessage(metadata=metadata))
 
     await asyncio.sleep(4)
 
     metadata = trajectory.trajectory_metadata(
-        title="Web search finished", content="Searching was successful, passing the results.", group_id="websearch"
+        title="Web search finished",
+        content="Found 8 results\nAnalyzed 8/8 results\nExtracted key information from 8 sources",
+        group_id="websearch",
     )
     yield metadata
     await context.store(AgentMessage(metadata=metadata))

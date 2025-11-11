@@ -79,7 +79,7 @@ export type UITrajectoryPart = {
   id: string;
   groupId?: string;
   title?: string;
-  content?: string[];
+  content?: string;
 };
 
 export type UIFormPart = FormDemands & {
