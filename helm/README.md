@@ -23,9 +23,6 @@ providers:
 #   $ python3 -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'
 encryptionKey: "encryption-key-from-command"
 
-features:
-  uiNavigation: true
-
 # this requires passing an admin password to certain endpoints, you can disable auth for insecure deployments
 auth:
   enabled: true

@@ -6,7 +6,6 @@
 import { Button } from '@carbon/react';
 import { useMergeRefs } from '@floating-ui/react';
 
-import { useApp } from '#contexts/App/index.ts';
 import { RunModels } from '#modules/runs/settings/RunModels.tsx';
 import { RunSettings } from '#modules/runs/settings/RunSettings.tsx';
 import { useRunSettingsDialog } from '#modules/runs/settings/useRunSettingsDialog.ts';
@@ -20,10 +19,6 @@ interface Props {
 }
 
 export function FormActionBar({ showSubmitButton = true, submitLabel, showRunSettings }: Props) {
-  const {
-    config: { featureFlags },
-  } = useApp();
-
   const modelsDialog = useRunSettingsDialog({ blockOffset: 8 });
   const settingsDialog = useRunSettingsDialog({ blockOffset: 8 });
   const formRefs = useMergeRefs([modelsDialog.refs.setPositionReference, settingsDialog.refs.setPositionReference]);
@@ -33,7 +28,8 @@ export function FormActionBar({ showSubmitButton = true, submitLabel, showRunSet
       {showRunSettings && (
         <div className={classes.settings}>
           <RunSettings dialog={settingsDialog} iconOnly={false} />
-          {featureFlags.ModelProviders && <RunModels dialog={modelsDialog} iconOnly={false} />}
+
+          <RunModels dialog={modelsDialog} iconOnly={false} />
         </div>
       )}
       {showSubmitButton && (

@@ -152,7 +152,7 @@ export function RunInput({ promptExamples, onMessageSent }: Props) {
 
             {featureFlags.MCP && <MCPConfig />}
 
-            {featureFlags.ModelProviders && <RunModels dialog={modelsDialog} iconOnly />}
+            <RunModels dialog={modelsDialog} iconOnly />
           </div>
 
           <div className={classes.submit}>

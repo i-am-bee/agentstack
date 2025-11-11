@@ -19,10 +19,11 @@ interface Props {
 
 export default async function AgentRunPage({ params }: Props) {
   const { providerId } = await params;
+  const { featureFlags } = runtimeConfig;
 
   const agentPromise = fetchAgent(providerId);
 
-  if (runtimeConfig.featureFlags.LocalSetup) {
+  if (featureFlags.LocalSetup) {
     try {
       const config = await readConfigurationsSystem();
       if (!config?.default_llm_model) {
