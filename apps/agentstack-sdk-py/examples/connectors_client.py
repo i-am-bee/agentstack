@@ -53,7 +53,7 @@ async def run(
                 mcp_fulfillments={
                     key: agentstack_sdk.a2a.extensions.services.mcp.MCPFulfillment(
                         transport=agentstack_sdk.a2a.extensions.services.mcp.StreamableHTTPTransport(
-                            url=AnyHttpUrl(platform_base_url + f"/api/v1/connectors/{connector_id}/mcp")
+                            url=AnyHttpUrl("http://{platform_url}" + f"/api/v1/connectors/{connector_id}/mcp")
                         ),
                     )
                     for key in mcp_spec.params.mcp_demands
@@ -87,7 +87,8 @@ async def run(
 if __name__ == "__main__":
     asyncio.run(
         run(
-            agent_id="insert-agent-id",
-            connector_id="insert-connector-id",
+            agent_id="fe80fbd3-79bf-7d10-52ce-fb80485f8215",
+            connector_id="84c9d1a8-01b6-455d-8a2a-73386cfca8d8",
+            platform_base_url="http://localhost:18333",
         )
     )

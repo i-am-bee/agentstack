@@ -24,7 +24,7 @@ async def connectors_agent(
         MCPServiceExtensionServer,
         MCPServiceExtensionSpec.single_demand(),
     ],
-    platform: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
+    _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
 ) -> AsyncGenerator[RunYield, Message]:
     """Lists tools"""
 

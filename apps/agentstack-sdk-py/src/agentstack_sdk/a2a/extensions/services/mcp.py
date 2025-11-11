@@ -16,6 +16,7 @@ from mcp.client.streamable_http import streamablehttp_client
 from agentstack_sdk.a2a.extensions.auth.oauth.oauth import OAuthExtensionServer
 from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 from agentstack_sdk.a2a.extensions.services.platform import PlatformApiExtensionServer
+from agentstack_sdk.platform.client import get_platform_client
 from agentstack_sdk.util.logging import logger
 
 if TYPE_CHECKING:
@@ -106,20 +107,19 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
         if not self.data:
             return
 
-        platform = self._get_platform_server()
-        if platform and platform.data and platform.data.base_url:
-            for fullfilment in self.data.mcp_fulfillments.values():
-                if fullfilment.transport.type == "streamable_http":
-                    try:
-                        fullfilment.transport.url = pydantic.AnyHttpUrl(
-                            re.sub(
-                                r"^http[s]?://{platform_url}",
-                                str(platform.data.base_url).rstrip("/"),
-                                str(fullfilment.transport.url),
-                            )
+        platform_url = str(get_platform_client().base_url)
+        for fullfilment in self.data.mcp_fulfillments.values():
+            if fullfilment.transport.type == "streamable_http":
+                try:
+                    fullfilment.transport.url = pydantic.AnyHttpUrl(
+                        re.sub(
+                            r"^http[s]?://{platform_url}",
+                            platform_url,
+                            str(fullfilment.transport.url),
                         )
-                    except Exception:
-                        logger.warning("Platform URL substitution failed", exc_info=True)
+                    )
+                except Exception:
+                    logger.warning("Platform URL substitution failed", exc_info=True)
 
     def parse_client_metadata(self, message: a2a.types.Message) -> MCPServiceExtensionMetadata | None:
         metadata = super().parse_client_metadata(message)
