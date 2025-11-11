@@ -158,6 +158,8 @@ async def refresh_unmanaged_provider_state(timestamp: int, uow_f: IUnitOfWorkFac
                             await uow.providers.update(provider=provider)
                             await uow.commit()
                     except Exception as ex:
+                        if isinstance(ex, asyncio.CancelledError):
+                            raise
                         logger.error(f"Failed to update agent card for provider {provider.id}: {extract_messages(ex)}")
 
         except HTTPError as ex:
