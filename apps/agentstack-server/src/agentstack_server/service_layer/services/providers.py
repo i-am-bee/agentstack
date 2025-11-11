@@ -106,6 +106,7 @@ class ProviderService:
         variables: dict[str, str] | None = None,
         allow_registry_update: bool = False,
         force: bool = False,
+        unmanaged_state: UnmanagedState | None = None,
     ) -> ProviderWithState:
         user_id = user.id if user.role != UserRole.ADMIN else None
 
@@ -135,9 +136,12 @@ class ProviderService:
         if auto_stop_timeout is not None:
             updated_provider.auto_stop_timeout = auto_stop_timeout
 
-        # this is a bit heuristic, self-registered agents send a card in this format, but technically somebody else
-        # can send it without the agent actually being online
-        if agent_card and get_extension(agent_card, SELF_REGISTRATION_EXTENSION_URI):
+        # Allow explicit state override, otherwise use heuristic for self-registered agents
+        if unmanaged_state is not None:
+            updated_provider.unmanaged_state = unmanaged_state
+        elif agent_card and get_extension(agent_card, SELF_REGISTRATION_EXTENSION_URI):
+            # this is a bit heuristic, self-registered agents send a card in this format, but technically somebody else
+            # can send it without the agent actually being online
             updated_provider.unmanaged_state = UnmanagedState.ONLINE
 
         # Some migrated docker providers may not have a docker version_info field, update during the patch
