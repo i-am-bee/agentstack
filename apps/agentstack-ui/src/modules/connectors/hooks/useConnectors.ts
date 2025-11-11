@@ -31,18 +31,18 @@ const authorizeOauth = (
     }
   }, 500);
 
-  async function handler(message: unknown) {
+  function handler(message: unknown) {
     const { success, data: parsedMessage } = z
       .object({ data: z.object({ redirect_uri: z.string() }) })
       .safeParse(message);
 
     if (!success) {
-      throw new Error('Invalid message');
+      return;
     }
 
-    const url = new URL(parsedMessage.data.redirect_uri);
-    const error = url.searchParams.get('error');
-    const errorDescription = url.searchParams.get('error_description');
+    const parsedRedirectrUri = new URL(parsedMessage.data.redirect_uri);
+    const error = parsedRedirectrUri.searchParams.get('error');
+    const errorDescription = parsedRedirectrUri.searchParams.get('error_description');
 
     onCallback({ error, errorDescription });
 

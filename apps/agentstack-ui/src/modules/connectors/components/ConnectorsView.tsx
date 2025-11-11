@@ -20,11 +20,11 @@ export const ConnectorsView = () => {
   const authorize = useAuthorize();
 
   const onSubmit = useCallback(
-    (data: CreateConnectorForm) => {
+    ({ url, client_id, client_secret }: CreateConnectorForm) => {
       createConnector({
-        url: data.url,
-        client_id: data.client_id,
-        client_secret: data.client_secret,
+        url,
+        client_id,
+        client_secret,
         match_preset: false,
       });
     },
