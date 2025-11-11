@@ -127,7 +127,7 @@ oidc:
       "id": "ibmid-pkce",
       "type": "oidc",
       "app": "cli", # only show this provider to the cli
-      "client_id": "<ibm_security_vierfy_openid_connect_app_client_id>",
+      "client_id": "<ibm_security_verify_openid_connect_app_client_id>",
       "client_secret": "", # The client secret for a public client (PKCE) is an empty string.  This is the agentstack cli provider.
       "issuer": "<ibm_security_verify_issuer>" # e.g. "https://isg-verify1.verify.ibm.com/oauth2",
     },
