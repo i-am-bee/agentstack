@@ -35,6 +35,8 @@ export function ChatMessagesView() {
   } = useAgentStatus();
   const router = useRouter();
 
+  const showScrollToBottom = messages.length > 0 && isScrolled;
+
   return (
     <FileUpload>
       <div className={classes.holder}>
@@ -86,7 +88,7 @@ export function ChatMessagesView() {
         </div>
 
         <div className={classes.bottom}>
-          {messages.length && isScrolled && (
+          {showScrollToBottom && (
             <IconButton
               label="Scroll to bottom"
               kind="secondary"

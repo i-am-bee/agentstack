@@ -12,9 +12,11 @@ import classes from './AgentSecrets.module.scss';
 export function AgentSecrets() {
   const { demandedSecrets } = useAgentSecrets();
 
+  const hasSecrets = demandedSecrets.length > 0;
+
   return (
     <div className={classes.root}>
-      {demandedSecrets.length ? (
+      {hasSecrets ? (
         <ul className={classes.list}>
           {demandedSecrets.map((secret) => (
             <li key={secret.key}>
