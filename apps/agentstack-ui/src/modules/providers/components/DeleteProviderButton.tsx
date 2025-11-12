@@ -44,7 +44,7 @@ export function DeleteProviderButton({ provider }: Props) {
       align="left"
       disabled={isPending}
     >
-      {isPending ? <Spinner /> : <TrashCan />}
+      {!isPending ? <Spinner center /> : <TrashCan />}
     </IconButton>
   );
 }
