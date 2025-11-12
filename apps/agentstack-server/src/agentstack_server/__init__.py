@@ -46,8 +46,8 @@ def serve():
             "agentstack_server.application:app",
             f"--host={host}",
             f"--port={config.port}",
-            "--timeout-keep-alive=2",
-            "--timeout-graceful-shutdown=2",
+            "--timeout-keep-alive=5",
+            "--timeout-graceful-shutdown=5",
         ],
     )
 
