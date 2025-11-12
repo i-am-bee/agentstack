@@ -12,11 +12,7 @@
     "groups": [
       {
         "group": "Introduction",
-        "pages": [
-          "introduction/welcome",
-          "introduction/quickstart",
-          "introduction/connect-a2a-agents"
-        ]
+        "pages": ["introduction/welcome", "introduction/quickstart"]
       },
       {
         "group": "Deploy to Agent Stack",
@@ -26,9 +22,14 @@
           "deploy/deploy-your-agents"
         ]
       },
+
       {
-        "group": "Extensions",
+        "group": "Enhance Your Agents",
         "pages": [
+          "sdk/overview",
+          "guides/messages",
+          "guides/multi-turn",
+          "guides/files",
           "extensions/agent-details",
           "extensions/llm-proxy-service",
           "extensions/trajectory",
@@ -44,18 +45,20 @@
       {
         "group": "Guides",
         "pages": [
-          "guides/messages",
-          "guides/multi-turn",
-          "guides/files",
-          "guides/connectors",
           "guides/cli-reference",
-          "guides/observability"
+          "guides/observability",
+          "introduction/connect-a2a-agents"
         ]
       },
       {
         "group": "Deploy Agent Stack for Your Team",
         "pages": ["how-to/deployment-guide"]
       },
+      {
+        "group": "Integrating with Agent Stack",
+        "pages": ["guides/connectors"]
+      },
+
       {
         "group": "Join Our Community",
         "pages": ["community/contribute"]
