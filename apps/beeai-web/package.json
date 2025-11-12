@@ -12,7 +12,7 @@
     "clsx": "catalog:",
     "estree-util-value-to-estree": "^3.4.0",
     "lodash": "catalog:",
-    "lottie-react": "catalog:",
+    "lottie-react": "^2.4.1",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
