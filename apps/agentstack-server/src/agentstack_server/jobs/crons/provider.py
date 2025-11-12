@@ -20,7 +20,7 @@ from agentstack_server.jobs.queues import Queues
 from agentstack_server.service_layer.services.providers import ProviderService
 from agentstack_server.service_layer.services.users import UserService
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
-from agentstack_server.utils.a2a import detect_card_changes, get_extension
+from agentstack_server.utils.a2a import get_extension
 from agentstack_server.utils.utils import extract_messages
 
 logger = logging.getLogger(__name__)
@@ -158,7 +158,7 @@ async def refresh_unmanaged_provider_state(
             state = UnmanagedState.OFFLINE
         finally:
             # Unified update: patch both agent card (if changed) and state (if changed) in a single call
-            card_changes = detect_card_changes(provider.agent_card, resp_card) if resp_card else {}
+            card_changes = provider.agent_card != resp_card
             state_changed = state != provider.unmanaged_state
 
             if card_changes or state_changed:
