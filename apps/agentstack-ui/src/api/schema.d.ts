@@ -85,19 +85,19 @@ export interface paths {
       cookie?: never;
     };
     /** A2A Proxy Http Transport */
-    get: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_put'];
+    get: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options'];
     /** A2A Proxy Http Transport */
-    put: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_put'];
+    put: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options'];
     /** A2A Proxy Http Transport */
-    post: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_put'];
+    post: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options'];
     /** A2A Proxy Http Transport */
-    delete: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_put'];
+    delete: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options'];
     /** A2A Proxy Http Transport */
-    options: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_put'];
+    options: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options'];
     /** A2A Proxy Http Transport */
-    head: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_put'];
+    head: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options'];
     /** A2A Proxy Http Transport */
-    patch: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_put'];
+    patch: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options'];
     trace?: never;
   };
   '/api/v1/a2a/{provider_id}/http/{path}': {
@@ -108,19 +108,19 @@ export interface paths {
       cookie?: never;
     };
     /** A2A Proxy Http Transport */
-    get: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__put'];
+    get: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options'];
     /** A2A Proxy Http Transport */
-    put: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__put'];
+    put: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options'];
     /** A2A Proxy Http Transport */
-    post: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__put'];
+    post: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options'];
     /** A2A Proxy Http Transport */
-    delete: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__put'];
+    delete: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options'];
     /** A2A Proxy Http Transport */
-    options: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__put'];
+    options: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options'];
     /** A2A Proxy Http Transport */
-    head: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__put'];
+    head: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options'];
     /** A2A Proxy Http Transport */
-    patch: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__put'];
+    patch: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options'];
     trace?: never;
   };
   '/api/v1/configurations/system': {
@@ -845,6 +845,23 @@ export interface paths {
     put?: never;
     /** Preview Provider */
     post: operations['preview_provider_api_v1_providers_preview_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/user': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get User */
+    get: operations['get_user_api_v1_user_get'];
+    put?: never;
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -1774,7 +1791,7 @@ export interface components {
       updated_at?: string;
     };
     /** ContextResponse */
-    agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__13: {
+    agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__14: {
       /**
        * Created At
        * Format: date-time
@@ -1808,7 +1825,7 @@ export interface components {
       updated_at?: string;
     };
     /** ContextResponse */
-    agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__14: {
+    agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__15: {
       /**
        * Created At
        * Format: date-time
@@ -2887,6 +2904,8 @@ export interface components {
     GlobalPermissionGrant: {
       /** A2A Proxy */
       a2a_proxy?: '*'[];
+      /** Connectors */
+      connectors?: ('read' | 'write' | 'proxy' | '*')[];
       /** Context Data */
       context_data?: ('read' | 'write' | '*')[];
       /** Contexts */
@@ -3838,6 +3857,31 @@ export interface components {
         [key: string]: string | null;
       };
     };
+    /** User */
+    User: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Email
+       * Format: email
+       */
+      email: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id?: string;
+      /** @default user */
+      role: components['schemas']['UserRole'];
+    };
+    /**
+     * UserRole
+     * @enum {string}
+     */
+    UserRole: 'admin' | 'developer' | 'user';
     /** ValidationError */
     ValidationError: {
       /** Location */
@@ -4077,7 +4121,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_put: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options: {
     parameters: {
       query?: {
         path?: string;
@@ -4110,7 +4154,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_put: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options: {
     parameters: {
       query?: {
         path?: string;
@@ -4143,7 +4187,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_put: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options: {
     parameters: {
       query?: {
         path?: string;
@@ -4176,7 +4220,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_put: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options: {
     parameters: {
       query?: {
         path?: string;
@@ -4209,7 +4253,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_put: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options: {
     parameters: {
       query?: {
         path?: string;
@@ -4242,7 +4286,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_put: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options: {
     parameters: {
       query?: {
         path?: string;
@@ -4275,7 +4319,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_put: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options: {
     parameters: {
       query?: {
         path?: string;
@@ -4308,7 +4352,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__put: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options: {
     parameters: {
       query?: never;
       header?: never;
@@ -4340,7 +4384,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__put: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options: {
     parameters: {
       query?: never;
       header?: never;
@@ -4372,7 +4416,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__put: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options: {
     parameters: {
       query?: never;
       header?: never;
@@ -4404,7 +4448,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__put: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options: {
     parameters: {
       query?: never;
       header?: never;
@@ -4436,7 +4480,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__put: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options: {
     parameters: {
       query?: never;
       header?: never;
@@ -4468,7 +4512,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__put: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options: {
     parameters: {
       query?: never;
       header?: never;
@@ -4500,7 +4544,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__put: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options: {
     parameters: {
       query?: never;
       header?: never;
@@ -4965,7 +5009,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__13'];
+          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem____<locals>__ModelOutput'];
         };
       };
       /** @description Validation Error */
@@ -5135,7 +5179,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem____<locals>__ModelOutput'];
+          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__15'];
         };
       };
       /** @description Validation Error */
@@ -6487,6 +6531,26 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_user_api_v1_user_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['User'];
         };
       };
     };
