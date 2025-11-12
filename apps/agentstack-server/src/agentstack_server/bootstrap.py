@@ -27,7 +27,12 @@ logger = logging.getLogger(__name__)
 
 
 def setup_database_engine(config: Configuration) -> AsyncEngine:
-    return config.persistence.create_async_engine(isolation_level="READ COMMITTED", hide_parameters=True)
+    return config.persistence.create_async_engine(
+        isolation_level="READ COMMITTED",
+        hide_parameters=True,
+        pool_size=20,
+        max_overflow=10,
+    )
 
 
 async def setup_kubernetes_client(namespace: str | None = None, kubeconfig: pathlib.Path | str | dict | None = None):

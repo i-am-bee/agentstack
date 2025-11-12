@@ -117,11 +117,12 @@ class ModelProviderService:
         return []
 
     async def get_all_models(self) -> dict[str, tuple[ModelProvider, Model]]:
-        async with self._uow() as uow, TaskGroup() as tg:
+        async with self._uow() as uow:
             providers = [provider async for provider in uow.model_providers.list()]
             all_env = await uow.env.get_all(
                 parent_entity=EnvStoreEntity.MODEL_PROVIDER, parent_entity_ids=[p.id for p in providers]
             )
+        async with TaskGroup() as tg:
             for provider in providers:
                 tg.create_task(
                     self._get_provider_models(

@@ -174,6 +174,9 @@ async def refresh_unmanaged_provider_state(
                         raise
                     logger.error(f"Failed to update provider {provider.id}: {extract_messages(ex)}")
 
-    async with asyncio.TaskGroup() as tg, uow_f() as uow:
-        async for provider in uow.providers.list(type=ProviderType.UNMANAGED):
+    async with uow_f() as uow:
+        unmanaged_providers = [provider async for provider in uow.providers.list(type=ProviderType.UNMANAGED)]
+
+    async with asyncio.TaskGroup() as tg:
+        for provider in unmanaged_providers:
             tg.create_task(_check_provider(provider))

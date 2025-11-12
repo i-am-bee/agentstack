@@ -1,10 +1,10 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from contextlib import suppress
+from contextlib import AsyncExitStack, suppress
 from typing import Self
 
-from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, AsyncTransaction
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine
 
 from agentstack_server.configuration import Configuration
 from agentstack_server.domain.repositories.a2a_request import IA2ARequestRepository
@@ -56,15 +56,16 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
     def __init__(self, engine: AsyncEngine, config: Configuration) -> None:
         self._engine: AsyncEngine = engine
         self._connection: AsyncConnection | None = None
-        self._transaction: AsyncTransaction | None = None
+        self._exit_stack = AsyncExitStack()
         self._config = config
 
     async def __aenter__(self) -> Self:
-        if self._connection or self._transaction:
+        if self._connection:
             raise RuntimeError("Unit of Work is already active. It cannot be re-entered.")
         try:
-            self._connection = await self._engine.connect()
-            self._transaction = await self._connection.begin()
+            # No need to explicitly start transaction, we use the autobegin behavior:
+            # https://docs.sqlalchemy.org/en/20/core/connections.html#commit-as-you-go
+            self._connection = await self._exit_stack.enter_async_context(self._engine.connect())
 
             self.a2a_requests = SqlAlchemyA2ARequestRepository(self._connection)
             self.providers = SqlAlchemyProviderRepository(self._connection)
@@ -83,10 +84,8 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
             self.connectors = SqlAlchemyConnectorRepository(self._connection)
 
         except Exception as e:
-            if self._connection:
-                await self._connection.close()
+            await self._exit_stack.aclose()
             self._connection = None
-            self._transaction = None
             raise RuntimeError(f"Failed to enter Unit of Work: {e}") from e
 
         return self
@@ -104,16 +103,15 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
             await self.rollback()
         finally:
             with suppress(Exception):
-                if self._connection:
-                    await self._connection.close()
+                await self._exit_stack.aclose()
 
     async def commit(self) -> None:
-        if self._transaction and self._transaction.is_active:
-            await self._transaction.commit()
+        if self._connection:
+            await self._connection.commit()
 
     async def rollback(self) -> None:
-        if self._transaction and self._transaction.is_active:
-            await self._transaction.rollback()
+        if self._connection:
+            await self._connection.rollback()
 
 
 class SqlAlchemyUnitOfWorkFactory(IUnitOfWorkFactory):

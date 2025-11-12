@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from collections.abc import AsyncIterator
-from typing import cast
+from typing import Any, cast
 from uuid import UUID
 
 from kink import inject
@@ -64,18 +64,25 @@ class SqlAlchemyFileRepository(IFileRepository):
         self.connection = connection
 
     async def create(self, *, file: File) -> None:
-        query = files_table.insert().values(
-            id=file.id,
-            filename=file.filename,
-            content_type=file.content_type,
-            created_at=file.created_at,
-            created_by=file.created_by,
-            file_size_bytes=file.file_size_bytes,
-            file_type=file.file_type,
-            parent_file_id=file.parent_file_id,
-            context_id=file.context_id,
-        )
+        query = files_table.insert().values(self._to_row(file))
         await self.connection.execute(query)
+
+    async def update(self, *, file: File) -> None:
+        query = files_table.update().where(files_table.c.id == file.id).values(self._to_row(file))
+        await self.connection.execute(query)
+
+    def _to_row(self, file: File) -> dict[str, Any]:
+        return {
+            "id": file.id,
+            "filename": file.filename,
+            "content_type": file.content_type,
+            "created_at": file.created_at,
+            "created_by": file.created_by,
+            "file_size_bytes": file.file_size_bytes,
+            "file_type": file.file_type,
+            "parent_file_id": file.parent_file_id,
+            "context_id": file.context_id,
+        }
 
     def _to_file(self, row: Row):
         return File.model_validate(

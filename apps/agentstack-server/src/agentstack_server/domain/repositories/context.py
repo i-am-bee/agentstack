@@ -26,6 +26,7 @@ class IContextRepository(Protocol):
         order: str = "desc",
         order_by: str = "created_at",
         include_empty: bool = True,
+        last_active_before: datetime | None = None,
     ) -> PaginatedResult: ...
 
     async def create(self, *, context: Context) -> None: ...

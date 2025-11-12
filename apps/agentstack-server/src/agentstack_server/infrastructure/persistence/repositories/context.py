@@ -81,12 +81,15 @@ class SqlAlchemyContextRepository(IContextRepository):
         order: str = "desc",
         order_by: str = "created_at",
         include_empty: bool = True,
+        last_active_before: datetime | None = None,
     ) -> PaginatedResult:
         query = contexts_table.select()
         if user_id is not None:
             query = query.where(contexts_table.c.created_by == user_id)
         if provider_id is not None:
             query = query.where(contexts_table.c.provider_id == provider_id)
+        if last_active_before:
+            query = query.where(contexts_table.c.last_active_at < last_active_before)
         if not include_empty:
             # Use EXISTS subquery to find contexts that have at least one history record
             subquery = select(context_history_table.c.context_id).where(

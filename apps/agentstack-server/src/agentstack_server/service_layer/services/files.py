@@ -1,6 +1,5 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-
 import logging
 from asyncio import CancelledError
 from collections.abc import AsyncIterator, Awaitable, Callable
@@ -100,6 +99,7 @@ class FileService:
             file_type=file_type,
             parent_file_id=parent_file_id,
             content_type=file.content_type,
+            file_size_bytes=0,
             context_id=context_id,
         )
         try:
@@ -107,17 +107,28 @@ class FileService:
                 total_usage = await uow.files.total_usage(user_id=user.id)
                 file = file.model_copy()
                 max_size = min(self._storage_limit_per_user - total_usage, self._storage_limit_per_file)
-                file.read = limit_size_wrapper(read=file.read, max_size=max_size)
-
-                db_file.file_size_bytes = await self._object_storage.upload_file(file_id=db_file.id, file=file)
                 await uow.files.create(file=db_file)
                 await uow.commit()
-                return db_file
+
+            file.read = limit_size_wrapper(read=file.read, max_size=max_size)
+            db_file.file_size_bytes = await self._object_storage.upload_file(file_id=db_file.id, file=file)
+
+            async with self._uow() as uow:
+                await uow.files.update(file=db_file)
+                await uow.commit()
+
+            return db_file
         except Exception:
             # If the file was uploaded and then the commit failed, delete the file from the object storage.
-            if db_file.file_size_bytes is not None:
+            if db_file.file_size_bytes and db_file.file_size_bytes > 0:
                 with suppress(Exception):
                     await self._object_storage.delete_files(file_ids=[db_file.id])
+
+            with suppress(EntityNotFoundError):
+                async with self._uow() as uow:
+                    await uow.files.delete(file_id=db_file.id)
+                    await uow.commit()
+
             raise
 
     async def get(self, *, file_id: UUID, user: User, context_id: UUID | None = None) -> File:
