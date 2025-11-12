@@ -19,27 +19,86 @@ async def my_agent(
         title="Planning",
         content="Analyzing the user request to determine the best approach..."
     )
-    
+
     # Do work
-    
+
     yield trajectory.trajectory_metadata(
-        title="Execution", 
+        title="Execution",
         content="Processing data with temperature=0.7"
     )
-    
+
     yield "Final result"
+```
+
+## Grouping Trajectories
+
+Use the `group_id` parameter to update trajectory content in the UI. Each update replaces the previous content (and title, if defined) for the same `group_id`:
+
+```python
+# Initial search status
+yield trajectory.trajectory_metadata(
+    title="Web search",
+    content="Querying search engines...",
+    group_id="websearch"
+)
+
+# Update with results
+yield trajectory.trajectory_metadata(
+    content="Found 8 results",
+    group_id="websearch"
+)
+yield trajectory.trajectory_metadata(
+    content="Found 8 results\nAnalyzed 3/8 results",
+    group_id="websearch"
+)
+yield trajectory.trajectory_metadata(
+    content="Found 8 results\nAnalyzed 8/8 results",
+    group_id="websearch"
+)
+
+# Final update
+yield trajectory.trajectory_metadata(
+    title="Web search finished",
+    content="Found 8 results\nAnalyzed 3/8 results\nExtracted key information",
+    group_id="websearch"
+)
 ```
 
 ## Common Patterns
 
 **Progress Steps:**
+
 ```python
 yield trajectory.trajectory_metadata(title="Step 1", content="Loading data...")
 yield trajectory.trajectory_metadata(title="Step 2", content="Processing...")
 yield trajectory.trajectory_metadata(title="Step 3", content="Generating output...")
 ```
 
+**Multi-step Process with Live Updates:**
+
+```python
+# Use group_id to show progress updates in a single section
+yield trajectory.trajectory_metadata(
+    title="Data Processing",
+    content="Starting...",
+    group_id="processing"
+)
+yield trajectory.trajectory_metadata(
+    content="Processing batch 1/10...",
+    group_id="processing"
+)
+yield trajectory.trajectory_metadata(
+    content="Processing batch 10/10...",
+    group_id="processing"
+)
+yield trajectory.trajectory_metadata(
+    content="Processing complete! Processed 10 items",
+    group_id="processing"
+)
+```
+
 **Decision Points:**
+
 ```python
 yield trajectory.trajectory_metadata(
     title="Tool Selection",
@@ -48,6 +107,7 @@ yield trajectory.trajectory_metadata(
 ```
 
 **Error Handling:**
+
 ```python
 yield trajectory.trajectory_metadata(
     title="Retry Attempt",
