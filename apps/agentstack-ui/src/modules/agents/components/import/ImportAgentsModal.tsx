@@ -27,6 +27,7 @@ import type { ModalProps } from '#contexts/Modal/modal-context.ts';
 import { useImportAgent } from '#modules/agents/hooks/useImportAgent.ts';
 import type { ImportAgentFormValues } from '#modules/agents/types.ts';
 import { ProviderSource } from '#modules/providers/types.ts';
+import { isValidUrl } from '#utils/url.ts';
 
 import classes from './ImportAgentsModal.module.scss';
 
@@ -155,7 +156,12 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
                   labelText="Container image URL"
                   placeholder="Enter your agent’s container image URL"
                   hideLabel
-                  {...register('location', { required: true, disabled: isPending })}
+                  {...register('location', {
+                    required: true,
+                    disabled: isPending,
+                    validate: (value) => isValidUrl(value) || 'Invalid URL',
+                    setValueAs: (value) => (value ?? '').trim(),
+                  })}
                 />
               )}
             </div>

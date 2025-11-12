@@ -7,3 +7,12 @@
 const ABSOLUTE_URL_REGEX = new RegExp('^(?:[a-z+]+:)?//', 'i');
 
 export const isAbsoluteUrl = (url: string) => ABSOLUTE_URL_REGEX.test(url);
+
+export const isValidUrl = (value: string): boolean => {
+  try {
+    const url = new URL(value);
+    return (url && url.protocol === 'http:') || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
