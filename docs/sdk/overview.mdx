@@ -1,0 +1,146 @@
+---
+title: "Agent Stack SDK Overview"
+description: "Enhance your existing AI agents with platform capabilities"
+---
+
+The Agent Stack SDK is a Python library that enhances your existing AI agents with platform capabilities. Whether you've built your agent with LangGraph, CrewAI, or custom logic, the SDK connects it to the Agent Stack platform, giving you instant access to runtime-configurable services, interactive UI components, and deployment infrastructure.
+
+Built on top of the [Agent2Agent Protocol (A2A)](https://a2a-protocol.org/), the SDK wraps your agent implementation and adds powerful functionality through [A2A extensions](https://a2a-protocol.org/latest/topics/extensions/).
+
+This enables your agent to leverage platform services like [LLM providers](/extensions/llm-proxy-service), [file storage](/guides/files), [vector databases](/extensions/rag), and rich UI components. That's all without rewriting your core agent logic.
+
+## What the SDK Provides
+
+The Agent Stack SDK offers several key capabilities:
+
+- **Server wrapper**: Simplified server creation and agent registration
+- **Extension system**: Dependency injection for services (LLM, embeddings, file storage) and UI components (forms, citations, trajectory)
+- **Convenience wrappers**: Simplified message types like `AgentMessage` that reduce boilerplate
+- **Context management**: Built-in conversation history and state management
+- **Async generator pattern**: Natural task-based execution with pause/resume capabilities
+
+## Core Concepts
+
+### Server and Agent Registration
+
+The SDK uses a server-based architecture where you create a `Server` instance and register your agent function:
+
+```python
+from a2a.types import Message
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
+from agentstack_sdk.a2a.types import AgentMessage
+
+server = Server()
+
+@server.agent()
+async def my_agent(input: Message, context: RunContext):
+    """Your agent implementation"""
+    yield AgentMessage(text="Hello from my agent!")
+```
+
+### Asynchronous Generator Pattern
+
+Agent functions are asynchronous generators that yield responses. This pattern aligns perfectly with A2A's task model:
+
+- **One function execution** = **One A2A task**
+- **Yielding data** = **Sending messages to the client**
+- **Pausing execution** = **Waiting for user input**
+
+The generator pattern is particularly powerful when your agent needs to request structured input from users.
+
+When you await a form request, execution pauses the task, allowing the user to fill out the form. Once submitted, execution resumes with the form data:
+
+```python
+from typing import Annotated
+from agentstack_sdk.a2a.extensions.ui.form import (
+    FormExtensionServer,
+    FormExtensionSpec,
+    FormRender,
+    TextField
+)
+
+@server.agent()
+async def form_agent(
+    input: Message,
+    context: RunContext,
+    form: Annotated[FormExtensionServer, FormExtensionSpec(params=None)]
+):
+    """Agent that pauses execution to request user input"""
+    yield AgentMessage(text="I need some information from you.")
+    
+    # Execution pauses here - task enters input_required state
+    # User fills out the form in the UI
+    form_data = await form.request_form(
+        form=FormRender(
+            id="user_info",
+            title="Please provide your details",
+            fields=[
+                TextField(id="name", label="Your Name"),
+                TextField(id="email", label="Email Address"),
+            ],
+        )
+    )
+    
+    # Execution resumes after user submits the form
+    name = form_data.values['name'].value
+    email = form_data.values['email'].value
+    yield AgentMessage(text=f"Thank you, {name}! I'll contact you at {email}.")
+```
+
+<Tip>The whole complexity of Task management is handled via Agent Stack SDK.</Tip>
+
+The generator pattern also enables agents to:
+- Stream responses incrementally
+- Yield multiple messages during a single task
+- Handle long-running operations gracefully
+
+
+
+### Extension System
+
+Agent Stack is utilizing A2A extensions to extend the protocol with Agent Stack-specific capabilities. They enable your agent to access platform services and enhance the user interface beyond what the base A2A protocol provides.
+
+There are two types of extensions:
+
+#### Dependency Injection Service Extensions
+
+Service extensions use a dependency injection pattern where each run of the agent declares a demand that must be fulfilled by the client (consumer). The platform provides configured access to external services based on these demands:
+
+- **LLM Service**: Language model access with automatic provider selection
+- **Embedding Service**: Text embedding generation for RAG
+- **Platform API**: File storage, vector databases, and platform services
+- **MCP**: Model Context Protocol integration
+
+```python
+from typing import Annotated
+from agentstack_sdk.a2a.extensions import (
+    LLMServiceExtensionServer,
+    LLMServiceExtensionSpec,
+)
+
+@server.agent()
+async def llm_agent(
+    input: Message,
+    context: RunContext,
+    llm: Annotated[LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand()]
+):
+    # The demand is fulfilled by the client - llm is provided if available
+    if llm:
+        response = await llm.chat(messages=[...])
+        yield AgentMessage(text=response.content)
+    else:
+        yield AgentMessage(text="LLM service not available")
+```
+
+#### UI Extensions
+
+UI extensions add extra metadata to messages, enabling the Agent Stack UI to render more advanced interactive components:
+
+- **Forms**: Collect structured user input through interactive forms
+- **Citations**: Display source references with clickable inline links
+- **Trajectory**: Visualize agent reasoning steps with execution traces
+
+These extensions enhance messages with metadata that the UI interprets to create rich, interactive experiences beyond standard text responses.
+
+
