@@ -17,6 +17,28 @@
 }
 
 .graphics {
+  --color-1: #21272a;
+  --color-2: #4d5358;
+  --color-3: #878d96;
+  --color-4: #ffffff;
+  --color-5: #ffffff;
+  --color-6: #878d96;
+  --color-7: #21272a;
+  --color-8: #343a3f;
+  --color-9: #4d5358;
+
+  :global(.cds--g90) & {
+    --color-1: #f2f4f8;
+    --color-2: #878d96;
+    --color-3: #c1c7cd;
+    --color-4: #000000;
+    --color-5: #ffffff;
+    --color-6: #878d96;
+    --color-7: #dde1e6;
+    --color-8: #a2a9b0;
+    --color-9: #a2a9b0;
+  }
+
   display: flex;
   inline-size: 130%;
 

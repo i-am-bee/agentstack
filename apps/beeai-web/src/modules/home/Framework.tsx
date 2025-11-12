@@ -5,15 +5,12 @@
 
 'use client';
 import { Code, Constraint, FlowConnection, Plug, Shapes } from '@carbon/icons-react';
-import { Theme, useTheme } from '@i-am-bee/agentstack-ui';
-import { useIsClient } from 'usehooks-ts';
 
 import { FRAMEWORK_DOCS_LINK } from '@/constants';
 import { LayoutContainer } from '@/layouts/LayoutContainer';
 
 import FileConfigYaml from './assets/file-config-yaml.svg';
-import FrameworkGraphicsDark from './assets/framework-diagram-dark.svg';
-import FrameworkGraphicsLight from './assets/framework-diagram-light.svg';
+import FrameworkGraphics from './assets/framework-diagram.svg';
 import type { FeatureItem } from './components/FeaturesList';
 import { FeaturesList } from './components/FeaturesList';
 import { HeadlineWithLink } from './components/HeadlineWithLink';
@@ -21,9 +18,6 @@ import { TwoColumnGrid } from './components/TwoColumnGrid';
 import classes from './Framework.module.scss';
 
 export function Framework() {
-  const { theme } = useTheme();
-  const isClient = useIsClient();
-
   return (
     <section className={classes.root} id="framework">
       <LayoutContainer asGrid>
@@ -35,11 +29,9 @@ export function Framework() {
             inverse
           />
 
-          {isClient && (
-            <div className={classes.graphics}>
-              {theme === Theme.Light ? <FrameworkGraphicsLight /> : <FrameworkGraphicsDark />}
-            </div>
-          )}
+          <div className={classes.graphics}>
+            <FrameworkGraphics />
+          </div>
         </TwoColumnGrid>
 
         <div className={classes.features}>
