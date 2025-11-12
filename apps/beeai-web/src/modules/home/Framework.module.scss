@@ -17,26 +17,26 @@
 }
 
 .graphics {
-  --color-1: #21272a;
-  --color-2: #4d5358;
-  --color-3: #878d96;
-  --color-4: #ffffff;
-  --color-5: #ffffff;
-  --color-6: #878d96;
-  --color-7: #21272a;
-  --color-8: #343a3f;
-  --color-9: #4d5358;
+  --color-1: #{$cool-gray-90};
+  --color-2: #{$cool-gray-70};
+  --color-3: #{$cool-gray-50};
+  --color-4: #{$white};
+  --color-5: #{$white};
+  --color-6: #{$cool-gray-50};
+  --color-7: #{$cool-gray-90};
+  --color-8: #{$cool-gray-80};
+  --color-9: #{$cool-gray-70};
 
   :global(.cds--g90) & {
-    --color-1: #f2f4f8;
-    --color-2: #878d96;
-    --color-3: #c1c7cd;
-    --color-4: #000000;
-    --color-5: #ffffff;
-    --color-6: #878d96;
-    --color-7: #dde1e6;
-    --color-8: #a2a9b0;
-    --color-9: #a2a9b0;
+    --color-1: #{$cool-gray-10};
+    --color-2: #{$cool-gray-50};
+    --color-3: #{$cool-gray-30};
+    --color-4: #{$black};
+    --color-5: #{$white};
+    --color-6: #{$cool-gray-50};
+    --color-7: #{$cool-gray-20};
+    --color-8: #{$cool-gray-40};
+    --color-9: #{$cool-gray-40};
   }
 
   display: flex;
