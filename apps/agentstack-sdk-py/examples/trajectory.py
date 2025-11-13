@@ -52,7 +52,7 @@ This document tests **Markdown rendering** capabilities within the trajectory fe
 
 ### Header Level 3
 
-You should see **bold**, *italic*, and ***bold italic*** text properly rendered.  
+You should see **bold**, *italic*, and ***bold italic*** text properly rendered.
 > This is a blockquote — it should appear indented and stylized.
 
 Need Markdown basics? Check out [Markdown Guide](https://www.markdownguide.org/basic-syntax/).
@@ -72,8 +72,8 @@ Need Markdown basics? Check out [Markdown Guide](https://www.markdownguide.org/b
 3. Third item
 
 ### Nested List
-- Outer item  
-  - Inner item  
+- Outer item
+  - Inner item
     - Deep inner item
 
 ---
