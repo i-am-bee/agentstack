@@ -331,3 +331,9 @@ Use the release script:
 mise run release
 ```
 
+
+## Documentation
+
+All changes that modify existing features or introduce new functionality must include documentation updates as part of the pull request. Documentation files should be added or updated in the `docs` folder.
+
+A GitHub workflow automatically checks that documentation requirements are met. If your change does not require documentation updates (e.g., bug fixes that don't change behavior, internal refactoring, or test-only changes), you must explicitly note this in your PR description.
