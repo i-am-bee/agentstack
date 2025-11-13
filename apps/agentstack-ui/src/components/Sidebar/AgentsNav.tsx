@@ -8,6 +8,8 @@ import { useMemo } from 'react';
 import { useModal } from '#contexts/Modal/index.tsx';
 import { ImportAgentsModal } from '#modules/agents/components/import/ImportAgentsModal.tsx';
 import { useRecentlyAddedAgents } from '#modules/home/hooks/useRecentlyAddedAgents.ts';
+import { useUser } from '#modules/users/api/queries/useUser.ts';
+import { isUserAdmin } from '#modules/users/utils.ts';
 import { routes } from '#utils/router.ts';
 
 import { NavGroup } from './NavGroup';
@@ -20,14 +22,20 @@ interface Props {
 export function AgentsNav({ className }: Props) {
   const { openModal } = useModal();
 
+  const { data: user } = useUser();
   const { data: agents, isLoading } = useRecentlyAddedAgents();
 
+  const isAdmin = isUserAdmin(user);
+
   const action = useMemo(
-    () => ({
-      label: 'Add new agent',
-      onClick: () => openModal((props) => <ImportAgentsModal {...props} />),
-    }),
-    [openModal],
+    () =>
+      isAdmin
+        ? {
+            label: 'Add new agent',
+            onClick: () => openModal((props) => <ImportAgentsModal {...props} />),
+          }
+        : undefined,
+    [isAdmin, openModal],
   );
 
   const items = useMemo(
