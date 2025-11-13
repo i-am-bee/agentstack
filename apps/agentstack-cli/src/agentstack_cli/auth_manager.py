@@ -9,8 +9,6 @@ from typing import Any
 import httpx
 from pydantic import BaseModel, Field
 
-from agentstack_cli.console import console
-
 
 class AuthToken(BaseModel):
     access_token: str
@@ -110,8 +108,6 @@ class AuthManager:
                 "",
                 token=new_token,
             )
-            self._save()
-            console.log("exchange_refresh_token succeeded.")
             return new_token
 
     async def load_auth_token(self) -> str | None:
@@ -128,8 +124,6 @@ class AuthManager:
             return None
 
         if (auth_server.token.expires_at or 0) - 60 < time.time():
-            console.warning("auth token expired")
-            console.log("Exchanging refresh token for updated access token...")
             new_token = await self.exchange_refresh_token(active_auth_server, auth_server.token)
             if new_token:
                 return new_token["access_token"]
