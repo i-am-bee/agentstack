@@ -50,7 +50,7 @@ export function LineClampText({
     const textElement = textRef.current;
     const sentinelElement = sentinelRef.current;
 
-    if (!textElement || !sentinelElement) {
+    if (isExpanded || !textElement || !sentinelElement) {
       return;
     }
 
@@ -69,7 +69,7 @@ export function LineClampText({
     return () => {
       observer.disconnect();
     };
-  }, []);
+  }, [isExpanded]);
 
   return (
     <Component className={clsx(classes.root, className)}>
