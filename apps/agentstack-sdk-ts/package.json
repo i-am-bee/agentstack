@@ -1,7 +1,7 @@
 {
   "name": "agentstack-sdk",
   "author": "IBM Corp.",
-  "version": "0.4.1",
+  "version": "0.4.2-rc1",
   "type": "module",
   "scripts": {
     "build": "rimraf dist && microbundle --format modern,cjs,umd",
