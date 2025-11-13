@@ -125,11 +125,16 @@ async def check_registry(
 @blueprint.periodic(cron="* * * * * */5")
 @blueprint.task(queueing_lock="check_unmanaged_providers", queue=str(Queues.CRON_PROVIDER))
 @inject
-async def refresh_unmanaged_provider_state(timestamp: int, uow_f: IUnitOfWorkFactory):
+async def refresh_unmanaged_provider_state(
+    timestamp: int, uow_f: IUnitOfWorkFactory, provider_service: ProviderService, user_service: UserService
+):
     timeout_sec = timedelta(seconds=20).total_seconds()
 
     async def _check_provider(provider: Provider):
         state = UnmanagedState.OFFLINE
+        resp_card = None
+
+        user = await user_service.get_user_by_email("admin@beeai.dev")
 
         try:
             assert isinstance(provider.source, NetworkProviderLocation)
@@ -137,6 +142,7 @@ async def refresh_unmanaged_provider_state(timestamp: int, uow_f: IUnitOfWorkFac
                 resp_card = AgentCard.model_validate(
                     (await client.get(AGENT_CARD_WELL_KNOWN_PATH)).raise_for_status().json()
                 )
+
                 # For self-registered provider we need to check their self-registration ID, because their URL
                 # might overlap (more agents on the same URL, only one can be online)
                 provider_self_reg_ext = get_extension(provider.agent_card, SELF_REGISTRATION_EXTENSION_URI)
@@ -151,10 +157,22 @@ async def refresh_unmanaged_provider_state(timestamp: int, uow_f: IUnitOfWorkFac
             logger.warning(f"Provider {provider.id} failed to respond to ping in 30 seconds: {extract_messages(ex)}")
             state = UnmanagedState.OFFLINE
         finally:
-            if state != provider.unmanaged_state:
-                async with uow_f() as uow:
-                    await uow.providers.update_unmanaged_state(provider_id=provider.id, state=state)
-                    await uow.commit()
+            # Unified update: patch both agent card (if changed) and state (if changed) in a single call
+            card_changes = provider.agent_card != resp_card
+            state_changed = state != provider.unmanaged_state
+
+            if card_changes or state_changed:
+                try:
+                    await provider_service.patch_provider(
+                        provider_id=provider.id,
+                        user=user,
+                        agent_card=resp_card if card_changes else None,
+                        unmanaged_state=state if state_changed else None,
+                    )
+                except Exception as ex:
+                    if isinstance(ex, asyncio.CancelledError):
+                        raise
+                    logger.error(f"Failed to update provider {provider.id}: {extract_messages(ex)}")
 
     async with asyncio.TaskGroup() as tg, uow_f() as uow:
         async for provider in uow.providers.list(type=ProviderType.UNMANAGED):
