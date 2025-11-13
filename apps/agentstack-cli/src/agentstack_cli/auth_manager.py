@@ -62,7 +62,7 @@ class AuthManager:
     ) -> None:
         if auth_server is not None and client_id is not None and token is not None:
             if token["access_token"]:
-                usetimestamp = int(time.time()) + int(token["expires_in"]) - 60
+                usetimestamp = int(time.time()) + int(token["expires_in"])
                 token["expires_at"] = usetimestamp
             self._auth.servers[server].authorization_servers[auth_server] = AuthServer(
                 client_id=client_id, client_secret=client_secret, token=AuthToken(**token)
