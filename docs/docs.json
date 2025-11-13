@@ -52,7 +52,7 @@
       },
       {
         "group": "Deploy Agent Stack for Your Team",
-        "pages": ["how-to/deployment-guide"]
+        "pages": ["how-to/deployment-guide", "how-to/remote-cli-guide"]
       },
       {
         "group": "Integrating with Agent Stack",
