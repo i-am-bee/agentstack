@@ -27,26 +27,6 @@ This interactive script installs Agent Stack CLI, downloads and starts the platf
 <Accordion title="Manual Install">
 
 <Steps>
-<Step title="Install WSL (required)">
-
-Agent Stack requires WSL to run on Windows.  
-
-1. Check if WSL is installed by running in PowerShell:
-
-```powershell
-wsl --status
-```
-
-2. If WSL is not installed, run:
-
-```powershell
-wsl.exe --install Ubuntu
-```
-
-3. Reboot your PC to complete the installation.
-
-4. After reboot, confirm installation with `wsl --status`.
-</Step>
 <Step title="Install uv">
 
 Follow the [installation instructions](https://docs.astral.sh/uv/getting-started/installation/).
@@ -80,6 +60,26 @@ For the best experience, we recommend Linux or macOS.
 </Warning>
 
 <Steps>
+<Step title="Install WSL (required)">
+
+Agent Stack requires WSL to run on Windows.  
+
+1. Check if WSL is installed by running in PowerShell:
+
+```powershell
+wsl --status
+```
+
+2. If WSL is not installed, run:
+
+```powershell
+wsl.exe --install Ubuntu
+```
+
+3. Reboot your PC to complete the installation.
+
+4. After reboot, confirm installation with `wsl --status`.
+</Step>
 <Step title="Install uv">
 
 Open PowerShell and run:
