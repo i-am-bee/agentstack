@@ -8,7 +8,7 @@ Once you've wrapped your agent with the Agent Stack server, you need to containe
 ## Prerequisites
 
 - Docker installed and running (or use GitHub Actions via template)
-- Agent wrapped with Agent Stack SDK ([Wrap Existing Agents](/deploy/wrap-existing-agent) or [Build New Agent](/deploy/build-new-agent))
+- Agent wrapped with Agent Stack SDK ([Wrap Existing Agents](/deploy/wrap-existing-agents) or [Build New Agent](/introduction/start-building-agents))
 - Agent Stack installed ([Quickstart](/introduction/quickstart))
 
 ## Containerize Your Agent
@@ -142,7 +142,7 @@ agentstack build . --dockerfile=./deploy/Containerfile --import
 Now that your agent is deployed, enhance it with extensions:
 
 <CardGroup cols={2}>
-<Card title="LLM Service" icon="rotate" href="/extensions/llm-service">
+<Card title="LLM Service" icon="rotate" href="/extensions/llm-proxy-service">
 Change your agent's LLM at runtime and manage model connections dynamically
 </Card>
 
