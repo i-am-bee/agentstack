@@ -73,6 +73,8 @@ spec:
               value: /app/db.crt
             {{- end }}
             {{- end }}
+            - name: UVICORN_TIMEOUT_KEEP_ALIVE
+              value: {{ .Values.uvicornTimeoutKeepAlive | quote }}
           {{- if and (include "agentstack.databaseSslEnabled" .) .Values.externalDatabase.sslRootCert }}
           volumeMounts:
             - name: db-ssl-cert
