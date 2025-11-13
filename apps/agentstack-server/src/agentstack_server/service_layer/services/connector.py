@@ -118,7 +118,7 @@ class ConnectorService:
                     ) from err
             elif isinstance(err, httpx.RequestError):
                 raise PlatformError(
-                    "Connector must be in connected or auth_required state",
+                    "Unable to establish connection with the connector",
                     status_code=status.HTTP_504_GATEWAY_TIMEOUT,
                 ) from err
             else:
@@ -382,7 +382,11 @@ class ConnectorService:
     async def mcp_proxy(self, *, connector_id: UUID, request: Request, user: User | None = None) -> McpServerResponse:
         connector = await self.read_connector(connector_id=connector_id, user=user)
 
-        forward_headers = {key: request.headers[key] for key in ["accept", "content-type"] if key in request.headers}
+        forward_headers = {
+            key: request.headers[key]
+            for key in ["accept", "content-type", "mcp-protocol-version", "mcp-session-id", "last-event-id"]
+            if key in request.headers
+        }
 
         exit_stack = AsyncExitStack()
         try:
@@ -404,11 +408,13 @@ class ConnectorService:
             )
 
             content_type: str | None = response.headers.get("content-type")
+            session_id: str | None = response.headers.get("mcp-session-id")
             is_stream = content_type.startswith("text/event-stream") if content_type else False
+
             common = {
                 "status_code": response.status_code,
-                "headers": response.headers,
-                "media_type": content_type if is_stream else None,
+                "headers": {"mcp-session-id": session_id} if session_id else {},
+                "media_type": content_type,
             }
             if is_stream:
 
