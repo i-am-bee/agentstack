@@ -131,7 +131,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                 sys.exit(1)
             metadata = resp.json()
 
-        auth_servers = metadata.get("authorization_servers", [])
+        auth_servers = metadata.get("client_data", [])
         auth_server = None
         token = None
 
