@@ -16,7 +16,7 @@ from async_lru import alru_cache
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 from authlib.oauth2.rfc8414 import AuthorizationServerMetadata, get_well_known_url
 from fastapi import Request, status
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from kink import inject
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
@@ -33,7 +33,6 @@ from agentstack_server.domain.models.connector import (
 )
 from agentstack_server.domain.models.user import User
 from agentstack_server.exceptions import EntityNotFoundError, PlatformError
-from agentstack_server.service_layer.services.mcp import McpServerResponse
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
 
 logger = logging.getLogger(__name__)
@@ -379,7 +378,7 @@ class ConnectorService:
                 raise excgroup.exceptions[0] from excgroup
             raise excgroup
 
-    async def mcp_proxy(self, *, connector_id: UUID, request: Request, user: User | None = None) -> McpServerResponse:
+    async def mcp_proxy(self, *, connector_id: UUID, request: Request, user: User | None = None):
         connector = await self.read_connector(connector_id=connector_id, user=user)
 
         forward_headers = {
@@ -403,34 +402,18 @@ class ConnectorService:
                         and connector.auth.token.token_type == "bearer"
                         else {}
                     ),
-                    content=await request.body(),
+                    content=request.stream(),
                 )
             )
 
-            content_type: str | None = response.headers.get("content-type")
-            session_id: str | None = response.headers.get("mcp-session-id")
-            is_stream = content_type.startswith("text/event-stream") if content_type else False
-
-            common = {
-                "status_code": response.status_code,
-                "headers": {"mcp-session-id": session_id} if session_id else {},
-                "media_type": content_type,
-            }
-            if is_stream:
-
-                async def stream_fn():
-                    try:
-                        async for chunk in response.aiter_bytes():
-                            yield chunk
-                    finally:
-                        await exit_stack.pop_all().aclose()
-
-                return McpServerResponse(content=None, stream=stream_fn(), **common)
-            else:
+            async def stream_fn():
                 try:
-                    return McpServerResponse(content=await response.aread(), stream=None, **common)
+                    async for chunk in response.aiter_bytes():
+                        yield chunk
                 finally:
                     await exit_stack.pop_all().aclose()
+
+            return StreamingResponse(stream_fn(), status_code=response.status_code, headers=response.headers)
         except BaseException:
             await exit_stack.pop_all().aclose()
             raise
