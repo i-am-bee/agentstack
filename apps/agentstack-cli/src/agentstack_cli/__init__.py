@@ -14,13 +14,52 @@ import agentstack_cli.commands.model
 import agentstack_cli.commands.platform
 import agentstack_cli.commands.self
 import agentstack_cli.commands.server
-from agentstack_cli.async_typer import AsyncTyper
+from agentstack_cli.async_typer import AliasGroup, AsyncTyper
 from agentstack_cli.configuration import Configuration
 
 logging.basicConfig(level=logging.INFO if Configuration().debug else logging.FATAL)
 logging.getLogger("httpx").setLevel(logging.WARNING)  # not sure why this is necessary
 
-app = AsyncTyper(no_args_is_help=True)
+
+class RootHelpGroup(AliasGroup):
+    def get_help(self, ctx):
+        return """\
+Usage: agentstack [OPTIONS] COMMAND [ARGS]...
+
+╭─ Getting Started ──────────────────────────────────────────────────────────╮
+│ ui       Launch the web interface                                          │
+│ list     View all available agents                                         │
+│ run      Run an agent interactively                                        │
+╰────────────────────────────────────────────────────────────────────────────╯
+
+╭─ Agent Management ─────────────────────────────────────────────────────────╮
+│ add                               Install an agent (Docker, GitHub, local) │
+│ remove                            Uninstall an agent                       │
+│ info                              Show agent details                       │
+│ logs                              Stream agent execution logs              │
+│ build                             Build an agent container image           │
+│ env                               Manage agent environment variables       │
+│ server-side-build [EXPERIMENTAL]  Build agents remotely                    │
+╰────────────────────────────────────────────────────────────────────────────╯
+
+╭─ Platform & Configuration ─────────────────────────────────────────────────╮
+│ model           Configure 15+ LLM providers                                │
+│ platform        Start, stop, or delete local platform                      │
+│ server          Connect to remote Agent Stack servers                      │
+│ self version    Show Agent Stack CLI and Platform version                  │
+│ self upgrade    Upgrade Agent Stack CLI and Platform                       │
+│ self uninstall  Uninstall Agent Stack CLI and Platform                     │
+╰────────────────────────────────────────────────────────────────────────────╯
+
+╭─ Options ──────────────────────────────────────────────────────────────────╮
+│ --help                Show this help message                               │
+│ --show-completion     Show tab completion script                           │
+│ --install-completion  Enable tab completion for commands                   │
+╰────────────────────────────────────────────────────────────────────────────╯
+"""
+
+
+app = AsyncTyper(no_args_is_help=True, cls=RootHelpGroup)
 app.add_typer(agentstack_cli.commands.model.app, name="model", no_args_is_help=True, help="Manage model providers.")
 app.add_typer(agentstack_cli.commands.agent.app, name="agent", no_args_is_help=True, help="Manage agents.")
 app.add_typer(
