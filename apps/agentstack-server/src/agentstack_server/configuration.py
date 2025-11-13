@@ -285,6 +285,7 @@ class Configuration(BaseSettings):
     connector: ConnectorConfiguration = Field(default_factory=ConnectorConfiguration)
     k8s_namespace: str | None = None
     k8s_kubeconfig: Path | None = None
+    uvicorn_timeout_keep_alive: int = 5
 
     provider: ManagedProviderConfiguration = Field(default_factory=ManagedProviderConfiguration)
 

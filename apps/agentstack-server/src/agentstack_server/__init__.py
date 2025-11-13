@@ -46,8 +46,7 @@ def serve():
             "agentstack_server.application:app",
             f"--host={host}",
             f"--port={config.port}",
-            "--timeout-keep-alive=2",
-            "--timeout-graceful-shutdown=2",
+            f"--timeout-keep-alive={config.uvicorn_timeout_keep_alive}",
         ],
     )
 

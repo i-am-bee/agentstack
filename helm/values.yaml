@@ -237,6 +237,9 @@ tolerations: [ ]
 
 affinity: { }
 
+# Uvicorn --timeout-keep-alive (in seconds)
+uvicornTimeoutKeepAlive: 5
+
 connector:
   presets:
     - url: "https://mcp.stripe.com"

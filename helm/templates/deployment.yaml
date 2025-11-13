@@ -305,6 +305,8 @@ spec:
                 secretKeyRef:
                   key: presets.json
                   name: agentstack-connectors-secret
+            - name: UVICORN_TIMEOUT_KEEP_ALIVE
+              value: {{ .Values.uvicornTimeoutKeepAlive | quote }}
           volumeMounts:
             {{- if .Values.providerBuilds.externalClusterExecutor.kubeconfig }}
             - name: provider-build-external-kubeconfig
