@@ -14,5 +14,10 @@ export function HomeHeading() {
     config: { appName },
   } = useApp();
 
-  return <h1 className={classes.root}>Welcome to {appName}</h1>;
+  return (
+    <h1 className={classes.root}>
+      Welcome to {appName}.<br />
+      No&nbsp;agents yet —&nbsp;discover what’s possible.
+    </h1>
+  );
 }

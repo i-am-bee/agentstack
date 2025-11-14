@@ -23,3 +23,9 @@ export enum InteractionMode {
   MultiTurn = 'multi-turn',
   SingleTurn = 'single-turn',
 }
+
+export enum ListAgentsOrderBy {
+  Name = 'name',
+  CreatedAt = 'created_at',
+  LastActiveAt = 'last_active_at',
+}

@@ -4,5 +4,5 @@
  */
 
 .root {
-  @include hide-popover();
+  @include line-clamp();
 }

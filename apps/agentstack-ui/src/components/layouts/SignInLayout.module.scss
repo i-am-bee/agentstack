@@ -1,0 +1,18 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.root {
+  @include scrollbar();
+  display: grid;
+  block-size: 100dvh;
+  grid-template-areas: 'main';
+  padding-block: $spacing-06;
+}
+
+.main {
+  grid-area: main;
+  display: grid;
+  view-transition-name: main;
+}

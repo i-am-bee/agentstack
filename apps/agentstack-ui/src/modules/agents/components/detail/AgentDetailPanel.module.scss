@@ -27,14 +27,3 @@
 .author {
   font-size: rem(14px);
 }
-
-.docsLink {
-  display: flex;
-  align-items: center;
-  gap: $spacing-02;
-  color: $text-primary;
-  text-decoration: none;
-  max-inline-size: max-content;
-
-  @include type-style('body-01');
-}

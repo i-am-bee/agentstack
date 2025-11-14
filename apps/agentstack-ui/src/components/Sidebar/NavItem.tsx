@@ -6,7 +6,7 @@
 import type { CarbonIconType } from '@carbon/icons-react';
 import { Button, ButtonSkeleton } from '@carbon/react';
 import clsx from 'clsx';
-import type { MouseEventHandler } from 'react';
+import type { ComponentType, MouseEventHandler, SVGProps } from 'react';
 
 import { TransitionLink } from '#components/TransitionLink/TransitionLink.tsx';
 
@@ -15,14 +15,14 @@ import classes from './NavItem.module.scss';
 export interface NavItemProps {
   label: string;
   href?: string;
-  Icon?: CarbonIconType;
+  Icon?: CarbonIconType | ComponentType<SVGProps<SVGElement>>;
   isActive?: boolean;
   isExternal?: boolean;
   hasDivider?: boolean;
   onClick?: MouseEventHandler<HTMLElement>;
 }
 
-export function NavItem({ label, href, Icon, isActive, isExternal }: NavItemProps) {
+export function NavItem({ label, href, Icon, isActive, isExternal, onClick }: NavItemProps) {
   return (
     <li>
       <Button
@@ -30,7 +30,8 @@ export function NavItem({ label, href, Icon, isActive, isExternal }: NavItemProp
         kind="ghost"
         size="sm"
         className={clsx(classes.button, { [classes.isActive]: isActive })}
-        {...(isExternal ? { target: '_blank', rel: 'noreferrer' } : { as: TransitionLink })}
+        onClick={onClick}
+        {...(isExternal ? { target: '_blank', rel: 'noreferrer' } : href ? { as: TransitionLink } : {})}
       >
         {Icon && <Icon className={classes.icon} />}
 

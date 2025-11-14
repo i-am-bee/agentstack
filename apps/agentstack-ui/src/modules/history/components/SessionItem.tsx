@@ -17,21 +17,18 @@ import classes from './SessionItem.module.scss';
 export interface SessionItem {
   contextId: string;
   providerId: string;
-  href: string;
   heading: string;
-  agentName?: string;
   isActive?: boolean;
 }
 
-export function SessionItem({ contextId, providerId, href, heading, agentName, isActive }: SessionItem) {
+export function SessionItem({ contextId, providerId, heading, isActive }: SessionItem) {
   const router = useRouter();
   const [optionsOpen, setOptionsOpen] = useState(false);
 
   const { mutateAsync: deleteContext } = useDeleteContext({
     onMutate: () => {
       if (isActive) {
-        // TODO: should somehow invalidate the path
-        router.push(routes.agentRun({ providerId }));
+        router.replace(routes.agentRun({ providerId }));
       }
     },
   });
@@ -43,19 +40,12 @@ export function SessionItem({ contextId, providerId, href, heading, agentName, i
         [classes.optionsOpen]: optionsOpen,
       })}
     >
-      <Link href={href} className={classes.link}>
-        <span className={classes.heading}>{heading}</span>
-
-        {agentName && <span className={classes.agentName}>{agentName}</span>}
+      <Link href={routes.agentRun({ providerId, contextId })} className={classes.link}>
+        {heading}
       </Link>
 
       <div className={classes.options}>
-        <OverflowMenu
-          aria-label="Options"
-          size="sm"
-          onOpen={() => setOptionsOpen(true)}
-          onClose={() => setOptionsOpen(false)}
-        >
+        <OverflowMenu aria-label="Options" onOpen={() => setOptionsOpen(true)} onClose={() => setOptionsOpen(false)}>
           <OverflowMenuItem itemText="Delete" isDelete onClick={() => deleteContext({ context_id: contextId })} />
         </OverflowMenu>
       </div>

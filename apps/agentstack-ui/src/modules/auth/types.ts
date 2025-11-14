@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-.root {
-  background-color: $background;
+export interface AuthProvider {
+  id: string;
+  name: string;
 }
