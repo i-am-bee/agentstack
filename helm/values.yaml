@@ -64,9 +64,18 @@ auth:
     validate_audience: true
     providers: [
       {
+        "name": "IBMiD-PKCE",
+        "id": "ibmid-pkce",
+        "type": "oidc",
+        "app": "cli", # one of "ui" or "cli". Controls where this identity provider is presented
+        "client_id": "<oidc_client_id>",
+        "client_secret": "", # empty string for public client
+        "issuer": "<oidc_issuer>",
+      },
+      {
         "name": "w3id",
         "id": "w3id",
-        "class": "IBM",
+        "app": "ui", # one of "ui" or "cli". Controls where this identity provider is presented
         "client_id": "<oidc_client_id>",
         "client_secret": "<oidc_client_secret>",
         "issuer": "<oidc_issuer>",

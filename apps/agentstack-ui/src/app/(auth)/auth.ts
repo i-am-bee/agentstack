@@ -33,13 +33,14 @@ if (isAuthEnabled) {
   }
 
   for (const provider of providersConfig) {
-    const { id, name, issuer, client_id, client_secret } = provider;
+    const { id, name, app, issuer, client_id, client_secret } = provider;
     const providerConstructor = getProviderConstructor(name.toLocaleLowerCase());
-    if (providerConstructor) {
+    if (providerConstructor && app === 'ui') {
       providers.push(
         providerConstructor({
           id,
           name,
+          app,
           type: 'oidc',
           issuer,
           clientId: client_id,

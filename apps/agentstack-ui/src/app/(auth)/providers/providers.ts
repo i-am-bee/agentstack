@@ -10,6 +10,7 @@ export function getProviderConstructor(name: string) {
     case 'w3id':
     case 'ibmid':
     case 'ibm':
+    case 'ibmid-pkce':
       return IBMProvider;
     default:
       throw new Error(`No provider found for name: ${name}`);

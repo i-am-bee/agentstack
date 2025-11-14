@@ -72,6 +72,7 @@ class AgentRegistryConfiguration(BaseModel):
 class OidcProvider(BaseModel):
     name: str
     issuer: AnyUrl
+    app: str
     client_id: str
     client_secret: Secret[str]
 

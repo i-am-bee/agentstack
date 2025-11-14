@@ -43,7 +43,7 @@ async def api_request(
             timeout=60,
             headers=(
                 {"Authorization": f"Bearer {token}"}
-                if use_auth and (token := config.auth_manager.load_auth_token())
+                if use_auth and (token := await config.auth_manager.load_auth_token())
                 else {}
             ),
         )
@@ -82,7 +82,7 @@ async def api_stream(
             timeout=timedelta(hours=1).total_seconds(),
             headers=(
                 {"Authorization": f"Bearer {token}"}
-                if use_auth and (token := config.auth_manager.load_auth_token())
+                if use_auth and (token := await config.auth_manager.load_auth_token())
                 else {}
             ),
         ) as response,
@@ -106,7 +106,7 @@ async def a2a_client(agent_card: AgentCard, use_auth: bool = True) -> AsyncItera
     async with httpx.AsyncClient(
         headers=(
             {"Authorization": f"Bearer {token}"}
-            if use_auth and (token := config.auth_manager.load_auth_token())
+            if use_auth and (token := await config.auth_manager.load_auth_token())
             else {}
         ),
         follow_redirects=True,
