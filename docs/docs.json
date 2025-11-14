@@ -12,10 +12,7 @@
     "groups": [
       {
         "group": "Introduction",
-        "pages": [
-          "introduction/welcome",
-          "introduction/quickstart"
-        ]
+        "pages": ["introduction/welcome", "introduction/quickstart"]
       },
       {
         "group": "Deploy Agents",
@@ -43,14 +40,13 @@
           "agent-development/mcp-oauth",
           "agent-development/mcp",
           "agent-development/env-variables",
-          "agent-development/error"
+          "agent-development/error",
+          "agent-development/tool-calls"
         ]
       },
       {
         "group": "Reference",
-        "pages": [
-          "reference/cli-reference"
-        ]
+        "pages": ["reference/cli-reference"]
       },
       {
         "group": "Deploy Agent Stack",
@@ -62,17 +58,11 @@
       },
       {
         "group": "Custom UI Integration",
-        "pages": [
-          "custom-ui/client-sdk",
-          "custom-ui/permissions-and-tokens"
-        ]
+        "pages": ["custom-ui/client-sdk", "custom-ui/permissions-and-tokens"]
       },
       {
         "group": "Experimental",
-        "pages": [
-          "experimental/connectors",
-          "experimental/a2a-proxy"
-        ]
+        "pages": ["experimental/connectors", "experimental/a2a-proxy"]
       },
       {
         "group": "Community",
