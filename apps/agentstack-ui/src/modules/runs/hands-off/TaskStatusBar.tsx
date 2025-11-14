@@ -22,7 +22,7 @@ export function TaskStatusBar({ onStopClick }: Props) {
   return stats?.startTime ? (
     <RunStatusBar isPending={isPending} onStopClick={onStopClick}>
       {isNotInstalled || isStarting ? (
-        'Starting the agent, please bee patient...'
+        'Agent is starting up…'
       ) : (
         <>
           Task {isPending ? 'running for' : 'completed in'} <RunElapsedTime stats={stats} />

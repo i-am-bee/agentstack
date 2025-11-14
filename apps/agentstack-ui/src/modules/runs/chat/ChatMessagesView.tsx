@@ -104,7 +104,7 @@ export function ChatMessagesView() {
           <div className={classes.bottomHolder}>
             <Container size="sm" className={classes.bottomContainer}>
               {isPending && (isNotInstalled || isStarting) ? (
-                <RunStatusBar isPending>Starting the agent, please bee patient&hellip;</RunStatusBar>
+                <RunStatusBar isPending>Agent is starting up…</RunStatusBar>
               ) : (
                 <RunInput />
               )}
