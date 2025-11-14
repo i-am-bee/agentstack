@@ -10,17 +10,3 @@
   min-block-size: 100%;
   padding-block-start: $spacing-09;
 }
-
-.footer {
-  margin-block-start: auto;
-}
-
-.infoText {
-  color: $text-placeholder;
-  a {
-    color: $text-dark;
-    &:hover {
-      text-decoration: none;
-    }
-  }
-}
