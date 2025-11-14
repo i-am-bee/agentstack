@@ -42,10 +42,10 @@ export function UserNav() {
         className={classes.button}
         menuOptionsClass={classes.menu}
       >
-        {items.map(({ label, href, Icon, isExternal, hasDivider, onClick }, idx) => {
+        {items.map(({ label, href, Icon, isExternal, hasDivider, onClick }) => {
           return (
             <OverflowMenuItem
-              key={idx}
+              key={label}
               href={href}
               onClick={(event) => {
                 onClick?.(event);
