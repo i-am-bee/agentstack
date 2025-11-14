@@ -827,12 +827,6 @@ async def run_agent(
             )
 
 
-def render_enum(value: str, colors: dict[str, str]) -> str:
-    if color := colors.get(value):
-        return f"[{color}]{value}[/{color}]"
-    return value
-
-
 @app.command("list")
 async def list_agents():
     """List agents."""
@@ -852,7 +846,7 @@ async def list_agents():
     with create_table(
         Column("Short ID", style="yellow"),
         Column("Name", style="yellow"),
-        Column("State", width=len("starting")),
+        Column("State"),
         Column("Description", ratio=2),
         Column("Interaction"),
         Column("Location", max_width=min(max(max_provider_len, len("Location")), 70)),
@@ -868,18 +862,15 @@ async def list_agents():
             table.add_row(
                 provider.id[:8],
                 provider.agent_card.name,
-                render_enum(
-                    state or "<unknown>",
-                    {
-                        "running": "green",
-                        "online": "green",
-                        "ready": "blue",
-                        "starting": "blue",
-                        "missing": "grey",
-                        "offline": "grey",
-                        "error": "red",
-                    },
-                ),
+                {
+                    "running": "[green]▶ running[/green]",
+                    "online": "[green]● connected[/green]",
+                    "ready": "[green]● idle[/green]",
+                    "starting": "[yellow]✱ starting[/yellow]",
+                    "missing": "[bright_black]○ not started[/bright_black]",
+                    "offline": "[bright_black]○ disconnected[/bright_black]",
+                    "error": "[red]✘ error[/red]",
+                }.get(state, state or "<unknown>"),
                 (provider.agent_card.description or "<none>").replace("\n", " "),
                 (ProviderUtils.detail(provider) or {}).get("interaction_mode") or "<none>",
                 ProviderUtils.short_location(provider) or "<none>",
