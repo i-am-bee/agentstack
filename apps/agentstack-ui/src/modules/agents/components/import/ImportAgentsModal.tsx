@@ -44,10 +44,10 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
     register,
     handleSubmit,
     resetField,
-    formState: { isValid },
+    formState: { isValid, errors },
     control,
   } = useForm<ImportAgentFormValues>({
-    mode: 'onChange',
+    mode: 'onTouched',
     defaultValues: {
       source: featureFlags.ProviderBuilds ? ProviderSource.GitHub : ProviderSource.Docker,
     },
@@ -140,30 +140,34 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
                 <RadioButton labelText="Container image URL" value={ProviderSource.Docker} />
               </RadioButtonGroup>
 
-              {sourceField.value === ProviderSource.GitHub ? (
-                <TextInput
-                  id={`${id}:location`}
-                  size="lg"
-                  labelText="GitHub repository URL"
-                  placeholder="Enter your agent’s GitHub repository URL"
-                  hideLabel
-                  {...register('location', { required: true, disabled: isPending })}
-                />
-              ) : (
-                <TextInput
-                  id={`${id}:location`}
-                  size="lg"
-                  labelText="Container image URL"
-                  placeholder="Enter your agent’s container image URL"
-                  hideLabel
-                  {...register('location', {
-                    required: true,
-                    disabled: isPending,
-                    validate: (value) => isValidUrl(value) || 'Invalid URL',
-                    setValueAs: (value) => (value ?? '').trim(),
-                  })}
-                />
-              )}
+              <TextInput
+                id={`${id}:location`}
+                size="lg"
+                hideLabel
+                invalid={Boolean(errors.location)}
+                invalidText={errors.location?.message}
+                {...(sourceField.value === ProviderSource.GitHub
+                  ? {
+                      labelText: 'GitHub repository URL',
+                      placeholder: 'Enter your agent’s GitHub repository URL',
+                    }
+                  : {
+                      labelText: 'Container image URL',
+                      placeholder: 'Enter your agent’s container image URL',
+                    })}
+                {...register('location', {
+                  required: 'Enter your agent’s location.',
+                  disabled: isPending,
+                  setValueAs: (value: string) => value.trim(),
+                  validate: (value: string) => {
+                    if (sourceField.value === ProviderSource.GitHub) {
+                      return isValidUrl(value) || 'Enter a valid GitHub repository URL.';
+                    }
+
+                    return true;
+                  },
+                })}
+              />
             </div>
           )}
 

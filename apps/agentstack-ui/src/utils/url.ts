@@ -10,8 +10,9 @@ export const isAbsoluteUrl = (url: string) => ABSOLUTE_URL_REGEX.test(url);
 
 export const isValidUrl = (value: string): boolean => {
   try {
-    const url = new URL(value);
-    return (url && url.protocol === 'http:') || url.protocol === 'https:';
+    const { protocol } = new URL(value);
+
+    return protocol === 'http:' || protocol === 'https:';
   } catch {
     return false;
   }
