@@ -111,8 +111,9 @@ auth:
 ```
 
 #### Admin authentication
-The admin password protects only selected dangerous functionalities, for example, deployment and deletion of agents.
-It is intended for basic experimentation and POCs where a proper OIDC/OAuth provider is not available.
+The admin password protects only administrative operations: deploying/deleting agents and modifying LLM provider connections. **All other functionality is accessible to anyone who can reach the application on your network**, including: listing/using agents, uploading files, creating vector stores, managing sessions, and giving feedback.
+
+This is intended for basic experimentation and POCs behind VPNs/firewalls where you control network access. For production deployments or multi-user environments, use OIDC authentication instead.
 ```yaml
 auth:
   enabled: true
