@@ -833,7 +833,6 @@ async def list_agents():
     async with configuration.use_platform_client():
         providers = await Provider.list()
     max_provider_len = max(len(ProviderUtils.short_location(p)) for p in providers) if providers else 0
-    max_error_len = max(len(ProviderUtils.last_error(p) or "") for p in providers) if providers else 0
 
     def _sort_fn(provider: Provider):
         state = {"missing": "1"}
@@ -847,18 +846,11 @@ async def list_agents():
         Column("Short ID", style="yellow"),
         Column("Name", style="yellow"),
         Column("State"),
-        Column("Description", ratio=2),
-        Column("Interaction"),
         Column("Location", max_width=min(max(max_provider_len, len("Location")), 70)),
-        Column("Missing Env", max_width=50),
-        Column("Last Error", max_width=min(max(max_error_len, len("Last Error")), 50)),
+        Column("Info", ratio=2),
         no_wrap=True,
     ) as table:
         for provider in sorted(providers, key=_sort_fn):
-            state = None
-            missing_env = None
-            state = provider.state
-            missing_env = ",".join(var.name for var in provider.missing_configuration)
             table.add_row(
                 provider.id[:8],
                 provider.agent_card.name,
@@ -870,12 +862,15 @@ async def list_agents():
                     "missing": "[bright_black]○ not started[/bright_black]",
                     "offline": "[bright_black]○ disconnected[/bright_black]",
                     "error": "[red]✘ error[/red]",
-                }.get(state, state or "<unknown>"),
-                (provider.agent_card.description or "<none>").replace("\n", " "),
-                (ProviderUtils.detail(provider) or {}).get("interaction_mode") or "<none>",
+                }.get(provider.state, provider.state or "<unknown>"),
                 ProviderUtils.short_location(provider) or "<none>",
-                missing_env or "<none>",
-                ProviderUtils.last_error(provider) or "<none>",
+                (
+                    f"Error: {error}"
+                    if provider.state == "error" and (error := ProviderUtils.last_error(provider))
+                    else f"Missing ENV: {{{', '.join(missing_env)}}}"
+                    if (missing_env := [var.name for var in provider.missing_configuration])
+                    else "<none>"
+                ),
             )
     console.print(table)
 
