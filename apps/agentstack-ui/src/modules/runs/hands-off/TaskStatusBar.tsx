@@ -6,6 +6,7 @@
 
 import { RunElapsedTime } from '../components/RunElapsedTime';
 import { RunStatusBar } from '../components/RunStatusBar';
+import { AGENT_STARTING_MESSAGE } from '../constants';
 import { useAgentRun } from '../contexts/agent-run';
 import { useAgentStatus } from '../contexts/agent-status';
 
@@ -22,7 +23,7 @@ export function TaskStatusBar({ onStopClick }: Props) {
   return stats?.startTime ? (
     <RunStatusBar isPending={isPending} onStopClick={onStopClick}>
       {isNotInstalled || isStarting ? (
-        'Agent is starting up…'
+        AGENT_STARTING_MESSAGE
       ) : (
         <>
           Task {isPending ? 'running for' : 'completed in'} <RunElapsedTime stats={stats} />
