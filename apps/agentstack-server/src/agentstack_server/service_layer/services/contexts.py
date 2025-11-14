@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
+from contextlib import suppress
 from datetime import timedelta
 from uuid import UUID
 
@@ -22,7 +23,7 @@ from agentstack_server.domain.models.context import (
 )
 from agentstack_server.domain.models.user import User
 from agentstack_server.domain.repositories.file import IObjectStorageRepository
-from agentstack_server.exceptions import PlatformError
+from agentstack_server.exceptions import EntityNotFoundError, PlatformError
 from agentstack_server.service_layer.services.model_providers import ModelProviderService
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
 from agentstack_server.utils.utils import filter_dict, utc_now
@@ -97,7 +98,6 @@ class ContextService:
 
             # Files
             file_ids = [file.id async for file in uow.files.list(user_id=user.id, context_id=context_id)]
-            await self._object_storage.delete_files(file_ids=file_ids)
             # File DB objects are deleted automatically using cascade
 
             # Vector stores
@@ -106,25 +106,40 @@ class ContextService:
             await uow.contexts.delete(context_id=context_id, user_id=user.id)
             await uow.commit()
 
-    async def _cleanup_expired_resources(self, context_id: UUID) -> dict[str, int]:
-        """Delete resources attached to context"""
-        deleted_stats = {"files": 0, "vector_stores": 0}
-        async with self._uow() as uow:
-            # Files
-            file_ids = [file.id async for file in uow.files.list(context_id=context_id)]
-            await self._object_storage.delete_files(file_ids=file_ids)
-            deleted_stats["files"] = await uow.files.delete(context_id=context_id)
-
-            # Vector stores
-            deleted_stats["vector_stores"] = await uow.vector_stores.delete(context_id=context_id)
-            await uow.commit()
-        return deleted_stats
+        # TODO: a cronjob should sweep the files if the deletion fails here
+        await self._object_storage.delete_files(file_ids=file_ids)
 
     async def expire_resources(self) -> dict[str, int]:
-        deleted_stats = {}
-        async with self._uow() as uow:
-            async for context in uow.contexts.list(last_active_before=utc_now() - self._expire_resources_after):
-                deleted_stats.update(await self._cleanup_expired_resources(context_id=context.id))
+        deleted_stats = {"files": 0, "vector_stores": 0}
+        page_token = None
+        has_more = True
+
+        while has_more:
+            file_ids = []
+            async with self._uow() as uow:
+                # TODO: mark contexts as cleaned up to filter them out in next cleanup
+                page = await uow.contexts.list_paginated(
+                    last_active_before=utc_now() - self._expire_resources_after,
+                    page_token=page_token,
+                    limit=100,
+                )
+                for context in page.items:
+                    # Files
+                    file_ids.extend([file.id async for file in uow.files.list(context_id=context.id)])
+                    with suppress(EntityNotFoundError):
+                        deleted_stats["files"] += await uow.files.delete(context_id=context.id)
+
+                    # Vector stores
+                    with suppress(EntityNotFoundError):
+                        deleted_stats["vector_stores"] += await uow.vector_stores.delete(context_id=context.id)
+                await uow.commit()
+
+            page_token = page.next_page_token
+            has_more = page.has_more
+
+            # TODO: a cronjob should sweep the files if the deletion fails here
+            await self._object_storage.delete_files(file_ids=file_ids)
+
         return deleted_stats
 
     async def update_last_active(self, *, context_id: UUID) -> None:
