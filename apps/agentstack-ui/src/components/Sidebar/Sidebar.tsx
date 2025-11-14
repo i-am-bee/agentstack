@@ -24,7 +24,10 @@ interface Props {
 export function Sidebar({ className }: Props) {
   const navRef = useRef<HTMLDivElement>(null);
 
-  const { sidebarOpen } = useApp();
+  const {
+    config: { isAuthEnabled },
+    sidebarOpen,
+  } = useApp();
 
   return (
     <div ref={navRef} className={clsx(classes.root, className, { [classes.isOpen]: sidebarOpen })}>
@@ -46,7 +49,13 @@ export function Sidebar({ className }: Props) {
         <footer className={classes.stack}>
           <SideNav />
 
-          <UserNav />
+          {isAuthEnabled && (
+            <>
+              <hr className={classes.separator} />
+
+              <UserNav />
+            </>
+          )}
         </footer>
       </div>
     </div>

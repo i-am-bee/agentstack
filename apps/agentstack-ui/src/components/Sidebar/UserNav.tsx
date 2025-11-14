@@ -5,17 +5,14 @@
 
 'use client';
 
-import { LogoGithub, Logout, Settings } from '@carbon/icons-react';
+import { Logout } from '@carbon/icons-react';
 import { OverflowMenu, OverflowMenuItem } from '@carbon/react';
 import { signOut } from 'next-auth/react';
 import type { PropsWithChildren } from 'react';
 import { useMemo } from 'react';
 
 import UserAvatar from '#components/UserAvatar/UserAvatar.tsx';
-import { useApp } from '#contexts/App/index.ts';
 import { useRouteTransition } from '#contexts/TransitionContext/index.ts';
-import { useBreakpointUp } from '#hooks/useBreakpoint.ts';
-import { GET_SUPPORT_LINK } from '#utils/constants.ts';
 import { routes } from '#utils/router.ts';
 
 import type { NavItemProps } from './NavItem';
@@ -23,83 +20,56 @@ import classes from './UserNav.module.scss';
 
 export function UserNav() {
   const { transitionTo } = useRouteTransition();
-  const {
-    config: { isAuthEnabled },
-    closeSidebar,
-  } = useApp();
-  const isMaxUp = useBreakpointUp('max');
 
   const items: NavItemProps[] = useMemo(
-    () =>
-      isAuthEnabled
-        ? [
-            ...NAV_ITEMS,
-            {
-              label: 'Log out',
-              Icon: Logout,
-              hasDivider: true,
-              onClick: () => {
-                signOut({ redirectTo: routes.signIn() });
-              },
-            },
-          ]
-        : NAV_ITEMS,
-    [isAuthEnabled],
+    () => [
+      {
+        label: 'Log out',
+        Icon: Logout,
+        onClick: () => signOut({ redirectTo: routes.signIn() }),
+      },
+    ],
+    [],
   );
 
   return (
-    <OverflowMenu
-      renderIcon={isAuthEnabled ? UserAvatar : Settings}
-      size="sm"
-      aria-label="User navigation"
-      direction="top"
-      menuOptionsClass={classes.menu}
-    >
-      {items.map(({ label, href, Icon, isExternal, hasDivider, onClick }, idx) => {
-        return (
-          <OverflowMenuItem
-            key={idx}
-            href={href}
-            onClick={(event) => {
-              onClick?.(event);
+    <div className={classes.root}>
+      <OverflowMenu
+        renderIcon={UserAvatar}
+        size="sm"
+        aria-label="User navigation"
+        direction="top"
+        className={classes.button}
+        menuOptionsClass={classes.menu}
+      >
+        {items.map(({ label, href, Icon, isExternal, hasDivider, onClick }) => {
+          return (
+            <OverflowMenuItem
+              key={label}
+              href={href}
+              onClick={(event) => {
+                onClick?.(event);
 
-              if (isExternal) {
-                return;
-              }
-
-              if (href) {
-                transitionTo(href);
-
-                if (!isMaxUp) {
-                  closeSidebar();
+                if (isExternal) {
+                  return;
                 }
 
-                event.preventDefault();
-              }
-            }}
-            itemText={<Label Icon={Icon}>{label}</Label>}
-            hasDivider={hasDivider}
-            {...(isExternal ? { target: '_blank', rel: 'noreferrer' } : {})}
-          />
-        );
-      })}
-    </OverflowMenu>
+                if (href) {
+                  transitionTo(href);
+
+                  event.preventDefault();
+                }
+              }}
+              itemText={<Label Icon={Icon}>{label}</Label>}
+              hasDivider={hasDivider}
+              {...(isExternal ? { target: '_blank', rel: 'noreferrer' } : {})}
+            />
+          );
+        })}
+      </OverflowMenu>
+    </div>
   );
 }
-
-const NAV_ITEMS: NavItemProps[] = [
-  {
-    label: 'App settings',
-    href: routes.settings(),
-  },
-  {
-    label: 'Get support',
-    href: GET_SUPPORT_LINK,
-    Icon: LogoGithub,
-    isExternal: true,
-    hasDivider: true,
-  },
-];
 
 function Label({ Icon, children }: PropsWithChildren<Pick<NavItemProps, 'Icon'>>) {
   if (Icon) {
