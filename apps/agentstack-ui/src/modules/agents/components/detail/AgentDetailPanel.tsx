@@ -51,7 +51,7 @@ export function AgentDetailPanel() {
                 {!isPending ? (
                   <>
                     <div className={classes.mainInfo}>
-                      {description && <MarkdownContent className={classes.description}>{description}</MarkdownContent>}
+                      {description && <MarkdownContent>{description}</MarkdownContent>}
 
                       {(author || contributors) && <AgentCredits author={author} contributors={contributors} />}
                     </div>

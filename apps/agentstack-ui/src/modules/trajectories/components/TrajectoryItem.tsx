@@ -10,6 +10,7 @@ import { match } from 'ts-pattern';
 
 import { CodeSnippet } from '#components/CodeSnippet/CodeSnippet.tsx';
 import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
+import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 import type { UITrajectoryPart } from '#modules/messages/types.ts';
 import { maybeParseJson } from '#modules/runs/utils.ts';
 import { fadeProps } from '#utils/fadeProps.ts';
@@ -38,8 +39,8 @@ export function TrajectoryItem({ trajectory }: Props) {
         {parsed.map((item, idx) =>
           match(item)
             .with({ type: 'string' }, ({ value }) => (
-              <LineClampText lines={5} key={idx}>
-                {value}
+              <LineClampText lines={5} key={idx} useBlockElement>
+                <MarkdownContent className={classes.content}>{value}</MarkdownContent>
               </LineClampText>
             ))
             .otherwise(({ value }) => {
