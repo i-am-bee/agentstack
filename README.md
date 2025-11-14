@@ -95,7 +95,7 @@ You should see: "Ciao Alice!" 🎉
 
 Reference implementations demonstrating core Agent Stack capabilities.
 
-- [BeeAI Showcase Agent](https://github.com/jenna-winkler/beeai-showcase-agent) - Full-featured chat assistant demonstrating RequirementAgent with conditional tool use, web search (DuckDuckGo), advanced reasoning (ThinkTool), file handling (PDF/CSV/JSON), streaming, UI feature toggles, trajectory logging, and citation extraction.
+- [Agent Stack Showcase](https://github.com/jenna-winkler/agentstack-showcase) - Full-featured chat assistant demonstrating RequirementAgent with conditional tool use, web search (DuckDuckGo), advanced reasoning (ThinkTool), file handling (PDF/CSV/JSON), streaming, UI feature toggles, trajectory logging, and citation extraction.
 - [Serper Search Agent](https://github.com/jenna-winkler/serper-search-agent) - Web search agent showing runtime secrets management (Secrets Extension), custom tool creation (SerperSearchTool), automatic query term extraction, and structured results with citations.
 - [GitHub Issue Writer](https://github.com/jenna-winkler/github_issue_writer) - Single-turn workflow using the Form Extension for multi-field input, AI-enhanced issue drafting with ThinkTool, and Markdown formatting.
 - [Chat Agent](https://github.com/i-am-bee/agentstack/tree/main/agents/chat) - Multi-turn conversational agent using RequirementAgent, ActTool for reasoning sequences, and ClarificationTool for ambiguous queries. Integrates DuckDuckGo, Wikipedia, OpenMeteo, and file tools with UnconstrainedMemory, streaming, citation extraction, and OpenTelemetry instrumentation.
