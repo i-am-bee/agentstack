@@ -65,11 +65,10 @@ For the best experience, we recommend Linux or macOS.
 Open PowerShell as Administrator and run:
 
 ```powershell
-wsl.exe --install --no-launch --web-download
-wsl.exe --update
+wsl.exe --install
 ```
 
-Reboot your PC to complete the installation.
+Reboot your PC to complete the installation. You may need to run the command again after rebooting if WSL was not previously installed. Follow the prompts until you reach a working Linux terminal (launch by calling `wsl.exe` without arguments), at which point you can close it and proceed to the next step.
 
 </Step>
 <Step title="Install uv">
@@ -116,7 +115,7 @@ Close and reopen your terminal after installation.
 <Step title="Install Agent Stack">
 
 ```bash
-uv tool install --force --python-preference=only-managed --python=3.13 agentstack-cli && agentstack self install
+uv tool install --force --python-preference=only-managed --python=3.13 agentstack-cli; agentstack self install
 ```
 
 Follow the interactive prompts to finish the installation and setup.
