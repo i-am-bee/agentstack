@@ -38,7 +38,7 @@ export function SessionsNav() {
           const agentName = agent?.name || metadata?.agentName;
           const isActive = providerIdUrlParam === providerId && contextIdUrlParam === contextId;
 
-          if (!providerId || !contextId) {
+          if (!providerId || !contextId || !agent) {
             return null;
           }
 
