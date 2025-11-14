@@ -17,6 +17,7 @@ import { useMessages } from '../../messages/contexts/Messages';
 import { NewSessionButton } from '../components/NewSessionButton';
 import { RunInput } from '../components/RunInput';
 import { RunStatusBar } from '../components/RunStatusBar';
+import { AGENT_STARTING_MESSAGE } from '../constants';
 import { useAgentRun } from '../contexts/agent-run';
 import { useAgentStatus } from '../contexts/agent-status';
 import { ChatAgentMessage } from './ChatAgentMessage';
@@ -104,7 +105,7 @@ export function ChatMessagesView() {
           <div className={classes.bottomHolder}>
             <Container size="sm" className={classes.bottomContainer}>
               {isPending && (isNotInstalled || isStarting) ? (
-                <RunStatusBar isPending>Starting the agent, please bee patient&hellip;</RunStatusBar>
+                <RunStatusBar isPending>{AGENT_STARTING_MESSAGE}</RunStatusBar>
               ) : (
                 <RunInput />
               )}
