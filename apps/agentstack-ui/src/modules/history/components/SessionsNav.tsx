@@ -17,7 +17,7 @@ import { routes } from '#utils/router.ts';
 import { SessionsList } from './SessionsList';
 
 export function SessionsNav() {
-  const { data: agents } = useListAgents({ includeUnsupportedUi: true, includeOffline: true });
+  const { data: agents } = useListAgents();
   const { providerId: providerIdUrlParam, contextId: contextIdUrlParam } = useParamsFromUrl();
   const { data, isLoading, isFetching, hasNextPage, fetchNextPage } = useListContexts({
     query: LIST_CONTEXTS_DEFAULT_QUERY,
@@ -38,7 +38,7 @@ export function SessionsNav() {
           const agentName = agent?.name || metadata?.agentName;
           const isActive = providerIdUrlParam === providerId && contextIdUrlParam === contextId;
 
-          if (!providerId || !contextId) {
+          if (!providerId || !contextId || !agent) {
             return null;
           }
 
