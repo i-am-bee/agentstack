@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentSettings } from 'agentstack-sdk';
-import { type PropsWithChildren, useCallback, useEffect, useState } from 'react';
+import type { AgentSettings, FormFulfillments } from 'agentstack-sdk';
+import { type PropsWithChildren, useCallback, useEffect, useRef, useState } from 'react';
 
 import type { AgentA2AClient } from '#api/a2a/types.ts';
 import { useApp } from '#contexts/App/index.ts';
+import type { RunFormValues } from '#modules/form/types.ts';
 import { useCreateContextToken } from '#modules/platform-context/api/mutations/useCreateContextToken.ts';
 import { useMatchProviders } from '#modules/platform-context/api/mutations/useMatchProviders.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
@@ -31,6 +32,8 @@ export function AgentDemandsProvider<UIGenericPart>({
 
   const [selectedEmbeddingProviders, setSelectedEmbeddingProviders] = useState<Record<string, string>>({});
   const [selectedLLMProviders, setSelectedLLMProviders] = useState<Record<string, string>>({});
+  const formFulfillmentsRef = useRef<FormFulfillments>({ form_fulfillments: {} });
+
   const [selectedSettings, setSelectedSettings] = useState<AgentSettings>(
     getSettingsDemandsDefaultValues(agentClient.demands.settingsDemands ?? { fields: [] }),
   );
@@ -105,6 +108,15 @@ export function AgentDemandsProvider<UIGenericPart>({
     },
     [setSelectedEmbeddingProviders],
   );
+
+  const provideFormValues = useCallback((values: RunFormValues) => {
+    formFulfillmentsRef.current = {
+      form_fulfillments: {
+        ...formFulfillmentsRef.current.form_fulfillments,
+        initial_form: { values },
+      },
+    };
+  }, []);
 
   const [selectedMCPServers, setSelectedMCPServers] = useState<Record<string, string>>({});
 
@@ -183,7 +195,7 @@ export function AgentDemandsProvider<UIGenericPart>({
         providedSecrets,
         featureFlags,
         selectedSettings,
-        formFulfillments: fulfillmentsContext.formFulfillments ?? null,
+        formFulfillments: formFulfillmentsRef.current,
         oauthRedirectUri: fulfillmentsContext.oauthRedirectUri ?? null,
       });
     },
@@ -205,6 +217,7 @@ export function AgentDemandsProvider<UIGenericPart>({
         selectedLLMProviders,
         matchedEmbeddingProviders,
         selectedEmbeddingProviders,
+        provideFormValues,
         getFulfillments,
         selectLLMProvider,
         selectEmbeddingProvider,
@@ -212,6 +225,7 @@ export function AgentDemandsProvider<UIGenericPart>({
         selectedMCPServers,
         selectedSettings,
         settingsDemands: agentClient?.demands.settingsDemands ?? null,
+        formDemands: agentClient?.demands.formDemands ?? null,
         onUpdateSettings,
       }}
     >

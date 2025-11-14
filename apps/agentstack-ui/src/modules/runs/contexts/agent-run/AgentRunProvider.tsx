@@ -89,7 +89,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
   const pendingRun = useRef<ChatRun>(undefined);
 
   const { contextId, getContextId, updateContextWithAgentMetadata } = usePlatformContext();
-  const { getFulfillments } = useAgentDemands();
+  const { getFulfillments, formDemands } = useAgentDemands();
   const { files, clearFiles } = useFileUpload();
 
   const updateCurrentAgentMessage = useCallback(
@@ -200,6 +200,9 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
           message,
           contextId,
           fulfillments,
+          responses: {
+            form: message.form?.response ?? undefined,
+          },
           taskId: fulfillmentsContext.taskId,
         });
         pendingRun.current = run;
@@ -228,7 +231,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
         if (result && result.type === TaskStatusUpdateType.FormRequired) {
           updateCurrentAgentMessage((message) => {
             message.status = UIMessageStatus.InputRequired;
-            message.parts.push({ kind: UIMessagePartKind.Form, ...result.form });
+            message.parts.push({ kind: UIMessagePartKind.Form, render: result.form });
           });
         } else if (result && result.type === TaskStatusUpdateType.OAuthRequired) {
           updateCurrentAgentMessage((message) => {
@@ -307,7 +310,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
         form,
       };
 
-      return run(message, { taskId, formFulfillments: form.response });
+      return run(message, { taskId, form });
     },
     [checkPendingRun, run],
   );
@@ -323,7 +326,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
         form,
       };
 
-      return run(message, { formFulfillments: form.response });
+      return run(message, {});
     },
     [checkPendingRun, run],
   );
@@ -368,6 +371,8 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
     return AgentRunStatus.Ready;
   }, [agentClient, contextId, isPending]);
 
+  const initialFormRender = useMemo(() => formDemands?.form_demands?.initial_form, [formDemands]);
+
   const contextValue = useMemo(() => {
     return {
       agent,
@@ -384,6 +389,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
       submitRuntimeForm,
       startAuth,
       submitSecrets,
+      initialFormRender,
       cancel,
       clear,
     };
@@ -401,6 +407,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
     submitForm,
     submitRuntimeForm,
     submitSecrets,
+    initialFormRender,
   ]);
 
   return (

@@ -3,16 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FormDemands, FormFulfillments } from 'agentstack-sdk';
+import type { FormRender } from 'agentstack-sdk';
 import type { CSSProperties } from 'react';
 
+import type { RunFormValues } from '../types';
 import { FormField } from './FormField';
 import classes from './FormFields.module.scss';
 
 interface Props {
-  fields: FormDemands['fields'];
-  columns: FormDemands['columns'];
-  values?: FormFulfillments['values'];
+  fields: FormRender['fields'];
+  columns: FormRender['columns'];
+  values?: RunFormValues;
 }
 
 export function FormFields({ fields, columns, values }: Props) {

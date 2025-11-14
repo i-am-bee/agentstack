@@ -3,6 +3,6 @@
 
 from .agent_detail import *
 from .citation import *
-from .form import *
+from .request_form import *
 from .settings import *
 from .trajectory import *

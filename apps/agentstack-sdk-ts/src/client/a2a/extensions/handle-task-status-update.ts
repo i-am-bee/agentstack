@@ -5,16 +5,16 @@
 
 import type { TaskStatusUpdateEvent } from '@a2a-js/sdk';
 
+import type { FormRender } from './common/form';
 import type { SecretDemands } from './services/secrets';
 import { secretsMessageExtension } from './services/secrets';
-import type { FormDemands } from './ui/form';
-import { formMessageExtension } from './ui/form';
 import { oauthRequestExtension } from './ui/oauth';
+import { requestFormExtension } from './ui/request-form';
 import { extractUiExtensionData } from './utils';
 
 const secretsMessageExtensionExtractor = extractUiExtensionData(secretsMessageExtension);
-const formMessageExtensionExtractor = extractUiExtensionData(formMessageExtension);
 const oauthRequestExtensionExtractor = extractUiExtensionData(oauthRequestExtension);
+const requestFormExtensionExtractor = extractUiExtensionData(requestFormExtension);
 
 export enum TaskStatusUpdateType {
   SecretRequired = 'secret-required',
@@ -29,7 +29,7 @@ export interface SecretRequiredResult {
 
 export interface FormRequiredResult {
   type: TaskStatusUpdateType.FormRequired;
-  form: FormDemands;
+  form: FormRender;
 }
 
 export interface OAuthRequiredResult {
@@ -60,7 +60,8 @@ export const handleTaskStatusUpdate = (event: TaskStatusUpdateEvent): TaskStatus
       });
     }
   } else if (event.status.state === 'input-required') {
-    const formRequired = formMessageExtensionExtractor(event.status.message?.metadata);
+    const formRequired = requestFormExtensionExtractor(event.status.message?.metadata);
+
     if (formRequired) {
       results.push({
         type: TaskStatusUpdateType.FormRequired,

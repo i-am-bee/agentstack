@@ -3,16 +3,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentSettings, FormFulfillments, Fulfillments, SettingsDemands } from 'agentstack-sdk';
+import type { AgentSettings, FormDemands, Fulfillments, SettingsDemands } from 'agentstack-sdk';
 import { createContext } from 'react';
 
+import type { RunFormValues } from '#modules/form/types.ts';
+import type { UIMessageForm } from '#modules/messages/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 
 export type FulfillmentsContext = Partial<{
   taskId: TaskId;
   providedSecrets: Record<string, string>;
-  formFulfillments: FormFulfillments;
   oauthRedirectUri: string;
+  form: UIMessageForm;
 }>;
 
 interface AgentDemandsContextValue {
@@ -24,11 +26,13 @@ interface AgentDemandsContextValue {
   selectLLMProvider: (key: string, value: string) => void;
   selectEmbeddingProvider: (key: string, value: string) => void;
   selectMCPServer: (key: string, value: string) => void;
+  provideFormValues: (values: RunFormValues) => void;
   selectedMCPServers: Record<string, string>;
 
   onUpdateSettings: (settings: AgentSettings) => void;
   selectedSettings: AgentSettings | undefined;
   settingsDemands: SettingsDemands | null;
+  formDemands: FormDemands | null;
 }
 
 export const AgentDemandsContext = createContext<AgentDemandsContextValue | null>(null);

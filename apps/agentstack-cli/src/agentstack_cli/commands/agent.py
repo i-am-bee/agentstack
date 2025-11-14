@@ -36,20 +36,21 @@ from agentstack_sdk.a2a.extensions import (
     EmbeddingFulfillment,
     EmbeddingServiceExtensionClient,
     EmbeddingServiceExtensionSpec,
+    FormServiceExtensionSpec,
     LLMFulfillment,
     LLMServiceExtensionClient,
     LLMServiceExtensionSpec,
     PlatformApiExtensionClient,
     PlatformApiExtensionSpec,
+    RequestFormExtensionSpec,
     TrajectoryExtensionClient,
     TrajectoryExtensionSpec,
 )
-from agentstack_sdk.a2a.extensions.ui.form import (
+from agentstack_sdk.a2a.extensions.common.form import (
     CheckboxField,
     CheckboxFieldValue,
     DateField,
     DateFieldValue,
-    FormExtensionSpec,
     FormFieldValue,
     FormRender,
     FormResponse,
@@ -295,7 +296,7 @@ async def _ask_form_questions(form_render: FormRender) -> FormResponse:
             ).execute_async()
             form_values[field.id] = CheckboxFieldValue(value=answer)
     console.print()
-    return FormResponse(id=form_render.id, values=form_values)
+    return FormResponse(values=form_values)
 
 
 async def _run_agent(
@@ -360,7 +361,11 @@ async def _run_agent(
                 else {}
             )
             | (
-                {FormExtensionSpec.URI: typing.cast(FormResponse, input).model_dump(mode="json")}
+                {
+                    FormServiceExtensionSpec.URI: {
+                        "form_fulfillments": {"initial_form": typing.cast(FormResponse, input).model_dump(mode="json")}
+                    }
+                }
                 if isinstance(input, FormResponse)
                 else {}
             )
@@ -446,7 +451,7 @@ async def _run_agent(
                         raise ValueError("Agent requires input but no input handler provided")
 
                     if form_metadata := (
-                        message.metadata.get(FormExtensionSpec.URI) if message and message.metadata else None
+                        message.metadata.get(RequestFormExtensionSpec.URI) if message and message.metadata else None
                     ):
                         stream = client.send_message(
                             Message(
@@ -456,7 +461,7 @@ async def _run_agent(
                                 task_id=task_id,
                                 context_id=context_token.context_id,
                                 metadata={
-                                    FormExtensionSpec.URI: (
+                                    RequestFormExtensionSpec.URI: (
                                         await _ask_form_questions(FormRender.model_validate(form_metadata))
                                     ).model_dump(mode="json")
                                 },
@@ -778,9 +783,9 @@ async def run_agent(
 
         initial_form_render = next(
             (
-                FormRender.model_validate(ext.params)
+                FormRender.model_validate(ext.params["form_demands"]["initial_form"])
                 for ext in agent.capabilities.extensions or ()
-                if ext.uri == FormExtensionSpec.URI and ext.params
+                if ext.uri == FormServiceExtensionSpec.URI and ext.params
             ),
             None,
         )

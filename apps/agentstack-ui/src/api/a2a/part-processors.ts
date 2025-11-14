@@ -12,12 +12,10 @@ import { UIMessagePartKind } from '#modules/messages/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import {
-  createFormPart,
   createSourcePart,
   createTextPart,
   createTrajectoryPart,
   extractCitation,
-  extractForm,
   extractTrajectory,
   getFileUrl,
 } from './utils';
@@ -25,7 +23,6 @@ import {
 export function processMessageMetadata(message: Message): UIMessagePart[] {
   const trajectory = extractTrajectory(message.metadata);
   const citations = extractCitation(message.metadata)?.citations;
-  const form = extractForm(message.metadata);
 
   const parts: UIMessagePart[] = [];
 
@@ -36,9 +33,6 @@ export function processMessageMetadata(message: Message): UIMessagePart[] {
     const sourceParts = citations.map((citation) => createSourcePart(citation, message.taskId)).filter(isNotNull);
 
     parts.push(...sourceParts);
-  }
-  if (form) {
-    parts.push(createFormPart(form));
   }
 
   return parts;
