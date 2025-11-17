@@ -56,7 +56,7 @@
       },
       {
         "group": "Integrating with Agent Stack",
-        "pages": ["guides/connectors"]
+        "pages": ["guides/connectors", "guides/permissions-and-tokens"]
       },
 
       {

@@ -37,14 +37,14 @@ class ContextListQuery(PaginationQuery):
 
 class ContextPermissionsGrant(BaseModel):
     files: list[Literal["read", "write", "extract", "*"]] = Field(default_factory=list)
-    vector_stores: list[Literal["read", "write", "extract", "*"]] = Field(default_factory=list)
+    vector_stores: list[Literal["read", "write", "*"]] = Field(default_factory=list)
     context_data: list[Literal["read", "write", "*"]] = Field(default_factory=list)
 
 
 class GlobalPermissionGrant(BaseModel):
     files: list[Literal["read", "write", "extract", "*"]] = Field(default_factory=list)
     feedback: list[Literal["write"]] = Field(default_factory=list)
-    vector_stores: list[Literal["read", "write", "extract", "*"]] = Field(default_factory=list)
+    vector_stores: list[Literal["read", "write", "*"]] = Field(default_factory=list)
 
     # openai proxy
     llm: list[Literal["*"] | ResourceIdPermission] = Field(default_factory=list)
