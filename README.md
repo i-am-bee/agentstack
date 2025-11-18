@@ -85,7 +85,7 @@ agentstack run example_agent "Alice"  # Test your agent
 You should see: "Ciao Alice!" 🎉
 
 > [!TIP]
-> Check out [Start Building Agents](https://agentstack.beeai.dev/introduction/start-building-agents) for a complete step-by-step guide to creating your first agent.
+> Check out [Building Agents](https://agentstack.beeai.dev/guides/building-agents) for a complete step-by-step guide to creating your first agent.
 
 ---
 
