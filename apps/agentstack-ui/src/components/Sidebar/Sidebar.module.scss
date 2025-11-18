@@ -67,3 +67,10 @@ $padding: $spacing-05;
 .agentsNav {
   --nav-group-max-height: #{(5 * rem(32px)) + (4 * $spacing-02)};
 }
+
+.separator {
+  inline-size: 100%;
+  border: 0 solid $border-subtle-00;
+  border-block-start-width: 1px;
+  margin: 0;
+}
