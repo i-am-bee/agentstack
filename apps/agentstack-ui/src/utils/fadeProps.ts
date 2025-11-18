@@ -26,15 +26,15 @@ export function fadeProps({
         opacity: 0,
         transition: {
           duration: 0,
-          ease: parseCarbonMotion(carbonMotion('exit', 'expressive')),
+          ease: FADE_EASE_EXIT,
         },
         ...hidden,
       },
       visible: {
         opacity: 1,
         transition: {
-          duration: parseFloat(moderate02) / 1000,
-          ease: parseCarbonMotion(carbonMotion('entrance', 'expressive')),
+          duration: FADE_DURATION,
+          ease: FADE_EASE_ENTRANCE,
         },
         ...visible,
       },
@@ -44,3 +44,7 @@ export function fadeProps({
     exit: 'hidden',
   };
 }
+
+export const FADE_EASE_EXIT = parseCarbonMotion(carbonMotion('exit', 'expressive'));
+export const FADE_EASE_ENTRANCE = parseCarbonMotion(carbonMotion('entrance', 'expressive'));
+export const FADE_DURATION = parseFloat(moderate02) / 1000;
