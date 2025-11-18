@@ -1,11 +1,11 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from beeai_framework.agents.experimental import (
+from beeai_framework.agents.requirement import (
     RequirementAgent,
     RequirementAgentRunState,
 )
-from beeai_framework.agents.experimental.events import RequirementAgentStartEvent
+from beeai_framework.agents.requirement.events import RequirementAgentStartEvent
 from beeai_framework.backend import AssistantMessage
 from beeai_framework.context import RunContext
 from beeai_framework.emitter import Emitter, EventMeta
@@ -20,10 +20,13 @@ from pydantic import BaseModel, Field
 
 class ClarificationSchema(BaseModel):
     thoughts: str = Field(
-        ..., description="Your reasoning process and analysis of what information is needed from the user."
+        ...,
+        description="Your reasoning process and analysis of what information is needed from the user.",
     )
     question_to_user: str = Field(
-        ..., description="The specific question or clarification request to ask the user.", min_length=1
+        ...,
+        description="The specific question or clarification request to ask the user.",
+        min_length=1,
     )
 
 
@@ -63,7 +66,9 @@ class ClarificationTool(Tool[ClarificationSchema]):
         context: RunContext,
     ) -> StringToolOutput:
         if not self._state:
-            raise ToolInputValidationError("State is not set for the ClarificationTool.")
+            raise ToolInputValidationError(
+                "State is not set for the ClarificationTool."
+            )
 
         # Store the clarification request in the agent state
         self._state.result = input
@@ -88,7 +93,9 @@ def clarification_tool_middleware(ctx: RunContext) -> None:
     """
     assert isinstance(ctx.instance, RequirementAgent)
 
-    clarification_tool = next((t for t in ctx.instance._tools if isinstance(t, ClarificationTool)), None)
+    clarification_tool = next(
+        (t for t in ctx.instance._tools if isinstance(t, ClarificationTool)), None
+    )
     if clarification_tool is None:
         raise ValueError("ClarificationTool is not found in the agent's tools.")
 
