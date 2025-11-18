@@ -10,6 +10,8 @@ import type { PropsWithChildren } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
+import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
+
 import type { Toast, ToastWithKey } from './toast-context';
 import { ToastContext } from './toast-context';
 import classes from './ToastProvider.module.scss';
@@ -86,7 +88,7 @@ function Toast({ toast, onClose }: { toast: ToastWithKey; onClose: () => void })
       {(subtitle || apiError) && (
         <div className="cds--toast-notification__subtitle">
           {subtitle && <div className={classes.subtitle}>{subtitle}</div>}
-          {apiError && <div className={classes.apiError}>{apiError}</div>}
+          {apiError && <MarkdownContent className={classes.apiError}>{apiError}</MarkdownContent>}
         </div>
       )}
     </ToastNotification>
