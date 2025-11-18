@@ -19,18 +19,15 @@ export function useHandleError() {
     (error: unknown, options: QueryMetadata = {}) => {
       const { errorToast } = options;
 
-      let errorTitle = 'An error occurred';
-
       if (error instanceof UnauthenticatedError) {
         const callbackUrl = window ? window.location.pathname + window.location.search : undefined;
         router.replace(routes.signIn({ callbackUrl }));
-        errorTitle = error.message || 'You are not authenticated.';
-      }
-      if (errorToast !== false) {
+        console.error(error);
+      } else if (errorToast !== false) {
         const errorMessage = errorToast?.includeErrorMessage ? getErrorMessage(error) : undefined;
 
         addToast({
-          title: errorToast?.title ?? errorTitle,
+          title: errorToast?.title ?? 'An error occurred',
           subtitle: errorToast?.message,
           apiError: errorMessage,
         });
