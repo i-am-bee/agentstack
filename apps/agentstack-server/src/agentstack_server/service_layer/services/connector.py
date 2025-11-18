@@ -461,12 +461,15 @@ async def _discover_resource_metadata(resource_url: str) -> _ResourceServerMetad
     # Reusing util from RFC8414
     path_url = get_well_known_url(resource_url, external=True, suffix="oauth-protected-resource")
     root_url = get_well_known_url(resource_root_url, external=True, suffix="oauth-protected-resource")
+    urls = [path_url]
+    if path_url != root_url:  # avoid duplicate
+        urls.append(root_url)
     exceptions = []
-    for url in (path_url, root_url):
-        async with httpx.AsyncClient(
-            headers={"Accept": "application/json"},
-            follow_redirects=True,
-        ) as client:
+    async with httpx.AsyncClient(
+        headers={"Accept": "application/json"},
+        follow_redirects=True,
+    ) as client:
+        for url in urls:
             try:
                 response = await client.get(url)
                 response.raise_for_status()
