@@ -439,7 +439,17 @@ async def setup(
                 default_llm_model = await _select_default_model(ModelCapability.LLM)
 
                 default_embedding_model = None
-                if ModelCapability.EMBEDDING in llm_provider.capabilities:
+                if (
+                    ModelCapability.EMBEDDING in llm_provider.capabilities
+                    and llm_provider.type
+                    != ModelProviderType.RITS  # RITS does not support embeddings, but we treat it as OTHER
+                    and (
+                        llm_provider.type != ModelProviderType.OTHER  # OTHER may not support embeddings, so we ask
+                        or inquirer.confirm(  # type: ignore
+                            "Do you want to also set up an embedding model from the same provider?", default=True
+                        )
+                    )
+                ):
                     default_embedding_model = await _select_default_model(ModelCapability.EMBEDDING)
                 elif await inquirer.confirm(  # type: ignore
                     message="Do you want to configure an embedding provider? (recommended)", default=True
@@ -447,6 +457,8 @@ async def setup(
                     console.print("[bold]Setting up embedding provider...[/bold]")
                     await _add_provider(capability=ModelCapability.EMBEDDING, use_true_localhost=use_true_localhost)
                     default_embedding_model = await _select_default_model(ModelCapability.EMBEDDING)
+                else:
+                    console.hint("You can add an embedding provider later with: [green]agentstack model add[/green]")
 
                 with console.status("Saving configuration...", spinner="dots"):
                     await SystemConfiguration.update(
