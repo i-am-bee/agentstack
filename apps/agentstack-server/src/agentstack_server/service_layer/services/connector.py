@@ -453,19 +453,31 @@ async def _discover_auth_metadata(authorization_server_url: str) -> Authorizatio
 
 
 @alru_cache(ttl=timedelta(minutes=10).seconds)
-async def _discover_resource_metadata(resource_server_url: str) -> _ResourceServerMetadata | None:
+async def _discover_resource_metadata(resource_url: str) -> _ResourceServerMetadata | None:
+    parsed = urlparse(resource_url)
+    resource_root_url = f"{parsed.scheme}://{parsed.netloc}"
+
     # RFC9728 hasn't been implemented yet in authlib
     # Reusing util from RFC8414
-    url = get_well_known_url(resource_server_url, external=True, suffix="oauth-protected-resource")
-    async with httpx.AsyncClient(
-        headers={"Accept": "application/json"},
-        follow_redirects=True,
-    ) as client:
-        response = await client.get(url)
-        if response.status_code == status.HTTP_404_NOT_FOUND:
-            return None
-        response.raise_for_status()
-        return _ResourceServerMetadata.model_validate(response.json())
+    path_url = get_well_known_url(resource_url, external=True, suffix="oauth-protected-resource")
+    root_url = get_well_known_url(resource_root_url, external=True, suffix="oauth-protected-resource")
+    exceptions = []
+    for url in (path_url, root_url):
+        async with httpx.AsyncClient(
+            headers={"Accept": "application/json"},
+            follow_redirects=True,
+        ) as client:
+            try:
+                response = await client.get(url)
+                response.raise_for_status()
+                return _ResourceServerMetadata.model_validate(response.json())
+            except Exception as exc:
+                exceptions.append(exc)
+    logger.warning(
+        "Resource metadata discovery failed",
+        exc_info=ExceptionGroup(f"Unable to discover metadata for resource {resource_url}", exceptions),
+    )
+    return None
 
 
 def _render_success():
