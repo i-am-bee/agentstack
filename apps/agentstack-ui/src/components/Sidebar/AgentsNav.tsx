@@ -19,7 +19,7 @@ interface Props {
 export function AgentsNav({ className }: Props) {
   const { providerId } = useParamsFromUrl();
 
-  const { data: agents, isLoading } = useListAgents({ onlyUiSupported: true, orderBy: 'createdAt' });
+  const { data: agents, isLoading } = useListAgents({ orderBy: 'createdAt' });
 
   const items = useMemo(
     () =>
