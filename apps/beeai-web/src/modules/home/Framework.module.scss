@@ -17,6 +17,28 @@
 }
 
 .graphics {
+  --color-1: #{$cool-gray-90};
+  --color-2: #{$cool-gray-70};
+  --color-3: #{$cool-gray-50};
+  --color-4: #{$white};
+  --color-5: #{$white};
+  --color-6: #{$cool-gray-50};
+  --color-7: #{$cool-gray-90};
+  --color-8: #{$cool-gray-80};
+  --color-9: #{$cool-gray-70};
+
+  :global(.cds--g90) & {
+    --color-1: #{$cool-gray-10};
+    --color-2: #{$cool-gray-50};
+    --color-3: #{$cool-gray-30};
+    --color-4: #{$black};
+    --color-5: #{$white};
+    --color-6: #{$cool-gray-50};
+    --color-7: #{$cool-gray-20};
+    --color-8: #{$cool-gray-40};
+    --color-9: #{$cool-gray-40};
+  }
+
   display: flex;
   inline-size: 130%;
 
