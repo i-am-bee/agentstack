@@ -54,10 +54,9 @@ Follow the interactive prompts to finish installation and setup.
 </Tab>
 <Tab title="Windows">
 
-<Warning>
-Windows support is experimental and requires Windows 11 22H2 or later.  
-For the best experience, we recommend Linux or macOS.
-</Warning>
+<Note>
+Windows support is experimental and requires Windows 11 22H2 or later. For the best experience, we recommend Linux or macOS.
+</Note>
 
 <Steps>
 <Step title="Install WSL">
@@ -68,7 +67,15 @@ Open PowerShell as Administrator and run:
 wsl.exe --install
 ```
 
-Reboot your PC to complete the installation. You may need to run the command again after rebooting if WSL was not previously installed. Follow the prompts until you reach a working Linux terminal (launch by calling `wsl.exe` without arguments), at which point you can close it and proceed to the next step.
+The command output may instruct you to restart your PC. Do so, and afterwards run the same command again. It may take up to two restarts to complete the installation process.
+
+WSL is properly set up once you reach a working Linux shell. You can verify this by running `wsl.exe` without arguments. Once you have a working shell, you can close it and proceed to the next step.
+
+<Warning>
+
+Even though WSL2 is required, Agent Stack CLI can't be installed _inside_ WSL2. All subsequent commands should be run from Windows PowerShell.
+
+</Warning>
 
 </Step>
 <Step title="Install uv">
