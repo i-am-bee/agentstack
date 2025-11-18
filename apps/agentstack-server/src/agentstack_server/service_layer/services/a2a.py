@@ -5,7 +5,7 @@ import functools
 import inspect
 import logging
 import uuid
-from collections.abc import AsyncGenerator, AsyncIterable, AsyncIterator, Callable
+from collections.abc import AsyncGenerator, AsyncIterable, AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from datetime import timedelta
 from typing import NamedTuple, cast
@@ -24,6 +24,7 @@ from a2a.types import (
     AgentCard,
     DeleteTaskPushNotificationConfigParams,
     GetTaskPushNotificationConfigParams,
+    InternalError,
     InvalidRequestError,
     ListTaskPushNotificationConfigParams,
     Message,
@@ -47,9 +48,10 @@ from agentstack_server.domain.models.provider import (
     NetworkProviderLocation,
     Provider,
     ProviderDeploymentState,
+    UnmanagedState,
 )
 from agentstack_server.domain.models.user import User
-from agentstack_server.exceptions import EntityNotFoundError, ForbiddenUpdateError
+from agentstack_server.exceptions import EntityNotFoundError, ForbiddenUpdateError, InvalidProviderCallError
 from agentstack_server.service_layer.deployment_manager import (
     IProviderDeploymentManager,
 )
@@ -116,6 +118,10 @@ def _handle_exception[T: Callable](fn: T) -> T:
             raise ServerError(error=InvalidRequestError(message=str(e))) from e
         except A2AClientJSONRPCError as e:
             raise ServerError(error=e.error) from e
+        except InvalidProviderCallError as e:
+            raise ServerError(error=InvalidRequestError(message=f"Invalid request to agent: {e!r}")) from e
+        except Exception as e:
+            raise ServerError(error=InternalError(message=f"Internal error: {e!r}")) from e
 
     @functools.wraps(fn)
     async def _fn_iter(*args, **kwargs):
@@ -131,11 +137,17 @@ def _handle_exception[T: Callable](fn: T) -> T:
 class ProxyRequestHandler(RequestHandler):
     def __init__(
         self,
-        agent_card: AgentCard,
+        *,
         provider_id: UUID,
         uow: IUnitOfWorkFactory,
         user: User,
+        # Calling the factory have side-effects, such as rotating the agent
+        agent_card_factory: Callable[[], Awaitable[AgentCard]] | None = None,
+        agent_card: AgentCard | None = None,
     ):
+        if agent_card_factory is None and agent_card is None:
+            raise ValueError("One of agent_card_factory or agent_card must be provided")
+        self._agent_card_factory = agent_card_factory
         self._agent_card = agent_card
         self._provider_id = provider_id
         self._user = user
@@ -143,6 +155,10 @@ class ProxyRequestHandler(RequestHandler):
 
     @asynccontextmanager
     async def _client_transport(self) -> AsyncIterator[ClientTransport]:
+        if self._agent_card is None:
+            assert self._agent_card_factory is not None
+            self._agent_card = await self._agent_card_factory()
+
         async with httpx.AsyncClient(follow_redirects=True, timeout=timedelta(hours=1).total_seconds()) as httpx_client:
             client: BaseClient = cast(
                 BaseClient,
@@ -306,10 +322,13 @@ class A2AProxyService:
         self._expire_requests_after = timedelta(days=configuration.a2a_proxy.requests_expire_after_days)
 
     async def get_request_handler(self, *, provider: Provider, user: User) -> RequestHandler:
-        url = await self.ensure_agent(provider_id=provider.id)
-        agent_card = create_deployment_agent_card(provider.agent_card, deployment_base=str(url))
+        async def agent_card_factory() -> AgentCard:
+            # Delay ensure_agent to the handler so that errors are wrapped properly
+            url = await self.ensure_agent(provider_id=provider.id)
+            return create_deployment_agent_card(provider.agent_card, deployment_base=str(url))
+
         return ProxyRequestHandler(
-            agent_card=agent_card,
+            agent_card_factory=agent_card_factory,
             provider_id=provider.id,
             uow=self._uow,
             user=user,
@@ -332,6 +351,11 @@ class A2AProxyService:
                 await uow.commit()
 
             if not provider.managed:
+                if provider.unmanaged_state is UnmanagedState.OFFLINE:
+                    raise InvalidProviderCallError(
+                        f"Cannot send message to provider {provider_id}: provider is offline"
+                    )
+
                 assert isinstance(provider.source, NetworkProviderLocation)
                 return provider.source.a2a_url
 
@@ -340,7 +364,9 @@ class A2AProxyService:
             should_wait = False
             match state:
                 case ProviderDeploymentState.ERROR:
-                    raise RuntimeError("Provider is in an error state")
+                    raise InvalidProviderCallError(
+                        f"Cannot send message to provider {provider_id}: provider is in an error state"
+                    )
                 case (
                     ProviderDeploymentState.MISSING
                     | ProviderDeploymentState.RUNNING

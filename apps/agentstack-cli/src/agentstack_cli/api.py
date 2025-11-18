@@ -1,17 +1,18 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-
+import json
 import re
 import urllib
 import urllib.parse
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import timedelta
+from textwrap import indent
 from typing import Any
 
 import httpx
 import openai
-from a2a.client import Client, ClientConfig, ClientFactory
+from a2a.client import A2AClientHTTPError, Client, ClientConfig, ClientFactory
 from a2a.types import AgentCard
 from httpx import HTTPStatusError
 from httpx._types import RequestFiles
@@ -103,16 +104,29 @@ async def api_stream(
 
 @asynccontextmanager
 async def a2a_client(agent_card: AgentCard, use_auth: bool = True) -> AsyncIterator[Client]:
-    async with httpx.AsyncClient(
-        headers=(
-            {"Authorization": f"Bearer {token}"}
-            if use_auth and (token := config.auth_manager.load_auth_token())
-            else {}
-        ),
-        follow_redirects=True,
-        timeout=timedelta(hours=1).total_seconds(),
-    ) as httpx_client:
-        yield ClientFactory(ClientConfig(httpx_client=httpx_client, use_client_preference=True)).create(card=agent_card)
+    try:
+        async with httpx.AsyncClient(
+            headers=(
+                {"Authorization": f"Bearer {token}"}
+                if use_auth and (token := config.auth_manager.load_auth_token())
+                else {}
+            ),
+            follow_redirects=True,
+            timeout=timedelta(hours=1).total_seconds(),
+        ) as httpx_client:
+            yield ClientFactory(ClientConfig(httpx_client=httpx_client, use_client_preference=True)).create(
+                card=agent_card
+            )
+    except A2AClientHTTPError as ex:
+        card_data = json.dumps(
+            agent_card.model_dump(include={"url", "additional_interfaces", "preferred_transport"}), indent=2
+        )
+        raise RuntimeError(
+            f"The agent is not reachable, please check that the agent card is configured properly.\n"
+            f"Agent connection info:\n{indent(card_data, prefix='  ')}\n"
+            "Full Error:\n"
+            f"{indent(str(ex), prefix='  ')}"
+        ) from ex
 
 
 @asynccontextmanager

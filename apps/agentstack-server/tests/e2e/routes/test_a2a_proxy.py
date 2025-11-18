@@ -1195,3 +1195,36 @@ async def test_task_and_context_both_specified_single_query(client: Client, hand
         {"context_id": "dual-context-456"},
     )
     assert context_result.fetchone() is not None
+
+
+async def test_invalid_request_raises_a2a_error(client: Client, handler: mock.AsyncMock, db_transaction):
+    """Test that an invalid request to an offline provider returns an A2A error."""
+
+    # set provider as offline
+    provider_id = str(client.base_url).rstrip("/").split("/")[-1]
+    await db_transaction.execute(
+        text("UPDATE providers SET unmanaged_state = 'offline' WHERE id = :provider_id"),
+        {"provider_id": provider_id},
+    )
+    await db_transaction.commit()
+
+    message_data = {
+        "jsonrpc": "2.0",
+        "id": "123",
+        "method": "message/send",
+        "params": {
+            "message": {
+                "role": "agent",
+                "parts": [{"kind": "text", "text": "Hello"}],
+                "messageId": "111",
+                "kind": "message",
+            }
+        },
+    }
+    response = client.post("/", json=message_data)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == "123"
+    assert "error" in data
+    assert data["error"]["code"] == InvalidRequestError().code
+    assert "provider is offline" in data["error"]["message"]
