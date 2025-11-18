@@ -185,8 +185,8 @@ spec:
               value: {{ .Values.a2aProxyRequestsExpireAfterDays | quote }}
             - name: TEXT_EXTRACTION__ENABLED
               value: {{ .Values.docling.enabled | quote }}
-            - name: AGENT_REGISTRY__SYNC_PERIOD_SEC
-              value: "30"
+            - name: AGENT_REGISTRY__SYNC_PERIOD_CRON
+              value: {{ .Values.agentRegistrySyncPeriodCron | quote }}
             {{- include "agentstack.registryEnvVars" . | nindent 12 }}
             - name: FEATURES__PROVIDER_BUILDS
               value: {{ .Values.providerBuilds.enabled | quote }}
