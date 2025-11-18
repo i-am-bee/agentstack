@@ -6,3 +6,5 @@
 import { InteractionMode } from '#modules/agents/api/types.ts';
 
 export const SupportedUis: string[] = [InteractionMode.MultiTurn, InteractionMode.SingleTurn];
+
+export const AGENT_STARTING_MESSAGE = 'Agent is starting up…';
