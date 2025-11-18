@@ -9,7 +9,7 @@ import { visit } from 'unist-util-visit';
 
 import { CITATION_LINK_PREFIX } from '#modules/sources/types.ts';
 
-import type { CitationLinkBaseProps } from '../components/CitationLink/CitationLink';
+import type { CitationLinkBaseProps } from './CitationLink';
 
 export function remarkCitationLink() {
   return (tree: Root) => {

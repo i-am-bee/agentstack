@@ -88,7 +88,11 @@ function Toast({ toast, onClose }: { toast: ToastWithKey; onClose: () => void })
       {(subtitle || apiError) && (
         <div className="cds--toast-notification__subtitle">
           {subtitle && <div className={classes.subtitle}>{subtitle}</div>}
-          {apiError && <MarkdownContent className={classes.apiError}>{apiError}</MarkdownContent>}
+          {apiError && (
+            <div className={classes.apiError}>
+              <MarkdownContent>{apiError}</MarkdownContent>
+            </div>
+          )}
         </div>
       )}
     </ToastNotification>

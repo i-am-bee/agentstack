@@ -6,8 +6,8 @@
 import clsx from 'clsx';
 import { memo } from 'react';
 
-import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 import type { UIMessage } from '#modules/messages/types.ts';
+import { ChatMarkdownContent } from '#modules/runs/components/ChatMarkdownContent/ChatMarkdownContent.tsx';
 
 import { useAgentRun } from '../../runs/contexts/agent-run';
 import { Role } from '../api/types';
@@ -42,9 +42,9 @@ export const MessageContent = memo(function MessageContent({ message }: Props) {
     }
 
     return (
-      <MarkdownContent className={classes.root} sources={sources} isPending={isPending}>
+      <ChatMarkdownContent className={classes.root} sources={sources} codeBlocksExpanded={isPending}>
         {content}
-      </MarkdownContent>
+      </ChatMarkdownContent>
     );
   } else if (secretPart || status?.isError) {
     return null;

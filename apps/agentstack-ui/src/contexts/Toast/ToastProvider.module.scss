@@ -40,7 +40,7 @@
   }
 }
 
-div.apiError {
+.apiError > div {
   @include line-clamp(10);
   margin-block-start: $spacing-02;
   font-size: rem(12px);
