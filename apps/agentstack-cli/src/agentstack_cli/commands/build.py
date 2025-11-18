@@ -27,6 +27,7 @@ from agentstack_cli.console import console
 from agentstack_cli.utils import (
     announce_server_action,
     capture_output,
+    confirm_server_action,
     extract_messages,
     print_log,
     run_command,
@@ -153,6 +154,7 @@ async def server_side_build_experimental(
         str | None, typer.Option(help="Short ID, agent name or part of the provider location")
     ] = None,
     add: typing.Annotated[bool, typer.Option(help="Add agent to the platform after build")] = False,
+    yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ):
     """EXPERIMENTAL: Build agent from github repository in the platform."""
     from agentstack_cli.commands.agent import select_provider
@@ -165,7 +167,8 @@ async def server_side_build_experimental(
     if dockerfile:
         build_configuration = BuildConfiguration(dockerfile_path=Path(dockerfile))
 
-    announce_server_action(f"Starting server-side build for '{github_url}' on")
+    url = announce_server_action(f"Starting server-side build for '{github_url}' on")
+    await confirm_server_action("Proceed with building this agent on", url=url, yes=yes)
 
     async with Configuration().use_platform_client():
         on_complete = None

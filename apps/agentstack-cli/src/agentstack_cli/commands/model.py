@@ -472,6 +472,8 @@ async def select_default_model(
     model_id: typing.Annotated[str | None, typer.Argument(help="Model ID to be used as default")] = None,
     yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ):
+    url = announce_server_action("Updating default model for")
+    await confirm_server_action("Proceed with updating default model on", url=url, yes=yes)
     if not capability:
         capability = await inquirer.select(  # type: ignore
             message="Which default model would you like to change?",
@@ -483,7 +485,6 @@ async def select_default_model(
 
     assert capability
     capability_name = str(getattr(capability, "value", capability)).lower()
-    url = announce_server_action(f"Updating default {capability_name} model for")
     await confirm_server_action(f"Proceed with updating the default {capability_name} model on", url=url, yes=yes)
     async with configuration.use_platform_client():
         model = model_id if model_id else await _select_default_model(capability)
@@ -522,8 +523,8 @@ async def add_provider(
     capability: typing.Annotated[
         ModelCapability | None, typer.Argument(help="Which default model to change (llm/embedding)")
     ] = None,
-    yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ):
+    announce_server_action("Adding provider for")
     if not capability:
         capability = await inquirer.select(  # type: ignore
             message="Which default provider would you like to add?",
@@ -534,8 +535,6 @@ async def add_provider(
         ).execute_async()
 
     assert capability
-    capability_name = str(getattr(capability, "value", capability)).lower()
-    announce_server_action(f"Adding {capability_name} provider for")
     async with configuration.use_platform_client():
         await _add_provider(capability)
 
