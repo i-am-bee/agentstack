@@ -99,6 +99,24 @@ yield trajectory.trajectory_metadata(title="Step 2", content="Processing...")
 yield trajectory.trajectory_metadata(title="Step 3", content="Generating output...")
 ```
 
+**Decision Points:**
+
+```python
+yield trajectory.trajectory_metadata(
+    title="Tool Selection",
+    content="Choosing search tool based on query type: factual"
+)
+```
+
+**Error Handling:**
+
+```python
+yield trajectory.trajectory_metadata(
+    title="Retry Attempt",
+    content="First attempt failed, trying alternative approach..."
+)
+```
+
 **Multi-step Process with Live Updates:**
 
 ```python
@@ -119,24 +137,6 @@ yield trajectory.trajectory_metadata(
 yield trajectory.trajectory_metadata(
     content="Processing complete! Processed 10 items",
     group_id="processing"
-)
-```
-
-**Decision Points:**
-
-```python
-yield trajectory.trajectory_metadata(
-    title="Tool Selection",
-    content="Choosing search tool based on query type: factual"
-)
-```
-
-**Error Handling:**
-
-```python
-yield trajectory.trajectory_metadata(
-    title="Retry Attempt",
-    content="First attempt failed, trying alternative approach..."
 )
 ```
 
