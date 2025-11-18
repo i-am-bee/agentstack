@@ -5,25 +5,29 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-import { buildAgent, isAgentUiSupported, sortAgentsByName, sortProvidersByCreatedAt } from '#modules/agents/utils.ts';
+import { buildAgent, isAgentUiSupported, sortAgentsByName, sortProvidersBy } from '#modules/agents/utils.ts';
 import { listProviders } from '#modules/providers/api/index.ts';
 import { providerKeys } from '#modules/providers/api/keys.ts';
+import type { ListProvidersParams, ListProvidersResponse } from '#modules/providers/api/types.ts';
 
-interface Props {
+import { ListAgentsOrderBy } from '../types';
+
+interface Props extends ListProvidersParams {
   includeUnsupportedUi?: boolean;
   includeOffline?: boolean;
-  orderBy?: 'name' | 'createdAt';
+  orderBy?: ListAgentsOrderBy;
+  initialData?: ListProvidersResponse;
 }
 
-export function useListAgents({ includeUnsupportedUi, includeOffline, orderBy }: Props = {}) {
+export function useListAgents({ includeUnsupportedUi, includeOffline, orderBy, initialData, ...params }: Props = {}) {
   const query = useQuery({
-    queryKey: providerKeys.list(),
-    queryFn: () => listProviders(),
+    queryKey: providerKeys.list(params),
+    queryFn: () => listProviders(params),
     select: (response) => {
       let items = response?.items ?? [];
 
-      if (orderBy === 'createdAt') {
-        items = items.sort(sortProvidersByCreatedAt);
+      if (orderBy === ListAgentsOrderBy.CreatedAt || orderBy === ListAgentsOrderBy.LastActiveAt) {
+        items = items.sort((...params) => sortProvidersBy(...params, orderBy));
       }
 
       if (!includeOffline) {
@@ -36,13 +40,14 @@ export function useListAgents({ includeUnsupportedUi, includeOffline, orderBy }:
         agents = agents.filter(isAgentUiSupported);
       }
 
-      if (orderBy === 'name') {
+      if (orderBy === ListAgentsOrderBy.Name) {
         agents = agents.sort(sortAgentsByName);
       }
 
       return agents;
     },
     refetchInterval: 30_000,
+    initialData,
   });
 
   return query;

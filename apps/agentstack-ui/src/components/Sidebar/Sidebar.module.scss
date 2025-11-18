@@ -42,13 +42,13 @@ $padding: $spacing-05;
   margin-inline: -$padding;
   min-inline-size: 0;
   min-block-size: 0;
-  overflow: hidden;
+
+  .isAnimating & {
+    overflow: hidden;
+  }
 }
 
-.bodyContent {
-  display: grid;
-  grid-template-rows: max-content 1fr;
-  row-gap: $spacing-07;
+.mainContent {
   inline-size: calc(var(--sidebar-width) - 2 * $padding);
   min-inline-size: 0;
   min-block-size: 0;
@@ -62,10 +62,6 @@ $padding: $spacing-05;
     visibility: hidden;
     transition-timing-function: motion(entrance, expressive);
   }
-}
-
-.agentsNav {
-  --nav-group-max-height: #{(5 * rem(32px)) + (4 * $spacing-02)};
 }
 
 .separator {

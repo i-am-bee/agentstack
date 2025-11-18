@@ -7,6 +7,7 @@ import NextAuth from 'next-auth';
 
 import { getProviderConstructor } from '#app/(auth)/providers/providers.ts';
 import { runtimeConfig } from '#contexts/App/runtime-config.ts';
+import type { AuthProvider } from '#modules/auth/types.ts';
 import { routes } from '#utils/router.ts';
 
 import type { ProviderConfig, ProviderWithId } from './types';
@@ -50,7 +51,7 @@ if (isAuthEnabled) {
   }
 }
 
-export const authProviders = providers
+export const authProviders: AuthProvider[] = providers
   .map((provider) => {
     if (typeof provider === 'function') {
       const providerData = provider();

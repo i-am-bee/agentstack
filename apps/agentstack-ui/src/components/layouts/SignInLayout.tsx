@@ -5,9 +5,9 @@
 
 import type { PropsWithChildren } from 'react';
 
-import classes from './AppLayout.module.scss';
+import classes from './SignInLayout.module.scss';
 
-export function SigninLayout({ children }: PropsWithChildren) {
+export function SignInLayout({ children }: PropsWithChildren) {
   return (
     <div className={classes.root}>
       <main className={classes.main} data-route-transition>

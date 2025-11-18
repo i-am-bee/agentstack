@@ -13,6 +13,7 @@ import { Tooltip } from '#components/Tooltip/Tooltip.tsx';
 import { useModal } from '#contexts/Modal/index.tsx';
 import { ImportAgentsModal } from '#modules/agents/components/import/ImportAgentsModal.tsx';
 import { useUser } from '#modules/users/api/queries/useUser.ts';
+import { isUserAdmin } from '#modules/users/utils.ts';
 
 import classes from './CommonHeader.module.scss';
 
@@ -20,7 +21,7 @@ export function CommonHeader() {
   const { openModal } = useModal();
   const { data: user } = useUser();
 
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = isUserAdmin(user);
 
   const addNewAgentButton = (
     <Button
