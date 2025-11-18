@@ -62,6 +62,7 @@ def test_pdf() -> Callable[[str], BytesIO]:
 
 
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
+@pytest.mark.skip(reason="TODO: Docling is temporarily disabled because the image is too heavy")
 async def test_text_extraction_pdf_workflow(subtests, test_configuration, test_pdf: Callable[[str], BytesIO]):
     """Test complete PDF text extraction workflow: upload -> extract -> wait -> verify"""
 
@@ -137,6 +138,15 @@ async def test_text_extraction_plain_text_workflow(subtests):
     with subtests.test("verify immediate text content access"):
         async with file.load_text_content() as loaded_text_content:
             assert loaded_text_content.text == text_content
+
+    with subtests.test("delete extraction"):
+        await file.delete_extraction()
+
+    with (
+        subtests.test("verify extraction deleted"),
+        pytest.raises(httpx.HTTPStatusError, match="404 Not Found"),
+    ):
+        _ = await file.get_extraction()
 
 
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
