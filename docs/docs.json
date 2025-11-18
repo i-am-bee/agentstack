@@ -21,7 +21,7 @@
         "group": "Deploy to Agent Stack",
         "pages": [
           "guides/wrap-existing-agents",
-          "guides/start-building-agents",
+          "guides/building-agents",
           "guides/deploy-your-agents"
         ]
       },
