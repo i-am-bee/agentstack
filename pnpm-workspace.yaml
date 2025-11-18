@@ -17,7 +17,6 @@ catalog:
   clsx: ^2.1.1
   eslint: ^9.36.0
   lodash: ^4.17.21
-  lottie-react: ^2.4.1
   next: 15.5.4
   prettier: ^3.6.2
   react: ^19.1.1
