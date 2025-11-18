@@ -1,0 +1,56 @@
+---
+title: "Connect CLI to Remote Server"
+description: "Connect the Agent Stack CLI to your deployed server"
+---
+
+Use the Agent Stack CLI to configure and manage remote Agent Stack deployments. Agent Stack follows a client-server architecture, where the CLI acts as a client connecting to a deployed Agent Stack server. This allows you to manage agents remotely from your local machine.
+
+## Prerequisites
+
+- Agent Stack CLI installed locally ([Quickstart](/introduction/quickstart))
+- URL of your deployed Agent Stack server
+- Authentication credentials for the server
+
+## Connect to a server
+
+Run this command to connect to a remote server:
+
+```bash
+agentstack server login
+```
+
+The CLI will prompt you for:
+- Server URL
+- Authentication credentials
+
+Once authenticated, the CLI connects to your specified server and saves the connection for future commands.
+
+## View connected servers
+
+List all servers you've connected to:
+
+```bash
+agentstack server list
+```
+
+This shows all saved server connections. The active server is marked in the output.
+
+## Switch between servers
+
+To switch to a different connected server:
+
+```bash
+agentstack server select
+```
+
+Select from your saved connections.
+
+## Disconnect from a server
+
+Remove the currently active server connection:
+
+```bash
+agentstack server logout
+```
+
+This removes the server from your saved connections. To disconnect from a different server, switch to it first, then logout.

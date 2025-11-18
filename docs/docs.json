@@ -12,14 +12,17 @@
     "groups": [
       {
         "group": "Introduction",
-        "pages": ["introduction/welcome", "introduction/quickstart"]
+        "pages": [
+          "introduction/welcome", 
+          "introduction/quickstart"
+        ]
       },
       {
         "group": "Deploy to Agent Stack",
         "pages": [
-          "deploy/wrap-existing-agents",
-          "introduction/start-building-agents",
-          "deploy/deploy-your-agents"
+          "guides/wrap-existing-agents",
+          "guides/building-agents",
+          "guides/deploy-your-agents"
         ]
       },
 
@@ -30,16 +33,16 @@
           "guides/messages",
           "guides/multi-turn",
           "guides/files",
-          "extensions/agent-details",
-          "extensions/llm-proxy-service",
-          "extensions/trajectory",
-          "extensions/citations",
-          "extensions/forms",
-          "extensions/agent-settings",
-          "extensions/secrets",
-          "extensions/rag",
-          "extensions/mcp-oauth",
-          "extensions/mcp"
+          "sdk/agent-details",
+          "sdk/llm-proxy-service",
+          "sdk/trajectory",
+          "sdk/citations",
+          "sdk/forms",
+          "sdk/agent-settings",
+          "sdk/secrets",
+          "sdk/rag",
+          "sdk/mcp-oauth",
+          "sdk/mcp"
         ]
       },
       {
@@ -47,15 +50,18 @@
         "pages": [
           "guides/cli-reference",
           "guides/observability",
-          "introduction/connect-a2a-agents"
+          "guides/connect-a2a-agents"
         ]
       },
       {
         "group": "Deploy Agent Stack for Your Team",
-        "pages": ["how-to/deployment-guide", "how-to/remote-cli-guide"]
+        "pages": [
+          "guides/deployment-guide", 
+          "guides/authenticate-cli-to-server"
+        ]
       },
       {
-        "group": "Integrating with Agent Stack",
+        "group": "Advanced Integration",
         "pages": ["guides/connectors"]
       },
 

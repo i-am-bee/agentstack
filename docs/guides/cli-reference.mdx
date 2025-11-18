@@ -155,13 +155,22 @@ agentstack build . --dockerfile ./custom.Dockerfile
 
 ### server-side-build
 
-**EXPERIMENTAL:** Build agent from GitHub repository in the platform:
+**EXPERIMENTAL:** Build an agent from a GitHub repository on the platform, instead of locally.
+
+This is useful if you don’t want to set up a local build environment or if you want to ensure the build happens in a consistent, controlled server environment.
 
 ```bash
-agentstack server-side-build <github-url>
+agentstack server-side-build [OPTIONS] <github-url>
 ```
 
-This builds the agent on the server side rather than locally.
+This command clones the GitHub repository, builds the agent image on the platform, and optionally adds the built agent to your workspace.
+
+**Options:**
+| Option                | Description                                                                                                |
+| --------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `--dockerfile <path>` | Use a custom Dockerfile path. Path should be relative to the repo root or a subdirectory.                  |
+| `--replace <id/name>` | Replace an existing agent. Accepts short agent ID, agent name, or part of the provider location.           |
+| `--add / --no-add`    | After the build completes, automatically add the agent to your Agent Stack instance. Default: `--no-add`. |
 
 ## Model Commands
 
