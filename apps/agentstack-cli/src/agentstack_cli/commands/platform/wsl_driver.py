@@ -57,8 +57,13 @@ class WSLDriver(BaseDriver):
     @typing.override
     async def create_vm(self):
         if (await run_command(["wsl.exe", "--status"], "Checking for WSL2", check=False)).returncode != 0:
-            await run_command(["wsl.exe", "--install", "--no-launch", "--web-download"], "Installing WSL2")
-        await run_command(["wsl.exe", "--upgrade"], "Upgrading WSL2", check=False)
+            console.error(
+                "WSL is not installed. Please follow the Agent Stack installation instructions: https://agentstack.beeai.dev/introduction/quickstart#windows"
+            )
+            console.hint(
+                "Run [green]wsl.exe --install[/green] as administrator. If you just did this, restart your PC and run the same command again. Full installation may require up to two restarts. WSL is properly set up once you reach a working Linux terminal. You can verify this by running [green]wsl.exe[/green] without arguments."
+            )
+            sys.exit(1)
 
         config_file = (
             pathlib.Path.home()

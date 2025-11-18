@@ -162,7 +162,7 @@ async def capture_output(process: anyio.abc.Process, stream_contents: list | Non
     async def receive_logs(stream: ByteReceiveStream, index=0):
         buffer = BytesIO()
         async for chunk in stream:
-            err_console.print(Text.from_ansi(chunk.decode()), style="dim")
+            err_console.print(Text.from_ansi(chunk.decode(errors="replace")), style="dim")
             buffer.write(chunk)
         if stream_contents:
             stream_contents[index] = buffer.getvalue()
