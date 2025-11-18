@@ -27,7 +27,7 @@ export function useListAgents({ includeUnsupportedUi, includeOffline, orderBy }:
       }
 
       if (!includeOffline) {
-        items = items.filter(({ state }) => state !== 'offline');
+        items = items.filter(({ state }) => state !== 'offline' && state !== 'error');
       }
 
       let agents = items.map(buildAgent);
