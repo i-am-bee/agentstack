@@ -58,7 +58,7 @@
         "pages": [
           "guides/deployment-guide", 
           "guides/authenticate-cli-to-server"
-      ]
+        ]
       },
       {
         "group": "Advanced Integration",
