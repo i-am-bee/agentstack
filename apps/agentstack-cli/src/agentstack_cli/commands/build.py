@@ -24,7 +24,15 @@ from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, w
 
 from agentstack_cli.async_typer import AsyncTyper
 from agentstack_cli.console import console
-from agentstack_cli.utils import capture_output, extract_messages, print_log, run_command, status, verbosity
+from agentstack_cli.utils import (
+    announce_server_action,
+    capture_output,
+    extract_messages,
+    print_log,
+    run_command,
+    status,
+    verbosity,
+)
 
 
 async def find_free_port():
@@ -156,6 +164,8 @@ async def server_side_build_experimental(
     build_configuration = None
     if dockerfile:
         build_configuration = BuildConfiguration(dockerfile_path=Path(dockerfile))
+
+    announce_server_action(f"Starting server-side build for '{github_url}' on")
 
     async with Configuration().use_platform_client():
         on_complete = None
