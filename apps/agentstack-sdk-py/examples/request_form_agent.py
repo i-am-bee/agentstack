@@ -58,7 +58,6 @@ async def request_form_agent(
                     MultiSelectField(
                         id="multiselect_field",
                         label="Multi-Select Field",
-                        required=True,
                         options=[
                             OptionItem(id="option1", label="Option 1"),
                             OptionItem(id="option2", label="Option 2"),
