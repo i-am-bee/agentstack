@@ -30,6 +30,29 @@ async def my_agent(
     yield "Final result"
 ```
 
+## Markdown Support
+The `content` field of `trajectory_metadata` supports Markdown, which is rendered directly in the UI.
+
+Supported elements include:
+- Headers
+- Bold and italic text
+- Ordered and unordered lists
+- Tables
+- Code blocks
+- Links
+
+```python
+yield trajectory.trajectory_metadata(
+    title="Checklist",
+    content="""
+- Load data
+- Validate schema
+- Run inference
+- Generate report
+"""
+)
+```
+
 ## Common Patterns
 
 **Progress Steps:**

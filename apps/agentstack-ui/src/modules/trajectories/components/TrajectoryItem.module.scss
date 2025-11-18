@@ -22,3 +22,9 @@
   color: $text-secondary;
   letter-spacing: $letter-spacing;
 }
+
+.content {
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+}
