@@ -105,7 +105,8 @@ class AuthManager:
                 self._auth.active_server or "",
                 self._auth.active_auth_server or "",
                 self._auth.servers[self._auth.active_server or ""].authorization_servers[auth_server].client_id or "",
-                "",
+                self._auth.servers[self._auth.active_server or ""].authorization_servers[auth_server].client_secret
+                or "",
                 token=new_token,
             )
             return new_token
