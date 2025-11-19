@@ -7,7 +7,7 @@ import type { FilePart, Message, Part, TextPart } from '@a2a-js/sdk';
 import { match } from 'ts-pattern';
 import { v4 as uuid } from 'uuid';
 
-import type { UIFilePart, UIMessagePart } from '#modules/messages/types.ts';
+import type { UIFilePart, UIMessagePart, UITextPart } from '#modules/messages/types.ts';
 import { UIMessagePartKind } from '#modules/messages/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
@@ -38,11 +38,11 @@ export function processMessageMetadata(message: Message): UIMessagePart[] {
   return parts;
 }
 
-export function processTextPart({ text }: TextPart): UIMessagePart[] {
-  return [createTextPart(text)];
+export function processTextPart({ text }: TextPart): UITextPart {
+  return createTextPart(text);
 }
 
-export function processFilePart(part: FilePart): UIMessagePart[] {
+function processFilePart(part: FilePart): UIFilePart {
   const { file } = part;
   const { name, mimeType } = file;
   const id = uuid();
@@ -56,14 +56,14 @@ export function processFilePart(part: FilePart): UIMessagePart[] {
     type: mimeType,
   };
 
-  return [filePart];
+  return filePart;
 }
 
-export function processParts(parts: Part[]): UIMessagePart[] {
+export function processParts(parts: Part[]) {
   const processedParts = parts
-    .flatMap((part) => {
+    .map((part) => {
       const processedParts = match(part)
-        .with({ kind: 'text' }, (part) => processTextPart(part))
+        .with({ kind: 'text' }, processTextPart)
         .with({ kind: 'file' }, processFilePart)
         .otherwise((otherPart) => {
           console.warn(`Unsupported part - ${otherPart.kind}`);

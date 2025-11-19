@@ -5,6 +5,7 @@
 
 import { match } from 'ts-pattern';
 
+import { transformArtifactPart } from '#modules/canvas/utils.ts';
 import { transformFilePart } from '#modules/files/utils.ts';
 import { transformSourcePart } from '#modules/sources/utils.ts';
 
@@ -20,13 +21,26 @@ export function isAgentMessage(message: UIMessage): message is UIAgentMessage {
   return message.role === Role.Agent;
 }
 
-export function getMessageRawContent(message: UIMessage) {
-  const rawContent = message.parts.reduce(
-    (content, part) => (part.kind === UIMessagePartKind.Text ? content.concat(part.text) : content),
-    '',
-  );
+export function getMessagePartsRawContent(parts: UIMessage['parts']) {
+  const rawContent = parts.reduce((content, part) => {
+    match(part)
+      .with({ kind: UIMessagePartKind.Text }, (part) => {
+        content += part.text;
+      })
+      .with({ kind: UIMessagePartKind.Artifact }, (part) => {
+        content += part.parts
+          .map((artifactPart) => (artifactPart.kind === UIMessagePartKind.Text ? artifactPart.text : ''))
+          .join('');
+      });
+
+    return content;
+  }, '');
 
   return rawContent;
+}
+
+export function getMessageRawContent(message: UIMessage) {
+  return getMessagePartsRawContent(message.parts);
 }
 
 export function getMessageContent(message: UIMessage) {
@@ -185,6 +199,11 @@ export function addTranformedMessagePart(part: UIMessagePart, message: UIAgentMe
     })
     .with({ kind: UIMessagePartKind.Source }, (part) => {
       const transformedPart = transformSourcePart(part);
+
+      newParts.push(part, transformedPart);
+    })
+    .with({ kind: UIMessagePartKind.Artifact }, (part) => {
+      const transformedPart = transformArtifactPart(part, message);
 
       newParts.push(part, transformedPart);
     })

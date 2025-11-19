@@ -5,6 +5,11 @@
 
 import { isNotNull } from './helpers';
 
+function escapeMarkdown(text: string): string {
+  // Escape markdown special characters
+  return text.replace(/([\\`*_{}[\]()#+\-.!|])/g, '\\$1');
+}
+
 export function createMarkdownCodeBlock({ snippet, language = '' }: { snippet: string; language?: string }) {
   return `\`\`\`${language}\n${snippet}\n\`\`\``;
 }
@@ -23,4 +28,8 @@ export function createMarkdownSection({ heading, content }: { heading: string; c
 
 export function joinMarkdownSections(sections: (string | undefined)[]) {
   return sections.filter(isNotNull).join('\n\n');
+}
+
+export function toMarkdownArtifact({ name, content }: { name: string; content: string }) {
+  return `[${escapeMarkdown(name)}](artifact:${escapeMarkdown(content)})`;
 }

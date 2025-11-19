@@ -10,7 +10,7 @@ import { defaultIfEmpty, filter, lastValueFrom, Subject } from 'rxjs';
 import { match } from 'ts-pattern';
 
 import { A2AExtensionError, UnauthenticatedError } from '#api/errors.ts';
-import type { UIMessagePart } from '#modules/messages/types.ts';
+import { type UIArtifactPart, type UIMessagePart, UIMessagePartKind } from '#modules/messages/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 
@@ -49,12 +49,14 @@ function handleStatusUpdate<UIGenericPart = never>(
   return [...metadataParts, ...contentParts, ...genericParts];
 }
 
-function handleArtifactUpdate(event: TaskArtifactUpdateEvent): UIMessagePart[] {
+function handleArtifactUpdate(event: TaskArtifactUpdateEvent): UIArtifactPart {
   const { artifact } = event;
 
   const contentParts = processParts(artifact.parts);
 
-  return contentParts;
+  const { artifactId, description, name } = artifact;
+
+  return { kind: UIMessagePartKind.Artifact, artifactId, description, name, parts: contentParts };
 }
 
 export interface CreateA2AClientParams<UIGenericPart = never> {
@@ -98,6 +100,8 @@ export const buildA2AClient = async <UIGenericPart = never>({
       );
 
       for await (const event of stream) {
+        console.log({ event });
+
         match(event)
           .with({ kind: 'task' }, (task) => {
             taskId = task.id;
@@ -123,9 +127,9 @@ export const buildA2AClient = async <UIGenericPart = never>({
           .with({ kind: 'artifact-update' }, (event) => {
             taskId = event.taskId;
 
-            const parts = handleArtifactUpdate(event);
+            const artifactPart = handleArtifactUpdate(event);
 
-            messageSubject.next({ type: RunResultType.Parts, parts, taskId });
+            messageSubject.next({ type: RunResultType.Parts, parts: [artifactPart], taskId });
           });
       }
 
