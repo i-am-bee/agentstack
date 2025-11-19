@@ -63,7 +63,8 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.67" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.68" },
+    { name = "ddgs", specifier = ">=9.9.1" },
     { name = "pyright", specifier = ">=1.1.403" },
     { name = "pytest", specifier = ">=8.4.1" },
     { name = "pytest-asyncio", specifier = ">=1.1.0" },
@@ -189,7 +190,7 @@ wheels = [
 
 [[package]]
 name = "beeai-framework"
-version = "0.1.67"
+version = "0.1.68"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -203,9 +204,9 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ab/46/e56e80a76d659d2afc692025f5021ac20ebbaae84fb11c5c5ba5a8c94989/beeai_framework-0.1.67.tar.gz", hash = "sha256:ce2a59c359dda5340530b7c3119f0d2cfb831a1ff116558bfc7880a121cbef3d", size = 180054, upload-time = "2025-11-18T17:09:15.967Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/13/09/273332fd7bfae65b8cc555ab71007015ed5faa8f009d1138891d930136e8/beeai_framework-0.1.68.tar.gz", hash = "sha256:9a95c62b167196e992b9af0201f417d88db348c02cb6ae213608816a66b30369", size = 180637, upload-time = "2025-11-19T17:21:23.427Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c8/d0/a67b3d502a4751158fc12cfdf182f278cefa547795c8a132bf19d906fb60/beeai_framework-0.1.67-py3-none-any.whl", hash = "sha256:81da1fb1473252ff5c6e3c2d9841eb43a06d55713bc7f686c86bc2044cfba5b7", size = 332948, upload-time = "2025-11-18T17:09:14.235Z" },
+    { url = "https://files.pythonhosted.org/packages/35/b8/70c5868dd6441fae444bec7fca20b4e24a740714af42bf80478961ec078a/beeai_framework-0.1.68-py3-none-any.whl", hash = "sha256:2243044af896b0a4b2c666da9b549a2f00b264089f9debf797cd0bba6129ac40", size = 333809, upload-time = "2025-11-19T17:21:22.242Z" },
 ]
 
 [package.optional-dependencies]
@@ -346,17 +347,18 @@ wheels = [
 
 [[package]]
 name = "ddgs"
-version = "9.6.0"
+version = "9.9.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
+    { name = "fake-useragent" },
     { name = "httpx", extra = ["brotli", "http2", "socks"] },
     { name = "lxml" },
     { name = "primp" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/db/45/7a408de2cd89855403ea18ed776f12c291eabe7dd54bc5b00f7cdb43f8ba/ddgs-9.6.0.tar.gz", hash = "sha256:8caf555d4282c1cf5c15969994ad55f4239bd15e97cf004a5da8f1cad37529bf", size = 35865, upload-time = "2025-09-17T13:27:10.533Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f1/44/93fc35ddcca217b672554739cd731704b13245c6bfa5374189c38f7a51b3/ddgs-9.9.1.tar.gz", hash = "sha256:d33529abb56aa5b98eb436565a6bfa48f07eb04dca18d323df723b83cb007e4f", size = 36007, upload-time = "2025-11-14T16:03:51.794Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/40/cd/ef820662e0d87f46b829bba7e2324c7978e0153692bbd2f08f7746049708/ddgs-9.6.0-py3-none-any.whl", hash = "sha256:24120f1b672fd3a28309db029e7038eb3054381730aea7a08d51bb909dd55520", size = 41558, upload-time = "2025-09-17T13:27:08.99Z" },
+    { url = "https://files.pythonhosted.org/packages/ce/c6/1c9fa4e017bf0a06af9211c1f8a9f3b383e92ff4a1f4e494e2cafdc9487d/ddgs-9.9.1-py3-none-any.whl", hash = "sha256:bba5701462bc9c8eac69fdd2edf7e833e74741b2bae3593489e470e125e9601d", size = 41439, upload-time = "2025-11-14T16:03:50.637Z" },
 ]
 
 [[package]]
@@ -378,6 +380,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/fc/f8/98eea607f65de6527f8a2e8885fc8015d3e6f5775df186e443e0964a11c3/distro-1.9.0.tar.gz", hash = "sha256:2fa77c6fd8940f116ee1d6b94a2f90b13b5ea8d019b98bc8bafdcabcdd9bdbed", size = 60722, upload-time = "2023-12-24T09:54:32.31Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/12/b3/231ffd4ab1fc9d679809f356cebee130ac7daa00d6d6f3206dd4fd137e9e/distro-1.9.0-py3-none-any.whl", hash = "sha256:7bffd925d65168f85027d8da9af6bddab658135b840670a223589bc0c8ef02b2", size = 20277, upload-time = "2023-12-24T09:54:30.421Z" },
+]
+
+[[package]]
+name = "fake-useragent"
+version = "2.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/41/43/948d10bf42735709edb5ae51e23297d034086f17fc7279fef385a7acb473/fake_useragent-2.2.0.tar.gz", hash = "sha256:4e6ab6571e40cc086d788523cf9e018f618d07f9050f822ff409a4dfe17c16b2", size = 158898, upload-time = "2025-04-14T15:32:19.238Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/51/37/b3ea9cd5558ff4cb51957caca2193981c6b0ff30bd0d2630ac62505d99d0/fake_useragent-2.2.0-py3-none-any.whl", hash = "sha256:67f35ca4d847b0d298187443aaf020413746e56acd985a611908c73dba2daa24", size = 161695, upload-time = "2025-04-14T15:32:17.732Z" },
 ]
 
 [[package]]
@@ -1421,6 +1432,7 @@ source = { editable = "." }
 dependencies = [
     { name = "agentstack-sdk" },
     { name = "beeai-framework", extra = ["duckduckgo", "wikipedia"] },
+    { name = "ddgs" },
     { name = "fastuuid" },
     { name = "langchain-text-splitters" },
     { name = "openai" },
@@ -1439,7 +1451,8 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "agentstack-sdk", editable = "../../apps/agentstack-sdk-py" },
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.67" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.68" },
+    { name = "ddgs", specifier = ">=9.9.1" },
     { name = "fastuuid", specifier = ">=0.14.0" },
     { name = "langchain-text-splitters", specifier = ">=0.3.0" },
     { name = "openai", specifier = ">=1.107.1" },

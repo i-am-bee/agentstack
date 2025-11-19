@@ -9,6 +9,7 @@ from a2a.types import (
     AgentSkill,
     Message,
 )
+from beeai_framework.adapters.agentstack.backend.chat import AgentStackChatModel
 from beeai_framework.agents.requirement import RequirementAgent
 from beeai_framework.agents.requirement.events import (
     RequirementAgentSuccessEvent,
@@ -45,7 +46,6 @@ from openinference.instrumentation.beeai import BeeAIInstrumentor
 
 from chat.helpers.citations import extract_citations
 from chat.helpers.trajectory import TrajectoryContent
-from chat.tmp_chat_model import BeeAIPlatformChatModel
 from chat.tools.files.file_creator import FileCreatorTool, FileCreatorToolOutput
 from chat.tools.files.file_reader import create_file_reader_tool_class
 from chat.tools.files.utils import extract_files, to_framework_message
@@ -67,8 +67,12 @@ EventMeta.model_fields["context"].exclude = True
 
 BeeAIInstrumentor().instrument()
 ## TODO: https://github.com/phoenixframework/phoenix/issues/6224
-logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(logging.CRITICAL)
-logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(logging.CRITICAL)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(
+    logging.CRITICAL
+)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(
+    logging.CRITICAL
+)
 
 logger = logging.getLogger(__name__)
 
@@ -162,7 +166,9 @@ server = Server()
                 """
             ),
             tags=["chat"],
-            examples=["Please find a room in LA, CA, April 15, 2025, checkout date is april 18, 2 adults"],
+            examples=[
+                "Please find a room in LA, CA, April 15, 2025, checkout date is april 18, 2 adults"
+            ],
         )
     ],
 )
@@ -173,7 +179,9 @@ async def chat(
     citation: Annotated[CitationExtensionServer, CitationExtensionSpec()],
     llm_ext: Annotated[
         LLMServiceExtensionServer,
-        LLMServiceExtensionSpec.single_demand(suggested=("openai:gpt-4o", "ollama:granite3.3:8b")),
+        LLMServiceExtensionSpec.single_demand(
+            suggested=("openai:gpt-4o", "ollama:granite3.3:8b")
+        ),
     ],
     _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
 ):
@@ -181,9 +189,15 @@ async def chat(
     await context.store(input)
 
     # Send initial trajectory
-    yield trajectory.trajectory_metadata(title="Starting", content="Received your request")
+    yield trajectory.trajectory_metadata(
+        title="Starting", content="Received your request"
+    )
 
-    history = [message async for message in context.load_history() if isinstance(message, Message) and message.parts]
+    history = [
+        message
+        async for message in context.load_history()
+        if isinstance(message, Message) and message.parts
+    ]
     extracted_files = await extract_files(history=history)
 
     # Configure tools
@@ -223,7 +237,7 @@ async def chat(
     ]
 
     use_streaming = True
-    llm = BeeAIPlatformChatModel(parameters=ChatModelParameters(stream=use_streaming))
+    llm = AgentStackChatModel(parameters=ChatModelParameters(stream=use_streaming))
     llm.set_context(llm_ext)
 
     # Build dynamic instructions based on available files
@@ -272,9 +286,7 @@ async def chat(
         files_context += "\nThe user has uploaded the following files that you can access using the File Reader tool:"
         for file in extracted_files:
             files_context += f"\n- **{file.file.filename}** (ID: {file.file.id}) - Available at: {file.file.url}"
-        files_context += (
-            "\n\nWhen referencing these files, use their ID with the File Reader tool to access their content."
-        )
+        files_context += "\n\nWhen referencing these files, use their ID with the File Reader tool to access their content."
         instructions = base_instructions.format(file_context=files_context)
     else:
         instructions = base_instructions.format(file_context="")
@@ -303,7 +315,11 @@ async def chat(
             continue
 
         last_step = event.state.steps[-1] if event.state.steps else None
-        if last_step and last_step.tool is not None and last_step.tool.name != FinalAnswerTool.name:
+        if (
+            last_step
+            and last_step.tool is not None
+            and last_step.tool.name != FinalAnswerTool.name
+        ):
             trajectory_content = TrajectoryContent(
                 input=last_step.input,
                 output=last_step.output,
@@ -321,7 +337,9 @@ async def chat(
                 for file_info in result.files:
                     part = file_info.file.to_file_part()
                     part.file.name = file_info.display_filename
-                    artifact = AgentArtifact(name=file_info.display_filename, parts=[part])
+                    artifact = AgentArtifact(
+                        name=file_info.display_filename, parts=[part]
+                    )
                     yield artifact
                     await context.store(artifact)
 
@@ -334,7 +352,9 @@ async def chat(
 
         message = AgentMessage(
             text=clean_text,
-            metadata=(citation.citation_metadata(citations=citations) if citations else None),
+            metadata=(
+                citation.citation_metadata(citations=citations) if citations else None
+            ),
         )
         if not use_streaming:
             yield message

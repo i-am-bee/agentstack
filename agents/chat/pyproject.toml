@@ -7,7 +7,8 @@ authors = [
 ]
 requires-python = ">=3.13,<3.14"
 dependencies = [
-    "beeai-framework[duckduckgo,wikipedia]>=0.1.67",
+    "beeai-framework[duckduckgo,wikipedia]>=0.1.68",
+    "ddgs>=9.9.1",
     "tiktoken>=0.12.0",  # constraint for beeai-framework dependency (first version with musl arm64 wheel)
     "fastuuid>=0.14.0",  # constraint for beeai-framework dependency (first version with musl arm64 wheel)
     "openai>=1.107.1",
