@@ -22,11 +22,11 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 
 
-class RequestFormExtensionSpec(NoParamsBaseExtensionSpec):
-    URI: str = "https://a2a-extensions.agentstack.beeai.dev/ui/request_form/v1"
+class FormRequestExtensionSpec(NoParamsBaseExtensionSpec):
+    URI: str = "https://a2a-extensions.agentstack.beeai.dev/ui/form_request/v1"
 
 
-class RequestFormExtensionServer(BaseExtensionServer[RequestFormExtensionSpec, FormResponse]):
+class FormRequestExtensionServer(BaseExtensionServer[FormRequestExtensionSpec, FormResponse]):
     def handle_incoming_message(self, message: A2AMessage, context: RunContext):
         super().handle_incoming_message(message, context)
         self.context = context
@@ -46,4 +46,4 @@ class RequestFormExtensionServer(BaseExtensionServer[RequestFormExtensionSpec, F
         return TypeAdapter(model).validate_python(dict(form_response))
 
 
-class RequestFormExtensionClient(BaseExtensionClient[RequestFormExtensionSpec, FormRender]): ...
+class FormRequestExtensionClient(BaseExtensionClient[FormRequestExtensionSpec, FormRender]): ...

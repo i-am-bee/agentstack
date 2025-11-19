@@ -94,7 +94,7 @@ For dynamic form requests during conversation, you can request forms at any poin
 
 <Steps>
 <Step title="Import the request form extension">
-Import `RequestFormExtensionServer`, `RequestFormExtensionSpec`, `FormRender`, and field types from the Agent Stack SDK.
+Import `FormRequestExtensionServer`, `FormRequestExtensionSpec`, `FormRender`, and field types from the Agent Stack SDK.
 </Step>
 
 <Step title="Define your form data model">
@@ -102,11 +102,11 @@ Create a Pydantic model with fields matching your form field IDs.
 </Step>
 
 <Step title="Add request form parameter to your agent">
-Inject the request form extension into your agent function using `RequestFormExtensionSpec()`.
+Inject the request form extension into your agent function using `FormRequestExtensionSpec()`.
 </Step>
 
 <Step title="Request form dynamically">
-Call `await request_form.request_form(form=FormRender(...), model=YourModel)` when you need to collect structured input.
+Call `await form_request.request_form(form=FormRender(...), model=YourModel)` when you need to collect structured input.
 </Step>
 </Steps>
 
@@ -118,9 +118,9 @@ from a2a.utils.message import get_message_text
 from pydantic import BaseModel
 from agentstack_sdk.server import Server
 from agentstack_sdk.a2a.extensions.common.form import FormRender, TextField
-from agentstack_sdk.a2a.extensions.ui.request_form import (
-    RequestFormExtensionServer,
-    RequestFormExtensionSpec,
+from agentstack_sdk.a2a.extensions.ui.form_request import (
+    FormRequestExtensionServer,
+    FormRequestExtensionSpec,
 )
 
 server = Server()
@@ -135,9 +135,9 @@ class ContactInfo(BaseModel):
 @server.agent()
 async def dynamic_form_agent(
     message: Message,
-    request_form: Annotated[
-        RequestFormExtensionServer,
-        RequestFormExtensionSpec(),
+    form_request: Annotated[
+        FormRequestExtensionServer,
+        FormRequestExtensionSpec(),
     ],
 ):
     """Agent that requests forms dynamically during conversation"""
@@ -147,7 +147,7 @@ async def dynamic_form_agent(
     # Check if user wants to provide contact information
     if "contact" in user_input.lower() or "reach" in user_input.lower():
         # Request contact form dynamically
-        contact_info = await request_form.request_form(
+        contact_info = await form_request.request_form(
             form=FormRender(
                 title="Please provide your contact information",
                 columns=2,
@@ -179,13 +179,13 @@ Here's what you need to know to add form capabilities to your agent:
 **Import the form components**: 
 - For form fields and `FormRender`, import from `agentstack_sdk.a2a.extensions.common.form`
 - For initial forms, import `FormServiceExtensionServer` and `FormServiceExtensionSpec` from `agentstack_sdk.a2a.extensions.services.form`
-- For dynamic forms, import `RequestFormExtensionServer` and `RequestFormExtensionSpec` from `agentstack_sdk.a2a.extensions.ui.request_form`
+- For dynamic forms, import `FormRequestExtensionServer` and `FormRequestExtensionSpec` from `agentstack_sdk.a2a.extensions.ui.form_request`
 
 **Inject the extension**: Add a form parameter to your agent function using the `Annotated` type hint.
 
 **For initial forms**: Use `FormServiceExtensionSpec.demand(initial_form=FormRender(...))` to specify the form structure and call `form.parse_initial_form(model=YourModel)` to extract data.
 
-**For dynamic forms**: Use `RequestFormExtensionSpec()` and call `await request_form.request_form(form=FormRender(...), model=YourModel)` when needed.
+**For dynamic forms**: Use `FormRequestExtensionSpec()` and call `await form_request.request_form(form=FormRender(...), model=YourModel)` when needed.
 
 **Access form data**: The recommended approach is to use a Pydantic model (or `TypedDict`, `dataclass`, or any class supported by `pydantic.TypeAdapter`) to load form data. Define a model with fields matching your form field IDs:
 
@@ -205,7 +205,7 @@ Then, pass `model=ContactInfo` to `parse_initial_form(...)` or `request_form(...
 contact_info: ContactInfo | None = form.parse_initial_form(model=ContactInfo)
 
 # For dynamic forms
-contact_info: ContactInfo | None = await request_form.request_form(
+contact_info: ContactInfo | None = await form_request.request_form(
     form=FormRender(...),
     model=ContactInfo
 )

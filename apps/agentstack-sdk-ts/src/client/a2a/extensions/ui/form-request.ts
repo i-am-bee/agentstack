@@ -8,11 +8,11 @@ import z from 'zod';
 import { formRenderSchema } from '../common/form';
 import type { A2AUiExtension } from '../types';
 
-const URI = 'https://a2a-extensions.agentstack.beeai.dev/ui/request_form/v1';
+const URI = 'https://a2a-extensions.agentstack.beeai.dev/ui/form_request/v1';
 
 export type FormRequest = z.infer<typeof formRenderSchema>;
 
-export const requestFormExtension: A2AUiExtension<typeof URI, FormRequest> = {
+export const FormRequestExtension: A2AUiExtension<typeof URI, FormRequest> = {
   getMessageMetadataSchema: () => z.object({ [URI]: formRenderSchema }).partial(),
   getUri: () => URI,
 };

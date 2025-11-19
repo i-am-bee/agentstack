@@ -36,13 +36,13 @@ from agentstack_sdk.a2a.extensions import (
     EmbeddingFulfillment,
     EmbeddingServiceExtensionClient,
     EmbeddingServiceExtensionSpec,
+    FormRequestExtensionSpec,
     FormServiceExtensionSpec,
     LLMFulfillment,
     LLMServiceExtensionClient,
     LLMServiceExtensionSpec,
     PlatformApiExtensionClient,
     PlatformApiExtensionSpec,
-    RequestFormExtensionSpec,
     TrajectoryExtensionClient,
     TrajectoryExtensionSpec,
 )
@@ -475,7 +475,7 @@ async def _run_agent(
                         raise ValueError("Agent requires input but no input handler provided")
 
                     if form_metadata := (
-                        message.metadata.get(RequestFormExtensionSpec.URI) if message and message.metadata else None
+                        message.metadata.get(FormRequestExtensionSpec.URI) if message and message.metadata else None
                     ):
                         stream = client.send_message(
                             Message(
@@ -485,7 +485,7 @@ async def _run_agent(
                                 task_id=task_id,
                                 context_id=context_token.context_id,
                                 metadata={
-                                    RequestFormExtensionSpec.URI: (
+                                    FormRequestExtensionSpec.URI: (
                                         await _ask_form_questions(FormRender.model_validate(form_metadata))
                                     ).model_dump(mode="json")
                                 },

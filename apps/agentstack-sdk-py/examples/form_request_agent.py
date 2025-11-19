@@ -16,7 +16,7 @@ from agentstack_sdk.a2a.extensions.common.form import (
     SingleSelectField,
     TextField,
 )
-from agentstack_sdk.a2a.extensions.ui.request_form import RequestFormExtensionServer, RequestFormExtensionSpec
+from agentstack_sdk.a2a.extensions.ui.form_request import FormRequestExtensionServer, FormRequestExtensionSpec
 from agentstack_sdk.server import Server
 
 server = Server()
@@ -32,15 +32,15 @@ class KitchenSink(BaseModel):
 
 
 @server.agent()
-async def request_form_agent(
+async def form_request_agent(
     _message: Message,
-    request_form: Annotated[
-        RequestFormExtensionServer,
-        RequestFormExtensionSpec(),
+    form_request: Annotated[
+        FormRequestExtensionServer,
+        FormRequestExtensionSpec(),
     ],
 ):
     """Request form agent"""
-    user_info = await request_form.request_form(
+    user_info = await form_request.request_form(
         form=FormRender(
             title="Kitchen Sink Form",
             columns=2,

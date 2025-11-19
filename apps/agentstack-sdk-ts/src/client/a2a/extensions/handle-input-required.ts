@@ -4,7 +4,7 @@
  */
 
 import type { FormResponseValue } from './common/form';
-import { requestFormExtension } from './ui/request-form';
+import { FormRequestExtension } from './ui/form-request';
 
 export type InputRequiredResponses = Partial<{
   form: Record<string, FormResponseValue>;
@@ -15,7 +15,7 @@ export const handleInputRequired = () => {
     const metadata: Record<string, unknown> = {};
 
     if (responses.form) {
-      metadata[requestFormExtension.getUri()] = {
+      metadata[FormRequestExtension.getUri()] = {
         values: responses.form,
       };
     }
