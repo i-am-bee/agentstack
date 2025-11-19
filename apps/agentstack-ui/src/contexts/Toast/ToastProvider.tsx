@@ -10,6 +10,7 @@ import type { PropsWithChildren } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
+import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 
 import type { Toast, ToastWithKey } from './toast-context';
@@ -24,7 +25,7 @@ export function ToastProvider({ children }: PropsWithChildren) {
       setToasts((existing) => {
         const defaults = {
           lowContrast: true,
-          timeout: 10000,
+          timeout: 10_000,
           key: uuid(),
           date: new Date(),
         };
@@ -87,11 +88,11 @@ function Toast({ toast, onClose }: { toast: ToastWithKey; onClose: () => void })
 
       {(subtitle || apiError) && (
         <div className="cds--toast-notification__subtitle">
-          {subtitle && <div className={classes.subtitle}>{subtitle}</div>}
+          {subtitle && <div>{subtitle}</div>}
           {apiError && (
-            <div className={classes.apiError}>
+            <LineClampText lines={8} useBlockElement>
               <MarkdownContent>{apiError}</MarkdownContent>
-            </div>
+            </LineClampText>
           )}
         </div>
       )}

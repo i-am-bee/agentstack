@@ -15,7 +15,7 @@ import { CitationLink } from '#modules/runs/components/ChatMarkdownContent/Citat
 
 import { remarkCitationLink } from './CitationLink/remarkCitationLink';
 
-export interface ChatComponents extends Components {
+interface ChatComponents extends Components {
   citationLink?: (props: CitationLinkBaseProps) => JSX.Element;
 }
 
