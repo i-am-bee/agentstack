@@ -21,6 +21,7 @@ import typer
 import yaml
 from anyio import create_task_group
 from anyio.abc import ByteReceiveStream, TaskGroup
+from InquirerPy import inquirer
 from jsf import JSF
 from prompt_toolkit import PromptSession
 from prompt_toolkit.shortcuts import CompleteStyle
@@ -28,6 +29,7 @@ from pydantic import BaseModel
 from rich.console import Capture
 from rich.text import Text
 
+from agentstack_cli.configuration import Configuration
 from agentstack_cli.console import console, err_console
 
 if TYPE_CHECKING:
@@ -113,6 +115,37 @@ def remove_nullable(schema: dict[str, Any]) -> dict[str, Any]:
 
 
 prompt_session = None
+
+
+def require_active_server() -> str:
+    """Return the active server URL or exit if none is selected."""
+    if url := Configuration().auth_manager.active_server:
+        return url
+    console.error("No server selected.")
+    console.hint(
+        "Run [green]agentstack platform start[/green] to start a local server, or [green]agentstack server login[/green] to connect to a remote one."
+    )
+    sys.exit(1)
+
+
+def announce_server_action(message: str, url: str | None = None) -> str:
+    """Log an info message that includes the active server URL and return it."""
+    url = url or require_active_server()
+    console.info(f"{message} [cyan]{url}[/cyan]")
+    return url
+
+
+async def confirm_server_action(message: str, url: str | None = None, *, yes: bool = False) -> None:
+    """Ask for confirmation before continuing with an action on the active server."""
+    if yes:
+        return
+    url = url or require_active_server()
+    confirmed = await inquirer.confirm(  # type: ignore
+        message=f"{message} [cyan]{url}[/cyan]?", default=False
+    ).execute_async()
+    if not confirmed:
+        console.info("Action cancelled.")
+        raise typer.Exit(1)
 
 
 def prompt_user(

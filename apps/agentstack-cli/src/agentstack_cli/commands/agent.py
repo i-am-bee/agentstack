@@ -95,6 +95,8 @@ from rich.table import Column
 from agentstack_cli.api import a2a_client
 from agentstack_cli.async_typer import AsyncTyper, console, create_table, err_console
 from agentstack_cli.utils import (
+    announce_server_action,
+    confirm_server_action,
     generate_schema_example,
     parse_env_var,
     print_log,
@@ -154,8 +156,11 @@ async def add_agent(
     dockerfile: typing.Annotated[str | None, typer.Option(help="Use custom dockerfile path")] = None,
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
+    yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ) -> None:
     """Install discovered agent or add public docker image or github repository [aliases: install]"""
+    url = announce_server_action(f"Installing agent '{location}' for")
+    await confirm_server_action("Proceed with installing this agent on", url=url, yes=yes)
     agent_card = None
     with verbosity(verbose):
         if (
@@ -210,8 +215,11 @@ async def uninstall_agent(
     search_path: typing.Annotated[
         str, typer.Argument(..., help="Short ID, agent name or part of the provider location")
     ],
+    yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ) -> None:
     """Remove agent"""
+    url = announce_server_action(f"Removing agent '{search_path}' from")
+    await confirm_server_action("Proceed with removing this agent from", url=url, yes=yes)
     with console.status("Uninstalling agent (may take a few minutes)...", spinner="dots"):
         async with configuration.use_platform_client():
             remove_provider = select_provider(search_path, await Provider.list()).id
@@ -226,6 +234,7 @@ async def stream_logs(
     ],
 ):
     """Stream agent provider logs"""
+    announce_server_action(f"Streaming logs for '{search_path}' from")
     async with configuration.use_platform_client():
         provider = select_provider(search_path, await Provider.list()).id
         async for message in Provider.stream_logs(provider):
@@ -740,6 +749,7 @@ async def run_agent(
     ] = None,
 ) -> None:
     """Run an agent."""
+    announce_server_action(f"Running agent '{search_path}' on")
     async with configuration.use_platform_client():
         providers = await Provider.list()
         await ensure_llm_provider()
@@ -833,6 +843,7 @@ async def run_agent(
 @app.command("list")
 async def list_agents():
     """List agents."""
+    announce_server_action("Listing agents on")
     async with configuration.use_platform_client():
         providers = await Provider.list()
     max_provider_len = max(len(ProviderUtils.short_location(p)) for p in providers) if providers else 0
@@ -920,6 +931,7 @@ async def agent_detail(
     ],
 ):
     """Show agent details."""
+    announce_server_action(f"Showing agent details for '{search_path}' on")
     provider = select_provider(search_path, await Provider.list())
     agent = provider.agent_card
 
@@ -966,8 +978,11 @@ async def add_env(
         str, typer.Argument(..., help="Short ID, agent name or part of the provider location")
     ],
     env: typing.Annotated[list[str], typer.Argument(help="Environment variables to pass to agent")],
+    yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ) -> None:
     """Store environment variables"""
+    url = announce_server_action(f"Adding environment variables for '{search_path}' on")
+    await confirm_server_action("Apply these environment variable changes on", url=url, yes=yes)
     env_vars = dict(parse_env_var(var) for var in env)
     async with configuration.use_platform_client():
         provider = select_provider(search_path, await Provider.list())
@@ -982,6 +997,7 @@ async def list_env(
     ],
 ):
     """List stored environment variables"""
+    announce_server_action(f"Listing environment variables for '{search_path}' on")
     async with configuration.use_platform_client():
         provider = select_provider(search_path, await Provider.list())
     await _list_env(provider)
@@ -993,7 +1009,10 @@ async def remove_env(
         str, typer.Argument(..., help="Short ID, agent name or part of the provider location")
     ],
     env: typing.Annotated[list[str], typer.Argument(help="Environment variable(s) to remove")],
+    yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ):
+    url = announce_server_action(f"Removing environment variables from '{search_path}' on")
+    await confirm_server_action("Remove the selected environment variables on", url=url, yes=yes)
     async with configuration.use_platform_client():
         provider = select_provider(search_path, await Provider.list())
         await provider.update_variables(variables=dict.fromkeys(env))

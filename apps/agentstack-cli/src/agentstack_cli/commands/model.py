@@ -25,7 +25,7 @@ from rich.table import Column
 from agentstack_cli.api import openai_client
 from agentstack_cli.async_typer import AsyncTyper, console, create_table
 from agentstack_cli.configuration import Configuration
-from agentstack_cli.utils import run_command, verbosity
+from agentstack_cli.utils import announce_server_action, confirm_server_action, run_command, verbosity
 
 app = AsyncTyper()
 configuration = Configuration()
@@ -378,6 +378,7 @@ async def _select_default_model(capability: ModelCapability) -> str | None:
 
 @app.command("list")
 async def list_models():
+    announce_server_action("Listing models on")
     async with configuration.use_platform_client():
         config = await SystemConfiguration.get()
     async with openai_client() as client:
@@ -415,6 +416,7 @@ async def setup(
     verbose: typing.Annotated[bool, typer.Option("-v")] = False,
 ):
     """Interactive setup for LLM and embedding provider environment variables"""
+    announce_server_action("Configuring model providers for")
 
     with verbosity(verbose):
         async with configuration.use_platform_client():
@@ -480,7 +482,10 @@ async def select_default_model(
         ModelCapability | None, typer.Argument(help="Which default model to change (llm/embedding)")
     ] = None,
     model_id: typing.Annotated[str | None, typer.Argument(help="Model ID to be used as default")] = None,
+    yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ):
+    url = announce_server_action("Updating default model for")
+    await confirm_server_action("Proceed with updating default model on", url=url, yes=yes)
     if not capability:
         capability = await inquirer.select(  # type: ignore
             message="Which default model would you like to change?",
@@ -491,6 +496,8 @@ async def select_default_model(
         ).execute_async()
 
     assert capability
+    capability_name = str(getattr(capability, "value", capability)).lower()
+    await confirm_server_action(f"Proceed with updating the default {capability_name} model on", url=url, yes=yes)
     async with configuration.use_platform_client():
         model = model_id if model_id else await _select_default_model(capability)
         conf = await SystemConfiguration.get()
@@ -516,6 +523,7 @@ def _list_providers(providers: list[ModelProvider]):
 
 @model_provider_app.command("list")
 async def list_model_providers():
+    announce_server_action("Listing model providers on")
     async with configuration.use_platform_client():
         providers = await ModelProvider.list()
         _list_providers(providers)
@@ -528,6 +536,7 @@ async def add_provider(
         ModelCapability | None, typer.Argument(help="Which default model to change (llm/embedding)")
     ] = None,
 ):
+    announce_server_action("Adding provider for")
     if not capability:
         capability = await inquirer.select(  # type: ignore
             message="Which default provider would you like to add?",
@@ -573,7 +582,11 @@ async def remove_provider(
     search_path: typing.Annotated[
         str | None, typer.Argument(..., help="Provider type or part of the provider base url")
     ] = None,
+    yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ):
+    descriptor = search_path or "selected provider"
+    url = announce_server_action(f"Removing model provider '{descriptor}' from")
+    await confirm_server_action("Proceed with removing the selected model provider from", url=url, yes=yes)
     async with configuration.use_platform_client():
         conf = await SystemConfiguration.get()
 
