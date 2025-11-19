@@ -10,7 +10,9 @@ from uuid import UUID
 from kink import inject
 from typing_extensions import Doc
 
+from agentstack_server.api.schema.files import FileListQuery
 from agentstack_server.configuration import Configuration
+from agentstack_server.domain.models.common import PaginatedResult
 from agentstack_server.domain.models.file import (
     AsyncFile,
     ExtractionMetadata,
@@ -199,6 +201,20 @@ class FileService:
 
             await uow.files.delete_extraction(extraction_id=extraction.id)
             await uow.commit()
+
+    async def list_user_files(self, query: FileListQuery, user: User) -> PaginatedResult[File]:
+        async with self._uow() as uow:
+            return await uow.files.list_paginated(
+                user_id=user.id,
+                limit=query.limit,
+                page_token=query.page_token,
+                order=query.order,
+                order_by=query.order_by,
+                parent_id=query.parent_id,
+                context_id=query.context_id,
+                content_type=query.content_type,
+                filename_search=query.filename_search,
+            )
 
 
 def limit_size_wrapper(

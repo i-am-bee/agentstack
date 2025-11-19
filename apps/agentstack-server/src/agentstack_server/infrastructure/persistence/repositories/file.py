@@ -22,9 +22,11 @@ from sqlalchemy import (
 from sqlalchemy import UUID as SQL_UUID
 from sqlalchemy.ext.asyncio import AsyncConnection
 
+from agentstack_server.domain.models.common import PaginatedResult
 from agentstack_server.domain.models.file import ExtractionStatus, File, FileType, TextExtraction
 from agentstack_server.domain.repositories.file import IFileRepository
 from agentstack_server.exceptions import EntityNotFoundError
+from agentstack_server.infrastructure.persistence.repositories.context import cursor_paginate
 from agentstack_server.infrastructure.persistence.repositories.db_metadata import metadata
 from agentstack_server.infrastructure.persistence.repositories.utils import sql_enum
 
@@ -156,6 +158,48 @@ class SqlAlchemyFileRepository(IFileRepository):
             query = query.where(files_table.c.context_id == context_id)
         async for row in await self.connection.stream(query):
             yield self._to_file(row)
+
+    async def list_paginated(
+        self,
+        *,
+        parent_id: UUID | None = None,
+        context_id: UUID | None = None,
+        content_type: str | None = None,
+        filename_search: str | None = None,
+        limit: int = 20,
+        page_token: UUID | None = None,
+        order: str = "desc",
+        order_by: str = "created_at",
+        user_id: UUID | None = None,
+    ) -> PaginatedResult[File]:
+        query = files_table.select()
+        if user_id:
+            query = query.where(files_table.c.created_by == user_id)
+
+        if parent_id is not None:
+            query = query.where(files_table.c.parent_file_id == parent_id)
+        if context_id is not None:
+            query = query.where(files_table.c.context_id == context_id)
+        if content_type is not None:
+            query = query.where(files_table.c.content_type == content_type)
+        if filename_search is not None:
+            query = query.where(files_table.c.filename.ilike(f"%{filename_search}%"))
+
+        result = await cursor_paginate(
+            connection=self.connection,
+            query=query,
+            id_column=files_table.c.id,
+            limit=limit,
+            after_cursor=page_token,
+            order=order,
+            order_column=getattr(files_table.c, order_by),
+        )
+
+        return PaginatedResult(
+            items=[self._to_file(row) for row in result.items],
+            total_count=result.total_count,
+            has_more=result.has_more,
+        )
 
     def _to_text_extraction(self, row: Row) -> TextExtraction:
         return TextExtraction.model_validate(

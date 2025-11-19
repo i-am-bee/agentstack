@@ -3,7 +3,9 @@
 
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+from agentstack_server.api.schema.common import PaginationQuery
 
 
 class FileResponse(BaseModel):
@@ -23,3 +25,16 @@ class FileUrlResponse(BaseModel):
     """Response schema for file URL."""
 
     url: str
+
+
+class FileListQuery(PaginationQuery):
+    """Query schema for listing files."""
+
+    parent_id: UUID | None = None
+    context_id: UUID | None = None
+    content_type: str | None = None
+    filename_search: str | None = Field(
+        default=None,
+        description="Case-insensitive partial match search on filename (e.g., 'doc' matches 'my_document.pdf')",
+    )
+    order_by: str = Field(default_factory=lambda: "created_at", pattern="^created_at|filename|file_size_bytes$")

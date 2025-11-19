@@ -9,12 +9,27 @@ from uuid import UUID
 
 from pydantic import AnyUrl, HttpUrl
 
+from agentstack_server.domain.models.common import PaginatedResult
 from agentstack_server.domain.models.file import AsyncFile, File, FileMetadata, FileType, TextExtraction
 
 
 class IFileRepository(Protocol):
     async def list(self, *, user_id: UUID | None = None, context_id: UUID | None = None) -> AsyncIterator[File]:
         yield  # type: ignore
+
+    async def list_paginated(
+        self,
+        *,
+        limit: int = 20,
+        parent_id: UUID | None = None,
+        context_id: UUID | None = None,
+        content_type: str | None = None,
+        filename_search: str | None = None,
+        page_token: UUID | None = None,
+        order: str = "desc",
+        order_by: str = "created_at",
+        user_id: UUID | None = None,
+    ) -> PaginatedResult[File]: ...
 
     async def create(self, *, file: File) -> None: ...
     async def update(self, *, file: File) -> None: ...

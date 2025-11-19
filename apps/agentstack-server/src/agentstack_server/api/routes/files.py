@@ -6,7 +6,7 @@ from typing import Annotated
 from uuid import UUID
 
 import fastapi
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
 from fastapi.responses import StreamingResponse
 
 from agentstack_server.api.dependencies import (
@@ -14,6 +14,8 @@ from agentstack_server.api.dependencies import (
     RequiresContextPermissions,
 )
 from agentstack_server.api.schema.common import EntityModel
+from agentstack_server.api.schema.files import FileListQuery
+from agentstack_server.domain.models.common import PaginatedResult
 from agentstack_server.domain.models.file import AsyncFile, ExtractionStatus, File, TextExtraction
 from agentstack_server.domain.models.permissions import AuthorizedUser
 from agentstack_server.service_layer.services.files import FileService
@@ -38,6 +40,15 @@ async def upload_file(
             context_id=user.context_id,
         )
     )
+
+
+@router.get("")
+async def list_files(
+    query: Annotated[FileListQuery, Query()],
+    file_service: FileServiceDependency,
+    user: Annotated[AuthorizedUser, Depends(RequiresContextPermissions(files={"read"}))],
+) -> PaginatedResult[File]:
+    return await file_service.list_user_files(user=user.user, query=query)
 
 
 @router.get("/{file_id}")
