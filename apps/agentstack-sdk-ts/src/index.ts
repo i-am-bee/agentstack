@@ -26,4 +26,7 @@ export * from './client/a2a/extensions/ui/oauth';
 export * from './client/a2a/extensions/ui/settings';
 export * from './client/a2a/extensions/ui/trajectory';
 export * from './client/a2a/extensions/utils';
-export * from './client/context/types';
+export * from './client/a2a/extensions/fulfillment-resolvers/build-llm-extension-fulfillment-resolver';
+export * from './client/a2a/extensions/utils/build-message-builder';
+export * from './client/api/build-api-client';
+export * from './client/api/types';

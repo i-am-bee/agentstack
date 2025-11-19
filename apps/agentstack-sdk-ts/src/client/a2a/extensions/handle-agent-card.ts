@@ -5,7 +5,6 @@
 
 import type { AgentCapabilities } from '@a2a-js/sdk';
 
-import type { ContextToken } from '../../context/types';
 import type { EmbeddingDemands, EmbeddingFulfillments } from './services/embedding';
 import { embeddingExtension } from './services/embedding';
 import type { FormDemands, FormFulfillments } from './services/form';
@@ -23,6 +22,7 @@ import { oauthRequestExtension } from './ui/oauth';
 import type { SettingsDemands, SettingsFulfillments } from './ui/settings';
 import { settingsExtension } from './ui/settings';
 import { extractServiceExtensionDemands, fulfillServiceExtensionDemand } from './utils';
+import { ContextToken } from '../../api/types';
 
 export interface Fulfillments {
   llm: (demand: LLMDemands) => Promise<LLMFulfillments>;
