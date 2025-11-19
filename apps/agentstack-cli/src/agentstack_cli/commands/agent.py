@@ -84,6 +84,7 @@ if sys.platform != "win32":
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 import jsonschema
 import rich.json
@@ -156,36 +157,38 @@ async def add_agent(
 ) -> None:
     """Install discovered agent or add public docker image or github repository [aliases: install]"""
     agent_card = None
-    # Try extracting manifest locally for local images
     with verbosity(verbose):
-        process = await run_command(["docker", "inspect", location], check=False, message="Inspecting docker images.")
-        from subprocess import CalledProcessError
+        if (
+            process := await run_command(
+                ["docker", "inspect", location], check=False, message="Inspecting docker images"
+            )
+        ).returncode == 0:
+            console.success(f"Found local image [bold]{location}[/bold]")
+            manifest = base64.b64decode(
+                json.loads(process.stdout)[0]["Config"]["Labels"]["beeai.dev.agent.json"]
+            ).decode()
+            agent_card = json.loads(manifest)
+        elif (
+            Path(location).expanduser().exists()
+            or location.startswith("git@")
+            or location.startswith("github.com/")
+            or location.startswith("www.github.com/")
+            or location.endswith(".git")
+            or ((u := urlparse(location)).scheme.startswith("http") and u.netloc.endswith("github.com"))
+            or u.scheme in {"ssh", "git", "git+ssh"}
+        ):
+            console.info(f"Assuming build context, attempting to build agent from [bold]{location}[/bold]")
+            location, agent_card = await build(location, dockerfile, tag=None, vm_name=vm_name, import_image=True)
+        else:
+            console.info(f"Assuming public docker image, attempting to pull {location}")
 
-        errors = []
-
-        try:
-            if process.returncode:
-                # If the image was not found locally, try building image
-                location, agent_card = await build(location, dockerfile, tag=None, vm_name=vm_name, import_image=True)
-            else:
-                manifest = base64.b64decode(
-                    json.loads(process.stdout)[0]["Config"]["Labels"]["beeai.dev.agent.json"]
-                ).decode()
-                agent_card = json.loads(manifest)
-            # If all build and inspect succeeded, use the local image, else use the original; maybe it exists remotely
-        except CalledProcessError as e:
-            errors.append(e)
-            console.print("Attempting to use remote image...")
-        try:
-            with status("Registering agent to platform"):
-                async with configuration.use_platform_client():
-                    await Provider.create(
-                        location=location,
-                        agent_card=AgentCard.model_validate(agent_card) if agent_card else None,
-                    )
-            console.print("Registering agent to platform [[green]DONE[/green]]")
-        except Exception as e:
-            raise ExceptionGroup("Error occured", [*errors, e]) from e
+        with status("Registering agent to platform"):
+            async with configuration.use_platform_client():
+                await Provider.create(
+                    location=location,
+                    agent_card=AgentCard.model_validate(agent_card) if agent_card else None,
+                )
+        console.success(f"Agent [bold]{location}[/bold] added to platform")
         await list_agents()
 
 
