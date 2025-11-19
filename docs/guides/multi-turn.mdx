@@ -173,7 +173,7 @@ from typing import Annotated
 
 from a2a.types import Message, Role
 from a2a.utils.message import get_message_text
-from beeai_framework.adapters.openai import OpenAIChatModel
+from beeai_framework.adapters.agentstack.backend.chat import AgentStackChatModel
 from beeai_framework.agents.requirement import RequirementAgent
 from beeai_framework.agents.requirement.requirements.conditional import ConditionalRequirement
 from beeai_framework.backend import AssistantMessage, UserMessage
@@ -218,17 +218,9 @@ async def multi_turn_chat_agent(
     # Load conversation history
     history = [message async for message in context.load_history() if isinstance(message, Message) and message.parts]
 
-    # Get LLM configuration from the platform
-    llm_config = llm.data.llm_fulfillments.get("default")
-
     # Initialize BeeAI Framework LLM client
-    llm_client = OpenAIChatModel(
-        model_id=llm_config.api_model,
-        base_url=llm_config.api_base,
-        api_key=llm_config.api_key,
-        parameters=ChatModelParameters(temperature=0.0),
-        tool_choice_support=set(),
-    )
+    llm_client = AgentStackChatModel()
+    llm_client.set_context(llm)
 
     # Create a RequirementAgent with conversation memory
     agent = RequirementAgent(

@@ -13,6 +13,7 @@ import a2a.server.request_handlers
 import a2a.server.tasks
 import a2a.types
 import a2a.utils
+import agentstack_sdk.a2a.extensions
 import beeai_framework.adapters.openai.backend.chat
 import beeai_framework.agents.react
 import beeai_framework.backend
@@ -21,8 +22,6 @@ import beeai_framework.tools.search.duckduckgo
 import beeai_framework.tools.search.wikipedia
 import beeai_framework.tools.weather.openmeteo
 import uvicorn
-
-import agentstack_sdk.a2a.extensions
 from agentstack_sdk.a2a.extensions.services.llm import LLMServiceExtensionServer
 
 agent_detail_extension_spec = agentstack_sdk.a2a.extensions.AgentDetailExtensionSpec(
@@ -37,7 +36,8 @@ llm_extension_server = LLMServiceExtensionServer(
         params=agentstack_sdk.a2a.extensions.LLMServiceExtensionParams(
             llm_demands={
                 "default": agentstack_sdk.a2a.extensions.LLMDemand(
-                    description="Default LLM for the agent", suggested=("openai/gpt-4o", "ollama/granite3.3:8b")
+                    description="Default LLM for the agent",
+                    suggested=("openai/gpt-4o", "ollama/granite3.3:8b"),
                 )
             }
         ),
@@ -47,32 +47,41 @@ llm_extension_server = LLMServiceExtensionServer(
 citation_extension_spec = agentstack_sdk.a2a.extensions.CitationExtensionSpec()
 trajectory_extension_spec = agentstack_sdk.a2a.extensions.TrajectoryExtensionSpec()
 
-embedding_service_extension_spec = agentstack_sdk.a2a.extensions.EmbeddingServiceExtensionSpec(
-    params=agentstack_sdk.a2a.extensions.EmbeddingServiceExtensionParams(
-        embedding_demands={
-            "default": agentstack_sdk.a2a.extensions.EmbeddingDemand(
-                description="Default embedding for the agent", suggested=("ollama/nomic-text:8b",)
-            )
-        }
-    ),
+embedding_service_extension_spec = (
+    agentstack_sdk.a2a.extensions.EmbeddingServiceExtensionSpec(
+        params=agentstack_sdk.a2a.extensions.EmbeddingServiceExtensionParams(
+            embedding_demands={
+                "default": agentstack_sdk.a2a.extensions.EmbeddingDemand(
+                    description="Default embedding for the agent",
+                    suggested=("ollama/nomic-text:8b",),
+                )
+            }
+        ),
+    )
 )
 
 
 class ChatAgentExecutor(a2a.server.agent_execution.AgentExecutor):
     def __init__(self):
         super().__init__()
-        self.context_memory: collections.defaultdict[str, beeai_framework.memory.UnconstrainedMemory] = (
-            collections.defaultdict(beeai_framework.memory.UnconstrainedMemory)
-        )
-        self.context_llm: dict[str, dict[str, agentstack_sdk.a2a.extensions.LLMFulfillment]] = {}
+        self.context_memory: collections.defaultdict[
+            str, beeai_framework.memory.UnconstrainedMemory
+        ] = collections.defaultdict(beeai_framework.memory.UnconstrainedMemory)
+        self.context_llm: dict[
+            str, dict[str, agentstack_sdk.a2a.extensions.LLMFulfillment]
+        ] = {}
 
     async def cancel(
-        self, context: a2a.server.agent_execution.RequestContext, event_queue: a2a.server.events.EventQueue
+        self,
+        context: a2a.server.agent_execution.RequestContext,
+        event_queue: a2a.server.events.EventQueue,
     ) -> None:
         raise NotImplementedError("Cancelling is not implemented")
 
     async def execute(
-        self, context: a2a.server.agent_execution.RequestContext, event_queue: a2a.server.events.EventQueue
+        self,
+        context: a2a.server.agent_execution.RequestContext,
+        event_queue: a2a.server.events.EventQueue,
     ):
         if not context.message or not context.context_id:
             raise ValueError("Context must have a message and context_id")
@@ -98,16 +107,23 @@ class ChatAgentExecutor(a2a.server.agent_execution.AgentExecutor):
             memory=self.context_memory[context.context_id],
         )
 
-        await self.context_memory[context.context_id].add(beeai_framework.backend.UserMessage(context.get_user_input()))
+        await self.context_memory[context.context_id].add(
+            beeai_framework.backend.UserMessage(context.get_user_input())
+        )
 
         context.current_task = a2a.utils.new_task(context.message)
         assert context.task_id is not None
-        updater = a2a.server.tasks.TaskUpdater(event_queue, context.task_id, context.context_id)
+        updater = a2a.server.tasks.TaskUpdater(
+            event_queue, context.task_id, context.context_id
+        )
         try:
             final_answer = ""
             async for data, event in agent.run([]):
                 match (data, event.name):
-                    case (beeai_framework.agents.react.ReActAgentUpdateEvent(), "partial_update"):
+                    case (
+                        beeai_framework.agents.react.ReActAgentUpdateEvent(),
+                        "partial_update",
+                    ):
                         update = data.update.value
                         if not isinstance(update, str):
                             update = update.get_text_content()
@@ -117,14 +133,22 @@ class ChatAgentExecutor(a2a.server.agent_execution.AgentExecutor):
                             await updater.update_status(
                                 state=a2a.types.TaskState.working,
                                 message=updater.new_agent_message(
-                                    parts=[a2a.types.Part(root=a2a.types.TextPart(text=update))]
+                                    parts=[
+                                        a2a.types.Part(
+                                            root=a2a.types.TextPart(text=update)
+                                        )
+                                    ]
                                 ),
                             )
-            await self.context_memory[context.context_id].add(beeai_framework.backend.AssistantMessage(final_answer))
+            await self.context_memory[context.context_id].add(
+                beeai_framework.backend.AssistantMessage(final_answer)
+            )
             await updater.complete()
         except BaseException as e:
             await updater.failed(
-                message=updater.new_agent_message(parts=[a2a.types.Part(root=a2a.types.TextPart(text=str(e)))])
+                message=updater.new_agent_message(
+                    parts=[a2a.types.Part(root=a2a.types.TextPart(text=str(e)))]
+                )
             )
             raise
 
@@ -170,7 +194,9 @@ async def serve():
                         push_notifications=False,
                         state_transition_history=False,
                         extensions=[
-                            *llm_extension_server.spec.to_agent_card_extensions(required=True),
+                            *llm_extension_server.spec.to_agent_card_extensions(
+                                required=True
+                            ),
                             *agent_detail_extension_spec.to_agent_card_extensions(),
                             *trajectory_extension_spec.to_agent_card_extensions(),
                             *citation_extension_spec.to_agent_card_extensions(),
@@ -183,12 +209,15 @@ async def serve():
                             name="Chat",
                             description="Answer complex questions using web search sources",
                             tags=["chat"],
-                            examples=["What's the current weather in the birth town of Michael Jackson?"],
+                            examples=[
+                                "What's the current weather in the birth town of Michael Jackson?"
+                            ],
                         )
                     ],
                 ),
                 http_handler=a2a.server.request_handlers.DefaultRequestHandler(
-                    agent_executor=ChatAgentExecutor(), task_store=a2a.server.tasks.InMemoryTaskStore()
+                    agent_executor=ChatAgentExecutor(),
+                    task_store=a2a.server.tasks.InMemoryTaskStore(),
                 ),
             ).build(),
             host=host,

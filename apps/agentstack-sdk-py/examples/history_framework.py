@@ -6,13 +6,6 @@ from typing import Annotated
 
 from a2a.types import Message, Role
 from a2a.utils.message import get_message_text
-from beeai_framework.adapters.openai import OpenAIChatModel
-from beeai_framework.agents.requirement import RequirementAgent
-from beeai_framework.agents.requirement.requirements.conditional import ConditionalRequirement
-from beeai_framework.backend import AssistantMessage, UserMessage
-from beeai_framework.backend.types import ChatModelParameters
-from beeai_framework.tools.think import ThinkTool
-
 from agentstack_sdk.a2a.extensions import (
     LLMServiceExtensionServer,
     LLMServiceExtensionSpec,
@@ -21,6 +14,13 @@ from agentstack_sdk.a2a.types import AgentMessage
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
 from agentstack_sdk.server.store.platform_context_store import PlatformContextStore
+from beeai_framework.adapters.agentstack.backend.chat import AgentStackChatModel
+from beeai_framework.agents.requirement import RequirementAgent
+from beeai_framework.agents.requirement.requirements.conditional import (
+    ConditionalRequirement,
+)
+from beeai_framework.backend import AssistantMessage, UserMessage
+from beeai_framework.tools.think import ThinkTool
 
 server = Server()
 
@@ -29,7 +29,9 @@ FrameworkMessage = UserMessage | AssistantMessage
 
 def to_framework_message(message: Message) -> FrameworkMessage:
     """Convert A2A Message to Agent Stack Framework Message format"""
-    message_text = "".join(part.root.text for part in message.parts if part.root.kind == "text")
+    message_text = "".join(
+        part.root.text for part in message.parts if part.root.kind == "text"
+    )
 
     if message.role == Role.agent:
         return AssistantMessage(message_text)
@@ -49,26 +51,15 @@ async def multi_turn_chat_agent(
     await context.store(input)
 
     # Load conversation history
-    history = [message async for message in context.load_history() if isinstance(message, Message) and message.parts]
-
-    # Get LLM configuration from the platform
-    if not llm.data or not llm.data.llm_fulfillments:
-        yield AgentMessage(text="LLM service not available")
-        return
-
-    llm_config = llm.data.llm_fulfillments.get("default")
-    if not llm_config:
-        yield AgentMessage(text="Default LLM configuration not found")
-        return
+    history = [
+        message
+        async for message in context.load_history()
+        if isinstance(message, Message) and message.parts
+    ]
 
     # Initialize Agent Stack Framework LLM client
-    llm_client = OpenAIChatModel(
-        model_id=llm_config.api_model,
-        base_url=llm_config.api_base,
-        api_key=llm_config.api_key,
-        parameters=ChatModelParameters(temperature=0.0),
-        tool_choice_support=set(),
-    )
+    llm_client = AgentStackChatModel()
+    llm_client.set_context(llm)
 
     # Create a RequirementAgent with conversation memory
     agent = RequirementAgent(

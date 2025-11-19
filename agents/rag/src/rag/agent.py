@@ -8,10 +8,9 @@ from typing import Annotated
 import os
 
 from a2a.types import AgentSkill, Message
-from beeai_framework.adapters.openai import OpenAIChatModel
+from beeai_framework.adapters.agentstack.backend.chat import AgentStackChatModel
 from beeai_framework.agents.requirement import RequirementAgent
 
-from beeai_framework.backend import ChatModelParameters
 from beeai_framework.emitter import EmitterOptions
 from beeai_framework.memory import UnconstrainedMemory
 from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
@@ -339,20 +338,13 @@ async def rag(
 
 def _get_clients(
     llm_ext: LLMServiceExtensionServer, embedding_ext: EmbeddingServiceExtensionServer
-) -> tuple[OpenAIChatModel, EmbeddingFunction]:
-    llm_conf, embedding_conf = None, None
-    if llm_ext:
-        [llm_conf] = llm_ext.data.llm_fulfillments.values()
+) -> tuple[AgentStackChatModel, EmbeddingFunction]:
+    llm = AgentStackChatModel()
+    llm.set_context(llm_ext)
+
+    embedding_conf = None, None
     if embedding_ext:
         [embedding_conf] = embedding_ext.data.embedding_fulfillments.values()
-
-    llm = OpenAIChatModel(
-        model_id=llm_conf.api_model if llm_conf else "llama3.1",
-        api_key=llm_conf.api_key if llm_conf else "dummy",
-        base_url=llm_conf.api_base if llm_conf else "http://localhost:11434/v1",
-        parameters=ChatModelParameters(temperature=0.0),
-        tool_choice_support=set(),
-    )
 
     embedding_client = AsyncOpenAI(
         api_key=embedding_conf.api_key if embedding_conf else "dummy",
