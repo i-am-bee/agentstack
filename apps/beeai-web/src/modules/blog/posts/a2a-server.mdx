@@ -50,7 +50,7 @@ Open the new project in your IDE.
 
 ## Step 1: Build the Server’s Agent Logic and Expose the Agent as an A2A Server
 
-Create a new file called **a2a_server.py** that wraps a single agent and makes it available over HTTP as an A2AServer . 
+Create a new file called **a2a_server.py** that wraps a single agent and makes it available over HTTP as an A2AServer. 
 
 ```python
 # a2a_server.py
@@ -70,17 +70,18 @@ def main() -> None:
 
     # Register the agent with the A2A server and run the HTTP server
     A2AServer(
-        config=A2AServerConfig(port=9999, protocol="jsonrpc"), memory_manager=LRUMemoryManager(maxsize=100)
+        config=A2AServerConfig(port=9999, protocol="jsonrpc"), 
+        memory_manager=LRUMemoryManager(maxsize=100)
     ).register(agent, send_trajectory=True).serve()
 
 if __name__ == "__main__":
-    main()    
+    main()   
 ```
 
 ## Step 2: Running the Server
 Start your agent service from your terminal. 
 
-```python
+```bash
 uv run a2a_server.py
 ```
 
@@ -95,7 +96,6 @@ Save this simple python client as **a2a_client.py**:
 import asyncio
 from beeai_framework.adapters.a2a.agents import A2AAgent
 from beeai_framework.memory.unconstrained_memory import UnconstrainedMemory
-
 async def main() -> None:
 
     agent = A2AAgent(url="http://127.0.0.1:9999", memory=UnconstrainedMemory())
@@ -117,7 +117,7 @@ Note: If you had served your agent over a non-local IP address and allowed acces
 
 The client is run by invoking it in a separate terminal:
 
-```python
+```bash
 uv run a2a_client.py
 ```
 The client agent dialog appears as follows:
@@ -130,11 +130,11 @@ How It Works
 
 - A2AServer: Hosts a single BeeAI agent and makes it reachable on the same computer over HTTP.
 
-- A2AAgent (client): Sends request to that server and gets that agent’s response back 
+- A2AAgent (client): Sends a request to that server and receives the agent's response. 
 
-- One agent per server: Keeps each service focused on one singular capability 
+- One agent per server: Keeps each service focused on one singular capability
 
 ## Conclusion
 
 The A2A protocol makes it simple to turn a BeeAI agent into a service that other agents can call. With just a few lines of Python, you can expose your agent over HTTP and begin composing multi-agent workflows, an essential step toward building scalable, modular agent ecosystems. 
-Get up and running with BeeAI Framework lighting fast with the [quickstart](https://framework.beeai.dev/introduction/quickstart) or go deep on all the capabilities by taking the [grand tour](https://framework.beeai.dev/introduction/tour). Happy building!
+Get up and running with BeeAI Framework lighting-fast with the [quickstart](https://framework.beeai.dev/introduction/quickstart) or go deep on all the capabilities by taking the [grand tour](https://framework.beeai.dev/introduction/tour). Happy building!
