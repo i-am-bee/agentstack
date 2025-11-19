@@ -20,7 +20,16 @@ on:
 jobs:
   e2e-test:
     runs-on: ubuntu-latest
+    env:
+      AGENTSTACK__HOME: ${{ github.workspace }}/.agentstack
     steps:
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 15360
+          temp-reserve-mb: 2048
+          swap-size-mb: 1024
+          remove-dotnet: 'true'
       - uses: actions/checkout@v4
       - name: "Set up Lima"
         uses: lima-vm/lima-actions/setup@v1
@@ -35,9 +44,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: mise run agentstack-server:test:e2e
         env:
-          LLM_API_BASE: "${{ secrets.OPENAI_API_BASE }}"
-          LLM_MODEL: "${{ secrets.OPENAI_MODEL }}"
-          LLM_API_KEY: "${{ secrets.OPENAI_API_KEY }}"
-          # LLM_API_BASE: "https://api.groq.com/openai/v1"
-          # LLM_MODEL: "groq:meta-llama/llama-4-maverick-17b-128e-instruct"
-          # LLM_API_KEY: "${{ secrets.GROQ_API_KEY }}"
+          # LLM_API_BASE: "${{ secrets.OPENAI_API_BASE }}"
+          # LLM_MODEL: "${{ secrets.OPENAI_MODEL }}"
+          # LLM_API_KEY: "${{ secrets.OPENAI_API_KEY }}"
+          LLM_API_BASE: "https://api.groq.com/openai/v1"
+          LLM_MODEL: "groq:meta-llama/llama-4-maverick-17b-128e-instruct"
+          LLM_API_KEY: "${{ secrets.GROQ_API_KEY }}"
