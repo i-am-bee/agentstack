@@ -284,9 +284,7 @@ Here is an example how you can create a context and generate a custom token with
 
     - Context tokens **cannot** be used to generate other tokens
     - The permissions you grant must be a subset of your own permissions
-    - Context token expiration is 20 minutes. If an agent runs longer it must request a new token using `AuthRequired`
-    a2a
-    message.
+    - Context token expiration is 20 minutes. If an agent runs longer it must request a new token using `AuthRequired` a2a message.
 </Note>
 
 ### Using Context Tokens in Agent Runs
@@ -496,12 +494,12 @@ to authenticate itself with the platform API, this is abstracted away in the SDK
 
 To make this crystal clear, let's break down the full low-level interaction with an agent that wants to upload a file.
 We will use the square brackets `[]` to denote the `Authorization: Bearer` header and placeholders
-`ACESS_TOKEN` and `CONTEXT_TOKEN` for the user access token and context token, respectively.
+`ACCESS_TOKEN` and `CONTEXT_TOKEN` for the user access token and context token, respectively.
 
 **Part 1: Client code**:
 <Steps>
     <Step title="OAuth flow">
-        Execute the Autorization code flow or similar to obtain an **ACCESS_TOKEN** from the identity
+        Execute the Authorization code flow or similar to obtain an **ACCESS_TOKEN** from the identity
         provider (in this flow, the user will log in to the system with their credentials).
     </Step>
     <Step title="Create Context token">
@@ -562,7 +560,7 @@ We will use the square brackets `[]` to denote the `Authorization: Bearer` heade
 </Steps>
 <Danger>
     At no point did Agent receive or use `ACCESS_TOKEN`. This is on purpose, because based on user role this token
-    can poses destructive permissions - to delete other agents, read all user data (if the user is ADMIN, etc.).
+    can possess destructive permissions - to delete other agents, read all user data (if the user is ADMIN, etc.).
 
     To prevent API misuse by untrusted agents, avoid passing the access token to the agent.
 </Danger>
