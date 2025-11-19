@@ -5,18 +5,16 @@
 'use client';
 import { ArrowDown } from '@carbon/icons-react';
 import { IconButton, InlineLoading } from '@carbon/react';
-import { useRouter } from 'next/navigation';
 
 import { Container } from '#components/layouts/Container.tsx';
 import { useIsScrolled } from '#hooks/useIsScrolled.ts';
 import { isAgentMessage, isUserMessage } from '#modules/messages/utils.ts';
-import { routes } from '#utils/router.ts';
 
 import { FileUpload } from '../../files/components/FileUpload';
 import { useMessages } from '../../messages/contexts/Messages';
-import { NewSessionButton } from '../components/NewSessionButton';
 import { RunInput } from '../components/RunInput';
 import { RunStatusBar } from '../components/RunStatusBar';
+import { AGENT_STARTING_MESSAGE } from '../constants';
 import { useAgentRun } from '../contexts/agent-run';
 import { useAgentStatus } from '../contexts/agent-status';
 import { ChatAgentMessage } from './ChatAgentMessage';
@@ -25,7 +23,7 @@ import { ChatUserMessage } from './ChatUserMessage';
 
 export function ChatMessagesView() {
   const { scrollElementRef, observeElementRef, isScrolled, scrollToBottom } = useIsScrolled();
-  const { agent, isPending } = useAgentRun();
+  const { isPending } = useAgentRun();
   const {
     messages,
     queryControl: { hasNextPage, fetchNextPageInViewAnchorRef, isFetchingNextPage },
@@ -33,7 +31,6 @@ export function ChatMessagesView() {
   const {
     status: { isNotInstalled, isStarting },
   } = useAgentStatus();
-  const router = useRouter();
 
   const showScrollToBottom = messages.length > 0 && isScrolled;
 
@@ -42,14 +39,6 @@ export function ChatMessagesView() {
       <div className={classes.holder}>
         <div className={classes.scrollable} ref={scrollElementRef}>
           <Container size="sm" className={classes.container}>
-            <header className={classes.header}>
-              <NewSessionButton
-                onClick={() => {
-                  router.push(routes.agentRun({ providerId: agent.provider.id }));
-                }}
-              />
-            </header>
-
             <ol className={classes.messages} aria-label="messages">
               {messages.map((message, idx) => {
                 const isUser = isUserMessage(message);
@@ -104,7 +93,7 @@ export function ChatMessagesView() {
           <div className={classes.bottomHolder}>
             <Container size="sm" className={classes.bottomContainer}>
               {isPending && (isNotInstalled || isStarting) ? (
-                <RunStatusBar isPending>Starting the agent, please bee patient&hellip;</RunStatusBar>
+                <RunStatusBar isPending>{AGENT_STARTING_MESSAGE}</RunStatusBar>
               ) : (
                 <RunInput />
               )}

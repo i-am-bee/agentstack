@@ -5,8 +5,11 @@
 
 import { useMemo } from 'react';
 
-import { useParamsFromUrl } from '#hooks/useParamsFromUrl.ts';
-import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
+import { useModal } from '#contexts/Modal/index.tsx';
+import { ImportAgentsModal } from '#modules/agents/components/import/ImportAgentsModal.tsx';
+import { useRecentlyAddedAgents } from '#modules/home/hooks/useRecentlyAddedAgents.ts';
+import { useUser } from '#modules/users/api/queries/useUser.ts';
+import { isUserAdmin } from '#modules/users/utils.ts';
 import { routes } from '#utils/router.ts';
 
 import { NavGroup } from './NavGroup';
@@ -17,22 +20,35 @@ interface Props {
 }
 
 export function AgentsNav({ className }: Props) {
-  const { providerId } = useParamsFromUrl();
+  const { openModal } = useModal();
 
-  const { data: agents, isLoading } = useListAgents({ onlyUiSupported: true, orderBy: 'createdAt' });
+  const { data: user } = useUser();
+  const { data: agents, isLoading } = useRecentlyAddedAgents();
+
+  const isAdmin = isUserAdmin(user);
+
+  const action = useMemo(
+    () =>
+      isAdmin
+        ? {
+            label: 'Add new agent',
+            onClick: () => openModal((props) => <ImportAgentsModal {...props} />),
+          }
+        : undefined,
+    [isAdmin, openModal],
+  );
 
   const items = useMemo(
     () =>
       agents?.map(({ name, provider: { id } }) => ({
         label: name,
         href: routes.agentRun({ providerId: id }),
-        isActive: providerId === id,
       })),
-    [agents, providerId],
+    [agents],
   );
 
   return (
-    <NavGroup heading="Agents" className={className}>
+    <NavGroup heading="Agents added by me" className={className} action={action}>
       <NavList items={items} isLoading={isLoading} skeletonCount={5} noItemsMessage="No agent added" />
     </NavGroup>
   );

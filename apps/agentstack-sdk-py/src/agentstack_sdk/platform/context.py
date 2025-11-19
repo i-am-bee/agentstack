@@ -37,7 +37,7 @@ class ResourceIdPermission(pydantic.BaseModel):
 
 class ContextPermissions(pydantic.BaseModel):
     files: set[Literal["read", "write", "extract", "*"]] = set()
-    vector_stores: set[Literal["read", "write", "extract", "*"]] = set()
+    vector_stores: set[Literal["read", "write", "*"]] = set()
     context_data: set[Literal["read", "write", "*"]] = set()
 
 

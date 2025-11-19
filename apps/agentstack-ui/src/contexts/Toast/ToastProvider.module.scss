@@ -39,12 +39,3 @@
     background-color: $layer;
   }
 }
-
-.apiError {
-  @include line-clamp(10);
-  margin-block-start: $spacing-02;
-  font-size: rem(12px);
-  font-family: font-family('mono');
-  padding-block: $spacing-03;
-  max-block-size: 10.2rem;
-}

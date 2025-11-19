@@ -138,6 +138,15 @@ async def test_text_extraction_plain_text_workflow(subtests):
         async with file.load_text_content() as loaded_text_content:
             assert loaded_text_content.text == text_content
 
+    with subtests.test("delete extraction"):
+        await file.delete_extraction()
+
+    with (
+        subtests.test("verify extraction deleted"),
+        pytest.raises(httpx.HTTPStatusError, match="404 Not Found"),
+    ):
+        _ = await file.get_extraction()
+
 
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
 async def test_context_scoped_file_access(subtests):

@@ -9,9 +9,7 @@ from rich.table import Column
 
 from agentstack_cli.api import api_request
 from agentstack_cli.async_typer import AsyncTyper, console, create_table
-from agentstack_cli.utils import (
-    status,
-)
+from agentstack_cli.utils import announce_server_action, confirm_server_action, status
 
 app = AsyncTyper()
 
@@ -28,9 +26,12 @@ async def add_provider(
     transport: typing.Annotated[
         Transport, typer.Argument(help="Transport the MCP server uses")
     ] = Transport.STREAMABLE_HTTP,
+    yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ) -> None:
     """Install discovered MCP server."""
 
+    url = announce_server_action(f"Registering MCP server '{name}' on")
+    await confirm_server_action("Proceed with registering this MCP server on", url=url, yes=yes)
     with status("Registering server to platform"):
         await api_request(
             "POST", "mcp/providers", json={"name": name, "location": location, "transport": transport.value}
@@ -43,6 +44,7 @@ async def add_provider(
 async def list_providers():
     """List MCP servers."""
 
+    announce_server_action("Listing MCP servers on")
     providers = await api_request("GET", "mcp/providers")
     assert providers
     with create_table(
@@ -61,8 +63,11 @@ async def list_providers():
 @app.command("remove | uninstall | rm | delete")
 async def uninstall_provider(
     name: typing.Annotated[str, typer.Argument(help="Name of the MCP provider to remove")],
+    yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ) -> None:
     """Remove MCP server."""
+    url = announce_server_action(f"Removing MCP server '{name}' from")
+    await confirm_server_action("Proceed with removing this MCP server from", url=url, yes=yes)
     provider = await _get_provider_by_name(name)
     if provider:
         await api_request("delete", f"mcp/providers/{provider['id']}")
@@ -79,6 +84,7 @@ app.add_typer(tool_app, name="tool", no_args_is_help=True, help="Inspect tools."
 async def list_tools() -> None:
     """List tools."""
 
+    announce_server_action("Listing MCP tools on")
     tools = await api_request("GET", "mcp/tools")
     assert tools
     with create_table(
@@ -99,9 +105,12 @@ app.add_typer(toolkit_app, name="toolkit", no_args_is_help=True, help="Create to
 @toolkit_app.command("create")
 async def toolkit(
     tools: typing.Annotated[list[str], typer.Argument(help="Tools to put in the toolkit")],
+    yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ) -> None:
     """Create a toolkit."""
 
+    url = announce_server_action("Creating MCP toolkit on")
+    await confirm_server_action("Proceed with creating this MCP toolkit on", url=url, yes=yes)
     api_tools = await _get_tools_by_names(tools)
     assert api_tools
     toolkit = await api_request("POST", "mcp/toolkits", json={"tools": [tool["id"] for tool in api_tools]})

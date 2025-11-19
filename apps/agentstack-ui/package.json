@@ -2,7 +2,7 @@
   "name": "@i-am-bee/agentstack-ui",
   "author": "IBM Corp.",
   "private": true,
-  "version": "0.4.1",
+  "version": "0.4.2-rc1",
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
@@ -35,7 +35,6 @@
     "katex": "^0.16.25",
     "keycode-js": "^3.1.0",
     "lodash": "catalog:",
-    "lottie-react": "catalog:",
     "mermaid": "^11.12.1",
     "next": "catalog:",
     "next-auth": "5.0.0-beta.29",

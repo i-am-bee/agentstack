@@ -20,7 +20,16 @@ on:
 jobs:
   e2e-test:
     runs-on: ubuntu-latest
+    env:
+      AGENTSTACK__HOME: ${{ github.workspace }}/.agentstack
     steps:
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 15360
+          temp-reserve-mb: 2048
+          swap-size-mb: 1024
+          remove-dotnet: 'true'
       - uses: actions/checkout@v4
       - name: "Set up Lima"
         uses: lima-vm/lima-actions/setup@v1

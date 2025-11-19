@@ -69,6 +69,9 @@ class ForbiddenUpdateError(PlatformError):
         super().__init__("Insufficient permissions", status_code)
 
 
+class InvalidProviderCallError(PlatformError): ...
+
+
 class InvalidVectorDimensionError(PlatformError): ...
 
 

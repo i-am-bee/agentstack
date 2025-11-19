@@ -2,7 +2,7 @@
   "name": "@i-am-bee/beeai-web",
   "author": "IBM Corp.",
   "private": true,
-  "version": "0.4.1",
+  "version": "0.4.2-rc1",
   "type": "module",
   "dependencies": {
     "@carbon/icons-react": "catalog:",
@@ -12,7 +12,7 @@
     "clsx": "catalog:",
     "estree-util-value-to-estree": "^3.4.0",
     "lodash": "catalog:",
-    "lottie-react": "catalog:",
+    "lottie-react": "^2.4.1",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",

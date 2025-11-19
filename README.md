@@ -17,7 +17,6 @@
     <a href="#key-features"><b>Key Features</b></a> •
     <a href="#quickstart"><b>Quickstart</b></a> •
     <a href="#agent-catalog"><b>Agent Catalog</b></a> •
-    <a href="#agent-ideas"><b>Agent Ideas</b></a> •
     <a href="#documentation"><b>Documentation</b></a>
 </p>
 
@@ -86,7 +85,7 @@ agentstack run example_agent "Alice"  # Test your agent
 You should see: "Ciao Alice!" 🎉
 
 > [!TIP]
-> Check out [Start Building Agents](https://agentstack.beeai.dev/introduction/start-building-agents) for a complete step-by-step guide to creating your first agent.
+> Check out [Building Agents](https://agentstack.beeai.dev/guides/building-agents) for a complete step-by-step guide to creating your first agent.
 
 ---
 
@@ -96,14 +95,15 @@ You should see: "Ciao Alice!" 🎉
 
 Reference implementations demonstrating core Agent Stack capabilities.
 
-- [BeeAI Showcase Agent](https://github.com/jenna-winkler/beeai-showcase-agent) - Full-featured chat assistant demonstrating RequirementAgent with conditional tool use, web search (DuckDuckGo), advanced reasoning (ThinkTool), file handling (PDF/CSV/JSON), streaming, UI feature toggles, trajectory logging, and citation extraction.
+- [Agent Stack Showcase](https://github.com/jenna-winkler/agentstack-showcase) - Full-featured chat assistant demonstrating RequirementAgent with conditional tool use, web search (DuckDuckGo), advanced reasoning (ThinkTool), file handling (PDF/CSV/JSON), streaming, UI feature toggles, trajectory logging, and citation extraction.
 - [Serper Search Agent](https://github.com/jenna-winkler/serper-search-agent) - Web search agent showing runtime secrets management (Secrets Extension), custom tool creation (SerperSearchTool), automatic query term extraction, and structured results with citations.
-- [GitHub Issue Writer](https://github.com/jenna-winkler/github_issue_writer) - Single-turn workflow using the Form Extension for multi-field input, AI-enhanced issue drafting with ThinkTool, and professional Markdown formatting.
+- [GitHub Issue Writer](https://github.com/jenna-winkler/github_issue_writer) - Single-turn workflow using the Form Extension for multi-field input, AI-enhanced issue drafting with ThinkTool, and Markdown formatting.
 - [Chat Agent](https://github.com/i-am-bee/agentstack/tree/main/agents/chat) - Multi-turn conversational agent using RequirementAgent, ActTool for reasoning sequences, and ClarificationTool for ambiguous queries. Integrates DuckDuckGo, Wikipedia, OpenMeteo, and file tools with UnconstrainedMemory, streaming, citation extraction, and OpenTelemetry instrumentation.
 - [Form Agent](https://github.com/i-am-bee/agentstack/tree/main/agents/form) - Single-turn form interaction using Form Extension with multiple field types, customizable layouts, file uploads, validation, and structured output.
 - [RAG Agent](https://github.com/i-am-bee/agentstack/tree/main/agents/rag) - Retrieval-Augmented Generation agent supporting 12+ file formats, dynamic vector stores, semantic search (VectorSearchTool), document summaries (FileReaderTool), intelligent tool selection, and citation tracking with document URLs.
 - [OAuth Agent](https://github.com/i-am-bee/agentstack/blob/main/apps/agentstack-sdk-py/examples/oauth.py) - OAuth Extension demo with MCP integration, browser-based authorization, secure token management, and Stripe MCP server access.
 - [Dynamic Form Request Agent](https://github.com/i-am-bee/agentstack/blob/main/apps/agentstack-sdk-py/examples/request_form_agent.py) - Multi-step form workflow showing both static and dynamic form generation, where the agent conditionally requests additional input mid-conversation.
+- [Flight Search 	and Visualization Agent](https://github.com/jezekra1/agentstack-workshop) - Agent that queries the Kiwi.com MCP API for flight results, requests missing parameters through the Form Extension, and optionally generates PNG or HTML route visualizations using geospatial helpers. It uses RequirementAgent to orchestrate tool calls (data validation and visualization) and streams a final answer with any generated files and citations.
 
 ### Community Agents
 
@@ -116,42 +116,6 @@ A growing collection of community-built agents showcasing various use cases and 
 
 > [!TIP]
 > Before contributing, please review our [Contribution Guidelines](./CONTRIBUTING.md) to ensure a smooth experience.
-
----
-
-## Agent Ideas
-
-Have an idea for an agent that could solve a real problem? Want to build something that others will find useful? **Agent Ideas** is where the community proposes, discusses, and builds the next generation of agents together.
-
-### How It Works
-
-1. **💡 Propose** - Share your agent idea using our [Agent Idea template](https://github.com/i-am-bee/agentstack/issues/new?template=agent_idea.md)
-2. **👍 Vote** - Browse [proposed ideas](https://github.com/i-am-bee/agentstack/issues?q=is%3Aissue+is%3Aopen+label%3Aagent-idea+sort%3Areactions-%2B1-desc) and upvote the ones you find exciting
-3. **🛠️ Build** - Pick an idea (yours or someone else's) and bring it to life
-4. **🎉 Share** - Show off your creation and help others benefit from your work
-
-### Why Get Involved?
-
-- **Build real agents** - Create practical agentic AI systems that solve actual problems
-- **Grow your AI engineering skills** - Develop expertise through hands-on projects
-- **Shape the ecosystem** - Help define what agents the community needs most
-- **Connect with others** - Collaborate with fellow builders and learn together
-
-### Current Ideas
-
-Vote with 👍 on the ideas you find most valuable!
-
-| Agent | Description |
-|:------|:------------|
-| [Q&A Builder Agent](https://github.com/i-am-bee/agentstack/issues/1506) | Watches Slack and Discord for questions, retrieves answers from docs, and proposes new Q&A entries |
-| [Issue Sizing Agent](https://github.com/i-am-bee/agentstack/issues/1507) | Reviews GitHub issues and provides size estimates (S, M, L, XL) based on complexity and scope |
-| [Issue Labeling Agent](https://github.com/i-am-bee/agentstack/issues/1509) | Automatically assigns the correct issue type and labels to GitHub issues and PRs |
-
-[Browse all ideas →](https://github.com/i-am-bee/agentstack/issues?q=is%3Aissue+is%3Aopen+label%3Aagent-idea+sort%3Areactions-%2B1-desc)
-
-### Ready to Contribute?
-
-Whether you're [proposing your first idea](https://github.com/i-am-bee/agentstack/issues/new?template=agent_idea.md) or [implementing someone else's vision](https://github.com/i-am-bee/agentstack/issues?q=is%3Aissue+is%3Aopen+label%3Aagent-idea+sort%3Areactions-%2B1-desc), we'd love to have you involved!
 
 ---
 

@@ -11,11 +11,13 @@ from types import TracebackType
 import httpx
 from httpx import URL, AsyncBaseTransport
 from httpx._client import EventHook
-from httpx._config import DEFAULT_LIMITS, DEFAULT_MAX_REDIRECTS, DEFAULT_TIMEOUT_CONFIG, Limits
+from httpx._config import DEFAULT_LIMITS, DEFAULT_MAX_REDIRECTS, Limits
 from httpx._types import AuthTypes, CertTypes, CookieTypes, HeaderTypes, ProxyTypes, QueryParamTypes, TimeoutTypes
 from pydantic import Secret
 
 from agentstack_sdk.util import resource_context
+
+DEFAULT_SDK_TIMEOUT: typing.Final = httpx.Timeout(timeout=30)
 
 
 class PlatformClient(httpx.AsyncClient):
@@ -36,7 +38,7 @@ class PlatformClient(httpx.AsyncClient):
         http2: bool = False,
         proxy: ProxyTypes | None = None,
         mounts: None | (typing.Mapping[str, AsyncBaseTransport | None]) = None,
-        timeout: TimeoutTypes = DEFAULT_TIMEOUT_CONFIG,
+        timeout: TimeoutTypes = DEFAULT_SDK_TIMEOUT,
         follow_redirects: bool = False,
         limits: Limits = DEFAULT_LIMITS,
         max_redirects: int = DEFAULT_MAX_REDIRECTS,

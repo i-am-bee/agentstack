@@ -46,8 +46,13 @@ def serve():
             "agentstack_server.application:app",
             f"--host={host}",
             f"--port={config.port}",
-            "--timeout-keep-alive=2",
-            "--timeout-graceful-shutdown=2",
+            f"--timeout-keep-alive={config.uvicorn_timeout_keep_alive}",
+            # If the reconnection to a database fails for many retries we treat is as an irrecoverable error
+            # forcing a shutdown (kubernetes will restart this pod). See:
+            # See agentstack-server.src.agentstack_server.jobs.procrastinate.py:create_app:exit_app_on_db_error
+            # For this reason we must add timeout to termination to prevent dangling connections or background work
+            # hanging the process forever
+            "--timeout-graceful-shutdown=5",
         ],
     )
 

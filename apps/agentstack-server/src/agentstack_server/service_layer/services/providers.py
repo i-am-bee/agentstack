@@ -106,6 +106,7 @@ class ProviderService:
         variables: dict[str, str] | None = None,
         allow_registry_update: bool = False,
         force: bool = False,
+        unmanaged_state: UnmanagedState | None = None,
     ) -> ProviderWithState:
         user_id = user.id if user.role != UserRole.ADMIN else None
 
@@ -135,9 +136,12 @@ class ProviderService:
         if auto_stop_timeout is not None:
             updated_provider.auto_stop_timeout = auto_stop_timeout
 
-        # this is a bit heuristic, self-registered agents send a card in this format, but technically somebody else
-        # can send it without the agent actually being online
-        if agent_card and get_extension(agent_card, SELF_REGISTRATION_EXTENSION_URI):
+        # Allow explicit state override, otherwise use heuristic for self-registered agents
+        if unmanaged_state is not None:
+            updated_provider.unmanaged_state = unmanaged_state
+        elif agent_card and get_extension(agent_card, SELF_REGISTRATION_EXTENSION_URI):
+            # this is a bit heuristic, self-registered agents send a card in this format, but technically somebody else
+            # can send it without the agent actually being online
             updated_provider.unmanaged_state = UnmanagedState.ONLINE
 
         # Some migrated docker providers may not have a docker version_info field, update during the patch
@@ -177,9 +181,10 @@ class ProviderService:
                 await uow.env.update(
                     parent_entity=EnvStoreEntity.PROVIDER, parent_entity_id=provider_id, variables=variables
                 )
-            # Rotate the provider (inside the transaction)
-            await self._rotate_provider(provider=updated_provider, env=variables)
             await uow.commit()
+
+        await self._rotate_provider(provider=updated_provider, env=variables)
+
         [provider_response] = await self._get_providers_with_state(providers=[updated_provider])
         return provider_response
 
@@ -270,16 +275,15 @@ class ProviderService:
             raise ValueError("user_owned cannot be specified without a user")
 
         async with self._uow() as uow:
-            return await self._get_providers_with_state(
-                providers=[
-                    p
-                    async for p in uow.providers.list(
-                        user_id=user.id if user_owned is True else None,
-                        exclude_user_id=user.id if user_owned is False else None,
-                        origin=origin,
-                    )
-                ]
-            )
+            providers = [
+                p
+                async for p in uow.providers.list(
+                    user_id=user.id if user_owned is True else None,
+                    exclude_user_id=user.id if user_owned is False else None,
+                    origin=origin,
+                )
+            ]
+        return await self._get_providers_with_state(providers=providers)
 
     async def get_provider(
         self, provider_id: UUID | None = None, location: ProviderLocation | None = None
@@ -346,9 +350,8 @@ class ProviderService:
                 await uow.env.update(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_id=provider_id, variables=env)
                 new_env = await uow.env.get_all(parent_entity=EnvStoreEntity.PROVIDER, parent_entity_ids=[provider_id])
                 new_env = new_env[provider_id]
-                # Rotate the provider (inside the transaction)
-                await self._rotate_provider(provider=provider, env=new_env)
                 await uow.commit()
+            await self._rotate_provider(provider=provider, env=new_env)
         except Exception as ex:
             if not provider:
                 return

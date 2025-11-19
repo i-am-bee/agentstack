@@ -26,7 +26,7 @@ export function SessionsList({ items = [], isLoading }: Props) {
       {isLoading ? (
         <SkeletonItems count={5} render={(idx) => <SessionItem.Skeleton key={idx} />} />
       ) : (
-        items?.map(({ ...item }) => <SessionItem key={item.href} {...item} />)
+        items?.map(({ ...item }) => <SessionItem key={`${item.providerId}:${item.contextId}`} {...item} />)
       )}
     </ul>
   );

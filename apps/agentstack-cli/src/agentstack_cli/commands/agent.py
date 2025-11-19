@@ -55,6 +55,8 @@ from agentstack_sdk.a2a.extensions.ui.form import (
     FormResponse,
     MultiSelectField,
     MultiSelectFieldValue,
+    SingleSelectField,
+    SingleSelectFieldValue,
     TextField,
     TextFieldValue,
 )
@@ -84,6 +86,7 @@ if sys.platform != "win32":
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 import jsonschema
 import rich.json
@@ -94,6 +97,8 @@ from rich.table import Column
 from agentstack_cli.api import a2a_client
 from agentstack_cli.async_typer import AsyncTyper, console, create_table, err_console
 from agentstack_cli.utils import (
+    announce_server_action,
+    confirm_server_action,
     generate_schema_example,
     parse_env_var,
     print_log,
@@ -153,39 +158,44 @@ async def add_agent(
     dockerfile: typing.Annotated[str | None, typer.Option(help="Use custom dockerfile path")] = None,
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
+    yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ) -> None:
     """Install discovered agent or add public docker image or github repository [aliases: install]"""
+    url = announce_server_action(f"Installing agent '{location}' for")
+    await confirm_server_action("Proceed with installing this agent on", url=url, yes=yes)
     agent_card = None
-    # Try extracting manifest locally for local images
     with verbosity(verbose):
-        process = await run_command(["docker", "inspect", location], check=False, message="Inspecting docker images.")
-        from subprocess import CalledProcessError
+        if (
+            process := await run_command(
+                ["docker", "inspect", location], check=False, message="Inspecting docker images"
+            )
+        ).returncode == 0:
+            console.success(f"Found local image [bold]{location}[/bold]")
+            manifest = base64.b64decode(
+                json.loads(process.stdout)[0]["Config"]["Labels"]["beeai.dev.agent.json"]
+            ).decode()
+            agent_card = json.loads(manifest)
+        elif (
+            Path(location).expanduser().exists()
+            or location.startswith("git@")
+            or location.startswith("github.com/")
+            or location.startswith("www.github.com/")
+            or location.endswith(".git")
+            or ((u := urlparse(location)).scheme.startswith("http") and u.netloc.endswith("github.com"))
+            or u.scheme in {"ssh", "git", "git+ssh"}
+        ):
+            console.info(f"Assuming build context, attempting to build agent from [bold]{location}[/bold]")
+            location, agent_card = await build(location, dockerfile, tag=None, vm_name=vm_name, import_image=True)
+        else:
+            console.info(f"Assuming public docker image, attempting to pull {location}")
 
-        errors = []
-
-        try:
-            if process.returncode:
-                # If the image was not found locally, try building image
-                location, agent_card = await build(location, dockerfile, tag=None, vm_name=vm_name, import_image=True)
-            else:
-                manifest = base64.b64decode(
-                    json.loads(process.stdout)[0]["Config"]["Labels"]["beeai.dev.agent.json"]
-                ).decode()
-                agent_card = json.loads(manifest)
-            # If all build and inspect succeeded, use the local image, else use the original; maybe it exists remotely
-        except CalledProcessError as e:
-            errors.append(e)
-            console.print("Attempting to use remote image...")
-        try:
-            with status("Registering agent to platform"):
-                async with configuration.use_platform_client():
-                    await Provider.create(
-                        location=location,
-                        agent_card=AgentCard.model_validate(agent_card) if agent_card else None,
-                    )
-            console.print("Registering agent to platform [[green]DONE[/green]]")
-        except Exception as e:
-            raise ExceptionGroup("Error occured", [*errors, e]) from e
+        with status("Registering agent to platform"):
+            async with configuration.use_platform_client():
+                await Provider.create(
+                    location=location,
+                    agent_card=AgentCard.model_validate(agent_card) if agent_card else None,
+                )
+        console.success(f"Agent [bold]{location}[/bold] added to platform")
         await list_agents()
 
 
@@ -207,8 +217,11 @@ async def uninstall_agent(
     search_path: typing.Annotated[
         str, typer.Argument(..., help="Short ID, agent name or part of the provider location")
     ],
+    yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ) -> None:
     """Remove agent"""
+    url = announce_server_action(f"Removing agent '{search_path}' from")
+    await confirm_server_action("Proceed with removing this agent from", url=url, yes=yes)
     with console.status("Uninstalling agent (may take a few minutes)...", spinner="dots"):
         async with configuration.use_platform_client():
             remove_provider = select_provider(search_path, await Provider.list()).id
@@ -223,6 +236,7 @@ async def stream_logs(
     ],
 ):
     """Stream agent provider logs"""
+    announce_server_action(f"Streaming logs for '{search_path}' from")
     async with configuration.use_platform_client():
         provider = select_provider(search_path, await Provider.list()).id
         async for message in Provider.stream_logs(provider):
@@ -245,6 +259,15 @@ async def _ask_form_questions(form_render: FormRender) -> FormResponse:
                 validate=EmptyInputValidator() if field.required else None,
             ).execute_async()
             form_values[field.id] = TextFieldValue(value=answer)
+        elif isinstance(field, SingleSelectField):
+            choices = [Choice(value=opt.id, name=opt.label) for opt in field.options]
+            answer = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
+                message=field.label + ":",
+                choices=choices,
+                default=field.default_value,
+                validate=EmptyInputValidator() if field.required else None,
+            ).execute_async()
+            form_values[field.id] = SingleSelectFieldValue(value=answer)
         elif isinstance(field, MultiSelectField):
             choices = [Choice(value=opt.id, name=opt.label) for opt in field.options]
             answer = await inquirer.checkbox(  # pyright: ignore[reportPrivateImportUsage]
@@ -254,6 +277,7 @@ async def _ask_form_questions(form_render: FormRender) -> FormResponse:
                 validate=EmptyInputValidator() if field.required else None,
             ).execute_async()
             form_values[field.id] = MultiSelectFieldValue(value=answer)
+
         elif isinstance(field, DateField):
             year = await inquirer.text(  # pyright: ignore[reportPrivateImportUsage]
                 message=f"{field.label} (year):",
@@ -737,6 +761,7 @@ async def run_agent(
     ] = None,
 ) -> None:
     """Run an agent."""
+    announce_server_action(f"Running agent '{search_path}' on")
     async with configuration.use_platform_client():
         providers = await Provider.list()
         await ensure_llm_provider()
@@ -827,19 +852,13 @@ async def run_agent(
             )
 
 
-def render_enum(value: str, colors: dict[str, str]) -> str:
-    if color := colors.get(value):
-        return f"[{color}]{value}[/{color}]"
-    return value
-
-
 @app.command("list")
 async def list_agents():
     """List agents."""
+    announce_server_action("Listing agents on")
     async with configuration.use_platform_client():
         providers = await Provider.list()
     max_provider_len = max(len(ProviderUtils.short_location(p)) for p in providers) if providers else 0
-    max_error_len = max(len(ProviderUtils.last_error(p) or "") for p in providers) if providers else 0
 
     def _sort_fn(provider: Provider):
         state = {"missing": "1"}
@@ -852,39 +871,32 @@ async def list_agents():
     with create_table(
         Column("Short ID", style="yellow"),
         Column("Name", style="yellow"),
-        Column("State", width=len("starting")),
-        Column("Description", ratio=2),
-        Column("Interaction"),
+        Column("State"),
         Column("Location", max_width=min(max(max_provider_len, len("Location")), 70)),
-        Column("Missing Env", max_width=50),
-        Column("Last Error", max_width=min(max(max_error_len, len("Last Error")), 50)),
+        Column("Info", ratio=2),
         no_wrap=True,
     ) as table:
         for provider in sorted(providers, key=_sort_fn):
-            state = None
-            missing_env = None
-            state = provider.state
-            missing_env = ",".join(var.name for var in provider.missing_configuration)
             table.add_row(
                 provider.id[:8],
                 provider.agent_card.name,
-                render_enum(
-                    state or "<unknown>",
-                    {
-                        "running": "green",
-                        "online": "green",
-                        "ready": "blue",
-                        "starting": "blue",
-                        "missing": "grey",
-                        "offline": "grey",
-                        "error": "red",
-                    },
-                ),
-                (provider.agent_card.description or "<none>").replace("\n", " "),
-                (ProviderUtils.detail(provider) or {}).get("interaction_mode") or "<none>",
+                {
+                    "running": "[green]▶ running[/green]",
+                    "online": "[green]● connected[/green]",
+                    "ready": "[green]● idle[/green]",
+                    "starting": "[yellow]✱ starting[/yellow]",
+                    "missing": "[bright_black]○ not started[/bright_black]",
+                    "offline": "[bright_black]○ disconnected[/bright_black]",
+                    "error": "[red]✘ error[/red]",
+                }.get(provider.state, provider.state or "<unknown>"),
                 ProviderUtils.short_location(provider) or "<none>",
-                missing_env or "<none>",
-                ProviderUtils.last_error(provider) or "<none>",
+                (
+                    f"Error: {error}"
+                    if provider.state == "error" and (error := ProviderUtils.last_error(provider))
+                    else f"Missing ENV: {{{', '.join(missing_env)}}}"
+                    if (missing_env := [var.name for var in provider.missing_configuration])
+                    else "<none>"
+                ),
             )
     console.print(table)
 
@@ -931,6 +943,7 @@ async def agent_detail(
     ],
 ):
     """Show agent details."""
+    announce_server_action(f"Showing agent details for '{search_path}' on")
     provider = select_provider(search_path, await Provider.list())
     agent = provider.agent_card
 
@@ -977,8 +990,11 @@ async def add_env(
         str, typer.Argument(..., help="Short ID, agent name or part of the provider location")
     ],
     env: typing.Annotated[list[str], typer.Argument(help="Environment variables to pass to agent")],
+    yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ) -> None:
     """Store environment variables"""
+    url = announce_server_action(f"Adding environment variables for '{search_path}' on")
+    await confirm_server_action("Apply these environment variable changes on", url=url, yes=yes)
     env_vars = dict(parse_env_var(var) for var in env)
     async with configuration.use_platform_client():
         provider = select_provider(search_path, await Provider.list())
@@ -993,6 +1009,7 @@ async def list_env(
     ],
 ):
     """List stored environment variables"""
+    announce_server_action(f"Listing environment variables for '{search_path}' on")
     async with configuration.use_platform_client():
         provider = select_provider(search_path, await Provider.list())
     await _list_env(provider)
@@ -1004,7 +1021,10 @@ async def remove_env(
         str, typer.Argument(..., help="Short ID, agent name or part of the provider location")
     ],
     env: typing.Annotated[list[str], typer.Argument(help="Environment variable(s) to remove")],
+    yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ):
+    url = announce_server_action(f"Removing environment variables from '{search_path}' on")
+    await confirm_server_action("Remove the selected environment variables on", url=url, yes=yes)
     async with configuration.use_platform_client():
         provider = select_provider(search_path, await Provider.list())
         await provider.update_variables(variables=dict.fromkeys(env))

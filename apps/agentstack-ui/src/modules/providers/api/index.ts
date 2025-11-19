@@ -4,7 +4,7 @@
  */
 
 import { api } from '#api/index.ts';
-import { ensureData } from '#api/utils.ts';
+import { ensureData, fetchEntity } from '#api/utils.ts';
 
 import type { DeleteProviderPath, ListProvidersParams, ReadProviderPath, RegisterProviderRequest } from './types';
 
@@ -30,4 +30,8 @@ export async function registerManagedProvider(body: RegisterProviderRequest) {
   const response = await api.POST('/api/v1/providers', { body });
 
   return ensureData(response);
+}
+
+export async function fetchProviders(params: ListProvidersParams = {}) {
+  return await fetchEntity(() => listProviders(params));
 }

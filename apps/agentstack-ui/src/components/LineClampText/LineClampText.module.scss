@@ -16,6 +16,12 @@
   @include line-clamp(0);
 }
 
+.sentinel {
+  display: block;
+  inline-size: 1px;
+  block-size: 1px;
+}
+
 .button {
   display: flex;
   align-items: flex-start;

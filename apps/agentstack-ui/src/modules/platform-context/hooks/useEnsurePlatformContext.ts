@@ -22,7 +22,7 @@ export function useEnsurePlatformContext(agent?: Agent) {
 
     const ensureContext = async () => {
       if (!contextId) {
-        await createContext({});
+        await createContext({ provider_id: agent.provider.id });
       }
     };
 

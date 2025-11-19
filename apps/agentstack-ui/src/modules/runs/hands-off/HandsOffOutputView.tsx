@@ -12,14 +12,13 @@ import { checkMessageContent, isAgentMessage, isUserMessage } from '#modules/mes
 
 import { useMessages } from '../../messages/contexts/Messages';
 import { MessageTrajectories } from '../../trajectories/components/MessageTrajectories';
-import { NewSessionButton } from '../components/NewSessionButton';
 import { useAgentRun } from '../contexts/agent-run';
 import classes from './HandsOffOutputView.module.scss';
 import { HandsOffText } from './HandsOffText';
 import { TaskStatusBar } from './TaskStatusBar';
 
 export function HandsOffOutputView() {
-  const { input, isPending, cancel, clear } = useAgentRun();
+  const { input, isPending, cancel } = useAgentRun();
   const { messages } = useMessages();
   const [showSubmission, setShowSubmission] = useState(false);
 
@@ -31,21 +30,21 @@ export function HandsOffOutputView() {
   return (
     <div className={classes.root}>
       <Container size={containerSize} className={classes.holder}>
-        <header className={classes.header}>
-          <div className={classes.headerContainer}>
-            <div className={classes.input}>
-              {form ? (
-                <MessageFormProvider showSubmission={showSubmission} setShowSubmission={setShowSubmission}>
-                  <MessageFormResponse form={form} />
-                </MessageFormProvider>
-              ) : (
-                <p>{input}</p>
-              )}
+        {(form || input) && (
+          <header className={classes.header}>
+            <div className={classes.headerContainer}>
+              <div className={classes.input}>
+                {form ? (
+                  <MessageFormProvider showSubmission={showSubmission} setShowSubmission={setShowSubmission}>
+                    <MessageFormResponse form={form} />
+                  </MessageFormProvider>
+                ) : (
+                  <p>{input}</p>
+                )}
+              </div>
             </div>
-
-            <NewSessionButton onClick={clear} />
-          </div>
-        </header>
+          </header>
+        )}
 
         <div className={classes.body}>
           {message && (

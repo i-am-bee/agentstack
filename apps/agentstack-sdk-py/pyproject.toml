@@ -1,6 +1,6 @@
 [project]
 name = "agentstack-sdk"
-version = "0.4.1"
+version = "0.4.2-rc1"
 description = "Agent Stack SDK"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
@@ -26,7 +26,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "beeai-framework[duckduckgo,wikipedia]>=0.1.58",
+    "beeai-framework[duckduckgo,wikipedia]>=0.1.67",
     "pyright>=1.1.403",
     "pytest>=8.4.1",
     "pytest-asyncio>=1.1.0",

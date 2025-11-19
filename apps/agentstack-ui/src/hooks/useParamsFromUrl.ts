@@ -4,11 +4,14 @@
  */
 
 import { usePathname } from 'next/navigation';
+import { useMemo } from 'react';
 
 import { getRunParamsFromUrl } from '#modules/runs/utils.ts';
 
 export function useParamsFromUrl() {
   const pathname = usePathname();
 
-  return getRunParamsFromUrl(pathname);
+  const params = useMemo(() => getRunParamsFromUrl(pathname), [pathname]);
+
+  return params;
 }

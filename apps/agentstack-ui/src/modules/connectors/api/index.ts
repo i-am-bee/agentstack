@@ -49,18 +49,21 @@ interface AuthRequired {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface Connected {
   id: string;
   url: string;
   state: 'connected';
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface Disconnected {
   id: string;
   url: string;
   state: 'disconnected';
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface Created {
   id: string;
   url: string;

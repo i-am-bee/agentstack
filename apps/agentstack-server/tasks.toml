@@ -263,12 +263,12 @@ curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhos
 {{ mise_bin }} run agentstack:start \
     --vm-name=${VM_NAME} \
     --set externalRegistries=null \
-    --set docling.enabled=true \
     --set ui.enabled=false \
     --set auth.enabled="true" \
     --set auth.basic.enabled="true" \
     --set auth.basic.adminPassword="test-password" \
     --set auth.jwtSecretKey="test-secret-key" \
+    --set docling.enabled=true \
     --set providerBuilds.enabled=true \
     --set localDockerRegistry.enabled=true
 

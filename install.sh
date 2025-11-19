@@ -6,7 +6,7 @@ set -eu
 
 # These get updated by `mise release`:
 LATEST_STABLE_AGENTSTACK_VERSION=0.4.1
-LATEST_AGENTSTACK_VERSION=0.4.1
+LATEST_AGENTSTACK_VERSION=0.4.2-rc1
 
 error() {
     printf "\n💥 \033[31mERROR:\033[0m: Agent Stack installation has failed. Please report the above error: https://github.com/i-am-bee/agentstack/issues\n" >&2
