@@ -171,8 +171,8 @@ export __OLD_PS1="$PS1"
 export __OLD_LIMA_HOME="$LIMA_HOME"
 export __OLD_KUBECONFIG="$KUBECONFIG"
 
-export KUBECONFIG="${HOME}/.agentstack/lima/${VM_NAME}/copied-from-guest/kubeconfig.yaml"
-export LIMA_HOME=~/.agentstack/lima
+export KUBECONFIG="${AGENTSTACK__HOME:-${HOME}/.agentstack}/lima/${VM_NAME}/copied-from-guest/kubeconfig.yaml"
+export LIMA_HOME=${AGENTSTACK__HOME:-${HOME}/.agentstack}/lima
 export PS1="(${VM_NAME}) ${__OLD_PS1}"
 
 """

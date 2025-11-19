@@ -62,7 +62,6 @@ def test_pdf() -> Callable[[str], BytesIO]:
 
 
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
-@pytest.mark.skip(reason="TODO: Docling is temporarily disabled because the image is too heavy")
 async def test_text_extraction_pdf_workflow(subtests, test_configuration, test_pdf: Callable[[str], BytesIO]):
     """Test complete PDF text extraction workflow: upload -> extract -> wait -> verify"""
 
