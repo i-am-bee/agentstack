@@ -260,10 +260,12 @@ VM_NAME=e2e-test-run
 {{ mise_bin }} run agentstack:delete --vm-name=${VM_NAME}
 curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhost:8333 is already running" && exit 2
 
+#   TODO: docling is too heavy, enable when pipeline has more resources
+#   --set docling.enabled=true
+
 {{ mise_bin }} run agentstack:start \
     --vm-name=${VM_NAME} \
     --set externalRegistries=null \
-    --set docling.enabled=true \
     --set ui.enabled=false \
     --set auth.enabled="true" \
     --set auth.basic.enabled="true" \

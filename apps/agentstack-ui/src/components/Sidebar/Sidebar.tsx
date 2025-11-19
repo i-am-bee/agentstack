@@ -5,15 +5,15 @@
 
 'use client';
 import clsx from 'clsx';
-import { useRef } from 'react';
+import type { TransitionEvent, TransitionEventHandler } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import { useApp } from '#contexts/App/index.ts';
-import { SessionsNav } from '#modules/history/components/SessionsNav.tsx';
 
-import { AgentsNav } from './AgentsNav';
 import { MainNav } from './MainNav';
 import classes from './Sidebar.module.scss';
 import { SidebarButton } from './SidebarButton';
+import { SidebarMainContent } from './SidebarMainContent';
 import { SideNav } from './SideNav';
 import { UserNav } from './UserNav';
 
@@ -22,12 +22,52 @@ interface Props {
 }
 
 export function Sidebar({ className }: Props) {
-  const navRef = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  const { sidebarOpen } = useApp();
+  const {
+    config: { isAuthEnabled },
+    sidebarOpen,
+  } = useApp();
+
+  const checkTransition = useCallback((event: TransitionEvent) => {
+    const {
+      target,
+      currentTarget,
+      nativeEvent: { propertyName },
+    } = event;
+
+    return target === currentTarget && propertyName === 'width';
+  }, []);
+
+  const handleTransitionStart: TransitionEventHandler = useCallback(
+    (event) => {
+      if (checkTransition(event)) {
+        setIsAnimating(true);
+      }
+    },
+    [checkTransition],
+  );
+
+  const handleTransitionEnd: TransitionEventHandler = useCallback(
+    (event) => {
+      if (checkTransition(event)) {
+        setIsAnimating(false);
+      }
+    },
+    [checkTransition],
+  );
 
   return (
-    <div ref={navRef} className={clsx(classes.root, className, { [classes.isOpen]: sidebarOpen })}>
+    <div
+      ref={ref}
+      className={clsx(classes.root, className, {
+        [classes.isOpen]: sidebarOpen,
+        [classes.isAnimating]: isAnimating,
+      })}
+      onTransitionStart={handleTransitionStart}
+      onTransitionEnd={handleTransitionEnd}
+    >
       <div className={classes.content}>
         <header className={classes.stack}>
           <SidebarButton />
@@ -36,17 +76,19 @@ export function Sidebar({ className }: Props) {
         </header>
 
         <div className={classes.body}>
-          <div className={classes.bodyContent}>
-            <AgentsNav className={classes.agentsNav} />
-
-            <SessionsNav />
-          </div>
+          <SidebarMainContent className={classes.mainContent} />
         </div>
 
         <footer className={classes.stack}>
           <SideNav />
 
-          <UserNav />
+          {isAuthEnabled && (
+            <>
+              <hr className={classes.separator} />
+
+              <UserNav />
+            </>
+          )}
         </footer>
       </div>
     </div>

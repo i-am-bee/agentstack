@@ -7,8 +7,7 @@ import { OverflowMenuHorizontal } from '@carbon/icons-react';
 import { IconButton } from '@carbon/react';
 import clsx from 'clsx';
 import type { CSSProperties, PropsWithChildren } from 'react';
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { useDebounceCallback } from 'usehooks-ts';
+import { useEffect, useId, useRef, useState } from 'react';
 
 import { ExpandButton } from '#components/ExpandButton/ExpandButton.tsx';
 
@@ -32,8 +31,12 @@ export function LineClampText({
 }: PropsWithChildren<Props>) {
   const id = useId();
   const textRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLSpanElement>(null);
+
   const [isExpanded, setIsExpanded] = useState(false);
-  const [showButton, setShowButton] = useState(false);
+  const [overflowDetected, setOverflowDetected] = useState(false);
+
+  const showButton = isExpanded || overflowDetected;
 
   const Component = useBlockElement ? 'div' : 'span';
   const buttonProps = {
@@ -43,54 +46,30 @@ export function LineClampText({
   };
   const buttonLabel = isExpanded ? 'View less' : 'View more';
 
-  const checkOverflow = useCallback(() => {
-    const element = textRef.current;
-
-    if (!element) {
-      return;
-    }
-
-    const { scrollHeight } = element;
-
-    if (scrollHeight === 0) {
-      return;
-    }
-
-    const lineHeight = parseFloat(getComputedStyle(element).lineHeight);
-    const height = lineHeight * lines;
-
-    if (scrollHeight > height) {
-      setShowButton(true);
-    } else {
-      setShowButton(false);
-    }
-  }, [lines]);
-
-  const debouncedCheckOverflow = useDebounceCallback(checkOverflow, 200);
-
   useEffect(() => {
-    const element = textRef.current;
+    const textElement = textRef.current;
+    const sentinelElement = sentinelRef.current;
 
-    if (!element) {
+    if (isExpanded || !textElement || !sentinelElement) {
       return;
     }
 
-    const resizeObserver = new ResizeObserver(() => {
-      debouncedCheckOverflow();
-    });
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setOverflowDetected(!entry.isIntersecting);
+      },
+      {
+        root: textElement,
+        threshold: 1,
+      },
+    );
 
-    resizeObserver.observe(element);
+    observer.observe(sentinelElement);
 
     return () => {
-      if (element) {
-        resizeObserver.unobserve(element);
-      }
+      observer.disconnect();
     };
-  }, [debouncedCheckOverflow]);
-
-  useEffect(() => {
-    checkOverflow();
-  }, [checkOverflow]);
+  }, [isExpanded]);
 
   return (
     <Component className={clsx(classes.root, className)}>
@@ -101,6 +80,8 @@ export function LineClampText({
         style={{ '--line-clamp-lines': lines } as CSSProperties}
       >
         {children}
+
+        <span ref={sentinelRef} className={classes.sentinel} />
       </Component>
 
       {showButton && (

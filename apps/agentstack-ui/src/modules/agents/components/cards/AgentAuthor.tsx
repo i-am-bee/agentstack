@@ -1,0 +1,27 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { SkeletonText } from '@carbon/react';
+import type { AgentDetailContributor } from 'agentstack-sdk';
+
+import classes from './AgentAuthor.module.scss';
+
+interface Props {
+  author: AgentDetailContributor;
+}
+
+export function AgentAuthor({ author }: Props) {
+  const { name } = author;
+
+  return (
+    <p className={classes.root}>
+      <span className={classes.name}>{name}</span>
+    </p>
+  );
+}
+
+AgentAuthor.Skeleton = function AgentAuthorSkeleton() {
+  return <SkeletonText className={classes.root} />;
+};

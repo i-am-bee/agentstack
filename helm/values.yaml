@@ -36,6 +36,8 @@ variables: { } # DEPRECATED: use server API to manage variables instead
 # github: "https://github.com/i-am-bee/agentstack@v0.2.14#path=agent-registry.yaml"
 externalRegistries: { }
 
+# Cron schedule for syncing external registries
+agentRegistrySyncPeriodCron: "*/30 * * * * *"
 
 # ------- SECURITY ---------
 

@@ -67,7 +67,8 @@ class AliasGroup(TyperGroup):
 
 class AsyncTyper(typer.Typer):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs, cls=AliasGroup)
+        kwargs["cls"] = kwargs.get("cls", AliasGroup)
+        super().__init__(*args, **kwargs)
 
     def command(self, *args, **kwargs):
         parent_decorator = super().command(*args, **kwargs)

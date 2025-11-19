@@ -24,7 +24,16 @@ from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, w
 
 from agentstack_cli.async_typer import AsyncTyper
 from agentstack_cli.console import console
-from agentstack_cli.utils import capture_output, extract_messages, print_log, run_command, status, verbosity
+from agentstack_cli.utils import (
+    announce_server_action,
+    capture_output,
+    confirm_server_action,
+    extract_messages,
+    print_log,
+    run_command,
+    status,
+    verbosity,
+)
 
 
 async def find_free_port():
@@ -145,6 +154,7 @@ async def server_side_build_experimental(
         str | None, typer.Option(help="Short ID, agent name or part of the provider location")
     ] = None,
     add: typing.Annotated[bool, typer.Option(help="Add agent to the platform after build")] = False,
+    yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ):
     """EXPERIMENTAL: Build agent from github repository in the platform."""
     from agentstack_cli.commands.agent import select_provider
@@ -156,6 +166,9 @@ async def server_side_build_experimental(
     build_configuration = None
     if dockerfile:
         build_configuration = BuildConfiguration(dockerfile_path=Path(dockerfile))
+
+    url = announce_server_action(f"Starting server-side build for '{github_url}' on")
+    await confirm_server_action("Proceed with building this agent on", url=url, yes=yes)
 
     async with Configuration().use_platform_client():
         on_complete = None

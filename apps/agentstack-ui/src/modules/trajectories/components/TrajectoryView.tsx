@@ -40,7 +40,7 @@ export function TrajectoryView({ trajectories, toggleable, autoScroll }: Props) 
             : {
                 ...existingTrajectory,
                 title: item.title ?? existingTrajectory?.title,
-                content: [...(existingTrajectory?.content ?? []), ...(item.content ?? [])],
+                content: item.content ?? existingTrajectory?.content,
               },
         );
       }

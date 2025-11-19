@@ -5,12 +5,12 @@
 
 import '#styles/style.scss';
 
-import { SigninLayout } from '#components/layouts/SigninLayout.tsx';
+import { SignInLayout } from '#components/layouts/SignInLayout.tsx';
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <SigninLayout>{children}</SigninLayout>;
+  return <SignInLayout>{children}</SignInLayout>;
 }

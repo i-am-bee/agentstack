@@ -68,7 +68,7 @@ async def _wait_for_auth_code(port: int = 9001) -> str:
     return code
 
 
-@app.command("login | change | select | default")
+@app.command("login | change | select | default | switch")
 async def server_login(server: typing.Annotated[str | None, typer.Argument()] = None):
     """Login to a server or switch between logged in servers."""
     server = server or (
