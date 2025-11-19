@@ -62,9 +62,8 @@
       },
       {
         "group": "Advanced Integration",
-        "pages": ["guides/connectors"]
+        "pages": ["guides/connectors", "guides/permissions-and-tokens"]
       },
-
       {
         "group": "Join Our Community",
         "pages": ["community/contribute"]

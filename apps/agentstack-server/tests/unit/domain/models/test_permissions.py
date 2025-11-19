@@ -43,7 +43,7 @@ pytestmark = pytest.mark.unit
             ),
             Permissions(
                 files={"read"},
-                vector_stores={"extract"},
+                vector_stores={"read"},
                 feedback={"write"},
                 providers={"read"},
             ),
@@ -54,7 +54,7 @@ pytestmark = pytest.mark.unit
             Permissions(
                 files={"*"},
                 feedback={"write"},
-                vector_stores={"read", "write", "extract"},
+                vector_stores={"read", "write"},
                 llm={"*"},
                 embeddings={"*"},
                 a2a_proxy={"*"},
@@ -65,7 +65,7 @@ pytestmark = pytest.mark.unit
             Permissions(
                 files={"read"},
                 feedback={"write"},
-                vector_stores={"extract"},
+                vector_stores={"write"},
                 providers={"read"},
                 provider_variables={"write"},
                 contexts={"read"},
@@ -102,7 +102,7 @@ def test_admin_all_permissions_check():
 
     required_perms = Permissions(
         files={"read", "write", "extract"},
-        vector_stores={"read", "write", "extract"},
+        vector_stores={"read", "write"},
         feedback={"write"},
         providers={"read", "write"},
         provider_variables={"read", "write"},
