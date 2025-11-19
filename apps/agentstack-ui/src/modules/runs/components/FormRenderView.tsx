@@ -19,7 +19,6 @@ interface Props {
 }
 
 export function FormRenderView({ formRender, onMessageSent }: Props) {
-  const { provideFormValues } = useAgentDemands();
   const { agent, submitForm } = useAgentRun();
 
   if (!formRender) {
@@ -34,7 +33,6 @@ export function FormRenderView({ formRender, onMessageSent }: Props) {
         onSubmit={(values: RunFormValues) => {
           onMessageSent?.();
 
-          provideFormValues(values);
           submitForm({
             request: formRender,
             response: values,

@@ -110,12 +110,7 @@ export function AgentDemandsProvider<UIGenericPart>({
   );
 
   const provideFormValues = useCallback((values: RunFormValues) => {
-    formFulfillmentsRef.current = {
-      form_fulfillments: {
-        ...formFulfillmentsRef.current.form_fulfillments,
-        initial_form: { values },
-      },
-    };
+    formFulfillmentsRef.current = { form_fulfillments: { initial_form: { values } } };
   }, []);
 
   const [selectedMCPServers, setSelectedMCPServers] = useState<Record<string, string>>({});

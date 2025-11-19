@@ -85,7 +85,7 @@ class FormData(BaseModel):
     interests: list[str] | None
 
 @server.agent(
-    name="Single-turn Form Agent 2",
+    name="Single-turn Form Agent",
     documentation_url=f"https://github.com/i-am-bee/agentstack/blob/{os.getenv('RELEASE_VERSION', 'main')}/agents/form",
     version="1.0.0",
     default_input_modes=["text", "text/plain"],

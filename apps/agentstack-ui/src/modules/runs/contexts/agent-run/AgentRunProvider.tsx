@@ -89,7 +89,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
   const pendingRun = useRef<ChatRun>(undefined);
 
   const { contextId, getContextId, updateContextWithAgentMetadata } = usePlatformContext();
-  const { getFulfillments, formDemands } = useAgentDemands();
+  const { getFulfillments, provideFormValues, formDemands } = useAgentDemands();
   const { files, clearFiles } = useFileUpload();
 
   const updateCurrentAgentMessage = useCallback(
@@ -319,6 +319,8 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
     (form: UIMessageForm) => {
       checkPendingRun();
 
+      provideFormValues(form.response);
+
       const message: UIUserMessage = {
         id: uuid(),
         role: Role.User,
@@ -328,7 +330,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
 
       return run(message, {});
     },
-    [checkPendingRun, run],
+    [checkPendingRun, provideFormValues, run],
   );
 
   const { startAuth } = useStartOAuth({
