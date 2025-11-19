@@ -7,9 +7,9 @@ import { CopyButton } from '@carbon/react';
 import type { PropsWithChildren } from 'react';
 
 import { DownloadButton } from '#components/DownloadButton/DownloadButton.tsx';
-import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 import type { UISourcePart } from '#modules/messages/types.ts';
 
+import { ChatMarkdownContent } from './ChatMarkdownContent/ChatMarkdownContent';
 import classes from './RunOutputBox.module.scss';
 
 interface Props {
@@ -30,7 +30,11 @@ export function RunOutputBox({ isPending, text, downloadFileName, sources, child
         </div>
       )}
 
-      {text && <MarkdownContent sources={sources}>{text}</MarkdownContent>}
+      {text && (
+        <ChatMarkdownContent sources={sources} codeBlocksExpanded={isPending}>
+          {text}
+        </ChatMarkdownContent>
+      )}
 
       <div className={classes.holder}>{children}</div>
     </div>
