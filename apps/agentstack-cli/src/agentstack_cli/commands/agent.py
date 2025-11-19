@@ -55,6 +55,8 @@ from agentstack_sdk.a2a.extensions.ui.form import (
     FormResponse,
     MultiSelectField,
     MultiSelectFieldValue,
+    SingleSelectField,
+    SingleSelectFieldValue,
     TextField,
     TextFieldValue,
 )
@@ -257,6 +259,15 @@ async def _ask_form_questions(form_render: FormRender) -> FormResponse:
                 validate=EmptyInputValidator() if field.required else None,
             ).execute_async()
             form_values[field.id] = TextFieldValue(value=answer)
+        elif isinstance(field, SingleSelectField):
+            choices = [Choice(value=opt.id, name=opt.label) for opt in field.options]
+            answer = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
+                message=field.label + ":",
+                choices=choices,
+                default=field.default_value,
+                validate=EmptyInputValidator() if field.required else None,
+            ).execute_async()
+            form_values[field.id] = SingleSelectFieldValue(value=answer)
         elif isinstance(field, MultiSelectField):
             choices = [Choice(value=opt.id, name=opt.label) for opt in field.options]
             answer = await inquirer.checkbox(  # pyright: ignore[reportPrivateImportUsage]
@@ -266,6 +277,7 @@ async def _ask_form_questions(form_render: FormRender) -> FormResponse:
                 validate=EmptyInputValidator() if field.required else None,
             ).execute_async()
             form_values[field.id] = MultiSelectFieldValue(value=answer)
+
         elif isinstance(field, DateField):
             year = await inquirer.text(  # pyright: ignore[reportPrivateImportUsage]
                 message=f"{field.label} (year):",
