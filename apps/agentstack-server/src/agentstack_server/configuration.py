@@ -219,15 +219,30 @@ class ManagedProviderConfiguration(BaseModel):
     )
 
 
+class ConnectorStdioPreset(BaseModel):
+    image: str
+    command: list[str] | None = None
+    args: list[str] | None = None
+    env: dict[str, str] = Field(default_factory=dict)
+
+
 class ConnectorPreset(BaseModel):
     url: AnyUrl
     client_id: str | None = None
     client_secret: str | None = None
     metadata: dict[str, str] | None = None
+    stdio: ConnectorStdioPreset | None = None
+
+
+class ConnectorRuntimeConfiguration(BaseModel):
+    kubeconfig: Path | None = None
+    namespace: str | None = None
+    startup_timeout_seconds: int = 60
 
 
 class ConnectorConfiguration(BaseModel):
     presets: list[ConnectorPreset] = Field(default_factory=list)
+    runtime: ConnectorRuntimeConfiguration = Field(default_factory=ConnectorRuntimeConfiguration)
 
 
 class DoclingExtractionConfiguration(BaseModel):

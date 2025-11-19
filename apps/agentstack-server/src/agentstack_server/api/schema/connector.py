@@ -19,6 +19,7 @@ class ConnectorCreateRequest(BaseModel):
     metadata: Metadata | None = None
 
     match_preset: bool = True
+    bearer_token: str | None = None
 
 
 class AuthorizationCodeRequest(BaseModel):

@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import html
 import logging
 from contextlib import AsyncExitStack
@@ -61,6 +62,9 @@ class ConnectorService:
             )
 
         preset = self._find_preset(url=url) if match_preset else None
+        if not preset and url.scheme not in {"http", "https"}:
+            raise PlatformError("Unknown connector preset", status_code=status.HTTP_400_BAD_REQUEST)
+
         if preset:
             if not client_id:
                 client_id = preset.client_id
@@ -76,6 +80,23 @@ class ConnectorService:
         async with self._uow() as uow:
             await uow.connectors.create(connector=connector)
             await uow.commit()
+
+        # For stdio connectors, create the supergateway pod immediately
+        if preset and str(preset.url).startswith("mcp+stdio://"):
+            logger.info("Creating supergateway pod for stdio connector: connector_id=%s", connector.id)
+            try:
+                await self._create_supergateway_pod(connector=connector, preset=preset)
+            except Exception as err:
+                logger.error("Failed to create supergateway pod during connector creation", exc_info=True)
+                # Delete the connector from DB since we couldn't create the pod
+                async with self._uow() as uow:
+                    await uow.connectors.delete(connector_id=connector.id, user_id=user.id)
+                    await uow.commit()
+                raise PlatformError(
+                    f"Failed to create stdio connector: {err}",
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                ) from err
+
         return connector
 
     async def read_connector(self, *, connector_id: UUID, user: User | None = None) -> Connector:
@@ -86,6 +107,15 @@ class ConnectorService:
         async with self._uow() as uow:
             connector = await uow.connectors.get(connector_id=connector_id, user_id=user.id if user else None)
             await self._revoke_auth_token(connector=connector)
+
+            # For stdio connectors, delete the supergateway pod
+            preset = self._find_preset(url=connector.url)
+            if preset and str(preset.url).startswith("mcp+stdio://"):
+                try:
+                    await self._delete_supergateway_pod(connector=connector)
+                except Exception:
+                    logger.warning("Failed to delete supergateway pod during connector deletion", exc_info=True)
+
             await uow.connectors.delete(connector_id=connector_id, user_id=user.id if user else None)
             await uow.commit()
 
@@ -96,13 +126,28 @@ class ConnectorService:
     async def connect_connector(
         self, *, connector_id: UUID, callback_uri: str, redirect_url: AnyUrl | None = None, user: User | None = None
     ) -> Connector:
+        logger.error("Connecting connector: connector_id=%s url=%s", connector_id, "unknown")
         async with self._uow() as uow:
             connector = await uow.connectors.get(connector_id=connector_id, user_id=user.id if user else None)
 
+        logger.error("Connector retrieved: connector_id=%s url=%s", connector_id, connector.url)
+
+        # For stdio connectors, skip probing since pods are already created and running
+        # Probing causes the supergateway to crash due to connection state issues
+        preset = self._find_preset(url=connector.url)
+        is_stdio_connector = preset and str(preset.url).startswith("mcp+stdio://")
+
         try:
-            await self.probe_connector(connector=connector)
-            connector.state = ConnectorState.connected
-            connector.disconnect_reason = None
+            if is_stdio_connector:
+                logger.info("Skipping probe for stdio connector: connector_id=%s", connector_id)
+                connector.state = ConnectorState.connected
+                connector.disconnect_reason = None
+            else:
+                logger.error("Probing connector: connector_id=%s", connector_id)
+                await self.probe_connector(connector=connector)
+                logger.error("Connector probe successful: connector_id=%s", connector_id)
+                connector.state = ConnectorState.connected
+                connector.disconnect_reason = None
         except Exception as err:
             if isinstance(err, httpx.HTTPStatusError):
                 if err.response.status_code == status.HTTP_401_UNAUTHORIZED:
@@ -146,6 +191,14 @@ class ConnectorService:
             )
 
         await self._revoke_auth_token(connector=connector)
+
+        # For stdio connectors, delete the supergateway pod
+        preset = self._find_preset(url=connector.url)
+        if preset and str(preset.url).startswith("mcp+stdio://"):
+            try:
+                await self._delete_supergateway_pod(connector=connector)
+            except Exception:
+                logger.warning("Failed to delete supergateway pod during disconnect", exc_info=True)
 
         if connector.auth:
             connector.auth.flow = None
@@ -270,9 +323,287 @@ class ConnectorService:
 
     def _find_preset(self, *, url: AnyUrl) -> ConnectorPreset | None:
         for preset in self._configuration.connector.presets:
-            if preset.url == url:
+            if str(preset.url) == str(url):
                 return preset
         return None
+
+    def _get_supergateway_name(self, connector_id: UUID) -> str:
+        """Get DNS-safe name for supergateway pod/service."""
+        return f"supergateway-{connector_id.hex[:8]}"
+
+    def _get_supergateway_url(self, connector_id: UUID) -> str:
+        """Get the service URL for an existing supergateway pod."""
+        name = self._get_supergateway_name(connector_id)
+        namespace = self._configuration.connector.runtime.namespace or self._configuration.k8s_namespace or "default"
+        return f"http://{name}.{namespace}.svc.cluster.local:8080"
+
+    async def _ensure_supergateway_rbac(self) -> None:
+        """Ensure RBAC resources exist for supergateway pods."""
+        namespace = self._configuration.connector.runtime.namespace or self._configuration.k8s_namespace or "default"
+        kubeconfig = self._configuration.connector.runtime.kubeconfig or self._configuration.k8s_kubeconfig
+
+        kubectl_args = ["kubectl"]
+        if kubeconfig:
+            kubectl_args.extend(["--kubeconfig", str(kubeconfig)])
+        if namespace:
+            kubectl_args.extend(["--namespace", namespace])
+
+        # Create ServiceAccount, Role, and RoleBinding for supergateway
+        rbac_yaml = f"""
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: supergateway
+  namespace: {namespace or "default"}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: supergateway
+  namespace: {namespace or "default"}
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["create", "delete", "get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["get"]
+- apiGroups: [""]
+  resources: ["pods/attach"]
+  verbs: ["create", "get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: supergateway
+  namespace: {namespace or "default"}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: supergateway
+subjects:
+- kind: ServiceAccount
+  name: supergateway
+  namespace: {namespace or "default"}
+"""
+
+        process = await asyncio.create_subprocess_exec(
+            *kubectl_args,
+            "apply",
+            "-f",
+            "-",
+            stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await process.communicate(input=rbac_yaml.encode())
+
+        if process.returncode != 0:
+            logger.error(
+                "Failed to create supergateway RBAC resources: returncode=%s stdout=%s stderr=%s",
+                process.returncode,
+                stdout.decode(),
+                stderr.decode(),
+            )
+            raise RuntimeError(f"Failed to create RBAC: {stderr.decode()}")
+        else:
+            logger.info("RBAC resources created successfully: %s", stdout.decode())
+
+    async def _create_supergateway_pod(self, *, connector: Connector, preset: ConnectorPreset) -> str:
+        """Create supergateway pod and service for stdio connector using kubectl."""
+        logger.info("Creating supergateway pod: connector_id=%s", connector.id)
+
+        # Ensure RBAC exists first
+        await self._ensure_supergateway_rbac()
+
+        name = self._get_supergateway_name(connector.id)
+        namespace = self._configuration.connector.runtime.namespace or self._configuration.k8s_namespace or "default"
+        kubeconfig = self._configuration.connector.runtime.kubeconfig or self._configuration.k8s_kubeconfig
+
+        # Build kubectl command args
+        kubectl_args = ["kubectl"]
+        if kubeconfig:
+            kubectl_args.extend(["--kubeconfig", str(kubeconfig)])
+        if namespace:
+            kubectl_args.extend(["--namespace", namespace])
+
+        # Create MCP server pod name (one pod per connector, not per request)
+        mcp_pod_name = f"conn-{connector.id.hex[:6]}-mcp"
+
+        # Build kubectl attach command for supergateway to connect to the MCP pod
+        kubectl_attach_cmd = f"kubectl attach {mcp_pod_name} --stdin --tty=false"
+
+        # Build MCP pod command/args/env sections
+        mcp_command_yaml = ""
+        if preset.stdio.command:
+            command_items = "\n    - ".join(f'"{cmd}"' for cmd in preset.stdio.command)
+            mcp_command_yaml = f"\n    command:\n    - {command_items}"
+
+        mcp_args_yaml = ""
+        if preset.stdio.args:
+            args_items = "\n    - ".join(f'"{arg}"' for arg in preset.stdio.args)
+            mcp_args_yaml = f"\n    args:\n    - {args_items}"
+
+        mcp_env_yaml = ""
+        if preset.stdio.env:
+            env_items = "\n    - ".join(f'name: "{k}"\n      value: "{v}"' for k, v in preset.stdio.env.items())
+            mcp_env_yaml = f"\n    env:\n    - {env_items}"
+
+        # Create manifest YAML for MCP server pod, supergateway pod, and service
+        # TODO: Make supergateway image configurable
+        pod_yaml = f"""
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {mcp_pod_name}
+  labels:
+    app: mcp-server
+    connector-id: "{connector.id}"
+spec:
+  serviceAccountName: supergateway
+  restartPolicy: Never
+  containers:
+  - name: mcp
+    image: {preset.stdio.image}
+    imagePullPolicy: IfNotPresent
+    stdin: true
+    tty: false{mcp_command_yaml}{mcp_args_yaml}{mcp_env_yaml}
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {name}
+  labels:
+    app: supergateway
+    connector-id: "{connector.id}"
+spec:
+  serviceAccountName: supergateway
+  containers:
+  - name: supergateway
+    image: ghcr.io/i-am-bee/agentstack/agentstack-server:local
+    command: ["supergateway"]
+    args:
+    - "--stdio"
+    - "{kubectl_attach_cmd}"
+    - "--outputTransport"
+    - "streamableHttp"
+    - "--stateful"
+    - "--port"
+    - "8080"
+    - "--streamableHttpPath"
+    - "/mcp"
+    - "--logLevel"
+    - "info"
+    ports:
+    - containerPort: 8080
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {name}
+spec:
+  selector:
+    app: supergateway
+    connector-id: "{connector.id}"
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+"""
+
+        # Apply manifest
+        process = await asyncio.create_subprocess_exec(
+            *kubectl_args,
+            "apply",
+            "-f",
+            "-",
+            stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await process.communicate(input=pod_yaml.encode())
+
+        if process.returncode != 0:
+            raise PlatformError(
+                f"Failed to create supergateway pod: {stderr.decode()}",
+                status_code=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        logger.info("Supergateway resources created: connector_id=%s output=%s", connector.id, stdout.decode().strip())
+        logger.info("Waiting for MCP server and supergateway pods to be ready: connector_id=%s", connector.id)
+
+        # Wait for MCP server pod to be ready first
+        wait_mcp_process = await asyncio.create_subprocess_exec(
+            *kubectl_args,
+            "wait",
+            f"pod/{mcp_pod_name}",
+            "--for=condition=Ready",
+            f"--timeout={self._configuration.connector.runtime.startup_timeout_seconds}s",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        await wait_mcp_process.wait()
+
+        if wait_mcp_process.returncode != 0:
+            raise PlatformError(
+                "MCP server pod failed to become ready",
+                status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            )
+
+        # Wait for supergateway pod to be ready
+        wait_gw_process = await asyncio.create_subprocess_exec(
+            *kubectl_args,
+            "wait",
+            f"pod/{name}",
+            "--for=condition=Ready",
+            f"--timeout={self._configuration.connector.runtime.startup_timeout_seconds}s",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        await wait_gw_process.wait()
+
+        if wait_gw_process.returncode != 0:
+            raise PlatformError(
+                "Supergateway pod failed to become ready",
+                status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            )
+
+        service_url = f"http://{name}.{namespace}.svc.cluster.local:8080"
+        logger.info("Supergateway pod ready: connector_id=%s url=%s", connector.id, service_url)
+
+        return service_url
+
+    async def _delete_supergateway_pod(self, *, connector: Connector) -> None:
+        """Delete supergateway pod, MCP server pod, and service using kubectl."""
+        logger.info("Deleting supergateway and MCP server pods: connector_id=%s", connector.id)
+
+        name = self._get_supergateway_name(connector.id)
+        mcp_pod_name = f"conn-{connector.id.hex[:6]}-mcp"
+        namespace = self._configuration.connector.runtime.namespace or self._configuration.k8s_namespace or "default"
+        kubeconfig = self._configuration.connector.runtime.kubeconfig or self._configuration.k8s_kubeconfig
+
+        kubectl_args = ["kubectl"]
+        if kubeconfig:
+            kubectl_args.extend(["--kubeconfig", str(kubeconfig)])
+        if namespace:
+            kubectl_args.extend(["--namespace", namespace])
+
+        # Delete supergateway pod, MCP server pod, and service
+        for resource_type, resource_name in [("pod", name), ("pod", mcp_pod_name), ("service", name)]:
+            process = await asyncio.create_subprocess_exec(
+                *kubectl_args,
+                "delete",
+                resource_type,
+                resource_name,
+                "--ignore-not-found=true",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            await process.wait()
+
+        logger.info("Supergateway and MCP server pods deleted: connector_id=%s", connector.id)
 
     async def _bootstrap_auth(self, *, connector: Connector, callback_url: str, redirect_url: AnyUrl | None) -> None:
         auth_metadata = await self._discover_auth_metadata(connector=connector)
@@ -326,7 +657,11 @@ class ConnectorService:
         self, *, connector: Connector, headers: dict[str, str] | None = None, timeout: int | None = None
     ) -> httpx.AsyncClient:
         if not connector.auth or not connector.auth.token:
-            return httpx.AsyncClient(base_url=str(connector.url), headers=headers, timeout=timeout)
+            return httpx.AsyncClient(
+                headers=headers,
+                timeout=timeout or 30,
+                base_url="" if (url := str(connector.url)).startswith("mcp+stdio://") else url,
+            )
         else:
             return self._create_oauth_client(connector=connector)
 
@@ -380,19 +715,58 @@ class ConnectorService:
             assert auth is None
             return self._create_client(connector=connector, headers=headers, timeout=timeout)
 
+        # Determine target URL
+        preset = self._find_preset(url=connector.url)
+        if preset and str(preset.url).startswith("mcp+stdio://"):
+            # Use existing supergateway pod service URL
+            target_url = f"{self._get_supergateway_url(connector.id)}/mcp"
+        else:
+            # Regular HTTP connector
+            target_url = str(connector.url)
+
+        logger.info("Probing connector: connector_id=%s target_url=%s", connector.id, target_url)
+
         try:
-            async with (
-                streamablehttp_client(str(connector.url), httpx_client_factory=client_factory) as (read, write, _),
-                ClientSession(read, write) as session,
-            ):
-                await session.initialize()
+            async with AsyncExitStack() as stack:
+                read, write, _ = await stack.enter_async_context(
+                    streamablehttp_client(target_url, httpx_client_factory=client_factory)
+                )
+                session = await stack.enter_async_context(ClientSession(read, write))
+                async with asyncio.timeout(30):
+                    await session.initialize()
+            logger.info("Connector probe successful: connector_id=%s", connector.id)
+        except TimeoutError as err:
+            logger.error(
+                "Connector probe timed out: connector_id=%s target_url=%s", connector.id, target_url, exc_info=True
+            )
+            raise PlatformError(
+                "MCP server initialization timed out",
+                status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            ) from err
         except ExceptionGroup as excgroup:
+            logger.error(
+                "Connector probe failed with ExceptionGroup: connector_id=%s target_url=%s exceptions=%s",
+                connector.id,
+                target_url,
+                excgroup.exceptions,
+                exc_info=True,
+            )
             if len(excgroup.exceptions) == 1:
                 raise excgroup.exceptions[0] from excgroup
             raise excgroup
+        except Exception as err:
+            logger.error(
+                "Connector probe failed: connector_id=%s target_url=%s error=%s",
+                connector.id,
+                target_url,
+                err,
+                exc_info=True,
+            )
+            raise
 
     async def mcp_proxy(self, *, connector_id: UUID, request: Request, user: User | None = None):
         connector = await self.read_connector(connector_id=connector_id, user=user)
+        preset = self._find_preset(url=connector.url)
 
         forward_headers = {
             key: request.headers[key]
@@ -400,12 +774,20 @@ class ConnectorService:
             if key in request.headers
         }
 
+        # Determine target URL
+        if preset and str(preset.url).startswith("mcp+stdio://"):
+            # Use existing supergateway pod service URL
+            target_url = f"{self._get_supergateway_url(connector.id)}/mcp"
+        else:
+            # Regular HTTP connector
+            target_url = str(connector.url)
+
         exit_stack = AsyncExitStack()
         try:
             response = await exit_stack.enter_async_context(
                 self._proxy_client.stream(
                     request.method,
-                    str(connector.url),
+                    target_url,
                     headers=forward_headers
                     | (
                         {"authorization": f"Bearer {connector.auth.token.access_token}"}
