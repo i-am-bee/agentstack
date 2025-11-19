@@ -88,6 +88,9 @@ class AuthManager:
                 client_id = (
                     self._auth.servers[self._auth.active_server or ""].authorization_servers[auth_server].client_id
                 )
+                client_secret = (
+                    self._auth.servers[self._auth.active_server or ""].authorization_servers[auth_server].client_secret
+                )
                 resp = await client.post(
                     f"{token_endpoint}",
                     data={
@@ -95,6 +98,7 @@ class AuthManager:
                         "refresh_token": token.refresh_token,
                         "scope": token.scope,
                         "client_id": client_id,
+                        "client_secret": client_secret,
                     },
                 )
                 resp.raise_for_status()
