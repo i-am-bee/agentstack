@@ -342,7 +342,7 @@ def _get_clients(
     llm = AgentStackChatModel()
     llm.set_context(llm_ext)
 
-    embedding_conf = None, None
+    embedding_conf = None
     if embedding_ext:
         [embedding_conf] = embedding_ext.data.embedding_fulfillments.values()
 
