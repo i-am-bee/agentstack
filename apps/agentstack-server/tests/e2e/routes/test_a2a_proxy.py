@@ -963,6 +963,34 @@ def test_task_ownership_different_user_cannot_access_task(client: Client, handle
     assert data["result"]["id"] == "task1"
 
 
+async def test_unknown_task_raises_error(client: Client, handler: mock.AsyncMock, db_transaction):
+    """Test that sending a message creates a new task owned by the user."""
+    # Send message with non-existing task
+    client.auth = ("admin", "test-password")
+    response = client.post(
+        "/",
+        json={
+            "jsonrpc": "2.0",
+            "id": "123",
+            "method": "message/send",
+            "params": {
+                "message": {
+                    "role": "agent",
+                    "parts": [{"kind": "text", "text": "Hello"}],
+                    "taskId": "unknown-task",
+                    "messageId": "111",
+                    "kind": "message",
+                    "contextId": "session-xyz",
+                }
+            },
+        },
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["error"]["code"] in [TaskNotFoundError().code]
+
+
 async def test_task_ownership_new_task_creation_via_message_send(
     client: Client, handler: mock.AsyncMock, db_transaction
 ):
