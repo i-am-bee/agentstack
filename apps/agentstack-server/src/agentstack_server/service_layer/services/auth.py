@@ -22,7 +22,7 @@ class AuthService:
             "client_data": [
                 {"server": str(p.issuer), "client_id": p.client_id, "name": p.name}
                 for p in self._config.auth.oidc.providers
-                if p.issuer is not None and p.app == "cli"
+                if p.issuer is not None
             ],
             "scopes_supported": list(self._config.auth.oidc.scope),
         }

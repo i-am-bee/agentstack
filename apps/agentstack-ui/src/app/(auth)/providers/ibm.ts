@@ -111,15 +111,10 @@ export interface IbmProfile extends Record<string, any> {
   exp: number;
 }
 
-export interface IBMProviderConfig<IbmProfile> extends OIDCConfig<IbmProfile> {
-  app: string;
-}
-
-export function IBMProvider(config: IBMProviderConfig<IbmProfile>): IBMProviderConfig<IbmProfile> {
+export function IBMProvider(config: OIDCConfig<IbmProfile>): OIDCConfig<IbmProfile> {
   return {
     id: config.id,
     name: config.name,
-    app: config.app,
     type: 'oidc',
     idToken: true,
     style: { text: '#ffffff', bg: '#252525' },
