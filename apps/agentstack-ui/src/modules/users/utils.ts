@@ -5,6 +5,12 @@
 
 import type { User } from './api/types';
 
-export function isUserAdmin(user: User | undefined) {
-  return user?.role === 'admin';
+export function isUserAdminOrDev(user: User | undefined) {
+  if (!user) {
+    return false;
+  }
+
+  const { role } = user;
+
+  return role === 'admin' || role === 'developer';
 }

@@ -15,14 +15,15 @@
 
 .link {
   @include link-mask();
-  @include line-clamp();
   min-inline-size: 0;
   flex-grow: 1;
   text-decoration: none;
   font-size: rem(14px);
   line-height: math.div(18, 14);
   color: $text-dark;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  row-gap: $spacing-02;
   &::before {
     border-radius: $border-radius;
     transition: background-color $duration-fast-01 motion(entrance, productive);
@@ -43,6 +44,17 @@
   .root.isActive &::before {
     background-color: $layer-02;
   }
+}
+
+.heading {
+  @include line-clamp();
+}
+
+.subHeading {
+  @include line-clamp();
+  font-size: rem(12px);
+  line-height: math.div(14, 12);
+  color: $text-secondary;
 }
 
 .options {
@@ -75,6 +87,6 @@
 .skeleton {
   &:global(.cds--btn.cds--skeleton) {
     inline-size: 100%;
-    min-block-size: rem(32px);
+    min-block-size: rem(50px);
   }
 }

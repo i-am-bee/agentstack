@@ -5,12 +5,9 @@
 
 import clsx from 'clsx';
 
-import { useParamsFromUrl } from '#hooks/useParamsFromUrl.ts';
 import { SessionsNav } from '#modules/history/components/SessionsNav.tsx';
 
-import { AgentNav } from './AgentNav';
 import { AgentsNav } from './AgentsNav';
-import { RecentlyUsedAgentsNav } from './RecentlyUsedAgentsNav';
 import classes from './SidebarMainContent.module.scss';
 
 interface Props {
@@ -18,23 +15,11 @@ interface Props {
 }
 
 export function SidebarMainContent({ className }: Props) {
-  const { providerId } = useParamsFromUrl();
-
   return (
     <div className={clsx(classes.root, className)}>
-      {providerId ? (
-        <>
-          <AgentNav providerId={providerId} />
+      <AgentsNav className={classes.agentsNav} />
 
-          <SessionsNav providerId={providerId} className={classes.sessions} />
-        </>
-      ) : (
-        <>
-          <AgentsNav className={classes.agentsNav} />
-
-          <RecentlyUsedAgentsNav className={classes.recentlyUsed} />
-        </>
-      )}
+      <SessionsNav className={classes.sessions} />
     </div>
   );
 }

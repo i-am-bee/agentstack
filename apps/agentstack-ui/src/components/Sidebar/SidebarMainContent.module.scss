@@ -12,10 +12,9 @@
 }
 
 .agentsNav {
-  max-block-size: calc(70% - (var(--row-gap) / 2));
+  max-block-size: calc(50% - (var(--row-gap) / 2));
 }
 
-.sessions,
-.recentlyUsed {
+.sessions {
   flex: 1 1 0;
 }
