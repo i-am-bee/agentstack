@@ -5,8 +5,8 @@ import functools
 import inspect
 import logging
 import uuid
-from collections.abc import AsyncGenerator, AsyncIterable, AsyncIterator, Awaitable, Callable
-from contextlib import asynccontextmanager
+from collections.abc import AsyncGenerator, AsyncIterable, AsyncIterator, Awaitable, Callable, Iterator
+from contextlib import asynccontextmanager, contextmanager
 from datetime import timedelta
 from typing import NamedTuple, cast
 from urllib.parse import urljoin, urlparse
@@ -106,10 +106,10 @@ class A2AServerResponse(NamedTuple):
 
 
 def _handle_exception[T: Callable](fn: T) -> T:
-    @functools.wraps(fn)
-    async def _fn(*args, **kwargs):
+    @contextmanager
+    def _handle_exception_impl() -> Iterator[None]:
         try:
-            return await fn(*args, **kwargs)
+            yield
         except EntityNotFoundError as e:
             if "task" in e.entity:
                 raise ServerError(error=TaskNotFoundError()) from e
@@ -124,12 +124,15 @@ def _handle_exception[T: Callable](fn: T) -> T:
             raise ServerError(error=InternalError(message=f"Internal error: {e!r}")) from e
 
     @functools.wraps(fn)
+    async def _fn(*args, **kwargs):
+        with _handle_exception_impl():
+            return await fn(*args, **kwargs)
+
+    @functools.wraps(fn)
     async def _fn_iter(*args, **kwargs):
-        try:
+        with _handle_exception_impl():
             async for item in fn(*args, **kwargs):
                 yield item
-        except A2AClientJSONRPCError as e:
-            raise ServerError(error=e.error) from e
 
     return _fn_iter if inspect.isasyncgenfunction(fn) else _fn  # pyright: ignore [reportReturnType]
 
