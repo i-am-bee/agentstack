@@ -9,12 +9,7 @@ import type { ContextPermissionGrant, GlobalPermissionGrant, ModelCapability } f
 import { contextSchema, contextTokenSchema, modelProviderMatchSchema } from './types';
 
 export const buildApiClient = ({ baseUrl }: { baseUrl: string } = { baseUrl: '' }) => {
-  async function callApi<T>(
-    method: 'POST' | 'GET',
-    url: string,
-    data: Record<string, unknown>,
-    resultSchema: z.ZodSchema<T>,
-  ) {
+  async function callApi<T>(method: 'POST', url: string, data: Record<string, unknown>, resultSchema: z.ZodSchema<T>) {
     const response = await fetch(`${baseUrl}${url}`, {
       method,
       headers: {
