@@ -20,7 +20,7 @@ export function transformArtifactPart(artifactPart: UIArtifactPart, message: UIA
 
   const artifactContent = getMessagePartsRawContent(artifactPart.parts);
 
-  const name = artifactPart.name || 'artifact';
+  const { artifactId, name } = artifactPart;
 
   const transformPart: UITransformPart = {
     kind: UIMessagePartKind.Transform,
@@ -32,7 +32,7 @@ export function transformArtifactPart(artifactPart: UIArtifactPart, message: UIA
       const before = content.slice(0, adjustedStartIndex);
       const after = content.slice(adjustedStartIndex + artifactContent.length);
 
-      return `${before}${toMarkdownArtifact({ name, content: artifactContent })}${after}`;
+      return `${before}${toMarkdownArtifact({ id: artifactId, name })}${after}`;
     },
   };
 

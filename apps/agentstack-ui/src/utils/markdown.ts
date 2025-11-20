@@ -3,12 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { isNotNull } from './helpers';
+import { ARTIFACT_LINK_PREFIX } from '#modules/runs/components/ChatMarkdownContent/CanvasLink/remarkCanvasLink.ts';
 
-function escapeMarkdown(text: string): string {
-  // Escape markdown special characters
-  return text.replace(/([\\`*_{}[\]()#+\-.!|])/g, '\\$1');
-}
+import { isNotNull } from './helpers';
 
 export function createMarkdownCodeBlock({ snippet, language = '' }: { snippet: string; language?: string }) {
   return `\`\`\`${language}\n${snippet}\n\`\`\``;
@@ -30,6 +27,6 @@ export function joinMarkdownSections(sections: (string | undefined)[]) {
   return sections.filter(isNotNull).join('\n\n');
 }
 
-export function toMarkdownArtifact({ name, content }: { name: string; content: string }) {
-  return `[${escapeMarkdown(name)}](artifact:${escapeMarkdown(content)})`;
+export function toMarkdownArtifact({ id, name }: { id: string; name?: string }) {
+  return `[${name}](${ARTIFACT_LINK_PREFIX}${id}})`;
 }

@@ -4,38 +4,39 @@
  */
 
 .root {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  column-gap: $spacing-03;
   border-radius: $border-radius;
   box-shadow: $box-shadow;
+  inline-size: 100%;
+  min-inline-size: 100%;
   padding: rem(10px);
   position: relative;
   background-color: $layer-01;
-  display: flex;
-  align-items: center;
-  column-gap: $spacing-03;
   border: 2px solid transparent;
-  &:hover {
+  color: $text-primary;
+  font-weight: 600;
+
+  &:hover,
+  &:focus {
     border-color: $text-dark;
-  }
-  &:has(:focus-visible) {
-    @include focus-outline('outline');
+    background-color: $background;
+    color: $text-primary;
   }
 }
 
-.button {
-  @include hide-popover();
-  &:global(.cds--popover-container) {
-    position: static;
-  }
-  :global(.cds--btn) {
-    @include link-mask();
-    background-color: $layer-02;
-    color: $text-dark;
-    position: static;
-    &:focus {
-      border-color: transparent;
-      box-shadow: none;
-    }
-  }
+.icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: $layer-02;
+  color: $text-dark;
+  block-size: rem(40px);
+  inline-size: rem(40px);
+  border-radius: $border-radius;
+  position: static;
 }
 
 .heading {
@@ -43,4 +44,8 @@
   line-height: math.div(20, 14);
   font-weight: 600;
   letter-spacing: $letter-spacing;
+
+  .untitled {
+    color: $text-placeholder;
+  }
 }

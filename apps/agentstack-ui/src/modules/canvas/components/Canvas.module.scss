@@ -4,13 +4,19 @@
  */
 
 .root {
-  background-color: $layer-01;
+  background-color: $layer-02;
+  inline-size: 100%;
+  padding: $spacing-07;
+}
+
+.container {
   border-radius: $border-radius;
-  padding-block: $spacing-07;
-  padding-inline: $spacing-07 $spacing-09;
   display: flex;
   flex-direction: column;
   row-gap: $spacing-07;
+  padding-block: $spacing-07;
+  padding-inline: $spacing-07 $spacing-09;
+  background-color: $background;
 }
 
 .header {

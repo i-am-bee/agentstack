@@ -9,7 +9,7 @@ from a2a.types import Message, TextPart
 
 from agentstack_sdk.a2a.extensions import LLMServiceExtensionServer, LLMServiceExtensionSpec
 from agentstack_sdk.a2a.extensions.ui.canvas import CanvasExtensionServer, CanvasExtensionSpec
-from agentstack_sdk.a2a.types import AgentArtifact
+from agentstack_sdk.a2a.types import AgentArtifact, AgentMessage
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
 
@@ -22,16 +22,14 @@ server = Server()
 async def artifacts_agent(
     input: Message,
     context: RunContext,
-    llm: Annotated[
-        LLMServiceExtensionServer,
-        LLMServiceExtensionSpec.single_demand(),
-    ],
     canvas: Annotated[
         CanvasExtensionServer,
         CanvasExtensionSpec(),
     ],
 ):
     """Works with artifacts"""
+    
+    await context.store(input)
 
     # canvas_edit_request = await canvas.parse_canvas_edit_request(message=input)
 
@@ -66,17 +64,25 @@ Enjoy your meal!
         return
 
     if pre_text := response[: match.start()].strip():
-        yield pre_text
+        message = AgentMessage(text=pre_text)
+        yield message
+        await context.store(message)
 
     recipe_content = match.group(1).strip()
     first_line = recipe_content.split("\n", 1)[0]
-    yield AgentArtifact(
+    artifact = AgentArtifact(
         name=first_line.lstrip("# ").strip() if first_line.startswith("#") else "Recipe",
         parts=[TextPart(text=recipe_content)],
     )
+    yield artifact
+    await context.store(artifact)
 
     if post_text := response[match.end() :].strip():
-        yield post_text
+        message = AgentMessage(text=post_text)
+        yield message
+        await context.store(message)
+        
+    
 
 
 if __name__ == "__main__":

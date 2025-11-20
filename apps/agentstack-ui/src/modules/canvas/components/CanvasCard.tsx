@@ -4,26 +4,26 @@
  */
 
 import { License } from '@carbon/icons-react';
-import { IconButton } from '@carbon/react';
+import { Button } from '@carbon/react';
 import clsx from 'clsx';
 import type { MouseEventHandler } from 'react';
 
 import classes from './CanvasCard.module.scss';
 
 interface Props {
-  heading: string;
+  heading?: string;
   className?: string;
   onClick: MouseEventHandler;
 }
 
 export function CanvasCard({ heading, className, onClick }: Props) {
   return (
-    <div className={clsx(classes.root, className)}>
-      <IconButton wrapperClasses={classes.button} size="md" label="Open Canvas" onClick={onClick}>
+    <Button className={clsx(classes.root, className)} onClick={onClick}>
+      <span className={classes.icon}>
         <License />
-      </IconButton>
+      </span>
 
-      <h2 className={classes.heading}>{heading}</h2>
-    </div>
+      <span className={classes.heading}>{heading ?? <span className={classes.untitled}>Untitled</span>}</span>
+    </Button>
   );
 }

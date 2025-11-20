@@ -18,6 +18,7 @@ import { useAgentRun } from '../contexts/agent-run';
 import { AgentRunProviders } from '../contexts/agent-run/AgentRunProvider';
 import { useSyncRunStateWithRoute } from '../hooks/useSyncRunStateWithRoute';
 import { ChatMessagesView } from './ChatMessagesView';
+import classes from './ChatView.module.scss';
 
 interface Props {
   agent: Agent;
@@ -55,7 +56,7 @@ function Chat() {
 
   return (
     <>
-      <MainContent spacing="md" scrollable={isLanding}>
+      <MainContent spacing="md" scrollable={isLanding} className={classes.mainContent}>
         {isLanding ? (
           initialFormRender ? (
             <FormRenderView formRender={initialFormRender} onMessageSent={handleMessageSent} />

@@ -45,7 +45,7 @@ export function isAgentUiSupported(agent: Agent) {
   return interaction_mode && SupportedUis.includes(interaction_mode);
 }
 
-export function getAgentDetail(extensions: AgentExtension[]) {
+function getAgentDetail(extensions: AgentExtension[]) {
   const uri = agentDetailExtension.getUri();
   const metadata = extensions.find((extension) => extension.uri === uri)?.params;
 

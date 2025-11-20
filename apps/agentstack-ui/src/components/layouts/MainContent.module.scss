@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-.root {
+:where(.root) {
   inline-size: 100%;
   block-size: 100%;
   display: flex;
@@ -25,23 +25,21 @@
   &.hasFooter {
     padding-block-end: 0;
   }
-}
 
-.topRef {
-  position: absolute;
-  inset-block-start: 0;
-}
-
-.body {
-  flex-grow: 1;
-  min-block-size: 0;
-  .root.scrollable & {
-    min-block-size: auto;
+  .topRef {
+    position: absolute;
+    inset-block-start: 0;
   }
-}
 
-@include breakpoint-up(md) {
-  .root {
+  .body {
+    flex-grow: 1;
+    min-block-size: 0;
+    .root.scrollable & {
+      min-block-size: auto;
+    }
+  }
+
+  @include breakpoint-up(md) {
     &.md {
       padding-block: $spacing-07;
     }

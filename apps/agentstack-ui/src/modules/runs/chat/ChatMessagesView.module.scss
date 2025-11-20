@@ -9,11 +9,28 @@ $holder-row-gap: $spacing-06;
 $zindex-messages: 1;
 $zindex-buttons: 2;
 
-.holder {
+.root {
+  display: grid;
+  grid-template-columns: 100% 0%;
   inline-size: 100%;
+  overflow: hidden;
+  justify-content: stretch;
+  transition: grid-template-columns $duration-slow-01 motion(entrance, productive);
+
+  &.canvasView {
+    grid-template-columns: 31.25% 68.75%;
+  }
+}
+
+.holder {
+  min-inline-size: rem(320px);
+  inline-size: 100%;
+  block-size: 100%;
   display: grid;
   grid-template-rows: 1fr max-content;
   row-gap: $holder-row-gap;
+  padding-block: $spacing-07;
+  overflow: hidden;
 }
 
 .scrollable {
@@ -76,6 +93,12 @@ $zindex-buttons: 2;
     display: flex;
     justify-content: flex-end;
   }
+}
+
+.canvas {
+  block-size: 100%;
+  display: flex;
+  overflow: hidden;
 }
 
 @include breakpoint-up(lg) {

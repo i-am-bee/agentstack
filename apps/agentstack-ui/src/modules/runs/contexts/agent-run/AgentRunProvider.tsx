@@ -15,6 +15,7 @@ import { createTextPart } from '#api/a2a/utils.ts';
 import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
+import { CanvasProvider } from '#modules/canvas/contexts/CanvasProvider.tsx';
 import { FileUploadProvider } from '#modules/files/contexts/FileUploadProvider.tsx';
 import { useFileUpload } from '#modules/files/contexts/index.ts';
 import { convertFilesToUIFileParts } from '#modules/files/utils.ts';
@@ -62,9 +63,11 @@ export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>)
       <AgentDemandsProvider agentClient={agentClient}>
         <FileUploadProvider allowedContentTypes={agent.defaultInputModes}>
           <MessagesProvider>
-            <AgentRunProvider agent={agent} agentClient={agentClient}>
-              {children}
-            </AgentRunProvider>
+            <CanvasProvider agentClient={agentClient}>
+              <AgentRunProvider agent={agent} agentClient={agentClient}>
+                {children}
+              </AgentRunProvider>
+            </CanvasProvider>
           </MessagesProvider>
         </FileUploadProvider>
       </AgentDemandsProvider>

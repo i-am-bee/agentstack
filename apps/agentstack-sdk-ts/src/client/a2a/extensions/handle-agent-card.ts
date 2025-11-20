@@ -19,6 +19,7 @@ import { oauthProviderExtension } from './services/oauth-provider';
 import { platformApiExtension } from './services/platform';
 import type { SecretDemands, SecretFulfillments } from './services/secrets';
 import { secretsExtension } from './services/secrets';
+import { canvasExtension } from './ui/canvas';
 import { oauthRequestExtension } from './ui/oauth';
 import type { SettingsDemands, SettingsFulfillments } from './ui/settings';
 import { settingsExtension } from './ui/settings';
@@ -43,6 +44,7 @@ const oauthExtensionExtractor = extractServiceExtensionDemands(oauthProviderExte
 const settingsExtensionExtractor = extractServiceExtensionDemands(settingsExtension);
 const secretExtensionExtractor = extractServiceExtensionDemands(secretsExtension);
 const formExtensionExtractor = extractServiceExtensionDemands(formExtension);
+const canvasExtensionExtractor = extractServiceExtensionDemands(canvasExtension);
 
 const fulfillMcpDemand = fulfillServiceExtensionDemand(mcpExtension);
 const fulfillLlmDemand = fulfillServiceExtensionDemand(llmExtension);
@@ -62,6 +64,7 @@ export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) 
   const settingsDemands = settingsExtensionExtractor(extensions);
   const secretDemands = secretExtensionExtractor(extensions);
   const formDemands = formExtensionExtractor(extensions);
+  const canvasDemands = canvasExtensionExtractor(extensions);
 
   const resolveMetadata = async (fulfillments: Fulfillments) => {
     let fulfilledMetadata: Record<string, unknown> = {};
@@ -111,6 +114,15 @@ export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) 
 
   return {
     resolveMetadata,
-    demands: { llmDemands, embeddingDemands, mcpDemands, oauthDemands, settingsDemands, secretDemands, formDemands },
+    demands: {
+      llmDemands,
+      embeddingDemands,
+      mcpDemands,
+      oauthDemands,
+      settingsDemands,
+      secretDemands,
+      formDemands,
+      canvasDemands,
+    },
   };
 };
