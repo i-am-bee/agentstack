@@ -8,10 +8,9 @@ from typing import Annotated
 import os
 
 from a2a.types import AgentSkill, Message
-from beeai_framework.adapters.openai import OpenAIChatModel
+from beeai_framework.adapters.agentstack.backend.chat import AgentStackChatModel
 from beeai_framework.agents.requirement import RequirementAgent
 
-from beeai_framework.backend import ChatModelParameters
 from beeai_framework.emitter import EmitterOptions
 from beeai_framework.memory import UnconstrainedMemory
 from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
@@ -66,18 +65,12 @@ from agentstack_sdk.server.store.platform_context_store import PlatformContextSt
 
 BeeAIInstrumentor().instrument()
 ## TODO: https://github.com/phoenixframework/phoenix/issues/6224
-logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(
-    logging.CRITICAL
-)
-logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(
-    logging.CRITICAL
-)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(logging.CRITICAL)
+logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(logging.CRITICAL)
 
 logger = logging.getLogger(__name__)
 
-vector_stores: defaultdict[str, None] = defaultdict(
-    lambda: None
-)  # TODO: Implement vector store ID management
+vector_stores: defaultdict[str, None] = defaultdict(lambda: None)  # TODO: Implement vector store ID management
 
 server = Server()
 
@@ -126,12 +119,8 @@ async def rag(
     context: RunContext,
     trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()],
     citation: Annotated[CitationExtensionServer, CitationExtensionSpec()],
-    embedding_ext: Annotated[
-        EmbeddingServiceExtensionServer, EmbeddingServiceExtensionSpec.single_demand()
-    ],
-    llm_ext: Annotated[
-        LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand()
-    ],
+    embedding_ext: Annotated[EmbeddingServiceExtensionServer, EmbeddingServiceExtensionSpec.single_demand()],
+    llm_ext: Annotated[LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand()],
     _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
 ):
     """RAG agent that retrieves and generates text based on user queries."""
@@ -139,9 +128,7 @@ async def rag(
     llm, embedding = _get_clients(llm_ext, embedding_ext)
 
     history = [m async for m in context.load_history()]
-    message_history = [
-        message for message in history if isinstance(message, Message) and message.parts
-    ]
+    message_history = [message for message in history if isinstance(message, Message) and message.parts]
     extracted_files = await extract_files(history=message_history)
 
     # Configure tools
@@ -185,12 +172,9 @@ async def rag(
             if (
                 message.metadata
                 and message.metadata.get(TrajectoryExtensionSpec.URI)
-                and message.metadata[TrajectoryExtensionSpec.URI]["title"]
-                == "create_vector_store"
+                and message.metadata[TrajectoryExtensionSpec.URI]["title"] == "create_vector_store"
             ):
-                content = json.loads(
-                    message.metadata[TrajectoryExtensionSpec.URI]["content"]
-                )
+                content = json.loads(message.metadata[TrajectoryExtensionSpec.URI]["content"])
                 if vector_store_id := content["vector_store_id"]:
                     break
 
@@ -207,11 +191,7 @@ async def rag(
             yield vector_store_create_metadata
             await context.store(AgentMessage(metadata=vector_store_create_metadata))
 
-        tools.append(
-            VectorSearchTool(
-                vector_store_id=vector_store_id, embedding_function=embedding
-            )
-        )
+        tools.append(VectorSearchTool(vector_store_id=vector_store_id, embedding_function=embedding))
         async for item in embed_all_files(
             embedding_function=embedding,
             all_files=extracted_files,
@@ -238,9 +218,7 @@ async def rag(
     if extracted_files:
         files_info = "\n\nAvailable files:\n"
         for file in extracted_files:
-            files_info += (
-                f"- ID: {file.id}, Filename: {file.filename}, Url: {file.url}\n"
-            )
+            files_info += f"- ID: {file.id}, Filename: {file.filename}, Url: {file.url}\n"
         instructions = base_instructions + files_info
     else:
         instructions = base_instructions
@@ -303,9 +281,7 @@ async def rag(
         if isinstance(event.output, FileCreatorToolOutput):
             result = event.output.result
             for file in result.files:
-                artifact = AgentArtifact(
-                    name=file.filename, parts=[file.to_file_part()]
-                )
+                artifact = AgentArtifact(name=file.filename, parts=[file.to_file_part()])
                 await context.yield_async(artifact)
 
     response = (
@@ -329,9 +305,7 @@ async def rag(
 
         message = AgentMessage(
             text=clean_text,
-            metadata=(
-                citation.citation_metadata(citations=citations) if citations else None
-            ),
+            metadata=(citation.citation_metadata(citations=citations) if citations else None),
         )
         yield message
         await context.store(message)
@@ -339,26 +313,17 @@ async def rag(
 
 def _get_clients(
     llm_ext: LLMServiceExtensionServer, embedding_ext: EmbeddingServiceExtensionServer
-) -> tuple[OpenAIChatModel, EmbeddingFunction]:
-    llm_conf, embedding_conf = None, None
-    if llm_ext:
-        [llm_conf] = llm_ext.data.llm_fulfillments.values()
+) -> tuple[AgentStackChatModel, EmbeddingFunction]:
+    llm = AgentStackChatModel()
+    llm.set_context(llm_ext)
+
+    embedding_conf = None
     if embedding_ext:
         [embedding_conf] = embedding_ext.data.embedding_fulfillments.values()
 
-    llm = OpenAIChatModel(
-        model_id=llm_conf.api_model if llm_conf else "llama3.1",
-        api_key=llm_conf.api_key if llm_conf else "dummy",
-        base_url=llm_conf.api_base if llm_conf else "http://localhost:11434/v1",
-        parameters=ChatModelParameters(temperature=0.0),
-        tool_choice_support=set(),
-    )
-
     embedding_client = AsyncOpenAI(
         api_key=embedding_conf.api_key if embedding_conf else "dummy",
-        base_url=embedding_conf.api_base
-        if embedding_conf
-        else "http://localhost:11434/v1",
+        base_url=embedding_conf.api_base if embedding_conf else "http://localhost:11434/v1",
     )
     embedding = functools.partial(
         embedding_client.embeddings.create,

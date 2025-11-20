@@ -7,14 +7,23 @@ from typing import Annotated
 
 from a2a.types import Message, Role, TextPart
 from a2a.utils.message import get_message_text
-from beeai_framework.adapters.openai import OpenAIChatModel
+from beeai_framework.adapters.agentstack.backend.chat import AgentStackChatModel
 from beeai_framework.agents.requirement import RequirementAgent
-from beeai_framework.agents.requirement.requirements.conditional import ConditionalRequirement
+from beeai_framework.agents.requirement.requirements.conditional import (
+    ConditionalRequirement,
+)
 from beeai_framework.backend import AssistantMessage, UserMessage
 from beeai_framework.tools.think import ThinkTool
 
-from agentstack_sdk.a2a.extensions import LLMServiceExtensionServer, LLMServiceExtensionSpec
-from agentstack_sdk.a2a.extensions.ui.canvas import CanvasEditRequest, CanvasExtensionServer, CanvasExtensionSpec
+from agentstack_sdk.a2a.extensions import (
+    LLMServiceExtensionServer,
+    LLMServiceExtensionSpec,
+)
+from agentstack_sdk.a2a.extensions.ui.canvas import (
+    CanvasEditRequest,
+    CanvasExtensionServer,
+    CanvasExtensionSpec,
+)
 from agentstack_sdk.a2a.types import AgentArtifact
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
@@ -115,20 +124,8 @@ async def artifacts_agent(
 
     canvas_edit_request = await canvas.parse_canvas_edit_request(message=input)
 
-    if not llm or not llm.data:
-        raise ValueError("LLM service extension is required but not available")
-
-    llm_config = llm.data.llm_fulfillments.get("default")
-
-    if not llm_config:
-        raise ValueError("LLM service extension provided but no fulfillment available")
-
-    llm_client = OpenAIChatModel(
-        model_id=llm_config.api_model,
-        base_url=llm_config.api_base,
-        api_key=llm_config.api_key,
-        tool_choice_support=set(),
-    )
+    llm_client = AgentStackChatModel()
+    llm_client.set_context(llm)
 
     history = [message async for message in context.load_history() if isinstance(message, Message) and message.parts]
 

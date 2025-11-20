@@ -37,7 +37,8 @@ llm_extension_server = LLMServiceExtensionServer(
         params=agentstack_sdk.a2a.extensions.LLMServiceExtensionParams(
             llm_demands={
                 "default": agentstack_sdk.a2a.extensions.LLMDemand(
-                    description="Default LLM for the agent", suggested=("openai/gpt-4o", "ollama/granite3.3:8b")
+                    description="Default LLM for the agent",
+                    suggested=("openai/gpt-4o", "ollama/granite3.3:8b"),
                 )
             }
         ),
@@ -51,7 +52,8 @@ embedding_service_extension_spec = agentstack_sdk.a2a.extensions.EmbeddingServic
     params=agentstack_sdk.a2a.extensions.EmbeddingServiceExtensionParams(
         embedding_demands={
             "default": agentstack_sdk.a2a.extensions.EmbeddingDemand(
-                description="Default embedding for the agent", suggested=("ollama/nomic-text:8b",)
+                description="Default embedding for the agent",
+                suggested=("ollama/nomic-text:8b",),
             )
         }
     ),
@@ -67,12 +69,16 @@ class ChatAgentExecutor(a2a.server.agent_execution.AgentExecutor):
         self.context_llm: dict[str, dict[str, agentstack_sdk.a2a.extensions.LLMFulfillment]] = {}
 
     async def cancel(
-        self, context: a2a.server.agent_execution.RequestContext, event_queue: a2a.server.events.EventQueue
+        self,
+        context: a2a.server.agent_execution.RequestContext,
+        event_queue: a2a.server.events.EventQueue,
     ) -> None:
         raise NotImplementedError("Cancelling is not implemented")
 
     async def execute(
-        self, context: a2a.server.agent_execution.RequestContext, event_queue: a2a.server.events.EventQueue
+        self,
+        context: a2a.server.agent_execution.RequestContext,
+        event_queue: a2a.server.events.EventQueue,
     ):
         if not context.message or not context.context_id:
             raise ValueError("Context must have a message and context_id")
@@ -107,7 +113,10 @@ class ChatAgentExecutor(a2a.server.agent_execution.AgentExecutor):
             final_answer = ""
             async for data, event in agent.run([]):
                 match (data, event.name):
-                    case (beeai_framework.agents.react.ReActAgentUpdateEvent(), "partial_update"):
+                    case (
+                        beeai_framework.agents.react.ReActAgentUpdateEvent(),
+                        "partial_update",
+                    ):
                         update = data.update.value
                         if not isinstance(update, str):
                             update = update.get_text_content()
@@ -188,7 +197,8 @@ async def serve():
                     ],
                 ),
                 http_handler=a2a.server.request_handlers.DefaultRequestHandler(
-                    agent_executor=ChatAgentExecutor(), task_store=a2a.server.tasks.InMemoryTaskStore()
+                    agent_executor=ChatAgentExecutor(),
+                    task_store=a2a.server.tasks.InMemoryTaskStore(),
                 ),
             ).build(),
             host=host,
