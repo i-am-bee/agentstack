@@ -28,32 +28,36 @@ export function SessionsNav({ className }: Props) {
   });
   const { ref: fetchNextPageRef } = useFetchNextPage({ isFetching, hasNextPage, fetchNextPage });
 
-  const items = useMemo(
-    () =>
-      data
-        ?.map(({ id: contextId, created_at, metadata, provider_id }) => {
-          const providerId = provider_id ?? metadata?.provider_id;
-          const agent = agents?.find((agent) => agent.provider.id === providerId);
+  const items = useMemo(() => {
+    if (!agents) {
+      return undefined;
+    }
 
-          if (!providerId || !contextId || !agent) {
-            return null;
-          }
+    const agentsMap = new Map(agents.map((agent) => [agent.provider.id, agent]));
 
-          const heading = (metadata?.title || created_at) ?? contextId;
-          const subHeading = agent.name;
-          const isActive = contextIdUrl === contextId;
+    return data
+      ?.map(({ id: contextId, created_at, metadata, provider_id }) => {
+        const providerId = provider_id ?? metadata?.provider_id;
+        const agent = providerId ? agentsMap.get(providerId) : undefined;
 
-          return {
-            contextId,
-            providerId,
-            heading,
-            subHeading,
-            isActive,
-          };
-        })
-        .filter(isNotNull),
-    [data, agents, contextIdUrl],
-  );
+        if (!providerId || !contextId || !agent) {
+          return null;
+        }
+
+        const heading = (metadata?.title || created_at) ?? contextId;
+        const subHeading = agent.name;
+        const isActive = contextIdUrl === contextId;
+
+        return {
+          contextId,
+          providerId,
+          heading,
+          subHeading,
+          isActive,
+        };
+      })
+      .filter(isNotNull);
+  }, [data, agents, contextIdUrl]);
 
   return (
     <NavGroup heading="Sessions" className={className}>
