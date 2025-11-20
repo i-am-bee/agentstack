@@ -5,6 +5,7 @@ import asyncio
 import logging
 import sys
 import typing
+import uuid
 import webbrowser
 from urllib.parse import urlencode
 
@@ -66,6 +67,10 @@ async def _wait_for_auth_code(port: int = 9001) -> str:
         server.should_exit = True
 
     return code
+
+
+def get_unique_app_name() -> str:
+    return f"Agent Stack CLI {uuid.uuid4()}"
 
 
 @app.command("login | change | select | default | switch")
@@ -137,6 +142,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
 
         client_id = config.client_id
         client_secret = config.client_secret
+        registration_token = None
 
         if auth_servers:
             if len(auth_servers) == 1:
@@ -162,14 +168,23 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
             if not client_id and registration_endpoint:
                 async with httpx.AsyncClient() as client:
                     try:
+                        app_name = get_unique_app_name()
+                        print("app_name=", app_name)
                         resp = await client.post(
                             registration_endpoint,
-                            json={"client_name": "Agent Stack CLI", "redirect_uris": [REDIRECT_URI]},
+                            json={
+                                "client_name": app_name,
+                                "enforce_pkce": True,
+                                "all_users_entitled": True,
+                                "access_policy": 1,
+                                "redirect_uris": [REDIRECT_URI],
+                            },
                         )
                         resp.raise_for_status()
                         data = resp.json()
                         client_id = data["client_id"]
                         client_secret = data["client_secret"]
+                        registration_token = data["registration_access_token"]
                     except Exception:
                         console.warning("Dynamic client registration failed. Proceed with manual input.")
 
@@ -234,6 +249,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
             client_id=client_id,
             client_secret=client_secret,
             token=token,
+            registration_token=registration_token,
         )
 
     config.auth_manager.active_server = server
@@ -248,7 +264,7 @@ async def server_logout(
         typer.Option(),
     ] = False,
 ):
-    config.auth_manager.clear_auth_token(all=all)
+    await config.auth_manager.clear_auth_token(all=all)
     console.success("You have been logged out.")
 
 
