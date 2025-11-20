@@ -16,7 +16,8 @@ class AuthorizationCodeFlow(BaseModel):
     authorization_endpoint: AnyUrl
     state: str
     code_verifier: str
-    redirect_url: AnyUrl | None
+    redirect_uri: str
+    client_redirect_uri: AnyUrl | None
 
 
 AuthFlow = Annotated[AuthorizationCodeFlow, Field(discriminator="type")]
