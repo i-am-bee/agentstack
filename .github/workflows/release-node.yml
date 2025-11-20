@@ -13,6 +13,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Mise
+        uses: jdx/mise-action@v2
+
       - name: Build TS SDK
         run: mise run agentstack-sdk-ts:build
 
