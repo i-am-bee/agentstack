@@ -72,7 +72,7 @@ async def start(
         pathlib.Path | None, typer.Option("-f", help="Set Helm chart values using yaml values file")
     ] = None,
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
-    verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
+    verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
 ):
     """Start Agent Stack platform."""
     import agentstack_cli.commands.server
@@ -127,7 +127,7 @@ async def start(
 @app.command("stop")
 async def stop(
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
-    verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
+    verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
 ):
     """Stop Agent Stack platform."""
     with verbosity(verbose):
@@ -142,7 +142,7 @@ async def stop(
 @app.command("delete")
 async def delete(
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
-    verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
+    verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
 ):
     """Delete Agent Stack platform."""
     with verbosity(verbose):
@@ -155,7 +155,7 @@ async def delete(
 async def import_image_cmd(
     tag: typing.Annotated[str, typer.Argument(help="Docker image tag to import")],
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
-    verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
+    verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
 ):
     """Import a local docker image into the Agent Stack platform."""
     with verbosity(verbose):
@@ -170,7 +170,7 @@ async def import_image_cmd(
 async def exec_cmd(
     command: typing.Annotated[list[str] | None, typer.Argument()] = None,
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
-    verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
+    verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
 ):
     """For debugging -- execute a command inside the Agent Stack platform VM."""
     with verbosity(verbose, show_success_status=False):

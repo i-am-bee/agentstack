@@ -117,6 +117,8 @@ class BaseDriver(abc.ABC):
                 "generateConversationTitle": False,  # TODO: enable when UI implementation is ready
                 "uiLocalSetup": True,
             },
+            "providerBuilds": {"enabled": True},
+            "localDockerRegistry": {"enabled": True},
             "auth": {"enabled": False},
         }
         if values_file:

@@ -8,6 +8,7 @@ import re
 import sys
 import typing
 import uuid
+from asyncio import CancelledError
 from contextlib import suppress
 from datetime import timedelta
 from pathlib import Path
@@ -17,13 +18,13 @@ import anyio.abc
 import typer
 from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from agentstack_sdk.platform import AddProvider, BuildConfiguration, Provider, UpdateProvider
-from agentstack_sdk.platform.provider_build import BuildState, ProviderBuild
+from agentstack_sdk.platform.provider_build import ProviderBuild
 from anyio import open_process
 from httpx import AsyncClient, HTTPError
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, wait_fixed
 
 from agentstack_cli.async_typer import AsyncTyper
-from agentstack_cli.console import console
+from agentstack_cli.console import console, err_console
 from agentstack_cli.utils import (
     announce_server_action,
     capture_output,
@@ -47,8 +48,8 @@ async def find_free_port():
 app = AsyncTyper()
 
 
-@app.command("build")
-async def build(
+@app.command("client-side-build")
+async def client_side_build(
     context: typing.Annotated[str, typer.Argument(help="Docker context for the agent")] = ".",
     dockerfile: typing.Annotated[str | None, typer.Option(help="Use custom dockerfile path")] = None,
     tag: typing.Annotated[str | None, typer.Option(help="Docker tag for the agent")] = None,
@@ -58,8 +59,9 @@ async def build(
         bool, typer.Option("--import/--no-import", is_flag=True, help="Import the image into Agent Stack platform")
     ] = True,
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
-    verbose: typing.Annotated[bool, typer.Option("-v")] = False,
+    verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
 ):
+    """Build agent locally using Docker."""
     with verbosity(verbose):
         await run_command(["which", "docker"], "Checking docker")
         image_id = "agentstack-agent-build-tmp:latest"
@@ -142,56 +144,67 @@ async def build(
         return tag, agent_card
 
 
-@app.command("server-side-build")
-async def server_side_build_experimental(
+async def _server_side_build(
+    github_url: str,
+    dockerfile: str | None = None,
+    replace: str | None = None,
+    add: bool = False,
+    verbose: bool = False,
+) -> ProviderBuild:
+    build = None
+    try:
+        from agentstack_cli.commands.agent import select_provider
+        from agentstack_cli.configuration import Configuration
+
+        if replace and add:
+            raise ValueError("Cannot specify both replace and add options.")
+
+        build_configuration = None
+        if dockerfile:
+            build_configuration = BuildConfiguration(dockerfile_path=Path(dockerfile))
+
+        async with Configuration().use_platform_client():
+            on_complete = None
+            if replace:
+                provider = select_provider(replace, await Provider.list())
+                on_complete = UpdateProvider(provider_id=uuid.UUID(provider.id))
+            elif add:
+                on_complete = AddProvider()
+
+            build = await ProviderBuild.create(
+                location=github_url,
+                on_complete=on_complete,
+                build_configuration=build_configuration,
+            )
+            with verbosity(verbose):
+                async for message in build.stream_logs():
+                    print_log(message, ansi_mode=True, out_console=err_console)
+            return await build.get()
+    except (KeyboardInterrupt, CancelledError):
+        if build:
+            await build.delete()
+        console.error("Build aborted.")
+        raise
+
+
+@app.command("build")
+async def server_side_build(
     github_url: typing.Annotated[
         str, typer.Argument(..., help="Github repository URL (public or private if supported by the platform instance)")
     ],
     dockerfile: typing.Annotated[
         str | None, typer.Option(help="Use custom dockerfile path, relative to github url sub-path")
     ] = None,
-    replace: typing.Annotated[
-        str | None, typer.Option(help="Short ID, agent name or part of the provider location")
-    ] = None,
-    add: typing.Annotated[bool, typer.Option(help="Add agent to the platform after build")] = False,
+    verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
     yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ):
-    """EXPERIMENTAL: Build agent from github repository in the platform."""
-    from agentstack_cli.commands.agent import select_provider
-    from agentstack_cli.configuration import Configuration
+    """Build agent from a GitHub repository in the platform."""
 
-    if replace and add:
-        raise ValueError("Cannot specify both replace and add options.")
-
-    build_configuration = None
-    if dockerfile:
-        build_configuration = BuildConfiguration(dockerfile_path=Path(dockerfile))
-
-    url = announce_server_action(f"Starting server-side build for '{github_url}' on")
+    url = announce_server_action(f"Starting build for '{github_url}' on")
     await confirm_server_action("Proceed with building this agent on", url=url, yes=yes)
 
-    async with Configuration().use_platform_client():
-        on_complete = None
-        if replace:
-            provider = select_provider(replace, await Provider.list())
-            on_complete = UpdateProvider(provider_id=uuid.UUID(provider.id))
-        elif add:
-            on_complete = AddProvider()
+    build = await _server_side_build(github_url=github_url, dockerfile=dockerfile, verbose=verbose)
 
-        build = await ProviderBuild.create(
-            location=github_url,
-            on_complete=on_complete,
-            build_configuration=build_configuration,
-        )
-        async for message in build.stream_logs():
-            print_log(message, ansi_mode=True)
-        build = await build.get()
-        if build.status == BuildState.COMPLETED:
-            if add:
-                message = "Agent added successfully. List agents using [green]agentstack list[/green]"
-            else:
-                message = f"Agent built successfully, add it to the platform using: [green]agentstack add {build.destination}[/green]"
-            console.success(message)
-        else:
-            error = build.error_message or "see logs above for details"
-            console.error(f"Agent build failed: {error}")
+    console.success(
+        f"Agent built successfully, add it to the platform using: [green]agentstack add {build.destination}[/green]"
+    )

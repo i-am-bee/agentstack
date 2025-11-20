@@ -28,7 +28,7 @@ from agentstack_server.domain.models.provider import (
 from agentstack_server.domain.models.registry import RegistryLocation
 from agentstack_server.domain.models.user import User, UserRole
 from agentstack_server.domain.repositories.env import EnvStoreEntity
-from agentstack_server.exceptions import ManifestLoadError
+from agentstack_server.exceptions import InvalidProviderUpgradeError, ManifestLoadError
 from agentstack_server.service_layer.deployment_manager import (
     IProviderDeploymentManager,
 )
@@ -118,7 +118,7 @@ class ProviderService:
         async with self._uow() as uow:
             provider = await uow.providers.get(provider_id=provider_id, user_id=user_id)
             if provider.registry and not allow_registry_update:
-                raise ValueError("Cannot update provider added from registry")
+                raise InvalidProviderUpgradeError("Cannot update provider added from registry")
             old_variables = (
                 await uow.env.get_all(
                     parent_entity=EnvStoreEntity.PROVIDER,

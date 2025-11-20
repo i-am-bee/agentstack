@@ -221,8 +221,6 @@ run = """
 {{ mise_bin }} run agentstack-server:dev:start \
     --vm-name=agentstack-local-test \
     --set externalRegistries=null \
-    --set providerBuilds.enabled=true \
-    --set localDockerRegistry.enabled=true \
     {{arg(name="cli-args", var=true, default="--")}}
 """
 
@@ -268,9 +266,7 @@ curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhos
     --set auth.basic.enabled="true" \
     --set auth.basic.adminPassword="test-password" \
     --set auth.jwtSecretKey="test-secret-key" \
-    --set docling.enabled=true \
-    --set providerBuilds.enabled=true \
-    --set localDockerRegistry.enabled=true
+    --set docling.enabled=true
 
 
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"

@@ -108,6 +108,7 @@ data:
           {{- if .Values.providerBuilds.externalClusterExecutor.serviceAccountName }}
           serviceAccountName: {{ .Values.providerBuilds.externalClusterExecutor.serviceAccountName }}
           {{- end }}
+          terminationGracePeriodSeconds: 3
           imagePullSecrets:
             - name: {{.Values.providerBuilds.buildRegistry.secretName | quote}}
           securityContext:
@@ -127,6 +128,7 @@ data:
               args:
                 - -c
                 - |
+                  set -eo pipefail
                   echo "Cloning repository..."
                   # Check if GitHub token is available for this host
                   if [ -n "$GIT_TOKEN" ]; then
@@ -296,6 +298,7 @@ data:
                 - /bin/sh
                 - -c
                 - |
+                  set -eo pipefail
                   # Extract agent manifest
                   for i in $(seq 1 30); do
                     if nc -z 127.0.0.1 8000; then

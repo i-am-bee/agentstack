@@ -152,7 +152,7 @@ class KubernetesProviderBuildManager(IProviderBuildManager):
         async with self.api() as api:
             try:
                 job = await Job.get(name=self._get_k8s_name(provider_build_id), api=api)
-                await job.delete(grace_period=int(grace_period.total_seconds()))
+                await job.delete(grace_period=int(grace_period.total_seconds()), propagation_policy="Background")
             except kr8s.NotFoundError as e:
                 raise EntityNotFoundError("build_provider_job", provider_build_id) from e
 

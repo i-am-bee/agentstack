@@ -83,16 +83,16 @@ agentstack add <location>
 agentstack add ghcr.io/i-am-bee/agentstack/agents/chat:latest
 
 # From GitHub repository
-agentstack add "https://github.com/user/repo"
+agentstack add "https://github.com/user/repo.git"
 
 # From GitHub with version tag
-agentstack add "https://github.com/user/repo#v1.0.0"
+agentstack add "https://github.com/user/repo.git@v1.0.0"
 
 # From GitHub with specific path
-agentstack add "https://github.com/user/repo#:agents/my-agent"
+agentstack add "https://github.com/user/repo.git#path=/agents/my-agent"
 
-# From local directory (builds Docker image)
-agentstack add ./my-agent-directory
+# From GitHub with specific dockerfile location within the repository
+agentstack add --dockerfile /my-agent/Dockerfile "https://github.com/user/repo.git#path=/agents/my-agent"
 ```
 
 ### remove
@@ -101,6 +101,32 @@ Remove an agent from your environment:
 
 ```bash
 agentstack remove <agent-name>
+```
+
+### update
+
+Update an existing agent to a new version:
+
+```bash
+agentstack update <agent-name> <location>
+```
+
+**Location formats:**
+```bash
+# From Docker image
+agentstack update my-agent ghcr.io/i-am-bee/agentstack/agents/chat:latest
+
+# From GitHub repository
+agentstack update my-agent "https://github.com/user/repo.git"
+
+# From GitHub with version tag
+agentstack update my-agent "https://github.com/user/repo.git@v1.0.0"
+
+# From GitHub with specific path
+agentstack update my-agent "https://github.com/user/repo.git#path=/agents/my-agent"
+
+# From GitHub with specific dockerfile location within the repository
+agentstack update my-agent --dockerfile /my-agent/Dockerfile "https://github.com/user/repo.git#path=/agents/my-agent"
 ```
 
 ### logs
@@ -115,62 +141,73 @@ Displays the agent's log output and continues streaming new logs as they are gen
 
 ### build
 
-Build an agent from a local directory or GitHub repository:
+Build an agent from a GitHub repository:
 
-<Note>
-Requires Docker running
-</Note>
+This command clones the repository and builds the agent image on the platform. You will get an image ID
+which you can use to add the agent to your environment.
 
 ```
-agentstack build [context]
+agentstack build <github-repository-url>
+```
+
+**Examples:**
+```bash
+# Build from GitHub repository
+agentstack build https://github.com/org/repo.git
+
+# Build specific version
+agentstack build https://github.com/org/repo.git@release-0.0.1
+
+# Specify Dockerfile location (useful for monorepos)
+agentstack build --dockerfile=./path/to/Dockerfile https://github.com/org/repo.git@release-0.0.1
+
+# Specify docker context location
+agentstack build https://github.com/org/repo.git@release-0.0.1#path=/path/to/context
 ```
 
 **Arguments:**
-- `context`: Path to build context (default: current directory)
+- `github-repository-url`: GitHub repository URL
 
 **Options:**
 - `--dockerfile <path>`: Use custom dockerfile path
-- `--tag <name>`: Docker tag for the agent
-- `--multi-platform`: Build for multiple platforms
-- `--push`: Push the image to the target registry
-- `--import/--no-import`: Import the image into Agent Stack (default: true)
+
+### Client-side-build
+Build an agent from a local directory. This is useful for CI/CD, multi-platform image build
+or local push of agent image to registry.
+
+<Note>
+    Requires Docker running
+</Note>
+
+```bash
+agentstack client-side-build [OPTIONS] <docker-context>
+```
+
 
 **Examples:**
 ```bash
 # Build from current directory
-agentstack build .
+agentstack client-side-build .
 
 # Build with custom tag
-agentstack build . --tag my-agent:latest
+agentstack client-side-build . --tag my-agent:latest
 
 # Build without importing to platform
-agentstack build . --no-import
-
-# Build from GitHub URL
-agentstack build "https://github.com/user/repo"
+agentstack client-side-build . --no-import
 
 # Build with custom dockerfile
-agentstack build . --dockerfile ./custom.Dockerfile
+agentstack client-side-build . --dockerfile ./custom.Dockerfile
 ```
-
-### server-side-build
-
-**EXPERIMENTAL:** Build an agent from a GitHub repository on the platform, instead of locally.
-
-This is useful if you don’t want to set up a local build environment or if you want to ensure the build happens in a consistent, controlled server environment.
-
-```bash
-agentstack server-side-build [OPTIONS] <github-url>
-```
-
-This command clones the GitHub repository, builds the agent image on the platform, and optionally adds the built agent to your workspace.
 
 **Options:**
-| Option                | Description                                                                                                |
-| --------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `--dockerfile <path>` | Use a custom Dockerfile path. Path should be relative to the repo root or a subdirectory.                  |
-| `--replace <id/name>` | Replace an existing agent. Accepts short agent ID, agent name, or part of the provider location.           |
-| `--add / --no-add`    | After the build completes, automatically add the agent to your Agent Stack instance. Default: `--no-add`. |
+
+| Option                 | Description                                                                               |
+|------------------------|-------------------------------------------------------------------------------------------|
+| `--dockerfile <path>`  | Use a custom Dockerfile path. Path should be relative to the repo root or a subdirectory. |
+| `--tag <name>`         | Docker tag for the agent                                                                  |
+| `--multi-platform`     | Build for multiple platforms                                                              |
+| `--push`               | Push the image to the target registry                                                     |
+| `--import/--no-import` | Import the image into Agent Stack (default: true)                                         |
 
 ## Model Commands
 
@@ -213,7 +250,7 @@ agentstack platform delete
 ```
 
 <Warning>
-This removes all agents, configurations, and data permanently.
+    This removes all agents, configurations, and data permanently.
 </Warning>
 
 ## MCP Commands

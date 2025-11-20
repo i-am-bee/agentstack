@@ -33,13 +33,14 @@ Usage: agentstack [OPTIONS] COMMAND [ARGS]...
 ╰────────────────────────────────────────────────────────────────────────────╯
 
 ╭─ Agent Management ─────────────────────────────────────────────────────────╮
-│ add                               Install an agent (Docker, GitHub, local) │
+│ add                               Install an agent (Docker, GitHub)        │
 │ remove                            Uninstall an agent                       │
+│ update                            Update an agent                          │
 │ info                              Show agent details                       │
 │ logs                              Stream agent execution logs              │
-│ build                             Build an agent container image           │
 │ env                               Manage agent environment variables       │
-│ server-side-build [EXPERIMENTAL]  Build agents remotely                    │
+│ build                             Build an agent remotely                  │
+│ client-side-build                 Build an agent container image locally   │
 ╰────────────────────────────────────────────────────────────────────────────╯
 
 ╭─ Platform & Configuration ─────────────────────────────────────────────────╮
@@ -92,7 +93,9 @@ app.add_typer(agent_alias, name="", no_args_is_help=True)
 
 
 @app.command("version")
-async def version(verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False):
+async def version(
+    verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
+):
     """Print version of the Agent Stack CLI."""
     import agentstack_cli.commands.self
 

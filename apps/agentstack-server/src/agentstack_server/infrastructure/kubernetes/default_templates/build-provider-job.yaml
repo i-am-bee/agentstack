@@ -11,6 +11,7 @@ spec:
   ttlSecondsAfterFinished: 60
   template:
     spec:
+      terminationGracePeriodSeconds: 3
       imagePullSecrets:
         - name: agentstack-registry-secret
       securityContext:
@@ -30,6 +31,7 @@ spec:
           args:
             - -c
             - |
+              set -eo pipefail
               echo "Cloning repository..."
               # Check if GitHub token is available for this host
               if [ -n "$GIT_TOKEN" ]; then
@@ -132,6 +134,7 @@ spec:
             - /bin/sh
             - -c
             - |
+              set -eo pipefail
               # Extract agent manifest
               for i in $(seq 1 30); do
                 if nc -z 127.0.0.1 8000; then

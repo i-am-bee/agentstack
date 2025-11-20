@@ -61,7 +61,7 @@ from agentstack_sdk.a2a.extensions.common.form import (
     TextField,
     TextFieldValue,
 )
-from agentstack_sdk.platform import ModelProvider, Provider
+from agentstack_sdk.platform import BuildState, ModelProvider, Provider
 from agentstack_sdk.platform.context import Context, ContextPermissions, ContextToken, Permissions
 from agentstack_sdk.platform.model_provider import ModelCapability
 from InquirerPy import inquirer
@@ -73,7 +73,7 @@ from rich.console import ConsoleRenderable, Group, NewLine
 from rich.panel import Panel
 from rich.text import Text
 
-from agentstack_cli.commands.build import build
+from agentstack_cli.commands.build import _server_side_build
 from agentstack_cli.commands.model import ensure_llm_provider
 from agentstack_cli.configuration import Configuration
 
@@ -87,7 +87,6 @@ if sys.platform != "win32":
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
 
 import jsonschema
 import rich.json
@@ -105,7 +104,6 @@ from agentstack_cli.utils import (
     print_log,
     prompt_user,
     remove_nullable,
-    run_command,
     status,
     verbosity,
 )
@@ -153,49 +151,67 @@ configuration = Configuration()
 
 @app.command("add")
 async def add_agent(
-    location: typing.Annotated[
-        str, typer.Argument(help="Agent location (public docker image, local path or github url)")
-    ],
+    location: typing.Annotated[str, typer.Argument(help="Agent location (public docker image or github url)")],
     dockerfile: typing.Annotated[str | None, typer.Option(help="Use custom dockerfile path")] = None,
-    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
-    verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
+    verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
     yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ) -> None:
-    """Install discovered agent or add public docker image or github repository [aliases: install]"""
+    """Add a docker image or GitHub repository [aliases: install]"""
     url = announce_server_action(f"Installing agent '{location}' for")
     await confirm_server_action("Proceed with installing this agent on", url=url, yes=yes)
-    agent_card = None
     with verbosity(verbose):
-        if (
-            process := await run_command(
-                ["docker", "inspect", location], check=False, message="Inspecting docker images"
-            )
-        ).returncode == 0:
-            console.success(f"Found local image [bold]{location}[/bold]")
-            manifest = base64.b64decode(
-                json.loads(process.stdout)[0]["Config"]["Labels"]["beeai.dev.agent.json"]
-            ).decode()
-            agent_card = json.loads(manifest)
-        elif (
-            Path(location).expanduser().exists()
-            or location.startswith("git@")
-            or location.startswith("github.com/")
-            or location.startswith("www.github.com/")
-            or location.endswith(".git")
-            or ((u := urlparse(location)).scheme.startswith("http") and u.netloc.endswith("github.com"))
-            or u.scheme in {"ssh", "git", "git+ssh"}
-        ):
-            console.info(f"Assuming build context, attempting to build agent from [bold]{location}[/bold]")
-            location, agent_card = await build(location, dockerfile, tag=None, vm_name=vm_name, import_image=True)
+        if location.startswith("http") or location.startswith("https") or "://" in location:
+            console.info(f"Assuming GitHub repository, attempting to build agent from [bold]{location}[/bold]")
+            with status("Building agent"):
+                build = await _server_side_build(location, dockerfile, add=True, verbose=verbose)
+            if build.status != BuildState.COMPLETED:
+                error = build.error_message or "see logs above for details"
+                raise RuntimeError(f"Agent build failed: {error}")
         else:
+            if dockerfile:
+                raise ValueError("Dockerfile can be specified only if location is a GitHub url")
             console.info(f"Assuming public docker image, attempting to pull {location}")
+            with status("Registering agent to platform"):
+                async with configuration.use_platform_client():
+                    await Provider.create(location=location)
+        console.success(f"Agent [bold]{location}[/bold] added to platform")
+        await list_agents()
 
-        with status("Registering agent to platform"):
-            async with configuration.use_platform_client():
-                await Provider.create(
-                    location=location,
-                    agent_card=AgentCard.model_validate(agent_card) if agent_card else None,
+
+@app.command("update")
+async def update_agent(
+    search_path: typing.Annotated[
+        str, typer.Argument(..., help="Short ID, agent name or part of the provider location of agent to replace")
+    ],
+    location: typing.Annotated[str, typer.Argument(help="Agent location (public docker image or github url)")],
+    dockerfile: typing.Annotated[str | None, typer.Option(help="Use custom dockerfile path")] = None,
+    verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
+    yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
+) -> None:
+    """Upgrade agent to a newer docker image or build from GitHub repository"""
+    with verbosity(verbose):
+        async with configuration.use_platform_client():
+            provider = select_provider(search_path, providers=await Provider.list())
+
+        url = announce_server_action(f"Upgrading agent from '{provider.source}' to {location}")
+        await confirm_server_action("Proceed with upgrading agent on", url=url, yes=yes)
+
+        if location.startswith("http") or location.startswith("https") or "://" in location:
+            console.info(f"Assuming GitHub repository, attempting to build agent from [bold]{location}[/bold]")
+            with status("Building agent"):
+                build = await _server_side_build(
+                    github_url=location, dockerfile=dockerfile, replace=provider.id, verbose=verbose
                 )
+            if build.status != BuildState.COMPLETED:
+                error = build.error_message or "see logs above for details"
+                raise RuntimeError(f"Agent build failed: {error}")
+        else:
+            if dockerfile:
+                raise ValueError("Dockerfile can be specified only if location is a GitHub url")
+            console.info(f"Assuming public docker image, attempting to pull {location}")
+            with status("Upgrading agent in the platform"):
+                async with configuration.use_platform_client():
+                    await provider.patch(location=location)
         console.success(f"Agent [bold]{location}[/bold] added to platform")
         await list_agents()
 

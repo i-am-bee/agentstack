@@ -26,7 +26,7 @@ from jsf import JSF
 from prompt_toolkit import PromptSession
 from prompt_toolkit.shortcuts import CompleteStyle
 from pydantic import BaseModel
-from rich.console import Capture
+from rich.console import Capture, Console
 from rich.text import Text
 
 from agentstack_cli.configuration import Configuration
@@ -296,7 +296,7 @@ def verbosity(verbose: bool, show_success_status: bool = True):
         SHOW_SUCCESS_STATUS.reset(token_command_status)
 
 
-def print_log(line, ansi_mode=False):
+def print_log(line, ansi_mode=False, out_console: Console | None = None):
     if "error" in line:
 
         class CustomError(Exception): ...
@@ -309,6 +309,6 @@ def print_log(line, ansi_mode=False):
         return Text.from_ansi(text) if ansi_mode else text
 
     if line["stream"] == "stderr":
-        err_console.print(decode(line["message"]))
+        (out_console or err_console).print(decode(line["message"]))
     elif line["stream"] == "stdout":
-        console.print(decode(line["message"]))
+        (out_console or console).print(decode(line["message"]))

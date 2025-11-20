@@ -413,7 +413,7 @@ async def _reset_configuration(existing_providers: list[ModelProvider] | None = 
 @app.command("setup")
 async def setup(
     use_true_localhost: typing.Annotated[bool, typer.Option(hidden=True)] = False,
-    verbose: typing.Annotated[bool, typer.Option("-v")] = False,
+    verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
 ):
     """Interactive setup for LLM and embedding provider environment variables"""
     announce_server_action("Configuring model providers for")

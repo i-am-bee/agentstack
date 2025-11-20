@@ -69,6 +69,11 @@ class ForbiddenUpdateError(PlatformError):
         super().__init__("Insufficient permissions", status_code)
 
 
+class InvalidProviderUpgradeError(PlatformError):
+    def __init__(self, message: str, status_code: int = status.HTTP_409_CONFLICT):
+        super().__init__(message, status_code)
+
+
 class InvalidProviderCallError(PlatformError): ...
 
 
@@ -88,7 +93,9 @@ class StorageCapacityExceededError(PlatformError):
 
 
 class ModelLoadFailedError(PlatformError):
-    def __init__(self, provider: ModelProvider, exception: HTTPError, status_code: int = status.HTTP_400_BAD_REQUEST):
+    def __init__(
+        self, provider: ModelProvider, exception: HTTPError, status_code: int = status.HTTP_424_FAILED_DEPENDENCY
+    ):
         from agentstack_server.application import extract_messages
 
         super().__init__(
@@ -118,7 +125,7 @@ class DuplicateEntityError(PlatformError):
         entity: str,
         field: str = "name",
         value: str | UUID | None = None,
-        status_code: int = status.HTTP_400_BAD_REQUEST,
+        status_code: int = status.HTTP_409_CONFLICT,
     ):
         self.entity = entity
         self.field = field
@@ -130,7 +137,7 @@ class DuplicateEntityError(PlatformError):
 
 
 class BuildAlreadyFinishedError(PlatformError):
-    def __init__(self, platform_build_id: UUID, state: "BuildState", status_code: int = status.HTTP_400_BAD_REQUEST):
+    def __init__(self, platform_build_id: UUID, state: "BuildState", status_code: int = status.HTTP_409_CONFLICT):
         super().__init__(
             message=f"Build with ID {platform_build_id} already finished in state: {state}",
             status_code=status_code,

@@ -40,7 +40,9 @@ def _path() -> str:
 
 
 @app.command("version")
-async def version(verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False):
+async def version(
+    verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
+):
     """Print version of the Agent Stack CLI."""
     with verbosity(verbose=verbose):
         cli_version = importlib.metadata.version("agentstack-cli")
@@ -78,7 +80,7 @@ async def version(verbose: typing.Annotated[bool, typer.Option("-v", help="Show 
 
 @app.command("install")
 async def install(
-    verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
+    verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
 ):
     """Install Agent Stack platform pre-requisites."""
     with verbosity(verbose=verbose):
@@ -171,7 +173,9 @@ async def install(
 
 
 @app.command("upgrade")
-async def upgrade(verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False):
+async def upgrade(
+    verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
+):
     """Upgrade Agent Stack CLI and Platform to the latest version."""
     if not shutil.which("uv", path=_path()):
         console.error("Can't self-upgrade because 'uv' was not found.")
@@ -189,7 +193,7 @@ async def upgrade(verbose: typing.Annotated[bool, typer.Option("-v", help="Show 
 
 @app.command("uninstall")
 async def uninstall(
-    verbose: typing.Annotated[bool, typer.Option("-v", help="Show verbose output")] = False,
+    verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
 ):
     """Uninstall Agent Stack CLI and Platform."""
     if not shutil.which("uv", path=_path()):
