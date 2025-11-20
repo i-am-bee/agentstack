@@ -167,6 +167,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
             registration_endpoint = oidc["registration_endpoint"]
             if not client_id and registration_endpoint:
                 async with httpx.AsyncClient() as client:
+                    resp = None
                     try:
                         app_name = get_unique_app_name()
                         print("app_name=", app_name)
@@ -174,6 +175,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                             registration_endpoint,
                             json={
                                 "client_name": app_name,
+                                "grant_types": ["authorization_code", "refresh_token"],
                                 "enforce_pkce": True,
                                 "all_users_entitled": True,
                                 "access_policy": 1,
@@ -186,6 +188,11 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                         client_secret = data["client_secret"]
                         registration_token = data["registration_access_token"]
                     except Exception:
+                        if resp:
+                            error_details = resp.json()
+                            console.warning(
+                                f"error: {error_details['error']} error description: {error_details['error_description']}"
+                            )
                         console.warning("Dynamic client registration failed. Proceed with manual input.")
 
             if not client_id:
@@ -223,6 +230,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
 
             code = await _wait_for_auth_code()
             async with httpx.AsyncClient() as client:
+                token_resp = None
                 try:
                     token_resp = await client.post(
                         oidc["token_endpoint"],
@@ -238,6 +246,11 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                     token_resp.raise_for_status()
                     token = token_resp.json()
                 except Exception as e:
+                    if token_resp:
+                        error_details = token_resp.json()
+                        console.warning(
+                            f"error: {error_details['error']} error description: {error_details['error_description']}"
+                        )
                     raise RuntimeError(f"Token request failed: {e}") from e
 
             if not token:

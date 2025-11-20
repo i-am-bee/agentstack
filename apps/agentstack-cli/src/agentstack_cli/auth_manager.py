@@ -81,11 +81,15 @@ class AuthManager:
         This method exchanges a refresh token for a new access token.
         """
         async with httpx.AsyncClient(headers={"Accept": "application/json"}) as client:
+            resp = None
             try:
                 resp = await client.get(f"{auth_server}/.well-known/openid-configuration")
                 resp.raise_for_status()
                 oidc = resp.json()
             except Exception as e:
+                if resp:
+                    error_details = resp.json()
+                    print(f"error: {error_details['error']} error description: {error_details['error_description']}")
                 raise RuntimeError(f"OIDC discovery failed: {e}") from e
 
             token_endpoint = oidc["token_endpoint"]
@@ -109,6 +113,9 @@ class AuthManager:
                 resp.raise_for_status()
                 new_token = resp.json()
             except Exception as e:
+                if resp:
+                    error_details = resp.json()
+                    print(f"error: {error_details['error']} error description: {error_details['error_description']}")
                 raise RuntimeError(f"Failed to refresh token: {e}") from e
             self.save_auth_token(
                 self._auth.active_server or "",
@@ -143,12 +150,16 @@ class AuthManager:
 
     async def deregister_client(self, auth_server, client_id, registration_token) -> None:
         async with httpx.AsyncClient(headers={"Accept": "application/json"}) as client:
+            resp = None
             try:
                 resp = await client.get(f"{auth_server}/.well-known/openid-configuration")
                 resp.raise_for_status()
                 oidc = resp.json()
                 registration_endpoint = oidc["registration_endpoint"]
             except Exception as e:
+                if resp:
+                    error_details = resp.json()
+                    print(f"error: {error_details['error']} error description: {error_details['error_description']}")
                 raise RuntimeError(f"OIDC discovery failed: {e}") from e
 
             try:
@@ -158,6 +169,9 @@ class AuthManager:
                     resp.raise_for_status()
 
             except Exception as e:
+                if resp:
+                    error_details = resp.json()
+                    print(f"error: {error_details['error']} error description: {error_details['error_description']}")
                 raise RuntimeError(f"Dynamic client de-registration failed. {e}") from e
 
     async def clear_auth_token(self, all: bool = False) -> None:
