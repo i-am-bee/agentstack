@@ -3,32 +3,41 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { AgentstackClient } from '../../../api/build-api-client';
-import { ContextToken, ModelCapability } from '../../../api/types';
-import { LLMDemands, LLMFulfillments } from '../services/llm';
+import type { AgentstackClient } from '../../../api/build-api-client';
+import type { ContextToken } from '../../../api/types';
+import { ModelCapability } from '../../../api/types';
+import type { LLMDemands, LLMFulfillments } from '../services/llm';
+
+const DEFAULT_SCORE_CUTOFF = 0.4;
 
 export const buildLLMExtensionFulfillmentResolver = (api: AgentstackClient, token: ContextToken) => {
   return async ({ llm_demands }: LLMDemands): Promise<LLMFulfillments> => {
     const allDemands = Object.keys(llm_demands);
-    const fullfillemnts: LLMFulfillments = { llm_fulfillments: {} };
-
-    for (const demandKey of allDemands) {
+    const fulfillmentPromises = allDemands.map(async (demandKey) => {
       const demand = llm_demands[demandKey];
-      const resolvedModels = await api.matchProviders(demand.suggested ?? [], ModelCapability.Llm, 0.4);
+      const resolvedModels = await api.matchProviders(
+        demand.suggested ?? [],
+        ModelCapability.Llm,
+        DEFAULT_SCORE_CUTOFF,
+      );
 
       if (resolvedModels.items.length === 0) {
-        console.error(demand);
-        throw new Error(`No models found for demand ${demandKey}`);
+        throw new Error(`No models found for demand ${demandKey}. Demand details: ${JSON.stringify(demand)}`);
       }
 
-      fullfillemnts.llm_fulfillments[demandKey] = {
-        identifier: 'llm_proxy',
-        api_base: '{platform_url}/api/v1/openai/',
-        api_key: token.token,
-        api_model: resolvedModels.items[0].model_id,
-      };
-    }
+      return [
+        demandKey,
+        {
+          identifier: 'llm_proxy',
+          // {platform_url} is replaced by the server SDK to the platform URL
+          api_base: '{platform_url}/api/v1/openai/',
+          api_key: token.token,
+          api_model: resolvedModels.items[0].model_id,
+        },
+      ] as const;
+    });
 
-    return fullfillemnts;
+    const fulfilledEntries = await Promise.all(fulfillmentPromises);
+    return { llm_fulfillments: Object.fromEntries(fulfilledEntries) };
   };
 };

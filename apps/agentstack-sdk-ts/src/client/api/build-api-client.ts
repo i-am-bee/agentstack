@@ -3,8 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { z } from 'zod';
-import { contextSchema, contextTokenSchema, ModelCapability, modelProviderMatchSchema } from './types';
+import type { z } from 'zod';
+
+import type { ContextPermissionGrant, GlobalPermissionGrant, ModelCapability } from './types';
+import { contextSchema, contextTokenSchema, modelProviderMatchSchema } from './types';
 
 export const buildApiClient = ({ baseUrl }: { baseUrl: string } = { baseUrl: '' }) => {
   async function callApi<T>(
@@ -21,8 +23,9 @@ export const buildApiClient = ({ baseUrl }: { baseUrl: string } = { baseUrl: '' 
       body: JSON.stringify(data),
     });
     if (!response.ok) {
-      throw new Error('Failed to get context token.');
+      throw new Error(`Failed to call Agent Stackk API - ${url}`);
     }
+
     const json = await response.json();
     return resultSchema.parse(json);
   }
@@ -38,33 +41,18 @@ export const buildApiClient = ({ baseUrl }: { baseUrl: string } = { baseUrl: '' 
     return contextId;
   };
 
-  const createContextToken = async (contextId: string) => {
+  const createContextToken = async (
+    contextId: string,
+    globalPermissions: GlobalPermissionGrant,
+    contextPermissions: ContextPermissionGrant,
+  ) => {
     const token = await callApi(
       'POST',
       `/api/v1/contexts/${contextId}/token`,
       {
         context_id: contextId,
-        grant_global_permissions: {
-          llm: ['*'],
-          a2a_proxy: [],
-          contexts: [],
-          embeddings: ['*'],
-          feedback: [],
-          files: [],
-          providers: [],
-          provider_variables: [],
-          model_providers: [],
-          mcp_providers: [],
-          mcp_proxy: [],
-          mcp_tools: [],
-          vector_stores: [],
-          context_data: [],
-        },
-        grant_context_permissions: {
-          files: ['*'],
-          vector_stores: ['*'],
-          context_data: ['*'],
-        },
+        grant_global_permissions: globalPermissions,
+        grant_context_permissions: contextPermissions,
       },
       contextTokenSchema,
     );

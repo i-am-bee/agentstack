@@ -3,8 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { AgentCapabilities, Message } from '@a2a-js/sdk';
-import { Fulfillments, handleAgentCard } from '../handle-agent-card';
+import type { AgentCapabilities, Message } from '@a2a-js/sdk';
+
+import type { Fulfillments } from '../handle-agent-card';
+import { handleAgentCard } from '../handle-agent-card';
 
 export const buildMessageBuilder =
   (agent: { capabilities: AgentCapabilities }) =>
