@@ -170,7 +170,6 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                     resp = None
                     try:
                         app_name = get_unique_app_name()
-                        print("app_name=", app_name)
                         resp = await client.post(
                             registration_endpoint,
                             json={
@@ -178,7 +177,6 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                                 "grant_types": ["authorization_code", "refresh_token"],
                                 "enforce_pkce": True,
                                 "all_users_entitled": True,
-                                "access_policy": 1,
                                 "redirect_uris": [REDIRECT_URI],
                             },
                         )
@@ -187,13 +185,17 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                         client_id = data["client_id"]
                         client_secret = data["client_secret"]
                         registration_token = data["registration_access_token"]
-                    except Exception:
+                    except Exception as e:
                         if resp:
-                            error_details = resp.json()
-                            console.warning(
-                                f"error: {error_details['error']} error description: {error_details['error_description']}"
-                            )
-                        console.warning("Dynamic client registration failed. Proceed with manual input.")
+                            try:
+                                error_details = resp.json()
+                                console.warning(
+                                    f"error: {error_details['error']} error description: {error_details['error_description']}"
+                                )
+
+                            except Exception:
+                                console.info("no parsable json response.")
+                        console.warning(f" Dynamic client registration failed. Proceed with manual input.  {e!s}")
 
             if not client_id:
                 client_id = await inquirer.text(  #  type: ignore
@@ -246,11 +248,15 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                     token_resp.raise_for_status()
                     token = token_resp.json()
                 except Exception as e:
-                    if token_resp:
-                        error_details = token_resp.json()
-                        console.warning(
-                            f"error: {error_details['error']} error description: {error_details['error_description']}"
-                        )
+                    if resp:
+                        try:
+                            error_details = resp.json()
+                            console.warning(
+                                f"error: {error_details['error']} error description: {error_details['error_description']}"
+                            )
+                        except Exception:
+                            console.info("no parsable json response.")
+
                     raise RuntimeError(f"Token request failed: {e}") from e
 
             if not token:
