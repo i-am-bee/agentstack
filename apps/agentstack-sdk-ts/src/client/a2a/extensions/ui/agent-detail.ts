@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { z } from 'zod';
+import z from 'zod';
 
 import { interactionModeSchema } from '../../../../types';
 import type { A2AUiExtension } from '../types';

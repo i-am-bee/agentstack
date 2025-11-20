@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 'use client';
+import type { FormRender } from 'agentstack-sdk';
 import { createContext } from 'react';
 
 import type { AgentA2AClient } from '#api/a2a/types.ts';
@@ -25,6 +26,7 @@ interface AgentRunContextValue {
   input?: string;
   stats?: RunStats;
   hasMessages: boolean;
+  initialFormRender: FormRender | undefined;
   chat: (input: string, fulfillmentsContext?: FulfillmentsContext) => Promise<void>;
   submitForm: (form: UIMessageForm) => Promise<void>;
   submitRuntimeForm: (form: UIMessageForm, taskId: TaskId) => Promise<void>;

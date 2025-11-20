@@ -160,7 +160,7 @@ class ConnectorService:
             assert connector.auth.flow is not None
             assert connector.auth.flow.type == "code"
 
-            redirect_url = connector.auth.flow.redirect_url
+            redirect_url = connector.auth.flow.client_redirect_uri
 
             if error:
                 return self._create_callback_response(
@@ -185,6 +185,7 @@ class ConnectorService:
                     token_endpoint,
                     authorization_response=callback_url,
                     code_verifier=connector.auth.flow.code_verifier,
+                    redirect_uri=connector.auth.flow.redirect_uri,
                 )
                 connector.auth.token = Token.model_validate(token)
                 connector.auth.token_endpoint = AnyUrl(str(token_endpoint))
@@ -278,12 +279,14 @@ class ConnectorService:
 
         async with self._create_oauth_client(connector=connector) as client:
             uri, state = client.create_authorization_url(
-                auth_metadata.get("authorization_endpoint"),
-                code_verifier=code_verifier,
-                redirect_uri=callback_url,
+                auth_metadata.get("authorization_endpoint"), code_verifier=code_verifier, redirect_uri=callback_url
             )
             connector.auth.flow = AuthorizationCodeFlow(
-                authorization_endpoint=uri, state=state, code_verifier=code_verifier, redirect_url=redirect_url
+                authorization_endpoint=uri,
+                state=state,
+                code_verifier=code_verifier,
+                redirect_uri=callback_url,
+                client_redirect_uri=redirect_url,
             )
 
     async def _revoke_auth_token(self, *, connector: Connector) -> None:
@@ -432,7 +435,8 @@ async def _register_client(resource_server_url: str, *, redirect_uri: str) -> _C
         raise RuntimeError("Authorization server does not support dynamic client registration")
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            str(registration_endpoint), json={"client_name": "Agent Stack", "redirect_uris": [redirect_uri]}
+            str(registration_endpoint),
+            json={"client_name": "Agent Stack", "redirect_uris": [redirect_uri]},
         )
         response.raise_for_status()
         registration_response = _ClientRegistrationResponse.model_validate(response.json())

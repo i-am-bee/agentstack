@@ -3,17 +3,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FormDemands } from 'agentstack-sdk';
+import type { FormRender } from 'agentstack-sdk';
 
 import { Container } from '#components/layouts/Container.tsx';
 import { FormRenderer } from '#modules/form/components/FormRenderer.tsx';
 import type { RunFormValues } from '#modules/form/types.ts';
 
+import { useAgentDemands } from '../contexts/agent-demands';
 import { useAgentRun } from '../contexts/agent-run';
 import classes from './FormRenderView.module.scss';
 
 interface Props {
-  formRender: FormDemands;
+  formRender: FormRender;
   onMessageSent?: () => void;
 }
 
@@ -31,11 +32,11 @@ export function FormRenderView({ formRender, onMessageSent }: Props) {
         showRunSettings
         onSubmit={(values: RunFormValues) => {
           onMessageSent?.();
-          const form = {
+
+          submitForm({
             request: formRender,
-            response: { id: formRender.id, values },
-          };
-          submitForm(form);
+            response: values,
+          });
         }}
         defaultHeading={agent.ui.user_greeting}
       />

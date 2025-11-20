@@ -53,27 +53,28 @@ When you await a form request, execution pauses the task, allowing the user to f
 
 ```python
 from typing import Annotated
-from agentstack_sdk.a2a.extensions.ui.form import (
-    FormExtensionServer,
-    FormExtensionSpec,
+from agentstack_sdk.a2a.extensions.common.form import (
     FormRender,
     TextField
+)
+from agentstack_sdk.a2a.extensions.ui.form_request import (
+    FormRequestExtensionServer,
+    FormRequestExtensionSpec,
 )
 
 @server.agent()
 async def form_agent(
     input: Message,
     context: RunContext,
-    form: Annotated[FormExtensionServer, FormExtensionSpec(params=None)]
+    form_request: Annotated[FormRequestExtensionServer, FormRequestExtensionSpec()]
 ):
     """Agent that pauses execution to request user input"""
     yield AgentMessage(text="I need some information from you.")
     
     # Execution pauses here - task enters input_required state
     # User fills out the form in the UI
-    form_data = await form.request_form(
+    form_data = await form_request.request_form(
         form=FormRender(
-            id="user_info",
             title="Please provide your details",
             fields=[
                 TextField(id="name", label="Your Name"),
