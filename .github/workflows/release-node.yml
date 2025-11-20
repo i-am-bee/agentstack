@@ -27,6 +27,6 @@ jobs:
 
       - name: Publish TS SDK
         working-directory: apps/agentstack-sdk-ts
-        run: pnpm publish --access public
+        run: pnpm publish --access public --no-git-checks
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
