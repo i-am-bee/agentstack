@@ -1,0 +1,29 @@
+name: Release Node
+
+on:
+  push:
+    branches:
+      - feat/1558-extending-ts-sdk
+
+
+jobs:
+  agentstack:
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build TS SDK
+        run: mise run agentstack-sdk-ts:build
+
+      - name: Auth to npm
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish TS SDK
+        working-directory: apps/agentstack-sdk-ts
+        run: pnpm publish --access public
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
