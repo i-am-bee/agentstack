@@ -949,7 +949,8 @@ async def agent_detail(
 ):
     """Show agent details."""
     announce_server_action(f"Showing agent details for '{search_path}' on")
-    provider = select_provider(search_path, await Provider.list())
+    async with configuration.use_platform_client():
+        provider = select_provider(search_path, await Provider.list())
     agent = provider.agent_card
 
     basic_info = f"# {agent.name}\n{agent.description}"
