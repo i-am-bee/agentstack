@@ -10,16 +10,13 @@ import { ListAgentsOrderBy } from '#modules/agents/api/types.ts';
 import { AgentCardsList } from '#modules/agents/components/cards/AgentCardsList.tsx';
 import type { ListProvidersResponse } from '#modules/providers/api/types.ts';
 
-import { USER_NOT_OWNED_AGENTS_LIST_PARAMS } from '../constants';
-
 interface Props {
   initialData?: ListProvidersResponse;
 }
 
 export function DiscoverAgentsList({ initialData }: Props) {
   const { data: agents, isLoading } = useListAgents({
-    ...USER_NOT_OWNED_AGENTS_LIST_PARAMS,
-    orderBy: ListAgentsOrderBy.CreatedAt,
+    orderBy: ListAgentsOrderBy.Name,
     initialData,
   });
 

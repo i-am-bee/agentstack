@@ -6,10 +6,12 @@
 import { useMemo } from 'react';
 
 import { useModal } from '#contexts/Modal/index.tsx';
+import { useParamsFromUrl } from '#hooks/useParamsFromUrl.ts';
+import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
+import { ListAgentsOrderBy } from '#modules/agents/api/types.ts';
 import { ImportAgentsModal } from '#modules/agents/components/import/ImportAgentsModal.tsx';
-import { useRecentlyAddedAgents } from '#modules/home/hooks/useRecentlyAddedAgents.ts';
 import { useUser } from '#modules/users/api/queries/useUser.ts';
-import { isUserAdmin } from '#modules/users/utils.ts';
+import { isUserAdminOrDev } from '#modules/users/utils.ts';
 import { routes } from '#utils/router.ts';
 
 import { NavGroup } from './NavGroup';
@@ -22,20 +24,21 @@ interface Props {
 export function AgentsNav({ className }: Props) {
   const { openModal } = useModal();
 
+  const { providerId: providerIdUrl } = useParamsFromUrl();
   const { data: user } = useUser();
-  const { data: agents, isLoading } = useRecentlyAddedAgents();
+  const { data: agents, isLoading } = useListAgents({ orderBy: ListAgentsOrderBy.Name });
 
-  const isAdmin = isUserAdmin(user);
+  const isAdminOrDev = isUserAdminOrDev(user);
 
   const action = useMemo(
     () =>
-      isAdmin
+      isAdminOrDev
         ? {
             label: 'Add new agent',
             onClick: () => openModal((props) => <ImportAgentsModal {...props} />),
           }
         : undefined,
-    [isAdmin, openModal],
+    [isAdminOrDev, openModal],
   );
 
   const items = useMemo(
@@ -43,12 +46,13 @@ export function AgentsNav({ className }: Props) {
       agents?.map(({ name, provider: { id } }) => ({
         label: name,
         href: routes.agentRun({ providerId: id }),
+        isActive: providerIdUrl === id,
       })),
-    [agents],
+    [agents, providerIdUrl],
   );
 
   return (
-    <NavGroup heading="Agents added by me" className={className} action={action}>
+    <NavGroup heading="Agents" className={className} action={action}>
       <NavList items={items} isLoading={isLoading} skeletonCount={5} noItemsMessage="No agent added" />
     </NavGroup>
   );

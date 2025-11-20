@@ -18,10 +18,11 @@ export interface SessionItem {
   contextId: string;
   providerId: string;
   heading: string;
+  subHeading?: string;
   isActive?: boolean;
 }
 
-export function SessionItem({ contextId, providerId, heading, isActive }: SessionItem) {
+export function SessionItem({ contextId, providerId, heading, subHeading, isActive }: SessionItem) {
   const router = useRouter();
   const [optionsOpen, setOptionsOpen] = useState(false);
 
@@ -41,7 +42,9 @@ export function SessionItem({ contextId, providerId, heading, isActive }: Sessio
       })}
     >
       <Link href={routes.agentRun({ providerId, contextId })} className={classes.link}>
-        {heading}
+        <span className={classes.heading}>{heading}</span>
+
+        {subHeading && <span className={classes.subHeading}>{subHeading}</span>}
       </Link>
 
       <div className={classes.options}>
