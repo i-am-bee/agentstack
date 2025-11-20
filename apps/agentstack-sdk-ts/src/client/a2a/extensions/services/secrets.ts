@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { z } from 'zod';
+import z from 'zod';
 
 import type { A2AServiceExtension, A2AUiExtension } from '../types';
 

@@ -3,7 +3,7 @@
 
 import os
 from typing import Annotated
-
+from pydantic import BaseModel
 
 import a2a.server.agent_execution
 import a2a.server.apps
@@ -20,16 +20,19 @@ from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
 
 import agentstack_sdk.a2a.extensions
-from agentstack_sdk.a2a.extensions.ui.form import (
+from agentstack_sdk.a2a.extensions.common.form import (
     DateField,
     TextField,
     FileField,
+    FileInfo,
     CheckboxField,
     MultiSelectField,
     OptionItem,
-    FormExtensionServer,
-    FormExtensionSpec,
     FormRender,
+)
+from agentstack_sdk.a2a.extensions.services.form import (
+    FormServiceExtensionServer,
+    FormServiceExtensionSpec,
 )
 
 agent_detail_extension_spec = agentstack_sdk.a2a.extensions.AgentDetailExtensionSpec(
@@ -65,15 +68,21 @@ interests = MultiSelectField(
 )
 
 form_render = FormRender(
-    id="adventure_form",
     title="Let’s go on an adventure",
     columns=2,
     fields=[location, date_from, date_to, notes, flexible, interests],
 )
-form_extension_spec = FormExtensionSpec(form_render)
+form_extension_spec = FormServiceExtensionSpec.demand(initial_form=form_render)
 
 server = Server()
 
+class FormData(BaseModel):
+    location: str | None
+    date_from: str | None
+    date_to: str | None
+    notes: list[FileInfo] | None
+    flexible: bool | None
+    interests: list[str] | None
 
 @server.agent(
     name="Single-turn Form Agent",
@@ -97,17 +106,17 @@ server = Server()
     ],
 )
 async def agent(
-    input: Message,
+    _message: Message,
     form: Annotated[
-        FormExtensionServer,
+        FormServiceExtensionServer,
         form_extension_spec,
     ],
 ):
     """Example demonstrating a single-turn agent using a form to collect user input."""
 
-    form_data = form.parse_form_response(message=input)
+    form_data = form.parse_initial_form(model=FormData)
 
-    yield f"Hello {form_data.values['location'].value}"
+    yield f"Hello {form_data.location}"
 
 
 def serve():
