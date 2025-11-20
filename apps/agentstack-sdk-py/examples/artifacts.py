@@ -7,6 +7,14 @@ from typing import Annotated
 
 from a2a.types import Message, Role, TextPart
 from a2a.utils.message import get_message_text
+from beeai_framework.adapters.agentstack.backend.chat import AgentStackChatModel
+from beeai_framework.agents.requirement import RequirementAgent
+from beeai_framework.agents.requirement.requirements.conditional import (
+    ConditionalRequirement,
+)
+from beeai_framework.backend import AssistantMessage, UserMessage
+from beeai_framework.tools.think import ThinkTool
+
 from agentstack_sdk.a2a.extensions import (
     LLMServiceExtensionServer,
     LLMServiceExtensionSpec,
@@ -19,13 +27,6 @@ from agentstack_sdk.a2a.extensions.ui.canvas import (
 from agentstack_sdk.a2a.types import AgentArtifact
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
-from beeai_framework.adapters.agentstack.backend.chat import AgentStackChatModel
-from beeai_framework.agents.requirement import RequirementAgent
-from beeai_framework.agents.requirement.requirements.conditional import (
-    ConditionalRequirement,
-)
-from beeai_framework.backend import AssistantMessage, UserMessage
-from beeai_framework.tools.think import ThinkTool
 
 server = Server()
 
@@ -35,9 +36,7 @@ FrameworkMessage = UserMessage | AssistantMessage
 
 def to_framework_message(message: Message) -> FrameworkMessage:
     """Convert A2A Message to Agent Stack Framework Message format"""
-    message_text = "".join(
-        part.root.text for part in message.parts if part.root.kind == "text"
-    )
+    message_text = "".join(part.root.text for part in message.parts if part.root.kind == "text")
 
     if message.role == Role.agent:
         return AssistantMessage(message_text)
@@ -103,9 +102,7 @@ def get_system_prompt(canvas_edit_request: CanvasEditRequest | None) -> str:
     )
     return EDIT_PROMPT.format(
         artifact_text=original_recipe,
-        artifact_text_substring=original_recipe[
-            canvas_edit_request.start_index : canvas_edit_request.end_index
-        ],
+        artifact_text_substring=original_recipe[canvas_edit_request.start_index : canvas_edit_request.end_index],
         edit_description=canvas_edit_request.description,
     )
 
@@ -130,11 +127,7 @@ async def artifacts_agent(
     llm_client = AgentStackChatModel()
     llm_client.set_context(llm)
 
-    history = [
-        message
-        async for message in context.load_history()
-        if isinstance(message, Message) and message.parts
-    ]
+    history = [message async for message in context.load_history() if isinstance(message, Message) and message.parts]
 
     agent = RequirementAgent(
         llm=llm_client,
@@ -170,9 +163,7 @@ async def artifacts_agent(
                 recipe_content = match.group(1).strip()
                 first_line = recipe_content.split("\n", 1)[0]
                 yield AgentArtifact(
-                    name=first_line.lstrip("# ").strip()
-                    if first_line.startswith("#")
-                    else "Recipe",
+                    name=first_line.lstrip("# ").strip() if first_line.startswith("#") else "Recipe",
                     parts=[TextPart(text=recipe_content)],
                 )
 
