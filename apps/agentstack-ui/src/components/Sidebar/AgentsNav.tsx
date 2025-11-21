@@ -5,6 +5,7 @@
 
 import { useMemo } from 'react';
 
+import { useApp } from '#contexts/App/index.ts';
 import { useModal } from '#contexts/Modal/index.tsx';
 import { useParamsFromUrl } from '#hooks/useParamsFromUrl.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
@@ -23,7 +24,9 @@ interface Props {
 
 export function AgentsNav({ className }: Props) {
   const { openModal } = useModal();
-
+  const {
+    config: { featureFlags },
+  } = useApp();
   const { providerId: providerIdUrl } = useParamsFromUrl();
   const { data: user } = useUser();
   const { data: agents, isLoading } = useListAgents({ orderBy: ListAgentsOrderBy.Name });
@@ -32,13 +35,13 @@ export function AgentsNav({ className }: Props) {
 
   const action = useMemo(
     () =>
-      isAdminOrDev
+      featureFlags.Providers && isAdminOrDev
         ? {
             label: 'Add new agent',
             onClick: () => openModal((props) => <ImportAgentsModal {...props} />),
           }
         : undefined,
-    [isAdminOrDev, openModal],
+    [featureFlags.Providers, isAdminOrDev, openModal],
   );
 
   const items = useMemo(
