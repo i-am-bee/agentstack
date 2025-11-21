@@ -30,6 +30,10 @@ node.gpg_verify = false # tends to randomly fail; sha is checked by lockfile
 [hooks]
 postinstall = [
     "{{ mise_bin }} setup",
+
+    # npm 11.5+ is needed for trusted publishing
+    # we can safely remove this after we migrate to node >= 24.5
+
     "npm install -g npm@11.6.3"
 ]
 
