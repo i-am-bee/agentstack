@@ -2,7 +2,7 @@
   "name": "@i-am-bee/agentstack-ui",
   "author": "IBM Corp.",
   "private": true,
-  "version": "0.4.2-rc4",
+  "version": "0.4.2-rc5",
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
