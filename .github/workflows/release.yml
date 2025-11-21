@@ -158,4 +158,4 @@ jobs:
 
       - name: Publish TS SDK
         working-directory: apps/agentstack-sdk-ts
-        run: npm publish
+        run: npm publish --tag rc
