@@ -36,7 +36,7 @@ telemetry = [
 
 [[package]]
 name = "agentstack-sdk"
-version = "0.4.2rc5"
+version = "0.4.2rc6"
 source = { editable = "../../apps/agentstack-sdk-py" }
 dependencies = [
     { name = "a2a-sdk" },
