@@ -7,11 +7,11 @@ import { z } from 'zod';
 
 export const contextSchema = z.object({
   id: z.string(),
-  created_at: z.string().optional(),
-  created_by: z.string(),
-  last_active_at: z.string(),
-  provider_id: z.string().nullable(),
+  created_at: z.string(),
   updated_at: z.string(),
+  last_active_at: z.string(),
+  created_by: z.string(),
+  provider_id: z.string().nullable(),
   metadata: z.record(z.string(), z.unknown()).nullable(),
 });
 
@@ -47,26 +47,26 @@ interface ResourceIdPermission {
   id: string;
 }
 
-export interface GlobalPermissionGrant {
-  a2a_proxy?: '*'[];
-  connectors?: ('read' | 'write' | 'proxy' | '*')[];
-  context_data?: ('read' | 'write' | '*')[];
-  contexts?: ('read' | 'write' | '*')[];
-  embeddings?: ('*' | ResourceIdPermission)[];
-  feedback?: 'write'[];
+export interface ContextPermissionsGrant {
   files?: ('read' | 'write' | 'extract' | '*')[];
-  llm?: ('*' | ResourceIdPermission)[];
-  mcp_providers?: ('read' | 'write' | '*')[];
-  mcp_proxy?: '*'[];
-  mcp_tools?: ('read' | '*')[];
-  model_providers?: ('read' | 'write' | '*')[];
-  provider_variables?: ('read' | 'write' | '*')[];
-  providers?: ('read' | 'write' | '*')[];
-  vector_stores?: ('read' | 'write' | 'extract' | '*')[];
+  vector_stores?: ('read' | 'write' | '*')[];
+  context_data?: ('read' | 'write' | '*')[];
 }
 
-export interface ContextPermissionGrant {
-  context_data?: ('read' | 'write' | '*')[];
-  files?: ('read' | 'write' | 'extract' | '*')[];
-  vector_stores?: ('read' | 'write' | 'extract' | '*')[];
+export interface GlobalPermissionsGrant extends ContextPermissionsGrant {
+  llm?: ('*' | ResourceIdPermission)[];
+  embeddings?: ('*' | ResourceIdPermission)[];
+  a2a_proxy?: '*'[];
+  model_providers?: ('read' | 'write' | '*')[];
+  variables?: ('read' | 'write' | '*')[];
+
+  providers?: ('read' | 'write' | '*')[];
+  provider_variables?: ('read' | 'write' | '*')[];
+
+  contexts?: ('read' | 'write' | '*')[];
+  mcp_providers?: ('read' | 'write' | '*')[];
+  mcp_tools?: ('read' | '*')[];
+  mcp_proxy?: '*'[];
+
+  connectors?: ('read' | 'write' | 'proxy' | '*')[];
 }

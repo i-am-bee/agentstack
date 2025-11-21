@@ -5,8 +5,20 @@
 
 import type { z } from 'zod';
 
-import type { ContextPermissionGrant, GlobalPermissionGrant, ModelCapability } from './types';
+import type { ContextPermissionsGrant, GlobalPermissionsGrant, ModelCapability } from './types';
 import { contextSchema, contextTokenSchema, modelProviderMatchSchema } from './types';
+
+interface MatchProvidersParams {
+  suggestedModels: string[] | null;
+  capability: ModelCapability;
+  scoreCutoff: number;
+}
+
+interface CreateContextTokenParams {
+  contextId: string;
+  globalPermissions: GlobalPermissionsGrant;
+  contextPermissions: ContextPermissionsGrant;
+}
 
 export const buildApiClient = ({ baseUrl }: { baseUrl: string } = { baseUrl: '' }) => {
   async function callApi<T>(method: 'POST', url: string, data: Record<string, unknown>, resultSchema: z.ZodSchema<T>) {
@@ -26,26 +38,16 @@ export const buildApiClient = ({ baseUrl }: { baseUrl: string } = { baseUrl: '' 
   }
 
   const createContext = async (providerId: string) => {
-    const { id: contextId } = await callApi(
-      'POST',
-      '/api/v1/contexts',
-      { metadata: {}, provider_id: providerId },
-      contextSchema,
-    );
+    const context = await callApi('POST', '/api/v1/contexts', { metadata: {}, provider_id: providerId }, contextSchema);
 
-    return contextId;
+    return context;
   };
 
-  const createContextToken = async (
-    contextId: string,
-    globalPermissions: GlobalPermissionGrant,
-    contextPermissions: ContextPermissionGrant,
-  ) => {
+  const createContextToken = async ({ contextId, globalPermissions, contextPermissions }: CreateContextTokenParams) => {
     const token = await callApi(
       'POST',
       `/api/v1/contexts/${contextId}/token`,
       {
-        context_id: contextId,
         grant_global_permissions: globalPermissions,
         grant_context_permissions: contextPermissions,
       },
@@ -55,7 +57,7 @@ export const buildApiClient = ({ baseUrl }: { baseUrl: string } = { baseUrl: '' 
     return { token, contextId };
   };
 
-  const matchProviders = async (suggestedModels: string[], capability: ModelCapability, scoreCutoff: number) => {
+  const matchProviders = async ({ suggestedModels, capability, scoreCutoff }: MatchProvidersParams) => {
     return await callApi(
       'POST',
       '/api/v1/model_providers/match',

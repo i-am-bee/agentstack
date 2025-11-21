@@ -15,11 +15,11 @@ export const buildLLMExtensionFulfillmentResolver = (api: AgentstackClient, toke
     const allDemands = Object.keys(llm_demands);
     const fulfillmentPromises = allDemands.map(async (demandKey) => {
       const demand = llm_demands[demandKey];
-      const resolvedModels = await api.matchProviders(
-        demand.suggested ?? [],
-        ModelCapability.Llm,
-        DEFAULT_SCORE_CUTOFF,
-      );
+      const resolvedModels = await api.matchProviders({
+        suggestedModels: demand.suggested ?? [],
+        capability: ModelCapability.Llm,
+        scoreCutoff: DEFAULT_SCORE_CUTOFF,
+      });
 
       if (resolvedModels.items.length === 0) {
         throw new Error(`No models found for demand ${demandKey}. Demand details: ${JSON.stringify(demand)}`);
