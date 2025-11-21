@@ -1,5 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
+import os
 from collections.abc import Callable
 from datetime import timedelta
 from io import BytesIO
@@ -10,6 +11,7 @@ from agentstack_sdk.platform import use_platform_client
 from agentstack_sdk.platform.client import PlatformClient
 from agentstack_sdk.platform.context import Context, ContextPermissions
 from agentstack_sdk.platform.file import File
+from httpx import AsyncClient
 from tenacity import AsyncRetrying, stop_after_delay, wait_fixed
 
 pytestmark = pytest.mark.e2e
@@ -639,3 +641,111 @@ async def test_files_list_user_global_and_context_scoped(subtests):
             # Filter to only our test files
             test_filenames = [f for f in filenames if f in expected_order]
             assert test_filenames == expected_order
+
+
+@pytest.mark.usefixtures("clean_up")
+async def test_files_list_user_isolation(subtests, test_configuration):
+    """Test that users cannot see files uploaded by other users when listing files.
+
+    This test verifies user-level data isolation - each user should only see their own files,
+    not files uploaded by other users.
+    """
+    base_url = test_configuration.server_url
+
+    # This test requires basic auth to be enabled to distinguish between users
+    assert os.environ.get("AUTH__BASIC__ENABLED", "").lower() == "true", (
+        "AUTH__BASIC__ENABLED must be true for this test. When disabled, all requests are treated as the same user."
+    )
+
+    # Use admin user and regular user to test isolation
+    # With basic auth enabled:
+    # - correct admin password → admin@beeai.dev
+    # - any other password → user@beeai.dev
+    async with (
+        AsyncClient(base_url=f"{base_url}/api/v1", auth=("admin", "test-password")) as admin_client,
+        AsyncClient(base_url=f"{base_url}/api/v1", auth=("user", "not-admin")) as user_client,
+    ):
+        # Upload files as admin user
+        with subtests.test("upload files as admin user"):
+            admin_file1_response = await admin_client.post(
+                "/files",
+                files={"file": ("admin_file1.txt", b"admin content 1", "text/plain")},
+            )
+            assert admin_file1_response.status_code == 201
+            admin_file1_id = admin_file1_response.json()["id"]
+
+            admin_file2_response = await admin_client.post(
+                "/files",
+                files={"file": ("admin_file2.txt", b"admin content 2", "text/plain")},
+            )
+            assert admin_file2_response.status_code == 201
+            admin_file2_id = admin_file2_response.json()["id"]
+
+        # Upload files as regular user
+        with subtests.test("upload files as regular user"):
+            user_file1_response = await user_client.post(
+                "/files",
+                files={"file": ("user_file1.txt", b"user content 1", "text/plain")},
+            )
+            assert user_file1_response.status_code == 201
+            user_file1_id = user_file1_response.json()["id"]
+
+            user_file2_response = await user_client.post(
+                "/files",
+                files={"file": ("user_file2.txt", b"user content 2", "text/plain")},
+            )
+            assert user_file2_response.status_code == 201
+            user_file2_id = user_file2_response.json()["id"]
+
+        # Admin user lists files - should only see admin's files
+        with subtests.test("admin user lists files - should only see own files"):
+            admin_list_response = await admin_client.get("/files")
+            assert admin_list_response.status_code == 200
+            admin_files = admin_list_response.json()
+            admin_file_ids = {f["id"] for f in admin_files["items"]}
+
+            # Admin should see their own files
+            assert admin_file1_id in admin_file_ids, "Admin should see admin_file1"
+            assert admin_file2_id in admin_file_ids, "Admin should see admin_file2"
+
+            # Admin should NOT see regular user's files
+            assert user_file1_id not in admin_file_ids, "Admin should NOT see user_file1"
+            assert user_file2_id not in admin_file_ids, "Admin should NOT see user_file2"
+
+        # Regular user lists files - should only see their own files
+        with subtests.test("regular user lists files - should only see own files"):
+            user_list_response = await user_client.get("/files")
+            assert user_list_response.status_code == 200
+            user_files = user_list_response.json()
+            user_file_ids = {f["id"] for f in user_files["items"]}
+
+            # Regular user should see their own files
+            assert user_file1_id in user_file_ids, "Regular user should see user_file1"
+            assert user_file2_id in user_file_ids, "Regular user should see user_file2"
+
+            # Regular user should NOT see admin's files
+            assert admin_file1_id not in user_file_ids, "Regular user should NOT see admin_file1"
+            assert admin_file2_id not in user_file_ids, "Regular user should NOT see admin_file2"
+
+        # Verify filtering still works within user scope
+        with subtests.test("admin user filters by filename - only sees own matching files"):
+            admin_filtered_response = await admin_client.get("/files", params={"filename_search": "admin_"})
+            assert admin_filtered_response.status_code == 200
+            filtered_files = admin_filtered_response.json()
+            filtered_ids = {f["id"] for f in filtered_files["items"]}
+
+            # Should see admin files matching filter
+            assert admin_file1_id in filtered_ids
+            assert admin_file2_id in filtered_ids
+            # Should not see user files (even if they matched the filter pattern)
+            assert user_file1_id not in filtered_ids
+            assert user_file2_id not in filtered_ids
+
+        # Clean up - delete files
+        with subtests.test("clean up - delete admin files"):
+            await admin_client.delete(f"/files/{admin_file1_id}")
+            await admin_client.delete(f"/files/{admin_file2_id}")
+
+        with subtests.test("clean up - delete user files"):
+            await user_client.delete(f"/files/{user_file1_id}")
+            await user_client.delete(f"/files/{user_file2_id}")
