@@ -8,6 +8,10 @@
     "dev": "microbundle watch"
   },
   "source": "src/index.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/i-am-bee/agentstack"
+  },
   "exports": {
     ".": {
       "require": {
