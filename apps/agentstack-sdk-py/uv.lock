@@ -24,7 +24,7 @@ wheels = [
 
 [[package]]
 name = "agentstack-sdk"
-version = "0.4.2rc1"
+version = "0.4.2rc2"
 source = { editable = "." }
 dependencies = [
     { name = "a2a-sdk" },
