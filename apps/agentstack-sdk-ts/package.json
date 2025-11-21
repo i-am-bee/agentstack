@@ -32,6 +32,7 @@
     "./package.json": "./package.json"
   },
   "files": [
+    "src/**/*",
     "dist/**/*",
     "package.json"
   ],

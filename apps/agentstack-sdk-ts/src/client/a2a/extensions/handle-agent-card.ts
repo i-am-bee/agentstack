@@ -5,7 +5,7 @@
 
 import type { AgentCapabilities } from '@a2a-js/sdk';
 
-import type { ContextToken } from '../../context/types';
+import type { ContextToken } from '../../api/types';
 import type { EmbeddingDemands, EmbeddingFulfillments } from './services/embedding';
 import { embeddingExtension } from './services/embedding';
 import type { FormDemands, FormFulfillments } from './services/form';

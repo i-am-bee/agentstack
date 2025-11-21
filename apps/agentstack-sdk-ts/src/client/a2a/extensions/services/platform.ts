@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ContextToken } from '../../../context/types';
+import type { ContextToken } from '../../../api/types';
 
 const URI = 'https://a2a-extensions.agentstack.beeai.dev/services/platform_api/v1';
 

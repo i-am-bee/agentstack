@@ -4,6 +4,7 @@
  */
 
 export * from './client/a2a/extensions/common/form';
+export * from './client/a2a/extensions/fulfillment-resolvers/build-llm-extension-fulfillment-resolver';
 export { type Fulfillments, handleAgentCard } from './client/a2a/extensions/handle-agent-card';
 export { handleInputRequired, type InputRequiredResponses } from './client/a2a/extensions/handle-input-required';
 export {
@@ -26,4 +27,6 @@ export * from './client/a2a/extensions/ui/oauth';
 export * from './client/a2a/extensions/ui/settings';
 export * from './client/a2a/extensions/ui/trajectory';
 export * from './client/a2a/extensions/utils';
-export * from './client/context/types';
+export * from './client/a2a/extensions/utils/build-message-builder';
+export * from './client/api/build-api-client';
+export * from './client/api/types';

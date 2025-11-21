@@ -151,3 +151,7 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: apps/agentstack-cli/dist
+
+      - name: Publish TS SDK
+        working-directory: apps/agentstack-sdk-ts
+        run: pnpm publish --access public --no-git-checks
