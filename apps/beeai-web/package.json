@@ -2,7 +2,7 @@
   "name": "@i-am-bee/beeai-web",
   "author": "IBM Corp.",
   "private": true,
-  "version": "0.4.2-rc6",
+  "version": "0.4.2-rc7",
   "type": "module",
   "dependencies": {
     "@carbon/icons-react": "catalog:",
