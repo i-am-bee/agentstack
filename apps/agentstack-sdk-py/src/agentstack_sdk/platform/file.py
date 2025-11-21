@@ -12,7 +12,9 @@ import pydantic
 from a2a.types import FilePart, FileWithUri
 
 from agentstack_sdk.platform.client import PlatformClient, get_platform_client
+from agentstack_sdk.platform.common import PaginatedResult
 from agentstack_sdk.util.file import LoadedFile, LoadedFileWithUri, PlatformFileUrl
+from agentstack_sdk.util.utils import filter_dict
 
 
 class Extraction(pydantic.BaseModel):
@@ -211,3 +213,39 @@ class File(pydantic.BaseModel):
 
     def to_file_part(self: File) -> FilePart:
         return FilePart(file=FileWithUri(name=self.filename, uri=f"agentstack://{self.id}"))
+
+    @staticmethod
+    async def list(
+        *,
+        content_type: str | None = None,
+        filename_search: str | None = None,
+        page_token: str | None = None,
+        limit: int | None = None,
+        order: Literal["asc"] | Literal["desc"] | None = "asc",
+        order_by: Literal["created_at"] | Literal["filename"] | Literal["file_size_bytes"] | None = None,
+        client: PlatformClient | None = None,
+        context_id: str | None | Literal["auto"] = "auto",
+    ) -> PaginatedResult[File]:
+        # `self` has a weird type so that you can call both `instance.list_history()` or `ProviderBuild.list_history("123")`
+        async with client or get_platform_client() as platform_client:
+            context_id = platform_client.context_id if context_id == "auto" else context_id
+            return pydantic.TypeAdapter(PaginatedResult[File]).validate_python(
+                (
+                    await platform_client.get(
+                        url="/api/v1/files",
+                        params=filter_dict(
+                            {
+                                "context_id": context_id,
+                                "content_type": content_type,
+                                "filename_search": filename_search,
+                                "page_token": page_token,
+                                "limit": limit,
+                                "order": order,
+                                "order_by": order_by,
+                            }
+                        ),
+                    )
+                )
+                .raise_for_status()
+                .json()
+            )

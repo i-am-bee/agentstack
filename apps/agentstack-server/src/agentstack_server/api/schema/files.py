@@ -30,8 +30,6 @@ class FileUrlResponse(BaseModel):
 class FileListQuery(PaginationQuery):
     """Query schema for listing files."""
 
-    parent_id: UUID | None = None
-    context_id: UUID | None = None
     content_type: str | None = None
     filename_search: str | None = Field(
         default=None,

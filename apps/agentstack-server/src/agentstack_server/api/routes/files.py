@@ -48,7 +48,7 @@ async def list_files(
     file_service: FileServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresContextPermissions(files={"read"}))],
 ) -> PaginatedResult[File]:
-    return await file_service.list_user_files(user=user.user, query=query)
+    return await file_service.list_files(user=user.user, query=query, context_id=user.context_id)
 
 
 @router.get("/{file_id}")

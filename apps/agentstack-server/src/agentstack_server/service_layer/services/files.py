@@ -202,7 +202,9 @@ class FileService:
             await uow.files.delete_extraction(extraction_id=extraction.id)
             await uow.commit()
 
-    async def list_user_files(self, query: FileListQuery, user: User) -> PaginatedResult[File]:
+    async def list_files(
+        self, query: FileListQuery, user: User, context_id: UUID | None = None
+    ) -> PaginatedResult[File]:
         async with self._uow() as uow:
             return await uow.files.list_paginated(
                 user_id=user.id,
@@ -210,8 +212,7 @@ class FileService:
                 page_token=query.page_token,
                 order=query.order,
                 order_by=query.order_by,
-                parent_id=query.parent_id,
-                context_id=query.context_id,
+                context_id=context_id,
                 content_type=query.content_type,
                 filename_search=query.filename_search,
             )

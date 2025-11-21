@@ -21,7 +21,6 @@ class IFileRepository(Protocol):
         self,
         *,
         limit: int = 20,
-        parent_id: UUID | None = None,
         context_id: UUID | None = None,
         content_type: str | None = None,
         filename_search: str | None = None,

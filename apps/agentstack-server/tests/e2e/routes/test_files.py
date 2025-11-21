@@ -322,3 +322,320 @@ async def test_file_extraction_context_isolation(subtests, test_configuration):
 
         with subtests.test("clean up - delete file"):
             await File.delete(file_id, client=client_1)
+
+
+@pytest.mark.usefixtures("clean_up", "setup_platform_client")
+async def test_files_list(subtests):
+    """Test listing files with various filters and pagination"""
+
+    # Create multiple test files with different attributes
+    with subtests.test("create test files"):
+        file1 = await File.create(
+            filename="test_alpha.txt",
+            content=b"content alpha",
+            content_type="text/plain",
+        )
+        file2 = await File.create(
+            filename="test_beta.json",
+            content=b'{"key": "value"}',
+            content_type="application/json",
+        )
+        file3 = await File.create(
+            filename="test_gamma.txt",
+            content=b"content gamma",
+            content_type="text/plain",
+        )
+        file4 = await File.create(
+            filename="production_data.csv",
+            content=b"col1,col2\nval1,val2",
+            content_type="text/csv",
+        )
+
+    with subtests.test("list all files"):
+        result = await File.list()
+        assert len(result.items) >= 4
+        file_ids = {f.id for f in result.items}
+        assert file1.id in file_ids
+        assert file2.id in file_ids
+        assert file3.id in file_ids
+        assert file4.id in file_ids
+
+    with subtests.test("filter by filename_search"):
+        result = await File.list(filename_search="test_")
+        assert len(result.items) >= 3
+        for file in result.items:
+            assert "test_" in file.filename.lower()
+        # Verify file4 is not in the results
+        file_ids = {f.id for f in result.items}
+        assert file4.id not in file_ids
+
+    with subtests.test("filter by content_type - text/plain"):
+        result = await File.list(content_type="text/plain")
+        assert len(result.items) >= 2
+        for file in result.items:
+            assert file.content_type == "text/plain"
+        # Verify json file is not in the results
+        file_ids = {f.id for f in result.items}
+        assert file2.id not in file_ids
+
+    with subtests.test("filter by content_type - application/json"):
+        result = await File.list(content_type="application/json")
+        assert len(result.items) >= 1
+        file_ids = {f.id for f in result.items}
+        assert file2.id in file_ids
+        for file in result.items:
+            assert file.content_type == "application/json"
+
+    with subtests.test("pagination with limit"):
+        result = await File.list(limit=2)
+        assert len(result.items) <= 2
+        assert result.next_page_token is not None or len(result.items) < 2
+
+    with subtests.test("pagination with page_token"):
+        first_page = await File.list(limit=2)
+        if first_page.next_page_token:
+            second_page = await File.list(limit=2, page_token=first_page.next_page_token)
+            # Verify pages contain different items
+            first_page_ids = {f.id for f in first_page.items}
+            second_page_ids = {f.id for f in second_page.items}
+            assert first_page_ids.isdisjoint(second_page_ids)
+
+    with subtests.test("order by filename ascending"):
+        result = await File.list(
+            filename_search="test_",
+            order="asc",
+            order_by="filename",
+        )
+        filenames = [f.filename for f in result.items]
+        assert filenames == ["test_alpha.txt", "test_beta.json", "test_gamma.txt"]
+
+    with subtests.test("order by filename descending"):
+        result = await File.list(
+            filename_search="test_",
+            order="desc",
+            order_by="filename",
+        )
+        filenames = [f.filename for f in result.items]
+        assert filenames == ["test_gamma.txt", "test_beta.json", "test_alpha.txt"]
+
+    with subtests.test("order by created_at ascending"):
+        result = await File.list(
+            filename_search="test_",
+            order="asc",
+            order_by="created_at",
+        )
+        # Files were created in order: file1, file2, file3
+        filenames = [f.filename for f in result.items]
+        assert filenames == ["test_alpha.txt", "test_beta.json", "test_gamma.txt"]
+
+    with subtests.test("order by created_at descending"):
+        result = await File.list(
+            filename_search="test_",
+            order="desc",
+            order_by="created_at",
+        )
+        # Files were created in order: file3, file2, file1
+        filenames = [f.filename for f in result.items]
+        assert filenames == ["test_gamma.txt", "test_beta.json", "test_alpha.txt"]
+
+    with subtests.test("order by file_size_bytes descending"):
+        result = await File.list(
+            filename_search="test_",
+            order="desc",
+            order_by="file_size_bytes",
+        )
+        # Sizes: test_alpha.txt=13, test_beta.json=16, test_gamma.txt=13
+        filenames = [f.filename for f in result.items]
+        # test_beta.json (16 bytes) should be first, then the 13-byte files
+        assert filenames[0] == "test_beta.json"
+        assert set(filenames[1:]) == {"test_alpha.txt", "test_gamma.txt"}
+
+    with subtests.test("filter by context_id"):
+        # Create two contexts
+        ctx1 = await Context.create()
+        ctx2 = await Context.create()
+
+        # Generate context tokens
+        permissions = ContextPermissions(files={"read", "write"})
+        token_1 = await ctx1.generate_token(grant_context_permissions=permissions)
+        token_2 = await ctx2.generate_token(grant_context_permissions=permissions)
+
+        # Create platform clients with context tokens
+        async with (
+            PlatformClient(context_id=ctx1.id, auth_token=token_1.token.get_secret_value()) as client_1,
+            PlatformClient(context_id=ctx2.id, auth_token=token_2.token.get_secret_value()) as client_2,
+        ):
+            # Upload files in different contexts
+            ctx1_file1 = await File.create(
+                filename="ctx1_file1.txt",
+                content=b"context 1 file 1",
+                content_type="text/plain",
+                client=client_1,
+            )
+            ctx1_file2 = await File.create(
+                filename="ctx1_file2.txt",
+                content=b"context 1 file 2",
+                content_type="text/plain",
+                client=client_1,
+            )
+            ctx2_file1 = await File.create(
+                filename="ctx2_file1.txt",
+                content=b"context 2 file 1",
+                content_type="text/plain",
+                client=client_2,
+            )
+
+            # List files for context 1 using client_1
+            result = await File.list(client=client_1)
+            file_ids = {f.id for f in result.items}
+            assert ctx1_file1.id in file_ids
+            assert ctx1_file2.id in file_ids
+            assert ctx2_file1.id not in file_ids
+
+            # List files for context 2 using client_2
+            result = await File.list(client=client_2)
+            file_ids = {f.id for f in result.items}
+            assert ctx2_file1.id in file_ids
+            assert ctx1_file1.id not in file_ids
+            assert ctx1_file2.id not in file_ids
+
+    with subtests.test("combine multiple filters"):
+        result = await File.list(
+            filename_search="test_",
+            content_type="text/plain",
+            order="asc",
+            order_by="filename",
+        )
+        # Should get both text/plain files that match "test_" in alphabetical order
+        filenames = [f.filename for f in result.items]
+        assert filenames == ["test_alpha.txt", "test_gamma.txt"]
+        for file in result.items:
+            assert file.content_type == "text/plain"
+
+
+@pytest.mark.usefixtures("clean_up", "setup_platform_client")
+async def test_files_list_user_global_and_context_scoped(subtests):
+    """Test listing all user files (global) vs context-scoped files"""
+
+    # Create files without context (global user files)
+    with subtests.test("create global user files (no context)"):
+        global_file1 = await File.create(
+            filename="global_file1.txt",
+            content=b"global content 1",
+            content_type="text/plain",
+            context_id=None,
+        )
+        global_file2 = await File.create(
+            filename="global_file2.txt",
+            content=b"global content 2",
+            content_type="text/plain",
+            context_id=None,
+        )
+
+    # Create contexts and files within them
+    with subtests.test("create contexts"):
+        ctx1 = await Context.create()
+        ctx2 = await Context.create()
+
+    with subtests.test("generate context tokens"):
+        permissions = ContextPermissions(files={"read", "write"})
+        token_1 = await ctx1.generate_token(grant_context_permissions=permissions)
+        token_2 = await ctx2.generate_token(grant_context_permissions=permissions)
+
+    async with (
+        PlatformClient(context_id=ctx1.id, auth_token=token_1.token.get_secret_value()) as client_1,
+        PlatformClient(context_id=ctx2.id, auth_token=token_2.token.get_secret_value()) as client_2,
+    ):
+        with subtests.test("create files in context 1"):
+            ctx1_file1 = await File.create(
+                filename="ctx1_file1.txt",
+                content=b"context 1 content 1",
+                content_type="text/plain",
+                client=client_1,
+            )
+            ctx1_file2 = await File.create(
+                filename="ctx1_file2.txt",
+                content=b"context 1 content 2",
+                content_type="text/plain",
+                client=client_1,
+            )
+
+        with subtests.test("create files in context 2"):
+            ctx2_file1 = await File.create(
+                filename="ctx2_file1.txt",
+                content=b"context 2 content 1",
+                content_type="text/plain",
+                client=client_2,
+            )
+
+        # List all files for the user (no context filter)
+        with subtests.test("list all user files (context_id=None)"):
+            result = await File.list(context_id=None)
+            file_ids = {f.id for f in result.items}
+
+            # Should contain all files: global and context-scoped
+            assert global_file1.id in file_ids, "Global file 1 should be in results"
+            assert global_file2.id in file_ids, "Global file 2 should be in results"
+            assert ctx1_file1.id in file_ids, "Context 1 file 1 should be in results"
+            assert ctx1_file2.id in file_ids, "Context 1 file 2 should be in results"
+            assert ctx2_file1.id in file_ids, "Context 2 file 1 should be in results"
+
+        # List files within context 1 only
+        with subtests.test("list files in context 1 only"):
+            result = await File.list(client=client_1)
+            file_ids = {f.id for f in result.items}
+
+            # Should only contain context 1 files
+            assert ctx1_file1.id in file_ids, "Context 1 file 1 should be in results"
+            assert ctx1_file2.id in file_ids, "Context 1 file 2 should be in results"
+
+            # Should NOT contain global or context 2 files
+            assert global_file1.id not in file_ids, "Global file 1 should NOT be in context 1 results"
+            assert global_file2.id not in file_ids, "Global file 2 should NOT be in context 1 results"
+            assert ctx2_file1.id not in file_ids, "Context 2 file 1 should NOT be in context 1 results"
+
+        # List files within context 2 only
+        with subtests.test("list files in context 2 only"):
+            result = await File.list(client=client_2)
+            file_ids = {f.id for f in result.items}
+
+            # Should only contain context 2 files
+            assert ctx2_file1.id in file_ids, "Context 2 file 1 should be in results"
+
+            # Should NOT contain global or context 1 files
+            assert global_file1.id not in file_ids, "Global file 1 should NOT be in context 2 results"
+            assert global_file2.id not in file_ids, "Global file 2 should NOT be in context 2 results"
+            assert ctx1_file1.id not in file_ids, "Context 1 file 1 should NOT be in context 2 results"
+            assert ctx1_file2.id not in file_ids, "Context 1 file 2 should NOT be in context 2 results"
+
+        # List all user files with filename filter
+        with subtests.test("list all user files with filename filter"):
+            result = await File.list(
+                filename_search="global_",
+                context_id=None,
+            )
+            file_ids = {f.id for f in result.items}
+
+            # Should only contain global files matching the filter
+            assert global_file1.id in file_ids
+            assert global_file2.id in file_ids
+            assert ctx1_file1.id not in file_ids
+            assert ctx2_file1.id not in file_ids
+
+        # List all user files ordered by filename desc
+        with subtests.test("list all user files ordered by filename desc"):
+            result = await File.list(
+                context_id=None,
+                order="desc",
+                order_by="filename",
+            )
+            filenames = [f.filename for f in result.items]
+
+            # Verify files are ordered alphabetically descending
+            expected_order = sorted(
+                ["global_file1.txt", "global_file2.txt", "ctx1_file1.txt", "ctx1_file2.txt", "ctx2_file1.txt"],
+                reverse=True,
+            )
+            # Filter to only our test files
+            test_filenames = [f for f in filenames if f in expected_order]
+            assert test_filenames == expected_order
