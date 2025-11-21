@@ -87,6 +87,12 @@ jobs:
         run: |
           echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
           echo "latestTag=$([[ ${GITHUB_REF#refs/tags/v} =~ [a-zA-Z] ]] && echo prerelease || echo latest)" >> $GITHUB_OUTPUT
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          if [[ "$VERSION" =~ [Rr][Cc] ]]; then
+            echo "npmTag=rc" >> $GITHUB_OUTPUT
+          else
+            echo "npmTag=latest" >> $GITHUB_OUTPUT
+          fi
       - uses: ./.github/actions/setup
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -152,10 +158,6 @@ jobs:
         with:
           packages-dir: apps/agentstack-cli/dist
 
-      - name: Update npm
-        working-directory: apps/agentstack-sdk-ts
-        run: npm install -g npm@latest
-
       - name: Publish TS SDK
         working-directory: apps/agentstack-sdk-ts
-        run: npm publish --tag rc
+        run: npm publish --tag ${{ steps.version.outputs.npmTag }}
