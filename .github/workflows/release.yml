@@ -152,6 +152,10 @@ jobs:
         with:
           packages-dir: apps/agentstack-cli/dist
 
+      - name: Update npm
+        working-directory: apps/agentstack-sdk-ts
+        run: npm install -g npm@latest
+
       - name: Publish TS SDK
         working-directory: apps/agentstack-sdk-ts
         run: npm publish
