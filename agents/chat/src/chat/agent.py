@@ -9,6 +9,30 @@ from a2a.types import (
     AgentSkill,
     Message,
 )
+from pydantic import BaseModel
+
+from agentstack_sdk.a2a.extensions import (
+    AgentDetail,
+    AgentDetailContributor,
+    AgentDetailTool,
+    BaseExtensionServer,
+    BaseExtensionSpec,
+    CitationExtensionServer,
+    CitationExtensionSpec,
+    TrajectoryExtensionServer,
+    TrajectoryExtensionSpec,
+    LLMServiceExtensionServer,
+    LLMServiceExtensionSpec,
+)
+
+# Monkey-patch to remove FormExtensionSpec which no longer exists
+# TODO: remove after next release
+import agentstack_sdk.a2a.extensions as agentstack_extensions
+
+agentstack_extensions.FormExtensionSpec = BaseExtensionSpec
+agentstack_extensions.FormExtensionServer = BaseExtensionServer
+agentstack_extensions.TextField = BaseModel
+
 from beeai_framework.adapters.agentstack.backend.chat import AgentStackChatModel
 from beeai_framework.agents.requirement import RequirementAgent
 from beeai_framework.agents.requirement.events import (
@@ -24,17 +48,6 @@ from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
 from beeai_framework.tools.search.wikipedia import WikipediaTool
 from beeai_framework.tools.weather import OpenMeteoTool
 from beeai_framework.backend import ChatModelParameters
-from agentstack_sdk.a2a.extensions import (
-    AgentDetail,
-    AgentDetailContributor,
-    AgentDetailTool,
-    CitationExtensionServer,
-    CitationExtensionSpec,
-    TrajectoryExtensionServer,
-    TrajectoryExtensionSpec,
-    LLMServiceExtensionServer,
-    LLMServiceExtensionSpec,
-)
 from agentstack_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionServer,
     PlatformApiExtensionSpec,

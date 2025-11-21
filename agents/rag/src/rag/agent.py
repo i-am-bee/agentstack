@@ -7,16 +7,7 @@ import logging
 from typing import Annotated
 import os
 
-from a2a.types import AgentSkill, Message
-from beeai_framework.adapters.agentstack.backend.chat import AgentStackChatModel
-from beeai_framework.agents.requirement import RequirementAgent
-
-from beeai_framework.emitter import EmitterOptions
-from beeai_framework.memory import UnconstrainedMemory
-from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
-from beeai_framework.tools import Tool
-from openai import AsyncOpenAI
-
+from pydantic import BaseModel
 from agentstack_sdk.a2a.extensions import (
     AgentDetail,
     CitationExtensionServer,
@@ -27,7 +18,28 @@ from agentstack_sdk.a2a.extensions import (
     LLMServiceExtensionSpec,
     EmbeddingServiceExtensionServer,
     EmbeddingServiceExtensionSpec,
+    BaseExtensionSpec,
+    BaseExtensionServer,
 )
+
+# Monkey-patch to remove FormExtensionSpec which no longer exists
+# TODO: remove after next release
+import agentstack_sdk.a2a.extensions as agentstack_extensions
+
+agentstack_extensions.FormExtensionSpec = BaseExtensionSpec
+agentstack_extensions.FormExtensionServer = BaseExtensionServer
+agentstack_extensions.TextField = BaseModel
+
+from a2a.types import AgentSkill, Message
+from beeai_framework.adapters.agentstack.backend.chat import AgentStackChatModel
+from beeai_framework.agents.requirement import RequirementAgent
+
+from beeai_framework.emitter import EmitterOptions
+from beeai_framework.memory import UnconstrainedMemory
+from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
+from beeai_framework.tools import Tool
+from openai import AsyncOpenAI
+
 from agentstack_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionServer,
     PlatformApiExtensionSpec,
