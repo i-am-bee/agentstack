@@ -154,4 +154,4 @@ jobs:
 
       - name: Publish TS SDK
         working-directory: apps/agentstack-sdk-ts
-        run: pnpm publish --access public --no-git-checks
+        run: npm publish
