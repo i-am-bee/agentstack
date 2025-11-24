@@ -1,6 +1,5 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-import os
 from collections.abc import Callable
 from datetime import timedelta
 from io import BytesIO
@@ -649,13 +648,10 @@ async def test_files_list_user_isolation(subtests, test_configuration):
 
     This test verifies user-level data isolation - each user should only see their own files,
     not files uploaded by other users.
+
+    NOTE: This test requires basic auth to be enabled to distinguish between users!
     """
     base_url = test_configuration.server_url
-
-    # This test requires basic auth to be enabled to distinguish between users
-    assert os.environ.get("AUTH__BASIC__ENABLED", "").lower() == "true", (
-        "AUTH__BASIC__ENABLED must be true for this test. When disabled, all requests are treated as the same user."
-    )
 
     # Use admin user and regular user to test isolation
     # With basic auth enabled:
