@@ -158,7 +158,7 @@ async def refresh_unmanaged_provider_state(
                     state = UnmanagedState.ONLINE
 
         except HTTPError as ex:
-            logger.warning(f"Provider {provider.id} failed to respond to ping in 20 seconds: {extract_messages(ex)}")
+            logger.warning(f"Provider {provider.id} failed to respond to ping in {int(timeout_sec)} seconds: {extract_messages(ex)}")
             state = UnmanagedState.OFFLINE
         finally:
             # Unified update: patch both agent card (if changed) and state (if changed) in a single call
