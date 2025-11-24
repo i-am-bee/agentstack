@@ -133,6 +133,7 @@ async def refresh_unmanaged_provider_state(
     async def _check_provider(provider: Provider):
         state = UnmanagedState.OFFLINE
         resp_card = None
+        should_update_provider = True
 
         user = await user_service.get_user_by_email("admin@beeai.dev")
 
@@ -150,18 +151,22 @@ async def refresh_unmanaged_provider_state(
                 if provider_self_reg_ext is not None and resp_self_reg_ext is not None:
                     if provider_self_reg_ext.params == resp_self_reg_ext.params:
                         state = UnmanagedState.ONLINE
+                    else:
+                        # Different agent responding at the same URL, don't update this provider
+                        should_update_provider = False
                 else:
                     state = UnmanagedState.ONLINE
 
         except HTTPError as ex:
-            logger.warning(f"Provider {provider.id} failed to respond to ping in 30 seconds: {extract_messages(ex)}")
+            logger.warning(f"Provider {provider.id} failed to respond to ping in 20 seconds: {extract_messages(ex)}")
             state = UnmanagedState.OFFLINE
         finally:
             # Unified update: patch both agent card (if changed) and state (if changed) in a single call
-            card_changes = provider.agent_card != resp_card
+            # Only detect card changes if we got a response (resp_card is not None)
+            card_changes = resp_card is not None and provider.agent_card != resp_card
             state_changed = state != provider.unmanaged_state
 
-            if card_changes or state_changed:
+            if should_update_provider and (card_changes or state_changed):
                 try:
                     await provider_service.patch_provider(
                         provider_id=provider.id,
