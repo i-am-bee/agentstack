@@ -250,6 +250,8 @@ class ConnectorService:
 
         try:
             await self.probe_connector(connector=connector)
+            connector.state = ConnectorState.connected
+            connector.disconnect_reason = None
         except Exception as err:
             if isinstance(err, httpx.HTTPStatusError) and err.response.status_code == status.HTTP_401_UNAUTHORIZED:
                 await self._revoke_auth_token(connector=connector)
