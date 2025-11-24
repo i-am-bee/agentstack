@@ -239,15 +239,16 @@ class ConnectorService:
         async with self._uow() as uow:
             connector = await uow.connectors.get(connector_id=connector_id, user_id=user.id if user else None)
 
-        if connector.state != ConnectorState.connected:
+        if connector.state not in (ConnectorState.connected, ConnectorState.disconnected):
             return
 
         try:
             await self.probe_connector(connector=connector)
         except Exception as err:
-            await self._revoke_auth_token(connector=connector)
-            if connector.auth:
-                connector.auth.flow = None
+            if isinstance(err, httpx.HTTPStatusError) and err.response.status_code == status.HTTP_401_UNAUTHORIZED:
+                await self._revoke_auth_token(connector=connector)
+                if connector.auth:
+                    connector.auth.flow = None
             connector.state = ConnectorState.disconnected
             connector.disconnect_reason = str(err)
         finally:
