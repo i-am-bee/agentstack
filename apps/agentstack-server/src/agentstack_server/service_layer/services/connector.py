@@ -139,9 +139,10 @@ class ConnectorService:
         async with self._uow() as uow:
             connector = await uow.connectors.get(connector_id=connector_id, user_id=user.id if user else None)
 
-        if connector.state not in (ConnectorState.connected, ConnectorState.auth_required):
+        if connector.state not in (ConnectorState.connected, ConnectorState.disconnected, ConnectorState.auth_required):
             raise PlatformError(
-                "Connector must be in connected or auth_required state", status_code=status.HTTP_400_BAD_REQUEST
+                "Connector must be in connected, disconnected or auth_required state",
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
 
         await self._revoke_auth_token(connector=connector)
