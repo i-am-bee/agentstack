@@ -111,11 +111,17 @@ class ConnectorService:
                     )
                     connector.state = ConnectorState.auth_required
                 else:
+                    logger.error("Connector failed", exc_info=True)
+                    try:
+                        error = (await err.response.aread()).decode(err.response.encoding or "utf-8")
+                    except Exception:
+                        error = "Connector has returned an error"
                     raise PlatformError(
-                        (await err.response.aread()).decode(err.response.encoding or "utf-8"),
+                        error,
                         status_code=status.HTTP_502_BAD_GATEWAY,
                     ) from err
             elif isinstance(err, httpx.RequestError):
+                logger.error("Connector failed", exc_info=True)
                 raise PlatformError(
                     "Unable to establish connection with the connector",
                     status_code=status.HTTP_504_GATEWAY_TIMEOUT,
