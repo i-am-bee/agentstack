@@ -173,6 +173,7 @@ async def refresh_unmanaged_provider_state(
                         user=user,
                         agent_card=resp_card if card_changes else None,
                         unmanaged_state=state if state_changed else None,
+                        allow_registry_update=True,
                     )
                 except Exception as ex:
                     if isinstance(ex, asyncio.CancelledError):
