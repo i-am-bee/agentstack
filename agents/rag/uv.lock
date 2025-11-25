@@ -79,8 +79,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.68" },
-    { name = "ddgs", specifier = ">=9.9.1" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.69" },
     { name = "pyright", specifier = ">=1.1.403" },
     { name = "pytest", specifier = ">=8.4.1" },
     { name = "pytest-asyncio", specifier = ">=1.1.0" },
@@ -206,7 +205,7 @@ wheels = [
 
 [[package]]
 name = "beeai-framework"
-version = "0.1.68"
+version = "0.1.69"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -220,14 +219,15 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/13/09/273332fd7bfae65b8cc555ab71007015ed5faa8f009d1138891d930136e8/beeai_framework-0.1.68.tar.gz", hash = "sha256:9a95c62b167196e992b9af0201f417d88db348c02cb6ae213608816a66b30369", size = 180637, upload-time = "2025-11-19T17:21:23.427Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8a/5c/358fe12d50b59757b053ca3972cca1e2d64109d873b170e3914b8cadb15d/beeai_framework-0.1.69.tar.gz", hash = "sha256:8a4f2cd05b645437e7c9a7df1531bef842a883c515686529746644d2457fbc12", size = 183847, upload-time = "2025-11-25T16:28:53.965Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/35/b8/70c5868dd6441fae444bec7fca20b4e24a740714af42bf80478961ec078a/beeai_framework-0.1.68-py3-none-any.whl", hash = "sha256:2243044af896b0a4b2c666da9b549a2f00b264089f9debf797cd0bba6129ac40", size = 333809, upload-time = "2025-11-19T17:21:22.242Z" },
+    { url = "https://files.pythonhosted.org/packages/fb/71/7f875c9e9de830f1593321e0e7637614f1a23dedf2d1d441e39a0e4de1b4/beeai_framework-0.1.69-py3-none-any.whl", hash = "sha256:5ae1a66b0a2abba83b9918ad3111cbfb4a2a42b2434d3a398e1baa22dd8554f9", size = 340355, upload-time = "2025-11-25T16:28:52.608Z" },
 ]
 
 [package.optional-dependencies]
 a2a = [
     { name = "a2a-sdk", extra = ["grpc", "http-server", "telemetry"] },
+    { name = "grpcio-health-checking" },
     { name = "types-grpcio" },
     { name = "types-grpcio-reflection" },
     { name = "uvicorn" },
@@ -568,6 +568,19 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/1a/74/fd3317be5672f4856bcdd1a9e7b5e17554692d3db9a3b273879dc02d657d/grpcio-1.76.0-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:931091142fd8cc14edccc0845a79248bc155425eee9a98b2db2ea4f00a235a42", size = 7589983, upload-time = "2025-10-21T16:22:07.881Z" },
     { url = "https://files.pythonhosted.org/packages/45/bb/ca038cf420f405971f19821c8c15bcbc875505f6ffadafe9ffd77871dc4c/grpcio-1.76.0-cp313-cp313-win32.whl", hash = "sha256:5e8571632780e08526f118f74170ad8d50fb0a48c23a746bef2a6ebade3abd6f", size = 3984727, upload-time = "2025-10-21T16:22:10.032Z" },
     { url = "https://files.pythonhosted.org/packages/41/80/84087dc56437ced7cdd4b13d7875e7439a52a261e3ab4e06488ba6173b0a/grpcio-1.76.0-cp313-cp313-win_amd64.whl", hash = "sha256:f9f7bd5faab55f47231ad8dba7787866b69f5e93bc306e3915606779bbfb4ba8", size = 4702799, upload-time = "2025-10-21T16:22:12.709Z" },
+]
+
+[[package]]
+name = "grpcio-health-checking"
+version = "1.76.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "grpcio" },
+    { name = "protobuf" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3e/96/5a52dcf21078b47ffa0c2ed613c3153a06f138edb6133792bace5f1ccc1d/grpcio_health_checking-1.76.0.tar.gz", hash = "sha256:b7a99d74096b3ab3a59987fc02374068e1c180a352e8d1f79f10e5a23727098d", size = 16784, upload-time = "2025-10-21T16:28:55.204Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/65/e6/746dffa51399827e38bb3f3f1ad656a3d8c1255039b256a6f76593368768/grpcio_health_checking-1.76.0-py3-none-any.whl", hash = "sha256:9743f345a855ba030cc7c381361606870b79d33bb71d7756efa47b6faa970f81", size = 18910, upload-time = "2025-10-21T16:27:26.332Z" },
 ]
 
 [[package]]
@@ -1511,7 +1524,6 @@ source = { editable = "." }
 dependencies = [
     { name = "agentstack-sdk" },
     { name = "beeai-framework", extra = ["a2a", "duckduckgo", "wikipedia"] },
-    { name = "ddgs" },
     { name = "fastuuid" },
     { name = "langchain-text-splitters" },
     { name = "openai" },
@@ -1530,8 +1542,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "agentstack-sdk", editable = "../../apps/agentstack-sdk-py" },
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia", "a2a"], specifier = ">=0.1.68" },
-    { name = "ddgs", specifier = ">=9.9.1" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia", "a2a"], specifier = ">=0.1.69" },
     { name = "fastuuid", specifier = ">=0.14.0" },
     { name = "langchain-text-splitters", specifier = ">=0.3.0" },
     { name = "openai", specifier = ">=1.107.1" },

@@ -9,7 +9,7 @@ from a2a.types import (
     AgentSkill,
     Message,
 )
-from beeai_framework.agents.requirement.types import RequirementAgentRunStateStep, RequirementAgentRunState
+from beeai_framework.agents.requirement.utils._tool import FinalAnswerTool
 from pydantic import BaseModel
 
 from agentstack_sdk.a2a.extensions import (
@@ -37,17 +37,15 @@ agentstack_extensions.TextField = BaseModel
 from beeai_framework.adapters.agentstack.backend.chat import AgentStackChatModel
 from beeai_framework.agents.requirement import RequirementAgent
 from beeai_framework.agents.requirement.events import (
-    RequirementAgentStartEvent,
     RequirementAgentSuccessEvent,
     RequirementAgentFinalAnswerEvent,
 )
-from beeai_framework.agents.requirement.utils._tool import FinalAnswerTool
 from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
 from beeai_framework.tools import Tool
 from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
 from beeai_framework.tools.search.wikipedia import WikipediaTool
 from beeai_framework.tools.weather import OpenMeteoTool
-from beeai_framework.backend import ChatModelParameters
+from beeai_framework.backend import ChatModelParameters, AssistantMessage
 from agentstack_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionServer,
     PlatformApiExtensionSpec,
@@ -73,7 +71,7 @@ server = Server()
 
 
 @server.agent(
-    name="Chat",
+    name="ChatV2",
     documentation_url=(
         f"https://github.com/i-am-bee/agentstack/blob/{os.getenv('RELEASE_VERSION', 'main')}/agents/chat"
     ),
@@ -235,7 +233,7 @@ async def chat(
         middlewares=[GlobalTrajectoryMiddleware(included=[Tool])],
     )
 
-    final_answer = None
+    final_answer: AssistantMessage | None = None
     new_messages = [to_framework_message(item, extracted_files) for item in history]
 
     async for event, meta in agent.run(
@@ -259,29 +257,22 @@ async def chat(
                 yield delta
             case RequirementAgentSuccessEvent(state=state):
                 final_answer = state.answer
-            case RequirementAgentStartEvent(
-                state=RequirementAgentRunState(
-                    steps=[
-                        *_,
-                        RequirementAgentRunStateStep(
-                            tool=Tool() as tool,
-                            input=tool_input,
-                            output=tool_output,
-                            error=tool_error,
-                        ),
-                    ]
-                )
-            ):
-                if tool.name == FinalAnswerTool.name:
+
+                last_step = state.steps[-1]
+                if last_step.tool.name == FinalAnswerTool.name:  # internal tool
                     continue
 
-                trajectory_content = TrajectoryContent(input=tool_input, output=tool_output, error=tool_error)
-                metadata = trajectory.trajectory_metadata(title=tool.name, content=trajectory_content.model_dump_json())
+                trajectory_content = TrajectoryContent(
+                    input=last_step.input, output=last_step.output, error=last_step.error
+                )
+                metadata = trajectory.trajectory_metadata(
+                    title=last_step.tool.name, content=trajectory_content.model_dump_json(), group_id=last_step.id
+                )
                 yield metadata
                 await context.store(AgentMessage(metadata=metadata))
 
-                if isinstance(tool_output, FileCreatorToolOutput):
-                    for file_info in tool_output.result.files:
+                if isinstance(last_step.output, FileCreatorToolOutput):
+                    for file_info in last_step.output.result.files:
                         part = file_info.file.to_file_part()
                         part.file.name = file_info.display_filename
                         artifact = AgentArtifact(name=file_info.display_filename, parts=[part])
