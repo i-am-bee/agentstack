@@ -5,19 +5,11 @@ import os
 from typing import Annotated
 from pydantic import BaseModel
 
-import a2a.server.agent_execution
-import a2a.server.apps
-import a2a.server.events
-import a2a.server.request_handlers
-import a2a.server.tasks
-from a2a.types import (
-    Message,
-)
+import a2a.types
+from a2a.types import Message
 
-from a2a.utils.message import get_message_text
 
 from agentstack_sdk.server import Server
-from agentstack_sdk.server.context import RunContext
 
 import agentstack_sdk.a2a.extensions
 from agentstack_sdk.a2a.extensions.common.form import (
@@ -76,6 +68,7 @@ form_extension_spec = FormServiceExtensionSpec.demand(initial_form=form_render)
 
 server = Server()
 
+
 class FormData(BaseModel):
     location: str | None
     date_from: str | None
@@ -83,6 +76,7 @@ class FormData(BaseModel):
     notes: list[FileInfo] | None
     flexible: bool | None
     interests: list[str] | None
+
 
 @server.agent(
     name="Single-turn Form Agent",

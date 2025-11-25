@@ -7,16 +7,14 @@ from typing import Iterable
 
 import pydantic
 from a2a.types import FilePart, FileWithUri, Message, Role
-from beeai_framework.backend import AssistantMessage, UserMessage
+from beeai_framework.backend import AnyMessage, AssistantMessage, UserMessage
 
 from agentstack_sdk.platform import File
 from agentstack_sdk.util.file import PlatformFileUrl
 from chat.tools.files.model import FileChatInfo
 
-FrameworkMessage = UserMessage | AssistantMessage
 
-
-def to_framework_message(message: Message, all_attachments: list[FileChatInfo]) -> FrameworkMessage:
+def to_framework_message(message: Message, all_attachments: list[FileChatInfo]) -> AnyMessage:
     message_text = "".join(part.root.text for part in message.parts if part.root.kind == "text")
     if attachments := [file for file in all_attachments if file.message_id == message.message_id]:
         message_text += "\nAttached files:\n" + "\n".join([file.description for file in attachments])

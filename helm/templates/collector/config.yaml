@@ -58,18 +58,18 @@ data:
           receivers: [ otlp ]
           processors: [ memory_limiter, filter/phoenix, batch ]
           exporters: [ otlp/phoenix ]
-        metrics/phoenix:
-          receivers: [ otlp ]
-          exporters: [ nop ]
-        logs/phoenix:
-          receivers: [ otlp ]
-          exporters: [ nop ]
         {{ else }}
         traces/nop:
           receivers: [ otlp ]
           processors: [ ]
           exporters: [ nop ]
         {{- end }}
+        metrics/nop:
+          receivers: [ otlp ]
+          exporters: [ nop ]
+        logs/nop:
+          receivers: [ otlp ]
+          exporters: [ nop ]
         {{- if .Values.collector.pipelines }}
         {{ toYaml .Values.collector.pipelines | nindent 8 }}
         {{- end }}

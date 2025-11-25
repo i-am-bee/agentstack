@@ -76,9 +76,6 @@ from rag.tools.general.current_time import CurrentTimeTool
 from agentstack_sdk.server.store.platform_context_store import PlatformContextStore
 
 BeeAIInstrumentor().instrument()
-## TODO: https://github.com/phoenixframework/phoenix/issues/6224
-logging.getLogger("opentelemetry.exporter.otlp.proto.http._log_exporter").setLevel(logging.CRITICAL)
-logging.getLogger("opentelemetry.exporter.otlp.proto.http.metric_exporter").setLevel(logging.CRITICAL)
 
 logger = logging.getLogger(__name__)
 
