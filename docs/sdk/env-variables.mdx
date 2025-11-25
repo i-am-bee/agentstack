@@ -1,0 +1,122 @@
+---
+title: "Environment Variables"
+description: "Declare which environment variables the agent requires so they can be provided by the Agent Stack runtime."
+---
+
+Sometimes you need to configure your agent with environment variables that should be provided by the runtime.
+
+For example, you might want to globally enable or disable thinking mode for all users of your agent, or configure API endpoints, feature flags, or other environment settings.
+
+Normally, you would set these environment variables directly in your deployment environment. However, when your agent is deployed to Agent Stack via the `agentstack add` command, the platform manages the runtime environment and you can't directly control it.
+
+The Agent Stack platform allows you to declare environment variable requirements through `AgentDetail`. The platform will then provide these variables to your agent at runtime, and you can access them using standard `os.getenv()` calls.
+
+<Tip>
+Environment variables declared in `AgentDetail` are automatically provided by the Agent Stack platform when your agent is deployed via `agentstack add`. When running your agent locally or with auto-registration via SDK, you're responsible for providing these variables yourself.
+</Tip>
+
+## Quickstart
+
+<Steps>
+<Step title="Import AgentDetail and EnvVar">
+Import the necessary components from the Agent Stack SDK.
+</Step>
+
+<Step title="Declare environment variables">
+Add an `EnvVar` list to the `variables` field in your `AgentDetail` configuration.
+</Step>
+
+<Step title="Deploy your agent to the Agent Stack">
+Use `agentstack add` command to [deploy your agent in Agent Stack](/guides/deploy-your-agents)
+</Step>
+
+<Step title="Configure the variables via CLI">
+Configure environment variables for your agent using `agentstack env add "Name or ID of your Agent" KEY=VALUE`.
+</Step>
+
+
+<Step title="Access environment variables">
+Use `os.getenv()` to access the environment variables in your agent code.
+</Step>
+</Steps>
+
+## Basic Environment Variables Example
+
+Here's how to request environment variables for your agent:
+
+```python
+import os
+
+from a2a.types import Message
+from agentstack_sdk.a2a.extensions.ui.agent_detail import EnvVar
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
+from agentstack_sdk.a2a.extensions import AgentDetail
+
+server = Server()
+
+
+@server.agent(
+    detail=AgentDetail(
+        variables=[
+            EnvVar(
+                name="THINKING_ENABLED",
+                description="Whether to enable thinking mode for all users",
+                required=True
+            )
+        ]
+    )
+)
+async def env_var_agent(input: Message, context: RunContext):
+    """Agent that uses environment variables for configuration"""
+    thinking_enabled = os.getenv("THINKING_ENABLED", "false").lower() == "true"
+    
+    if thinking_enabled:
+        yield "Thinking mode is enabled. I'll show my reasoning process."
+    else:
+        yield "Thinking mode is disabled. I'll provide direct responses."
+
+
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+
+if __name__ == "__main__":
+    run()
+```
+
+## Managing Environment Variables
+
+Once your agent is deployed to Agent Stack, you need to provide the environment variables it requires. You can manage these variables using the `agentstack env` CLI commands.
+
+### Adding Environment Variables
+
+To provide environment variables to your agent, use the `agentstack env add` command:
+
+```bash
+agentstack env add "Name or ID of the agent" FIRST_VAR=VALUE SECOND_VAR=VALUE ...
+```
+
+<Tip>
+You can add multiple variables at once by including them all in a single command.
+</Tip>
+
+### Listing Environment Variables
+
+To view the environment variables configured for an agent:
+
+```bash
+agentstack env list "Name or ID of the agent"
+```
+
+### Removing Environment Variables
+
+To remove an environment variable from an agent:
+
+```bash
+agentstack env remove "Name or ID of the agent" VARIABLE_NAME
+```
+
+### Checking Missing Variables
+
+When a required variable hasn't been provided, you can see this in the agent list. Use `agentstack list` to view all agents - the `MISSING ENV` column shows which variables still need to be configured.

@@ -12,10 +12,7 @@
     "groups": [
       {
         "group": "Introduction",
-        "pages": [
-          "introduction/welcome", 
-          "introduction/quickstart"
-        ]
+        "pages": ["introduction/welcome", "introduction/quickstart"]
       },
       {
         "group": "Deploy to Agent Stack",
@@ -42,7 +39,8 @@
           "sdk/secrets",
           "sdk/rag",
           "sdk/mcp-oauth",
-          "sdk/mcp"
+          "sdk/mcp",
+          "sdk/env-variables"
         ]
       },
       {
@@ -56,7 +54,7 @@
       {
         "group": "Deploy Agent Stack for Your Team",
         "pages": [
-          "guides/deployment-guide", 
+          "guides/deployment-guide",
           "guides/authenticate-cli-to-server"
         ]
       },
