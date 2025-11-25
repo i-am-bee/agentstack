@@ -7,5 +7,7 @@ import rehypeKatex from 'rehype-katex';
 import type { PluggableList } from 'unified';
 
 import { rehypeInlineCode } from './rehypeInlineCode';
+import { rehypeSourcePosition } from './rehypeSourcePosition';
 
-export const rehypePlugins = [rehypeKatex, rehypeInlineCode] satisfies PluggableList;
+// TODO: remove rehypeSourcePosition from global plugins
+export const rehypePlugins = [rehypeKatex, rehypeInlineCode, rehypeSourcePosition] satisfies PluggableList;

@@ -2,18 +2,31 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
+import random
 import re
 from typing import Annotated
 
 from a2a.types import Message, TextPart
 
-from agentstack_sdk.a2a.extensions import LLMServiceExtensionServer, LLMServiceExtensionSpec
 from agentstack_sdk.a2a.extensions.ui.canvas import CanvasExtensionServer, CanvasExtensionSpec
 from agentstack_sdk.a2a.types import AgentArtifact, AgentMessage
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
 
 server = Server()
+
+RECIPE_TITLES = [
+    "Bread with butter",
+    "Classic Spaghetti Carbonara",
+    "Chocolate Chip Cookies",
+    "Caesar Salad",
+    "Grilled Cheese Sandwich",
+    "Banana Smoothie",
+    "Margherita Pizza",
+    "Chicken Stir-Fry",
+    "French Toast",
+    "Avocado Toast",
+]
 
 
 @server.agent(
@@ -28,22 +41,26 @@ async def artifacts_agent(
     ],
 ):
     """Works with artifacts"""
-    
+
     await context.store(input)
 
     # canvas_edit_request = await canvas.parse_canvas_edit_request(message=input)
 
     # history = [message async for message in context.load_history() if isinstance(message, Message) and message.parts]
 
-    response = """\
+    recipe_title = random.choice(RECIPE_TITLES)
+
+    response = f"""\
 Here's your recipe:
 
 ```recipe
-# Bread with butter
+# {recipe_title}
 
 ## Ingredients
 - bread (1 slice)
 - butter (1 slice)
+
+![test image](agentstack://artifact-test-image)
 
 ## Instructions
 1. Cut a slice of bread.
@@ -71,6 +88,7 @@ Enjoy your meal!
     recipe_content = match.group(1).strip()
     first_line = recipe_content.split("\n", 1)[0]
     artifact = AgentArtifact(
+        # artifact_id='recipe-artifact-1',
         name=first_line.lstrip("# ").strip() if first_line.startswith("#") else "Recipe",
         parts=[TextPart(text=recipe_content)],
     )
@@ -81,8 +99,6 @@ Enjoy your meal!
         message = AgentMessage(text=post_text)
         yield message
         await context.store(message)
-        
-    
 
 
 if __name__ == "__main__":

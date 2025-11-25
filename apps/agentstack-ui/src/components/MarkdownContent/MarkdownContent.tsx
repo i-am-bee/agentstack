@@ -6,7 +6,7 @@
 import 'katex/dist/katex.min.css';
 
 import clsx from 'clsx';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import type { Components } from 'react-markdown';
 import Markdown from 'react-markdown';
 import type { PluggableList } from 'unified';
@@ -37,6 +37,8 @@ export function MarkdownContent({
   components: componentsProps,
   children,
 }: MarkdownContentProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const extendedComponents: ExtendedComponents = useMemo(
     () => ({
       ...components,
@@ -51,7 +53,7 @@ export function MarkdownContent({
 
   return (
     <MermaidProvider>
-      <div className={clsx(classes.root, className)}>
+      <div ref={containerRef} className={clsx(classes.root, className)}>
         <Markdown
           rehypePlugins={rehypePlugins}
           remarkPlugins={extendedRemarkPlugins}

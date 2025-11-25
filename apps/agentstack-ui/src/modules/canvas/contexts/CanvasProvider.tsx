@@ -27,9 +27,11 @@ export function CanvasProvider({ agentClient, children }: PropsWithChildren<Prop
       return null;
     }
 
-    return messages.flatMap((message) =>
+    const artifacts = messages.flatMap((message) =>
       isAgentMessage(message) ? message.parts.filter((part) => part.kind === UIMessagePartKind.Artifact) : [],
     );
+    artifacts.reverse();
+    return artifacts;
   }, [agentClient?.demands.canvasDemands, messages]);
 
   const artifactsRef = useRef(artifacts);
@@ -40,6 +42,7 @@ export function CanvasProvider({ agentClient, children }: PropsWithChildren<Prop
   }, []);
 
   const lastArtifact = artifacts?.at(-1);
+
   useEffect(() => {
     setActiveArtifactId(lastArtifact?.artifactId ?? null);
   }, [lastArtifact]);

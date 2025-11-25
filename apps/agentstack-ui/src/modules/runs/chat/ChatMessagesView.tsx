@@ -41,12 +41,13 @@ export function ChatMessagesView() {
   const { artifacts } = useCanvas();
 
   const showScrollToBottom = messages.length > 0 && isScrolled;
+  const isCanvasView = Boolean(artifacts?.length);
 
   return (
     <FileUpload>
       <div
         className={clsx(classes.root, {
-          [classes.canvasView]: Boolean(artifacts?.length),
+          [classes.canvasView]: isCanvasView,
         })}
       >
         <div className={classes.holder}>

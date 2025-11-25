@@ -3,22 +3,38 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 
 import { CopyButton } from '#components/CopyButton/CopyButton.tsx';
-import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
+import type { MarkdownSelection } from '#components/MarkdownContent/index.ts';
 import { UIMessagePartKind } from '#modules/messages/types.ts';
 
 import { useCanvas } from '../contexts';
+import { CanvasMarkdownContent } from '../markdown/CanvasMarkdownContent';
 import classes from './Canvas.module.scss';
 
 export function Canvas() {
   const { activeArtifact } = useCanvas();
   const contentRef = useRef(null);
 
+  const content = useMemo(
+    () => activeArtifact?.parts.map((part) => part.kind === UIMessagePartKind.Text && part.text).join(''),
+    [activeArtifact],
+  );
+
   if (!activeArtifact) {
     return null;
   }
+
+  const handleTextSelected = (selection: MarkdownSelection) => {
+    console.log('Start index:', selection.start);
+    console.log('End index:', selection.end);
+    console.log('Selected text:', selection.text);
+    console.log('Selected markdown:', content?.slice(selection.start, selection.end));
+
+    // Do something with the selection indices
+    // e.g., send to backend, create annotation, etc.
+  };
 
   return (
     <div className={classes.root}>
@@ -32,11 +48,9 @@ export function Canvas() {
         </header>
 
         <div className={classes.body} ref={contentRef}>
-          {/* <Toolbar isVisible /> */}
-
-          <MarkdownContent className={classes.content}>
-            {activeArtifact?.parts.map((part) => part.kind === UIMessagePartKind.Text && part.text).join('')}
-          </MarkdownContent>
+          <CanvasMarkdownContent className={classes.content} onTextSelected={handleTextSelected}>
+            {content}
+          </CanvasMarkdownContent>
         </div>
       </div>
     </div>

@@ -16,8 +16,6 @@ export function remarkCanvasLink() {
     visit(tree, 'link', (node: Link) => {
       const { url, children } = node;
 
-      console.log({ node });
-
       if (url.startsWith(ARTIFACT_LINK_PREFIX)) {
         const artifactId = url.slice(ARTIFACT_LINK_PREFIX.length);
         const firstChild = children.at(0);

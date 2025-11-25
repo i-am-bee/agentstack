@@ -103,9 +103,11 @@ $zindex-buttons: 2;
 
 @include breakpoint-up(lg) {
   .header {
-    margin: 0 #{-$spacing-09} #{-$spacing-07} auto;
-    max-inline-size: max-content;
-    transform: translateX(100%);
-    padding-block-end: 0;
+    .root:not(.canvasView) & {
+      margin: 0 #{-$spacing-09} #{-$spacing-07} auto;
+      max-inline-size: max-content;
+      transform: translateX(100%);
+      padding-block-end: 0;
+    }
   }
 }

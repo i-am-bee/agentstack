@@ -28,5 +28,5 @@ export function joinMarkdownSections(sections: (string | undefined)[]) {
 }
 
 export function toMarkdownArtifact({ id, name }: { id: string; name?: string }) {
-  return `[${name}](${ARTIFACT_LINK_PREFIX}${id}})`;
+  return `[${name}](${ARTIFACT_LINK_PREFIX}${id})`;
 }
