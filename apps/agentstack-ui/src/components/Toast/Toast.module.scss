@@ -1,0 +1,96 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+@use '@carbon/styles/scss/components/notification/tokens' as *;
+
+.root {
+  border-radius: $border-radius;
+  padding: $spacing-05;
+  box-shadow: $box-shadow;
+  color: $text-secondary;
+  font-size: rem(14px);
+  line-height: math.div(20, 14);
+  letter-spacing: $letter-spacing;
+  display: grid;
+  row-gap: $spacing-03;
+
+  &:not(:hover) .closeButton:not(:focus-within) {
+    opacity: 0;
+  }
+
+  &.is-info {
+    background-color: $layer;
+  }
+
+  &.is-error {
+    background-color: $notification-background-error;
+  }
+}
+
+.header {
+  display: grid;
+  gap: $spacing-03;
+  grid-template-columns: max-content 1fr max-content;
+  grid-template-areas: 'icon heading close';
+
+  &:has(.date) {
+    grid-template-areas:
+      'icon date close'
+      'heading heading heading';
+  }
+}
+
+.closeButton {
+  @include hide-popover();
+  grid-area: close;
+  margin-block: rem(-6px);
+  margin-inline-end: rem(-8px);
+
+  :global(.cds--btn) {
+    &:hover,
+    &:active {
+      background-color: transparent;
+    }
+  }
+}
+
+.icon {
+  color: $text-dark;
+  grid-area: icon;
+
+  &:not(.defaultIcon) {
+    margin-block: rem(2px);
+  }
+
+  &.defaultIcon {
+    inline-size: rem(20px);
+    block-size: rem(20px);
+
+    .is-info & {
+      color: $support-info;
+    }
+
+    .is-error & {
+      color: $support-error;
+    }
+  }
+}
+
+.date,
+.heading {
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+}
+
+.date {
+  font-size: rem(12px);
+  line-height: math.div(20, 12);
+}
+
+.heading {
+  grid-area: heading;
+  font-weight: 600;
+}

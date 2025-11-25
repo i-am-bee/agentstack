@@ -9,7 +9,6 @@ import { Container } from '#components/layouts/Container.tsx';
 import { FormRenderer } from '#modules/form/components/FormRenderer.tsx';
 import type { RunFormValues } from '#modules/form/types.ts';
 
-import { useAgentDemands } from '../contexts/agent-demands';
 import { useAgentRun } from '../contexts/agent-run';
 import classes from './FormRenderView.module.scss';
 

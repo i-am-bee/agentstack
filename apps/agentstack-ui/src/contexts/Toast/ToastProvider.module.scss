@@ -5,23 +5,22 @@
 
 .toasts {
   @include scrollbar();
+  max-inline-size: calc(rem(288px) + 2 * $grid-margin - var(--scrollbar-width));
+  inline-size: 100%;
   display: flex;
   flex-direction: column;
   row-gap: $spacing-03;
   position: fixed;
-  inset-block-start: rem(49px);
-  inset-inline-end: $spacing-05;
-  max-block-size: calc(100% - rem(49px));
-  padding: $spacing-05;
+  inset-block-start: rem(64px);
+  inset-inline-end: 0;
+  max-block-size: calc(100% - rem(64px));
+  padding-block: $spacing-05;
+  padding-inline: $grid-margin calc($grid-margin - var(--scrollbar-width));
   z-index: z('modal') + 1;
   pointer-events: none;
 
   > * {
     pointer-events: auto;
-  }
-
-  :global(.cds--toast-notification) {
-    inline-size: rem(288px);
   }
 }
 
@@ -37,5 +36,11 @@
     box-shadow: $box-shadow;
     padding-inline-end: rem(15px);
     background-color: $layer;
+  }
+}
+
+@include breakpoint-up(xlg) {
+  .toasts {
+    --cds-grid-margin: #{$spacing-06};
   }
 }

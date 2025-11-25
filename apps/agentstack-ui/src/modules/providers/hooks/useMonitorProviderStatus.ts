@@ -38,11 +38,11 @@ export function useMonitorProviderStatus({ id, isEnabled }: Props) {
       if (isReady) {
         addToast({
           title: `${agent.name} has installed successfully.`,
-          kind: 'info',
           timeout: 5_000,
         });
       } else if (isError) {
         addToast({
+          kind: 'error',
           title: `${agent.name} failed to install.`,
           timeout: 5_000,
         });

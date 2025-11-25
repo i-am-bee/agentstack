@@ -85,8 +85,9 @@ const useHandleAuthorizeCallback = () => {
     ({ error, errorDescription }: { error: string | null; errorDescription: string | null }) => {
       if (error) {
         addToast({
+          kind: 'error',
           title: error,
-          subtitle: errorDescription ?? 'An unknown error occurred',
+          message: errorDescription ?? 'An unknown error occurred',
         });
       } else {
         queryClient.invalidateQueries({ queryKey: connectorKeys.list() });

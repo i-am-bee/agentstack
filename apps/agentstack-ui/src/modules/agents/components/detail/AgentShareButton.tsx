@@ -21,7 +21,11 @@ export function AgentShareButton({ agent }: Props) {
 
   const handleShare = () => {
     copy(`${window.location.origin}${routes.agentRun({ providerId: agent.provider.id })}`);
-    addToast({ kind: 'info', subtitle: 'Link has been copied to clipboard!', icon: Link });
+    addToast({
+      title: 'Link has been copied to clipboard!',
+      icon: Link,
+      timeout: 100000000,
+    });
   };
 
   return (

@@ -9,6 +9,7 @@ import { UnauthenticatedError } from '#api/errors.ts';
 import { getErrorMessage } from '#api/utils.ts';
 import type { QueryMetadata } from '#contexts/QueryProvider/types.ts';
 import { useToast } from '#contexts/Toast/index.ts';
+import { isNotNull } from '#utils/helpers.ts';
 import { routes } from '#utils/router.ts';
 
 export function useHandleError() {
@@ -27,9 +28,10 @@ export function useHandleError() {
         const errorMessage = errorToast?.includeErrorMessage ? getErrorMessage(error) : undefined;
 
         addToast({
+          kind: 'error',
           title: errorToast?.title ?? 'An error occurred',
-          subtitle: errorToast?.message,
-          apiError: errorMessage,
+          message: [errorToast?.message, errorMessage].filter(isNotNull).join('\n\n'),
+          renderMarkdown: true,
         });
       } else {
         console.error(error);

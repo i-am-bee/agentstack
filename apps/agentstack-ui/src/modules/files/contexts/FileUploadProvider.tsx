@@ -65,8 +65,9 @@ export function FileUploadProvider({ allowedContentTypes = [], children }: Props
     (fileRejections: FileRejection[]) => {
       fileRejections.forEach(({ errors, file }) => {
         addToast({
+          kind: 'error',
           title: `File ${file.name} was rejected`,
-          subtitle: errors.map(({ message }) => message).join('\n'),
+          message: errors.map(({ message }) => message).join('\n'),
           timeout: 5_000,
         });
       });

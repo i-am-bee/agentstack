@@ -5,30 +5,18 @@
 'use client';
 
 import type { IconProps } from '@carbon/icons-react/lib/Icon';
-import type { ComponentType, ReactNode } from 'react';
+import type { ComponentType } from 'react';
 import { createContext } from 'react';
 
 export interface Toast {
-  /**
-   * Provide a description for "close" icon button that can be read by screen readers
-   */
-  ariaLabel?: string;
-  children?: ReactNode;
-  hideCloseButton?: boolean;
-  kind?: 'error' | 'info' | 'info-square' | 'success' | 'warning' | 'warning-alt';
-  lowContrast?: boolean;
-  role?: 'alert' | 'log' | 'status';
-  /** Provide a description for "status" icon that can be read by screen readers */
-  statusIconDescription?: string;
-  subtitle?: string;
-  /** Specify an optional duration the notification should be closed in */
+  title: string;
+  kind?: 'info' | 'error';
   timeout?: number;
-  title?: string;
-  hideTimeElapsed?: boolean;
-  apiError?: string;
   icon?: ComponentType<IconProps>;
-  inlineIcon?: boolean;
   date?: Date;
+  message?: string;
+  hideDate?: boolean;
+  renderMarkdown?: true;
 }
 
 export interface ToastContextValue {
