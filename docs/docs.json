@@ -12,58 +12,69 @@
     "groups": [
       {
         "group": "Introduction",
-        "pages": ["introduction/welcome", "introduction/quickstart"]
+        "pages": [
+        "introduction/welcome", 
+        "introduction/quickstart"
+      ]
       },
       {
-        "group": "Deploy to Agent Stack",
+        "group": "Deploy Agents",
         "pages": [
-          "guides/wrap-existing-agents",
-          "guides/building-agents",
-          "guides/deploy-your-agents"
-        ]
-      },
-
-      {
-        "group": "Enhance Your Agents",
-        "pages": [
-          "sdk/overview",
-          "guides/messages",
-          "guides/multi-turn",
-          "guides/files",
-          "sdk/agent-details",
-          "sdk/llm-proxy-service",
-          "sdk/trajectory",
-          "sdk/citations",
-          "sdk/forms",
-          "sdk/agent-settings",
-          "sdk/secrets",
-          "sdk/rag",
-          "sdk/mcp-oauth",
-          "sdk/mcp",
-          "sdk/env-variables"
+          "deploy-agents/wrap-existing-agents",
+          "deploy-agents/building-agents",
+          "deploy-agents/deploy-your-agents"
         ]
       },
       {
-        "group": "Guides",
+        "group": "Agent Capabilities",
         "pages": [
-          "guides/cli-reference",
-          "guides/observability",
-          "guides/connect-a2a-agents"
+          "agent-development/overview",
+          "agent-development/messages",
+          "agent-development/multi-turn",
+          "agent-development/files",
+          "agent-development/agent-details",
+          "agent-development/llm-proxy-service",
+          "agent-development/trajectory",
+          "agent-development/citations",
+          "agent-development/forms",
+          "agent-development/agent-settings",
+          "agent-development/secrets",
+          "agent-development/rag",
+          "agent-development/mcp-oauth",
+          "agent-development/mcp",
+          "agent-development/env-variables"
         ]
       },
       {
-        "group": "Deploy Agent Stack for Your Team",
+        "group": "Reference",
         "pages": [
-          "guides/deployment-guide",
-          "guides/authenticate-cli-to-server"
+          "reference/cli-reference"
         ]
       },
       {
-        "group": "Advanced Integration",
-        "pages": ["guides/connectors", "guides/permissions-and-tokens"]
+        "group": "Deploy Agent Stack",
+        "pages": [
+          "deploy-agent-stack/deployment-guide",
+          "deploy-agent-stack/authenticate-cli-to-server",
+          "deploy-agent-stack/observability"
+        ]
       },
       {
-        "group": "Join Our Community",
+        "group": "Custom UI Integration",
+        "pages": [
+          "custom-ui/client-sdk",
+          "custom-ui/permissions-and-tokens"
+        ]
+      },
+      {
+        "group": "Experimental",
+        "pages": [
+          "experimental/connectors",
+          "experimental/a2a-proxy"
+        ]
+      },
+      {
+        "group": "Community",
         "pages": ["community/contribute"]
       }
     ]

@@ -1,5 +1,5 @@
 ---
-title: Permissions and tokens
+title: Permissions and Tokens
 description: Grant user roles and generate tokens with custom scopes
 ---
 
@@ -504,8 +504,8 @@ We will use the square brackets `[]` to denote the `Authorization: Bearer` heade
     </Step>
     <Step title="Create Context token">
         Create a **context token** with specific permissions, these are 2 API requests:
-        1. Create a context: `POST /api/v1/contexts` <Badge>[ACCESS_TOKEN]</Badge>
-        2. Create context token: `POST /api/v1/contexts/{context_id}/token` <Badge>[ACCESS_TOKEN]</Badge>.
+        1. Create a context: `POST /api/v1/contexts` **[ACCESS_TOKEN]**
+        2. Create context token: `POST /api/v1/contexts/{context_id}/token` **[ACCESS_TOKEN]**.
         The body contains a request for `files.write` context permission grant.
     </Step>
     <Step title="Prepare agent message">
@@ -515,7 +515,7 @@ We will use the square brackets `[]` to denote the `Authorization: Bearer` heade
         2. Set `context_id` to associate the message with the context and token created in previous step
     </Step>
     <Step title="Call Agent">
-        Send message to the agent: `POST /api/v1/a2a/{provider_id}` <Badge>[ACCESS_TOKEN]</Badge>.
+        Send message to the agent: `POST /api/v1/a2a/{provider_id}` **[ACCESS_TOKEN]**.
         <Note>
             **Proxy request authorization**
 
@@ -548,7 +548,7 @@ We will use the square brackets `[]` to denote the `Authorization: Bearer` heade
     </Step>
     <Step title="Upload file">
         In your agent code you will use the `File.create()` method to upload a file to the context. The method will
-        call `POST /api/v1/files?context_id={context_id}` <Badge>[CONTEXT_TOKEN]</Badge>.
+        call `POST /api/v1/files?context_id={context_id}` **[CONTEXT_TOKEN]**.
         <Note>
             Using the "auto" behavior of `File.create`, the file will be uploaded to the context by specifying
             the `context_id` query parameter. This ID is taken from the user message payload.
