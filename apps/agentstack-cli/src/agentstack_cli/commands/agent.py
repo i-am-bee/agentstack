@@ -795,7 +795,7 @@ async def run_agent(
             metadata={"provider_id": provider.id, "agent_name": provider.agent_card.name},
         )
         context_token = await context.generate_token(
-            grant_global_permissions=Permissions(llm={"*"}, embeddings={"*"}, a2a_proxy={"*"}),
+            grant_global_permissions=Permissions(llm={"*"}, embeddings={"*"}, a2a_proxy={"*"}, providers={"read"}),
             grant_context_permissions=ContextPermissions(files={"*"}, vector_stores={"*"}, context_data={"*"}),
         )
 
