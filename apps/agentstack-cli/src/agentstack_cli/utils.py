@@ -5,6 +5,7 @@ import contextlib
 import functools
 import json
 import os
+import re
 import subprocess
 import sys
 from collections.abc import AsyncIterator
@@ -312,3 +313,25 @@ def print_log(line, ansi_mode=False, out_console: Console | None = None):
         (out_console or err_console).print(decode(line["message"]))
     elif line["stream"] == "stdout":
         (out_console or console).print(decode(line["message"]))
+
+
+def is_github_url(url: str) -> bool:
+    """This pattern is taken from agentstack_server.utils.github.GithubUrl, make sure to keep it in sync"""
+
+    pattern = r"""
+        ^
+        (?:git\+)?                              # Optional git+ prefix
+        https?://(?P<host>github(?:\.[^/]+)+)/  # GitHub host (github.com or github.enterprise.com)
+        (?P<org>[^/]+)/                         # Organization
+        (?P<repo>
+            (?:                                 # Non-capturing group for repo name
+                (?!\.git(?:$|[@#]))             # Negative lookahead for .git at end or followed by @#
+                [^/@#]                          # Any char except /@#
+            )+                                  # One or more of these chars
+        )
+        (?:\.git)?                              # Optional .git suffix
+        (?:@(?P<version>[^#]+))?                # Optional version after @
+        (?:\#path=(?P<path>.+))?                # Optional path after #path=
+        $
+    """
+    return bool(re.match(pattern, url, re.VERBOSE))

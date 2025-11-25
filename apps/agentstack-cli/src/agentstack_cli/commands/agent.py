@@ -100,6 +100,7 @@ from agentstack_cli.utils import (
     announce_server_action,
     confirm_server_action,
     generate_schema_example,
+    is_github_url,
     parse_env_var,
     print_log,
     prompt_user,
@@ -160,7 +161,7 @@ async def add_agent(
     url = announce_server_action(f"Installing agent '{location}' for")
     await confirm_server_action("Proceed with installing this agent on", url=url, yes=yes)
     with verbosity(verbose):
-        if location.startswith("http") or location.startswith("https") or "://" in location:
+        if is_github_url(location):
             console.info(f"Assuming GitHub repository, attempting to build agent from [bold]{location}[/bold]")
             with status("Building agent"):
                 build = await _server_side_build(location, dockerfile, add=True, verbose=verbose)
@@ -170,7 +171,7 @@ async def add_agent(
         else:
             if dockerfile:
                 raise ValueError("Dockerfile can be specified only if location is a GitHub url")
-            console.info(f"Assuming public docker image, attempting to pull {location}")
+            console.info(f"Assuming public docker image or network address, attempting to add {location}")
             with status("Registering agent to platform"):
                 async with configuration.use_platform_client():
                     await Provider.create(location=location)
@@ -196,7 +197,7 @@ async def update_agent(
         url = announce_server_action(f"Upgrading agent from '{provider.source}' to {location}")
         await confirm_server_action("Proceed with upgrading agent on", url=url, yes=yes)
 
-        if location.startswith("http") or location.startswith("https") or "://" in location:
+        if is_github_url(location):
             console.info(f"Assuming GitHub repository, attempting to build agent from [bold]{location}[/bold]")
             with status("Building agent"):
                 build = await _server_side_build(
@@ -208,7 +209,7 @@ async def update_agent(
         else:
             if dockerfile:
                 raise ValueError("Dockerfile can be specified only if location is a GitHub url")
-            console.info(f"Assuming public docker image, attempting to pull {location}")
+            console.info(f"Assuming public docker image or network address, attempting to add {location}")
             with status("Upgrading agent in the platform"):
                 async with configuration.use_platform_client():
                     await provider.patch(location=location)

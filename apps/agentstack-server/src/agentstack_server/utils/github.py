@@ -147,6 +147,8 @@ class GithubUrl(RootModel):
     def _parse(cls, data: Any, handler: ModelWrapValidatorHandler):
         url: GithubUrl = handler(data)
 
+        # IMPORTANT: if you change this, make sure to update the CLI
+        # TODO - extract this class to SDK?
         pattern = r"""
             ^
             (?:git\+)?                              # Optional git+ prefix
