@@ -58,7 +58,7 @@ from openinference.instrumentation.beeai import BeeAIInstrumentor
 from chat.helpers.citations import extract_citations
 from chat.helpers.trajectory import TrajectoryContent
 from chat.tools.files.file_creator import FileCreatorTool, FileCreatorToolOutput
-from chat.tools.files.file_reader import create_file_reader_tool_class
+from chat.tools.files.file_reader import create_file_reader_tool
 from chat.tools.files.utils import extract_files, to_framework_message
 
 from agentstack_sdk.server.store.platform_context_store import PlatformContextStore
@@ -209,7 +209,7 @@ async def chat(
 
     if extracted_files:
         # Dynamically created tool input schema based on real provided files ensures that small LLMs can't hallucinate the input
-        tools.append(create_file_reader_tool_class(extracted_files))
+        tools.append(create_file_reader_tool(extracted_files))
 
         files_context = "\n\n## Currently Available Files:"
         files_context += "\nThe user has uploaded the following files that you can access using the File Reader tool:"
