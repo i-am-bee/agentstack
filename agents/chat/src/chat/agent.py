@@ -41,7 +41,7 @@ from beeai_framework.agents.requirement.events import (
     RequirementAgentFinalAnswerEvent,
 )
 from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
-from beeai_framework.tools import Tool
+from beeai_framework.tools import Tool, AnyTool
 from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
 from beeai_framework.tools.search.wikipedia import WikipediaTool
 from beeai_framework.tools.weather import OpenMeteoTool
@@ -167,20 +167,6 @@ async def chat(
     history = [message async for message in context.load_history() if isinstance(message, Message) and message.parts]
     extracted_files = await extract_files(history=history)
 
-    # Configure tools
-    file_reader_tool_class = create_file_reader_tool_class(
-        extracted_files
-    )  # Dynamically created tool input schema based on real provided files ensures that small LLMs can't hallucinate the input
-
-    tools = [
-        # Common tools
-        WikipediaTool(),
-        OpenMeteoTool(),
-        DuckDuckGoSearchTool(),
-        file_reader_tool_class(),
-        FileCreatorTool(),
-    ]
-
     llm = AgentStackChatModel(parameters=ChatModelParameters(stream=True))
     llm.set_context(llm_ext)
 
@@ -213,7 +199,18 @@ async def chat(
         """
     )
 
+    # Configure tools
+    tools: list[AnyTool] = [
+        WikipediaTool(),
+        OpenMeteoTool(),
+        DuckDuckGoSearchTool(),
+        FileCreatorTool(),
+    ]
+
     if extracted_files:
+        # Dynamically created tool input schema based on real provided files ensures that small LLMs can't hallucinate the input
+        tools.append(create_file_reader_tool_class(extracted_files))
+
         files_context = "\n\n## Currently Available Files:"
         files_context += "\nThe user has uploaded the following files that you can access using the File Reader tool:"
         for file in extracted_files:
