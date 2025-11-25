@@ -151,11 +151,13 @@ deactivate () {
   # Restore LIMA_HOME to its original state (set or unset)
   [[ -n "$__OLD_LIMA_HOME" ]] && export LIMA_HOME="$__OLD_LIMA_HOME" || unset LIMA_HOME
   [[ -n "$__OLD_KUBECONFIG" ]] && export KUBECONFIG="$__OLD_KUBECONFIG" || unset KUBECONFIG
+  [[ -n "$__OLD_ADMIN_PASSWORD" ]] && export AGENTSTACK__ADMIN_PASSWORD="$__OLD_ADMIN_PASSWORD" || unset AGENTSTACK__ADMIN_PASSWORD
 
   # Clean up the backup values
   unset __OLD_PS1
   unset __OLD_LIMA_HOME
   unset __OLD_KUBECONFIG
+  unset __OLD_ADMIN_PASSWORD
   unset -f deactivate
   echo "Environment for '$VM_NAME' deactivated."
 }
@@ -170,9 +172,11 @@ echo "Activating environment for '$VM_NAME'..."
 export __OLD_PS1="$PS1"
 export __OLD_LIMA_HOME="$LIMA_HOME"
 export __OLD_KUBECONFIG="$KUBECONFIG"
+export __OLD_ADMIN_PASSWORD="$AGENTSTACK__ADMIN_PASSWORD"
 
 export KUBECONFIG="${AGENTSTACK__HOME:-${HOME}/.agentstack}/lima/${VM_NAME}/copied-from-guest/kubeconfig.yaml"
 export LIMA_HOME=${AGENTSTACK__HOME:-${HOME}/.agentstack}/lima
+export AGENTSTACK__ADMIN_PASSWORD=test-password
 export PS1="(${VM_NAME}) ${__OLD_PS1}"
 
 """
