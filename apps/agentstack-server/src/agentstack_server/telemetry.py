@@ -7,6 +7,7 @@ from importlib.metadata import version
 from opentelemetry import metrics, trace
 from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 from opentelemetry.sdk.resources import SERVICE_INSTANCE_ID, SERVICE_NAME, SERVICE_VERSION, Resource
@@ -21,6 +22,8 @@ logger = logging.getLogger(__name__)
 OTEL_HTTP_ENDPOINT = str(get_configuration().telemetry.collector_url)
 
 INSTRUMENTATION_NAME = "agentstack-server"
+
+HTTPXClientInstrumentor().instrument()
 
 
 class SilentOTLPSpanExporter(OTLPSpanExporter):

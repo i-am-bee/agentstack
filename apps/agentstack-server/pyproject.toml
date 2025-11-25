@@ -45,6 +45,7 @@ dependencies = [
     "starlette>=0.48.0",
     "sse-starlette>=3.0.2",
     "mcp>=1.13.1",
+    "opentelemetry-instrumentation-httpx>=0.59b0",
 ]
 
 [dependency-groups]
