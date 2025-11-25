@@ -11,8 +11,7 @@ import type { ValueTransition } from 'framer-motion';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useEffect, useState } from 'react';
 
-import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
-import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
+import { NotificationMarkdownContent } from '#components/NotificationMarkdownContent/NotificationMarkdownContent.tsx';
 import type { ToastWithKey } from '#contexts/Toast/toast-context.ts';
 import { FADE_DURATION, FADE_EASE_ENTRANCE, FADE_EASE_EXIT, fadeProps } from '#utils/fadeProps.ts';
 
@@ -92,9 +91,7 @@ export function Toast({
 
           {message &&
             (renderMarkdown ? (
-              <LineClampText className={classes.message} lines={4} useBlockElement>
-                <MarkdownContent>{message}</MarkdownContent>
-              </LineClampText>
+              <NotificationMarkdownContent>{message}</NotificationMarkdownContent>
             ) : (
               <div className={classes.message}>{message}</div>
             ))}

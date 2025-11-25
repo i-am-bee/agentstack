@@ -29,7 +29,7 @@ export function Code({ variant, inline, forceExpand, className, children }: Prop
 
   if (language) {
     return (
-      <CopySnippet variant={variant}>
+      <CopySnippet variant={variant} className={className}>
         <SyntaxHighlighter language={language} variant={variant}>
           {children}
         </SyntaxHighlighter>
@@ -42,7 +42,7 @@ export function Code({ variant, inline, forceExpand, className, children }: Prop
   }
 
   return (
-    <CodeSnippet forceExpand={forceExpand} canCopy={!forceExpand}>
+    <CodeSnippet forceExpand={forceExpand} canCopy={!forceExpand} className={className}>
       {children}
     </CodeSnippet>
   );

@@ -6,10 +6,9 @@ import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
 
 import { UnauthenticatedError } from '#api/errors.ts';
-import { getErrorMessage } from '#api/utils.ts';
+import { buildErrorToast } from '#api/utils.ts';
 import type { QueryMetadata } from '#contexts/QueryProvider/types.ts';
 import { useToast } from '#contexts/Toast/index.ts';
-import { isNotNull } from '#utils/helpers.ts';
 import { routes } from '#utils/router.ts';
 
 export function useHandleError() {
@@ -25,14 +24,9 @@ export function useHandleError() {
         router.replace(routes.signIn({ callbackUrl }));
         console.error(error);
       } else if (errorToast !== false) {
-        const errorMessage = errorToast?.includeErrorMessage ? getErrorMessage(error) : undefined;
+        const toast = buildErrorToast({ metadata: errorToast, error });
 
-        addToast({
-          kind: 'error',
-          title: errorToast?.title ?? 'An error occurred',
-          message: [errorToast?.message, errorMessage].filter(isNotNull).join('\n\n'),
-          renderMarkdown: true,
-        });
+        addToast(toast);
       } else {
         console.error(error);
       }

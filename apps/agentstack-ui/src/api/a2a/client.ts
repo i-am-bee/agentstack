@@ -9,7 +9,7 @@ import { handleAgentCard, handleInputRequired, handleTaskStatusUpdate } from 'ag
 import { defaultIfEmpty, filter, lastValueFrom, Subject } from 'rxjs';
 import { match } from 'ts-pattern';
 
-import { UnauthenticatedError } from '#api/errors.ts';
+import { A2AExtensionError, UnauthenticatedError } from '#api/errors.ts';
 import type { UIMessagePart } from '#modules/messages/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
@@ -18,15 +18,20 @@ import { AGENT_ERROR_MESSAGE } from './constants';
 import { processMessageMetadata, processParts } from './part-processors';
 import type { ChatResult, TaskStatusUpdateResultWithTaskId } from './types';
 import { type ChatParams, type ChatRun, RunResultType } from './types';
-import { createUserMessage, extractTextFromMessage } from './utils';
+import { createUserMessage, extractErrorExtension, extractTextFromMessage } from './utils';
 
 function handleStatusUpdate<UIGenericPart = never>(
   event: TaskStatusUpdateEvent,
   onStatusUpdate?: (event: TaskStatusUpdateEvent) => UIGenericPart[],
 ): (UIMessagePart | UIGenericPart)[] {
   const { message, state } = event.status;
+  const extensionError = extractErrorExtension(message?.metadata);
 
   if (state === 'failed' || state === 'rejected') {
+    if (extensionError) {
+      throw new A2AExtensionError(extensionError);
+    }
+
     const errorMessage = extractTextFromMessage(message) ?? AGENT_ERROR_MESSAGE;
 
     throw new Error(errorMessage);

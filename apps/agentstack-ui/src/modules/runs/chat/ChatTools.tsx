@@ -36,9 +36,9 @@ export function ChatTools() {
     return (
       <ErrorMessage
         title="Failed to load tools."
+        message={error?.message}
         onRetry={refetch}
         isRefetching={isRefetching}
-        subtitle={error?.message}
       />
     );
   }

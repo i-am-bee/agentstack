@@ -1,0 +1,46 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.root {
+  overflow-wrap: anywhere;
+
+  .markdown {
+    > * + * {
+      margin-block-start: $spacing-03;
+    }
+    > * + h1,
+    > * + h2,
+    > * + h3,
+    > * + h4,
+    > * + h5,
+    > * + h6 {
+      margin-block-start: $spacing-05;
+    }
+    h1 {
+      @include type-style(heading-03);
+      font-weight: 600;
+    }
+    h2 {
+      @include type-style(heading-02);
+    }
+    h3,
+    h4,
+    h5,
+    h6 {
+      @include type-style(heading-01);
+    }
+    h5,
+    h6 {
+      + * {
+        margin-block-start: 0;
+      }
+    }
+  }
+}
+
+.code {
+  max-block-size: (2 * $spacing-05 + 5 * rem(16px)); // 5 lines + padding
+  overflow-y: auto;
+}

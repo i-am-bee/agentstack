@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { getErrorMessage } from '#api/utils.ts';
+import { getErrorMessage, getErrorTitle } from '#api/utils.ts';
 import { ErrorMessage } from '#components/ErrorMessage/ErrorMessage.tsx';
 import type { UIAgentMessage } from '#modules/messages/types.ts';
 
@@ -20,10 +20,10 @@ export function MessageError({ message }: Props) {
     return;
   }
 
-  return (
-    <ErrorMessage
-      title={isFailed ? 'Failed to generate an agent message.' : 'Message generation has been cancelled.'}
-      subtitle={getErrorMessage(error)}
-    />
-  );
+  const errorTitle = isFailed
+    ? (getErrorTitle(error) ?? 'Failed to generate an agent message.')
+    : 'Message generation has been cancelled.';
+  const errorMessage = getErrorMessage(error);
+
+  return <ErrorMessage title={errorTitle} message={errorMessage} />;
 }
