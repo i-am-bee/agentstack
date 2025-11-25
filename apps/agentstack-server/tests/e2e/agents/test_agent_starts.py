@@ -49,8 +49,8 @@ async def test_remote_agent(subtests, a2a_client_factory, get_final_task_from_st
                 message = create_text_message_object(
                     content=(
                         "How do you say informal hello in italian in 4 letters? "
-                        "Please don't say anything extra and give me a response directly using your knowledge. "
-                        "DO NOT USE OTHER TOOLS LIKE WIKIPEDIA, YOU CAN ANSWER THIS DIRECTLY FROM YOUR KNOWLEDGE."
+                        "DO NOT SEARCH THE INTERNET FOR THIS, ANSWER DIRECTLY FROM YOUR KNOWLEDGE. "
+                        "ANSWER ONLY THOSE FOUR LETTERS."
                     )
                 )
                 spec = LLMServiceExtensionSpec.from_agent_card(providers[0].agent_card)
