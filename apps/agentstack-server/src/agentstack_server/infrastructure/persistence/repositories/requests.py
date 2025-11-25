@@ -91,8 +91,8 @@ class SqlAlchemyA2ARequestRepository(IA2ARequestRepository):
                                   WHERE task_id = :task_id AND created_by = :user_id
                                   RETURNING true as updated),
                           context_insert AS (
-                              INSERT INTO a2a_request_contexts (context_id, created_by, provider_id, trace_id, created_at, last_accessed_at)
-                                  SELECT :context_id, :user_id, :provider_id, :trace_id, :now, :now
+                              INSERT INTO a2a_request_contexts (context_id, created_by, provider_id, created_at, last_accessed_at)
+                                  SELECT :context_id, :user_id, :provider_id, :now, :now
                                   WHERE :context_id IS NOT NULL
                                   ON CONFLICT (context_id) DO NOTHING
                                   RETURNING true as inserted),
