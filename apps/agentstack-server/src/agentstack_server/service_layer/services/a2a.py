@@ -222,10 +222,9 @@ class ProxyRequestHandler(RequestHandler):
     ) -> Task | Message:
         # we set task_id and context_id if not configured
         with trace.get_tracer(INSTRUMENTATION_NAME).start_as_current_span("on_message_send") as span:
+            trace_id = hex(span.get_span_context().trace_id)[2:]
             params.message.context_id = params.message.context_id or str(uuid.uuid4())
-            await self._check_and_record_request(
-                params.message.task_id, params.message.context_id, trace_id=str(span.get_span_context().trace_id)
-            )
+            await self._check_and_record_request(params.message.task_id, params.message.context_id, trace_id=trace_id)
 
             async with self._client_transport() as transport:
                 response = await transport.send_message(params, context=self._forward_context(context))
@@ -233,7 +232,7 @@ class ProxyRequestHandler(RequestHandler):
                     case Task(id=task_id) | Message(task_id=task_id):
                         if params.message.task_id is None and task_id:
                             await self._check_and_record_request(
-                                task_id, params.message.context_id, allow_task_creation=True
+                                task_id, params.message.context_id, allow_task_creation=True, trace_id=trace_id
                             )
                 return response
 
@@ -243,10 +242,10 @@ class ProxyRequestHandler(RequestHandler):
     ) -> AsyncGenerator[Event]:
         with trace.get_tracer(INSTRUMENTATION_NAME).start_as_current_span("on_message_send_stream") as span:
             # we set task_id and context_id if not configured
+            trace_id = hex(span.get_span_context().trace_id)[2:]
             params.message.context_id = params.message.context_id or str(uuid.uuid4())
-            await self._check_and_record_request(
-                params.message.task_id, params.message.context_id, trace_id=str(span.get_span_context().trace_id)
-            )
+            await self._check_and_record_request(params.message.task_id, params.message.context_id, trace_id=trace_id)
+
             seen_tasks = {params.message.task_id} if params.message.task_id else set()
 
             async with self._client_transport() as transport:
@@ -264,6 +263,7 @@ class ProxyRequestHandler(RequestHandler):
                                 await self._check_and_record_request(
                                     task_id=task_id,
                                     context_id=context_id,
+                                    trace_id=trace_id,
                                     allow_task_creation=True,
                                 )
                                 seen_tasks.add(task_id)
