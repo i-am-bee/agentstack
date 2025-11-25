@@ -40,6 +40,7 @@ from a2a.types import (
 )
 from a2a.utils.errors import ServerError
 from kink import inject
+from opentelemetry import trace
 from pydantic import HttpUrl
 from structlog.contextvars import bind_contextvars, unbind_contextvars
 
@@ -57,6 +58,7 @@ from agentstack_server.service_layer.deployment_manager import (
 )
 from agentstack_server.service_layer.services.users import UserService
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
+from agentstack_server.telemetry import INSTRUMENTATION_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -177,6 +179,7 @@ class ProxyRequestHandler(RequestHandler):
         self,
         task_id: str | None = None,
         context_id: str | None = None,
+        trace_id: str | None = None,
         allow_task_creation: bool = False,
     ):
         async with self._uow() as uow:
@@ -193,6 +196,7 @@ class ProxyRequestHandler(RequestHandler):
                 provider_id=self._provider_id,
                 task_id=task_id,
                 context_id=context_id,
+                trace_id=trace_id,
                 allow_task_creation=allow_task_creation,
             )
             await uow.commit()
@@ -217,47 +221,53 @@ class ProxyRequestHandler(RequestHandler):
         self, params: MessageSendParams, context: ServerCallContext | None = None
     ) -> Task | Message:
         # we set task_id and context_id if not configured
-        params.message.context_id = params.message.context_id or str(uuid.uuid4())
-        await self._check_and_record_request(params.message.task_id, params.message.context_id)
+        with trace.get_tracer(INSTRUMENTATION_NAME).start_as_current_span("on_message_send") as span:
+            params.message.context_id = params.message.context_id or str(uuid.uuid4())
+            await self._check_and_record_request(
+                params.message.task_id, params.message.context_id, trace_id=str(span.get_span_context().trace_id)
+            )
 
-        async with self._client_transport() as transport:
-            response = await transport.send_message(params, context=self._forward_context(context))
-            match response:
-                case Task(id=task_id) | Message(task_id=task_id):
-                    if params.message.task_id is None and task_id:
-                        await self._check_and_record_request(
-                            task_id, params.message.context_id, allow_task_creation=True
-                        )
-            return response
+            async with self._client_transport() as transport:
+                response = await transport.send_message(params, context=self._forward_context(context))
+                match response:
+                    case Task(id=task_id) | Message(task_id=task_id):
+                        if params.message.task_id is None and task_id:
+                            await self._check_and_record_request(
+                                task_id, params.message.context_id, allow_task_creation=True
+                            )
+                return response
 
     @_handle_exception
     async def on_message_send_stream(
         self, params: MessageSendParams, context: ServerCallContext | None = None
     ) -> AsyncGenerator[Event]:
-        # we set task_id and context_id if not configured
-        params.message.context_id = params.message.context_id or str(uuid.uuid4())
-        await self._check_and_record_request(params.message.task_id, params.message.context_id)
-        seen_tasks = {params.message.task_id} if params.message.task_id else set()
+        with trace.get_tracer(INSTRUMENTATION_NAME).start_as_current_span("on_message_send_stream") as span:
+            # we set task_id and context_id if not configured
+            params.message.context_id = params.message.context_id or str(uuid.uuid4())
+            await self._check_and_record_request(
+                params.message.task_id, params.message.context_id, trace_id=str(span.get_span_context().trace_id)
+            )
+            seen_tasks = {params.message.task_id} if params.message.task_id else set()
 
-        async with self._client_transport() as transport:
-            async for event in transport.send_message_streaming(params, context=self._forward_context(context)):
-                match event:
-                    case (
-                        TaskStatusUpdateEvent(task_id=task_id, context_id=context_id)
-                        | TaskArtifactUpdateEvent(task_id=task_id, context_id=context_id)
-                        | Task(id=task_id, context_id=context_id)
-                        | Message(task_id=task_id, context_id=context_id)
-                    ):
-                        if context_id != params.message.context_id:
-                            raise RuntimeError(f"Unexpected context_id returned from the agent: {context_id}")
-                        if task_id and task_id not in seen_tasks:
-                            await self._check_and_record_request(
-                                task_id=task_id,
-                                context_id=context_id,
-                                allow_task_creation=True,
-                            )
-                            seen_tasks.add(task_id)
-                yield event
+            async with self._client_transport() as transport:
+                async for event in transport.send_message_streaming(params, context=self._forward_context(context)):
+                    match event:
+                        case (
+                            TaskStatusUpdateEvent(task_id=task_id, context_id=context_id)
+                            | TaskArtifactUpdateEvent(task_id=task_id, context_id=context_id)
+                            | Task(id=task_id, context_id=context_id)
+                            | Message(task_id=task_id, context_id=context_id)
+                        ):
+                            if context_id != params.message.context_id:
+                                raise RuntimeError(f"Unexpected context_id returned from the agent: {context_id}")
+                            if task_id and task_id not in seen_tasks:
+                                await self._check_and_record_request(
+                                    task_id=task_id,
+                                    context_id=context_id,
+                                    allow_task_creation=True,
+                                )
+                                seen_tasks.add(task_id)
+                    yield event
 
     @_handle_exception
     async def on_set_task_push_notification_config(

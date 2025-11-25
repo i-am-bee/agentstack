@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from kink import inject
-from sqlalchemy import ARRAY, CheckConstraint, Column, DateTime, ForeignKey, Integer, Table, Text
+from sqlalchemy import ARRAY, CheckConstraint, Column, DateTime, ForeignKey, Integer, String, Table, Text
 from sqlalchemy import UUID as SQL_UUID
 from sqlalchemy.ext.asyncio import AsyncConnection
 
@@ -17,6 +17,7 @@ user_feedback_table = Table(
     Column("provider_id", ForeignKey("providers.id", ondelete="CASCADE"), nullable=False),
     Column("task_id", SQL_UUID, nullable=False),
     Column("context_id", SQL_UUID, nullable=False),
+    Column("trace_id", String(256), nullable=True),
     Column("rating", Integer, nullable=False),
     Column("message", Text, nullable=False),
     Column("comment", Text, nullable=True),
@@ -38,6 +39,7 @@ class SqlAlchemyUserFeedbackRepository(IUserFeedbackRepository):
             provider_id=user_feedback.provider_id,
             task_id=user_feedback.task_id,
             context_id=user_feedback.context_id,
+            trace_id=user_feedback.trace_id,
             rating=user_feedback.rating,
             comment=user_feedback.comment,
             comment_tags=user_feedback.comment_tags,

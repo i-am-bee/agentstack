@@ -21,6 +21,7 @@ a2a_request_tasks_table = Table(
     Column("task_id", String(256), primary_key=True),
     Column("created_by", SQL_UUID, nullable=False),  # not using reference integrity for performance
     Column("provider_id", SQL_UUID, nullable=False),  # not using reference integrity for performance
+    Column("trace_id", String(256), nullable=True),
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("last_accessed_at", DateTime(timezone=True), nullable=False),
 )
@@ -47,6 +48,7 @@ class SqlAlchemyA2ARequestRepository(IA2ARequestRepository):
                 "task_id": row.task_id,
                 "created_by": row.created_by,
                 "provider_id": row.provider_id,
+                "trace_id": row.trace_id,
                 "created_at": row.created_at,
                 "last_accessed_at": row.last_accessed_at,
             }
@@ -58,6 +60,7 @@ class SqlAlchemyA2ARequestRepository(IA2ARequestRepository):
         provider_id: UUID,
         task_id: str | None = None,
         context_id: str | None = None,
+        trace_id: str | None = None,
         allow_task_creation: bool = False,
     ) -> None:
         """
@@ -113,6 +116,7 @@ class SqlAlchemyA2ARequestRepository(IA2ARequestRepository):
                      """).bindparams(
             bindparam("task_id", type_=String),
             bindparam("context_id", type_=String),
+            bindparam("trace_id", type_=String),
             bindparam("user_id", type_=SQL_UUID()),
             bindparam("provider_id", type_=SQL_UUID()),
             bindparam("allow_task_creation", type_=Boolean),
@@ -124,6 +128,7 @@ class SqlAlchemyA2ARequestRepository(IA2ARequestRepository):
             {
                 "task_id": task_id,
                 "context_id": context_id,
+                "trace_id": trace_id,
                 "user_id": user_id,
                 "provider_id": provider_id,
                 "allow_task_creation": allow_task_creation,

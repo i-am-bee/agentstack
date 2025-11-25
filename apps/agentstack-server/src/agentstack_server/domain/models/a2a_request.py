@@ -12,3 +12,4 @@ class A2ARequestTask(BaseModel):
     provider_id: UUID
     created_at: AwareDatetime
     last_accessed_at: AwareDatetime
+    trace_id: str | None

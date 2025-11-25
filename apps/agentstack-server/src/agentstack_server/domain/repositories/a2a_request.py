@@ -15,6 +15,7 @@ class IA2ARequestRepository(Protocol):
         provider_id: UUID,
         task_id: str | None = None,
         context_id: str | None = None,
+        trace_id: str | None = None,
         allow_task_creation: bool = False,
     ) -> None: ...
 

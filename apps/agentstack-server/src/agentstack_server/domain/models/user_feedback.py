@@ -19,6 +19,7 @@ class UserFeedback(BaseModel):
     comment: str | None = None
     created_at: AwareDatetime = Field(default_factory=utc_now)
     created_by: UUID
+    trace_id: str | None
 
     @field_validator("rating")
     @classmethod
