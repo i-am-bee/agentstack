@@ -17,7 +17,7 @@ from pydantic import Secret
 
 from agentstack_sdk.util import resource_context
 
-DEFAULT_SDK_TIMEOUT: typing.Final = httpx.Timeout(timeout=30)
+DEFAULT_SDK_TIMEOUT: typing.Final = httpx.Timeout(timeout=30, read=None)
 
 
 class PlatformClient(httpx.AsyncClient):
