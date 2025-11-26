@@ -5,15 +5,16 @@
 
 .toasts {
   @include scrollbar();
-  max-inline-size: calc(rem(288px) + (2 * $grid-margin));
   inline-size: 100%;
+  block-size: 100%;
+  max-inline-size: calc(rem(288px) + (2 * $grid-margin));
+  max-block-size: calc(100% - rem(64px));
   display: flex;
   flex-direction: column;
   row-gap: $spacing-03;
   position: fixed;
   inset-block-start: rem(64px);
   inset-inline-end: 0;
-  max-block-size: calc(100% - rem(64px));
   padding-block: $spacing-05;
   padding-inline: $grid-margin calc($grid-margin - var(--scrollbar-width));
   z-index: z('modal') + 1;

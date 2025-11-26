@@ -7,36 +7,33 @@ import { Close, ErrorFilled, InformationFilled } from '@carbon/icons-react';
 import { IconButton } from '@carbon/react';
 import clsx from 'clsx';
 import { formatDistanceToNow } from 'date-fns';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import type { ValueTransition } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useCallback, useEffect, useState } from 'react';
 
 import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
-import type { Toast } from '#contexts/Toast/toast-context.ts';
+import type { ToastWithKey } from '#contexts/Toast/toast-context.ts';
+import { FADE_DURATION, FADE_EASE_ENTRANCE, FADE_EASE_EXIT, fadeProps } from '#utils/fadeProps.ts';
 
 import classes from './Toast.module.scss';
 
 interface Props {
-  toast: Toast;
+  toast: ToastWithKey;
   onClose: () => void;
 }
 
 export function Toast({
-  toast: { title, kind = 'info', timeout, icon, date, message, hideDate, renderMarkdown },
+  toast: { key, title, kind = 'info', timeout, icon, date, message, hideDate, renderMarkdown },
   onClose,
 }: Props) {
   const [isOpen, setIsOpen] = useState(true);
-  const savedOnClose = useRef(onClose);
 
-  const handleCloseClick = useCallback(() => {
-    onClose();
+  const handleClose = useCallback(() => {
     setIsOpen(false);
-  }, [onClose]);
+  }, []);
 
   const Icon = icon ?? iconTypes[kind];
-
-  useEffect(() => {
-    savedOnClose.current = onClose;
-  });
 
   useEffect(() => {
     if (!timeout) {
@@ -44,51 +41,70 @@ export function Toast({
     }
 
     const timeoutId = setTimeout(() => {
-      setIsOpen(false);
-
-      savedOnClose.current();
+      handleClose();
     }, timeout);
 
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [timeout]);
-
-  if (!isOpen) {
-    return null;
-  }
+  }, [timeout, handleClose]);
 
   return (
-    <div role="status" className={clsx(classes.root, classes[`is-${kind}`])}>
-      <header className={classes.header}>
-        <IconButton
-          kind="ghost"
-          size="sm"
-          label="Close"
-          wrapperClasses={classes.closeButton}
-          onClick={handleCloseClick}
+    <AnimatePresence onExitComplete={onClose}>
+      {isOpen && (
+        <motion.div
+          key={key}
+          role="status"
+          className={clsx(classes.root, classes[`is-${kind}`])}
+          layout="position"
+          transition={{
+            layout: springAnimation,
+          }}
+          {...fadeProps({
+            hidden: {
+              transform: 'translateX(100%)',
+              transition: {
+                duration: FADE_DURATION,
+                ease: FADE_EASE_EXIT,
+              },
+            },
+            visible: {
+              transform: 'translateX(0)',
+              transition: {
+                duration: FADE_DURATION,
+                ease: FADE_EASE_ENTRANCE,
+                transform: springAnimation,
+              },
+            },
+          })}
         >
-          <Close />
-        </IconButton>
+          <header className={classes.header}>
+            <IconButton kind="ghost" size="sm" label="Close" wrapperClasses={classes.closeButton} onClick={handleClose}>
+              <Close />
+            </IconButton>
 
-        <Icon className={clsx(classes.icon, { [classes.defaultIcon]: !icon })} />
+            <Icon className={clsx(classes.icon, { [classes.defaultIcon]: !icon })} />
 
-        {!hideDate && date && <ElapsedTime date={date} />}
+            {!hideDate && date && <ElapsedTime date={date} />}
 
-        <h2 className={classes.heading}>{title}</h2>
-      </header>
+            <h2 className={classes.heading}>{title}</h2>
+          </header>
 
-      {message &&
-        (renderMarkdown ? (
-          <LineClampText lines={4} useBlockElement>
-            <MarkdownContent>{message}</MarkdownContent>
-          </LineClampText>
-        ) : (
-          <div>{message}</div>
-        ))}
-    </div>
+          {message &&
+            (renderMarkdown ? (
+              <LineClampText lines={4} useBlockElement>
+                <MarkdownContent>{message}</MarkdownContent>
+              </LineClampText>
+            ) : (
+              <div>{message}</div>
+            ))}
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
+
+const springAnimation: ValueTransition = { type: 'spring', duration: FADE_DURATION * 2, bounce: 0.3 };
 
 const iconTypes = {
   info: InformationFilled,
