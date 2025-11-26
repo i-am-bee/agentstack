@@ -112,7 +112,10 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
       const errorCode = getErrorCode(error);
 
       errorHandler(error, {
-        errorToast: { title: errorCode?.toString() ?? 'Failed to run agent.', includeErrorMessage: true },
+        errorToast: {
+          title: errorCode?.toString() ?? 'Failed to run agent.',
+          includeErrorMessage: true,
+        },
       });
 
       if (error instanceof Error) {
@@ -163,7 +166,10 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
     ) {
       agentClient?.cancelTask(lastMessage.taskId).catch((error) => {
         errorHandler(error, {
-          errorToast: { title: 'Failed to cancel previous task.', includeErrorMessage: true },
+          errorToast: {
+            title: 'Failed to cancel previous task.',
+            includeErrorMessage: true,
+          },
         });
       });
     }

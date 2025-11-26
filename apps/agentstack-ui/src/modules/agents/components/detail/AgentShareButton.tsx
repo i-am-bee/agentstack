@@ -24,7 +24,6 @@ export function AgentShareButton({ agent }: Props) {
     addToast({
       title: 'Link has been copied to clipboard!',
       icon: Link,
-      timeout: 100000000,
     });
   };
 

@@ -14,7 +14,10 @@ export function useUser() {
     queryFn: readUser,
     staleTime: Infinity,
     meta: {
-      errorToast: { title: 'Failed to load user details.', includeErrorMessage: true },
+      errorToast: {
+        title: 'Failed to load user details.',
+        includeErrorMessage: true,
+      },
     },
   });
 
