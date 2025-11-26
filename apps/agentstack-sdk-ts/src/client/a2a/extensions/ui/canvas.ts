@@ -20,7 +20,7 @@ const responseSchema = z.object({
   artifact_id: z.string(),
 });
 
-type CanvasFulfillments = z.infer<typeof responseSchema>;
+export type CanvasFulfillments = z.infer<typeof responseSchema>;
 
 export const canvasExtension: A2AServiceExtension<typeof URI, z.infer<typeof schema>, CanvasFulfillments> = {
   getDemandsSchema: () => schema,

@@ -129,8 +129,6 @@ export const buildA2AClient = async <UIGenericPart = never>({
           .with({ kind: 'artifact-update' }, (event) => {
             taskId = event.taskId;
 
-            console.log({ demands });
-
             const parts = handleArtifactUpdate(event, demands.canvasDemands !== undefined);
 
             messageSubject.next({ type: RunResultType.Parts, parts, taskId });

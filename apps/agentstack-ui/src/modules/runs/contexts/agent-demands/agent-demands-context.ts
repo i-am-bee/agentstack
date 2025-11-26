@@ -6,6 +6,7 @@
 import type { AgentSettings, FormDemands, Fulfillments, SettingsDemands } from 'agentstack-sdk';
 import { createContext } from 'react';
 
+import type { UICanvasEditRequestParams } from '#modules/canvas/types.ts';
 import type { RunFormValues } from '#modules/form/types.ts';
 import type { UIMessageForm } from '#modules/messages/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
@@ -15,6 +16,7 @@ export type FulfillmentsContext = Partial<{
   providedSecrets: Record<string, string>;
   oauthRedirectUri: string;
   form: UIMessageForm;
+  canvasEditRequest: UICanvasEditRequestParams;
 }>;
 
 interface AgentDemandsContextValue {

@@ -7,15 +7,9 @@ import {
   MD_POSITION_END_ATTR,
   MD_POSITION_START_ATTR,
 } from '#components/MarkdownContent/rehype/rehypeSourcePosition.ts';
+import type { UICanvasEditRequestParams } from '#modules/canvas/types.ts';
 
-export interface MarkdownSelection {
-  /** Start offset in the markdown source string */
-  start: number;
-  /** End offset in the markdown source string */
-  end: number;
-  /** The selected text from the rendered output */
-  text: string;
-}
+export type MarkdownSelection = Pick<UICanvasEditRequestParams, 'startIndex' | 'endIndex' | 'content'>;
 
 export function mapDOMSelectionToMarkdown(range: Range, markdownSource: string): MarkdownSelection | null {
   try {
@@ -28,13 +22,13 @@ export function mapDOMSelectionToMarkdown(range: Range, markdownSource: string):
     const firtElementStart: number = parseInt(
       range.startContainer.parentElement?.getAttribute(MD_POSITION_START_ATTR) ?? '',
     );
-    let start = firtElementStart + range.startOffset;
+    let startIndex = firtElementStart + range.startOffset;
 
     const lastElementEnd: number = parseInt(range.endContainer.parentElement?.getAttribute(MD_POSITION_END_ATTR) ?? '');
     const offsetEndAdjustment = (range.endContainer.textContent?.length ?? 0) - range.endOffset;
-    const end = lastElementEnd - offsetEndAdjustment;
+    const endIndex = lastElementEnd - offsetEndAdjustment;
 
-    const regionText = markdownSource.slice(start, end);
+    const regionText = markdownSource.slice(startIndex, endIndex);
     const trimmedSelection = selectedText.trim();
 
     const { startContainer, endContainer } = range;
@@ -47,15 +41,15 @@ export function mapDOMSelectionToMarkdown(range: Range, markdownSource: string):
     );
     const indexInRegion = regionText.indexOf(startSearchContent ?? '');
     if (indexInRegion !== -1) {
-      start += indexInRegion;
+      startIndex += indexInRegion;
     }
 
     // console.log({ lastElementEnd, endOffset: range.endOffset, offsetEndAdjustment });
 
     const result = {
-      start,
-      end,
-      text: trimmedSelection,
+      startIndex,
+      endIndex,
+      content: trimmedSelection,
     };
 
     return result;

@@ -6,6 +6,7 @@
 import type { Task, TaskArtifactUpdateEvent } from '@a2a-js/sdk';
 import type { FormRender, SecretDemands } from 'agentstack-sdk';
 
+import type { UICanvasEditRequestParams } from '#modules/canvas/types.ts';
 import type { RunFormValues } from '#modules/form/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 
@@ -27,6 +28,7 @@ export interface UIUserMessage extends UIMessageBase {
   role: Role.User;
   form?: UIMessageForm;
   auth?: string;
+  canvasEditRequest?: UICanvasEditRequestParams;
 }
 
 export interface UIAgentMessage extends UIMessageBase {

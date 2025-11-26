@@ -19,6 +19,7 @@ import { oauthProviderExtension } from './services/oauth-provider';
 import { platformApiExtension } from './services/platform';
 import type { SecretDemands, SecretFulfillments } from './services/secrets';
 import { secretsExtension } from './services/secrets';
+import type { CanvasFulfillments } from './ui/canvas';
 import { canvasExtension } from './ui/canvas';
 import { oauthRequestExtension } from './ui/oauth';
 import type { SettingsDemands, SettingsFulfillments } from './ui/settings';
@@ -29,10 +30,11 @@ export interface Fulfillments {
   llm: (demand: LLMDemands) => Promise<LLMFulfillments>;
   embedding: (demand: EmbeddingDemands) => Promise<EmbeddingFulfillments>;
   mcp: (demand: MCPDemands) => Promise<MCPFulfillments>;
-  oauth: (demand: OAuthDemands) => Promise<OAuthFulfillments>;
+  oauth: (demand: OAuthDemands) => OAuthFulfillments;
   settings: (demand: SettingsDemands) => Promise<SettingsFulfillments>;
   secrets: (demand: SecretDemands) => Promise<SecretFulfillments>;
   form: (demand: FormDemands) => Promise<FormFulfillments>;
+  canvasEditRequest: () => CanvasFulfillments | null;
   oauthRedirectUri: () => string | null;
   getContextToken: () => ContextToken;
 }
@@ -53,6 +55,7 @@ const fulfillOAuthDemand = fulfillServiceExtensionDemand(oauthProviderExtension)
 const fulfillSettingsDemand = fulfillServiceExtensionDemand(settingsExtension);
 const fulfillSecretDemand = fulfillServiceExtensionDemand(secretsExtension);
 const fulfillFormDemand = fulfillServiceExtensionDemand(formExtension);
+const fulfillCanvasDemand = fulfillServiceExtensionDemand(canvasExtension);
 
 export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) => {
   const extensions = agentCard.capabilities.extensions ?? [];
@@ -97,6 +100,13 @@ export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) 
 
     if (formDemands) {
       fulfilledMetadata = fulfillFormDemand(fulfilledMetadata, await fulfillments.form(formDemands));
+    }
+
+    if (canvasDemands !== undefined) {
+      const canvasEditRequest = fulfillments.canvasEditRequest();
+      if (canvasEditRequest) {
+        fulfilledMetadata = fulfillCanvasDemand(fulfilledMetadata, canvasEditRequest);
+      }
     }
 
     const oauthRedirectUri = fulfillments.oauthRedirectUri();

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 export interface TextSelectionInfo {
   text: string;
@@ -12,62 +12,54 @@ export interface TextSelectionInfo {
   firstVisibleRect?: DOMRect;
 }
 
-export function useTextSelection(containerRef: React.RefObject<HTMLElement | null>) {
-  const [selection, setSelection] = useState<TextSelectionInfo | null>(null);
+interface Props {
+  containerRef: React.RefObject<HTMLElement | null>;
+  onSelectionChange: (selection: TextSelectionInfo | null) => void;
+}
 
+export function useTextSelection({ containerRef, onSelectionChange }: Props) {
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
-
-    const validateSelection = () => {
-      const selection = window.getSelection();
-      const selectedText = selection?.toString().trim();
-
-      if (!selection || selection.isCollapsed || selection.rangeCount === 0 || !selectedText) {
-        setSelection(null);
-        return false;
-      }
-
-      const range = selection.getRangeAt(0);
-      if (!container.contains(range.commonAncestorContainer)) {
-        setSelection(null);
-        return false;
-      }
-
-      return true;
-    };
+    if (!container) {
+      return;
+    }
 
     const handleMouseUp = () => {
-      const selection = window.getSelection();
+      // Use requestAnimationFrame to ensure selection is updated
+      requestAnimationFrame(() => {
+        const selection = window.getSelection();
+        const selectedText = selection?.toString().trim();
 
-      if (!selection || !validateSelection()) {
-        return;
-      }
+        if (!selection || selection.isCollapsed || selection.rangeCount === 0 || !selectedText) {
+          onSelectionChange(null);
+          return;
+        }
 
-      const selectedText = selection.toString().trim();
+        const range = selection.getRangeAt(0);
+        if (!container.contains(range.commonAncestorContainer)) {
+          onSelectionChange(null);
+          return;
+        }
 
-      const range = selection.getRangeAt(0);
-      const rects = Array.from(range.getClientRects());
+        const rects = Array.from(range.getClientRects());
+        const firstVisibleRect = rects.find(({ width, height }) => width > 1 && height > 1);
 
-      const firstVisibleRect = rects.find(({ width, height }) => width > 1 && height > 1);
-
-      setSelection({
-        text: selectedText,
-        range,
-        rects,
-        firstVisibleRect,
+        onSelectionChange({
+          text: selectedText,
+          range,
+          rects,
+          firstVisibleRect,
+        });
       });
     };
 
     // Listen to both selectionchange and mouseup (for better responsiveness)
-    document.addEventListener('selectionchange', validateSelection);
+    // document.addEventListener('selectionchange', validateSelection);
     container.addEventListener('mouseup', handleMouseUp);
 
     return () => {
-      document.removeEventListener('selectionchange', validateSelection);
+      // document.removeEventListener('selectionchange', validateSelection);
       container.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [containerRef]);
-
-  return selection;
+  }, [containerRef, onSelectionChange]);
 }

@@ -5,4 +5,8 @@
 
 .root {
   position: relative;
+
+  ::highlight(canvas-highlight) {
+    background-color: $blue-20;
+  }
 }

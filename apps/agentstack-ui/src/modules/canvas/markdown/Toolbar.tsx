@@ -3,44 +3,40 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Send } from '@carbon/icons-react';
-import { Button, IconButton, TextInput } from '@carbon/react';
-import { FloatingFocusManager, FloatingPortal } from '@floating-ui/react';
+import { Button } from '@carbon/react';
+import { FloatingPortal } from '@floating-ui/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useId, useState } from 'react';
+import { useState } from 'react';
 
 import { fadeProps } from '#utils/fadeProps.ts';
 
+import { CanvasEditForm } from './CanvasEditForm';
 import type { MarkdownSelectionDialogReturn } from './hooks/useMarkdownSelectionDialog';
 import classes from './Toolbar.module.scss';
 
 interface Props {
   dialog: MarkdownSelectionDialogReturn;
-  onAction: () => void;
+  onEditRequest: (description: string) => void;
 }
 
-export function Toolbar({ dialog, onAction }: Props) {
-  const { isOpen, context } = dialog;
+export function Toolbar({ dialog, onEditRequest }: Props) {
+  const { isOpen } = dialog;
 
   return (
     <AnimatePresence>
       {isOpen && (
         <FloatingPortal>
-          <FloatingFocusManager context={context} modal={false}>
-            <ToolbarContent dialog={dialog} onAction={onAction} />
-          </FloatingFocusManager>
+          <ToolbarContent dialog={dialog} onEditRequest={onEditRequest} />
         </FloatingPortal>
       )}
     </AnimatePresence>
   );
 }
 
-function ToolbarContent({ dialog, onAction }: Props) {
-  const id = useId();
-
+function ToolbarContent({ dialog, onEditRequest }: Props) {
   const [view, setView] = useState<ToolbarView>(ToolbarView.Main);
 
-  const { refs, floatingStyles, getFloatingProps } = dialog;
+  const { refs, floatingStyles, getFloatingProps, close } = dialog;
 
   return (
     <div ref={refs.setFloating} style={floatingStyles} {...getFloatingProps()}>
@@ -50,12 +46,12 @@ function ToolbarContent({ dialog, onAction }: Props) {
             Ask agent
           </Button>
         ) : (
-          <div className={classes.askForm}>
-            <TextInput placeholder="How do you want to change it?" id={id} labelText="" autoFocus />
-            <IconButton label="Ask agent" onClick={onAction} kind="ghost" size="sm">
-              <Send />
-            </IconButton>
-          </div>
+          <CanvasEditForm
+            onSubmit={(description) => {
+              onEditRequest(description);
+              close();
+            }}
+          />
         )}
       </motion.div>
     </div>

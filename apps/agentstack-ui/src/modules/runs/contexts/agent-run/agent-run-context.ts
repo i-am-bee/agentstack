@@ -8,6 +8,7 @@ import { createContext } from 'react';
 
 import type { AgentA2AClient } from '#api/a2a/types.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
+import type { UICanvasEditRequestParams } from '#modules/canvas/types.ts';
 import type { UIMessageForm } from '#modules/messages/types.ts';
 import type { RunStats } from '#modules/runs/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
@@ -32,6 +33,7 @@ interface AgentRunContextValue {
   submitRuntimeForm: (form: UIMessageForm, taskId: TaskId) => Promise<void>;
   startAuth: (url: string, taskId: TaskId) => void;
   submitSecrets: (taskId: TaskId, secrets: Record<string, string>) => Promise<void>;
+  submitCanvasEditRequest: (canvasEditRequest: UICanvasEditRequestParams) => Promise<void>;
   cancel: () => void;
   clear: () => void;
 }

@@ -16,6 +16,7 @@ import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { CanvasProvider } from '#modules/canvas/contexts/CanvasProvider.tsx';
+import type { UICanvasEditRequestParams } from '#modules/canvas/types.ts';
 import { FileUploadProvider } from '#modules/files/contexts/FileUploadProvider.tsx';
 import { useFileUpload } from '#modules/files/contexts/index.ts';
 import { convertFilesToUIFileParts } from '#modules/files/utils.ts';
@@ -370,6 +371,22 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
     [checkPendingRun, run],
   );
 
+  const submitCanvasEditRequest = useCallback(
+    (canvasEditRequest: UICanvasEditRequestParams) => {
+      checkPendingRun();
+
+      const message: UIUserMessage = {
+        id: uuid(),
+        role: Role.User,
+        parts: [],
+        canvasEditRequest,
+      };
+
+      return run(message, { canvasEditRequest });
+    },
+    [checkPendingRun, run],
+  );
+
   const sources = useMemo(() => getMessagesSourcesMap(messages), [messages]);
 
   const status = useMemo(() => {
@@ -400,6 +417,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
       submitRuntimeForm,
       startAuth,
       submitSecrets,
+      submitCanvasEditRequest,
       initialFormRender,
       cancel,
       clear,
@@ -407,18 +425,19 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
   }, [
     agent,
     agentClient,
-    cancel,
-    chat,
-    clear,
-    input,
-    messages.length,
-    startAuth,
-    stats,
     status,
+    messages.length,
+    input,
+    stats,
+    chat,
     submitForm,
     submitRuntimeForm,
+    startAuth,
     submitSecrets,
+    submitCanvasEditRequest,
     initialFormRender,
+    cancel,
+    clear,
   ]);
 
   return (

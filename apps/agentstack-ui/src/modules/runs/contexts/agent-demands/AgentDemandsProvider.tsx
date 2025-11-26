@@ -19,6 +19,7 @@ import { useAgentSecrets } from '../agent-secrets';
 import type { FulfillmentsContext } from './agent-demands-context';
 import { AgentDemandsContext } from './agent-demands-context';
 import { buildFulfillments } from './build-fulfillments';
+import { getCanvasEditRequestFulfillment } from './utils';
 
 interface Props<UIGenericPart> {
   agentClient: AgentA2AClient<UIGenericPart>;
@@ -162,6 +163,8 @@ export function AgentDemandsProvider<UIGenericPart>({
         return memo;
       }, fulfillmentsContext.providedSecrets ?? {});
 
+      const { oauthRedirectUri, canvasEditRequest } = fulfillmentsContext;
+
       return buildFulfillments({
         contextToken,
         selectedLLMProviders,
@@ -171,7 +174,8 @@ export function AgentDemandsProvider<UIGenericPart>({
         featureFlags,
         selectedSettings,
         formFulfillments: formFulfillmentsRef.current,
-        oauthRedirectUri: fulfillmentsContext.oauthRedirectUri ?? null,
+        oauthRedirectUri: oauthRedirectUri ?? null,
+        canvasEditRequest: canvasEditRequest ? getCanvasEditRequestFulfillment(canvasEditRequest) : null,
       });
     },
     [

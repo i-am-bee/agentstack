@@ -44,14 +44,45 @@ async def artifacts_agent(
 
     await context.store(input)
 
-    # canvas_edit_request = await canvas.parse_canvas_edit_request(message=input)
+    canvas_edit_request = await canvas.parse_canvas_edit_request(message=input)
 
-    # history = [message async for message in context.load_history() if isinstance(message, Message) and message.parts]
+    print(f"Canvas Edit Request: {canvas_edit_request}")
 
-    recipe_title = random.choice(RECIPE_TITLES)
+    if canvas_edit_request:
+        recipe_title = "Canvas Recipe EDITED"
 
-    response = f"""\
-Here's your recipe:
+        original_recipe = (
+            canvas_edit_request.artifact.parts[0].root.text
+            if isinstance(canvas_edit_request.artifact.parts[0].root, TextPart)
+            else ""
+        )
+        edited_part = original_recipe[canvas_edit_request.start_index : canvas_edit_request.end_index]
+        description = f"You requested to edit this part:\n\n*{edited_part}*\n\n"
+
+        response = f"""\
+{description}
+
+```recipe
+# Canvas Recipe EDITED
+
+## Ingredients
+- bread (1 slice)
+- butter (1 slice)
+
+## Instructions
+1. Cut a slice of bread.
+2. Cut a slice of butter.
+3. Spread the slice of butter on the slice of bread.
+```
+
+Enjoy your edited meal!
+"""
+    else:
+        recipe_title = random.choice(RECIPE_TITLES)
+        description = "Here's your recipe:"
+
+        response = f"""\
+{description}
 
 ```recipe
 # {recipe_title}
@@ -59,8 +90,6 @@ Here's your recipe:
 ## Ingredients
 - bread (1 slice)
 - butter (1 slice)
-
-![test image](agentstack://artifact-test-image)
 
 ## Instructions
 1. Cut a slice of bread.

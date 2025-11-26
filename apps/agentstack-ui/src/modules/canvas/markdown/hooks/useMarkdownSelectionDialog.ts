@@ -4,27 +4,31 @@
  */
 
 import { autoUpdate, offset, shift, useDismiss, useFloating, useInteractions, useRole } from '@floating-ui/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
-import type { TextSelectionInfo } from './useTextSelection';
+import { type TextSelectionInfo, useTextSelection } from './useTextSelection';
 
-interface Props {
-  selection: TextSelectionInfo | null;
-  containerRef: React.RefObject<HTMLElement | null>;
-}
+export function useMarkdownSelectionDialog(containerRef: React.RefObject<HTMLElement | null>) {
+  const [selection, setSelection] = useState<TextSelectionInfo | null>(null);
 
-export function useMarkdownSelectionDialog({ selection: selectionProps, containerRef }: Props) {
-  const [selection, setSelection] = useState<TextSelectionInfo | null>(selectionProps);
+  const handleSelectionChange = useCallback((selection: TextSelectionInfo | null) => {
+    if (!selection || !selection.firstVisibleRect) {
+      return;
+    }
+
+    setSelection(selection);
+    const highlight = new Highlight(selection.range);
+    CSS.highlights.set(HIGHLIGHT_NAME, highlight);
+  }, []);
+
+  useTextSelection({ containerRef, onSelectionChange: handleSelectionChange });
 
   const containerRect = containerRef.current?.getBoundingClientRect();
 
-  useEffect(() => {
-    const open = Boolean(selectionProps && containerRect && selectionProps.firstVisibleRect);
-
-    if (open) {
-      setSelection(selectionProps ?? null);
-    }
-  }, [containerRect, selectionProps]);
+  const clearSelection = useCallback(() => {
+    setSelection(null);
+    CSS.highlights.delete(HIGHLIGHT_NAME);
+  }, []);
 
   const firstVisibleRect = selection?.firstVisibleRect ?? null;
 
@@ -36,11 +40,10 @@ export function useMarkdownSelectionDialog({ selection: selectionProps, containe
   }, [firstVisibleRect, containerRect]);
   const isOpen = Boolean(selection);
 
-  // Use the first rect as the reference for positioning
   const { refs, floatingStyles, context } = useFloating({
     placement: 'top-start',
     open: isOpen,
-    onOpenChange: (open) => !open && setSelection(null),
+    onOpenChange: (open) => !open && clearSelection(),
     middleware: [
       offset(() => {
         if (offsets === null) {
@@ -70,13 +73,16 @@ export function useMarkdownSelectionDialog({ selection: selectionProps, containe
 
   return {
     isOpen,
+    selection,
     refs,
     floatingStyles,
     context,
     getFloatingProps,
+    close: clearSelection,
   };
 }
 
 export type MarkdownSelectionDialogReturn = ReturnType<typeof useMarkdownSelectionDialog>;
 
 const SELECTION_BLOCK_OFFSET = 8;
+const HIGHLIGHT_NAME = 'canvas-highlight';

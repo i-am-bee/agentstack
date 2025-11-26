@@ -3,61 +3,65 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import 'katex/dist/katex.min.css';
-
 import { useMergeRefs } from '@floating-ui/react';
 import clsx from 'clsx';
 import { useRef } from 'react';
 
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
+import { rehypeSourcePosition } from '#components/MarkdownContent/rehype/rehypeSourcePosition.ts';
+import { useAgentRun } from '#modules/runs/contexts/agent-run/index.ts';
 
 import classes from './CanvasMarkdownContent.module.scss';
 import { useMarkdownSelectionDialog } from './hooks/useMarkdownSelectionDialog';
-import { useTextSelection } from './hooks/useTextSelection';
 import { Toolbar } from './Toolbar';
-import type { MarkdownSelection } from './utils/mapDOMSelectionToMarkdown';
 import { mapDOMSelectionToMarkdown } from './utils/mapDOMSelectionToMarkdown';
 
 export interface MarkdownContentProps {
   children?: string;
+  artifactId: string;
   className?: string;
-  onTextSelected: (selection: MarkdownSelection) => void;
   selectionActionLabel?: string;
   enableSelection?: boolean;
 }
 
 export function CanvasMarkdownContent({
   className,
+  artifactId,
   children,
-  onTextSelected,
   enableSelection = true,
 }: MarkdownContentProps) {
+  const { submitCanvasEditRequest } = useAgentRun();
+
   const containerRef = useRef<HTMLDivElement>(null);
-  const selection = useTextSelection(containerRef);
 
-  const dialog = useMarkdownSelectionDialog({ selection, containerRef });
+  const dialog = useMarkdownSelectionDialog(containerRef);
 
-  const handleSelectionAction = () => {
-    if (!selection || !onTextSelected || !children) {
+  const { refs, selection } = dialog;
+
+  const handleEditRequest = (description: string) => {
+    if (!selection || !children) {
       return;
     }
 
-    const { range } = selection;
-    const markdownSelection = mapDOMSelectionToMarkdown(range, children);
+    const markdownSelection = mapDOMSelectionToMarkdown(selection.range, children);
 
     if (markdownSelection) {
-      onTextSelected(markdownSelection);
+      submitCanvasEditRequest({
+        ...markdownSelection,
+        description,
+        artifactId,
+      });
     }
   };
-
-  const { refs } = dialog;
 
   const containerRefs = useMergeRefs([containerRef, refs.setPositionReference]);
 
   return (
     <div ref={containerRefs} className={clsx(classes.root, className)}>
-      <MarkdownContent>{children}</MarkdownContent>
-      {enableSelection && <Toolbar dialog={dialog} onAction={handleSelectionAction} />}
+      <MarkdownContent rehypePlugins={rehypePlugins}>{children}</MarkdownContent>
+      {enableSelection && <Toolbar dialog={dialog} onEditRequest={handleEditRequest} />}
     </div>
   );
 }
+
+const rehypePlugins = [rehypeSourcePosition];

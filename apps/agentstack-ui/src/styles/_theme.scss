@@ -39,6 +39,7 @@ $light: map.merge(
     layer-inverse-03: $cool-gray-70,
 
     border-subtle-00: $cool-gray-20,
+    border-subtle-inverse: $cool-gray-80,
     border-interactive: $black,
 
     button-primary-color: $white,
@@ -90,6 +91,7 @@ $dark: map.merge(
     layer-inverse-03: $cool-gray-30,
 
     border-subtle-00: $cool-gray-80,
+    border-subtle-inverse: $cool-gray-20,
     border-interactive: $white,
 
     button-primary-color: $black,
@@ -210,6 +212,7 @@ $text-dark: var(--cds-text-dark);
 $text-muted: var(--cds-text-muted);
 $text-muted-inverse: var(--cds-text-muted-inverse);
 
+$border-subtle-inverse: var(--cds-border-subtle-inverse);
 $border-radius: $spacing-03;
 $border-radius-lg: $spacing-04;
 $box-shadow-color: var(--cds-box-shadow-color);

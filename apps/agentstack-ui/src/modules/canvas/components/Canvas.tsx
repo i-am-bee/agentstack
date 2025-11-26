@@ -6,7 +6,6 @@
 import { useMemo, useRef } from 'react';
 
 import { CopyButton } from '#components/CopyButton/CopyButton.tsx';
-import type { MarkdownSelection } from '#components/MarkdownContent/index.ts';
 import { UIMessagePartKind } from '#modules/messages/types.ts';
 
 import { useCanvas } from '../contexts';
@@ -26,16 +25,6 @@ export function Canvas() {
     return null;
   }
 
-  const handleTextSelected = (selection: MarkdownSelection) => {
-    console.log('Start index:', selection.start);
-    console.log('End index:', selection.end);
-    console.log('Selected text:', selection.text);
-    console.log('Selected markdown:', content?.slice(selection.start, selection.end));
-
-    // Do something with the selection indices
-    // e.g., send to backend, create annotation, etc.
-  };
-
   return (
     <div className={classes.root}>
       <div className={classes.container}>
@@ -48,7 +37,7 @@ export function Canvas() {
         </header>
 
         <div className={classes.body} ref={contentRef}>
-          <CanvasMarkdownContent className={classes.content} onTextSelected={handleTextSelected}>
+          <CanvasMarkdownContent className={classes.content} artifactId={activeArtifact.artifactId}>
             {content}
           </CanvasMarkdownContent>
         </div>

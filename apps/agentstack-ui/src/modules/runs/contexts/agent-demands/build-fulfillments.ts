@@ -3,7 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentSettings, ContextToken, EmbeddingDemands, FormFulfillments, Fulfillments } from 'agentstack-sdk';
+import type {
+  AgentSettings,
+  CanvasFulfillments,
+  ContextToken,
+  EmbeddingDemands,
+  FormFulfillments,
+  Fulfillments,
+} from 'agentstack-sdk';
 
 import { BASE_URL } from '#utils/constants.ts';
 import type { FeatureFlags } from '#utils/feature-flags.ts';
@@ -18,6 +25,7 @@ interface BuildFulfillmentsParams {
   formFulfillments: FormFulfillments;
   oauthRedirectUri: string | null;
   featureFlags: FeatureFlags;
+  canvasEditRequest: CanvasFulfillments | null;
 }
 
 export const buildFulfillments = ({
@@ -30,6 +38,7 @@ export const buildFulfillments = ({
   formFulfillments,
   oauthRedirectUri,
   featureFlags,
+  canvasEditRequest,
 }: BuildFulfillmentsParams): Fulfillments => {
   return {
     getContextToken: () => contextToken,
@@ -127,7 +136,7 @@ export const buildFulfillments = ({
         { mcp_fulfillments: {} },
       );
     },
-    oauth: async () => {
+    oauth: () => {
       return {
         oauth_fulfillments: {
           default: {
@@ -138,6 +147,9 @@ export const buildFulfillments = ({
     },
     oauthRedirectUri: () => {
       return oauthRedirectUri;
+    },
+    canvasEditRequest: () => {
+      return canvasEditRequest;
     },
   };
 };

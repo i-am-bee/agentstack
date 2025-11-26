@@ -26,6 +26,7 @@ export interface MarkdownContentProps {
   children?: string;
   className?: string;
   remarkPlugins?: PluggableList;
+  rehypePlugins?: PluggableList;
   components?: Components;
 }
 
@@ -34,6 +35,7 @@ export function MarkdownContent({
   isStreaming,
   className,
   remarkPlugins: remarkPluginsProps,
+  rehypePlugins: rehypePluginsProps,
   components: componentsProps,
   children,
 }: MarkdownContentProps) {
@@ -50,12 +52,13 @@ export function MarkdownContent({
   );
 
   const extendedRemarkPlugins = useMemo(() => [...remarkPlugins, ...(remarkPluginsProps ?? [])], [remarkPluginsProps]);
+  const extendedRehypePlugins = useMemo(() => [...rehypePlugins, ...(rehypePluginsProps ?? [])], [rehypePluginsProps]);
 
   return (
     <MermaidProvider>
       <div ref={containerRef} className={clsx(classes.root, className)}>
         <Markdown
-          rehypePlugins={rehypePlugins}
+          rehypePlugins={extendedRehypePlugins}
           remarkPlugins={extendedRemarkPlugins}
           components={extendedComponents}
           urlTransform={urlTransform}
