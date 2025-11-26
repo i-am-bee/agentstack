@@ -270,14 +270,6 @@ connector:
       metadata:
         name: "GitHub"
         description: "Access and interact with your GitHub repositories and code intelligence"
-    - url: "mcp+stdio://filesystem"
-      metadata:
-        name: "Filesystem"
-        description: "Run the stdio filesystem MCP server inside the cluster"
-      stdio:
-        image: "ghcr.io/modelcontextprotocol/python-servers/filesystem:latest"
-        args:
-          - "--root=/data"
 ui:
   replicaCount: 1
   enabled: true

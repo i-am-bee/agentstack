@@ -82,7 +82,7 @@ class ConnectorService:
             await uow.commit()
 
         # For stdio connectors, create the supergateway pod immediately
-        if preset and str(preset.url).startswith("mcp+stdio://"):
+        if preset and preset.url.scheme == "mcp+stdio":
             logger.info("Creating supergateway pod for stdio connector: connector_id=%s", connector.id)
             try:
                 await self._create_supergateway_pod(connector=connector, preset=preset)
@@ -110,7 +110,7 @@ class ConnectorService:
 
             # For stdio connectors, delete the supergateway pod
             preset = self._find_preset(url=connector.url)
-            if preset and str(preset.url).startswith("mcp+stdio://"):
+            if preset and preset.url.scheme == "mcp+stdio":
                 try:
                     await self._delete_supergateway_pod(connector=connector)
                 except Exception:
@@ -126,16 +126,13 @@ class ConnectorService:
     async def connect_connector(
         self, *, connector_id: UUID, callback_uri: str, redirect_url: AnyUrl | None = None, user: User | None = None
     ) -> Connector:
-        logger.error("Connecting connector: connector_id=%s url=%s", connector_id, "unknown")
         async with self._uow() as uow:
             connector = await uow.connectors.get(connector_id=connector_id, user_id=user.id if user else None)
-
-        logger.error("Connector retrieved: connector_id=%s url=%s", connector_id, connector.url)
 
         # For stdio connectors, skip probing since pods are already created and running
         # Probing causes the supergateway to crash due to connection state issues
         preset = self._find_preset(url=connector.url)
-        is_stdio_connector = preset and str(preset.url).startswith("mcp+stdio://")
+        is_stdio_connector = preset and preset.url.scheme == "mcp+stdio"
 
         try:
             if is_stdio_connector:
@@ -143,9 +140,7 @@ class ConnectorService:
                 connector.state = ConnectorState.connected
                 connector.disconnect_reason = None
             else:
-                logger.error("Probing connector: connector_id=%s", connector_id)
                 await self.probe_connector(connector=connector)
-                logger.error("Connector probe successful: connector_id=%s", connector_id)
                 connector.state = ConnectorState.connected
                 connector.disconnect_reason = None
         except Exception as err:
@@ -194,7 +189,7 @@ class ConnectorService:
 
         # For stdio connectors, delete the supergateway pod
         preset = self._find_preset(url=connector.url)
-        if preset and str(preset.url).startswith("mcp+stdio://"):
+        if preset and preset.url.scheme == "mcp+stdio":
             try:
                 await self._delete_supergateway_pod(connector=connector)
             except Exception:
@@ -322,10 +317,7 @@ class ConnectorService:
         return self._configuration.connector.presets
 
     def _find_preset(self, *, url: AnyUrl) -> ConnectorPreset | None:
-        for preset in self._configuration.connector.presets:
-            if str(preset.url) == str(url):
-                return preset
-        return None
+        return next((p for p in self._configuration.connector.presets if str(p.url) == str(url)), None)
 
     def _get_supergateway_name(self, connector_id: UUID) -> str:
         """Get DNS-safe name for supergateway pod/service."""
@@ -660,7 +652,7 @@ spec:
             return httpx.AsyncClient(
                 headers=headers,
                 timeout=timeout or 30,
-                base_url="" if (url := str(connector.url)).startswith("mcp+stdio://") else url,
+                base_url="" if connector.url.scheme == "mcp+stdio" else str(connector.url),
             )
         else:
             return self._create_oauth_client(connector=connector)
@@ -717,7 +709,7 @@ spec:
 
         # Determine target URL
         preset = self._find_preset(url=connector.url)
-        if preset and str(preset.url).startswith("mcp+stdio://"):
+        if preset and preset.url.scheme == "mcp+stdio":
             # Use existing supergateway pod service URL
             target_url = f"{self._get_supergateway_url(connector.id)}/mcp"
         else:
@@ -775,7 +767,7 @@ spec:
         }
 
         # Determine target URL
-        if preset and str(preset.url).startswith("mcp+stdio://"):
+        if preset and preset.url.scheme == "mcp+stdio":
             # Use existing supergateway pod service URL
             target_url = f"{self._get_supergateway_url(connector.id)}/mcp"
         else:

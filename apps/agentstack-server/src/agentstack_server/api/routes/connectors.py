@@ -90,7 +90,6 @@ async def connect_connector(
     request: Request,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(connectors={"write"}))],
 ) -> ConnectorResponse:
-    logger.error("[ROUTE] connect_connector called: connector_id=%s", connector_id)
     return _to_response(
         await connector_service.connect_connector(
             connector_id=connector_id,
