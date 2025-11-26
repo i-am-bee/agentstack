@@ -13,9 +13,9 @@
       {
         "group": "Introduction",
         "pages": [
-        "introduction/welcome", 
-        "introduction/quickstart"
-      ]
+          "introduction/welcome",
+          "introduction/quickstart"
+        ]
       },
       {
         "group": "Deploy Agents",
