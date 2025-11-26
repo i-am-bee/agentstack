@@ -10,6 +10,7 @@ from a2a.types import (
     Message,
 )
 from beeai_framework.agents.requirement.utils._tool import FinalAnswerTool
+from beeai_framework.errors import FrameworkError
 from pydantic import BaseModel
 
 from agentstack_sdk.a2a.extensions import (
@@ -154,7 +155,7 @@ async def chat(
     citation: Annotated[CitationExtensionServer, CitationExtensionSpec()],
     llm_ext: Annotated[
         LLMServiceExtensionServer,
-        LLMServiceExtensionSpec.single_demand(suggested=("openai:gpt-4o", "ollama:granite3.3:8b")),
+        LLMServiceExtensionSpec.single_demand(),
     ],
     _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
 ):
@@ -233,57 +234,60 @@ async def chat(
     final_answer: AssistantMessage | None = None
     new_messages = [to_framework_message(item, extracted_files) for item in history]
 
-    async for event, meta in agent.run(
-        new_messages,
-        expected_output=dedent("""\
-           Assemble and send the final answer to the user. When using information gathered from other tools that provided URL addresses, you MUST properly cite them using markdown citation format: [description](URL).
+    try:
+        async for event, meta in agent.run(
+            new_messages,
+            expected_output=dedent("""\
+               Assemble and send the final answer to the user. When using information gathered from other tools that provided URL addresses, you MUST properly cite them using markdown citation format: [description](URL).
+    
+               # Citation Requirements:
+               - Use descriptive text that summarizes the source content
+               - Include the exact URL provided by the tool
+               - Place citations inline where the information is referenced
+    
+               # Examples:
+               - According to [OpenAI's latest announcement](https://example.com/gpt5), GPT-5 will be released next year.
+               - Recent studies show [AI adoption has increased by 67%](https://example.com/ai-study) in enterprise environments.
+               - Weather data indicates [temperatures will reach 25°C tomorrow](https://weather.example.com/forecast).
+               """),
+        ):
+            match event:
+                case RequirementAgentFinalAnswerEvent(delta=delta):
+                    yield delta
+                case RequirementAgentSuccessEvent(state=state):
+                    final_answer = state.answer
 
-           # Citation Requirements:
-           - Use descriptive text that summarizes the source content
-           - Include the exact URL provided by the tool
-           - Place citations inline where the information is referenced
+                    last_step = state.steps[-1]
+                    if last_step.tool.name == FinalAnswerTool.name:  # internal tool
+                        continue
 
-           # Examples:
-           - According to [OpenAI's latest announcement](https://example.com/gpt5), GPT-5 will be released next year.
-           - Recent studies show [AI adoption has increased by 67%](https://example.com/ai-study) in enterprise environments.
-           - Weather data indicates [temperatures will reach 25°C tomorrow](https://weather.example.com/forecast).
-           """),
-    ):
-        match event:
-            case RequirementAgentFinalAnswerEvent(delta=delta):
-                yield delta
-            case RequirementAgentSuccessEvent(state=state):
-                final_answer = state.answer
+                    trajectory_content = TrajectoryContent(
+                        input=last_step.input, output=last_step.output, error=last_step.error
+                    )
+                    metadata = trajectory.trajectory_metadata(
+                        title=last_step.tool.name, content=trajectory_content.model_dump_json(), group_id=last_step.id
+                    )
+                    yield metadata
+                    await context.store(AgentMessage(metadata=metadata))
 
-                last_step = state.steps[-1]
-                if last_step.tool.name == FinalAnswerTool.name:  # internal tool
-                    continue
+                    if isinstance(last_step.output, FileCreatorToolOutput):
+                        for file_info in last_step.output.result.files:
+                            part = file_info.file.to_file_part()
+                            part.file.name = file_info.display_filename
+                            artifact = AgentArtifact(name=file_info.display_filename, parts=[part])
+                            yield artifact
+                            await context.store(artifact)
 
-                trajectory_content = TrajectoryContent(
-                    input=last_step.input, output=last_step.output, error=last_step.error
-                )
-                metadata = trajectory.trajectory_metadata(
-                    title=last_step.tool.name, content=trajectory_content.model_dump_json(), group_id=last_step.id
-                )
-                yield metadata
-                await context.store(AgentMessage(metadata=metadata))
+        if final_answer:
+            citations, clean_text = extract_citations(final_answer.text)
 
-                if isinstance(last_step.output, FileCreatorToolOutput):
-                    for file_info in last_step.output.result.files:
-                        part = file_info.file.to_file_part()
-                        part.file.name = file_info.display_filename
-                        artifact = AgentArtifact(name=file_info.display_filename, parts=[part])
-                        yield artifact
-                        await context.store(artifact)
-
-    if final_answer:
-        citations, clean_text = extract_citations(final_answer.text)
-
-        message = AgentMessage(
-            text=clean_text,
-            metadata=(citation.citation_metadata(citations=citations) if citations else None),
-        )
-        await context.store(message)
+            message = AgentMessage(
+                text=clean_text,
+                metadata=(citation.citation_metadata(citations=citations) if citations else None),
+            )
+            await context.store(message)
+    except FrameworkError as err:
+        raise RuntimeError(err.explain())
 
 
 def serve():
