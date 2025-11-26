@@ -209,5 +209,13 @@ mise.local.toml
 # Ruff
 .ruff_cache/
 
+#Helm-ls
+.helm_ls_cache
+
 # VSCode
-.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets

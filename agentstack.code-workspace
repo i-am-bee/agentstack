@@ -1,0 +1,54 @@
+{
+    "folders": [
+        {
+            "name": "root",
+            "path": "."
+        },
+        {
+            "name": "agentstack-server",
+            "path": "apps/agentstack-server"
+        },
+        {
+            "name": "agentstack-sdk-py",
+            "path": "apps/agentstack-sdk-py"
+        },
+        {
+            "name": "agentstack-cli",
+            "path": "apps/agentstack-cli"
+        },
+        {
+            "name": "agent-chat",
+            "path": "agents/chat"
+        },
+        {
+            "name": "agent-form",
+            "path": "agents/form"
+        },
+        {
+            "name": "agent-rag",
+            "path": "agents/rag"
+        },
+        {
+            "name": "helm",
+            "path": "helm"
+        }
+    ],
+    "settings": {
+        "python.analysis.extraPaths": [
+            "${workspaceFolder}/apps/agentstack-sdk-py/src"
+        ],
+        "python.analysis.diagnosticMode": "openFilesOnly",
+        "python.analysis.typeCheckingMode": "basic",
+        "files.associations": {
+            "**/helm/templates/**/*.yaml": "helm",
+            "**/helm/templates/**/*.tpl": "helm"
+        },
+        "basedpyright.analysis.diagnosticMode": "openFilesOnly"
+    },
+    "extensions": {
+        "recommendations": [
+            "detachhead.basedpyright",
+            "charliermarsh.ruff"
+        ]
+    }
+}
