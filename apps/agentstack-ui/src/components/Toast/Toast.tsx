@@ -122,5 +122,5 @@ function ElapsedTime({ date }: { date: Date }) {
 }
 
 const JUST_NOW = 5_000; // 5 seconds
-const TIME_REFRESH_INTERVAL = 1_000; // 10 seconds
+const TIME_REFRESH_INTERVAL = 5_000; // 5 seconds
 const MAX_REFRESH_INTERVAL_DURATION = 3_600_000; // 1 hour
