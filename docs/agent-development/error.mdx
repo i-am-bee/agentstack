@@ -1,0 +1,110 @@
+---
+title: "Handle Errors"
+description: "Learn how your agent can report formatted errors to the UI."
+---
+
+The Error extension provides a standardized way to report errors from your agent to the UI.
+
+The Agent Stack SDK automatically handles exceptions raised within your agent function and uses the Error extension to report them. **No configuration is required** for standard error reporting.
+
+## Quickstart
+
+Simply raise exceptions in your agent code. The SDK will catch them and use the extension to format the error message.
+
+```python
+from a2a.types import Message
+from agentstack_sdk.server import Server
+
+server = Server()
+
+
+@server.agent()
+async def my_agent(input: Message):
+    # ... do some work ...
+    raise ValueError("Something went wrong!")
+```
+
+## Advanced Configuration
+
+If you want to customize the error reporting, for example to include stack traces, you can inject the extension with custom parameters.
+
+<Steps>
+<Step title="Import the Error extension">
+Import `ErrorExtensionServer`, `ErrorExtensionSpec`, and `ErrorExtensionParams`.
+</Step>
+
+<Step title="Inject and Configure">
+Inject the extension using `Annotated` and set `include_stacktrace=True`.
+</Step>
+</Steps>
+
+```python
+import os
+from typing import Annotated
+
+from a2a.types import Message
+
+from agentstack_sdk.a2a.extensions.ui.error import (
+    ErrorExtensionParams,
+    ErrorExtensionServer,
+    ErrorExtensionSpec,
+)
+from agentstack_sdk.server import Server
+
+server = Server()
+
+
+@server.agent()
+async def error_agent(
+    input: Message,
+    # Configure to include stack traces
+    error_ext: Annotated[
+        ErrorExtensionServer,
+        ErrorExtensionSpec(params=ErrorExtensionParams(include_stacktrace=True)),
+    ],
+):
+    """Agent that demonstrates error handling with stack traces"""
+    yield "Working..."
+
+    # This exception will be caught and formatted by the extension
+    # The stack trace will be included because of the configuration above
+    raise ValueError("Something went wrong!")
+```
+
+<Tip>
+    Enable stack traces during development for easier debugging, but consider disabling them in production to avoid leaking implementation details.
+</Tip>
+
+## Handling Multiple Errors
+
+The Error extension supports `ExceptionGroup` to report multiple errors at once. When an `ExceptionGroup` is raised, it is formatted as a group of errors in the UI.
+
+```python
+@server.agent()
+async def group_agent(input: Message):
+    # ...
+    raise ExceptionGroup("Multiple failures", [
+        ValueError("First error"),
+        TypeError("Second error")
+    ])
+```
+
+## Adding Context
+
+You can attach arbitrary context to errors by accessing the injected `ErrorExtensionServer` instance. This context will be included in the error metadata sent to the client.
+
+```python
+@server.agent()
+async def context_agent(
+    input: Message,
+    error_ext: Annotated[ErrorExtensionServer, ErrorExtensionSpec()],
+):
+    # Add context before an error might occur or in an except block
+    error_ext.context["request_id"] = "req-123"
+    error_ext.context["user_id"] = 42
+
+    # ... do work ...
+
+    # If an exception is raised, the context is included
+    raise ValueError("Something went wrong!")
+```

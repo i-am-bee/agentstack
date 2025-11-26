@@ -42,7 +42,8 @@
           "agent-development/rag",
           "agent-development/mcp-oauth",
           "agent-development/mcp",
-          "agent-development/env-variables"
+          "agent-development/env-variables",
+          "agent-development/error"
         ]
       },
       {

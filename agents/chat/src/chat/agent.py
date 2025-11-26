@@ -20,6 +20,9 @@ from agentstack_sdk.a2a.extensions import (
     BaseExtensionSpec,
     CitationExtensionServer,
     CitationExtensionSpec,
+    ErrorExtensionParams,
+    ErrorExtensionServer,
+    ErrorExtensionSpec,
     TrajectoryExtensionServer,
     TrajectoryExtensionSpec,
     LLMServiceExtensionServer,
@@ -89,8 +92,7 @@ server = Server()
                 description="Fetches summaries and information from Wikipedia articles.",
             ),
             AgentDetailTool(
-                name="Weather Information (OpenMeteo)",
-                description="Provides real-time weather updates and forecasts.",
+                name="Weather Information (OpenMeteo)", description="Provides real-time weather updates and forecasts."
             ),
             AgentDetailTool(
                 name="Web Search (DuckDuckGo)",
@@ -158,10 +160,13 @@ async def chat(
         LLMServiceExtensionServer,
         LLMServiceExtensionSpec.single_demand(suggested=("openai:gpt-4o", "ollama:granite3.3:8b")),
     ],
-    _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
+    _e: Annotated[ErrorExtensionServer, ErrorExtensionSpec(ErrorExtensionParams(include_stacktrace=True))],
+    _p: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
 ):
     """Agent with memory and access to web search, Wikipedia, and weather."""
     await context.store(input)
+    _e.context["test"] = {"test": "test"}
+    raise ValueError("Test error")
 
     # Send initial trajectory
     yield trajectory.trajectory_metadata(title="Starting", content="Received your request")

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 import typing
 import uuid
-from typing import Generic, Literal, TypeAlias
+from typing import Generic, Literal, TypeAlias, TypeAliasType, Union
 
 from a2a.types import (
     Artifact,
@@ -104,3 +104,9 @@ class InputRequired(TaskStatus):
 
 class AuthRequired(InputRequired):
     state: Literal[TaskState.auth_required] = TaskState.auth_required  # pyright: ignore [reportIncompatibleVariableOverride]
+
+
+JsonDict = TypeAliasType(
+    "JsonDict",
+    "Union[dict[str, JsonDict], list[JsonDict], str, int, float, bool, None]",  # pyright: ignore[reportDeprecated]  # noqa: UP007
+)

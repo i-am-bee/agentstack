@@ -3,7 +3,6 @@
 
 import asyncio
 import inspect
-import json
 from asyncio import CancelledError
 from collections.abc import AsyncGenerator, AsyncIterator, Callable, Generator
 from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
@@ -37,14 +36,14 @@ from a2a.types import (
 )
 
 from agentstack_sdk.a2a.extensions.ui.agent_detail import AgentDetail, AgentDetailExtensionSpec
-from agentstack_sdk.a2a.types import ArtifactChunk, Metadata, RunYield, RunYieldResume
-from agentstack_sdk.server.constants import _IMPLICIT_DEPENDENCY_PREFIX
+from agentstack_sdk.a2a.extensions.ui.error import ErrorExtensionParams, ErrorExtensionServer, ErrorExtensionSpec
+from agentstack_sdk.a2a.types import AgentMessage, ArtifactChunk, Metadata, RunYield, RunYieldResume
+from agentstack_sdk.server.constants import _IMPLICIT_DEPENDENCY_PREFIX, DEFAULT_ERROR_EXTENSION
 from agentstack_sdk.server.context import RunContext
 from agentstack_sdk.server.dependencies import extract_dependencies
 from agentstack_sdk.server.store.context_store import ContextStore
 from agentstack_sdk.server.utils import cancel_task, close_queue
 from agentstack_sdk.util.logging import logger
-from agentstack_sdk.util.utils import extract_messages
 
 AgentFunction: TypeAlias = Callable[[], AsyncGenerator[RunYield, RunYieldResume]]
 AgentFunctionFactory: TypeAlias = Callable[
@@ -124,9 +123,14 @@ def agent(
             resolved_name = name or fn.__name__
             resolved_description = description or fn.__doc__ or ""
 
+            # Check if user has provided an ErrorExtensionServer, if not add default
+            has_error_extension = any(isinstance(ext, ErrorExtensionServer) for ext in sdk_extensions)
+            error_extension_spec = ErrorExtensionSpec(ErrorExtensionParams()) if not has_error_extension else None
+
             capabilities.extensions = [
                 *(capabilities.extensions or []),
                 *(AgentDetailExtensionSpec(detail).to_agent_card_extensions()),
+                *(error_extension_spec.to_agent_card_extensions() if error_extension_spec else []),
                 *(e_card for ext in sdk_extensions for e_card in ext.spec.to_agent_card_extensions()),
             ]
 
@@ -231,6 +235,11 @@ def agent(
                         dependency_args[pname] = await stack.enter_async_context(
                             depends(message, context, dependency_args)
                         )
+
+                    context._error_extension = next(
+                        (ext for ext in dependency_args.values() if isinstance(ext, ErrorExtensionServer)),
+                        DEFAULT_ERROR_EXTENSION,
+                    )
 
                     context._store = await context_store.create(
                         context_id=request_context.context_id,
@@ -339,124 +348,133 @@ class Executor(AgentExecutor):
                 deep=True, update={"context_id": task_updater.context_id, "task_id": task_updater.task_id}
             )
 
+        run_context: RunContext | None = None
         try:
-            async with self._agent_executor_span(task_updater, context, context_store) as (execute_fn, _run_context):
-                agent_generator_fn = execute_fn()
+            async with self._agent_executor_span(task_updater, context, context_store) as (execute_fn, run_context):
+                try:
+                    agent_generator_fn = execute_fn()
 
-                await task_updater.start_work()
-                value: RunYieldResume = None
-                opened_artifacts: set[str] = set()
-                while True:
-                    # update invocation time
-                    self._running_tasks[task_updater.task_id]["last_invocation"] = datetime.now()
+                    await task_updater.start_work()
+                    value: RunYieldResume = None
+                    opened_artifacts: set[str] = set()
+                    while True:
+                        # update invocation time
+                        self._running_tasks[task_updater.task_id]["last_invocation"] = datetime.now()
 
-                    yielded_value = await agent_generator_fn.asend(value)
+                        yielded_value = await agent_generator_fn.asend(value)
 
-                    match yielded_value:
-                        case str(text):
-                            await task_updater.update_status(
-                                TaskState.working,
-                                message=task_updater.new_agent_message(parts=[Part(root=TextPart(text=text))]),
-                            )
-                        case Part(root=part) | (TextPart() | FilePart() | DataPart() as part):
-                            await task_updater.update_status(
-                                TaskState.working,
-                                message=task_updater.new_agent_message(parts=[Part(root=part)]),
-                            )
-                        case FileWithBytes() | FileWithUri() as file:
-                            await task_updater.update_status(
-                                TaskState.working,
-                                message=task_updater.new_agent_message(parts=[Part(root=FilePart(file=file))]),
-                            )
-                        case Message() as message:
-                            await task_updater.update_status(TaskState.working, message=with_context(message))
-                        case ArtifactChunk(
-                            parts=parts,
-                            artifact_id=artifact_id,
-                            name=name,
-                            metadata=metadata,
-                            last_chunk=last_chunk,
-                        ):
-                            await task_updater.add_artifact(
-                                parts=cast(list[Part], parts),
-                                artifact_id=artifact_id,
-                                name=name,
-                                metadata=metadata,
-                                append=artifact_id in opened_artifacts,
-                                last_chunk=last_chunk,
-                            )
-                            opened_artifacts.add(artifact_id)
-                        case Artifact(parts=parts, artifact_id=artifact_id, name=name, metadata=metadata):
-                            await task_updater.add_artifact(
+                        match yielded_value:
+                            case str(text):
+                                await task_updater.update_status(
+                                    TaskState.working,
+                                    message=task_updater.new_agent_message(parts=[Part(root=TextPart(text=text))]),
+                                )
+                            case Part(root=part) | (TextPart() | FilePart() | DataPart() as part):
+                                await task_updater.update_status(
+                                    TaskState.working,
+                                    message=task_updater.new_agent_message(parts=[Part(root=part)]),
+                                )
+                            case FileWithBytes() | FileWithUri() as file:
+                                await task_updater.update_status(
+                                    TaskState.working,
+                                    message=task_updater.new_agent_message(parts=[Part(root=FilePart(file=file))]),
+                                )
+                            case Message() as message:
+                                await task_updater.update_status(TaskState.working, message=with_context(message))
+                            case ArtifactChunk(
                                 parts=parts,
                                 artifact_id=artifact_id,
                                 name=name,
                                 metadata=metadata,
-                                last_chunk=True,
-                                append=False,
-                            )
-                        case TaskStatus(state=TaskState.input_required, message=message, timestamp=timestamp):
-                            await task_updater.requires_input(message=with_context(message), final=True)
-                            value = cast(RunYieldResume, await resume_queue.dequeue_event())
-                            resume_queue.task_done()
-                            continue
-                        case TaskStatus(state=TaskState.auth_required, message=message, timestamp=timestamp):
-                            await task_updater.requires_auth(message=with_context(message), final=True)
-                            value = cast(RunYieldResume, await resume_queue.dequeue_event())
-                            resume_queue.task_done()
-                            continue
-                        case TaskStatus(state=state, message=message, timestamp=timestamp):
-                            await task_updater.update_status(
-                                state=state, message=with_context(message), timestamp=timestamp
-                            )
-                        case TaskStatusUpdateEvent(
-                            status=TaskStatus(state=state, message=message, timestamp=timestamp),
-                            final=final,
-                            metadata=metadata,
-                        ):
-                            await task_updater.update_status(
-                                state=state,
-                                message=with_context(message),
-                                timestamp=timestamp,
+                                last_chunk=last_chunk,
+                            ):
+                                await task_updater.add_artifact(
+                                    parts=cast(list[Part], parts),
+                                    artifact_id=artifact_id,
+                                    name=name,
+                                    metadata=metadata,
+                                    append=artifact_id in opened_artifacts,
+                                    last_chunk=last_chunk,
+                                )
+                                opened_artifacts.add(artifact_id)
+                            case Artifact(parts=parts, artifact_id=artifact_id, name=name, metadata=metadata):
+                                await task_updater.add_artifact(
+                                    parts=parts,
+                                    artifact_id=artifact_id,
+                                    name=name,
+                                    metadata=metadata,
+                                    last_chunk=True,
+                                    append=False,
+                                )
+                            case TaskStatus(state=TaskState.input_required, message=message, timestamp=timestamp):
+                                await task_updater.requires_input(message=with_context(message), final=True)
+                                value = cast(RunYieldResume, await resume_queue.dequeue_event())
+                                resume_queue.task_done()
+                                continue
+                            case TaskStatus(state=TaskState.auth_required, message=message, timestamp=timestamp):
+                                await task_updater.requires_auth(message=with_context(message), final=True)
+                                value = cast(RunYieldResume, await resume_queue.dequeue_event())
+                                resume_queue.task_done()
+                                continue
+                            case TaskStatus(state=state, message=message, timestamp=timestamp):
+                                await task_updater.update_status(
+                                    state=state, message=with_context(message), timestamp=timestamp
+                                )
+                            case TaskStatusUpdateEvent(
+                                status=TaskStatus(state=state, message=message, timestamp=timestamp),
                                 final=final,
                                 metadata=metadata,
-                            )
-                        case TaskArtifactUpdateEvent(
-                            artifact=Artifact(artifact_id=artifact_id, name=name, metadata=metadata, parts=parts),
-                            append=append,
-                            last_chunk=last_chunk,
-                        ):
-                            await task_updater.add_artifact(
-                                parts=parts,
-                                artifact_id=artifact_id,
-                                name=name,
-                                metadata=metadata,
+                            ):
+                                await task_updater.update_status(
+                                    state=state,
+                                    message=with_context(message),
+                                    timestamp=timestamp,
+                                    final=final,
+                                    metadata=metadata,
+                                )
+                            case TaskArtifactUpdateEvent(
+                                artifact=Artifact(artifact_id=artifact_id, name=name, metadata=metadata, parts=parts),
                                 append=append,
                                 last_chunk=last_chunk,
-                            )
-                        case Metadata() as metadata:
-                            await task_updater.update_status(
-                                state=TaskState.working,
-                                message=task_updater.new_agent_message(parts=[], metadata=metadata),
-                            )
-                        case dict() as data:
-                            await task_updater.update_status(
-                                state=TaskState.working,
-                                message=task_updater.new_agent_message(parts=[Part(root=DataPart(data=data))]),
-                            )
-                        case Exception() as ex:
-                            raise ex
-                        case _:
-                            raise ValueError(f"Invalid value yielded from agent: {type(yielded_value)}")
-                    value = None
-        except StopAsyncIteration:
-            await task_updater.complete()
-        except CancelledError:
-            await task_updater.cancel()
-        except Exception as ex:
-            logger.error("Error when executing agent", exc_info=ex)
-            msg = json.dumps(extract_messages(ex), indent=2)
-            await task_updater.failed(task_updater.new_agent_message(parts=[Part(root=TextPart(text=msg))]))
+                            ):
+                                await task_updater.add_artifact(
+                                    parts=parts,
+                                    artifact_id=artifact_id,
+                                    name=name,
+                                    metadata=metadata,
+                                    append=append,
+                                    last_chunk=last_chunk,
+                                )
+                            case Metadata() as metadata:
+                                await task_updater.update_status(
+                                    state=TaskState.working,
+                                    message=task_updater.new_agent_message(parts=[], metadata=metadata),
+                                )
+                            case dict() as data:
+                                await task_updater.update_status(
+                                    state=TaskState.working,
+                                    message=task_updater.new_agent_message(parts=[Part(root=DataPart(data=data))]),
+                                )
+                            case Exception() as ex:
+                                raise ex
+                            case _:
+                                raise ValueError(f"Invalid value yielded from agent: {type(yielded_value)}")
+                        value = None
+                except StopAsyncIteration:
+                    await task_updater.complete()
+                except CancelledError:
+                    await task_updater.cancel()
+                except Exception as ex:
+                    logger.error("Error when executing agent", exc_info=ex)
+                    try:
+                        error_extension = run_context._error_extension if run_context else None
+                        error_extension = error_extension if error_extension is not None else DEFAULT_ERROR_EXTENSION
+                        error_msg = error_extension.message(ex)
+                    except Exception as error_exc:
+                        error_msg = AgentMessage(
+                            text=(f"Failed to create error message: {error_exc!s}\noriginal exc: {ex!s}")
+                        )
+                    await task_updater.failed(error_msg)
         finally:  # cleanup
             await cancel_task(cancellation_task)
             is_cancelling = bool(current_task.cancelling())

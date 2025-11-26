@@ -535,7 +535,8 @@ async def _run_agent(
                     error = ""
                     if message and message.parts and isinstance(message.parts[0].root, TextPart):
                         error = message.parts[0].root.text
-                    console.print(f"[red]Task {status}[/red]: {error}")
+                    console.print(f"\n:boom: [red][bold]Task {status.value}[/bold][/red]")
+                    console.print(Markdown(error))
                     return
                 case Task(id=task_id), TaskStatusUpdateEvent(
                     status=TaskStatus(state=TaskState.auth_required, message=message)
