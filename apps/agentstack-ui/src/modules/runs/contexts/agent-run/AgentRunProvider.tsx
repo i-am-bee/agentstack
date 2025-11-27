@@ -25,7 +25,7 @@ import { useMessages } from '#modules/messages/contexts/Messages/index.ts';
 import { MessagesProvider } from '#modules/messages/contexts/Messages/MessagesProvider.tsx';
 import type { UIAgentMessage, UIMessageForm, UIUserMessage } from '#modules/messages/types.ts';
 import { UIMessagePartKind, UIMessageStatus } from '#modules/messages/types.ts';
-import { addTranformedMessagePart, isAgentMessage } from '#modules/messages/utils.ts';
+import { addMessagePart, isAgentMessage } from '#modules/messages/utils.ts';
 import { contextKeys } from '#modules/platform-context/api/keys.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 import { useEnsurePlatformContext } from '#modules/platform-context/hooks/useEnsurePlatformContext.ts';
@@ -229,7 +229,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
 
           parts.forEach((part) => {
             updateCurrentAgentMessage((message) => {
-              const updatedParts = addTranformedMessagePart(part, message);
+              const updatedParts = addMessagePart(part, message);
               message.parts = updatedParts;
             });
           });

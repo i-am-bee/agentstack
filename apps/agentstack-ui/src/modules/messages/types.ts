@@ -118,6 +118,7 @@ export type UITransformPart = {
     }
   | {
       type: UITransformType.Artifact;
+      artifactId: string;
     }
 );
 

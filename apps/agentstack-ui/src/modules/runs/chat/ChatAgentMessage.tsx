@@ -85,6 +85,7 @@ function Message({ message, isLast, isFirst, containerScrollableRef }: Props) {
   const hasContent = checkMessageContent(message);
   const { isInProgress } = checkMessageStatus(message);
   const isPending = isInProgress && !hasContent;
+  console.log({ message });
 
   return (
     <div {...props} className={classes.root} ref={rootRef}>

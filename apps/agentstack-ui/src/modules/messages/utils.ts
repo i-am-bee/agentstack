@@ -5,9 +5,9 @@
 
 import { match } from 'ts-pattern';
 
-import { transformArtifactPart } from '#modules/canvas/utils.ts';
-import { transformFilePart } from '#modules/files/utils.ts';
-import { transformSourcePart } from '#modules/sources/utils.ts';
+import { getArtifactTransformPart, updateArtifactTransformPart } from '#modules/canvas/utils.ts';
+import { getFileTransformPart } from '#modules/files/utils.ts';
+import { getSourceTransformPart } from '#modules/sources/utils.ts';
 
 import { Role } from './api/types';
 import type { UIAgentMessage, UIMessage, UIMessagePart, UISourcePart, UITransformPart, UIUserMessage } from './types';
@@ -184,28 +184,57 @@ export function sortMessageParts(parts: UIMessagePart[]): UIMessagePart[] {
   return [...otherParts, ...sortedSourceParts, ...sortedTransformParts];
 }
 
-export function addTranformedMessagePart(part: UIMessagePart, message: UIAgentMessage) {
+export function addMessagePart(part: UIMessagePart, message: UIAgentMessage) {
   const newParts = [...message.parts];
 
   match(part)
     .with({ kind: UIMessagePartKind.File }, (part) => {
-      const transformedPart = transformFilePart(part, message);
+      const transformPart = getFileTransformPart(part, message);
 
-      if (transformedPart) {
-        newParts.push(transformedPart);
+      if (transformPart) {
+        newParts.push(transformPart);
       } else {
         newParts.push(part);
       }
     })
     .with({ kind: UIMessagePartKind.Source }, (part) => {
-      const transformedPart = transformSourcePart(part);
+      const transformPart = getSourceTransformPart(part);
 
-      newParts.push(part, transformedPart);
+      newParts.push(part, transformPart);
     })
     .with({ kind: UIMessagePartKind.Artifact }, (part) => {
-      const transformedPart = transformArtifactPart(part, message);
+      const { artifactId, parts } = part;
+      const existingArtifactIndex = newParts.findIndex(
+        (existingPart) => existingPart.kind === UIMessagePartKind.Artifact && existingPart.artifactId === artifactId,
+      );
 
-      newParts.push(part, transformedPart);
+      if (existingArtifactIndex !== -1) {
+        const existingArtifactPart = newParts[existingArtifactIndex];
+        if (existingArtifactPart.kind === UIMessagePartKind.Artifact) {
+          const updatedArtifactPart = {
+            ...existingArtifactPart,
+            parts: [...existingArtifactPart.parts, ...parts],
+          };
+          newParts[existingArtifactIndex] = updatedArtifactPart;
+          // New transform part needs to be created
+          const existingArtifactTransformIndex = newParts.findIndex(
+            (existingPart) =>
+              existingPart.kind === UIMessagePartKind.Transform &&
+              existingPart.type === UITransformType.Artifact &&
+              existingPart.artifactId === artifactId,
+          );
+          const existingTransformPart = newParts.at(existingArtifactTransformIndex);
+
+          if (!existingTransformPart || existingTransformPart.kind !== UIMessagePartKind.Transform) {
+            throw new Error('Artifact is in illegal state: missing corresponding transform part');
+          }
+          const updatedTransformPart = updateArtifactTransformPart(existingTransformPart, updatedArtifactPart);
+          newParts[existingArtifactTransformIndex] = updatedTransformPart;
+        }
+      } else {
+        const transformPart = getArtifactTransformPart(part, message);
+        newParts.push(part, transformPart);
+      }
     })
     .otherwise((part) => {
       newParts.push(part);

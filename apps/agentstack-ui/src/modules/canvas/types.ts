@@ -6,7 +6,7 @@
 export interface UICanvasEditRequestParams {
   startIndex: number;
   endIndex: number;
-  description?: string;
+  description: string;
   artifactId: string;
   content: string;
 }

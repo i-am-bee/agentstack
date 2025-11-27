@@ -104,6 +104,8 @@ export const buildA2AClient = async <UIGenericPart = never>({
       );
 
       for await (const event of stream) {
+        console.log(event);
+
         match(event)
           .with({ kind: 'task' }, (task) => {
             taskId = task.id;

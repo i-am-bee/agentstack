@@ -11,7 +11,7 @@ import { processMessageMetadata, processParts } from '#api/a2a/part-processors.t
 import { Role } from '#modules/messages/api/types.ts';
 import type { UIAgentMessage, UIUserMessage } from '#modules/messages/types.ts';
 import { type UIMessage, UIMessageStatus } from '#modules/messages/types.ts';
-import { addTranformedMessagePart } from '#modules/messages/utils.ts';
+import { addMessagePart } from '#modules/messages/utils.ts';
 import type { ContextHistoryItem } from '#modules/platform-context/api/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 
@@ -40,7 +40,7 @@ export function convertHistoryToUIMessages(history: ContextHistoryItem[]): UIMes
               };
 
               parts.forEach((part) => {
-                const transformedParts = addTranformedMessagePart(part, uiMessage);
+                const transformedParts = addMessagePart(part, uiMessage);
 
                 uiMessage.parts = transformedParts;
               });

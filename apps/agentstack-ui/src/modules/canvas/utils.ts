@@ -15,7 +15,7 @@ import {
 import { getMessagePartsRawContent, getMessageRawContent } from '#modules/messages/utils.ts';
 import { toMarkdownArtifact } from '#utils/markdown.ts';
 
-export function transformArtifactPart(artifactPart: UIArtifactPart, message: UIAgentMessage): UITransformPart {
+export function getArtifactTransformPart(artifactPart: UIArtifactPart, message: UIAgentMessage): UITransformPart {
   const startIndex = getMessageRawContent(message).length;
 
   const artifactContent = getMessagePartsRawContent(artifactPart.parts);
@@ -26,6 +26,7 @@ export function transformArtifactPart(artifactPart: UIArtifactPart, message: UIA
     kind: UIMessagePartKind.Transform,
     id: uuid(),
     type: UITransformType.Artifact,
+    artifactId,
     startIndex,
     apply: (content, offset) => {
       const adjustedStartIndex = startIndex + offset;
@@ -37,4 +38,24 @@ export function transformArtifactPart(artifactPart: UIArtifactPart, message: UIA
   };
 
   return transformPart;
+}
+
+export function updateArtifactTransformPart(
+  transformPart: UITransformPart,
+  artifactPart: UIArtifactPart,
+): UITransformPart {
+  const artifactContent = getMessagePartsRawContent(artifactPart.parts);
+
+  const { artifactId, name } = artifactPart;
+
+  const newTransformPart = { ...transformPart };
+  newTransformPart.apply = (content, offset) => {
+    const adjustedStartIndex = newTransformPart.startIndex + offset;
+    const before = content.slice(0, adjustedStartIndex);
+    const after = content.slice(adjustedStartIndex + artifactContent.length);
+
+    return `${before}${toMarkdownArtifact({ id: artifactId, name })}${after}`;
+  };
+
+  return newTransformPart;
 }

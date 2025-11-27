@@ -6,6 +6,7 @@
 import clsx from 'clsx';
 import { memo } from 'react';
 
+import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
 import type { UIMessage } from '#modules/messages/types.ts';
 import { ChatMarkdownContent } from '#modules/runs/components/ChatMarkdownContent/ChatMarkdownContent.tsx';
 
@@ -20,11 +21,13 @@ interface Props {
 
 export const MessageContent = memo(function MessageContent({ message }: Props) {
   const content = getMessageContent(message);
-  const form = message.role === Role.User ? message.form : null;
-  const auth = message.role === Role.User ? message.auth : null;
+  const isUser = message.role === Role.User;
+  const form = isUser ? message.form : null;
+  const auth = isUser ? message.auth : null;
+  const canvasEditRequest = isUser ? message.canvasEditRequest : null;
   const secretPart = getMessageSecret(message);
 
-  const hasContent = content || form || auth;
+  const hasContent = content || form || auth || canvasEditRequest;
   const sources = getMessageSources(message);
 
   const status = isAgentMessage(message) ? checkMessageStatus(message) : null;
@@ -36,6 +39,17 @@ export const MessageContent = memo(function MessageContent({ message }: Props) {
 
     if (auth) {
       return <div className={clsx(classes.root)}>User has granted access</div>;
+    }
+
+    if (canvasEditRequest) {
+      return (
+        <div className={clsx(classes.root, classes.canvasEditRequest)}>
+          <LineClampText lines={2}>
+            <q>{canvasEditRequest.content}</q>
+          </LineClampText>
+          <p>{canvasEditRequest.description}</p>
+        </div>
+      );
     }
 
     return (

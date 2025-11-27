@@ -12,3 +12,19 @@
 .empty {
   color: $text-disabled;
 }
+
+.canvasEditRequest {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-04;
+  q {
+    font-style: italic;
+    quotes: '„' '“' '‚' '‘';
+    &::before {
+      content: open-quote;
+    }
+    &::after {
+      content: close-quote;
+    }
+  }
+}

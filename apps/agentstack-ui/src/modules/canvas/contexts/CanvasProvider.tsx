@@ -51,8 +51,8 @@ export function CanvasProvider({ agentClient, children }: PropsWithChildren<Prop
     if (!activeArtifactId) {
       return null;
     }
-    return getArtifact(activeArtifactId) ?? null;
-  }, [activeArtifactId, getArtifact]);
+    return artifacts?.find(({ artifactId }) => artifactId === activeArtifactId) ?? null;
+  }, [activeArtifactId, artifacts]);
 
   const value = useMemo<CanvasContextValue>(
     () => ({

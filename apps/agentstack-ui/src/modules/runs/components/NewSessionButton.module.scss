@@ -4,5 +4,9 @@
  */
 
 .root {
-  background-color: $background;
+  &,
+  &:active,
+  &:focus {
+    background-color: $background;
+  }
 }

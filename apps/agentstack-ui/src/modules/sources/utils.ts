@@ -15,7 +15,7 @@ import { toMarkdownCitation } from '#utils/markdown.ts';
 import type { ActiveSource } from './contexts/types';
 import type { MessageSourcesMap } from './types';
 
-export function transformSourcePart(sourcePart: UISourcePart): UITransformPart {
+export function getSourceTransformPart(sourcePart: UISourcePart): UITransformPart {
   const { id, startIndex, endIndex } = sourcePart;
 
   const transformPart: UITransformPart = {

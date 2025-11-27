@@ -55,7 +55,7 @@ export function convertFilesToUIFileParts(files: FileEntity[]): UIFilePart[] {
   return parts;
 }
 
-export function transformFilePart(filePart: UIFilePart, message: UIAgentMessage): UITransformPart | null {
+export function getFileTransformPart(filePart: UIFilePart, message: UIAgentMessage): UITransformPart | null {
   const { url, type } = filePart;
   const isImage = isImageMimeType(type);
 
