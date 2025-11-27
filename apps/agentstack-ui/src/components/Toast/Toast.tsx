@@ -92,11 +92,11 @@ export function Toast({
 
           {message &&
             (renderMarkdown ? (
-              <LineClampText lines={4} useBlockElement>
+              <LineClampText className={classes.message} lines={4} useBlockElement>
                 <MarkdownContent>{message}</MarkdownContent>
               </LineClampText>
             ) : (
-              <div>{message}</div>
+              <div className={classes.message}>{message}</div>
             ))}
         </motion.div>
       )}
