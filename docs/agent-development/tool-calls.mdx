@@ -1,32 +1,28 @@
 ---
 title: "Approve Tool Calls"
-description: "Have tool calls approved by the client before execution"
+description: "Have tool calls approved by the user before execution"
 ---
 
 Many agent frameworks support the ability to request user approval before executing certain actions. This is especially useful when an agent is calling external tools that may have significant effects or costs associated with their usage.
 
-The `Tool Call Extension` provides a mechanism for implementing this functionality over A2A connection.
+The Tool Call extension provides a mechanism for implementing this functionality over A2A connection.
 
-## Usage with BeeAI Framework
+## Usage
 
 <Steps>
-<Step title="Install the BeeAI Framework dependency">
-Make sure `beeai-framework` is installed as a dependency in your project.
-</Step>
-
-<Step title="Add extension to your agent">
-  Inject the Tool Call extension into your agent function using the `Annotated`
+<Step title="Add Tool Call extension to your agent">
+  Inject the `ToolCallExtension` into your agent function using the `Annotated`
   type hint.
 </Step>
 
-<Step title="Implement the handler for AskPermissionRequirement">
-  Use `request_tool_call_approval()` to request tool call approval from the user through A2A.
+<Step title="Implement the approval logic in your agent">
+  Use `request_tool_call_approval()` method to request tool call approval from the A2A client side.
 </Step>
 </Steps>
 
 ## Basic Example
 
-Here's how to use this extension with the BeeAI Framework to request user approval before executing a tool call:
+Here's how to use this extension with the [BeeAI Framework](https://framework.beeai.dev/modules/agents/requirement-agent#ask-permission-requirement) to request user approval before executing a tool call:
 
 ```python
 from typing import Annotated, Any
@@ -62,6 +58,7 @@ async def tool_call_agent(
     async def handler(tool: Tool, input: dict[str, Any]) -> bool:
         try:
             await mcp_tool_call.request_tool_call_approval(
+                # using MCP Tool data model as intermediary to simplify conversion
                 ToolCallRequest.from_mcp_tool(_tool_factory(tool), input=input),
                 context=context,
             )
