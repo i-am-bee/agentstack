@@ -27,6 +27,7 @@ from agentstack_server.service_layer.services.auth import AuthService
 from agentstack_server.service_layer.services.configurations import ConfigurationService
 from agentstack_server.service_layer.services.connector import ConnectorService
 from agentstack_server.service_layer.services.contexts import ContextService
+from agentstack_server.service_layer.services.external_mcp_service import ExternalMcpService
 from agentstack_server.service_layer.services.files import FileService
 from agentstack_server.service_layer.services.mcp import McpService
 from agentstack_server.service_layer.services.model_providers import ModelProviderService
@@ -50,6 +51,7 @@ UserFeedbackServiceDependency = Annotated[UserFeedbackService, Depends(lambda: d
 AuthServiceDependency = Annotated[AuthService, Depends(lambda: di[AuthService])]
 ModelProviderServiceDependency = Annotated[ModelProviderService, Depends(lambda: di[ModelProviderService])]
 ConnectorServiceDependency = Annotated[ConnectorService, Depends(lambda: di[ConnectorService])]
+ExternalMcpServiceDependency = Annotated[ExternalMcpService, Depends(lambda: di[ExternalMcpService])]
 
 logger = logging.getLogger(__name__)
 

@@ -8,7 +8,7 @@ import pathlib
 import shlex
 from collections.abc import Awaitable, Callable, Mapping
 from inspect import signature
-from typing import Any, Literal, cast, get_overloads, overload
+from typing import Any, Literal, get_overloads, overload
 
 logger = logging.getLogger("kubectl")
 
@@ -32,7 +32,7 @@ class Kubectl:
     The keyword arguments passed to the constructor are used as default arguments for all commands. Useful for setting the namespace or context.
     """
 
-    _default_kwargs: dict[str, str | bool] = {}
+    _default_kwargs: dict[str, str | bool]
 
     def __init__(self, **kwargs: str | bool | pathlib.Path | None):
         self._default_kwargs = self._fix_kwargs(kwargs)
@@ -166,5 +166,5 @@ class Kubectl:
                 return getattr_overload(self, name)  # type: ignore
         raise AttributeError(f"Command {name} not found")
 
-    async def exec_raw(self, *args, **kwargs: str | bool | None) -> asyncio.subprocess.Process:
+    async def exec_raw(self, *args, **kwargs: str | bool) -> asyncio.subprocess.Process:
         return await self._spawn_process("exec", *args, **kwargs)
