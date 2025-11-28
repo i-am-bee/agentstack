@@ -21,6 +21,7 @@ from agentstack_server.jobs.procrastinate import create_app
 from agentstack_server.service_layer.build_manager import IProviderBuildManager
 from agentstack_server.service_layer.deployment_manager import IProviderDeploymentManager
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
+from agentstack_server.utils.kubectl import Kubectl
 from agentstack_server.utils.utils import async_to_sync_isolated
 
 logger = logging.getLogger(__name__)
@@ -88,6 +89,14 @@ async def bootstrap_dependencies(dependency_overrides: Container | None = None):
     _set_di(procrastinate.App, create_app(di[Configuration]))
 
     _set_di(ITextExtractionBackend, DoclingTextExtractionBackend(di[Configuration].text_extraction))
+
+    _set_di(
+        Kubectl,
+        Kubectl(
+            kubeconfig=di[Configuration].connector.runtime.kubeconfig or di[Configuration].k8s_kubeconfig,
+            namespace=di[Configuration].connector.runtime.namespace or di[Configuration].k8s_namespace,
+        ),
+    )
 
 
 bootstrap_dependencies_sync = async_to_sync_isolated(bootstrap_dependencies)

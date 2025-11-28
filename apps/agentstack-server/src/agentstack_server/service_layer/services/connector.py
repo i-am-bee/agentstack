@@ -35,16 +35,18 @@ from agentstack_server.domain.models.connector import (
 from agentstack_server.domain.models.user import User
 from agentstack_server.exceptions import EntityNotFoundError, PlatformError
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
+from agentstack_server.utils.kubectl import Kubectl
 
 logger = logging.getLogger(__name__)
 
 
 @inject
 class ConnectorService:
-    def __init__(self, uow: IUnitOfWorkFactory, configuration: Configuration):
+    def __init__(self, uow: IUnitOfWorkFactory, configuration: Configuration, kubectl: Kubectl):
         self._uow = uow
         self._configuration = configuration
         self._proxy_client = httpx.AsyncClient(timeout=None)
+        self._kubectl = kubectl
 
     async def create_connector(
         self,
@@ -332,72 +334,70 @@ class ConnectorService:
     async def _ensure_supergateway_rbac(self) -> None:
         """Ensure RBAC resources exist for supergateway deployments."""
         namespace = self._configuration.connector.runtime.namespace or self._configuration.k8s_namespace or "default"
-        kubeconfig = self._configuration.connector.runtime.kubeconfig or self._configuration.k8s_kubeconfig
-
-        kubectl_args = ["kubectl"]
-        if kubeconfig:
-            kubectl_args.extend(["--kubeconfig", str(kubeconfig)])
-        if namespace:
-            kubectl_args.extend(["--namespace", namespace])
 
         # Create ServiceAccount, Role, and RoleBinding for supergateway
         # The stdio-proxy container needs pod/attach permissions to attach to the MCP server container
-        rbac_yaml = f"""
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: supergateway
-  namespace: {namespace or "default"}
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: supergateway
-  namespace: {namespace or "default"}
-rules:
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get", "list"]
-- apiGroups: [""]
-  resources: ["pods/attach"]
-  verbs: ["create", "get"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: supergateway
-  namespace: {namespace or "default"}
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: supergateway
-subjects:
-- kind: ServiceAccount
-  name: supergateway
-  namespace: {namespace or "default"}
-"""
+        rbac_resources = {
+            "apiVersion": "v1",
+            "kind": "List",
+            "items": [
+                {
+                    "apiVersion": "v1",
+                    "kind": "ServiceAccount",
+                    "metadata": {
+                        "name": "supergateway",
+                        "namespace": namespace,
+                    },
+                },
+                {
+                    "apiVersion": "rbac.authorization.k8s.io/v1",
+                    "kind": "Role",
+                    "metadata": {
+                        "name": "supergateway",
+                        "namespace": namespace,
+                    },
+                    "rules": [
+                        {
+                            "apiGroups": [""],
+                            "resources": ["pods"],
+                            "verbs": ["get", "list"],
+                        },
+                        {
+                            "apiGroups": [""],
+                            "resources": ["pods/attach"],
+                            "verbs": ["create", "get"],
+                        },
+                    ],
+                },
+                {
+                    "apiVersion": "rbac.authorization.k8s.io/v1",
+                    "kind": "RoleBinding",
+                    "metadata": {
+                        "name": "supergateway",
+                        "namespace": namespace,
+                    },
+                    "roleRef": {
+                        "apiGroup": "rbac.authorization.k8s.io",
+                        "kind": "Role",
+                        "name": "supergateway",
+                    },
+                    "subjects": [
+                        {
+                            "kind": "ServiceAccount",
+                            "name": "supergateway",
+                            "namespace": namespace,
+                        }
+                    ],
+                },
+            ],
+        }
 
-        process = await asyncio.create_subprocess_exec(
-            *kubectl_args,
-            "apply",
-            "-f",
-            "-",
-            stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        stdout, stderr = await process.communicate(input=rbac_yaml.encode())
-
-        if process.returncode != 0:
-            logger.error(
-                "Failed to create supergateway RBAC resources: returncode=%s stdout=%s stderr=%s",
-                process.returncode,
-                stdout.decode(),
-                stderr.decode(),
-            )
-            raise RuntimeError(f"Failed to create RBAC: {stderr.decode()}")
-        else:
-            logger.info("RBAC resources created successfully: %s", stdout.decode())
+        try:
+            await self._kubectl.apply("-f", "-", input=rbac_resources)
+            logger.info("RBAC resources created successfully")
+        except RuntimeError as err:
+            logger.error("Failed to create supergateway RBAC resources: %s", err)
+            raise RuntimeError(f"Failed to create RBAC: {err}") from err
 
     async def _create_supergateway_pod(self, *, connector: Connector, preset: ConnectorPreset) -> str:
         """Create supergateway deployment with MCP server sidecar and service for stdio connector using kubectl."""
@@ -408,140 +408,143 @@ subjects:
 
         name = self._get_supergateway_name(connector.id)
         namespace = self._configuration.connector.runtime.namespace or self._configuration.k8s_namespace or "default"
-        kubeconfig = self._configuration.connector.runtime.kubeconfig or self._configuration.k8s_kubeconfig
 
-        # Build kubectl command args
-        kubectl_args = ["kubectl"]
-        if kubeconfig:
-            kubectl_args.extend(["--kubeconfig", str(kubeconfig)])
-        if namespace:
-            kubectl_args.extend(["--namespace", namespace])
-
-        # Build MCP container command/args/env sections
-        mcp_command_yaml = ""
+        # Build MCP container spec
+        mcp_container = {
+            "name": "mcp-server",
+            "image": preset.stdio.image,
+            "imagePullPolicy": "IfNotPresent",
+            "stdin": True,
+            "tty": False,
+        }
         if preset.stdio.command:
-            command_items = "\n    - ".join(f'"{cmd}"' for cmd in preset.stdio.command)
-            mcp_command_yaml = f"\n    command:\n    - {command_items}"
-
-        mcp_args_yaml = ""
+            mcp_container["command"] = list(preset.stdio.command)
         if preset.stdio.args:
-            args_items = "\n    - ".join(f'"{arg}"' for arg in preset.stdio.args)
-            mcp_args_yaml = f"\n    args:\n    - {args_items}"
-
-        mcp_env_yaml = ""
+            mcp_container["args"] = list(preset.stdio.args)
         if preset.stdio.env:
-            env_items = "\n    - ".join(f'name: "{k}"\n      value: "{v}"' for k, v in preset.stdio.env.items())
-            mcp_env_yaml = f"\n    env:\n    - {env_items}"
+            mcp_container["env"] = [{"name": k, "value": v} for k, v in preset.stdio.env.items()]
 
         # Build kubectl attach command for supergateway to connect to MCP server container
         kubectl_attach_cmd = "kubectl attach $(POD_NAME) -c mcp-server --stdin --tty=false"
 
-        # Create manifest YAML for Deployment with sidecar pattern and service
+        # Create manifest for Deployment with sidecar pattern and service
         # TODO: Make supergateway image configurable
-        deployment_yaml = f"""
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: {name}
-  labels:
-    app: supergateway
-    connector-id: "{connector.id}"
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: supergateway
-      connector-id: "{connector.id}"
-  template:
-    metadata:
-      labels:
-        app: supergateway
-        connector-id: "{connector.id}"
-    spec:
-      serviceAccountName: supergateway
-      containers:
-      - name: mcp-server
-        image: {preset.stdio.image}
-        imagePullPolicy: IfNotPresent
-        stdin: true
-        tty: false{mcp_command_yaml}{mcp_args_yaml}{mcp_env_yaml}
-      - name: supergateway
-        image: ghcr.io/i-am-bee/agentstack/agentstack-server:local
-        command: ["supergateway"]
-        args:
-        - "--stdio"
-        - "{kubectl_attach_cmd}"
-        - "--outputTransport"
-        - "streamableHttp"
-        - "--stateful"
-        - "--port"
-        - "8080"
-        - "--streamableHttpPath"
-        - "/mcp"
-        - "--logLevel"
-        - "info"
-        env:
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-        ports:
-        - containerPort: 8080
-          protocol: TCP
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {name}
-spec:
-  selector:
-    app: supergateway
-    connector-id: "{connector.id}"
-  ports:
-  - name: http
-    port: 8080
-    targetPort: 8080
-    protocol: TCP
-"""
+        deployment_resources = {
+            "apiVersion": "v1",
+            "kind": "List",
+            "items": [
+                {
+                    "apiVersion": "apps/v1",
+                    "kind": "Deployment",
+                    "metadata": {
+                        "name": name,
+                        "labels": {
+                            "app": "supergateway",
+                            "connector-id": str(connector.id),
+                        },
+                    },
+                    "spec": {
+                        "replicas": 1,
+                        "selector": {
+                            "matchLabels": {
+                                "app": "supergateway",
+                                "connector-id": str(connector.id),
+                            }
+                        },
+                        "template": {
+                            "metadata": {
+                                "labels": {
+                                    "app": "supergateway",
+                                    "connector-id": str(connector.id),
+                                }
+                            },
+                            "spec": {
+                                "serviceAccountName": "supergateway",
+                                "containers": [
+                                    mcp_container,
+                                    {
+                                        "name": "supergateway",
+                                        "image": "ghcr.io/i-am-bee/agentstack/agentstack-server:local",
+                                        "command": ["supergateway"],
+                                        "args": [
+                                            "--stdio",
+                                            kubectl_attach_cmd,
+                                            "--outputTransport",
+                                            "streamableHttp",
+                                            "--stateful",
+                                            "--port",
+                                            "8080",
+                                            "--streamableHttpPath",
+                                            "/mcp",
+                                            "--logLevel",
+                                            "info",
+                                        ],
+                                        "env": [
+                                            {
+                                                "name": "POD_NAME",
+                                                "valueFrom": {"fieldRef": {"fieldPath": "metadata.name"}},
+                                            }
+                                        ],
+                                        "ports": [{"containerPort": 8080, "protocol": "TCP"}],
+                                        "readinessProbe": {
+                                            "tcpSocket": {"port": 8080},
+                                            "initialDelaySeconds": 2,
+                                            "periodSeconds": 5,
+                                            "failureThreshold": 3,
+                                        },
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                },
+                {
+                    "apiVersion": "v1",
+                    "kind": "Service",
+                    "metadata": {"name": name},
+                    "spec": {
+                        "selector": {
+                            "app": "supergateway",
+                            "connector-id": str(connector.id),
+                        },
+                        "ports": [
+                            {
+                                "name": "http",
+                                "port": 8080,
+                                "targetPort": 8080,
+                                "protocol": "TCP",
+                            }
+                        ],
+                    },
+                },
+            ],
+        }
 
         # Apply manifest
-        process = await asyncio.create_subprocess_exec(
-            *kubectl_args,
-            "apply",
-            "-f",
-            "-",
-            stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        stdout, stderr = await process.communicate(input=deployment_yaml.encode())
-
-        if process.returncode != 0:
+        try:
+            output = await self._kubectl.apply("-f", "-", input=deployment_resources)
+            logger.info("Supergateway deployment created: connector_id=%s", connector.id)
+        except RuntimeError as err:
             raise PlatformError(
-                f"Failed to create supergateway deployment: {stderr.decode()}",
+                f"Failed to create supergateway deployment: {err}",
                 status_code=status.HTTP_502_BAD_GATEWAY,
-            )
+            ) from err
 
-        logger.info("Supergateway deployment created: connector_id=%s output=%s", connector.id, stdout.decode().strip())
         logger.info("Waiting for deployment to be ready: connector_id=%s", connector.id)
 
         # Wait for deployment to be ready
-        wait_process = await asyncio.create_subprocess_exec(
-            *kubectl_args,
-            "wait",
-            f"deployment/{name}",
-            "--for=condition=Available",
-            f"--timeout={self._configuration.connector.runtime.startup_timeout_seconds}s",
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        await wait_process.wait()
-
-        if wait_process.returncode != 0:
+        try:
+            output = await self._kubectl.wait(
+                f"deployment/{name}",
+                _for="condition=Available",
+                timeout=f"{self._configuration.connector.runtime.startup_timeout_seconds}s",
+            )
+            logger.info("Deployment ready: %s", output)
+        except RuntimeError as err:
             raise PlatformError(
                 "Supergateway deployment failed to become ready",
                 status_code=status.HTTP_504_GATEWAY_TIMEOUT,
-            )
+            ) from err
 
         service_url = f"http://{name}.{namespace}.svc.cluster.local:8080"
         logger.info("Supergateway deployment ready: connector_id=%s url=%s", connector.id, service_url)
@@ -553,27 +556,13 @@ spec:
         logger.info("Deleting supergateway deployment: connector_id=%s", connector.id)
 
         name = self._get_supergateway_name(connector.id)
-        namespace = self._configuration.connector.runtime.namespace or self._configuration.k8s_namespace or "default"
-        kubeconfig = self._configuration.connector.runtime.kubeconfig or self._configuration.k8s_kubeconfig
-
-        kubectl_args = ["kubectl"]
-        if kubeconfig:
-            kubectl_args.extend(["--kubeconfig", str(kubeconfig)])
-        if namespace:
-            kubectl_args.extend(["--namespace", namespace])
 
         # Delete deployment and service
         for resource_type, resource_name in [("deployment", name), ("service", name)]:
-            process = await asyncio.create_subprocess_exec(
-                *kubectl_args,
-                "delete",
-                resource_type,
-                resource_name,
-                "--ignore-not-found=true",
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-            )
-            await process.wait()
+            try:
+                await self._kubectl.delete(resource_type, resource_name, ignore_not_found=True)
+            except RuntimeError as err:
+                logger.warning("Failed to delete %s/%s: %s", resource_type, resource_name, err)
 
         logger.info("Supergateway deployment deleted: connector_id=%s", connector.id)
 
