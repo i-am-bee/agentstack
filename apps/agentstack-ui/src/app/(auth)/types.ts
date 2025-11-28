@@ -4,15 +4,26 @@
  */
 
 import type { Provider } from 'next-auth/providers';
+import z from 'zod';
 
-export interface ProviderConfig {
-  id: string;
-  name: string;
-  issuer: string;
-  client_id: string;
-  client_secret: string;
-}
+const baseProviderConfigSchema = z.object({
+  id: z.string(),
+  name: z.unknown(),
+  issuer: z.string(),
+  client_id: z.string(),
+  client_secret: z.string(),
+});
 
-export type ProviderWithId = Provider & {
-  id: string;
-};
+const ibmProviderConfigSchema = baseProviderConfigSchema.extend({
+  name: z.enum(['w3id', 'ibmid', 'ibm', 'ibmid-pkce']),
+});
+
+const auth0ProviderConfigSchema = baseProviderConfigSchema.extend({
+  name: z.literal('auth0'),
+  audience: z.string(),
+});
+
+export const providerConfigSchema = z.discriminatedUnion('name', [ibmProviderConfigSchema, auth0ProviderConfigSchema]);
+export type ProviderConfig = z.infer<typeof providerConfigSchema>;
+
+export type ProviderWithId = Provider & { id: string };
