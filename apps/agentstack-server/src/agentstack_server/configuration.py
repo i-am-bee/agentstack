@@ -234,15 +234,8 @@ class ConnectorPreset(BaseModel):
     stdio: ConnectorStdioPreset | None = None
 
 
-class ConnectorRuntimeConfiguration(BaseModel):
-    kubeconfig: Path | None = None
-    namespace: str | None = None
-    startup_timeout_seconds: int = 60
-
-
 class ConnectorConfiguration(BaseModel):
     presets: list[ConnectorPreset] = Field(default_factory=list)
-    runtime: ConnectorRuntimeConfiguration = Field(default_factory=ConnectorRuntimeConfiguration)
 
 
 class DoclingExtractionConfiguration(BaseModel):

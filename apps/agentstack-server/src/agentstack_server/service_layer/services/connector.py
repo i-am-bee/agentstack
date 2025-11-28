@@ -87,7 +87,7 @@ class ConnectorService:
         if preset and preset.url.scheme == "mcp+stdio":
             logger.info("Creating supergateway deployment for stdio connector: connector_id=%s", connector.id)
             try:
-                await self._create_supergateway_pod(connector=connector, preset=preset)
+                await self._deploy_managed_mcp_server(connector=connector, preset=preset)
             except Exception as err:
                 logger.error("Failed to create supergateway deployment during connector creation", exc_info=True)
                 # Delete the connector from DB since we couldn't create the deployment
@@ -114,7 +114,7 @@ class ConnectorService:
             preset = self._find_preset(url=connector.url)
             if preset and preset.url.scheme == "mcp+stdio":
                 try:
-                    await self._delete_supergateway_pod(connector=connector)
+                    await self._undeploy_managed_mcp_server(connector=connector)
                 except Exception:
                     logger.warning("Failed to delete supergateway deployment during connector deletion", exc_info=True)
 
@@ -193,7 +193,7 @@ class ConnectorService:
         preset = self._find_preset(url=connector.url)
         if preset and preset.url.scheme == "mcp+stdio":
             try:
-                await self._delete_supergateway_pod(connector=connector)
+                await self._undeploy_managed_mcp_server(connector=connector)
             except Exception:
                 logger.warning("Failed to delete supergateway deployment during disconnect", exc_info=True)
 
@@ -321,250 +321,170 @@ class ConnectorService:
     def _find_preset(self, *, url: AnyUrl) -> ConnectorPreset | None:
         return next((p for p in self._configuration.connector.presets if str(p.url) == str(url)), None)
 
-    def _get_supergateway_name(self, connector_id: UUID) -> str:
-        """Get DNS-safe name for supergateway deployment/service."""
-        return f"supergateway-{connector_id.hex[:8]}"
+    def _get_managed_mcp_service_name(self, connector_id: UUID) -> str:
+        return f"managed-mcp-{connector_id.hex[:16]}"
 
-    def _get_supergateway_url(self, connector_id: UUID) -> str:
-        """Get the service URL for an existing supergateway deployment."""
-        name = self._get_supergateway_name(connector_id)
-        namespace = self._configuration.connector.runtime.namespace or self._configuration.k8s_namespace or "default"
-        return f"http://{name}.{namespace}.svc.cluster.local:8080"
+    def _get_managed_mcp_service_url(self, connector_id: UUID) -> str:
+        return f"http://{self._get_managed_mcp_service_name(connector_id)}.{self._kubectl._default_kwargs['namespace']}.svc.cluster.local:8080"
 
-    async def _ensure_supergateway_rbac(self) -> None:
-        """Ensure RBAC resources exist for supergateway deployments."""
-        namespace = self._configuration.connector.runtime.namespace or self._configuration.k8s_namespace or "default"
-
-        # Create ServiceAccount, Role, and RoleBinding for supergateway
-        # The stdio-proxy container needs pod/attach permissions to attach to the MCP server container
-        rbac_resources = {
-            "apiVersion": "v1",
-            "kind": "List",
-            "items": [
-                {
-                    "apiVersion": "v1",
-                    "kind": "ServiceAccount",
-                    "metadata": {
-                        "name": "supergateway",
-                        "namespace": namespace,
-                    },
-                },
-                {
-                    "apiVersion": "rbac.authorization.k8s.io/v1",
-                    "kind": "Role",
-                    "metadata": {
-                        "name": "supergateway",
-                        "namespace": namespace,
-                    },
-                    "rules": [
-                        {
-                            "apiGroups": [""],
-                            "resources": ["pods"],
-                            "verbs": ["get", "list"],
-                        },
-                        {
-                            "apiGroups": [""],
-                            "resources": ["pods/attach"],
-                            "verbs": ["create", "get"],
-                        },
-                    ],
-                },
-                {
-                    "apiVersion": "rbac.authorization.k8s.io/v1",
-                    "kind": "RoleBinding",
-                    "metadata": {
-                        "name": "supergateway",
-                        "namespace": namespace,
-                    },
-                    "roleRef": {
-                        "apiGroup": "rbac.authorization.k8s.io",
-                        "kind": "Role",
-                        "name": "supergateway",
-                    },
-                    "subjects": [
-                        {
-                            "kind": "ServiceAccount",
-                            "name": "supergateway",
-                            "namespace": namespace,
-                        }
-                    ],
-                },
-            ],
-        }
+    async def _deploy_managed_mcp_server(self, *, connector: Connector, preset: ConnectorPreset) -> None:
+        logger.info("Creating managed MCP deployment: connector_id=%s", connector.id)
+        assert preset.stdio
 
         try:
-            await self._kubectl.apply("-f", "-", input=rbac_resources)
-            logger.info("RBAC resources created successfully")
-        except RuntimeError as err:
-            logger.error("Failed to create supergateway RBAC resources: %s", err)
-            raise RuntimeError(f"Failed to create RBAC: {err}") from err
-
-    async def _create_supergateway_pod(self, *, connector: Connector, preset: ConnectorPreset) -> str:
-        """Create supergateway deployment with MCP server sidecar and service for stdio connector using kubectl."""
-        logger.info("Creating supergateway deployment: connector_id=%s", connector.id)
-
-        # Ensure RBAC exists first
-        await self._ensure_supergateway_rbac()
-
-        name = self._get_supergateway_name(connector.id)
-        namespace = self._configuration.connector.runtime.namespace or self._configuration.k8s_namespace or "default"
-
-        # Build MCP container spec
-        mcp_container = {
-            "name": "mcp-server",
-            "image": preset.stdio.image,
-            "imagePullPolicy": "IfNotPresent",
-            "stdin": True,
-            "tty": False,
-        }
-        if preset.stdio.command:
-            mcp_container["command"] = list(preset.stdio.command)
-        if preset.stdio.args:
-            mcp_container["args"] = list(preset.stdio.args)
-        if preset.stdio.env:
-            mcp_container["env"] = [{"name": k, "value": v} for k, v in preset.stdio.env.items()]
-
-        # Build kubectl attach command for supergateway to connect to MCP server container
-        kubectl_attach_cmd = "kubectl attach $(POD_NAME) -c mcp-server --stdin --tty=false"
-
-        # Create manifest for Deployment with sidecar pattern and service
-        # TODO: Make supergateway image configurable
-        deployment_resources = {
-            "apiVersion": "v1",
-            "kind": "List",
-            "items": [
-                {
-                    "apiVersion": "apps/v1",
-                    "kind": "Deployment",
-                    "metadata": {
-                        "name": name,
-                        "labels": {
-                            "app": "supergateway",
-                            "connector-id": str(connector.id),
-                        },
-                    },
-                    "spec": {
-                        "replicas": 1,
-                        "selector": {
-                            "matchLabels": {
-                                "app": "supergateway",
-                                "connector-id": str(connector.id),
-                            }
-                        },
-                        "template": {
+            output = await self._kubectl.apply(
+                "-f",
+                "-",
+                input={
+                    "apiVersion": "v1",
+                    "kind": "List",
+                    "items": [
+                        {
+                            "apiVersion": "apps/v1",
+                            "kind": "Deployment",
                             "metadata": {
+                                "name": self._get_managed_mcp_service_name(connector.id),
                                 "labels": {
-                                    "app": "supergateway",
+                                    "app": "managed-mcp",
                                     "connector-id": str(connector.id),
-                                }
+                                },
                             },
                             "spec": {
-                                "serviceAccountName": "supergateway",
-                                "containers": [
-                                    mcp_container,
-                                    {
-                                        "name": "supergateway",
-                                        "image": "ghcr.io/i-am-bee/agentstack/agentstack-server:local",
-                                        "command": ["supergateway"],
-                                        "args": [
-                                            "--stdio",
-                                            kubectl_attach_cmd,
-                                            "--outputTransport",
-                                            "streamableHttp",
-                                            "--stateful",
-                                            "--port",
-                                            "8080",
-                                            "--streamableHttpPath",
-                                            "/mcp",
-                                            "--logLevel",
-                                            "info",
-                                        ],
-                                        "env": [
-                                            {
-                                                "name": "POD_NAME",
-                                                "valueFrom": {"fieldRef": {"fieldPath": "metadata.name"}},
-                                            }
-                                        ],
-                                        "ports": [{"containerPort": 8080, "protocol": "TCP"}],
-                                        "readinessProbe": {
-                                            "tcpSocket": {"port": 8080},
-                                            "initialDelaySeconds": 2,
-                                            "periodSeconds": 5,
-                                            "failureThreshold": 3,
-                                        },
+                                "replicas": 1,
+                                "selector": {
+                                    "matchLabels": {
+                                        "app": "managed-mcp",
+                                        "connector-id": str(connector.id),
+                                    }
+                                },
+                                "template": {
+                                    "metadata": {
+                                        "labels": {
+                                            "app": "managed-mcp",
+                                            "connector-id": str(connector.id),
+                                        }
                                     },
+                                    "spec": {
+                                        "serviceAccountName": "managed-mcp",
+                                        "containers": [
+                                            {
+                                                "name": "mcp-server",
+                                                "image": preset.stdio.image,
+                                                "imagePullPolicy": "IfNotPresent",
+                                                "stdin": True,
+                                                "tty": False,
+                                                **({"command": preset.stdio.command} if preset.stdio.command else {}),
+                                                **({"args": preset.stdio.args} if preset.stdio.args else {}),
+                                                **(
+                                                    {
+                                                        "env": [
+                                                            {"name": k, "value": v} for k, v in preset.stdio.env.items()
+                                                        ]
+                                                    }
+                                                    if preset.stdio.env
+                                                    else {}
+                                                ),
+                                            },
+                                            {
+                                                "name": "supergateway",
+                                                "image": "ghcr.io/i-am-bee/agentstack/agentstack-server:local",
+                                                "command": ["supergateway"],
+                                                "args": [
+                                                    "--stdio",
+                                                    "kubectl attach $(POD_NAME) -c mcp-server --stdin --tty=false",
+                                                    "--outputTransport",
+                                                    "streamableHttp",
+                                                    "--stateful",
+                                                    "--port",
+                                                    "8080",
+                                                    "--streamableHttpPath",
+                                                    "/mcp",
+                                                    "--logLevel",
+                                                    "info",
+                                                ],
+                                                "env": [
+                                                    {
+                                                        "name": "POD_NAME",
+                                                        "valueFrom": {"fieldRef": {"fieldPath": "metadata.name"}},
+                                                    }
+                                                ],
+                                                "ports": [{"containerPort": 8080, "protocol": "TCP"}],
+                                                "readinessProbe": {
+                                                    "tcpSocket": {"port": 8080},
+                                                    "initialDelaySeconds": 2,
+                                                    "periodSeconds": 5,
+                                                    "failureThreshold": 3,
+                                                },
+                                            },
+                                        ],
+                                    },
+                                },
+                            },
+                        },
+                        {
+                            "apiVersion": "v1",
+                            "kind": "Service",
+                            "metadata": {"name": self._get_managed_mcp_service_name(connector.id)},
+                            "spec": {
+                                "selector": {
+                                    "app": "managed-mcp",
+                                    "connector-id": str(connector.id),
+                                },
+                                "ports": [
+                                    {
+                                        "name": "http",
+                                        "port": 8080,
+                                        "targetPort": 8080,
+                                        "protocol": "TCP",
+                                    }
                                 ],
                             },
                         },
-                    },
+                    ],
                 },
-                {
-                    "apiVersion": "v1",
-                    "kind": "Service",
-                    "metadata": {"name": name},
-                    "spec": {
-                        "selector": {
-                            "app": "supergateway",
-                            "connector-id": str(connector.id),
-                        },
-                        "ports": [
-                            {
-                                "name": "http",
-                                "port": 8080,
-                                "targetPort": 8080,
-                                "protocol": "TCP",
-                            }
-                        ],
-                    },
-                },
-            ],
-        }
-
-        # Apply manifest
-        try:
-            output = await self._kubectl.apply("-f", "-", input=deployment_resources)
-            logger.info("Supergateway deployment created: connector_id=%s", connector.id)
+            )
+            logger.info("MCP server deployment created: connector_id=%s", connector.id)
         except RuntimeError as err:
             raise PlatformError(
-                f"Failed to create supergateway deployment: {err}",
+                f"Failed to create MCP server deployment: {err}",
                 status_code=status.HTTP_502_BAD_GATEWAY,
             ) from err
 
         logger.info("Waiting for deployment to be ready: connector_id=%s", connector.id)
 
-        # Wait for deployment to be ready
         try:
             output = await self._kubectl.wait(
-                f"deployment/{name}",
+                f"deployment/{self._get_managed_mcp_service_name(connector.id)}",
                 _for="condition=Available",
-                timeout=f"{self._configuration.connector.runtime.startup_timeout_seconds}s",
+                timeout="60s",
             )
             logger.info("Deployment ready: %s", output)
         except RuntimeError as err:
             raise PlatformError(
-                "Supergateway deployment failed to become ready",
+                "Managed MCP deployment failed to become ready",
                 status_code=status.HTTP_504_GATEWAY_TIMEOUT,
             ) from err
 
-        service_url = f"http://{name}.{namespace}.svc.cluster.local:8080"
-        logger.info("Supergateway deployment ready: connector_id=%s url=%s", connector.id, service_url)
+        logger.info(
+            "Managed MCP server deployment ready: connector_id=%s url=%s",
+            connector.id,
+            self._get_managed_mcp_service_url(connector.id),
+        )
 
-        return service_url
+    async def _undeploy_managed_mcp_server(self, *, connector: Connector) -> None:
+        logger.info("Deleting managed MCP server deployment: connector_id=%s", connector.id)
 
-    async def _delete_supergateway_pod(self, *, connector: Connector) -> None:
-        """Delete supergateway deployment and service using kubectl."""
-        logger.info("Deleting supergateway deployment: connector_id=%s", connector.id)
-
-        name = self._get_supergateway_name(connector.id)
-
-        # Delete deployment and service
-        for resource_type, resource_name in [("deployment", name), ("service", name)]:
+        for resource_type in ["deployment", "service"]:
             try:
-                await self._kubectl.delete(resource_type, resource_name, ignore_not_found=True)
+                await self._kubectl.delete(
+                    resource_type, self._get_managed_mcp_service_name(connector.id), ignore_not_found=True
+                )
             except RuntimeError as err:
-                logger.warning("Failed to delete %s/%s: %s", resource_type, resource_name, err)
+                logger.warning(
+                    "Failed to delete %s/%s: %s", resource_type, self._get_managed_mcp_service_name(connector.id), err
+                )
 
-        logger.info("Supergateway deployment deleted: connector_id=%s", connector.id)
+        logger.info("Managed MCP server deployment deployment deleted: connector_id=%s", connector.id)
 
     async def _bootstrap_auth(self, *, connector: Connector, callback_url: str, redirect_url: AnyUrl | None) -> None:
         auth_metadata = await self._discover_auth_metadata(connector=connector)
@@ -676,13 +596,9 @@ class ConnectorService:
             assert auth is None
             return self._create_client(connector=connector, headers=headers, timeout=timeout)
 
-        # Determine target URL
-        preset = self._find_preset(url=connector.url)
-        if preset and preset.url.scheme == "mcp+stdio":
-            # Use existing supergateway deployment service URL
-            target_url = f"{self._get_supergateway_url(connector.id)}/mcp"
+        if (preset := self._find_preset(url=connector.url)) and preset.url.scheme == "mcp+stdio":
+            target_url = f"{self._get_managed_mcp_service_url(connector.id)}/mcp"
         else:
-            # Regular HTTP connector
             target_url = str(connector.url)
 
         logger.info("Probing connector: connector_id=%s target_url=%s", connector.id, target_url)
@@ -735,12 +651,9 @@ class ConnectorService:
             if key in request.headers
         }
 
-        # Determine target URL
-        if preset and preset.url.scheme == "mcp+stdio":
-            # Use existing supergateway deployment service URL
-            target_url = f"{self._get_supergateway_url(connector.id)}/mcp"
+        if (preset := self._find_preset(url=connector.url)) and preset.url.scheme == "mcp+stdio":
+            target_url = f"{self._get_managed_mcp_service_url(connector.id)}/mcp"
         else:
-            # Regular HTTP connector
             target_url = str(connector.url)
 
         exit_stack = AsyncExitStack()

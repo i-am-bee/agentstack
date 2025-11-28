@@ -93,8 +93,13 @@ async def bootstrap_dependencies(dependency_overrides: Container | None = None):
     _set_di(
         Kubectl,
         Kubectl(
-            kubeconfig=di[Configuration].connector.runtime.kubeconfig or di[Configuration].k8s_kubeconfig,
-            namespace=di[Configuration].connector.runtime.namespace or di[Configuration].k8s_namespace,
+            kubeconfig=di[Configuration].k8s_kubeconfig,
+            namespace=di[Configuration].k8s_namespace
+            or (
+                p.read_text().strip()
+                if (p := pathlib.Path("/var/run/secrets/kubernetes.io/serviceaccount/namespace")).is_file()
+                else "default"
+            ),
         ),
     )
 
