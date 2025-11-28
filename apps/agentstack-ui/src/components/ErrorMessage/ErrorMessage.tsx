@@ -4,7 +4,6 @@
  */
 
 import { ActionableNotification, Button, InlineLoading } from '@carbon/react';
-import type { ReactNode } from 'react';
 
 import { NotificationMarkdownContent } from '#components/NotificationMarkdownContent/NotificationMarkdownContent.tsx';
 
@@ -13,12 +12,11 @@ import classes from './ErrorMessage.module.scss';
 interface Props {
   title?: string;
   message?: string;
-  onRetry?: () => void;
   isRefetching?: boolean;
-  children?: ReactNode;
+  onRetry?: () => void;
 }
 
-export function ErrorMessage({ title, message, onRetry, isRefetching }: Props) {
+export function ErrorMessage({ title, message, isRefetching, onRetry }: Props) {
   return (
     <ActionableNotification title={title} kind="error" lowContrast hideCloseButton>
       {(message || onRetry) && (

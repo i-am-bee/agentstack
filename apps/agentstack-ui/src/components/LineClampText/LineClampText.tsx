@@ -19,6 +19,7 @@ interface Props {
   className?: string;
   buttonClassName?: string;
   useBlockElement?: boolean;
+  autoExpandOnContentChange?: boolean;
 }
 
 export function LineClampText({
@@ -27,16 +28,18 @@ export function LineClampText({
   className,
   buttonClassName,
   useBlockElement,
+  autoExpandOnContentChange,
   children,
 }: PropsWithChildren<Props>) {
   const id = useId();
   const textRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLSpanElement>(null);
+  const initialOverflowRef = useRef<boolean | null>(null);
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [overflowDetected, setOverflowDetected] = useState(false);
 
-  const showButton = isExpanded || overflowDetected;
+  const showButton = (isExpanded || overflowDetected) && (initialOverflowRef.current ?? true);
 
   const Component = useBlockElement ? 'div' : 'span';
   const buttonProps = {
@@ -56,7 +59,17 @@ export function LineClampText({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setOverflowDetected(!entry.isIntersecting);
+        const isOverflowing = !entry.isIntersecting;
+
+        setOverflowDetected(isOverflowing);
+
+        if (initialOverflowRef.current === null) {
+          initialOverflowRef.current = isOverflowing;
+        }
+
+        if (autoExpandOnContentChange && initialOverflowRef.current === false && isOverflowing) {
+          setIsExpanded(true);
+        }
       },
       {
         root: textElement,
@@ -69,7 +82,7 @@ export function LineClampText({
     return () => {
       observer.disconnect();
     };
-  }, [isExpanded]);
+  }, [autoExpandOnContentChange, isExpanded]);
 
   return (
     <Component className={clsx(classes.root, className)}>

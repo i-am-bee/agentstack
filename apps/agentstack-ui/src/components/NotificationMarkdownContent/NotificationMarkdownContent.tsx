@@ -26,7 +26,7 @@ export function NotificationMarkdownContent({ children }: Props) {
   );
 
   return (
-    <LineClampText className={classes.root} lines={4} useBlockElement>
+    <LineClampText className={classes.root} lines={4} useBlockElement autoExpandOnContentChange>
       <MarkdownContent className={classes.markdown} components={components}>
         {children}
       </MarkdownContent>

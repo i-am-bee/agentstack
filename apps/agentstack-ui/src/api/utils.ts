@@ -16,7 +16,7 @@ import { isNotNull } from '#utils/helpers.ts';
 import { createMarkdownCodeBlock, createMarkdownSection, joinMarkdownSections } from '#utils/markdown.ts';
 
 import { A2AExtensionError, ApiError, ApiValidationError, HttpError, UnauthenticatedError } from './errors';
-import type { A2AErrorMetadata, ApiErrorCode, ApiErrorResponse, ApiValidationErrorResponse } from './types';
+import type { ApiErrorCode, ApiErrorResponse, ApiValidationErrorResponse } from './types';
 
 export function ensureData<T extends Record<string | number, unknown>, O, M extends MediaType>(
   fetchResponse: FetchResponse<T, O, M>,
@@ -69,6 +69,10 @@ export async function handleStream<T>({
 }
 
 export function getErrorTitle(error: unknown) {
+  if (error instanceof A2AExtensionError) {
+    return 'errors' in error.error ? 'Multiple errors occurred' : error.error.title;
+  }
+
   return typeof error === 'object' && isNotNull(error) && 'title' in error ? (error.title as string) : undefined;
 }
 
@@ -138,26 +142,37 @@ export function buildErrorToast({ metadata = {}, error }: { metadata?: QueryMeta
   };
 }
 
-export function createA2AErrorMessage(error: A2AErrorMetadata) {
-  const { message: errorMessage, context, stacktrace } = error;
+export function createA2AErrorMessage(error: A2AExtensionError) {
+  const {
+    error: { message: errorMessage },
+    context,
+    stackTrace,
+  } = error;
+
+  const errors = 'errors' in error.error ? error.error.errors : [];
+  const errorMessages = joinMarkdownSections(
+    errors.map(({ title, message }) => createMarkdownSection({ heading: title, content: message })),
+  );
 
   const contextMessage = context
     ? createMarkdownSection({
         heading: 'Context',
         content: createMarkdownCodeBlock({
-          language: 'json',
           snippet: JSON.stringify(context, null, 2),
+          language: 'json',
         }),
       })
     : undefined;
-  const stacktraceMessage = stacktrace
+  const stackTraceMessage = stackTrace
     ? createMarkdownSection({
-        heading: 'Stacktrace',
-        content: stacktrace,
+        heading: 'Stack Trace',
+        content: createMarkdownCodeBlock({
+          snippet: stackTrace,
+        }),
       })
     : undefined;
 
-  const message = joinMarkdownSections([errorMessage, contextMessage, stacktraceMessage]);
+  const message = joinMarkdownSections([errorMessage, errorMessages, contextMessage, stackTraceMessage]);
 
   return message;
 }

@@ -42,7 +42,7 @@ export function Code({ variant, inline, forceExpand, className, children }: Prop
   }
 
   return (
-    <CodeSnippet forceExpand={forceExpand} canCopy={!forceExpand} className={className}>
+    <CodeSnippet forceExpand={forceExpand} canCopy={!forceExpand}>
       {children}
     </CodeSnippet>
   );

@@ -5,7 +5,7 @@
 
 import { isNotNull } from './helpers';
 
-export function createMarkdownCodeBlock({ language, snippet }: { language: string; snippet: string }) {
+export function createMarkdownCodeBlock({ snippet, language = '' }: { snippet: string; language?: string }) {
   return `\`\`\`${language}\n${snippet}\n\`\`\``;
 }
 
@@ -18,11 +18,7 @@ export function toMarkdownCitation({ text, sources }: { text: string; sources: s
 }
 
 export function createMarkdownSection({ heading, content }: { heading: string; content: string }) {
-  return `
-### ${heading}
-
-${content}
-`;
+  return `### ${heading}\n\n${content}`;
 }
 
 export function joinMarkdownSections(sections: (string | undefined)[]) {

@@ -72,15 +72,15 @@ export class StreamError extends ErrorWithResponse {
 export class UnauthenticatedError extends ErrorWithResponse {}
 
 export class A2AExtensionError extends Error {
-  title: NonNullable<A2AErrorMetadata['title']>;
+  error: A2AErrorMetadata['error'];
   context: A2AErrorMetadata['context'];
-  stacktrace: A2AErrorMetadata['stacktrace'];
+  stackTrace: A2AErrorMetadata['stack_trace'];
 
-  constructor({ message, title, context, stacktrace }: A2AErrorMetadata) {
-    super(message);
+  constructor({ error, context, stack_trace }: A2AErrorMetadata) {
+    super(error.message);
 
-    this.title = title ?? 'A2AExtensionError';
+    this.error = error;
     this.context = context;
-    this.stacktrace = stacktrace;
+    this.stackTrace = stack_trace;
   }
 }
