@@ -67,7 +67,6 @@ function getProviders(): ProviderWithId[] {
 }
 
 const providers = getProviders();
-console.log(providers);
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers,
