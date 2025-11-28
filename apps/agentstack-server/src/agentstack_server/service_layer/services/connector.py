@@ -79,26 +79,11 @@ class ConnectorService:
             auth=Authorization(client_id=client_id, client_secret=client_secret) if client_id else None,
             metadata=metadata,
         )
+        if preset and preset.url.scheme == "mcp+stdio":
+            await self._deploy_managed_mcp_server(connector=connector, preset=preset)
         async with self._uow() as uow:
             await uow.connectors.create(connector=connector)
             await uow.commit()
-
-        # For stdio connectors, create the supergateway deployment immediately
-        if preset and preset.url.scheme == "mcp+stdio":
-            logger.info("Creating supergateway deployment for stdio connector: connector_id=%s", connector.id)
-            try:
-                await self._deploy_managed_mcp_server(connector=connector, preset=preset)
-            except Exception as err:
-                logger.error("Failed to create supergateway deployment during connector creation", exc_info=True)
-                # Delete the connector from DB since we couldn't create the deployment
-                async with self._uow() as uow:
-                    await uow.connectors.delete(connector_id=connector.id, user_id=user.id)
-                    await uow.commit()
-                raise PlatformError(
-                    f"Failed to create stdio connector: {err}",
-                    status_code=status.HTTP_502_BAD_GATEWAY,
-                ) from err
-
         return connector
 
     async def read_connector(self, *, connector_id: UUID, user: User | None = None) -> Connector:
@@ -110,13 +95,8 @@ class ConnectorService:
             connector = await uow.connectors.get(connector_id=connector_id, user_id=user.id if user else None)
             await self._revoke_auth_token(connector=connector)
 
-            # For stdio connectors, delete the supergateway deployment
-            preset = self._find_preset(url=connector.url)
-            if preset and preset.url.scheme == "mcp+stdio":
-                try:
-                    await self._undeploy_managed_mcp_server(connector=connector)
-                except Exception:
-                    logger.warning("Failed to delete supergateway deployment during connector deletion", exc_info=True)
+            if (preset := self._find_preset(url=connector.url)) and preset.url.scheme == "mcp+stdio":
+                await self._undeploy_managed_mcp_server(connector=connector)
 
             await uow.connectors.delete(connector_id=connector_id, user_id=user.id if user else None)
             await uow.commit()
@@ -131,20 +111,10 @@ class ConnectorService:
         async with self._uow() as uow:
             connector = await uow.connectors.get(connector_id=connector_id, user_id=user.id if user else None)
 
-        # For stdio connectors, skip probing since deployments are already created and running
-        # Probing causes the supergateway to crash due to connection state issues
-        preset = self._find_preset(url=connector.url)
-        is_stdio_connector = preset and preset.url.scheme == "mcp+stdio"
-
         try:
-            if is_stdio_connector:
-                logger.info("Skipping probe for stdio connector: connector_id=%s", connector_id)
-                connector.state = ConnectorState.connected
-                connector.disconnect_reason = None
-            else:
-                await self.probe_connector(connector=connector)
-                connector.state = ConnectorState.connected
-                connector.disconnect_reason = None
+            await self.probe_connector(connector=connector)
+            connector.state = ConnectorState.connected
+            connector.disconnect_reason = None
         except Exception as err:
             if isinstance(err, httpx.HTTPStatusError):
                 if err.response.status_code == status.HTTP_401_UNAUTHORIZED:
@@ -189,13 +159,11 @@ class ConnectorService:
 
         await self._revoke_auth_token(connector=connector)
 
-        # For stdio connectors, delete the supergateway deployment
-        preset = self._find_preset(url=connector.url)
-        if preset and preset.url.scheme == "mcp+stdio":
+        if (preset := self._find_preset(url=connector.url)) and preset.url.scheme == "mcp+stdio":
             try:
                 await self._undeploy_managed_mcp_server(connector=connector)
             except Exception:
-                logger.warning("Failed to delete supergateway deployment during disconnect", exc_info=True)
+                logger.warning("Failed to delete managed MCP server deployment during disconnect", exc_info=True)
 
         if connector.auth:
             connector.auth.flow = None
