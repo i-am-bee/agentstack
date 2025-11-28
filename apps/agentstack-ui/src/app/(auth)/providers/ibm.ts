@@ -4,6 +4,8 @@
  */
 
 import type { OIDCConfig } from 'next-auth/providers/index';
+
+import type { ProviderConfig } from '../types';
 /**
  * Add IBM login to your page.
  *
@@ -111,13 +113,17 @@ export interface IbmProfile extends Record<string, any> {
   exp: number;
 }
 
-export function IBMProvider(config: OIDCConfig<IbmProfile>): OIDCConfig<IbmProfile> {
+export function IBMProvider(config: ProviderConfig): OIDCConfig<IbmProfile> {
   return {
     id: config.id,
     name: config.name,
     type: 'oidc',
     idToken: true,
     style: { text: '#ffffff', bg: '#252525' },
-    options: config,
+    options: {
+      issuer: config.issuer,
+      clientId: config.client_id,
+      clientSecret: config.client_secret,
+    },
   };
 }

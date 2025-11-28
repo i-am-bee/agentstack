@@ -49,10 +49,7 @@ function getProviders(): ProviderWithId[] {
     return providersConfig.map((providerConfig) => {
       return match(providerConfig)
         .with({ name: 'w3id' }, { name: 'ibmid' }, { name: 'ibm' }, { name: 'ibmid-pkce' }, (provider) => {
-          return IBMProvider({
-            type: 'oidc',
-            ...provider,
-          });
+          return IBMProvider(provider);
         })
         .with({ name: 'auth0' }, (provider) => {
           return Auth0Provider(provider, provider.audience);
