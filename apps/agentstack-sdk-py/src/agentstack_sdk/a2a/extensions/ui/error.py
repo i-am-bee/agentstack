@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import contextvars
 import json
+import logging
 import traceback
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -19,6 +20,8 @@ from agentstack_sdk.a2a.extensions.base import (
     BaseExtensionSpec,
 )
 from agentstack_sdk.a2a.types import AgentMessage, JsonDict, Metadata
+
+logger = logging.getLogger(__name__)
 
 
 class Error(pydantic.BaseModel):
@@ -143,6 +146,9 @@ class ErrorExtensionServer(BaseExtensionServer[ErrorExtensionSpec, NoneType]):
             return self._error_context_var.get()
         except LookupError:
             # Fallback for when lifespan hasn't been entered yet
+            logger.warning(
+                "Attempted to use error context when the error extension is not initialized. Make sure to add the ErrorExtensionServer to the agent dependencies."
+            )
             return {}
 
     def error_metadata(self, error: BaseException) -> Metadata[str, Any]:
@@ -162,7 +168,7 @@ class ErrorExtensionServer(BaseExtensionServer[ErrorExtensionSpec, NoneType]):
                 self.spec.URI: ErrorMetadata(
                     error=error_data,
                     stack_trace=stack_trace,
-                    context=self.context,
+                    context=self.context or None,
                 ).model_dump(mode="json")
             }
         )
