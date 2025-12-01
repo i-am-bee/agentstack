@@ -50,5 +50,6 @@ includes = [
     "apps/agentstack-ui/tasks.toml",
     "apps/beeai-web/tasks.toml",
     "apps/agentstack-sdk-ts/tasks.toml",
+    "apps/supergateway/tasks.toml",
     "docs/tasks.toml",
 ]

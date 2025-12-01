@@ -78,7 +78,7 @@ outputs = { auto = true }
 # run
 
 ["agentstack-server:run"]
-depends = ["agentstack-server:setup", "agentstack-server:build:supergateway"]
+depends = ["agentstack-server:setup", "supergateway:build"]
 dir = "{{config_root}}/apps/agentstack-server"
 run = "uv run agentstack-server"
 
@@ -88,10 +88,6 @@ run = "uv run agentstack-server"
 depends = ["agentstack-server:build:*"]
 dir = "{{config_root}}/apps/agentstack-server"
 run = "docker build -t ghcr.io/i-am-bee/agentstack/agentstack-server:local --load ."
-
-["agentstack-server:build:supergateway"]
-dir = "{{config_root}}/apps/agentstack-server"
-run = "docker build -f supergateway.Dockerfile -t ghcr.io/i-am-bee/agentstack/supergateway:latest --load ."
 
 ["agentstack-server:build:requirements"]
 depends = ["agentstack-server:setup"]

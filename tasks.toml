@@ -95,7 +95,7 @@ run = "true" # Empty tests in case there are no tests
 # Platform tasks
 
 ["agentstack:start"]
-depends = ["agentstack-server:build"]
+depends = ["agentstack-server:build", "supergateway:build"]
 dir = "{{config_root}}"
 run = """
 #!/bin/bash
