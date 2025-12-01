@@ -5,7 +5,7 @@
 
 import z from 'zod';
 
-export const featureFlagsSchema = z.object({
+export const featureFlagsSchema = z.strictObject({
   Connectors: z.boolean().optional(),
   LocalSetup: z.boolean().optional(),
   MCP: z.boolean().optional(),
