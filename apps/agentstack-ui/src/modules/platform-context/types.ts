@@ -3,6 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { contextPermissionsGrantSchema, globalPermissionsGrantSchema } from 'agentstack-sdk';
+import z from 'zod';
+
 import type { ListContextsResponse } from './api/types';
 
 enum TitleGenerationState {
@@ -22,4 +25,12 @@ export type ContextMetadata = {
   title_generation_state?: TitleGenerationState;
   title?: string;
 };
+
 export type ContextWithMetadata = ListContextsResponse['items'][number] & { metadata?: ContextMetadata };
+
+export const contextTokenPermissionsSchema = z.object({
+  grant_global_permissions: globalPermissionsGrantSchema.optional(),
+  grant_context_permissions: contextPermissionsGrantSchema.optional(),
+});
+
+export type ContextTokenPermissions = z.infer<typeof contextTokenPermissionsSchema>;

@@ -4,6 +4,7 @@
  */
 
 import isMimeType from 'validator/lib/isMimeType';
+import type { z, ZodObject, ZodType } from 'zod';
 
 import { ALL_FILES_CONTENT_TYPE, NO_FILES_CONTENT_TYPE } from '#modules/files/constants.ts';
 
@@ -70,4 +71,34 @@ export function getNameInitials(name: string | null | undefined) {
   const initials = (matches.at(0)?.at(1) ?? '') + (matches.at(-1)?.at(1) ?? '');
 
   return initials.toUpperCase();
+}
+
+export function loadEnvConfig<T extends ZodObject>({
+  schema,
+  input,
+  defaults = {},
+}: {
+  schema: T;
+  input?: string;
+  defaults?: Partial<z.input<T>>;
+}): z.infer<T> {
+  const safeDefaults = schema.partial().parse(defaults);
+
+  if (!input) {
+    return schema.parse(safeDefaults);
+  }
+
+  try {
+    const parsed = JSON.parse(input);
+    const result = schema.parse({
+      ...safeDefaults,
+      ...parsed,
+    });
+
+    return result;
+  } catch (error) {
+    console.error(error);
+
+    return schema.parse(safeDefaults);
+  }
 }
