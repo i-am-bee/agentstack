@@ -22,6 +22,12 @@ interface Props {
   autoExpandOnContentChange?: boolean;
 }
 
+enum OverflowState {
+  Unknown = 'unknown',
+  Fits = 'fits',
+  Clamped = 'clamped',
+}
+
 export function LineClampText({
   lines,
   iconButton,
@@ -34,12 +40,12 @@ export function LineClampText({
   const id = useId();
   const textRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLSpanElement>(null);
-  const initialOverflowRef = useRef<boolean | null>(null);
+  const initialOverflowStateRef = useRef<OverflowState>(OverflowState.Unknown);
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [overflowDetected, setOverflowDetected] = useState(false);
 
-  const showButton = (isExpanded || overflowDetected) && (initialOverflowRef.current ?? true);
+  const showButton = (isExpanded || overflowDetected) && initialOverflowStateRef.current !== OverflowState.Fits;
 
   const Component = useBlockElement ? 'div' : 'span';
   const buttonProps = {
@@ -63,11 +69,11 @@ export function LineClampText({
 
         setOverflowDetected(isOverflowing);
 
-        if (initialOverflowRef.current === null) {
-          initialOverflowRef.current = isOverflowing;
+        if (initialOverflowStateRef.current === OverflowState.Unknown) {
+          initialOverflowStateRef.current = isOverflowing ? OverflowState.Clamped : OverflowState.Fits;
         }
 
-        if (autoExpandOnContentChange && initialOverflowRef.current === false && isOverflowing) {
+        if (autoExpandOnContentChange && initialOverflowStateRef.current === OverflowState.Fits && isOverflowing) {
           setIsExpanded(true);
         }
       },
