@@ -89,7 +89,7 @@ class ExternalMcpService:
             return httpx.AsyncClient(
                 headers=headers,
                 timeout=timeout or 30,
-                base_url="" if connector.url.scheme == "mcp+stdio" else str(connector.url),
+                base_url=str(connector.url),
             )
         else:
             return self._create_client(connector=connector, headers=headers, timeout=timeout)

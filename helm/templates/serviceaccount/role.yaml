@@ -32,31 +32,17 @@ rules:
     resources: [ "secrets" ]
     verbs: [ "create", "update", "patch", "get", "list", "watch", "delete" ]
 
-  # Permissions for pods (list, logs, and stdio connector pods)
+  # Permissions for pods (list and logs)
   - apiGroups: [ "" ]
     resources: [ "pods" ]
-    verbs: [ "create", "delete", "get", "list", "watch" ]
+    verbs: [ "get", "list", "watch" ]
 
   # Permissions for pod logs
   - apiGroups: [ "" ]
     resources: [ "pods/log" ]
     verbs: [ "get" ]
 
-  # Permissions for pod attach (stdio connectors)
-  - apiGroups: [ "" ]
-    resources: [ "pods/attach" ]
-    verbs: [ "create", "get" ]
-
   # Permissions for events (read-only)
   - apiGroups: [ "" ]
     resources: [ "events" ]
     verbs: [ "get", "list", "watch" ]
-
-  # Permissions for managing RBAC resources (for stdio connector supergateway pods)
-  - apiGroups: [ "" ]
-    resources: [ "serviceaccounts" ]
-    verbs: [ "create", "get", "list", "watch", "update", "patch", "delete" ]
-
-  - apiGroups: [ "rbac.authorization.k8s.io" ]
-    resources: [ "roles", "rolebindings" ]
-    verbs: [ "create", "get", "list", "watch", "update", "patch", "delete" ]

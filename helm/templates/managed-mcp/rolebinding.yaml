@@ -8,7 +8,6 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: managed-mcp
-    namespace: {{ .Values.connector.managed_mcp.namespace }}
 roleRef:
   kind: Role
   name: managed-mcp

@@ -224,12 +224,14 @@ class ConnectorStdioPreset(BaseModel):
     command: list[str] | None = None
     args: list[str] | None = None
     env: dict[str, str] = Field(default_factory=dict)
+    auth_token_env_name: str | None = None
 
 
 class ConnectorPreset(BaseModel):
     url: AnyUrl
     client_id: str | None = None
     client_secret: str | None = None
+    auth_token: str | None = None
     metadata: dict[str, str] | None = None
     stdio: ConnectorStdioPreset | None = None
 

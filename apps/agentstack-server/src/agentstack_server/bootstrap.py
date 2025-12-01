@@ -90,6 +90,7 @@ async def bootstrap_dependencies(dependency_overrides: Container | None = None):
 
     _set_di(ITextExtractionBackend, DoclingTextExtractionBackend(di[Configuration].text_extraction))
 
+    # TODO: unify all services under single k8s client library (kr8s or kubectl wrapper)
     _set_di(
         Kubectl,
         Kubectl(

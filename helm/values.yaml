@@ -250,10 +250,6 @@ affinity: { }
 uvicornTimeoutKeepAlive: 5
 
 connector:
-  managed_mcp:
-    namespace: ""  # Namespace for supergateway deployments. If set without kubeconfig, Helm will deploy RBAC resources.
-    kubeconfig: ""  # Path to kubeconfig for external cluster. If set, RBAC is not deployed by Helm (must be created manually).
-    startupTimeoutSeconds: 60
   presets:
     - url: "https://mcp.stripe.com"
       metadata:

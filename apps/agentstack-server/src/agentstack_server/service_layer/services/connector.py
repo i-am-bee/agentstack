@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from contextlib import AsyncExitStack
 from uuid import UUID
@@ -94,7 +93,6 @@ class ConnectorService:
         async with self._uow() as uow:
             connector = await uow.connectors.get(connector_id=connector_id, user_id=user.id if user else None)
             await self._external_mcp.revoke_token(connector=connector)
-
             await uow.connectors.delete(connector_id=connector_id, user_id=user.id if user else None)
             await uow.commit()
 
@@ -108,8 +106,8 @@ class ConnectorService:
         async with self._uow() as uow:
             connector = await uow.connectors.get(connector_id=connector_id, user_id=user.id if user else None)
 
-        if self._managed_mcp.is_managed(connector=connector):
-            await self._managed_mcp.deploy(connector=connector)
+        if self._managed_mcp.is_managed(connector=connector) and (preset := self._find_preset(url=connector.url)):
+            await self._managed_mcp.deploy(connector=connector, preset=preset)
 
         try:
             await self.probe_connector(connector=connector)
@@ -165,10 +163,7 @@ class ConnectorService:
         connector.disconnect_reason = "Client request"
 
         if self._managed_mcp.is_managed(connector=connector):
-            try:
-                await self._managed_mcp.undeploy(connector=connector)
-            except Exception:
-                logger.warning("Failed to delete managed MCP server deployment during disconnect", exc_info=True)
+            await self._managed_mcp.undeploy(connector=connector)
 
         async with self._uow() as uow:
             await uow.connectors.update(connector=connector)
@@ -201,84 +196,62 @@ class ConnectorService:
     async def list_presets(self) -> list[ConnectorPreset]:
         return self._configuration.connector.presets
 
-    async def probe_connector(self, *, connector: Connector):
-        target_url = (
-            f"{self._managed_mcp.get_service_url(connector=connector)}/mcp"
-            if self._managed_mcp.is_managed(connector=connector)
-            else str(connector.url)
-        )
+    def _find_preset(self, *, url: AnyUrl) -> ConnectorPreset | None:
+        return next((p for p in self._configuration.connector.presets if str(p.url) == str(url)), None)
 
-        logger.info("Probing connector: connector_id=%s target_url=%s", connector.id, target_url)
+    async def probe_connector(self, *, connector: Connector):
+        preset = self._find_preset(url=connector.url)
+
+        def client_factory(headers=None, timeout=None, auth=None):
+            assert auth is None
+            return self._external_mcp.create_http_client(connector=connector, headers=headers, timeout=timeout)
 
         try:
-            async with AsyncExitStack() as stack:
-                read, write, _ = await stack.enter_async_context(
-                    streamablehttp_client(
-                        target_url,
-                        httpx_client_factory=lambda headers=None,
-                        timeout=None,
-                        auth=None: self._external_mcp.create_http_client(
-                            connector=connector, headers=headers, timeout=timeout
-                        ),
-                    )
-                )
-                session = await stack.enter_async_context(ClientSession(read, write))
-                async with asyncio.timeout(30):
-                    await session.initialize()
-            logger.info("Connector probe successful: connector_id=%s", connector.id)
-        except TimeoutError as err:
-            logger.error(
-                "Connector probe timed out: connector_id=%s target_url=%s", connector.id, target_url, exc_info=True
-            )
-            raise PlatformError(
-                "MCP server initialization timed out",
-                status_code=status.HTTP_504_GATEWAY_TIMEOUT,
-            ) from err
+            async with (
+                streamablehttp_client(
+                    (
+                        f"{self._managed_mcp.get_service_url(connector=connector)}/mcp"
+                        if self._managed_mcp.is_managed(connector=connector)
+                        else str(connector.url)
+                    ),
+                    headers={"Authorization": f"Bearer {preset.auth_token}"} if preset and preset.auth_token else None,
+                    **(
+                        {"httpx_client_factory": client_factory}
+                        if not self._managed_mcp.is_managed(connector=connector)
+                        else {}
+                    ),
+                ) as (read, write, _),
+                ClientSession(read, write) as session,
+            ):
+                await session.initialize()
         except ExceptionGroup as excgroup:
-            logger.error(
-                "Connector probe failed with ExceptionGroup: connector_id=%s target_url=%s exceptions=%s",
-                connector.id,
-                target_url,
-                excgroup.exceptions,
-                exc_info=True,
-            )
             if len(excgroup.exceptions) == 1:
                 raise excgroup.exceptions[0] from excgroup
             raise excgroup
-        except Exception as err:
-            logger.error(
-                "Connector probe failed: connector_id=%s target_url=%s error=%s",
-                connector.id,
-                target_url,
-                err,
-                exc_info=True,
-            )
-            raise
 
     async def mcp_proxy(self, *, connector_id: UUID, request: Request, user: User | None = None):
         connector = await self.read_connector(connector_id=connector_id, user=user)
-
-        forward_headers = {
-            key: request.headers[key]
-            for key in ["accept", "content-type", "mcp-protocol-version", "mcp-session-id", "last-event-id"]
-            if key in request.headers
-        }
-
-        target_url = (
-            f"{self._managed_mcp.get_service_url(connector=connector)}/mcp"
-            if self._managed_mcp.is_managed(connector=connector)
-            else str(connector.url)
-        )
+        preset = self._managed_mcp.find_preset(url=connector.url)
 
         exit_stack = AsyncExitStack()
         try:
             response = await exit_stack.enter_async_context(
                 self._proxy_client.stream(
                     request.method,
-                    target_url,
-                    headers=forward_headers
+                    (
+                        f"{self._managed_mcp.get_service_url(connector=connector)}/mcp"
+                        if self._managed_mcp.is_managed(connector=connector)
+                        else str(connector.url)
+                    ),
+                    headers={
+                        key: request.headers[key]
+                        for key in ["accept", "content-type", "mcp-protocol-version", "mcp-session-id", "last-event-id"]
+                        if key in request.headers
+                    }
                     | (
-                        {"authorization": f"Bearer {connector.auth.token.access_token}"}
+                        {"authorization": f"Bearer {preset.auth_token}"}
+                        if preset and preset.auth_token
+                        else {"authorization": f"Bearer {connector.auth.token.access_token}"}
                         if connector.state == ConnectorState.connected
                         and connector.auth
                         and connector.auth.token

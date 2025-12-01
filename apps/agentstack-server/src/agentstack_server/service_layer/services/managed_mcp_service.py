@@ -7,6 +7,7 @@ import logging
 
 from fastapi import status
 from kink import inject
+from pydantic import AnyUrl
 
 from agentstack_server.configuration import Configuration, ConnectorPreset
 from agentstack_server.domain.models.connector import Connector
@@ -22,20 +23,16 @@ class ManagedMcpService:
         self._configuration = configuration
         self._kubectl = kubectl
 
-    def find_preset(self, *, connector: Connector) -> ConnectorPreset | None:
-        return next((p for p in self._configuration.connector.presets if str(p.url) == str(connector.url)), None)
+    def find_preset(self, url: AnyUrl) -> ConnectorPreset | None:
+        return next((p for p in self._configuration.connector.presets if str(p.url) == str(url)), None)
 
     def is_managed(self, *, connector: Connector) -> bool:
-        return (preset := self.find_preset(connector=connector)) is not None and preset.url.scheme == "mcp+stdio"
+        return (preset := self.find_preset(connector.url)) is not None and preset.url.scheme == "mcp+stdio"
 
     def get_service_url(self, *, connector: Connector) -> str:
         return f"http://managed-mcp-{connector.id.hex[:16]}.{self._kubectl._default_kwargs['namespace']}.svc.cluster.local:8080"
 
-    async def deploy(self, *, connector: Connector) -> None:
-        logger.info("Creating managed MCP deployment: connector_id=%s", connector.id)
-        preset = self.find_preset(connector=connector)
-        assert preset and preset.stdio
-
+    async def deploy(self, *, connector: Connector, preset: ConnectorPreset) -> None:
         try:
             await self._kubectl.apply(
                 "-f",
@@ -87,16 +84,29 @@ class ManagedMcpService:
                                                 **(
                                                     {}
                                                     if not preset.stdio.env
+                                                    and not (preset.auth_token and preset.stdio.auth_token_env_name)
                                                     else {
                                                         "env": [
-                                                            {"name": k, "value": v} for k, v in preset.stdio.env.items()
+                                                            {"name": k, "value": v}
+                                                            for k, v in (preset.stdio.env or {}).items()
                                                         ]
+                                                        + (
+                                                            [
+                                                                {
+                                                                    "name": preset.stdio.auth_token_env_name,
+                                                                    "value": preset.auth_token,
+                                                                }
+                                                            ]
+                                                            if preset.auth_token and preset.stdio.auth_token_env_name
+                                                            else []
+                                                        )
                                                     }
                                                 ),
                                             },
                                             {
                                                 "name": "supergateway",
-                                                "image": "ghcr.io/i-am-bee/agentstack/agentstack-server:local",
+                                                "image": "ghcr.io/i-am-bee/agentstack/supergateway:latest",
+                                                "imagePullPolicy": "IfNotPresent",
                                                 "command": ["supergateway"],
                                                 "args": [
                                                     "--stdio",
@@ -152,14 +162,11 @@ class ManagedMcpService:
                     ],
                 },
             )
-            logger.info("MCP server deployment created: connector_id=%s", connector.id)
         except RuntimeError as err:
             raise PlatformError(
                 f"Failed to create MCP server deployment: {err}",
                 status_code=status.HTTP_502_BAD_GATEWAY,
             ) from err
-
-        logger.info("Waiting for deployment to be ready: connector_id=%s", connector.id)
 
         try:
             await self._kubectl.wait(
@@ -173,19 +180,9 @@ class ManagedMcpService:
                 status_code=status.HTTP_504_GATEWAY_TIMEOUT,
             ) from err
 
-        logger.info(
-            "Managed MCP server deployment ready: connector_id=%s url=%s",
-            connector.id,
-            self.get_service_url(connector=connector),
-        )
-
     async def undeploy(self, *, connector: Connector) -> None:
-        logger.info("Deleting managed MCP server deployment: connector_id=%s", connector.id)
-
         for resource_type in ["deployment", "service"]:
             try:
                 await self._kubectl.delete(resource_type, f"managed-mcp-{connector.id.hex[:16]}", ignore_not_found=True)
             except RuntimeError as err:
                 logger.warning("Failed to delete %s/managed-mcp-%s: %s", resource_type, connector.id.hex[:16], err)
-
-        logger.info("Managed MCP server deployment deployment deleted: connector_id=%s", connector.id)
