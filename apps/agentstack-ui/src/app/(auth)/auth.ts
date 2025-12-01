@@ -4,15 +4,13 @@
  */
 
 import NextAuth from 'next-auth';
-import { match } from 'ts-pattern';
+import type { OIDCConfig } from 'next-auth/providers';
 import z from 'zod';
 
 import { runtimeConfig } from '#contexts/App/runtime-config.ts';
 import type { AuthProvider } from '#modules/auth/types.ts';
 import { routes } from '#utils/router.ts';
 
-import { Auth0Provider } from './providers/auth0';
-import { IBMProvider } from './providers/ibm';
 import type { ProviderWithId } from './types';
 import { type ProviderConfig, providerConfigSchema } from './types';
 import { getTokenRefreshSchedule, jwtWithRefresh, RefreshTokenError } from './utils';
@@ -22,13 +20,23 @@ let providersConfig: ProviderConfig[] = [];
 export const AUTH_COOKIE_NAME = 'agentstack';
 
 const { isAuthEnabled } = runtimeConfig;
-3;
+
 export function getAuthProviders(): AuthProvider[] {
   return getProviders()
     .filter((provider) => provider.id !== 'credentials')
     .map((provider) => {
       return { id: provider.id, name: provider.name };
     });
+}
+
+function createOIDCProvider(providerConfig: ProviderConfig): OIDCConfig<unknown> {
+  return {
+    id: providerConfig.id,
+    name: providerConfig.name,
+    type: 'oidc',
+    idToken: true,
+    options: providerConfig.options,
+  };
 }
 
 function getProviders(): ProviderWithId[] {
@@ -46,16 +54,7 @@ function getProviders(): ProviderWithId[] {
 
     providersConfig = z.array(providerConfigSchema).parse(JSON.parse(providersJson));
 
-    return providersConfig.map((providerConfig) => {
-      return match(providerConfig)
-        .with({ name: 'w3id' }, { name: 'ibmid' }, { name: 'ibm' }, { name: 'ibmid-pkce' }, (provider) => {
-          return IBMProvider(provider);
-        })
-        .with({ name: 'auth0' }, (provider) => {
-          return Auth0Provider(provider, provider.audience);
-        })
-        .exhaustive();
-    });
+    return providersConfig.map(createOIDCProvider);
   } catch (err) {
     console.error('Unable to parse providers from OIDC_PROVIDERS environment variable.', err);
 

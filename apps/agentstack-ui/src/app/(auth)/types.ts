@@ -6,24 +6,39 @@
 import type { Provider } from 'next-auth/providers';
 import z from 'zod';
 
-const baseProviderConfigSchema = z.object({
-  id: z.string(),
-  name: z.unknown(),
+const baseOAuthConfigSchema = z.object({
+  clientId: z.string(),
+  clientSecret: z.string(),
   issuer: z.string(),
-  client_id: z.string(),
-  client_secret: z.string(),
 });
 
-const ibmProviderConfigSchema = baseProviderConfigSchema.extend({
-  name: z.enum(['w3id', 'ibmid', 'ibm', 'ibmid-pkce']),
+const baseProviderConfigSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  type: z.unknown(),
+  options: baseOAuthConfigSchema,
 });
 
 const auth0ProviderConfigSchema = baseProviderConfigSchema.extend({
-  name: z.literal('auth0'),
-  audience: z.string(),
+  type: z.literal('auth0'),
+  options: baseOAuthConfigSchema.extend({
+    authorization: z.object({
+      params: z.object({
+        audience: z.string(),
+      }),
+    }),
+  }),
 });
 
-export const providerConfigSchema = z.discriminatedUnion('name', [ibmProviderConfigSchema, auth0ProviderConfigSchema]);
+const customProviderConfigSchema = baseProviderConfigSchema.extend({
+  type: z.literal('custom'),
+  options: baseOAuthConfigSchema,
+});
+
+export const providerConfigSchema = z.discriminatedUnion('type', [
+  auth0ProviderConfigSchema,
+  customProviderConfigSchema,
+]);
 export type ProviderConfig = z.infer<typeof providerConfigSchema>;
 
 export type ProviderWithId = Provider & { id: string };

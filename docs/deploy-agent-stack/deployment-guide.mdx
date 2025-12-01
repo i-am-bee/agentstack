@@ -152,12 +152,14 @@ auth:
     validate_audience: true # audience must be set to the public URL of your application in your OIDC provider
     providers: [
       {
-        "name": "w3id",
         "id": "w3id",
-        "class": "IBM",
-        "client_id": "<oidc_client_id>",
-        "client_secret": "<oidc_client_secret>",
-        "issuer": "<oidc_issuer>",
+        "name": "w3id",
+        "type": "custom",
+        "options": {
+          "clientId": "<oidc_client_id>",
+          "clientSecret": "<oidc_client_secret>",
+          "issuer": "<oidc_issuer>"
+        }
       }
     ]
 ```
