@@ -56,7 +56,7 @@ async def test_stdio_connector_happy_path(test_configuration):
         logger.info("Connector created: connector_id=%s state=%s", connector_id, connector_data["state"])
 
         assert connector_data["url"] == "mcp+stdio://test"
-        assert connector_data["state"] in ["created", "connected"]
+        assert connector_data["state"] == "created"
         assert connector_data["metadata"]["name"] == "Test MCP Server"
 
         logger.info("Connecting to connector: connector_id=%s", connector_id)

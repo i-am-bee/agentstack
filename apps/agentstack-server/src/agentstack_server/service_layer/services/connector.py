@@ -81,8 +81,6 @@ class ConnectorService:
             auth=Authorization(client_id=client_id, client_secret=client_secret) if client_id else None,
             metadata=metadata,
         )
-        if preset and preset.url.scheme == "mcp+stdio":
-            await self._managed_mcp.deploy(connector=connector)
         async with self._uow() as uow:
             await uow.connectors.create(connector=connector)
             await uow.commit()
@@ -97,9 +95,6 @@ class ConnectorService:
             connector = await uow.connectors.get(connector_id=connector_id, user_id=user.id if user else None)
             await self._external_mcp.revoke_token(connector=connector)
 
-            if self._managed_mcp.is_managed(connector=connector):
-                await self._managed_mcp.undeploy(connector=connector)
-
             await uow.connectors.delete(connector_id=connector_id, user_id=user.id if user else None)
             await uow.commit()
 
@@ -112,6 +107,9 @@ class ConnectorService:
     ) -> Connector:
         async with self._uow() as uow:
             connector = await uow.connectors.get(connector_id=connector_id, user_id=user.id if user else None)
+
+        if self._managed_mcp.is_managed(connector=connector):
+            await self._managed_mcp.deploy(connector=connector)
 
         try:
             await self.probe_connector(connector=connector)
@@ -161,16 +159,16 @@ class ConnectorService:
 
         await self._external_mcp.revoke_token(connector=connector)
 
+        if connector.auth:
+            connector.auth.flow = None
+        connector.state = ConnectorState.disconnected
+        connector.disconnect_reason = "Client request"
+
         if self._managed_mcp.is_managed(connector=connector):
             try:
                 await self._managed_mcp.undeploy(connector=connector)
             except Exception:
                 logger.warning("Failed to delete managed MCP server deployment during disconnect", exc_info=True)
-
-        if connector.auth:
-            connector.auth.flow = None
-        connector.state = ConnectorState.disconnected
-        connector.disconnect_reason = "Client request"
 
         async with self._uow() as uow:
             await uow.connectors.update(connector=connector)
