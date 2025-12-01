@@ -231,7 +231,6 @@ class ConnectorPreset(BaseModel):
     url: AnyUrl
     client_id: str | None = None
     client_secret: str | None = None
-    auth_token: str | None = None
     metadata: dict[str, str] | None = None
     stdio: ConnectorStdioPreset | None = None
 

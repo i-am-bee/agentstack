@@ -33,6 +33,7 @@ class ManagedMcpService:
         return f"http://managed-mcp-{connector.id.hex[:16]}.{self._kubectl._default_kwargs['namespace']}.svc.cluster.local:8080"
 
     async def deploy(self, *, connector: Connector, preset: ConnectorPreset) -> None:
+        assert preset.stdio
         try:
             await self._kubectl.apply(
                 "-f",
@@ -84,7 +85,11 @@ class ManagedMcpService:
                                                 **(
                                                     {}
                                                     if not preset.stdio.env
-                                                    and not (preset.auth_token and preset.stdio.auth_token_env_name)
+                                                    and not (
+                                                        connector.auth
+                                                        and connector.auth.auth_token
+                                                        and preset.stdio.auth_token_env_name
+                                                    )
                                                     else {
                                                         "env": [
                                                             {"name": k, "value": v}
@@ -94,10 +99,12 @@ class ManagedMcpService:
                                                             [
                                                                 {
                                                                     "name": preset.stdio.auth_token_env_name,
-                                                                    "value": preset.auth_token,
+                                                                    "value": connector.auth.auth_token,
                                                                 }
                                                             ]
-                                                            if preset.auth_token and preset.stdio.auth_token_env_name
+                                                            if connector.auth
+                                                            and connector.auth.auth_token
+                                                            and preset.stdio.auth_token_env_name
                                                             else []
                                                         )
                                                     }

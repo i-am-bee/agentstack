@@ -97,6 +97,7 @@ async def connect_connector(
             user=user.user,
             redirect_url=connect_request.redirect_url,
             callback_uri=str(request.url_for(oauth_callback.__name__)),
+            auth_token=connect_request.auth_token,
         )
     )
 

@@ -37,6 +37,7 @@ class Authorization(BaseModel):
     flow: AuthFlow | None = None
     token: Token | None = None
     token_endpoint: AnyUrl | None = None
+    auth_token: str | None = None  # Simple token-based auth (Bearer token or env var)
 
 
 class ConnectorState(StrEnum):

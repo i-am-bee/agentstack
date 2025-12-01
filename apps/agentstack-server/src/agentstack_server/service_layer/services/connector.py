@@ -101,10 +101,21 @@ class ConnectorService:
             return [c async for c in uow.connectors.list(user_id=user.id if user else None)]
 
     async def connect_connector(
-        self, *, connector_id: UUID, callback_uri: str, redirect_url: AnyUrl | None = None, user: User | None = None
+        self,
+        *,
+        connector_id: UUID,
+        callback_uri: str,
+        redirect_url: AnyUrl | None = None,
+        user: User | None = None,
+        auth_token: str | None = None,
     ) -> Connector:
         async with self._uow() as uow:
             connector = await uow.connectors.get(connector_id=connector_id, user_id=user.id if user else None)
+
+        if auth_token:
+            if not connector.auth:
+                connector.auth = Authorization()
+            connector.auth.auth_token = auth_token
 
         if self._managed_mcp.is_managed(connector=connector) and (preset := self._find_preset(url=connector.url)):
             await self._managed_mcp.deploy(connector=connector, preset=preset)
@@ -200,8 +211,6 @@ class ConnectorService:
         return next((p for p in self._configuration.connector.presets if str(p.url) == str(url)), None)
 
     async def probe_connector(self, *, connector: Connector):
-        preset = self._find_preset(url=connector.url)
-
         def client_factory(headers=None, timeout=None, auth=None):
             assert auth is None
             return self._external_mcp.create_http_client(connector=connector, headers=headers, timeout=timeout)
@@ -214,7 +223,9 @@ class ConnectorService:
                         if self._managed_mcp.is_managed(connector=connector)
                         else str(connector.url)
                     ),
-                    headers={"Authorization": f"Bearer {preset.auth_token}"} if preset and preset.auth_token else None,
+                    headers={"Authorization": f"Bearer {connector.auth.auth_token}"}
+                    if connector.auth and connector.auth.auth_token
+                    else None,
                     **(
                         {"httpx_client_factory": client_factory}
                         if not self._managed_mcp.is_managed(connector=connector)
@@ -231,7 +242,17 @@ class ConnectorService:
 
     async def mcp_proxy(self, *, connector_id: UUID, request: Request, user: User | None = None):
         connector = await self.read_connector(connector_id=connector_id, user=user)
-        preset = self._managed_mcp.find_preset(url=connector.url)
+
+        auth_headers = {}
+        if connector.auth:
+            if connector.auth.auth_token:
+                auth_headers["authorization"] = f"Bearer {connector.auth.auth_token}"
+            elif (
+                connector.state == ConnectorState.connected
+                and connector.auth.token
+                and connector.auth.token.token_type == "bearer"
+            ):
+                auth_headers["authorization"] = f"Bearer {connector.auth.token.access_token}"
 
         exit_stack = AsyncExitStack()
         try:
@@ -248,16 +269,7 @@ class ConnectorService:
                         for key in ["accept", "content-type", "mcp-protocol-version", "mcp-session-id", "last-event-id"]
                         if key in request.headers
                     }
-                    | (
-                        {"authorization": f"Bearer {preset.auth_token}"}
-                        if preset and preset.auth_token
-                        else {"authorization": f"Bearer {connector.auth.token.access_token}"}
-                        if connector.state == ConnectorState.connected
-                        and connector.auth
-                        and connector.auth.token
-                        and connector.auth.token.token_type == "bearer"
-                        else {}
-                    ),
+                    | auth_headers,
                     content=request.stream(),
                 )
             )
