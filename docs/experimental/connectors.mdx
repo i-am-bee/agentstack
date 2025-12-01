@@ -53,9 +53,9 @@ Usual flow works as follows:
 1. **Create**: Client creates a connector by calling `POST /api/v1/connectors` with MCP server URL.
 2. **Connect**: Client initiates connection by calling `POST /api/v1/connectors/{id}/connect`.
    - For OAuth-enabled servers: The response will contain an authorization URL for the user to complete authentication
-   - For token-based authentication: Provide an `authToken` in the connect request body (see [Authentication](#authentication))
+   - For token-based authentication: Provide an `access_token` in the connect request body (see [Authentication](#authentication))
 3. **Authorize** (OAuth only): User visits the authorization URL, authenticates and grants access. Authorization server redirects the user back to the platform with an authorization code.
-4. **Complete**: Platform exchanges the authorization code for access and refresh tokens (OAuth) or stores the provided auth token. Once completed, the connector is in `connected` state and ready to be used.
+4. **Complete**: Platform exchanges the authorization code for access and refresh tokens (OAuth) or stores the provided access token. Once completed, the connector is in `connected` state and ready to be used.
 
 ## Authentication
 
@@ -72,13 +72,13 @@ For MCP servers that use simple token-based authentication, provide the token wh
 ```json
 POST /api/v1/connectors/{id}/connect
 {
-  "authToken": "YOUR_API_TOKEN"
+  "access_token": "YOUR_API_TOKEN"
 }
 ```
 
 The authentication token is used differently depending on the connector type:
 - **External HTTP/HTTPS MCP servers**: Token is sent as a Bearer token in the `Authorization` header for all requests
-- **Managed stdio MCP servers**: Token is injected as an environment variable in the container (requires `authTokenEnvName` in preset configuration)
+- **Managed stdio MCP servers**: Token is injected as an environment variable in the container (requires `accessTokenEnvName` in preset configuration)
 
 ## Error handling
 
@@ -178,7 +178,7 @@ connector:
         args: ["dist/index.js"]  # Optional: override container args
         env:  # Optional: additional environment variables
           LOG_LEVEL: "info"
-        authTokenEnvName: "API_TOKEN"  # Optional: env var name to inject auth token
+        accessTokenEnvName: "API_TOKEN"  # Optional: env var name to inject access token
 ```
 
 The managed MCP architecture uses a sidecar pattern:
@@ -190,7 +190,7 @@ When a connector using a managed preset is connected, the platform:
 2. Creates a Kubernetes Service to expose the supergateway
 3. Waits for the deployment to become ready (up to 60 seconds)
 4. Proxies MCP requests to the managed service
-5. If an `authToken` was provided in the connect request and the preset defines `authTokenEnvName`, injects the token as an environment variable
+5. If an `accessToken` was provided in the connect request and the preset defines `accessTokenEnvName`, injects the token as an environment variable
 
 When disconnected, the platform cleans up the Deployment and Service resources.
 

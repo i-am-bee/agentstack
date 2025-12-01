@@ -87,7 +87,7 @@ class ManagedMcpService:
                                                     if not preset.stdio.env
                                                     and not (
                                                         connector.auth
-                                                        and connector.auth.auth_token
+                                                        and connector.auth.token
                                                         and preset.stdio.auth_token_env_name
                                                     )
                                                     else {
@@ -99,11 +99,11 @@ class ManagedMcpService:
                                                             [
                                                                 {
                                                                     "name": preset.stdio.auth_token_env_name,
-                                                                    "value": connector.auth.auth_token,
+                                                                    "value": connector.auth.token.access_token,
                                                                 }
                                                             ]
                                                             if connector.auth
-                                                            and connector.auth.auth_token
+                                                            and connector.auth.token
                                                             and preset.stdio.auth_token_env_name
                                                             else []
                                                         )
