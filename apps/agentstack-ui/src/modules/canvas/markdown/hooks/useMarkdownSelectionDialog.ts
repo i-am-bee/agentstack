@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { autoUpdate, offset, shift, useDismiss, useFloating, useInteractions, useRole } from '@floating-ui/react';
-import { useCallback, useMemo, useState } from 'react';
+import { autoUpdate, offset, useDismiss, useFloating, useInteractions, useRole } from '@floating-ui/react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { type TextSelectionInfo, useTextSelection } from './useTextSelection';
 
@@ -28,6 +28,12 @@ export function useMarkdownSelectionDialog(containerRef: React.RefObject<HTMLEle
   const clearSelection = useCallback(() => {
     setSelection(null);
     CSS.highlights.delete(HIGHLIGHT_NAME);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      CSS.highlights.delete(HIGHLIGHT_NAME);
+    };
   }, []);
 
   const firstVisibleRect = selection?.firstVisibleRect ?? null;
@@ -58,7 +64,6 @@ export function useMarkdownSelectionDialog(containerRef: React.RefObject<HTMLEle
           crossAxis: offsets.left,
         };
       }, [offsets]),
-      shift({ padding: 8 }),
     ],
     whileElementsMounted: autoUpdate,
   });

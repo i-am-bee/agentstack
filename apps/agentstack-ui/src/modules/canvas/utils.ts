@@ -5,6 +5,7 @@
 
 import { v4 as uuid } from 'uuid';
 
+import type { UIMessagePart } from '#modules/messages/types.ts';
 import {
   type UIAgentMessage,
   type UIArtifactPart,
@@ -13,9 +14,52 @@ import {
   UITransformType,
 } from '#modules/messages/types.ts';
 import { getMessagePartsRawContent, getMessageRawContent } from '#modules/messages/utils.ts';
+import { findWithIndex } from '#utils/helpers.ts';
 import { toMarkdownArtifact } from '#utils/markdown.ts';
 
-export function getArtifactTransformPart(artifactPart: UIArtifactPart, message: UIAgentMessage): UITransformPart {
+export function processMessageArtifactPart(
+  part: UIArtifactPart,
+  newParts: UIMessagePart[],
+  message: UIAgentMessage,
+): void {
+  const { artifactId, parts } = part;
+
+  const [existingArtifactIndex, existingArtifactPart] = findWithIndex(
+    newParts,
+    (existingPart) => existingPart.kind === UIMessagePartKind.Artifact && existingPart.artifactId === artifactId,
+  );
+
+  if (existingArtifactPart && existingArtifactPart.kind === UIMessagePartKind.Artifact) {
+    const updatedArtifactPart = {
+      ...existingArtifactPart,
+      parts: [...existingArtifactPart.parts, ...parts],
+    };
+    newParts[existingArtifactIndex] = updatedArtifactPart;
+
+    const [existingTransformIndex, existingTransformPart] = findWithIndex(
+      newParts,
+      (existingPart) =>
+        existingPart.kind === UIMessagePartKind.Transform &&
+        existingPart.type === UITransformType.Artifact &&
+        existingPart.artifactId === artifactId,
+    );
+
+    if (!existingTransformPart || existingTransformPart.kind !== UIMessagePartKind.Transform) {
+      console.error('Artifact is in illegal state: missing corresponding transform part');
+      const transformPart = getArtifactTransformPart(part, message);
+      newParts.push(part, transformPart);
+      return;
+    }
+
+    const updatedTransformPart = updateArtifactTransformPart(existingTransformPart, updatedArtifactPart);
+    newParts[existingTransformIndex] = updatedTransformPart;
+  } else {
+    const transformPart = getArtifactTransformPart(part, message);
+    newParts.push(part, transformPart);
+  }
+}
+
+function getArtifactTransformPart(artifactPart: UIArtifactPart, message: UIAgentMessage): UITransformPart {
   const startIndex = getMessageRawContent(message).length;
 
   const artifactContent = getMessagePartsRawContent(artifactPart.parts);
@@ -40,10 +84,7 @@ export function getArtifactTransformPart(artifactPart: UIArtifactPart, message: 
   return transformPart;
 }
 
-export function updateArtifactTransformPart(
-  transformPart: UITransformPart,
-  artifactPart: UIArtifactPart,
-): UITransformPart {
+function updateArtifactTransformPart(transformPart: UITransformPart, artifactPart: UIArtifactPart): UITransformPart {
   const artifactContent = getMessagePartsRawContent(artifactPart.parts);
 
   const { artifactId, name } = artifactPart;

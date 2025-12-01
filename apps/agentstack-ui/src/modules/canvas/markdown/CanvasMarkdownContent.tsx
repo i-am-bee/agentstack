@@ -5,10 +5,11 @@
 
 import { useMergeRefs } from '@floating-ui/react';
 import clsx from 'clsx';
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 import { rehypeSourcePosition } from '#components/MarkdownContent/rehype/rehypeSourcePosition.ts';
+import { useToast } from '#contexts/Toast/index.ts';
 import { useAgentRun } from '#modules/runs/contexts/agent-run/index.ts';
 
 import classes from './CanvasMarkdownContent.module.scss';
@@ -30,6 +31,7 @@ export function CanvasMarkdownContent({
   children,
   enableSelection = true,
 }: MarkdownContentProps) {
+  const { addToast } = useToast();
   const { submitCanvasEditRequest } = useAgentRun();
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -38,21 +40,36 @@ export function CanvasMarkdownContent({
 
   const { refs, selection } = dialog;
 
-  const handleEditRequest = (description: string) => {
-    if (!selection || !children) {
-      return;
-    }
+  const handleEditRequest = useCallback(
+    (description: string) => {
+      if (!selection || !children) {
+        return;
+      }
 
-    const markdownSelection = mapDOMSelectionToMarkdown(selection.range, children);
+      try {
+        const markdownSelection = mapDOMSelectionToMarkdown(selection.range, children);
 
-    if (markdownSelection) {
-      submitCanvasEditRequest({
-        ...markdownSelection,
-        description,
-        artifactId,
-      });
-    }
-  };
+        if (markdownSelection) {
+          submitCanvasEditRequest({
+            ...markdownSelection,
+            description,
+            artifactId,
+          });
+        }
+      } catch (error) {
+        addToast({
+          kind: 'error',
+          title: 'Error submitting edit request',
+          message: 'An error occurred while processing your selection. Please try again.',
+        });
+
+        console.error('Error submitting canvas edit request:', error);
+
+        return;
+      }
+    },
+    [addToast, artifactId, children, selection, submitCanvasEditRequest],
+  );
 
   const containerRefs = useMergeRefs([containerRef, refs.setPositionReference]);
 

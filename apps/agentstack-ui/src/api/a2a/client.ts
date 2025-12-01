@@ -10,6 +10,7 @@ import { defaultIfEmpty, filter, lastValueFrom, Subject } from 'rxjs';
 import { match } from 'ts-pattern';
 
 import { A2AExtensionError, UnauthenticatedError } from '#api/errors.ts';
+import type { UITextPart } from '#modules/messages/types.ts';
 import { type UIMessagePart, UIMessagePartKind } from '#modules/messages/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
@@ -56,8 +57,18 @@ function handleArtifactUpdate(event: TaskArtifactUpdateEvent, isCanvas: boolean)
 
   if (isCanvas) {
     const { artifactId, description, name } = artifact;
-
-    return [{ kind: UIMessagePartKind.Artifact, artifactId, description, name, parts: contentParts }];
+    const { textParts, otherParts } = contentParts.reduce<{ textParts: UITextPart[]; otherParts: UIMessagePart[] }>(
+      (acc, part) => {
+        if (part.kind === UIMessagePartKind.Text) {
+          acc.textParts.push(part);
+        } else {
+          acc.otherParts.push(part);
+        }
+        return acc;
+      },
+      { textParts: [], otherParts: [] },
+    );
+    return [{ kind: UIMessagePartKind.Artifact, artifactId, description, name, parts: textParts }, ...otherParts];
   } else {
     return contentParts;
   }
@@ -104,8 +115,6 @@ export const buildA2AClient = async <UIGenericPart = never>({
       );
 
       for await (const event of stream) {
-        console.log(event);
-
         match(event)
           .with({ kind: 'task' }, (task) => {
             taskId = task.id;

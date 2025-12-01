@@ -136,7 +136,7 @@ export const buildFulfillments = ({
         { mcp_fulfillments: {} },
       );
     },
-    oauth: () => {
+    oauth: async () => {
       return {
         oauth_fulfillments: {
           default: {

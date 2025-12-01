@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import clsx from 'clsx';
 import { useMemo, useRef } from 'react';
 
 import { CopyButton } from '#components/CopyButton/CopyButton.tsx';
@@ -21,20 +22,27 @@ export function Canvas() {
     [activeArtifact],
   );
 
+  const isCode = useMemo(() => {
+    const containsCodeBlockRegex = /.+```.+/;
+    return Boolean(content && content.startsWith('```') && !containsCodeBlockRegex.test(content));
+  }, [content]);
+
   if (!activeArtifact) {
     return null;
   }
 
   return (
-    <div className={classes.root}>
+    <div className={clsx(classes.root, { [classes.codeBlock]: isCode })}>
       <div className={classes.container}>
-        <header className={classes.header}>
-          {activeArtifact.name && <h2 className={classes.heading}>{activeArtifact.name}</h2>}
+        {!isCode && (
+          <header className={classes.header}>
+            {activeArtifact.name && <h2 className={classes.heading}>{activeArtifact.name}</h2>}
 
-          <div className={classes.actions}>
-            <CopyButton contentRef={contentRef} />
-          </div>
-        </header>
+            <div className={classes.actions}>
+              <CopyButton contentRef={contentRef} />
+            </div>
+          </header>
+        )}
 
         <div className={classes.body} ref={contentRef}>
           <CanvasMarkdownContent className={classes.content} artifactId={activeArtifact.artifactId}>

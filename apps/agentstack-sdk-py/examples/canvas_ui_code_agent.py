@@ -16,36 +16,46 @@ from agentstack_sdk.server.context import RunContext
 
 server = Server()
 
-RECIPE_TITLES = [
-    "Bread with butter",
-    "Classic Spaghetti Carbonara",
-    "Chocolate Chip Cookies",
-    "Caesar Salad",
-    "Grilled Cheese Sandwich",
-    "Banana Smoothie",
-    "Margherita Pizza",
-    "Chicken Stir-Fry",
-    "French Toast",
-    "Avocado Toast",
+CODE_TITLES = [
+    "Fibonacci Generator",
+    "Prime Number Checker",
+    "Binary Search Implementation",
+    "String Reverser",
+    "Palindrome Checker",
+    "Temperature Converter",
+    "Factorial Calculator",
+    "List Sorter",
+    "FizzBuzz Solution",
+    "Word Counter",
 ]
 
 
-def generate_recipe_response(recipe_title: str, description: str, closing_message: str) -> str:
-    """Generate a recipe response with the given title, description, and closing message."""
+def generate_code_response(code_title: str, description: str, closing_message: str) -> str:
+    """Generate a code response with the given title, description, and closing message."""
     return f"""\
 {description}
 
-```recipe
-# {recipe_title}
+```python
+# {code_title}
 
-## Ingredients
-- bread (1 slice)
-- butter (1 slice)
+def fibonacci(n):
+    \"\"\"Generate Fibonacci sequence up to n terms.\"\"\"
+    if n <= 0:
+        return []
+    elif n == 1:
+        return [0]
+    elif n == 2:
+        return [0, 1]
 
-## Instructions
-1. Cut a slice of bread.
-2. Cut a slice of butter.
-3. Spread the slice of butter on the slice of bread.
+    sequence = [0, 1]
+    for i in range(2, n):
+        sequence.append(sequence[i-1] + sequence[i-2])
+    return sequence
+
+# Example usage
+if __name__ == "__main__":
+    result = fibonacci(10)
+    print(f"First 10 Fibonacci numbers: {{result}}")
 ```
 
 {closing_message}
@@ -53,7 +63,7 @@ def generate_recipe_response(recipe_title: str, description: str, closing_messag
 
 
 @server.agent(
-    name="Canvas example agent",
+    name="Canvas coding test agent",
 )
 async def artifacts_agent(
     input: Message,
@@ -70,12 +80,12 @@ async def artifacts_agent(
     canvas_edit_request = await canvas.parse_canvas_edit_request(message=input)
 
     if canvas_edit_request:
-        original_recipe = (
+        original_code = (
             canvas_edit_request.artifact.parts[0].root.text
             if isinstance(canvas_edit_request.artifact.parts[0].root, TextPart)
             else ""
         )
-        edited_part = original_recipe[canvas_edit_request.start_index : canvas_edit_request.end_index]
+        edited_part = original_code[canvas_edit_request.start_index : canvas_edit_request.end_index]
 
         print("Canvas Edit Request:")
         print(f"Start Index: {canvas_edit_request.start_index}")
@@ -84,16 +94,16 @@ async def artifacts_agent(
         print(f"Edited part: {edited_part}")
 
         description = f"You requested to edit this part:\n\n{edited_part}\n\n"
-        recipe_title = "Canvas Recipe EDITED"
-        closing_message = "Enjoy your edited meal!"
+        code_title = "Edited Code"
+        closing_message = "Your code has been updated!"
     else:
-        recipe_title = random.choice(RECIPE_TITLES)
-        description = "Here's your recipe:"
-        closing_message = "Enjoy your meal!"
+        code_title = random.choice(CODE_TITLES)
+        description = "Here's your code:"
+        closing_message = "Happy coding!"
 
-    response = generate_recipe_response(recipe_title, description, closing_message)
+    response = generate_code_response(code_title, description, closing_message)
 
-    match = re.compile(r"```recipe\n(.*?)\n```", re.DOTALL).search(response)
+    match = re.compile(r"```python\n(.*?)\n```", re.DOTALL).search(response)
 
     if not match:
         yield response
@@ -108,20 +118,16 @@ async def artifacts_agent(
 
     await asyncio.sleep(1)
 
-    recipe_content = match.group(1).strip()
-    first_line = recipe_content.split("\n", 1)[0]
+    # Keep the full match including the code block formatting
+    code_content = match.group(0).strip()
 
-    # Extract the title and remove it from content if it's a heading
-    if first_line.startswith("#"):
-        artifact_name = first_line.lstrip("# ").strip()
-        # Remove the first line from recipe_content if there's more content
-        recipe_content = recipe_content.split("\n", 1)[1].strip() if "\n" in recipe_content else recipe_content
-    else:
-        artifact_name = "Recipe"
+    # Extract artifact name from the comment line if present
+    first_line = match.group(1).strip().split("\n", 1)[0]
+    artifact_name = first_line.lstrip("# ").strip() if first_line.startswith("#") else "Python Script"
 
-    # Split recipe content into x chunks for streaming
+    # Split code content into x chunks for streaming
     num_chunks = 8
-    content_length = len(recipe_content)
+    content_length = len(code_content)
     chunk_size = content_length // num_chunks
     chunks = []
 
@@ -129,11 +135,11 @@ async def artifacts_agent(
         start = i * chunk_size
         # Last chunk gets any remaining characters
         end = content_length if i == num_chunks - 1 else (i + 1) * chunk_size
-        chunks.append(recipe_content[start:end])
+        chunks.append(code_content[start:end])
 
     artifact = AgentArtifact(
         name=artifact_name,
-        parts=[TextPart(text=recipe_content)],
+        parts=[TextPart(text=code_content)],
     )
     await context.store(artifact)
 
@@ -163,4 +169,4 @@ async def artifacts_agent(
 
 
 if __name__ == "__main__":
-    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8008)))

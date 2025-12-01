@@ -20,7 +20,8 @@
   font-weight: 600;
 
   &:hover,
-  &:focus {
+  &:focus,
+  &.active {
     border-color: $text-dark;
     background-color: $background;
     color: $text-primary;

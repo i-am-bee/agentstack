@@ -13,7 +13,14 @@ export interface MessageCanvasCardProps {
 }
 
 export function MessageCanvasCard({ name, artifactId }: MessageCanvasCardProps) {
-  const { setActiveArtifactId } = useCanvas();
+  const { setActiveArtifactId, activeArtifact } = useCanvas();
 
-  return <CanvasCard className={classes.root} heading={name} onClick={() => setActiveArtifactId(artifactId)} />;
+  return (
+    <CanvasCard
+      className={classes.root}
+      heading={name}
+      isActive={activeArtifact?.artifactId === artifactId}
+      onClick={() => setActiveArtifactId(artifactId)}
+    />
+  );
 }

@@ -17,6 +17,11 @@
   padding-block: $spacing-07;
   padding-inline: $spacing-07 $spacing-09;
   background-color: $background;
+
+  .codeBlock & {
+    padding: 0;
+    --cds-layer-02: $background;
+  }
 }
 
 .header {

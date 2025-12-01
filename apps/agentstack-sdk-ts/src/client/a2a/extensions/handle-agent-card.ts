@@ -30,7 +30,7 @@ export interface Fulfillments {
   llm: (demand: LLMDemands) => Promise<LLMFulfillments>;
   embedding: (demand: EmbeddingDemands) => Promise<EmbeddingFulfillments>;
   mcp: (demand: MCPDemands) => Promise<MCPFulfillments>;
-  oauth: (demand: OAuthDemands) => OAuthFulfillments;
+  oauth: (demand: OAuthDemands) => Promise<OAuthFulfillments>;
   settings: (demand: SettingsDemands) => Promise<SettingsFulfillments>;
   secrets: (demand: SecretDemands) => Promise<SecretFulfillments>;
   form: (demand: FormDemands) => Promise<FormFulfillments>;

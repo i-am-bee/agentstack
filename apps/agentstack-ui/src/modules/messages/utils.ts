@@ -5,7 +5,7 @@
 
 import { match } from 'ts-pattern';
 
-import { getArtifactTransformPart, updateArtifactTransformPart } from '#modules/canvas/utils.ts';
+import { processMessageArtifactPart } from '#modules/canvas/utils.ts';
 import { getFileTransformPart } from '#modules/files/utils.ts';
 import { getSourceTransformPart } from '#modules/sources/utils.ts';
 
@@ -203,38 +203,7 @@ export function addMessagePart(part: UIMessagePart, message: UIAgentMessage) {
       newParts.push(part, transformPart);
     })
     .with({ kind: UIMessagePartKind.Artifact }, (part) => {
-      const { artifactId, parts } = part;
-      const existingArtifactIndex = newParts.findIndex(
-        (existingPart) => existingPart.kind === UIMessagePartKind.Artifact && existingPart.artifactId === artifactId,
-      );
-
-      if (existingArtifactIndex !== -1) {
-        const existingArtifactPart = newParts[existingArtifactIndex];
-        if (existingArtifactPart.kind === UIMessagePartKind.Artifact) {
-          const updatedArtifactPart = {
-            ...existingArtifactPart,
-            parts: [...existingArtifactPart.parts, ...parts],
-          };
-          newParts[existingArtifactIndex] = updatedArtifactPart;
-          // New transform part needs to be created
-          const existingArtifactTransformIndex = newParts.findIndex(
-            (existingPart) =>
-              existingPart.kind === UIMessagePartKind.Transform &&
-              existingPart.type === UITransformType.Artifact &&
-              existingPart.artifactId === artifactId,
-          );
-          const existingTransformPart = newParts.at(existingArtifactTransformIndex);
-
-          if (!existingTransformPart || existingTransformPart.kind !== UIMessagePartKind.Transform) {
-            throw new Error('Artifact is in illegal state: missing corresponding transform part');
-          }
-          const updatedTransformPart = updateArtifactTransformPart(existingTransformPart, updatedArtifactPart);
-          newParts[existingArtifactTransformIndex] = updatedTransformPart;
-        }
-      } else {
-        const transformPart = getArtifactTransformPart(part, message);
-        newParts.push(part, transformPart);
-      }
+      processMessageArtifactPart(part, newParts, message);
     })
     .otherwise((part) => {
       newParts.push(part);

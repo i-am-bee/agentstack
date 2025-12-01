@@ -13,12 +13,13 @@ import classes from './CanvasCard.module.scss';
 interface Props {
   heading?: string;
   className?: string;
+  isActive?: boolean;
   onClick: MouseEventHandler;
 }
 
-export function CanvasCard({ heading, className, onClick }: Props) {
+export function CanvasCard({ heading, className, isActive, onClick }: Props) {
   return (
-    <Button className={clsx(classes.root, className)} onClick={onClick}>
+    <Button className={clsx(classes.root, className, { [classes.active]: isActive })} onClick={onClick}>
       <span className={classes.icon}>
         <License />
       </span>

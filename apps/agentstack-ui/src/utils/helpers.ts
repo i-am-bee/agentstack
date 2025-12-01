@@ -102,3 +102,14 @@ export function loadEnvConfig<T extends ZodObject>({
     return schema.parse(safeDefaults);
   }
 }
+
+export function findWithIndex<T>(
+  array: T[],
+  predicate: (value: T, index: number, obj: T[]) => boolean,
+): [number, T] | [undefined, undefined] {
+  const index = array.findIndex(predicate);
+  if (index === -1) {
+    return [undefined, undefined];
+  }
+  return [index, array[index]];
+}
