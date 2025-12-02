@@ -234,6 +234,16 @@ class ConnectorPreset(BaseModel):
     metadata: dict[str, str] | None = None
     stdio: ConnectorStdioPreset | None = None
 
+    @model_validator(mode="after")
+    def validate_url_scheme(self):
+        if self.stdio is None:
+            if self.url.scheme not in ("http", "https"):
+                raise ValueError(f"Stdio is not configured, URL scheme must be http(s), got: {self.url.scheme}")
+        else:
+            if self.url.scheme != "mcp+stdio":
+                raise ValueError(f"Stdio is configured, URL scheme must be mcp+stdio, got: {self.url.scheme}")
+        return self
+
 
 class ConnectorConfiguration(BaseModel):
     presets: list[ConnectorPreset] = Field(default_factory=list)

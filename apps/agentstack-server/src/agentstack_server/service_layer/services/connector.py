@@ -64,15 +64,21 @@ class ConnectorService:
 
         preset = (
             next((p for p in self._configuration.connector.presets if str(p.url) == str(url)), None)
-            if match_preset
+            if match_preset or url.scheme == "mcp+stdio"
             else None
         )
-        if not preset and url.scheme not in {"http", "https"}:
-            raise PlatformError("Unknown connector preset", status_code=status.HTTP_400_BAD_REQUEST)
+        if url.scheme not in ("http", "https", "mcp+stdio"):
+            raise PlatformError("Connector URL has an unsupported scheme", status_code=status.HTTP_400_BAD_REQUEST)
+        if not preset and url.scheme == "mcp+stdio":
+            raise PlatformError(
+                "Connector URL has mcp+stdio scheme but does not match a known connector preset",
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
 
         if preset:
-            client_id = client_id or preset.client_id
-            client_secret = client_secret or preset.client_secret
+            if not client_id:
+                client_id = preset.client_id
+                client_secret = preset.client_secret
             metadata = metadata or preset.metadata
 
         connector = Connector(
