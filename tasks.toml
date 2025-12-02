@@ -181,6 +181,118 @@ export PS1="(${VM_NAME}) ${__OLD_PS1}"
 
 """
 
+["prerelease"]
+dir = "{{config_root}}"
+run = '''
+#!/bin/bash
+set -eu -o pipefail
+
+# Ensure on main branch
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+if [[ "$current_branch" != "main" ]]; then
+  echo "ERROR: You must be on the 'main' branch (current: $current_branch)"
+  exit 1
+fi
+
+# Fetch latest from origin to get current state
+git fetch origin
+
+# Get current version from main
+current_version=$(yq -r '.version' helm/Chart.yaml)
+
+# Validate that main branch version is always X.Y.Z (no RC suffix)
+if [[ ! "$current_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "ERROR: Main branch version must be X.Y.Z format (no -rc suffix). Current version: $current_version"
+  exit 1
+fi
+
+# Extract version components and compute suggested versions
+if [[ "$current_version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+  major="${BASH_REMATCH[1]}"
+  minor="${BASH_REMATCH[2]}"
+  patch="${BASH_REMATCH[3]}"
+  suggested_next_version="${major}.${minor}.$((patch + 1))"
+  suggested_rc_version="${current_version}-rc1"
+else
+  echo "ERROR: Invalid version format of current version. Use #.#.#"
+  exit 1
+fi
+
+# Prompt user for next version (going to main)
+next_version=$(gum input --prompt.foreground="8" --prompt "Next version for main (current: ${current_version}) -> " --value "$suggested_next_version")
+if [[ ! "$next_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "ERROR: Invalid version format. Use #.#.# (no -rc suffix for main)"
+  exit 1
+fi
+
+# Prompt user for RC version (going to release branch)
+rc_version=$(gum input --prompt.foreground="8" --prompt "RC version for release branch -> " --value "$suggested_rc_version")
+if [[ ! "$rc_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$ ]]; then
+  echo "ERROR: Invalid RC version format. Use #.#.#-rc#"
+  exit 1
+fi
+
+# Confirm before proceeding
+if ! gum confirm "Proceed with:\n  - Release branch: v${rc_version}\n  - Main branch: v${next_version}"; then
+  echo "Aborted."
+  exit 1
+fi
+
+# Checkout release branch (create if it doesn't exist)
+git checkout release 2>/dev/null || git checkout -b release
+
+# Reset release branch to latest origin/main
+git reset --hard origin/main
+
+# Update all version fields for release branch
+yq -i ".version = \"$rc_version\"" helm/Chart.yaml
+yq -i ".appVersion = \"$rc_version\"" helm/Chart.yaml
+(cd apps/agentstack-sdk-py && toml set 'project.version' "$rc_version" --toml-path pyproject.toml && uv lock)
+(cd apps/agentstack-cli && toml set 'project.version' "$rc_version" --toml-path pyproject.toml && uv lock)
+(cd apps/agentstack-server && toml set 'project.version' "$rc_version" --toml-path pyproject.toml && uv lock)
+for agent in agents/*; do (cd $agent && uv lock); done
+yq -i ".version = \"$rc_version\"" apps/agentstack-sdk-ts/package.json
+yq -i ".version = \"$rc_version\"" apps/agentstack-ui/package.json
+yq -i ".version = \"$rc_version\"" apps/beeai-web/package.json
+yq -i ".providers[].location |= sub(\":(.*)\$\"; \":\" + \"$rc_version\")" agent-registry.yaml
+perl -pi -e "s/^(LATEST_AGENTSTACK_VERSION=).*/\${1}$rc_version/" install.sh
+
+# Commit rc bump
+git add .
+git commit -m "release: v$rc_version"
+
+# Force push release branch
+git push --force origin release
+
+# Checkout main and bump version
+git checkout main
+
+# Update all version fields in main
+yq -i ".version = \"$next_version\"" helm/Chart.yaml
+yq -i ".appVersion = \"$next_version\"" helm/Chart.yaml
+(cd apps/agentstack-sdk-py && toml set 'project.version' "$next_version" --toml-path pyproject.toml && uv lock)
+(cd apps/agentstack-cli && toml set 'project.version' "$next_version" --toml-path pyproject.toml && uv lock)
+(cd apps/agentstack-server && toml set 'project.version' "$next_version" --toml-path pyproject.toml && uv lock)
+for agent in agents/*; do (cd $agent && uv lock); done
+yq -i ".version = \"$next_version\"" apps/agentstack-sdk-ts/package.json
+yq -i ".version = \"$next_version\"" apps/agentstack-ui/package.json
+yq -i ".version = \"$next_version\"" apps/beeai-web/package.json
+yq -i ".providers[].location |= sub(\":(.*)\$\"; \":\" + \"$next_version\")" agent-registry.yaml
+perl -pi -e "s/^(LATEST_AGENTSTACK_VERSION=).*/\${1}$next_version/" install.sh
+
+# Commit and push version bump to main
+git add .
+git commit -m "chore: bump version to v$next_version"
+git push origin main
+
+'''
+
+["releasebump"]
+# Increment RC number
+# Commit and push to release
+
+
+
 ["release"]
 dir = "{{config_root}}"
 run = '''
