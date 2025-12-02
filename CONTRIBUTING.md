@@ -316,15 +316,38 @@ mise agentstack-server:run
 
 ## Releasing
 
-> ⚠️ **IMPORTANT**   
-> Always create pre-release before the actual public release and check that the upgrade and installation work.
+Agent Stack is using `main` branch for next version development and `release` branch for stable releases.
 
-Use the release script:
+The release process consists of two steps:
+
+### Step 1: Cut the release
+
+Run the `release` task from the `main` branch:
 
 ```shell
-mise run release
+mise run prerelease
 ```
 
+This would
+
+1. reset the `release` branch to latest `main`
+2. bumps the release to `rc1`
+3. bumps the next version in `main`.
+
+### Step 2: QA & Polish the release on release branch
+
+You can then iteratively polish the release in `release` branch. You need to increment the `rc` number with each change.
+
+### Step 3: Deploy
+
+Once you've verified the RC version works, deploy the final release from the `release` branch:
+
+```shell
+git checkout release
+mise run deploy
+```
+
+This task will simply create a final tag for `release` version and push, which triggers GH action to deploy to pypi and npm.
 
 ## Documentation
 

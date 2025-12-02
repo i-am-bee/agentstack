@@ -181,7 +181,7 @@ export PS1="(${VM_NAME}) ${__OLD_PS1}"
 
 """
 
-["prerelease"]
+["release"]
 dir = "{{config_root}}"
 run = '''
 #!/bin/bash
