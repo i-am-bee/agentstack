@@ -287,16 +287,16 @@ git push origin main
 
 '''
 
-["release"]
+["deploy"]
 dir = "{{config_root}}"
 run = '''
 #!/bin/bash
 set -eu -o pipefail
 
-# Ensure on main branch
+# Ensure on release branch
 current_branch=$(git rev-parse --abbrev-ref HEAD)
-if [[ "$current_branch" != "main" ]]; then
-  echo "ERROR: You must be on the 'main' branch (current: $current_branch)"
+if [[ "$current_branch" != "release" ]]; then
+  echo "ERROR: You must be on the 'release' branch (current: $current_branch)"
   exit 1
 fi
 
@@ -308,52 +308,34 @@ if [[ -n "$(git status --porcelain)" ]]; then
 fi
 
 current_version=$(yq -r '.version' helm/Chart.yaml)
-
-# Compute suggested next rc version
-if [[ "$current_version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(-rc([0-9]+))?$ ]]; then
-  if [[ -n "${BASH_REMATCH[5]}" ]]; then
-    suggested_new_version="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${BASH_REMATCH[3]}-rc$((${BASH_REMATCH[5]} + 1))"
-  else
-    suggested_new_version="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.$((${BASH_REMATCH[3]} + 1))-rc1"
-  fi
-else
-  echo "ERROR: Invalid version format of current version. Use #.#.#[-rc#]"
-  exit 1
-fi
-
-# Prompt for new version
-new_version=$(gum input --prompt.foreground="8" --prompt "Bump from ${current_version} -> " --value "$suggested_new_version")
-if [[ ! "$new_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$ ]]; then
-  echo "ERROR: Invalid version format of new version. Use #.#.#[-rc#]"
-  exit 1
-fi
+deploy_version="${current_version%-rc*}"
 
 # Update all version fields
-yq -i ".version = \"$new_version\"" helm/Chart.yaml
-yq -i ".appVersion = \"$new_version\"" helm/Chart.yaml
-(cd apps/agentstack-sdk-py && toml set 'project.version' "$new_version" --toml-path pyproject.toml && uv lock)
-(cd apps/agentstack-cli && toml set 'project.version' "$new_version" --toml-path pyproject.toml && uv lock)
-(cd apps/agentstack-server && toml set 'project.version' "$new_version" --toml-path pyproject.toml && uv lock)
+yq -i ".version = \"$deploy_version\"" helm/Chart.yaml
+yq -i ".appVersion = \"$deploy_version\"" helm/Chart.yaml
+(cd apps/agentstack-sdk-py && toml set 'project.version' "$deploy_version" --toml-path pyproject.toml && uv lock)
+(cd apps/agentstack-cli && toml set 'project.version' "$deploy_version" --toml-path pyproject.toml && uv lock)
+(cd apps/agentstack-server && toml set 'project.version' "$deploy_version" --toml-path pyproject.toml && uv lock)
 for agent in agents/*; do (cd $agent && uv lock); done
-yq -i ".version = \"$new_version\"" apps/agentstack-sdk-ts/package.json
-yq -i ".version = \"$new_version\"" apps/agentstack-ui/package.json
-yq -i ".version = \"$new_version\"" apps/beeai-web/package.json
-yq -i ".providers[].location |= sub(\":(.*)\$\"; \":\" + \"$new_version\")" agent-registry.yaml
-perl -pi -e "s/^(LATEST_AGENTSTACK_VERSION=).*/\${1}$new_version/" install.sh
-if [[ "$new_version" != *"-rc"* ]]; then perl -pi -e "s/^(LATEST_STABLE_AGENTSTACK_VERSION=).*/\${1}$new_version/" install.sh; fi
+yq -i ".version = \"$deploy_version\"" apps/agentstack-sdk-ts/package.json
+yq -i ".version = \"$deploy_version\"" apps/agentstack-ui/package.json
+yq -i ".version = \"$deploy_version\"" apps/beeai-web/package.json
+yq -i ".providers[].location |= sub(\":(.*)\$\"; \":\" + \"$deploy_version\")" agent-registry.yaml
+perl -pi -e "s/^(LATEST_AGENTSTACK_VERSION=).*/\${1}$deploy_version/" install.sh
+if [[ "$deploy_version" != *"-rc"* ]]; then perl -pi -e "s/^(LATEST_STABLE_AGENTSTACK_VERSION=).*/\${1}$deploy_version/" install.sh; fi
 
 # Confirm commit and push
-if gum confirm "Release version $new_version now?"; then
+if gum confirm "Release version $deploy_version now?"; then
   (
     set -eux -o pipefail
     git add .
-    git commit -m "release: v$new_version"
-    git tag "v$new_version"
-    git push --atomic origin main "v$new_version"
+    git commit -m "deploy: v$deploy_version"
+    git tag "v$deploy_version"
+    git push origin tag "v$deploy_version"
   )
   if command -v gh >/dev/null; then
     gum spin --title="Waiting for GitHub Action to start..." sleep 10
-    gh run watch $(gh run list --workflow=Release --branch=v$new_version --limit=1 --json databaseId,status -q '.[0].databaseId') || true
+    gh run watch $(gh run list --workflow=Release --branch=v$deploy_version --limit=1 --json databaseId,status -q '.[0].databaseId') || true
   fi
   echo "GitHub action started. Check the progress and result on: https://github.com/i-am-bee/agentstack/actions/workflows/release.yml"
 fi
