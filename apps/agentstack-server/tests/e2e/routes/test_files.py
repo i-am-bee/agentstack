@@ -1,5 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
+import json
 from collections.abc import Callable
 from datetime import timedelta
 from io import BytesIO
@@ -12,6 +13,8 @@ from agentstack_sdk.platform.context import Context, ContextPermissions
 from agentstack_sdk.platform.file import File
 from httpx import AsyncClient
 from tenacity import AsyncRetrying, stop_after_delay, wait_fixed
+
+from agentstack_server.domain.models.file import ExtractionFormat
 
 pytestmark = pytest.mark.e2e
 
@@ -97,8 +100,29 @@ async def test_text_extraction_pdf_workflow(subtests, test_configuration, test_p
                 raise ValueError("not completed")
 
     assert final_status == "completed", f"Expected completed status, got {final_status}: {extraction.error_message}"
-    assert extraction.extracted_file_id is not None
     assert extraction.finished_at is not None
+
+    extracted_files = {f.format: f for f in extraction.extracted_files}
+    assert set(extracted_files.keys()) == {
+        ExtractionFormat.MARKDOWN,
+        ExtractionFormat.VENDOR_SPECIFIC_JSON,
+    }, "Unexpected extracted file formats"
+
+    with subtests.test("verify extracted files"):
+        for extracted_file in extracted_files.values():
+            if extracted_file.format == ExtractionFormat.MARKDOWN:
+                async with File.load_content(extracted_file.file_id) as markdown_file:
+                    assert markdown_file.text is not None, "Markdown file has no content"
+
+            elif extracted_file.format == ExtractionFormat.VENDOR_SPECIFIC_JSON:
+                async with File.load_content(extracted_file.file_id) as json_file:
+                    assert json_file.text is not None, "JSON file has no content"
+                    json_value = json.loads(json_file.text)
+
+                    assert "schema_name" in json_value, "Missing 'schema_name' key"
+                    assert json_value["schema_name"] == "DoclingDocument", (
+                        f"Expected 'DoclingDocument', got '{json_value['schema_name']}'"
+                    )
 
     with subtests.test("verify extracted text content"):
         async with file.load_text_content() as text_content:
@@ -115,10 +139,24 @@ async def test_text_extraction_pdf_workflow(subtests, test_configuration, test_p
     ):
         _ = await file.get_extraction()
 
+    with (
+        subtests.test("verify markdown file deleted"),
+        pytest.raises(httpx.HTTPStatusError, match="404 Not Found"),
+    ):
+        async with File.load_content(extracted_files[ExtractionFormat.MARKDOWN].file_id):
+            ...
+
+    with (
+        subtests.test("verify vendor specific json file deleted"),
+        pytest.raises(httpx.HTTPStatusError, match="404 Not Found"),
+    ):
+        async with File.load_content(extracted_files[ExtractionFormat.VENDOR_SPECIFIC_JSON].file_id):
+            ...
+
 
 @pytest.mark.usefixtures("clean_up", "setup_real_llm", "setup_platform_client")
 async def test_text_extraction_plain_text_workflow(subtests):
-    """Test text extraction for plain text files (should be immediate)"""
+    """Test text extraction for plain text files also generate json and markdown outputs."""
     text_content = "This is a sample text document with some content for testing text extraction."
 
     with subtests.test("upload text file"):
@@ -128,25 +166,38 @@ async def test_text_extraction_plain_text_workflow(subtests):
             content_type="text/plain",
         )
         assert file.filename == "test_document.txt"
+        assert file.file_type == "user_upload"
 
     with subtests.test("create text extraction for plain text"):
         extraction = await file.create_extraction()
         assert extraction.file_id == file.id
-        # Plain text files should be completed immediately
-        assert extraction.status == "completed"
+        assert extraction.status in ["pending", "in_progress", "completed"]
 
-    with subtests.test("verify immediate text content access"):
-        async with file.load_text_content() as loaded_text_content:
-            assert loaded_text_content.text == text_content
+    with subtests.test("check extraction status"):
+        extraction = await file.get_extraction()
+        assert extraction.file_id == file.id
 
-    with subtests.test("delete extraction"):
-        await file.delete_extraction()
+    async for attempt in AsyncRetrying(stop=stop_after_delay(timedelta(seconds=40)), wait=wait_fixed(1)):
+        with attempt:
+            extraction = await file.get_extraction()
+            final_status = extraction.status
+            if final_status not in ["completed", "failed"]:
+                raise ValueError("not completed")
+
+    assert final_status == "completed", f"Expected completed status, got {final_status}: {extraction.error_message}"
+    assert extraction.finished_at is not None
+
+    [extracted_file] = extraction.extracted_files
+    assert extracted_file.format is None
+    with subtests.test("delete file should also delete extractions"):
+        await file.delete()
 
     with (
-        subtests.test("verify extraction deleted"),
+        subtests.test("verify file deleted"),
         pytest.raises(httpx.HTTPStatusError, match="404 Not Found"),
     ):
-        _ = await file.get_extraction()
+        async with file.load_content():
+            ...
 
 
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")

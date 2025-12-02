@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "agent-form",
+            "name": "agent-rag",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/src/rag/agent.py",

@@ -48,6 +48,7 @@ dependencies = [
     "opentelemetry-instrumentation-httpx>=0.59b0",
     "opentelemetry-instrumentation-fastapi>=0.59b0",
     "limits[async-redis]>=5.3.0",
+    "ijson>=3.4.0.post0",
 ]
 
 [dependency-groups]

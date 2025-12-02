@@ -1,6 +1,8 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 from collections.abc import AsyncIterator
 from typing import Any, cast
 from uuid import UUID
@@ -16,6 +18,7 @@ from sqlalchemy import (
     String,
     Table,
     Text,
+    UniqueConstraint,
     func,
     select,
 )
@@ -23,7 +26,14 @@ from sqlalchemy import UUID as SQL_UUID
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from agentstack_server.domain.models.common import PaginatedResult
-from agentstack_server.domain.models.file import ExtractionStatus, File, FileType, TextExtraction
+from agentstack_server.domain.models.file import (
+    ExtractedFileInfo,
+    ExtractionFormat,
+    ExtractionStatus,
+    File,
+    FileType,
+    TextExtraction,
+)
 from agentstack_server.domain.repositories.file import IFileRepository
 from agentstack_server.exceptions import EntityNotFoundError
 from agentstack_server.infrastructure.persistence.repositories.context import cursor_paginate
@@ -49,7 +59,6 @@ text_extractions_table = Table(
     metadata,
     Column("id", SQL_UUID, primary_key=True),
     Column("file_id", ForeignKey("files.id", ondelete="CASCADE"), nullable=False, unique=True),
-    Column("extracted_file_id", ForeignKey("files.id", ondelete="SET NULL"), nullable=True),
     Column("status", sql_enum(ExtractionStatus, name="extraction_status"), nullable=False),
     Column("job_id", String(255), nullable=True),
     Column("error_message", Text, nullable=True),
@@ -57,6 +66,16 @@ text_extractions_table = Table(
     Column("started_at", DateTime(timezone=True), nullable=True),
     Column("finished_at", DateTime(timezone=True), nullable=True),
     Column("created_at", DateTime(timezone=True), nullable=False),
+)
+
+extraction_files_table = Table(
+    "extraction_files",
+    metadata,
+    Column("extraction_id", ForeignKey("text_extractions.id", ondelete="CASCADE"), nullable=False),
+    Column("file_id", ForeignKey("files.id", ondelete="CASCADE"), nullable=False),
+    Column("format", String(50), nullable=True),
+    # Ensure only one file per format per extraction
+    UniqueConstraint("extraction_id", "format", name="uq_extraction_files_extraction_id_format"),
 )
 
 
@@ -201,12 +220,12 @@ class SqlAlchemyFileRepository(IFileRepository):
             has_more=result.has_more,
         )
 
-    def _to_text_extraction(self, row: Row) -> TextExtraction:
+    def _to_text_extraction(self, row: Row, extracted_files: list[ExtractedFileInfo] | None = None) -> TextExtraction:
         return TextExtraction.model_validate(
             {
                 "id": row.id,
                 "file_id": row.file_id,
-                "extracted_file_id": row.extracted_file_id,
+                "extracted_files": extracted_files or [],
                 "status": row.status,
                 "job_id": row.job_id,
                 "error_message": row.error_message,
@@ -222,7 +241,6 @@ class SqlAlchemyFileRepository(IFileRepository):
         query = text_extractions_table.insert().values(
             id=extraction.id,
             file_id=extraction.file_id,
-            extracted_file_id=extraction.extracted_file_id,
             status=extraction.status,
             job_id=extraction.job_id,
             error_message=extraction.error_message,
@@ -232,6 +250,20 @@ class SqlAlchemyFileRepository(IFileRepository):
             created_at=extraction.created_at,
         )
         await self.connection.execute(query)
+
+        # Insert extracted files with format into junction table
+        if extraction.extracted_files:
+            await self.connection.execute(
+                extraction_files_table.insert(),
+                [
+                    {
+                        "extraction_id": extraction.id,
+                        "file_id": ef.file_id,
+                        "format": ef.format.value if ef.format else None,
+                    }
+                    for ef in extraction.extracted_files
+                ],
+            )
 
     async def get_extraction_by_file_id(
         self, *, file_id: UUID, user_id: UUID | None = None, context_id: UUID | None = None
@@ -247,23 +279,74 @@ class SqlAlchemyFileRepository(IFileRepository):
         result = await self.connection.execute(query)
         if not (row := result.fetchone()):
             raise EntityNotFoundError(entity="text_extraction", id=file_id, attribute="file_id")
-        return self._to_text_extraction(row)
+
+        # Load extracted files with format from junction table
+        extraction_files_query = extraction_files_table.select().where(extraction_files_table.c.extraction_id == row.id)
+        extraction_files_result = await self.connection.execute(extraction_files_query)
+        extracted_files = [
+            ExtractedFileInfo(file_id=ef_row.file_id, format=ExtractionFormat(ef_row.format) if ef_row.format else None)
+            for ef_row in extraction_files_result.fetchall()
+        ]
+
+        return self._to_text_extraction(row, extracted_files)
 
     async def update_extraction(self, *, extraction: TextExtraction) -> None:
         query = (
             text_extractions_table.update()
             .where(text_extractions_table.c.file_id == extraction.file_id)
             .values(
-                extracted_file_id=extraction.extracted_file_id,
                 status=extraction.status,
                 job_id=extraction.job_id,
                 error_message=extraction.error_message,
-                extraction_metadata=extraction.extraction_metadata,
+                extraction_metadata=extraction.extraction_metadata.model_dump(mode="json")
+                if extraction.extraction_metadata
+                else None,
                 started_at=extraction.started_at,
                 finished_at=extraction.finished_at,
             )
         )
         await self.connection.execute(query)
+
+        # Get currently stored files
+        current_files_query = extraction_files_table.select().where(
+            extraction_files_table.c.extraction_id == extraction.id
+        )
+        current_files_result = await self.connection.execute(current_files_query)
+        current_files = {(row.file_id, row.format) for row in current_files_result.fetchall()}
+
+        # Only add new extracted files (never delete existing ones)
+        if extraction.extracted_files:
+            new_files = {(ef.file_id, ef.format.value if ef.format else None) for ef in extraction.extracted_files}
+
+            # Check if any existing files are being removed
+            if files_being_removed := current_files - new_files:
+                raise ValueError(
+                    f"Cannot remove extracted files. Attempting to remove {len(files_being_removed)} file(s). "
+                    "Extracted files can only be added, not removed."
+                )
+
+            # Only insert files that don't already exist
+            files_to_insert = [
+                {
+                    "extraction_id": extraction.id,
+                    "file_id": ef.file_id,
+                    "format": ef.format.value if ef.format else None,
+                }
+                for ef in extraction.extracted_files
+                if (ef.file_id, ef.format.value if ef.format else None) not in current_files
+            ]
+
+            if files_to_insert:
+                await self.connection.execute(
+                    extraction_files_table.insert(),
+                    files_to_insert,
+                )
+        elif current_files:
+            # If there are current files but extraction.extracted_files is empty, that's an attempt to remove all files
+            raise ValueError(
+                f"Cannot remove extracted files. Attempting to remove all {len(current_files)} file(s). "
+                "Extracted files can only be added, not removed."
+            )
 
     async def delete_extraction(self, *, extraction_id: UUID) -> int:
         query = text_extractions_table.delete().where(text_extractions_table.c.id == extraction_id)

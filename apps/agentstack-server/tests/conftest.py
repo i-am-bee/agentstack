@@ -1,7 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import asyncio
 import os
 import re
 from contextlib import contextmanager
@@ -70,11 +69,6 @@ async def _get_kr8s_client():
             f"expected: {kubeconfig_regex}"
         )
     return api
-
-
-def pytest_sessionstart(session):
-    """Validate that tests are running against the test VM"""
-    asyncio.run(_get_kr8s_client())
 
 
 @pytest.fixture()

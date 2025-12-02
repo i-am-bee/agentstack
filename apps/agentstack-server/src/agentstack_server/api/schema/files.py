@@ -6,6 +6,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from agentstack_server.api.schema.common import PaginationQuery
+from agentstack_server.domain.models.file import TextExtractionSettings
 
 
 class FileResponse(BaseModel):
@@ -36,3 +37,12 @@ class FileListQuery(PaginationQuery):
         description="Case-insensitive partial match search on filename (e.g., 'doc' matches 'my_document.pdf')",
     )
     order_by: str = Field(default_factory=lambda: "created_at", pattern="^created_at|filename|file_size_bytes$")
+
+
+class TextExtractionRequest(BaseModel):
+    """Request schema for text extraction."""
+
+    settings: TextExtractionSettings | None = Field(
+        default=None,
+        description="Additional options for text extraction",
+    )

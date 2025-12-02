@@ -1,8 +1,9 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from collections.abc import Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
 from enum import StrEnum
+from typing import Self
 from uuid import UUID, uuid4
 
 from pydantic import AwareDatetime, BaseModel, Field
@@ -23,8 +24,24 @@ class ExtractionStatus(StrEnum):
     CANCELLED = "cancelled"
 
 
+class ExtractionFormat(StrEnum):
+    MARKDOWN = "markdown"
+    VENDOR_SPECIFIC_JSON = "vendor_specific_json"
+
+
+class TextExtractionSettings(BaseModel):
+    formats: list[ExtractionFormat] = Field(
+        default_factory=lambda: [ExtractionFormat.MARKDOWN, ExtractionFormat.VENDOR_SPECIFIC_JSON]
+    )
+
+
+class Backend(StrEnum):
+    IN_PLACE = "in-place"
+
+
 class ExtractionMetadata(BaseModel, extra="allow"):
-    backend: str
+    backend: str | None = None
+    settings: TextExtractionSettings | None = None
 
 
 class FileMetadata(BaseModel, extra="allow"):
@@ -39,6 +56,36 @@ class AsyncFile(BaseModel):
     read: Callable[[int], Awaitable[bytes]]
     size: int | None = None
 
+    @classmethod
+    def from_async_iterator(cls, iterator: AsyncIterator[bytes], filename: str, content_type: str) -> Self:
+        buffer = b""
+
+        async def read(size: int = 8192) -> bytes:
+            nonlocal buffer
+            while len(buffer) < size:
+                try:
+                    buffer += await anext(iterator)
+                except StopAsyncIteration:
+                    break
+
+            result = buffer[:size]
+            buffer = buffer[size:]
+            return result
+
+        return cls(filename=filename, content_type=content_type, read=read)
+
+    @classmethod
+    def from_bytes(cls, content: bytes, filename: str, content_type: str) -> Self:
+        pos = 0
+
+        async def read(size: int = 8192) -> bytes:
+            nonlocal pos
+            result = content[pos : pos + size]
+            pos += len(result)
+            return result
+
+        return cls(filename=filename, content_type=content_type, read=read, size=len(content))
+
 
 class File(BaseModel):
     id: UUID = Field(default_factory=uuid4)
@@ -52,10 +99,17 @@ class File(BaseModel):
     context_id: UUID | None = None
 
 
+class ExtractedFileInfo(BaseModel):
+    """Information about an extracted file."""
+
+    file_id: UUID
+    format: ExtractionFormat | None = None
+
+
 class TextExtraction(BaseModel):
     id: UUID = Field(default_factory=uuid4)
     file_id: UUID
-    extracted_file_id: UUID | None = None
+    extracted_files: list[ExtractedFileInfo] = Field(default_factory=list)
     status: ExtractionStatus = ExtractionStatus.PENDING
     job_id: str | None = None
     error_message: str | None = None
@@ -64,20 +118,30 @@ class TextExtraction(BaseModel):
     finished_at: AwareDatetime | None = None
     created_at: AwareDatetime = Field(default_factory=utc_now)
 
-    def set_started(self, job_id: str) -> None:
-        """Mark extraction as started with job ID."""
+    def set_started(self, job_id: str, backend: str) -> None:
+        """Mark extraction as started with job ID and backend name."""
         self.status = ExtractionStatus.IN_PROGRESS
         self.job_id = job_id
         self.started_at = utc_now()
         self.error_message = None
 
-    def set_completed(self, extracted_file_id: UUID, metadata: ExtractionMetadata | None = None) -> None:
-        """Mark extraction as completed with extracted file ID."""
+        # Create extraction_metadata if it doesn't exist
+        if self.extraction_metadata is None:
+            self.extraction_metadata = ExtractionMetadata()
+
+        # Set the backend name
+        self.extraction_metadata.backend = backend
+
+    def set_completed(
+        self, extracted_files: list[ExtractedFileInfo], metadata: ExtractionMetadata | None = None
+    ) -> None:
+        """Mark extraction as completed with extracted files and their formats."""
         self.status = ExtractionStatus.COMPLETED
-        self.extracted_file_id = extracted_file_id
+        self.extracted_files = extracted_files
         self.finished_at = utc_now()
-        self.extraction_metadata = metadata
         self.error_message = None
+        if metadata is not None:
+            self.extraction_metadata = metadata
 
     def set_failed(self, error_message: str) -> None:
         """Mark extraction as failed with error message."""
@@ -97,3 +161,10 @@ class TextExtraction(BaseModel):
         self.started_at = None
         self.finished_at = None
         self.job_id = None
+
+    def find_file_by_format(self, format: ExtractionFormat | None) -> UUID | None:
+        """Find an extracted file by format from the extracted files list."""
+        for extracted_file_info in self.extracted_files:
+            if extracted_file_info.format == format:
+                return extracted_file_info.file_id
+        return None

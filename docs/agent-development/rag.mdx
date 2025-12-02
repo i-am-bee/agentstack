@@ -8,17 +8,19 @@ information from a knowledge base relevant to a specific user query and provide 
 a complex topic with many variants. We will focus on the fundamental building blocks that any RAG pipeline needs.
 
 The document processing pipeline:
+
 1. **text extraction** - process complex document formats (PDF, CSV, etc.)
 2. **text splitting** - create meaningful chunks out of long pages of text
 3. **embedding** - vectorize chunks (extract semantic meaning)
 4. **store** - insert chunks to a specialized database
 
 Retrieval:
+
 1. **embedding** - vectorize user query
 2. **search** - retrieve the document chunks most similar to the user query
 
-
 ## Building blocks
+
 Let's break down how each step can be implemented with the Agent Stack API, but first, make sure you have the
 Platform API extension enabled in your agent:
 
@@ -78,9 +80,10 @@ agent can accept, use the `default_input_modes` parameter in the agent decorator
 First, let's build a set of functions to process the documents which we will then use in the agent.
 
 ### Text Extraction
+
 To extract text from a `File` uploaded to the Platform API, simply use `file.create_extraction()` and wait for
 the result. After extraction is completed, the `extraction` object will contain
-`extracted_file_id`, which is an ID of a new file containing the extracted text in Markdown.
+`extracted_files`, which is a list of extracted files in different formats.
 
 ```python
 from agentstack_sdk.platform import File, Extraction
@@ -91,11 +94,22 @@ async def extract_file(file: File):
     while extraction.status in {"pending", "in_progress"}:
         await asyncio.sleep(1)
         extraction = await file.get_extraction()
-    if extraction.status != "completed" or not extraction.extracted_file_id:
+    if extraction.status != "completed":
         raise ValueError(f"Extraction failed with status: {extraction.status}")
 ```
 
+#### Extraction Formats
+
+Text extraction produces two extraction formats and you can request either subset by passing `formats` to `create_extraction` (e.g., `["markdown"]` if you only need plain text):
+
+- __markdown__: The extracted text formatted as Markdown (`file.load_text_content()`)
+- __vendor_specific_json__: The Docling-specific JSON format containing document structure (`file.load_json_content()`)
+
+> __WARNING__:
+> The `vendor_specific_json` format is not generated for plain text or markdown files, as Docling does not support these formats as input.
+
 ### Text Splitting
+
 In this example we will use `MarkdownTextSplitter` from the
 [langchain-text-splitters](https://reference.langchain.com/python/langchain_text_splitters/) package.
 This will split a long document into reasonably sized chunks based on the Markdown header structure.
@@ -108,6 +122,7 @@ def chunk_markdown(markdown_text: str) -> list[str]:
 ```
 
 ### Embedding
+
 Now we need to embed each chunk using the embedding service. Similarly to LLM, Agent Stack implements
 OpenAI-compatible embedding API. You can use any preferred client, in this example we will use the embedding extension
 to create an `AsyncOpenAI` client:
@@ -134,6 +149,7 @@ def get_embedding_client(
 
 
 ```
+
 Now we can use this client to embed our chunks and create vector store items:
 
 ```python
@@ -164,6 +180,7 @@ async def embed_chunks(
 ```
 
 ### Store
+
 Finally, to insert the prepared items, we need a function to create a vector store. For this we will need to know
 the dimension of the embeddings and model_id. Because the model is chosen by the embedding extension and we don't know
 it in advance, we will create a test embedding request to calculate the dimension:
@@ -184,9 +201,11 @@ async def create_vector_store(embedding_client: AsyncOpenAI, embedding_model: st
         model_id=embedding_model,
     )
 ```
+
 We can then add the prepared items using `vector_store.add_documents`, this will become clear in the final example.
 
 ### Query vector store
+
 Assuming we have our knowledge base of documents prepared, we can now easily search the store according to the user
 query. The following function will retrieve five document chunks most similar to the query embedding:
 
@@ -273,6 +292,7 @@ Instead of simply returning the output of the vector store, you would typically 
 agentic framework.
 
 ### Conversational agent
+
 Having a new vector store for each message is not really a good practice. Typically, you would want to search through
 all documents uploaded in the conversation. Below is a version of the agent which will reuse the vector store across
 messages so you can ask multiple queries and or additional documents later on.
@@ -344,8 +364,10 @@ async def rag_agent(
 ```
 
 ### Next steps
+
 To further improve the agent, learn how to use other parts of the platform such as LLMs,
 file uploads and conversations:
+
 - [LLM extension](/extensions/llm-proxy-service)
 - [Multi-turn conversations](/guides/multi-turn)
 - [File handling](/guides/files)

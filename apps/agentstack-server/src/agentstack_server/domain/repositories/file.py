@@ -10,7 +10,15 @@ from uuid import UUID
 from pydantic import AnyUrl, HttpUrl
 
 from agentstack_server.domain.models.common import PaginatedResult
-from agentstack_server.domain.models.file import AsyncFile, File, FileMetadata, FileType, TextExtraction
+from agentstack_server.domain.models.file import (
+    AsyncFile,
+    ExtractionFormat,
+    File,
+    FileMetadata,
+    FileType,
+    TextExtraction,
+    TextExtractionSettings,
+)
 
 
 class IFileRepository(Protocol):
@@ -69,6 +77,17 @@ class IObjectStorageRepository(Protocol):
 
 @runtime_checkable
 class ITextExtractionBackend(Protocol):
+    @property
+    def backend_name(self) -> str:
+        """Return the name of the extraction backend."""
+        ...
+
     @asynccontextmanager
-    async def extract_text(self, *, file_url: AnyUrl, timeout: timedelta | None = None) -> AsyncIterator[AsyncFile]:  # noqa: ASYNC109
+    async def extract_text(
+        self,
+        *,
+        file_url: AnyUrl,
+        timeout: timedelta | None = None,  # noqa: ASYNC109
+        settings: TextExtractionSettings | None = None,
+    ) -> AsyncIterator[AsyncIterator[tuple[AsyncFile, ExtractionFormat]]]:
         yield ...  # pyright: ignore [reportReturnType]
