@@ -194,6 +194,13 @@ if [[ "$current_branch" != "main" ]]; then
   exit 1
 fi
 
+# Ensure working directory is clean
+if [[ -n "$(git status --porcelain)" ]]; then
+  echo "ERROR: Working directory not clean"
+  git status
+  exit 1
+fi
+
 # Fetch latest from origin to get current state
 git fetch origin
 
