@@ -30,7 +30,7 @@ class ManagedMcpService:
         return (preset := self.find_preset(connector.url)) is not None and preset.url.scheme == "mcp+stdio"
 
     def get_service_url(self, *, connector: Connector) -> str:
-        return f"http://managed-mcp-{connector.id.hex[:16]}.{self._kubectl._default_kwargs['namespace']}.svc.cluster.local:8080"
+        return f"http://managed-mcp-supergateway-{connector.id.hex[:16]}.{self._kubectl._default_kwargs['namespace']}.svc.cluster.local:8080"
 
     async def deploy(self, *, connector: Connector, preset: ConnectorPreset) -> None:
         assert preset.stdio
@@ -46,9 +46,9 @@ class ManagedMcpService:
                             "apiVersion": "apps/v1",
                             "kind": "Deployment",
                             "metadata": {
-                                "name": f"managed-mcp-{connector.id.hex[:16]}",
+                                "name": f"managed-mcp-server-{connector.id.hex[:16]}",
                                 "labels": {
-                                    "app": "managed-mcp",
+                                    "app": "managed-mcp-server",
                                     "connector-id": str(connector.id),
                                 },
                             },
@@ -56,19 +56,19 @@ class ManagedMcpService:
                                 "replicas": 1,
                                 "selector": {
                                     "matchLabels": {
-                                        "app": "managed-mcp",
+                                        "app": "managed-mcp-server",
                                         "connector-id": str(connector.id),
                                     }
                                 },
                                 "template": {
                                     "metadata": {
                                         "labels": {
-                                            "app": "managed-mcp",
+                                            "app": "managed-mcp-server",
                                             "connector-id": str(connector.id),
                                         }
                                     },
                                     "spec": {
-                                        "serviceAccountName": "managed-mcp",
+                                        "automountServiceAccountToken": False,
                                         "containers": [
                                             {
                                                 "name": "mcp-server",
@@ -110,6 +110,39 @@ class ManagedMcpService:
                                                     }
                                                 ),
                                             },
+                                        ],
+                                    },
+                                },
+                            },
+                        },
+                        {
+                            "apiVersion": "apps/v1",
+                            "kind": "Deployment",
+                            "metadata": {
+                                "name": f"managed-mcp-supergateway-{connector.id.hex[:16]}",
+                                "labels": {
+                                    "app": "managed-mcp-supergateway",
+                                    "connector-id": str(connector.id),
+                                },
+                            },
+                            "spec": {
+                                "replicas": 1,
+                                "selector": {
+                                    "matchLabels": {
+                                        "app": "managed-mcp-supergateway",
+                                        "connector-id": str(connector.id),
+                                    }
+                                },
+                                "template": {
+                                    "metadata": {
+                                        "labels": {
+                                            "app": "managed-mcp-supergateway",
+                                            "connector-id": str(connector.id),
+                                        }
+                                    },
+                                    "spec": {
+                                        "serviceAccountName": "managed-mcp-supergateway",
+                                        "containers": [
                                             {
                                                 "name": "supergateway",
                                                 "image": "ghcr.io/i-am-bee/agentstack/supergateway:latest",
@@ -117,7 +150,7 @@ class ManagedMcpService:
                                                 "command": ["supergateway"],
                                                 "args": [
                                                     "--stdio",
-                                                    "kubectl attach $(POD_NAME) -c mcp-server --stdin --tty=false",
+                                                    f"kubectl attach $(kubectl get pod -l app=managed-mcp-server,connector-id={connector.id} -o jsonpath='{{.items[0].metadata.name}}') -c mcp-server --stdin --tty=false",
                                                     "--outputTransport",
                                                     "streamableHttp",
                                                     "--stateful",
@@ -127,12 +160,6 @@ class ManagedMcpService:
                                                     "/mcp",
                                                     "--logLevel",
                                                     "info",
-                                                ],
-                                                "env": [
-                                                    {
-                                                        "name": "POD_NAME",
-                                                        "valueFrom": {"fieldRef": {"fieldPath": "metadata.name"}},
-                                                    }
                                                 ],
                                                 "ports": [{"containerPort": 8080, "protocol": "TCP"}],
                                                 "readinessProbe": {
@@ -150,10 +177,10 @@ class ManagedMcpService:
                         {
                             "apiVersion": "v1",
                             "kind": "Service",
-                            "metadata": {"name": f"managed-mcp-{connector.id.hex[:16]}"},
+                            "metadata": {"name": f"managed-mcp-supergateway-{connector.id.hex[:16]}"},
                             "spec": {
                                 "selector": {
-                                    "app": "managed-mcp",
+                                    "app": "managed-mcp-supergateway",
                                     "connector-id": str(connector.id),
                                 },
                                 "ports": [
@@ -177,7 +204,12 @@ class ManagedMcpService:
 
         try:
             await self._kubectl.wait(
-                f"deployment/managed-mcp-{connector.id.hex[:16]}",
+                f"deployment/managed-mcp-server-{connector.id.hex[:16]}",
+                _for="condition=Available",
+                timeout="60s",
+            )
+            await self._kubectl.wait(
+                f"deployment/managed-mcp-supergateway-{connector.id.hex[:16]}",
                 _for="condition=Available",
                 timeout="60s",
             )
@@ -188,8 +220,12 @@ class ManagedMcpService:
             ) from err
 
     async def undeploy(self, *, connector: Connector) -> None:
-        for resource_type in ["deployment", "service"]:
+        for resource_type, resource_name in (
+            ("deployment", f"managed-mcp-server-{connector.id.hex[:16]}"),
+            ("deployment", f"managed-mcp-supergateway-{connector.id.hex[:16]}"),
+            ("service", f"managed-mcp-supergateway-{connector.id.hex[:16]}"),
+        ):
             try:
-                await self._kubectl.delete(resource_type, f"managed-mcp-{connector.id.hex[:16]}", ignore_not_found=True)
+                await self._kubectl.delete(resource_type, resource_name, ignore_not_found=True)
             except RuntimeError as err:
-                logger.warning("Failed to delete %s/managed-mcp-%s: %s", resource_type, connector.id.hex[:16], err)
+                logger.warning("Failed to delete %s/%s: %s", resource_type, resource_name, err)
