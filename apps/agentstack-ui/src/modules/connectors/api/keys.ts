@@ -4,6 +4,6 @@
  */
 
 export const connectorKeys = {
-  all: () => ['oauth-connectors'] as const,
+  all: () => ['connectors'] as const,
   list: () => [...connectorKeys.all(), 'list'] as const,
 };

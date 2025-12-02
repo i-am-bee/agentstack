@@ -60,7 +60,7 @@ export const useRemove = () => {
 
   return useCallback(
     async (connectorId: string) => {
-      await removeConnector(connectorId);
+      await removeConnector({ connector_id: connectorId });
     },
     [removeConnector],
   );
@@ -71,7 +71,7 @@ export const useDisconnect = () => {
 
   return useCallback(
     async (connectorId: string) => {
-      await disconnectConnector(connectorId);
+      await disconnectConnector({ connector_id: connectorId });
     },
     [disconnectConnector],
   );
@@ -103,8 +103,11 @@ export const useConnect = () => {
 
   return useCallback(
     async (connectorId: string) => {
-      const result = await connectConnector(connectorId);
-      authorizeOauth(result.auth_request.authorization_endpoint, handleAuthorizeCallback);
+      const result = await connectConnector({ connector_id: connectorId });
+
+      if (result && result.auth_request) {
+        authorizeOauth(result.auth_request.authorization_endpoint, handleAuthorizeCallback);
+      }
     },
     [connectConnector, handleAuthorizeCallback],
   );

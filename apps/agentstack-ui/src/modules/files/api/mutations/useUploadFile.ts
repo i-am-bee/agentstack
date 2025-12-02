@@ -22,7 +22,7 @@ export function useUploadFile({ onMutate, onSuccess, onError }: Props = {}) {
     onError,
     meta: {
       errorToast: {
-        title: 'Failed to upload file',
+        title: 'Failed to upload file.',
         includeErrorMessage: true,
       },
     },
