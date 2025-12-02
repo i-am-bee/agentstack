@@ -287,12 +287,6 @@ git push origin main
 
 '''
 
-["releasebump"]
-# Increment RC number
-# Commit and push to release
-
-
-
 ["release"]
 dir = "{{config_root}}"
 run = '''
