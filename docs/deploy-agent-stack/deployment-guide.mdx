@@ -326,6 +326,33 @@ SET hnsw.iterative_scan = strict_order;
 SET hnsw.max_scan_tuples = 1000000;
 ```
 
+#### Rate Limiting (Redis)
+
+Agent Stack supports rate limiting using Redis. This feature is disabled by default. To enable rate limiting, you must enable Redis, either by using the built-in instance or connecting to an external one.
+
+**Enable Built-in Redis:**
+
+```yaml
+redis:
+  enabled: true
+```
+
+**External Redis:**
+
+To use an external Redis instance, ensure the built-in subchart is disabled (default) and provide connection details:
+
+```yaml
+redis:
+  enabled: false
+externalRedis:
+  host: "<your-redis-host>"
+  port: 6379
+  password: "<your-redis-password>"
+  # Optional: use existing secret for password
+  # existingSecret: "my-redis-secret"
+  # existingSecretPasswordKey: "redis-password"
+```
+
 #### External S3 support
 
 You may want to have Agent Stack connect to an external object storage rather than installing seaweedfs inside

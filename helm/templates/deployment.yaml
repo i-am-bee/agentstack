@@ -304,6 +304,28 @@ spec:
               value: {{ include "agentstack.s3.region" . | quote }}
             - name: OBJECT_STORAGE__USE_SSL
               value: {{ ternary "true" "false" (eq (include "agentstack.s3.protocol" .) "https") | quote}}
+            # Redis Configuration
+            - name: REDIS__ENABLED
+              value: {{ include "agentstack.redis.enabled" . | quote }}
+            {{- if eq (include "agentstack.redis.enabled" .) "true" }}
+            - name: REDIS__HOST
+              value: {{ include "agentstack.redis.host" . | quote }}
+            - name: REDIS__PORT
+              value: {{ include "agentstack.redis.port" . | quote }}
+            {{- if or .Values.redis.enabled .Values.externalRedis.existingSecret .Values.externalRedis.password }}
+            - name: REDIS__PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "agentstack.redis.secretName" . }}
+                  key: {{ include "agentstack.redis.secretPasswordKey" . }}
+            {{- end }}
+            {{- end }}
+            - name: RATE_LIMIT__ENABLED
+              value: {{ .Values.rateLimit.enabled | quote }}
+            - name: RATE_LIMIT__LIMITS
+              value: {{ .Values.rateLimit.limits | join "; " | quote }}
+            - name: RATE_LIMIT__STRATEGY
+              value: {{ .Values.rateLimit.strategy | quote }}
             - name: CONNECTOR__PRESETS
               valueFrom:
                 secretKeyRef:

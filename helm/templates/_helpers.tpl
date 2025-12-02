@@ -364,3 +364,91 @@ Generate environment variables for registry docker configs
       key: ".dockerconfigjson"
 {{- end }}
 {{- end }}
+
+{{/*
+*** REDIS CONFIGURATION ***
+*/}}
+
+{{/*
+Create a default fully qualified redis name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+*/}}
+{{- define "agentstack.redis.fullname" -}}
+{{- include "common.names.dependency.fullname" (dict "chartName" "redis" "chartValues" .Values.redis "context" $) -}}
+{{- end -}}
+
+{{/*
+Return the Redis Hostname
+*/}}
+{{- define "agentstack.redis.host" -}}
+{{- if .Values.redis.enabled }}
+    {{- print (include "agentstack.redis.fullname" .) -}}
+{{- else -}}
+    {{- print .Values.externalRedis.host -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Redis Port
+*/}}
+{{- define "agentstack.redis.port" -}}
+{{- if .Values.redis.enabled }}
+    {{- print "6379" -}}
+{{- else -}}
+    {{- printf "%d" (.Values.externalRedis.port | int ) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Redis Password
+*/}}
+{{- define "agentstack.redis.password" -}}
+{{- if .Values.redis.enabled }}
+    {{- print .Values.redis.auth.password -}}
+{{- else -}}
+    {{- print .Values.externalRedis.password -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Redis Secret Name
+*/}}
+{{- define "agentstack.redis.secretName" -}}
+{{- if .Values.redis.enabled }}
+    {{- if .Values.redis.auth.existingSecret -}}
+    {{- print .Values.redis.auth.existingSecret -}}
+    {{- else -}}
+    {{- printf "%s" (include "agentstack.redis.fullname" .) -}}
+    {{- end -}}
+{{- else if .Values.externalRedis.existingSecret -}}
+    {{- print .Values.externalRedis.existingSecret -}}
+{{- else -}}
+    {{- print "agentstack-secret" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Redis Secret Password Key
+*/}}
+{{- define "agentstack.redis.secretPasswordKey" -}}
+{{- if .Values.redis.enabled }}
+    {{- if .Values.redis.auth.existingSecretPasswordKey -}}
+    {{- print .Values.redis.auth.existingSecretPasswordKey -}}
+    {{- else -}}
+    {{- print "redis-password" -}}
+    {{- end -}}
+{{- else if .Values.externalRedis.existingSecretPasswordKey -}}
+    {{- print .Values.externalRedis.existingSecretPasswordKey -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return if Redis is enabled
+*/}}
+{{- define "agentstack.redis.enabled" -}}
+{{- if or .Values.redis.enabled .Values.externalRedis.host -}}
+true
+{{- else -}}
+false
+{{- end -}}
+{{- end -}}

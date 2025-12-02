@@ -506,7 +506,8 @@ externalDatabase:
 seaweedfs:
   enabled: true
   image:
-    repository: ghcr.io/i-am-bee/
+    registry: ghcr.io
+    repository: i-am-bee/chrislusf # Should be i-am-bee/chrislusf/seaweedfs, there is a bug in the subchart
   bucket: "agentstack-files"
   auth:
     admin:
@@ -546,8 +547,6 @@ seaweedfs:
 ## @param externalS3.accessKeyID External S3 access key ID
 ## @param externalS3.accessKeySecret External S3 access key secret
 ## @param externalS3.existingSecret Name of an existing secret resource containing the S3 credentials
-## @param externalS3.existingSecretAccessKeyIDKey Name of an existing secret key containing the S3 access key ID
-## @param externalS3.existingSecretKeySecretKey Name of an existing secret key containing the S3 access key secret
 ## @param externalS3.protocol External S3 protocol
 ## @param externalS3.bucket External S3 bucket
 ## @param externalS3.region External S3 region
@@ -558,17 +557,64 @@ externalS3:
   accessKeyID: ""
   accessKeySecret: ""
   existingSecret: ""
-  existingSecretAccessKeyIDKey: "root-user"
-  existingSecretKeySecretKey: "root-password"
   protocol: "https"
   bucket: "agentstack-files"
   region: "us-east-1"
 
-docling:
+## Redis chart configuration
+## ref: https://github.com/CloudPirates-io/helm-charts/tree/main/charts/redis
+## @param redis.enabled Switch to enable or disable the Redis helm chart
+## @param redis.auth.password Redis password
+## @param redis.auth.existingSecret Name of existing secret to use for Redis credentials
+## @param redis.auth.existingSecretPasswordKey Key in existing secret to use for Redis password
+##
+redis:
   enabled: false
+  fullnameOverride: "redis"
+  image:
+    registry: ghcr.io
+    repository: i-am-bee/redis
+  architecture: standalone
+  auth:
+    enabled: true
+    password: "redis-password"
+    existingSecret: ""
+    existingSecretPasswordKey: ""
+  master:
+    persistence:
+      enabled: false
+  replica:
+    replicaCount: 1
+    persistence:
+      enabled: false
+
+## External Redis configuration
+## All of these values are only used when redis.enabled is set to false
+## @param externalRedis.host Redis host
+## @param externalRedis.port Redis port number
+## @param externalRedis.password Redis password
+## @param externalRedis.existingSecret Name of an existing secret resource containing the Redis credentials
+## @param externalRedis.existingSecretPasswordKey Name of an existing secret key containing the Redis password
+##
+externalRedis:
+  host: ""
+  port: 6379
+  password: ""
+  existingSecret: ""
+  existingSecretPasswordKey: "redis-password"
+
+rateLimit:
+  enabled: false
+  limits:
+    - "20/second"
+    - "100/minute"
+  strategy: "sliding-window-counter"
+
+docling: 
+  enabled: false 
   podAnnotations: {}
   podSecurityContext: {}
-  podLabels: {}
+  podLabels: {} 
   resources: {}
   livenessProbe: {}
   # Unfortunately, docling does not handle IO properly and does not respond to health requests while processing file

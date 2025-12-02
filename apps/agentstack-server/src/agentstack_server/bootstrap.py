@@ -8,6 +8,7 @@ import anyio
 import kr8s
 import procrastinate
 from kink import Container, di
+from limits.aio.storage import MemoryStorage, RedisStorage, Storage
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from agentstack_server.configuration import Configuration, get_configuration
@@ -46,6 +47,14 @@ async def setup_kubernetes_client(namespace: str | None = None, kubeconfig: path
         return await kr8s.asyncio.Api(bypass_factory=True, namespace=namespace, kubeconfig=kubeconfig)
 
     return api_factory
+
+
+def setup_rate_limiter_storage(config: Configuration) -> Storage:
+    return (
+        RedisStorage("async+" + config.redis.rate_limit_db_url.get_secret_value())
+        if config.redis.enabled
+        else MemoryStorage()
+    )
 
 
 async def bootstrap_dependencies(dependency_overrides: Container | None = None):
@@ -103,6 +112,9 @@ async def bootstrap_dependencies(dependency_overrides: Container | None = None):
             ),
         ),
     )
+
+    # Setup rate limiter storage
+    _set_di(Storage, setup_rate_limiter_storage(di[Configuration]))
 
 
 bootstrap_dependencies_sync = async_to_sync_isolated(bootstrap_dependencies)
