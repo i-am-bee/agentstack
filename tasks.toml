@@ -261,8 +261,10 @@ perl -pi -e "s/^(LATEST_AGENTSTACK_VERSION=).*/\${1}$rc_version/" install.sh
 git add .
 git commit -m "release: v$rc_version"
 
-# Force push release branch
+# Tag and push rc version
+git tag "v$rc_version"
 git push --force origin release
+git push origin tag "v$rc_version"
 
 # Checkout main and bump version
 git checkout main
