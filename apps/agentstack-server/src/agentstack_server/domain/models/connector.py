@@ -18,6 +18,7 @@ class AuthorizationCodeFlow(BaseModel):
     code_verifier: str
     redirect_uri: str
     client_redirect_uri: AnyUrl | None
+    resource: str
 
 
 AuthFlow = Annotated[AuthorizationCodeFlow, Field(discriminator="type")]

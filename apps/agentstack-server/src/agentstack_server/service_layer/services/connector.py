@@ -20,7 +20,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from kink import inject
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
-from pydantic import AnyUrl, BaseModel
+from pydantic import AnyUrl, BaseModel, Field
 
 from agentstack_server.configuration import Configuration, ConnectorPreset
 from agentstack_server.domain.models.common import Metadata
@@ -34,6 +34,7 @@ from agentstack_server.domain.models.connector import (
 from agentstack_server.domain.models.user import User
 from agentstack_server.exceptions import EntityNotFoundError, PlatformError
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
+from agentstack_server.utils.oauth import parse_bearer_mcp_www_authenticate
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +108,10 @@ class ConnectorService:
             if isinstance(err, httpx.HTTPStatusError):
                 if err.response.status_code == status.HTTP_401_UNAUTHORIZED:
                     await self._bootstrap_auth(
-                        connector=connector, callback_url=callback_uri, redirect_url=redirect_url
+                        connector=connector,
+                        callback_url=callback_uri,
+                        redirect_url=redirect_url,
+                        www_authenticate=err.response.headers.get("www-authenticate"),
                     )
                     connector.state = ConnectorState.auth_required
                 else:
@@ -182,9 +186,10 @@ class ConnectorService:
                 )
 
             async with self._create_oauth_client(connector=connector) as client:
-                auth_metadata = await self._discover_auth_metadata(connector=connector)
-                if not auth_metadata:
-                    raise RuntimeError("Authorization server no longer contains necessary metadata")
+                metadata = await self._discover_connector_metadata(connector=connector)
+                if not metadata:
+                    raise RuntimeError("Connector no longer contains necessary metadata")
+                auth_metadata, _ = metadata
                 token_endpoint = auth_metadata.get("token_endpoint")
                 if not token_endpoint:
                     raise RuntimeError("Authorization server has no token endpoint in metadata")
@@ -193,6 +198,7 @@ class ConnectorService:
                     authorization_response=callback_url,
                     code_verifier=connector.auth.flow.code_verifier,
                     redirect_uri=connector.auth.flow.redirect_uri,
+                    resource=connector.auth.flow.resource,
                 )
                 connector.auth.token = Token.model_validate(token)
                 connector.auth.token_endpoint = AnyUrl(str(token_endpoint))
@@ -274,10 +280,30 @@ class ConnectorService:
                 return preset
         return None
 
-    async def _bootstrap_auth(self, *, connector: Connector, callback_url: str, redirect_url: AnyUrl | None) -> None:
-        auth_metadata = await self._discover_auth_metadata(connector=connector)
-        if not auth_metadata:
-            raise RuntimeError("Not authorization server found for the connector")
+    async def _bootstrap_auth(
+        self,
+        *,
+        connector: Connector,
+        callback_url: str,
+        redirect_url: AnyUrl | None,
+        www_authenticate: str | None = None,
+    ) -> None:
+        resource_metadata_url: str | None = None
+        scope: str | None = None
+        if www_authenticate:
+            try:
+                parsed = parse_bearer_mcp_www_authenticate(www_authenticate)
+                resource_metadata_url = parsed.get("resource_metadata")
+                scope = parsed.get("scope")
+            except Exception:
+                logger.warning(f"Failed to parse www-authenticate header: {www_authenticate}", exc_info=True)
+
+        metadata = await self._discover_connector_metadata(
+            connector=connector, resource_metadata_url=resource_metadata_url
+        )
+        if not metadata:
+            raise RuntimeError("No metadata found for the connector")
+        auth_metadata, resource_metadata = metadata
 
         if not connector.auth:
             connector.auth = Authorization()
@@ -289,7 +315,12 @@ class ConnectorService:
 
         async with self._create_oauth_client(connector=connector) as client:
             uri, state = client.create_authorization_url(
-                auth_metadata.get("authorization_endpoint"), code_verifier=code_verifier, redirect_uri=callback_url
+                auth_metadata.get("authorization_endpoint"),
+                code_verifier=code_verifier,
+                redirect_uri=callback_url,
+                resource=resource_metadata.resource,
+                scope=scope
+                or (" ".join(resource_metadata.scopes_supported) if resource_metadata.scopes_supported else None),
             )
             connector.auth.flow = AuthorizationCodeFlow(
                 authorization_endpoint=uri,
@@ -297,6 +328,7 @@ class ConnectorService:
                 code_verifier=code_verifier,
                 redirect_uri=callback_url,
                 client_redirect_uri=redirect_url,
+                resource=resource_metadata.resource,
             )
 
     async def _revoke_auth_token(self, *, connector: Connector) -> None:
@@ -306,9 +338,10 @@ class ConnectorService:
         if connector.auth.token:
             try:
                 async with self._create_oauth_client(connector=connector) as client:
-                    auth_metadata = await self._discover_auth_metadata(connector=connector)
-                    if not auth_metadata:
+                    metadata = await self._discover_connector_metadata(connector=connector)
+                    if not metadata:
                         raise RuntimeError("Authorization server no longer contains necessary metadata")
+                    auth_metadata, _ = metadata
                     revoke_endpoint = auth_metadata.get("revocation_endpoint")
                     if not isinstance(revoke_endpoint, str):
                         raise RuntimeError("Authorization server does not support token revocation")
@@ -356,12 +389,16 @@ class ConnectorService:
             token_endpoint=str(connector.auth.token_endpoint),
         )
 
-    async def _discover_auth_metadata(self, *, connector: Connector) -> AuthorizationServerMetadata | None:
-        resource_metadata = await _discover_resource_metadata(str(connector.url))
+    async def _discover_connector_metadata(
+        self, *, connector: Connector, resource_metadata_url: str | None = None
+    ) -> tuple[AuthorizationServerMetadata, _ResourceServerMetadata] | None:
+        resource_metadata = await _discover_resource_metadata(resource_metadata_url or str(connector.url))
         if not resource_metadata or not resource_metadata.authorization_servers:
             return None
         auth_metadata = await _discover_auth_metadata(resource_metadata.authorization_servers[0])
-        return auth_metadata
+        if not auth_metadata:
+            return None
+        return auth_metadata, resource_metadata
 
     async def _ensure_oauth_client_registered(self, *, connector: Connector, redirect_uri: str) -> Connector:
         if not connector.auth:
@@ -541,7 +578,9 @@ def _render_failure(error: str, error_description: str | None):
 
 
 class _ResourceServerMetadata(BaseModel):
-    authorization_servers: list[str]
+    resource: str
+    authorization_servers: list[str] = Field(default_factory=list)
+    scopes_supported: list[str] = Field(default_factory=list)
 
 
 class _ClientRegistrationResponse(BaseModel):
