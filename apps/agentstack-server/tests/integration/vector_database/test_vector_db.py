@@ -8,7 +8,7 @@ import pytest
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from agentstack_server.domain.models.vector_store import VectorStoreItem, VectorStoreSearchResult
+from agentstack_server.domain.models.vector_store import DocumentType, VectorStoreItem, VectorStoreSearchResult
 from agentstack_server.infrastructure.vector_database.vector_db import VectorDatabaseRepository
 
 pytestmark = pytest.mark.integration
@@ -33,6 +33,7 @@ async def sample_vector_items(test_collection_id: UUID) -> list[VectorStoreItem]
         VectorStoreItem(
             id=uuid.uuid4(),
             document_id="doc_001",
+            document_type=DocumentType.EXTERNAL,
             embedding=[1.0] * 128,
             text="The quick brown fox jumps over the lazy dog.",
             metadata={"source": "test_doc_1.txt", "chapter": "1"},
@@ -40,6 +41,7 @@ async def sample_vector_items(test_collection_id: UUID) -> list[VectorStoreItem]
         VectorStoreItem(
             id=uuid.uuid4(),
             document_id="doc_001",
+            document_type=DocumentType.EXTERNAL,
             embedding=[2.0] * 128,
             text="Artificial intelligence is revolutionizing technology.",
             metadata={"source": "test_doc_1.txt", "chapter": "2"},
@@ -47,6 +49,7 @@ async def sample_vector_items(test_collection_id: UUID) -> list[VectorStoreItem]
         VectorStoreItem(
             id=uuid.uuid4(),
             document_id="doc_002",
+            document_type=DocumentType.EXTERNAL,
             embedding=[3.0] * 128,
             text="Vector databases enable efficient similarity search.",
             metadata={"source": "test_doc_2.txt", "chapter": "1"},

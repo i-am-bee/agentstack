@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from enum import StrEnum
-from typing import Literal
+from typing import Literal, Self
 from uuid import UUID, uuid4
 
-from pydantic import AwareDatetime, BaseModel, Field
+from pydantic import AwareDatetime, BaseModel, Field, model_validator
 
 from agentstack_server.domain.models.common import Metadata
 from agentstack_server.utils.utils import utc_now
@@ -66,6 +66,18 @@ class VectorStoreItem(BaseModel):
     text: str
     embedding: list[float]
     metadata: Metadata | None = None
+
+    @model_validator(mode="after")
+    def validate_document_id(self) -> Self:
+        """Validate that document_id is a valid UUID when document_type is platform_file."""
+        if self.document_type == DocumentType.PLATFORM_FILE:
+            try:
+                _ = UUID(self.document_id)
+            except ValueError as ex:
+                raise ValueError(
+                    f"document_id must be a valid UUID when document_type is platform_file, got: {self.document_id}"
+                ) from ex
+        return self
 
 
 class VectorStoreSearchResult(BaseModel):
