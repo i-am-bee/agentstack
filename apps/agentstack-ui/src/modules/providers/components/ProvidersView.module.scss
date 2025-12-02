@@ -8,9 +8,9 @@
     table-layout: fixed;
 
     th {
-      &:nth-child(1),
-      &:nth-child(2) {
-        inline-size: 35%;
+      &:nth-child(2),
+      &:nth-child(3) {
+        inline-size: 12%;
       }
     }
 
@@ -22,14 +22,12 @@
   }
 }
 
-.agent,
-.name {
+.source {
   @at-root td#{&} {
     overflow-wrap: anywhere;
   }
 }
 
-.value {
-  @include line-clamp();
-  max-inline-size: 0;
+.agents {
+  text-align: center;
 }

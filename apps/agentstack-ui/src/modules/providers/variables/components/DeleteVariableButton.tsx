@@ -8,20 +8,18 @@ import { IconButton } from '@carbon/react';
 
 import { Spinner } from '#components/Spinner/Spinner.tsx';
 import { useModal } from '#contexts/Modal/index.tsx';
+import type { Provider } from '#modules/providers/api/types.ts';
 
-import { useDeleteProvider } from '../api/mutations/useDeleteProvider';
-import type { Provider } from '../api/types';
-import classes from './DeleteProviderButton.module.scss';
+import { useDeleteProviderVariable } from '../api/mutations/useDeleteProviderVariable';
 
 interface Props {
   provider: Provider;
+  name: string;
 }
 
-export function DeleteProviderButton({ provider }: Props) {
+export function DeleteVariableButton({ provider, name }: Props) {
   const { openConfirmation } = useModal();
-  const { mutate: deleteProvider, isPending } = useDeleteProvider();
-
-  const { id, source } = provider;
+  const { mutate: deleteVariable, isPending } = useDeleteProviderVariable();
 
   return (
     <IconButton
@@ -30,15 +28,11 @@ export function DeleteProviderButton({ provider }: Props) {
       size="sm"
       onClick={() =>
         openConfirmation({
-          title: (
-            <>
-              Delete <span className={classes.source}>{source}</span>?
-            </>
-          ),
-          body: 'Are you sure you want to delete this provider? It can’t be undone.',
+          title: `Delete '${name}'?`,
+          body: 'Are you sure you want to delete this variable? It can’t be undone.',
           primaryButtonText: 'Delete',
           danger: true,
-          onSubmit: () => deleteProvider({ id }),
+          onSubmit: () => deleteVariable({ id: provider.id, name }),
         })
       }
       align="left"

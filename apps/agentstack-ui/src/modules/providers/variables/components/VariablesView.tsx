@@ -3,141 +3,69 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { TrashCan } from '@carbon/icons-react';
-import {
-  Button,
-  DataTable,
-  DataTableSkeleton,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@carbon/react';
+import { Button } from '@carbon/react';
 import { useMemo } from 'react';
 
-import { TableView } from '#components/TableView/TableView.tsx';
 import { TableViewActions } from '#components/TableView/TableViewActions.tsx';
-import { TableViewToolbar } from '#components/TableView/TableViewToolbar.tsx';
+import { TableViewWithSearch } from '#components/TableView/TableViewWithSearch.tsx';
 import { useModal } from '#contexts/Modal/index.tsx';
-import { useTableSearch } from '#hooks/useTableSearch.ts';
+import { isNotNull } from '#utils/helpers.ts';
 
-import { useDeleteProviderVariable } from '../api/mutations/useDeleteProviderVariable';
 import { useListAllProvidersVariables } from '../api/queries/useListAllProvidersVariables';
 import { maskSecretValue } from '../utils';
 import { AddVariableModal } from './AddVariableModal';
+import { DeleteVariableButton } from './DeleteVariableButton';
 import classes from './VariablesView.module.scss';
 
 export function VariablesView() {
-  const { openModal, openConfirmation } = useModal();
-  const { data, isPending } = useListAllProvidersVariables();
-  const { mutate: deleteVariable } = useDeleteProviderVariable();
+  const { openModal } = useModal();
 
-  const entries = useMemo(
-    () =>
-      data
-        ? data.flatMap(({ provider, variables }) =>
-            variables ? Object.entries(variables).map(([name, value]) => ({ name, value, provider })) : [],
-          )
-        : [],
-    [data],
+  const { data, isPending } = useListAllProvidersVariables();
+
+  const headers = useMemo(
+    () => [
+      { key: 'agent', header: 'Agent', className: classes.agent },
+      { key: 'name', header: 'Name', className: classes.name },
+      { key: 'value', header: 'Value', className: classes.value },
+      { key: 'actions', header: '' },
+    ],
+    [],
   );
 
-  const { items, onSearch } = useTableSearch({ entries, fields: ['name'] });
+  const entries = useMemo(() => {
+    if (!data) {
+      return [];
+    }
 
-  const rows = useMemo(() => {
-    return items.map(({ provider, name, value }) => ({
-      id: name,
-      name,
-      agent: provider.agent_card.name,
-      value: maskSecretValue(value),
-      actions: (
-        <TableViewActions>
-          <IconButton
-            label="Delete"
-            kind="ghost"
-            size="sm"
-            onClick={() =>
-              openConfirmation({
-                title: `Delete '${name}'?`,
-                body: 'Are you sure you want to delete this variable? It can’t be undone.',
-                primaryButtonText: 'Delete',
-                danger: true,
-                onSubmit: () => deleteVariable({ id: provider.id, name }),
-              })
-            }
-            align="left"
-          >
-            <TrashCan />
-          </IconButton>
-        </TableViewActions>
-      ),
-    }));
-  }, [items, deleteVariable, openConfirmation]);
+    return data
+      .flatMap(({ provider, variables }) =>
+        Object.entries(variables).map(([name, value]) => ({
+          id: name,
+          name,
+          agent: provider.agent_card.name,
+          value: maskSecretValue(value),
+          actions: (
+            <TableViewActions>
+              <DeleteVariableButton provider={provider} name={name} />
+            </TableViewActions>
+          ),
+        })),
+      )
+      .filter(isNotNull);
+  }, [data]);
 
   return (
-    <TableView
+    <TableViewWithSearch
+      className={classes.root}
       description="Your variables are sensitive information and should not be shared with anyone. Keep it secure to
         prevent unauthorized access to your account."
-    >
-      <DataTable headers={HEADERS} rows={rows}>
-        {({ rows, headers, getTableProps, getHeaderProps, getRowProps }) => (
-          <>
-            <TableViewToolbar
-              searchProps={{
-                onChange: onSearch,
-                disabled: isPending,
-              }}
-              button={
-                <Button onClick={() => openModal((props) => <AddVariableModal {...props} />)}>Add variable</Button>
-              }
-            />
-
-            {isPending ? (
-              <DataTableSkeleton headers={HEADERS} showToolbar={false} showHeader={false} />
-            ) : (
-              <Table {...getTableProps()}>
-                <TableHead>
-                  <TableRow>
-                    {headers.map((header) => (
-                      <TableHeader {...getHeaderProps({ header })} key={header.key}>
-                        {header.header}
-                      </TableHeader>
-                    ))}
-                  </TableRow>
-                </TableHead>
-
-                <TableBody>
-                  {rows.length > 0 ? (
-                    rows.map((row) => (
-                      <TableRow {...getRowProps({ row })} key={row.id}>
-                        {row.cells.map((cell) => (
-                          <TableCell key={cell.id} className={classes[cell.info.header]}>
-                            {cell.value}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={HEADERS.length}>No results found.</TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            )}
-          </>
-        )}
-      </DataTable>
-    </TableView>
+      headers={headers}
+      entries={entries}
+      searchFields={['agent', 'name']}
+      isPending={isPending}
+      toolbarButton={
+        <Button onClick={() => openModal((props) => <AddVariableModal {...props} />)}>Add variable</Button>
+      }
+    />
   );
 }
-
-const HEADERS = [
-  { key: 'agent', header: 'Agent' },
-  { key: 'name', header: 'Name' },
-  { key: 'value', header: 'Value' },
-  { key: 'actions', header: '' },
-];
