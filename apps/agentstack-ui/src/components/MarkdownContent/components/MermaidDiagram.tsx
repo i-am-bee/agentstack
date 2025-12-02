@@ -13,47 +13,54 @@ import { Theme } from '#contexts/Theme/types.ts';
 import { Code } from './Code';
 import classes from './MermaidDiagram.module.scss';
 
-export type MermaidDiagramProps = HTMLAttributes<HTMLElement> & ExtraProps;
+export type MermaidDiagramProps = HTMLAttributes<HTMLElement> &
+  ExtraProps & {
+    showDiagram?: boolean;
+  };
 
-export function MermaidDiagram({ children }: MermaidDiagramProps) {
+export function MermaidDiagram({ showDiagram = true, children }: MermaidDiagramProps) {
   const id = useId();
   const [diagram, setDiagram] = useState<string | null>(null);
 
   const { theme } = useTheme();
 
   useEffect(() => {
-    let cancelled = false;
+    mermaid.initialize({ startOnLoad: false, theme: theme === Theme.Dark ? 'dark' : 'default' });
+  }, [theme]);
 
-    (async () => {
-      if (typeof children !== 'string') {
+  useEffect(() => {
+    let isMounted = true;
+
+    async function renderDiagram() {
+      if (!showDiagram || typeof children !== 'string') {
         return;
       }
 
       try {
-        mermaid.initialize({ startOnLoad: false, theme: theme === Theme.Dark ? 'dark' : 'default' });
-
         const { svg } = await mermaid.render(id, children);
 
-        if (!cancelled) {
+        if (isMounted) {
           setDiagram(svg);
         }
       } catch (error) {
-        if (!cancelled) {
+        if (isMounted) {
           console.warn(error);
         }
       }
-    })();
+    }
+
+    renderDiagram();
 
     return () => {
-      cancelled = true;
+      isMounted = false;
     };
-  }, [children, theme, id]);
+  }, [showDiagram, children, theme, id]);
 
   return (
     <div className={classes.root}>
       <Code className="language-mermaid">{children}</Code>
 
-      {diagram && <div dangerouslySetInnerHTML={{ __html: diagram }} className={classes.diagram} />}
+      {showDiagram && diagram && <div dangerouslySetInnerHTML={{ __html: diagram }} className={classes.diagram} />}
     </div>
   );
 }

@@ -13,6 +13,7 @@ import type { PluggableList } from 'unified';
 
 import { components, type ExtendedComponents } from './components';
 import { Code } from './components/Code';
+import { MermaidDiagram } from './components/MermaidDiagram';
 import classes from './MarkdownContent.module.scss';
 import { rehypePlugins } from './rehype';
 import { remarkPlugins } from './remark';
@@ -20,6 +21,7 @@ import { urlTransform } from './utils';
 
 export interface MarkdownContentProps {
   codeBlocksExpanded?: boolean;
+  showMermaidDiagrams?: boolean;
   children?: string;
   className?: string;
   remarkPlugins?: PluggableList;
@@ -28,6 +30,7 @@ export interface MarkdownContentProps {
 
 export function MarkdownContent({
   codeBlocksExpanded,
+  showMermaidDiagrams,
   className,
   remarkPlugins: remarkPluginsProps,
   components: componentsProps,
@@ -37,9 +40,10 @@ export function MarkdownContent({
     () => ({
       ...components,
       code: ({ ...props }) => <Code {...props} forceExpand={codeBlocksExpanded} />,
+      mermaidDiagram: ({ ...props }) => <MermaidDiagram {...props} showDiagram={showMermaidDiagrams} />,
       ...componentsProps,
     }),
-    [codeBlocksExpanded, componentsProps],
+    [codeBlocksExpanded, showMermaidDiagrams, componentsProps],
   );
 
   const extendedRemarkPlugins = useMemo(() => [...remarkPlugins, ...(remarkPluginsProps ?? [])], [remarkPluginsProps]);

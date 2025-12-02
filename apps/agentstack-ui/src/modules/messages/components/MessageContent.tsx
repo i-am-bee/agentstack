@@ -42,7 +42,12 @@ export const MessageContent = memo(function MessageContent({ message }: Props) {
     }
 
     return (
-      <ChatMarkdownContent className={classes.root} sources={sources} codeBlocksExpanded={isPending}>
+      <ChatMarkdownContent
+        className={classes.root}
+        sources={sources}
+        codeBlocksExpanded={isPending}
+        showMermaidDiagrams={!isPending}
+      >
         {content}
       </ChatMarkdownContent>
     );
