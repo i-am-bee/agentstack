@@ -8,6 +8,7 @@ from collections import defaultdict
 from datetime import timedelta
 from functools import cache
 from pathlib import Path
+from textwrap import dedent
 from typing import Any, Literal
 
 from pydantic import AnyUrl, BaseModel, Field, Secret, ValidationError, field_validator, model_validator
@@ -265,18 +266,43 @@ class A2AProxyConfiguration(BaseModel):
     requests_expire_after_days: int = 14
 
 
-class FeatureConfiguration(BaseModel):
-    generate_conversation_title: bool = True
-    provider_builds: bool = True
-
-
 class ProviderBuildConfiguration(BaseModel):
+    enabled: bool = True
     oci_build_registry_prefix: str | None = None
     image_format: str = "{registry_prefix}/{org}/{repo}/{path}:{commit_hash}"
     job_timeout_sec: int = int(timedelta(minutes=20).total_seconds())
     manifest_template_dir: Path | None = None
     k8s_namespace: str | None = None
     k8s_kubeconfig: Path | None = None
+
+
+class GenerateConversationTitleConfiguration(BaseModel):
+    enabled: bool = True
+    model: str | Literal["default"] = "default"
+    prompt: str = dedent(
+        """\
+        YOUR INSTRUCTIONS:
+        Write a short descriptive title for the conversation (max 100 characters).
+        Return only the title verbatim with no commentary or explanation.
+        Do not use markdown or any formatting.
+        Do not use emojis.
+        Do not use code blocks.
+        The title should be plain text only.
+
+        CONVERSATION CONTENT:
+        ```
+        User message:
+        {{ text }}
+
+        {% if files %}
+        Attached files:
+        {% for file in files %}
+        - {{ file.name or 'Unnamed file' }}{% if file.mimeType %} ({{ file.mimeType }}){% endif %}
+        {% endfor %}
+        {% endif %}
+        ```
+        """
+    )
 
 
 class Configuration(BaseSettings):
@@ -286,14 +312,16 @@ class Configuration(BaseSettings):
 
     auth: AuthConfiguration = Field(default_factory=AuthConfiguration)
     logging: LoggingConfiguration = Field(default_factory=LoggingConfiguration)
-    features: FeatureConfiguration = Field(default_factory=FeatureConfiguration)
+    generate_conversation_title: GenerateConversationTitleConfiguration = Field(
+        default_factory=GenerateConversationTitleConfiguration
+    )
+    provider_build: ProviderBuildConfiguration = Field(default_factory=ProviderBuildConfiguration)
     agent_registry: AgentRegistryConfiguration = Field(default_factory=AgentRegistryConfiguration)
     mcp: McpConfiguration = Field(default_factory=McpConfiguration)
     oci_registry: dict[str, OCIRegistryConfiguration] = Field(default_factory=dict)
     oci_registry_docker_config_json: dict[int, DockerConfigJson] = {}
     github_registry_config_json: GithubConfigJson = Field(default_factory=GithubConfigJson)
     github_registry: dict[str, GithubPATConfiguration | GithubAppConfiguration] = Field(default_factory=dict)
-    provider_build: ProviderBuildConfiguration = Field(default_factory=ProviderBuildConfiguration)
     telemetry: TelemetryConfiguration = Field(default_factory=TelemetryConfiguration)
     persistence: PersistenceConfiguration = Field(default_factory=PersistenceConfiguration)
     object_storage: ObjectStorageConfiguration = Field(default_factory=ObjectStorageConfiguration)

@@ -277,8 +277,12 @@ spec:
             - name: PROVIDER__AUTO_REMOVE_ENABLED
               value: "true"
             {{- end }}
-            - name: FEATURES__GENERATE_CONVERSATION_TITLE
-              value: {{ .Values.features.generateConversationTitle | quote }}
+            - name: GENERATE_CONVERSATION_TITLE__ENABLED
+              value: {{ .Values.generateConversationTitle.enabled | quote }}
+            - name: GENERATE_CONVERSATION_TITLE__MODEL
+              value: {{ .Values.generateConversationTitle.model | quote }}
+            - name: GENERATE_CONVERSATION_TITLE__PROMPT
+              value: {{ .Values.generateConversationTitle.prompt | quote }}
             - name: PROVIDER__MANIFEST_TEMPLATE_DIR
               value: /app/templates
             # Object Storage Configuration

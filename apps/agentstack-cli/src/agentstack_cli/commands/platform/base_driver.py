@@ -112,11 +112,7 @@ class BaseDriver(abc.ABC):
             "hostNetwork": True,
             "externalRegistries": {"public_github": str(Configuration().agent_registry)},
             "encryptionKey": "Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc=",
-            "features": {
-                "selfRegistration": True,
-                "generateConversationTitle": False,  # TODO: enable when UI implementation is ready
-                "uiLocalSetup": True,
-            },
+            "features": {"uiLocalSetup": True},
             "providerBuilds": {"enabled": True},
             "localDockerRegistry": {"enabled": True},
             "auth": {"enabled": False},

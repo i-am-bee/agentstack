@@ -6,39 +6,69 @@
 hostNetwork: false
 
 features:
-  selfRegistration: false
-  generateConversationTitle: false
-
   # UI only features
   uiLocalSetup: false
   uiMCP: true
   uiVariables: true
   uiProviders: false
 
+# How long task_id and context_id ownership will be tracked
+#   Performance considerations: all context IDs are recorded for this period
+#   Security Considerations:
+#     Agents should clear all local state stored under context_id within this time period
+#     No security implication for task_id (tasks ids can be generated only server-side in the agent)
+a2aProxyRequestsExpireAfterDays: 14
+
+# Prompt template for generating conversation titles (Jinja2 format)
+generateConversationTitle:
+  enabled: true
+  model: default
+  prompt: |
+    YOUR INSTRUCTIONS:
+    Write a short descriptive title for the conversation (max 100 characters).
+    Return only the title verbatim with no commentary or explanation.
+    Do not use markdown or any formatting.
+    Do not use emojis.
+    Do not use code blocks.
+    The title should be plain text only.
+
+    CONVERSATION CONTENT:
+    ```
+    User message:
+    {{ text }}
+
+    {% if files %}
+    Attached files:
+    {% for file in files %}
+    - {{ file.name or 'Unnamed file' }}{% if file.mimeType %} ({{ file.mimeType }}){% endif %}
+    {% endfor %}
+    {% endif %}
+    ```
+
 contextTokenPermissions:
   grant_global_permissions:
-    files: [ ]
-    feedback: [ ]
-    vector_stores: [ ]
+    files: []
+    feedback: []
+    vector_stores: []
     llm: ["*"]
     embeddings: ["*"]
-    model_providers: [ ]
-    a2a_proxy: [ ]
-    providers: [ ]
-    provider_variables: [ ]
-    contexts: [ ]
-    context_data: [ ]
-    mcp_providers: [ ]
-    mcp_tools: [ ]
-    mcp_proxy: [ ]
-    connectors: [ ]
+    model_providers: []
+    a2a_proxy: []
+    providers: []
+    provider_variables: []
+    contexts: []
+    context_data: []
+    mcp_providers: []
+    mcp_tools: []
+    mcp_proxy: []
+    connectors: []
   grant_context_permissions:
     files: ["*"]
     vector_stores: ["*"]
     context_data: ["*"]
 
 # -------- AGENTS ----------
-providers: [ ]
+providers: []
 # Example:
 # - location: ghcr.io/i-am-bee/agentstack/agent-1-example:0.1.0
 #   auto_stop_timeout_sec: 0 # disable agent downscaling
@@ -50,25 +80,18 @@ providers: [ ]
 #   auto_stop_timeout_sec: 600 # downscale after 10 minutes
 
 # DEPRECATED: Unmanaged providers
-unmanagedProviders: [ ] # DEPRECATED: use providers instead
-variables: { } # DEPRECATED: use server API to manage variables instead
+unmanagedProviders: [] # DEPRECATED: use providers instead
+variables: {} # DEPRECATED: use server API to manage variables instead
 
 # External registries in the format: [name: githubURL]
 # for example
 # github: "https://github.com/i-am-bee/agentstack@v0.2.14#path=agent-registry.yaml"
-externalRegistries: { }
+externalRegistries: {}
 
 # Cron schedule for syncing external registries
 agentRegistrySyncPeriodCron: "*/30 * * * * *"
 
 # ------- SECURITY ---------
-
-# How long task_id and context_id ownership will be tracked
-#   Performance considerations: all context IDs are recorded for this period
-#   Security Considerations:
-#     Agents should clear all local state stored under context_id within this time period
-#     No security implication for task_id (tasks ids can be generated only server-side in the agent)
-a2aProxyRequestsExpireAfterDays: 14
 
 encryptionKey: ""
 auth:
@@ -87,22 +110,22 @@ auth:
     nextauth_url: "https://agentstack.localhost:8336"
     validate_audience: true
     providers: [
-      {
-        "name": "IBMiD-PKCE",
-        "id": "ibmid-pkce",
-        "type": "oidc",
-        "client_id": "<oidc_client_id>",
-        "client_secret": "", # empty string for public client
-        "issuer": "<oidc_issuer>",
-      },
-      {
-        "name": "w3id",
-        "id": "w3id",
-        "client_id": "<oidc_client_id>",
-        "client_secret": "<oidc_client_secret>",
-        "issuer": "<oidc_issuer>",
-      }
-    ]
+        {
+          "name": "IBMiD-PKCE",
+          "id": "ibmid-pkce",
+          "type": "oidc",
+          "client_id": "<oidc_client_id>",
+          "client_secret": "", # empty string for public client
+          "issuer": "<oidc_issuer>",
+        },
+        {
+          "name": "w3id",
+          "id": "w3id",
+          "client_id": "<oidc_client_id>",
+          "client_secret": "<oidc_client_secret>",
+          "issuer": "<oidc_issuer>",
+        },
+      ]
 
 # In agentstack-server this is used to determine the request origin and dynamically create agent card.
 # For example https://agentstack.example.com/api/v1/providers/{provider_id} will return an agent cart with URL for
@@ -114,7 +137,7 @@ trustProxyHeaders: false
 # GitHub configuration for accessing private repositories
 # This creates a .githubconfigjson file in the agentstack-secret
 github:
-  auths: { }
+  auths: {}
   # Example configurations:
   # auths:
   #   "github.com":
@@ -130,7 +153,7 @@ github:
   #       -----END RSA PRIVATE KEY-----
 
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
-imagePullSecrets: [ ]
+imagePullSecrets: []
 
 providerBuilds:
   enabled: false
@@ -144,7 +167,7 @@ providerBuilds:
     useSecurityContextCapabilities: false
   externalClusterExecutor:
     serviceAccountName: ""
-    namespace: ""  # Kubernetes namespace for provider builds (defaults to current namespace if empty)
+    namespace: "" # Kubernetes namespace for provider builds (defaults to current namespace if empty)
     kubeconfig: "" # Kubeconfig YAML content for external cluster (optional)
     # Example:
     # kubeconfig: |
@@ -169,15 +192,15 @@ replicaCount: 1
 
 # This is for setting Kubernetes Annotations to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
-podAnnotations: { }
+podAnnotations: {}
 # This is for setting Kubernetes Labels to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
-podLabels: { }
+podLabels: {}
 
-podSecurityContext: { }
+podSecurityContext: {}
 # fsGroup: 2000
 
-securityContext: { }
+securityContext: {}
 # capabilities:
 #   drop:
 #   - ALL
@@ -207,7 +230,7 @@ resources:
 ingress:
   enabled: false
   className: ""
-  annotations: { }
+  annotations: {}
   # kubernetes.io/ingress.class: nginx
   # kubernetes.io/tls-acme: "true"
   hosts:
@@ -215,7 +238,7 @@ ingress:
       paths:
         - path: /
           pathType: ImplementationSpecific
-  tls: [ ]
+  tls: []
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
@@ -227,7 +250,7 @@ serviceAccount:
   # Automatically mount a ServiceAccount's API credentials?
   automount: true
   # Annotations to add to the service account
-  annotations: { }
+  annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
@@ -249,7 +272,7 @@ readinessProbe:
   periodSeconds: 5
 
 # Additional volumes on the output Deployment definition.
-volumes: [ ]
+volumes: []
 
 # - name: foo
 #   secret:
@@ -257,16 +280,16 @@ volumes: [ ]
 #     optional: false
 
 # Additional volumeMounts on the output Deployment definition.
-volumeMounts: [ ]
+volumeMounts: []
 # - name: foo
 #   mountPath: "/etc/foo"
 #   readOnly: true
 
-nodeSelector: { }
+nodeSelector: {}
 
-tolerations: [ ]
+tolerations: []
 
-affinity: { }
+affinity: {}
 
 # Uvicorn --timeout-keep-alive (in seconds)
 uvicornTimeoutKeepAlive: 5
@@ -296,33 +319,33 @@ ui:
     repository: ghcr.io/i-am-bee/agentstack/agentstack-ui
     pullPolicy: IfNotPresent
     tag: ""
-    resources: { }
+    resources: {}
   service:
     type: ClusterIP
     port: 8334
     nodePort: 8334
-  podAnnotations: { }
-  podSecurityContext: { }
-  securityContext: { }
+  podAnnotations: {}
+  podSecurityContext: {}
+  securityContext: {}
   podLabels:
     istio.io/dataplane-mode: ambient
-  resources: { }
-  nodeSelector: { }
-  tolerations: { }
-  affinity: { }
-  livenessProbe: { }
-  readinessProbe: { }
+  resources: {}
+  nodeSelector: {}
+  tolerations: {}
+  affinity: {}
+  livenessProbe: {}
+  readinessProbe: {}
 
 # --------- AGENT ----------
 agent:
-  podAnnotations: { }
+  podAnnotations: {}
   deploymentStrategy: RollingUpdate
-  deploymentAnnotations: { }
+  deploymentAnnotations: {}
   imagePullPolicy: IfNotPresent
-  podLabels: { }
-  resources: { }
-  securityContext: { }
-  podSecurityContext: { }
+  podLabels: {}
+  resources: {}
+  securityContext: {}
+  podSecurityContext: {}
   service:
     type: ClusterIP
     port: 8000
@@ -341,12 +364,11 @@ agent:
     periodSeconds: 10
     timeoutSeconds: 2
     failureThreshold: 2
-  volumes: [ ]
-  volumeMounts: [ ]
-  nodeSelector: { }
-  tolerations: [ ]
-  affinity: { }
-
+  volumes: []
+  volumeMounts: []
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
 
 # ----- INFRASTRUCTURE ------
 
@@ -391,12 +413,12 @@ phoenix:
 
 collector:
   image: ghcr.io/i-am-bee/otel/opentelemetry-collector-contrib:0.122.1
-  livenessProbe: { }
-  readinessProbe: { }
-  resources: { }
-  exporters: { }
-  processors: { }
-  pipelines: { }
+  livenessProbe: {}
+  readinessProbe: {}
+  resources: {}
+  exporters: {}
+  processors: {}
+  pipelines: {}
   service:
     type: ClusterIP
 
@@ -449,7 +471,7 @@ postgresql:
     ##     cpu: 3
     ##     memory: 1024Mi
     ##
-    resources: { }
+    resources: {}
 ## External PostgreSQL configuration
 ## All of these values are only used when postgresql.enabled is set to false
 ## @param externalDatabase.host Database host (ignored if externalDatabase.sqlConnection is set)
@@ -476,7 +498,6 @@ externalDatabase:
   #   -----BEGIN CERTIFICATE-----
   #   ...
   #   -----END CERTIFICATE-----
-
 
 ## SeaweedFS chart configuration
 ## ref: https://github.com/seaweedfs/seaweedfs/tree/master/k8s/charts/seaweedfs
@@ -518,7 +539,6 @@ seaweedfs:
     sftp:
       enabled: false
 
-
 ## @section External S3 parameters
 ## All of these values are only used when redis.enabled is set to false
 ## @param externalS3.host External S3 host
@@ -546,11 +566,11 @@ externalS3:
 
 docling:
   enabled: false
-  podAnnotations: { }
-  podSecurityContext: { }
-  podLabels: { }
-  resources: { }
-  livenessProbe: { }
+  podAnnotations: {}
+  podSecurityContext: {}
+  podLabels: {}
+  resources: {}
+  livenessProbe: {}
   # Unfortunately, docling does not handle IO properly and does not respond to health requests while processing file
   #    httpGet:
   #      path: /health

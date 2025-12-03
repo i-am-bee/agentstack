@@ -51,7 +51,7 @@ ROLE_PERMISSIONS: dict[UserRole, Permissions] = {
         mcp_providers={"read"},
         mcp_tools={"read"},
         mcp_proxy={"*"},
-        connectors={"*"}
+        connectors={"*"},
     ),
 }
 ROLE_PERMISSIONS[UserRole.DEVELOPER] = ROLE_PERMISSIONS[UserRole.USER] | Permissions(
