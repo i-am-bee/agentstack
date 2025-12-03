@@ -17,12 +17,16 @@ import classes from './MermaidDiagram.module.scss';
 
 export type MermaidDiagramProps = HTMLAttributes<HTMLElement> & ExtraProps & { mermaidIndex?: number };
 
-export function MermaidDiagram({ children, ...props }: MermaidDiagramProps) {
+export function MermaidDiagram({ children, mermaidIndex }: MermaidDiagramProps) {
   const id = useId();
   const { theme } = useTheme();
   const { diagrams, setDiagram } = useMermaid();
 
-  const index = props.mermaidIndex ?? 0;
+  if (mermaidIndex === undefined) {
+    console.error('MermaidDiagram component requires a `mermaidIndex` prop.');
+  }
+  const index = mermaidIndex ?? 0;
+
   const diagram = diagrams.get(index);
 
   useEffect(() => {

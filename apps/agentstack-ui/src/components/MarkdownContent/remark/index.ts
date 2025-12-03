@@ -14,7 +14,7 @@ import { remarkMermaidIndex } from './remarkMermaidIndex';
 export const remarkPlugins = [
   remarkGfm,
   [remarkMath, { singleDollarTextMath: false }],
-  remarkMermaid,
   remarkMermaidIndex,
+  remarkMermaid,
   remarkExternalLink,
 ] satisfies PluggableList;
