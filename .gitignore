@@ -219,3 +219,6 @@ mise.local.toml
 !.vscode/launch.json
 !.vscode/extensions.json
 !.vscode/*.code-snippets
+
+# Github Copilot
+.github/copilot-instructions.md

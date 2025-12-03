@@ -3,26 +3,27 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { InlineLoading } from '@carbon/react';
 import mermaid from 'mermaid';
-import { type HTMLAttributes, useEffect, useId, useState } from 'react';
+import { type HTMLAttributes, useEffect, useId } from 'react';
 import type { ExtraProps } from 'react-markdown';
 
 import { useTheme } from '#contexts/Theme/index.ts';
 import { Theme } from '#contexts/Theme/types.ts';
 
+import { useMermaid } from '../contexts';
 import { Code } from './Code';
 import classes from './MermaidDiagram.module.scss';
 
-export type MermaidDiagramProps = HTMLAttributes<HTMLElement> &
-  ExtraProps & {
-    showDiagram?: boolean;
-  };
+export type MermaidDiagramProps = HTMLAttributes<HTMLElement> & ExtraProps & { mermaidIndex?: number };
 
-export function MermaidDiagram({ showDiagram = true, children }: MermaidDiagramProps) {
+export function MermaidDiagram({ children, ...props }: MermaidDiagramProps) {
   const id = useId();
-  const [diagram, setDiagram] = useState<string | null>(null);
-
   const { theme } = useTheme();
+  const { diagrams, setDiagram } = useMermaid();
+
+  const index = props.mermaidIndex ?? 0;
+  const diagram = diagrams.get(index);
 
   useEffect(() => {
     mermaid.initialize({ startOnLoad: false, theme: theme === Theme.Dark ? 'dark' : 'default' });
@@ -32,7 +33,7 @@ export function MermaidDiagram({ showDiagram = true, children }: MermaidDiagramP
     let isMounted = true;
 
     async function renderDiagram() {
-      if (!showDiagram || typeof children !== 'string') {
+      if (typeof children !== 'string') {
         return;
       }
 
@@ -40,7 +41,7 @@ export function MermaidDiagram({ showDiagram = true, children }: MermaidDiagramP
         const { svg } = await mermaid.render(id, children);
 
         if (isMounted) {
-          setDiagram(svg);
+          setDiagram(index, svg);
         }
       } catch (error) {
         if (isMounted) {
@@ -54,13 +55,19 @@ export function MermaidDiagram({ showDiagram = true, children }: MermaidDiagramP
     return () => {
       isMounted = false;
     };
-  }, [showDiagram, children, theme, id]);
+  }, [children, theme, id, setDiagram, index]);
 
   return (
     <div className={classes.root}>
       <Code className="language-mermaid">{children}</Code>
 
-      {showDiagram && diagram && <div dangerouslySetInnerHTML={{ __html: diagram }} className={classes.diagram} />}
+      {diagram ? (
+        <div dangerouslySetInnerHTML={{ __html: diagram }} className={classes.diagram} />
+      ) : (
+        <div className={classes.loading}>
+          <InlineLoading description="Rendering diagram..." />
+        </div>
+      )}
     </div>
   );
 }

@@ -12,3 +12,14 @@
 .diagram {
   text-align: center;
 }
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-block-size: rem(120px);
+
+  :global(.cds--inline-loading) {
+    justify-content: center;
+  }
+}

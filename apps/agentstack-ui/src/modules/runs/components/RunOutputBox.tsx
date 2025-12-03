@@ -31,7 +31,7 @@ export function RunOutputBox({ isPending, text, downloadFileName, sources, child
       )}
 
       {text && (
-        <ChatMarkdownContent sources={sources} codeBlocksExpanded={isPending} showMermaidDiagrams={!isPending}>
+        <ChatMarkdownContent sources={sources} codeBlocksExpanded={isPending}>
           {text}
         </ChatMarkdownContent>
       )}
