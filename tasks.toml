@@ -187,12 +187,12 @@ run = '''
 #!/bin/bash
 set -eu -o pipefail
 
-# Ensure working directory is clean
 if [[ -n "$(git status --porcelain)" ]]; then
   echo "ERROR: Working directory not clean"
-  git status
   exit 1
-fi
+ fi
+
+
 
 current_branch=$(git rev-parse --abbrev-ref HEAD)
 if [[ "$current_branch" != "main" ]]; then
@@ -200,69 +200,42 @@ if [[ "$current_branch" != "main" ]]; then
   exit 1
 fi
 
-# Fetch latest from origin to get current state
-git fetch origin
-
-# Checkout release branch (create if it doesn't exist)
-if git show-ref --verify --quiet refs/heads/release; then
-  # Branch exists locally, just checkout
-  git checkout release
-elif git show-ref --verify --quiet refs/remotes/origin/release; then
-  # Branch exists on remote, checkout and track
-  git checkout -b release origin/release
-else
-  # Branch doesn't exist, create it
-  git checkout -b release
-fi
-
-# Reset release branch to latest origin/main
-git reset --hard origin/main
-
-# Create RC via bump
-mise run bump
-
-# Checkout main and bump version
-git checkout main
-
-# Get current version
 current_version=$(yq -r '.version' helm/Chart.yaml)
+rc_version="${current_version}-rc1"
 
-# Validate that version is in x.y.z format
 if [[ "$current_version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
   major="${BASH_REMATCH[1]}"
   minor="${BASH_REMATCH[2]}"
   patch="${BASH_REMATCH[3]}"
-  next_patch=$((patch + 1))
-  suggested_version="${major}.${minor}.${next_patch}"
+  next_version="${major}.${minor}.$((patch + 1))"
 else
   echo "ERROR: Invalid version format: $current_version. Expected format: X.Y.Z"
   exit 1
 fi
 
-# Ask user to confirm the suggested version
-if ! gum confirm "Bump version from $current_version to $suggested_version?"; then
-  echo "Version bump cancelled."
+# Show what will happen and ask for confirmation
+echo "  Current version (main): $current_version"
+echo ""
+echo "  Actions:"
+echo "  1. Create RC in release branch: $rc_version"
+echo "  2. Bump version in main branch: $next_version"
+echo ""
+
+if ! gum confirm "Proceed with the release?"; then
+  echo "Release cancelled."
   exit 0
 fi
 
-next_version="$suggested_version"
+git checkout release
+git reset --hard origin/main
 
-# Update all version fields in main
-yq -i ".version = \"$next_version\"" helm/Chart.yaml
-yq -i ".appVersion = \"$next_version\"" helm/Chart.yaml
-(cd apps/agentstack-sdk-py && toml set 'project.version' "$next_version" --toml-path pyproject.toml && uv lock)
-(cd apps/agentstack-cli && toml set 'project.version' "$next_version" --toml-path pyproject.toml && uv lock)
-(cd apps/agentstack-server && toml set 'project.version' "$next_version" --toml-path pyproject.toml && uv lock)
-for agent in agents/*; do (cd $agent && uv lock); done
-yq -i ".version = \"$next_version\"" apps/agentstack-sdk-ts/package.json
-yq -i ".version = \"$next_version\"" apps/agentstack-ui/package.json
-yq -i ".version = \"$next_version\"" apps/beeai-web/package.json
-yq -i ".providers[].location |= sub(\":(.*)\$\"; \":\" + \"$next_version\")" agent-registry.yaml
+mise run bump --version="$rc_version"
 
-# Commit and push version bump to main
-git add .
-git commit -m "chore: bump version to v$next_version"
-git push origin main
+git checkout main
+git pull origin main
+
+# Bump version on main
+mise run bump --version="$next_version"
 '''
 
 ["bump"]
@@ -315,8 +288,13 @@ if [[ "$current_branch" == "release" ]]; then
   git tag "v$new_version"
   git push origin tag "v$new_version"
   echo "✅ Version updated to $new_version, tagged and pushed"
+elif [[ "$current_branch" == "main" ]]; then
+  echo "On main branch, pushing to origin..."
+  git push origin main
+  echo "✅ Version updated to $new_version, committed and pushed to main"
 else
-  echo "✅ Version updated to $new_version and committed"
+  echo "ERROR: Cannot push from branch '$current_branch'. Only 'release' and 'main' branches are supported."
+  exit 1
 fi
 '''
 
