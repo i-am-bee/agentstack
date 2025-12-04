@@ -46,7 +46,7 @@ while command -v beeai >/dev/null && rm $(command -v beeai); do true; done
 # It also avoids accidentally installing prereleases of dependencies by only allowing explicitly set ones
 echo "Installing Agent Stack CLI..."
 case "${AGENTSTACK_VERSION:-latest}" in "latest") AGENTSTACK_VERSION=$LATEST_STABLE_AGENTSTACK_VERSION ;; "pre") AGENTSTACK_VERSION=$LATEST_AGENTSTACK_VERSION ;; esac
-uv tool install --quiet --python-preference=only-managed --python=3.13 --refresh --prerelease if-necessary-or-explicit --with "agentstack-sdk==$AGENTSTACK_VERSION" "agentstack-cli==$AGENTSTACK_VERSION" || error
+uv tool install --quiet --python-preference=only-managed --python=3.13 --refresh --prerelease if-necessary-or-explicit --with "agentstack-sdk==$AGENTSTACK_VERSION" "agentstack-cli==$AGENTSTACK_VERSION" --force || error
 
 # Finish set up using CLI (install QEMU on Linux, start platform, set up API keys, run UI, ...)
 agentstack self install
