@@ -331,7 +331,7 @@ git push --force origin release
 git push origin tag "v$rc_version"
 '''
 
-["deploy"]
+["publish"]
 dir = "{{config_root}}"
 run = '''
 #!/bin/bash
@@ -352,33 +352,52 @@ if [[ -n "$(git status --porcelain)" ]]; then
 fi
 
 current_version=$(yq -r '.version' helm/Chart.yaml)
-deploy_version="${current_version%-rc*}"
+publish_version="${current_version%-rc*}"
 
 # Update all version fields
-yq -i ".version = \"$deploy_version\"" helm/Chart.yaml
-yq -i ".appVersion = \"$deploy_version\"" helm/Chart.yaml
-(cd apps/agentstack-sdk-py && toml set 'project.version' "$deploy_version" --toml-path pyproject.toml && uv lock)
-(cd apps/agentstack-cli && toml set 'project.version' "$deploy_version" --toml-path pyproject.toml && uv lock)
-(cd apps/agentstack-server && toml set 'project.version' "$deploy_version" --toml-path pyproject.toml && uv lock)
+yq -i ".version = \"$publish_version\"" helm/Chart.yaml
+yq -i ".appVersion = \"$publish_version\"" helm/Chart.yaml
+(cd apps/agentstack-sdk-py && toml set 'project.version' "$publish_version" --toml-path pyproject.toml && uv lock)
+(cd apps/agentstack-cli && toml set 'project.version' "$publish_version" --toml-path pyproject.toml && uv lock)
+(cd apps/agentstack-server && toml set 'project.version' "$publish_version" --toml-path pyproject.toml && uv lock)
 for agent in agents/*; do (cd $agent && uv lock); done
-yq -i ".version = \"$deploy_version\"" apps/agentstack-sdk-ts/package.json
-yq -i ".version = \"$deploy_version\"" apps/agentstack-ui/package.json
-yq -i ".version = \"$deploy_version\"" apps/beeai-web/package.json
-yq -i ".providers[].location |= sub(\":(.*)\$\"; \":\" + \"$deploy_version\")" agent-registry.yaml
-if [[ "$deploy_version" != *"-rc"* ]]; then perl -pi -e "s/^(LATEST_STABLE_AGENTSTACK_VERSION=).*/\${1}$deploy_version/" install.sh; fi
+yq -i ".version = \"$publish_version\"" apps/agentstack-sdk-ts/package.json
+yq -i ".version = \"$publish_version\"" apps/agentstack-ui/package.json
+yq -i ".version = \"$publish_version\"" apps/beeai-web/package.json
+yq -i ".providers[].location |= sub(\":(.*)\$\"; \":\" + \"$publish_version\")" agent-registry.yaml
+perl -pi -e "s/^(LATEST_AGENTSTACK_VERSION=).*/\${1}$publish_version/" install.sh
+if [[ "$publish_version" != *"-rc"* ]]; then perl -pi -e "s/^(LATEST_STABLE_AGENTSTACK_VERSION=).*/\${1}$publish_version/" install.sh; fi
 
 # Confirm commit and push
-if gum confirm "Release version $deploy_version now?"; then
+if gum confirm "Publish version $publish_version now?"; then
   (
     set -eux -o pipefail
     git add .
-    git commit -m "deploy: v$deploy_version"
-    git tag "v$deploy_version"
-    git push origin tag "v$deploy_version"
+    git commit -m "deploy: v$publish_version"
+    git tag "v$publish_version"
+    git push origin tag "v$publish_version"
+    git push origin release
   )
+  
+  # Backport install.sh version updates to main branch
+  echo "Backporting install.sh version updates to main branch..."
+  (
+    set -eux -o pipefail
+    # Save install.sh from release branch
+    install_sh_content=$(cat install.sh)
+    git checkout main
+    git pull origin main
+    # Copy install.sh from release branch as-is
+    echo "$install_sh_content" > install.sh
+    git add install.sh
+    git commit -m "chore: update install.sh version to v$publish_version"
+    git push origin main
+    git checkout release
+  )
+  
   if command -v gh >/dev/null; then
     gum spin --title="Waiting for GitHub Action to start..." sleep 10
-    gh run watch $(gh run list --workflow=Release --branch=v$deploy_version --limit=1 --json databaseId,status -q '.[0].databaseId') || true
+    gh run watch $(gh run list --workflow=Release --branch=v$publish_version --limit=1 --json databaseId,status -q '.[0].databaseId') || true
   fi
   echo "GitHub action started. Check the progress and result on: https://github.com/i-am-bee/agentstack/actions/workflows/release.yml"
 fi
