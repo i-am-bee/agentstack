@@ -17,6 +17,14 @@
             "path": "apps/agentstack-cli"
         },
         {
+            "name": "agentstack-ui",
+            "path": "apps/agentstack-ui",
+        },
+        {
+            "name": "beeai-web",
+            "path": "apps/beeai-web",
+        },
+        {
             "name": "agent-chat",
             "path": "agents/chat"
         },
@@ -38,7 +46,7 @@
             "${workspaceFolder}/apps/agentstack-sdk-py/src"
         ],
         "python.analysis.diagnosticMode": "openFilesOnly",
-        "python.analysis.typeCheckingMode": "basic",
+        "python.analysis.typeCheckingMode": "off",
         "files.associations": {
             "**/helm/templates/**/*.yaml": "helm",
             "**/helm/templates/**/*.tpl": "helm"
