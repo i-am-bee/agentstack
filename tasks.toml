@@ -334,23 +334,13 @@ fi
 current_version=$(yq -r '.version' helm/Chart.yaml)
 publish_version="${current_version%-rc*}"
 
-# Update all version fields
-yq -i ".version = \"$publish_version\"" helm/Chart.yaml
-yq -i ".appVersion = \"$publish_version\"" helm/Chart.yaml
-(cd apps/agentstack-sdk-py && toml set 'project.version' "$publish_version" --toml-path pyproject.toml && uv lock)
-(cd apps/agentstack-cli && toml set 'project.version' "$publish_version" --toml-path pyproject.toml && uv lock)
-(cd apps/agentstack-server && toml set 'project.version' "$publish_version" --toml-path pyproject.toml && uv lock)
-for agent in agents/*; do (cd $agent && uv lock); done
-yq -i ".version = \"$publish_version\"" apps/agentstack-sdk-ts/package.json
-yq -i ".version = \"$publish_version\"" apps/agentstack-ui/package.json
-yq -i ".version = \"$publish_version\"" apps/beeai-web/package.json
-yq -i ".providers[].location |= sub(\":(.*)\$\"; \":\" + \"$publish_version\")" agent-registry.yaml
-mise run _update-install-sh --version="$publish_version"
 
 # Confirm commit and push
 if gum confirm "Publish version $publish_version now?"; then
   (
     set -eux -o pipefail
+    mise run bump --version="$publish_version"
+
     git add .
     git commit -m "deploy: v$publish_version"
     git tag "v$publish_version"
@@ -365,7 +355,6 @@ if gum confirm "Publish version $publish_version now?"; then
     git checkout main
     git pull origin main
 
-    # Apply version updates surgically
     mise run _update-install-sh --version="$publish_version"
 
     git add install.sh
