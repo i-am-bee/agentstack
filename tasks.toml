@@ -181,7 +181,7 @@ export PS1="(${VM_NAME}) ${__OLD_PS1}"
 
 """
 
-["release"]
+["release:new"]
 dir = "{{config_root}}"
 run = '''
 #!/bin/bash
@@ -229,16 +229,16 @@ fi
 git checkout release
 git reset --hard origin/main
 
-mise run bump --version="$rc_version"
+mise run release:bump --version="$rc_version"
 
 git checkout main
 git pull origin main
 
 # Bump version on main
-mise run bump --version="$next_version"
+mise run release:bump --version="$next_version"
 '''
 
-["_update-install-sh"]
+["release:_update-install-sh"]
 hide = true
 dir = "{{config_root}}"
 run = '''
@@ -260,7 +260,7 @@ fi
 echo "Updated install.sh version constants for: $version"
 '''
 
-["bump"]
+["release:bump"]
 dir = "{{config_root}}"
 run = '''
 #!/bin/bash
@@ -290,7 +290,7 @@ yq -i ".version = \"$new_version\"" apps/agentstack-ui/package.json
 yq -i ".version = \"$new_version\"" apps/beeai-web/package.json
 yq -i ".providers[].location |= sub(\":(.*)\$\"; \":\" + \"$new_version\")" agent-registry.yaml
 
-mise run _update-install-sh --version="$new_version"
+mise run release:_update-install-sh --version="$new_version"
 
 git add .
 git commit -m "bump: v$new_version"
@@ -311,7 +311,7 @@ else
 fi
 '''
 
-["publish"]
+["release:publish"]
 dir = "{{config_root}}"
 run = '''
 #!/bin/bash
@@ -334,12 +334,11 @@ fi
 current_version=$(yq -r '.version' helm/Chart.yaml)
 publish_version="${current_version%-rc*}"
 
-
 # Confirm commit and push
 if gum confirm "Publish version $publish_version now?"; then
   (
     set -eux -o pipefail
-    mise run bump --version="$publish_version"
+    mise run release:bump --version="$publish_version"
 
     git add .
     git commit -m "deploy: v$publish_version"
@@ -355,7 +354,7 @@ if gum confirm "Publish version $publish_version now?"; then
     git checkout main
     git pull origin main
 
-    mise run _update-install-sh --version="$publish_version"
+    mise run release:_update-install-sh --version="$publish_version"
 
     git add install.sh
     git commit -m "chore: update install.sh version to v$publish_version"

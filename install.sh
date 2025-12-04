@@ -4,7 +4,7 @@ set -eu
 # Configurable through env vars:
 # AGENTSTACK_VERSION = latest (default, latest stable version) | pre (latest version including prereleases) | <version> (specific version)
 
-# These get updated by `mise release`:
+# These get updated by `mise release:new` and `mise release:publish`:
 LATEST_STABLE_AGENTSTACK_VERSION=0.4.1
 LATEST_AGENTSTACK_VERSION=0.4.2-rc10
 

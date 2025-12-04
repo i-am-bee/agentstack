@@ -318,14 +318,14 @@ mise agentstack-server:run
 
 Agent Stack is using `main` branch for next version development and `release` branch for stable releases.
 
-The release process consists of two steps:
+The release process consists of three steps:
 
 ### Step 1: Cut the release
 
-Run the `release` task from the `main` branch:
+Run the `release:new` task from the `main` branch:
 
 ```shell
-mise run prerelease
+mise run release:new
 ```
 
 This would
@@ -336,7 +336,7 @@ This would
 
 ### Step 2: QA & Polish the release on release branch
 
-You can then iteratively polish the release in `release` branch. You need to increment the `rc` number with each change.
+You can then iteratively polish the release in `main` branch and cherry-pick the commits to `release`. You can then do `mise run release:bump --version=X.Y.Z-rcW` to push new RC for testing.
 
 ### Step 3: Deploy
 
@@ -344,7 +344,7 @@ Once you've verified the RC version works, deploy the final release from the `re
 
 ```shell
 git checkout release
-mise run deploy
+mise run release:publish
 ```
 
 This task will simply create a final tag for `release` version and push, which triggers GH action to deploy to pypi and npm.
