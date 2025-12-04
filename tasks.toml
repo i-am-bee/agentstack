@@ -227,12 +227,13 @@ if ! gum confirm "Proceed with the release?"; then
   exit 0
 fi
 
+git fetch origin
 git checkout release
 git reset --hard origin/main
 
 {{ mise_bin }} release:bump --version="$rc_version"
 
-git push -f origin release
+git push --force-with-lease origin release
 
 git checkout main
 git pull origin main
