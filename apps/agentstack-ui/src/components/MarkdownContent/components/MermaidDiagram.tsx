@@ -30,8 +30,6 @@ export function MermaidDiagram({ children, mermaidIndex, isStreaming }: MermaidD
 
   const diagram = diagrams.get(index);
 
-  console.log({ index, isStreaming, diagram });
-
   useEffect(() => {
     mermaid.initialize({
       startOnLoad: false,
