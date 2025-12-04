@@ -152,12 +152,50 @@ configuration = Configuration()
 
 @app.command("add")
 async def add_agent(
-    location: typing.Annotated[str, typer.Argument(help="Agent location (public docker image or github url)")],
+    location: typing.Annotated[
+        str | None, typer.Argument(help="Agent location (public docker image or github url)")
+    ] = None,
     dockerfile: typing.Annotated[str | None, typer.Option(help="Use custom dockerfile path")] = None,
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
     yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ) -> None:
     """Add a docker image or GitHub repository [aliases: install]"""
+    if location is None:
+        repo_input = (
+            await inquirer.text(  # pyright: ignore[reportPrivateImportUsage]
+                message="Enter GitHub repository (owner/repo or full URL):",
+            ).execute_async()
+            or ""
+        )
+
+        match = re.search(r"^(?:(?:https?://)?(?:www\.)?github\.com/)?([^/]+)/([^/?&]+)", repo_input)
+        if not match:
+            raise ValueError(f"Invalid GitHub URL format: {repo_input}. Expected 'owner/repo' or a full GitHub URL.")
+
+        owner, repo = match.group(1), match.group(2).removesuffix(".git")
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"https://api.github.com/repos/{owner}/{repo}/tags",
+                headers={"Accept": "application/vnd.github.v3+json"},
+            )
+            tags = [tag["name"] for tag in response.json()] if response.status_code == 200 else []
+
+        if tags:
+            selected_tag = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
+                message="Select a tag to use:",
+                choices=tags,
+            ).execute_async()
+        else:
+            selected_tag = (
+                await inquirer.text(  # pyright: ignore[reportPrivateImportUsage]
+                    message="Enter tag to use:",
+                ).execute_async()
+                or "main"
+            )
+
+        location = f"https://github.com/{owner}/{repo}@{selected_tag}"
+
     url = announce_server_action(f"Installing agent '{location}' for")
     await confirm_server_action("Proceed with installing this agent on", url=url, yes=yes)
     with verbosity(verbose):

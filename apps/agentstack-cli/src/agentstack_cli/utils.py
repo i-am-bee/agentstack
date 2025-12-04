@@ -142,7 +142,7 @@ async def confirm_server_action(message: str, url: str | None = None, *, yes: bo
         return
     url = url or require_active_server()
     confirmed = await inquirer.confirm(  # type: ignore
-        message=f"{message} [cyan]{url}[/cyan]?", default=False
+        message=f"{message} {url}?", default=False
     ).execute_async()
     if not confirmed:
         console.info("Action cancelled.")
