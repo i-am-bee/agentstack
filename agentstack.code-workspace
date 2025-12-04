@@ -46,7 +46,7 @@
             "${workspaceFolder}/apps/agentstack-sdk-py/src"
         ],
         "python.analysis.diagnosticMode": "openFilesOnly",
-        "python.analysis.typeCheckingMode": "off",
+        "python.analysis.typeCheckingMode": "basic",
         "files.associations": {
             "**/helm/templates/**/*.yaml": "helm",
             "**/helm/templates/**/*.tpl": "helm"
