@@ -271,64 +271,53 @@ run = '''
 #!/bin/bash
 set -eu -o pipefail
 
-# Ensure working directory is clean
-if [[ -n "$(git status --porcelain)" ]]; then
-  echo "ERROR: Working directory not clean"
-  git status
+# Get version parameter
+new_version='{{option(name="version", required=true)}}'
+
+# Validate version format (X.Y.Z or X.Y.Z-rcW)
+if ! [[ "$new_version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(-rc[0-9]+)?$ ]]; then
+  echo "ERROR: Invalid version format: $new_version"
+  echo "Expected format: X.Y.Z or X.Y.Z-rcW (e.g., 1.2.3 or 1.2.3-rc1)"
   exit 1
 fi
 
-current_branch=$(git rev-parse --abbrev-ref HEAD)
-if [[ "$current_branch" != "release" ]]; then
-  echo "ERROR: You must be on the 'release' branch (current: $current_branch)"
-  exit 1
-fi
+echo "Updating version to $new_version..."
 
-# Get current version
-current_version=$(yq -r '.version' helm/Chart.yaml)
-
-# Extract version components and compute suggested versions
-if [[ "$current_version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-  # Version is x.y.z without rc, add -rc1
-  rc_version="${current_version}-rc1"
-elif [[ "$current_version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)-rc([0-9]+)$ ]]; then
-  # Version is x.y.z-rcN, increment RC number
-  base_version="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${BASH_REMATCH[3]}"
-  rc_number="${BASH_REMATCH[4]}"
-  next_rc=$((rc_number + 1))
-  rc_version="${base_version}-rc${next_rc}"
-else
-  echo "ERROR: Invalid version format of current version. Use #.#.# or #.#.#-rc#"
-  exit 1
-fi
-
-# Confirm bump
-if ! gum confirm "Bump the release from $current_version to $rc_version?"; then
-  echo "Bump cancelled."
-  exit 0
-fi
-
-# Update all version fields for release branch
-yq -i ".version = \"$rc_version\"" helm/Chart.yaml
-yq -i ".appVersion = \"$rc_version\"" helm/Chart.yaml
-(cd apps/agentstack-sdk-py && toml set 'project.version' "$rc_version" --toml-path pyproject.toml && uv lock)
-(cd apps/agentstack-cli && toml set 'project.version' "$rc_version" --toml-path pyproject.toml && uv lock)
-(cd apps/agentstack-server && toml set 'project.version' "$rc_version" --toml-path pyproject.toml && uv lock)
+# Update all version fields
+yq -i ".version = \"$new_version\"" helm/Chart.yaml
+yq -i ".appVersion = \"$new_version\"" helm/Chart.yaml
+(cd apps/agentstack-sdk-py && toml set 'project.version' "$new_version" --toml-path pyproject.toml && uv lock)
+(cd apps/agentstack-cli && toml set 'project.version' "$new_version" --toml-path pyproject.toml && uv lock)
+(cd apps/agentstack-server && toml set 'project.version' "$new_version" --toml-path pyproject.toml && uv lock)
 for agent in agents/*; do (cd $agent && uv lock); done
-yq -i ".version = \"$rc_version\"" apps/agentstack-sdk-ts/package.json
-yq -i ".version = \"$rc_version\"" apps/agentstack-ui/package.json
-yq -i ".version = \"$rc_version\"" apps/beeai-web/package.json
-yq -i ".providers[].location |= sub(\":(.*)\$\"; \":\" + \"$rc_version\")" agent-registry.yaml
-perl -pi -e "s/^(LATEST_AGENTSTACK_VERSION=).*/\${1}$rc_version/" install.sh
+yq -i ".version = \"$new_version\"" apps/agentstack-sdk-ts/package.json
+yq -i ".version = \"$new_version\"" apps/agentstack-ui/package.json
+yq -i ".version = \"$new_version\"" apps/beeai-web/package.json
+yq -i ".providers[].location |= sub(\":(.*)\$\"; \":\" + \"$new_version\")" agent-registry.yaml
 
-# Commit rc bump
+# Update install.sh based on version type
+if [[ "$new_version" == *"-rc"* ]]; then
+  # RC version - update LATEST_AGENTSTACK_VERSION
+  perl -pi -e "s/^(LATEST_AGENTSTACK_VERSION=).*/\${1}$new_version/" install.sh
+else
+  # Stable version - update LATEST_STABLE_AGENTSTACK_VERSION
+  perl -pi -e "s/^(LATEST_STABLE_AGENTSTACK_VERSION=).*/\${1}$new_version/" install.sh
+fi
+
+# Commit the changes
 git add .
-git commit -m "release: v$rc_version"
+git commit -m "bump: v$new_version"
 
-# Tag and push rc version
-git tag "v$rc_version"
-git push --force origin release
-git push origin tag "v$rc_version"
+# Check if on release branch
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+if [[ "$current_branch" == "release" ]]; then
+  echo "On release branch, tagging and pushing tag..."
+  git tag "v$new_version"
+  git push origin tag "v$new_version"
+  echo "✅ Version updated to $new_version, tagged and pushed"
+else
+  echo "✅ Version updated to $new_version and committed"
+fi
 '''
 
 ["publish"]
