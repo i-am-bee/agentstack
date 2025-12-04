@@ -52,7 +52,7 @@ Built on the [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) and hosted 
 ### Installation
 
 ```sh
-sh -c "$(curl -LsSf https://raw.githubusercontent.com/i-am-bee/agentstack/HEAD/install.sh)"
+sh -c "$(curl -LsSf https://raw.githubusercontent.com/i-am-bee/agentstack/release/install.sh)"
 ```
 
 > [!TIP]
