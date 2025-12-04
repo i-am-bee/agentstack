@@ -22,6 +22,7 @@ export * from './client/a2a/extensions/services/secrets';
 export * from './client/a2a/extensions/types';
 export * from './client/a2a/extensions/ui/agent-detail';
 export * from './client/a2a/extensions/ui/citation';
+export * from './client/a2a/extensions/ui/error';
 export * from './client/a2a/extensions/ui/form-request';
 export * from './client/a2a/extensions/ui/oauth';
 export * from './client/a2a/extensions/ui/settings';

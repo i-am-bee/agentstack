@@ -1,0 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: managed-mcp-supergateway
+  labels:
+    {{- include "agentstack.labels" . | nindent 4 }}
+    app.kubernetes.io/component: managed-mcp-supergateway
+subjects:
+  - kind: ServiceAccount
+    name: managed-mcp-supergateway
+roleRef:
+  kind: Role
+  name: managed-mcp-supergateway
+  apiGroup: rbac.authorization.k8s.io

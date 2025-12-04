@@ -3,7 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ApiErrorCode, ApiErrorResponse, ApiValidationErrorResponse, StreamErrorResponse } from './types';
+import type {
+  A2AErrorMetadata,
+  ApiErrorCode,
+  ApiErrorResponse,
+  ApiValidationErrorResponse,
+  StreamErrorResponse,
+} from './types';
 
 export class ErrorWithResponse extends Error {
   name: string;
@@ -64,3 +70,17 @@ export class StreamError extends ErrorWithResponse {
 }
 
 export class UnauthenticatedError extends ErrorWithResponse {}
+
+export class A2AExtensionError extends Error {
+  error: A2AErrorMetadata['error'];
+  context: A2AErrorMetadata['context'];
+  stackTrace: A2AErrorMetadata['stack_trace'];
+
+  constructor({ error, context, stack_trace }: A2AErrorMetadata) {
+    super(error.message);
+
+    this.error = error;
+    this.context = context;
+    this.stackTrace = stack_trace;
+  }
+}

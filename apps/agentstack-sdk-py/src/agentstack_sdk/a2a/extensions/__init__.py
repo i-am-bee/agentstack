@@ -3,4 +3,5 @@
 
 from .auth import *
 from .services import *
+from .tools import *
 from .ui import *

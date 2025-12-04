@@ -5,6 +5,8 @@
 
 import type { components } from './schema';
 
+export type { ErrorMetadata as A2AErrorMetadata } from 'agentstack-sdk';
+
 export type ApiErrorResponse = {
   code: string;
   message?: string;

@@ -40,6 +40,7 @@ class ConnectorResponse(BaseModel):
 
 class ConnectorConnectRequest(BaseModel):
     redirect_url: AnyUrl | None = None
+    access_token: str | None = None
 
 
 class ConnectorPresetResponse(BaseModel):

@@ -9,7 +9,10 @@ See [`.env.example`](./.env.example).
 Configure feature flags through the `FEATURE_FLAGS` environment variable. It expects a JSON object, for example:
 
 ```bash
-FEATURE_FLAGS='{"LocalSetup":true,"Providers":true}'
+FEATURE_FLAGS='{
+  "LocalSetup": true,
+  "Providers": true
+}'
 ```
 
 All flags default to `false` when omitted.
@@ -19,3 +22,21 @@ All flags default to `false` when omitted.
 - **ProviderBuilds** – Adds the option to import agents directly from a GitHub repository.
 - **Providers** – Shows the “Agent providers” tab in Settings to manage providers.
 - **Variables** – Shows the “Variables” tab in Settings to enable provider variable management.
+
+## Context token permissions override
+
+Override the permissions used when the UI generates context tokens by supplying a `CONTEXT_TOKEN_PERMISSIONS` environment variable. Omit it to use the default grants (LLM + embeddings globally; files, vector stores, and context data within the current context). Example:
+
+```bash
+CONTEXT_TOKEN_PERMISSIONS='{
+  "grant_global_permissions": {
+    "llm": ["*"],
+    "embeddings": ["*"]
+  },
+  "grant_context_permissions": {
+    "files": ["*"],
+    "vector_stores": ["*"],
+    "context_data": ["*"]
+  }
+}'
+```

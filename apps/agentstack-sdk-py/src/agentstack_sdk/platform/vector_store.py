@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import typing
 import uuid
-from typing import Literal
+from typing import Literal, Self
 
 import pydantic
 
@@ -29,11 +29,23 @@ class VectorStoreDocument(pydantic.BaseModel):
 class VectorStoreItem(pydantic.BaseModel):
     id: str = pydantic.Field(default_factory=lambda: uuid.uuid4().hex)
     document_id: str
-    document_type: typing.Literal["platform_file", "external"] = "platform_file"
+    document_type: typing.Literal["platform_file", "external"] | None = "platform_file"
     model_id: str | typing.Literal["platform"] = "platform"
     text: str
     embedding: list[float]
     metadata: Metadata | None = None
+
+    @pydantic.model_validator(mode="after")
+    def validate_document_id(self) -> Self:
+        """Validate that document_id is a valid UUID when document_type is platform_file."""
+        if self.document_type == "platform_file":
+            try:
+                _ = uuid.UUID(self.document_id)
+            except ValueError as ex:
+                raise ValueError(
+                    f"document_id must be a valid UUID when document_type is platform_file, got: {self.document_id}"
+                ) from ex
+        return self
 
 
 class VectorStoreSearchResult(pydantic.BaseModel):

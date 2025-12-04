@@ -39,7 +39,7 @@ export function AgentDemandsProvider<UIGenericPart>({
   );
 
   const {
-    config: { featureFlags },
+    config: { featureFlags, contextTokenPermissions },
   } = useApp();
   const { contextId } = usePlatformContext();
 
@@ -141,27 +141,7 @@ export function AgentDemandsProvider<UIGenericPart>({
 
     const contextToken = await createContextToken({
       context_id: contextId,
-      grant_global_permissions: {
-        llm: ['*'],
-        a2a_proxy: [],
-        contexts: [],
-        embeddings: ['*'],
-        feedback: [],
-        files: [],
-        providers: [],
-        provider_variables: [],
-        model_providers: [],
-        mcp_providers: [],
-        mcp_proxy: [],
-        mcp_tools: [],
-        vector_stores: [],
-        context_data: [],
-      },
-      grant_context_permissions: {
-        files: ['*'],
-        vector_stores: ['*'],
-        context_data: ['*'],
-      },
+      ...contextTokenPermissions,
     });
 
     if (!contextToken) {
@@ -169,7 +149,7 @@ export function AgentDemandsProvider<UIGenericPart>({
     }
 
     return contextToken;
-  }, [contextId, createContextToken]);
+  }, [contextId, contextTokenPermissions, createContextToken]);
 
   const getFulfillments = useCallback(
     async (fulfillmentsContext: FulfillmentsContext) => {

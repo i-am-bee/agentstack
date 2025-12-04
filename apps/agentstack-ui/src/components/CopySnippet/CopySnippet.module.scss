@@ -17,7 +17,6 @@
 
     min-block-size: rem(48px);
     border: none;
-    border-radius: 0;
   }
 
   &.blog {
@@ -29,12 +28,17 @@
   @include type-style(label-01);
   min-inline-size: 0;
   white-space: pre-wrap;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
   padding: rem(11px) rem(15px);
   flex-grow: 1;
 
   .block & {
     padding: unset;
+  }
+
+  pre {
+    border-start-start-radius: $border-radius;
+    border-end-start-radius: $border-radius;
   }
 }
 
@@ -48,6 +52,8 @@
   .block & {
     border: none;
     margin: rem(8px) rem(8px) auto 0;
+    position: sticky;
+    inset-block-start: rem(8px);
   }
 
   > div,

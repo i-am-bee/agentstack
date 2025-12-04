@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, Request, status
 
 from agentstack_server.api.dependencies import (
     ConnectorServiceDependency,
+    ExternalMcpServiceDependency,
     RequiresPermissions,
 )
 from agentstack_server.api.schema.connector import (
@@ -96,6 +97,7 @@ async def connect_connector(
             user=user.user,
             redirect_url=connect_request.redirect_url,
             callback_uri=str(request.url_for(oauth_callback.__name__)),
+            access_token=connect_request.access_token,
         )
     )
 
@@ -125,11 +127,16 @@ async def oauth_callback(
     request: Request,
     state: str,
     connector_service: ConnectorServiceDependency,
+    external_mcp_service: ExternalMcpServiceDependency,
     error: str | None = None,
     error_description: str | None = None,
 ):
-    return await connector_service.oauth_callback(
-        callback_url=str(request.url), state=state, error=error, error_description=error_description
+    return await external_mcp_service.oauth_callback(
+        callback_url=str(request.url),
+        state=state,
+        error=error,
+        error_description=error_description,
+        probe_fn=lambda connector: connector_service.probe_connector(connector=connector),
     )
 
 

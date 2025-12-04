@@ -17,12 +17,14 @@ from sqlalchemy import (
     String,
     Table,
     Text,
+    case,
 )
 from sqlalchemy.dialects.postgresql import JSONB, insert
 from sqlalchemy.dialects.postgresql import UUID as SQL_UUID
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from agentstack_server.domain.models.vector_store import (
+    DocumentType,
     VectorStoreDocumentInfo,
     VectorStoreItem,
     VectorStoreSearchResult,
@@ -152,6 +154,7 @@ class VectorDatabaseRepository(IVectorDatabaseRepository):
         return VectorStoreItem(
             id=row.id,
             document_id=row.vector_store_document_id,
+            document_type=row.document_type or DocumentType.EXTERNAL,
             embedding=row.embedding.to_list(),
             text=row.text,
             metadata=row.metadata,
@@ -177,7 +180,19 @@ class VectorDatabaseRepository(IVectorDatabaseRepository):
         # Select all columns plus the distance as a named column
         query = (
             table.select()
-            .add_columns(table.c.embedding.cosine_distance(query_vector).label("distance"))
+            .add_columns(
+                table.c.embedding.cosine_distance(query_vector).label("distance"),
+                case(
+                    (vector_store_documents_table.c.file_id.is_not(None), DocumentType.PLATFORM_FILE),
+                    else_=DocumentType.EXTERNAL,
+                ).label("document_type"),
+            )
+            .join(
+                vector_store_documents_table,
+                (table.c.vector_store_document_id == vector_store_documents_table.c.id)
+                & (table.c.vector_store_id == vector_store_documents_table.c.vector_store_id),
+                isouter=True,
+            )
             .where(table.c.vector_store_id == collection_id)
             .order_by(table.c.embedding.cosine_distance(query_vector))
             .limit(limit)

@@ -16,17 +16,26 @@
 }
 
 .copyButton {
+  @include hide-popover();
   position: absolute;
   inset-block-start: $spacing-03;
   inset-inline-end: $spacing-03;
-  :global(.cds--btn):hover {
-    background-color: $layer-03;
+  :global(.cds--btn) {
+    &:disabled {
+      color: currentColor;
+    }
+
+    &:hover {
+      --cds-icon-primary: #{$text-inverse};
+
+      background-color: $text-dark;
+    }
   }
 }
 
 .content {
   pre {
     white-space: pre-wrap;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
   }
 }

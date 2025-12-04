@@ -11,8 +11,7 @@ import type { ValueTransition } from 'framer-motion';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useEffect, useState } from 'react';
 
-import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
-import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
+import { NotificationMarkdownContent } from '#components/NotificationMarkdownContent/NotificationMarkdownContent.tsx';
 import type { ToastWithKey } from '#contexts/Toast/toast-context.ts';
 import { FADE_DURATION, FADE_EASE_ENTRANCE, FADE_EASE_EXIT, fadeProps } from '#utils/fadeProps.ts';
 
@@ -28,15 +27,20 @@ export function Toast({
   onClose,
 }: Props) {
   const [isOpen, setIsOpen] = useState(true);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
   const handleClose = useCallback(() => {
     setIsOpen(false);
   }, []);
 
+  const handleUserInteraction = useCallback(() => {
+    setHasUserInteracted(true);
+  }, []);
+
   const Icon = icon ?? iconTypes[kind];
 
   useEffect(() => {
-    if (!timeout) {
+    if (!timeout || hasUserInteracted) {
       return;
     }
 
@@ -47,7 +51,7 @@ export function Toast({
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [timeout, handleClose]);
+  }, [timeout, hasUserInteracted, handleClose]);
 
   return (
     <AnimatePresence onExitComplete={onClose}>
@@ -60,6 +64,10 @@ export function Toast({
           transition={{
             layout: springAnimation,
           }}
+          onMouseEnter={handleUserInteraction}
+          onPointerDown={handleUserInteraction}
+          onFocusCapture={handleUserInteraction}
+          onKeyDown={handleUserInteraction}
           {...fadeProps({
             hidden: {
               transform: 'translateX(100%)',
@@ -92,9 +100,7 @@ export function Toast({
 
           {message &&
             (renderMarkdown ? (
-              <LineClampText className={classes.message} lines={4} useBlockElement>
-                <MarkdownContent>{message}</MarkdownContent>
-              </LineClampText>
+              <NotificationMarkdownContent>{message}</NotificationMarkdownContent>
             ) : (
               <div className={classes.message}>{message}</div>
             ))}

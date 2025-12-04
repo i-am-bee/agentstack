@@ -5,31 +5,23 @@
 
 import z from 'zod';
 
-const booleanProp = (defaultValue: boolean | undefined = false) => z.boolean().optional().default(defaultValue);
-
-const featureFlagsSchema = z.strictObject({
-  LocalSetup: booleanProp(),
-  MCP: booleanProp(),
-  ProviderBuilds: booleanProp(),
-  Providers: booleanProp(),
-  Variables: booleanProp(),
-  Connectors: booleanProp(),
+export const featureFlagsSchema = z.strictObject({
+  Connectors: z.boolean().optional(),
+  LocalSetup: z.boolean().optional(),
+  MCP: z.boolean().optional(),
+  ProviderBuilds: z.boolean().optional(),
+  Providers: z.boolean().optional(),
+  Variables: z.boolean().optional(),
 });
 
 export type FeatureFlags = z.infer<typeof featureFlagsSchema>;
 export type FeatureName = keyof FeatureFlags;
 
-export function parseFeatureFlags(data?: string) {
-  if (data) {
-    try {
-      const featureflags = JSON.parse(data);
-      const result = featureFlagsSchema.parse(featureflags);
-
-      return result;
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  return featureFlagsSchema.parse({});
-}
+export const featureFlagsDefaults: Required<FeatureFlags> = {
+  Connectors: false,
+  LocalSetup: false,
+  MCP: false,
+  ProviderBuilds: false,
+  Providers: false,
+  Variables: false,
+};

@@ -18,11 +18,14 @@
   box-shadow: none;
 
   .cds--actionable-notification__text-wrapper {
+    inline-size: 100%;
     padding-block: rem(15px);
   }
 }
 
 .cds--actionable-notification__content {
+  flex-grow: 1;
+
   &,
   p {
     font-size: rem(14px);

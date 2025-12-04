@@ -7,6 +7,7 @@ import type { FilePart, FileWithUri, Message, Part, TextPart } from '@a2a-js/sdk
 import {
   type Citation,
   citationExtension,
+  errorExtension,
   extractUiExtensionData,
   trajectoryExtension,
   type TrajectoryMetadata,
@@ -30,6 +31,7 @@ import { PLATFORM_FILE_CONTENT_URL_BASE } from './constants';
 
 export const extractCitation = extractUiExtensionData(citationExtension);
 export const extractTrajectory = extractUiExtensionData(trajectoryExtension);
+export const extractErrorExtension = extractUiExtensionData(errorExtension);
 
 export function extractTextFromMessage(message: Message | undefined) {
   const text = message?.parts

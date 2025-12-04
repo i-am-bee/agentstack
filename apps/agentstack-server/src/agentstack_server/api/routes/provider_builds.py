@@ -21,7 +21,7 @@ from agentstack_server.utils.fastapi import streaming_response
 
 router = fastapi.APIRouter()
 
-if get_configuration().features.provider_builds:
+if get_configuration().provider_build.enabled:
 
     @router.post("")
     async def create_provider_build(

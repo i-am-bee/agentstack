@@ -95,7 +95,7 @@ run = "true" # Empty tests in case there are no tests
 # Platform tasks
 
 ["agentstack:start"]
-depends = ["agentstack-server:build"]
+depends = ["agentstack-server:build", "supergateway:build"]
 dir = "{{config_root}}"
 run = """
 #!/bin/bash
@@ -112,6 +112,7 @@ fi
 
 {{ mise_bin }} run agentstack-cli:run -- platform start \
     --import "ghcr.io/i-am-bee/agentstack/agentstack-server:local" \
+    --import "ghcr.io/i-am-bee/agentstack/supergateway:latest" \
     $UI_IMPORT \
     --set image.tag=local \
     $UI_TAG "$@"

@@ -2,11 +2,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
+from collections.abc import Sequence
 from contextlib import suppress
 from datetime import timedelta
 from uuid import UUID
 
-from a2a.types import Artifact, Message, Role, TextPart
+from a2a.types import Artifact, FilePart, FileWithBytes, FileWithUri, Message, Role, TextPart
 from fastapi import status
 from kink import di, inject
 from pydantic import TypeAdapter
@@ -147,11 +148,10 @@ class ContextService:
             await uow.contexts.update_last_active(context_id=context_id)
             await uow.commit()
 
-    def _extract_text(self, msg: Message | Artifact) -> str | None:
-        for part in msg.parts:
-            if isinstance(part.root, TextPart):
-                return part.root.text
-        return None
+    def _extract_content_for_title(self, msg: Message | Artifact) -> tuple[str, Sequence[FileWithUri | FileWithBytes]]:
+        text_parts = [part.root.text for part in msg.parts if isinstance(part.root, TextPart)]
+        files = [part.root.file for part in msg.parts if isinstance(part.root, FilePart)]
+        return "".join(text_parts), files
 
     async def add_history_item(self, *, context_id: UUID, data: ContextHistoryItemData, user: User) -> None:
         async with self._uow() as uow:
@@ -164,10 +164,11 @@ class ContextService:
             if getattr(data, "role", None) == Role.user and not (context.metadata or {}).get("title"):
                 from agentstack_server.jobs.tasks.context import generate_conversation_title as task
 
-                title = self._extract_text(data) or "Untitled"
+                # Use simple text extraction for the initial title placeholder
+                title = self._extract_content_for_title(data)[0] or "Untitled"
                 title = f"{title[:100]}..." if len(title) > 100 else title
 
-                should_generate_title = self._configuration.features.generate_conversation_title
+                should_generate_title = self._configuration.generate_conversation_title.enabled
                 state = TitleGenerationState.PENDING if should_generate_title else TitleGenerationState.COMPLETED
                 await uow.contexts.update_title(context_id=context_id, title=title, generation_state=state)
 
@@ -177,44 +178,50 @@ class ContextService:
             await uow.commit()
 
     async def generate_conversation_title(self, *, context_id: UUID):
+        from jinja2 import Template
+
         from agentstack_server.api.routes.openai import create_chat_completion
 
         async with self._uow() as uow:
             msg = await uow.contexts.list_history(context_id=context_id, limit=1, order="desc", order_by="created_at")
-            config = await uow.configuration.get_system_configuration()
+            system_config = await uow.configuration.get_system_configuration()
+
+        model = self._configuration.generate_conversation_title.model
+        if model == "default":
+            if not system_config.default_llm_model:
+                logger.warning(f"Cannot generate title for context {context_id}: default LLM model not set.")
+                return
+            model = system_config.default_llm_model
 
         if not msg.items:
             logger.warning(f"Cannot generate title for context {context_id}: no history found.")
             return
-        if not (text := self._extract_text(msg.items[0].data)):
-            logger.warning(f"Cannot generate title for context {context_id}: first message has no text.")
-            return
-        if not config.default_llm_model:
-            logger.warning(f"Cannot generate title for context {context_id}: default LLM model not set.")
+
+        text, files = self._extract_content_for_title(msg.items[0].data)
+        if not text and not files:
+            logger.warning(f"Cannot generate title for context {context_id}: first message has no content.")
             return
 
         try:
+            # Render the system prompt using Jinja2
+            template = Template(self._configuration.generate_conversation_title.prompt)
+            prompt = template.render(
+                text=text,
+                files=[file.model_dump(include={"name", "mime_type"}) for file in files],
+            )
+
             # HACK: calling the endpoint directly (instead, logic should be extracted from the api layer to domain)
             resp = await create_chat_completion(
                 model_provider_service=di[ModelProviderService],
                 request=ChatCompletionRequest(
-                    model=config.default_llm_model,
+                    model=model,
                     stream=False,
                     max_completion_tokens=100,
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": (
-                                "Write a short descriptive title for the conversation (max 100 characters). "
-                                "Return only the title verbatim with no commentary or explanation"
-                            ),
-                        },
-                        {"role": "user", "content": text},
-                    ],
+                    messages=[{"role": "user", "content": prompt}],
                 ),
                 _=None,  # pyright: ignore [reportArgumentType]
             )
-            title = resp["choices"][0]["message"]["content"]  # pyright: ignore [reportIndexIssue]
+            title = resp["choices"][0]["message"]["content"].strip().strip("\"'")  # pyright: ignore [reportIndexIssue]
             title = f"{title[:100]}..." if len(title) > 100 else title
             async with self._uow() as uow:
                 await uow.contexts.update_title(

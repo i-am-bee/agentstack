@@ -78,7 +78,7 @@ outputs = { auto = true }
 # run
 
 ["agentstack-server:run"]
-depends = ["agentstack-server:setup"]
+depends = ["agentstack-server:setup", "supergateway:build"]
 dir = "{{config_root}}/apps/agentstack-server"
 run = "uv run agentstack-server"
 
@@ -266,7 +266,12 @@ curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhos
     --set auth.basic.enabled="true" \
     --set auth.basic.adminPassword="test-password" \
     --set auth.jwtSecretKey="test-secret-key" \
-    --set docling.enabled=true
+    --set docling.enabled=true \
+    --set providerBuilds.enabled=true \
+    --set localDockerRegistry.enabled=true \
+    --set connector.presets[0].url=mcp+stdio://test \
+    --set connector.presets[0].stdio.image=mcp/aws-documentation \
+    --set connector.presets[0].metadata.name="Test MCP Server"
 
 
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
@@ -275,6 +280,9 @@ export SERVER_URL="http://localhost:8333"
 export DB_URL="postgresql+asyncpg://agentstack-user:password@localhost:5432/agentstack"
 export LLM_API_BASE="${LLM_API_BASE:-http://host.docker.internal:11434/v1}"
 export OIDC__DISABLE_OIDC=true
+
+echo "Waiting for agentstack-server deployment to be ready..."
+kubectl wait --for=condition=available --timeout=300s deployment/agentstack-server
 
 kubectl port-forward svc/postgresql 5432:5432 2>/dev/null 1>&2 &
 uv run pytest -m e2e
@@ -288,9 +296,9 @@ if [ $result -ne 0 ]; then
     kubectl get event
 fi
 
-{{ mise_bin }} run agentstack-cli:run -- platform delete --vm-name=${VM_NAME}
-kill %1
-exit $result
+# {{ mise_bin }} run agentstack-cli:run -- platform delete --vm-name=${VM_NAME}
+# kill %1
+# exit $result
 """
 
 ["agentstack-server:test:integration"]

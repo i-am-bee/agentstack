@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { z } from 'zod';
+import z from 'zod';
 
 export const contextSchema = z.object({
   id: z.string(),
@@ -43,30 +43,39 @@ export const modelProviderMatchSchema = paginatedResultSchema.extend({
 });
 export type ModelProviderMatch = z.infer<typeof modelProviderMatchSchema>;
 
-interface ResourceIdPermission {
-  id: string;
-}
+export const resourceIdPermissionSchema = z.object({
+  id: z.string(),
+});
 
-export interface ContextPermissionsGrant {
-  files?: ('read' | 'write' | 'extract' | '*')[];
-  vector_stores?: ('read' | 'write' | '*')[];
-  context_data?: ('read' | 'write' | '*')[];
-}
+export type ResourceIdPermission = z.infer<typeof resourceIdPermissionSchema>;
 
-export interface GlobalPermissionsGrant extends ContextPermissionsGrant {
-  llm?: ('*' | ResourceIdPermission)[];
-  embeddings?: ('*' | ResourceIdPermission)[];
-  a2a_proxy?: '*'[];
-  model_providers?: ('read' | 'write' | '*')[];
-  variables?: ('read' | 'write' | '*')[];
+export const contextPermissionsGrantSchema = z.object({
+  files: z.array(z.literal(['read', 'write', 'extract', '*'])).optional(),
+  vector_stores: z.array(z.literal(['read', 'write', '*'])).optional(),
+  context_data: z.array(z.literal(['read', 'write', '*'])).optional(),
+});
 
-  providers?: ('read' | 'write' | '*')[];
-  provider_variables?: ('read' | 'write' | '*')[];
+export type ContextPermissionsGrant = z.infer<typeof contextPermissionsGrantSchema>;
 
-  contexts?: ('read' | 'write' | '*')[];
-  mcp_providers?: ('read' | 'write' | '*')[];
-  mcp_tools?: ('read' | '*')[];
-  mcp_proxy?: '*'[];
+export const globalPermissionsGrantSchema = contextPermissionsGrantSchema.extend({
+  feedback: z.array(z.literal('write')).optional(),
 
-  connectors?: ('read' | 'write' | 'proxy' | '*')[];
-}
+  llm: z.array(z.union([z.literal('*'), resourceIdPermissionSchema])).optional(),
+  embeddings: z.array(z.union([z.literal('*'), resourceIdPermissionSchema])).optional(),
+  model_providers: z.array(z.literal(['read', 'write', '*'])).optional(),
+
+  a2a_proxy: z.array(z.literal('*')).optional(),
+
+  providers: z.array(z.literal(['read', 'write', '*'])).optional(),
+  provider_variables: z.array(z.literal(['read', 'write', '*'])).optional(),
+
+  contexts: z.array(z.literal(['read', 'write', '*'])).optional(),
+
+  mcp_providers: z.array(z.literal(['read', 'write', '*'])).optional(),
+  mcp_tools: z.array(z.literal(['read', '*'])).optional(),
+  mcp_proxy: z.array(z.literal('*')).optional(),
+
+  connectors: z.array(z.literal(['read', 'write', 'proxy', '*'])).optional(),
+});
+
+export type GlobalPermissionsGrant = z.infer<typeof globalPermissionsGrantSchema>;

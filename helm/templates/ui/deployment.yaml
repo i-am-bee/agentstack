@@ -67,6 +67,8 @@ spec:
                   "Providers": {{ .Values.features.uiProviders }},
                   "Variables": {{ .Values.features.uiVariables }}
                 }
+            - name: CONTEXT_TOKEN_PERMISSIONS
+              value: {{ toJson .Values.contextTokenPermissions | quote }}
             - name: TRUST_PROXY_HEADERS
               value: {{ .Values.trustProxyHeaders | quote }}
           {{- if and .Values.auth.enabled .Values.auth.oidc.enabled }}

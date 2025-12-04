@@ -1,0 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: managed-mcp-supergateway
+  labels:
+    {{- include "agentstack.labels" . | nindent 4 }}
+    app.kubernetes.io/component: managed-mcp-supergateway
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/attach"]
+    verbs: ["create", "get"]

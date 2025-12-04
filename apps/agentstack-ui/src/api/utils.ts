@@ -8,11 +8,14 @@ import type { ServerSentEventMessage } from 'fetch-event-stream';
 import type { FetchResponse } from 'openapi-fetch';
 import type { MediaType } from 'openapi-typescript-helpers';
 
+import type { QueryMetadataError } from '#contexts/QueryProvider/types.ts';
+import type { Toast } from '#contexts/Toast/toast-context.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { NEXTAUTH_URL, TRUST_PROXY_HEADERS } from '#utils/constants.ts';
 import { isNotNull } from '#utils/helpers.ts';
+import { createMarkdownCodeBlock, createMarkdownSection, joinMarkdownSections } from '#utils/markdown.ts';
 
-import { ApiError, ApiValidationError, HttpError, UnauthenticatedError } from './errors';
+import { A2AExtensionError, ApiError, ApiValidationError, HttpError, UnauthenticatedError } from './errors';
 import type { ApiErrorCode, ApiErrorResponse, ApiValidationErrorResponse } from './types';
 
 export function ensureData<T extends Record<string | number, unknown>, O, M extends MediaType>(
@@ -65,7 +68,23 @@ export async function handleStream<T>({
   }
 }
 
-export function getErrorMessage(error: unknown) {
+export function getErrorTitle(error: unknown) {
+  if (error instanceof A2AExtensionError) {
+    return 'errors' in error.error ? 'Multiple errors occurred' : error.error.title;
+  }
+
+  return typeof error === 'object' && isNotNull(error) && 'title' in error ? (error.title as string) : undefined;
+}
+
+export function getErrorMessage(error: unknown, includeMessage = true) {
+  if (!includeMessage) {
+    return;
+  }
+
+  if (error instanceof A2AExtensionError) {
+    return createA2AErrorMessage(error);
+  }
+
   return typeof error === 'object' && isNotNull(error) && 'message' in error ? (error.message as string) : undefined;
 }
 
@@ -110,4 +129,50 @@ export async function getProxyHeaders(headers: Headers, url?: URL) {
   ].join(',');
 
   return { forwardedHost, forwardedProto, forwarded };
+}
+
+export function buildErrorToast({ metadata = {}, error }: { metadata?: QueryMetadataError; error: unknown }): Toast {
+  const { title = 'An error occurred', includeErrorMessage } = metadata;
+
+  return {
+    kind: 'error',
+    title: getErrorTitle(error) ?? title,
+    message: joinMarkdownSections([metadata.message, getErrorMessage(error, includeErrorMessage)]),
+    renderMarkdown: true,
+  };
+}
+
+export function createA2AErrorMessage(error: A2AExtensionError) {
+  const {
+    error: { message: errorMessage },
+    context,
+    stackTrace,
+  } = error;
+
+  const errors = 'errors' in error.error ? error.error.errors : [];
+  const errorMessages = joinMarkdownSections(
+    errors.map(({ title, message }) => createMarkdownSection({ heading: title, content: message })),
+  );
+
+  const contextMessage = context
+    ? createMarkdownSection({
+        heading: 'Context',
+        content: createMarkdownCodeBlock({
+          snippet: JSON.stringify(context, null, 2),
+          language: 'json',
+        }),
+      })
+    : undefined;
+  const stackTraceMessage = stackTrace
+    ? createMarkdownSection({
+        heading: 'Stack Trace',
+        content: createMarkdownCodeBlock({
+          snippet: stackTrace,
+        }),
+      })
+    : undefined;
+
+  const message = joinMarkdownSections([errorMessage, errorMessages, contextMessage, stackTraceMessage]);
+
+  return message;
 }
