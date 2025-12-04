@@ -98,7 +98,7 @@ export function checkMessageStatus(message: UIAgentMessage) {
 export function checkMessageContent(message: UIMessage) {
   const hasContent = Boolean(
     message.parts.some(({ kind }) => kind === UIMessagePartKind.Text || kind === UIMessagePartKind.Transform) ||
-      checkMessageForm(message),
+    checkMessageForm(message),
   );
 
   return hasContent;
