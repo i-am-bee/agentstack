@@ -232,6 +232,8 @@ git reset --hard origin/main
 
 {{ mise_bin }} release:bump --version="$rc_version"
 
+git push -f origin release
+
 git checkout main
 git pull origin main
 
