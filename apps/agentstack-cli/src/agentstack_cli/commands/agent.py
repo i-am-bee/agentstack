@@ -770,24 +770,41 @@ def _create_input_handler(
 @app.command("run")
 async def run_agent(
     search_path: typing.Annotated[
-        str, typer.Argument(..., help="Short ID, agent name or part of the provider location")
-    ],
+        str | None,
+        typer.Argument(
+            help="Short ID, agent name or part of the provider location",
+        ),
+    ] = None,
     input: typing.Annotated[
         str | None,
         typer.Argument(
-            default_factory=lambda: None if sys.stdin.isatty() else sys.stdin.read(),
             help="Agent input as text or JSON",
         ),
-    ],
+    ] = None,
     dump_files: typing.Annotated[
         Path | None, typer.Option(help="Folder path to save any files returned by the agent")
     ] = None,
 ) -> None:
     """Run an agent."""
-    announce_server_action(f"Running agent '{search_path}' on")
+    if search_path is not None and input is None and sys.stdin.isatty():
+        input = sys.stdin.read()
     async with configuration.use_platform_client():
         providers = await Provider.list()
         await ensure_llm_provider()
+
+        if search_path is None:
+            if not providers:
+                err_console.error("No agents found. Add an agent first using 'agentstack agent add'.")
+                sys.exit(1)
+            search_path = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
+                message="Select an agent to run:",
+                choices=[provider.agent_card.name for provider in providers],
+            ).execute_async()
+            if search_path is None:
+                err_console.error("No agent selected. Exiting.")
+                sys.exit(1)
+
+        announce_server_action(f"Running agent '{search_path}' on")
         provider = select_provider(search_path, providers=providers)
 
         context = await Context.create(
