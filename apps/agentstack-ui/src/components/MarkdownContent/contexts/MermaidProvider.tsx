@@ -10,7 +10,7 @@ import type { MermaidContextValue } from './mermaid-context';
 import { MermaidContext } from './mermaid-context';
 
 export function MermaidProvider({ children }: PropsWithChildren) {
-  const [diagrams, setDiagrams] = useState<Map<number, string>>(new Map());
+  const [diagrams, setDiagrams] = useState<Map<number, string | Error>>(new Map());
 
   const setDiagram = useCallback((index: number, svg: string) => {
     setDiagrams((prev) => {

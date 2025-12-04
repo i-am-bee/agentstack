@@ -23,3 +23,9 @@
     justify-content: center;
   }
 }
+
+.error {
+  :global(.cds--inline-notification__subtitle) {
+    @include line-clamp(2);
+  }
+}

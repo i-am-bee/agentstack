@@ -8,6 +8,6 @@ import { createContext } from 'react';
 export const MermaidContext = createContext<MermaidContextValue | null>(null);
 
 export interface MermaidContextValue {
-  diagrams: Map<number, string>;
-  setDiagram: (index: number, svg: string) => void;
+  diagrams: Map<number, string | Error>;
+  setDiagram: (index: number, value: string | Error) => void;
 }

@@ -9,12 +9,10 @@ import type { PluggableList } from 'unified';
 
 import { remarkExternalLink } from './remarkExternalLink';
 import { remarkMermaid } from './remarkMermaid';
-import { remarkMermaidIndex } from './remarkMermaidIndex';
 
 export const remarkPlugins = [
   remarkGfm,
   [remarkMath, { singleDollarTextMath: false }],
-  remarkMermaidIndex,
   remarkMermaid,
   remarkExternalLink,
 ] satisfies PluggableList;

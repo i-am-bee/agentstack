@@ -9,7 +9,6 @@ import { memo } from 'react';
 import type { UIMessage } from '#modules/messages/types.ts';
 import { ChatMarkdownContent } from '#modules/runs/components/ChatMarkdownContent/ChatMarkdownContent.tsx';
 
-import { useAgentRun } from '../../runs/contexts/agent-run';
 import { Role } from '../api/types';
 import { checkMessageStatus, getMessageContent, getMessageSecret, getMessageSources, isAgentMessage } from '../utils';
 import classes from './MessageContent.module.scss';
@@ -20,8 +19,6 @@ interface Props {
 }
 
 export const MessageContent = memo(function MessageContent({ message }: Props) {
-  const { isPending } = useAgentRun();
-
   const content = getMessageContent(message);
   const form = message.role === Role.User ? message.form : null;
   const auth = message.role === Role.User ? message.auth : null;
@@ -42,7 +39,12 @@ export const MessageContent = memo(function MessageContent({ message }: Props) {
     }
 
     return (
-      <ChatMarkdownContent className={classes.root} sources={sources} codeBlocksExpanded={isPending}>
+      <ChatMarkdownContent
+        className={classes.root}
+        sources={sources}
+        codeBlocksExpanded={status?.isInProgress}
+        isStreaming={status?.isInProgress}
+      >
         {content}
       </ChatMarkdownContent>
     );

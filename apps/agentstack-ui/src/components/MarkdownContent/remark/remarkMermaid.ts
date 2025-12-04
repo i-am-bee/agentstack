@@ -9,12 +9,19 @@ import { visit } from 'unist-util-visit';
 
 export function remarkMermaid() {
   return (tree: Root) => {
+    let mermaidIndex = 0;
+
     visit(tree, 'code', (node: Code) => {
       if (node.lang === 'mermaid') {
         node.data = {
           ...node.data,
           hName: 'mermaidDiagram',
+          hProperties: {
+            mermaidIndex,
+          },
         };
+
+        mermaidIndex++;
       }
     });
   };

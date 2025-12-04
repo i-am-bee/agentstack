@@ -22,6 +22,7 @@ import { urlTransform } from './utils';
 
 export interface MarkdownContentProps {
   codeBlocksExpanded?: boolean;
+  isStreaming?: boolean;
   children?: string;
   className?: string;
   remarkPlugins?: PluggableList;
@@ -30,6 +31,7 @@ export interface MarkdownContentProps {
 
 export function MarkdownContent({
   codeBlocksExpanded,
+  isStreaming,
   className,
   remarkPlugins: remarkPluginsProps,
   components: componentsProps,
@@ -39,10 +41,10 @@ export function MarkdownContent({
     () => ({
       ...components,
       code: ({ ...props }) => <Code {...props} forceExpand={codeBlocksExpanded} />,
-      mermaidDiagram: (props) => <MermaidDiagram {...props} />,
+      mermaidDiagram: (props) => <MermaidDiagram {...props} isStreaming={isStreaming} />,
       ...componentsProps,
     }),
-    [codeBlocksExpanded, componentsProps],
+    [codeBlocksExpanded, componentsProps, isStreaming],
   );
 
   const extendedRemarkPlugins = useMemo(() => [...remarkPlugins, ...(remarkPluginsProps ?? [])], [remarkPluginsProps]);
