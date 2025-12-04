@@ -331,12 +331,6 @@ importers:
       '@i-am-bee/agentstack-ui':
         specifier: workspace:*
         version: link:../agentstack-ui
-      '@mdx-js/loader':
-        specifier: ^3.1.1
-        version: 3.1.1
-      '@next/mdx':
-        specifier: 15.5.7
-        version: 15.5.7(@mdx-js/loader@3.1.1)(@mdx-js/react@3.1.1(@types/react@19.2.7)(react@19.2.1))
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.90.12(react@19.2.1)
@@ -383,6 +377,12 @@ importers:
       '@i-am-bee/lint-config':
         specifier: workspace:*
         version: link:../lint-config
+      '@mdx-js/loader':
+        specifier: ^3.1.1
+        version: 3.1.1
+      '@next/mdx':
+        specifier: 15.5.7
+        version: 15.5.7(@mdx-js/loader@3.1.1)(@mdx-js/react@3.1.1(@types/react@19.2.7)(react@19.2.1))
       '@svgr/webpack':
         specifier: 'catalog:'
         version: 8.1.0(typescript@5.9.3)
