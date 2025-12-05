@@ -218,8 +218,9 @@ def app(*, dependency_overrides: Container | None = None, enable_workers: bool =
     logger.info("Mounting routes...")
     mount_routes(app)
 
-    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*" if configuration.trust_proxy_headers else "")
+    # Execution order is important here: https://fastapi.tiangolo.com/tutorial/middleware/#multiple-middleware-execution-order
     app.add_middleware(RateLimitMiddleware, limiter_storage=di[Storage], configuration=configuration.rate_limit)
+    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*" if configuration.trust_proxy_headers else "")
 
     register_global_exception_handlers(app)
     return app

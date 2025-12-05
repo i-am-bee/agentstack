@@ -35,12 +35,19 @@ class ProxyHeadersMiddleware:
             if b"x-forwarded-host" in headers:
                 host = headers[b"x-forwarded-host"].decode("latin1").strip()
 
+            # X-Forwarded-For: client, proxy1, proxy2
+            client_ip = None
+            if b"x-forwarded-for" in headers:
+                client_ip = headers[b"x-forwarded-for"].decode("latin1").split(",")[0].strip()
+
             if b"forwarded" in headers:
                 for forwarded in headers[b"forwarded"].decode("latin1").split(","):
                     directives = dict([(val.strip() for val in seg.split("=")) for seg in forwarded.split(";")])
-                    if "proto" in directives or "host" in directives:
+                    if "proto" in directives or "host" in directives or "for" in directives:
                         proto = directives.get("proto")
                         host = directives.get("host")
+                        if "for" in directives:
+                            client_ip = directives.get("for", "").strip('"[]') or None
                         break
 
             if proto in {"http", "https", "ws", "wss"}:
@@ -54,6 +61,9 @@ class ProxyHeadersMiddleware:
                     (key, value) if key != b"host" else (b"host", host.encode()) for key, value in scope["headers"]
                 ]
                 scope["server"] = (host, None)
+
+            if client_ip:
+                scope["client"] = (client_ip, 0)
 
         return await self.app(scope, receive, send)
 

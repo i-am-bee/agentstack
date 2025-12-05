@@ -25,7 +25,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
     Supports both Redis and in-memory storage backends.
     Rate limit keys are generated based on authentication type:
-    - Bearer tokens (OAuth/JWT): uses the token directly
+    - Bearer tokens (OAuth/JWT): hashes the token
     - Basic auth: hashes the credentials
     - No auth: uses client IP address
     """
@@ -38,7 +38,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     ):
         super().__init__(app)
         self.enabled: Final[bool] = configuration.enabled
-        self.limits: Final[list[RateLimitItem]] = configuration.limits
+        self.limits: Final[list[RateLimitItem]] = sorted(configuration.limits_parsed)
         self.limiter: Final[RateLimiter] = STRATEGIES[configuration.strategy](limiter_storage)
 
         logger.info(
@@ -78,7 +78,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     @override
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         """Process request with rate limiting."""
-        if not self.enabled or not self.limits or request.url.path in ["/healthcheck"]:
+        if not self.enabled or not self.limits or request.url.path == "/healthcheck":
             return await call_next(request)
 
         # Generate rate limit key

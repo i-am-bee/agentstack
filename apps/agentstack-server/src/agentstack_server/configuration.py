@@ -325,7 +325,7 @@ class GenerateConversationTitleConfiguration(BaseModel):
 
 class RateLimitConfiguration(BaseModel, arbitrary_types_allowed=True):
     enabled: bool = False
-    limits: list[RateLimitItem] = Field(
+    limits: list[RateLimitItem] | str = Field(
         default_factory=lambda: parse_many("20/second; 100/minute"),
         description="List of rate limit strings (e.g., '20/second', '100/minute')",
     )
@@ -335,6 +335,11 @@ class RateLimitConfiguration(BaseModel, arbitrary_types_allowed=True):
     @classmethod
     def validate_limits(cls, limits: str | list[RateLimitItem]) -> list[RateLimitItem]:
         return parse_many(limits) if isinstance(limits, str) else limits
+
+    @property
+    def limits_parsed(self) -> list[RateLimitItem]:
+        assert isinstance(self.limits, list)
+        return self.limits
 
 
 class Configuration(BaseSettings):

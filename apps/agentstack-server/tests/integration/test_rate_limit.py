@@ -96,14 +96,6 @@ def test_rate_limit_headers_present_when_enabled(rate_limited_server_client: Tes
 
     assert "X-RateLimit-Remaining" in response.headers
     remaining = int(response.headers["X-RateLimit-Remaining"])
-    assert response.status_code == 200
-
-    # Check all expected headers
-    assert "X-RateLimit-Limit" in response.headers
-    assert response.headers["X-RateLimit-Limit"] == "3"
-
-    assert "X-RateLimit-Remaining" in response.headers
-    remaining = int(response.headers["X-RateLimit-Remaining"])
     assert remaining == 2  # After first request, 2 remaining
 
     assert "X-RateLimit-Reset" in response.headers
