@@ -220,9 +220,11 @@ async def add_agent(
 @app.command("update")
 async def update_agent(
     search_path: typing.Annotated[
-        str, typer.Argument(..., help="Short ID, agent name or part of the provider location of agent to replace")
-    ],
-    location: typing.Annotated[str, typer.Argument(help="Agent location (public docker image or github url)")],
+        str | None, typer.Argument(help="Short ID, agent name or part of the provider location of agent to replace")
+    ] = None,
+    location: typing.Annotated[
+        str | None, typer.Argument(help="Agent location (public docker image or github url)")
+    ] = None,
     dockerfile: typing.Annotated[str | None, typer.Option(help="Use custom dockerfile path")] = None,
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
     yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
@@ -230,7 +232,58 @@ async def update_agent(
     """Upgrade agent to a newer docker image or build from GitHub repository"""
     with verbosity(verbose):
         async with configuration.use_platform_client():
-            provider = select_provider(search_path, providers=await Provider.list())
+            providers = await Provider.list()
+
+        if search_path is None:
+            if not providers:
+                console.error("No agents found. Add an agent first using 'agentstack agent add'.")
+                sys.exit(1)
+
+            provider_choices = [
+                Choice(value=p, name=f"{p.agent_card.name} ({ProviderUtils.short_location(p)})") for p in providers
+            ]
+            provider = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
+                message="Select an agent to update:",
+                choices=provider_choices,
+            ).execute_async()
+            if not provider:
+                console.error("No agent selected. Exiting.")
+                sys.exit(1)
+        else:
+            provider = select_provider(search_path, providers=providers)
+
+        if location is None and is_github_url(provider.source):
+            match = re.search(r"^(?:(?:https?://)?(?:www\.)?github\.com/)?([^/]+)/([^/@?&]+)", provider.source)
+            if match:
+                owner, repo = match.group(1), match.group(2).removesuffix(".git")
+
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(
+                        f"https://api.github.com/repos/{owner}/{repo}/tags",
+                        headers={"Accept": "application/vnd.github.v3+json"},
+                    )
+                    tags = [tag["name"] for tag in response.json()] if response.status_code == 200 else []
+
+                if tags:
+                    selected_tag = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
+                        message="Select a new tag to use:",
+                        choices=tags,
+                    ).execute_async()
+                    if selected_tag:
+                        location = f"https://github.com/{owner}/{repo}@{selected_tag}"
+
+        if location is None:
+            location = (
+                await inquirer.text(  # pyright: ignore[reportPrivateImportUsage]
+                    message="Enter new agent location (public docker image or github url):",
+                    default=provider.source,
+                ).execute_async()
+                or ""
+            )
+
+        if not location:
+            console.error("No location provided. Exiting.")
+            sys.exit(1)
 
         url = announce_server_action(f"Upgrading agent from '{provider.source}' to {location}")
         await confirm_server_action("Proceed with upgrading agent on", url=url, yes=yes)
