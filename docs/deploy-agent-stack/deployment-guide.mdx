@@ -6,10 +6,12 @@ description: "Deploy Agent Stack to Kubernetes with Helm for internal team use"
 Deploy Agent Stack on Kubernetes using Helm to create a centralized environment where your team can quickly test, share, and iterate on agents.
 
 <Warning>
-    **Intended Use:** Agent Stack is designed for internal team deployments behind VPNs or firewalls. Basic
-    authentication protects administrative operations (agent management, secrets, model configuration), but
-    authenticated users can freely use agents, upload files, and create vector stores without per-user limits. Deploy
-    only in trusted environments where you control who has access. Public internet deployments are not recommended.
+  **Intended Use:** Agent Stack is designed for internal team deployments behind
+  VPNs or firewalls. Basic authentication protects administrative operations
+  (agent management, secrets, model configuration), but authenticated users can
+  freely use agents, upload files, and create vector stores without per-user
+  limits. Deploy only in trusted environments where you control who has access.
+  Public internet deployments are not recommended.
 </Warning>
 
 ## Requirements
@@ -31,7 +33,7 @@ are explained in the [Configuration Options](#configuration-options) section.
 ```yaml
 # If you want to include agents from the default catalog (change release/tag accordingly):
 externalRegistries:
-  public_github: "https://github.com/i-am-bee/agentstack@v0.4.1#path=agent-registry.yaml"
+  public_github: "https://github.com/i-am-bee/agentstack@v0.4.3#path=agent-registry.yaml"
 
 # Your custom agents as docker images
 providers:
@@ -62,7 +64,7 @@ auth:
 Then install the chart using:
 
 ```shell
-helm upgrade --install agentstack -f config.yaml oci://ghcr.io/i-am-bee/agentstack/chart/agentstack:0.4.1
+helm upgrade --install agentstack -f config.yaml oci://ghcr.io/i-am-bee/agentstack/chart/agentstack:0.4.3
 ```
 
 It will take a few minutes for the pods to start.
@@ -96,12 +98,13 @@ agentstack run chat hi
 ### Security Settings
 
 <Warning>
-    The current authentication model is basic and intended for development use.
-    For any deployment beyond local testing, carefully consider your security
-    requirements and network access controls.
+  The current authentication model is basic and intended for development use.
+  For any deployment beyond local testing, carefully consider your security
+  requirements and network access controls.
 </Warning>
 
 #### Disable authentication
+
 For local testing environments without authentication:
 
 ```yaml
@@ -113,6 +116,7 @@ auth:
 #### Admin authentication
 
 The admin password protects only administrative operations: deploying/deleting agents and modifying LLM provider connections. All other functionality is accessible to anyone who can reach the application on your network without authentication, including:
+
 - **Using agents (consuming LLM API credits)**
 - Uploading files and creating vector stores
 - Managing sessions
@@ -120,6 +124,7 @@ The admin password protects only administrative operations: deploying/deleting a
 **This means anyone on your network can incur LLM costs.** Basic authentication is only suitable for controlled environments (behind VPN/firewall) where you trust everyone with network access.
 
 For production deployments, multi-user environments, or cost control, use OIDC authentication which requires login for all actions.
+
 ```yaml
 auth:
   enabled: true
@@ -130,6 +135,7 @@ auth:
 ```
 
 #### OIDC authentication
+
 This is our most secure authentication method, supporting multi-user login with different roles.
 
 ```yaml
@@ -150,20 +156,43 @@ auth:
     nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
     nextauth_url: "https://agentstack.localhost:8336"
     validate_audience: true # audience must be set to the public URL of your application in your OIDC provider
-    providers: [
-      {
-        "name": "w3id",
-        "id": "w3id",
-        "class": "IBM",
-        "client_id": "<oidc_client_id>",
-        "client_secret": "<oidc_client_secret>",
-        "issuer": "<oidc_issuer>",
-      }
-    ]
+    providers:
+      [
+        {
+          "name": "w3id",
+          "id": "w3id",
+          "class": "IBM",
+          "client_id": "<oidc_client_id>",
+          "client_secret": "<oidc_client_secret>",
+          "issuer": "<oidc_issuer>",
+        },
+      ]
 ```
 
+### Rate Limiting
+
+Rate limiting is recommended for production environments as a protection against overloading the platform.
+
+```yaml
+rateLimit:
+  enabled: true
+  limits:
+    - "20/second"
+    - "100/minute"
+  strategy: "sliding-window-counter" # Options: fixed-window, moving-window, sliding-window-counter
+```
+
+<Warning>
+  If you are running multiple replicas (`replicaCount` > 1), Redis is
+  **required** for rate limiting to work correctly across all instances. Without
+  Redis, each replica maintains its own rate limit counters, allowing users to
+  exceed limits by distributing requests across replicas.
+</Warning>
+
 ### Exposing the platform
+
 Ingress is not configured by default. You can expose the following services using your preferred way.
+
 - `agentstack-ui-svc`: access to the UI (which includes the API proxy)
 - `agentstack-server-svc` (optional): direct access to the server API, required for CLI
 
@@ -175,16 +204,16 @@ in OpenShift.
 
 You can add specific agents directly or use a remote registry to sync agents from an external catalog.
 
-
 #### Specify agents statically
+
 Configure specific agents in your deployment:
 
 ```yaml
 providers:
   # Official agents
-  - location: ghcr.io/i-am-bee/agentstack/agents/chat:0.4.1
-  - location: ghcr.io/i-am-bee/agentstack/agents/rag:0.4.1
-  - location: ghcr.io/i-am-bee/agentstack/agents/form:0.4.1
+  - location: ghcr.io/i-am-bee/agentstack/agents/chat:0.4.3
+  - location: ghcr.io/i-am-bee/agentstack/agents/rag:0.4.3
+  - location: ghcr.io/i-am-bee/agentstack/agents/form:0.4.3
 
   # Your custom agents
   - location: your-registry.com/your-team/custom-agent:v1.0.0
@@ -203,19 +232,21 @@ You can use the concept of agent registries instead of specifying individual age
 
 ```yaml
 externalRegistries:
-  public_github: "https://github.com/i-am-bee/agentstack@v0.4.1#path=agent-registry.yaml"
+  public_github: "https://github.com/i-am-bee/agentstack@v0.4.3#path=agent-registry.yaml"
 ```
 
 To upgrade an agent, change its version in the registry and wait for automatic synchronization (up to 10 minutes).
 
 ### Agent builds
+
 Agents can be built from a GitHub repository directly in the cluster. To enable this feature, you will need to
 setup a few things:
+
 - docker image registry credentials with write permissions, see [Private image registries](#private-image-registries)
 - [optional] github credentials (optional) to access private or enterprise GitHub repositories
 - [optional] external cluster (optional) for better security
 - [opsnehift only] service account with appropriate [SCC](https://www.redhat.com/en/blog/managing-sccs-in-openshift)
-to allow elevated container permissions
+  to allow elevated container permissions
 
 ```yaml
 providerBuilds:
@@ -231,7 +262,7 @@ providerBuilds:
     useSecurityContextCapabilities: true
   externalClusterExecutor:
     serviceAccountName: ""
-    namespace: ""  # Kubernetes namespace for provider builds (defaults to current namespace if empty)
+    namespace: "" # Kubernetes namespace for provider builds (defaults to current namespace if empty)
     kubeconfig: "" # Kubeconfig YAML content for external cluster (optional)
     # Example:
     # kubeconfig: |
@@ -243,25 +274,30 @@ providerBuilds:
     #   ...
 ```
 
-
 ### Configuring external services
+
 You may want to access or build agents from private registries or GitHub repositories, here is how to
 configure these options.
 
 #### Private image registries
+
 You can configure pull secrets to access agents in private docker registries using:
+
 ```yaml
 imagePullSecrets:
   - name: custom-registry-secret
 ```
+
 where `custom-registry-secret` is the name of a kubernetes secret created according to the official
 [documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
 
 #### Private github repositories
+
 If you want to build agents from enterprise github or private github repositories, you can either create a
 [Personal Access Token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
 or use a [GitHub App](https://docs.github.com/en/apps/creating-github-apps/about-creating-github-apps/about-creating-github-apps)
 to access the repository. The configuration looks as follows:
+
 ```yaml
 github:
   auths:
@@ -279,6 +315,7 @@ github:
 ```
 
 ### Storage
+
 By default, Agent Stack deployment includes postgresql and seaweedfs (s3 compatible object storage). It is not
 recommended to use these builtin versions of services in production. Instead, you should configure external databases
 (ideally managed by a cloud provider).
@@ -326,9 +363,10 @@ SET hnsw.iterative_scan = strict_order;
 SET hnsw.max_scan_tuples = 1000000;
 ```
 
-#### Rate Limiting (Redis)
+#### Redis
 
-Agent Stack supports rate limiting using Redis. This feature is disabled by default. To enable rate limiting, you must enable Redis, either by using the built-in instance or connecting to an external one.
+Agent Stack supports Redis for rate limiting and caching. This feature is disabled by default, but required if replicaCount > 1.
+You can use the built-in Redis subchart or connect to an external instance.
 
 **Enable Built-in Redis:**
 
@@ -370,8 +408,9 @@ externalS3:
 ```
 
 ### Advanced Configuration
+
 The list of all configuration options is available in the
-[values.yaml](https://github.com/i-am-bee/agentstack/blob/v0.4.1/helm/values.yaml) file. If you have specific
+[values.yaml](https://github.com/i-am-bee/agentstack/blob/v0.4.3/helm/values.yaml) file. If you have specific
 requirements for the helm chart configuration which are not covered by the current options, please open an issue.
 
 ## Management Commands
@@ -426,10 +465,10 @@ kubectl get events --sort-by=.lastTimestamp
 **Authentication issues:**
 
 Make sure you have configured your OIDC provider correctly:
+
 - redirect URI should be the public URL + `/api/auth/callback` (e.g. `https://your-public-url.com/api/auth/callback`)
 - for CLI, the redirect URI should be `http://localhost:9001/callback`
 - consider creating a separate public OIDC application for the CLI
 - `audience` claim should be the public URL of your application without a trailing slash (e.g. `https://example.com`)
 - `trustProxyHeaders` must be enabled to correctly forward the request URL through proxies
 - if this is still not working, try to disable `auth.oidc.validate_audience`
-

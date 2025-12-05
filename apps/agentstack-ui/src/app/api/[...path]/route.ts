@@ -45,10 +45,11 @@ async function handler(request: NextRequest, context: RouteContext) {
     }
   }
 
-  const { forwarded, forwardedHost, forwardedProto } = await getProxyHeaders(headers, nextUrl);
+  const { forwarded, forwardedHost, forwardedFor, forwardedProto } = await getProxyHeaders(headers, nextUrl);
   headers.set('forwarded', forwarded);
   if (forwardedHost) headers.set('x-forwarded-host', forwardedHost);
   if (forwardedProto) headers.set('x-forwarded-proto', forwardedProto);
+  if (forwardedFor) headers.set('x-forwarded-for', forwardedFor);
 
   const res = await fetch(targetUrl, {
     method,

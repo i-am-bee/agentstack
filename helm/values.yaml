@@ -294,6 +294,14 @@ affinity: {}
 # Uvicorn --timeout-keep-alive (in seconds)
 uvicornTimeoutKeepAlive: 5
 
+rateLimit:
+  enabled: false
+  limits:
+    - "20/second"
+    - "100/minute"
+  strategy: "sliding-window-counter"
+
+
 connector:
   presets:
     - url: "https://mcp.stripe.com"
@@ -602,13 +610,6 @@ externalRedis:
   password: ""
   existingSecret: ""
   existingSecretPasswordKey: "redis-password"
-
-rateLimit:
-  enabled: false
-  limits:
-    - "20/second"
-    - "100/minute"
-  strategy: "sliding-window-counter"
 
 docling: 
   enabled: false 
