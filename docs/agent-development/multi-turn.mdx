@@ -149,7 +149,11 @@ By default, conversation history is stored in memory, which means it's lost when
 To maintain conversation history across agent restarts, configure your server to use the platform's persistent context store:
 
 ```python
-from agentstack_sdk.server.context import PlatformContextStore
+import os
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.store.platform_context_store import PlatformContextStore
+
+server = Server()
 
 def run():
     server.run(

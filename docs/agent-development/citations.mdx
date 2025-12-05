@@ -7,7 +7,16 @@ description: Add source references to agent responses with clickable links
 
 ```python
 from typing import Annotated
-from agentstack_sdk.a2a.extensions import CitationExtensionServer, CitationExtensionSpec
+from agentstack_sdk.a2a.extensions import (
+    Citation,
+    CitationExtensionServer,
+    CitationExtensionSpec,
+)
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
+from a2a.types import Message
+
+server = Server()
 
 @server.agent()
 async def research_agent(
@@ -17,13 +26,15 @@ async def research_agent(
 ):
     response_text = "Python is the most popular programming language for AI development."
     
-    citations = [{
-        "url": "https://survey.stackoverflow.com/2023",
-        "title": "Stack Overflow Developer Survey 2023",
-        "description": "Annual survey of developer preferences and trends",
-        "start_index": 0,
-        "end_index": 47  # "Python is the most popular programming language"
-    }]
+    citations = [
+        Citation(
+            url="https://survey.stackoverflow.com/2023",
+            title="Stack Overflow Developer Survey 2023",
+            description="Annual survey of developer preferences and trends",
+            start_index=0,
+            end_index=47  # "Python is the most popular programming language"
+        )
+    ]
     
     yield citation.message(text=response_text, citations=citations)
 ```

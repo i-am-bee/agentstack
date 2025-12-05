@@ -37,8 +37,8 @@ from agentstack_sdk.a2a.extensions.tools.call import (
     ToolCallExtensionServer,
     ToolCallExtensionSpec,
     ToolCallRequest,
-    ToolCallRejectionError,
 )
+from agentstack_sdk.a2a.extensions.tools.exceptions import ToolCallRejectionError
 from beeai_framework.agents.requirement import RequirementAgent
 from beeai_framework.backend import ChatModel
 from beeai_framework.agents.requirement.requirements.ask_permission import AskPermissionRequirement
@@ -59,7 +59,7 @@ async def tool_call_agent(
         try:
             await mcp_tool_call.request_tool_call_approval(
                 # using MCP Tool data model as intermediary to simplify conversion
-                ToolCallRequest.from_mcp_tool(_tool_factory(tool), input=input),
+                ToolCallRequest.from_mcp_tool(_tool_factory(tool), input=input),  # type: ignore
                 context=context,
             )
             return True

@@ -419,8 +419,10 @@ from agentstack_sdk.a2a.extensions import (
     PlatformApiExtensionSpec,
 )
 from agentstack_sdk.platform import File
+from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
 
+server = Server()
 
 @server.agent()
 async def my_agent(

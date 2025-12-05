@@ -57,18 +57,22 @@ The basic communication unit in the A2A protocol, representing a single turn in 
 
 ```python
 import uuid
-from a2a.types import ( Message, TextPart )
+from a2a.types import Message, TextPart, Part, Role
 
-yield Message(role="agent", message_id=str(uuid.uuid4()), parts=[TextPart(text="Hello from the agent!")])
+# @server.agent(...)
+async def example_agent():
+    yield Message(role=Role.agent, message_id=str(uuid.uuid4()), parts=[Part(root=TextPart(text="Hello from the agent!"))])
 ```
 
 #### Part
 The fundamental unit of content. For example, a `TextPart` contains text data. A `Message` consists of multiple `Part` objects. Can be any of `TextPart`, `FilePart`, or `DataPart`.
 
 ```python
-from a2a.types import ( TextPart )
+from a2a.types import TextPart
 
-yield TextPart(text="Hello from the agent!")
+# @server.agent(...)
+async def example_agent():
+    yield TextPart(text="Hello from the agent!")
 ```
 
 #### Artifact
@@ -76,12 +80,14 @@ Tangible outputs produced by the agent, such as documents, files, or other gener
 
 ```python
 import uuid
-from a2a.types import Artifact, FilePart, FileWithUri
+from a2a.types import Artifact, FilePart, FileWithUri, Part
 
-yield Artifact(
-    artifact_id=str(uuid.uuid4()),
-    parts=[FilePart(file=FileWithUri(uri="https://www.ibm.com/us-en", mime_type="text/html", name="IBM Website"))],
-)
+# @server.agent(...)
+async def example_agent():
+    yield Artifact(
+        artifact_id=str(uuid.uuid4()),
+        parts=[Part(root=FilePart(file=FileWithUri(uri="https://www.ibm.com/us-en", mime_type="text/html", name="IBM Website")))],
+    )
 ```
 
 #### TaskStatus
@@ -89,10 +95,12 @@ A stateful unit of work that can annotate a transaction spanning multiple messag
 
 ```python
 import uuid
-from a2a.types import TaskStatus, TextPart, Message, TaskState
+from a2a.types import TaskStatus, TextPart, Message, TaskState, Part, Role
 
-yield TaskStatus(
-    message=Message(message_id=str(uuid.uuid4()), role="agent", parts=[TextPart(text="Please provide some input.")]),
-    state=TaskState.input_required,
-)
+# @server.agent(...)
+async def example_agent():
+    yield TaskStatus(
+        message=Message(message_id=str(uuid.uuid4()), role=Role.agent, parts=[Part(root=TextPart(text="Please provide some input."))]),
+        state=TaskState.input_required,
+    )
 ```

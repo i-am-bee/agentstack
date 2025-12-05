@@ -59,7 +59,7 @@ async def example_agent(
 ):
     """Agent that uses LLM inference to respond to user input"""
 
-    if llm:
+    if llm and llm.data and llm.data.llm_fulfillments:
         # Extract the user's message
         user_message = get_message_text(input)
         
@@ -67,13 +67,18 @@ async def example_agent(
         # Single demand is resolved to default (unless specified otherwise)
         llm_config = llm.data.llm_fulfillments.get("default")
         
-        # Use the LLM configuration with your preferred client
-        # The platform provides OpenAI-compatible endpoints
-        api_model = llm_config.api_model
-        api_key = llm_config.api_key
-        api_base = llm_config.api_base
+        if llm_config:
+            # Use the LLM configuration with your preferred client
+            # The platform provides OpenAI-compatible endpoints
+            api_model = llm_config.api_model
+            api_key = llm_config.api_key
+            api_base = llm_config.api_base
 
-        yield AgentMessage(text=f"LLM access configured for model: {api_model}")
+            yield AgentMessage(text=f"LLM access configured for model: {api_model}")
+        else:
+            yield AgentMessage(text="LLM configuration not found.")
+    else:
+        yield AgentMessage(text="LLM service not available.")
 
 def run():
     server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))

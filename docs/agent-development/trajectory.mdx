@@ -7,7 +7,12 @@ description: Show users the step-by-step reasoning process of your agent.
 
 ```python
 from typing import Annotated
+from a2a.types import Message
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
 from agentstack_sdk.a2a.extensions import TrajectoryExtensionServer, TrajectoryExtensionSpec
+
+server = Server()
 
 @server.agent()
 async def my_agent(

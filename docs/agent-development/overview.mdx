@@ -53,14 +53,18 @@ When you await a form request, execution pauses the task, allowing the user to f
 
 ```python
 from typing import Annotated
-from agentstack_sdk.a2a.extensions.common.form import (
-    FormRender,
-    TextField
-)
+
+from a2a.types import Message
+from agentstack_sdk.a2a.extensions.common.form import FormRender, TextField
 from agentstack_sdk.a2a.extensions.ui.form_request import (
     FormRequestExtensionServer,
     FormRequestExtensionSpec,
 )
+from agentstack_sdk.a2a.types import AgentMessage
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
+
+server = Server()
 
 @server.agent()
 async def form_agent(
@@ -84,9 +88,12 @@ async def form_agent(
     )
     
     # Execution resumes after user submits the form
-    name = form_data.values['name'].value
-    email = form_data.values['email'].value
-    yield AgentMessage(text=f"Thank you, {name}! I'll contact you at {email}.")
+    if form_data and form_data.values:
+        name = form_data.values["name"].value
+        email = form_data.values["email"].value
+        yield AgentMessage(text=f"Thank you, {name}! I'll contact you at {email}.")
+    else:
+        yield AgentMessage(text="Form was not filled out.")
 ```
 
 <Tip>The whole complexity of Task management is handled via Agent Stack SDK.</Tip>
@@ -115,10 +122,16 @@ Service extensions use a dependency injection pattern where each run of the agen
 
 ```python
 from typing import Annotated
+from a2a.types import Message
 from agentstack_sdk.a2a.extensions import (
     LLMServiceExtensionServer,
     LLMServiceExtensionSpec,
 )
+from agentstack_sdk.a2a.types import AgentMessage
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
+
+server = Server()
 
 @server.agent()
 async def llm_agent(
@@ -128,8 +141,9 @@ async def llm_agent(
 ):
     # The demand is fulfilled by the client - llm is provided if available
     if llm:
-        response = await llm.chat(messages=[...])
-        yield AgentMessage(text=response.content)
+        # response = await llm.chat(messages=[...])
+        # ...
+        pass
     else:
         yield AgentMessage(text="LLM service not available")
 ```

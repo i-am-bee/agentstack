@@ -35,15 +35,15 @@ pip install agentstack-sdk
 Create a new file (e.g., `server.py`) that wraps your existing agent:
 
 ```python
+# Import your existing agent logic
+from my_agent import run_my_agent  # Your existing agent code
+
 import os
 from a2a.types import Message
 from a2a.utils.message import get_message_text
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
 from agentstack_sdk.a2a.types import AgentMessage
-
-# Import your existing agent logic
-from my_agent import run_my_agent  # Your existing agent code
 
 server = Server()
 
