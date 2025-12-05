@@ -296,9 +296,9 @@ if [ $result -ne 0 ]; then
     kubectl get event
 fi
 
-# {{ mise_bin }} run agentstack-cli:run -- platform delete --vm-name=${VM_NAME}
-# kill %1
-# exit $result
+{{ mise_bin }} run agentstack-cli:run -- platform delete --vm-name=${VM_NAME}
+kill %1
+exit $result
 """
 
 ["agentstack-server:test:integration"]

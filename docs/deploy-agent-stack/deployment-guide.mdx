@@ -175,9 +175,22 @@ Rate limiting is recommended for production environments as a protection against
 ```yaml
 rateLimit:
   enabled: true
-  limits:
+  globalLimits:
     - "20/second"
     - "100/minute"
+  roleBasedLimits:
+    user:
+      openai_chat_completion_tokens: []
+      openai_chat_completion_requests: []
+      openai_embedding_inputs: []
+    developer:
+      openai_chat_completion_tokens: []
+      openai_chat_completion_requests: []
+      openai_embedding_inputs: []
+    admin:
+      openai_chat_completion_tokens: []
+      openai_chat_completion_requests: []
+      openai_embedding_inputs: []
   strategy: "sliding-window-counter" # Options: fixed-window, moving-window, sliding-window-counter
 ```
 

@@ -36,12 +36,12 @@ from agentstack_server.api.routes.user import router as user_router
 from agentstack_server.api.routes.user_feedback import router as user_feedback_router
 from agentstack_server.api.routes.variables import router as variables_router
 from agentstack_server.api.routes.vector_stores import router as vector_stores_router
+from agentstack_server.api.utils import format_openai_error
 from agentstack_server.bootstrap import bootstrap_dependencies_sync
 from agentstack_server.configuration import Configuration
 from agentstack_server.exceptions import (
-    DuplicateEntityError,
-    ManifestLoadError,
     PlatformError,
+    RateLimitExceededError,
 )
 from agentstack_server.jobs.crons.provider import check_registry
 from agentstack_server.run_workers import run_workers
@@ -69,12 +69,9 @@ def extract_messages(exc):
 
 def register_global_exception_handlers(app: FastAPI):
     @app.exception_handler(PlatformError)
-    async def entity_not_found_exception_handler(request, exc: ManifestLoadError | DuplicateEntityError):
-        return await http_exception_handler(request, HTTPException(status_code=exc.status_code, detail=str(exc)))
-
     @app.exception_handler(Exception)
     @app.exception_handler(HTTPException)
-    async def custom_http_exception_handler(request: Request, exc):
+    async def custom_http_exception_handler(request: Request, exc: Exception):
         """Include detail in all unhandled exceptions.
 
         This is not the beset security practice as it can reveal details about the internal workings of this service,
@@ -83,22 +80,37 @@ def register_global_exception_handlers(app: FastAPI):
 
         logger.error("Error during HTTP request: %s", repr(extract_messages(exc)))
 
-        if request.url.path.startswith("/api/v1/a2a"):
-            match exc:
-                case _:
-                    ...  # TODO
-
         match exc:
+            case RateLimitExceededError():
+                exception = HTTPException(
+                    status_code=exc.status_code,
+                    detail=str(exc),
+                    headers={
+                        "X-RateLimit-Limit": str(exc.amount),
+                        "X-RateLimit-Remaining": str(exc.remaining),
+                        "X-RateLimit-Reset": str(exc.reset_time),
+                        "Retry-After": str(int(exc.reset_time - time.time())),
+                    },
+                )
+            case PlatformError():
+                exception = HTTPException(status_code=exc.status_code, detail=str(exc))
             case HTTPException():
                 exception = exc
             case _:
                 exception = HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, detail=repr(extract_messages(exc)))
 
-        if isinstance(exception, HTTPException) and exc.status_code == HTTP_401_UNAUTHORIZED:
-            exception.headers = exception.headers or {}
-            exception.headers |= {
-                "WWW-Authenticate": f'Bearer resource_metadata="{request.url.replace(path="/.well-known/oauth-protected-resource")}"'  # We don't define multiple resource domains at the moment
+        if exception.status_code == HTTP_401_UNAUTHORIZED:
+            exception.headers = {
+                **(exception.headers or {}),
+                "WWW-Authenticate": f'Bearer resource_metadata="{request.url.replace(path="/.well-known/oauth-protected-resource")}"',  # We don't define multiple resource domains at the moment
             }
+
+        if request.url.path.startswith("/api/v1/openai"):
+            return JSONResponse(
+                status_code=exception.status_code,
+                headers=exception.headers,
+                content=format_openai_error(exc),
+            )
 
         return await http_exception_handler(request, exception)
 

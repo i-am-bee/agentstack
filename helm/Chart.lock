@@ -7,12 +7,12 @@ dependencies:
   version: 16.7.27
 - name: seaweedfs
   repository: https://seaweedfs.github.io/seaweedfs/helm
-  version: 4.0.401
+  version: 4.0.402
 - name: phoenix-helm
   repository: oci://registry-1.docker.io/arizephoenix
   version: 2.0.44
 - name: redis
   repository: oci://registry-1.docker.io/cloudpirates
   version: 0.16.3
-digest: sha256:312e9b8ed62d9e9779e3a8650a0c65908399704bfd98f3f61b89ee0da30cbc82
-generated: "2025-12-01T16:43:32.859736+01:00"
+digest: sha256:47a9fa2e4fbe3a147f04c49d5744099c06d842b1bb4d47f08fd3d463ca7bd648
+generated: "2025-12-09T18:07:51.539222+01:00"

@@ -152,10 +152,10 @@ async def _server_side_build(
     verbose: bool = False,
 ) -> ProviderBuild:
     build = None
-    try:
-        from agentstack_cli.commands.agent import select_provider
-        from agentstack_cli.configuration import Configuration
+    from agentstack_cli.commands.agent import select_provider
+    from agentstack_cli.configuration import Configuration
 
+    try:
         if replace and add:
             raise ValueError("Cannot specify both replace and add options.")
 
@@ -181,8 +181,9 @@ async def _server_side_build(
                     print_log(message, ansi_mode=True, out_console=err_console)
             return await build.get()
     except (KeyboardInterrupt, CancelledError):
-        if build:
-            await build.delete()
+        async with Configuration().use_platform_client():
+            if build:
+                await build.delete()
         console.error("Build aborted.")
         raise
 

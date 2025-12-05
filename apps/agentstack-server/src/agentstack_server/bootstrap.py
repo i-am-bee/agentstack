@@ -3,6 +3,7 @@
 
 import logging
 import pathlib
+from collections.abc import Callable
 
 import anyio
 import kr8s
@@ -13,9 +14,11 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from agentstack_server.configuration import Configuration, get_configuration
 from agentstack_server.domain.repositories.file import IObjectStorageRepository, ITextExtractionBackend
+from agentstack_server.domain.repositories.openai_proxy import IOpenAIProxy
 from agentstack_server.infrastructure.kubernetes.provider_build_manager import KubernetesProviderBuildManager
 from agentstack_server.infrastructure.kubernetes.provider_deployment_manager import KubernetesProviderDeploymentManager
 from agentstack_server.infrastructure.object_storage.repository import S3ObjectStorageRepository
+from agentstack_server.infrastructure.openai_proxy.openai_proxy import CustomOpenAIProxy
 from agentstack_server.infrastructure.persistence.unit_of_work import SqlAlchemyUnitOfWorkFactory
 from agentstack_server.infrastructure.text_extraction.docling import DoclingTextExtractionBackend
 from agentstack_server.jobs.procrastinate import create_app
@@ -60,8 +63,9 @@ def setup_rate_limiter_storage(config: Configuration) -> Storage:
 async def bootstrap_dependencies(dependency_overrides: Container | None = None):
     dependency_overrides = dependency_overrides or Container()
 
-    def _set_di[T](service: type[T], instance: T):
-        di[service] = dependency_overrides[service] if service in dependency_overrides else instance  # noqa: SIM401 (not a dict)
+    def _set_di[T](service: type[T], instance: T | None = None, create_instance: Callable[[], T] | None = None):
+        create_instance_fn = create_instance or (lambda: instance)
+        di[service] = dependency_overrides[service] if service in dependency_overrides else create_instance_fn()
 
     di.clear_cache()
     di._aliases.clear()  # reset aliases
@@ -103,12 +107,12 @@ async def bootstrap_dependencies(dependency_overrides: Container | None = None):
 
     # Register object storage repository and file service
     _set_di(IObjectStorageRepository, S3ObjectStorageRepository(di[Configuration]))
-    _set_di(procrastinate.App, create_app(di[Configuration]))
-
+    _set_di(procrastinate.App, create_instance=lambda: create_app(di[Configuration]))
     _set_di(ITextExtractionBackend, DoclingTextExtractionBackend(di[Configuration].text_extraction))
 
     # Setup rate limiter storage
     _set_di(Storage, setup_rate_limiter_storage(di[Configuration]))
+    _set_di(IOpenAIProxy, CustomOpenAIProxy())
 
 
 bootstrap_dependencies_sync = async_to_sync_isolated(bootstrap_dependencies)

@@ -74,7 +74,9 @@ class InvalidProviderUpgradeError(PlatformError):
         super().__init__(message, status_code)
 
 
-class InvalidProviderCallError(PlatformError): ...
+class InvalidProviderCallError(PlatformError):
+    def __init__(self, message: str, status_code: int = status.HTTP_400_BAD_REQUEST):
+        super().__init__(message, status_code)
 
 
 class InvalidVectorDimensionError(PlatformError): ...
@@ -108,6 +110,24 @@ class MissingConfigurationError(Exception):
     def __init__(self, missing_env: list["EnvVar"], status_code: int = status.HTTP_400_BAD_REQUEST):
         self.missing_env = missing_env
         self.status_code = status_code
+
+
+class RateLimitExceededError(PlatformError):
+    def __init__(
+        self,
+        key: str,
+        amount: int,
+        remaining: int,
+        reset_time: float,
+        message: str | None = None,
+        status_code: int = status.HTTP_429_TOO_MANY_REQUESTS,
+    ):
+        message = message or f"Rate limit exceeded for key '{key[:20]}...'"
+        super().__init__(message, status_code)
+        self.key: str = key
+        self.amount: int = amount
+        self.remaining: int = remaining
+        self.reset_time: float = reset_time
 
 
 class UsageLimitExceededError(PlatformError):

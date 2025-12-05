@@ -119,3 +119,5 @@ lint.ignore = [
 ignore = ["tests/**"]
 venvPath = "."
 venv = ".venv"
+enableTypeIgnoreComments = true
+reportIgnoreCommentWithoutRule="none"

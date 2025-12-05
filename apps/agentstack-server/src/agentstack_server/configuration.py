@@ -6,10 +6,10 @@ import logging
 import ssl
 from collections import defaultdict
 from datetime import timedelta
-from functools import cache
+from functools import cache, cached_property
 from pathlib import Path
 from textwrap import dedent
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 from limits import RateLimitItem, parse_many
 from pydantic import AnyUrl, BaseModel, Field, Secret, ValidationError, field_validator, model_validator
@@ -323,23 +323,69 @@ class GenerateConversationTitleConfiguration(BaseModel):
     )
 
 
+class RoleRateLimits(BaseModel, arbitrary_types_allowed=True):
+    openai_chat_completion_tokens: list[RateLimitItem] | str | None = Field(
+        default_factory=list,
+        description="List of rate limit strings (e.g., '100000/minute')",
+    )
+    openai_chat_completion_requests: list[RateLimitItem] | str | None = Field(
+        default_factory=list, description="List of rate limit strings (e.g., '100/minute')"
+    )
+    openai_embedding_inputs: list[RateLimitItem] | str | None = Field(
+        default_factory=list,
+        description="List of rate limit strings (e.g., '1000/minute')",
+    )
+
+    @field_validator(
+        "openai_chat_completion_tokens",
+        "openai_chat_completion_requests",
+        "openai_embedding_inputs",
+        mode="before",
+    )
+    @classmethod
+    def validate_limits(cls, limits: str | list[RateLimitItem] | None) -> list[RateLimitItem] | None:
+        if not limits:
+            return []
+        return parse_many(limits) if isinstance(limits, str) else limits
+
+    @cached_property
+    def openai_chat_completion_tokens_parsed(self) -> list[RateLimitItem]:
+        return sorted(cast(list[RateLimitItem], self.openai_chat_completion_tokens))
+
+    @cached_property
+    def openai_chat_completion_requests_parsed(self) -> list[RateLimitItem]:
+        return sorted(cast(list[RateLimitItem], self.openai_chat_completion_requests))
+
+    @cached_property
+    def openai_embedding_inputs_parsed(self) -> list[RateLimitItem]:
+        return sorted(cast(list[RateLimitItem], self.openai_embedding_inputs))
+
+
+class RoleBasedRateLimitConfiguration(BaseModel):
+    user: RoleRateLimits = Field(default_factory=RoleRateLimits)
+    developer: RoleRateLimits = Field(default_factory=RoleRateLimits)
+    admin: RoleRateLimits = Field(default_factory=RoleRateLimits)
+
+
 class RateLimitConfiguration(BaseModel, arbitrary_types_allowed=True):
     enabled: bool = False
-    limits: list[RateLimitItem] | str = Field(
+    strategy: Literal["sliding-window-counter", "fixed-window", "moving-window"] = "sliding-window-counter"
+    global_limits: list[RateLimitItem] | str | None = Field(
         default_factory=lambda: parse_many("20/second; 100/minute"),
         description="List of rate limit strings (e.g., '20/second', '100/minute')",
     )
-    strategy: Literal["sliding-window-counter", "fixed-window", "moving-window"] = "sliding-window-counter"
+    role_based_limits: RoleBasedRateLimitConfiguration = Field(default_factory=RoleBasedRateLimitConfiguration)
 
-    @field_validator("limits", mode="before")
+    @field_validator("global_limits", mode="before")
     @classmethod
-    def validate_limits(cls, limits: str | list[RateLimitItem]) -> list[RateLimitItem]:
+    def validate_limits(cls, limits: str | list[RateLimitItem] | None) -> list[RateLimitItem] | None:
+        if not limits:
+            return []
         return parse_many(limits) if isinstance(limits, str) else limits
 
-    @property
-    def limits_parsed(self) -> list[RateLimitItem]:
-        assert isinstance(self.limits, list)
-        return self.limits
+    @cached_property
+    def global_limits_parsed(self) -> list[RateLimitItem]:
+        return sorted(cast(list[RateLimitItem], self.global_limits))
 
 
 class Configuration(BaseSettings):

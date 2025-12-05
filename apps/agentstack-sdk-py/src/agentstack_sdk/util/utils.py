@@ -28,7 +28,11 @@ async def parse_stream(response: httpx.Response) -> AsyncIterator[dict[str, Any]
         raise HTTPStatusError(message=error, request=response.request, response=response)
     async for line in response.aiter_lines():
         if line:
-            yield json.loads(re.sub("^data:", "", line).strip())
+            data = re.sub("^data:", "", line).strip()
+            try:
+                yield json.loads(data)
+            except json.JSONDecodeError:
+                yield {"event": data}
 
 
 def extract_messages(exc: BaseException) -> list[tuple[str, str]]:

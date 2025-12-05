@@ -296,10 +296,26 @@ uvicornTimeoutKeepAlive: 5
 
 rateLimit:
   enabled: false
-  limits:
+  globalLimits:
     - "20/second"
     - "100/minute"
   strategy: "sliding-window-counter"
+  roleBasedLimits:
+    user:
+      openai_chat_completion_tokens: []
+      # - "100000/minute"
+      openai_chat_completion_requests: []
+      # - "100/minute"
+      openai_embedding_inputs: []
+      # - "1000/minute"
+    developer:
+      openai_chat_completion_tokens: []
+      openai_chat_completion_requests: []
+      openai_embedding_inputs: []
+    admin:
+      openai_chat_completion_tokens: []
+      openai_chat_completion_requests: []
+      openai_embedding_inputs: []
 
 
 connector:
@@ -513,6 +529,8 @@ externalDatabase:
 ## @param seaweedfs.enabled Switch to enable or disable the SeaweedFS helm chart
 ## @param seaweedfs.auth.existingSecret must have keys "accessKeyId" and "accessKeySecret"
 seaweedfs:
+  global:
+    createClusterRole: false
   enabled: true
   image:
     registry: ghcr.io
@@ -548,6 +566,9 @@ seaweedfs:
       enabled: true
     sftp:
       enabled: false
+    data:
+      type: "persistentVolumeClaim"
+      size: "20Gi"
 
 ## @section External S3 parameters
 ## All of these values are only used when redis.enabled is set to false

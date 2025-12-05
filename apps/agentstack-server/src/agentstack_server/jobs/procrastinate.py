@@ -18,9 +18,16 @@ from agentstack_server.jobs.tasks.provider_build import blueprint as provider_bu
 
 logger = logging.getLogger(__name__)
 
+_app_created = False
+
 
 @inject
 def create_app(configuration: Configuration) -> procrastinate.App:
+    global _app_created
+
+    if _app_created:
+        raise RuntimeError("App can be created only once (modifies global tasks in-place)")
+
     conn_string = str(configuration.persistence.db_url.get_secret_value())
     conn_string = re.sub(r"postgresql\+[a-zA-Z]+://", "postgresql://", conn_string)
 
@@ -54,4 +61,5 @@ def create_app(configuration: Configuration) -> procrastinate.App:
     app.add_tasks_from(blueprint=provider_crons, namespace="cron_provider")
     app.add_tasks_from(blueprint=cleanup_crons, namespace="cron_cleanup")
     app.add_tasks_from(blueprint=connector_crons, namespace="cron_connector")
+    _app_created = True
     return app
