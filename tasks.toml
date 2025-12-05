@@ -397,12 +397,6 @@ if gum confirm "Publish version $publish_version now?"; then
   (
     set -eux -o pipefail
     {{ mise_bin }} release:_bump --version="$publish_version"
-
-    git add .
-    git commit -m "deploy: v$publish_version"
-    git tag "v$publish_version"
-    git push origin tag "v$publish_version"
-    git push origin release
   )
   
   # Backport install.sh version updates to main branch
