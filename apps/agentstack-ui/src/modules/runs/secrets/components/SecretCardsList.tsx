@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentSecret } from '../contexts/agent-secrets/types';
+import type { AgentSecret } from '#modules/runs/contexts/agent-secrets/types.ts';
+
 import { SecretCard } from './SecretCard';
 import classes from './SecretCardsList.module.scss';
 

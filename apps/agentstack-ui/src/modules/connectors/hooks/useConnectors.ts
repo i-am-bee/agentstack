@@ -4,14 +4,13 @@
  */
 
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import z from 'zod';
 
 import { useToast } from '#contexts/Toast/index.ts';
 
 import { connectorKeys } from '../api/keys';
 import { useConnectConnector } from '../api/mutations/useConnectConnector';
-import { useDeleteConnector } from '../api/mutations/useDeleteConnector';
 import { useDisconnectConnector } from '../api/mutations/useDisconnectConnector';
 
 const authorizeOauth = (
@@ -27,6 +26,7 @@ const authorizeOauth = (
   const timer = setInterval(() => {
     if (popup.closed) {
       clearInterval(timer);
+      onCallback({ error: null, errorDescription: null });
       window.removeEventListener('message', handler);
     }
   }, 500);
@@ -55,26 +55,20 @@ const authorizeOauth = (
   window.addEventListener('message', handler);
 };
 
-export const useRemove = () => {
-  const { mutateAsync: removeConnector } = useDeleteConnector();
-
-  return useCallback(
-    async (connectorId: string) => {
-      await removeConnector({ connector_id: connectorId });
-    },
-    [removeConnector],
-  );
-};
-
 export const useDisconnect = () => {
-  const { mutateAsync: disconnectConnector } = useDisconnectConnector();
+  const { mutateAsync: disconnectConnector, isPending } = useDisconnectConnector();
 
-  return useCallback(
+  const disconnect = useCallback(
     async (connectorId: string) => {
       await disconnectConnector({ connector_id: connectorId });
     },
     [disconnectConnector],
   );
+
+  return {
+    disconnect,
+    isPending,
+  };
 };
 
 const useHandleAuthorizeCallback = () => {
@@ -98,28 +92,50 @@ const useHandleAuthorizeCallback = () => {
 };
 
 export const useConnect = () => {
-  const { mutateAsync: connectConnector } = useConnectConnector();
+  const [isAuthorizing, setIsAuthorizing] = useState(false);
+
+  const { mutateAsync: connectConnector, isPending } = useConnectConnector();
   const handleAuthorizeCallback = useHandleAuthorizeCallback();
 
-  return useCallback(
+  const connect = useCallback(
     async (connectorId: string) => {
       const result = await connectConnector({ connector_id: connectorId });
 
       if (result && result.auth_request) {
-        authorizeOauth(result.auth_request.authorization_endpoint, handleAuthorizeCallback);
+        setIsAuthorizing(true);
+        authorizeOauth(result.auth_request.authorization_endpoint, (props) => {
+          handleAuthorizeCallback(props);
+          setIsAuthorizing(false);
+        });
       }
     },
     [connectConnector, handleAuthorizeCallback],
   );
+
+  return {
+    connect,
+    isPending: isPending || isAuthorizing,
+  };
 };
 
 export const useAuthorize = () => {
+  const [isPending, setIsPending] = useState(false);
+
   const handleAuthorizeCallback = useHandleAuthorizeCallback();
 
-  return useCallback(
+  const authorize = useCallback(
     (authorizationEndpoint: string) => {
-      authorizeOauth(authorizationEndpoint, handleAuthorizeCallback);
+      setIsPending(true);
+      authorizeOauth(authorizationEndpoint, (props) => {
+        handleAuthorizeCallback(props);
+        setIsPending(false);
+      });
     },
     [handleAuthorizeCallback],
   );
+
+  return {
+    authorize,
+    isPending,
+  };
 };

@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-.root {
-  margin: -$spacing-03;
+.stack {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  row-gap: $spacing-05;
 }

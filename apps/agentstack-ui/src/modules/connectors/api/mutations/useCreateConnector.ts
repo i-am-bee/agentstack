@@ -8,9 +8,14 @@ import { useMutation } from '@tanstack/react-query';
 import { createConnector } from '..';
 import { connectorKeys } from '../keys';
 
-export function useCreateConnector() {
+interface Props {
+  onSuccess?: () => void;
+}
+
+export function useCreateConnector({ onSuccess }: Props = {}) {
   const mutation = useMutation({
     mutationFn: createConnector,
+    onSuccess,
     meta: {
       invalidates: [connectorKeys.list()],
       errorToast: {

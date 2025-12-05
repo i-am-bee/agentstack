@@ -5,7 +5,7 @@
 
 import { NoItemsMessage } from '#components/NoItemsMessage/NoItemsMessage.tsx';
 import { useAgentSecrets } from '#modules/runs/contexts/agent-secrets/index.ts';
-import { SecretCard } from '#modules/runs/secrets/SecretCard.tsx';
+import { SecretCard } from '#modules/runs/secrets/components/SecretCard.tsx';
 
 import classes from './AgentSecrets.module.scss';
 

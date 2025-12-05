@@ -4,14 +4,16 @@
  */
 
 import { Button, PasswordInput } from '@carbon/react';
-import { useId } from 'react';
+import { useCallback, useId } from 'react';
+import type { SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 
+import type { AgentSecret } from '#modules/runs/contexts/agent-secrets/types.ts';
 import { useUpdateVariable } from '#modules/variables/api/mutations/useUpdateVariable.ts';
 
-import type { AgentSecret } from '../contexts/agent-secrets/types';
+import { useRevokeSecret } from '../hooks/useRevokeSecret';
+import type { EditSecretForm } from '../types';
 import classes from './EditSecretForm.module.scss';
-import { useRevokeSecret } from './useRevokeSecret';
 
 interface Props {
   secret: AgentSecret;
@@ -31,15 +33,18 @@ export function EditSecretForm({ secret, onSuccess }: Props) {
     register,
     handleSubmit,
     formState: { isDirty, isValid },
-  } = useForm<FormValues>({
+  } = useForm<EditSecretForm>({
     defaultValues: {
       value: secret.isReady ? secret.value : '',
     },
   });
 
-  const onSubmit = ({ value }: FormValues) => {
-    updateVariable({ key, value });
-  };
+  const onSubmit: SubmitHandler<EditSecretForm> = useCallback(
+    ({ value }) => {
+      updateVariable({ key, value });
+    },
+    [key, updateVariable],
+  );
 
   return (
     <form className={classes.root} onSubmit={handleSubmit(onSubmit)}>
@@ -65,8 +70,4 @@ export function EditSecretForm({ secret, onSuccess }: Props) {
       </Button>
     </form>
   );
-}
-
-interface FormValues {
-  value: string;
 }

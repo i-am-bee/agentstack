@@ -8,7 +8,7 @@ import { useCallback, useMemo } from 'react';
 import { useModal } from '#contexts/Modal/index.tsx';
 import { useUpdateVariable } from '#modules/variables/api/mutations/useUpdateVariable.ts';
 
-import type { AgentSecret } from '../contexts/agent-secrets/types';
+import type { AgentSecret } from '../../contexts/agent-secrets/types';
 
 export function useRevokeSecret({ onSuccess }: { onSuccess?: () => void } = {}) {
   const { openConfirmation } = useModal();

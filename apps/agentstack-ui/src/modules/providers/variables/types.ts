@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-.root {
-  margin: -$spacing-03;
-  display: flex;
-  justify-content: flex-end;
+export interface AddVariableForm {
+  name: string;
+  value: string;
+  providerId: string;
 }

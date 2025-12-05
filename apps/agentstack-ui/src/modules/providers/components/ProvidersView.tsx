@@ -35,7 +35,7 @@ export function ProvidersView() {
   const headers = useMemo(
     () => [
       { key: 'source', header: 'Source', className: classes.source },
-      { key: 'runtime', header: 'Runtime', className: classes.runtime },
+      { key: 'runtime', header: 'Runtime' },
       { key: 'agents', header: <>#&nbsp;of&nbsp;agents</>, className: classes.agents },
       { key: 'actions', header: '' },
     ],
@@ -81,7 +81,7 @@ export function ProvidersView() {
       entries={entries}
       searchFields={['id', 'source', 'runtime']}
       isPending={isPending}
-      toolbarButton={<Button onClick={() => openModal((props) => <ImportAgentsModal {...props} />)}>Import</Button>}
+      toolbarButton={<Button onClick={() => openModal((props) => <ImportAgentsModal {...props} />)}>Add agent</Button>}
     />
   );
 }

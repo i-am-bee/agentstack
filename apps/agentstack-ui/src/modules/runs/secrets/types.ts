@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-.root {
-  margin: -$spacing-03;
-  display: flex;
-  justify-content: flex-end;
+export interface EditSecretForm {
+  value: string;
 }

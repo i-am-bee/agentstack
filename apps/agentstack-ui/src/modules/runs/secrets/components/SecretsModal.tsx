@@ -10,7 +10,7 @@ import { useCallback, useState } from 'react';
 import { Modal } from '#components/Modal/Modal.tsx';
 import type { ModalProps } from '#contexts/Modal/modal-context.ts';
 
-import { useAgentSecrets } from '../contexts/agent-secrets';
+import { useAgentSecrets } from '../../contexts/agent-secrets';
 import { SecretCardsList } from './SecretCardsList';
 import classes from './SecretsModal.module.scss';
 
