@@ -57,7 +57,6 @@ function createOIDCProvider(config: ProviderConfig): OIDCConfig<unknown> {
 }
 
 function getProviders(): ProviderWithId[] {
-  ``;
   const { isAuthEnabled } = runtimeConfig;
 
   if (!isAuthEnabled) {
