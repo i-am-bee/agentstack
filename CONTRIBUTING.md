@@ -336,7 +336,7 @@ This would
 
 ### Step 2: QA & Polish the release on release branch
 
-You can then iteratively polish the release in `main` branch and cherry-pick the commits to `release`. Once all needed changes are done, then just `mise run release:bump` to bump up the release candidate version.
+You can then iteratively polish the release in `main` branch and cherry-pick the commits to `release`. When you are ready to create a new release candidate, run `mise run release:bump` to bump up the release candidate version.
 
 Creating new RC would trigger GH action to deploy pre-release version of the package for testing.
 
