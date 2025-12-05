@@ -125,12 +125,10 @@ oidc:
     {
       "name": "IBM",
       "id": "sso-provisioned",
-      "type": "custom",
-      "options": {
-        "clientId": "<oidc_client_id>",
-        "clientSecret": "<oidc_client_secret>",
-        "issuer": "<oidc_issuer>"
-      }
+      "provider_type": "custom",
+      "client_id": "<oidc_client_id>",
+      "client_secret": "<oidc_client_secret>",
+      "issuer": "<oidc_issuer>"
     }
   ]
 ```
@@ -139,7 +137,7 @@ oidc:
   following oidc specific values:
 
 ```JavaScript
-OIDC_PROVIDERS='[{"id":"w3id","type":"custom","name":"w3id","options":{"clientId":"<your_client_id>","clientSecret":"<your_client_secret>","issuer":"<your_issuer>"}}]'
+OIDC_PROVIDERS='[{"id":"w3id","name":"w3id","provider_type":"custom","client_id":"<your_client_id>","client_secret":"<your_client_secret>","issuer":"<your_issuer>"}]'
 NEXTAUTH_SECRET = "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
 NEXTAUTH_URL = "http://localhost:3000"
 OIDC_ENABLED = true
