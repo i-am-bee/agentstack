@@ -12,10 +12,10 @@ import type { AuthProvider } from '#modules/auth/types.ts';
 import { routes } from '#utils/router.ts';
 
 import type { ProviderWithId } from './types';
-import { type ProviderConfig, providerConfigSchema } from './types';
+import { type InternalProviderConfig, providerConfigSchema, transformToInternal } from './types';
 import { getTokenRefreshSchedule, jwtWithRefresh, RefreshTokenError } from './utils';
 
-let providersConfig: ProviderConfig[] = [];
+let providersConfig: InternalProviderConfig[] = [];
 
 export const AUTH_COOKIE_NAME = 'agentstack';
 
@@ -29,7 +29,7 @@ export function getAuthProviders(): AuthProvider[] {
     });
 }
 
-function createOIDCProvider(providerConfig: ProviderConfig): OIDCConfig<unknown> {
+function createOIDCProvider(providerConfig: InternalProviderConfig): OIDCConfig<unknown> {
   return {
     id: providerConfig.id,
     name: providerConfig.name,
@@ -52,7 +52,9 @@ function getProviders(): ProviderWithId[] {
       throw new Error('No OIDC providers configured. Set OIDC_PROVIDERS with at least one provider.');
     }
 
-    providersConfig = z.array(providerConfigSchema).parse(JSON.parse(providersJson));
+    const configs = z.array(providerConfigSchema).parse(JSON.parse(providersJson));
+
+    providersConfig = configs.map(transformToInternal);
 
     return providersConfig.map(createOIDCProvider);
   } catch (err) {
