@@ -316,7 +316,7 @@ mise agentstack-server:run
 
 ## Releasing
 
-Agent Stack is using `main` branch for next version development and `release` branch for stable releases.
+Agent Stack is using `main` branch for next version development (integration branch) and `release` (stable) branch for stable releases.
 
 The release process consists of three steps:
 
@@ -336,11 +336,13 @@ This would
 
 ### Step 2: QA & Polish the release on release branch
 
-You can then iteratively polish the release in `main` branch and cherry-pick the commits to `release`. You can then do `mise run release:bump --version=X.Y.Z-rcW` to push new RC for testing.
+You can then iteratively polish the release in `main` branch and cherry-pick the commits to `release`. Once all needed changes are done, then just `mise run release:bump` to bump up the release candidate version.
 
-### Step 3: Deploy
+Creating new RC would trigger GH action to deploy pre-release version of the package for testing.
 
-Once you've verified the RC version works, deploy the final release from the `release` branch:
+### Step 3: Publish
+
+Once you've verified the RC version works, publish the final release from the `release` branch:
 
 ```shell
 git checkout release
