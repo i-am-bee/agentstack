@@ -5,17 +5,16 @@
 
 import NextAuth from 'next-auth';
 import type { OIDCConfig } from 'next-auth/providers';
+import { match } from 'ts-pattern';
 import z from 'zod';
 
 import { runtimeConfig } from '#contexts/App/runtime-config.ts';
 import type { AuthProvider } from '#modules/auth/types.ts';
 import { routes } from '#utils/router.ts';
 
-import type { ProviderWithId } from './types';
-import { type InternalProviderConfig, providerConfigSchema, transformToInternal } from './types';
+import type { ProviderConfig, ProviderWithId } from './types';
+import { providerConfigSchema } from './types';
 import { getTokenRefreshSchedule, jwtWithRefresh, RefreshTokenError } from './utils';
-
-let providersConfig: InternalProviderConfig[] = [];
 
 export const AUTH_COOKIE_NAME = 'agentstack';
 
@@ -29,17 +28,36 @@ export function getAuthProviders(): AuthProvider[] {
     });
 }
 
-function createOIDCProvider(providerConfig: InternalProviderConfig): OIDCConfig<unknown> {
+function createOIDCProvider(config: ProviderConfig): OIDCConfig<unknown> {
+  const baseOptions = {
+    clientId: config.client_id,
+    clientSecret: config.client_secret,
+    issuer: config.issuer,
+  };
+
+  const options = match(config)
+    .with({ provider_type: undefined }, { provider_type: 'custom' }, () => baseOptions)
+    .with({ provider_type: 'auth0' }, ({ audience }) => ({
+      ...baseOptions,
+      authorization: {
+        params: {
+          audience,
+        },
+      },
+    }))
+    .exhaustive();
+
   return {
-    id: providerConfig.id,
-    name: providerConfig.name,
+    id: config.id,
+    name: config.name,
     type: 'oidc',
     idToken: true,
-    options: providerConfig.options,
+    options,
   };
 }
 
 function getProviders(): ProviderWithId[] {
+  ``;
   const { isAuthEnabled } = runtimeConfig;
 
   if (!isAuthEnabled) {
@@ -52,11 +70,7 @@ function getProviders(): ProviderWithId[] {
       throw new Error('No OIDC providers configured. Set OIDC_PROVIDERS with at least one provider.');
     }
 
-    const configs = z.array(providerConfigSchema).parse(JSON.parse(providersJson));
-
-    providersConfig = configs.map(transformToInternal);
-
-    return providersConfig.map(createOIDCProvider);
+    return z.array(providerConfigSchema).parse(JSON.parse(providersJson)).map(createOIDCProvider);
   } catch (err) {
     console.error('Unable to parse providers from OIDC_PROVIDERS environment variable.', err);
 
