@@ -13,6 +13,8 @@ depends = ["docs:check:*"]
 ["docs:check:pyright"]
 depends = ["agentstack-sdk-py:build"]
 dir = "{{config_root}}"
+sources = ["docs/**/*.md", "docs/**/*.mdx", "apps/agentstack-sdk-py/dist/agentstack_sdk-*.whl"]
+outputs = { auto=true }
 run = """
 #!/usr/bin/env bash
 set -euo pipefail
@@ -39,14 +41,15 @@ while IFS= read -r -d '' md; do
     done
 done < <(find docs -type f \\( -name '*.md' -o -name '*.mdx' \\) -print0)
 
-uv venv "$TMPDIR/venv"
+uv venv --quiet "$TMPDIR/venv"
 source "$TMPDIR/venv/bin/activate"
 
-uv pip install apps/agentstack-sdk-py/dist/agentstack_sdk-*.whl >/dev/null
-uv pip install langchain_text_splitters >/dev/null
-uv pip install beeai-framework >/dev/null
-uv pip install openai >/dev/null
-uv pip install pyright >/dev/null
+uv pip install --quiet \
+  apps/agentstack-sdk-py/dist/agentstack_sdk-*.whl \
+  langchain_text_splitters \
+  beeai-framework \
+  openai \
+  pyright
 
 pyright "$TMPDIR/snippets"
 """
