@@ -26,10 +26,19 @@ export const buildApiClient = (
     fetch: customFetchImpl,
   }: {
     baseUrl: string;
-    fetch?: typeof fetch;
+    fetch?: typeof globalThis.fetch;
   } = { baseUrl: '' },
 ) => {
-  const fetchFn = customFetchImpl ?? fetch;
+  const maybeFetchFn = customFetchImpl ?? (typeof globalThis.fetch !== 'undefined' ? globalThis.fetch : undefined);
+
+  if (!maybeFetchFn) {
+    throw new Error(
+      'fetch is not available. In Node.js < 18 or environments without global fetch, ' +
+        'provide a fetch implementation via the fetch option.',
+    );
+  }
+
+  const fetchFn = maybeFetchFn;
 
   async function callApi<T>(method: 'POST', url: string, data: Record<string, unknown>, resultSchema: z.ZodSchema<T>) {
     const response = await fetchFn(`${baseUrl}${url}`, {
