@@ -14,11 +14,6 @@ enum TitleGenerationState {
   Failed = 'failed',
 }
 
-export enum ModelCapability {
-  Llm = 'llm',
-  Embedding = 'embedding',
-}
-
 export type ContextMetadata = {
   agent_name?: string;
   provider_id?: string;

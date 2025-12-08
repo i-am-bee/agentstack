@@ -8,13 +8,13 @@ import type { z } from 'zod';
 import type { ContextPermissionsGrant, GlobalPermissionsGrant, ModelCapability } from './types';
 import { contextSchema, contextTokenSchema, modelProviderMatchSchema } from './types';
 
-interface MatchProvidersParams {
+export interface MatchProvidersParams {
   suggestedModels: string[] | null;
   capability: ModelCapability;
   scoreCutoff: number;
 }
 
-interface CreateContextTokenParams {
+export interface CreateContextTokenParams {
   contextId: string;
   globalPermissions: GlobalPermissionsGrant;
   contextPermissions: ContextPermissionsGrant;
@@ -56,11 +56,8 @@ export const buildApiClient = (
     return resultSchema.parse(json);
   }
 
-  const createContext = async (providerId: string) => {
-    const context = await callApi('POST', '/api/v1/contexts', { metadata: {}, provider_id: providerId }, contextSchema);
-
-    return context;
-  };
+  const createContext = async (providerId: string) =>
+    await callApi('POST', '/api/v1/contexts', { metadata: {}, provider_id: providerId }, contextSchema);
 
   const createContextToken = async ({ contextId, globalPermissions, contextPermissions }: CreateContextTokenParams) => {
     const token = await callApi(

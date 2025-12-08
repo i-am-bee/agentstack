@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentSettings, FormFulfillments } from 'agentstack-sdk';
+import { type AgentSettings, type FormFulfillments, ModelCapability } from 'agentstack-sdk';
 import { type PropsWithChildren, useCallback, useEffect, useRef, useState } from 'react';
 
 import type { AgentA2AClient } from '#api/a2a/types.ts';
@@ -12,7 +12,6 @@ import type { RunFormValues } from '#modules/form/types.ts';
 import { useCreateContextToken } from '#modules/platform-context/api/mutations/useCreateContextToken.ts';
 import { useMatchProviders } from '#modules/platform-context/api/mutations/useMatchProviders.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
-import { ModelCapability } from '#modules/platform-context/types.ts';
 import { getSettingsDemandsDefaultValues } from '#modules/runs/settings/utils.ts';
 
 import { useAgentSecrets } from '../agent-secrets';
@@ -140,8 +139,9 @@ export function AgentDemandsProvider<UIGenericPart>({
     }
 
     const contextToken = await createContextToken({
-      context_id: contextId,
-      ...contextTokenPermissions,
+      contextId,
+      contextPermissions: contextTokenPermissions.grant_context_permissions ?? {},
+      globalPermissions: contextTokenPermissions.grant_global_permissions ?? {},
     });
 
     if (!contextToken) {

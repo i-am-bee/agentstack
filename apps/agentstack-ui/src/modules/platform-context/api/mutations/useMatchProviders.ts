@@ -5,10 +5,10 @@
 
 import { useQuery } from '@tanstack/react-query';
 import type { EmbeddingDemands, LLMDemands } from 'agentstack-sdk';
+import { ModelCapability } from 'agentstack-sdk';
 import { useEffect } from 'react';
 
 import { useApp } from '#contexts/App/index.ts';
-import { ModelCapability } from '#modules/platform-context/types.ts';
 import { MODEL_SETUP_COMMAND } from '#utils/constants.ts';
 
 import { matchProviders } from '..';
@@ -41,7 +41,8 @@ export function useMatchProviders({ demands, onSuccess, capability }: Props) {
       const allProviders = await Promise.all(
         demandKeys.map(async (demandKey) => {
           const result = await matchProviders({
-            suggested_models: demands[demandKey].suggested ?? [],
+            scoreCutoff: 0.4,
+            suggestedModels: demands[demandKey].suggested ?? [],
             capability,
           });
           return {
