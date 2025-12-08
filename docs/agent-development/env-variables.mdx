@@ -58,6 +58,7 @@ server = Server()
 
 @server.agent(
     detail=AgentDetail(
+        interaction_mode="multi-turn",
         variables=[
             EnvVar(
                 name="THINKING_ENABLED",

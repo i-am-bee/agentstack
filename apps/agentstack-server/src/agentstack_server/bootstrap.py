@@ -8,6 +8,7 @@ import anyio
 import kr8s
 import procrastinate
 from kink import Container, di
+from limits.aio.storage import MemoryStorage, RedisStorage, Storage
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from agentstack_server.configuration import Configuration, get_configuration
@@ -21,7 +22,6 @@ from agentstack_server.jobs.procrastinate import create_app
 from agentstack_server.service_layer.build_manager import IProviderBuildManager
 from agentstack_server.service_layer.deployment_manager import IProviderDeploymentManager
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
-from agentstack_server.utils.kubectl import Kubectl
 from agentstack_server.utils.utils import async_to_sync_isolated
 
 logger = logging.getLogger(__name__)
@@ -48,6 +48,14 @@ async def setup_kubernetes_client(namespace: str | None = None, kubeconfig: path
     return api_factory
 
 
+def setup_rate_limiter_storage(config: Configuration) -> Storage:
+    return (
+        RedisStorage("async+" + config.redis.rate_limit_db_url.get_secret_value())
+        if config.redis.enabled
+        else MemoryStorage()
+    )
+
+
 async def bootstrap_dependencies(dependency_overrides: Container | None = None):
     dependency_overrides = dependency_overrides or Container()
 
@@ -58,13 +66,17 @@ async def bootstrap_dependencies(dependency_overrides: Container | None = None):
     di._aliases.clear()  # reset aliases
 
     _set_di(Configuration, get_configuration())
+
+    k8s_api_factory = await setup_kubernetes_client(
+        di[Configuration].k8s_namespace,
+        di[Configuration].k8s_kubeconfig,
+    )
+    di[kr8s.asyncio.Api] = await k8s_api_factory()
+
     _set_di(
         IProviderDeploymentManager,
         KubernetesProviderDeploymentManager(
-            api_factory=await setup_kubernetes_client(
-                di[Configuration].k8s_namespace,
-                di[Configuration].k8s_kubeconfig,
-            ),
+            api_factory=k8s_api_factory,
             manifest_template_dir=di[Configuration].provider.manifest_template_dir,
         ),
     )
@@ -90,19 +102,8 @@ async def bootstrap_dependencies(dependency_overrides: Container | None = None):
 
     _set_di(ITextExtractionBackend, DoclingTextExtractionBackend(di[Configuration].text_extraction))
 
-    # TODO: unify all services under single k8s client library (kr8s or kubectl wrapper)
-    _set_di(
-        Kubectl,
-        Kubectl(
-            kubeconfig=di[Configuration].k8s_kubeconfig,
-            namespace=di[Configuration].k8s_namespace
-            or (
-                p.read_text().strip()
-                if (p := pathlib.Path("/var/run/secrets/kubernetes.io/serviceaccount/namespace")).is_file()
-                else "default"
-            ),
-        ),
-    )
+    # Setup rate limiter storage
+    _set_di(Storage, setup_rate_limiter_storage(di[Configuration]))
 
 
 bootstrap_dependencies_sync = async_to_sync_isolated(bootstrap_dependencies)

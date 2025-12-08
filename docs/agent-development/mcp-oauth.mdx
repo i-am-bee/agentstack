@@ -61,7 +61,13 @@ async def oauth_agent(
         async with ClientSession(read, write) as session:
             await session.initialize()
             result = await session.call_tool("get_stripe_account_info")
-            yield result.content[0].text
+            # Extract text content from CallToolResult
+            if result.content:
+                content = result.content[0]
+                if hasattr(content, 'text'):
+                    yield str(content.text)  # type: ignore
+            else:
+                yield "No content returned"
 
 
 def run():

@@ -43,7 +43,13 @@ outputs = { auto = true }
 hide = true
 dir = "{{config_root}}"
 run = "pnpm install"
-sources = ["pnpm-lock.yaml", "pnpm-workspace.yaml", "apps/*/package.json", "docs/package.json", "agents/*/*/package.json"]
+sources = [
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+  "apps/*/package.json",
+  "docs/package.json",
+  "agents/*/*/package.json",
+]
 outputs = { auto = true }
 
 ### check
@@ -442,6 +448,7 @@ images=$(helm template \
   --set auth.jwtSecretKey=kyticka \
   --set providerBuilds.enabled=true \
   --set localDockerRegistry.enabled=true \
+  --set redis.enabled=true \
   ./helm 2>/dev/null | \
     sed -n '/^[[:space:]]*image:/{ /{{/d; s/.*image:[[:space:]]*//p; }' | \
     sed 's/"\([^"]*\)"/\1/' | grep -v 'agentstack')
@@ -456,6 +463,16 @@ echo "$images" | while IFS= read -r ghcr_image; do
   fi
 
   echo "Processing image: $ghcr_image"
+
+  # Check for tag+digest format (e.g. image:tag@digest)
+  ghcr_tag_image=""
+  if [[ "$ghcr_image" == *":"*"@"* ]]; then
+    # Extract the tag version (image:tag)
+    ghcr_tag_image=$(echo "$ghcr_image" | sed 's/@.*//')
+    
+    # Strip tag from main variable (image@digest)
+    ghcr_image=$(echo "$ghcr_image" | sed 's/:[^:/]*@/@/')
+  fi
 
   # Remove ghcr.io/i-am-bee/ prefix to get Docker Hub image
   if [[ $ghcr_image =~ ^ghcr\.io/i-am-bee/(.+)$ ]]; then
@@ -489,6 +506,22 @@ echo "$images" | while IFS= read -r ghcr_image; do
     skopeo copy --multi-arch all docker://"$dockerhub_image" docker://"$ghcr_image"
 
     echo "✅ Successfully synced $ghcr_image"
+
+    # Sync the tag version if it exists
+    if [[ -n "$ghcr_tag_image" ]]; then
+      echo "🏷️  Also syncing tag: $ghcr_tag_image"
+      
+      if docker manifest inspect "$ghcr_tag_image" >/dev/null 2>&1; then
+        echo "✅ Tag $ghcr_tag_image already exists in GHCR"
+      else
+        if [[ "$DRY_RUN" == "true" ]]; then
+          echo "🔍 DRY RUN: Would sync $dockerhub_image -> $ghcr_tag_image"
+        else
+          skopeo copy --multi-arch all docker://"$dockerhub_image" docker://"$ghcr_tag_image"
+          echo "✅ Successfully synced tag $ghcr_tag_image"
+        fi
+      fi
+    fi
   else
     echo "⚠️  Skipping image with unexpected format: $ghcr_image"
   fi

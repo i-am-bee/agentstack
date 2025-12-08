@@ -4,7 +4,7 @@
  */
 
 import isMimeType from 'validator/lib/isMimeType';
-import type { z, ZodObject, ZodType } from 'zod';
+import type { z, ZodObject } from 'zod';
 
 import { ALL_FILES_CONTENT_TYPE, NO_FILES_CONTENT_TYPE } from '#modules/files/constants.ts';
 

@@ -66,7 +66,7 @@ formatter_processors: Final = [
     structlog.stdlib.ProcessorFormatter.remove_processors_meta,
     structlog.dev.ConsoleRenderer(
         colors=True,
-        pad_event=70,
+        pad_event_to=70,
         level_styles={
             **ConsoleRenderer.get_default_level_styles(),
             "debug": DIM,
@@ -167,7 +167,7 @@ def capture_context_logs_to_file(log_file: Path, filter_context_vars: dict[str, 
         structlog.stdlib.ProcessorFormatter.remove_processors_meta,
         structlog.dev.ConsoleRenderer(
             colors=False,
-            pad_event=70,
+            pad_event_to=70,
             exception_formatter=RichTracebackFormatter(show_locals=False, width=160, max_frames=10),
         ),
     ]

@@ -123,12 +123,19 @@ export async function getProxyHeaders(headers: Headers, url?: URL) {
   const forwardedProto =
     (TRUST_PROXY_HEADERS && headers.get('x-forwarded-proto')) ||
     (url?.protocol ?? NEXTAUTH_URL?.protocol)?.replace(/:$/, '');
+  const forwardedFor = TRUST_PROXY_HEADERS && (headers.get('x-forwarded-for') || headers.get('x-real-ip'));
+
+  let forwardedFromXForwarded = `host=${forwardedHost};proto=${forwardedProto}`;
+  if (forwardedFor) {
+    forwardedFromXForwarded = `${forwardedFromXForwarded};for=${forwardedFor}`;
+  }
+
   const forwarded = [
-    ...(TRUST_PROXY_HEADERS ? [headers.get('forwarded') ?? `host=${forwardedHost};proto=${forwardedProto}`] : []),
-    `host=${forwardedHost};proto=${forwardedProto}`,
+    ...(TRUST_PROXY_HEADERS && headers.get('forwarded') ? [headers.get('forwarded')] : []),
+    forwardedFromXForwarded,
   ].join(',');
 
-  return { forwardedHost, forwardedProto, forwarded };
+  return { forwardedHost, forwardedProto, forwardedFor, forwarded };
 }
 
 export function buildErrorToast({ metadata = {}, error }: { metadata?: QueryMetadataError; error: unknown }): Toast {

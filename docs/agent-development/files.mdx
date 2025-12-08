@@ -35,7 +35,7 @@ import os
 from typing import Annotated
 
 from agentstack_sdk.server import Server
-from agentstack_sdk.a2a.types import Message
+from a2a.types import Message
 from agentstack_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionServer,
     PlatformApiExtensionSpec,
@@ -64,7 +64,7 @@ async def example_agent(
             async with load_file(file_part_root) as loaded_content:
                 new_file = await File.create(
                     filename=f"processed_{file_part_root.file.name}",
-                    content_type=file_part_root.file.mime_type,
+                    content_type=file_part_root.file.mime_type or "application/octet-stream",
                     content=loaded_content.text.encode(),
                 )
                 yield new_file.to_file_part()

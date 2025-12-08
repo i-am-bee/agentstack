@@ -4,3 +4,52 @@
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/docs"
 run = "pnpm dev"
+
+## check
+
+["docs:check"]
+depends = ["docs:check:*"]
+
+["docs:check:pyright"]
+depends = ["agentstack-sdk-py:build"]
+dir = "{{config_root}}"
+sources = ["docs/**/*.md", "docs/**/*.mdx", "apps/agentstack-sdk-py/dist/agentstack_sdk-*.whl"]
+outputs = { auto=true }
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+
+TMPDIR="$(mktemp -d)"
+
+mkdir -p "$TMPDIR/snippets"
+while IFS= read -r -d '' md; do
+  i=0
+  perl -0777 -ne '
+    while (/```python[^\n]*\\n(.*?)\\n```/sg) {
+      print $1, "\\0";
+    }
+  ' "$md" \
+  | while IFS= read -r -d '' block; do
+      first_line="$(printf "%s\n" "$block" | sed '/./,$!d' | head -n1)"
+      case "$first_line" in
+        (from\\ *|import\\ *)
+          clean_md="${md//\\//__}"
+          i=$((i+1))
+          printf "%s\n" "$block" > "$TMPDIR/snippets/${clean_md%.*}__snippet_$i.py"
+          ;;
+      esac
+    done
+done < <(find docs -type f \\( -name '*.md' -o -name '*.mdx' \\) -print0)
+
+uv venv --quiet "$TMPDIR/venv"
+source "$TMPDIR/venv/bin/activate"
+
+uv pip install --quiet \
+  apps/agentstack-sdk-py/dist/agentstack_sdk-*.whl \
+  langchain_text_splitters \
+  beeai-framework \
+  openai \
+  pyright
+
+pyright "$TMPDIR/snippets"
+"""

@@ -4,7 +4,7 @@
 import logging
 import time
 from collections.abc import Iterable
-from contextlib import asynccontextmanager, suppress
+from contextlib import asynccontextmanager, nullcontext, suppress
 from importlib.metadata import PackageNotFoundError, version
 
 import procrastinate
@@ -14,10 +14,13 @@ from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse, ORJSONResponse
 from kink import Container, di, inject
+from limits.aio.storage import Storage
 from opentelemetry.metrics import CallbackOptions, Observation, get_meter
 from procrastinate.exceptions import AlreadyEnqueued
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_500_INTERNAL_SERVER_ERROR
 
+from agentstack_server.api.middleware.proxy_headers import ProxyHeadersMiddleware
+from agentstack_server.api.middleware.rate_limit import RateLimitMiddleware
 from agentstack_server.api.routes.a2a import router as a2a_router
 from agentstack_server.api.routes.auth import well_known_router as auth_well_known_router
 from agentstack_server.api.routes.configurations import router as configuration_router
@@ -44,7 +47,6 @@ from agentstack_server.jobs.crons.provider import check_registry
 from agentstack_server.run_workers import run_workers
 from agentstack_server.service_layer.services.mcp import McpService
 from agentstack_server.telemetry import INSTRUMENTATION_NAME, shutdown_telemetry
-from agentstack_server.utils.fastapi import ProxyHeadersMiddleware
 
 logger = logging.getLogger(__name__)
 
@@ -177,7 +179,7 @@ def register_telemetry():
     # meter.create_observable_gauge("providers_by_status", callbacks=[scrape_providers_by_status])
 
 
-def app(*, dependency_overrides: Container | None = None) -> FastAPI:
+def app(*, dependency_overrides: Container | None = None, enable_workers: bool = True) -> FastAPI:
     """Entrypoint for API application, called by Uvicorn"""
 
     logger.info("Bootstrapping dependencies...")
@@ -189,7 +191,11 @@ def app(*, dependency_overrides: Container | None = None) -> FastAPI:
     async def lifespan(_app: FastAPI, procrastinate_app: procrastinate.App, mcp_service: McpService):
         try:
             register_telemetry()
-            async with procrastinate_app.open_async(), run_workers(app=procrastinate_app), mcp_service:
+            async with (
+                procrastinate_app.open_async(),
+                run_workers(app=procrastinate_app) if enable_workers else nullcontext(),
+                mcp_service,
+            ):
                 with suppress(AlreadyEnqueued):
                     # Force initial sync of the registry immediately
                     await check_registry.defer_async(timestamp=int(time.time()))
@@ -212,7 +218,9 @@ def app(*, dependency_overrides: Container | None = None) -> FastAPI:
     logger.info("Mounting routes...")
     mount_routes(app)
 
+    # Execution order is important here: https://fastapi.tiangolo.com/tutorial/middleware/#multiple-middleware-execution-order
+    app.add_middleware(RateLimitMiddleware, limiter_storage=di[Storage], configuration=configuration.rate_limit)
     app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*" if configuration.trust_proxy_headers else "")
-    register_global_exception_handlers(app)
 
+    register_global_exception_handlers(app)
     return app

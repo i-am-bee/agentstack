@@ -39,10 +39,11 @@ const proxyMiddleware: Middleware = {
     const isServer = typeof window === 'undefined';
     if (isServer) {
       const { headers } = await import('next/headers');
-      const { forwarded, forwardedHost, forwardedProto } = await getProxyHeaders(await headers());
+      const { forwarded, forwardedHost, forwardedFor, forwardedProto } = await getProxyHeaders(await headers());
       request.headers.set('forwarded', forwarded);
       if (forwardedHost) request.headers.set('x-forwarded-host', forwardedHost);
       if (forwardedProto) request.headers.set('x-forwarded-proto', forwardedProto);
+      if (forwardedFor) request.headers.set('x-forwarded-for', forwardedFor);
     }
     return request;
   },

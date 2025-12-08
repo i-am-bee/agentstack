@@ -17,8 +17,9 @@ You can customize various aspects of your agent's presentation, such as:
 Configuring agent details is straightforward. Import `AgentDetail` and related types, then pass them to the `detail` parameter in the `@server.agent` decorator:
 ```python
 import os
+from textwrap import dedent
 
-from a2a.types import Message
+from a2a.types import AgentSkill, Message
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
 from agentstack_sdk.a2a.extensions import AgentDetail, AgentDetailContributor, AgentDetailTool
@@ -41,10 +42,10 @@ server = Server()
             ),
         ],
         framework="BeeAI Framework",
-        author={
-            "name": "Agent Stack Team",
-            "email": "team@example.com",
-        },
+        author=AgentDetailContributor(
+            name="Agent Stack Team",
+            email="team@example.com",
+        ),
         source_code_url="https://github.com/example/example-research-assistant",
     ),
     skills=[

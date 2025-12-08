@@ -83,7 +83,7 @@ class InvalidVectorDimensionError(PlatformError): ...
 class StorageCapacityExceededError(PlatformError):
     entity: str
 
-    def __init__(self, entity: str, max_size: int, status_code: int = status.HTTP_413_REQUEST_ENTITY_TOO_LARGE):
+    def __init__(self, entity: str, max_size: int, status_code: int = status.HTTP_413_CONTENT_TOO_LARGE):
         self.entity = entity
         super().__init__(
             f"{entity} exceeds the limit of {max_size / 1024 / 1024:.2f} MB. "
@@ -111,7 +111,7 @@ class MissingConfigurationError(Exception):
 
 
 class UsageLimitExceededError(PlatformError):
-    def __init__(self, message: str, status_code: int = status.HTTP_413_REQUEST_ENTITY_TOO_LARGE):
+    def __init__(self, message: str, status_code: int = status.HTTP_413_CONTENT_TOO_LARGE):
         super().__init__(message, status_code)
 
 

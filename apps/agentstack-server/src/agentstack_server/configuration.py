@@ -11,6 +11,7 @@ from pathlib import Path
 from textwrap import dedent
 from typing import Any, Literal
 
+from limits import RateLimitItem, parse_many
 from pydantic import AnyUrl, BaseModel, Field, Secret, ValidationError, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -147,6 +148,23 @@ class ObjectStorageConfiguration(BaseModel):
     use_ssl: bool = False
     storage_limit_per_user_bytes: int = 1 * (1024 * 1024 * 1024)  # 1GiB
     max_single_file_size: int = 100 * (1024 * 1024)  # 100 MiB
+
+
+class RedisConfiguration(BaseModel):
+    enabled: bool = False
+    host: str = "redis"
+    port: int = 6379
+    password: Secret[str] = Secret("redis-password")
+    use_ssl: bool = False
+    ssl_cert_reqs: str = "required"
+    ssl_ca_certs: Path | None = None
+    rate_limit_db: int = 15
+
+    @property
+    def rate_limit_db_url(self) -> Secret[str]:
+        scheme = "rediss" if self.use_ssl else "redis"
+        auth = f":{self.password.get_secret_value()}@" if self.password else ""
+        return Secret(f"{scheme}://{auth}{self.host}:{self.port}/{self.rate_limit_db}")
 
 
 class PersistenceConfiguration(BaseModel):
@@ -305,6 +323,25 @@ class GenerateConversationTitleConfiguration(BaseModel):
     )
 
 
+class RateLimitConfiguration(BaseModel, arbitrary_types_allowed=True):
+    enabled: bool = False
+    limits: list[RateLimitItem] | str = Field(
+        default_factory=lambda: parse_many("20/second; 100/minute"),
+        description="List of rate limit strings (e.g., '20/second', '100/minute')",
+    )
+    strategy: Literal["sliding-window-counter", "fixed-window", "moving-window"] = "sliding-window-counter"
+
+    @field_validator("limits", mode="before")
+    @classmethod
+    def validate_limits(cls, limits: str | list[RateLimitItem]) -> list[RateLimitItem]:
+        return parse_many(limits) if isinstance(limits, str) else limits
+
+    @property
+    def limits_parsed(self) -> list[RateLimitItem]:
+        assert isinstance(self.limits, list)
+        return self.limits
+
+
 class Configuration(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", env_nested_delimiter="__", extra="ignore"
@@ -324,6 +361,8 @@ class Configuration(BaseSettings):
     github_registry: dict[str, GithubPATConfiguration | GithubAppConfiguration] = Field(default_factory=dict)
     telemetry: TelemetryConfiguration = Field(default_factory=TelemetryConfiguration)
     persistence: PersistenceConfiguration = Field(default_factory=PersistenceConfiguration)
+    redis: RedisConfiguration = Field(default_factory=RedisConfiguration)
+    rate_limit: RateLimitConfiguration = Field(default_factory=RateLimitConfiguration)
     object_storage: ObjectStorageConfiguration = Field(default_factory=ObjectStorageConfiguration)
     vector_stores: VectorStoresConfiguration = Field(default_factory=VectorStoresConfiguration)
     text_extraction: DoclingExtractionConfiguration = Field(default_factory=DoclingExtractionConfiguration)

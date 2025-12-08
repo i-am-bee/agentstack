@@ -1,0 +1,5 @@
+{{/*
+This file runs all validators for the Agent Stack Helm chart.
+It produces no output but will fail the installation if any validation fails.
+*/}}
+{{- include "agentstack.validateAll" . -}}

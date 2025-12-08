@@ -92,6 +92,7 @@ dependencies = [
     { name = "ibm-watsonx-ai" },
     { name = "kink" },
     { name = "kr8s" },
+    { name = "limits", extra = ["async-redis"] },
     { name = "mcp" },
     { name = "openai" },
     { name = "opentelemetry-api" },
@@ -146,6 +147,7 @@ requires-dist = [
     { name = "ibm-watsonx-ai", specifier = ">=1.3.28" },
     { name = "kink", specifier = ">=0.8.1" },
     { name = "kr8s", specifier = ">=0.20.7" },
+    { name = "limits", extras = ["async-redis"], specifier = ">=5.3.0" },
     { name = "mcp", specifier = ">=1.13.1" },
     { name = "openai", specifier = ">=1.97.0" },
     { name = "opentelemetry-api", specifier = ">=1.30.0" },
@@ -367,6 +369,15 @@ wheels = [
 ]
 
 [[package]]
+name = "async-timeout"
+version = "5.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a5/ae/136395dfbfe00dfc94da3f3e136d0b13f394cba8f4841120e34226265780/async_timeout-5.0.1.tar.gz", hash = "sha256:d9321a7a3d5a6a5e187e824d2fa0793ce379a202935782d555d6e9d2735677d3", size = 9274, upload-time = "2024-11-06T16:41:39.6Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fe/ba/e2081de779ca30d473f21f5b30e0e737c438205440784c7dfc81efc2b029/async_timeout-5.0.1-py3-none-any.whl", hash = "sha256:39e3809566ff85354557ec2398b55e096c8364bacac9405a7a1fa429e77fe76c", size = 6233, upload-time = "2024-11-06T16:41:37.9Z" },
+]
+
+[[package]]
 name = "asyncclick"
 version = "8.3.0.7"
 source = { registry = "https://pypi.org/simple" }
@@ -413,6 +424,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/cd/3f/1d3bbd0bf23bdd99276d4def22f29c27a914067b4cf66f753ff9b8bbd0f3/authlib-1.6.5.tar.gz", hash = "sha256:6aaf9c79b7cc96c900f0b284061691c5d4e61221640a948fe690b556a6d6d10b", size = 164553, upload-time = "2025-10-02T13:36:09.489Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f8/aa/5082412d1ee302e9e7d80b6949bc4d2a8fa1149aaab610c5fc24709605d6/authlib-1.6.5-py2.py3-none-any.whl", hash = "sha256:3e0e0507807f842b02175507bdee8957a1d5707fd4afb17c32fb43fee90b6e3a", size = 243608, upload-time = "2025-10-02T13:36:07.637Z" },
+]
+
+[[package]]
+name = "beartype"
+version = "0.22.7"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/2c/49/e28a77f8a3868b1c9ff6a030678e84de24c4783bae4c12cec9443cf8fb54/beartype-0.22.7.tar.gz", hash = "sha256:c7269855b71e32b7c9f0fc662baade752eb525107266e053338c2f6e8873826b", size = 1599627, upload-time = "2025-11-29T06:49:56.751Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f6/0c/a764253610513295b7f57904b91fae1d99c7afd1b16b6eaae06fdfb71fb5/beartype-0.22.7-py3-none-any.whl", hash = "sha256:e13430ac07c61fa4bc54d375970438aeb9aa47a482c529a6f438ce52e18e6f50", size = 1330771, upload-time = "2025-11-29T06:49:54.545Z" },
 ]
 
 [[package]]
@@ -531,6 +551,26 @@ wheels = [
 ]
 
 [[package]]
+name = "coredis"
+version = "5.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "async-timeout" },
+    { name = "beartype" },
+    { name = "deprecated" },
+    { name = "packaging" },
+    { name = "pympler" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c5/55/811b38da6beef0e12b6a469dc9113e5e7c95d971a57e3fe0ba5400e80d9d/coredis-5.3.0.tar.gz", hash = "sha256:a266457b27277a1083033d39d799a3e3bf568c6db0ba75887546b35e006814e0", size = 2661520, upload-time = "2025-10-10T22:28:14.947Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/40/30/53d5cf7f242523f96ecb2d4c4118e9ef4fad903cafeb465551c4e5b6f4e4/coredis-5.3.0-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:3bfa42210ef6c6d299096217684fdf5631d81b48884970ff725959c0097da1c1", size = 362074, upload-time = "2025-10-10T22:27:55.715Z" },
+    { url = "https://files.pythonhosted.org/packages/f9/95/40616c06cf213c5afad2f0ed25ee9ddd7d186ba1cd51656ef5e0d0ce57b6/coredis-5.3.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:faf00be39a5cfa78f117416479715bd1287f9c80636ba948ec4c265418195297", size = 356710, upload-time = "2025-10-10T22:27:57.537Z" },
+    { url = "https://files.pythonhosted.org/packages/25/bb/1d306ccf2d330c4a1888d68f1a91804d18b9907ce41eb42034cac68dcd19/coredis-5.3.0-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:ecd00d89005c0eca263d94e7e088f98951c10b95ec82042b46f384e5d4517a4e", size = 370440, upload-time = "2025-10-10T22:27:58.967Z" },
+    { url = "https://files.pythonhosted.org/packages/1d/67/6322f31707da8f18120b5fcaf4398c6935276764820d1ef5ec485e4008a5/coredis-5.3.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:a5539542faf3f7e64b8f62bcc82f79e031e4d9853d0444401bc796dbae0fe3f6", size = 374986, upload-time = "2025-10-10T22:28:00.297Z" },
+]
+
+[[package]]
 name = "croniter"
 version = "6.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -582,6 +622,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/0a/6e/1c8331ddf91ca4730ab3086a0f1be19c65510a33b5a441cb334e7a2d2560/cryptography-46.0.3-cp38-abi3-win32.whl", hash = "sha256:6276eb85ef938dc035d59b87c8a7dc559a232f954962520137529d77b18ff1df", size = 3036695, upload-time = "2025-10-15T23:18:08.672Z" },
     { url = "https://files.pythonhosted.org/packages/90/45/b0d691df20633eff80955a0fc7695ff9051ffce8b69741444bd9ed7bd0db/cryptography-46.0.3-cp38-abi3-win_amd64.whl", hash = "sha256:416260257577718c05135c55958b674000baef9a1c7d9e8f306ec60d71db850f", size = 3501720, upload-time = "2025-10-15T23:18:10.632Z" },
     { url = "https://files.pythonhosted.org/packages/e8/cb/2da4cc83f5edb9c3257d09e1e7ab7b23f049c7962cae8d842bbef0a9cec9/cryptography-46.0.3-cp38-abi3-win_arm64.whl", hash = "sha256:d89c3468de4cdc4f08a57e214384d0471911a3830fcdaf7a8cc587e42a866372", size = 2918740, upload-time = "2025-10-15T23:18:12.277Z" },
+]
+
+[[package]]
+name = "deprecated"
+version = "1.3.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "wrapt" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/49/85/12f0a49a7c4ffb70572b6c2ef13c90c88fd190debda93b23f026b25f9634/deprecated-1.3.1.tar.gz", hash = "sha256:b1b50e0ff0c1fddaa5708a2c6b0a6588bb09b892825ab2b214ac9ea9d92a5223", size = 2932523, upload-time = "2025-10-30T08:19:02.757Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/84/d0/205d54408c08b13550c733c4b85429e7ead111c7f0014309637425520a9a/deprecated-1.3.1-py2.py3-none-any.whl", hash = "sha256:597bfef186b6f60181535a29fbe44865ce137a5079f295b479886c82729d5f3f", size = 11298, upload-time = "2025-10-30T08:19:00.758Z" },
 ]
 
 [[package]]
@@ -1052,6 +1104,25 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/12/98/02749b13e50d1e23a8d19b9132aca54bd85b897fd6b77737aa89494fbb79/kr8s-0.20.13.tar.gz", hash = "sha256:f181a2a51f8ddac3f8883db67d046a1bc74bcdbf19655cfaaf345a316fb916e2", size = 2837395, upload-time = "2025-10-28T12:14:27.346Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/da/af/a42c87d03de96349c7d8a2568233ba5f71fa44467972cbf655b5f0032155/kr8s-0.20.13-py3-none-any.whl", hash = "sha256:599d238c596d1137f9052cd71da5d0f8b52c6b57c9d745216304ff0dabeb5310", size = 86091, upload-time = "2025-10-28T12:14:25.082Z" },
+]
+
+[[package]]
+name = "limits"
+version = "5.6.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "deprecated" },
+    { name = "packaging" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/bb/e5/c968d43a65128cd54fb685f257aafb90cd5e4e1c67d084a58f0e4cbed557/limits-5.6.0.tar.gz", hash = "sha256:807fac75755e73912e894fdd61e2838de574c5721876a19f7ab454ae1fffb4b5", size = 182984, upload-time = "2025-09-29T17:15:22.689Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/40/96/4fcd44aed47b8fcc457653b12915fcad192cd646510ef3f29fd216f4b0ab/limits-5.6.0-py3-none-any.whl", hash = "sha256:b585c2104274528536a5b68864ec3835602b3c4a802cd6aa0b07419798394021", size = 60604, upload-time = "2025-09-29T17:15:18.419Z" },
+]
+
+[package.optional-dependencies]
+async-redis = [
+    { name = "coredis" },
 ]
 
 [[package]]
@@ -1762,6 +1833,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/b0/77/a5b8c569bf593b0140bde72ea885a803b82086995367bf2037de0159d924/pygments-2.19.2.tar.gz", hash = "sha256:636cb2477cec7f8952536970bc533bc43743542f70392ae026374600add5b887", size = 4968631, upload-time = "2025-06-21T13:39:12.283Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c7/21/705964c7812476f378728bdf590ca4b771ec72385c533964653c68e86bdc/pygments-2.19.2-py3-none-any.whl", hash = "sha256:86540386c03d588bb81d44bc3928634ff26449851e99741617ecb9037ee5ec0b", size = 1225217, upload-time = "2025-06-21T13:39:07.939Z" },
+]
+
+[[package]]
+name = "pympler"
+version = "1.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pywin32", marker = "sys_platform == 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/dd/37/c384631908029676d8e7213dd956bb686af303a80db7afbc9be36bc49495/pympler-1.1.tar.gz", hash = "sha256:1eaa867cb8992c218430f1708fdaccda53df064144d1c5656b1e6f1ee6000424", size = 179954, upload-time = "2024-06-28T19:56:06.563Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/79/4f/a6a2e2b202d7fd97eadfe90979845b8706676b41cbd3b42ba75adf329d1f/Pympler-1.1-py3-none-any.whl", hash = "sha256:5b223d6027d0619584116a0cbc28e8d2e378f7a79c1e5e024f9ff3b673c58506", size = 165766, upload-time = "2024-06-28T19:56:05.087Z" },
 ]
 
 [[package]]

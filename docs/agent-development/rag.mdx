@@ -27,7 +27,7 @@ from typing import Annotated
 
 from a2a.types import Message
 
-from agentstack_sdk import server
+from agentstack_sdk.server import Server
 from agentstack_sdk.a2a.extensions import (
     PlatformApiExtensionServer,
     PlatformApiExtensionSpec,
@@ -55,6 +55,7 @@ default_input_modes = [
     "image/webp",  # WEBP
 ]
 
+server = Server()
 
 @server.agent(
     default_input_modes=default_input_modes, default_output_modes=["text/plain"]
@@ -118,10 +119,13 @@ from agentstack_sdk.a2a.extensions import EmbeddingServiceExtensionServer
 def get_embedding_client(
     embedding: EmbeddingServiceExtensionServer,
 ) -> tuple[AsyncOpenAI, str]:
-    if not embedding:
+    if not embedding or not embedding.data:
         raise ValueError("Embedding extension not provided")
 
     embedding_config = embedding.data.embedding_fulfillments.get("default")
+    if not embedding_config:
+        raise ValueError("Default embedding configuration not found")
+
     embedding_client = AsyncOpenAI(
         api_key=embedding_config.api_key, base_url=embedding_config.api_base
     )

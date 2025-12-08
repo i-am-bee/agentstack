@@ -24,3 +24,7 @@ dependencies:
     alias: phoenix
     repository: oci://registry-1.docker.io/arizephoenix
     version: 2.x.x
+  - condition: redis.enabled
+    name: redis
+    repository: oci://registry-1.docker.io/cloudpirates
+    version: 0.16.3

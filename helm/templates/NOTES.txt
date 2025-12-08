@@ -30,7 +30,7 @@ Getting started:
     {{- if .Values.ui.enabled }}
 
     # port-forward the UI
-    kubectl port-forward svc/agentstack-ui-svc 8334:{{.Values.service.port}} &
+    kubectl port-forward svc/agentstack-ui-svc 8334:{{.Values.ui.service.port}} &
 
     # Open the UI in the browser
     agentstack ui
