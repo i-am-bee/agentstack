@@ -10,8 +10,14 @@ import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
 import type { UIMessage } from '#modules/messages/types.ts';
 import { ChatMarkdownContent } from '#modules/runs/components/ChatMarkdownContent/ChatMarkdownContent.tsx';
 
-import { Role } from '../api/types';
-import { checkMessageStatus, getMessageContent, getMessageSecret, getMessageSources, isAgentMessage } from '../utils';
+import {
+  checkMessageStatus,
+  getMessageContent,
+  getMessageSecret,
+  getMessageSources,
+  isAgentMessage,
+  isUserMessage,
+} from '../utils';
 import classes from './MessageContent.module.scss';
 import { MessageFormResponse } from './MessageFormResponse';
 
@@ -21,7 +27,7 @@ interface Props {
 
 export const MessageContent = memo(function MessageContent({ message }: Props) {
   const content = getMessageContent(message);
-  const isUser = message.role === Role.User;
+  const isUser = isUserMessage(message);
   const form = isUser ? message.form : null;
   const auth = isUser ? message.auth : null;
   const canvasEditRequest = isUser ? message.canvasEditRequest : null;

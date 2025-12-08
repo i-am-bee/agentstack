@@ -17,20 +17,14 @@ import { useMarkdownSelectionDialog } from './hooks/useMarkdownSelectionDialog';
 import { Toolbar } from './Toolbar';
 import { mapDOMSelectionToMarkdown } from './utils/mapDOMSelectionToMarkdown';
 
-export interface MarkdownContentProps {
+interface Props {
   children?: string;
   artifactId: string;
   className?: string;
-  selectionActionLabel?: string;
   enableSelection?: boolean;
 }
 
-export function CanvasMarkdownContent({
-  className,
-  artifactId,
-  children,
-  enableSelection = true,
-}: MarkdownContentProps) {
+export function CanvasMarkdownContent({ className, artifactId, children, enableSelection = true }: Props) {
   const { addToast } = useToast();
   const { submitCanvasEditRequest } = useAgentRun();
 

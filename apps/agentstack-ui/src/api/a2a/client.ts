@@ -69,9 +69,9 @@ function handleArtifactUpdate(event: TaskArtifactUpdateEvent, isCanvas: boolean)
       { textParts: [], otherParts: [] },
     );
     return [{ kind: UIMessagePartKind.Artifact, artifactId, description, name, parts: textParts }, ...otherParts];
-  } else {
-    return contentParts;
   }
+
+  return contentParts;
 }
 
 export interface CreateA2AClientParams<UIGenericPart = never> {

@@ -20,15 +20,11 @@ function findNearestElementWithPosition(node: Node): ElementWithSourcePosition |
   while (current) {
     if (current.nodeType === Node.ELEMENT_NODE) {
       const element = current as Element;
-      const start = element.getAttribute(MD_START_INDEX_ATTR);
-      const end = element.getAttribute(MD_END_INDEX_ATTR);
+      const start = parseInt(element.getAttribute(MD_START_INDEX_ATTR) ?? '');
+      const end = parseInt(element.getAttribute(MD_END_INDEX_ATTR) ?? '');
 
-      if (start && end) {
-        const startNum = parseInt(start, 10);
-        const endNum = parseInt(end, 10);
-        if (!isNaN(startNum) && !isNaN(endNum)) {
-          return { element, start: startNum, end: endNum };
-        }
+      if (!isNaN(start) && !isNaN(end)) {
+        return { element, start, end };
       }
     }
     current = current.parentNode;
@@ -114,7 +110,7 @@ export function mapDOMSelectionToMarkdown(range: Range, markdownSource: string):
   const result = {
     startIndex,
     endIndex,
-    content: selectedText.trim(),
+    content: selectedText,
   };
 
   return result;

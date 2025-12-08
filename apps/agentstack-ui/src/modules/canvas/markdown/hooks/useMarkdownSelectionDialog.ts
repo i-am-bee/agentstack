@@ -32,9 +32,9 @@ export function useMarkdownSelectionDialog(containerRef: React.RefObject<HTMLEle
 
   useEffect(() => {
     return () => {
-      CSS.highlights.delete(HIGHLIGHT_NAME);
+      clearSelection();
     };
-  }, []);
+  }, [clearSelection]);
 
   const firstVisibleRect = selection?.firstVisibleRect ?? null;
 

@@ -53,12 +53,9 @@ export function useTextSelection({ containerRef, onSelectionChange }: Props) {
       });
     };
 
-    // Listen to both selectionchange and mouseup (for better responsiveness)
-    // document.addEventListener('selectionchange', validateSelection);
     container.addEventListener('mouseup', handleMouseUp);
 
     return () => {
-      // document.removeEventListener('selectionchange', validateSelection);
       container.removeEventListener('mouseup', handleMouseUp);
     };
   }, [containerRef, onSelectionChange]);

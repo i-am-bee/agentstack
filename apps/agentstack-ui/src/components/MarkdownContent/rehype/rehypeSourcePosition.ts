@@ -9,17 +9,13 @@ import { visit } from 'unist-util-visit';
 export function rehypeSourcePosition() {
   return (tree: Root) => {
     visit(tree, 'element', (node) => {
-      const element = node;
       if (node.position?.start?.offset !== undefined && node.position?.end?.offset !== undefined) {
-        const existingStart = element.properties[MD_START_INDEX_ATTR];
-        const existingEnd = element.properties[MD_END_INDEX_ATTR];
+        const existingStart = node.properties[MD_START_INDEX_ATTR];
+        const existingEnd = node.properties[MD_END_INDEX_ATTR];
 
-        element.properties[MD_START_INDEX_ATTR] = Math.min(
-          Number(existingStart ?? Infinity),
-          node.position.start.offset,
-        );
+        node.properties[MD_START_INDEX_ATTR] = Math.min(Number(existingStart ?? Infinity), node.position.start.offset);
 
-        element.properties[MD_END_INDEX_ATTR] = Math.max(Number(existingEnd ?? 0), node.position.end.offset);
+        node.properties[MD_END_INDEX_ATTR] = Math.max(Number(existingEnd ?? 0), node.position.end.offset);
       }
     });
   };
