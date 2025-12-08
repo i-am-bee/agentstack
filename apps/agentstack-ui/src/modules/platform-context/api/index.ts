@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { agentstackClient } from '#api/agentstack-client.ts';
 import { api } from '#api/index.ts';
 import { ensureData, fetchEntity } from '#api/utils.ts';
 
@@ -17,9 +18,11 @@ import type {
 } from './types';
 
 export async function createContext(body: CreateContextParams) {
-  const response = await api.POST('/api/v1/contexts', { body });
-
-  return ensureData(response);
+  const context = await agentstackClient.createContext(body.provider_id ?? '');
+  return {
+    ...context,
+    metadata: context.metadata as { [key: string]: string } | null | undefined,
+  };
 }
 
 export async function listContexts(params: ListContextsParams) {
@@ -52,11 +55,11 @@ export async function listContextHistory({ contextId, query }: ListContextHistor
 }
 
 export async function matchProviders({ capability, suggested_models }: MatchModelProvidersParams) {
-  const response = await api.POST('/api/v1/model_providers/match', {
-    body: { capability, score_cutoff: 0.4, suggested_models },
+  return await agentstackClient.matchProviders({
+    suggestedModels: suggested_models ?? null,
+    capability,
+    scoreCutoff: 0.4,
   });
-
-  return ensureData(response);
 }
 
 export async function createContextToken({
@@ -64,12 +67,12 @@ export async function createContextToken({
   grant_context_permissions,
   grant_global_permissions,
 }: CreateContextTokenParams) {
-  const response = await api.POST('/api/v1/contexts/{context_id}/token', {
-    body: { grant_context_permissions, grant_global_permissions },
-    params: { path: { context_id } },
+  const result = await agentstackClient.createContextToken({
+    contextId: context_id,
+    globalPermissions: grant_global_permissions ?? {},
+    contextPermissions: grant_context_permissions ?? {},
   });
-
-  return ensureData(response);
+  return result.token;
 }
 
 export async function fetchContextHistory(params: ListContextHistoryParams) {
