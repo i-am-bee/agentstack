@@ -20,9 +20,19 @@ interface CreateContextTokenParams {
   contextPermissions: ContextPermissionsGrant;
 }
 
-export const buildApiClient = ({ baseUrl }: { baseUrl: string } = { baseUrl: '' }) => {
+export const buildApiClient = (
+  {
+    baseUrl,
+    fetch: customFetchImpl,
+  }: {
+    baseUrl: string;
+    fetch?: typeof fetch;
+  } = { baseUrl: '' },
+) => {
+  const fetchFn = customFetchImpl ?? fetch;
+
   async function callApi<T>(method: 'POST', url: string, data: Record<string, unknown>, resultSchema: z.ZodSchema<T>) {
-    const response = await fetch(`${baseUrl}${url}`, {
+    const response = await fetchFn(`${baseUrl}${url}`, {
       method,
       headers: {
         'Content-Type': 'application/json',
