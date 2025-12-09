@@ -9,8 +9,7 @@ import { ensureToken } from '#app/(auth)/rsc.tsx';
 import { runtimeConfig } from '#contexts/App/runtime-config.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 
-import { ApiValidationError, UnauthenticatedError } from './errors';
-import { getProxyHeaders } from './utils';
+import { getProxyHeaders, handleFailedResponse } from './utils';
 
 function buildAuthenticatedAgentstackClient() {
   const { isAuthEnabled } = runtimeConfig;
@@ -39,13 +38,9 @@ function buildAuthenticatedAgentstackClient() {
 
     const response = await fetch(request);
 
-    if (response.status === 401) {
-      throw new UnauthenticatedError({ message: 'You are not authenticated.', response });
-    }
-
-    if (response.status === 400) {
+    if (!response.ok) {
       const error = await response.json();
-      throw new ApiValidationError({ error, response });
+      handleFailedResponse({ response, error });
     }
 
     return response;

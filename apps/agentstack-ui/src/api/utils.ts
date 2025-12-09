@@ -34,7 +34,7 @@ export function ensureData<T extends Record<string | number, unknown>, O, M exte
   return data;
 }
 
-function handleFailedResponse({ response, error }: { response: Response; error: unknown }) {
+export function handleFailedResponse({ response, error }: { response: Response; error: unknown }) {
   if (typeof error === 'object' && isNotNull(error)) {
     if ('detail' in error) {
       const { detail } = error;
