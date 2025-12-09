@@ -3,10 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentSettings, ContextToken, EmbeddingDemands, FormFulfillments, Fulfillments } from 'agentstack-sdk';
+import type {
+  AgentSettings,
+  Connector,
+  ContextToken,
+  EmbeddingDemands,
+  FormFulfillments,
+  Fulfillments,
+} from 'agentstack-sdk';
+import { ConnectorState } from 'agentstack-sdk';
 
 import { BASE_URL } from '#utils/constants.ts';
-import type { FeatureFlags } from '#utils/feature-flags.ts';
 
 interface BuildFulfillmentsParams {
   contextToken: ContextToken;
@@ -17,7 +24,7 @@ interface BuildFulfillmentsParams {
   selectedSettings: AgentSettings;
   formFulfillments: FormFulfillments;
   oauthRedirectUri: string | null;
-  featureFlags: FeatureFlags;
+  connectors: Connector[];
 }
 
 export const buildFulfillments = ({
@@ -29,7 +36,7 @@ export const buildFulfillments = ({
   providedSecrets,
   formFulfillments,
   oauthRedirectUri,
-  featureFlags,
+  connectors,
 }: BuildFulfillmentsParams): Fulfillments => {
   return {
     getContextToken: () => contextToken,
@@ -105,27 +112,47 @@ export const buildFulfillments = ({
       );
     },
     mcp: async ({ mcp_demands }) => {
-      if (!featureFlags.MCP) {
-        return {
-          mcp_fulfillments: {},
-        };
-      }
-
+      const connectedConnectors = connectors.filter((connector) => connector.state === ConnectorState.Connected);
       const allDemands = Object.keys(mcp_demands);
+      const mcp_fulfillments: Record<string, any> = {};
 
-      return allDemands.reduce(
-        (memo, demandKey) => {
-          memo.mcp_fulfillments[demandKey] = {
+      for (const demandKey of allDemands) {
+        const clientProvided = selectedMCPServers[demandKey];
+        if (clientProvided) {
+          mcp_fulfillments[demandKey] = {
             transport: {
               type: 'streamable_http',
-              url: selectedMCPServers[demandKey],
+              url: clientProvided,
             },
           };
 
-          return memo;
-        },
-        { mcp_fulfillments: {} },
-      );
+          continue;
+        }
+
+        const demand = mcp_demands[demandKey];
+        const suggestedNames = demand.suggested || [];
+
+        // TODO: what if we have multiple connectors with the same name?
+        // currently we just randomly pick the latest connector
+        const matchingConnectors = connectedConnectors.filter((connector) =>
+          suggestedNames.some(
+            (suggestedName) => connector.metadata?.name?.toLowerCase() === suggestedName.toLowerCase(),
+          ),
+        );
+
+        if (matchingConnectors.length > 0) {
+          const latestConnector = matchingConnectors[matchingConnectors.length - 1];
+
+          mcp_fulfillments[demandKey] = {
+            transport: {
+              type: 'streamable_http',
+              url: `{platform_url}/api/v1/connectors/${latestConnector.id}/mcp`,
+            },
+          };
+        }
+      }
+
+      return { mcp_fulfillments };
     },
     oauth: async () => {
       return {

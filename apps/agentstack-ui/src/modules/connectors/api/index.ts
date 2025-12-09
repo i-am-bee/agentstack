@@ -6,13 +6,9 @@
 import { api } from '#api/index.ts';
 import { ensureData } from '#api/utils.ts';
 import { BASE_URL } from '#utils/constants.ts';
+import { ListConnectorsResponse } from 'agentstack-sdk';
 
-import type {
-  ConnectConnectorPath,
-  CreateConnectorRequest,
-  DeleteConnectorPath,
-  DisconnectConnectorPath,
-} from './types';
+import type { ConnectConnectorPath, CreateConnectorRequest } from './types';
 
 export async function createConnector(body: CreateConnectorRequest) {
   const response = await api.POST('/api/v1/connectors', { body });
@@ -26,23 +22,41 @@ export async function connectConnector(path: ConnectConnectorPath) {
     body: { redirect_url: `${BASE_URL}/oauth-callback` },
   });
 
-  return ensureData(response);
+  return ensureData(response) as AuthRequired;
 }
 
-export async function disconnectConnector(path: DisconnectConnectorPath) {
-  const response = await api.POST('/api/v1/connectors/{connector_id}/disconnect', { params: { path } });
-
-  return ensureData(response);
+interface AuthRequired {
+  id: string;
+  url: string;
+  state: 'auth_required';
+  auth_request: {
+    authorization_endpoint: string;
+    type: string;
+  };
 }
 
-export async function deleteConnector(path: DeleteConnectorPath) {
-  const response = await api.DELETE('/api/v1/connectors/{connector_id}', { params: { path } });
-
-  return ensureData(response);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+interface Connected {
+  id: string;
+  url: string;
+  state: 'connected';
 }
 
-export async function listConnectors() {
-  const response = await api.GET('/api/v1/connectors');
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+interface Disconnected {
+  id: string;
+  url: string;
+  state: 'disconnected';
+}
 
-  return ensureData(response);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+interface Created {
+  id: string;
+  url: string;
+  state: 'created';
+}
+
+export async function listConnectors(): Promise<ListConnectorsResponse | undefined> {
+  const response = await api.GET('/api/v1/connectors', {});
+  return ensureData(response) as ListConnectorsResponse;
 }

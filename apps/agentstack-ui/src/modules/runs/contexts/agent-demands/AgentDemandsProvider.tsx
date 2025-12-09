@@ -8,6 +8,7 @@ import { type PropsWithChildren, useCallback, useEffect, useRef, useState } from
 
 import type { AgentA2AClient } from '#api/a2a/types.ts';
 import { useApp } from '#contexts/App/index.ts';
+import { useListConnectors } from '#modules/connectors/api/queries/useListConnectors.ts';
 import type { RunFormValues } from '#modules/form/types.ts';
 import { useCreateContextToken } from '#modules/platform-context/api/mutations/useCreateContextToken.ts';
 import { useMatchProviders } from '#modules/platform-context/api/mutations/useMatchProviders.ts';
@@ -38,7 +39,7 @@ export function AgentDemandsProvider<UIGenericPart>({
   );
 
   const {
-    config: { featureFlags, contextTokenPermissions },
+    config: { contextTokenPermissions },
   } = useApp();
   const { contextId } = usePlatformContext();
 
@@ -114,6 +115,9 @@ export function AgentDemandsProvider<UIGenericPart>({
 
   const [selectedMCPServers, setSelectedMCPServers] = useState<Record<string, string>>({});
 
+  const { data: connectorsData } = useListConnectors();
+  const connectors = connectorsData?.items ?? [];
+
   useEffect(() => {
     setSelectedMCPServers(
       Object.keys(agentClient?.demands.mcpDemands?.mcp_demands ?? {}).reduce(
@@ -170,10 +174,10 @@ export function AgentDemandsProvider<UIGenericPart>({
         selectedEmbeddingProviders,
         selectedMCPServers,
         providedSecrets,
-        featureFlags,
         selectedSettings,
         formFulfillments: formFulfillmentsRef.current,
         oauthRedirectUri: oauthRedirectUri ?? null,
+        connectors,
       });
     },
     [
@@ -181,9 +185,9 @@ export function AgentDemandsProvider<UIGenericPart>({
       selectedLLMProviders,
       selectedEmbeddingProviders,
       selectedMCPServers,
-      featureFlags,
       selectedSettings,
       demandedSecrets,
+      connectors,
     ],
   );
 

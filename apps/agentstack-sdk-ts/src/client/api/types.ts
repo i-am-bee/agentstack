@@ -100,7 +100,6 @@ export const connectorSchema = z.object({
     .nullable(),
   disconnect_reason: z.string().nullable(),
   metadata: z.record(z.string(), z.string()).nullable(),
-  created_at: z.string(),
 });
 
 export type Connector = z.infer<typeof connectorSchema>;
