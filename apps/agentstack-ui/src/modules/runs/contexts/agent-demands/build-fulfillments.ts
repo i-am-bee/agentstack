@@ -10,6 +10,7 @@ import type {
   EmbeddingDemands,
   FormFulfillments,
   Fulfillments,
+  MCPFulfillments,
 } from 'agentstack-sdk';
 import { ConnectorState } from 'agentstack-sdk';
 
@@ -114,7 +115,7 @@ export const buildFulfillments = ({
     mcp: async ({ mcp_demands }) => {
       const connectedConnectors = connectors.filter((connector) => connector.state === ConnectorState.Connected);
       const allDemands = Object.keys(mcp_demands);
-      const mcp_fulfillments: Record<string, any> = {};
+      const mcp_fulfillments: MCPFulfillments['mcp_fulfillments'] = {};
 
       for (const demandKey of allDemands) {
         const clientProvided = selectedMCPServers[demandKey];

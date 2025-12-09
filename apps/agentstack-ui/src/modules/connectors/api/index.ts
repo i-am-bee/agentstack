@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { ListConnectorsResponse } from 'agentstack-sdk';
+
 import { api } from '#api/index.ts';
 import { ensureData } from '#api/utils.ts';
 import { BASE_URL } from '#utils/constants.ts';
-import { ListConnectorsResponse } from 'agentstack-sdk';
 
 import type { ConnectConnectorPath, CreateConnectorRequest } from './types';
 

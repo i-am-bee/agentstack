@@ -22,7 +22,7 @@ class StdioTransport(pydantic.BaseModel):
 class StreamableHTTPTransport(pydantic.BaseModel):
     type: Literal["streamable_http"] = "streamable_http"
 
-    url: pydantic.AnyHttpUrl
+    url: str
     headers: dict[str, str] | None = None
 
 

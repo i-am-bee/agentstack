@@ -1,6 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+import json
 from collections.abc import AsyncGenerator
 from typing import Annotated
 
@@ -33,7 +34,8 @@ async def github_mcp_agent(
     ):
         await session.initialize()
         me_result = await session.call_tool("get_me", {})
-        yield me_result.content[0].text
+        result_dict = me_result.model_dump() if hasattr(me_result, "model_dump") else me_result
+        yield json.dumps(result_dict, indent=2, default=str)
 
 
 if __name__ == "__main__":

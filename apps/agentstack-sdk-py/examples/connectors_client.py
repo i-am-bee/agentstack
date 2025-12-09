@@ -7,7 +7,7 @@ import uuid
 import a2a.client
 import a2a.types
 import httpx
-from pydantic import AnyHttpUrl, HttpUrl
+from pydantic import HttpUrl
 
 import agentstack_sdk.a2a.extensions
 from agentstack_sdk.a2a.extensions.services.platform import PlatformApiExtensionClient
@@ -53,7 +53,7 @@ async def run(
                 mcp_fulfillments={
                     key: agentstack_sdk.a2a.extensions.services.mcp.MCPFulfillment(
                         transport=agentstack_sdk.a2a.extensions.services.mcp.StreamableHTTPTransport(
-                            url=AnyHttpUrl("http://{platform_url}" + f"/api/v1/connectors/{connector_id}/mcp")
+                            url="{platform_url}" + f"/api/v1/connectors/{connector_id}/mcp"
                         ),
                     )
                     for key in mcp_spec.params.mcp_demands

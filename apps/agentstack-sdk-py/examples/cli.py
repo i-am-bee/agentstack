@@ -15,7 +15,6 @@ import asyncclick
 import asyncclick.exceptions
 import httpx
 import yaml
-from pydantic import AnyHttpUrl
 
 import agentstack_sdk.a2a.extensions.services.llm
 
@@ -82,7 +81,7 @@ async def cli(base_url: str, context_id: str) -> None:
                                     # Demonstration only: we ignore the asks and just configure Agent Stack proxy for everything
                                     key: agentstack_sdk.a2a.extensions.services.mcp.MCPFulfillment(
                                         transport=agentstack_sdk.a2a.extensions.services.mcp.StreamableHTTPTransport(
-                                            url=AnyHttpUrl("http://localhost:8333/mcp"),
+                                            url="http://localhost:8333/mcp",
                                         ),
                                     )
                                     for key in mcp_spec.params.mcp_demands

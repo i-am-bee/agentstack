@@ -9,7 +9,7 @@ import a2a.client
 import a2a.types
 import httpx
 from aiohttp import web
-from pydantic import AnyHttpUrl, AnyUrl
+from pydantic import AnyUrl
 
 import agentstack_sdk.a2a.extensions
 from agentstack_sdk.a2a.extensions.tools.call import ToolCallResponse
@@ -92,7 +92,7 @@ async def run(base_url: str = "http://127.0.0.1:10000"):
                 mcp_fulfillments={
                     key: agentstack_sdk.a2a.extensions.services.mcp.MCPFulfillment(
                         transport=agentstack_sdk.a2a.extensions.services.mcp.StreamableHTTPTransport(
-                            url=AnyHttpUrl("https://mcp.stripe.com")
+                            url="https://mcp.stripe.com"
                         ),
                     )
                     for key in mcp_service_spec.params.mcp_demands
