@@ -18,7 +18,7 @@ When filing issues to i-am-bee/agentstack:
 
 ## Rules for issue filing
 - Keep the ticket extremely concise
-- Don't provide implementation detail, your goal is define problem, with potential consequences not solution.
+- Don't provide implementation details. Your goal is to define the problem and its potential consequences, not to propose a solution.
 
 # TypeScript
 
