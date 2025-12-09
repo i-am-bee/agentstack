@@ -32,16 +32,15 @@ export function extractServiceExtensionDemands<U extends string, D, F>(extension
 
   return function (agentExtensions: AgentExtension[]) {
     const foundExtension = agentExtensions.find((agentExtension) => agentExtension.uri === uri);
-    if (foundExtension?.params === undefined) {
-      return undefined;
+    if (!foundExtension?.params) {
+      return null;
     }
-
     const { success, data: parsed, error } = schema.safeParse(foundExtension.params);
 
     if (!success) {
       console.warn(error);
 
-      return undefined;
+      return null;
     }
 
     return parsed;

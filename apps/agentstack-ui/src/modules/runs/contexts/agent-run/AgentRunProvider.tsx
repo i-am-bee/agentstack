@@ -64,7 +64,7 @@ export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>)
       <AgentDemandsProvider agentClient={agentClient}>
         <FileUploadProvider allowedContentTypes={agent.defaultInputModes}>
           <MessagesProvider>
-            <CanvasProvider agentClient={agentClient}>
+            <CanvasProvider>
               <AgentRunProvider agent={agent} agentClient={agentClient}>
                 {children}
               </AgentRunProvider>
@@ -375,10 +375,12 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
     (canvasEditRequest: UICanvasEditRequestParams) => {
       checkPendingRun();
 
+      const textInput = `Edit artifact ${canvasEditRequest.artifactId} from character ${canvasEditRequest.startIndex} to ${canvasEditRequest.endIndex}: ${canvasEditRequest.description}`;
+
       const message: UIUserMessage = {
         id: uuid(),
         role: Role.User,
-        parts: [],
+        parts: [createTextPart(textInput)],
         canvasEditRequest,
       };
 

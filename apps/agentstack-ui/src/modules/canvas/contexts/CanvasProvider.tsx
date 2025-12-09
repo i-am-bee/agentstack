@@ -5,7 +5,6 @@
 
 import { type PropsWithChildren, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import type { AgentA2AClient } from '#api/a2a/types.ts';
 import { useMessages } from '#modules/messages/contexts/Messages/index.ts';
 import { UIMessagePartKind } from '#modules/messages/types.ts';
 import { isAgentMessage } from '#modules/messages/utils.ts';
@@ -13,26 +12,18 @@ import { isAgentMessage } from '#modules/messages/utils.ts';
 import type { CanvasContextValue } from './canvas-context';
 import { CanvasContext } from './canvas-context';
 
-interface Props {
-  agentClient?: AgentA2AClient;
-}
-
-export function CanvasProvider({ agentClient, children }: PropsWithChildren<Props>) {
+export function CanvasProvider({ children }: PropsWithChildren) {
   const [activeArtifactId, setActiveArtifactId] = useState<string | null>(null);
 
   const { messages } = useMessages();
 
   const artifacts = useMemo(() => {
-    if (agentClient?.demands.canvasDemands === undefined) {
-      return null;
-    }
-
     const artifacts = messages.flatMap((message) =>
       isAgentMessage(message) ? message.parts.filter((part) => part.kind === UIMessagePartKind.Artifact) : [],
     );
     artifacts.reverse();
     return artifacts;
-  }, [agentClient?.demands.canvasDemands, messages]);
+  }, [messages]);
 
   const artifactsRef = useRef(artifacts);
   artifactsRef.current = artifacts;

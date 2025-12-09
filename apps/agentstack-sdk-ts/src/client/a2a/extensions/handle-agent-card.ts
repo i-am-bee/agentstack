@@ -19,8 +19,7 @@ import { oauthProviderExtension } from './services/oauth-provider';
 import { platformApiExtension } from './services/platform';
 import type { SecretDemands, SecretFulfillments } from './services/secrets';
 import { secretsExtension } from './services/secrets';
-import type { CanvasFulfillments } from './ui/canvas';
-import { canvasExtension } from './ui/canvas';
+import { canvasExtension, type CanvasFulfillments } from './ui/canvas';
 import { oauthRequestExtension } from './ui/oauth';
 import type { SettingsDemands, SettingsFulfillments } from './ui/settings';
 import { settingsExtension } from './ui/settings';
@@ -46,7 +45,6 @@ const oauthExtensionExtractor = extractServiceExtensionDemands(oauthProviderExte
 const settingsExtensionExtractor = extractServiceExtensionDemands(settingsExtension);
 const secretExtensionExtractor = extractServiceExtensionDemands(secretsExtension);
 const formExtensionExtractor = extractServiceExtensionDemands(formExtension);
-const canvasExtensionExtractor = extractServiceExtensionDemands(canvasExtension);
 
 const fulfillMcpDemand = fulfillServiceExtensionDemand(mcpExtension);
 const fulfillLlmDemand = fulfillServiceExtensionDemand(llmExtension);
@@ -55,7 +53,6 @@ const fulfillOAuthDemand = fulfillServiceExtensionDemand(oauthProviderExtension)
 const fulfillSettingsDemand = fulfillServiceExtensionDemand(settingsExtension);
 const fulfillSecretDemand = fulfillServiceExtensionDemand(secretsExtension);
 const fulfillFormDemand = fulfillServiceExtensionDemand(formExtension);
-const fulfillCanvasDemand = fulfillServiceExtensionDemand(canvasExtension);
 
 export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) => {
   const extensions = agentCard.capabilities.extensions ?? [];
@@ -67,7 +64,6 @@ export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) 
   const settingsDemands = settingsExtensionExtractor(extensions);
   const secretDemands = secretExtensionExtractor(extensions);
   const formDemands = formExtensionExtractor(extensions);
-  const canvasDemands = canvasExtensionExtractor(extensions);
 
   const resolveMetadata = async (fulfillments: Fulfillments) => {
     let fulfilledMetadata: Record<string, unknown> = {};
@@ -102,13 +98,6 @@ export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) 
       fulfilledMetadata = fulfillFormDemand(fulfilledMetadata, await fulfillments.form(formDemands));
     }
 
-    if (canvasDemands !== undefined) {
-      const canvasEditRequest = fulfillments.canvasEditRequest();
-      if (canvasEditRequest) {
-        fulfilledMetadata = fulfillCanvasDemand(fulfilledMetadata, canvasEditRequest);
-      }
-    }
-
     const oauthRedirectUri = fulfillments.oauthRedirectUri();
     if (oauthRedirectUri) {
       fulfilledMetadata = {
@@ -116,6 +105,14 @@ export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) 
         [oauthRequestExtension.getUri()]: {
           redirect_uri: oauthRedirectUri,
         },
+      };
+    }
+
+    const canvasEditRequest = fulfillments.canvasEditRequest();
+    if (canvasEditRequest) {
+      fulfilledMetadata = {
+        ...fulfilledMetadata,
+        [canvasExtension.getUri()]: canvasEditRequest,
       };
     }
 
@@ -132,7 +129,6 @@ export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) 
       settingsDemands,
       secretDemands,
       formDemands,
-      canvasDemands,
     },
   };
 };

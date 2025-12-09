@@ -6,7 +6,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pydantic
-from a2a.types import Artifact
+from a2a.types import Artifact, TextPart
 from a2a.types import Message as A2AMessage
 
 if TYPE_CHECKING:
@@ -38,6 +38,9 @@ class CanvasExtensionSpec(NoParamsBaseExtensionSpec):
 
 class CanvasExtensionServer(BaseExtensionServer[CanvasExtensionSpec, CanvasEditRequestMetadata]):
     def handle_incoming_message(self, message: A2AMessage, context: RunContext):
+        if message.metadata and self.spec.URI in message.metadata and message.parts:
+            message.parts = [part for part in message.parts if not isinstance(part.root, TextPart)]
+
         super().handle_incoming_message(message, context)
         self.context = context
 

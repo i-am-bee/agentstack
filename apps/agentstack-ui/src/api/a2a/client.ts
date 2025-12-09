@@ -50,28 +50,24 @@ function handleStatusUpdate<UIGenericPart = never>(
   return [...metadataParts, ...contentParts, ...genericParts];
 }
 
-function handleArtifactUpdate(event: TaskArtifactUpdateEvent, isCanvas: boolean): UIMessagePart[] {
+function handleArtifactUpdate(event: TaskArtifactUpdateEvent): UIMessagePart[] {
   const { artifact } = event;
 
   const contentParts = processParts(artifact.parts);
 
-  if (isCanvas) {
-    const { artifactId, description, name } = artifact;
-    const { textParts, otherParts } = contentParts.reduce<{ textParts: UITextPart[]; otherParts: UIMessagePart[] }>(
-      (acc, part) => {
-        if (part.kind === UIMessagePartKind.Text) {
-          acc.textParts.push(part);
-        } else {
-          acc.otherParts.push(part);
-        }
-        return acc;
-      },
-      { textParts: [], otherParts: [] },
-    );
-    return [{ kind: UIMessagePartKind.Artifact, artifactId, description, name, parts: textParts }, ...otherParts];
-  }
-
-  return contentParts;
+  const { artifactId, description, name } = artifact;
+  const { textParts, otherParts } = contentParts.reduce<{ textParts: UITextPart[]; otherParts: UIMessagePart[] }>(
+    (acc, part) => {
+      if (part.kind === UIMessagePartKind.Text) {
+        acc.textParts.push(part);
+      } else {
+        acc.otherParts.push(part);
+      }
+      return acc;
+    },
+    { textParts: [], otherParts: [] },
+  );
+  return [{ kind: UIMessagePartKind.Artifact, artifactId, description, name, parts: textParts }, ...otherParts];
 }
 
 export interface CreateA2AClientParams<UIGenericPart = never> {
@@ -140,7 +136,7 @@ export const buildA2AClient = async <UIGenericPart = never>({
           .with({ kind: 'artifact-update' }, (event) => {
             taskId = event.taskId;
 
-            const parts = handleArtifactUpdate(event, demands.canvasDemands !== undefined);
+            const parts = handleArtifactUpdate(event);
 
             messageSubject.next({ type: RunResultType.Parts, parts, taskId });
           });

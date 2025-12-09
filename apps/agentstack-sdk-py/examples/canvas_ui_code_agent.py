@@ -9,6 +9,11 @@ from typing import Annotated
 
 from a2a.types import Message, TextPart
 
+from agentstack_sdk.a2a.extensions import (
+    ErrorExtensionParams,
+    ErrorExtensionServer,
+    ErrorExtensionSpec,
+)
 from agentstack_sdk.a2a.extensions.ui.canvas import CanvasExtensionServer, CanvasExtensionSpec
 from agentstack_sdk.a2a.types import AgentArtifact, AgentMessage
 from agentstack_sdk.server import Server
@@ -72,6 +77,7 @@ async def artifacts_agent(
         CanvasExtensionServer,
         CanvasExtensionSpec(),
     ],
+    _e: Annotated[ErrorExtensionServer, ErrorExtensionSpec(ErrorExtensionParams(include_stacktrace=True))],
 ):
     """Works with artifacts"""
 
