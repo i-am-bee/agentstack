@@ -80,3 +80,33 @@ export const globalPermissionsGrantSchema = contextPermissionsGrantSchema.extend
 });
 
 export type GlobalPermissionsGrant = z.infer<typeof globalPermissionsGrantSchema>;
+
+export enum ConnectorState {
+  Created = 'created',
+  AuthRequired = 'auth_required',
+  Connected = 'connected',
+  Disconnected = 'disconnected',
+}
+
+export const connectorSchema = z.object({
+  id: z.string(),
+  url: z.string(),
+  state: z.enum(ConnectorState),
+  auth_request: z
+    .object({
+      type: z.literal('code'),
+      authorization_endpoint: z.string(),
+    })
+    .nullable(),
+  disconnect_reason: z.string().nullable(),
+  metadata: z.record(z.string(), z.string()).nullable(),
+  created_at: z.string(),
+});
+
+export type Connector = z.infer<typeof connectorSchema>;
+
+export const listConnectorsResponseSchema = paginatedResultSchema.extend({
+  items: z.array(connectorSchema),
+});
+
+export type ListConnectorsResponse = z.infer<typeof listConnectorsResponseSchema>;

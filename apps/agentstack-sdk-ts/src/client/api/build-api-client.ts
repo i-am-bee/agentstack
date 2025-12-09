@@ -6,7 +6,7 @@
 import type { z } from 'zod';
 
 import type { ContextPermissionsGrant, GlobalPermissionsGrant, ModelCapability } from './types';
-import { contextSchema, contextTokenSchema, modelProviderMatchSchema } from './types';
+import { contextSchema, contextTokenSchema, listConnectorsResponseSchema, modelProviderMatchSchema } from './types';
 
 export interface MatchProvidersParams {
   suggestedModels: string[] | null;
@@ -40,14 +40,33 @@ export const buildApiClient = (
 
   const fetchFn = maybeFetchFn;
 
-  async function callApi<T>(method: 'POST', url: string, data: Record<string, unknown>, resultSchema: z.ZodSchema<T>) {
-    const response = await fetchFn(`${baseUrl}${url}`, {
+  async function callApi<T>(
+    method: 'POST' | 'GET',
+    url: string,
+    data: Record<string, unknown> | null,
+    resultSchema: z.ZodSchema<T>,
+  ) {
+    let requestUrl = `${baseUrl}${url}`;
+    const options: RequestInit = {
       method,
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
-    });
+    };
+
+    if (method === 'GET' && data) {
+      const params = new URLSearchParams();
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          params.append(key, String(value));
+        }
+      });
+      requestUrl = `${requestUrl}?${params.toString()}`;
+    } else if (method === 'POST' && data) {
+      options.body = JSON.stringify(data);
+    }
+
+    const response = await fetchFn(requestUrl, options);
     if (!response.ok) {
       throw new Error(`Failed to call Agent Stackk API - ${url}`);
     }
@@ -86,7 +105,11 @@ export const buildApiClient = (
     );
   };
 
-  return { createContextToken, createContext, matchProviders };
+  const listConnectors = async () => {
+    return await callApi('GET', '/api/v1/connectors', null, listConnectorsResponseSchema);
+  };
+
+  return { createContextToken, createContext, matchProviders, listConnectors };
 };
 
 export type AgentstackClient = ReturnType<typeof buildApiClient>;
