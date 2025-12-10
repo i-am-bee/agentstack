@@ -23,10 +23,19 @@ const authorizeOauth = (
   }
   popup.focus();
 
+  let isHandled = false;
+
   const timer = setInterval(() => {
     if (popup.closed) {
       clearInterval(timer);
-      onCallback({ error: null, errorDescription: null });
+
+      if (!isHandled) {
+        onCallback({
+          error: 'Authorization cancelled',
+          errorDescription: 'Popup was closed before completing authorization.',
+        });
+      }
+
       window.removeEventListener('message', handler);
     }
   }, 500);
@@ -44,9 +53,12 @@ const authorizeOauth = (
     const error = parsedRedirectrUri.searchParams.get('error');
     const errorDescription = parsedRedirectrUri.searchParams.get('error_description');
 
+    isHandled = true;
+
     onCallback({ error, errorDescription });
 
     if (popup) {
+      clearInterval(timer);
       window.removeEventListener('message', handler);
       popup.close();
     }
