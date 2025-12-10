@@ -5,14 +5,12 @@
 
 import { useMemo } from 'react';
 
-import { useApp } from '#contexts/App/index.ts';
 import { useModal } from '#contexts/Modal/index.tsx';
 import { useParamsFromUrl } from '#hooks/useParamsFromUrl.ts';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
 import { ListAgentsOrderBy } from '#modules/agents/api/types.ts';
 import { ImportAgentsModal } from '#modules/agents/components/import/ImportAgentsModal.tsx';
-import { useUser } from '#modules/users/api/queries/useUser.ts';
-import { isUserAdminOrDev } from '#modules/users/utils.ts';
+import { useCanManageProviders } from '#modules/providers/hooks/useCanManageProviders.ts';
 import { routes } from '#utils/router.ts';
 
 import { NavGroup } from './NavGroup';
@@ -24,24 +22,21 @@ interface Props {
 
 export function AgentsNav({ className }: Props) {
   const { openModal } = useModal();
-  const {
-    config: { featureFlags },
-  } = useApp();
-  const { providerId: providerIdUrl } = useParamsFromUrl();
-  const { data: user } = useUser();
-  const { data: agents, isLoading } = useListAgents({ orderBy: ListAgentsOrderBy.Name });
 
-  const isAdminOrDev = isUserAdminOrDev(user);
+  const { providerId: providerIdUrl } = useParamsFromUrl();
+  const canManageProviders = useCanManageProviders();
+
+  const { data: agents, isLoading } = useListAgents({ orderBy: ListAgentsOrderBy.Name });
 
   const action = useMemo(
     () =>
-      featureFlags.Providers && isAdminOrDev
+      canManageProviders
         ? {
             label: 'Add new agent',
             onClick: () => openModal((props) => <ImportAgentsModal {...props} />),
           }
         : undefined,
-    [featureFlags.Providers, isAdminOrDev, openModal],
+    [canManageProviders, openModal],
   );
 
   const items = useMemo(
