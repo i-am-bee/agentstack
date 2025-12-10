@@ -5,7 +5,7 @@ description: "Learn how Agent Stack helps with authentication when using MCP."
 
 ## What are Connectors?
 
-A connector is a remote MCP server registered to Agent Stack. It allows users to set up a connection to a third-party service (like GitHub, Slack, or Notion) and then exposes a local MCP server that can be consumed by agents. This architecture eliminates the need for user authentication in your agent code. The connector handles authentication with the third-party service on behalf of the authenticated user, and the MCP interface is properly scoped to that user's permissions and data.
+A connector is a remote MCP server registered to Agent Stack. It allows users to set up a connection to a third-party service (like GitHub, Box etc.) and then exposes a local MCP server that can be consumed by agents. This architecture eliminates the need for user authentication in your agent code. The connector handles authentication with the third-party service on behalf of the authenticated user, and the MCP interface is properly scoped to that user's permissions and data.
 
 Users can connect connectors via the Agent Stack UI, or they can even register custom connector. When a connector is registered and connected, it becomes available for your agents to use through the MCP extension. Each connector has a name (like "github", "slack", or "notion") that agents can reference when requesting MCP access. The platform automatically routes your agent's MCP requests to the appropriate connector, ensuring secure, user-scoped access to third-party services.
 
