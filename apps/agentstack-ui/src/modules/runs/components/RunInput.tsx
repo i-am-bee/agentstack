@@ -22,7 +22,6 @@ import { RunModels } from '../settings/RunModels';
 import { RunSettings } from '../settings/RunSettings';
 import { useRunSettingsDialog } from '../settings/useRunSettingsDialog';
 import type { RunRunFormValues } from '../types';
-import { MCPConfig } from './MCPConfig';
 import { PromptExamples } from './PromptExamples';
 import { RunFiles } from './RunFiles';
 import classes from './RunInput.module.scss';
@@ -149,8 +148,6 @@ export function RunInput({ promptExamples, onMessageSent }: Props) {
             <RunSettings dialog={settingsDialog} iconOnly />
 
             {!isFileUploadDisabled && <FileUploadButton />}
-
-            {featureFlags.MCP && <MCPConfig />}
 
             <RunModels dialog={modelsDialog} iconOnly />
           </div>

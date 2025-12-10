@@ -64,7 +64,7 @@ spec:
               value: |
                 {
                   "LocalSetup": {{ .Values.features.uiLocalSetup }},
-                  "MCP": {{ .Values.features.uiMCP }},
+                  "Connectors": {{ .Values.features.uiConnectors }},
                   "ProviderBuilds": {{ .Values.providerBuilds.enabled }},
                   "Providers": {{ .Values.features.uiProviders }},
                   "Variables": {{ .Values.features.uiVariables }}

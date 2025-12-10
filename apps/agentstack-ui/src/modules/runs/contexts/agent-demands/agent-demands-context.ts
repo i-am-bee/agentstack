@@ -25,10 +25,7 @@ interface AgentDemandsContextValue {
   getFulfillments: (context: FulfillmentsContext) => Promise<Fulfillments>;
   selectLLMProvider: (key: string, value: string) => void;
   selectEmbeddingProvider: (key: string, value: string) => void;
-  selectMCPServer: (key: string, value: string) => void;
   provideFormValues: (values: RunFormValues) => void;
-  selectedMCPServers: Record<string, string>;
-
   onUpdateSettings: (settings: AgentSettings) => void;
   selectedSettings: AgentSettings | undefined;
   settingsDemands: SettingsDemands | null;

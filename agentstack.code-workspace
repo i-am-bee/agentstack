@@ -13,6 +13,10 @@
             "path": "apps/agentstack-sdk-py"
         },
         {
+            "name": "agentstack-sdk-ts",
+            "path": "apps/agentstack-sdk-ts"
+        },
+        {
             "name": "agentstack-cli",
             "path": "apps/agentstack-cli"
         },

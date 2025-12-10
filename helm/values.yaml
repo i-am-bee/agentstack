@@ -8,7 +8,7 @@ hostNetwork: false
 features:
   # UI only features
   uiLocalSetup: false
-  uiMCP: true
+  uiConnectors: false
   uiVariables: true
   uiProviders: false
 

@@ -4,7 +4,7 @@
  */
 
 import { type AgentSettings, type FormFulfillments, ModelCapability } from 'agentstack-sdk';
-import { type PropsWithChildren, useCallback, useEffect, useRef, useState } from 'react';
+import { type PropsWithChildren, useCallback, useRef, useState } from 'react';
 
 import type { AgentA2AClient } from '#api/a2a/types.ts';
 import { useApp } from '#contexts/App/index.ts';
@@ -113,29 +113,8 @@ export function AgentDemandsProvider<UIGenericPart>({
     formFulfillmentsRef.current = { form_fulfillments: { initial_form: { values } } };
   }, []);
 
-  const [selectedMCPServers, setSelectedMCPServers] = useState<Record<string, string>>({});
-
   const { data: connectorsData } = useListConnectors();
   const connectors = connectorsData?.items ?? [];
-
-  useEffect(() => {
-    setSelectedMCPServers(
-      Object.keys(agentClient?.demands.mcpDemands?.mcp_demands ?? {}).reduce(
-        (memo, value) => ({
-          ...memo,
-          [value]: '',
-        }),
-        {},
-      ),
-    );
-  }, [agentClient?.demands.mcpDemands?.mcp_demands]);
-
-  const selectMCPServer = useCallback(
-    (key: string, value: string) => {
-      setSelectedMCPServers((prev) => ({ ...prev, [key]: value }));
-    },
-    [setSelectedMCPServers],
-  );
 
   const getContextToken = useCallback(async () => {
     if (contextId === null) {
@@ -172,7 +151,6 @@ export function AgentDemandsProvider<UIGenericPart>({
         contextToken,
         selectedLLMProviders,
         selectedEmbeddingProviders,
-        selectedMCPServers,
         providedSecrets,
         selectedSettings,
         formFulfillments: formFulfillmentsRef.current,
@@ -180,15 +158,7 @@ export function AgentDemandsProvider<UIGenericPart>({
         connectors,
       });
     },
-    [
-      getContextToken,
-      selectedLLMProviders,
-      selectedEmbeddingProviders,
-      selectedMCPServers,
-      selectedSettings,
-      demandedSecrets,
-      connectors,
-    ],
+    [getContextToken, selectedLLMProviders, selectedEmbeddingProviders, selectedSettings, demandedSecrets, connectors],
   );
 
   return (
@@ -202,8 +172,6 @@ export function AgentDemandsProvider<UIGenericPart>({
         getFulfillments,
         selectLLMProvider,
         selectEmbeddingProvider,
-        selectMCPServer,
-        selectedMCPServers,
         selectedSettings,
         settingsDemands: agentClient?.demands.settingsDemands ?? null,
         formDemands: agentClient?.demands.formDemands ?? null,

@@ -20,7 +20,6 @@ interface BuildFulfillmentsParams {
   contextToken: ContextToken;
   selectedLLMProviders: Record<string, string>;
   selectedEmbeddingProviders: Record<string, string>;
-  selectedMCPServers: Record<string, string>;
   providedSecrets: Record<string, string>;
   selectedSettings: AgentSettings;
   formFulfillments: FormFulfillments;
@@ -32,7 +31,6 @@ export const buildFulfillments = ({
   contextToken,
   selectedLLMProviders,
   selectedEmbeddingProviders,
-  selectedMCPServers,
   selectedSettings,
   providedSecrets,
   formFulfillments,
@@ -118,18 +116,6 @@ export const buildFulfillments = ({
       const mcp_fulfillments: MCPFulfillments['mcp_fulfillments'] = {};
 
       for (const demandKey of allDemands) {
-        const clientProvided = selectedMCPServers[demandKey];
-        if (clientProvided) {
-          mcp_fulfillments[demandKey] = {
-            transport: {
-              type: 'streamable_http',
-              url: clientProvided,
-            },
-          };
-
-          continue;
-        }
-
         const demand = mcp_demands[demandKey];
         const suggestedNames = demand.suggested || [];
 
