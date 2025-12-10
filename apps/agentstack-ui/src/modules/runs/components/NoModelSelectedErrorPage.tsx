@@ -11,7 +11,13 @@ import { DOCUMENTATION_LINK, MODEL_SETUP_COMMAND } from '#utils/constants.ts';
 import NoModelImage from './NoModelImage.svg';
 import classes from './NoModelSelectedErrorPage.module.scss';
 
-export function NoModelSelectedErrorPage() {
+interface Props {
+  type?: ModelType;
+}
+
+export function NoModelSelectedErrorPage({ type = ModelType.Llm }: Props) {
+  const { label, labelWithArticle, command } = MODEL_TYPE_INFO[type];
+
   return (
     <div className={classes.root}>
       <Container size="md" className={classes.container}>
@@ -20,12 +26,12 @@ export function NoModelSelectedErrorPage() {
           <h1>
             Oooh, buzzkill.
             <br />
-            There is no model selected.
+            There is no {label} selected.
           </h1>
 
           <div className={classes.description}>
-            You can configure a model by running{' '}
-            <CopySnippet className={classes.snippet}>{MODEL_SETUP_COMMAND}</CopySnippet> in your terminal.
+            You can configure {labelWithArticle} by running{' '}
+            <CopySnippet className={classes.snippet}>{command}</CopySnippet> in your terminal.
           </div>
         </div>
         <div className={classes.footer}>
@@ -35,3 +41,21 @@ export function NoModelSelectedErrorPage() {
     </div>
   );
 }
+
+export enum ModelType {
+  Llm = 'Llm',
+  Embedding = 'Embedding',
+}
+
+const MODEL_TYPE_INFO = {
+  [ModelType.Llm]: {
+    label: 'model',
+    labelWithArticle: 'a model',
+    command: MODEL_SETUP_COMMAND,
+  },
+  [ModelType.Embedding]: {
+    label: 'embedding model',
+    labelWithArticle: 'an embedding model',
+    command: 'agentstack model add embedding',
+  },
+};

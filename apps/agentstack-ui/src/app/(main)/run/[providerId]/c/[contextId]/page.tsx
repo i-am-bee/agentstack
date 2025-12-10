@@ -5,11 +5,13 @@
 
 import { notFound } from 'next/navigation';
 
+import { runtimeConfig } from '#contexts/App/runtime-config.ts';
 import { LIST_CONTEXT_HISTORY_DEFAULT_QUERY } from '#modules/platform-context/api/constants.ts';
 import { fetchContextHistory } from '#modules/platform-context/api/index.ts';
 import { PlatformContextProvider } from '#modules/platform-context/contexts/PlatformContextProvider.tsx';
 import { RunView } from '#modules/runs/components/RunView.tsx';
 
+import { ensureModelSelected } from '../../model-check';
 import { fetchAgent } from '../../rsc';
 
 interface Props {
@@ -18,6 +20,14 @@ interface Props {
 
 export default async function AgentRunPage({ params }: Props) {
   const { providerId, contextId } = await params;
+  const { featureFlags } = runtimeConfig;
+
+  if (featureFlags.LocalSetup) {
+    const { error } = await ensureModelSelected(providerId);
+    if (error) {
+      return error;
+    }
+  }
 
   const [agent, initialData] = await Promise.all([
     fetchAgent(providerId),

@@ -4,16 +4,15 @@
  */
 
 import type { TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from '@a2a-js/sdk';
-import { A2AClient } from '@a2a-js/sdk/client';
 import { handleAgentCard, handleInputRequired, handleTaskStatusUpdate } from 'agentstack-sdk';
 import { defaultIfEmpty, filter, lastValueFrom, Subject } from 'rxjs';
 import { match } from 'ts-pattern';
 
-import { A2AExtensionError, UnauthenticatedError } from '#api/errors.ts';
+import { A2AExtensionError } from '#api/errors.ts';
 import type { UIMessagePart } from '#modules/messages/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
-import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 
+import { getAgentClient } from './agent-card';
 import { AGENT_ERROR_MESSAGE } from './constants';
 import { processMessageMetadata, processParts } from './part-processors';
 import type { ChatResult, TaskStatusUpdateResultWithTaskId } from './types';
@@ -66,10 +65,9 @@ export const buildA2AClient = async <UIGenericPart = never>({
   providerId,
   onStatusUpdate,
 }: CreateA2AClientParams<UIGenericPart>) => {
-  const agentCardUrl = `${getBaseUrl()}/api/v1/a2a/${providerId}/.well-known/agent-card.json`;
-
-  const client = await A2AClient.fromCardUrl(agentCardUrl, { fetchImpl: clientFetch });
+  const client = await getAgentClient(providerId);
   const card = await client.getAgentCard();
+
   const { resolveMetadata: resolveAgentCardMetadata, demands } = handleAgentCard(card);
   const { resolveMetadata: resolveInputRequiredMetadata } = handleInputRequired();
 
@@ -176,12 +174,3 @@ export const buildA2AClient = async <UIGenericPart = never>({
     demands,
   };
 };
-
-async function clientFetch(input: RequestInfo, init?: RequestInit) {
-  const response = await fetch(input, init);
-  if (!response.ok && response.status === 401) {
-    throw new UnauthenticatedError({ message: 'You are not authenticated.', response });
-  }
-
-  return response;
-}
