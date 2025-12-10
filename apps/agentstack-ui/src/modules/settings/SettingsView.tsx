@@ -16,9 +16,8 @@ import { ViewStack } from '#components/ViewStack/ViewStack.tsx';
 import { useApp } from '#contexts/App/index.ts';
 import { ConnectorsView } from '#modules/connectors/components/ConnectorsView.tsx';
 import { ProvidersView } from '#modules/providers/components/ProvidersView.tsx';
+import { useCanManageProviders } from '#modules/providers/hooks/useCanManageProviders.ts';
 import { VariablesView } from '#modules/providers/variables/components/VariablesView.tsx';
-import { useUser } from '#modules/users/api/queries/useUser.ts';
-import { isUserAdminOrDev } from '#modules/users/utils.ts';
 import type { FeatureName } from '#utils/feature-flags.ts';
 
 import { ThemeView } from './ThemeView';
@@ -27,20 +26,19 @@ export function SettingsView() {
   const {
     config: { featureFlags },
   } = useApp();
-  const { data: user } = useUser();
 
-  const isAdminOrDev = isUserAdminOrDev(user);
+  const canManageProviders = useCanManageProviders();
 
   const items = useMemo(
     () =>
       ITEMS.filter(({ featureName }) => {
         if (featureName === 'Providers') {
-          return featureFlags[featureName] && isAdminOrDev;
+          return featureFlags[featureName] && canManageProviders;
         }
 
         return !featureName || featureFlags[featureName];
       }),
-    [featureFlags, isAdminOrDev],
+    [featureFlags, canManageProviders],
   );
 
   return (
