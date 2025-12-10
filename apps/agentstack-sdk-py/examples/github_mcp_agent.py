@@ -28,14 +28,17 @@ async def github_mcp_agent(
         yield "MCP extension hasn't been activated, no tools are available"
         return
 
-    async with (
-        mcp_service.create_client() as (read, write),
-        ClientSession(read, write) as session,
-    ):
-        await session.initialize()
-        me_result = await session.call_tool("get_me", {})
-        result_dict = me_result.model_dump() if hasattr(me_result, "model_dump") else me_result
-        yield json.dumps(result_dict, indent=2, default=str)
+    async with mcp_service.create_client() as client:
+        if client is None:
+            yield "MCP client not available."
+            return
+
+        read, write = client
+        async with ClientSession(read_stream=read, write_stream=write) as session:
+            await session.initialize()
+            me_result = await session.call_tool("get_me", {})
+            result_dict = me_result.model_dump() if hasattr(me_result, "model_dump") else me_result
+            yield json.dumps(result_dict, indent=2, default=str)
 
 
 if __name__ == "__main__":

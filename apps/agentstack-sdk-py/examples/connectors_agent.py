@@ -32,13 +32,19 @@ async def connectors_agent(
         yield "MCP extension hasn't been activated, no tools are available"
         return
 
-    async with mcp.create_client() as (read, write), ClientSession(read, write) as session:
-        await session.initialize()
+    async with mcp.create_client() as client:
+        if client is None:
+            yield "MCP client not available."
+            return
 
-        tools = await session.list_tools()
+        read, write = client
+        async with ClientSession(read_stream=read, write_stream=write) as session:
+            await session.initialize()
 
-        yield "Available tools: \n"
-        yield "\n".join([t.name for t in tools.tools])
+            tools = await session.list_tools()
+
+            yield "Available tools: \n"
+            yield "\n".join([t.name for t in tools.tools])
 
 
 if __name__ == "__main__":

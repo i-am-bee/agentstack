@@ -120,7 +120,7 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
         if metadata:
             for name, demand in self.spec.params.mcp_demands.items():
                 if not (fulfillment := metadata.mcp_fulfillments.get(name)):
-                    raise ValueError(f'Fulfillment for demand "{name}" missing')
+                    continue
                 if fulfillment.transport.type not in demand.allowed_transports:
                     raise ValueError(f'Transport "{fulfillment.transport.type}" not allowed for demand "{name}"')
         return metadata
@@ -142,7 +142,8 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
         fulfillment = self.data.mcp_fulfillments.get(demand) if self.data else None
 
         if not fulfillment:
-            raise ValueError(f'No fulfillment for demand "{demand}"')
+            yield None
+            return
 
         transport = fulfillment.transport
 

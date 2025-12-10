@@ -42,28 +42,34 @@ async def mcp_agent(
     if not mcp_tool_call:
         yield "MCP Tool Call extension hasn't been activated, no approval requests will be issued"
 
-    async with (
-        mcp_service.create_client() as (read, write),
-        ClientSession(read, write) as session,
-    ):
-        session_init_result = await session.initialize()
+    async with mcp_service.create_client() as client:
+        if client is None:
+            yield "MCP client not available."
+            return
 
-        result = await session.list_tools()
+        read, write = client
+        async with (
+            ClientSession(read_stream=read, write_stream=write) as session,
+        ):
+            session_init_result = await session.initialize()
 
-        yield "Available tools: \n"
-        yield "\n".join([t.name for t in result.tools])
+            result = await session.list_tools()
 
-        if result.tools:
-            tool = result.tools[0]
-            input = {}
-            yield f"Requesting approval for tool {tool.name}"
-            if mcp_tool_call:
-                await mcp_tool_call.request_tool_call_approval(
-                    ToolCallRequest.from_mcp_tool(tool, input, server=session_init_result.serverInfo), context=context
-                )
-            yield f"Calling tool {tool.name}"
-            await session.call_tool(tool.name, input)
-            yield "Tool call finished"
+            yield "Available tools: \n"
+            yield "\n".join([t.name for t in result.tools])
+
+            if result.tools:
+                tool = result.tools[0]
+                input = {}
+                yield f"Requesting approval for tool {tool.name}"
+                if mcp_tool_call:
+                    await mcp_tool_call.request_tool_call_approval(
+                        ToolCallRequest.from_mcp_tool(tool, input, server=session_init_result.serverInfo),
+                        context=context,
+                    )
+                yield f"Calling tool {tool.name}"
+                await session.call_tool(tool.name, input)
+                yield "Tool call finished"
 
 
 if __name__ == "__main__":

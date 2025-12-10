@@ -47,7 +47,12 @@
             "**/helm/templates/**/*.yaml": "helm",
             "**/helm/templates/**/*.tpl": "helm"
         },
-        "basedpyright.analysis.diagnosticMode": "openFilesOnly"
+        "basedpyright.analysis.diagnosticMode": "openFilesOnly",
+        "cursorpyright.analysis.diagnosticMode": "openFilesOnly",
+        "cursorpyright.analysis.extraPaths": [
+            "${workspaceFolder}/apps/agentstack-sdk-py/src"
+        ],
+        "cursorpyright.analysis.typeCheckingMode": "basic"
     },
     "extensions": {
         "recommendations": [

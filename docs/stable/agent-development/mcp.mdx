@@ -68,13 +68,19 @@ async def example_agent(
     if not mcp:
         yield "No tools available"
 
-    async with mcp.create_client() as (read, write), ClientSession(read, write) as session:
-        await session.initialize()
+    async with mcp.create_client() as client:
+        if client is None:
+            yield "MCP client not available."
+            return
 
-        tools = await session.list_tools()
+        read, write = client
+        async with ClientSession(read, write) as session:
+            await session.initialize()
 
-        yield "Available tools: \n"
-        yield "\n".join([t.name for t in tools.tools])
+            tools = await session.list_tools()
+
+            yield "Available tools: \n"
+            yield "\n".join([t.name for t in tools.tools])
 
 def run():
     server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
