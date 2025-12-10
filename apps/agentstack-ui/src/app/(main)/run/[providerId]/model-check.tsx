@@ -21,7 +21,7 @@ export async function ensureModelSelected(providerId: string) {
   } = handleAgentCard(card);
 
   let error: ReactElement | null = null;
-  if (llmDemands) {
+  if (llmDemands || embeddingDemands) {
     try {
       const config = await readConfigurationsSystem();
       if (llmDemands && !config?.default_llm_model) {
