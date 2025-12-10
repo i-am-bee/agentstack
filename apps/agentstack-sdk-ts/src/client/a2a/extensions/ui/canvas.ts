@@ -9,16 +9,16 @@ import type { A2AUiExtension } from '../types';
 
 const URI = 'https://a2a-extensions.agentstack.beeai.dev/ui/canvas/v1';
 
-const responseSchema = z.object({
+const schema = z.object({
   start_index: z.int(),
   end_index: z.int(),
   description: z.string().nullish(),
   artifact_id: z.string(),
 });
 
-export type CanvasFulfillments = z.infer<typeof responseSchema>;
+export type CanvasEditRequest = z.infer<typeof schema>;
 
-export const canvasExtension: A2AUiExtension<typeof URI, CanvasFulfillments> = {
-  getMessageMetadataSchema: () => z.object({ [URI]: responseSchema }).partial(),
+export const CanvasExtension: A2AUiExtension<typeof URI, CanvasEditRequest> = {
+  getMessageMetadataSchema: () => z.object({ [URI]: schema }).partial(),
   getUri: () => URI,
 };

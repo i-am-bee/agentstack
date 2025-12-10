@@ -83,7 +83,7 @@ async def artifacts_agent(
         print(f"Artifact ID: {canvas_edit_request.artifact.artifact_id}")
         print(f"Edited part: {edited_part}")
 
-        description = f"You requested to edit this part:\n\n{edited_part}\n\n"
+        description = f"You requested to edit this part:\n\n~~~\n{edited_part}\n~~~\n\n"
         recipe_title = "Canvas Recipe EDITED"
         closing_message = "Enjoy your edited meal!"
     else:
@@ -108,7 +108,7 @@ async def artifacts_agent(
 
     await asyncio.sleep(1)
 
-    recipe_content = match.group(1).strip()
+    recipe_content = match.group(1)
     first_line = recipe_content.split("\n", 1)[0]
 
     # Extract the title and remove it from content if it's a heading
@@ -156,7 +156,7 @@ async def artifacts_agent(
         await context.store(chunk_artifact)
         await asyncio.sleep(0.3)
 
-    if post_text := response[match.end() :].strip():
+    if post_text := response[match.end() :]:
         message = AgentMessage(text=post_text)
         yield message
         await context.store(message)

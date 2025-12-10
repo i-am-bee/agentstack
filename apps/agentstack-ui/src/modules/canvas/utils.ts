@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { CanvasEditRequest } from 'agentstack-sdk';
 import { v4 as uuid } from 'uuid';
 
 import type { UIMessagePart } from '#modules/messages/types.ts';
@@ -16,6 +17,8 @@ import {
 import { getMessagePartsRawContent, getMessageRawContent } from '#modules/messages/utils.ts';
 import { findWithIndex } from '#utils/helpers.ts';
 import { toMarkdownArtifact } from '#utils/markdown.ts';
+
+import type { UICanvasEditRequestParams } from './types';
 
 export function processMessageArtifactPart(
   part: UIArtifactPart,
@@ -99,4 +102,18 @@ function updateArtifactTransformPart(transformPart: UITransformPart, artifactPar
   };
 
   return newTransformPart;
+}
+
+export function getCanvasEditRequest({
+  startIndex,
+  endIndex,
+  artifactId,
+  description,
+}: UICanvasEditRequestParams): CanvasEditRequest {
+  return {
+    start_index: startIndex,
+    end_index: endIndex,
+    artifact_id: artifactId,
+    description,
+  };
 }

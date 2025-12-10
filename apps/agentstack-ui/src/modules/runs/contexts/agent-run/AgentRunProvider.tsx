@@ -17,6 +17,7 @@ import { useHandleError } from '#hooks/useHandleError.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { CanvasProvider } from '#modules/canvas/contexts/CanvasProvider.tsx';
 import type { UICanvasEditRequestParams } from '#modules/canvas/types.ts';
+import { getCanvasEditRequest } from '#modules/canvas/utils.ts';
 import { FileUploadProvider } from '#modules/files/contexts/FileUploadProvider.tsx';
 import { useFileUpload } from '#modules/files/contexts/index.ts';
 import { convertFilesToUIFileParts } from '#modules/files/utils.ts';
@@ -180,7 +181,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
   }, [agentClient, errorHandler, getMessages]);
 
   const run = useCallback(
-    async (message: UIUserMessage, fulfillmentsContext: FulfillmentsContext) => {
+    async (message: UIUserMessage, fulfillmentsContext: FulfillmentsContext = {}) => {
       if (!agentClient) {
         throw new Error('Agent client is not initialized');
       }
@@ -205,13 +206,16 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
         messages.unshift(agentMessage, message);
       });
 
+      const { form, canvasEditParams } = message;
+
       try {
         const run = agentClient.chat({
           message,
           contextId,
           fulfillments,
-          responses: {
-            form: message.form?.response,
+          uiExtensionInputs: {
+            form: form?.response,
+            canvasEditRequest: canvasEditParams ? getCanvasEditRequest(canvasEditParams) : undefined,
           },
           taskId: fulfillmentsContext.taskId,
         });
@@ -338,7 +342,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
         form,
       };
 
-      return run(message, {});
+      return run(message);
     },
     [checkPendingRun, provideFormValues, run],
   );
@@ -372,19 +376,21 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
   );
 
   const submitCanvasEditRequest = useCallback(
-    (canvasEditRequest: UICanvasEditRequestParams) => {
+    (params: UICanvasEditRequestParams) => {
       checkPendingRun();
 
-      const textInput = `Edit artifact ${canvasEditRequest.artifactId} from character ${canvasEditRequest.startIndex} to ${canvasEditRequest.endIndex}: ${canvasEditRequest.description}`;
+      const { artifactId, startIndex, endIndex, description } = params;
+
+      const textInput = `Edit artifact ${artifactId} from character ${startIndex} to ${endIndex}: ${description}`;
 
       const message: UIUserMessage = {
         id: uuid(),
         role: Role.User,
         parts: [createTextPart(textInput)],
-        canvasEditRequest,
+        canvasEditParams: params,
       };
 
-      return run(message, { canvasEditRequest });
+      return run(message);
     },
     [checkPendingRun, run],
   );

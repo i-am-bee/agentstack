@@ -99,7 +99,7 @@ async def artifacts_agent(
         print(f"Artifact ID: {canvas_edit_request.artifact.artifact_id}")
         print(f"Edited part: {edited_part}")
 
-        description = f"You requested to edit this part:\n\n{edited_part}\n\n"
+        description = f"You requested to edit this part:\n\n~~~\n{edited_part}\n~~~"
         code_title = "Edited Code"
         closing_message = "Your code has been updated!"
     else:
@@ -109,6 +109,9 @@ async def artifacts_agent(
 
     response = generate_code_response(code_title, description, closing_message)
 
+    print("Generated Response:")
+    print(response)
+
     match = re.compile(r"```python\n(.*?)\n```", re.DOTALL).search(response)
 
     if not match:
@@ -117,7 +120,7 @@ async def artifacts_agent(
 
     await asyncio.sleep(1)
 
-    if pre_text := response[: match.start()].strip():
+    if pre_text := response[: match.start()]:
         message = AgentMessage(text=pre_text)
         yield message
         await context.store(message)
@@ -168,7 +171,7 @@ async def artifacts_agent(
         await context.store(chunk_artifact)
         await asyncio.sleep(0.3)
 
-    if post_text := response[match.end() :].strip():
+    if post_text := response[match.end() :]:
         message = AgentMessage(text=post_text)
         yield message
         await context.store(message)

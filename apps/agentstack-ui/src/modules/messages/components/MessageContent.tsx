@@ -30,10 +30,10 @@ export const MessageContent = memo(function MessageContent({ message }: Props) {
   const isUser = isUserMessage(message);
   const form = isUser ? message.form : null;
   const auth = isUser ? message.auth : null;
-  const canvasEditRequest = isUser ? message.canvasEditRequest : null;
+  const canvasEditParams = isUser ? message.canvasEditParams : null;
   const secretPart = getMessageSecret(message);
 
-  const hasContent = content || form || auth || canvasEditRequest;
+  const hasContent = content || form || auth || canvasEditParams;
   const sources = getMessageSources(message);
 
   const status = isAgentMessage(message) ? checkMessageStatus(message) : null;
@@ -47,13 +47,14 @@ export const MessageContent = memo(function MessageContent({ message }: Props) {
       return <div className={clsx(classes.root)}>User has granted access</div>;
     }
 
-    if (canvasEditRequest) {
+    if (canvasEditParams) {
+      const { description, content } = canvasEditParams;
       return (
         <div className={clsx(classes.root, classes.canvasEditRequest)}>
           <LineClampText lines={2}>
-            <q>{canvasEditRequest.content}</q>
+            <q>{content}</q>
           </LineClampText>
-          <p>{canvasEditRequest.description}</p>
+          <p>{description}</p>
         </div>
       );
     }

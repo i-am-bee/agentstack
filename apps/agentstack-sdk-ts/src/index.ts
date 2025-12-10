@@ -6,12 +6,12 @@
 export * from './client/a2a/extensions/common/form';
 export * from './client/a2a/extensions/fulfillment-resolvers/build-llm-extension-fulfillment-resolver';
 export { type Fulfillments, handleAgentCard } from './client/a2a/extensions/handle-agent-card';
-export { handleInputRequired, type InputRequiredResponses } from './client/a2a/extensions/handle-input-required';
 export {
   handleTaskStatusUpdate,
   type TaskStatusUpdateResult,
   TaskStatusUpdateType,
 } from './client/a2a/extensions/handle-task-status-update';
+export { handleUiExtensionInput, type UiExtensionInputs } from './client/a2a/extensions/handle-ui-extension-input';
 export * from './client/a2a/extensions/services/embedding';
 export * from './client/a2a/extensions/services/form';
 export * from './client/a2a/extensions/services/llm';

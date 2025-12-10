@@ -19,7 +19,6 @@ import { oauthProviderExtension } from './services/oauth-provider';
 import { platformApiExtension } from './services/platform';
 import type { SecretDemands, SecretFulfillments } from './services/secrets';
 import { secretsExtension } from './services/secrets';
-import { canvasExtension, type CanvasFulfillments } from './ui/canvas';
 import { oauthRequestExtension } from './ui/oauth';
 import type { SettingsDemands, SettingsFulfillments } from './ui/settings';
 import { settingsExtension } from './ui/settings';
@@ -33,7 +32,6 @@ export interface Fulfillments {
   settings: (demand: SettingsDemands) => Promise<SettingsFulfillments>;
   secrets: (demand: SecretDemands) => Promise<SecretFulfillments>;
   form: (demand: FormDemands) => Promise<FormFulfillments>;
-  canvasEditRequest: () => CanvasFulfillments | null;
   oauthRedirectUri: () => string | null;
   getContextToken: () => ContextToken;
 }
@@ -105,14 +103,6 @@ export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) 
         [oauthRequestExtension.getUri()]: {
           redirect_uri: oauthRedirectUri,
         },
-      };
-    }
-
-    const canvasEditRequest = fulfillments.canvasEditRequest();
-    if (canvasEditRequest) {
-      fulfilledMetadata = {
-        ...fulfilledMetadata,
-        [canvasExtension.getUri()]: canvasEditRequest,
       };
     }
 

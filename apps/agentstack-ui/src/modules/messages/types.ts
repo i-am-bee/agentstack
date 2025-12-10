@@ -28,7 +28,7 @@ export interface UIUserMessage extends UIMessageBase {
   role: Role.User;
   form?: UIMessageForm;
   auth?: string;
-  canvasEditRequest?: UICanvasEditRequestParams;
+  canvasEditParams?: UICanvasEditRequestParams;
 }
 
 export interface UIAgentMessage extends UIMessageBase {

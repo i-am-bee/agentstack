@@ -4,20 +4,25 @@
  */
 
 import type { FormResponseValue } from './common/form';
+import { type CanvasEditRequest, CanvasExtension } from './ui/canvas';
 import { FormRequestExtension } from './ui/form-request';
 
-export type InputRequiredResponses = Partial<{
+export type UiExtensionInputs = Partial<{
   form: Record<string, FormResponseValue>;
+  canvasEditRequest: CanvasEditRequest;
 }>;
 
-export const handleInputRequired = () => {
-  const resolveMetadata = async (responses: InputRequiredResponses) => {
+export const handleUiExtensionInput = () => {
+  const resolveMetadata = async (inputs: UiExtensionInputs) => {
     const metadata: Record<string, unknown> = {};
 
-    if (responses.form) {
+    if (inputs.form) {
       metadata[FormRequestExtension.getUri()] = {
-        values: responses.form,
+        values: inputs.form,
       };
+    }
+    if (inputs.canvasEditRequest) {
+      metadata[CanvasExtension.getUri()] = inputs.canvasEditRequest;
     }
 
     return metadata;
