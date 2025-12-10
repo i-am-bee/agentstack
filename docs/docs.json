@@ -15,7 +15,10 @@
         "groups": [
           {
             "group": "Introduction",
-            "pages": ["stable/introduction/welcome", "stable/introduction/quickstart"]
+            "pages": [
+              "stable/introduction/welcome",
+              "stable/introduction/quickstart"
+            ]
           },
           {
             "group": "Deploy Agents",
@@ -40,7 +43,6 @@
               "stable/agent-development/agent-settings",
               "stable/agent-development/secrets",
               "stable/agent-development/rag",
-              "stable/agent-development/mcp-oauth",
               "stable/agent-development/mcp",
               "stable/agent-development/env-variables",
               "stable/agent-development/error",
@@ -61,11 +63,17 @@
           },
           {
             "group": "Custom UI Integration",
-            "pages": ["stable/custom-ui/client-sdk", "stable/custom-ui/permissions-and-tokens"]
+            "pages": [
+              "stable/custom-ui/client-sdk",
+              "stable/custom-ui/permissions-and-tokens"
+            ]
           },
           {
             "group": "Experimental",
-            "pages": ["stable/experimental/connectors", "stable/experimental/a2a-proxy"]
+            "pages": [
+              "stable/experimental/connectors",
+              "stable/experimental/a2a-proxy"
+            ]
           },
           {
             "group": "Community",
@@ -78,7 +86,10 @@
         "groups": [
           {
             "group": "Introduction",
-            "pages": ["development/introduction/welcome", "development/introduction/quickstart"]
+            "pages": [
+              "development/introduction/welcome",
+              "development/introduction/quickstart"
+            ]
           },
           {
             "group": "Deploy Agents",
@@ -103,7 +114,6 @@
               "development/agent-development/agent-settings",
               "development/agent-development/secrets",
               "development/agent-development/rag",
-              "development/agent-development/mcp-oauth",
               "development/agent-development/mcp",
               "development/agent-development/env-variables",
               "development/agent-development/error",
@@ -124,11 +134,17 @@
           },
           {
             "group": "Custom UI Integration",
-            "pages": ["development/custom-ui/client-sdk", "development/custom-ui/permissions-and-tokens"]
+            "pages": [
+              "development/custom-ui/client-sdk",
+              "development/custom-ui/permissions-and-tokens"
+            ]
           },
           {
             "group": "Experimental",
-            "pages": ["development/experimental/connectors", "development/experimental/a2a-proxy"]
+            "pages": [
+              "development/experimental/connectors",
+              "development/experimental/a2a-proxy"
+            ]
           },
           {
             "group": "Community",
