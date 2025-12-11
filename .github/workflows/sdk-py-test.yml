@@ -16,6 +16,12 @@ on:
 jobs:
   agentstack-sdk-py-test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python:
+          - "3.11"
+          - "3.13"
     steps:
       - uses: actions/checkout@v4
       - name: "Set up Lima"
@@ -29,4 +35,4 @@ jobs:
       - uses: ./.github/actions/setup
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: mise run agentstack-sdk-py:e2e-test
+      - run: mise run agentstack-sdk-py:e2e-test --python=${{ matrix.python }}

@@ -76,10 +76,13 @@ outputs = { auto = true }
 # test
 
 ["agentstack-sdk-py:e2e-test"]
+run = """
+#!/bin/bash
+uv run --python={{option(name="python", default="3.13")}} pytest
+"""
+
 depends = ["agentstack-sdk-py:setup"]
 dir = "{{config_root}}/apps/agentstack-sdk-py"
-run = "uv run pytest"
-
 # build
 
 ["agentstack-sdk-py:build"]
