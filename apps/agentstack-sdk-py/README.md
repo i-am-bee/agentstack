@@ -15,7 +15,6 @@ The `agentstack-sdk` provides Python utilities for wrapping agents built with an
 - **Framework-Agnostic Deployment** - Wrap agents from any framework for Agent Stack deployment
 - **A2A Protocol Support** - Automatic handling of Agent-to-Agent communication
 - **Platform Service Integration** - Connect to Agent Stack's managed LLM, embedding, file storage, and vector store services
-- **Agent Wrapper** - Opinionated utilities with `yield` semantics and autowired services
 - **Context Storage** - Manage data associated with conversation contexts
 
 ## Installation
