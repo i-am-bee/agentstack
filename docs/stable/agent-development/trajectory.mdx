@@ -1,0 +1,148 @@
+---
+title: Visualize Agent Trajectories
+description: Show users the step-by-step reasoning process of your agent.
+---
+
+## Basic Usage
+
+```python
+from typing import Annotated
+from a2a.types import Message
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
+from agentstack_sdk.a2a.extensions import TrajectoryExtensionServer, TrajectoryExtensionSpec
+
+server = Server()
+
+@server.agent()
+async def my_agent(
+    input: Message,
+    context: RunContext,
+    trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()]
+):
+    yield trajectory.trajectory_metadata(
+        title="Planning",
+        content="Analyzing the user request to determine the best approach..."
+    )
+
+    # Do work
+
+    yield trajectory.trajectory_metadata(
+        title="Execution",
+        content="Processing data with temperature=0.7"
+    )
+
+    yield "Final result"
+```
+
+## Markdown Support
+
+The `content` field of `trajectory_metadata` supports Markdown, which is rendered directly in the UI.
+
+Supported elements include:
+
+- Headers
+- Bold and italic text
+- Ordered and unordered lists
+- Tables
+- Code blocks
+- Links
+
+```python
+yield trajectory.trajectory_metadata(
+    title="Checklist",
+    content="""
+- Load data
+- Validate schema
+- Run inference
+- Generate report
+"""
+)
+```
+
+## Grouping Trajectories
+
+Use the `group_id` parameter to update trajectory content in the UI. Each update replaces the previous content (and title, if defined) for the same `group_id`:
+
+```python
+# Initial search status
+yield trajectory.trajectory_metadata(
+    title="Web search",
+    content="Querying search engines...",
+    group_id="websearch"
+)
+
+# Update with results
+yield trajectory.trajectory_metadata(
+    content="Found 8 results",
+    group_id="websearch"
+)
+yield trajectory.trajectory_metadata(
+    content="Found 8 results\nAnalyzed 3/8 results",
+    group_id="websearch"
+)
+yield trajectory.trajectory_metadata(
+    content="Found 8 results\nAnalyzed 8/8 results",
+    group_id="websearch"
+)
+
+# Final update
+yield trajectory.trajectory_metadata(
+    title="Web search finished",
+    content="Found 8 results\nAnalyzed 3/8 results\nExtracted key information",
+    group_id="websearch"
+)
+```
+
+## Common Patterns
+
+**Progress Steps:**
+
+```python
+yield trajectory.trajectory_metadata(title="Step 1", content="Loading data...")
+yield trajectory.trajectory_metadata(title="Step 2", content="Processing...")
+yield trajectory.trajectory_metadata(title="Step 3", content="Generating output...")
+```
+
+**Decision Points:**
+
+```python
+yield trajectory.trajectory_metadata(
+    title="Tool Selection",
+    content="Choosing search tool based on query type: factual"
+)
+```
+
+**Error Handling:**
+
+```python
+yield trajectory.trajectory_metadata(
+    title="Retry Attempt",
+    content="First attempt failed, trying alternative approach..."
+)
+```
+
+**Multi-step Process with Live Updates:**
+
+```python
+# Use group_id to show progress updates in a single section
+yield trajectory.trajectory_metadata(
+    title="Data Processing",
+    content="Starting...",
+    group_id="processing"
+)
+yield trajectory.trajectory_metadata(
+    content="Processing batch 1/10...",
+    group_id="processing"
+)
+yield trajectory.trajectory_metadata(
+    content="Processing batch 10/10...",
+    group_id="processing"
+)
+yield trajectory.trajectory_metadata(
+    content="Processing complete! Processed 10 items",
+    group_id="processing"
+)
+```
+
+Trajectory steps appear as expandable sections in the UI, helping users understand your agent's thought process.

@@ -1,0 +1,160 @@
+---
+title: "Build New Agents"
+description: "Start building your own agent with a simple Hello World example"
+---
+
+To help you get started quickly, we’ve created a ready-to-use starter repository. You can clone it and start coding right away—no setup headaches or boilerplate required. This guide walks you through running your first “Hello World” agent and then customizing it to make it your own.
+
+## Prerequisites
+
+- Agent Stack installed ([Quickstart](/introduction/quickstart))
+- [uv](https://docs.astral.sh/uv/) package manager (should be already installed if you followed the quickstart)
+
+## Start From Template
+
+<Steps>
+<Step title="Use the official starter template">
+<Tabs>
+<Tab title="Clone directly">
+```bash
+git clone https://github.com/i-am-bee/agentstack-starter my-agent
+cd my-agent
+```
+</Tab>
+<Tab title="Use as a GitHub template">
+1. Go to the [template repository](https://github.com/i-am-bee/agentstack-starter)
+2. Click "Use this template" → "Create a new repository"
+3. Clone your new repository locally
+</Tab>
+</Tabs>
+</Step>
+
+<Step title="Test the Template Agent">
+
+```bash
+uv run server
+```
+
+<Tip>
+**Enable auto-reload during development:** Add `watchfiles` to automatically restart your server when code changes:
+```bash
+uv run watchfiles agentstack_agents.agent.run
+```
+</Tip>
+
+</Step>
+<Step title="Run your agent">
+
+In another terminal:
+
+```bash
+agentstack run example_agent "Alice"
+```
+</Step>
+</Steps>
+
+You should see: "Ciao Alice!" 🎉
+
+With your first agent running, you can now modify it to do anything you want.
+
+## Implement Your Agent Logic
+
+Navigate to [src/agentstack_agents/agent.py](https://github.com/i-am-bee/agentstack-starter/blob/main/src/agentstack_agents/agent.py) and replace the example with your agent logic.
+
+The starter example is minimal and intended for demonstration purposes only:
+
+```python
+import os
+
+from a2a.types import (
+    Message,
+)
+from a2a.utils.message import get_message_text
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
+from agentstack_sdk.a2a.types import AgentMessage
+
+server = Server()
+
+@server.agent()
+async def example_agent(input: Message, context: RunContext):
+    """Polite agent that greets the user"""
+    hello_template: str = os.getenv("HELLO_TEMPLATE", "Ciao %s!")
+    yield AgentMessage(text=hello_template % get_message_text(input))
+
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+
+if __name__ == "__main__":
+    run()
+```
+
+<Steps title="Building Your First Agent: Step-by-Step">
+
+<Step title="Start a server">
+An agent is essentially an HTTP server. Create a `Server` instance and run it using `run()`.
+</Step>
+
+<Step title="Mark your agent function">
+Add the `@server.agent` decorator to your function so the platform recognizes it as an agent.
+</Step>
+
+<Step title="Name your agent">
+The function name becomes the agent’s name in the platform.
+</Step>
+
+<Step title="Describe your agent">
+Write a docstring for the function; it will be extracted and shown as the agent’s description in the platform.
+</Step>
+
+<Step title="Understand the function arguments">
+- **First argument:** an [A2A `Message`](https://a2a-protocol.org/latest/specification/#64-message-object).
+- **Second argument:** a `RunContext` object with run details (e.g., `task_id`, `context_id`).
+</Step>
+
+<Step title="Extract text from Message">
+Use `get_message_text()` to quickly extract the text content from a `Message`.
+</Step>
+
+<Step title="Make it an async generator">
+The agent function should be asynchronous and yield results as they’re ready.
+</Step>
+
+<Step title="Send responses easily">
+- Yield an `AgentMessage` (a handy wrapper around A2A Message) for convenience.
+- Or yield a plain `str`, which will be automatically converted into an A2A Message.
+</Step>
+
+</Steps>
+
+## Starting from Scratch
+
+If you prefer not to use the starter repo:
+- Create an empty Python project
+- Install `agentstack-sdk`
+- Copy the example code above
+
+The starter repo mainly provides basic scaffolding, a GitHub workflow, and a Dockerfile — all optional.
+
+## Next Steps
+
+After building your agent, you can enhance it and learn more:
+
+<CardGroup cols={2}>
+<Card title="Agent Details" icon="id-card" href="/extensions/agent-details">
+Customize your agent's name, description, and how it appears in the UI
+</Card>
+
+<Card title="Working with Messages" icon="comment" href="/guides/messages">
+Learn how agents and clients communicate through structured messaging
+</Card>
+
+<Card title="Multi-Turn Conversations" icon="comments" href="/guides/multi-turn">
+Understand how to handle multi-turn conversations and maintain context
+</Card>
+
+<Card title="Working with Files" icon="file" href="/guides/files">
+Work with files to provide inputs or store outputs for your agent
+</Card>
+</CardGroup>

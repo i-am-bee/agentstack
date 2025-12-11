@@ -1,0 +1,79 @@
+---
+title: "Connect A2A Agents"
+description: "Instant UI for existing A2A agents"
+---
+
+Got an existing A2A agent? You can connect it to Agent Stack instantly using the Agent Stack A2A Proxy — a lightweight tool that bridges your agent and the Agent Stack.
+
+No need to modify your agent’s code — just run one command and your agent will appear live in the Agent Stack interface.
+
+## Quickstart
+
+### Prerequisites
+
+- A running A2A agent with a valid agent card at `/.well-known/agent-card.json`
+- Node.js installed (for npx)
+- Agent Stack running (default: `http://127.0.0.1:8333`)
+- The proxy installed (`npx i-am-bee/agentstack-a2a-proxy`)
+
+### Connect Your Agent
+
+1. **Start your A2A agent** and note its URL (e.g., `http://localhost:8080`)
+
+2. **Run the proxy** pointing to your agent:
+```bash
+npx i-am-bee/agentstack-a2a-proxy start http://localhost:8080
+```
+
+That's it! Your agent is now registered with Agent Stack and accessible through the interface.
+
+## How It Works
+
+The proxy creates a bridge between your A2A agent and Agent Stack by:
+
+1. **Intercepting agent card requests** - Captures `/.well-known/agent-card.json` requests from any A2A client
+2. **Adding Agent Details extension** - Automatically injects the necessary [AgentDetail](/extensions/agent-details) extension data that enables the agent to work within the Agent Stack ecosystem
+3. **Auto-registration** - Automatically registers the modified agent with the Agent Stack, making it immediately available
+
+<Note>
+The proxy supports agents using `jsonrpc` and `http_json` transport protocols.
+</Note>
+
+## Configuration Options
+
+### Custom Proxy Port
+
+By default, the proxy runs on port 8000. To use a different port:
+```bash
+npx i-am-bee/agentstack-a2a-proxy start http://localhost:8080 --port 4000
+```
+
+### Custom Platform URL
+
+If your Agent Stack is running on a different URL:
+```bash
+npx i-am-bee/agentstack-a2a-proxy start http://localhost:8080 --platform-url http://localhost:9000
+```
+
+### Disable Auto-Registration
+
+To run the proxy without automatically registering with Agent Stack:
+```bash
+npx i-am-bee/agentstack-a2a-proxy start http://localhost:8080 --auto-register false
+```
+
+### Custom Agent Details
+
+You can customize the agent details extension data by providing a JSON file:
+```bash
+npx i-am-bee/agentstack-a2a-proxy start http://localhost:8080 --custom-data ./my-agent-details.json
+```
+
+## Available Options
+
+| Option | Alias | Description | Default |
+|--------|-------|-------------|---------|
+| `--port` | `-p` | Port to run the proxy server on | 8000 |
+| `--auto-register` | `-a` | Enable/disable auto-registration with Agent Stack | true |
+| `--platform-url` | `-P` | Platform URL to register with | http://127.0.0.1:8333 |
+| `--custom-data` | `-c` | Path to custom agent detail JSON file | - |

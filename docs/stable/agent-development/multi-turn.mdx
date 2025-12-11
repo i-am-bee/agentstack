@@ -1,0 +1,278 @@
+---
+title: "Multi-Turn Conversations"
+description: "Learn how to manage conversation state and history to build context-aware agents in Agent Stack"
+---
+
+When building conversational AI agents, one of the key requirements is maintaining context across multiple interactions. While agent functions are essentially stateless by design, the Agent Stack provides built-in mechanisms to access and manage conversation history.
+
+You need to explicitly store messages in the context memory using `context.store()` to make them available for retrieval in future interactions.
+
+<Tip>
+The stateless design of agent functions ensures reliability and scalability, while the context memory system provides the conversation continuity that users expect from AI assistants.
+</Tip>
+
+## Quickstart
+
+<Steps>
+<Step title="Store incoming messages">
+Use `await context.store(input)` to store the current user message in the conversation history.
+</Step>
+
+<Step title="Access conversation history">
+Use the `RunContext` parameter to access the conversation store and load previous messages.
+</Step>
+
+<Step title="Filter and process history">
+Retrieve and filter the conversation history to get the messages relevant to your agent's logic.
+</Step>
+
+<Step title="Store agent responses">
+Use `await context.store(response)` to store your agent's responses for future conversation context.
+</Step>
+
+<Step title="Configure persistent storage">
+Set up persistent context storage to maintain conversation history across agent restarts.
+</Step>
+</Steps>
+
+## Basic History Access
+
+Here's how to access conversation history in your agent:
+
+```python
+import os
+
+from a2a.types import Message
+from a2a.utils.message import get_message_text
+
+from agentstack_sdk.a2a.types import AgentMessage
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
+
+server = Server()
+
+
+@server.agent()
+async def example_agent(input: Message, context: RunContext):
+    """Agent that demonstrates conversation history access"""
+
+    # Store the current message in the context store
+    await context.store(input)
+
+    # Get the current user message
+    current_message = get_message_text(input)
+    print(f"Current message: {current_message}")
+
+    # Load all messages from conversation history (including current message)
+    history = [message async for message in context.load_history() if isinstance(message, Message) and message.parts]
+
+    # Process the conversation history
+    print(f"Found {len(history)} messages in conversation (including current)")
+
+    # Your agent logic here - you can now reference all messages in the conversation
+    message = AgentMessage(text=f"Hello! I can see we have {len(history)} messages in our conversation.")
+    yield message
+
+    # Store the message in the context store
+    await context.store(message)
+
+
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+if __name__ == "__main__":
+    run()
+```
+
+## Understanding Conversation History
+
+The `context.load_history()` method returns an async iterator containing all items in the conversation, including the current message. This can include:
+
+- **A2A Messages**: Both user and assistant messages from the conversation (including the current message)
+- **Artifacts**: Any files, documents, or other artifacts shared during the conversation
+
+For multi-turn conversations, you'll primarily work with A2A messages, which include:
+- **User messages**: Messages sent by the user
+- **Assistant messages**: Previous responses from your agent
+
+<Tip>
+The history includes the current message, so if you want only previous messages, you may need to filter out the last message or use the current message separately.
+</Tip>
+
+<Warning>
+The history iterator returns all message types. Always filter messages using `isinstance(message, Message)` to ensure you're working with the correct message format.
+</Warning>
+
+## Message Storage Guidelines
+
+Since messages are not automatically stored, you need to explicitly call `context.store()` for any message you want to be available in future interactions. Here are the key guidelines:
+
+### What to Store
+
+- **User messages**: Always store incoming user messages to maintain conversation context
+- **Agent responses**: Store your agent's responses so they're available for future reference
+- **Important artifacts**: Store any files, documents, or other artifacts that should persist
+
+### When to Store
+
+```python
+@server.agent()
+async def my_agent(input: Message, context: RunContext):
+    # Store the incoming user message immediately
+    await context.store(input)
+    
+    # Process the message and generate response
+    response = AgentMessage(text="Your response here")
+    yield response
+    
+    # Store the agent's response after yielding
+    await context.store(response)
+```
+
+### Storage Best Practices
+
+- **Store early**: Store user messages at the beginning of your agent function
+- **Store after yielding**: Store agent responses after yielding them to the user
+- **Be selective**: Only store messages that are relevant for future conversation context
+- **Handle errors**: Consider what happens if storage fails - your agent should still function
+
+<Warning>
+If you don't store messages, they won't be available in `context.load_history()` for future interactions. This means your agent will lose conversation context.
+</Warning>
+
+## Persistent Storage
+
+By default, conversation history is stored in memory, which means it's lost when the agent process restarts. For production applications, you'll want to use persistent storage.
+
+### Using Platform Context Store
+
+To maintain conversation history across agent restarts, configure your server to use the platform's persistent context store:
+
+```python
+import os
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.store.platform_context_store import PlatformContextStore
+
+server = Server()
+
+def run():
+    server.run(
+        host=os.getenv("HOST", "127.0.0.1"), 
+        port=int(os.getenv("PORT", 8000)),
+        context_store=PlatformContextStore()
+    )
+```
+
+<Tip>
+The `PlatformContextStore` automatically handles conversation persistence, ensuring that users can continue their conversations even after agent restarts or deployments.
+</Tip>
+
+## Advanced History Usage with BeeAI Framework
+
+Here's a sophisticated example using the BeeAI Framework to build a multi-turn chat agent that leverages conversation history and LLM capabilities:
+
+```python
+import os
+from typing import Annotated
+
+from a2a.types import Message, Role
+from a2a.utils.message import get_message_text
+from beeai_framework.adapters.agentstack.backend.chat import AgentStackChatModel
+from beeai_framework.agents.requirement import RequirementAgent
+from beeai_framework.agents.requirement.requirements.conditional import ConditionalRequirement
+from beeai_framework.backend import AssistantMessage, UserMessage
+from beeai_framework.backend.types import ChatModelParameters
+from beeai_framework.tools.think import ThinkTool
+
+from agentstack_sdk.a2a.extensions import (
+    LLMServiceExtensionServer,
+    LLMServiceExtensionSpec,
+)
+from agentstack_sdk.a2a.types import AgentMessage
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
+from agentstack_sdk.server.store.platform_context_store import PlatformContextStore
+
+server = Server()
+
+FrameworkMessage = UserMessage | AssistantMessage
+
+
+def to_framework_message(message: Message) -> FrameworkMessage:
+    """Convert A2A Message to BeeAI Framework Message format"""
+    message_text = "".join(part.root.text for part in message.parts if part.root.kind == "text")
+
+    if message.role == Role.agent:
+        return AssistantMessage(message_text)
+    elif message.role == Role.user:
+        return UserMessage(message_text)
+    else:
+        raise ValueError(f"Invalid message role: {message.role}")
+
+
+@server.agent()
+async def multi_turn_chat_agent(
+    input: Message,
+    context: RunContext,
+    llm: Annotated[LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand()],
+):
+    """Multi-turn chat agent with conversation memory and LLM integration"""
+    await context.store(input)
+
+    # Load conversation history
+    history = [message async for message in context.load_history() if isinstance(message, Message) and message.parts]
+
+    # Initialize BeeAI Framework LLM client
+    llm_client = AgentStackChatModel()
+    llm_client.set_context(llm)
+
+    # Create a RequirementAgent with conversation memory
+    agent = RequirementAgent(
+        name="Agent",
+        llm=llm_client,
+        role="helpful assistant",
+        instructions="You are a helpful assistant that is supposed to remember users name. Ask them for their name and remember it.",
+        tools=[ThinkTool()],
+        requirements=[ConditionalRequirement(ThinkTool, force_at_step=1)],
+        save_intermediate_steps=False,
+        middlewares=[],
+    )
+
+    # Load conversation history into agent memory
+    await agent.memory.add_many(to_framework_message(item) for item in history)
+
+    # Process the current message and generate response
+    async for event, meta in agent.run(get_message_text(input)):
+        if meta.name == "success" and event.state.steps:
+            step = event.state.steps[-1]
+            if not step.tool:
+                continue
+
+            tool_name = step.tool.name
+
+            if tool_name == "final_answer":
+                response = AgentMessage(text=step.input["response"])
+
+                yield response
+                await context.store(response)
+
+
+def run():
+    server.run(
+        host=os.getenv("HOST", "127.0.0.1"),
+        port=int(os.getenv("PORT", "8000")),
+        context_store=PlatformContextStore(),  # Enable persistent storage
+    )
+
+
+if __name__ == "__main__":
+    run()
+```
+
+This advanced example demonstrates several key concepts:
+
+- **LLM Integration**: Uses the platform's LLM service extension to get model access
+- **Framework Integration**: Leverages the BeeAI Framework for sophisticated agent capabilities
+- **Memory Management**: Converts conversation history to framework format and loads it into agent memory
+- **Tool Usage**: Includes thinking tools and conditional requirements for better reasoning
+- **Persistent Storage**: Uses `PlatformContextStore` for conversation persistence

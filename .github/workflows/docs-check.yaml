@@ -45,14 +45,24 @@ jobs:
           fi
           cat changed_files.txt
 
-      - name: Enforce docs update
+      - name: Check for changes in stable docs
+        run: |
+          if grep -qE '^docs/stable/' changed_files.txt; then
+            echo "❌ Changes to 'stable' documentation are not allowed in this PR."
+            echo "   Please make changes in the 'development' directory instead."
+            exit 1
+          else
+            echo "✅ No changes found in 'stable' docs."
+          fi
+
+      - name: Enforce docs update in development
         run: |
           if [ "${{ steps.skip.outputs.skip }}" = "true" ]; then
             echo "🟡 Skipping docs check (No Docs Needed checked)."
             exit 0
           fi
 
-          if grep -qE '^(docs/|CONTRIBUTING\.md$|README\.md$|CODE_OF_CONDUCT\.md$)' changed_files.txt; then
+          if grep -qE '^(docs/development/|docs/docs.json$|docs/package.json$|docs/tasks.toml$|CONTRIBUTING\.md$|README\.md$|CODE_OF_CONDUCT\.md$)' changed_files.txt; then
             echo "✅ Docs updated."
           else
             echo "❌ No docs changes found and 'No Docs Needed' not checked."

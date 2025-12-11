@@ -1,0 +1,53 @@
+---
+title: Welcome
+description: "Open infrastructure for deploying agents from any framework"
+---
+
+Agent Stack is open, self-hostable infrastructure for deploying AI agents built with any framework. Hosted by the Linux Foundation and built on the [Agent2Agent Protocol (A2A)](https://a2a-protocol.org/), it gives you everything needed to move agents from local development to shared production environments—without vendor lock-in.
+
+## What Agent Stack Provides
+
+Everything you need to deploy and operate agents in production:
+
+- **Self-hostable server** to run your agents
+- **Web UI** for testing and sharing deployed agents
+- **CLI** for deploying and managing agents
+- **Runtime services** your agents can access:
+  - **LLM Service** — Switch between 15+ providers (Anthropic, OpenAI, watsonx.ai, Ollama) without code changes
+  - **Embeddings & vector search** for RAG and semantic search
+  - **File storage** — S3-compatible uploads/downloads
+  - **Document text extraction** via [Docling](https://www.docling.ai/)
+  - **External integrations** via MCP protocol (APIs, Slack, Google Drive, etc.) with OAuth
+  - **Secrets management** for API keys and credentials
+- **SDK (`agentstack-sdk`)** for standardized A2A service requests
+- **HELM chart** for Kubernetes deployments with customizable storage, databases, and auth
+
+Build your agent using LangGraph, CrewAI, or your own framework—SDK handles runtime service requests automatically.
+
+## How It Works
+
+1. **Build** your agent using `agentstack-sdk`
+2. **Deploy** with a single CLI command
+3. **Users interact** through the auto-generated web UI
+
+Your agents request infrastructure services at runtime through A2A protocol extensions.
+
+- **Development:** Run locally with full services for rapid iteration  
+- **Production:** Deploy to Kubernetes via HELM and integrate with your infrastructure
+
+## Get Started
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/introduction/quickstart">
+    Get up and running in one command
+  </Card>
+  <Card title="Wrap Existing Agents" icon="box" href="/guides/wrap-existing-agents">
+    Deploy your existing agents to Agent Stack
+  </Card>
+  <Card title="Build New Agents" icon="code" href="/guides/building-agents">
+    Build your first agent with the SDK
+  </Card>
+  <Card title="Deploy to Production" icon="server" href="/guides/deployment-guide">
+    Deploy Agent Stack to Kubernetes for your team
+  </Card>
+</CardGroup>

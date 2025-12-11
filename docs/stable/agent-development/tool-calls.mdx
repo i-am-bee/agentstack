@@ -1,0 +1,82 @@
+---
+title: "Approve Tool Calls"
+description: "Have tool calls approved by the user before execution"
+---
+
+Many agent frameworks support the ability to request user approval before executing certain actions. This is especially useful when an agent is calling external tools that may have significant effects or costs associated with their usage.
+
+The Tool Call extension provides a mechanism for implementing this functionality over A2A connection.
+
+## Usage
+
+<Steps>
+<Step title="Add Tool Call extension to your agent">
+  Inject the `ToolCallExtension` into your agent function using the `Annotated`
+  type hint.
+</Step>
+
+<Step title="Implement the approval logic in your agent">
+  Use `request_tool_call_approval()` method to request tool call approval from the A2A client side.
+</Step>
+</Steps>
+
+## Basic Example
+
+Here's how to use this extension with the [BeeAI Framework](https://framework.beeai.dev/modules/agents/requirement-agent#ask-permission-requirement) to request user approval before executing a tool call:
+
+```python
+from typing import Annotated, Any
+
+from a2a.types import (
+    Message,
+)
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
+from agentstack_sdk.a2a.extensions.tools.call import (
+    ToolCallExtensionParams,
+    ToolCallExtensionServer,
+    ToolCallExtensionSpec,
+    ToolCallRequest,
+)
+from agentstack_sdk.a2a.extensions.tools.exceptions import ToolCallRejectionError
+from beeai_framework.agents.requirement import RequirementAgent
+from beeai_framework.backend import ChatModel
+from beeai_framework.agents.requirement.requirements.ask_permission import AskPermissionRequirement
+from beeai_framework.tools import Tool
+from beeai_framework.tools.think import ThinkTool
+from beeai_framework.adapters.mcp.serve.server import _tool_factory
+
+server = Server()
+
+
+@server.agent()
+async def tool_call_agent(
+    input: Message,
+    context: RunContext,
+    mcp_tool_call: Annotated[ToolCallExtensionServer, ToolCallExtensionSpec(params=ToolCallExtensionParams())],
+):
+    async def handler(tool: Tool, input: dict[str, Any]) -> bool:
+        try:
+            await mcp_tool_call.request_tool_call_approval(
+                # using MCP Tool data model as intermediary to simplify conversion
+                ToolCallRequest.from_mcp_tool(_tool_factory(tool), input=input),  # type: ignore
+                context=context,
+            )
+            return True
+        except ToolCallRejectionError:
+            return False
+
+    think_tool = ThinkTool()
+    agent = RequirementAgent(
+        llm=ChatModel.from_name("ollama:gpt-oss:20b"),
+        tools=[think_tool],
+        requirements=[AskPermissionRequirement([think_tool], handler=handler)],
+    )
+
+    result = await agent.run("".join(part.root.text for part in input.parts if part.root.kind == "text"))
+    yield result.output[0].text
+
+
+if __name__ == "__main__":
+    server.run()
+```

@@ -9,64 +9,132 @@
   },
   "favicon": "/favicon.svg",
   "navigation": {
-    "groups": [
+    "versions": [
       {
-        "group": "Introduction",
-        "pages": ["introduction/welcome", "introduction/quickstart"]
-      },
-      {
-        "group": "Deploy Agents",
-        "pages": [
-          "deploy-agents/wrap-existing-agents",
-          "deploy-agents/building-agents",
-          "deploy-agents/deploy-your-agents"
+        "version": "stable",
+        "groups": [
+          {
+            "group": "Introduction",
+            "pages": ["stable/introduction/welcome", "stable/introduction/quickstart"]
+          },
+          {
+            "group": "Deploy Agents",
+            "pages": [
+              "stable/deploy-agents/wrap-existing-agents",
+              "stable/deploy-agents/building-agents",
+              "stable/deploy-agents/deploy-your-agents"
+            ]
+          },
+          {
+            "group": "Agent Capabilities",
+            "pages": [
+              "stable/agent-development/overview",
+              "stable/agent-development/messages",
+              "stable/agent-development/multi-turn",
+              "stable/agent-development/files",
+              "stable/agent-development/agent-details",
+              "stable/agent-development/llm-proxy-service",
+              "stable/agent-development/trajectory",
+              "stable/agent-development/citations",
+              "stable/agent-development/forms",
+              "stable/agent-development/agent-settings",
+              "stable/agent-development/secrets",
+              "stable/agent-development/rag",
+              "stable/agent-development/mcp-oauth",
+              "stable/agent-development/mcp",
+              "stable/agent-development/env-variables",
+              "stable/agent-development/error",
+              "stable/agent-development/tool-calls"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": ["stable/reference/cli-reference"]
+          },
+          {
+            "group": "Deploy Agent Stack",
+            "pages": [
+              "stable/deploy-agent-stack/deployment-guide",
+              "stable/deploy-agent-stack/authenticate-cli-to-server",
+              "stable/deploy-agent-stack/observability"
+            ]
+          },
+          {
+            "group": "Custom UI Integration",
+            "pages": ["stable/custom-ui/client-sdk", "stable/custom-ui/permissions-and-tokens"]
+          },
+          {
+            "group": "Experimental",
+            "pages": ["stable/experimental/connectors", "stable/experimental/a2a-proxy"]
+          },
+          {
+            "group": "Community",
+            "pages": ["stable/community/contribute"]
+          }
         ]
       },
       {
-        "group": "Agent Capabilities",
-        "pages": [
-          "agent-development/overview",
-          "agent-development/messages",
-          "agent-development/multi-turn",
-          "agent-development/files",
-          "agent-development/agent-details",
-          "agent-development/llm-proxy-service",
-          "agent-development/trajectory",
-          "agent-development/citations",
-          "agent-development/forms",
-          "agent-development/agent-settings",
-          "agent-development/secrets",
-          "agent-development/rag",
-          "agent-development/mcp-oauth",
-          "agent-development/mcp",
-          "agent-development/env-variables",
-          "agent-development/error",
-          "agent-development/tool-calls"
+        "version": "development",
+        "groups": [
+          {
+            "group": "Introduction",
+            "pages": ["development/introduction/welcome", "development/introduction/quickstart"]
+          },
+          {
+            "group": "Deploy Agents",
+            "pages": [
+              "development/deploy-agents/wrap-existing-agents",
+              "development/deploy-agents/building-agents",
+              "development/deploy-agents/deploy-your-agents"
+            ]
+          },
+          {
+            "group": "Agent Capabilities",
+            "pages": [
+              "development/agent-development/overview",
+              "development/agent-development/messages",
+              "development/agent-development/multi-turn",
+              "development/agent-development/files",
+              "development/agent-development/agent-details",
+              "development/agent-development/llm-proxy-service",
+              "development/agent-development/trajectory",
+              "development/agent-development/citations",
+              "development/agent-development/forms",
+              "development/agent-development/agent-settings",
+              "development/agent-development/secrets",
+              "development/agent-development/rag",
+              "development/agent-development/mcp-oauth",
+              "development/agent-development/mcp",
+              "development/agent-development/env-variables",
+              "development/agent-development/error",
+              "development/agent-development/tool-calls"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": ["development/reference/cli-reference"]
+          },
+          {
+            "group": "Deploy Agent Stack",
+            "pages": [
+              "development/deploy-agent-stack/deployment-guide",
+              "development/deploy-agent-stack/authenticate-cli-to-server",
+              "development/deploy-agent-stack/observability"
+            ]
+          },
+          {
+            "group": "Custom UI Integration",
+            "pages": ["development/custom-ui/client-sdk", "development/custom-ui/permissions-and-tokens"]
+          },
+          {
+            "group": "Experimental",
+            "pages": ["development/experimental/connectors", "development/experimental/a2a-proxy"]
+          },
+          {
+            "group": "Community",
+            "pages": ["development/community/contribute"]
+          }
         ]
-      },
-      {
-        "group": "Reference",
-        "pages": ["reference/cli-reference"]
-      },
-      {
-        "group": "Deploy Agent Stack",
-        "pages": [
-          "deploy-agent-stack/deployment-guide",
-          "deploy-agent-stack/authenticate-cli-to-server",
-          "deploy-agent-stack/observability"
-        ]
-      },
-      {
-        "group": "Custom UI Integration",
-        "pages": ["custom-ui/client-sdk", "custom-ui/permissions-and-tokens"]
-      },
-      {
-        "group": "Experimental",
-        "pages": ["experimental/connectors", "experimental/a2a-proxy"]
-      },
-      {
-        "group": "Community",
-        "pages": ["community/contribute"]
       }
     ]
   },

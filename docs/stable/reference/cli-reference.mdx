@@ -1,0 +1,369 @@
+---
+title: "CLI Reference"
+description: "Complete reference for the Agent Stack command-line interface"
+---
+
+The Agent Stack command-line interface (CLI) provides tools to manage agents, configure models, and control the platform directly from your terminal.
+
+## Basic Usage
+
+```bash
+agentstack [COMMAND] [OPTIONS] [ARGUMENTS]
+```
+
+To see all available commands:
+
+```bash
+agentstack --help
+```
+
+## Agent Commands
+
+### list
+
+List all available agents:
+
+```bash
+agentstack list
+```
+
+Shows agent names, statuses, descriptions, locations, and any configuration issues.
+
+### run
+
+Run an agent with specified input:
+
+```bash
+agentstack run <agent-name> [input]
+```
+
+**Examples:**
+
+```bash
+# Interactive mode
+agentstack run chat
+
+# Direct input
+agentstack run chat "Hello!"
+
+# Input from file
+agentstack run chat < input.txt
+
+# Output to file
+agentstack run chat "Summarize this" > output.txt
+
+# Append to file
+agentstack run chat "More analysis" >> output.txt
+
+# Pipe between agents
+agentstack run agent1 "input" | agentstack run agent2
+```
+
+### info
+
+Get detailed information about a specific agent:
+
+```bash
+agentstack info <agent-name>
+```
+
+Shows description, input/output schemas, examples, and configuration options.
+
+### add
+
+Add an agent to your environment:
+
+```bash
+agentstack add <location>
+```
+
+**Location formats:**
+```bash
+# From Docker image
+agentstack add ghcr.io/i-am-bee/agentstack/agents/chat:latest
+
+# From GitHub repository
+agentstack add "https://github.com/user/repo.git"
+
+# From GitHub with version tag
+agentstack add "https://github.com/user/repo.git@v1.0.0"
+
+# From GitHub with specific path
+agentstack add "https://github.com/user/repo.git#path=/agents/my-agent"
+
+# From GitHub with specific dockerfile location within the repository
+agentstack add --dockerfile /my-agent/Dockerfile "https://github.com/user/repo.git#path=/agents/my-agent"
+```
+
+### remove
+
+Remove an agent from your environment:
+
+```bash
+agentstack remove <agent-name>
+```
+
+### update
+
+Update an existing agent to a new version:
+
+```bash
+agentstack update <agent-name> <location>
+```
+
+**Location formats:**
+```bash
+# From Docker image
+agentstack update my-agent ghcr.io/i-am-bee/agentstack/agents/chat:latest
+
+# From GitHub repository
+agentstack update my-agent "https://github.com/user/repo.git"
+
+# From GitHub with version tag
+agentstack update my-agent "https://github.com/user/repo.git@v1.0.0"
+
+# From GitHub with specific path
+agentstack update my-agent "https://github.com/user/repo.git#path=/agents/my-agent"
+
+# From GitHub with specific dockerfile location within the repository
+agentstack update my-agent --dockerfile /my-agent/Dockerfile "https://github.com/user/repo.git#path=/agents/my-agent"
+```
+
+### logs
+
+View and stream logs for an agent:
+
+```bash
+agentstack logs <agent-name>
+```
+
+Displays the agent's log output and continues streaming new logs as they are generated.
+
+### build
+
+Build an agent from a GitHub repository:
+
+This command clones the repository and builds the agent image on the platform. You will get an image ID
+which you can use to add the agent to your environment.
+
+```
+agentstack build <github-repository-url>
+```
+
+**Examples:**
+```bash
+# Build from GitHub repository
+agentstack build https://github.com/org/repo.git
+
+# Build specific version
+agentstack build https://github.com/org/repo.git@release-0.0.1
+
+# Specify Dockerfile location (useful for monorepos)
+agentstack build --dockerfile=./path/to/Dockerfile https://github.com/org/repo.git@release-0.0.1
+
+# Specify docker context location
+agentstack build https://github.com/org/repo.git@release-0.0.1#path=/path/to/context
+```
+
+**Arguments:**
+- `github-repository-url`: GitHub repository URL
+
+**Options:**
+- `--dockerfile <path>`: Use custom dockerfile path
+
+### Client-side-build
+Build an agent from a local directory. This is useful for CI/CD, multi-platform image build
+or local push of agent image to registry.
+
+<Note>
+    Requires Docker running
+</Note>
+
+```bash
+agentstack client-side-build [OPTIONS] <docker-context>
+```
+
+
+**Examples:**
+```bash
+# Build from current directory
+agentstack client-side-build .
+
+# Build with custom tag
+agentstack client-side-build . --tag my-agent:latest
+
+# Build without importing to platform
+agentstack client-side-build . --no-import
+
+# Build with custom dockerfile
+agentstack client-side-build . --dockerfile ./custom.Dockerfile
+```
+
+**Options:**
+
+| Option                 | Description                                                                               |
+|------------------------|-------------------------------------------------------------------------------------------|
+| `--dockerfile <path>`  | Use a custom Dockerfile path. Path should be relative to the repo root or a subdirectory. |
+| `--tag <name>`         | Docker tag for the agent                                                                  |
+| `--multi-platform`     | Build for multiple platforms                                                              |
+| `--push`               | Push the image to the target registry                                                     |
+| `--import/--no-import` | Import the image into Agent Stack (default: true)                                         |
+
+## Model Commands
+
+### model setup
+
+Interactive setup for LLM provider configuration:
+
+```bash
+agentstack model setup
+```
+
+Guides you through configuring your LLM provider with the required API keys and settings.
+
+## Platform Commands
+
+### start
+
+Starts the platform:
+
+```bash
+agentstack platform start
+```
+
+### stop
+
+Stops the platform:
+
+```bash
+agentstack platform stop
+```
+
+Stops the platform but keeps all data intact.
+
+### delete
+
+Deletes the platform and all data:
+
+```bash
+agentstack platform delete
+```
+
+<Warning>
+    This removes all agents, configurations, and data permanently.
+</Warning>
+
+## MCP Commands
+
+### mcp
+
+Manage MCP servers and toolkits:
+```bash
+agentstack mcp [subcommand]
+```
+
+Use `agentstack mcp --help` for available subcommands.
+
+## Server Commands
+
+### server
+
+Manage Agent Stack servers and authentication:
+
+### login
+
+Login to a server or switch between logged in servers:
+
+```bash
+agentstack server login
+```
+
+### logout
+
+Logout from a server:
+
+```bash
+agentstack server logout
+```
+
+### show
+
+Show current server information:
+
+```bash
+agentstack server show
+```
+
+### list
+
+List all configured servers:
+
+```bash
+agentstack server list
+```
+
+## Environment Commands
+
+### env
+
+Manage environment variables:
+
+```bash
+agentstack env [subcommand]
+```
+
+Use `agentstack env --help` for available subcommands.
+
+## System Commands
+
+### ui
+
+Launch the web interface:
+
+```bash
+agentstack ui
+```
+
+Opens Agent Stack's graphical interface in your default browser.
+
+### version
+
+Display version information:
+
+```bash
+agentstack version
+```
+
+### install
+
+Install Agent Stack CLI and platform:
+
+```bash
+agentstack self install
+```
+
+### upgrade
+
+Upgrade Agent Stack CLI and platform to the latest version:
+
+```bash
+agentstack self upgrade
+```
+
+### uninstall
+
+Uninstall Agent Stack CLI and platform:
+
+```bash
+agentstack self uninstall
+```
+
+Removes the CLI, stops the platform, and deletes all data.
+
+## Global Options
+
+Most commands support these options:
+
+- `--help`: Show help information for a command
+- `-v, --verbose`: Show verbose output
+- `--debug`: Enable debug output for troubleshooting (set via environment)
