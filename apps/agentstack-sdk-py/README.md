@@ -1,6 +1,6 @@
 # Agent Stack Server SDK
 
-Python SDK for deploying agents to Agent Stack infrastructure.
+Python SDK for packaging agents for deployment to Agent Stack infrastructure.
 
 [![PyPI version](https://img.shields.io/pypi/v/agentstack-sdk.svg?style=plastic)](https://pypi.org/project/agentstack-sdk/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=plastic)](https://opensource.org/licenses/Apache-2.0)
