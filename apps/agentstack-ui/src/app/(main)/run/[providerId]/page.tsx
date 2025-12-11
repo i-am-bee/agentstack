@@ -7,7 +7,7 @@ import { runtimeConfig } from '#contexts/App/runtime-config.ts';
 import { PlatformContextProvider } from '#modules/platform-context/contexts/PlatformContextProvider.tsx';
 import { RunView } from '#modules/runs/components/RunView.tsx';
 
-import { ensureModelSelected } from './model-check';
+import { ensureModelSelected } from './ensure-model-selected';
 import { fetchAgent } from './rsc';
 
 interface Props {
@@ -21,9 +21,9 @@ export default async function AgentRunPage({ params }: Props) {
   const agent = await fetchAgent(providerId);
 
   if (featureFlags.LocalSetup) {
-    const { error } = await ensureModelSelected(providerId);
-    if (error) {
-      return error;
+    const { ErrorComponent } = await ensureModelSelected(providerId);
+    if (ErrorComponent) {
+      return ErrorComponent;
     }
   }
 

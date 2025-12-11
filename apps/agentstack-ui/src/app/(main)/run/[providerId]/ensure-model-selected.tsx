@@ -20,14 +20,14 @@ export async function ensureModelSelected(providerId: string) {
     demands: { llmDemands, embeddingDemands },
   } = handleAgentCard(card);
 
-  let error: ReactElement | null = null;
+  let ErrorComponent: ReactElement | null = null;
   if (llmDemands || embeddingDemands) {
     try {
       const config = await readConfigurationsSystem();
       if (llmDemands && !config?.default_llm_model) {
-        error = <NoModelSelectedErrorPage />;
+        ErrorComponent = <NoModelSelectedErrorPage />;
       } else if (embeddingDemands && !config?.default_embedding_model) {
-        error = <NoModelSelectedErrorPage type={ModelType.Embedding} />;
+        ErrorComponent = <NoModelSelectedErrorPage type={ModelType.Embedding} />;
       }
     } catch (error) {
       await handleApiError(error);
@@ -35,5 +35,5 @@ export async function ensureModelSelected(providerId: string) {
     }
   }
 
-  return { error };
+  return { ErrorComponent };
 }
