@@ -70,7 +70,7 @@ The SDK includes extension support for:
 - **Settings** - User-configurable agent parameters (`SettingsExtensionServer`, `SettingsExtensionSpec`)
 - **LLM Services** - Platform-managed language models (`LLMServiceExtensionServer`, `LLMServiceExtensionSpec`)
 - **Agent Details** - Metadata and UI enhancements (`AgentDetail`)
-- **And more** - See [Documentation](https://agentstack.beeai.dev/stable/agent-development/overview).
+- **And more** - See [Documentation](https://agentstack.beeai.dev/stable/agent-development/overview)
 
 Each extension provides both server-side handlers and A2A protocol specifications for seamless integration with Agent Stack's UI and infrastructure.
 
