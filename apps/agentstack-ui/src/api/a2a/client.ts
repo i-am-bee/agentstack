@@ -95,8 +95,6 @@ export const buildA2AClient = async <UIGenericPart = never>({
       const agentCardMetadata = await resolveAgentCardMetadata(fulfillments);
       const uiExtensionMetadata = await resolveUiExtensionMetadata(uiExtensionInputs);
 
-      console.log({ uiExtensionInputs, uiExtensionMetadata });
-
       const metadata = { ...agentCardMetadata, ...uiExtensionMetadata };
 
       const stream = client.sendMessageStream({
