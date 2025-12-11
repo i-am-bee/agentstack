@@ -1,0 +1,165 @@
+---
+title: "Work with Canvas"
+description: "Handle artifact editing requests from users"
+---
+
+The Canvas extension enables users to request edits to specific parts of artifacts (like code, documents, or other structured content) that your agent has generated. Instead of users describing what they want to change in text, they can select a portion of an artifact in the UI and request an edit, giving your agent precise information about what to modify.
+
+## How Canvas Works
+
+When a user selects a portion of an artifact and requests an edit:
+
+1. The selection's **start and end indices** (character positions) are captured
+2. The user provides a **description** of what they want to change
+3. The **artifact ID** identifies which artifact to edit
+4. Your agent receives this structured information to process the edit request
+
+This allows your agent to:
+
+- Know exactly which part of the artifact the user wants to modify
+- Access the original artifact content from history
+- Make targeted edits based on the user's description
+- Generate a new artifact with the changes (using the same artifact_id to replace the previous version in the UI)
+
+## Quickstart
+
+<Steps>
+<Step title="Import the canvas extension">
+Import `CanvasExtensionServer` and `CanvasExtensionSpec` from `agentstack_sdk.a2a.extensions.ui.canvas`.
+</Step>
+
+<Step title='Inject the extension'>
+  Add a canvas parameter to your agent function using the `Annotated` type hint
+  with `CanvasExtensionSpec()`.
+</Step>
+
+<Step title='Parse edit requests'>
+  Call `await canvas.parse_canvas_edit_request(message=message)` to check if the
+  incoming message contains a canvas edit request. This returns `None` if no
+  edit request is present, or a `CanvasEditRequest` object with: -
+  `start_index`: The starting character position of the selected text -
+  `end_index`: The ending character position of the selected text -
+  `description`: The user's description of what they want to change -
+  `artifact`: The full original artifact object from history
+</Step>
+
+<Step title='Access the original content'>
+  Extract the text from `artifact.parts[0].root.text` (for text artifacts) and
+  use the start/end indices to get the selected portion: `selected_text =
+  content[start_index:end_index]`.
+</Step>
+
+<Step title="Return a new artifact">
+Create a new artifact with your changes.
+</Step>
+</Steps>
+
+## Example: Canvas with LLM
+
+Here's how to use canvas with an LLM, adapting your system prompt based on whether you're generating new content or editing existing content:
+
+````python
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+import re
+from typing import Annotated
+
+from a2a.types import Message, TextPart
+
+from agentstack_sdk.a2a.extensions import LLMServiceExtensionServer, LLMServiceExtensionSpec
+from agentstack_sdk.a2a.extensions.ui.canvas import (
+    CanvasExtensionServer,
+    CanvasExtensionSpec,
+)
+from agentstack_sdk.a2a.types import AgentArtifact
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
+
+server = Server()
+
+BASE_PROMPT = """\
+You are a helpful coding assistant.
+Generate code enclosed in triple-backtick blocks tagged ```python.
+The first line should be a comment with the code's purpose.
+"""
+
+EDIT_PROMPT = (
+    BASE_PROMPT
+    + """
+You are editing existing code. The user selected this portion:
+```python
+{selected_code}
+```
+
+They want: {description}
+
+Respond with the FULL updated code. Only change the selected portion.
+"""
+)
+
+
+def get_system_prompt(canvas_edit):
+    if not canvas_edit:
+        return BASE_PROMPT
+
+    original_code = (
+        canvas_edit.artifact.parts[0].root.text if isinstance(canvas_edit.artifact.parts[0].root, TextPart) else ""
+    )
+    selected = original_code[canvas_edit.start_index : canvas_edit.end_index]
+
+    return EDIT_PROMPT.format(selected_code=selected, description=canvas_edit.description)
+
+
+@server.agent()
+async def code_agent(
+    message: Message,
+    context: RunContext,
+    llm: Annotated[LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand()],
+    canvas: Annotated[CanvasExtensionServer, CanvasExtensionSpec()],
+):
+    canvas_edit = await canvas.parse_canvas_edit_request(message=message)
+
+    # Adapt system prompt based on whether this is an edit or new generation
+    system_prompt = get_system_prompt(canvas_edit)
+
+    # Call your LLM with the adapted prompt
+    # (implementation depends on your LLM framework)
+    response = await call_llm(llm, system_prompt, message)
+
+    # Extract code from response
+    match = re.search(r"```python\n(.*?)\n```", response, re.DOTALL)
+    if match:
+        code = match.group(1).strip()
+        first_line = code.split("\n", 1)[0]
+        name = first_line.lstrip("# ").strip() if first_line.startswith("#") else "Python Script"
+
+        artifact = AgentArtifact(
+            name=name,
+            parts=[TextPart(text=code)],
+        )
+        yield artifact
+
+    # Note: Always create a new artifact. When canvas_edit exists, pass its artifact_id
+    # to replace the previous version in the UI.
+
+
+if __name__ == "__main__":
+    server.run()
+````
+
+## How to work with Canvas
+
+**Artifacts in history**: The extension automatically retrieves the original artifact from history using the `artifact_id`. If not found, a `ValueError` is raised.
+
+**Text parts filtering**: The extension filters out fallback text messages (sent for agents that don't support canvas) so you only work with structured edit request data.
+
+## Best Practices
+
+**Adapt your system prompt**: Provide different instructions to your LLM depending on whether you're generating new content or editing existing content.
+
+**Validate indices**: Ensure start and end indices are within bounds before slicing the artifact text.
+
+```
+
+```
