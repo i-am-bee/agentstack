@@ -123,20 +123,12 @@ oidc:
   validate_audience: false
   nextauth_providers: [
     {
-      "name": "IBMiD-PKCE",
-      "id": "ibmid-pkce",
-      "type": "oidc",
-      "client_id": "<ibm_security_verify_openid_connect_app_client_id>",
-      "client_secret": "", # The client secret for a public client (PKCE) is an empty string.  This is the agentstack cli provider.
-      "issuer": "<ibm_security_verify_issuer>" # e.g. "https://isg-verify1.verify.ibm.com/oauth2",
-    },
-    {
       "name": "IBM",
       "id": "sso-provisioned",
-      "type": "oidc",
+      "provider_type": "custom",
       "client_id": "<oidc_client_id>",
       "client_secret": "<oidc_client_secret>",
-      "issuer": "<oidc_issuer>",
+      "issuer": "<oidc_issuer>"
     }
   ]
 ```
@@ -145,7 +137,7 @@ oidc:
   following oidc specific values:
 
 ```JavaScript
-OIDC_PROVIDERS = '[{"name": "w3id","id": "w3id","type": "oidc","client_id": "<oidc_client_id>","client_secret": "<oidc_client_secret>","issuer": "<oidc_issuer>"}]'
+OIDC_PROVIDERS='[{"id":"w3id","name":"w3id","provider_type":"custom","client_id":"<your_client_id>","client_secret":"<your_client_secret>","issuer":"<your_issuer>"}]'
 NEXTAUTH_SECRET = "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
 NEXTAUTH_URL = "http://localhost:3000"
 OIDC_ENABLED = true
@@ -316,7 +308,7 @@ mise agentstack-server:run
 
 ## Releasing
 
-Agent Stack is using `main` branch for next version development and `release` branch for stable releases.
+Agent Stack is using `main` branch for next version development (integration branch) and `release` (stable) branch for stable releases.
 
 The release process consists of three steps:
 
@@ -336,11 +328,13 @@ This would
 
 ### Step 2: QA & Polish the release on release branch
 
-You can then iteratively polish the release in `main` branch and cherry-pick the commits to `release`. You can then do `mise run release:bump --version=X.Y.Z-rcW` to push new RC for testing.
+You can then iteratively polish the release in `main` branch and cherry-pick the commits to `release`. When you are ready to create a new release candidate, run `mise run release:bump` to bump up the release candidate version.
 
-### Step 3: Deploy
+Creating new RC would trigger GH action to deploy pre-release version of the package for testing.
 
-Once you've verified the RC version works, deploy the final release from the `release` branch:
+### Step 3: Publish
+
+Once you've verified the RC version works, publish the final release from the `release` branch:
 
 ```shell
 git checkout release

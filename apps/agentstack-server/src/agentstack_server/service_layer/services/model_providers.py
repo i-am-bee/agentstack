@@ -4,15 +4,19 @@ import difflib
 import logging
 from asyncio import TaskGroup
 from collections import defaultdict
+from collections.abc import AsyncIterator
 from contextlib import suppress
 from datetime import timedelta
+from typing import Final
 from uuid import UUID
 
+import openai.types.chat
 from cachetools import TTLCache
 from httpx import HTTPError
 from kink import inject
 from pydantic import HttpUrl
 
+from agentstack_server.api.schema.openai import ChatCompletionRequest, EmbeddingsRequest
 from agentstack_server.domain.constants import MODEL_API_KEY_SECRET_NAME
 from agentstack_server.domain.models.model_provider import (
     Model,
@@ -22,7 +26,8 @@ from agentstack_server.domain.models.model_provider import (
     ModelWithScore,
 )
 from agentstack_server.domain.repositories.env import EnvStoreEntity
-from agentstack_server.exceptions import EntityNotFoundError, ModelLoadFailedError
+from agentstack_server.domain.repositories.openai_proxy import IOpenAIProxy
+from agentstack_server.exceptions import EntityNotFoundError, InvalidProviderCallError, ModelLoadFailedError
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
 
 logger = logging.getLogger(__name__)
@@ -32,8 +37,9 @@ logger = logging.getLogger(__name__)
 class ModelProviderService:
     _provider_models: TTLCache[UUID, list[Model]] = TTLCache(maxsize=100, ttl=timedelta(days=1).total_seconds())
 
-    def __init__(self, uow: IUnitOfWorkFactory):
-        self._uow = uow
+    def __init__(self, uow: IUnitOfWorkFactory, openai_proxy: IOpenAIProxy):
+        self._uow: Final[IUnitOfWorkFactory] = uow
+        self._openai_proxy: Final[IOpenAIProxy] = openai_proxy
 
     async def create_provider(
         self,
@@ -108,7 +114,9 @@ class ModelProviderService:
     ) -> list[Model]:
         try:
             if self._provider_models.get(provider.id) is None:
-                self._provider_models[provider.id] = await provider.load_models(api_key=api_key)
+                self._provider_models[provider.id] = await self._openai_proxy.list_models(
+                    provider=provider, api_key=api_key
+                )
             return self._provider_models[provider.id]
         except HTTPError as ex:
             if raise_error:
@@ -195,3 +203,41 @@ class ModelProviderService:
             for model_id, score in sorted(model_scores.items(), key=lambda x: (-x[1], x[0]))
             if score >= 0.5  # global score cutoff
         ]
+
+    async def create_chat_completion(self, request: ChatCompletionRequest) -> openai.types.chat.ChatCompletion:
+        assert not request.stream
+        provider = await self.get_provider_by_model_id(model_id=request.model)
+        api_key = await self.get_provider_api_key(model_provider_id=provider.id)
+
+        try:
+            proxy = self._openai_proxy.get_chat_completion_proxy(provider=provider)
+        except ValueError as e:
+            raise InvalidProviderCallError("Provider does not support chat completions") from e
+
+        return await proxy.create_chat_completion(request=request, api_key=api_key)
+
+    async def create_chat_completion_stream(
+        self, request: ChatCompletionRequest
+    ) -> AsyncIterator[openai.types.chat.ChatCompletionChunk]:
+        assert request.stream
+        provider = await self.get_provider_by_model_id(model_id=request.model)
+        api_key = await self.get_provider_api_key(model_provider_id=provider.id)
+
+        try:
+            proxy = self._openai_proxy.get_chat_completion_proxy(provider=provider)
+        except ValueError as e:
+            raise InvalidProviderCallError("Provider does not support chat completions") from e
+
+        async for chunk in proxy.create_chat_completion_stream(request=request, api_key=api_key):
+            yield chunk
+
+    async def create_embedding(self, request: EmbeddingsRequest) -> openai.types.CreateEmbeddingResponse:
+        provider = await self.get_provider_by_model_id(model_id=request.model)
+        api_key = await self.get_provider_api_key(model_provider_id=provider.id)
+
+        try:
+            proxy = self._openai_proxy.get_embedding_proxy(provider=provider)
+        except ValueError as e:
+            raise InvalidProviderCallError("Provider does not support embeddings") from e
+
+        return await proxy.create_embedding(request=request, api_key=api_key)

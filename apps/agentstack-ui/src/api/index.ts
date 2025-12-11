@@ -49,6 +49,10 @@ const proxyMiddleware: Middleware = {
   },
 };
 
+/**
+ * @deprecated
+ * Use agentstackClient instead
+ */
 export const api = createClient<paths>({
   baseUrl: getBaseUrl(),
 });

@@ -8,8 +8,8 @@ import clsx from 'clsx';
 
 import { Modal } from '#components/Modal/Modal.tsx';
 import type { ModalProps } from '#contexts/Modal/modal-context.ts';
+import type { AgentSecret } from '#modules/runs/contexts/agent-secrets/types.ts';
 
-import type { AgentSecret } from '../contexts/agent-secrets/types';
 import { EditSecretForm } from './EditSecretForm';
 import classes from './SecretsAddModal.module.scss';
 

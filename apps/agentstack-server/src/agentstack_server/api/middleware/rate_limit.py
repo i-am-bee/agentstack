@@ -38,7 +38,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     ):
         super().__init__(app)
         self.enabled: Final[bool] = configuration.enabled
-        self.limits: Final[list[RateLimitItem]] = sorted(configuration.limits_parsed)
+        self.limits: Final[list[RateLimitItem]] = sorted(configuration.global_limits_parsed)
         self.limiter: Final[RateLimiter] = STRATEGIES[configuration.strategy](limiter_storage)
 
         logger.info(

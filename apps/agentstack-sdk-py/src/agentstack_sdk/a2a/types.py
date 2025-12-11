@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 import typing
 import uuid
-from typing import Generic, Literal, TypeAlias, TypeAliasType, Union
+from typing import Generic, Literal, TypeAlias, Union
 
 from a2a.types import (
     Artifact,
@@ -20,6 +20,7 @@ from a2a.types import (
     TextPart,
 )
 from pydantic import Field, model_validator
+from typing_extensions import TypeAliasType
 
 K = typing.TypeVar("K")
 V = typing.TypeVar("V")

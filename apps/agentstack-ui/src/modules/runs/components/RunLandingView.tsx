@@ -12,7 +12,7 @@ import { getAgentPromptExamples } from '#modules/agents/utils.ts';
 
 import { FileUpload } from '../../files/components/FileUpload';
 import { useAgentRun } from '../contexts/agent-run';
-import { SecretsModalPortal } from '../secrets/SecretsModalPortal';
+import { SecretsModalPortal } from '../secrets/components/SecretsModalPortal';
 import { RunInput } from './RunInput';
 import classes from './RunLandingView.module.scss';
 

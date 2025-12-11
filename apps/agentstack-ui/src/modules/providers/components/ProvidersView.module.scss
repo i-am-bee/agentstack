@@ -1,0 +1,33 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.root {
+  :global(.cds--data-table) {
+    table-layout: fixed;
+
+    th {
+      &:nth-child(2),
+      &:nth-child(3) {
+        inline-size: 12%;
+      }
+    }
+
+    &:global(.cds--skeleton) {
+      tbody td:last-child > span {
+        display: none;
+      }
+    }
+  }
+}
+
+.source {
+  @at-root td#{&} {
+    overflow-wrap: anywhere;
+  }
+}
+
+.agents {
+  text-align: center;
+}

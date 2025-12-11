@@ -6,7 +6,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-import { useAgentSecrets } from '../contexts/agent-secrets';
+import { useAgentSecrets } from '../../contexts/agent-secrets';
 import { SecretsModal } from './SecretsModal';
 
 export function SecretsModalPortal() {

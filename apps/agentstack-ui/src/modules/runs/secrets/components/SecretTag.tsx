@@ -6,7 +6,8 @@
 import { CheckmarkFilled, Password } from '@carbon/icons-react';
 import { OperationalTag, Tag } from '@carbon/react';
 
-import type { AgentSecret } from '../contexts/agent-secrets/types';
+import type { AgentSecret } from '#modules/runs/contexts/agent-secrets/types.ts';
+
 import classes from './SecretTag.module.scss';
 
 interface Props {

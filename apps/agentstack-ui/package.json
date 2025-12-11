@@ -19,6 +19,7 @@
     "@carbon/react": "catalog:",
     "@carbon/styles": "^1.96.0",
     "@floating-ui/react": "^0.27.16",
+    "@hookform/resolvers": "^5.2.2",
     "@ibm/plex": "^6.4.1",
     "@radix-ui/react-slot": "^1.2.4",
     "@tanstack/react-query": "catalog:",

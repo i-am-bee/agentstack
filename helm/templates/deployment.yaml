@@ -322,10 +322,18 @@ spec:
             {{- end }}
             - name: RATE_LIMIT__ENABLED
               value: {{ .Values.rateLimit.enabled | quote }}
-            - name: RATE_LIMIT__LIMITS
-              value: {{ .Values.rateLimit.limits | join "; " | quote }}
             - name: RATE_LIMIT__STRATEGY
               value: {{ .Values.rateLimit.strategy | quote }}
+            - name: RATE_LIMIT__GLOBAL_LIMITS
+              value: {{ .Values.rateLimit.globalLimits | join "; " | quote }}
+            {{- range $role, $limits := .Values.rateLimit.roleBasedLimits }}
+            - name: RATE_LIMIT__ROLE_BASED_LIMITS__{{ $role | upper }}__OPENAI_CHAT_COMPLETION_TOKENS
+              value: {{ $limits.openai_chat_completion_tokens | join "; " | quote }}
+            - name: RATE_LIMIT__ROLE_BASED_LIMITS__{{ $role | upper }}__OPENAI_CHAT_COMPLETION_REQUESTS
+              value: {{ $limits.openai_chat_completion_requests | join "; " | quote }}
+            - name: RATE_LIMIT__ROLE_BASED_LIMITS__{{ $role | upper }}__OPENAI_EMBEDDING_INPUTS
+              value: {{ $limits.openai_embedding_inputs | join "; " | quote }}
+            {{- end }}
             - name: CONNECTOR__PRESETS
               valueFrom:
                 secretKeyRef:

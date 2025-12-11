@@ -52,6 +52,17 @@
       }
     }
   }
+
+  &.cds--skeleton {
+    thead,
+    tbody {
+      th,
+      td {
+        padding: rem(15px);
+        vertical-align: top;
+      }
+    }
+  }
 }
 
 .cds--data-table-container.cds--skeleton {

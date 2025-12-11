@@ -69,6 +69,8 @@ spec:
               value: {{ .Values.docling.ui.enabled | quote }}
             - name: UVICORN_PORT
               value: "15001"
+            - name: DOCLING_SERVE_MAX_SYNC_WAIT
+              value: {{ .Values.docling.maxSyncWait | quote }}
           ports:
             - name: http
               containerPort: 15001

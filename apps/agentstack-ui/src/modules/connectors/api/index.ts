@@ -7,70 +7,42 @@ import { api } from '#api/index.ts';
 import { ensureData } from '#api/utils.ts';
 import { BASE_URL } from '#utils/constants.ts';
 
-import type { CreateConnectorRequest, ListConnectorsResponse } from './types';
+import type {
+  ConnectConnectorPath,
+  CreateConnectorRequest,
+  DeleteConnectorPath,
+  DisconnectConnectorPath,
+} from './types';
 
 export async function createConnector(body: CreateConnectorRequest) {
   const response = await api.POST('/api/v1/connectors', { body });
+
   return ensureData(response);
 }
 
-export async function deleteConnector(connectorId: string) {
-  const response = await api.DELETE('/api/v1/connectors/{connector_id}', {
-    params: { path: { connector_id: connectorId } },
-  });
-  return ensureData(response);
-}
-
-export async function disconnectConnector(connectorId: string) {
-  const response = await api.POST('/api/v1/connectors/{connector_id}/disconnect', {
-    params: { path: { connector_id: connectorId } },
-  });
-  return ensureData(response);
-}
-
-export async function connectConnector(connectorId: string) {
+export async function connectConnector(path: ConnectConnectorPath) {
   const response = await api.POST('/api/v1/connectors/{connector_id}/connect', {
-    params: { path: { connector_id: connectorId } },
-    body: {
-      redirect_url: `${BASE_URL}/oauth-callback`,
-    },
+    params: { path },
+    body: { redirect_url: `${BASE_URL}/oauth-callback` },
   });
 
-  return ensureData(response) as AuthRequired;
+  return ensureData(response);
 }
 
-interface AuthRequired {
-  id: string;
-  url: string;
-  state: 'auth_required';
-  auth_request: {
-    authorization_endpoint: string;
-    type: string;
-  };
+export async function disconnectConnector(path: DisconnectConnectorPath) {
+  const response = await api.POST('/api/v1/connectors/{connector_id}/disconnect', { params: { path } });
+
+  return ensureData(response);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-interface Connected {
-  id: string;
-  url: string;
-  state: 'connected';
+export async function deleteConnector(path: DeleteConnectorPath) {
+  const response = await api.DELETE('/api/v1/connectors/{connector_id}', { params: { path } });
+
+  return ensureData(response);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-interface Disconnected {
-  id: string;
-  url: string;
-  state: 'disconnected';
-}
+export async function listConnectors() {
+  const response = await api.GET('/api/v1/connectors');
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-interface Created {
-  id: string;
-  url: string;
-  state: 'created';
-}
-
-export async function listConnectors(): Promise<ListConnectorsResponse | undefined> {
-  const response = await api.GET('/api/v1/connectors', {});
   return ensureData(response);
 }

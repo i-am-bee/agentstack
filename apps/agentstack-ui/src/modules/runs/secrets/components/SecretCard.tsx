@@ -8,12 +8,12 @@ import clsx from 'clsx';
 import { useCallback } from 'react';
 
 import { useModal } from '#contexts/Modal/index.tsx';
+import type { AgentSecret } from '#modules/runs/contexts/agent-secrets/types.ts';
 
-import type { AgentSecret } from '../contexts/agent-secrets/types';
+import { useRevokeSecret } from '../hooks/useRevokeSecret';
 import classes from './SecretCard.module.scss';
 import { SecretsAddModal } from './SecretsAddModal';
 import { SecretTag } from './SecretTag';
-import { useRevokeSecret } from './useRevokeSecret';
 
 interface Props {
   secret: AgentSecret;

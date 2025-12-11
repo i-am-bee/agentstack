@@ -6,7 +6,7 @@
 import { redirect } from 'next/navigation';
 import { AuthError } from 'next-auth';
 
-import { authProviders, signIn } from '#app/(auth)/auth.ts';
+import { getAuthProviders, signIn } from '#app/(auth)/auth.ts';
 import { routes } from '#utils/router.ts';
 
 import { SignInButton } from './SignInButton';
@@ -16,9 +16,10 @@ interface Props {
   callbackUrl?: string;
 }
 
-export function SignInProviders({ callbackUrl: redirectTo = routes.home() }: Props) {
-  const providers = Object.values(authProviders);
+const authProviders = getAuthProviders();
+const providers = Object.values(authProviders);
 
+export function SignInProviders({ callbackUrl: redirectTo = routes.home() }: Props) {
   return (
     <div className={classes.root}>
       {providers.map((provider) => {

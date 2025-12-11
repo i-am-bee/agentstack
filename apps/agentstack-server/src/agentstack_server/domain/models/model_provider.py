@@ -1,16 +1,15 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from datetime import datetime
+import re
 from enum import StrEnum
-from typing import Any, Literal
+from typing import Literal
 from uuid import UUID, uuid4
 
-from httpx import AsyncClient
 from openai.types import Model as OpenAIModel
 from pydantic import AwareDatetime, BaseModel, Field, HttpUrl, computed_field, model_validator
 
-from agentstack_server.utils.utils import omit, utc_now
+from agentstack_server.utils.utils import utc_now
 
 
 class ModelProviderType(StrEnum):
@@ -88,103 +87,8 @@ class ModelProvider(BaseModel):
         return _PROVIDER_CAPABILITIES.get(self.type, set())
 
     @property
-    def _model_provider_info(self) -> ModelProviderInfo:
+    def model_provider_info(self) -> ModelProviderInfo:
         return ModelProviderInfo(capabilities=self.capabilities)
-
-    def _parse_openai_compatible_model(self, model: dict[str, Any]) -> Model:
-        return Model.model_validate(
-            {**model, "id": f"{self.type}:{model['id']}", "provider": self._model_provider_info}
-        )
-
-    async def load_models(self, api_key: str) -> list[Model]:
-        async with AsyncClient() as client:
-            match self.type:
-                case ModelProviderType.WATSONX:
-                    response = await client.get(f"{self.base_url}/ml/v1/foundation_model_specs?version=2025-08-27")
-                    response_models = response.raise_for_status().json()["resources"]
-                    available_models = []
-                    for model in response_models:
-                        if not model.get("lifecycle"):  # models without lifecycle might be embedding models
-                            available_models.append((model, 0))
-                            continue
-                        events = {e["id"]: e for e in model["lifecycle"]}
-                        if "withdrawn" in events:
-                            continue
-                        if "available" in events:
-                            created = int(datetime.fromisoformat(events["available"]["start_date"]).timestamp())
-                            available_models.append((model, created))
-                    return [
-                        Model.model_validate(
-                            {
-                                **model,
-                                "id": f"{self.type}:{model['model_id']}",
-                                "created": created,
-                                "object": "model",
-                                "owned_by": model["provider"],
-                                "provider": self._model_provider_info,
-                            }
-                        )
-                        for model, created in available_models
-                    ]
-                case ModelProviderType.VOYAGE:
-                    return [
-                        Model(
-                            id=f"{self.type}:{model_id}",
-                            created=int(datetime.now().timestamp()),
-                            object="model",
-                            owned_by="voyage",
-                            provider=self._model_provider_info,
-                        )
-                        for model_id in {
-                            "voyage-3-large",
-                            "voyage-3.5",
-                            "voyage-3.5-lite",
-                            "voyage-code-3",
-                            "voyage-finance-2",
-                            "voyage-law-2",
-                            "voyage-code-2",
-                        }
-                    ]
-                case ModelProviderType.ANTHROPIC:
-                    response = await client.get(
-                        f"{self.base_url}/models", headers={"x-api-key": api_key, "anthropic-version": "2023-06-01"}
-                    )
-                    models = response.raise_for_status().json()["data"]
-                    return [
-                        Model(
-                            id=f"{self.type}:{model['id']}",
-                            created=int(datetime.fromisoformat(model["created_at"]).timestamp()),
-                            owned_by="Anthropic",
-                            object="model",
-                            display_name=model["display_name"],
-                            provider=self._model_provider_info,
-                        )
-                        for model in models
-                    ]
-                case ModelProviderType.GITHUB:
-                    model_url = f"{self.base_url.scheme}://{self.base_url.host}/catalog/models"
-                    response = await client.get(model_url, headers={"Authorization": f"Bearer {api_key}"})
-                    models = response.raise_for_status().json()
-                    return [
-                        Model(
-                            id=f"{self.type}:{model['id']}",
-                            display_name=model["name"],
-                            owned_by=model["publisher"],
-                            provider=self._model_provider_info,
-                            **omit(model, {"id", "name", "publisher"}),
-                        )
-                        for model in models
-                    ]
-                case ModelProviderType.RITS:
-                    response = await client.get(f"{self.base_url}/models", headers={"RITS_API_KEY": api_key})
-                    models = response.raise_for_status().json()["data"]
-                    return [self._parse_openai_compatible_model(model) for model in models]
-                case _:
-                    response = await client.get(
-                        f"{str(self.base_url).rstrip('/')}/models", headers={"Authorization": f"Bearer {api_key}"}
-                    )
-                    models = response.raise_for_status().json()["data"]
-                    return [self._parse_openai_compatible_model(model) for model in models]
 
     @property
     def supports_llm(self) -> bool:
@@ -193,6 +97,9 @@ class ModelProvider(BaseModel):
     @property
     def supports_embedding(self) -> bool:
         return ModelCapability.EMBEDDING in self.capabilities
+
+    def get_raw_model_id(self, request_model_id: str) -> str:
+        return re.sub(rf"^{self.type}:", "", request_model_id)
 
 
 class ModelWithScore(BaseModel):
@@ -207,7 +114,7 @@ _PROVIDER_CAPABILITIES: dict[ModelProviderType, set[ModelCapability]] = {
     ModelProviderType.COHERE: {ModelCapability.LLM, ModelCapability.EMBEDDING},
     ModelProviderType.DEEPSEEK: {ModelCapability.LLM},
     ModelProviderType.GEMINI: {ModelCapability.LLM, ModelCapability.EMBEDDING},
-    ModelProviderType.GITHUB: {ModelCapability.LLM},
+    ModelProviderType.GITHUB: {ModelCapability.LLM, ModelCapability.EMBEDDING},
     ModelProviderType.GROQ: {ModelCapability.LLM},
     ModelProviderType.WATSONX: {ModelCapability.LLM, ModelCapability.EMBEDDING},
     ModelProviderType.JAN: {ModelCapability.LLM},

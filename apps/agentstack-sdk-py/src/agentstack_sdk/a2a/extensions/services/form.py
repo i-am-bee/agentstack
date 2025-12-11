@@ -4,9 +4,10 @@
 
 from __future__ import annotations
 
-from typing import Self, TypedDict, TypeVar, cast
+from typing import Self, TypeVar, cast
 
 from pydantic import BaseModel, TypeAdapter
+from typing_extensions import TypedDict
 
 from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 from agentstack_sdk.a2a.extensions.common.form import FormRender, FormResponse

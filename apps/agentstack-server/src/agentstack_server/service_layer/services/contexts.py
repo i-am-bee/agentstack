@@ -9,7 +9,7 @@ from uuid import UUID
 
 from a2a.types import Artifact, FilePart, FileWithBytes, FileWithUri, Message, Role, TextPart
 from fastapi import status
-from kink import di, inject
+from kink import inject
 from pydantic import TypeAdapter
 
 from agentstack_server.api.schema.common import PaginationQuery
@@ -34,11 +34,18 @@ logger = logging.getLogger(__name__)
 
 @inject
 class ContextService:
-    def __init__(self, uow: IUnitOfWorkFactory, configuration: Configuration, object_storage: IObjectStorageRepository):
+    def __init__(
+        self,
+        uow: IUnitOfWorkFactory,
+        configuration: Configuration,
+        object_storage: IObjectStorageRepository,
+        model_provider_service: ModelProviderService,
+    ):
         self._uow = uow
         self._object_storage = object_storage
         self._configuration = configuration
         self._expire_resources_after = timedelta(days=configuration.context.resource_expire_after_days)
+        self._model_provider_service = model_provider_service
 
     async def create(self, *, user: User, metadata: Metadata, provider_id: UUID | None = None) -> Context:
         context = Context(created_by=user.id, metadata=metadata, provider_id=provider_id)
@@ -180,8 +187,6 @@ class ContextService:
     async def generate_conversation_title(self, *, context_id: UUID):
         from jinja2 import Template
 
-        from agentstack_server.api.routes.openai import create_chat_completion
-
         async with self._uow() as uow:
             msg = await uow.contexts.list_history(context_id=context_id, limit=1, order="desc", order_by="created_at")
             system_config = await uow.configuration.get_system_configuration()
@@ -209,17 +214,13 @@ class ContextService:
                 text=text,
                 files=[file.model_dump(include={"name", "mime_type"}) for file in files],
             )
-
-            # HACK: calling the endpoint directly (instead, logic should be extracted from the api layer to domain)
-            resp = await create_chat_completion(
-                model_provider_service=di[ModelProviderService],
+            resp = await self._model_provider_service.create_chat_completion(
                 request=ChatCompletionRequest(
                     model=model,
                     stream=False,
                     max_completion_tokens=100,
                     messages=[{"role": "user", "content": prompt}],
-                ),
-                _=None,  # pyright: ignore [reportArgumentType]
+                )
             )
             title = resp["choices"][0]["message"]["content"].strip().strip("\"'")  # pyright: ignore [reportIndexIssue]
             title = f"{title[:100]}..." if len(title) > 100 else title

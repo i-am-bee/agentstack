@@ -14,6 +14,7 @@ export const contextSchema = z.object({
   provider_id: z.string().nullable(),
   metadata: z.record(z.string(), z.unknown()).nullable(),
 });
+export type CreateContextResponse = z.infer<typeof contextSchema>;
 
 export const contextTokenSchema = z.object({
   token: z.string(),

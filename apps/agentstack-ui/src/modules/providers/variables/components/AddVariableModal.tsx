@@ -15,6 +15,7 @@ import {
   TextInput,
 } from '@carbon/react';
 import { useCallback, useId } from 'react';
+import type { SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 
 import { Modal } from '#components/Modal/Modal.tsx';
@@ -22,6 +23,7 @@ import type { ModalProps } from '#contexts/Modal/modal-context.ts';
 import { useListProviders } from '#modules/providers/api/queries/useListProviders.ts';
 
 import { useUpdateProviderVariable } from '../api/mutations/useUpdateProviderVariable';
+import type { AddVariableForm } from '../types';
 import classes from './AddVariableModal.module.scss';
 
 export function AddVariableModal({ onRequestClose, ...modalProps }: ModalProps) {
@@ -29,20 +31,16 @@ export function AddVariableModal({ onRequestClose, ...modalProps }: ModalProps) 
 
   const { data, isPending: isProvidersPending } = useListProviders();
 
-  const { mutate: updateVariable, isPending } = useUpdateProviderVariable({
-    onSuccess: onRequestClose,
-  });
+  const { mutate: updateVariable, isPending } = useUpdateProviderVariable({ onSuccess: onRequestClose });
 
   const {
     register,
     handleSubmit,
     formState: { isValid },
-  } = useForm<FormValues>({
-    mode: 'onChange',
-  });
+  } = useForm<AddVariableForm>({ mode: 'onChange' });
 
-  const onSubmit = useCallback(
-    ({ name, providerId, value }: FormValues) => {
+  const onSubmit: SubmitHandler<AddVariableForm> = useCallback(
+    ({ name, providerId, value }) => {
       updateVariable({ id: providerId, variables: { [name]: value } });
     },
     [updateVariable],
@@ -86,9 +84,3 @@ export function AddVariableModal({ onRequestClose, ...modalProps }: ModalProps) 
     </Modal>
   );
 }
-
-type FormValues = {
-  name: string;
-  value: string;
-  providerId: string;
-};

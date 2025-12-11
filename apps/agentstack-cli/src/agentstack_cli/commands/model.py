@@ -354,7 +354,8 @@ async def _select_default_model(capability: ModelCapability) -> str | None:
                 if capability == ModelCapability.LLM:
                     test_response = await client.chat.completions.create(
                         model=selected_model,
-                        max_completion_tokens=500,  # reasoning models need some tokens to think about this
+                        # reasoning models need some tokens to think about this
+                        max_completion_tokens=500 if not selected_model.startswith("mistral") else None,
                         messages=[
                             {
                                 "role": "system",

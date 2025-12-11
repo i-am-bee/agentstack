@@ -4,63 +4,80 @@
  */
 
 import NextAuth from 'next-auth';
+import type { OIDCConfig } from 'next-auth/providers';
+import { match } from 'ts-pattern';
+import z from 'zod';
 
-import { getProviderConstructor } from '#app/(auth)/providers/providers.ts';
 import { runtimeConfig } from '#contexts/App/runtime-config.ts';
 import type { AuthProvider } from '#modules/auth/types.ts';
 import { routes } from '#utils/router.ts';
 
 import type { ProviderConfig, ProviderWithId } from './types';
+import { providerConfigSchema } from './types';
 import { getTokenRefreshSchedule, jwtWithRefresh, RefreshTokenError } from './utils';
-
-let providersConfig: ProviderConfig[] = [];
-
-const providers: ProviderWithId[] = [];
 
 export const AUTH_COOKIE_NAME = 'agentstack';
 
 const { isAuthEnabled } = runtimeConfig;
 
-if (isAuthEnabled) {
+export function getAuthProviders(): AuthProvider[] {
+  return getProviders()
+    .filter((provider) => provider.id !== 'credentials')
+    .map((provider) => {
+      return { id: provider.id, name: provider.name };
+    });
+}
+
+function createOIDCProvider(config: ProviderConfig): OIDCConfig<unknown> {
+  const baseOptions = {
+    clientId: config.client_id,
+    clientSecret: config.client_secret,
+    issuer: config.issuer,
+  };
+
+  const options = match(config)
+    .with({ provider_type: undefined }, { provider_type: 'custom' }, () => baseOptions)
+    .with({ provider_type: 'auth0' }, ({ audience }) => ({
+      ...baseOptions,
+      authorization: {
+        params: {
+          audience,
+        },
+      },
+    }))
+    .exhaustive();
+
+  return {
+    id: config.id,
+    name: config.name,
+    type: 'oidc',
+    idToken: true,
+    options,
+  };
+}
+
+function getProviders(): ProviderWithId[] {
+  const { isAuthEnabled } = runtimeConfig;
+
+  if (!isAuthEnabled) {
+    return [];
+  }
+
   try {
     const providersJson = process.env.OIDC_PROVIDERS;
     if (!providersJson) {
       throw new Error('No OIDC providers configured. Set OIDC_PROVIDERS with at least one provider.');
     }
 
-    providersConfig = JSON.parse(providersJson);
+    return z.array(providerConfigSchema).parse(JSON.parse(providersJson)).map(createOIDCProvider);
   } catch (err) {
     console.error('Unable to parse providers from OIDC_PROVIDERS environment variable.', err);
-  }
 
-  for (const provider of providersConfig) {
-    const { id, name, issuer, client_id, client_secret } = provider;
-    const providerConstructor = getProviderConstructor(name.toLocaleLowerCase());
-    if (providerConstructor) {
-      providers.push(
-        providerConstructor({
-          id,
-          name,
-          type: 'oidc',
-          issuer,
-          clientId: client_id,
-          clientSecret: client_secret,
-        }),
-      );
-    }
+    return [];
   }
 }
 
-export const authProviders: AuthProvider[] = providers
-  .map((provider) => {
-    if (typeof provider === 'function') {
-      const providerData = provider();
-      return { id: providerData.id, name: providerData.name };
-    } else {
-      return { id: provider.id, name: provider.name };
-    }
-  })
-  .filter((provider) => provider.id !== 'credentials');
+const providers = getProviders();
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers,

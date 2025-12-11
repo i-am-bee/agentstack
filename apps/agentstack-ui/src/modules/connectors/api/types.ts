@@ -3,7 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ApiRequest, ApiResponse } from '#@types/utils.ts';
+import type { ApiPath, ApiRequest, ApiResponse } from '#@types/utils.ts';
 
 export type CreateConnectorRequest = ApiRequest<'/api/v1/connectors'>;
-export type ListConnectorsResponse = ApiResponse<'/api/v1/connectors', 'get', 'application/json', 200>;
+
+export type ConnectConnectorPath = ApiPath<'/api/v1/connectors/{connector_id}/connect', 'post'>;
+
+export type DisconnectConnectorPath = ApiPath<'/api/v1/connectors/{connector_id}/disconnect', 'post'>;
+
+export type DeleteConnectorPath = ApiPath<'/api/v1/connectors/{connector_id}', 'delete'>;
+
+export type ListConnectorsResponse = ApiResponse<'/api/v1/connectors'>;
+
+export type Connector = ListConnectorsResponse['items'][number];

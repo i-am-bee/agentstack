@@ -8,21 +8,40 @@ import type { z } from 'zod';
 import type { ContextPermissionsGrant, GlobalPermissionsGrant, ModelCapability } from './types';
 import { contextSchema, contextTokenSchema, modelProviderMatchSchema } from './types';
 
-interface MatchProvidersParams {
+export interface MatchProvidersParams {
   suggestedModels: string[] | null;
   capability: ModelCapability;
   scoreCutoff: number;
 }
 
-interface CreateContextTokenParams {
+export interface CreateContextTokenParams {
   contextId: string;
   globalPermissions: GlobalPermissionsGrant;
   contextPermissions: ContextPermissionsGrant;
 }
 
-export const buildApiClient = ({ baseUrl }: { baseUrl: string } = { baseUrl: '' }) => {
+export const buildApiClient = (
+  {
+    baseUrl,
+    fetch: customFetchImpl,
+  }: {
+    baseUrl: string;
+    fetch?: typeof globalThis.fetch;
+  } = { baseUrl: '' },
+) => {
+  const maybeFetchFn = customFetchImpl ?? (typeof globalThis.fetch !== 'undefined' ? globalThis.fetch : undefined);
+
+  if (!maybeFetchFn) {
+    throw new Error(
+      'fetch is not available. In Node.js < 18 or environments without global fetch, ' +
+        'provide a fetch implementation via the fetch option.',
+    );
+  }
+
+  const fetchFn = maybeFetchFn;
+
   async function callApi<T>(method: 'POST', url: string, data: Record<string, unknown>, resultSchema: z.ZodSchema<T>) {
-    const response = await fetch(`${baseUrl}${url}`, {
+    const response = await fetchFn(`${baseUrl}${url}`, {
       method,
       headers: {
         'Content-Type': 'application/json',
@@ -37,11 +56,8 @@ export const buildApiClient = ({ baseUrl }: { baseUrl: string } = { baseUrl: '' 
     return resultSchema.parse(json);
   }
 
-  const createContext = async (providerId: string) => {
-    const context = await callApi('POST', '/api/v1/contexts', { metadata: {}, provider_id: providerId }, contextSchema);
-
-    return context;
-  };
+  const createContext = async (providerId: string) =>
+    await callApi('POST', '/api/v1/contexts', { metadata: {}, provider_id: providerId }, contextSchema);
 
   const createContextToken = async ({ contextId, globalPermissions, contextPermissions }: CreateContextTokenParams) => {
     const token = await callApi(

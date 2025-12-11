@@ -1,5 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
+
 import logging
 from contextlib import AsyncExitStack
 from typing import Annotated
@@ -14,9 +15,17 @@ from agentstack_server.api.dependencies import (
     RequiresContextPermissions,
 )
 from agentstack_server.api.schema.common import EntityModel
-from agentstack_server.api.schema.files import FileListQuery
+from agentstack_server.api.schema.files import FileListQuery, TextExtractionRequest
 from agentstack_server.domain.models.common import PaginatedResult
-from agentstack_server.domain.models.file import AsyncFile, ExtractionStatus, File, TextExtraction
+from agentstack_server.domain.models.file import (
+    AsyncFile,
+    Backend,
+    ExtractionFormat,
+    ExtractionStatus,
+    File,
+    TextExtraction,
+    TextExtractionSettings,
+)
 from agentstack_server.domain.models.permissions import AuthorizedUser
 from agentstack_server.service_layer.services.files import FileService
 
@@ -92,12 +101,32 @@ async def get_text_file_content(
     user: Annotated[AuthorizedUser, Depends(RequiresContextPermissions(files={"read"}))],
 ) -> StreamingResponse:
     extraction = await file_service.get_extraction(file_id=file_id, user=user.user, context_id=user.context_id)
-    if not extraction.status == ExtractionStatus.COMPLETED or not extraction.extracted_file_id:
+    if not extraction.status == ExtractionStatus.COMPLETED or not extraction.extracted_files:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Extraction is not completed (status {extraction.status})",
         )
-    return await _stream_file(file_service=file_service, user=user, file_id=extraction.extracted_file_id)
+
+    if extraction.extraction_metadata is not None and extraction.extraction_metadata.backend == Backend.IN_PLACE:
+        # Fallback to the original file for in-place extraction
+        original_file_id = extraction.find_file_by_format(format=None)
+        if not original_file_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Original file not found in extraction results",
+            )
+        file_to_stream_id = original_file_id
+    else:
+        # Find the markdown file from extracted files
+        markdown_file_id = extraction.find_file_by_format(format=ExtractionFormat.MARKDOWN)
+        if not markdown_file_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Markdown file not found in extraction results",
+            )
+        file_to_stream_id = markdown_file_id
+
+    return await _stream_file(file_service=file_service, user=user, file_id=file_to_stream_id)
 
 
 @router.delete("/{file_id}", status_code=fastapi.status.HTTP_204_NO_CONTENT)
@@ -114,6 +143,7 @@ async def create_text_extraction(
     file_id: UUID,
     file_service: FileServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresContextPermissions(files={"write", "extract"}))],
+    request: TextExtractionRequest | None = None,
 ) -> EntityModel[TextExtraction]:
     """Create or return text extraction for a file.
 
@@ -122,8 +152,15 @@ async def create_text_extraction(
     - If extraction is pending/in-progress, returns current status
     - If no extraction exists, creates a new one
     """
+    if request is None:
+        request = TextExtractionRequest()
+
+    settings = request.settings if request.settings is not None else TextExtractionSettings()
+
     return EntityModel(
-        await file_service.create_extraction(file_id=file_id, user=user.user, context_id=user.context_id)
+        await file_service.create_extraction(
+            file_id=file_id, user=user.user, context_id=user.context_id, settings=settings
+        )
     )
 
 

@@ -16,6 +16,7 @@ import { ViewStack } from '#components/ViewStack/ViewStack.tsx';
 import { useApp } from '#contexts/App/index.ts';
 import { ConnectorsView } from '#modules/connectors/components/ConnectorsView.tsx';
 import { ProvidersView } from '#modules/providers/components/ProvidersView.tsx';
+import { useCanManageProviders } from '#modules/providers/hooks/useCanManageProviders.ts';
 import { VariablesView } from '#modules/providers/variables/components/VariablesView.tsx';
 import type { FeatureName } from '#utils/feature-flags.ts';
 
@@ -26,9 +27,18 @@ export function SettingsView() {
     config: { featureFlags },
   } = useApp();
 
+  const canManageProviders = useCanManageProviders();
+
   const items = useMemo(
-    () => ITEMS.filter(({ featureName }) => !featureName || featureFlags[featureName]),
-    [featureFlags],
+    () =>
+      ITEMS.filter(({ featureName }) => {
+        if (featureName === 'Providers') {
+          return featureFlags[featureName] && canManageProviders;
+        }
+
+        return !featureName || featureFlags[featureName];
+      }),
+    [featureFlags, canManageProviders],
   );
 
   return (
@@ -59,6 +69,6 @@ export function SettingsView() {
 const ITEMS: { title: string; component: ComponentType; featureName?: FeatureName }[] = [
   { title: 'Variables', component: VariablesView, featureName: 'Variables' },
   { title: 'Agent providers', component: ProvidersView, featureName: 'Providers' },
-  { title: 'Theme', component: ThemeView },
   { title: 'Connectors', component: ConnectorsView, featureName: 'Connectors' },
+  { title: 'Theme', component: ThemeView },
 ];

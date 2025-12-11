@@ -4,10 +4,10 @@
  */
 
 import { useMutation } from '@tanstack/react-query';
+import type { CreateContextResponse } from 'agentstack-sdk';
 
 import { createContext } from '..';
 import { contextKeys } from '../keys';
-import type { CreateContextResponse } from '../types';
 
 export function useCreateContext({ onSuccess }: { onSuccess?: (data: CreateContextResponse) => void } = {}) {
   const mutation = useMutation({

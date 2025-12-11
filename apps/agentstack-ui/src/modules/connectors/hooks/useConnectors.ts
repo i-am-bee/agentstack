@@ -4,14 +4,13 @@
  */
 
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import z from 'zod';
 
 import { useToast } from '#contexts/Toast/index.ts';
 
 import { connectorKeys } from '../api/keys';
 import { useConnectConnector } from '../api/mutations/useConnectConnector';
-import { useDeleteConnector } from '../api/mutations/useDeleteConnector';
 import { useDisconnectConnector } from '../api/mutations/useDisconnectConnector';
 
 const authorizeOauth = (
@@ -24,9 +23,19 @@ const authorizeOauth = (
   }
   popup.focus();
 
+  let isHandled = false;
+
   const timer = setInterval(() => {
     if (popup.closed) {
       clearInterval(timer);
+
+      if (!isHandled) {
+        onCallback({
+          error: 'Authorization cancelled',
+          errorDescription: 'Popup was closed before completing authorization.',
+        });
+      }
+
       window.removeEventListener('message', handler);
     }
   }, 500);
@@ -44,9 +53,12 @@ const authorizeOauth = (
     const error = parsedRedirectrUri.searchParams.get('error');
     const errorDescription = parsedRedirectrUri.searchParams.get('error_description');
 
+    isHandled = true;
+
     onCallback({ error, errorDescription });
 
     if (popup) {
+      clearInterval(timer);
       window.removeEventListener('message', handler);
       popup.close();
     }
@@ -55,26 +67,20 @@ const authorizeOauth = (
   window.addEventListener('message', handler);
 };
 
-export const useRemove = () => {
-  const { mutateAsync: removeConnector } = useDeleteConnector();
-
-  return useCallback(
-    async (connectorId: string) => {
-      await removeConnector(connectorId);
-    },
-    [removeConnector],
-  );
-};
-
 export const useDisconnect = () => {
-  const { mutateAsync: disconnectConnector } = useDisconnectConnector();
+  const { mutateAsync: disconnectConnector, isPending } = useDisconnectConnector();
 
-  return useCallback(
+  const disconnect = useCallback(
     async (connectorId: string) => {
-      await disconnectConnector(connectorId);
+      await disconnectConnector({ connector_id: connectorId });
     },
     [disconnectConnector],
   );
+
+  return {
+    disconnect,
+    isPending,
+  };
 };
 
 const useHandleAuthorizeCallback = () => {
@@ -98,25 +104,50 @@ const useHandleAuthorizeCallback = () => {
 };
 
 export const useConnect = () => {
-  const { mutateAsync: connectConnector } = useConnectConnector();
+  const [isAuthorizing, setIsAuthorizing] = useState(false);
+
+  const { mutateAsync: connectConnector, isPending } = useConnectConnector();
   const handleAuthorizeCallback = useHandleAuthorizeCallback();
 
-  return useCallback(
+  const connect = useCallback(
     async (connectorId: string) => {
-      const result = await connectConnector(connectorId);
-      authorizeOauth(result.auth_request.authorization_endpoint, handleAuthorizeCallback);
+      const result = await connectConnector({ connector_id: connectorId });
+
+      if (result?.auth_request) {
+        setIsAuthorizing(true);
+        authorizeOauth(result.auth_request.authorization_endpoint, (props) => {
+          handleAuthorizeCallback(props);
+          setIsAuthorizing(false);
+        });
+      }
     },
     [connectConnector, handleAuthorizeCallback],
   );
+
+  return {
+    connect,
+    isPending: isPending || isAuthorizing,
+  };
 };
 
 export const useAuthorize = () => {
+  const [isPending, setIsPending] = useState(false);
+
   const handleAuthorizeCallback = useHandleAuthorizeCallback();
 
-  return useCallback(
+  const authorize = useCallback(
     (authorizationEndpoint: string) => {
-      authorizeOauth(authorizationEndpoint, handleAuthorizeCallback);
+      setIsPending(true);
+      authorizeOauth(authorizationEndpoint, (props) => {
+        handleAuthorizeCallback(props);
+        setIsPending(false);
+      });
     },
     [handleAuthorizeCallback],
   );
+
+  return {
+    authorize,
+    isPending,
+  };
 };

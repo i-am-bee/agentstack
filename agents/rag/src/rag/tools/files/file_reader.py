@@ -3,13 +3,13 @@
 
 from typing import List, Literal
 
+from agentstack_sdk.platform import File
 from beeai_framework.emitter import Emitter
 from beeai_framework.tools import (
     JSONToolOutput,
     Tool,
     ToolRunOptions,
 )
-from agentstack_sdk.platform import File
 from pydantic import BaseModel, Field, create_model
 
 from rag.tools.files.utils import File, format_size
@@ -116,7 +116,6 @@ def create_file_reader_tool_class(files: list[File]) -> type[Tool]:
                 # pull the first (only) MessagePart from the async-generator
                 async with file.load_text_content() as loaded_file:
                     content = loaded_file.text
-                    content_type = loaded_file.content_type
 
                 if content is None:
                     raise ValueError(f"File content is None for {filename}.")

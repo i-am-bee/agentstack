@@ -16,11 +16,20 @@ from agentstack_sdk.platform.common import PaginatedResult
 from agentstack_sdk.util.file import LoadedFile, LoadedFileWithUri, PlatformFileUrl
 from agentstack_sdk.util.utils import filter_dict
 
+ExtractionFormatLiteral = typing.Literal["markdown", "vendor_specific_json"]
+
+
+class ExtractedFileInfo(pydantic.BaseModel):
+    """Information about an extracted file."""
+
+    file_id: str
+    format: ExtractionFormatLiteral | None
+
 
 class Extraction(pydantic.BaseModel):
     id: str
     file_id: str
-    extracted_file_id: str | None = None
+    extracted_files: list[ExtractedFileInfo] = pydantic.Field(default_factory=list)
     status: typing.Literal["pending", "in_progress", "completed", "failed", "cancelled"] = "pending"
     job_id: str | None = None
     error_message: str | None = None
@@ -152,9 +161,43 @@ class File(pydantic.BaseModel):
                     await response.aread()
                 yield LoadedFileWithUri(response=response, content_type=file.content_type, filename=file.filename)
 
+    @asynccontextmanager
+    async def load_json_content(
+        self: File | str,
+        *,
+        stream: bool = False,
+        client: PlatformClient | None = None,
+        context_id: str | None | Literal["auto"] = "auto",
+    ) -> AsyncIterator[LoadedFile]:
+        # `self` has a weird type so that you can call both `instance.load_json_content()` to create an extraction for an instance, or `File.load_json_content("123")`
+        file_id = self if isinstance(self, str) else self.id
+        async with client or get_platform_client() as platform_client:
+            context_id = platform_client.context_id if context_id == "auto" else context_id
+
+            file = await File.get(file_id, client=client, context_id=context_id) if isinstance(self, str) else self
+            extraction = await file.get_extraction(client=client, context_id=context_id)
+
+            for extracted_file_info in extraction.extracted_files:
+                if extracted_file_info.format != "vendor_specific_json":
+                    continue
+                extracted_json_file_id = extracted_file_info.file_id
+                async with platform_client.stream(
+                    "GET",
+                    url=f"/api/v1/files/{extracted_json_file_id}/content",
+                    params=context_id and {"context_id": context_id},
+                ) as response:
+                    response.raise_for_status()
+                    if not stream:
+                        await response.aread()
+                    yield LoadedFileWithUri(response=response, content_type=file.content_type, filename=file.filename)
+                return
+
+            raise ValueError("No extracted JSON content available for this file.")
+
     async def create_extraction(
         self: File | str,
         *,
+        formats: list[ExtractionFormatLiteral] | None = None,
         client: PlatformClient | None = None,
         context_id: str | None | Literal["auto"] = "auto",
     ) -> Extraction:
@@ -167,6 +210,7 @@ class File(pydantic.BaseModel):
                     await platform_client.post(
                         url=f"/api/v1/files/{file_id}/extraction",
                         params=context_id and {"context_id": context_id},
+                        json={"settings": {"formats": formats}} if formats else None,
                     )
                 )
                 .raise_for_status()

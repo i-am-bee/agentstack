@@ -78,7 +78,7 @@ POST /api/v1/connectors/{id}/connect
 
 The authentication token is used differently depending on the connector type:
 - **External HTTP/HTTPS MCP servers**: Token is sent as a Bearer token in the `Authorization` header for all requests
-- **Managed stdio MCP servers**: Token is injected as an environment variable in the container (requires `accessTokenEnvName` in preset configuration)
+- **Managed stdio MCP servers**: Token is injected as an environment variable in the container (requires `access_token_env_name` in preset configuration)
 
 ## Error handling
 
@@ -178,7 +178,7 @@ connector:
         args: ["dist/index.js"]  # Optional: override container args
         env:  # Optional: additional environment variables
           LOG_LEVEL: "info"
-        accessTokenEnvName: "API_TOKEN"  # Optional: env var name to inject access token
+        access_token_env_name: "API_TOKEN"  # Optional: env var name to inject access token
 ```
 
 The managed MCP architecture uses a sidecar pattern:
@@ -190,7 +190,7 @@ When a connector using a managed preset is connected, the platform:
 2. Creates a Kubernetes Service to expose the supergateway
 3. Waits for the deployment to become ready (up to 60 seconds)
 4. Proxies MCP requests to the managed service
-5. If an `accessToken` was provided in the connect request and the preset defines `accessTokenEnvName`, injects the token as an environment variable
+5. If an `accessToken` was provided in the connect request and the preset defines `access_token_env_name`, injects the token as an environment variable
 
 When disconnected, the platform cleans up the Deployment and Service resources.
 

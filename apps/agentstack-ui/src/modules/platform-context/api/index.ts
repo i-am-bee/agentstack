@@ -3,23 +3,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { CreateContextResponse, CreateContextTokenParams, MatchProvidersParams } from 'agentstack-sdk';
+
+import { agentstackClient } from '#api/agentstack-client.ts';
 import { api } from '#api/index.ts';
 import { ensureData, fetchEntity } from '#api/utils.ts';
 
 import type {
-  CreateContextParams,
-  CreateContextTokenParams,
   DeleteContextParams,
   ListContextHistoryParams,
   ListContextsParams,
-  MatchModelProvidersParams,
   UpdateContextMetadataParams,
 } from './types';
 
-export async function createContext(body: CreateContextParams) {
-  const response = await api.POST('/api/v1/contexts', { body });
-
-  return ensureData(response);
+export async function createContext(providerId: string): Promise<CreateContextResponse> {
+  return await agentstackClient.createContext(providerId);
 }
 
 export async function listContexts(params: ListContextsParams) {
@@ -51,25 +49,13 @@ export async function listContextHistory({ contextId, query }: ListContextHistor
   return ensureData(response);
 }
 
-export async function matchProviders({ capability, suggested_models }: MatchModelProvidersParams) {
-  const response = await api.POST('/api/v1/model_providers/match', {
-    body: { capability, score_cutoff: 0.4, suggested_models },
-  });
-
-  return ensureData(response);
+export async function matchProviders(matchProvidersParams: MatchProvidersParams) {
+  return await agentstackClient.matchProviders(matchProvidersParams);
 }
 
-export async function createContextToken({
-  context_id,
-  grant_context_permissions,
-  grant_global_permissions,
-}: CreateContextTokenParams) {
-  const response = await api.POST('/api/v1/contexts/{context_id}/token', {
-    body: { grant_context_permissions, grant_global_permissions },
-    params: { path: { context_id } },
-  });
-
-  return ensureData(response);
+export async function createContextToken(createContextTokenParams: CreateContextTokenParams) {
+  const result = await agentstackClient.createContextToken(createContextTokenParams);
+  return result.token;
 }
 
 export async function fetchContextHistory(params: ListContextHistoryParams) {

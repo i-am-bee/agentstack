@@ -3,9 +3,30 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+.root {
+  :global(.cds--data-table) {
+    table-layout: fixed;
+
+    th {
+      &:nth-child(1),
+      &:nth-child(2) {
+        inline-size: 35%;
+      }
+    }
+
+    &:global(.cds--skeleton) {
+      tbody td:last-child > span {
+        display: none;
+      }
+    }
+  }
+}
+
+.agent,
 .name {
-  inline-size: 30%;
-  overflow-wrap: anywhere;
+  @at-root td#{&} {
+    overflow-wrap: anywhere;
+  }
 }
 
 .value {

@@ -29,10 +29,6 @@
             "path": "agents/chat"
         },
         {
-            "name": "agent-form",
-            "path": "agents/form"
-        },
-        {
             "name": "agent-rag",
             "path": "agents/rag"
         },

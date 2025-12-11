@@ -11,23 +11,21 @@ import { AppName } from '#components/AppName/AppName.tsx';
 import { AppHeader } from '#components/layouts/AppHeader.tsx';
 import { useModal } from '#contexts/Modal/index.tsx';
 import { ImportAgentsModal } from '#modules/agents/components/import/ImportAgentsModal.tsx';
-import { useUser } from '#modules/users/api/queries/useUser.ts';
-import { isUserAdminOrDev } from '#modules/users/utils.ts';
+import { useCanManageProviders } from '#modules/providers/hooks/useCanManageProviders.ts';
 
 import classes from './CommonHeader.module.scss';
 
 export function CommonHeader() {
   const { openModal } = useModal();
-  const { data: user } = useUser();
 
-  const isAdminOrDev = isUserAdminOrDev(user);
+  const canManageProviders = useCanManageProviders();
 
   return (
     <AppHeader>
       <div className={classes.root}>
         <AppName />
 
-        {isAdminOrDev && (
+        {canManageProviders && (
           <div className={classes.right}>
             <Button renderIcon={Add} size="sm" onClick={() => openModal((props) => <ImportAgentsModal {...props} />)}>
               Add new agent

@@ -2,12 +2,13 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-from typing import Annotated
+from typing import Annotated, Final
 from uuid import UUID
 
 from fastapi import Depends, HTTPException, Path, Query, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBasic, HTTPBasicCredentials, HTTPBearer
 from kink import di
+from limits.aio.storage import Storage
 from pydantic import ConfigDict
 
 from agentstack_server.api.auth.auth import (
@@ -18,6 +19,7 @@ from agentstack_server.api.auth.auth import (
     verify_internal_jwt,
 )
 from agentstack_server.api.auth.utils import create_resource_uri
+from agentstack_server.api.rate_limiter import RateLimit, UserRateLimiter
 from agentstack_server.configuration import Configuration
 from agentstack_server.domain.models.permissions import AuthorizedUser, Permissions
 from agentstack_server.domain.models.user import UserRole
@@ -214,3 +216,23 @@ class RequiresPermissions(Permissions):
         if user.global_permissions.check(self):
             return user
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+
+
+def user_rate_limiter(
+    user: Annotated[AuthorizedUser, Depends(authorized_user)],
+    configuration: ConfigurationDependency,
+    storage: Annotated[Storage, Depends(lambda: di[Storage])],
+) -> UserRateLimiter:
+    return UserRateLimiter(user=user.user, configuration=configuration, storage=storage)
+
+
+UserRateLimiterDependency = Annotated[UserRateLimiter, Depends(user_rate_limiter)]
+
+
+class ActivatedUserRateLimiterDependency:
+    def __init__(self, limit: RateLimit) -> None:
+        self._limit: Final[RateLimit] = limit
+
+    async def __call__(self, user_rate_limiter: UserRateLimiterDependency) -> UserRateLimiter:
+        await user_rate_limiter.hit(self._limit)
+        return user_rate_limiter
