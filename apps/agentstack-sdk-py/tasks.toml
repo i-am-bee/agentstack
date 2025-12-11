@@ -75,7 +75,7 @@ outputs = { auto = true }
 
 # test
 
-["agentstack-sdk-py:e2e-test"]
+["agentstack-sdk-py:test-all"]
 run = """
 #!/bin/bash
 uv run --python={{option(name="python", default="3.13")}} pytest

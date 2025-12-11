@@ -13,7 +13,7 @@ from agentstack_sdk.platform.client import PlatformClient, get_platform_client
 class User(pydantic.BaseModel):
     id: str
     role: Literal["admin", "developer", "user"]
-    email: pydantic.EmailStr
+    email: str
     created_at: pydantic.AwareDatetime
 
     @staticmethod

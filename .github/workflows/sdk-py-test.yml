@@ -35,4 +35,4 @@ jobs:
       - uses: ./.github/actions/setup
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: mise run agentstack-sdk-py:e2e-test --python=${{ matrix.python }}
+      - run: mise run agentstack-sdk-py:test-all --python=${{ matrix.python }}
