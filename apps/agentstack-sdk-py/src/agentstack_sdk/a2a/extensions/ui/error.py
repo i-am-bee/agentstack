@@ -3,14 +3,13 @@
 
 from __future__ import annotations
 
-import contextvars
 import json
 import logging
 import traceback
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from types import NoneType
-from typing import Any
+from typing import Any, Final
 
 import pydantic
 
@@ -20,6 +19,7 @@ from agentstack_sdk.a2a.extensions.base import (
     BaseExtensionSpec,
 )
 from agentstack_sdk.a2a.types import AgentMessage, JsonDict, Metadata
+from agentstack_sdk.util import resource_context
 
 logger = logging.getLogger(__name__)
 
@@ -125,25 +125,18 @@ def _extract_error(exc: BaseException) -> Error | ErrorGroup:
 class ErrorExtensionServer(BaseExtensionServer[ErrorExtensionSpec, NoneType]):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        # Server-scoped ContextVar for request-scoped error context
-        self._error_context_var: contextvars.ContextVar[JsonDict] = contextvars.ContextVar("error_context")
 
     @asynccontextmanager
     async def lifespan(self) -> AsyncIterator[None]:
         """Set up request-scoped error context using ContextVar."""
-        # Set an empty dict for this request's context
-        token = self._error_context_var.set({})
-
-        try:
+        with use_error_extension_context(server=self, context={}):
             yield
-        finally:
-            self._error_context_var.reset(token)
 
     @property
     def context(self) -> JsonDict:
         """Get the current request's error context."""
         try:
-            return self._error_context_var.get()
+            return get_error_extension_context().context
         except LookupError:
             # Fallback for when lifespan hasn't been entered yet
             logger.warning(
@@ -186,28 +179,44 @@ class ErrorExtensionServer(BaseExtensionServer[ErrorExtensionSpec, NoneType]):
         Returns:
             AgentMessage with error metadata and markdown-formatted text
         """
-        metadata = self.error_metadata(error)
-        error_metadata = ErrorMetadata.model_validate(metadata[self.spec.URI])
+        try:
+            metadata = self.error_metadata(error)
+            error_metadata = ErrorMetadata.model_validate(metadata[self.spec.URI])
 
-        # Serialize to markdown for display
-        text_lines: list[str] = []
-        if isinstance(error_metadata.error, ErrorGroup):
-            text_lines.append(f"## {error_metadata.error.message}\n")
-            for err in error_metadata.error.errors:
-                text_lines.append(f"### {err.title}\n{err.message}")
-        else:
-            text_lines.append(f"## {error_metadata.error.title}\n{error_metadata.error.message}")
+            # Serialize to markdown for display
+            text_lines: list[str] = []
+            if isinstance(error_metadata.error, ErrorGroup):
+                text_lines.append(f"## {error_metadata.error.message}\n")
+                for err in error_metadata.error.errors:
+                    text_lines.append(f"### {err.title}\n{err.message}")
+            else:
+                text_lines.append(f"## {error_metadata.error.title}\n{error_metadata.error.message}")
 
-        # Add context if present
-        if error_metadata.context:
-            text_lines.append(f"## Context\n```json\n{json.dumps(error_metadata.context, indent=2)}\n```")
+            # Add context if present
+            if error_metadata.context:
+                text_lines.append(f"## Context\n```json\n{json.dumps(error_metadata.context, indent=2)}\n```")
 
-        if error_metadata.stack_trace:
-            text_lines.append(f"## Stack Trace\n```\n{error_metadata.stack_trace}\n```")
+            if error_metadata.stack_trace:
+                text_lines.append(f"## Stack Trace\n```\n{error_metadata.stack_trace}\n```")
 
-        text = "\n\n".join(text_lines)
+            text = "\n\n".join(text_lines)
 
-        return AgentMessage(text=text, metadata=metadata)
+            return AgentMessage(text=text, metadata=metadata)
+        except Exception as error_exc:
+            return AgentMessage(text=f"Failed to create error message: {error_exc!s}\noriginal exc: {error!s}")
 
 
 class ErrorExtensionClient(BaseExtensionClient[ErrorExtensionSpec, ErrorMetadata]): ...
+
+
+DEFAULT_ERROR_EXTENSION: Final = ErrorExtensionServer(ErrorExtensionSpec(ErrorExtensionParams()))
+
+
+class ErrorContext(pydantic.BaseModel, arbitrary_types_allowed=True):
+    server: ErrorExtensionServer = pydantic.Field(default=DEFAULT_ERROR_EXTENSION)
+    context: JsonDict = pydantic.Field(default_factory=dict)
+
+
+get_error_extension_context, use_error_extension_context = resource_context(
+    factory=ErrorContext, default_factory=ErrorContext
+)

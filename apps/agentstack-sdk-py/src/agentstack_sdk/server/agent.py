@@ -36,9 +36,14 @@ from a2a.types import (
 )
 
 from agentstack_sdk.a2a.extensions.ui.agent_detail import AgentDetail, AgentDetailExtensionSpec
-from agentstack_sdk.a2a.extensions.ui.error import ErrorExtensionParams, ErrorExtensionServer, ErrorExtensionSpec
-from agentstack_sdk.a2a.types import AgentMessage, ArtifactChunk, Metadata, RunYield, RunYieldResume
-from agentstack_sdk.server.constants import _IMPLICIT_DEPENDENCY_PREFIX, DEFAULT_ERROR_EXTENSION
+from agentstack_sdk.a2a.extensions.ui.error import (
+    ErrorExtensionParams,
+    ErrorExtensionServer,
+    ErrorExtensionSpec,
+    get_error_extension_context,
+)
+from agentstack_sdk.a2a.types import ArtifactChunk, Metadata, RunYield, RunYieldResume
+from agentstack_sdk.server.constants import _IMPLICIT_DEPENDENCY_PREFIX
 from agentstack_sdk.server.context import RunContext
 from agentstack_sdk.server.dependencies import extract_dependencies
 from agentstack_sdk.server.store.context_store import ContextStore
@@ -47,7 +52,7 @@ from agentstack_sdk.util.logging import logger
 
 AgentFunction: TypeAlias = Callable[[], AsyncGenerator[RunYield, RunYieldResume]]
 AgentFunctionFactory: TypeAlias = Callable[
-    [TaskUpdater, RequestContext, ContextStore], AbstractAsyncContextManager[tuple[AgentFunction, RunContext]]
+    [TaskUpdater, RequestContext, ContextStore], AbstractAsyncContextManager[AgentFunction]
 ]
 
 
@@ -212,7 +217,7 @@ def agent(
             @asynccontextmanager
             async def agent_executor_lifespan(
                 task_updater: TaskUpdater, request_context: RequestContext, context_store: ContextStore
-            ) -> AsyncIterator[tuple[AgentFunction, RunContext]]:
+            ) -> AsyncIterator[AgentFunction]:
                 message = request_context.message
                 assert message  # this is only executed in the context of SendMessage request
                 # These are incorrectly typed in a2a
@@ -230,16 +235,22 @@ def agent(
 
                 async with AsyncExitStack() as stack:
                     dependency_args = {}
+                    initialize_deps_exceptions: list[Exception] = []
                     for pname, depends in dependencies.items():
                         # call dependencies with the first message and initialize their lifespan
-                        dependency_args[pname] = await stack.enter_async_context(
-                            depends(message, context, dependency_args)
-                        )
+                        try:
+                            dependency_args[pname] = await stack.enter_async_context(
+                                depends(message, context, dependency_args)
+                            )
+                        except Exception as e:
+                            initialize_deps_exceptions.append(e)
 
-                    context._error_extension = next(
-                        (ext for ext in dependency_args.values() if isinstance(ext, ErrorExtensionServer)),
-                        DEFAULT_ERROR_EXTENSION,
-                    )
+                    if initialize_deps_exceptions:
+                        raise (
+                            ExceptionGroup("Failed to initialize dependencies", initialize_deps_exceptions)
+                            if len(initialize_deps_exceptions) > 1
+                            else initialize_deps_exceptions[0]
+                        )
 
                     context._store = await context_store.create(
                         context_id=request_context.context_id,
@@ -282,7 +293,7 @@ def agent(
                         finally:
                             await cancel_task(task)
 
-                    yield agent_generator, context
+                    yield agent_generator
 
             return Agent(card=card, execute=agent_executor_lifespan)
 
@@ -348,13 +359,12 @@ class Executor(AgentExecutor):
                 deep=True, update={"context_id": task_updater.context_id, "task_id": task_updater.task_id}
             )
 
-        run_context: RunContext | None = None
         try:
-            async with self._agent_executor_span(task_updater, context, context_store) as (execute_fn, run_context):
+            await task_updater.start_work()
+            async with self._agent_executor_span(task_updater, context, context_store) as execute_fn:
                 try:
                     agent_generator_fn = execute_fn()
 
-                    await task_updater.start_work()
                     value: RunYieldResume = None
                     opened_artifacts: set[str] = set()
                     while True:
@@ -464,17 +474,13 @@ class Executor(AgentExecutor):
                     await task_updater.complete()
                 except CancelledError:
                     await task_updater.cancel()
+                    raise
                 except Exception as ex:
                     logger.error("Error when executing agent", exc_info=ex)
-                    try:
-                        error_extension = run_context._error_extension if run_context else None
-                        error_extension = error_extension if error_extension is not None else DEFAULT_ERROR_EXTENSION
-                        error_msg = error_extension.message(ex)
-                    except Exception as error_exc:
-                        error_msg = AgentMessage(
-                            text=(f"Failed to create error message: {error_exc!s}\noriginal exc: {ex!s}")
-                        )
-                    await task_updater.failed(error_msg)
+                    await task_updater.failed(get_error_extension_context().server.message(ex))
+        except Exception as ex:
+            logger.error("Error when executing agent", exc_info=ex)
+            await task_updater.failed(get_error_extension_context().server.message(ex))
         finally:  # cleanup
             await cancel_task(cancellation_task)
             is_cancelling = bool(current_task.cancelling())

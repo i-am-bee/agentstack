@@ -3,7 +3,6 @@
 
 
 from collections.abc import AsyncIterator
-from typing import TYPE_CHECKING
 
 import janus
 from a2a.server.context import ServerCallContext
@@ -13,9 +12,6 @@ from pydantic import BaseModel, PrivateAttr
 
 from agentstack_sdk.a2a.types import RunYield, RunYieldResume
 from agentstack_sdk.server.store.context_store import ContextStoreInstance
-
-if TYPE_CHECKING:
-    from agentstack_sdk.a2a.extensions.ui.error import ErrorExtensionServer
 
 
 class RunContext(BaseModel, arbitrary_types_allowed=True):
@@ -30,7 +26,6 @@ class RunContext(BaseModel, arbitrary_types_allowed=True):
     _store: ContextStoreInstance | None = PrivateAttr(None)
     _yield_queue: janus.Queue[RunYield] = PrivateAttr(default_factory=janus.Queue)
     _yield_resume_queue: janus.Queue[RunYieldResume] = PrivateAttr(default_factory=janus.Queue)
-    _error_extension: "ErrorExtensionServer | None" = PrivateAttr(None)
 
     async def store(self, data: Message | Artifact):
         if not self._store:
