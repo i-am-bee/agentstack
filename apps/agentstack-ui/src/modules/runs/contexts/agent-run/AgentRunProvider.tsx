@@ -213,7 +213,7 @@ function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<Ag
           message,
           contextId,
           fulfillments,
-          uiExtensionInputs: {
+          inputs: {
             form: form?.response,
             canvasEditRequest: canvasEditParams ? getCanvasEditRequest(canvasEditParams) : undefined,
           },

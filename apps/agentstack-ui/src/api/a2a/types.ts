@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Fulfillments, TaskStatusUpdateResult, UiExtensionInputs } from 'agentstack-sdk';
+import type { Fulfillments, TaskStatusUpdateResult, UserMetadataInputs } from 'agentstack-sdk';
 
 import type { UIMessagePart, UIUserMessage } from '#modules/messages/types.ts';
 import type { ContextId, TaskId } from '#modules/tasks/api/types.ts';
@@ -30,7 +30,7 @@ export interface ChatParams {
   message: UIUserMessage;
   contextId: ContextId;
   fulfillments: Fulfillments;
-  uiExtensionInputs: UiExtensionInputs;
+  inputs: UserMetadataInputs;
   taskId?: TaskId;
 }
 

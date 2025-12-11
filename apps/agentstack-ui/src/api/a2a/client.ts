@@ -5,7 +5,7 @@
 
 import type { TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from '@a2a-js/sdk';
 import { A2AClient } from '@a2a-js/sdk/client';
-import { handleAgentCard, handleTaskStatusUpdate, handleUiExtensionInput } from 'agentstack-sdk';
+import { handleAgentCard, handleTaskStatusUpdate, resolveUserMetadata } from 'agentstack-sdk';
 import { defaultIfEmpty, filter, lastValueFrom, Subject } from 'rxjs';
 import { match } from 'ts-pattern';
 
@@ -84,18 +84,17 @@ export const buildA2AClient = async <UIGenericPart = never>({
   const client = await A2AClient.fromCardUrl(agentCardUrl, { fetchImpl: clientFetch });
   const card = await client.getAgentCard();
   const { resolveMetadata: resolveAgentCardMetadata, demands } = handleAgentCard(card);
-  const { resolveMetadata: resolveUiExtensionMetadata } = handleUiExtensionInput();
 
-  const chat = ({ message, contextId, fulfillments, uiExtensionInputs, taskId: initialTaskId }: ChatParams) => {
+  const chat = ({ message, contextId, fulfillments, inputs, taskId: initialTaskId }: ChatParams) => {
     const messageSubject = new Subject<ChatResult<UIGenericPart>>();
 
     let taskId: undefined | TaskId = initialTaskId;
 
     const iterateOverStream = async () => {
       const agentCardMetadata = await resolveAgentCardMetadata(fulfillments);
-      const uiExtensionMetadata = await resolveUiExtensionMetadata(uiExtensionInputs);
+      const userMetadata = await resolveUserMetadata(inputs);
 
-      const metadata = { ...agentCardMetadata, ...uiExtensionMetadata };
+      const metadata = { ...agentCardMetadata, ...userMetadata };
 
       const stream = client.sendMessageStream({
         message: createUserMessage({ message, contextId, metadata, taskId }),

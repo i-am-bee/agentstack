@@ -11,7 +11,7 @@ export {
   type TaskStatusUpdateResult,
   TaskStatusUpdateType,
 } from './client/a2a/extensions/handle-task-status-update';
-export { handleUiExtensionInput, type UiExtensionInputs } from './client/a2a/extensions/handle-ui-extension-input';
+export { resolveUserMetadata, type UserMetadataInputs } from './client/a2a/extensions/resolve-user-metadata';
 export * from './client/a2a/extensions/services/embedding';
 export * from './client/a2a/extensions/services/form';
 export * from './client/a2a/extensions/services/llm';
