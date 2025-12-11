@@ -1,3 +1,6 @@
 {
-    "python.terminal.activateEnvironment": false
+  "python.terminal.activateEnvironment": false,
+  "debug.javascript.defaultRuntimeExecutable": {
+    "pwa-node": "/Users/jp/.local/share/mise/shims/node"
+  }
 }
