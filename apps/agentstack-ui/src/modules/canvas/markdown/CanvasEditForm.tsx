@@ -29,7 +29,7 @@ export function CanvasEditForm({ onSubmit }: Props) {
         <TextInput
           placeholder="How do you want to change it?"
           id={id}
-          labelText=""
+          labelText="Edit instructions"
           autoFocus
           size="sm"
           className={classes.input}

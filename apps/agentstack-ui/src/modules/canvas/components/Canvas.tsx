@@ -18,7 +18,7 @@ export function Canvas() {
   const contentRef = useRef(null);
 
   const content = useMemo(
-    () => activeArtifact?.parts.map((part) => part.kind === UIMessagePartKind.Text && part.text).join(''),
+    () => activeArtifact?.parts.map((part) => (part.kind === UIMessagePartKind.Text ? part.text : '')).join(''),
     [activeArtifact],
   );
 

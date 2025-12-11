@@ -35,6 +35,10 @@
     }
   }
 
+  :global(.cds--text-input__label-wrapper) {
+    display: none;
+  }
+
   button {
     &,
     &:not(:disabled) {
