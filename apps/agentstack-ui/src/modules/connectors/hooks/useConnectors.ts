@@ -113,7 +113,7 @@ export const useConnect = () => {
     async (connectorId: string) => {
       const result = await connectConnector({ connector_id: connectorId });
 
-      if (result && result.auth_request) {
+      if (result?.auth_request) {
         setIsAuthorizing(true);
         authorizeOauth(result.auth_request.authorization_endpoint, (props) => {
           handleAuthorizeCallback(props);
