@@ -27,63 +27,38 @@ uv add agentstack-sdk
 
 ```python
 import os
-from a2a.types import AgentSkill, Message
+
+from a2a.types import (
+    Message,
+)
+from a2a.utils.message import get_message_text
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
-from agentstack_sdk.server.store.platform_context_store import PlatformContextStore
+from agentstack_sdk.a2a.types import AgentMessage
 
-# Initialize server
 server = Server()
 
-# Define your agent
-@server.agent(
-    name="My Agent",
-    skills=[
-        AgentSkill(
-            id="my-agent-skill",
-            name="My Agent",
-            description="Agent description here",
-            tags=["Chat"],
-            examples=["Example query 1", "Example query 2"]
-        )
-    ],
-)
-async def my_agent(
-    input: Message,
-    context: RunContext,
-):
-    """Your agent logic here"""
-    
-    # Store incoming message
-    await context.store(input)
-    
-    # Extract user message
-    user_msg = "".join(
-        part.root.text for part in input.parts 
-        if part.root.kind == "text"
-    )
-    
-    # Process and yield response
-    response_text = f"You said: {user_msg}"
-    yield response_text
-    
-    # Store response in context
-    from agentstack_sdk.a2a.types import AgentMessage
-    await context.store(AgentMessage(text=response_text))
+@server.agent()
+async def example_agent(input: Message, context: RunContext):
+    """Polite agent that greets the user"""
+    hello_template: str = os.getenv("HELLO_TEMPLATE", "Ciao %s!")
+    yield AgentMessage(text=hello_template % get_message_text(input))
 
-# Run the server
+def run():
+    try:
+        server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+    except KeyboardInterrupt:
+        pass
+
+
 if __name__ == "__main__":
-    server.run(
-        host=os.getenv("HOST", "127.0.0.1"),
-        port=int(os.getenv("PORT", 8000)),
-        context_store=PlatformContextStore()
-    )
+    run()
 ```
 
 Run the agent:
 
 ```bash
-python my_agent.py
+uv run my_agent.py
 ```
 
 ## Available Extensions
