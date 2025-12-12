@@ -273,8 +273,8 @@ spec:
             - name: AUTH__DISABLE_AUTH
               value: "true"
             {{- end }}
-            {{- if .Values.features.selfRegistration }}
-            - name: PROVIDER__AUTO_REMOVE_ENABLED
+            {{- if .Values.disableProviderDownscaling }}
+            - name: PROVIDER__DISABLE_DOWNSCALING
               value: "true"
             {{- end }}
             - name: GENERATE_CONVERSATION_TITLE__ENABLED

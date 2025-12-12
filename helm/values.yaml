@@ -83,6 +83,8 @@ providers: []
 unmanagedProviders: [] # DEPRECATED: use providers instead
 variables: {} # DEPRECATED: use server API to manage variables instead
 
+disableProviderDownscaling: false
+
 # External registries in the format: [name: githubURL]
 # for example
 # github: "https://github.com/i-am-bee/agentstack@v0.2.14#path=agent-registry.yaml"

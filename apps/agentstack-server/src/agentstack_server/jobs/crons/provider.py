@@ -31,7 +31,9 @@ blueprint = Blueprint()
 @blueprint.periodic(cron="*/1 * * * *")
 @blueprint.task(queueing_lock="scale_down_providers", queue=str(Queues.CRON_PROVIDER))
 @inject
-async def scale_down_providers(timestamp: int, service: ProviderService):
+async def scale_down_providers(timestamp: int, service: ProviderService, configuration: Configuration):
+    if configuration.provider.disable_downscaling:
+        return
     await service.scale_down_providers()
 
 
