@@ -75,7 +75,7 @@ server = Server()
 
 
 @server.agent(
-    name="ChatV2",
+    name="Chat",
     documentation_url=(
         f"https://github.com/i-am-bee/agentstack/blob/{os.getenv('RELEASE_VERSION', 'main')}/agents/chat"
     ),

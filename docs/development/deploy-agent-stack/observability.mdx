@@ -109,6 +109,22 @@ Open [http://localhost:6006](http://localhost:6006) in your browser and navigate
   For an enhanced user experience and richer trace detail, consider instrumenting agents using the [OpenInference](https://github.com/Arize-ai/openinference/) standard for custom instrumentation.
 </Tip>
 
+If you have your own agent built with the Python SDK, make sure that instrumentation is enabled both in the SDK and your favorite framework:
+```python
+from agentstack_sdk.server import Server
+
+# Example: BeeAI Framework instrumentation
+# from openinference.instrumentation.beeai import BeeAIInstrumentor
+# BeeAIInstrumentor().instrument()
+
+server = Server()
+
+@server.agent()
+async def my_agent(): ...
+
+server.run(configure_telemetry=True)
+```
+
 ## Advanced Configuration
 
 ### Configure Langfuse Integration
