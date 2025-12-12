@@ -310,6 +310,11 @@ class GenerateConversationTitleConfiguration(BaseModel):
 
         CONVERSATION CONTENT:
         ```
+        {% if titleHint %}
+        Title hint:
+        {{ titleHint }}
+        {% endif %}
+
         User message:
         {{ text }}
 

@@ -7,7 +7,7 @@ from contextlib import suppress
 from datetime import timedelta
 from uuid import UUID
 
-from a2a.types import Artifact, FilePart, FileWithBytes, FileWithUri, Message, Role, TextPart
+from a2a.types import Artifact, DataPart, FilePart, FileWithBytes, FileWithUri, Message, Role, TextPart
 from fastapi import status
 from kink import inject
 from pydantic import TypeAdapter
@@ -155,10 +155,23 @@ class ContextService:
             await uow.contexts.update_last_active(context_id=context_id)
             await uow.commit()
 
-    def _extract_content_for_title(self, msg: Message | Artifact) -> tuple[str, Sequence[FileWithUri | FileWithBytes]]:
-        text_parts = [part.root.text for part in msg.parts if isinstance(part.root, TextPart)]
-        files = [part.root.file for part in msg.parts if isinstance(part.root, FilePart)]
-        return "".join(text_parts), files
+    def _extract_content_for_title(
+        self, msg: Message | Artifact
+    ) -> tuple[str, str | None, Sequence[FileWithUri | FileWithBytes]]:
+        title_hint: str | None = None
+        text_parts: list[str] = []
+        files: list[FileWithUri | FileWithBytes] = []
+        for part in msg.parts:
+            match part.root:
+                case TextPart(text=text):
+                    text_parts.append(text)
+                case DataPart(data={"title_hint": str(hint)}) if hint and not title_hint:
+                    title_hint = hint
+                case FilePart(file=file):
+                    files.append(file)
+                case _:
+                    pass
+        return "".join(text_parts), title_hint, files
 
     async def add_history_item(self, *, context_id: UUID, data: ContextHistoryItemData, user: User) -> None:
         async with self._uow() as uow:
@@ -202,8 +215,9 @@ class ContextService:
             logger.warning(f"Cannot generate title for context {context_id}: no history found.")
             return
 
-        text, files = self._extract_content_for_title(msg.items[0].data)
-        if not text and not files:
+        raw_message = msg.items[0].data
+        text, title_hint, files = self._extract_content_for_title(raw_message)
+        if not text and not title_hint and not files:
             logger.warning(f"Cannot generate title for context {context_id}: first message has no content.")
             return
 
@@ -212,7 +226,9 @@ class ContextService:
             template = Template(self._configuration.generate_conversation_title.prompt)
             prompt = template.render(
                 text=text,
+                titleHint=title_hint,
                 files=[file.model_dump(include={"name", "mime_type"}) for file in files],
+                rawMessage=raw_message.model_dump(),
             )
             resp = await self._model_provider_service.create_chat_completion(
                 request=ChatCompletionRequest(
@@ -222,8 +238,10 @@ class ContextService:
                     messages=[{"role": "user", "content": prompt}],
                 )
             )
-            title = resp["choices"][0]["message"]["content"].strip().strip("\"'")  # pyright: ignore [reportIndexIssue]
+            title = (resp.choices[0].message.content or "").strip().strip("\"'")
             title = f"{title[:100]}..." if len(title) > 100 else title
+            if not title:
+                raise RuntimeError("Generated title is empty.")
             async with self._uow() as uow:
                 await uow.contexts.update_title(
                     context_id=context_id, title=title, generation_state=TitleGenerationState.COMPLETED

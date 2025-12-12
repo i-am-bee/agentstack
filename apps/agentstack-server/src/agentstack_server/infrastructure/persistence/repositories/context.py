@@ -165,7 +165,8 @@ class SqlAlchemyContextRepository(IContextRepository):
         self, *, context_id: UUID, title: str | None = None, generation_state: TitleGenerationState
     ) -> None:
         # validate length before saving to database
-        _ = TypeAdapter(Metadata).validate_python({"title": title})
+        if title:
+            _ = TypeAdapter(Metadata).validate_python({"title": title})
         context = await self.get(context_id=context_id)
         query = (
             contexts_table.update()

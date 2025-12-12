@@ -23,6 +23,12 @@ a2aProxyRequestsExpireAfterDays: 14
 generateConversationTitle:
   enabled: true
   model: default
+  # You can use the following variables in prompt:
+  # - text: all text parts of the user message concatenated
+  # - files: list of files attached to the user message
+  # - titleHint: hint for the title extracted from DataPart
+  # - rawMessage: entire user message object, WARNING: may contain secrets in metadata, be careful not to send them to the LLM
+  
   prompt: |
     YOUR INSTRUCTIONS:
     Write a short descriptive title for the conversation (max 100 characters).
@@ -34,6 +40,11 @@ generateConversationTitle:
 
     CONVERSATION CONTENT:
     ```
+    {% if titleHint %}
+    Title hint:
+    {{ titleHint }}
+    {% endif %}
+
     User message:
     {{ text }}
 
