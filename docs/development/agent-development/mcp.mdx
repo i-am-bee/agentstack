@@ -1,25 +1,41 @@
 ---
-title: "Dynamically select MCP Servers"
-description: "Learn how to let the client dynamically select MCP servers on per-task basis"
+title: "MCP integration"
+description: "Learn how Agent Stack helps with authentication when using MCP."
 ---
 
-In scenarios where it is necessary to dynamically select MCP servers for the agent to use, the Agent Stack provides an MCP extension that allows clients to specify MCP server details at runtime.
+## What are Connectors?
 
-For you as an agent builder, the usage is extremely simple because we’ve wrapped the usage into an MCP Extension.
+A connector is a local MCP server exposed by the Agent Stack that acts as a proxy to a remote hosted MCP server and handles authentication.
+
+It allows users to set up a connection to a third-party service (like GitHub, Box etc.) and then exposes a local MCP server that can be consumed by agents. This architecture eliminates the need for user authentication in your agent code. The connector handles authentication with the third-party service on behalf of the authenticated user, and the MCP interface is properly scoped to that user's permissions and data.
+
+Users can work with connectors in two ways via the Agent Stack UI:
+
+- **Connect an existing connector**: Go through an OAuth flow to obtain an authentication token for a pre-registered connector.
+- **Register a custom connector**: Provide OAuth client ID, client secret, and URL to register their own service as a connector, then connect it.
+
+When a connector is registered and connected, it becomes available for the agents to use through the MCP extension. Each connector has a name (like "github", "slack", or "notion") that agents can reference when requesting MCP access. The platform automatically routes agent's MCP requests to the appropriate connector, ensuring secure, user-scoped access to third-party services.
+
+## MCP Service Extension
+
+The MCP Service Extension provides a standardized way for your agents to access MCP servers (connectors) without managing connection details, authentication, or URLs manually. The extension automatically matches your agent's MCP requirements with available connectors and provides you with a ready-to-use MCP client session, eliminating the need for manual configuration.
+
+One of the key features of Agent Stack's MCP integration is automatic connector matching. When you specify a suggested connector name in your agent, the platform automatically:
+
+1. Searches for connected connectors with matching names (case-insensitive)
+2. Creates an MCP client connection to the matched connector
+3. Provides you with a ready-to-use MCP client session
+
+This means you don't need to manually configure URLs or manage connector connections. The platform handles it all for you.
 
 <Tip>
-  Service Extensions are a type of [A2A
-  Extension](https://a2a-protocol.org/latest/topics/extensions/) that allows you
-  to easily "inject dependencies" into your agent. This follows the inversion of
-  control principle where your agent defines what it needs, and the client
-  (possibly in cooperation with the platform) is responsible for providing those
-  dependencies.
+Service Extensions are a type of [A2A Extension](https://a2a-protocol.org/latest/topics/extensions/) that allows you to easily "inject dependencies" into your agent. This follows the inversion of control principle where your agent defines what it needs, and the Client (in this case, Agent Stack UI) is responsible for providing those dependencies.
 </Tip>
 
 <Warning>
-  Service extensions are optional by definition, so you should always check if
-  they exist before using them.
+Service extensions are optional by definition, so you should always check if they exist before using them.
 </Warning>
+
 
 ## Quickstart
 
@@ -28,78 +44,143 @@ For you as an agent builder, the usage is extremely simple because we’ve wrapp
 Import the necessary components and add the MCP service extension to your agent function.
 </Step>
 
-<Step title="Configure your MCP request">
-  Specify which MCP servers your agent prefers.
+<Step title="Specify your connector preference">
+Use the `suggested` parameter to indicate which connector you want to use (e.g., `"github"`).
 </Step>
 
-<Step title="Use the MCP client in your agent">
-Access the optionally provided MCP extension and use it to create MCP client(s).
+<Step title="Create an MCP client">
+Use `mcp_service.create_client()` to get a connected MCP client session.
+</Step>
+
+<Step title="Use MCP tools">
+Use the MCP client session to call tools, list resources, or interact with prompts.
 </Step>
 </Steps>
 
-## Example of MCP extension
+## Example: GitHub MCP Agent
 
-Here's how to add MCP extension to your agent:
+Here's a complete example of an agent that uses the GitHub MCP connector:
+
+```python
+import json
+from collections.abc import AsyncGenerator
+from typing import Annotated
+
+from a2a.types import Message
+from mcp import ClientSession
+
+from agentstack_sdk.a2a.extensions.services.mcp import MCPServiceExtensionServer, MCPServiceExtensionSpec
+from agentstack_sdk.a2a.types import RunYield
+from agentstack_sdk.server import Server
+
+server = Server()
+
+
+@server.agent()
+async def github_mcp_agent(
+    mcp_service: Annotated[
+        MCPServiceExtensionServer,
+        MCPServiceExtensionSpec.single_demand(suggested=("github",)),
+    ],
+) -> AsyncGenerator[RunYield, Message]:
+    """Lists tools"""
+
+    if not mcp_service:
+        yield "MCP extension hasn't been activated, no tools are available"
+        return
+
+    async with mcp_service.create_client() as client:
+        if client is None:
+            yield "MCP client not available."
+            return
+
+        read, write = client
+        async with ClientSession(read_stream=read, write_stream=write) as session:
+            await session.initialize()
+            me_result = await session.call_tool("get_me", {})
+            result_dict = me_result.model_dump() if hasattr(me_result, "model_dump") else me_result
+            yield json.dumps(result_dict, indent=2, default=str)
+
+
+if __name__ == "__main__":
+    server.run()
+```
+
+## Custom MCP Client with OAuth
+
+If you prefer not to use the MCP Service Extension (which automatically matches connectors), you can still create a standard MCP client and use the OAuth extension for user authentication. 
+
+Unlike the connector-based approach, this method does not require users to set up a connection ahead of the conversation. The OAuth extension handles the authentication flow through the Agent Stack UI, allowing users to authorize your agent to access third-party services during the conversation itself. This makes it ideal for scenarios where you want users to authenticate on-demand without pre-configuration.
+
+### Example: Direct MCP Client with OAuth
+
+Here's how to build an agent that creates a custom MCP client and uses OAuth for authentication:
 
 ```python
 import os
 from typing import Annotated
 
-from a2a.types import Message
+import pydantic
 from mcp import ClientSession
+from mcp.client.streamable_http import streamablehttp_client
+
+from agentstack_sdk.a2a.extensions.auth.oauth import OAuthExtensionServer, OAuthExtensionSpec
 from agentstack_sdk.server import Server
-from agentstack_sdk.server.context import RunContext
-from agentstack_sdk.a2a.types import AgentMessage
-from agentstack_sdk.a2a.extensions import MCPServiceExtensionServer, MCPServiceExtensionSpec
 
 server = Server()
 
+
 @server.agent()
-async def example_agent(
-    input: Message,
-    context: RunContext,
-    mcp: Annotated[
-        MCPServiceExtensionServer,
-        MCPServiceExtensionSpec.single_demand(),
-    ],
+async def custom_mcp_oauth_agent(
+    oauth: Annotated[OAuthExtensionServer, OAuthExtensionSpec.single_demand()],
 ):
-    """Agent that uses MCP client to list tools"""
+    """Agent that uses OAuth to authenticate with a custom MCP server"""
+    mcp_url = "https://mcp.stripe.com"
 
-    if not mcp:
-        yield "No tools available"
+    if not oauth:
+        yield "OAuth extension not available. Authentication required."
+        return
 
-    async with mcp.create_client() as (read, write), ClientSession(read, write) as session:
-        await session.initialize()
+    async with streamablehttp_client(
+        url=mcp_url,
+        auth=await oauth.create_httpx_auth(resource_url=pydantic.AnyUrl(mcp_url))
+    ) as (read, write, _):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            result = await session.call_tool("get_stripe_account_info")
+            # Extract text content from CallToolResult
+            if result.content:
+                content = result.content[0]
+                if hasattr(content, 'text'):
+                    yield str(content.text)  # type: ignore
+            else:
+                yield "No content returned"
 
-        tools = await session.list_tools()
-
-        yield "Available tools: \n"
-        yield "\n".join([t.name for t in tools.tools])
 
 def run():
-    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", "8000")))
+
 
 if __name__ == "__main__":
     run()
 ```
 
-## Usage with OAuth extension
+### Key Differences
 
-In the usual scenario where the specified MCP server requires OAuth authentication, the MCP extension automatically leverages the OAuth extension if activated. Technically, it does exactly what is described in [Authorize MCP with OAuth](/extensions/mcp-oauth). However, the agent still needs to declare the extension:
+**MCP Service Extension approach:**
+- Automatically matches connectors by name
+- No need to specify MCP server URLs
+- Handles connection setup automatically
+- Requires users to set up connectors before the conversation
+- Best for using registered connectors
 
-```python
-@server.agent()
-async def example_agent(
-    input: Message,
-    context: RunContext,
-    mcp: Annotated[
-        MCPServiceExtensionServer,
-        MCPServiceExtensionSpec.single_demand(),
-    ],
-    _: Annotated[OAuthExtensionServer, OAuthExtensionSpec.single_demand()],
-):
-```
+**Custom MCP Client with OAuth approach:**
+- Manual MCP client creation with explicit URLs
+- Full control over connection parameters
+- Uses OAuth extension for in-conversation user authentication
+- No pre-setup required from users
+- Best for direct MCP server connections or on-demand authentication
 
-## Usage with Connectors
-
-To further improve user experience, one can use [Connectors](/guides/connectors) and have the Agent Stack platform automatically manage access tokens, hence effectively skipping the aforementioned OAuth flow during agent execution. This is achieved by specifying a connector instead of the actual MCP server that backs the connector.
+<Warning>
+Always check if the OAuth extension is available before using it to comply with plain A2A clients that may not support OAuth authentication.
+</Warning>

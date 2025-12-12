@@ -43,6 +43,7 @@
               "stable/agent-development/agent-settings",
               "stable/agent-development/secrets",
               "stable/agent-development/rag",
+              "stable/agent-development/mcp-oauth",
               "stable/agent-development/mcp",
               "stable/agent-development/env-variables",
               "stable/agent-development/error",
