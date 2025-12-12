@@ -1,0 +1,40 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.root {
+  display: grid;
+  grid-template-areas:
+    'name connectBtn'
+    'description description';
+  grid-template-columns: 1fr auto;
+  column-gap: $spacing-03;
+  row-gap: $spacing-02;
+  border: 1px solid $border-subtle-00;
+  border-radius: $border-radius;
+  padding: $spacing-04;
+}
+
+.name {
+  @include type-style(heading-02);
+  grid-area: name;
+
+  &:global(:not(.cds--skeleton__text)) {
+    @include line-clamp();
+  }
+}
+
+.description {
+  @include type-style(body-01);
+  color: $text-secondary;
+  grid-area: description;
+
+  &:global(:not(.cds--skeleton__text)) {
+    @include line-clamp(2);
+  }
+}
+
+.connectBtn {
+  grid-area: connectBtn;
+}

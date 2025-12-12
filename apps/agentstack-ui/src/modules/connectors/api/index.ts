@@ -20,6 +20,12 @@ export async function createConnector(body: CreateConnectorRequest) {
   return ensureData(response);
 }
 
+export async function deleteConnector(path: DeleteConnectorPath) {
+  const response = await api.DELETE('/api/v1/connectors/{connector_id}', { params: { path } });
+
+  return ensureData(response);
+}
+
 export async function connectConnector(path: ConnectConnectorPath) {
   const response = await api.POST('/api/v1/connectors/{connector_id}/connect', {
     params: { path },
@@ -35,8 +41,8 @@ export async function disconnectConnector(path: DisconnectConnectorPath) {
   return ensureData(response);
 }
 
-export async function deleteConnector(path: DeleteConnectorPath) {
-  const response = await api.DELETE('/api/v1/connectors/{connector_id}', { params: { path } });
+export async function listConnectorPresets() {
+  const response = await api.GET('/api/v1/connectors/presets');
 
   return ensureData(response);
 }

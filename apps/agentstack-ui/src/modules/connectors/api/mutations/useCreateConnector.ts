@@ -7,9 +7,10 @@ import { useMutation } from '@tanstack/react-query';
 
 import { createConnector } from '..';
 import { connectorKeys } from '../keys';
+import type { Connector } from '../types';
 
 interface Props {
-  onSuccess?: () => void;
+  onSuccess?: (connector: Connector | undefined) => void;
 }
 
 export function useCreateConnector({ onSuccess }: Props = {}) {

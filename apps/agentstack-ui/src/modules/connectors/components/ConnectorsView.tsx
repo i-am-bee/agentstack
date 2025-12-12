@@ -19,7 +19,7 @@ import { DeleteConnectorButton } from './DeleteConnectorButton';
 export function ConnectorsView() {
   const { openModal } = useModal();
 
-  const { data, isPending } = useListConnectors();
+  const { data: connectors, isPending } = useListConnectors();
 
   const headers = useMemo(
     () => [
@@ -31,12 +31,12 @@ export function ConnectorsView() {
   );
 
   const entries = useMemo(() => {
-    if (!data) {
+    if (!connectors) {
       return [];
     }
 
-    return data.items.map((item) => {
-      const { id, url, state } = item;
+    return connectors.items.map((connector) => {
+      const { id, url, state } = connector;
 
       return {
         id,
@@ -44,14 +44,14 @@ export function ConnectorsView() {
         state,
         actions: (
           <TableViewActions>
-            <ConnectorActionButton connector={item} />
+            <ConnectorActionButton connector={connector} />
 
-            <DeleteConnectorButton connector={item} />
+            <DeleteConnectorButton connector={connector} />
           </TableViewActions>
         ),
       };
     });
-  }, [data]);
+  }, [connectors]);
 
   return (
     <TableViewWithSearch

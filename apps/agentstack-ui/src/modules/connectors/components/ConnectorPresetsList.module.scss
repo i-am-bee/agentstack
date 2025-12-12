@@ -3,13 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-.body {
-  min-block-size: rem(300px);
+.root {
   display: flex;
   flex-direction: column;
-  row-gap: $spacing-05;
-}
-
-.toggleBtn {
-  padding-inline-end: rem(15px);
+  row-gap: $spacing-04;
 }
