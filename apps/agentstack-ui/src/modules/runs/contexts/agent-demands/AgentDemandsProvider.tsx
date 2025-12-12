@@ -114,7 +114,6 @@ export function AgentDemandsProvider<UIGenericPart>({
   }, []);
 
   const { data: connectorsData } = useListConnectors();
-  const connectors = connectorsData?.items ?? [];
 
   const getContextToken = useCallback(async () => {
     if (contextId === null) {
@@ -155,10 +154,17 @@ export function AgentDemandsProvider<UIGenericPart>({
         selectedSettings,
         formFulfillments: formFulfillmentsRef.current,
         oauthRedirectUri: oauthRedirectUri ?? null,
-        connectors,
+        connectors: connectorsData?.items ?? [],
       });
     },
-    [getContextToken, selectedLLMProviders, selectedEmbeddingProviders, selectedSettings, demandedSecrets, connectors],
+    [
+      getContextToken,
+      selectedLLMProviders,
+      selectedEmbeddingProviders,
+      selectedSettings,
+      demandedSecrets,
+      connectorsData,
+    ],
   );
 
   return (

@@ -7,6 +7,7 @@ import z from 'zod';
 
 export const addConnectorFormSchema = z
   .object({
+    name: z.string().trim(),
     url: z.url().trim(),
     clientId: z.string().trim().optional(),
     clientSecret: z.string().trim().optional(),

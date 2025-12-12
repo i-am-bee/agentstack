@@ -31,12 +31,13 @@ export function AddConnectorModal({ onRequestClose, ...modalProps }: ModalProps)
   });
 
   const onSubmit: SubmitHandler<AddConnectorForm> = useCallback(
-    ({ url, clientId, clientSecret }) => {
+    ({ url, clientId, clientSecret, name }) => {
       createConnector({
         url,
         match_preset: false,
         client_id: clientId,
         client_secret: clientSecret,
+        metadata: { name },
       });
     },
     [createConnector],
@@ -51,6 +52,14 @@ export function AddConnectorModal({ onRequestClose, ...modalProps }: ModalProps)
       <ModalBody>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className={classes.stack}>
+            <TextInput
+              id={`${id}:name`}
+              labelText="Name"
+              invalid={Boolean(errors.name)}
+              invalidText={errors.name?.message}
+              {...register('name')}
+            />
+
             <TextInput
               id={`${id}:url`}
               labelText="URL"
