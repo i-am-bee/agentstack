@@ -9,10 +9,13 @@
 
     th {
       &:nth-child(1) {
-        inline-size: 60%;
+        inline-size: 40%;
       }
       &:nth-child(2) {
         inline-size: 30%;
+      }
+      &:nth-child(3) {
+        inline-size: 20%;
       }
     }
 
@@ -24,6 +27,7 @@
   }
 }
 
+.name,
 .url {
   @at-root td#{&} {
     overflow-wrap: anywhere;

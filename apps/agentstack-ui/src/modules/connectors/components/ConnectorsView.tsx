@@ -24,6 +24,7 @@ export function ConnectorsView() {
   const headers = useMemo(
     () => [
       { key: 'url', header: 'URL', className: classes.url },
+      { key: 'name', header: 'Name', className: classes.name },
       { key: 'state', header: 'Status' },
       { key: 'actions', header: '' },
     ],
@@ -36,10 +37,11 @@ export function ConnectorsView() {
     }
 
     return connectors.items.map((connector) => {
-      const { id, url, state } = connector;
+      const { id, url, state, metadata } = connector;
 
       return {
         id,
+        name: metadata?.name ?? '',
         url,
         state,
         actions: (

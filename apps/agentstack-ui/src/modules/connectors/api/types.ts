@@ -3,9 +3,31 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import {
+  connectorSchema as sdkConnectorSchema,
+  listConnectorsResponseSchema as sdkListConnectorsResponseSchema,
+} from 'agentstack-sdk';
+import z from 'zod';
+
 import type { ApiPath, ApiRequest, ApiResponse } from '#@types/utils.ts';
 
-export type { Connector, ListConnectorsResponse } from 'agentstack-sdk';
+const connectorMetadataSchema = z
+  .object({
+    name: z.string().optional(),
+  })
+  .nullable();
+
+export const connectorSchema = sdkConnectorSchema.extend({
+  metadata: connectorMetadataSchema,
+});
+
+export const listConnectorsResponseSchema = sdkListConnectorsResponseSchema.extend({
+  items: z.array(connectorSchema),
+});
+
+export type Connector = z.infer<typeof connectorSchema>;
+
+export type ListConnectorsResponse = z.infer<typeof listConnectorsResponseSchema>;
 
 export type CreateConnectorRequest = ApiRequest<'/api/v1/connectors'>;
 

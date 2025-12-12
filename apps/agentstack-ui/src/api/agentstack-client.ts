@@ -7,6 +7,7 @@ import { buildApiClient } from 'agentstack-sdk';
 
 import { ensureToken } from '#app/(auth)/rsc.tsx';
 import { runtimeConfig } from '#contexts/App/runtime-config.ts';
+import { listConnectorsResponseSchema } from '#modules/connectors/api/types.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 
 import { getProxyHeaders, handleFailedResponse } from './utils';
@@ -50,4 +51,13 @@ function buildAuthenticatedAgentstackClient() {
   return client;
 }
 
-export const agentstackClient = buildAuthenticatedAgentstackClient();
+const baseAgentstackClient = buildAuthenticatedAgentstackClient();
+
+export const agentstackClient = {
+  ...baseAgentstackClient,
+  listConnectors: async () => {
+    const response = await baseAgentstackClient.listConnectors();
+
+    return listConnectorsResponseSchema.parse(response);
+  },
+};
