@@ -6,6 +6,7 @@
 import type { CarbonIconType } from '@carbon/icons-react';
 import { Credentials, Link, Unlink } from '@carbon/icons-react';
 import { IconButton } from '@carbon/react';
+import { ConnectorState } from 'agentstack-sdk';
 import { useMemo } from 'react';
 import { match } from 'ts-pattern';
 
@@ -49,10 +50,10 @@ export function ConnectorActionButton({ connector }: Props) {
       : null;
 
     return match(state)
-      .with('created', () => connectButton)
-      .with('disconnected', () => connectButton)
-      .with('connected', () => disconnectButton)
-      .with('auth_required', () => authorizeButton)
+      .with(ConnectorState.Created, () => connectButton)
+      .with(ConnectorState.Disconnected, () => connectButton)
+      .with(ConnectorState.Connected, () => disconnectButton)
+      .with(ConnectorState.AuthRequired, () => authorizeButton)
       .exhaustive();
   }, [id, state, auth_request, connect, disconnect, authorize]);
 
