@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Artifact, Message } from '@a2a-js/sdk';
+import type { ContextHistory } from 'agentstack-sdk';
 import { match } from 'ts-pattern';
 import { v4 as uuid } from 'uuid';
 
@@ -12,21 +12,20 @@ import { Role } from '#modules/messages/api/types.ts';
 import type { UIAgentMessage, UIUserMessage } from '#modules/messages/types.ts';
 import { type UIMessage, UIMessageStatus } from '#modules/messages/types.ts';
 import { addMessagePart } from '#modules/messages/utils.ts';
-import type { ContextHistoryItem } from '#modules/platform-context/api/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 
-export function convertHistoryToUIMessages(history: ContextHistoryItem[]): UIMessage[] {
+export function convertHistoryToUIMessages(history: ContextHistory[]): UIMessage[] {
   const { messages } = history.reduce<{ messages: UIMessage[]; taskId?: TaskId }>(
     ({ messages, taskId }, { data }) => {
       let lastTaskId = taskId;
 
       const message = match(data)
-        .with({ kind: 'message' }, (message: Message) => {
+        .with({ kind: 'message' }, (message) => {
           const metadataParts = processMessageMetadata(message);
           const contentParts = processParts(message.parts);
           const parts = [...metadataParts, ...contentParts];
 
-          lastTaskId = message.taskId;
+          lastTaskId = message.taskId ?? undefined;
           const { messageId } = message;
 
           return match(message)
@@ -58,7 +57,7 @@ export function convertHistoryToUIMessages(history: ContextHistoryItem[]): UIMes
             )
             .exhaustive();
         })
-        .otherwise((artifact: Artifact): UIAgentMessage => {
+        .otherwise((artifact): UIAgentMessage => {
           const contentParts = processParts(artifact.parts);
 
           return {

@@ -4,12 +4,11 @@
  */
 
 import type { UseMutateAsyncFunction } from '@tanstack/react-query';
+import type { Context, CreateContextRequest, ListContextHistoryResponse } from 'agentstack-sdk';
 import { createContext } from 'react';
 
 import type { Agent } from '#modules/agents/api/types.ts';
 import type { ContextId } from '#modules/tasks/api/types.ts';
-
-import type { CreateContextResponse, ListContextHistoryResponse } from '../api/types';
 
 export type ContextToken = {
   token: string;
@@ -22,7 +21,7 @@ interface PlatformContextValue {
 
   getContextId: () => ContextId;
   resetContext: () => void;
-  createContext: UseMutateAsyncFunction<CreateContextResponse | undefined, Error, string>;
+  createContext: UseMutateAsyncFunction<Context, Error, CreateContextRequest>;
   updateContextWithAgentMetadata: (agent: Agent) => Promise<void>;
 }
 

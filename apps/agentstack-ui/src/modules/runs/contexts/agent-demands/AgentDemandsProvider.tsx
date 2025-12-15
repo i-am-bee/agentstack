@@ -3,12 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { type AgentSettings, type FormFulfillments, ModelCapability } from 'agentstack-sdk';
+import { type FormFulfillments, ModelCapability, type SettingsValues } from 'agentstack-sdk';
 import { type PropsWithChildren, useCallback, useRef, useState } from 'react';
 
 import { useListConnectors } from '#modules/connectors/api/queries/useListConnectors.ts';
 import type { RunFormValues } from '#modules/form/types.ts';
-import { useMatchProviders } from '#modules/platform-context/api/mutations/useMatchProviders.ts';
+import { useMatchModelProviders } from '#modules/platform-context/api/mutations/useMatchModelProviders.ts';
 import { getSettingsDemandsDefaultValues } from '#modules/runs/settings/utils.ts';
 
 import { useA2AClient } from '../a2a-client';
@@ -25,11 +25,11 @@ export function AgentDemandsProvider({ children }: PropsWithChildren) {
   const [selectedLLMProviders, setSelectedLLMProviders] = useState<Record<string, string>>({});
   const formFulfillmentsRef = useRef<FormFulfillments>({ form_fulfillments: {} });
 
-  const [selectedSettings, setSelectedSettings] = useState<AgentSettings>(
+  const [selectedSettings, setSelectedSettings] = useState<SettingsValues>(
     getSettingsDemandsDefaultValues(agentClient.demands.settingsDemands ?? { fields: [] }),
   );
 
-  const onUpdateSettings = useCallback((value: AgentSettings) => {
+  const onUpdateSettings = useCallback((value: SettingsValues) => {
     setSelectedSettings(value);
   }, []);
 
@@ -50,7 +50,7 @@ export function AgentDemandsProvider({ children }: PropsWithChildren) {
     [setSelectedLLMProviders],
   );
 
-  const { data: matchedLLMProviders } = useMatchProviders({
+  const { data: matchedLLMProviders } = useMatchModelProviders({
     demands: agentClient?.demands.llmDemands?.llm_demands ?? {},
     onSuccess: setDefaultSelectedLLMProviders,
     capability: ModelCapability.Llm,
@@ -73,7 +73,7 @@ export function AgentDemandsProvider({ children }: PropsWithChildren) {
     [setSelectedEmbeddingProviders],
   );
 
-  const { data: matchedEmbeddingProviders } = useMatchProviders({
+  const { data: matchedEmbeddingProviders } = useMatchModelProviders({
     demands: agentClient?.demands.embeddingDemands?.embedding_demands ?? {},
     onSuccess: setDefaultSelectedEmbeddingProviders,
     capability: ModelCapability.Embedding,

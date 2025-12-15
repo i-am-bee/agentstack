@@ -6,6 +6,9 @@ settings:
 
 catalogs:
   default:
+    '@a2a-js/sdk':
+      specifier: ^0.3.7
+      version: 0.3.7
     '@carbon/icons-react':
       specifier: ^11.71.0
       version: 11.71.0
@@ -69,8 +72,8 @@ importers:
   apps/agentstack-sdk-ts:
     dependencies:
       '@a2a-js/sdk':
-        specifier: ^0.3.4
-        version: 0.3.4(express@4.21.2)
+        specifier: 'catalog:'
+        version: 0.3.7(express@4.21.2)
       zod:
         specifier: ^4.1.11
         version: 4.1.11
@@ -97,8 +100,8 @@ importers:
   apps/agentstack-ui:
     dependencies:
       '@a2a-js/sdk':
-        specifier: ^0.3.5
-        version: 0.3.5(express@4.21.2)
+        specifier: 'catalog:'
+        version: 0.3.7(express@4.21.2)
       '@bprogress/next':
         specifier: ^3.2.12
         version: 3.2.12(next@15.5.7(@babel/core@7.28.4)(@opentelemetry/api@1.9.0)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(sass@1.95.1))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
@@ -147,9 +150,6 @@ importers:
       eventsource-parser:
         specifier: ^3.0.6
         version: 3.0.6
-      fetch-event-stream:
-        specifier: ^0.1.6
-        version: 0.1.6
       framer-motion:
         specifier: ^12.23.25
         version: 12.23.26(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
@@ -180,12 +180,6 @@ importers:
       next-auth:
         specifier: 5.0.0-beta.29
         version: 5.0.0-beta.29(next@15.5.7(@babel/core@7.28.4)(@opentelemetry/api@1.9.0)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(sass@1.95.1))(react@19.2.1)
-      openapi-fetch:
-        specifier: ^0.15.0
-        version: 0.15.0
-      openapi-typescript-helpers:
-        specifier: ^0.0.15
-        version: 0.0.15
       openid-client:
         specifier: ^6.8.1
         version: 6.8.1
@@ -483,17 +477,8 @@ importers:
 
 packages:
 
-  '@a2a-js/sdk@0.3.4':
-    resolution: {integrity: sha512-WXMk/UspvQFxesvb8hXyfPE8d3ibpiRie24Yw/5ruMqNJcdwxjfZ1G0gj6vYE/I9RAZD145CNzedpZA2cLV2JQ==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      express: ^4.21.2 || ^5.1.0
-    peerDependenciesMeta:
-      express:
-        optional: true
-
-  '@a2a-js/sdk@0.3.5':
-    resolution: {integrity: sha512-6xAApkiss2aCbJXmXLC845tifcbYJ/R4Dj22kQsOaanMbf9bvkYhebDEuYPAIu3aaR5MWaBqG7OCK3IF8dqZZQ==}
+  '@a2a-js/sdk@0.3.7':
+    resolution: {integrity: sha512-1WBghkOjgiKt4rPNje8jlB9VateVQXqyjlc887bY/H8yM82Hlf0+5JW8zB98BPExKAplI5XqtXVH980J6vqi+w==}
     engines: {node: '>=18'}
     peerDependencies:
       express: ^4.21.2 || ^5.1.0
@@ -5013,9 +4998,6 @@ packages:
       picomatch:
         optional: true
 
-  fetch-event-stream@0.1.6:
-    resolution: {integrity: sha512-GREtJ5HNikdU2AXtZ6E/5bk+aslMU6ie5mPG6H9nvsdDkkHQ6m5lHwmmmDTOBexok9hApQ7EprsXCdmz9ZC68w==}
-
   figures@1.7.0:
     resolution: {integrity: sha512-UxKlfCRuCBxSXU4C6t9scbDyWZ4VlaFFdojKtzJuSkuOBQ5CNFum+zZXFwHjo+CxBC1t6zlYPgHIgFjL8ggoEQ==}
     engines: {node: '>=0.10.0'}
@@ -6553,14 +6535,8 @@ packages:
     resolution: {integrity: sha512-7x81NCL719oNbsq/3mh+hVrAWmFuEYUqrq/Iw3kUzH8ReypT9QQ0BLoJS7/G9k6N81XjW4qHWtjWwe/9eLy1EQ==}
     engines: {node: '>=12'}
 
-  openapi-fetch@0.15.0:
-    resolution: {integrity: sha512-OjQUdi61WO4HYhr9+byCPMj0+bgste/LtSBEcV6FzDdONTs7x0fWn8/ndoYwzqCsKWIxEZwo4FN/TG1c1rI8IQ==}
-
   openapi-types@12.1.3:
     resolution: {integrity: sha512-N4YtSYJqghVu4iek2ZUvcN/0aqH1kRDuNqzcycDxhOUpg7GdvLa2F3DgS6yBNhInhv2r/6I0Flkn7CqL8+nIcw==}
-
-  openapi-typescript-helpers@0.0.15:
-    resolution: {integrity: sha512-opyTPaunsklCBpTK8JGef6mfPhLSnyy5a0IN9vKtx3+4aExf+KxEqYwIy3hqkedXIB97u357uLMJsOnm3GVjsw==}
 
   openapi-typescript@7.10.1:
     resolution: {integrity: sha512-rBcU8bjKGGZQT4K2ekSTY2Q5veOQbVG/lTKZ49DeCyT9z62hM2Vj/LLHjDHC9W7LJG8YMHcdXpRZDqC1ojB/lw==}
@@ -8576,13 +8552,7 @@ packages:
 
 snapshots:
 
-  '@a2a-js/sdk@0.3.4(express@4.21.2)':
-    dependencies:
-      uuid: 11.1.0
-    optionalDependencies:
-      express: 4.21.2
-
-  '@a2a-js/sdk@0.3.5(express@4.21.2)':
+  '@a2a-js/sdk@0.3.7(express@4.21.2)':
     dependencies:
       uuid: 11.1.0
     optionalDependencies:
@@ -14321,8 +14291,6 @@ snapshots:
     optionalDependencies:
       picomatch: 4.0.3
 
-  fetch-event-stream@0.1.6: {}
-
   figures@1.7.0:
     dependencies:
       escape-string-regexp: 1.0.5
@@ -16304,13 +16272,7 @@ snapshots:
       is-docker: 2.2.1
       is-wsl: 2.2.0
 
-  openapi-fetch@0.15.0:
-    dependencies:
-      openapi-typescript-helpers: 0.0.15
-
   openapi-types@12.1.3: {}
-
-  openapi-typescript-helpers@0.0.15: {}
 
   openapi-typescript@7.10.1(typescript@5.9.3):
     dependencies:

@@ -32,7 +32,7 @@ export default async function AgentRunPage({ params }: Props) {
   const [agent, initialData] = await Promise.all([
     fetchAgent(providerId),
     fetchContextHistory({
-      contextId,
+      context_id: contextId,
       query: LIST_CONTEXT_HISTORY_DEFAULT_QUERY,
     }),
   ]);

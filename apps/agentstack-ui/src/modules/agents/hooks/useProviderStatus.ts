@@ -3,8 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { Provider } from 'agentstack-sdk';
+import { ProviderStatus } from 'agentstack-sdk';
+
 import { useProvider } from '#modules/providers/api/queries/useProvider.ts';
-import { type Provider, ProviderStatus } from '#modules/providers/api/types.ts';
 
 interface Props {
   providerId: string | null | undefined;

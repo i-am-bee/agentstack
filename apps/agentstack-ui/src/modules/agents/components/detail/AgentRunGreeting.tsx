@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { InteractionMode } from 'agentstack-sdk';
 import { memo } from 'react';
 
-import { type Agent, InteractionMode } from '../../api/types';
+import type { Agent } from '../../api/types';
 import { AgentWelcomeMessage } from './AgentWelcomeMessage';
 
 interface Props {

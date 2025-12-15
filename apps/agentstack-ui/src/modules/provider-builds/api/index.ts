@@ -3,42 +3,35 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { api } from '#api/index.ts';
-import { ensureData } from '#api/utils.ts';
+import type { CreateProviderBuildRequest, PreviewProviderBuildRequest, ReadProviderBuildRequest } from 'agentstack-sdk';
+import { unwrapResult } from 'agentstack-sdk';
 
-import type {
-  CreateProviderBuildRequest,
-  PreviewProviderBuildRequest,
-  ReadProviderBuildLogsPath,
-  ReadProviderBuildPath,
-} from './types';
+import { agentStackClient } from '#api/agentstack-client.ts';
 
-export async function createProviderBuild(body: CreateProviderBuildRequest) {
-  const response = await api.POST('/api/v1/provider_builds', { body });
+export async function createProviderBuild(request: CreateProviderBuildRequest) {
+  const response = await agentStackClient.createProviderBuild(request);
+  const result = unwrapResult(response);
 
-  return ensureData(response);
+  return result;
 }
 
-export async function listProviderBuilds() {
-  const response = await api.GET('/api/v1/provider_builds');
+export async function readProviderBuild(request: ReadProviderBuildRequest) {
+  const response = await agentStackClient.readProviderBuild(request);
+  const result = unwrapResult(response);
 
-  return ensureData(response);
+  return result;
 }
 
-export async function previewProviderBuild(body: PreviewProviderBuildRequest) {
-  const response = await api.POST('/api/v1/provider_builds/preview', { body });
+export async function readProviderBuildLogs(request: ReadProviderBuildRequest) {
+  const response = await agentStackClient.readProviderBuildLogs(request);
+  const result = unwrapResult(response);
 
-  return ensureData(response);
+  return result;
 }
 
-export async function readProviderBuild(path: ReadProviderBuildPath) {
-  const response = await api.GET('/api/v1/provider_builds/{id}', { params: { path } });
+export async function previewProviderBuild(request: PreviewProviderBuildRequest) {
+  const response = await agentStackClient.previewProviderBuild(request);
+  const result = unwrapResult(response);
 
-  return ensureData(response);
-}
-
-export async function readProviderBuildLogs(path: ReadProviderBuildLogsPath) {
-  const response = await api.GET('/api/v1/provider_builds/{id}/logs', { parseAs: 'stream', params: { path } });
-
-  return ensureData(response);
+  return result;
 }

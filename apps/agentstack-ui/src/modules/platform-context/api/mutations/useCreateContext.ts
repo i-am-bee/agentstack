@@ -4,12 +4,16 @@
  */
 
 import { useMutation } from '@tanstack/react-query';
-import type { CreateContextResponse } from 'agentstack-sdk';
+import type { Context } from 'agentstack-sdk';
 
 import { createContext } from '..';
 import { contextKeys } from '../keys';
 
-export function useCreateContext({ onSuccess }: { onSuccess?: (data: CreateContextResponse) => void } = {}) {
+interface Props {
+  onSuccess?: (data: Context) => void;
+}
+
+export function useCreateContext({ onSuccess }: Props = {}) {
   const mutation = useMutation({
     mutationFn: createContext,
     onSuccess,

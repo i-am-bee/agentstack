@@ -4,15 +4,15 @@
  */
 
 import type {
-  AgentSettings,
   Connector,
   ContextToken,
   EmbeddingDemands,
   FormFulfillments,
   Fulfillments,
   MCPFulfillments,
+  SettingsValues,
 } from 'agentstack-sdk';
-import { ConnectorState } from 'agentstack-sdk';
+import { ConnectorState, MCPTransportType } from 'agentstack-sdk';
 
 import { BASE_URL } from '#utils/constants.ts';
 
@@ -21,7 +21,7 @@ interface BuildFulfillmentsParams {
   selectedLLMProviders: Record<string, string>;
   selectedEmbeddingProviders: Record<string, string>;
   providedSecrets: Record<string, string>;
-  selectedSettings: AgentSettings;
+  selectedSettings: SettingsValues;
   formFulfillments: FormFulfillments;
   oauthRedirectUri: string | null;
   connectors: Connector[];
@@ -133,7 +133,7 @@ export const buildFulfillments = ({
 
           mcp_fulfillments[demandKey] = {
             transport: {
-              type: 'streamable_http',
+              type: MCPTransportType.StreamableHttp,
               url: `{platform_url}/api/v1/connectors/${latestConnector.id}/mcp`,
             },
           };

@@ -10,7 +10,7 @@ import { connectorKeys } from '../keys';
 import type { Connector } from '../types';
 
 interface Props {
-  onSuccess?: (connector: Connector | undefined) => void;
+  onSuccess?: (connector: Connector) => void;
 }
 
 export function useCreateConnector({ onSuccess }: Props = {}) {

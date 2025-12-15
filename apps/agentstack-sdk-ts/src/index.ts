@@ -3,33 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export { createAuthenticatedFetch } from './client/a2a/create-authenticated-fetch';
-export * from './client/a2a/extensions/common/form';
-export * from './client/a2a/extensions/fulfillment-resolvers/build-llm-extension-fulfillment-resolver';
-export { type Fulfillments, handleAgentCard } from './client/a2a/extensions/handle-agent-card';
-export {
-  handleTaskStatusUpdate,
-  type TaskStatusUpdateResult,
-  TaskStatusUpdateType,
-} from './client/a2a/extensions/handle-task-status-update';
-export { resolveUserMetadata, type UserMetadataInputs } from './client/a2a/extensions/resolve-user-metadata';
-export * from './client/a2a/extensions/services/embedding';
-export * from './client/a2a/extensions/services/form';
-export * from './client/a2a/extensions/services/llm';
-export * from './client/a2a/extensions/services/mcp';
-export * from './client/a2a/extensions/services/oauth-provider';
-export * from './client/a2a/extensions/services/platform';
-export * from './client/a2a/extensions/services/secrets';
-export * from './client/a2a/extensions/types';
-export * from './client/a2a/extensions/ui/agent-detail';
-export * from './client/a2a/extensions/ui/canvas';
-export * from './client/a2a/extensions/ui/citation';
-export * from './client/a2a/extensions/ui/error';
-export * from './client/a2a/extensions/ui/form-request';
-export * from './client/a2a/extensions/ui/oauth';
-export * from './client/a2a/extensions/ui/settings';
-export * from './client/a2a/extensions/ui/trajectory';
-export * from './client/a2a/extensions/utils';
-export * from './client/a2a/extensions/utils/build-message-builder';
-export * from './client/api/build-api-client';
-export * from './client/api/types';
+export * from './client/a2a';
+export * from './client/api';
+export * from './client/core';

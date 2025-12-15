@@ -4,6 +4,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
+import { ProviderBuildState } from 'agentstack-sdk';
 
 import { readProviderBuild } from '..';
 import { providerBuildKeys } from '../keys';
@@ -20,7 +21,7 @@ export function useProviderBuild({ id = '' }: Props) {
     refetchInterval: (query) => {
       const status = query.state.data?.status;
 
-      if (status === 'completed') {
+      if (status === ProviderBuildState.Completed) {
         return false;
       }
 

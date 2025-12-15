@@ -4,11 +4,12 @@
  */
 'use server';
 
+import { isHttpError } from 'agentstack-sdk';
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getToken } from 'next-auth/jwt';
 
-import { UnauthenticatedError } from '#api/errors.ts';
+import { isUnauthenticatedError } from '#api/errors.ts';
 import { runtimeConfig } from '#contexts/App/runtime-config.ts';
 import { routes } from '#utils/router.ts';
 
@@ -38,7 +39,11 @@ export async function ensureToken(request: Request) {
 }
 
 export async function handleApiError(error: unknown) {
-  if (error instanceof UnauthenticatedError) {
+  console.error(error);
+
+  if (isUnauthenticatedError(error)) {
     redirect(routes.signIn());
+  } else if (isHttpError(error, 404) || isHttpError(error, 422)) {
+    notFound();
   }
 }

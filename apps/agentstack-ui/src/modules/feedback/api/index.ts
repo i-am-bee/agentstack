@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { api } from '#api/index.ts';
-import { ensureData } from '#api/utils.ts';
+import { type CreateUserFeedbackRequest, unwrapResult } from 'agentstack-sdk';
 
-import type { SendFeedbackRequest } from './types';
+import { agentStackClient } from '#api/agentstack-client.ts';
 
-export async function sendFeedback(body: SendFeedbackRequest) {
-  const response = await api.POST('/api/v1/user_feedback', { body });
+export async function sendFeedback(request: CreateUserFeedbackRequest) {
+  const response = await agentStackClient.createUserFeedback(request);
+  const result = unwrapResult(response);
 
-  return ensureData(response);
+  return result;
 }

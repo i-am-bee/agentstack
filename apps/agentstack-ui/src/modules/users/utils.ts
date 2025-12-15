@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { User } from './api/types';
+import { type User, UserRole } from 'agentstack-sdk';
 
 export function isUserAdminOrDev(user: User | undefined) {
   if (!user) {
@@ -12,5 +12,5 @@ export function isUserAdminOrDev(user: User | undefined) {
 
   const { role } = user;
 
-  return role === 'admin' || role === 'developer';
+  return role === UserRole.Admin || role === UserRole.Developer;
 }

@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { InteractionMode } from 'agentstack-sdk';
 import clsx from 'clsx';
 
 import { AgentIcon } from '#modules/runs/components/AgentIcon.tsx';
 
-import { type Agent, InteractionMode } from '../../api/types';
+import type { Agent } from '../../api/types';
 import classes from './AgentHeading.module.scss';
 
 interface Props {

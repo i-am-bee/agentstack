@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentCard } from '@a2a-js/sdk';
+import type { AgentCard } from 'agentstack-sdk';
 
 import { createProxyUrl } from '#utils/api/getProxyUrl.ts';
 

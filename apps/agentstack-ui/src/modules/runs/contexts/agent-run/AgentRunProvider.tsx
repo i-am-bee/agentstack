@@ -12,7 +12,6 @@ import { v4 as uuid } from 'uuid';
 
 import type { ChatRun } from '#api/a2a/types.ts';
 import { createTextPart } from '#api/a2a/utils.ts';
-import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { CanvasProvider } from '#modules/canvas/contexts/CanvasProvider.tsx';
@@ -103,11 +102,9 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
 
   const handleError = useCallback(
     (error: unknown) => {
-      const errorCode = getErrorCode(error);
-
       errorHandler(error, {
         errorToast: {
-          title: errorCode?.toString() ?? 'Failed to run agent.',
+          title: 'Failed to run agent.',
           includeErrorMessage: true,
         },
       });
@@ -265,7 +262,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
         pendingSubscription.current = undefined;
 
         queryClient.invalidateQueries({ queryKey: contextKeys.lists() });
-        queryClient.invalidateQueries({ queryKey: contextKeys.history({ contextId }) });
+        queryClient.invalidateQueries({ queryKey: contextKeys.history({ context_id: contextId }) });
       }
     },
     [

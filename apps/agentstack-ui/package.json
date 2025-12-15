@@ -11,7 +11,7 @@
     "#*": "./src/*"
   },
   "dependencies": {
-    "@a2a-js/sdk": "^0.3.5",
+    "@a2a-js/sdk": "catalog:",
     "@bprogress/next": "^3.2.12",
     "@carbon/icons-react": "catalog:",
     "@carbon/layout": "^11.44.0",
@@ -28,7 +28,6 @@
     "clsx": "catalog:",
     "date-fns": "4.1.0",
     "eventsource-parser": "^3.0.6",
-    "fetch-event-stream": "^0.1.6",
     "framer-motion": "^12.23.25",
     "humanize-duration": "^3.33.1",
     "immer": "^11.0.1",
@@ -39,8 +38,6 @@
     "mermaid": "^11.12.2",
     "next": "catalog:",
     "next-auth": "5.0.0-beta.29",
-    "openapi-fetch": "^0.15.0",
-    "openapi-typescript-helpers": "^0.0.15",
     "openid-client": "^6.8.1",
     "pluralize": "^8.0.0",
     "promise-coalesce": "1.5.0",

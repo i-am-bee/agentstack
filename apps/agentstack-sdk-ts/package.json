@@ -4,8 +4,8 @@
   "version": "0.5.2",
   "type": "module",
   "scripts": {
-    "build": "rimraf dist && microbundle --format modern,cjs,umd",
-    "dev": "microbundle watch"
+    "build": "rimraf dist && microbundle --format modern,cjs,umd src/*.ts",
+    "dev": "microbundle watch src/*.ts"
   },
   "source": "src/index.ts",
   "repository": {
@@ -25,13 +25,41 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./types": {
+    "./api": {
       "require": {
-        "types": "./dist/types/index.d.cts"
+        "types": "./dist/api.d.cts",
+        "default": "./dist/api.cjs"
       },
       "import": {
-        "types": "./dist/types/index.d.ts"
-      }
+        "types": "./dist/api.d.ts",
+        "default": "./dist/api.js"
+      },
+      "types": "./dist/api.d.ts",
+      "default": "./dist/api.js"
+    },
+    "./core": {
+      "require": {
+        "types": "./dist/core.d.cts",
+        "default": "./dist/core.cjs"
+      },
+      "import": {
+        "types": "./dist/core.d.ts",
+        "default": "./dist/core.js"
+      },
+      "types": "./dist/core.d.ts",
+      "default": "./dist/core.js"
+    },
+    "./extensions": {
+      "require": {
+        "types": "./dist/extensions.d.cts",
+        "default": "./dist/extensions.cjs"
+      },
+      "import": {
+        "types": "./dist/extensions.d.ts",
+        "default": "./dist/extensions.js"
+      },
+      "types": "./dist/extensions.d.ts",
+      "default": "./dist/extensions.js"
     },
     "./package.json": "./package.json"
   },
@@ -45,7 +73,7 @@
   "module": "dist/index.js",
   "unpkg": "dist/index.umd.js",
   "dependencies": {
-    "@a2a-js/sdk": "^0.3.4",
+    "@a2a-js/sdk": "catalog:",
     "zod": "^4.1.11"
   },
   "devDependencies": {

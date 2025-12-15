@@ -3,31 +3,30 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { api } from '#api/index.ts';
-import { ensureData } from '#api/utils.ts';
+import type { ListProviderVariablesRequest, UpdateProviderVariablesRequest } from 'agentstack-sdk';
+import { unwrapResult } from 'agentstack-sdk';
 
-import type { DeleteVariableParams, ListVariablesPath, UpdateVariableParams } from './types';
+import { agentStackClient } from '#api/agentstack-client.ts';
 
-export async function listProviderVariables(path: ListVariablesPath) {
-  const response = await api.GET('/api/v1/providers/{id}/variables', { params: { path } });
+import type { DeleteProviderVariableRequest } from './types';
 
-  return ensureData(response);
+export async function listProviderVariables(request: ListProviderVariablesRequest) {
+  const response = await agentStackClient.listProviderVariables(request);
+  const result = unwrapResult(response);
+
+  return result;
 }
 
-export async function updateProviderVariable({ id, variables }: UpdateVariableParams) {
-  const response = await api.PUT('/api/v1/providers/{id}/variables', {
-    params: { path: { id } },
-    body: { variables },
-  });
+export async function updateProviderVariables(request: UpdateProviderVariablesRequest) {
+  const response = await agentStackClient.updateProviderVariables(request);
+  const result = unwrapResult(response);
 
-  return ensureData(response);
+  return result;
 }
 
-export async function deleteProviderVariable({ id, name }: DeleteVariableParams) {
-  const response = await api.PUT('/api/v1/providers/{id}/variables', {
-    params: { path: { id } },
-    body: { variables: { [name]: null } },
-  });
+export async function deleteProviderVariable({ name, ...request }: DeleteProviderVariableRequest) {
+  const response = await agentStackClient.updateProviderVariables({ ...request, variables: { [name]: null } });
+  const result = unwrapResult(response);
 
-  return ensureData(response);
+  return result;
 }

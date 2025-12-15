@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Task, TaskArtifactUpdateEvent } from '@a2a-js/sdk';
-import type { FormRender, SecretDemands } from 'agentstack-sdk';
+import type { FormRender, SecretDemands, Task, TaskArtifactUpdateEvent } from 'agentstack-sdk';
 
 import type { UICanvasEditRequestParams } from '#modules/canvas/types.ts';
 import type { RunFormValues } from '#modules/form/types.ts';

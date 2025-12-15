@@ -5,7 +5,7 @@
 import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
 
-import { UnauthenticatedError } from '#api/errors.ts';
+import { isUnauthenticatedError } from '#api/errors.ts';
 import { buildErrorToast } from '#api/utils.ts';
 import type { QueryMetadata } from '#contexts/QueryProvider/types.ts';
 import { useToast } from '#contexts/Toast/index.ts';
@@ -19,7 +19,7 @@ export function useHandleError() {
     (error: unknown, options: QueryMetadata = {}) => {
       const { errorToast } = options;
 
-      if (error instanceof UnauthenticatedError) {
+      if (isUnauthenticatedError(error)) {
         const callbackUrl = window ? window.location.pathname + window.location.search : undefined;
         router.replace(routes.signIn({ callbackUrl }));
         console.error(error);

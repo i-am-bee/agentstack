@@ -4,19 +4,19 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
+import type { ListProvidersRequest } from 'agentstack-sdk';
 
 import { listProviders } from '..';
 import { providerKeys } from '../keys';
-import type { ListProvidersParams } from '../types';
 
-interface Props extends ListProvidersParams {
+interface Props extends ListProvidersRequest {
   enabled?: boolean;
 }
 
-export function useListProviders({ enabled = true, ...params }: Props = {}) {
+export function useListProviders({ enabled = true, ...request }: Props = {}) {
   const query = useQuery({
-    queryKey: providerKeys.list(params),
-    queryFn: () => listProviders(params),
+    queryKey: providerKeys.list(request),
+    queryFn: () => listProviders(request),
     enabled,
   });
 

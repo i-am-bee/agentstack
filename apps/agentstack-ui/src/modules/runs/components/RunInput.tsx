@@ -5,12 +5,12 @@
 
 import { InlineLoading } from '@carbon/react';
 import { useMergeRefs } from '@floating-ui/react';
+import { InteractionMode } from 'agentstack-sdk';
 import { useCallback, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
 
 import { TextAreaAutoHeight } from '#components/TextAreaAutoHeight/TextAreaAutoHeight.tsx';
-import { InteractionMode } from '#modules/agents/api/types.ts';
 import { FileUploadButton } from '#modules/files/components/FileUploadButton.tsx';
 import { useFileUpload } from '#modules/files/contexts/index.ts';
 import { dispatchInputEventOnTextarea, submitFormOnEnter } from '#utils/form-utils.ts';

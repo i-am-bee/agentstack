@@ -3,31 +3,45 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ApiPath, ApiQuery, ApiRequest, ApiResponse } from '#@types/utils.ts';
+import type { ContextHistory } from 'agentstack-sdk';
+import {
+  contextSchema as sdkContextSchema,
+  listContextsResponseSchema as sdkListContextsResponseSchema,
+  patchContextMetadataRequestSchema as sdkPatchContextMetadataRequestSchema,
+} from 'agentstack-sdk';
+import z from 'zod';
 
-import type { ContextMetadata } from '../types';
+export enum TitleGenerationState {
+  Pending = 'pending',
+  Completed = 'completed',
+  Failed = 'failed',
+}
 
-export type { CreateContextResponse } from 'agentstack-sdk';
+export const contextMetadataSchema = z.object({
+  agent_name: z.string().optional(),
+  provider_id: z.string().optional(),
+  title_generation_state: z.enum(TitleGenerationState).optional(),
+  title: z.string().optional(),
+});
 
-export type ListContextsQuery = ApiQuery<'/api/v1/contexts'>;
-export type ListContextsResponse = ApiResponse<'/api/v1/contexts'>;
-export type ListContextsParams = { query?: ListContextsQuery };
+export type ContextMetadata = z.infer<typeof contextMetadataSchema>;
 
-export type DeleteContextPath = ApiPath<'/api/v1/contexts/{context_id}'>;
-export type DeleteContextParams = DeleteContextPath;
+export const contextSchema = sdkContextSchema.extend({
+  metadata: contextMetadataSchema.nullable(),
+});
+export type Context = z.infer<typeof contextSchema>;
 
-export type UpdateContextMetadataPath = ApiPath<'/api/v1/contexts/{context_id}/metadata', 'patch'>;
-export type UpdateContextMetadataRequest = ApiRequest<'/api/v1/contexts/{context_id}/metadata', 'patch'> & {
-  metadata: Pick<ContextMetadata, 'agent_name' | 'provider_id'>;
-};
-export type UpdateContextMetadataParams = UpdateContextMetadataPath & UpdateContextMetadataRequest;
+export const listContextsResponseSchema = sdkListContextsResponseSchema.extend({
+  items: z.array(contextSchema),
+});
+export type ListContextsResponse = z.infer<typeof listContextsResponseSchema>;
 
-export type ListContextHistoryQuery = ApiQuery<'/api/v1/contexts/{context_id}/history'>;
-export type ListContextHistoryResponse = ApiResponse<'/api/v1/contexts/{context_id}/history'>;
-export type ListContextHistoryParams = { contextId: string; query?: ListContextHistoryQuery };
+export const patchContextMetadataRequestSchema = sdkPatchContextMetadataRequestSchema.extend({
+  metadata: contextMetadataSchema,
+});
+export type PatchContextMetadataRequest = z.infer<typeof patchContextMetadataRequestSchema>;
 
-export type ContextHistoryItem = ListContextHistoryResponse['items'][number];
+//
 
-export type HistoryItem = ApiResponse<'/api/v1/contexts/{context_id}/history'>['items'][number]['data'];
+export type HistoryItem = ContextHistory['data'];
 export type HistoryMessage = Extract<HistoryItem, { kind: 'message' }>;
-export type HistoryArtifact = Extract<HistoryItem, { artifactId: string }>;

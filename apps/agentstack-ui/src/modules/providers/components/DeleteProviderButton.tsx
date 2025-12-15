@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { Provider } from 'agentstack-sdk';
+
 import { DeleteButton } from '#components/DeleteButton/DeleteButton.tsx';
 
 import { useDeleteProvider } from '../api/mutations/useDeleteProvider';
-import type { Provider } from '../api/types';
 
 interface Props {
   provider: Provider;

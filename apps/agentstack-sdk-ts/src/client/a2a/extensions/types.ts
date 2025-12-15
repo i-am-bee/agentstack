@@ -3,18 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { z } from 'zod';
-
-export interface A2AExtension<U extends string> {
-  getUri: () => U;
-}
-
-export interface A2AUiExtension<U extends string, D> extends A2AExtension<U> {
-  getMessageMetadataSchema: () => z.ZodSchema<Partial<Record<U, D>>>;
-}
-
-export interface A2AServiceExtension<U extends string, D, F> extends A2AExtension<U> {
-  getUri: () => U;
-  getDemandsSchema: () => z.ZodSchema<D>;
-  getFulfillmentSchema: () => z.ZodSchema<F>;
-}
+export * from './auth/oauth/types';
+export * from './auth/secrets/types';
+export * from './common/form/types';
+export * from './services/embedding/types';
+export * from './services/form/types';
+export * from './services/llm/types';
+export * from './services/mcp/types';
+export * from './services/platform-api/types';
+export * from './ui/agent-detail/types';
+export * from './ui/canvas/types';
+export * from './ui/citation/types';
+export * from './ui/error/types';
+export * from './ui/settings/types';
+export * from './ui/trajectory/types';

@@ -6,6 +6,7 @@ packages:
   - docs
 
 catalog:
+  '@a2a-js/sdk': "^0.3.7"
   '@carbon/icons-react': ^11.71.0
   '@carbon/react': ^1.97.0
   '@svgr/webpack': ^8.1.0

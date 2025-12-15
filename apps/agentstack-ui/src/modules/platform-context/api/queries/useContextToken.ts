@@ -27,9 +27,9 @@ export function useContextToken(agent: Agent) {
       }
 
       const token = await createContextToken({
-        contextId,
-        contextPermissions: contextTokenPermissions.grant_context_permissions ?? {},
-        globalPermissions: contextTokenPermissions.grant_global_permissions ?? {},
+        context_id: contextId,
+        grant_context_permissions: contextTokenPermissions.grant_context_permissions ?? {},
+        grant_global_permissions: contextTokenPermissions.grant_global_permissions ?? {},
       });
 
       if (!token) {

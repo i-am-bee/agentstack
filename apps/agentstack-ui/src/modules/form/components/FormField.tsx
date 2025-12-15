@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FormField, FormResponseValue } from 'agentstack-sdk';
+import type { FormField, FormFieldValue } from 'agentstack-sdk';
 import type { CSSProperties } from 'react';
 import { match, P } from 'ts-pattern';
 
@@ -18,7 +18,7 @@ import classes from './FormField.module.scss';
 
 interface Props {
   field: FormField;
-  value?: FormResponseValue;
+  value?: FormFieldValue;
 }
 
 export function FormField({ field, value }: Props) {

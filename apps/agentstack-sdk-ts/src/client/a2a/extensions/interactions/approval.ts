@@ -5,7 +5,7 @@
 
 import z from 'zod';
 
-import type { A2AUiExtension } from '../types';
+import type { A2AUiExtension } from '../../../core/extensions/types';
 
 const URI = 'https://a2a-extensions.agentstack.beeai.dev/interactions/approval/v1';
 

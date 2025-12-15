@@ -3,15 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type {
-  FilePart,
-  FileWithUri,
-  GetTaskResponse,
-  GetTaskSuccessResponse,
-  Message,
-  Part,
-  TextPart,
-} from '@a2a-js/sdk';
+import type { GetTaskResponse, GetTaskSuccessResponse } from '@a2a-js/sdk';
+import type { FilePart, FileWithUri, Message, Part, TextPart } from 'agentstack-sdk';
 import {
   type Citation,
   citationExtension,
@@ -124,7 +117,7 @@ export function getFileUrl(file: FilePart['file']): string {
   return `data:${mimeType};base64,${bytes}`;
 }
 
-export function createSourcePart(citation: Citation, taskId: string | undefined): UISourcePart | null {
+export function createSourcePart(citation: Citation, taskId: string | undefined | null): UISourcePart | null {
   const { url, start_index, end_index, title, description } = citation;
 
   if (!url || !taskId) {

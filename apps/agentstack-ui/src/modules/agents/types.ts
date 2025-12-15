@@ -3,12 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ProviderBuild } from '#modules/provider-builds/api/types.ts';
-import type { RegisterProviderRequest } from '#modules/providers/api/types.ts';
+import type { CreateProviderRequest, ProviderBuildOnCompleteAction } from 'agentstack-sdk';
+
 import type { ProviderSource } from '#modules/providers/types.ts';
 
-export type ImportAgentFormValues = RegisterProviderRequest & {
+export type ImportAgentFormValues = CreateProviderRequest & {
   source: ProviderSource;
-  action?: ProviderBuild['on_complete']['type'];
+  action?: ProviderBuildOnCompleteAction['type'];
   providerId?: string;
 };
