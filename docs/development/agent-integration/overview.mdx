@@ -1,9 +1,9 @@
 ---
-title: "Agent Development SDK (Python)"
+title: "Server SDK (Python)"
 description: "Enhance your existing AI agents with platform capabilities"
 ---
 
-The Agent Stack SDK is a Python library that enhances your existing AI agents with platform capabilities. Whether you've built your agent with LangGraph, CrewAI, or custom logic, the SDK connects it to the Agent Stack platform, giving you instant access to runtime-configurable services, interactive UI components, and deployment infrastructure.
+The Server SDK is a Python library that enhances your existing AI agents with platform capabilities. Whether you've built your agent with LangGraph, CrewAI, or custom logic, the SDK connects it to the Agent Stack platform, giving you instant access to runtime-configurable services, interactive UI components, and deployment infrastructure.
 
 Built on top of the [Agent2Agent Protocol (A2A)](https://a2a-protocol.org/), the SDK wraps your agent implementation and adds powerful functionality through [A2A extensions](https://a2a-protocol.org/latest/topics/extensions/).
 
@@ -11,7 +11,7 @@ This enables your agent to leverage platform services like [LLM providers](/exte
 
 ## What the SDK Provides
 
-The Agent Stack SDK offers several key capabilities:
+The Server SDK offers several key capabilities:
 
 - **Server wrapper**: Simplified server creation and agent registration
 - **Extension system**: Dependency injection for services (LLM, embeddings, file storage) and UI components (forms, citations, trajectory)
@@ -96,7 +96,7 @@ async def form_agent(
         yield AgentMessage(text="Form was not filled out.")
 ```
 
-<Tip>The whole complexity of Task management is handled via Agent Stack SDK.</Tip>
+<Tip>The whole complexity of Task management is handled via Server SDK.</Tip>
 
 The generator pattern also enables agents to:
 - Stream responses incrementally
@@ -157,5 +157,3 @@ UI extensions add extra metadata to messages, enabling the Agent Stack UI to ren
 - **Trajectory**: Visualize agent reasoning steps with execution traces
 
 These extensions enhance messages with metadata that the UI interprets to create rich, interactive experiences beyond standard text responses.
-
-
