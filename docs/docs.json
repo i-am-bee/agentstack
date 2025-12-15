@@ -141,8 +141,7 @@
                 "pages": [
                   "development/custom-ui/client-sdk/overview",
                   "development/custom-ui/client-sdk/extensions",
-                  "development/custom-ui/client-sdk/api-client",
-                  "development/custom-ui/client-sdk/examples"
+                  "development/custom-ui/client-sdk/api-client"
                 ]
               },
               "development/custom-ui/permissions-and-tokens"
