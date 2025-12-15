@@ -139,8 +139,7 @@
               {
                 "group": "Client SDK (Typescript)",
                 "pages": [
-                  "development/custom-ui/client-sdk/getting-started",
-                  "development/custom-ui/client-sdk/basic-concepts",
+                  "development/custom-ui/client-sdk/overview",
                   "development/custom-ui/client-sdk/extensions",
                   "development/custom-ui/client-sdk/api-client",
                   "development/custom-ui/client-sdk/examples"
