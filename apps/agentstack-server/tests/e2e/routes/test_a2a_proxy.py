@@ -216,8 +216,7 @@ def create_test_server(free_port: int, app: A2AStarletteApplication, test_config
 
 
 @pytest.fixture
-@pytest.mark.usefixtures("clean_up")
-async def ensure_mock_task(db_transaction):
+async def ensure_mock_task(db_transaction, clean_up):
     res = await db_transaction.execute(users_table.select().where(users_table.c.email == "admin@beeai.dev"))
     admin_user = res.fetchone().id
     await db_transaction.execute(

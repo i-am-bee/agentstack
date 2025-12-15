@@ -48,8 +48,12 @@ async def run_server(
 
 
 @pytest.fixture
-@pytest.mark.usefixtures("setup_platform_client")
-def create_server_with_agent(free_port, test_configuration: TestConfiguration, a2a_client_factory):
+def create_server_with_agent(
+    free_port,
+    test_configuration: TestConfiguration,
+    a2a_client_factory,
+    setup_platform_client,
+):
     """Factory fixture that creates a server with the given agent function."""
 
     @asynccontextmanager
