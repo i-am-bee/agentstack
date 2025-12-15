@@ -29,7 +29,7 @@
             ]
           },
           {
-            "group": "Agent Capabilities",
+            "group": "Agent Integration",
             "pages": [
               "stable/agent-integration/overview",
               "stable/agent-integration/messages",
@@ -101,7 +101,7 @@
             ]
           },
           {
-            "group": "Agent Capabilities",
+            "group": "Agent Integration",
             "pages": [
               "development/agent-integration/overview",
               "development/agent-integration/messages",
