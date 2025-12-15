@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
+import re
 import typing
 from copy import deepcopy
 
@@ -110,9 +111,19 @@ async def ui():
     import agentstack_cli.commands.model
 
     await agentstack_cli.commands.model.ensure_llm_provider()
-    webbrowser.open(
-        "http://localhost:8334"
-    )  # TODO: This always opens the local UI, how to open the UI of a logged in server instead?
+
+    config = Configuration()
+    active_server = config.auth_manager.active_server
+
+    if active_server:
+        if re.search(r"(localhost|127\.0\.0\.1):8333", active_server):
+            ui_url = re.sub(r":8333", ":8334", active_server)
+        else:
+            ui_url = active_server
+    else:
+        ui_url = "http://localhost:8334"
+
+    webbrowser.open(ui_url)
 
 
 if __name__ == "__main__":
