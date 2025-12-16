@@ -61,6 +61,13 @@ class Permissions(BaseModel):
 
     allow_all: bool = Field(False, description="Admin override", init=False, exclude=True)
 
+    @classmethod
+    def _iter_permission_keys(cls):
+        """Iterate over permission field keys, excluding special fields like allow_all."""
+        for key in cls.model_fields:
+            if key != "allow_all":
+                yield key
+
     @model_validator(mode="after")
     def freeze(self):
         self.model_config["frozen"] = False
@@ -82,9 +89,7 @@ class Permissions(BaseModel):
         if self.allow_all:
             return True
 
-        for key in type(self).model_fields.keys():
-            if key == "allow_all":
-                continue
+        for key in self._iter_permission_keys():
             my_perms = getattr(self, key)
             required_perms = getattr(required, key)
             if "*" in my_perms or required_perms.issubset(my_perms):
@@ -101,9 +106,7 @@ class Permissions(BaseModel):
             return type(self).all()
 
         result = {}
-        for key in type(self).model_fields.keys():
-            if key == "allow_all":
-                continue
+        for key in self._iter_permission_keys():
             my_set = getattr(self, key)
             other_set = getattr(other, key)
             result[key] = my_set.union(other_set)
