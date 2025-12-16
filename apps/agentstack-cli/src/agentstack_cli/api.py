@@ -1,6 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 import json
+import logging
 import re
 import urllib
 import urllib.parse
@@ -12,6 +13,7 @@ from typing import Any
 
 import httpx
 import openai
+import pydantic
 from a2a.client import A2AClientHTTPError, Client, ClientConfig, ClientFactory
 from a2a.types import AgentCard
 from httpx import HTTPStatusError
@@ -19,6 +21,8 @@ from httpx._types import RequestFiles
 
 from agentstack_cli import configuration
 from agentstack_cli.configuration import Configuration
+
+logger = logging.getLogger(__name__)
 
 config = Configuration()
 
@@ -100,6 +104,26 @@ async def api_stream(
         async for line in response.aiter_lines():
             if line:
                 yield jsonlib.loads(re.sub("^data:", "", line).strip())
+
+
+async def fetch_server_version() -> str | None:
+    """Fetch server version from OpenAPI schema."""
+
+    class OpenAPIInfo(pydantic.BaseModel):
+        version: str
+
+    class OpenAPISchema(pydantic.BaseModel):
+        info: OpenAPIInfo
+
+    try:
+        response = await api_request("GET", "openapi.json", use_auth=False)
+        if not response:
+            return None
+        schema = OpenAPISchema.model_validate(response)
+        return schema.info.version
+    except Exception as e:
+        logger.warning("Failed to fetch server version: %s", e)
+        return None
 
 
 @asynccontextmanager

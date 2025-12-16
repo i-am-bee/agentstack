@@ -10,7 +10,6 @@ from subprocess import CompletedProcess
 from textwrap import dedent
 
 import anyio
-import pydantic
 import yaml
 from tenacity import AsyncRetrying, stop_after_attempt
 
@@ -193,27 +192,3 @@ class BaseDriver(abc.ABC):
                 ["k3s", "kubectl", "rollout", "restart", "deployment"],
                 "Restarting deployments to load imported images",
             )
-
-    async def version(self) -> str | None:
-        if (await self.status()) != "running":
-            return None
-        HelmStatus = typing.TypedDict("HelmStatus", {"status": str, "app_version": str})
-        helm_status = pydantic.TypeAdapter(list[HelmStatus]).validate_json(
-            (
-                await self.run_in_vm(
-                    [
-                        "/usr/local/bin/helm",
-                        "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
-                        "ls",
-                        "--namespace=default",
-                        "--filter=^agentstack$",
-                        "-o",
-                        "json",
-                    ],
-                    "Getting Agent Stack platform version",
-                )
-            ).stdout
-        )
-        if helm_status[0]["status"] != "deployed":
-            return None
-        return helm_status[0]["app_version"]
