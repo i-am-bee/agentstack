@@ -6,6 +6,7 @@ import base64
 import socket
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager, closing
+from datetime import timedelta
 
 import httpx
 import pytest
@@ -40,10 +41,18 @@ def get_free_port() -> int:
 
 @asynccontextmanager
 async def run_server(
-    server: Server, port: int, context_store: ContextStore | None = None
+    server: Server, port: int, context_store: ContextStore | None = None, task_timeout: timedelta | None = None
 ) -> AsyncGenerator[tuple[Server, Client]]:
     async with asyncio.TaskGroup() as tg:
-        tg.create_task(asyncio.to_thread(server.run, self_registration=False, port=port, context_store=context_store))
+        tg.create_task(
+            asyncio.to_thread(
+                server.run,
+                self_registration=False,
+                port=port,
+                context_store=context_store,
+                task_timeout=task_timeout or timedelta(minutes=5),
+            )
+        )
 
         try:
             async with httpx.AsyncClient(timeout=None) as httpx_client:
@@ -67,10 +76,17 @@ def create_server_with_agent():
     """Factory fixture that creates a server with the given agent function."""
 
     @asynccontextmanager
-    async def _create_server(agent_fn, context_store: ContextStore | None = None):
+    async def _create_server(
+        agent_fn, context_store: ContextStore | None = None, task_timeout: timedelta | None = None
+    ):
         server = Server()
         server.agent(detail=AgentDetail(interaction_mode="multi-turn"))(agent_fn)
-        async with run_server(server, get_free_port(), context_store=context_store) as (server, client):
+        async with run_server(
+            server,
+            get_free_port(),
+            context_store=context_store,
+            task_timeout=task_timeout,
+        ) as (server, client):
             yield server, client
 
     return _create_server
@@ -109,6 +125,18 @@ async def awaiter(create_server_with_agent) -> AsyncGenerator[tuple[Server, Clie
         yield f"Received resume: {resume_message.parts[0].root.text if resume_message.parts else 'empty'}"
 
     async with create_server_with_agent(awaiter) as (server, test_client):
+        yield server, test_client
+
+
+@pytest.fixture
+async def awaiter_with_1s_timeout(create_server_with_agent) -> AsyncGenerator[tuple[Server, Client]]:
+    async def awaiter(message: Message, context: RunContext) -> AsyncGenerator[TaskStatus | str, Message]:
+        # Agent that requires input
+        yield "Processing initial message..."
+        resume_message = yield InputRequired(text="need input")
+        yield f"Received resume: {resume_message.parts[0].root.text if resume_message.parts else 'empty'}"
+
+    async with create_server_with_agent(awaiter, task_timeout=timedelta(seconds=1)) as (server, test_client):
         yield server, test_client
 
 

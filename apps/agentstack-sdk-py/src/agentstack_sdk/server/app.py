@@ -9,7 +9,12 @@ from a2a.server.apps.jsonrpc import A2AFastAPIApplication
 from a2a.server.apps.rest import A2ARESTFastAPIApplication
 from a2a.server.events import InMemoryQueueManager, QueueManager
 from a2a.server.request_handlers import DefaultRequestHandler
-from a2a.server.tasks import InMemoryTaskStore, PushNotificationConfigStore, PushNotificationSender, TaskStore
+from a2a.server.tasks import (
+    InMemoryTaskStore,
+    PushNotificationConfigStore,
+    PushNotificationSender,
+    TaskStore,
+)
 from a2a.types import AgentInterface, TransportProtocol
 from fastapi import APIRouter, Depends, FastAPI
 from fastapi.applications import AppType
@@ -38,7 +43,13 @@ def create_app(
     task_store = task_store or InMemoryTaskStore()
     context_store = context_store or InMemoryContextStore()
     http_handler = DefaultRequestHandler(
-        agent_executor=Executor(agent.execute, queue_manager, context_store=context_store, task_timeout=task_timeout),
+        agent_executor=Executor(
+            agent,
+            queue_manager,
+            context_store=context_store,
+            task_timeout=task_timeout,
+            task_store=task_store,
+        ),
         task_store=task_store,
         queue_manager=queue_manager,
         push_config_store=push_config_store,

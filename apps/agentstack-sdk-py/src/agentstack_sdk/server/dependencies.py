@@ -6,27 +6,21 @@ from collections import Counter
 from collections.abc import AsyncIterator, Callable
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from inspect import isclass
-from typing import Annotated, Any, Generic, TypeAlias, Unpack, get_args, get_origin
+from typing import Annotated, Any, TypeAlias, Unpack, get_args, get_origin
 
 from a2a.types import Message
 from typing_extensions import Doc
 
 from agentstack_sdk.a2a.extensions import BaseExtensionSpec
-from agentstack_sdk.a2a.extensions.base import (
-    BaseExtensionServer,
-    ExtensionSpecT,
-    MetadataFromClientT,
-)
+from agentstack_sdk.a2a.extensions.base import BaseExtensionServer
 from agentstack_sdk.server.context import RunContext
 
-Dependency: TypeAlias = (
-    Callable[[Message, RunContext, dict], Any] | BaseExtensionServer[ExtensionSpecT, MetadataFromClientT]
-)
+Dependency: TypeAlias = Callable[[Message, RunContext, dict[str, "Dependency"]], Any] | BaseExtensionServer[Any, Any]
 
 
 # Inspired by fastapi.Depends
-class Depends(Generic[ExtensionSpecT, MetadataFromClientT]):
-    extension: BaseExtensionServer[ExtensionSpecT, MetadataFromClientT] | None = None
+class Depends:
+    extension: BaseExtensionServer[Any, Any] | None = None
 
     def __init__(
         self,

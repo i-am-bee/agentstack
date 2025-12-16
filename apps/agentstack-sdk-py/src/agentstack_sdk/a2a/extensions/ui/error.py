@@ -144,7 +144,7 @@ class ErrorExtensionServer(BaseExtensionServer[ErrorExtensionSpec, NoneType]):
             )
             return {}
 
-    def error_metadata(self, error: BaseException) -> Metadata[str, Any]:
+    def error_metadata(self, error: BaseException) -> Metadata:
         """
         Create metadata for an error.
 
