@@ -13,6 +13,14 @@ class ResourceIdPermission(BaseModel):
     id: str
     model_config = ConfigDict(frozen=True)
 
+    def __hash__(self):
+        return hash(self.id)
+
+    def __eq__(self, other):
+        if isinstance(other, ResourceIdPermission):
+            return self.id == other.id
+        return False
+
 
 class Permissions(BaseModel):
     model_config = ConfigDict(frozen=True, validate_default=True)
@@ -56,9 +64,12 @@ class Permissions(BaseModel):
     @model_validator(mode="after")
     def freeze(self):
         self.model_config["frozen"] = False
-        for key, value in self.model_dump(serialize_as_any=True).items():
+        for key in type(self).model_fields.keys():
+            value = getattr(self, key)
             if isinstance(value, set):
-                setattr(self, key, frozenset(value))
+                # Convert ResourceIdPermission objects to ensure they're hashable
+                frozen_value = frozenset(value)
+                setattr(self, key, frozen_value)
         self.model_config["frozen"] = True
         return self
 
@@ -71,9 +82,12 @@ class Permissions(BaseModel):
         if self.allow_all:
             return True
 
-        my_permissions = self.model_dump(serialize_as_any=True)
-        for key, required_permissions in required.model_dump(serialize_as_any=True).items():
-            if "*" in my_permissions[key] or required_permissions.issubset(my_permissions[key]):
+        for key in type(self).model_fields.keys():
+            if key == "allow_all":
+                continue
+            my_perms = getattr(self, key)
+            required_perms = getattr(required, key)
+            if "*" in my_perms or required_perms.issubset(my_perms):
                 continue
             return False
 
@@ -87,9 +101,12 @@ class Permissions(BaseModel):
             return type(self).all()
 
         result = {}
-        my_permissions = self.model_dump(serialize_as_any=True)
-        for key, other_set in other.model_dump(serialize_as_any=True).items():
-            result[key] = my_permissions[key].union(other_set)
+        for key in type(self).model_fields.keys():
+            if key == "allow_all":
+                continue
+            my_set = getattr(self, key)
+            other_set = getattr(other, key)
+            result[key] = my_set.union(other_set)
             if "*" in result[key]:
                 result[key] = {"*"}
         return type(self).model_validate(result)
