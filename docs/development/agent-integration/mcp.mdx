@@ -5,7 +5,7 @@ description: "Learn how Agent Stack helps with authentication when using MCP."
 
 ## What are Connectors?
 
-A connector is a local MCP server exposed by the Agent Stack that acts as a proxy to a remote hosted MCP server and handles authentication.
+A connector is an MCP endpoint exposed by the Agent Stack that forwards MCP requests to a remote MCP server, acting as a proxy and handling authenticationon.
 
 It allows users to set up a connection to a third-party service (like GitHub, Box etc.) and then exposes a local MCP server that can be consumed by agents. This architecture eliminates the need for user authentication in your agent code. The connector handles authentication with the third-party service on behalf of the authenticated user, and the MCP interface is properly scoped to that user's permissions and data.
 
