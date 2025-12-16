@@ -9,11 +9,6 @@ from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validat
 from agentstack_server.domain.models.user import User
 
 
-class ResourceIdPermission(BaseModel):
-    id: str
-    model_config = ConfigDict(frozen=True)
-
-
 class Permissions(BaseModel):
     model_config = ConfigDict(frozen=True, validate_default=True)
 
@@ -32,8 +27,8 @@ class Permissions(BaseModel):
 
     # openai proxy
     model_providers: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
-    llm: SerializeAsAny[set[Literal["*"] | ResourceIdPermission]] = set()
-    embeddings: SerializeAsAny[set[Literal["*"] | ResourceIdPermission]] = set()
+    llm: SerializeAsAny[set[Literal["*"] | str]] = set()
+    embeddings: SerializeAsAny[set[Literal["*"] | str]] = set()
 
     a2a_proxy: SerializeAsAny[set[Literal["*"]]] = set()
 

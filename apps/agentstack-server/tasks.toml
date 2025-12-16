@@ -8,6 +8,8 @@ sources = ["uv.lock", "pyproject.toml"]
 outputs = { auto = true }
 
 # check
+["agentstack-server:test"]
+depends = ["agentstack-server:test:unit"]
 
 ["agentstack-server:check"]
 depends = ["agentstack-server:check:*"]
@@ -247,6 +249,10 @@ run = "{{ mise_bin }} run agentstack-server:dev:disconnect --vm-name=agentstack-
 ["agentstack-server:dev:test:reconnect"]
 dir = "{{config_root}}/apps/agentstack-server"
 run = "{{ mise_bin }} run agentstack-server:dev:reconnect --vm-name=agentstack-local-test"
+
+["agentstack-server:test:unit"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = "uv run pytest -m unit"
 
 ["agentstack-server:test:e2e"]
 dir = "{{config_root}}/apps/agentstack-server"

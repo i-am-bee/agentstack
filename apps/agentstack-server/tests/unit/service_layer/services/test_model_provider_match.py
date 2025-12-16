@@ -1,6 +1,8 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from unittest.mock import Mock
+
 import pytest
 
 from agentstack_server.domain.models.model_provider import ModelCapability
@@ -14,7 +16,7 @@ class TestModelProviderMatchModels:
 
     def test_default_model_gets_exactly_half_score(self):
         """Test that default models get exactly 0.5 score."""
-        service = ModelProviderService(uow=None)  # We don't need UoW for internal method
+        service = ModelProviderService(uow=None, openai_proxy=Mock())  # We don't need UoW for internal method
 
         available_models = [
             "openai:gpt-4",
@@ -54,7 +56,7 @@ class TestModelProviderMatchModels:
 
     def test_exact_match_gets_score_of_one(self):
         """Test that exact matches get score of 1.0."""
-        service = ModelProviderService(uow=None)
+        service = ModelProviderService(uow=None, openai_proxy=Mock())
 
         available_models = ["openai:gpt-4", "openai:gpt-3.5-turbo", "anthropic:claude-3-5-sonnet"]
 
@@ -75,7 +77,7 @@ class TestModelProviderMatchModels:
 
     def test_partial_match_gets_score_between_half_and_one(self):
         """Test that partial matches get scores between 0.5 and 1.0."""
-        service = ModelProviderService(uow=None)
+        service = ModelProviderService(uow=None, openai_proxy=Mock())
 
         available_models = [
             "openai:gpt-4",
@@ -98,7 +100,7 @@ class TestModelProviderMatchModels:
 
     def test_no_match_below_cutoff_gets_no_score(self):
         """Test that matches below cutoff don't appear in results."""
-        service = ModelProviderService(uow=None)
+        service = ModelProviderService(uow=None, openai_proxy=Mock())
 
         available_models = ["openai:gpt-4", "anthropic:claude-3-5-sonnet"]
 
@@ -117,7 +119,7 @@ class TestModelProviderMatchModels:
 
     def test_default_model_gets_max_of_default_and_fuzzy_score(self):
         """Test that default models get max of default score (0.5) and fuzzy match score."""
-        service = ModelProviderService(uow=None)
+        service = ModelProviderService(uow=None, openai_proxy=Mock())
 
         available_models = ["openai:gpt-4", "openai:gpt-3.5-turbo"]
 
@@ -151,7 +153,7 @@ class TestModelProviderMatchModels:
 
     def test_default_model_stays_exactly_half_when_no_fuzzy_match(self):
         """Test that default models stay at exactly 0.5 when there's no fuzzy matching improvement."""
-        service = ModelProviderService(uow=None)
+        service = ModelProviderService(uow=None, openai_proxy=Mock())
 
         available_models = [
             "openai:gpt-4",
@@ -183,7 +185,7 @@ class TestModelProviderMatchModels:
 
     def test_multiple_suggestions_best_match_wins(self):
         """Test that when multiple suggestions match, the best score is used."""
-        service = ModelProviderService(uow=None)
+        service = ModelProviderService(uow=None, openai_proxy=Mock())
 
         available_models = ["openai:gpt-4"]
 
@@ -205,7 +207,7 @@ class TestModelProviderMatchModels:
 
     def test_results_sorted_by_score_descending(self):
         """Test that results are sorted by score in descending order."""
-        service = ModelProviderService(uow=None)
+        service = ModelProviderService(uow=None, openai_proxy=Mock())
 
         available_models = ["openai:gpt-4", "openai:gpt-3.5-turbo", "anthropic:claude-3-5-sonnet"]
 
