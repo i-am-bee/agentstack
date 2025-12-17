@@ -43,7 +43,10 @@ if get_configuration().provider_build.enabled:
         provider_build_service: ProviderBuildServiceDependency,
     ) -> ProviderBuild:
         return await provider_build_service.preview_build(
-            location=request.location, user=user.user, on_complete=request.on_complete
+            location=request.location,
+            user=user.user,
+            on_complete=request.on_complete,
+            build_configuration=request.build_configuration,
         )
 
     @router.get("/{id}")

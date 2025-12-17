@@ -48,7 +48,9 @@ class ProviderBuildService:
         self._build_manager = build_manager
         self._config = configuration
 
-    async def _resolve_version(self, location: GithubUrl) -> tuple[ResolvedGithubUrl, DockerImageID]:
+    async def _resolve_version(
+        self, location: GithubUrl, build_configuration: BuildConfiguration | None = None
+    ) -> tuple[ResolvedGithubUrl, DockerImageID]:
         try:
             version = await location.resolve_version()
         except Exception as e:
@@ -56,21 +58,33 @@ class ProviderBuildService:
         if not self._config.provider_build.oci_build_registry_prefix:
             raise RuntimeError("OCI build registry is not configured")
 
+        def sanitize_path(path: str) -> str:
+            return path.replace(" ", "-").replace("/", "-").lower()
+
+        dockerfile_path = ""
+        if build_configuration and build_configuration.dockerfile_path:
+            dockerfile_path = f"_{sanitize_path(str(build_configuration.dockerfile_path))}"
+
         destination = DockerImageID(
             root=self._config.provider_build.image_format.format(
                 registry_prefix=self._config.provider_build.oci_build_registry_prefix.lower(),
                 org=version.org.lower(),
                 repo=version.repo.lower(),
-                path=(version.path.replace("/", "-") if version.path else "agent").lower(),
+                path=sanitize_path(version.path or "agent"),
+                dockerfile_path=dockerfile_path,
                 commit_hash=version.commit_hash.lower(),
             )
         )
         return version, destination
 
     async def preview_build(
-        self, location: GithubUrl, user: User, on_complete: OnCompleteAction | None = None
+        self,
+        location: GithubUrl,
+        user: User,
+        on_complete: OnCompleteAction | None = None,
+        build_configuration: BuildConfiguration | None = None,
     ) -> ProviderBuild:
-        version, destination = await self._resolve_version(location)
+        version, destination = await self._resolve_version(location, build_configuration)
         return ProviderBuild(
             status=BuildState.MISSING,
             source=version,
@@ -88,7 +102,7 @@ class ProviderBuildService:
     ) -> ProviderBuild:
         from agentstack_server.jobs.tasks.provider_build import build_provider as task
 
-        version, destination = await self._resolve_version(location)
+        version, destination = await self._resolve_version(location, build_configuration)
 
         build = ProviderBuild(
             status=BuildState.MISSING,
