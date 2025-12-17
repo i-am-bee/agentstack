@@ -83,22 +83,6 @@ class SqlAlchemyUserFeedbackRepository(IUserFeedbackRepository):
             order="desc",
         )
 
-        feedback_list = [
-            UserFeedback(
-                id=row.id,
-                provider_id=row.provider_id,
-                task_id=row.task_id,
-                context_id=row.context_id,
-                trace_id=row.trace_id,
-                rating=row.rating,
-                message=row.message,
-                comment=row.comment,
-                comment_tags=row.comment_tags,
-                created_at=row.created_at,
-                created_by=row.created_by,
-                agent_name=row.agent_name,
-            )
-            for row in result.items
-        ]
+        feedback_list = [UserFeedback.model_validate(dict(row._mapping)) for row in result.items]
 
         return feedback_list, result.total_count, result.has_more

@@ -1209,9 +1209,9 @@ async def list_feedback(
             rating_icon = "✓" if item.rating == 1 else "✗"
             agent_name = item.agent_name or str(item.provider_id)[:8]
             task_id_short = str(item.task_id)[:8]
-            comment = (item.comment or "")[:50]
-            if len(item.comment or "") > 50:
-                comment += "..."
+            comment = item.comment or ""
+            if len(comment) > 50:
+                comment = comment[:50] + "..."
             tags = ", ".join(item.comment_tags or []) if item.comment_tags else "-"
             created_at = item.created_at.strftime("%Y-%m-%d")
 

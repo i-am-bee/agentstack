@@ -54,21 +54,7 @@ async def list_user_feedback(
         after_cursor=after_cursor,
     )
     return ListUserFeedbackResponse(
-        items=[
-            UserFeedbackResponse(
-                id=feedback.id,
-                provider_id=feedback.provider_id,
-                task_id=feedback.task_id,
-                context_id=feedback.context_id,
-                rating=feedback.rating,
-                message=feedback.message,
-                comment=feedback.comment,
-                comment_tags=feedback.comment_tags,
-                created_at=feedback.created_at,
-                agent_name=feedback.agent_name,
-            )
-            for feedback in feedback_list
-        ],
+        items=[UserFeedbackResponse.model_validate(dict(feedback)) for feedback in feedback_list],
         total_count=total,
         has_more=has_more,
     )
