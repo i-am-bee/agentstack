@@ -1171,7 +1171,7 @@ app.add_typer(feedback_app, name="feedback")
 async def list_feedback(
     agent: typing.Annotated[str | None, typer.Option("--agent", "-a", help="Filter by agent name or ID")] = None,
     limit: typing.Annotated[int, typer.Option("--limit", help="Number of results per page")] = 50,
-    offset: typing.Annotated[int, typer.Option("--offset", help="Pagination offset")] = 0,
+    after_cursor: typing.Annotated[str | None, typer.Option("--after", help="Cursor for pagination")] = None,
 ):
     """List your agent feedback"""
 
@@ -1203,7 +1203,7 @@ async def list_feedback(
         response = await UserFeedback.list(
             provider_id=provider_id,
             limit=limit,
-            offset=offset,
+            after_cursor=after_cursor,
         )
 
     if not response.items:
@@ -1232,5 +1232,5 @@ async def list_feedback(
 
     console.print(table)
     console.print(f"Showing {len(response.items)} of {response.total_count} total feedback entries")
-    if offset + len(response.items) < response.total_count:
-        console.print(f"Use --offset {offset + limit} to see more")
+    if response.has_more and response.next_page_token:
+        console.print(f"Use --after {response.next_page_token} to see more")

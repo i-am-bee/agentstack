@@ -17,5 +17,5 @@ class IUserFeedbackRepository(Protocol):
         user_id: UUID,
         provider_id: UUID | None = None,
         limit: int = 50,
-        offset: int = 0,
-    ) -> tuple[list[UserFeedback], int]: ...
+        after_cursor: UUID | None = None,
+    ) -> tuple[list[UserFeedback], int, bool]: ...

@@ -59,13 +59,13 @@ class UserFeedbackService:
         user: User,
         provider_id: UUID | None = None,
         limit: int = 50,
-        offset: int = 0,
-    ) -> tuple[list[UserFeedback], int]:
+        after_cursor: UUID | None = None,
+    ) -> tuple[list[UserFeedback], int, bool]:
         async with self._uow() as uow:
-            feedback_list, total = await uow.user_feedback.list(
+            feedback_list, total, has_more = await uow.user_feedback.list(
                 user_id=user.id,
                 provider_id=provider_id,
                 limit=limit,
-                offset=offset,
+                after_cursor=after_cursor,
             )
-            return feedback_list, total
+            return feedback_list, total, has_more

@@ -45,13 +45,13 @@ async def list_user_feedback(
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(feedback={"read"}))],
     provider_id: Annotated[UUID | None, Query()] = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
-    offset: Annotated[int, Query(ge=0)] = 0,
+    after_cursor: Annotated[UUID | None, Query()] = None,
 ) -> ListUserFeedbackResponse:
-    feedback_list, total = await user_feedback_service.list_user_feedback(
+    feedback_list, total, has_more = await user_feedback_service.list_user_feedback(
         user=user.user,
         provider_id=provider_id,
         limit=limit,
-        offset=offset,
+        after_cursor=after_cursor,
     )
     return ListUserFeedbackResponse(
         items=[
@@ -69,4 +69,5 @@ async def list_user_feedback(
             for feedback in feedback_list
         ],
         total_count=total,
+        has_more=has_more,
     )

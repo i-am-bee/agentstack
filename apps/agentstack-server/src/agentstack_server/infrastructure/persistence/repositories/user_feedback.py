@@ -4,13 +4,14 @@
 from uuid import UUID
 
 from kink import inject
-from sqlalchemy import ARRAY, CheckConstraint, Column, DateTime, ForeignKey, Integer, String, Table, Text, func, select
+from sqlalchemy import ARRAY, CheckConstraint, Column, DateTime, ForeignKey, Integer, String, Table, Text, select
 from sqlalchemy import UUID as SQL_UUID
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from agentstack_server.domain.models.user_feedback import UserFeedback
 from agentstack_server.domain.repositories.user_feedback import IUserFeedbackRepository
 from agentstack_server.infrastructure.persistence.repositories.db_metadata import metadata
+from agentstack_server.infrastructure.persistence.repositories.utils import cursor_paginate
 
 user_feedback_table = Table(
     "user_feedback",
@@ -57,26 +58,22 @@ class SqlAlchemyUserFeedbackRepository(IUserFeedbackRepository):
         user_id: UUID,
         provider_id: UUID | None = None,
         limit: int = 50,
-        offset: int = 0,
-    ) -> tuple[list[UserFeedback], int]:
+        after_cursor: UUID | None = None,
+    ) -> tuple[list[UserFeedback], int, bool]:
         query = select(user_feedback_table).where(user_feedback_table.c.created_by == user_id)
 
         if provider_id is not None:
             query = query.where(user_feedback_table.c.provider_id == provider_id)
 
-        query = query.order_by(user_feedback_table.c.created_at.desc()).limit(limit).offset(offset)
-
-        result = await self.connection.execute(query)
-        rows = result.fetchall()
-
-        count_query = (
-            select(func.count()).select_from(user_feedback_table).where(user_feedback_table.c.created_by == user_id)
+        result = await cursor_paginate(
+            connection=self.connection,
+            query=query,
+            order_column=user_feedback_table.c.created_at,
+            id_column=user_feedback_table.c.id,
+            limit=limit,
+            after_cursor=after_cursor,
+            order="desc",
         )
-        if provider_id is not None:
-            count_query = count_query.where(user_feedback_table.c.provider_id == provider_id)
-
-        total_result = await self.connection.execute(count_query)
-        total = total_result.scalar() or 0
 
         feedback_list = [
             UserFeedback(
@@ -92,7 +89,7 @@ class SqlAlchemyUserFeedbackRepository(IUserFeedbackRepository):
                 created_at=row.created_at,
                 created_by=row.created_by,
             )
-            for row in rows
+            for row in result.items
         ]
 
-        return feedback_list, total
+        return feedback_list, result.total_count, result.has_more
