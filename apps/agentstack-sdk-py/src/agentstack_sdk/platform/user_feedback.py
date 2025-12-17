@@ -21,6 +21,7 @@ class UserFeedback(pydantic.BaseModel):
     comment: str | None = None
     comment_tags: list[str] | None = None
     created_at: datetime
+    agent_name: str
 
     @staticmethod
     async def list(

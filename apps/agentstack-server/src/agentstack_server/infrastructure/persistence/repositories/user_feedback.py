@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 from agentstack_server.domain.models.user_feedback import UserFeedback
 from agentstack_server.domain.repositories.user_feedback import IUserFeedbackRepository
 from agentstack_server.infrastructure.persistence.repositories.db_metadata import metadata
+from agentstack_server.infrastructure.persistence.repositories.provider import providers_table
 from agentstack_server.infrastructure.persistence.repositories.utils import cursor_paginate
 
 user_feedback_table = Table(
@@ -60,7 +61,14 @@ class SqlAlchemyUserFeedbackRepository(IUserFeedbackRepository):
         limit: int = 50,
         after_cursor: UUID | None = None,
     ) -> tuple[list[UserFeedback], int, bool]:
-        query = select(user_feedback_table).where(user_feedback_table.c.created_by == user_id)
+        query = (
+            select(
+                user_feedback_table,
+                providers_table.c.agent_card["name"].label("agent_name"),
+            )
+            .join(providers_table, user_feedback_table.c.provider_id == providers_table.c.id)
+            .where(user_feedback_table.c.created_by == user_id)
+        )
 
         if provider_id is not None:
             query = query.where(user_feedback_table.c.provider_id == provider_id)
@@ -88,6 +96,7 @@ class SqlAlchemyUserFeedbackRepository(IUserFeedbackRepository):
                 comment_tags=row.comment_tags,
                 created_at=row.created_at,
                 created_by=row.created_by,
+                agent_name=row.agent_name,
             )
             for row in result.items
         ]

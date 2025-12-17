@@ -65,6 +65,7 @@ async def list_user_feedback(
                 comment=feedback.comment,
                 comment_tags=feedback.comment_tags,
                 created_at=feedback.created_at,
+                agent_name=feedback.agent_name,
             )
             for feedback in feedback_list
         ],

@@ -1180,13 +1180,10 @@ async def list_feedback(
     announce_server_action("Listing feedback on")
 
     provider_id = None
-    provider_name_map = {}
 
     async with configuration.use_platform_client():
-        providers = await Provider.list()
-        provider_name_map = {str(p.id): p.agent_card.name for p in providers}
-
         if search_path:
+            providers = await Provider.list()
             provider = select_provider(search_path, providers)
             provider_id = str(provider.id)
 
@@ -1210,7 +1207,7 @@ async def list_feedback(
     ) as table:
         for item in response.items:
             rating_icon = "✓" if item.rating == 1 else "✗"
-            agent_name = provider_name_map.get(str(item.provider_id), str(item.provider_id)[:8])
+            agent_name = item.agent_name or str(item.provider_id)[:8]
             task_id_short = str(item.task_id)[:8]
             comment = (item.comment or "")[:50]
             if len(item.comment or "") > 50:
