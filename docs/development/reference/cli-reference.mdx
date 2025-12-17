@@ -144,11 +144,10 @@ Displays the agent's log output and continues streaming new logs as they are gen
 List user feedback for your agents:
 
 ```bash
-agentstack agent feedback list [OPTIONS]
+agentstack agent feedback list [agent-name] [OPTIONS]
 ```
 
 **Options:**
-- `--agent <name>`, `-a <name>`: Filter by agent name or ID
 - `--limit <number>`: Number of results per page (default: 50)
 - `--after <cursor>`: Cursor for pagination to fetch next page
 
@@ -158,13 +157,16 @@ agentstack agent feedback list [OPTIONS]
 agentstack agent feedback list
 
 # Filter by agent
-agentstack agent feedback list --agent chat
+agentstack agent feedback list chat
 
 # Limit results
 agentstack agent feedback list --limit 10
 
 # Paginate through results
 agentstack agent feedback list --after <cursor-token>
+
+# Combine filtering and pagination
+agentstack agent feedback list chat --limit 10 --after <cursor-token>
 ```
 
 ### build

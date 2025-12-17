@@ -1169,7 +1169,9 @@ app.add_typer(feedback_app, name="feedback", help="Manage user feedback for your
 
 @feedback_app.command("list")
 async def list_feedback(
-    agent: typing.Annotated[str | None, typer.Option("--agent", "-a", help="Filter by agent name or ID")] = None,
+    search_path: typing.Annotated[
+        str | None, typer.Argument(help="Short ID, agent name or part of the provider location")
+    ] = None,
     limit: typing.Annotated[int, typer.Option("--limit", help="Number of results per page [default: 50]")] = 50,
     after_cursor: typing.Annotated[str | None, typer.Option("--after", help="Cursor for pagination")] = None,
 ):
@@ -1184,21 +1186,9 @@ async def list_feedback(
         providers = await Provider.list()
         provider_name_map = {str(p.id): p.agent_card.name for p in providers}
 
-        if agent:
-            matching_providers = [
-                p
-                for p in providers
-                if agent.lower() in p.agent_card.name.lower()
-                or agent in str(p.id)
-                or agent in ProviderUtils.short_location(p)
-            ]
-            if not matching_providers:
-                err_console.print(f"No agent found matching '{agent}'")
-                raise typer.Exit(1)
-            if len(matching_providers) > 1:
-                err_console.print(f"Multiple agents match '{agent}'. Be more specific.")
-                raise typer.Exit(1)
-            provider_id = str(matching_providers[0].id)
+        if search_path:
+            provider = select_provider(search_path, providers)
+            provider_id = str(provider.id)
 
         response = await UserFeedback.list(
             provider_id=provider_id,
