@@ -52,3 +52,20 @@ class UserFeedbackService:
             await uow.user_feedback.create(user_feedback=user_feedback)
             await uow.commit()
             return user_feedback
+
+    async def list_user_feedback(
+        self,
+        *,
+        user: User,
+        provider_id: UUID | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> tuple[list[UserFeedback], int]:
+        async with self._uow() as uow:
+            feedback_list, total = await uow.user_feedback.list(
+                user_id=user.id,
+                provider_id=provider_id,
+                limit=limit,
+                offset=offset,
+            )
+            return feedback_list, total

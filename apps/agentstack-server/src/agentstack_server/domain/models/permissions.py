@@ -21,7 +21,7 @@ class Permissions(BaseModel):
     system_configuration: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
 
     files: SerializeAsAny[set[Literal["read", "write", "extract", "*"]]] = set()
-    feedback: SerializeAsAny[set[Literal["write"]]] = set()
+    feedback: SerializeAsAny[set[Literal["read", "write"]]] = set()
     vector_stores: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
     variables: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
 

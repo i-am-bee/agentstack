@@ -56,6 +56,7 @@ ROLE_PERMISSIONS: dict[UserRole, Permissions] = {
 }
 ROLE_PERMISSIONS[UserRole.DEVELOPER] = ROLE_PERMISSIONS[UserRole.USER] | Permissions(
     providers={"read", "write"},
+    feedback={"read", "write"},
     provider_builds={"read", "write"},
     provider_variables={"read", "write"},
     mcp_providers={"read", "write"},

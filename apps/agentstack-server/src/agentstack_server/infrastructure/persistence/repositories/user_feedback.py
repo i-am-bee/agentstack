@@ -1,8 +1,10 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from uuid import UUID
+
 from kink import inject
-from sqlalchemy import ARRAY, CheckConstraint, Column, DateTime, ForeignKey, Integer, String, Table, Text
+from sqlalchemy import ARRAY, CheckConstraint, Column, DateTime, ForeignKey, Integer, String, Table, Text, func, select
 from sqlalchemy import UUID as SQL_UUID
 from sqlalchemy.ext.asyncio import AsyncConnection
 
@@ -48,3 +50,49 @@ class SqlAlchemyUserFeedbackRepository(IUserFeedbackRepository):
             created_by=user_feedback.created_by,
         )
         await self.connection.execute(query)
+
+    async def list(
+        self,
+        *,
+        user_id: UUID,
+        provider_id: UUID | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> tuple[list[UserFeedback], int]:
+        query = select(user_feedback_table).where(user_feedback_table.c.created_by == user_id)
+
+        if provider_id is not None:
+            query = query.where(user_feedback_table.c.provider_id == provider_id)
+
+        query = query.order_by(user_feedback_table.c.created_at.desc()).limit(limit).offset(offset)
+
+        result = await self.connection.execute(query)
+        rows = result.fetchall()
+
+        count_query = (
+            select(func.count()).select_from(user_feedback_table).where(user_feedback_table.c.created_by == user_id)
+        )
+        if provider_id is not None:
+            count_query = count_query.where(user_feedback_table.c.provider_id == provider_id)
+
+        total_result = await self.connection.execute(count_query)
+        total = total_result.scalar() or 0
+
+        feedback_list = [
+            UserFeedback(
+                id=row.id,
+                provider_id=row.provider_id,
+                task_id=row.task_id,
+                context_id=row.context_id,
+                trace_id=row.trace_id,
+                rating=row.rating,
+                message=row.message,
+                comment=row.comment,
+                comment_tags=row.comment_tags,
+                created_at=row.created_at,
+                created_by=row.created_by,
+            )
+            for row in rows
+        ]
+
+        return feedback_list, total

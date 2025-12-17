@@ -61,7 +61,7 @@ from agentstack_sdk.a2a.extensions.common.form import (
     TextField,
     TextFieldValue,
 )
-from agentstack_sdk.platform import BuildState, ModelProvider, Provider
+from agentstack_sdk.platform import BuildState, ModelProvider, Provider, UserFeedback
 from agentstack_sdk.platform.context import Context, ContextPermissions, ContextToken, Permissions
 from agentstack_sdk.platform.model_provider import ModelCapability
 from InquirerPy import inquirer
@@ -1161,3 +1161,76 @@ async def remove_env(
         provider = select_provider(search_path, await Provider.list())
         await provider.update_variables(variables=dict.fromkeys(env))
     await _list_env(provider)
+
+
+feedback_app = AsyncTyper()
+app.add_typer(feedback_app, name="feedback")
+
+
+@feedback_app.command("list")
+async def list_feedback(
+    agent: typing.Annotated[str | None, typer.Option("--agent", "-a", help="Filter by agent name or ID")] = None,
+    limit: typing.Annotated[int, typer.Option("--limit", help="Number of results per page")] = 50,
+    offset: typing.Annotated[int, typer.Option("--offset", help="Pagination offset")] = 0,
+):
+    """List your agent feedback"""
+
+    announce_server_action("Listing feedback on")
+
+    provider_id = None
+    provider_name_map = {}
+
+    async with configuration.use_platform_client():
+        providers = await Provider.list()
+        provider_name_map = {str(p.id): p.agent_card.name for p in providers}
+
+        if agent:
+            matching_providers = [
+                p
+                for p in providers
+                if agent.lower() in p.agent_card.name.lower()
+                or agent in str(p.id)
+                or agent in ProviderUtils.short_location(p)
+            ]
+            if not matching_providers:
+                err_console.print(f"No agent found matching '{agent}'")
+                raise typer.Exit(1)
+            if len(matching_providers) > 1:
+                err_console.print(f"Multiple agents match '{agent}'. Be more specific.")
+                raise typer.Exit(1)
+            provider_id = str(matching_providers[0].id)
+
+        response = await UserFeedback.list(
+            provider_id=provider_id,
+            limit=limit,
+            offset=offset,
+        )
+
+    if not response.items:
+        console.print("No feedback found.")
+        return
+
+    with create_table(
+        Column("Rating", style="yellow", ratio=1),
+        Column("Agent", style="cyan", ratio=2),
+        Column("Task ID", style="dim", ratio=1),
+        Column("Comment", ratio=3),
+        Column("Tags", ratio=2),
+        Column("Date", style="dim", ratio=1),
+    ) as table:
+        for item in response.items:
+            rating_icon = "✓" if item.rating == 1 else "✗"
+            agent_name = provider_name_map.get(str(item.provider_id), str(item.provider_id)[:8])
+            task_id_short = str(item.task_id)[:8]
+            comment = (item.comment or "")[:50]
+            if len(item.comment or "") > 50:
+                comment += "..."
+            tags = ", ".join(item.comment_tags or []) if item.comment_tags else "-"
+            created_at = item.created_at.strftime("%Y-%m-%d")
+
+            table.add_row(rating_icon, agent_name, task_id_short, comment, tags, created_at)
+
+    console.print(table)
+    console.print(f"Showing {len(response.items)} of {response.total_count} total feedback entries")
+    if offset + len(response.items) < response.total_count:
+        console.print(f"Use --offset {offset + limit} to see more")
