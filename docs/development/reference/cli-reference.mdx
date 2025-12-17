@@ -139,6 +139,34 @@ agentstack logs <agent-name>
 
 Displays the agent's log output and continues streaming new logs as they are generated.
 
+### feedback list
+
+List user feedback for your agents:
+
+```bash
+agentstack agent feedback list [OPTIONS]
+```
+
+**Options:**
+- `--agent <name>`, `-a <name>`: Filter by agent name or ID
+- `--limit <number>`: Number of results per page (default: 50)
+- `--after <cursor>`: Cursor for pagination to fetch next page
+
+**Examples:**
+```bash
+# List all feedback
+agentstack agent feedback list
+
+# Filter by agent
+agentstack agent feedback list --agent chat
+
+# Limit results
+agentstack agent feedback list --limit 10
+
+# Paginate through results
+agentstack agent feedback list --after <cursor-token>
+```
+
 ### build
 
 Build an agent from a GitHub repository:
