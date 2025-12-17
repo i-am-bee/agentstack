@@ -1164,13 +1164,13 @@ async def remove_env(
 
 
 feedback_app = AsyncTyper()
-app.add_typer(feedback_app, name="feedback")
+app.add_typer(feedback_app, name="feedback", help="Manage user feedback for your agents", no_args_is_help=True)
 
 
 @feedback_app.command("list")
 async def list_feedback(
     agent: typing.Annotated[str | None, typer.Option("--agent", "-a", help="Filter by agent name or ID")] = None,
-    limit: typing.Annotated[int, typer.Option("--limit", help="Number of results per page")] = 50,
+    limit: typing.Annotated[int, typer.Option("--limit", help="Number of results per page [default: 50]")] = 50,
     after_cursor: typing.Annotated[str | None, typer.Option("--after", help="Cursor for pagination")] = None,
 ):
     """List your agent feedback"""
