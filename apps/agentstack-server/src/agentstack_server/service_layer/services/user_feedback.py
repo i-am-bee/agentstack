@@ -6,7 +6,7 @@ from uuid import UUID
 
 from kink import inject
 
-from agentstack_server.domain.models.user import User
+from agentstack_server.domain.models.user import User, UserRole
 from agentstack_server.domain.models.user_feedback import UserFeedback
 from agentstack_server.exceptions import EntityNotFoundError
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
@@ -61,9 +61,11 @@ class UserFeedbackService:
         limit: int = 50,
         after_cursor: UUID | None = None,
     ) -> tuple[list[UserFeedback], int, bool]:
+        user_id = user.id if user.role != UserRole.ADMIN else None
+
         async with self._uow() as uow:
             feedback_list, total, has_more = await uow.user_feedback.list(
-                user_id=user.id,
+                user_id=user_id,
                 provider_id=provider_id,
                 limit=limit,
                 after_cursor=after_cursor,
