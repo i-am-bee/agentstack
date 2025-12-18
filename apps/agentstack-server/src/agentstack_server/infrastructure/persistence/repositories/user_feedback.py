@@ -56,7 +56,7 @@ class SqlAlchemyUserFeedbackRepository(IUserFeedbackRepository):
     async def list(
         self,
         *,
-        user_id: UUID | None = None,
+        provider_created_by: UUID | None = None,
         provider_id: UUID | None = None,
         limit: int = 50,
         after_cursor: UUID | None = None,
@@ -66,8 +66,8 @@ class SqlAlchemyUserFeedbackRepository(IUserFeedbackRepository):
             providers_table.c.agent_card["name"].label("agent_name"),
         ).join(providers_table, user_feedback_table.c.provider_id == providers_table.c.id)
 
-        if user_id is not None:
-            query = query.where(providers_table.c.created_by == user_id)
+        if provider_created_by is not None:
+            query = query.where(providers_table.c.created_by == provider_created_by)
 
         if provider_id is not None:
             query = query.where(user_feedback_table.c.provider_id == provider_id)

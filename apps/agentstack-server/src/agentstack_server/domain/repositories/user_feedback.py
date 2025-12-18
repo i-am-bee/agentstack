@@ -14,7 +14,7 @@ class IUserFeedbackRepository(Protocol):
     async def list(
         self,
         *,
-        user_id: UUID | None = None,
+        provider_created_by: UUID | None = None,
         provider_id: UUID | None = None,
         limit: int = 50,
         after_cursor: UUID | None = None,

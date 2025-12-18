@@ -61,11 +61,14 @@ class UserFeedbackService:
         limit: int = 50,
         after_cursor: UUID | None = None,
     ) -> tuple[list[UserFeedback], int, bool]:
-        user_id = user.id if user.role != UserRole.ADMIN else None
+        if user.role not in (UserRole.ADMIN, UserRole.DEVELOPER):
+            raise ValueError("Listing feedback is only allowed for admins and developers")
+
+        provider_created_by = user.id if user.role == UserRole.DEVELOPER else None
 
         async with self._uow() as uow:
             feedback_list, total, has_more = await uow.user_feedback.list(
-                user_id=user_id,
+                provider_created_by=provider_created_by,
                 provider_id=provider_id,
                 limit=limit,
                 after_cursor=after_cursor,
