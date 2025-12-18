@@ -6,7 +6,7 @@ from uuid import UUID
 
 from kink import inject
 
-from agentstack_server.domain.models.user import User
+from agentstack_server.domain.models.user import User, UserRole
 from agentstack_server.domain.models.user_feedback import UserFeedback
 from agentstack_server.exceptions import EntityNotFoundError
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
@@ -52,3 +52,25 @@ class UserFeedbackService:
             await uow.user_feedback.create(user_feedback=user_feedback)
             await uow.commit()
             return user_feedback
+
+    async def list_user_feedback(
+        self,
+        *,
+        user: User,
+        provider_id: UUID | None = None,
+        limit: int = 50,
+        after_cursor: UUID | None = None,
+    ) -> tuple[list[UserFeedback], int, bool]:
+        if user.role not in (UserRole.ADMIN, UserRole.DEVELOPER):
+            raise ValueError("Listing feedback is only allowed for admins and developers")
+
+        provider_created_by = user.id if user.role == UserRole.DEVELOPER else None
+
+        async with self._uow() as uow:
+            feedback_list, total, has_more = await uow.user_feedback.list(
+                provider_created_by=provider_created_by,
+                provider_id=provider_id,
+                limit=limit,
+                after_cursor=after_cursor,
+            )
+            return feedback_list, total, has_more

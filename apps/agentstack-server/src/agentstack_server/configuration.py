@@ -288,7 +288,7 @@ class A2AProxyConfiguration(BaseModel):
 class ProviderBuildConfiguration(BaseModel):
     enabled: bool = True
     oci_build_registry_prefix: str | None = None
-    image_format: str = "{registry_prefix}/{org}/{repo}/{path}:{commit_hash}"
+    image_format: str = "{registry_prefix}/{org}/{repo}/{path}{dockerfile_path}:{commit_hash}"
     job_timeout_sec: int = int(timedelta(minutes=20).total_seconds())
     manifest_template_dir: Path | None = None
     k8s_namespace: str | None = None

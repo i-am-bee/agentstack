@@ -14,8 +14,8 @@ async def test_llm_permission_enforcement_with_context_token(subtests, test_conf
     base_url = test_configuration.server_url
     openai_base_url = f"{base_url}/api/v1/openai"
     test_message = {
-        "messages": [{"role": "user", "content": "Hello, respond with one word"}],
-        "max_completion_tokens": 300,
+        "messages": [{"role": "user", "content": "You are a testing agent, respond exactly with 'hello world'"}],
+        "max_completion_tokens": 1000,
     }
 
     with subtests.test("LLM request denied with insufficient global permissions"):

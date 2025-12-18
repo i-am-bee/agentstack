@@ -31,10 +31,6 @@ class ContextToken(pydantic.BaseModel):
     expires_at: pydantic.AwareDatetime | None = None
 
 
-class ResourceIdPermission(pydantic.BaseModel):
-    id: str
-
-
 class ContextPermissions(pydantic.BaseModel):
     files: set[Literal["read", "write", "extract", "*"]] = set()
     vector_stores: set[Literal["read", "write", "*"]] = set()
@@ -42,8 +38,8 @@ class ContextPermissions(pydantic.BaseModel):
 
 
 class Permissions(ContextPermissions):
-    llm: set[Literal["*"] | ResourceIdPermission] = set()
-    embeddings: set[Literal["*"] | ResourceIdPermission] = set()
+    llm: set[Literal["*"] | str] = set()
+    embeddings: set[Literal["*"] | str] = set()
     a2a_proxy: set[Literal["*"]] = set()
     model_providers: set[Literal["read", "write", "*"]] = set()
     variables: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()

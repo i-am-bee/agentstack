@@ -61,7 +61,7 @@ from agentstack_sdk.a2a.extensions.common.form import (
     TextField,
     TextFieldValue,
 )
-from agentstack_sdk.platform import BuildState, ModelProvider, Provider
+from agentstack_sdk.platform import BuildState, ModelProvider, Provider, UserFeedback
 from agentstack_sdk.platform.context import Context, ContextPermissions, ContextToken, Permissions
 from agentstack_sdk.platform.model_provider import ModelCapability
 from InquirerPy import inquirer
@@ -1161,3 +1161,63 @@ async def remove_env(
         provider = select_provider(search_path, await Provider.list())
         await provider.update_variables(variables=dict.fromkeys(env))
     await _list_env(provider)
+
+
+feedback_app = AsyncTyper()
+app.add_typer(feedback_app, name="feedback", help="Manage user feedback for your agents", no_args_is_help=True)
+
+
+@feedback_app.command("list")
+async def list_feedback(
+    search_path: typing.Annotated[
+        str | None, typer.Argument(help="Short ID, agent name or part of the provider location")
+    ] = None,
+    limit: typing.Annotated[int, typer.Option("--limit", help="Number of results per page [default: 50]")] = 50,
+    after_cursor: typing.Annotated[str | None, typer.Option("--after", help="Cursor for pagination")] = None,
+):
+    """List your agent feedback"""
+
+    announce_server_action("Listing feedback on")
+
+    provider_id = None
+
+    async with configuration.use_platform_client():
+        if search_path:
+            providers = await Provider.list()
+            provider = select_provider(search_path, providers)
+            provider_id = str(provider.id)
+
+        response = await UserFeedback.list(
+            provider_id=provider_id,
+            limit=limit,
+            after_cursor=after_cursor,
+        )
+
+    if not response.items:
+        console.print("No feedback found.")
+        return
+
+    with create_table(
+        Column("Rating", style="yellow", ratio=1),
+        Column("Agent", style="cyan", ratio=2),
+        Column("Task ID", style="dim", ratio=1),
+        Column("Comment", ratio=3),
+        Column("Tags", ratio=2),
+        Column("Date", style="dim", ratio=1),
+    ) as table:
+        for item in response.items:
+            rating_icon = "✓" if item.rating == 1 else "✗"
+            agent_name = item.agent_name or str(item.provider_id)[:8]
+            task_id_short = str(item.task_id)[:8]
+            comment = item.comment or ""
+            if len(comment) > 50:
+                comment = comment[:50] + "..."
+            tags = ", ".join(item.comment_tags or []) if item.comment_tags else "-"
+            created_at = item.created_at.strftime("%Y-%m-%d")
+
+            table.add_row(rating_icon, agent_name, task_id_short, comment, tags, created_at)
+
+    console.print(table)
+    console.print(f"Showing {len(response.items)} of {response.total_count} total feedback entries")
+    if response.has_more and response.next_page_token:
+        console.print(f"Use --after {response.next_page_token} to see more")

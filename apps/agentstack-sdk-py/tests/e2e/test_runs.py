@@ -1,11 +1,13 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+import asyncio
 import uuid
 from collections.abc import AsyncIterator
 
 import pytest
 from a2a.client import Client, ClientEvent, create_text_message_object
+from a2a.client.errors import A2AClientJSONRPCError
 from a2a.types import (
     Message,
     MessageSendParams,
@@ -163,7 +165,7 @@ async def test_run_cancel_stream(slow_echo: tuple[Server, Client]) -> None:
                     cancelled = True
                 states.append(update.status.state)
 
-    assert states == [TaskState.working, TaskState.canceled]
+    assert states == [TaskState.submitted, TaskState.working, TaskState.canceled]
 
 
 async def test_run_resume_sync(awaiter: tuple[Server, Client]) -> None:
@@ -338,3 +340,21 @@ async def test_chunked_artifacts(chunked_artifact_producer: tuple[Server, Client
     assert "first chunk" in first_chunk.artifact.parts[0].root.text
     assert "second chunk" in second_chunk.artifact.parts[0].root.text
     assert "final chunk" in final_chunk.artifact.parts[0].root.text
+
+
+async def test_run_timeout(awaiter_with_1s_timeout: tuple[Server, Client]) -> None:
+    _, client = awaiter_with_1s_timeout
+    message = create_text_message_object()
+
+    initial_task = await get_final_task_from_stream(client.send_message(message))
+    assert initial_task.status.state == TaskState.input_required
+
+    await asyncio.sleep(3)
+    task = await client.get_task(request=TaskQueryParams(id=initial_task.id))
+    assert task.status.state == TaskState.canceled
+
+    resume_message = create_text_message_object(content="Resume input")
+    resume_message.task_id = initial_task.id
+
+    with pytest.raises(A2AClientJSONRPCError, match="is in terminal state"):
+        await get_final_task_from_stream(client.send_message(resume_message))

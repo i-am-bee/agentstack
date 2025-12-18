@@ -3,7 +3,7 @@
 
 import pytest
 
-from agentstack_server.domain.models.permissions import Permissions, ResourceIdPermission
+from agentstack_server.domain.models.permissions import Permissions
 
 pytestmark = pytest.mark.unit
 
@@ -86,8 +86,8 @@ def test_check_resource_id_wildcard():
 
 
 def test_check_resource_id_permissions():
-    resource1 = ResourceIdPermission(id="llm-1")
-    resource2 = ResourceIdPermission(id="llm-2")
+    resource1 = "llm-1"
+    resource2 = "llm-2"
 
     user_perms = Permissions(llm={resource1})
     required_perms = Permissions(llm={resource1})
@@ -170,8 +170,8 @@ def test_union_admin_permissions():
 
 
 def test_union_resource_id_permissions():
-    resource1 = ResourceIdPermission(id="llm-1")
-    resource2 = ResourceIdPermission(id="llm-2")
+    resource1 = "llm-1"
+    resource2 = "llm-2"
 
     perms1 = Permissions(llm={resource1})
     perms2 = Permissions(llm={resource2})

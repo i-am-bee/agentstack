@@ -111,7 +111,7 @@ class NoParamsBaseExtensionSpec(BaseExtensionSpec[NoneType]):
         return None
 
 
-ExtensionSpecT = typing.TypeVar("ExtensionSpecT", bound=BaseExtensionSpec)
+ExtensionSpecT = typing.TypeVar("ExtensionSpecT", bound=BaseExtensionSpec[typing.Any])
 
 
 class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromClientT]):

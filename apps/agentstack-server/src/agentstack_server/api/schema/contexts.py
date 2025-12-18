@@ -8,7 +8,6 @@ from pydantic import AwareDatetime, BaseModel, Field, RootModel
 from agentstack_server.api.schema.common import PaginationQuery
 from agentstack_server.domain.models.common import Metadata, MetadataPatch
 from agentstack_server.domain.models.context import ContextHistoryItemData
-from agentstack_server.domain.models.permissions import ResourceIdPermission
 
 
 class ContextCreateRequest(BaseModel):
@@ -47,8 +46,8 @@ class GlobalPermissionGrant(BaseModel):
     vector_stores: list[Literal["read", "write", "*"]] = Field(default_factory=list)
 
     # openai proxy
-    llm: list[Literal["*"] | ResourceIdPermission] = Field(default_factory=list)
-    embeddings: list[Literal["*"] | ResourceIdPermission] = Field(default_factory=list)
+    llm: list[Literal["*"] | str] = Field(default_factory=list)
+    embeddings: list[Literal["*"] | str] = Field(default_factory=list)
     model_providers: list[Literal["read", "write", "*"]] = Field(default_factory=list)
 
     a2a_proxy: list[Literal["*"]] = Field(default_factory=list)

@@ -139,7 +139,7 @@ class Server:
             raise ValueError("Agent is not registered")
 
         context_store = context_store or InMemoryContextStore()
-        self._agent = self._agent_factory(context_store)
+        self._agent = self._agent_factory(context_store.modify_dependencies)
         card_url = url and url.strip()
         self._agent.card.url = card_url.rstrip("/") if card_url else f"http://{host}:{port}"
 

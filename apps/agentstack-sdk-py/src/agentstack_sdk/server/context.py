@@ -5,8 +5,6 @@
 from collections.abc import AsyncIterator
 
 import janus
-from a2a.server.context import ServerCallContext
-from a2a.server.tasks import TaskUpdater
 from a2a.types import Artifact, Message, MessageSendConfiguration, Task
 from pydantic import BaseModel, PrivateAttr
 
@@ -16,12 +14,10 @@ from agentstack_sdk.server.store.context_store import ContextStoreInstance
 
 class RunContext(BaseModel, arbitrary_types_allowed=True):
     configuration: MessageSendConfiguration | None = None
-    task_updater: TaskUpdater
     task_id: str
     context_id: str
     current_task: Task | None = None
     related_tasks: list[Task] | None = None
-    call_context: ServerCallContext | None = None
 
     _store: ContextStoreInstance | None = PrivateAttr(None)
     _yield_queue: janus.Queue[RunYield] = PrivateAttr(default_factory=janus.Queue)

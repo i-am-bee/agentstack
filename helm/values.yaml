@@ -173,7 +173,7 @@ providerBuilds:
   buildBackend: "kaniko" # Options: "buildkit" or "kaniko"
   buildRegistry:
     registryPrefix: "agentstack-registry-svc.default:5001" # This must include a dot
-    imageFormat: "{registry_prefix}/{org}/{repo}/{path}:{commit_hash}"
+    imageFormat: "{registry_prefix}/{org}/{repo}/{path}{dockerfile_path}:{commit_hash}"
     secretName: "agentstack-registry-secret"
     insecure: true
   kaniko:
