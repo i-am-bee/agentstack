@@ -30,6 +30,7 @@ async def list_users(
     result = await user_service.list_users(
         limit=query.limit,
         page_token=query.page_token,
+        email=query.email,
     )
 
     return PaginatedResult(

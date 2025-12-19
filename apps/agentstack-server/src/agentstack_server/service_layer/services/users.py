@@ -66,11 +66,13 @@ class UserService:
         *,
         limit: int = 40,
         page_token: UUID | None = None,
+        email: str | None = None,
     ) -> PaginatedResult[User]:
         async with self._uow() as uow:
             return await uow.users.list(
                 limit=limit,
                 page_token=page_token,
+                email=email,
             )
 
     async def change_role(self, user_id: UUID, new_role: UserRole) -> User:

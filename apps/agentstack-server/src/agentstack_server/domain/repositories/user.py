@@ -14,6 +14,7 @@ class IUserRepository(Protocol):
         *,
         limit: int,
         page_token: UUID | None = None,
+        email: str | None = None,
     ) -> PaginatedResult[User]: ...
 
     async def create(self, *, user: User) -> None: ...

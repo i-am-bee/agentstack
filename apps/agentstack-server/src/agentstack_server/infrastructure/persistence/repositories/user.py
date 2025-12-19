@@ -76,8 +76,12 @@ class SqlAlchemyUserRepository(IUserRepository):
         *,
         limit: int,
         page_token: UUID | None = None,
+        email: str | None = None,
     ) -> PaginatedResult[User]:
         query = users_table.select()
+
+        if email is not None:
+            query = query.where(users_table.c.email.ilike(f"%{email}%"))
 
         result = await cursor_paginate(
             connection=self.connection,

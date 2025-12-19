@@ -11,6 +11,7 @@ from agentstack_server.domain.models.user import UserRole
 class UserListQuery(BaseModel):
     limit: int = Field(default=40, ge=1, le=100)
     page_token: UUID | None = None
+    email: str | None = Field(default=None, description="Filter by email (case-insensitive partial match)")
 
 
 class UserResponse(BaseModel):
