@@ -7,6 +7,7 @@ from uuid import UUID
 from kink import inject
 
 from agentstack_server.configuration import Configuration
+from agentstack_server.domain.models.common import PaginatedResult
 from agentstack_server.domain.models.user import User, UserRole
 from agentstack_server.domain.repositories.env import EnvStoreEntity
 from agentstack_server.exceptions import PlatformError, UsageLimitExceededError
@@ -59,6 +60,18 @@ class UserService:
         async with self._uow() as uow:
             env = await uow.env.get_all(parent_entity=EnvStoreEntity.USER, parent_entity_ids=[user.id])
             return env[user.id]
+
+    async def list_users(
+        self,
+        *,
+        limit: int = 40,
+        page_token: UUID | None = None,
+    ) -> PaginatedResult[User]:
+        async with self._uow() as uow:
+            return await uow.users.list(
+                limit=limit,
+                page_token=page_token,
+            )
 
     async def change_role(self, user_id: UUID, new_role: UserRole) -> User:
         async with self._uow() as uow:

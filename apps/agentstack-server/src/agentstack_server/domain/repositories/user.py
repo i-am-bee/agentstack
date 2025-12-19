@@ -1,16 +1,20 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from collections.abc import AsyncIterator
 from typing import Protocol
 from uuid import UUID
 
+from agentstack_server.domain.models.common import PaginatedResult
 from agentstack_server.domain.models.user import User
 
 
 class IUserRepository(Protocol):
-    async def list(self) -> AsyncIterator[User]:
-        yield ...
+    async def list(
+        self,
+        *,
+        limit: int,
+        page_token: UUID | None = None,
+    ) -> PaginatedResult[User]: ...
 
     async def create(self, *, user: User) -> None: ...
     async def get(self, *, user_id: UUID) -> User: ...

@@ -124,7 +124,8 @@ async def test_list_users(db_transaction: AsyncConnection, test_user: User, test
     await repository.create(user=test_admin)
 
     # List users
-    users = {user.id: user async for user in repository.list()}
+    result = await repository.list(limit=100)
+    users = {user.id: user for user in result.items}
 
     # Verify users
     assert len(users) >= 2  # There might be other users in the database

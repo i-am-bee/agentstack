@@ -5,10 +5,11 @@ import logging
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from agentstack_server.api.dependencies import UserServiceDependency, authorized_user
+from agentstack_server.api.schema.user import ChangeRoleRequest, ChangeRoleResponse, UserListQuery, UserResponse
+from agentstack_server.domain.models.common import PaginatedResult
 from agentstack_server.domain.models.permissions import AuthorizedUser
 from agentstack_server.domain.models.user import UserRole
 
@@ -17,14 +18,25 @@ logger = logging.getLogger(__name__)
 router = APIRouter(tags=["users"])
 
 
-class ChangeRoleRequest(BaseModel):
-    new_role: UserRole
+@router.get("", response_model=PaginatedResult[UserResponse])
+async def list_users(
+    query: Annotated[UserListQuery, Query()],
+    user: Annotated[AuthorizedUser, Depends(authorized_user)],
+    user_service: UserServiceDependency,
+) -> PaginatedResult[UserResponse]:
+    if not user.user.role == UserRole.ADMIN:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin permission required")
 
+    result = await user_service.list_users(
+        limit=query.limit,
+        page_token=query.page_token,
+    )
 
-class ChangeRoleResponse(BaseModel):
-    user_id: UUID
-    new_role: UserRole
-    role_version: int
+    return PaginatedResult(
+        items=[UserResponse(**u.model_dump()) for u in result.items],
+        total_count=result.total_count,
+        has_more=result.has_more,
+    )
 
 
 @router.put("/users/{user_id}/role", response_model=ChangeRoleResponse)

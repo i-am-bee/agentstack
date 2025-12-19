@@ -8,11 +8,12 @@ from sqlalchemy import UUID as SQL_UUID
 from sqlalchemy import Column, DateTime, Integer, Row, String, Table
 from sqlalchemy.ext.asyncio import AsyncConnection
 
+from agentstack_server.domain.models.common import PaginatedResult
 from agentstack_server.domain.models.user import User, UserRole
 from agentstack_server.domain.repositories.user import IUserRepository
 from agentstack_server.exceptions import EntityNotFoundError
 from agentstack_server.infrastructure.persistence.repositories.db_metadata import metadata
-from agentstack_server.infrastructure.persistence.repositories.utils import sql_enum
+from agentstack_server.infrastructure.persistence.repositories.utils import cursor_paginate, sql_enum
 
 users_table = Table(
     "users",
@@ -70,10 +71,26 @@ class SqlAlchemyUserRepository(IUserRepository):
             raise EntityNotFoundError(entity="user", id=user_id)
         return result.rowcount
 
-    async def list(self):
+    async def list(
+        self,
+        *,
+        limit: int,
+        page_token: UUID | None = None,
+    ) -> PaginatedResult[User]:
         query = users_table.select()
-        async for row in await self.connection.stream(query):
-            yield self._to_user(row)
+
+        result = await cursor_paginate(
+            connection=self.connection,
+            query=query,
+            order_column=users_table.c.created_at,
+            id_column=users_table.c.id,
+            limit=limit,
+            after_cursor=page_token,
+            order="desc",
+        )
+
+        users = [self._to_user(row) for row in result.items]
+        return PaginatedResult(items=users, total_count=result.total_count, has_more=result.has_more)
 
     async def update(self, *, user: User) -> None:
         query = (
