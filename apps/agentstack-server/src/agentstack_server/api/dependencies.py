@@ -123,7 +123,7 @@ async def authorized_user(
     request: Request,
 ) -> AuthorizedUser:
     if bearer_auth:
-        # Check Bearer token first - locally this allows for "checking permissions" for development purposes
+        # Check Context token first - locally this allows for "checking permissions" for development purposes
         # even if auth is disabled (requests that would pass with no header may not pass with context token header)
         try:
             parsed_token = verify_internal_jwt(bearer_auth.credentials, configuration=configuration)
