@@ -11,6 +11,7 @@ from agentstack_server.domain.models.user import User, UserRole
 from agentstack_server.domain.repositories.env import EnvStoreEntity
 from agentstack_server.exceptions import UsageLimitExceededError
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
+from agentstack_server.utils.utils import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -58,3 +59,18 @@ class UserService:
         async with self._uow() as uow:
             env = await uow.env.get_all(parent_entity=EnvStoreEntity.USER, parent_entity_ids=[user.id])
             return env[user.id]
+
+    async def change_role(self, user_id: UUID, new_role: UserRole) -> User:
+        async with self._uow() as uow:
+            user = await uow.users.get(user_id=user_id)
+
+            if user.role == new_role:
+                raise ValueError("User already has this role")
+
+            user.role = new_role
+            user.role_version += 1
+            user.role_updated_at = utc_now()
+
+            await uow.users.update(user=user)
+            await uow.commit()
+            return user

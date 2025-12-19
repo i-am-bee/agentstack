@@ -34,6 +34,7 @@ from agentstack_server.api.routes.provider_builds import router as provider_buil
 from agentstack_server.api.routes.providers import router as provider_router
 from agentstack_server.api.routes.user import router as user_router
 from agentstack_server.api.routes.user_feedback import router as user_feedback_router
+from agentstack_server.api.routes.users import router as users_router
 from agentstack_server.api.routes.variables import router as variables_router
 from agentstack_server.api.routes.vector_stores import router as vector_stores_router
 from agentstack_server.api.utils import format_openai_error
@@ -118,6 +119,7 @@ def register_global_exception_handlers(app: FastAPI):
 def mount_routes(app: FastAPI):
     server_router = APIRouter()
     server_router.include_router(user_router, prefix="/user")
+    server_router.include_router(users_router, prefix="/users")
     server_router.include_router(a2a_router, prefix="/a2a")
     server_router.include_router(mcp_router, prefix="/mcp")
     server_router.include_router(provider_router, prefix="/providers", tags=["providers"])

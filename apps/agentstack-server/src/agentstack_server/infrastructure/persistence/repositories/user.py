@@ -5,7 +5,7 @@ from uuid import UUID
 
 from kink import inject
 from sqlalchemy import UUID as SQL_UUID
-from sqlalchemy import Column, DateTime, Row, String, Table
+from sqlalchemy import Column, DateTime, Integer, Row, String, Table
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from agentstack_server.domain.models.user import User, UserRole
@@ -21,6 +21,8 @@ users_table = Table(
     Column("email", String(256), nullable=False, unique=True),
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("role", sql_enum(UserRole), nullable=False),
+    Column("role_version", Integer, nullable=False, server_default="1"),
+    Column("role_updated_at", DateTime(timezone=True), nullable=True),
 )
 
 
@@ -31,10 +33,7 @@ class SqlAlchemyUserRepository(IUserRepository):
 
     async def create(self, *, user: User) -> None:
         query = users_table.insert().values(
-            id=user.id,
-            email=user.email,
-            created_at=user.created_at,
-            role=user.role,
+            id=user.id, email=user.email, created_at=user.created_at, role=user.role, role_version=user.role_version
         )
         await self.connection.execute(query)
 
@@ -45,6 +44,8 @@ class SqlAlchemyUserRepository(IUserRepository):
                 "email": row.email,
                 "created_at": row.created_at,
                 "role": row.role,
+                "role_version": row.role_version,
+                "role_updated_at": row.role_updated_at,
             }
         )
 
@@ -73,3 +74,17 @@ class SqlAlchemyUserRepository(IUserRepository):
         query = users_table.select()
         async for row in await self.connection.stream(query):
             yield self._to_user(row)
+
+    async def update(self, *, user: User) -> None:
+        query = (
+            users_table.update()
+            .where(users_table.c.id == user.id)
+            .values(
+                role=user.role,
+                role_version=user.role_version,
+                role_updated_at=user.role_updated_at,
+            )
+        )
+        result = await self.connection.execute(query)
+        if not result.rowcount:
+            raise EntityNotFoundError(entity="user", id=user.id)
