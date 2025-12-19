@@ -121,7 +121,7 @@ def issue_internal_jwt(
             "global": global_permissions.model_dump(mode="json"),
             "context": context_permissions.model_dump(mode="json"),
         },
-        "token_version": role_version,
+        "role_version": role_version,
     }
     return jwt.encode(header, payload, key=secret_key), expires_at
 
@@ -137,7 +137,7 @@ def verify_internal_jwt(token: str, configuration: Configuration) -> ParsedToken
             "exp": {"essential": True},
             "iss": {"essential": True, "value": "agentstack-server"},
             "aud": {"essential": True, "value": "agentstack-server"},
-            "token_version": {"essential": True},
+            "role_version": {"essential": True},
         },
     )
     context_id = UUID(payload["resource"][0].replace("context:", ""))

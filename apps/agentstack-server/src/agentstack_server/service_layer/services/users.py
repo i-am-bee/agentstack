@@ -9,7 +9,7 @@ from kink import inject
 from agentstack_server.configuration import Configuration
 from agentstack_server.domain.models.user import User, UserRole
 from agentstack_server.domain.repositories.env import EnvStoreEntity
-from agentstack_server.exceptions import UsageLimitExceededError
+from agentstack_server.exceptions import PlatformError, UsageLimitExceededError
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
 from agentstack_server.utils.utils import utc_now
 
@@ -65,7 +65,7 @@ class UserService:
             user = await uow.users.get(user_id=user_id)
 
             if user.role == new_role:
-                raise ValueError("User already has this role")
+                raise PlatformError("User already has this role", status_code=400)
 
             user.role = new_role
             user.role_version += 1
