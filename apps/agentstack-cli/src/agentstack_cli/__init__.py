@@ -15,6 +15,7 @@ import agentstack_cli.commands.model
 import agentstack_cli.commands.platform
 import agentstack_cli.commands.self
 import agentstack_cli.commands.server
+import agentstack_cli.commands.user
 from agentstack_cli.async_typer import AliasGroup, AsyncTyper
 from agentstack_cli.configuration import Configuration
 
@@ -48,6 +49,7 @@ Usage: agentstack [OPTIONS] COMMAND [ARGS]...
 │ model           Configure 15+ LLM providers                                │
 │ platform        Start, stop, or delete local platform                      │
 │ server          Connect to remote Agent Stack servers                      │
+│ user            Manage users and roles                                     │
 │ self version    Show Agent Stack CLI and Platform version                  │
 │ self upgrade    Upgrade Agent Stack CLI and Platform                       │
 │ self uninstall  Uninstall Agent Stack CLI and Platform                     │
@@ -83,6 +85,12 @@ app.add_typer(
     no_args_is_help=True,
     help="Manage Agent Stack installation.",
     hidden=True,
+)
+app.add_typer(
+    agentstack_cli.commands.user.app,
+    name="user",
+    no_args_is_help=True,
+    help="Manage users.",
 )
 
 

@@ -40,7 +40,7 @@ async def list_users(
     )
 
 
-@router.put("/users/{user_id}/role", response_model=ChangeRoleResponse)
+@router.put("/{user_id}/role", response_model=ChangeRoleResponse)
 async def change_user_role(
     user_id: UUID,
     request: ChangeRoleRequest,
