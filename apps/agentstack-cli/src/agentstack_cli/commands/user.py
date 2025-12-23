@@ -16,6 +16,12 @@ from agentstack_cli.utils import announce_server_action, confirm_server_action
 app = AsyncTyper()
 configuration = Configuration()
 
+ROLE_DISPLAY = {
+    "admin": "[red]admin[/red]",
+    "developer": "[cyan]developer[/cyan]",
+    "user": "user",
+}
+
 
 @app.command("list")
 async def list_users(
@@ -42,11 +48,7 @@ async def list_users(
         no_wrap=True,
     ) as table:
         for user in items:
-            role_display = {
-                "admin": "[red]admin[/red]",
-                "developer": "[cyan]developer[/cyan]",
-                "user": "user",
-            }.get(user.role, user.role)
+            role_display = ROLE_DISPLAY.get(user.role, user.role)
 
             created_at = _format_date(user.created_at)
             role_updated_at = _format_date(user.role_updated_at) if user.role_updated_at else "-"
@@ -79,11 +81,7 @@ async def set_role(
     async with configuration.use_platform_client():
         result = await User.set_role(user_id, UserRole(role))
 
-        role_display = {
-            "admin": "[red]admin[/red]",
-            "developer": "[cyan]developer[/cyan]",
-            "user": "user",
-        }.get(result.new_role, result.new_role)
+        role_display = ROLE_DISPLAY.get(result.new_role, result.new_role)
 
         console.success(
             f"User role updated to [cyan]{role_display}[/cyan] (version [yellow]{result.role_version}[/yellow])"

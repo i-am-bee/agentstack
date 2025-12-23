@@ -146,7 +146,7 @@ def verify_internal_jwt(token: str, configuration: Configuration) -> ParsedToken
         context_permissions=Permissions.model_validate(payload["scope"]["context"]),
         context_id=context_id,
         user_id=UUID(payload["sub"]),
-        role_version=int(payload["token_version"]),
+        role_version=int(payload["role_version"]),
         raw=payload,
     )
 
