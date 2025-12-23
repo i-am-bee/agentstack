@@ -31,6 +31,7 @@ $ agentstack [OPTIONS] COMMAND [ARGS]...
 * `build`: Build agent from a GitHub repository in...
 * `server`: Manage Agent Stack servers and...
 * `self`: Manage Agent Stack installation.
+* `user`: Manage users.
 * `add`: Add a docker image or GitHub repository...
 * `update`: Upgrade agent to a newer docker image or...
 * `remove | uninstall | rm | delete`: Remove agent
@@ -957,6 +958,62 @@ $ agentstack self uninstall [OPTIONS]
 **Options**:
 
 * `-v, --verbose`: Show verbose output
+* `--help`: Show this message and exit.
+
+## `agentstack user`
+
+Manage users.
+
+**Usage**:
+
+```console
+$ agentstack user [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+**Commands**:
+
+* `list`: List platform users (admin only).
+* `set-role`: Change user role (admin only).
+
+### `agentstack user list`
+
+List platform users (admin only).
+
+**Usage**:
+
+```console
+$ agentstack user list [OPTIONS]
+```
+
+**Options**:
+
+* `--email TEXT`: Filter by email (case-insensitive partial match)
+* `--limit INTEGER`: Results per page (1-100)  [default: 40]
+* `--after TEXT`: Pagination cursor (page_token)
+* `--help`: Show this message and exit.
+
+### `agentstack user set-role`
+
+Change user role (admin only).
+
+**Usage**:
+
+```console
+$ agentstack user set-role [OPTIONS] USER_ID
+```
+
+**Arguments**:
+
+* `USER_ID`: User UUID  [required]
+
+**Options**:
+
+* `-r, --role [admin|developer|user]`: Target role  [required]
+* `-y, --yes`: Skip confirmation prompts.
 * `--help`: Show this message and exit.
 
 ## `agentstack add`
