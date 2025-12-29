@@ -61,6 +61,20 @@ from agentstack_sdk.a2a.extensions.common.form import (
     TextField,
     TextFieldValue,
 )
+from agentstack_sdk.a2a.extensions.ui.settings import (
+    AgentRunSettings,
+    CheckboxGroupField,
+    CheckboxGroupFieldValue,
+    SettingsExtensionSpec,
+    SettingsFieldValue,
+    SettingsRender,
+)
+from agentstack_sdk.a2a.extensions.ui.settings import (
+    CheckboxFieldValue as SettingsCheckboxFieldValue,
+)
+from agentstack_sdk.a2a.extensions.ui.settings import (
+    SingleSelectFieldValue as SettingsSingleSelectFieldValue,
+)
 from agentstack_sdk.platform import BuildState, File, ModelProvider, Provider, UserFeedback
 from agentstack_sdk.platform.context import Context, ContextPermissions, ContextToken, Permissions
 from agentstack_sdk.platform.model_provider import ModelCapability
@@ -446,11 +460,42 @@ async def _ask_form_questions(form_render: FormRender) -> FormResponse:
     return FormResponse(values=form_values)
 
 
+async def _ask_settings_questions(settings_render: SettingsRender) -> AgentRunSettings:
+    """Ask user to configure settings using inquirer."""
+    settings_values: dict[str, SettingsFieldValue] = {}
+
+    console.print("[bold]Agent Settings[/bold]\n")
+
+    for field in settings_render.fields:
+        if isinstance(field, CheckboxGroupField):
+            checkbox_values: dict[str, SettingsCheckboxFieldValue] = {}
+            for checkbox in field.fields:
+                answer = await inquirer.confirm(  # pyright: ignore[reportPrivateImportUsage]
+                    message=checkbox.label + ":",
+                    default=checkbox.default_value,
+                ).execute_async()
+                checkbox_values[checkbox.id] = SettingsCheckboxFieldValue(value=answer)
+            settings_values[field.id] = CheckboxGroupFieldValue(values=checkbox_values)
+
+        else:
+            choices = [Choice(value=opt.value, name=opt.label) for opt in field.options]
+            answer = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
+                message=field.label + ":",
+                choices=choices,
+                default=field.default_value,
+            ).execute_async()
+            settings_values[field.id] = SettingsSingleSelectFieldValue(value=answer)
+
+    console.print()
+    return AgentRunSettings(values=settings_values)
+
+
 async def _run_agent(
     client: Client,
     input: str | DataPart | FormResponse,
     agent_card: AgentCard,
     context_token: ContextToken,
+    settings: AgentRunSettings | None = None,
     dump_files_path: Path | None = None,
     handle_input: Callable[[], str] | None = None,
     task_id: str | None = None,
@@ -523,6 +568,7 @@ async def _run_agent(
                 if platform_extension_spec
                 else {}
             )
+            | ({SettingsExtensionSpec.URI: settings.model_dump(mode="json")} if settings else {})
         )
 
     msg = Message(
@@ -957,8 +1003,18 @@ async def run_agent(
             None,
         )
 
+        settings_render = next(
+            (
+                SettingsRender.model_validate(ext.params)
+                for ext in agent.capabilities.extensions or ()
+                if ext.uri == SettingsExtensionSpec.URI and ext.params
+            ),
+            None,
+        )
+
         if interaction_mode == InteractionMode.MULTI_TURN:
             console.print(f"{user_greeting}\n")
+            settings_input = await _ask_settings_questions(settings_render) if settings_render else None
             turn_input = await _ask_form_questions(initial_form_render) if initial_form_render else handle_input()
             async with a2a_client(provider.agent_card, context_token=context_token) as client:
                 while True:
@@ -968,6 +1024,7 @@ async def run_agent(
                         input=turn_input,
                         agent_card=agent,
                         context_token=context_token,
+                        settings=settings_input,
                         dump_files_path=dump_files,
                         handle_input=handle_input,
                     )
@@ -976,6 +1033,7 @@ async def run_agent(
         elif interaction_mode == InteractionMode.SINGLE_TURN:
             user_greeting = ui_annotations.get("user_greeting", None) or "Enter your instructions."
             console.print(f"{user_greeting}\n")
+            settings_input = await _ask_settings_questions(settings_render) if settings_render else None
             console.print()
             async with a2a_client(provider.agent_card, context_token=context_token) as client:
                 await _run_agent(
@@ -983,17 +1041,29 @@ async def run_agent(
                     input=await _ask_form_questions(initial_form_render) if initial_form_render else handle_input(),
                     agent_card=agent,
                     context_token=context_token,
+                    settings=settings_input,
                     dump_files_path=dump_files,
                     handle_input=handle_input,
                 )
 
     else:
+        settings_render = next(
+            (
+                SettingsRender.model_validate(ext.params)
+                for ext in agent.capabilities.extensions or ()
+                if ext.uri == SettingsExtensionSpec.URI and ext.params
+            ),
+            None,
+        )
+        settings_input = await _ask_settings_questions(settings_render) if settings_render else None
+
         async with a2a_client(provider.agent_card, context_token=context_token) as client:
             await _run_agent(
                 client,
                 input,
                 agent_card=agent,
                 context_token=context_token,
+                settings=settings_input,
                 dump_files_path=dump_files,
                 handle_input=handle_input,
             )
