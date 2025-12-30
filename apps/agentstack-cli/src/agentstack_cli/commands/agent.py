@@ -72,6 +72,7 @@ from agentstack_sdk.a2a.extensions.ui.settings import (
 from agentstack_sdk.a2a.extensions.ui.settings import (
     CheckboxFieldValue as SettingsCheckboxFieldValue,
 )
+from agentstack_sdk.a2a.extensions.ui.settings import SingleSelectField as SettingsSingleSelectField
 from agentstack_sdk.a2a.extensions.ui.settings import (
     SingleSelectFieldValue as SettingsSingleSelectFieldValue,
 )
@@ -476,8 +477,7 @@ async def _ask_settings_questions(settings_render: SettingsRender) -> AgentRunSe
                 ).execute_async()
                 checkbox_values[checkbox.id] = SettingsCheckboxFieldValue(value=answer)
             settings_values[field.id] = CheckboxGroupFieldValue(values=checkbox_values)
-
-        else:
+        elif isinstance(field, SettingsSingleSelectField):
             choices = [Choice(value=opt.value, name=opt.label) for opt in field.options]
             answer = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
                 message=field.label + ":",
@@ -485,6 +485,8 @@ async def _ask_settings_questions(settings_render: SettingsRender) -> AgentRunSe
                 default=field.default_value,
             ).execute_async()
             settings_values[field.id] = SettingsSingleSelectFieldValue(value=answer)
+        else:
+            raise ValueError(f"Unsupported settings field type: {type(field).__name__}")
 
     console.print()
     return AgentRunSettings(values=settings_values)
@@ -985,6 +987,15 @@ async def run_agent(
     splash_screen = Group(Markdown(f"# {agent.name}  \n{agent.description}"), NewLine())
     handle_input = _create_input_handler([], splash_screen=splash_screen)
 
+    settings_render = next(
+        (
+            SettingsRender.model_validate(ext.params)
+            for ext in agent.capabilities.extensions or ()
+            if ext.uri == SettingsExtensionSpec.URI and ext.params
+        ),
+        None,
+    )
+
     if not input:
         if interaction_mode not in {InteractionMode.MULTI_TURN, InteractionMode.SINGLE_TURN}:
             err_console.error(
@@ -999,15 +1010,6 @@ async def run_agent(
                 FormRender.model_validate(ext.params["form_demands"]["initial_form"])
                 for ext in agent.capabilities.extensions or ()
                 if ext.uri == FormServiceExtensionSpec.URI and ext.params
-            ),
-            None,
-        )
-
-        settings_render = next(
-            (
-                SettingsRender.model_validate(ext.params)
-                for ext in agent.capabilities.extensions or ()
-                if ext.uri == SettingsExtensionSpec.URI and ext.params
             ),
             None,
         )
@@ -1047,14 +1049,6 @@ async def run_agent(
                 )
 
     else:
-        settings_render = next(
-            (
-                SettingsRender.model_validate(ext.params)
-                for ext in agent.capabilities.extensions or ()
-                if ext.uri == SettingsExtensionSpec.URI and ext.params
-            ),
-            None,
-        )
         settings_input = await _ask_settings_questions(settings_render) if settings_render else None
 
         async with a2a_client(provider.agent_card, context_token=context_token) as client:
