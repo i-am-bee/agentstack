@@ -173,11 +173,14 @@ run = '''
 #!/bin/bash
 set -euo pipefail
 
+CLI_REFERENCE="../../docs/development/reference/cli-reference.mdx"
+TYPER_SCRIPT="src/agentstack_cli/__init__.py"
+
 HEAD_TMP=$(mktemp)
 GEN_TMP=$(mktemp)
 trap 'rm -f $HEAD_TMP $GEN_TMP' EXIT
 
-cat ../../docs/development/reference/cli-reference.mdx | sed "/usage-generator/q" > $HEAD_TMP
-uv run typer src/agentstack_cli/__init__.py utils docs --name agentstack | tail -n +2 > $GEN_TMP
-cat $HEAD_TMP $GEN_TMP > ../../docs/development/reference/cli-reference.mdx
+cat $CLI_REFERENCE | sed "/usage-generator/q" > $HEAD_TMP
+uv run typer $TYPER_SCRIPT utils docs --name agentstack | tail -n +2 > $GEN_TMP
+cat $HEAD_TMP $GEN_TMP > $CLI_REFERENCE
 '''
