@@ -3,10 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export function createAuthenticatedFetch(
-  token: string,
-  baseFetch?: typeof fetch,
-): typeof fetch {
+export function createAuthenticatedFetch(token: string, baseFetch?: typeof fetch): typeof fetch {
   const fetchImpl = baseFetch ?? (typeof globalThis.fetch !== 'undefined' ? globalThis.fetch : undefined);
 
   if (!fetchImpl) {

@@ -4,6 +4,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
+
 import { buildA2AClient, type CreateA2AClientParams } from '#api/a2a/client.ts';
 
 import { runKeys } from '../keys';

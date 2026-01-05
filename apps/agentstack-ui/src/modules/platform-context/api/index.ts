@@ -54,7 +54,6 @@ export async function matchProviders(matchProvidersParams: MatchProvidersParams)
 }
 
 export async function createContextToken(createContextTokenParams: CreateContextTokenParams) {
-  console.log(createContextTokenParams);
   const result = await agentstackClient.createContextToken(createContextTokenParams);
   return result.token;
 }
