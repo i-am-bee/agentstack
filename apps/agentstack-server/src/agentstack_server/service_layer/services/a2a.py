@@ -348,6 +348,8 @@ class A2AProxyService:
         )
 
     async def expire_requests(self) -> dict[str, int]:
+        if self._expire_requests_after <= timedelta(days=0):
+            return {"tasks": 0, "contexts": 0}
         async with self._uow() as uow:
             n_tasks = await uow.a2a_requests.delete_tasks(older_than=self._expire_requests_after)
             n_ctx = await uow.a2a_requests.delete_contexts(older_than=self._expire_requests_after)

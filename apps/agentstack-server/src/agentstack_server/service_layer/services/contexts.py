@@ -44,7 +44,7 @@ class ContextService:
         self._uow = uow
         self._object_storage = object_storage
         self._configuration = configuration
-        self._expire_resources_after = timedelta(days=configuration.context.resource_expire_after_days)
+        self._expire_resources_after = timedelta(days=configuration.context.resources_expire_after_days)
         self._model_provider_service = model_provider_service
 
     async def create(self, *, user: User, metadata: Metadata, provider_id: UUID | None = None) -> Context:
@@ -118,6 +118,9 @@ class ContextService:
         await self._object_storage.delete_files(file_ids=file_ids)
 
     async def expire_resources(self) -> dict[str, int]:
+        if self._expire_resources_after <= timedelta(0):
+            return {"files": 0, "vector_stores": 0}
+
         deleted_stats = {"files": 0, "vector_stores": 0}
         page_token = None
         has_more = True

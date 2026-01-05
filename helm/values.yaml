@@ -17,7 +17,13 @@ features:
 #   Security Considerations:
 #     Agents should clear all local state stored under context_id within this time period
 #     No security implication for task_id (tasks ids can be generated only server-side in the agent)
+#   If <= 0, request expiration is disabled, records will grow indefinitely in database (needs manual cleanup)
 a2aProxyRequestsExpireAfterDays: 14
+
+# Context resource expiration
+#   Includes entities bound to context (=conversation) like files, vector stores, etc.
+#   If <= 0, context expiration is disabled, resources are deleted when context is deleted
+contextResourcesExpireAfterDays: 0 
 
 # Prompt template for generating conversation titles (Jinja2 format)
 generateConversationTitle:

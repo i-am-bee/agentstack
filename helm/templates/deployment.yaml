@@ -183,6 +183,8 @@ spec:
               value: {{ .Values.trustProxyHeaders | quote }}
             - name: A2A_PROXY__REQUESTS_EXPIRE_AFTER_DAYS
               value: {{ .Values.a2aProxyRequestsExpireAfterDays | quote }}
+            - name: CONTEXT__RESOURCES_EXPIRE_AFTER_DAYS
+              value: {{ .Values.contextResourcesExpireAfterDays | quote }}
             - name: TEXT_EXTRACTION__ENABLED
               value: {{ .Values.docling.enabled | quote }}
             - name: AGENT_REGISTRY__SYNC_PERIOD_CRON
