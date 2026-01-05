@@ -219,8 +219,7 @@ class KubernetesProviderBuildManager(IProviderBuildManager):
                         tg.create_task(stream_container_logs(container["name"]))
 
         except Exception as ex:
-            logs_container.add(
-                ProcessLogMessage(stream=ProcessLogType.STDERR, message=extract_messages(ex), error=True)
-            )
-            logger.error(f"Error while streaming logs: {extract_messages(ex)}")
+            messages = ", ".join([f"{exc_type}: {msg}" for exc_type, msg in extract_messages(ex)])
+            logs_container.add(ProcessLogMessage(stream=ProcessLogType.STDERR, message=messages))
+            logger.error(f"Error while streaming logs: {messages}")
             raise
