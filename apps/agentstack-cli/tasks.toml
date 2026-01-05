@@ -171,8 +171,13 @@ dir = "{{config_root}}/apps/agentstack-cli"
 depends = ["agentstack-cli:setup"]
 run = '''
 #!/bin/bash
+set -euo pipefail
 
-cat ../../docs/development/reference/cli-reference.mdx | sed "/usage-generator/q" > /tmp/agentstack-docs-head.mdx
-uv run typer src/agentstack_cli/__init__.py utils docs --name agentstack | tail -n +2 > /tmp/agentstack-docs-gen.md
-cat /tmp/agentstack-docs-head.mdx /tmp/agentstack-docs-gen.md > ../../docs/development/reference/cli-reference.mdx
+HEAD_TMP=$(mktemp)
+GEN_TMP=$(mktemp)
+trap 'rm -f $HEAD_TMP $GEN_TMP' EXIT
+
+cat ../../docs/development/reference/cli-reference.mdx | sed "/usage-generator/q" > $HEAD_TMP
+uv run typer src/agentstack_cli/__init__.py utils docs --name agentstack | tail -n +2 > $GEN_TMP
+cat $HEAD_TMP $GEN_TMP > ../../docs/development/reference/cli-reference.mdx
 '''
