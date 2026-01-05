@@ -3,32 +3,22 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ContextToken } from 'agentstack-sdk';
 import { type AgentSettings, type FormFulfillments, ModelCapability } from 'agentstack-sdk';
 import { type PropsWithChildren, useCallback, useRef, useState } from 'react';
 
-import type { AgentA2AClient } from '#api/a2a/types.ts';
 import { useListConnectors } from '#modules/connectors/api/queries/useListConnectors.ts';
 import type { RunFormValues } from '#modules/form/types.ts';
 import { useMatchProviders } from '#modules/platform-context/api/mutations/useMatchProviders.ts';
 import { getSettingsDemandsDefaultValues } from '#modules/runs/settings/utils.ts';
 
+import { useA2AClient } from '../a2a-client';
 import { useAgentSecrets } from '../agent-secrets';
 import type { FulfillmentsContext } from './agent-demands-context';
 import { AgentDemandsContext } from './agent-demands-context';
 import { buildFulfillments } from './build-fulfillments';
 
-interface Props<UIGenericPart> {
-  agentClient: AgentA2AClient<UIGenericPart>;
-  /** @deprecated Context token should be passed via A2A client, not fulfillments */
-  contextToken: ContextToken;
-}
-
-export function AgentDemandsProvider<UIGenericPart>({
-  agentClient,
-  contextToken,
-  children,
-}: PropsWithChildren<Props<UIGenericPart>>) {
+export function AgentDemandsProvider({ children }: PropsWithChildren) {
+  const { agentClient, contextToken } = useA2AClient();
   const { demandedSecrets } = useAgentSecrets();
 
   const [selectedEmbeddingProviders, setSelectedEmbeddingProviders] = useState<Record<string, string>>({});

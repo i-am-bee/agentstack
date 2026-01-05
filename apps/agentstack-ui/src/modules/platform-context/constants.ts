@@ -15,7 +15,7 @@ export const contextTokenPermissionsDefaults: DeepRequired<ContextTokenPermissio
     llm: ['*'],
     embeddings: ['*'],
     model_providers: [],
-    a2a_proxy: [],
+    a2a_proxy: ['*'],
     providers: [],
     provider_variables: [],
     contexts: [],

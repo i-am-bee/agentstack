@@ -12,4 +12,6 @@ export const contextKeys = {
   histories: () => [...contextKeys.all(), 'history'] as const,
   history: ({ contextId, query = {} }: ListContextHistoryParams) =>
     [...contextKeys.histories(), contextId, query] as const,
+  tokens: () => [...contextKeys.all(), 'token'] as const,
+  token: (contextId: string, providerId: string) => [...contextKeys.tokens(), contextId, providerId] as const,
 };

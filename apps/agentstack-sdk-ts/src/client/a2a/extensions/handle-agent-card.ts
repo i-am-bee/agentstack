@@ -33,6 +33,9 @@ export interface Fulfillments {
   secrets: (demand: SecretDemands) => Promise<SecretFulfillments>;
   form: (demand: FormDemands) => Promise<FormFulfillments>;
   oauthRedirectUri: () => string | null;
+  /**
+   * @deprecated - keeping this for backwards compatibility, context token is now passed via A2A client headers
+   */
   getContextToken: () => ContextToken;
 }
 

@@ -5,16 +5,14 @@
 
 'use client';
 import { useQueryClient } from '@tanstack/react-query';
-import type { ContextToken } from 'agentstack-sdk';
 import { TaskStatusUpdateType } from 'agentstack-sdk';
 import type { PropsWithChildren } from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
-import type { AgentA2AClient, ChatRun } from '#api/a2a/types.ts';
+import type { ChatRun } from '#api/a2a/types.ts';
 import { createTextPart } from '#api/a2a/utils.ts';
 import { getErrorCode } from '#api/utils.ts';
-import { useApp } from '#contexts/App/index.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { CanvasProvider } from '#modules/canvas/contexts/CanvasProvider.tsx';
@@ -30,10 +28,8 @@ import type { UIAgentMessage, UIMessageForm, UIUserMessage } from '#modules/mess
 import { UIMessagePartKind, UIMessageStatus } from '#modules/messages/types.ts';
 import { addMessagePart, isAgentMessage } from '#modules/messages/utils.ts';
 import { contextKeys } from '#modules/platform-context/api/keys.ts';
-import { useCreateContextToken } from '#modules/platform-context/api/mutations/useCreateContextToken.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 import { useEnsurePlatformContext } from '#modules/platform-context/hooks/useEnsurePlatformContext.ts';
-import { useBuildA2AClient } from '#modules/runs/api/queries/useBuildA2AClient.ts';
 import { useStartOAuth } from '#modules/runs/hooks/useStartOAuth.ts';
 import type { RunStats } from '#modules/runs/types.ts';
 import { SourcesProvider } from '#modules/sources/contexts/SourcesProvider.tsx';
@@ -41,6 +37,7 @@ import { getMessagesSourcesMap } from '#modules/sources/utils.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
+import { A2AClientProvider, useA2AClient } from '../a2a-client';
 import { useAgentDemands } from '../agent-demands';
 import type { FulfillmentsContext } from '../agent-demands/agent-demands-context';
 import { AgentDemandsProvider } from '../agent-demands/AgentDemandsProvider';
@@ -54,70 +51,28 @@ interface Props {
 
 export function AgentRunProviders({ agent, children }: PropsWithChildren<Props>) {
   useEnsurePlatformContext(agent);
-  const {
-    config: { contextTokenPermissions },
-  } = useApp();
-
-  const { contextId } = usePlatformContext();
-  const { mutateAsync: createContextToken } = useCreateContextToken();
-  const [contextToken, setContextToken] = useState<ContextToken | null>(null);
-
-  useEffect(() => {
-    const createToken = async () => {
-      if (contextId === null) {
-        // todo uncaught error
-        throw new Error('Illegal State - Context ID is not set.');
-      }
-
-      const token = await createContextToken({
-        contextId,
-        contextPermissions: contextTokenPermissions.grant_context_permissions ?? {},
-        globalPermissions: {
-          ...(contextTokenPermissions.grant_global_permissions ?? {}),
-          a2a_proxy: [...(contextTokenPermissions.grant_global_permissions?.a2a_proxy ?? []), agent.provider.id],
-        },
-      });
-      if (!token) {
-        throw new Error('Could not generate context token');
-      }
-      setContextToken(token);
-    };
-    createToken();
-  }, [contextId, contextTokenPermissions, createContextToken, agent.provider.id]);
-
-  const { agentClient } = useBuildA2AClient({
-    providerId: agent.provider.id,
-    authToken: contextToken,
-  });
-
-  if (!agentClient || !contextToken) {
-    return null;
-  }
 
   return (
-    <AgentSecretsProvider agent={agent} agentClient={agentClient}>
-      <AgentDemandsProvider agentClient={agentClient} contextToken={contextToken}>
-        <FileUploadProvider allowedContentTypes={agent.defaultInputModes}>
-          <MessagesProvider>
-            <CanvasProvider>
-              <AgentRunProvider agent={agent} agentClient={agentClient}>
-                {children}
-              </AgentRunProvider>
-            </CanvasProvider>
-          </MessagesProvider>
-        </FileUploadProvider>
-      </AgentDemandsProvider>
-    </AgentSecretsProvider>
+    <A2AClientProvider agent={agent}>
+      <AgentSecretsProvider agent={agent}>
+        <AgentDemandsProvider>
+          <FileUploadProvider allowedContentTypes={agent.defaultInputModes}>
+            <MessagesProvider>
+              <CanvasProvider>
+                <AgentRunProvider agent={agent}>{children}</AgentRunProvider>
+              </CanvasProvider>
+            </MessagesProvider>
+          </FileUploadProvider>
+        </AgentDemandsProvider>
+      </AgentSecretsProvider>
+    </A2AClientProvider>
   );
 }
 
-interface AgentRunProviderProps extends Props {
-  agentClient?: AgentA2AClient;
-}
-
-function AgentRunProvider({ agent, agentClient, children }: PropsWithChildren<AgentRunProviderProps>) {
+function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
   const queryClient = useQueryClient();
   const errorHandler = useHandleError();
+  const { agentClient } = useA2AClient();
 
   const { messages, getMessages, setMessages } = useMessages();
 
