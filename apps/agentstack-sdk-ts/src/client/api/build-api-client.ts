@@ -6,7 +6,14 @@
 import type { z } from 'zod';
 
 import type { ContextPermissionsGrant, GlobalPermissionsGrant, ModelCapability } from './types';
-import { contextSchema, contextTokenSchema, listConnectorsResponseSchema, modelProviderMatchSchema } from './types';
+import {
+  contextPermissionsGrantSchema,
+  contextSchema,
+  contextTokenSchema,
+  globalPermissionsGrantSchema,
+  listConnectorsResponseSchema,
+  modelProviderMatchSchema,
+} from './types';
 
 export interface MatchProvidersParams {
   suggestedModels: string[] | null;
@@ -79,16 +86,15 @@ export const buildApiClient = (
     await callApi('POST', '/api/v1/contexts', { metadata: {}, provider_id: providerId }, contextSchema);
 
   const createContextToken = async ({ contextId, globalPermissions, contextPermissions }: CreateContextTokenParams) => {
-    if (!globalPermissions.a2a_proxy?.includes('*') && globalPermissions.a2a_proxy?.length === 0) {
-      throw new Error("Invalid audience: You must specify providers or use '*' in globalPermissions.a2a_proxy.");
-    }
+    const validatedGlobalPerms = globalPermissionsGrantSchema.parse(globalPermissions);
+    const validatedContextPerms = contextPermissionsGrantSchema.parse(contextPermissions);
 
     const token = await callApi(
       'POST',
       `/api/v1/contexts/${contextId}/token`,
       {
-        grant_global_permissions: globalPermissions,
-        grant_context_permissions: contextPermissions,
+        grant_global_permissions: validatedGlobalPerms,
+        grant_context_permissions: validatedContextPerms,
       },
       contextTokenSchema,
     );

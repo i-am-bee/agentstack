@@ -19,6 +19,8 @@ type RouteContext = {
   }>;
 };
 
+const isA2AEndpoint = (path: string[]) => path[0] === 'v1' && path[1] === 'a2a';
+
 async function handler(request: NextRequest, context: RouteContext) {
   const { isAuthEnabled } = runtimeConfig;
   const { method, headers, body, nextUrl } = request;
@@ -31,10 +33,12 @@ async function handler(request: NextRequest, context: RouteContext) {
     targetUrl += '/';
   }
   targetUrl += search;
-  if (request.url.includes('/api/v1/a2a')) {
-    console.log(path, headers);
-  }
-  if (isAuthEnabled && !(path[0] == 'v1' && path[1] == 'a2a')) {
+  if (isAuthEnabled && !isA2AEndpoint(path)) {
+    if (isA2AEndpoint(path)) {
+      // Skip JWT auth for A2A endpoints - they use context tokens passed via A2A client
+      return;
+    }
+
     const token = await ensureToken(request);
 
     if (!token?.accessToken) {
