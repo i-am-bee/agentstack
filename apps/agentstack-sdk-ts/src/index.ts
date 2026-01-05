@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+export { createAuthenticatedFetch } from './client/a2a/create-authenticated-fetch';
 export * from './client/a2a/extensions/common/form';
 export * from './client/a2a/extensions/fulfillment-resolvers/build-llm-extension-fulfillment-resolver';
 export { type Fulfillments, handleAgentCard } from './client/a2a/extensions/handle-agent-card';

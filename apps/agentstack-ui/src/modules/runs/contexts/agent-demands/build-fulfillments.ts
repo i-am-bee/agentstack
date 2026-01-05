@@ -38,6 +38,7 @@ export const buildFulfillments = ({
   connectors,
 }: BuildFulfillmentsParams): Fulfillments => {
   return {
+    // @deprecated - token now passed via A2A client headers
     getContextToken: () => contextToken,
 
     settings: async () => {

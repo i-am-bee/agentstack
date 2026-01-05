@@ -20,6 +20,7 @@ import { buildFulfillments } from './build-fulfillments';
 
 interface Props<UIGenericPart> {
   agentClient: AgentA2AClient<UIGenericPart>;
+  /** @deprecated Context token should be passed via A2A client, not fulfillments */
   contextToken: ContextToken;
 }
 

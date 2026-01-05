@@ -58,26 +58,50 @@ export const contextPermissionsGrantSchema = z.object({
 
 export type ContextPermissionsGrant = z.infer<typeof contextPermissionsGrantSchema>;
 
-export const globalPermissionsGrantSchema = contextPermissionsGrantSchema.extend({
-  feedback: z.array(z.literal('write')).optional(),
+export const globalPermissionsGrantSchema = contextPermissionsGrantSchema
+  .extend({
+    feedback: z.array(z.literal('write')).optional(),
 
-  llm: z.array(z.union([z.literal('*'), resourceIdPermissionSchema])).optional(),
-  embeddings: z.array(z.union([z.literal('*'), resourceIdPermissionSchema])).optional(),
-  model_providers: z.array(z.literal(['read', 'write', '*'])).optional(),
+    llm: z.array(z.union([z.literal('*'), resourceIdPermissionSchema])).optional(),
+    embeddings: z.array(z.union([z.literal('*'), resourceIdPermissionSchema])).optional(),
+    model_providers: z.array(z.literal(['read', 'write', '*'])).optional(),
 
-  a2a_proxy: z.array(z.union([z.literal('*'), z.string()])).optional(),
+    a2a_proxy: z.array(z.union([z.literal('*'), z.string()])).optional(),
 
-  providers: z.array(z.literal(['read', 'write', '*'])).optional(),
-  provider_variables: z.array(z.literal(['read', 'write', '*'])).optional(),
+    providers: z.array(z.literal(['read', 'write', '*'])).optional(),
+    provider_variables: z.array(z.literal(['read', 'write', '*'])).optional(),
 
-  contexts: z.array(z.literal(['read', 'write', '*'])).optional(),
+    contexts: z.array(z.literal(['read', 'write', '*'])).optional(),
 
-  mcp_providers: z.array(z.literal(['read', 'write', '*'])).optional(),
-  mcp_tools: z.array(z.literal(['read', '*'])).optional(),
-  mcp_proxy: z.array(z.literal('*')).optional(),
+    mcp_providers: z.array(z.literal(['read', 'write', '*'])).optional(),
+    mcp_tools: z.array(z.literal(['read', '*'])).optional(),
+    mcp_proxy: z.array(z.literal('*')).optional(),
 
-  connectors: z.array(z.literal(['read', 'write', 'proxy', '*'])).optional(),
-});
+    connectors: z.array(z.literal(['read', 'write', 'proxy', '*'])).optional(),
+  })
+  .superRefine((val, ctx) => {
+    if (!val.a2a_proxy) return;
+
+    if (val.a2a_proxy.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'a2a_proxy cannot be empty array',
+        path: ['a2a_proxy'],
+      });
+      return;
+    }
+
+    const hasWildcard = val.a2a_proxy.includes('*');
+    const hasOthers = val.a2a_proxy.some((v) => v !== '*');
+
+    if (hasWildcard && hasOthers) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "a2a_proxy cannot mix '*' with specific providers",
+        path: ['a2a_proxy'],
+      });
+    }
+  });
 
 export type GlobalPermissionsGrant = z.infer<typeof globalPermissionsGrantSchema>;
 
