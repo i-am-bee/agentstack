@@ -84,3 +84,12 @@ export class A2AExtensionError extends Error {
     this.stackTrace = stack_trace;
   }
 }
+
+export class TaskCanceledError extends Error {
+  taskId?: string;
+
+  constructor(taskId?: string) {
+    super('The task timed out or was canceled.');
+    this.taskId = taskId;
+  }
+}

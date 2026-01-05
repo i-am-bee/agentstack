@@ -4,11 +4,12 @@
  */
 
 import type { TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from '@a2a-js/sdk';
+import type { A2AClient } from '@a2a-js/sdk/client';
 import { handleAgentCard, handleTaskStatusUpdate, resolveUserMetadata } from 'agentstack-sdk';
 import { defaultIfEmpty, filter, lastValueFrom, Subject } from 'rxjs';
 import { match } from 'ts-pattern';
 
-import { A2AExtensionError } from '#api/errors.ts';
+import { A2AExtensionError, TaskCanceledError } from '#api/errors.ts';
 import type { UITextPart } from '#modules/messages/types.ts';
 import { type UIMessagePart, UIMessagePartKind } from '#modules/messages/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
@@ -18,7 +19,7 @@ import { AGENT_ERROR_MESSAGE } from './constants';
 import { processMessageMetadata, processParts } from './part-processors';
 import type { ChatResult, TaskStatusUpdateResultWithTaskId } from './types';
 import { type ChatParams, type ChatRun, RunResultType } from './types';
-import { createUserMessage, extractErrorExtension, extractTextFromMessage } from './utils';
+import { createUserMessage, extractErrorExtension, extractTextFromMessage, isGetTaskSuccessResponse } from './utils';
 
 function handleStatusUpdate<UIGenericPart = never>(
   event: TaskStatusUpdateEvent,
@@ -69,6 +70,17 @@ function handleArtifactUpdate(event: TaskArtifactUpdateEvent): UIMessagePart[] {
   return [{ kind: UIMessagePartKind.Artifact, artifactId, description, name, parts: textParts }, ...otherParts];
 }
 
+async function handleEventError(error: unknown, client: A2AClient, taskId: TaskId | undefined) {
+  if (taskId) {
+    const task = await client.getTask({ id: taskId });
+    if (isGetTaskSuccessResponse(task) && task.result.status.state === 'canceled') {
+      throw new TaskCanceledError(taskId);
+    }
+  }
+
+  throw error;
+}
+
 export interface CreateA2AClientParams<UIGenericPart = never> {
   providerId: string;
   onStatusUpdate?: (event: TaskStatusUpdateEvent) => UIGenericPart[];
@@ -107,36 +119,40 @@ export const buildA2AClient = async <UIGenericPart = never>({
         ),
       );
 
-      for await (const event of stream) {
-        match(event)
-          .with({ kind: 'task' }, (task) => {
-            taskId = task.id;
-          })
-          .with({ kind: 'status-update' }, (event) => {
-            taskId = event.taskId;
+      try {
+        for await (const event of stream) {
+          match(event)
+            .with({ kind: 'task' }, (task) => {
+              taskId = task.id;
+            })
+            .with({ kind: 'status-update' }, (event) => {
+              taskId = event.taskId;
 
-            handleTaskStatusUpdate(event).forEach((result) => {
-              if (!taskId) {
-                throw new Error(`Illegal State - taskId missing on status-update event`);
-              }
+              handleTaskStatusUpdate(event).forEach((result) => {
+                if (!taskId) {
+                  throw new Error(`Illegal State - taskId missing on status-update event`);
+                }
 
-              messageSubject.next({
-                taskId,
-                ...result,
+                messageSubject.next({
+                  taskId,
+                  ...result,
+                });
               });
+
+              const parts: (UIMessagePart | UIGenericPart)[] = handleStatusUpdate(event, onStatusUpdate);
+
+              messageSubject.next({ type: RunResultType.Parts, parts, taskId });
+            })
+            .with({ kind: 'artifact-update' }, (event) => {
+              taskId = event.taskId;
+
+              const parts = handleArtifactUpdate(event);
+
+              messageSubject.next({ type: RunResultType.Parts, parts, taskId });
             });
-
-            const parts: (UIMessagePart | UIGenericPart)[] = handleStatusUpdate(event, onStatusUpdate);
-
-            messageSubject.next({ type: RunResultType.Parts, parts, taskId });
-          })
-          .with({ kind: 'artifact-update' }, (event) => {
-            taskId = event.taskId;
-
-            const parts = handleArtifactUpdate(event);
-
-            messageSubject.next({ type: RunResultType.Parts, parts, taskId });
-          });
+        }
+      } catch (error) {
+        await handleEventError(error, client, taskId);
       }
 
       messageSubject.complete();

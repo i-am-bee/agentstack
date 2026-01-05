@@ -15,7 +15,14 @@ import { NEXTAUTH_URL, TRUST_PROXY_HEADERS } from '#utils/constants.ts';
 import { isNotNull } from '#utils/helpers.ts';
 import { createMarkdownCodeBlock, createMarkdownSection, joinMarkdownSections } from '#utils/markdown.ts';
 
-import { A2AExtensionError, ApiError, ApiValidationError, HttpError, UnauthenticatedError } from './errors';
+import {
+  A2AExtensionError,
+  ApiError,
+  ApiValidationError,
+  HttpError,
+  TaskCanceledError,
+  UnauthenticatedError,
+} from './errors';
 import type { ApiErrorCode, ApiErrorResponse, ApiValidationErrorResponse } from './types';
 
 export function ensureData<T extends Record<string | number, unknown>, O, M extends MediaType>(
@@ -71,6 +78,10 @@ export async function handleStream<T>({
 export function getErrorTitle(error: unknown) {
   if (error instanceof A2AExtensionError) {
     return 'errors' in error.error ? 'Multiple errors occurred' : error.error.title;
+  }
+
+  if (error instanceof TaskCanceledError) {
+    return 'Task canceled';
   }
 
   return typeof error === 'object' && isNotNull(error) && 'title' in error ? (error.title as string) : undefined;
