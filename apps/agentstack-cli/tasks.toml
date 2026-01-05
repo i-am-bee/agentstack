@@ -83,7 +83,11 @@ sources = ["{{config_root}}/helm/dist/agentstack-*.tgz"]
 outputs = ["./src/agentstack_cli/data/helm-chart.tgz"]
 
 ["agentstack-cli:build"]
-depends = ["agentstack-cli:setup", "agentstack-cli:build:*", "agentstack-sdk-py:build"]
+depends = [
+  "agentstack-cli:setup",
+  "agentstack-cli:build:*",
+  "agentstack-sdk-py:build",
+]
 dir = "{{config_root}}/apps/agentstack-cli"
 sources = ["src/**/*", "hatch_build.py", "pyproject.toml", "vendor/lima/**/*"]
 outputs = ["dist/**/*"]
@@ -159,3 +163,16 @@ for job in $(jobs -p); do wait $job; done
 ["agentstack-cli:clean"]
 dir = "{{config_root}}/apps/agentstack-cli"
 run = "rm -rf ./dist"
+
+# docs
+
+["agentstack-cli:docs"]
+dir = "{{config_root}}/apps/agentstack-cli"
+depends = ["agentstack-cli:setup"]
+run = '''
+#!/bin/bash
+
+cat ../../docs/development/reference/cli-reference.mdx | sed "/usage-generator/q" > /tmp/agentstack-docs-head.mdx
+uv run typer src/agentstack_cli/__init__.py utils docs --name agentstack | tail -n +2 > /tmp/agentstack-docs-gen.md
+cat /tmp/agentstack-docs-head.mdx /tmp/agentstack-docs-gen.md > ../../docs/development/reference/cli-reference.mdx
+'''

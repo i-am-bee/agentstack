@@ -5,395 +5,1200 @@ description: "Complete reference for the Agent Stack command-line interface"
 
 The Agent Stack command-line interface (CLI) provides tools to manage agents, configure models, and control the platform directly from your terminal.
 
-## Basic Usage
+{\* usage-generator - placeholder used by agentstack-cli:docs task, everything below will be replaced by the generated CLI reference \*}
 
-```bash
-agentstack [COMMAND] [OPTIONS] [ARGUMENTS]
+**Usage**:
+
+```console
+$ agentstack [OPTIONS] COMMAND [ARGS]...
 ```
 
-To see all available commands:
+**Options**:
 
-```bash
-agentstack --help
+- `--install-completion`: Install completion for the current shell.
+- `--show-completion`: Show completion for the current shell, to copy it or customize the installation.
+- `--help`: Show this message and exit.
+
+**Commands**:
+
+- `version`: Print version of the Agent Stack CLI.
+- `ui`: Launch the graphical interface.
+- `model`: Manage model providers.
+- `agent`: Manage agents.
+- `platform`: Manage Agent Stack platform.
+- `mcp`: Manage MCP servers and toolkits.
+- `client-side-build`: Build agent locally using Docker.
+- `build`: Build agent from a GitHub repository in...
+- `server`: Manage Agent Stack servers and...
+- `self`: Manage Agent Stack installation.
+- `add`: Add a docker image or GitHub repository...
+- `update`: Upgrade agent to a newer docker image or...
+- `remove | uninstall | rm | delete`: Remove agent
+- `logs`: Stream agent provider logs
+- `run`: Run an agent.
+- `list`: List agents.
+- `info`: Show agent details.
+- `env`
+- `feedback`: Manage user feedback for your agents
+
+## `agentstack version`
+
+Print version of the Agent Stack CLI.
+
+**Usage**:
+
+```console
+$ agentstack version [OPTIONS]
 ```
 
-## Agent Commands
+**Options**:
 
-### list
-
-List all available agents:
-
-```bash
-agentstack list
-```
-
-Shows agent names, statuses, descriptions, locations, and any configuration issues.
-
-### run
-
-Run an agent with specified input:
-
-```bash
-agentstack run <agent-name> [input]
-```
-
-**Examples:**
-
-```bash
-# Interactive mode
-agentstack run chat
-
-# Direct input
-agentstack run chat "Hello!"
-
-# Input from file
-agentstack run chat < input.txt
-
-# Output to file
-agentstack run chat "Summarize this" > output.txt
-
-# Append to file
-agentstack run chat "More analysis" >> output.txt
-
-# Pipe between agents
-agentstack run agent1 "input" | agentstack run agent2
-```
-
-### info
-
-Get detailed information about a specific agent:
-
-```bash
-agentstack info <agent-name>
-```
-
-Shows description, input/output schemas, examples, and configuration options.
-
-### add
-
-Add an agent to your environment:
-
-```bash
-agentstack add <location>
-```
-
-**Location formats:**
-```bash
-# From Docker image
-agentstack add ghcr.io/i-am-bee/agentstack/agents/chat:latest
-
-# From GitHub repository
-agentstack add "https://github.com/user/repo.git"
-
-# From GitHub with version tag
-agentstack add "https://github.com/user/repo.git@v1.0.0"
-
-# From GitHub with specific path
-agentstack add "https://github.com/user/repo.git#path=/agents/my-agent"
-
-# From GitHub with specific dockerfile location within the repository
-agentstack add --dockerfile /my-agent/Dockerfile "https://github.com/user/repo.git#path=/agents/my-agent"
-```
-
-### remove
-
-Remove an agent from your environment:
-
-```bash
-agentstack remove <agent-name>
-```
-
-### update
-
-Update an existing agent to a new version:
-
-```bash
-agentstack update <agent-name> <location>
-```
-
-**Location formats:**
-```bash
-# From Docker image
-agentstack update my-agent ghcr.io/i-am-bee/agentstack/agents/chat:latest
-
-# From GitHub repository
-agentstack update my-agent "https://github.com/user/repo.git"
-
-# From GitHub with version tag
-agentstack update my-agent "https://github.com/user/repo.git@v1.0.0"
-
-# From GitHub with specific path
-agentstack update my-agent "https://github.com/user/repo.git#path=/agents/my-agent"
-
-# From GitHub with specific dockerfile location within the repository
-agentstack update my-agent --dockerfile /my-agent/Dockerfile "https://github.com/user/repo.git#path=/agents/my-agent"
-```
-
-### logs
-
-View and stream logs for an agent:
-
-```bash
-agentstack logs <agent-name>
-```
-
-Displays the agent's log output and continues streaming new logs as they are generated.
-
-### feedback list
-
-List user feedback for your agents:
-
-```bash
-agentstack agent feedback list [agent-name] [OPTIONS]
-```
-
-**Options:**
-- `--limit <number>`: Number of results per page (default: 50)
-- `--after <cursor>`: Cursor for pagination to fetch next page
-
-**Examples:**
-```bash
-# List all feedback
-agentstack agent feedback list
-
-# Filter by agent
-agentstack agent feedback list chat
-
-# Limit results
-agentstack agent feedback list --limit 10
-
-# Paginate through results
-agentstack agent feedback list --after <cursor-token>
-
-# Combine filtering and pagination
-agentstack agent feedback list chat --limit 10 --after <cursor-token>
-```
-
-### build
-
-Build an agent from a GitHub repository:
-
-This command clones the repository and builds the agent image on the platform. You will get an image ID
-which you can use to add the agent to your environment.
-
-```
-agentstack build <github-repository-url>
-```
-
-**Examples:**
-```bash
-# Build from GitHub repository
-agentstack build https://github.com/org/repo.git
-
-# Build specific version
-agentstack build https://github.com/org/repo.git@release-0.0.1
-
-# Specify Dockerfile location (useful for monorepos)
-agentstack build --dockerfile=./path/to/Dockerfile https://github.com/org/repo.git@release-0.0.1
-
-# Specify docker context location
-agentstack build https://github.com/org/repo.git@release-0.0.1#path=/path/to/context
-```
-
-**Arguments:**
-- `github-repository-url`: GitHub repository URL
-
-**Options:**
-- `--dockerfile <path>`: Use custom dockerfile path
-
-### Client-side-build
-Build an agent from a local directory. This is useful for CI/CD, multi-platform image build
-or local push of agent image to registry.
-
-<Note>
-    Requires Docker running
-</Note>
-
-```bash
-agentstack client-side-build [OPTIONS] <docker-context>
-```
-
-
-**Examples:**
-```bash
-# Build from current directory
-agentstack client-side-build .
-
-# Build with custom tag
-agentstack client-side-build . --tag my-agent:latest
-
-# Build without importing to platform
-agentstack client-side-build . --no-import
-
-# Build with custom dockerfile
-agentstack client-side-build . --dockerfile ./custom.Dockerfile
-```
-
-**Options:**
-
-| Option                 | Description                                                                               |
-|------------------------|-------------------------------------------------------------------------------------------|
-| `--dockerfile <path>`  | Use a custom Dockerfile path. Path should be relative to the repo root or a subdirectory. |
-| `--tag <name>`         | Docker tag for the agent                                                                  |
-| `--multi-platform`     | Build for multiple platforms                                                              |
-| `--push`               | Push the image to the target registry                                                     |
-| `--import/--no-import` | Import the image into Agent Stack (default: true)                                         |
-
-## Model Commands
-
-### model setup
-
-Interactive setup for LLM provider configuration:
-
-```bash
-agentstack model setup
-```
-
-Guides you through configuring your LLM provider with the required API keys and settings.
-
-## Platform Commands
-
-### start
-
-Starts the platform:
-
-```bash
-agentstack platform start
-```
-
-### stop
-
-Stops the platform:
-
-```bash
-agentstack platform stop
-```
-
-Stops the platform but keeps all data intact.
-
-### delete
-
-Deletes the platform and all data:
-
-```bash
-agentstack platform delete
-```
-
-<Warning>
-    This removes all agents, configurations, and data permanently.
-</Warning>
-
-## MCP Commands
-
-### mcp
-
-Manage MCP servers and toolkits:
-```bash
-agentstack mcp [subcommand]
-```
-
-Use `agentstack mcp --help` for available subcommands.
-
-## Server Commands
-
-### server
-
-Manage Agent Stack servers and authentication:
-
-### login
-
-Login to a server or switch between logged in servers:
-
-```bash
-agentstack server login
-```
-
-### logout
-
-Logout from a server:
-
-```bash
-agentstack server logout
-```
-
-### show
-
-Show current server information:
-
-```bash
-agentstack server show
-```
-
-### list
-
-List all configured servers:
-
-```bash
-agentstack server list
-```
-
-## Environment Commands
-
-### env
-
-Manage environment variables:
-
-```bash
-agentstack env [subcommand]
-```
-
-Use `agentstack env --help` for available subcommands.
-
-## System Commands
-
-### ui
-
-Launch the web interface:
-
-```bash
-agentstack ui
-```
-
-Opens Agent Stack's graphical interface in your default browser.
-
-### version
-
-Display version information:
-
-```bash
-agentstack version
-```
-
-### install
-
-Install Agent Stack CLI and platform:
-
-```bash
-agentstack self install
-```
-
-### upgrade
-
-Upgrade Agent Stack CLI and platform to the latest version:
-
-```bash
-agentstack self upgrade
-```
-
-### uninstall
-
-Uninstall Agent Stack CLI and platform:
-
-```bash
-agentstack self uninstall
-```
-
-Removes the CLI, stops the platform, and deletes all data.
-
-## Global Options
-
-Most commands support these options:
-
-- `--help`: Show help information for a command
 - `-v, --verbose`: Show verbose output
-- `--debug`: Enable debug output for troubleshooting (set via environment)
+- `--help`: Show this message and exit.
+
+## `agentstack ui`
+
+Launch the graphical interface.
+
+**Usage**:
+
+```console
+$ agentstack ui [OPTIONS]
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+## `agentstack model`
+
+Manage model providers.
+
+**Usage**:
+
+```console
+$ agentstack model [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+**Commands**:
+
+- `list`
+- `setup`: Interactive setup for LLM and embedding...
+- `change | select | default`
+- `add`
+- `remove | rm | delete`
+- `provider`
+
+### `agentstack model list`
+
+**Usage**:
+
+```console
+$ agentstack model list [OPTIONS]
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+### `agentstack model setup`
+
+Interactive setup for LLM and embedding provider environment variables
+
+**Usage**:
+
+```console
+$ agentstack model setup [OPTIONS]
+```
+
+**Options**:
+
+- `-v, --verbose`: Show verbose output
+- `--help`: Show this message and exit.
+
+### `agentstack model change | select | default`
+
+**Usage**:
+
+```console
+$ agentstack model change | select | default [OPTIONS] [CAPABILITY]:[llm|embedding] [MODEL_ID]
+```
+
+**Arguments**:
+
+- `[CAPABILITY]:[llm|embedding]`: Which default model to change (llm/embedding)
+- `[MODEL_ID]`: Model ID to be used as default
+
+**Options**:
+
+- `-y, --yes`: Skip confirmation prompts.
+- `--help`: Show this message and exit.
+
+### `agentstack model add`
+
+**Usage**:
+
+```console
+$ agentstack model add [OPTIONS] [CAPABILITY]:[llm|embedding]
+```
+
+**Arguments**:
+
+- `[CAPABILITY]:[llm|embedding]`: Which default model to change (llm/embedding)
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+### `agentstack model remove | rm | delete`
+
+**Usage**:
+
+```console
+$ agentstack model remove | rm | delete [OPTIONS] [SEARCH_PATH]
+```
+
+**Arguments**:
+
+- `[SEARCH_PATH]`: Provider type or part of the provider base url
+
+**Options**:
+
+- `-y, --yes`: Skip confirmation prompts.
+- `--help`: Show this message and exit.
+
+### `agentstack model provider`
+
+**Usage**:
+
+```console
+$ agentstack model provider [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+**Commands**:
+
+- `list`
+- `add`
+- `remove | rm | delete`
+
+#### `agentstack model provider list`
+
+**Usage**:
+
+```console
+$ agentstack model provider list [OPTIONS]
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+#### `agentstack model provider add`
+
+**Usage**:
+
+```console
+$ agentstack model provider add [OPTIONS] [CAPABILITY]:[llm|embedding]
+```
+
+**Arguments**:
+
+- `[CAPABILITY]:[llm|embedding]`: Which default model to change (llm/embedding)
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+#### `agentstack model provider remove | rm | delete`
+
+**Usage**:
+
+```console
+$ agentstack model provider remove | rm | delete [OPTIONS] [SEARCH_PATH]
+```
+
+**Arguments**:
+
+- `[SEARCH_PATH]`: Provider type or part of the provider base url
+
+**Options**:
+
+- `-y, --yes`: Skip confirmation prompts.
+- `--help`: Show this message and exit.
+
+## `agentstack agent`
+
+Manage agents.
+
+**Usage**:
+
+```console
+$ agentstack agent [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+**Commands**:
+
+- `add`: Add a docker image or GitHub repository...
+- `update`: Upgrade agent to a newer docker image or...
+- `remove | uninstall | rm | delete`: Remove agent
+- `logs`: Stream agent provider logs
+- `run`: Run an agent.
+- `list`: List agents.
+- `info`: Show agent details.
+- `env`
+- `feedback`: Manage user feedback for your agents
+
+### `agentstack agent add`
+
+Add a docker image or GitHub repository
+
+**Usage**:
+
+```console
+$ agentstack agent add [OPTIONS] [LOCATION]
+```
+
+**Arguments**:
+
+- `[LOCATION]`: Agent location (public docker image or github url)
+
+**Options**:
+
+- `--dockerfile TEXT`: Use custom dockerfile path
+- `-v, --verbose`: Show verbose output
+- `-y, --yes`: Skip confirmation prompts.
+- `--help`: Show this message and exit.
+
+### `agentstack agent update`
+
+Upgrade agent to a newer docker image or build from GitHub repository
+
+**Usage**:
+
+```console
+$ agentstack agent update [OPTIONS] [SEARCH_PATH] [LOCATION]
+```
+
+**Arguments**:
+
+- `[SEARCH_PATH]`: Short ID, agent name or part of the provider location of agent to replace
+- `[LOCATION]`: Agent location (public docker image or github url)
+
+**Options**:
+
+- `--dockerfile TEXT`: Use custom dockerfile path
+- `-v, --verbose`: Show verbose output
+- `-y, --yes`: Skip confirmation prompts.
+- `--help`: Show this message and exit.
+
+### `agentstack agent remove | uninstall | rm | delete`
+
+Remove agent
+
+**Usage**:
+
+```console
+$ agentstack agent remove | uninstall | rm | delete [OPTIONS] SEARCH_PATH
+```
+
+**Arguments**:
+
+- `SEARCH_PATH`: Short ID, agent name or part of the provider location [required]
+
+**Options**:
+
+- `-y, --yes`: Skip confirmation prompts.
+- `--help`: Show this message and exit.
+
+### `agentstack agent logs`
+
+Stream agent provider logs
+
+**Usage**:
+
+```console
+$ agentstack agent logs [OPTIONS] SEARCH_PATH
+```
+
+**Arguments**:
+
+- `SEARCH_PATH`: Short ID, agent name or part of the provider location [required]
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+### `agentstack agent run`
+
+Run an agent.
+
+**Usage**:
+
+```console
+$ agentstack agent run [OPTIONS] [SEARCH_PATH] [INPUT]
+```
+
+**Arguments**:
+
+- `[SEARCH_PATH]`: Short ID, agent name or part of the provider location
+- `[INPUT]`: Agent input as text or JSON
+
+**Options**:
+
+- `--dump-files PATH`: Folder path to save any files returned by the agent
+- `--help`: Show this message and exit.
+
+### `agentstack agent list`
+
+List agents.
+
+**Usage**:
+
+```console
+$ agentstack agent list [OPTIONS]
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+### `agentstack agent info`
+
+Show agent details.
+
+**Usage**:
+
+```console
+$ agentstack agent info [OPTIONS] SEARCH_PATH
+```
+
+**Arguments**:
+
+- `SEARCH_PATH`: Short ID, agent name or part of the provider location [required]
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+### `agentstack agent env`
+
+**Usage**:
+
+```console
+$ agentstack agent env [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+**Commands**:
+
+- `add`: Store environment variables
+- `list`: List stored environment variables
+- `remove`
+
+#### `agentstack agent env add`
+
+Store environment variables
+
+**Usage**:
+
+```console
+$ agentstack agent env add [OPTIONS] SEARCH_PATH ENV...
+```
+
+**Arguments**:
+
+- `SEARCH_PATH`: Short ID, agent name or part of the provider location [required]
+- `ENV...`: Environment variables to pass to agent [required]
+
+**Options**:
+
+- `-y, --yes`: Skip confirmation prompts.
+- `--help`: Show this message and exit.
+
+#### `agentstack agent env list`
+
+List stored environment variables
+
+**Usage**:
+
+```console
+$ agentstack agent env list [OPTIONS] SEARCH_PATH
+```
+
+**Arguments**:
+
+- `SEARCH_PATH`: Short ID, agent name or part of the provider location [required]
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+#### `agentstack agent env remove`
+
+**Usage**:
+
+```console
+$ agentstack agent env remove [OPTIONS] SEARCH_PATH ENV...
+```
+
+**Arguments**:
+
+- `SEARCH_PATH`: Short ID, agent name or part of the provider location [required]
+- `ENV...`: Environment variable(s) to remove [required]
+
+**Options**:
+
+- `-y, --yes`: Skip confirmation prompts.
+- `--help`: Show this message and exit.
+
+### `agentstack agent feedback`
+
+Manage user feedback for your agents
+
+**Usage**:
+
+```console
+$ agentstack agent feedback [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+**Commands**:
+
+- `list`: List your agent feedback
+
+#### `agentstack agent feedback list`
+
+List your agent feedback
+
+**Usage**:
+
+```console
+$ agentstack agent feedback list [OPTIONS] [SEARCH_PATH]
+```
+
+**Arguments**:
+
+- `[SEARCH_PATH]`: Short ID, agent name or part of the provider location
+
+**Options**:
+
+- `--limit INTEGER`: Number of results per page [default: 50]
+- `--after TEXT`: Cursor for pagination
+- `--help`: Show this message and exit.
+
+## `agentstack platform`
+
+Manage Agent Stack platform.
+
+**Usage**:
+
+```console
+$ agentstack platform [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+**Commands**:
+
+- `start`: Start Agent Stack platform.
+- `stop`: Stop Agent Stack platform.
+- `delete`: Delete Agent Stack platform.
+- `import`: Import a local docker image into the Agent...
+- `exec`: For debugging -- execute a command inside...
+
+### `agentstack platform start`
+
+Start Agent Stack platform.
+
+**Usage**:
+
+```console
+$ agentstack platform start [OPTIONS]
+```
+
+**Options**:
+
+- `--set TEXT`: Set Helm chart values using &lt;key&gt;=&lt;value&gt; syntax [default: &lt;class &#x27;list&#x27;&gt;]
+- `--import TEXT`: Import an image from a local Docker CLI into Agent Stack platform [default: &lt;class &#x27;list&#x27;&gt;]
+- `-f PATH`: Set Helm chart values using yaml values file
+- `-v, --verbose`: Show verbose output
+- `--help`: Show this message and exit.
+
+### `agentstack platform stop`
+
+Stop Agent Stack platform.
+
+**Usage**:
+
+```console
+$ agentstack platform stop [OPTIONS]
+```
+
+**Options**:
+
+- `-v, --verbose`: Show verbose output
+- `--help`: Show this message and exit.
+
+### `agentstack platform delete`
+
+Delete Agent Stack platform.
+
+**Usage**:
+
+```console
+$ agentstack platform delete [OPTIONS]
+```
+
+**Options**:
+
+- `-v, --verbose`: Show verbose output
+- `--help`: Show this message and exit.
+
+### `agentstack platform import`
+
+Import a local docker image into the Agent Stack platform.
+
+**Usage**:
+
+```console
+$ agentstack platform import [OPTIONS] TAG
+```
+
+**Arguments**:
+
+- `TAG`: Docker image tag to import [required]
+
+**Options**:
+
+- `-v, --verbose`: Show verbose output
+- `--help`: Show this message and exit.
+
+### `agentstack platform exec`
+
+For debugging -- execute a command inside the Agent Stack platform VM.
+
+**Usage**:
+
+```console
+$ agentstack platform exec [OPTIONS] [COMMAND]...
+```
+
+**Arguments**:
+
+- `[COMMAND]...`
+
+**Options**:
+
+- `-v, --verbose`: Show verbose output
+- `--help`: Show this message and exit.
+
+## `agentstack mcp`
+
+Manage MCP servers and toolkits.
+
+**Usage**:
+
+```console
+$ agentstack mcp [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+**Commands**:
+
+- `add`: Install discovered MCP server.
+- `list`: List MCP servers.
+- `remove | uninstall | rm | delete`: Remove MCP server.
+- `tool`: Inspect tools.
+- `toolkit`: Create toolkits.
+
+### `agentstack mcp add`
+
+Install discovered MCP server.
+
+**Usage**:
+
+```console
+$ agentstack mcp add [OPTIONS] NAME LOCATION [TRANSPORT]:[sse|streamable_http]
+```
+
+**Arguments**:
+
+- `NAME`: Name for the MCP server [required]
+- `LOCATION`: Location of the MCP server [required]
+- `[TRANSPORT]:[sse|streamable_http]`: Transport the MCP server uses [default: streamable_http]
+
+**Options**:
+
+- `-y, --yes`: Skip confirmation prompts.
+- `--help`: Show this message and exit.
+
+### `agentstack mcp list`
+
+List MCP servers.
+
+**Usage**:
+
+```console
+$ agentstack mcp list [OPTIONS]
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+### `agentstack mcp remove | uninstall | rm | delete`
+
+Remove MCP server.
+
+**Usage**:
+
+```console
+$ agentstack mcp remove | uninstall | rm | delete [OPTIONS] NAME
+```
+
+**Arguments**:
+
+- `NAME`: Name of the MCP provider to remove [required]
+
+**Options**:
+
+- `-y, --yes`: Skip confirmation prompts.
+- `--help`: Show this message and exit.
+
+### `agentstack mcp tool`
+
+Inspect tools.
+
+**Usage**:
+
+```console
+$ agentstack mcp tool [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+**Commands**:
+
+- `list`: List tools.
+
+#### `agentstack mcp tool list`
+
+List tools.
+
+**Usage**:
+
+```console
+$ agentstack mcp tool list [OPTIONS]
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+### `agentstack mcp toolkit`
+
+Create toolkits.
+
+**Usage**:
+
+```console
+$ agentstack mcp toolkit [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+**Commands**:
+
+- `create`: Create a toolkit.
+
+#### `agentstack mcp toolkit create`
+
+Create a toolkit.
+
+**Usage**:
+
+```console
+$ agentstack mcp toolkit create [OPTIONS] TOOLS...
+```
+
+**Arguments**:
+
+- `TOOLS...`: Tools to put in the toolkit [required]
+
+**Options**:
+
+- `-y, --yes`: Skip confirmation prompts.
+- `--help`: Show this message and exit.
+
+## `agentstack client-side-build`
+
+Build agent locally using Docker.
+
+**Usage**:
+
+```console
+$ agentstack client-side-build [OPTIONS] [CONTEXT]
+```
+
+**Arguments**:
+
+- `[CONTEXT]`: Docker context for the agent [default: .]
+
+**Options**:
+
+- `--dockerfile TEXT`: Use custom dockerfile path
+- `--tag TEXT`: Docker tag for the agent
+- `--multi-platform / --no-multi-platform`: [default: no-multi-platform]
+- `--push / --no-push`: Push the image to the target registry. [default: no-push]
+- `--import / --no-import`: Import the image into Agent Stack platform [default: import]
+- `-v, --verbose`: Show verbose output
+- `--help`: Show this message and exit.
+
+## `agentstack build`
+
+Build agent from a GitHub repository in the platform.
+
+**Usage**:
+
+```console
+$ agentstack build [OPTIONS] GITHUB_URL
+```
+
+**Arguments**:
+
+- `GITHUB_URL`: Github repository URL (public or private if supported by the platform instance) [required]
+
+**Options**:
+
+- `--dockerfile TEXT`: Use custom dockerfile path, relative to github url sub-path
+- `-v, --verbose`: Show verbose output
+- `-y, --yes`: Skip confirmation prompts.
+- `--help`: Show this message and exit.
+
+## `agentstack server`
+
+Manage Agent Stack servers and authentication.
+
+**Usage**:
+
+```console
+$ agentstack server [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+**Commands**:
+
+- `login | change | select | default | switch`: Login to a server or switch between logged...
+- `logout | remove | rm | delete`
+- `show`
+- `list`
+
+### `agentstack server login | change | select | default | switch`
+
+Login to a server or switch between logged in servers.
+
+**Usage**:
+
+```console
+$ agentstack server login | change | select | default | switch [OPTIONS] [SERVER]
+```
+
+**Arguments**:
+
+- `[SERVER]`
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+### `agentstack server logout | remove | rm | delete`
+
+**Usage**:
+
+```console
+$ agentstack server logout | remove | rm | delete [OPTIONS]
+```
+
+**Options**:
+
+- `--all / --no-all`: [default: no-all]
+- `--help`: Show this message and exit.
+
+### `agentstack server show`
+
+**Usage**:
+
+```console
+$ agentstack server show [OPTIONS]
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+### `agentstack server list`
+
+**Usage**:
+
+```console
+$ agentstack server list [OPTIONS]
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+## `agentstack self`
+
+Manage Agent Stack installation.
+
+**Usage**:
+
+```console
+$ agentstack self [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+**Commands**:
+
+- `version`: Print version of the Agent Stack CLI.
+- `install`: Install Agent Stack platform pre-requisites.
+- `upgrade`: Upgrade Agent Stack CLI and Platform to...
+- `uninstall`: Uninstall Agent Stack CLI and Platform.
+
+### `agentstack self version`
+
+Print version of the Agent Stack CLI.
+
+**Usage**:
+
+```console
+$ agentstack self version [OPTIONS]
+```
+
+**Options**:
+
+- `-v, --verbose`: Show verbose output
+- `--help`: Show this message and exit.
+
+### `agentstack self install`
+
+Install Agent Stack platform pre-requisites.
+
+**Usage**:
+
+```console
+$ agentstack self install [OPTIONS]
+```
+
+**Options**:
+
+- `-v, --verbose`: Show verbose output
+- `--help`: Show this message and exit.
+
+### `agentstack self upgrade`
+
+Upgrade Agent Stack CLI and Platform to the latest version.
+
+**Usage**:
+
+```console
+$ agentstack self upgrade [OPTIONS]
+```
+
+**Options**:
+
+- `-v, --verbose`: Show verbose output
+- `--help`: Show this message and exit.
+
+### `agentstack self uninstall`
+
+Uninstall Agent Stack CLI and Platform.
+
+**Usage**:
+
+```console
+$ agentstack self uninstall [OPTIONS]
+```
+
+**Options**:
+
+- `-v, --verbose`: Show verbose output
+- `--help`: Show this message and exit.
+
+## `agentstack add`
+
+Add a docker image or GitHub repository
+
+**Usage**:
+
+```console
+$ agentstack add [OPTIONS] [LOCATION]
+```
+
+**Arguments**:
+
+- `[LOCATION]`: Agent location (public docker image or github url)
+
+**Options**:
+
+- `--dockerfile TEXT`: Use custom dockerfile path
+- `-v, --verbose`: Show verbose output
+- `-y, --yes`: Skip confirmation prompts.
+- `--help`: Show this message and exit.
+
+## `agentstack update`
+
+Upgrade agent to a newer docker image or build from GitHub repository
+
+**Usage**:
+
+```console
+$ agentstack update [OPTIONS] [SEARCH_PATH] [LOCATION]
+```
+
+**Arguments**:
+
+- `[SEARCH_PATH]`: Short ID, agent name or part of the provider location of agent to replace
+- `[LOCATION]`: Agent location (public docker image or github url)
+
+**Options**:
+
+- `--dockerfile TEXT`: Use custom dockerfile path
+- `-v, --verbose`: Show verbose output
+- `-y, --yes`: Skip confirmation prompts.
+- `--help`: Show this message and exit.
+
+## `agentstack remove | uninstall | rm | delete`
+
+Remove agent
+
+**Usage**:
+
+```console
+$ agentstack remove | uninstall | rm | delete [OPTIONS] SEARCH_PATH
+```
+
+**Arguments**:
+
+- `SEARCH_PATH`: Short ID, agent name or part of the provider location [required]
+
+**Options**:
+
+- `-y, --yes`: Skip confirmation prompts.
+- `--help`: Show this message and exit.
+
+## `agentstack logs`
+
+Stream agent provider logs
+
+**Usage**:
+
+```console
+$ agentstack logs [OPTIONS] SEARCH_PATH
+```
+
+**Arguments**:
+
+- `SEARCH_PATH`: Short ID, agent name or part of the provider location [required]
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+## `agentstack run`
+
+Run an agent.
+
+**Usage**:
+
+```console
+$ agentstack run [OPTIONS] [SEARCH_PATH] [INPUT]
+```
+
+**Arguments**:
+
+- `[SEARCH_PATH]`: Short ID, agent name or part of the provider location
+- `[INPUT]`: Agent input as text or JSON
+
+**Options**:
+
+- `--dump-files PATH`: Folder path to save any files returned by the agent
+- `--help`: Show this message and exit.
+
+## `agentstack list`
+
+List agents.
+
+**Usage**:
+
+```console
+$ agentstack list [OPTIONS]
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+## `agentstack info`
+
+Show agent details.
+
+**Usage**:
+
+```console
+$ agentstack info [OPTIONS] SEARCH_PATH
+```
+
+**Arguments**:
+
+- `SEARCH_PATH`: Short ID, agent name or part of the provider location [required]
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+## `agentstack env`
+
+**Usage**:
+
+```console
+$ agentstack env [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+**Commands**:
+
+- `add`: Store environment variables
+- `list`: List stored environment variables
+- `remove`
+
+### `agentstack env add`
+
+Store environment variables
+
+**Usage**:
+
+```console
+$ agentstack env add [OPTIONS] SEARCH_PATH ENV...
+```
+
+**Arguments**:
+
+- `SEARCH_PATH`: Short ID, agent name or part of the provider location [required]
+- `ENV...`: Environment variables to pass to agent [required]
+
+**Options**:
+
+- `-y, --yes`: Skip confirmation prompts.
+- `--help`: Show this message and exit.
+
+### `agentstack env list`
+
+List stored environment variables
+
+**Usage**:
+
+```console
+$ agentstack env list [OPTIONS] SEARCH_PATH
+```
+
+**Arguments**:
+
+- `SEARCH_PATH`: Short ID, agent name or part of the provider location [required]
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+### `agentstack env remove`
+
+**Usage**:
+
+```console
+$ agentstack env remove [OPTIONS] SEARCH_PATH ENV...
+```
+
+**Arguments**:
+
+- `SEARCH_PATH`: Short ID, agent name or part of the provider location [required]
+- `ENV...`: Environment variable(s) to remove [required]
+
+**Options**:
+
+- `-y, --yes`: Skip confirmation prompts.
+- `--help`: Show this message and exit.
+
+## `agentstack feedback`
+
+Manage user feedback for your agents
+
+**Usage**:
+
+```console
+$ agentstack feedback [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+- `--help`: Show this message and exit.
+
+**Commands**:
+
+- `list`: List your agent feedback
+
+### `agentstack feedback list`
+
+List your agent feedback
+
+**Usage**:
+
+```console
+$ agentstack feedback list [OPTIONS] [SEARCH_PATH]
+```
+
+**Arguments**:
+
+- `[SEARCH_PATH]`: Short ID, agent name or part of the provider location
+
+**Options**:
+
+- `--limit INTEGER`: Number of results per page [default: 50]
+- `--after TEXT`: Cursor for pagination
+- `--help`: Show this message and exit.
