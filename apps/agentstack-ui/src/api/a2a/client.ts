@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from '@a2a-js/sdk';
+import type { GetTaskResponse, TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from '@a2a-js/sdk';
 import type { A2AClient } from '@a2a-js/sdk/client';
 import { handleAgentCard, handleTaskStatusUpdate, resolveUserMetadata } from 'agentstack-sdk';
 import { defaultIfEmpty, filter, lastValueFrom, Subject } from 'rxjs';
@@ -72,8 +72,14 @@ function handleArtifactUpdate(event: TaskArtifactUpdateEvent): UIMessagePart[] {
 
 async function handleEventError(error: unknown, client: A2AClient, taskId: TaskId | undefined) {
   if (taskId) {
-    const task = await client.getTask({ id: taskId });
-    if (isGetTaskSuccessResponse(task) && task.result.status.state === 'canceled') {
+    let task: null | GetTaskResponse = null;
+    try {
+      task = await client.getTask({ id: taskId });
+    } catch (getTaskError) {
+      console.warn('Failed to check task status after stream error:', getTaskError);
+    }
+
+    if (task && isGetTaskSuccessResponse(task) && task.result.status.state === 'canceled') {
       throw new TaskCanceledError(taskId);
     }
   }
