@@ -70,12 +70,12 @@ server = Server()
 
 
 class FormData(BaseModel):
-    location: str | None
-    date_from: str | None
-    date_to: str | None
-    notes: list[FileInfo] | None
-    flexible: bool | None
-    interests: list[str] | None
+    location: str
+    date_from: str | None = None
+    date_to: str | None = None
+    notes: list[FileInfo] | None = None
+    flexible: bool | None = None
+    interests: list[str] | None = None
 
 
 @server.agent(
@@ -108,9 +108,10 @@ async def agent(
 ):
     """Example demonstrating a single-turn agent using a form to collect user input."""
 
-    form_data = form.parse_initial_form(model=FormData)
-
-    yield f"Hello {form_data.location}"
+    if form_data := form.parse_initial_form(model=FormData):
+        yield f"Hello {form_data.location}"
+    else:
+        yield "No form data received."
 
 
 def serve():
