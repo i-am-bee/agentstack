@@ -14,12 +14,13 @@ from agentstack_server.utils.logs_container import LogsContainer
 
 
 @inject
-def global_provider_variables(configuration: Configuration):
+def global_provider_variables(configuration: Configuration, provider_url: HttpUrl):
     return {
         "PORT": "8000",
         "HOST": "0.0.0.0",
         "OTEL_EXPORTER_OTLP_ENDPOINT": str(configuration.telemetry.collector_url),
         "PLATFORM_URL": f"http://{configuration.platform_service_url}",
+        "PLATFORM_AUTH__PUBLIC_URL": str(provider_url),
     }
 
 

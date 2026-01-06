@@ -2,70 +2,57 @@
 # SPDX-License-Identifier: Apache-2.0
 import logging
 import os
-from typing import Annotated
 from textwrap import dedent
+from typing import Annotated
 
 from a2a.types import (
     AgentSkill,
     Message,
 )
-from beeai_framework.agents.requirement.utils._tool import FinalAnswerTool
-from beeai_framework.errors import FrameworkError
-from pydantic import BaseModel
-
 from agentstack_sdk.a2a.extensions import (
     AgentDetail,
     AgentDetailContributor,
     AgentDetailTool,
-    BaseExtensionServer,
-    BaseExtensionSpec,
     CitationExtensionServer,
     CitationExtensionSpec,
     ErrorExtensionParams,
     ErrorExtensionServer,
     ErrorExtensionSpec,
-    TrajectoryExtensionServer,
-    TrajectoryExtensionSpec,
     LLMServiceExtensionServer,
     LLMServiceExtensionSpec,
+    TrajectoryExtensionServer,
+    TrajectoryExtensionSpec,
 )
-
-# Monkey-patch to remove FormExtensionSpec which no longer exists
-# TODO: remove after next release
-import agentstack_sdk.a2a.extensions as agentstack_extensions
-from chat.tools.files.file_reader import FileReaderTool
-
-agentstack_extensions.FormExtensionSpec = BaseExtensionSpec
-agentstack_extensions.FormExtensionServer = BaseExtensionServer
-agentstack_extensions.TextField = BaseModel
-
-from beeai_framework.adapters.agentstack.backend.chat import AgentStackChatModel
-from beeai_framework.agents.requirement import RequirementAgent
-from beeai_framework.agents.requirement.events import (
-    RequirementAgentSuccessEvent,
-    RequirementAgentFinalAnswerEvent,
-)
-from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
-from beeai_framework.tools import Tool, AnyTool
-from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
-from beeai_framework.tools.search.wikipedia import WikipediaTool
-from beeai_framework.tools.weather import OpenMeteoTool
-from beeai_framework.backend import ChatModelParameters, AssistantMessage
 from agentstack_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionServer,
     PlatformApiExtensionSpec,
 )
-from agentstack_sdk.a2a.types import AgentMessage, AgentArtifact
+from agentstack_sdk.a2a.types import AgentArtifact, AgentMessage
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
+from agentstack_sdk.server.middleware.platform_auth_backend import PlatformAuthBackend
+from agentstack_sdk.server.store.platform_context_store import PlatformContextStore
+from beeai_framework.adapters.agentstack.backend.chat import AgentStackChatModel
+from beeai_framework.agents.requirement import RequirementAgent
+from beeai_framework.agents.requirement.events import (
+    RequirementAgentFinalAnswerEvent,
+    RequirementAgentSuccessEvent,
+)
+from beeai_framework.agents.requirement.utils._tool import FinalAnswerTool
+from beeai_framework.backend import AssistantMessage, ChatModelParameters
+from beeai_framework.errors import FrameworkError
+from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
+from beeai_framework.tools import AnyTool, Tool
+from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
+from beeai_framework.tools.search.wikipedia import WikipediaTool
+from beeai_framework.tools.weather import OpenMeteoTool
 from openinference.instrumentation.beeai import BeeAIInstrumentor
 
 from chat.helpers.citations import extract_citations
 from chat.helpers.trajectory import TrajectoryContent
 from chat.tools.files.file_creator import FileCreatorTool, FileCreatorToolOutput
+from chat.tools.files.file_reader import FileReaderTool
 from chat.tools.files.utils import extract_files, to_framework_message
-
-from agentstack_sdk.server.store.platform_context_store import PlatformContextStore
 
 BeeAIInstrumentor().instrument()
 
@@ -300,6 +287,7 @@ def serve():
             port=int(os.getenv("PORT", 8000)),
             configure_telemetry=True,
             context_store=PlatformContextStore(),
+            auth_backend=PlatformAuthBackend(),
         )
     except KeyboardInterrupt:
         pass

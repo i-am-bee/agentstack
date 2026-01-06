@@ -1,6 +1,8 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import inspect
 from collections import Counter
 from collections.abc import AsyncIterator, Callable
@@ -8,6 +10,7 @@ from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from inspect import isclass
 from typing import Annotated, Any, TypeAlias, Unpack, get_args, get_origin
 
+from a2a.server.agent_execution.context import RequestContext
 from a2a.types import Message
 from typing_extensions import Doc
 
@@ -15,7 +18,9 @@ from agentstack_sdk.a2a.extensions import BaseExtensionSpec
 from agentstack_sdk.a2a.extensions.base import BaseExtensionServer
 from agentstack_sdk.server.context import RunContext
 
-Dependency: TypeAlias = Callable[[Message, RunContext, dict[str, "Dependency"]], Any] | BaseExtensionServer[Any, Any]
+Dependency: TypeAlias = (
+    Callable[[Message, RunContext, RequestContext, dict[str, "Dependency"]], Any] | BaseExtensionServer[Any, Any]
+)
 
 
 # Inspired by fastapi.Depends
@@ -34,17 +39,17 @@ class Depends:
             ),
         ],
     ):
-        self._dependency_callable = dependency
+        self._dependency_callable: Dependency = dependency
         if isinstance(dependency, BaseExtensionServer):
             self.extension = dependency
 
     def __call__(
-        self, message: Message, context: RunContext, dependencies: dict[str, Any]
-    ) -> AbstractAsyncContextManager[Any]:
-        instance = self._dependency_callable(message, context, dependencies)
+        self, message: Message, context: RunContext, request_context: RequestContext, dependencies: dict[str, Any]
+    ) -> AbstractAsyncContextManager[Dependency]:
+        instance = self._dependency_callable(message, context, request_context, dependencies)
 
         @asynccontextmanager
-        async def lifespan() -> AsyncIterator[Any]:
+        async def lifespan() -> AsyncIterator[Dependency]:
             if self.extension or hasattr(instance, "lifespan"):
                 async with instance.lifespan():
                     yield instance
@@ -80,10 +85,10 @@ def extract_dependencies(sign: inspect.Signature) -> dict[str, Depends]:
         elif inspect.isclass(param.annotation):
             # message: Message
             if param.annotation == Message:
-                dependencies[name] = Depends(lambda message, _context, _dependencies: message)
+                dependencies[name] = Depends(lambda message, _run_context, _request_context, _dependencies: message)
             # context: Context
             elif param.annotation == RunContext:
-                dependencies[name] = Depends(lambda _message, context, _dependencies: context)
+                dependencies[name] = Depends(lambda _message, run_context, _request_context, _dependencies: run_context)
             # extension: BaseExtensionServer = BaseExtensionSpec()
             # TODO: this does not get past linters, should we enable it or somehow fix the typing?
             # elif issubclass(param.annotation, BaseExtensionServer) and isinstance(param.default, BaseExtensionSpec):

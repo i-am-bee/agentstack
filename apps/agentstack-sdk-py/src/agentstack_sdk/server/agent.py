@@ -46,7 +46,7 @@ from agentstack_sdk.a2a.extensions.ui.error import (
 from agentstack_sdk.a2a.types import ArtifactChunk, Metadata, RunYield, RunYieldResume
 from agentstack_sdk.server.constants import _IMPLICIT_DEPENDENCY_PREFIX
 from agentstack_sdk.server.context import RunContext
-from agentstack_sdk.server.dependencies import Depends, extract_dependencies
+from agentstack_sdk.server.dependencies import Dependency, Depends, extract_dependencies
 from agentstack_sdk.server.store.context_store import ContextStore
 from agentstack_sdk.server.utils import cancel_task
 from agentstack_sdk.util.logging import logger
@@ -234,6 +234,7 @@ class AgentRun:
         self.last_invocation: datetime = datetime.now()
         self.resume_queue: asyncio.Queue[RunYieldResume] = asyncio.Queue()
         self._run_context: RunContext | None = None
+        self._request_context: RequestContext | None = None
         self._task_updater: TaskUpdater | None = None
         self._context_store: ContextStore = context_store
         self._lock: asyncio.Lock = asyncio.Lock()
@@ -245,6 +246,12 @@ class AgentRun:
         if not self._run_context:
             raise RuntimeError("Accessing run context for run that has not been started")
         return self._run_context
+
+    @property
+    def request_context(self) -> RequestContext:
+        if not self._request_context:
+            raise RuntimeError("Accessing request context for run that has not been started")
+        return self._request_context
 
     @property
     def task_updater(self) -> TaskUpdater:
@@ -261,7 +268,6 @@ class AgentRun:
             self._on_finish()
 
     async def start(self, request_context: RequestContext, event_queue: EventQueue):
-        # These are incorrectly typed in a2a
         async with self._lock:
             if self._working or self.done:
                 raise RuntimeError("Attempting to start a run that is already executing or done")
@@ -274,6 +280,7 @@ class AgentRun:
                 current_task=request_context.current_task,
                 related_tasks=request_context.related_tasks,
             )
+            self._request_context = request_context
             self._task_updater = TaskUpdater(event_queue, task_id, context_id)
             if not request_context.current_task:
                 await self._task_updater.submit()
@@ -288,11 +295,12 @@ class AgentRun:
                 raise RuntimeError("Attempting to resume a run that is already executing or done")
             task_id, context_id, message = request_context.task_id, request_context.context_id, request_context.message
             assert task_id and context_id and message
+            self._request_context = request_context
             self._task_updater = TaskUpdater(event_queue, task_id, context_id)
 
             for dependency in self._agent.dependencies.values():
                 if dependency.extension:
-                    dependency.extension.handle_incoming_message(message, self.run_context)
+                    dependency.extension.handle_incoming_message(message, self.run_context, request_context)
 
             self._working = True
             await self.resume_queue.put(message)
@@ -311,15 +319,15 @@ class AgentRun:
                 await cancel_task(self._task)
 
     @asynccontextmanager
-    async def _dependencies_lifespan(self, message: Message) -> AsyncIterator[dict[str, Depends]]:
+    async def _dependencies_lifespan(self, message: Message) -> AsyncIterator[dict[str, Dependency]]:
         async with AsyncExitStack() as stack:
-            dependency_args: dict[str, Depends] = {}
+            dependency_args: dict[str, Dependency] = {}
             initialize_deps_exceptions: list[Exception] = []
             for pname, depends in self._agent.dependencies.items():
                 # call dependencies with the first message and initialize their lifespan
                 try:
                     dependency_args[pname] = await stack.enter_async_context(
-                        depends(message, self.run_context, dependency_args)
+                        depends(message, self.run_context, self.request_context, dependency_args)
                     )
                 except Exception as e:
                     initialize_deps_exceptions.append(e)
@@ -524,6 +532,8 @@ class Executor(AgentExecutor):
                 match await tapped_queue.dequeue_event():
                     case TaskStatusUpdateEvent(final=True):
                         break
+                    case _:
+                        pass
 
         except CancelledError:
             if agent_run:
@@ -571,14 +581,14 @@ class Executor(AgentExecutor):
                         event = await queue.dequeue_event(no_wait=True)
                         if not isinstance(event, TaskStatusUpdateEvent) or event.status.state != TaskState.canceled:
                             raise RuntimeError(f"Something strange occured during scheduled cancel, event: {event}")
-                        _ = await manager.save_task_event(event)
+                        await manager.save_task_event(event)
                         break
                     await asyncio.sleep(2)
             except Exception as ex:
                 logger.error("Error when cleaning up task", exc_info=ex)
             finally:
-                _ = self._running_tasks.pop(task_id, None)
-                _ = self._scheduled_cleanups.pop(task_id, None)
+                self._running_tasks.pop(task_id, None)
+                self._scheduled_cleanups.pop(task_id, None)
 
         self._scheduled_cleanups[task_id] = asyncio.create_task(cleanup_fn())
         self._scheduled_cleanups[task_id].add_done_callback(lambda _: ...)

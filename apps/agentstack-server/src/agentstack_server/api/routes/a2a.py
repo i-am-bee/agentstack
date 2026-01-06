@@ -18,6 +18,7 @@ from agentstack_server.api.dependencies import (
     ConfigurationDependency,
     ProviderServiceDependency,
     RequiresPermissions,
+    authorized_user,
 )
 from agentstack_server.configuration import Configuration
 from agentstack_server.domain.models.permissions import AuthorizedUser
@@ -71,8 +72,13 @@ async def get_agent_card(
     request: Request,
     provider_service: ProviderServiceDependency,
     configuration: ConfigurationDependency,
-    _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}))],
+    user: Annotated[AuthorizedUser, Depends(authorized_user)],
 ) -> AgentCard:
+    try:
+        user = RequiresPermissions(providers={"read"})(user)  # try provider read permissions
+    except HTTPException:
+        user = RequiresPermissions(a2a_proxy={provider_id})(user)  # try a2a proxy permissions
+
     provider = await provider_service.get_provider(provider_id=provider_id)
     return create_proxy_agent_card(
         provider.agent_card, provider_id=provider.id, request=request, configuration=configuration
@@ -87,8 +93,10 @@ async def a2a_proxy_jsonrpc_transport(
     a2a_proxy: A2AProxyServiceDependency,
     provider_service: ProviderServiceDependency,
     configuration: ConfigurationDependency,
-    user: Annotated[AuthorizedUser, Depends(RequiresPermissions(a2a_proxy={"*"}))],
+    user: Annotated[AuthorizedUser, Depends(authorized_user)],
 ):
+    user = RequiresPermissions(a2a_proxy={provider_id})(user)
+
     provider = await provider_service.get_provider(provider_id=provider_id)
     agent_card = create_proxy_agent_card(
         provider.agent_card, provider_id=provider.id, request=request, configuration=configuration
@@ -109,9 +117,10 @@ async def a2a_proxy_http_transport(
     a2a_proxy: A2AProxyServiceDependency,
     provider_service: ProviderServiceDependency,
     configuration: ConfigurationDependency,
-    user: Annotated[AuthorizedUser, Depends(RequiresPermissions(a2a_proxy={"*"}))],
+    user: Annotated[AuthorizedUser, Depends(authorized_user)],
     path: str = "",
 ):
+    user = RequiresPermissions(a2a_proxy={provider_id})(user)
     provider = await provider_service.get_provider(provider_id=provider_id)
     agent_card = create_proxy_agent_card(
         provider.agent_card, provider_id=provider.id, request=request, configuration=configuration

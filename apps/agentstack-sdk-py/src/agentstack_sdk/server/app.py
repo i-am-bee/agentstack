@@ -18,6 +18,8 @@ from a2a.server.tasks import (
 from a2a.types import AgentInterface, TransportProtocol
 from fastapi import APIRouter, Depends, FastAPI
 from fastapi.applications import AppType
+from starlette.authentication import AuthenticationBackend
+from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.types import Lifespan
 
 from agentstack_sdk.server.agent import Agent, Executor
@@ -37,6 +39,7 @@ def create_app(
     dependencies: list[Depends] | None = None,  # pyright: ignore [reportGeneralTypeIssues]
     override_interfaces: bool = True,
     task_timeout: timedelta = timedelta(minutes=10),
+    auth_backend: AuthenticationBackend | None = None,
     **kwargs,
 ) -> FastAPI:
     queue_manager = queue_manager or InMemoryQueueManager()
@@ -74,6 +77,10 @@ def create_app(
         dependencies=dependencies,
         **kwargs,
     )
+
+    if auth_backend:
+        rest_app.add_middleware(AuthenticationMiddleware, backend=auth_backend)
+        jsonrpc_app.add_middleware(AuthenticationMiddleware, backend=auth_backend)
 
     rest_app.mount("/jsonrpc", jsonrpc_app)
     rest_app.include_router(APIRouter(lifespan=lifespan))

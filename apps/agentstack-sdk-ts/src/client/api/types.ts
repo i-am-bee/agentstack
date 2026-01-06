@@ -65,7 +65,7 @@ export const globalPermissionsGrantSchema = contextPermissionsGrantSchema.extend
   embeddings: z.array(z.union([z.literal('*'), resourceIdPermissionSchema])).optional(),
   model_providers: z.array(z.literal(['read', 'write', '*'])).optional(),
 
-  a2a_proxy: z.array(z.literal('*')).optional(),
+  a2a_proxy: z.array(z.union([z.literal('*'), z.string()])).optional(),
 
   providers: z.array(z.literal(['read', 'write', '*'])).optional(),
   provider_variables: z.array(z.literal(['read', 'write', '*'])).optional(),

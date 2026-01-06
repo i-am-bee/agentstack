@@ -11,6 +11,7 @@ from pathlib import Path
 from textwrap import dedent
 from typing import Any, Literal, cast
 
+from authlib.jose import jwt
 from limits import RateLimitItem, parse_many
 from pydantic import AnyUrl, BaseModel, Field, Secret, ValidationError, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
@@ -118,7 +119,8 @@ class BasicAuthConfiguration(BaseModel):
 
 
 class AuthConfiguration(BaseModel):
-    jwt_secret_key: Secret[str] = Secret("dummy")
+    jwt_private_key: Secret[str] = Secret("dummy")
+    jwt_public_key: Secret[str] = Secret("dummy")
     disable_auth: bool = False
     oidc: OidcConfiguration = Field(default_factory=OidcConfiguration)
     basic: BasicAuthConfiguration = Field(default_factory=BasicAuthConfiguration)
@@ -129,8 +131,24 @@ class AuthConfiguration(BaseModel):
             return self
         if not self.basic.enabled and not self.oidc.enabled:
             raise ValueError("If auth is enabled, either basic or oidc must be enabled")
-        if self.jwt_secret_key.get_secret_value() == "dummy":
-            raise ValueError("JWT secret key must be provided if authentication is enabled")
+        return self
+
+    @model_validator(mode="after")
+    def set_default_jwt_keys(self):
+        if self.jwt_private_key.get_secret_value() == "dummy" or self.jwt_public_key.get_secret_value() == "dummy":
+            logger.warning("JWT private and public keys are not set. Generating default keys.")
+            from authlib.jose import JsonWebKey
+
+            key = JsonWebKey.generate_key("RSA", 4096, is_private=True)
+            self.jwt_private_key = Secret(key.as_pem(is_private=True).decode("utf-8"))
+            self.jwt_public_key = Secret(key.as_pem(is_private=False).decode("utf-8"))
+        else:
+            try:
+                # Verify that the keys are matching
+                token = jwt.encode({"alg": "RS256"}, {"test": "payload"}, self.jwt_private_key.get_secret_value())
+                jwt.decode(token, self.jwt_public_key.get_secret_value())
+            except Exception as e:
+                raise ValueError(f"JWT private and public keys do not match or are invalid: {e}") from e
         return self
 
 

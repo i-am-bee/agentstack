@@ -1,11 +1,14 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import typing
-from typing import TYPE_CHECKING
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Self
 
 import pydantic
+from a2a.server.agent_execution.context import RequestContext
 from a2a.types import Message as A2AMessage
+from typing_extensions import override
 
 from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 from agentstack_sdk.a2a.types import AgentMessage, AuthRequired
@@ -35,7 +38,7 @@ class SecretsExtensionSpec(BaseExtensionSpec[SecretsServiceExtensionParams | Non
     URI: str = "https://a2a-extensions.agentstack.beeai.dev/auth/secrets/v1"
 
     @classmethod
-    def single_demand(cls, name: str, key: str | None = None, description: str | None = None) -> typing.Self:
+    def single_demand(cls, name: str, key: str | None = None, description: str | None = None) -> Self:
         return cls(
             params=SecretsServiceExtensionParams(
                 secret_demands={key or "default": SecretDemand(description=description, name=name)}
@@ -44,9 +47,12 @@ class SecretsExtensionSpec(BaseExtensionSpec[SecretsServiceExtensionParams | Non
 
 
 class SecretsExtensionServer(BaseExtensionServer[SecretsExtensionSpec, SecretsServiceExtensionMetadata]):
-    def handle_incoming_message(self, message: A2AMessage, context: "RunContext"):
-        super().handle_incoming_message(message, context)
-        self.context = context
+    context: RunContext
+
+    @override
+    def handle_incoming_message(self, message: A2AMessage, run_context: RunContext, request_context: RequestContext):
+        super().handle_incoming_message(message, run_context, request_context)
+        self.context = run_context
 
     def parse_secret_response(self, message: A2AMessage) -> SecretsServiceExtensionMetadata:
         if not message or not message.metadata or not (data := message.metadata.get(self.spec.URI)):

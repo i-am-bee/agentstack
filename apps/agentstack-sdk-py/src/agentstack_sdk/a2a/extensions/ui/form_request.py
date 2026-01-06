@@ -5,8 +5,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, TypeVar, cast
 
+from a2a.server.agent_execution.context import RequestContext
 from a2a.types import Message as A2AMessage
 from pydantic import TypeAdapter
+from typing_extensions import override
 
 from agentstack_sdk.a2a.extensions.base import (
     BaseExtensionClient,
@@ -27,9 +29,10 @@ class FormRequestExtensionSpec(NoParamsBaseExtensionSpec):
 
 
 class FormRequestExtensionServer(BaseExtensionServer[FormRequestExtensionSpec, FormResponse]):
-    def handle_incoming_message(self, message: A2AMessage, context: RunContext):
-        super().handle_incoming_message(message, context)
-        self.context = context
+    @override
+    def handle_incoming_message(self, message: A2AMessage, run_context: RunContext, request_context: RequestContext):
+        super().handle_incoming_message(message, run_context, request_context)
+        self.context = run_context
 
     async def request_form(self, *, form: FormRender, model: type[T] = FormResponse) -> T | None:
         message = await self.context.yield_async(

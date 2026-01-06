@@ -25,7 +25,9 @@ source = { editable = "../agentstack-sdk-py" }
 dependencies = [
     { name = "a2a-sdk" },
     { name = "anyio" },
+    { name = "async-lru" },
     { name = "asyncclick" },
+    { name = "authlib" },
     { name = "fastapi" },
     { name = "httpx" },
     { name = "janus" },
@@ -45,7 +47,9 @@ dependencies = [
 requires-dist = [
     { name = "a2a-sdk", specifier = "==0.3.21" },
     { name = "anyio", specifier = ">=4.9.0" },
+    { name = "async-lru", specifier = ">=2.0.4" },
     { name = "asyncclick", specifier = ">=8.1.8" },
+    { name = "authlib", specifier = ">=1.3.0" },
     { name = "fastapi", specifier = ">=0.116.1" },
     { name = "httpx" },
     { name = "janus", specifier = ">=2.0.0" },

@@ -271,7 +271,8 @@ curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhos
     --set auth.enabled="true" \
     --set auth.basic.enabled="true" \
     --set auth.basic.adminPassword="test-password" \
-    --set auth.jwtSecretKey="test-secret-key" \
+    --set auth.jwtPrivateKey="test-secret-key" \
+    --set auth.jwtPublicKey="test-secret-key" \
     --set docling.enabled=true \
     --set providerBuilds.enabled=true \
     --set localDockerRegistry.enabled=true \

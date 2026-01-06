@@ -16,6 +16,7 @@ import openai
 import pydantic
 from a2a.client import A2AClientHTTPError, Client, ClientConfig, ClientFactory
 from a2a.types import AgentCard
+from agentstack_sdk.platform.context import ContextToken
 from httpx import HTTPStatusError
 from httpx._types import RequestFiles
 
@@ -127,14 +128,10 @@ async def fetch_server_version() -> str | None:
 
 
 @asynccontextmanager
-async def a2a_client(agent_card: AgentCard, use_auth: bool = True) -> AsyncIterator[Client]:
+async def a2a_client(agent_card: AgentCard, context_token: ContextToken) -> AsyncIterator[Client]:
     try:
         async with httpx.AsyncClient(
-            headers=(
-                {"Authorization": f"Bearer {token}"}
-                if use_auth and (token := await config.auth_manager.load_auth_token())
-                else {}
-            ),
+            headers={"Authorization": f"Bearer {context_token.token.get_secret_value()}"},
             follow_redirects=True,
             timeout=timedelta(hours=1).total_seconds(),
         ) as httpx_client:

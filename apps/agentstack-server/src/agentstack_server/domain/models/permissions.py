@@ -30,7 +30,7 @@ class Permissions(BaseModel):
     llm: SerializeAsAny[set[Literal["*"] | str]] = set()
     embeddings: SerializeAsAny[set[Literal["*"] | str]] = set()
 
-    a2a_proxy: SerializeAsAny[set[Literal["*"]]] = set()
+    a2a_proxy: SerializeAsAny[set[Literal["*"] | UUID]] = set()
 
     # agent providers
     providers: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()  # write includes "show logs" permission

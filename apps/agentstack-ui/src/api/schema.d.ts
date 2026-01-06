@@ -9,6 +9,23 @@
  */
 
 export interface paths {
+  '/.well-known/jwks': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Jwks */
+    get: operations['jwks__well_known_jwks_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/.well-known/oauth-protected-resource/{resource}': {
     parameters: {
       query?: never;
@@ -85,19 +102,19 @@ export interface paths {
       cookie?: never;
     };
     /** A2A Proxy Http Transport */
-    get: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_head'];
+    get: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get'];
     /** A2A Proxy Http Transport */
-    put: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_head'];
+    put: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get'];
     /** A2A Proxy Http Transport */
-    post: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_head'];
+    post: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get'];
     /** A2A Proxy Http Transport */
-    delete: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_head'];
+    delete: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get'];
     /** A2A Proxy Http Transport */
-    options: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_head'];
+    options: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get'];
     /** A2A Proxy Http Transport */
-    head: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_head'];
+    head: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get'];
     /** A2A Proxy Http Transport */
-    patch: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_head'];
+    patch: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get'];
     trace?: never;
   };
   '/api/v1/a2a/{provider_id}/http/{path}': {
@@ -108,19 +125,19 @@ export interface paths {
       cookie?: never;
     };
     /** A2A Proxy Http Transport */
-    get: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__head'];
+    get: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get'];
     /** A2A Proxy Http Transport */
-    put: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__head'];
+    put: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get'];
     /** A2A Proxy Http Transport */
-    post: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__head'];
+    post: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get'];
     /** A2A Proxy Http Transport */
-    delete: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__head'];
+    delete: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get'];
     /** A2A Proxy Http Transport */
-    options: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__head'];
+    options: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get'];
     /** A2A Proxy Http Transport */
-    head: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__head'];
+    head: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get'];
     /** A2A Proxy Http Transport */
-    patch: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__head'];
+    patch: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get'];
     trace?: never;
   };
   '/api/v1/configurations/system': {
@@ -359,7 +376,8 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get?: never;
+    /** List Files */
+    get: operations['list_files_api_v1_files_get'];
     put?: never;
     /** Upload File */
     post: operations['upload_file_api_v1_files_post'];
@@ -1454,6 +1472,64 @@ export interface components {
     } & {
       [key: string]: unknown;
     };
+    /** ProviderWithStateResponse */
+    agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__3: {
+      agent_card: components['schemas']['AgentCard-Output'];
+      /**
+       * Auto Stop Timeout
+       * Format: duration
+       * @default PT20M
+       */
+      auto_stop_timeout: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      /** Env */
+      readonly env: components['schemas']['EnvVar'][];
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Last Active At
+       * Format: date-time
+       */
+      last_active_at?: string;
+      last_error?: components['schemas']['ProviderErrorMessage'] | null;
+      /** Managed */
+      readonly managed: boolean;
+      /** Missing Configuration */
+      missing_configuration?: components['schemas']['EnvVar'][];
+      /** Origin */
+      origin: string;
+      /** Registry */
+      registry?:
+        | components['schemas']['GithubRegistryLocation']
+        | components['schemas']['NetworkRegistryLocation']
+        | components['schemas']['FileSystemRegistryLocation']
+        | null;
+      /** Source */
+      source: components['schemas']['DockerImageProviderLocation'] | components['schemas']['NetworkProviderLocation'];
+      /** State */
+      state: components['schemas']['ProviderDeploymentState'] | components['schemas']['UnmanagedState'];
+      readonly type: components['schemas']['ProviderType'];
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at?: string;
+      version_info?: components['schemas']['VersionInfo'];
+    } & {
+      [key: string]: unknown;
+    };
     /** ModelProviderResponse */
     agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__4: {
       /**
@@ -1645,8 +1721,8 @@ export interface components {
       created_at?: string;
       /** Error Message */
       error_message?: string | null;
-      /** Extracted File Id */
-      extracted_file_id?: string | null;
+      /** Extracted Files */
+      extracted_files?: components['schemas']['ExtractedFileInfo'][];
       extraction_metadata?: components['schemas']['ExtractionMetadata'] | null;
       /**
        * File Id
@@ -1676,8 +1752,8 @@ export interface components {
       created_at?: string;
       /** Error Message */
       error_message?: string | null;
-      /** Extracted File Id */
-      extracted_file_id?: string | null;
+      /** Extracted Files */
+      extracted_files?: components['schemas']['ExtractedFileInfo'][];
       extraction_metadata?: components['schemas']['ExtractionMetadata'] | null;
       /**
        * File Id
@@ -1697,40 +1773,6 @@ export interface components {
       started_at?: string | null;
       /** @default pending */
       status: components['schemas']['ExtractionStatus'];
-    };
-    /** ContextResponse */
-    agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__12: {
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at?: string;
-      /**
-       * Created By
-       * Format: uuid
-       */
-      created_by: string;
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /**
-       * Last Active At
-       * Format: date-time
-       */
-      last_active_at?: string;
-      /** Metadata */
-      metadata?: {
-        [key: string]: string;
-      } | null;
-      /** Provider Id */
-      provider_id?: string | null;
-      /**
-       * Updated At
-       * Format: date-time
-       */
-      updated_at?: string;
     };
     /** ContextResponse */
     agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__13: {
@@ -1898,15 +1940,8 @@ export interface components {
       name?: string | null;
       stats?: components['schemas']['VectorStoreStats'] | null;
     };
-    /** ProviderWithStateResponse */
+    /** ContextResponse */
     'agentstack_server__api__schema__common__EntityModel____class_getitem____<locals>__ModelOutput': {
-      agent_card: components['schemas']['AgentCard-Output'];
-      /**
-       * Auto Stop Timeout
-       * Format: duration
-       * @default PT20M
-       */
-      auto_stop_timeout: string;
       /**
        * Created At
        * Format: date-time
@@ -1917,8 +1952,6 @@ export interface components {
        * Format: uuid
        */
       created_by: string;
-      /** Env */
-      readonly env: components['schemas']['EnvVar'][];
       /**
        * Id
        * Format: uuid
@@ -1929,32 +1962,17 @@ export interface components {
        * Format: date-time
        */
       last_active_at?: string;
-      last_error?: components['schemas']['ProviderErrorMessage'] | null;
-      /** Managed */
-      readonly managed: boolean;
-      /** Missing Configuration */
-      missing_configuration?: components['schemas']['EnvVar'][];
-      /** Origin */
-      origin: string;
-      /** Registry */
-      registry?:
-        | components['schemas']['GithubRegistryLocation']
-        | components['schemas']['NetworkRegistryLocation']
-        | components['schemas']['FileSystemRegistryLocation']
-        | null;
-      /** Source */
-      source: components['schemas']['DockerImageProviderLocation'] | components['schemas']['NetworkProviderLocation'];
-      /** State */
-      state: components['schemas']['ProviderDeploymentState'] | components['schemas']['UnmanagedState'];
-      readonly type: components['schemas']['ProviderType'];
+      /** Metadata */
+      metadata?: {
+        [key: string]: string;
+      } | null;
+      /** Provider Id */
+      provider_id?: string | null;
       /**
        * Updated At
        * Format: date-time
        */
       updated_at?: string;
-      version_info?: components['schemas']['VersionInfo'];
-    } & {
-      [key: string]: unknown;
     };
     /**
      * APIKeySecurityScheme
@@ -2013,7 +2031,11 @@ export interface components {
       /** Parts */
       parts: components['schemas']['Part-Output'][];
     };
-    /** Audio */
+    /**
+     * Audio
+     * @description Data about a previous audio response from the model.
+     *     [Learn more](https://platform.openai.com/docs/guides/audio).
+     */
     Audio: {
       /** Id */
       id: string;
@@ -2068,7 +2090,10 @@ export interface components {
      * @enum {string}
      */
     BuildState: 'missing' | 'in_progress' | 'build_completed' | 'completed' | 'failed';
-    /** ChatCompletionAllowedToolChoiceParam */
+    /**
+     * ChatCompletionAllowedToolChoiceParam
+     * @description Constrains the tools available to the model to a pre-defined set.
+     */
     ChatCompletionAllowedToolChoiceParam: {
       allowed_tools: components['schemas']['ChatCompletionAllowedToolsParam'];
       /**
@@ -2077,7 +2102,10 @@ export interface components {
        */
       type: 'allowed_tools';
     };
-    /** ChatCompletionAllowedToolsParam */
+    /**
+     * ChatCompletionAllowedToolsParam
+     * @description Constrains the tools available to the model to a pre-defined set.
+     */
     ChatCompletionAllowedToolsParam: {
       /**
        * Mode
@@ -2089,7 +2117,10 @@ export interface components {
         [key: string]: unknown;
       }[];
     };
-    /** ChatCompletionAssistantMessageParam */
+    /**
+     * ChatCompletionAssistantMessageParam
+     * @description Messages sent by the model in response to user messages.
+     */
     ChatCompletionAssistantMessageParam: {
       audio?: components['schemas']['Audio'] | null;
       /** Content */
@@ -2116,7 +2147,13 @@ export interface components {
         | components['schemas']['ChatCompletionMessageCustomToolCallParam']
       )[];
     };
-    /** ChatCompletionAudioParam */
+    /**
+     * ChatCompletionAudioParam
+     * @description Parameters for audio output.
+     *
+     *     Required when audio output is requested with
+     *     `modalities: ["audio"]`. [Learn more](https://platform.openai.com/docs/guides/audio).
+     */
     ChatCompletionAudioParam: {
       /**
        * Format
@@ -2128,7 +2165,10 @@ export interface components {
         | string
         | ('alloy' | 'ash' | 'ballad' | 'coral' | 'echo' | 'sage' | 'shimmer' | 'verse' | 'marin' | 'cedar');
     };
-    /** ChatCompletionContentPartImageParam */
+    /**
+     * ChatCompletionContentPartImageParam
+     * @description Learn about [image inputs](https://platform.openai.com/docs/guides/vision).
+     */
     ChatCompletionContentPartImageParam: {
       image_url: components['schemas']['ImageURL'];
       /**
@@ -2137,7 +2177,10 @@ export interface components {
        */
       type: 'image_url';
     };
-    /** ChatCompletionContentPartInputAudioParam */
+    /**
+     * ChatCompletionContentPartInputAudioParam
+     * @description Learn about [audio inputs](https://platform.openai.com/docs/guides/audio).
+     */
     ChatCompletionContentPartInputAudioParam: {
       input_audio: components['schemas']['InputAudio'];
       /**
@@ -2156,7 +2199,10 @@ export interface components {
        */
       type: 'refusal';
     };
-    /** ChatCompletionContentPartTextParam */
+    /**
+     * ChatCompletionContentPartTextParam
+     * @description Learn about [text inputs](https://platform.openai.com/docs/guides/text-generation).
+     */
     ChatCompletionContentPartTextParam: {
       /** Text */
       text: string;
@@ -2166,7 +2212,12 @@ export interface components {
        */
       type: 'text';
     };
-    /** ChatCompletionDeveloperMessageParam */
+    /**
+     * ChatCompletionDeveloperMessageParam
+     * @description Developer-provided instructions that the model should follow, regardless of
+     *     messages sent by the user. With o1 models and newer, `developer` messages
+     *     replace the previous `system` messages.
+     */
     ChatCompletionDeveloperMessageParam: {
       /** Content */
       content: string | components['schemas']['ChatCompletionContentPartTextParam'][];
@@ -2178,7 +2229,10 @@ export interface components {
        */
       role: 'developer';
     };
-    /** ChatCompletionFunctionCallOptionParam */
+    /**
+     * ChatCompletionFunctionCallOptionParam
+     * @description Specifying a particular function via `{"name": "my_function"}` forces the model to call that function.
+     */
     ChatCompletionFunctionCallOptionParam: {
       /** Name */
       name: string;
@@ -2195,7 +2249,10 @@ export interface components {
        */
       role: 'function';
     };
-    /** ChatCompletionFunctionToolParam */
+    /**
+     * ChatCompletionFunctionToolParam
+     * @description A function tool that can be used to generate a response.
+     */
     ChatCompletionFunctionToolParam: {
       function: components['schemas']['FunctionDefinition'];
       /**
@@ -2204,7 +2261,10 @@ export interface components {
        */
       type: 'function';
     };
-    /** ChatCompletionMessageCustomToolCallParam */
+    /**
+     * ChatCompletionMessageCustomToolCallParam
+     * @description A call to a custom tool created by the model.
+     */
     ChatCompletionMessageCustomToolCallParam: {
       custom: components['schemas']['openai__types__chat__chat_completion_message_custom_tool_call_param__Custom'];
       /** Id */
@@ -2215,7 +2275,10 @@ export interface components {
        */
       type: 'custom';
     };
-    /** ChatCompletionMessageFunctionToolCallParam */
+    /**
+     * ChatCompletionMessageFunctionToolCallParam
+     * @description A call to a function tool created by the model.
+     */
     ChatCompletionMessageFunctionToolCallParam: {
       function: components['schemas']['openai__types__chat__chat_completion_message_function_tool_call_param__Function'];
       /** Id */
@@ -2226,7 +2289,12 @@ export interface components {
        */
       type: 'function';
     };
-    /** ChatCompletionNamedToolChoiceCustomParam */
+    /**
+     * ChatCompletionNamedToolChoiceCustomParam
+     * @description Specifies a tool the model should use.
+     *
+     *     Use to force the model to call a specific custom tool.
+     */
     ChatCompletionNamedToolChoiceCustomParam: {
       custom: components['schemas']['openai__types__chat__chat_completion_named_tool_choice_custom_param__Custom'];
       /**
@@ -2235,7 +2303,12 @@ export interface components {
        */
       type: 'custom';
     };
-    /** ChatCompletionNamedToolChoiceParam */
+    /**
+     * ChatCompletionNamedToolChoiceParam
+     * @description Specifies a tool the model should use.
+     *
+     *     Use to force the model to call a specific function.
+     */
     ChatCompletionNamedToolChoiceParam: {
       function: components['schemas']['openai__types__chat__chat_completion_named_tool_choice_param__Function'];
       /**
@@ -2244,7 +2317,11 @@ export interface components {
        */
       type: 'function';
     };
-    /** ChatCompletionPredictionContentParam */
+    /**
+     * ChatCompletionPredictionContentParam
+     * @description Static predicted output content, such as the content of a text file that is
+     *     being regenerated.
+     */
     ChatCompletionPredictionContentParam: {
       /** Content */
       content: string | components['schemas']['ChatCompletionContentPartTextParam'][];
@@ -2295,6 +2372,16 @@ export interface components {
       model:
         | string
         | (
+            | 'gpt-5.2'
+            | 'gpt-5.2-2025-12-11'
+            | 'gpt-5.2-chat-latest'
+            | 'gpt-5.2-pro'
+            | 'gpt-5.2-pro-2025-12-11'
+            | 'gpt-5.1'
+            | 'gpt-5.1-2025-11-13'
+            | 'gpt-5.1-codex'
+            | 'gpt-5.1-mini'
+            | 'gpt-5.1-chat-latest'
             | 'gpt-5'
             | 'gpt-5-mini'
             | 'gpt-5-nano'
@@ -2366,7 +2453,7 @@ export interface components {
       /** Presence Penalty */
       presence_penalty?: number | null;
       /** Reasoning Effort */
-      reasoning_effort?: ('minimal' | 'low' | 'medium' | 'high') | null;
+      reasoning_effort?: ('none' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh') | null;
       /** Response Format */
       response_format?:
         | components['schemas']['ResponseFormatText']
@@ -2403,14 +2490,22 @@ export interface components {
       user?: string | null;
       web_search_options?: components['schemas']['WebSearchOptions'] | null;
     };
-    /** ChatCompletionStreamOptionsParam */
+    /**
+     * ChatCompletionStreamOptionsParam
+     * @description Options for streaming response. Only set this when you set `stream: true`.
+     */
     ChatCompletionStreamOptionsParam: {
       /** Include Obfuscation */
       include_obfuscation?: boolean;
       /** Include Usage */
       include_usage?: boolean;
     };
-    /** ChatCompletionSystemMessageParam */
+    /**
+     * ChatCompletionSystemMessageParam
+     * @description Developer-provided instructions that the model should follow, regardless of
+     *     messages sent by the user. With o1 models and newer, use `developer` messages
+     *     for this purpose instead.
+     */
     ChatCompletionSystemMessageParam: {
       /** Content */
       content: string | components['schemas']['ChatCompletionContentPartTextParam'][];
@@ -2434,7 +2529,11 @@ export interface components {
       /** Tool Call Id */
       tool_call_id: string;
     };
-    /** ChatCompletionUserMessageParam */
+    /**
+     * ChatCompletionUserMessageParam
+     * @description Messages sent by an end user, containing prompts or additional context
+     *     information.
+     */
     ChatCompletionUserMessageParam: {
       /** Content */
       content:
@@ -2443,7 +2542,7 @@ export interface components {
             | components['schemas']['ChatCompletionContentPartTextParam']
             | components['schemas']['ChatCompletionContentPartImageParam']
             | components['schemas']['ChatCompletionContentPartInputAudioParam']
-            | components['schemas']['File']
+            | components['schemas']['File-Input']
           )[];
       /** Name */
       name?: string;
@@ -2469,6 +2568,8 @@ export interface components {
     };
     /** ConnectorConnectRequest */
     ConnectorConnectRequest: {
+      /** Access Token */
+      access_token?: string | null;
       /** Redirect Url */
       redirect_url?: string | null;
     };
@@ -2788,10 +2889,28 @@ export interface components {
     } & {
       [key: string]: unknown;
     };
+    /**
+     * ExtractedFileInfo
+     * @description Information about an extracted file.
+     */
+    ExtractedFileInfo: {
+      /**
+       * File Id
+       * Format: uuid
+       */
+      file_id: string;
+      format?: components['schemas']['ExtractionFormat'] | null;
+    };
+    /**
+     * ExtractionFormat
+     * @enum {string}
+     */
+    ExtractionFormat: 'markdown' | 'vendor_specific_json';
     /** ExtractionMetadata */
     ExtractionMetadata: {
       /** Backend */
-      backend: string;
+      backend?: string | null;
+      settings?: components['schemas']['TextExtractionSettings'] | null;
     } & {
       [key: string]: unknown;
     };
@@ -2800,14 +2919,47 @@ export interface components {
      * @enum {string}
      */
     ExtractionStatus: 'pending' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
-    /** File */
-    File: {
+    /**
+     * File
+     * @description Learn about [file inputs](https://platform.openai.com/docs/guides/text) for text generation.
+     */
+    'File-Input': {
       file: components['schemas']['FileFile'];
       /**
        * Type
        * @constant
        */
       type: 'file';
+    };
+    /** File */
+    'File-Output': {
+      /** Content Type */
+      content_type: string;
+      /** Context Id */
+      context_id?: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      /** File Size Bytes */
+      file_size_bytes?: number | null;
+      /** @default user_upload */
+      file_type: components['schemas']['FileType'];
+      /** Filename */
+      filename: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id?: string;
+      /** Parent File Id */
+      parent_file_id?: string | null;
     };
     /** FileFile */
     FileFile: {
@@ -2817,6 +2969,27 @@ export interface components {
       file_id?: string;
       /** Filename */
       filename?: string;
+    };
+    /**
+     * FileListQuery
+     * @description Query schema for listing files.
+     */
+    FileListQuery: {
+      /** Content Type */
+      content_type?: string | null;
+      /**
+       * Filename Search
+       * @description Case-insensitive partial match search on filename (e.g., 'doc' matches 'my_document.pdf')
+       */
+      filename_search?: string | null;
+      /** Limit */
+      limit?: number;
+      /** Order */
+      order?: string;
+      /** Order By */
+      order_by?: string;
+      /** Page Token */
+      page_token?: string | null;
     };
     /**
      * FilePart
@@ -2871,7 +3044,12 @@ export interface components {
       /** Uri */
       uri: string;
     };
-    /** FunctionCall */
+    /**
+     * FunctionCall
+     * @description Deprecated and replaced by `tool_calls`.
+     *
+     *     The name and arguments of a function that should be called, as generated by the model.
+     */
     FunctionCall: {
       /** Arguments */
       arguments: string;
@@ -2903,7 +3081,7 @@ export interface components {
     /** GlobalPermissionGrant */
     GlobalPermissionGrant: {
       /** A2A Proxy */
-      a2a_proxy?: '*'[];
+      a2a_proxy?: ('*' | string)[];
       /** Connectors */
       connectors?: ('read' | 'write' | 'proxy' | '*')[];
       /** Context Data */
@@ -2911,13 +3089,13 @@ export interface components {
       /** Contexts */
       contexts?: ('read' | 'write' | '*')[];
       /** Embeddings */
-      embeddings?: ('*' | components['schemas']['ResourceIdPermission'])[];
+      embeddings?: ('*' | string)[];
       /** Feedback */
       feedback?: 'write'[];
       /** Files */
       files?: ('read' | 'write' | 'extract' | '*')[];
       /** Llm */
-      llm?: ('*' | components['schemas']['ResourceIdPermission'])[];
+      llm?: ('*' | string)[];
       /** Mcp Providers */
       mcp_providers?: ('read' | 'write' | '*')[];
       /** Mcp Proxy */
@@ -3028,7 +3206,10 @@ export interface components {
        */
       task_id: string;
     };
-    /** JSONSchema */
+    /**
+     * JSONSchema
+     * @description Structured Outputs configuration options, including a JSON Schema.
+     */
     JSONSchema: {
       /** Description */
       description?: string;
@@ -3325,14 +3506,20 @@ export interface components {
       | components['schemas']['AddProvider']
       | components['schemas']['UpdateProvider']
       | components['schemas']['NoAction'];
-    /** Custom */
+    /**
+     * Custom
+     * @description The custom tool that the model called.
+     */
     openai__types__chat__chat_completion_message_custom_tool_call_param__Custom: {
       /** Input */
       input: string;
       /** Name */
       name: string;
     };
-    /** Function */
+    /**
+     * Function
+     * @description The function that the model called.
+     */
     openai__types__chat__chat_completion_message_function_tool_call_param__Function: {
       /** Arguments */
       arguments: string;
@@ -3452,6 +3639,20 @@ export interface components {
       has_more: boolean;
       /** Items */
       items: components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__1'][];
+      /** Next Page Token */
+      readonly next_page_token: string | null;
+      /** Total Count */
+      total_count: number;
+    };
+    /** PaginatedResult[File] */
+    PaginatedResult_File_: {
+      /**
+       * Has More
+       * @default false
+       */
+      has_more: boolean;
+      /** Items */
+      items: components['schemas']['File-Output'][];
       /** Next Page Token */
       readonly next_page_token: string | null;
       /** Total Count */
@@ -3715,12 +3916,15 @@ export interface components {
       version: string;
       version_type: components['schemas']['GithubVersionType'];
     };
-    /** ResourceIdPermission */
-    ResourceIdPermission: {
-      /** Id */
-      id: string;
-    };
-    /** ResponseFormatJSONObject */
+    /**
+     * ResponseFormatJSONObject
+     * @description JSON object response format.
+     *
+     *     An older method of generating JSON responses.
+     *     Using `json_schema` is recommended for models that support it. Note that the
+     *     model will not generate JSON without a system or user message instructing it
+     *     to do so.
+     */
     ResponseFormatJSONObject: {
       /**
        * Type
@@ -3728,7 +3932,13 @@ export interface components {
        */
       type: 'json_object';
     };
-    /** ResponseFormatJSONSchema */
+    /**
+     * ResponseFormatJSONSchema
+     * @description JSON Schema response format.
+     *
+     *     Used to generate structured JSON responses.
+     *     Learn more about [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs).
+     */
     ResponseFormatJSONSchema: {
       json_schema: components['schemas']['JSONSchema'];
       /**
@@ -3737,7 +3947,10 @@ export interface components {
        */
       type: 'json_schema';
     };
-    /** ResponseFormatText */
+    /**
+     * ResponseFormatText
+     * @description Default response format. Used to generate text responses.
+     */
     ResponseFormatText: {
       /**
        * Type
@@ -3782,6 +3995,19 @@ export interface components {
       | components['schemas']['OAuth2SecurityScheme-Output']
       | components['schemas']['OpenIdConnectSecurityScheme']
       | components['schemas']['MutualTLSSecurityScheme'];
+    /**
+     * TextExtractionRequest
+     * @description Request schema for text extraction.
+     */
+    TextExtractionRequest: {
+      /** @description Additional options for text extraction */
+      settings?: components['schemas']['TextExtractionSettings'] | null;
+    };
+    /** TextExtractionSettings */
+    TextExtractionSettings: {
+      /** Formats */
+      formats?: components['schemas']['ExtractionFormat'][];
+    };
     /**
      * TextPart
      * @description Represents a text segment within a message or artifact.
@@ -3959,7 +4185,11 @@ export interface components {
       docker?: components['schemas']['ResolvedDockerImageID'] | null;
       github?: components['schemas']['ResolvedGithubUrl'] | null;
     };
-    /** WebSearchOptions */
+    /**
+     * WebSearchOptions
+     * @description This tool searches the web for relevant results to use in a response.
+     *     Learn more about the [web search tool](https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat).
+     */
     WebSearchOptions: {
       /**
        * Search Context Size
@@ -3968,7 +4198,10 @@ export interface components {
       search_context_size?: 'low' | 'medium' | 'high';
       user_location?: components['schemas']['WebSearchOptionsUserLocation'] | null;
     };
-    /** WebSearchOptionsUserLocation */
+    /**
+     * WebSearchOptionsUserLocation
+     * @description Approximate location parameters for the search.
+     */
     WebSearchOptionsUserLocation: {
       approximate: components['schemas']['WebSearchOptionsUserLocationApproximate'];
       /**
@@ -3977,7 +4210,10 @@ export interface components {
        */
       type: 'approximate';
     };
-    /** WebSearchOptionsUserLocationApproximate */
+    /**
+     * WebSearchOptionsUserLocationApproximate
+     * @description Approximate location parameters for the search.
+     */
     WebSearchOptionsUserLocationApproximate: {
       /** City */
       city?: string;
@@ -3997,6 +4233,26 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+  jwks__well_known_jwks_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+    };
+  };
   protected_resource_metadata__well_known_oauth_protected_resource__resource__get: {
     parameters: {
       query?: never;
@@ -4121,7 +4377,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_head: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get: {
     parameters: {
       query?: {
         path?: string;
@@ -4154,7 +4410,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_head: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get: {
     parameters: {
       query?: {
         path?: string;
@@ -4187,7 +4443,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_head: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get: {
     parameters: {
       query?: {
         path?: string;
@@ -4220,7 +4476,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_head: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get: {
     parameters: {
       query?: {
         path?: string;
@@ -4253,7 +4509,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_head: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get: {
     parameters: {
       query?: {
         path?: string;
@@ -4286,7 +4542,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_head: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get: {
     parameters: {
       query?: {
         path?: string;
@@ -4319,7 +4575,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_head: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get: {
     parameters: {
       query?: {
         path?: string;
@@ -4352,7 +4608,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__head: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get: {
     parameters: {
       query?: never;
       header?: never;
@@ -4384,7 +4640,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__head: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get: {
     parameters: {
       query?: never;
       header?: never;
@@ -4416,7 +4672,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__head: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get: {
     parameters: {
       query?: never;
       header?: never;
@@ -4448,7 +4704,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__head: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get: {
     parameters: {
       query?: never;
       header?: never;
@@ -4480,7 +4736,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__head: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get: {
     parameters: {
       query?: never;
       header?: never;
@@ -4512,7 +4768,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__head: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get: {
     parameters: {
       query?: never;
       header?: never;
@@ -4544,7 +4800,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__head: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get: {
     parameters: {
       query?: never;
       header?: never;
@@ -4978,7 +5234,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__12'];
+          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem____<locals>__ModelOutput'];
         };
       };
       /** @description Validation Error */
@@ -5228,6 +5484,38 @@ export interface operations {
       };
     };
   };
+  list_files_api_v1_files_get: {
+    parameters: {
+      query: {
+        context_id?: string | null;
+        query: components['schemas']['FileListQuery'];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PaginatedResult_File_'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   upload_file_api_v1_files_post: {
     parameters: {
       query?: {
@@ -5404,7 +5692,11 @@ export interface operations {
       };
       cookie?: never;
     };
-    requestBody?: never;
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['TextExtractionRequest'] | null;
+      };
+    };
     responses: {
       /** @description Successful Response */
       201: {
@@ -6488,7 +6780,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem____<locals>__ModelOutput'];
+          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__3'];
         };
       };
       /** @description Validation Error */

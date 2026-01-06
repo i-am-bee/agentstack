@@ -8,10 +8,13 @@ from types import NoneType
 from typing import TYPE_CHECKING, Any, Self
 from urllib.parse import parse_qs
 
-import a2a.types
 import pydantic
+from a2a.server.agent_execution import RequestContext
+from a2a.types import Message as A2AMessage
+from a2a.types import Role, TextPart
 from mcp.client.auth import OAuthClientProvider
 from mcp.shared.auth import OAuthClientMetadata
+from typing_extensions import override
 
 from agentstack_sdk.a2a.extensions.auth.oauth.storage import MemoryTokenStorageFactory, TokenStorageFactory
 from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
@@ -58,13 +61,17 @@ class OAuthExtensionMetadata(pydantic.BaseModel):
 
 
 class OAuthExtensionServer(BaseExtensionServer[OAuthExtensionSpec, OAuthExtensionMetadata]):
+    context: RunContext
+    token_storage_factory: TokenStorageFactory
+
     def __init__(self, spec: OAuthExtensionSpec, token_storage_factory: TokenStorageFactory | None = None) -> None:
         super().__init__(spec)
         self.token_storage_factory = token_storage_factory or MemoryTokenStorageFactory()
 
-    def handle_incoming_message(self, message: a2a.types.Message, context: RunContext):
-        super().handle_incoming_message(message, context)
-        self.context = context
+    @override
+    def handle_incoming_message(self, message: A2AMessage, run_context: RunContext, request_context: RequestContext):
+        super().handle_incoming_message(message, run_context, request_context)
+        self.context = run_context
 
     def _get_fulfillment_for_resource(self, resource_url: pydantic.AnyUrl):
         if not self.data:
@@ -117,7 +124,7 @@ class OAuthExtensionServer(BaseExtensionServer[OAuthExtensionSpec, OAuthExtensio
         data = AuthRequest(authorization_endpoint_url=authorization_endpoint_url)
         return AgentMessage(text="Authorization required", metadata={self.spec.URI: data.model_dump(mode="json")})
 
-    def parse_auth_response(self, *, message: a2a.types.Message):
+    def parse_auth_response(self, *, message: A2AMessage):
         if not message or not message.metadata or not (data := message.metadata.get(self.spec.URI)):
             raise RuntimeError("Invalid auth response")
         return AuthResponse.model_validate(data)
@@ -127,7 +134,7 @@ class OAuthExtensionClient(BaseExtensionClient[OAuthExtensionSpec, NoneType]):
     def fulfillment_metadata(self, *, oauth_fulfillments: dict[str, Any]) -> dict[str, Any]:
         return {self.spec.URI: OAuthExtensionMetadata(oauth_fulfillments=oauth_fulfillments).model_dump(mode="json")}
 
-    def parse_auth_request(self, *, message: a2a.types.Message):
+    def parse_auth_request(self, *, message: A2AMessage):
         if not message or not message.metadata or not (data := message.metadata.get(self.spec.URI)):
             raise ValueError("Invalid auth request")
         return AuthRequest.model_validate(data)
@@ -135,10 +142,10 @@ class OAuthExtensionClient(BaseExtensionClient[OAuthExtensionSpec, NoneType]):
     def create_auth_response(self, *, task_id: str, redirect_uri: pydantic.AnyUrl):
         data = AuthResponse(redirect_uri=redirect_uri)
 
-        return a2a.types.Message(
+        return A2AMessage(
             message_id=str(uuid.uuid4()),
-            role=a2a.types.Role.user,
-            parts=[a2a.types.TextPart(text="Authorization completed")],  # type: ignore
+            role=Role.user,
+            parts=[TextPart(text="Authorization completed")],  # type: ignore
             task_id=task_id,
             metadata={self.spec.URI: data.model_dump(mode="json")},
         )

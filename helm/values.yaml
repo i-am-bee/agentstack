@@ -115,7 +115,8 @@ agentRegistrySyncPeriodCron: "*/30 * * * * *"
 encryptionKey: ""
 auth:
   enabled: false # Warning, disable only for local deployments
-  jwtSecretKey: ""
+  jwtPrivateKey: "" # If empty, a key pair will be auto-generated
+  jwtPublicKey: "" # If empty, a key pair will be auto-generated
   basic:
     enabled: false
     adminPassword: ""

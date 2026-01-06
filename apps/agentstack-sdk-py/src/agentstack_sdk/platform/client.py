@@ -5,7 +5,7 @@ import contextlib
 import os
 import ssl
 import typing
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Mapping
 from types import TracebackType
 
 import httpx
@@ -14,6 +14,7 @@ from httpx._client import EventHook
 from httpx._config import DEFAULT_LIMITS, DEFAULT_MAX_REDIRECTS, Limits
 from httpx._types import AuthTypes, CertTypes, CookieTypes, HeaderTypes, ProxyTypes, QueryParamTypes, TimeoutTypes
 from pydantic import Secret
+from typing_extensions import override
 
 from agentstack_sdk.util import resource_context
 
@@ -26,7 +27,7 @@ class PlatformClient(httpx.AsyncClient):
     def __init__(
         self,
         context_id: str | None = None,  # Enter context scope
-        auth_token: str | Secret | None = None,
+        auth_token: str | Secret[str] | None = None,
         *,
         auth: AuthTypes | None = None,
         params: QueryParamTypes | None = None,
@@ -37,12 +38,12 @@ class PlatformClient(httpx.AsyncClient):
         http1: bool = True,
         http2: bool = False,
         proxy: ProxyTypes | None = None,
-        mounts: None | (typing.Mapping[str, AsyncBaseTransport | None]) = None,
+        mounts: None | (Mapping[str, AsyncBaseTransport | None]) = None,
         timeout: TimeoutTypes = DEFAULT_SDK_TIMEOUT,
         follow_redirects: bool = False,
         limits: Limits = DEFAULT_LIMITS,
         max_redirects: int = DEFAULT_MAX_REDIRECTS,
-        event_hooks: None | (typing.Mapping[str, list[EventHook]]) = None,
+        event_hooks: None | (Mapping[str, list[EventHook]]) = None,
         base_url: URL | str = "",
         transport: AsyncBaseTransport | None = None,
         trust_env: bool = True,
@@ -74,16 +75,18 @@ class PlatformClient(httpx.AsyncClient):
         self.context_id = context_id
         if auth_token:
             self.headers["Authorization"] = f"Bearer {auth_token}"
-        self._ref_count = 0
-        self._context_manager_lock = asyncio.Lock()
+        self._ref_count: int = 0
+        self._context_manager_lock: asyncio.Lock = asyncio.Lock()
 
+    @override
     async def __aenter__(self) -> typing.Self:
         async with self._context_manager_lock:
             self._ref_count += 1
             if self._ref_count == 1:
-                await super().__aenter__()
+                _ = await super().__aenter__()
             return self
 
+    @override
     async def __aexit__(
         self,
         exc_type: type[BaseException] | None = None,
@@ -94,7 +97,6 @@ class PlatformClient(httpx.AsyncClient):
             self._ref_count -= 1
             if self._ref_count == 0:
                 await super().__aexit__(exc_type, exc_value, traceback)
-                self._resource = None
 
 
 get_platform_client, set_platform_client = resource_context(factory=PlatformClient, default_factory=PlatformClient)

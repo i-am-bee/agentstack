@@ -96,7 +96,10 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
                 ),
                 api=api,
             )
-            env = {**(env or {}), **global_provider_variables()}
+            env = {
+                **(env or {}),
+                **global_provider_variables(provider_url=await self.get_provider_url(provider_id=provider.id)),
+            }
             secret = Secret(
                 await self._render_template(
                     TemplateKind.SECRET,

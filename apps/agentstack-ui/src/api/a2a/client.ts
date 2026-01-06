@@ -72,13 +72,17 @@ function handleArtifactUpdate(event: TaskArtifactUpdateEvent): UIMessagePart[] {
 export interface CreateA2AClientParams<UIGenericPart = never> {
   providerId: string;
   onStatusUpdate?: (event: TaskStatusUpdateEvent) => UIGenericPart[];
+  authToken?: { token: string } | string | null | undefined;
 }
 
 export const buildA2AClient = async <UIGenericPart = never>({
   providerId,
   onStatusUpdate,
+  authToken: contextToken,
 }: CreateA2AClientParams<UIGenericPart>) => {
-  const client = await getAgentClient(providerId);
+  const tokenData = contextToken;
+  const token = typeof tokenData === 'string' ? tokenData : tokenData?.token;
+  const client = await getAgentClient(providerId, token ?? undefined);
   const card = await client.getAgentCard();
 
   const { resolveMetadata: resolveAgentCardMetadata, demands } = handleAgentCard(card);

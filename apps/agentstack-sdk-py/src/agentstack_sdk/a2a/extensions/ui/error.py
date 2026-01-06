@@ -18,7 +18,8 @@ from agentstack_sdk.a2a.extensions.base import (
     BaseExtensionServer,
     BaseExtensionSpec,
 )
-from agentstack_sdk.a2a.types import AgentMessage, JsonDict, Metadata
+from agentstack_sdk.a2a.types import AgentMessage, Metadata
+from agentstack_sdk.types import JsonValue
 from agentstack_sdk.util import resource_context
 
 logger = logging.getLogger(__name__)
@@ -68,7 +69,7 @@ class ErrorMetadata(pydantic.BaseModel):
 
     error: Error | ErrorGroup
     stack_trace: str | None = None
-    context: JsonDict | None = None
+    context: JsonValue | None = None
 
 
 class ErrorExtensionParams(pydantic.BaseModel):
@@ -133,7 +134,7 @@ class ErrorExtensionServer(BaseExtensionServer[ErrorExtensionSpec, NoneType]):
             yield
 
     @property
-    def context(self) -> JsonDict:
+    def context(self) -> JsonValue:
         """Get the current request's error context."""
         try:
             return get_error_extension_context().context
@@ -214,7 +215,7 @@ DEFAULT_ERROR_EXTENSION: Final = ErrorExtensionServer(ErrorExtensionSpec(ErrorEx
 
 class ErrorContext(pydantic.BaseModel, arbitrary_types_allowed=True):
     server: ErrorExtensionServer = pydantic.Field(default=DEFAULT_ERROR_EXTENSION)
-    context: JsonDict = pydantic.Field(default_factory=dict)
+    context: JsonValue = pydantic.Field(default_factory=dict)
 
 
 get_error_extension_context, use_error_extension_context = resource_context(

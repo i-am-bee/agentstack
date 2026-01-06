@@ -32,8 +32,6 @@ class VersionResolveError(PlatformError):
 
 
 class ManifestLoadError(PlatformError):
-    location: "ProviderLocation"
-
     def __init__(
         self, location: "ProviderLocation", message: str | None = None, status_code: int = status.HTTP_404_NOT_FOUND
     ):
@@ -98,7 +96,7 @@ class ModelLoadFailedError(PlatformError):
     def __init__(
         self, provider: ModelProvider, exception: HTTPError, status_code: int = status.HTTP_424_FAILED_DEPENDENCY
     ):
-        from agentstack_server.application import extract_messages
+        from agentstack_server.utils.utils import extract_messages
 
         super().__init__(
             f"Failed to load models from {provider.type} provider ({provider.base_url}): {extract_messages(exception)}",

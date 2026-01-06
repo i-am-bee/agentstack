@@ -79,6 +79,10 @@ export const buildApiClient = (
     await callApi('POST', '/api/v1/contexts', { metadata: {}, provider_id: providerId }, contextSchema);
 
   const createContextToken = async ({ contextId, globalPermissions, contextPermissions }: CreateContextTokenParams) => {
+    if (!globalPermissions.a2a_proxy?.includes('*') && globalPermissions.a2a_proxy?.length === 0) {
+      throw new Error("Invalid audience: You must specify providers or use '*' in globalPermissions.a2a_proxy.");
+    }
+
     const token = await callApi(
       'POST',
       `/api/v1/contexts/${contextId}/token`,

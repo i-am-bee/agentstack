@@ -3,16 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { ContextToken } from 'agentstack-sdk';
 import { type AgentSettings, type FormFulfillments, ModelCapability } from 'agentstack-sdk';
 import { type PropsWithChildren, useCallback, useRef, useState } from 'react';
 
 import type { AgentA2AClient } from '#api/a2a/types.ts';
-import { useApp } from '#contexts/App/index.ts';
 import { useListConnectors } from '#modules/connectors/api/queries/useListConnectors.ts';
 import type { RunFormValues } from '#modules/form/types.ts';
-import { useCreateContextToken } from '#modules/platform-context/api/mutations/useCreateContextToken.ts';
 import { useMatchProviders } from '#modules/platform-context/api/mutations/useMatchProviders.ts';
-import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 import { getSettingsDemandsDefaultValues } from '#modules/runs/settings/utils.ts';
 
 import { useAgentSecrets } from '../agent-secrets';
@@ -22,10 +20,12 @@ import { buildFulfillments } from './build-fulfillments';
 
 interface Props<UIGenericPart> {
   agentClient: AgentA2AClient<UIGenericPart>;
+  contextToken: ContextToken;
 }
 
 export function AgentDemandsProvider<UIGenericPart>({
   agentClient,
+  contextToken,
   children,
 }: PropsWithChildren<Props<UIGenericPart>>) {
   const { demandedSecrets } = useAgentSecrets();
@@ -37,13 +37,6 @@ export function AgentDemandsProvider<UIGenericPart>({
   const [selectedSettings, setSelectedSettings] = useState<AgentSettings>(
     getSettingsDemandsDefaultValues(agentClient.demands.settingsDemands ?? { fields: [] }),
   );
-
-  const {
-    config: { contextTokenPermissions },
-  } = useApp();
-  const { contextId } = usePlatformContext();
-
-  const { mutateAsync: createContextToken } = useCreateContextToken();
 
   const onUpdateSettings = useCallback((value: AgentSettings) => {
     setSelectedSettings(value);
@@ -115,28 +108,8 @@ export function AgentDemandsProvider<UIGenericPart>({
 
   const { data: connectorsData } = useListConnectors();
 
-  const getContextToken = useCallback(async () => {
-    if (contextId === null) {
-      throw new Error('Illegal State - Context ID is not set.');
-    }
-
-    const contextToken = await createContextToken({
-      contextId,
-      contextPermissions: contextTokenPermissions.grant_context_permissions ?? {},
-      globalPermissions: contextTokenPermissions.grant_global_permissions ?? {},
-    });
-
-    if (!contextToken) {
-      throw new Error('Could not generate context token');
-    }
-
-    return contextToken;
-  }, [contextId, contextTokenPermissions, createContextToken]);
-
   const getFulfillments = useCallback(
     async (fulfillmentsContext: FulfillmentsContext) => {
-      const contextToken = await getContextToken();
-
       const providedSecrets = demandedSecrets.reduce((memo, secret) => {
         if (secret.isReady) {
           memo[secret.key] = secret.value;
@@ -157,14 +130,7 @@ export function AgentDemandsProvider<UIGenericPart>({
         connectors: connectorsData?.items ?? [],
       });
     },
-    [
-      getContextToken,
-      selectedLLMProviders,
-      selectedEmbeddingProviders,
-      selectedSettings,
-      demandedSecrets,
-      connectorsData,
-    ],
+    [contextToken, selectedLLMProviders, selectedEmbeddingProviders, selectedSettings, demandedSecrets, connectorsData],
   );
 
   return (

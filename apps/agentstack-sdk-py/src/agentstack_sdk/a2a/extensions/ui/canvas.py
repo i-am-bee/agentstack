@@ -6,8 +6,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pydantic
+from a2a.server.agent_execution.context import RequestContext
 from a2a.types import Artifact, TextPart
 from a2a.types import Message as A2AMessage
+from typing_extensions import override
 
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
@@ -37,12 +39,13 @@ class CanvasExtensionSpec(NoParamsBaseExtensionSpec):
 
 
 class CanvasExtensionServer(BaseExtensionServer[CanvasExtensionSpec, CanvasEditRequestMetadata]):
-    def handle_incoming_message(self, message: A2AMessage, context: RunContext):
+    @override
+    def handle_incoming_message(self, message: A2AMessage, run_context: RunContext, request_context: RequestContext):
         if message.metadata and self.spec.URI in message.metadata and message.parts:
             message.parts = [part for part in message.parts if not isinstance(part.root, TextPart)]
 
-        super().handle_incoming_message(message, context)
-        self.context = context
+        super().handle_incoming_message(message, run_context, request_context)
+        self.context = run_context
 
     async def parse_canvas_edit_request(self, *, message: A2AMessage) -> CanvasEditRequest | None:
         if not message or not message.metadata or not (data := message.metadata.get(self.spec.URI)):

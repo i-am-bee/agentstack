@@ -13,13 +13,18 @@ type Props<UIGenericPart> = Omit<CreateA2AClientParams<UIGenericPart>, 'provider
   providerId?: string;
 };
 
-export function useBuildA2AClient<UIGenericPart = never>({ providerId = '', onStatusUpdate }: Props<UIGenericPart>) {
+export function useBuildA2AClient<UIGenericPart = never>({
+  providerId = '',
+  onStatusUpdate,
+  authToken,
+}: Props<UIGenericPart>) {
   const { data: agentClient } = useQuery({
-    queryKey: runKeys.client(providerId),
+    queryKey: runKeys.client(`${providerId}${Boolean(authToken)}`),
     queryFn: async () =>
       buildA2AClient<UIGenericPart>({
         providerId,
         onStatusUpdate,
+        authToken,
       }),
     enabled: Boolean(providerId),
     staleTime: Infinity,
