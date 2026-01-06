@@ -880,8 +880,6 @@ async def run_agent(
     ] = None,
 ) -> None:
     """Run an agent."""
-    if search_path is not None and input is None and sys.stdin.isatty():
-        input = sys.stdin.read()
     async with configuration.use_platform_client():
         providers = await Provider.list()
         await ensure_llm_provider()
