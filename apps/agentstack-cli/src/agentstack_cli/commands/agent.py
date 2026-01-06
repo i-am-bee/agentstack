@@ -61,7 +61,7 @@ from agentstack_sdk.a2a.extensions.common.form import (
     TextField,
     TextFieldValue,
 )
-from agentstack_sdk.platform import BuildState, ModelProvider, Provider, UserFeedback
+from agentstack_sdk.platform import BuildState, File, ModelProvider, Provider, UserFeedback
 from agentstack_sdk.platform.context import Context, ContextPermissions, ContextToken, Permissions
 from agentstack_sdk.platform.model_provider import ModelCapability
 from InquirerPy import inquirer
@@ -651,10 +651,13 @@ async def _run_agent(
                                     match part.root.file:
                                         case FileWithBytes(bytes=bytes_str):
                                             full_path.write_bytes(base64.b64decode(bytes_str))
-                                        case FileWithUri(uri=uri):  # TODO process platform file uri
-                                            async with httpx.AsyncClient() as httpx_client:
-                                                resp = await httpx_client.get(uri)
-                                                full_path.write_bytes(base64.b64decode(resp.content))
+                                        case FileWithUri(uri=uri):
+                                            if uri.startswith("agentstack://"):
+                                                async with File.load_content(uri.removeprefix("agentstack://")) as file:
+                                                    full_path.write_bytes(file.content)
+                                            else:
+                                                async with httpx.AsyncClient() as httpx_client:
+                                                    full_path.write_bytes((await httpx_client.get(uri)).content)
                                     console.print(f"📁 Saved {full_path}")
                                 case TextPart(text=text):
                                     full_path.write_text(text)
