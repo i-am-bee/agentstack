@@ -22,6 +22,7 @@ class BaseDriver(abc.ABC):
 
     def __init__(self, vm_name: str = "agentstack"):
         self.vm_name = vm_name
+        self.loaded_images: set[str] = set()
 
     @abc.abstractmethod
     async def run_in_vm(
@@ -46,6 +47,9 @@ class BaseDriver(abc.ABC):
 
     @abc.abstractmethod
     async def import_image(self, tag: str) -> None: ...
+
+    @abc.abstractmethod
+    async def import_image_to_internal_registry(self, tag: str) -> None: ...
 
     @abc.abstractmethod
     async def exec(self, command: list[str]) -> None: ...
@@ -138,20 +142,17 @@ class BaseDriver(abc.ABC):
         ).stdout.decode()
         for image in import_images or []:
             await self.import_image(image)
+            self.loaded_images.add(image)
         for image in {typing.cast(str, yaml.safe_load(line)) for line in images_str.splitlines()} - set(
             import_images or []
         ):
             async for attempt in AsyncRetrying(stop=stop_after_attempt(5)):
                 with attempt:
                     attempt_num = attempt.retry_state.attempt_number
+                    image_id = image if "." in image.split("/")[0] else f"docker.io/{image}"
+                    self.loaded_images.add(image_id)
                     await self.run_in_vm(
-                        [
-                            "k3s",
-                            "ctr",
-                            "image",
-                            "pull",
-                            image if "." in image.split("/")[0] else f"docker.io/{image}",
-                        ],
+                        ["k3s", "ctr", "image", "pull", image_id],
                         f"Pulling image {image}" + (f" (attempt {attempt_num})" if attempt_num > 1 else ""),
                     )
 

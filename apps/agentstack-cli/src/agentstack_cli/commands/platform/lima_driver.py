@@ -198,6 +198,72 @@ class LimaDriver(BaseDriver):
             await image_path.unlink(missing_ok=True)
 
     @typing.override
+    async def import_image_to_internal_registry(self, tag: str) -> None:
+        # 1. Check if registry is running
+        try:
+            await self.run_in_vm(
+                ["k3s", "kubectl", "get", "svc", "agentstack-registry-svc"],
+                "Checking internal registry availability",
+            )
+        except Exception as e:
+            console.warning(f"Internal registry service not found. Push might fail: {e}")
+
+        # 2. Export image from Docker to shared temp dir
+        image_dir = anyio.Path("/tmp/agentstack")
+        await image_dir.mkdir(exist_ok=True, parents=True)
+        image_file = f"{uuid.uuid4()}.tar"
+        image_path = image_dir / image_file
+
+        try:
+            await run_command(
+                ["docker", "image", "save", "-o", str(image_path), tag],
+                f"Exporting image {tag} from Docker",
+            )
+
+            # 3 & 4. Run Crane Job
+            crane_image = "ghcr.io/i-am-bee/alpine/crane:0.20.6"
+            for image in self.loaded_images:
+                if "alpine/crane" in image:
+                    crane_image = image
+                    break
+
+            job_name = f"push-{uuid.uuid4().hex[:6]}"
+            job_def = {
+                "apiVersion": "batch/v1",
+                "kind": "Job",
+                "metadata": {"name": job_name, "namespace": "default"},
+                "spec": {
+                    "backoffLimit": 0,
+                    "ttlSecondsAfterFinished": 60,
+                    "template": {
+                        "spec": {
+                            "restartPolicy": "Never",
+                            "containers": [
+                                {
+                                    "name": "crane",
+                                    "image": crane_image,
+                                    "command": ["crane", "push", f"/workspace/{image_file}", tag, "--insecure"],
+                                    "volumeMounts": [{"name": "workspace", "mountPath": "/workspace"}],
+                                }
+                            ],
+                            "volumes": [{"name": "workspace", "hostPath": {"path": "/tmp/agentstack"}}],
+                        }
+                    },
+                },
+            }
+
+            await self.run_in_vm(
+                ["k3s", "kubectl", "apply", "-f", "-"], "Starting push job", input=yaml.dump(job_def).encode()
+            )
+            await self.run_in_vm(
+                ["k3s", "kubectl", "wait", "--for=condition=complete", f"job/{job_name}", "--timeout=300s"],
+                "Waiting for push to complete",
+            )
+            await self.run_in_vm(["k3s", "kubectl", "delete", "job", job_name], "Cleaning up push job")
+        finally:
+            await image_path.unlink(missing_ok=True)
+
+    @typing.override
     async def exec(self, command: list[str]):
         await anyio.run_process(
             [self.limactl_exe, "shell", f"--tty={sys.stdin.isatty()}", self.vm_name, "--", *command],

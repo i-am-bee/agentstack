@@ -221,6 +221,10 @@ class WSLDriver(BaseDriver):
         raise NotImplementedError("Importing images is not supported on this platform.")
 
     @typing.override
+    async def import_image_to_internal_registry(self, tag: str) -> None:
+        raise NotImplementedError("Importing images to internal registry is not supported on this platform.")
+
+    @typing.override
     async def exec(self, command: list[str]):
         await anyio.run_process(
             ["wsl.exe", "--user", "root", "--distribution", self.vm_name, "--", *command],

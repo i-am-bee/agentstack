@@ -113,7 +113,7 @@ async def client_side_build(
         context_hash = hashlib.sha256((context + (dockerfile or "")).encode()).hexdigest()[:6]
         context_shorter = re.sub(r"https?://", "", context).replace(r".git", "")
         context_shorter = re.sub(r"[^a-zA-Z0-9_-]+", "-", context_shorter)[:32].lstrip("-") or "provider"
-        tag = (tag or f"agentstack.local/{context_shorter}-{context_hash}:latest").lower()
+        tag = (tag or f"agentstack-registry-svc.default:5001/{context_shorter}-{context_hash}:latest").lower()
         await run_command(
             command=[
                 *(
@@ -135,11 +135,22 @@ async def client_side_build(
         if import_image:
             from agentstack_cli.commands.platform import get_driver
 
+            if "agentstack-registry-svc.default" not in tag:
+                source_tag = tag
+                tag = re.sub("^[^/]*/", "agentstack-registry-svc.default:5001/", tag)
+                await run_command(["docker", "tag", source_tag, tag], "Tagging image")
+
             driver = get_driver(vm_name=vm_name)
+
             if (await driver.status()) != "running":
                 console.error("Agent Stack platform is not running.")
                 sys.exit(1)
-            await driver.import_image(tag)
+
+            await driver.import_image_to_internal_registry(tag)
+            console.success(
+                "Agent was imported to the agent stack internal registry.\n"
+                + f"You can add it using [blue]agentstack add {tag}[/blue]"
+            )
 
         return tag, agent_card
 
