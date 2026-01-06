@@ -1003,16 +1003,16 @@ Change user role (admin only).
 **Usage**:
 
 ```console
-$ agentstack user set-role [OPTIONS] USER_ID
+$ agentstack user set-role [OPTIONS] USER_ID ROLE:{admin|developer|user}
 ```
 
 **Arguments**:
 
 * `USER_ID`: User UUID  [required]
+* `ROLE:{admin|developer|user}`: Target role (admin, developer, user)  [required]
 
 **Options**:
 
-* `-r, --role [admin|developer|user]`: Target role  [required]
 * `-y, --yes`: Skip confirmation prompts.
 * `--help`: Show this message and exit.
 

@@ -71,7 +71,7 @@ async def list_users(
 @app.command("set-role")
 async def set_role(
     user_id: typing.Annotated[str, typer.Argument(help="User UUID")],
-    role: typing.Annotated[UserRole, typer.Option("--role", "-r", help="Target role")],
+    role: typing.Annotated[UserRole, typer.Argument(help="Target role (admin, developer, user)")],
     yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ):
     """Change user role (admin only)."""
