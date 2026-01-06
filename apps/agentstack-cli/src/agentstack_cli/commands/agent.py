@@ -159,7 +159,21 @@ async def add_agent(
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
     yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ) -> None:
-    """Add a docker image or GitHub repository [aliases: install]"""
+    """Add a docker image or GitHub repository.
+
+    This command supports a variety of GitHub URL formats for deploying agents:
+
+    - **Basic URL**: `https://github.com/myorg/myrepo`
+    - **Git Protocol URL**: `git+https://github.com/myorg/myrepo`
+    - **URL with .git suffix**: `https://github.com/myorg/myrepo.git`
+    - **URL with Version Tag**: `https://github.com/myorg/myrepo@v1.0.0`
+    - **URL with Branch Name**: `https://github.com/myorg/myrepo@my-branch`
+    - **URL with Subfolder Path**: `https://github.com/myorg/myrepo#path=/path/to/agent`
+    - **Combined Formats**: `https://github.com/myorg/myrepo.git@v1.0.0#path=/path/to/agent`
+    - **Enterprise GitHub**: `https://github.mycompany.com/myorg/myrepo`
+
+    [aliases: install]
+    """
     if location is None:
         repo_input = (
             await inquirer.text(  # pyright: ignore[reportPrivateImportUsage]

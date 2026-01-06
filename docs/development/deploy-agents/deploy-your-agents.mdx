@@ -77,6 +77,32 @@ This automatically:
 **Why "copy into VM"?** Agent Stack runs in an isolated VM (Lima on Mac/Linux, WSL on Windows). Even though Docker Desktop builds your image, Agent Stack needs it copied into its VM to run it. The `add` command handles this automatically.
 </Note>
 
+<Accordion title="Deploying from a GitHub Repository">
+You can also deploy an agent directly from a GitHub repository. The `agentstack add` command supports various URL formats to specify the repository, version, and location of your agent's code.
+
+The supported formats include:
+- **Basic URL**: `https://github.com/myorg/myrepo`
+- **Git Protocol URL**: `git+https://github.com/myorg/myrepo`
+- **URL with .git suffix**: `https://github.com/myorg/myrepo.git`
+- **URL with Version Tag**: `https://github.com/myorg/myrepo@v1.0.0`
+- **URL with Branch Name**: `https://github.com/myorg/myrepo@my-branch`
+- **URL with Subfolder Path**: `https://github.com/myorg/myrepo#path=/path/to/agent`
+- **Combined Formats**: `https://github.com/myorg/myrepo.git@v1.0.0#path=/path/to/agent`
+- **Enterprise GitHub**: `https://github.mycompany.com/myorg/myrepo`
+
+#### Example
+
+To deploy an agent from a specific branch and subfolder, you would run:
+```bash
+agentstack add "https://github.com/my-org/my-awesome-agents@main#path=/my-agent"
+```
+
+This command tells Agent Stack to:
+1. Fetch the `main` branch of the `my-awesome-agents` repository.
+2. Look for the agent's `Dockerfile` and source code in the `/my-agent` directory.
+3. Build the Docker image and register it with the platform.
+</Accordion>
+
 ### Verify Deployment
 
 Check that your agent is registered:
