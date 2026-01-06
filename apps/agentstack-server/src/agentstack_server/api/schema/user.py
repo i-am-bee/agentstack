@@ -29,4 +29,3 @@ class ChangeRoleRequest(BaseModel):
 class ChangeRoleResponse(BaseModel):
     user_id: UUID
     new_role: UserRole
-    role_version: int

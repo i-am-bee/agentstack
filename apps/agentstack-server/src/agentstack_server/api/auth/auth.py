@@ -92,7 +92,7 @@ class ParsedToken(BaseModel):
     context_permissions: Permissions
     context_id: UUID
     user_id: UUID
-    role_version: int
+    iat: int
     raw: dict[str, Any]
 
 
@@ -102,7 +102,6 @@ def issue_internal_jwt(
     global_permissions: Permissions,
     context_permissions: Permissions,
     configuration: Configuration,
-    role_version: int,
 ) -> tuple[str, AwareDatetime]:
     assert configuration.auth.jwt_secret_key
     secret_key = configuration.auth.jwt_secret_key.get_secret_value()
@@ -121,7 +120,6 @@ def issue_internal_jwt(
             "global": global_permissions.model_dump(mode="json"),
             "context": context_permissions.model_dump(mode="json"),
         },
-        "role_version": role_version,
     }
     return jwt.encode(header, payload, key=secret_key), expires_at
 
@@ -137,7 +135,6 @@ def verify_internal_jwt(token: str, configuration: Configuration) -> ParsedToken
             "exp": {"essential": True},
             "iss": {"essential": True, "value": "agentstack-server"},
             "aud": {"essential": True, "value": "agentstack-server"},
-            "role_version": {"essential": True},
         },
     )
     context_id = UUID(payload["resource"][0].replace("context:", ""))
@@ -146,7 +143,7 @@ def verify_internal_jwt(token: str, configuration: Configuration) -> ParsedToken
         context_permissions=Permissions.model_validate(payload["scope"]["context"]),
         context_id=context_id,
         user_id=UUID(payload["sub"]),
-        role_version=int(payload["role_version"]),
+        iat=payload["iat"],
         raw=payload,
     )
 

@@ -83,9 +83,7 @@ async def set_role(
 
         role_display = ROLE_DISPLAY.get(result.new_role, result.new_role)
 
-        console.success(
-            f"User role updated to [cyan]{role_display}[/cyan] (version [yellow]{result.role_version}[/yellow])"
-        )
+        console.success(f"User role updated to [cyan]{role_display}[/cyan]")
 
 
 def _format_date(dt: datetime | None) -> str:

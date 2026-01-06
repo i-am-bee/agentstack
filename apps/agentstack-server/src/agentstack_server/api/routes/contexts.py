@@ -129,7 +129,6 @@ async def generate_context_token(
         global_permissions=global_grant,
         context_permissions=context_grant,
         configuration=configuration,
-        role_version=user.user.role_version,
     )
     return ContextTokenResponse(token=token, expires_at=expires_at)
 

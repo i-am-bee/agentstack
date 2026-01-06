@@ -58,5 +58,4 @@ async def change_user_role(
     return ChangeRoleResponse(
         user_id=updated_user.id,
         new_role=updated_user.role,
-        role_version=updated_user.role_version,
     )

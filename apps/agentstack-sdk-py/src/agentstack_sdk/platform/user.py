@@ -20,7 +20,6 @@ class UserRole(StrEnum):
 class ChangeRoleResponse(pydantic.BaseModel):
     user_id: str
     new_role: UserRole
-    role_version: int
 
 
 class User(pydantic.BaseModel):

@@ -1,7 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""add role versioning to users
+"""add role_updated_at to users
 
 Revision ID: 4jowyo7q9m66
 Revises: ef8769062e65
@@ -22,11 +22,9 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    op.add_column("users", sa.Column("role_version", sa.Integer(), nullable=False, server_default="1"))
     op.add_column("users", sa.Column("role_updated_at", sa.DateTime(timezone=True), nullable=True))
 
 
 def downgrade() -> None:
     """Downgrade schema."""
     op.drop_column("users", "role_updated_at")
-    op.drop_column("users", "role_version")

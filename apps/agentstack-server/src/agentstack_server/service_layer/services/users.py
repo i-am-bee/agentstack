@@ -83,7 +83,6 @@ class UserService:
                 raise PlatformError("User already has this role", status_code=400)
 
             user.role = new_role
-            user.role_version += 1
             user.role_updated_at = utc_now()
 
             await uow.users.update(user=user)
