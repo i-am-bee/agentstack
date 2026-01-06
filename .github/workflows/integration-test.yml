@@ -21,6 +21,7 @@ on:
       - 'apps/agentstack-cli/**'
 jobs:
   integration-test:
+    timeout-minutes: 25
     runs-on: ubuntu-latest
     steps:
       - name: Maximize build space

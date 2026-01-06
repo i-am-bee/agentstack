@@ -52,7 +52,6 @@ encryptionKey: "encryption-key-from-command"
 # This requires passing an admin password to certain endpoints, you can disable auth for insecure deployments
 auth:
   enabled: true
-  jwtSecretKey: "my-secret-key"
   basic:
     # CAUTION: this leaves most features accessible without authentication, please read the authentication section below
     enabled: true
@@ -128,7 +127,6 @@ For production deployments, multi-user environments, or cost control, use OIDC a
 ```yaml
 auth:
   enabled: true
-  jwtSecretKey: "my-secret-key" # fill in a strong secret
   basic:
     enabled: true
     adminPassword: "my-admin-password" # fill in a strong admin password
@@ -143,7 +141,6 @@ trustProxyHeaders: true # This is important if validate_audience is enabled
 
 auth:
   enabled: true
-  jwtSecretKey: "my-secret-key" # fill in a strong secret
   oidc:
     # Important: redirect URIs must be configured correctly in your provider:
     #  - UI endpoint: "https://your-public-url/api/auth/callback"

@@ -8,12 +8,13 @@ from types import NoneType
 from typing import TYPE_CHECKING, Any, Self
 
 import pydantic
+from a2a.server.agent_execution.context import RequestContext
+from a2a.types import Message as A2AMessage
+from typing_extensions import override
 
 from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 
 if TYPE_CHECKING:
-    from a2a.types import Message
-
     from agentstack_sdk.server.context import RunContext
 
 
@@ -81,10 +82,11 @@ class LLMServiceExtensionMetadata(pydantic.BaseModel):
 
 
 class LLMServiceExtensionServer(BaseExtensionServer[LLMServiceExtensionSpec, LLMServiceExtensionMetadata]):
-    def handle_incoming_message(self, message: Message, context: RunContext):
+    @override
+    def handle_incoming_message(self, message: A2AMessage, run_context: RunContext, request_context: RequestContext):
         from agentstack_sdk.platform import get_platform_client
 
-        super().handle_incoming_message(message, context)
+        super().handle_incoming_message(message, run_context, request_context)
         if not self.data:
             return
 

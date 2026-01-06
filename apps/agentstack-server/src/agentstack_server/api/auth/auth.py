@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID
 
@@ -102,34 +102,38 @@ def issue_internal_jwt(
     global_permissions: Permissions,
     context_permissions: Permissions,
     configuration: Configuration,
+    audience: list[str] | None = None,
+    expires_at: AwareDatetime | None = None,
 ) -> tuple[str, AwareDatetime]:
-    assert configuration.auth.jwt_secret_key
-    secret_key = configuration.auth.jwt_secret_key.get_secret_value()
+    assert configuration.auth.jwt_private_key
+    secret_key = configuration.auth.jwt_private_key.get_secret_value()
     now = utc_now()
-    expires_at = now + timedelta(minutes=20)
-    header = {"alg": "HS256"}
+    if expires_at is None:
+        expires_at = now + timedelta(minutes=20)
+    header = {"alg": "RS256"}
+
     payload = {
         "context_id": str(context_id),
         "sub": str(user_id),
         "exp": expires_at,
         "iat": now,
         "iss": "agentstack-server",
-        "aud": "agentstack-server",  # the token is for ourselves, noone else should consume it
+        "aud": [*(audience or []), "agentstack-server"],
         "resource": [f"context:{context_id}"],
         "scope": {
             "global": global_permissions.model_dump(mode="json"),
             "context": context_permissions.model_dump(mode="json"),
         },
     }
-    return jwt.encode(header, payload, key=secret_key), expires_at
+    return jwt.encode(header, payload, key=secret_key).decode("utf-8"), expires_at
 
 
 def verify_internal_jwt(token: str, configuration: Configuration) -> ParsedToken:
-    assert configuration.auth.jwt_secret_key
-    secret_key = configuration.auth.jwt_secret_key.get_secret_value()
-    payload = jwt.decode(
+    assert configuration.auth.jwt_public_key
+    public_key = configuration.auth.jwt_public_key.get_secret_value()
+    claims: JWTClaims = jwt.decode(
         token,
-        key=secret_key,
+        key=public_key,
         claims_options={
             "sub": {"essential": True},
             "exp": {"essential": True},
@@ -137,14 +141,31 @@ def verify_internal_jwt(token: str, configuration: Configuration) -> ParsedToken
             "aud": {"essential": True, "value": "agentstack-server"},
         },
     )
-    context_id = UUID(payload["resource"][0].replace("context:", ""))
+    claims.validate()
+    context_id = UUID(claims["resource"][0].replace("context:", ""))  # pyright: ignore[reportAny]
     return ParsedToken(
-        global_permissions=Permissions.model_validate(payload["scope"]["global"]),
-        context_permissions=Permissions.model_validate(payload["scope"]["context"]),
+        global_permissions=Permissions.model_validate(claims["scope"]["global"]),
+        context_permissions=Permissions.model_validate(claims["scope"]["context"]),
         context_id=context_id,
-        user_id=UUID(payload["sub"]),
-        iat=payload["iat"],
-        raw=payload,
+        user_id=UUID(claims["sub"]),  # pyright: ignore[reportAny]
+        iat=claims["iat"],  # pyright: ignore[reportAny]
+        raw=claims,
+    )
+
+
+def exchange_internal_jwt(
+    token: str, configuration: Configuration, audience: list[str] | None = None
+) -> tuple[str, AwareDatetime]:
+    parsed_token = verify_internal_jwt(token, configuration)
+    expires_at = datetime.fromtimestamp(parsed_token.raw["exp"], UTC)
+    return issue_internal_jwt(
+        user_id=parsed_token.user_id,
+        context_id=parsed_token.context_id,
+        global_permissions=parsed_token.global_permissions,
+        context_permissions=parsed_token.context_permissions,
+        configuration=configuration,
+        audience=audience,
+        expires_at=expires_at,
     )
 
 
@@ -216,7 +237,7 @@ def extract_oauth_token(
 async def validate_jwt(token: str, *, provider: OidcProvider, aud: str | None = None) -> JWTClaims | Exception:
     keyset = await discover_jwks(provider)
     try:
-        claims = jwt.decode(
+        claims = jwt.decode(  # pyright: ignore[reportUnknownMemberType]
             token,
             key=keyset,
             claims_options={
@@ -226,7 +247,7 @@ async def validate_jwt(token: str, *, provider: OidcProvider, aud: str | None = 
             }
             | ({"aud": {"essential": True, "value": aud}} if aud is not None else {}),
         )
-        claims.validate()
+        claims.validate()  # pyright: ignore[reportUnknownMemberType]
         return claims
     except Exception as e:
         return e  # Cache exception response

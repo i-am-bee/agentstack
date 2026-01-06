@@ -571,7 +571,7 @@ async def _run_agent(
                     console.print()  # Add newline after completion
                     return
                 case Task(id=task_id), TaskStatusUpdateEvent(
-                    status=TaskStatus(state=TaskState.working, message=message)
+                    status=TaskStatus(state=TaskState.working | TaskState.submitted, message=message)
                 ):
                     # Handle streaming content during working state
                     if message:
@@ -960,7 +960,7 @@ async def run_agent(
         if interaction_mode == InteractionMode.MULTI_TURN:
             console.print(f"{user_greeting}\n")
             turn_input = await _ask_form_questions(initial_form_render) if initial_form_render else handle_input()
-            async with a2a_client(provider.agent_card) as client:
+            async with a2a_client(provider.agent_card, context_token=context_token) as client:
                 while True:
                     console.print()
                     await _run_agent(
@@ -977,7 +977,7 @@ async def run_agent(
             user_greeting = ui_annotations.get("user_greeting", None) or "Enter your instructions."
             console.print(f"{user_greeting}\n")
             console.print()
-            async with a2a_client(provider.agent_card) as client:
+            async with a2a_client(provider.agent_card, context_token=context_token) as client:
                 await _run_agent(
                     client,
                     input=await _ask_form_questions(initial_form_render) if initial_form_render else handle_input(),
@@ -988,7 +988,7 @@ async def run_agent(
                 )
 
     else:
-        async with a2a_client(provider.agent_card) as client:
+        async with a2a_client(provider.agent_card, context_token=context_token) as client:
             await _run_agent(
                 client,
                 input,

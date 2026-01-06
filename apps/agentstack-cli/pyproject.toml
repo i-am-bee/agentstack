@@ -75,7 +75,6 @@ lint.ignore = [
 force-exclude = true
 
 [tool.pyright]
-reportUnusedCallResult = false
 ignore = ["tests/**", "examples/cli.py"]
 venvPath = "."
 venv = ".venv"

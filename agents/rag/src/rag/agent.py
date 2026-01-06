@@ -2,78 +2,50 @@
 # SPDX-License-Identifier: Apache-2.0
 import functools
 import json
-from collections import defaultdict
 import logging
-from typing import Annotated
 import os
+from collections import defaultdict
+from typing import Annotated
 
-from pydantic import BaseModel
+from a2a.types import AgentSkill, Message
 from agentstack_sdk.a2a.extensions import (
     AgentDetail,
     CitationExtensionServer,
     CitationExtensionSpec,
-    TrajectoryExtensionServer,
-    TrajectoryExtensionSpec,
-    LLMServiceExtensionServer,
-    LLMServiceExtensionSpec,
     EmbeddingServiceExtensionServer,
     EmbeddingServiceExtensionSpec,
-    BaseExtensionSpec,
-    BaseExtensionServer,
+    LLMServiceExtensionServer,
+    LLMServiceExtensionSpec,
+    TrajectoryExtensionServer,
+    TrajectoryExtensionSpec,
 )
-
-# Monkey-patch to remove FormExtensionSpec which no longer exists
-# TODO: remove after next release
-import agentstack_sdk.a2a.extensions as agentstack_extensions
-
-agentstack_extensions.FormExtensionSpec = BaseExtensionSpec
-agentstack_extensions.FormExtensionServer = BaseExtensionServer
-agentstack_extensions.TextField = BaseModel
-
-from a2a.types import AgentSkill, Message
+from agentstack_sdk.a2a.extensions.services.platform import PlatformApiExtensionServer, PlatformApiExtensionSpec
+from agentstack_sdk.a2a.types import AgentArtifact, AgentMessage
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
+from agentstack_sdk.server.middleware.platform_auth_backend import PlatformAuthBackend
+from agentstack_sdk.server.store.platform_context_store import PlatformContextStore
 from beeai_framework.adapters.agentstack.backend.chat import AgentStackChatModel
 from beeai_framework.agents.requirement import RequirementAgent
-
+from beeai_framework.agents.requirement.utils._tool import FinalAnswerTool
 from beeai_framework.emitter import EmitterOptions
 from beeai_framework.memory import UnconstrainedMemory
 from beeai_framework.middleware.trajectory import GlobalTrajectoryMiddleware
 from beeai_framework.tools import Tool
 from openai import AsyncOpenAI
-
-from agentstack_sdk.a2a.extensions.services.platform import (
-    PlatformApiExtensionServer,
-    PlatformApiExtensionSpec,
-)
-from beeai_framework.agents.requirement.utils._tool import FinalAnswerTool
-from agentstack_sdk.a2a.types import AgentMessage, AgentArtifact
-from agentstack_sdk.server import Server
-from agentstack_sdk.server.context import RunContext
 from openinference.instrumentation.beeai import BeeAIInstrumentor
+
 from rag.helpers.citations import extract_citations
-from rag.helpers.trajectory import ToolCallTrajectoryEvent
 from rag.helpers.event_binder import EventBinder
-from rag.helpers.vectore_store import (
-    EmbeddingFunction,
-    embed_all_files,
-    CreateVectorStoreEvent,
-    create_vector_store,
-)
+from rag.helpers.trajectory import ToolCallTrajectoryEvent
+from rag.helpers.vectore_store import CreateVectorStoreEvent, EmbeddingFunction, create_vector_store, embed_all_files
 from rag.tools.files.file_creator import FileCreatorTool, FileCreatorToolOutput
 from rag.tools.files.file_reader import create_file_reader_tool_class
 from rag.tools.files.utils import extract_files, to_framework_message
 from rag.tools.files.vector_search import VectorSearchTool
-from rag.tools.general.act import (
-    ActAlwaysFirstRequirement,
-    ActTool,
-    act_tool_middleware,
-)
-from rag.tools.general.clarification import (
-    ClarificationTool,
-    clarification_tool_middleware,
-)
+from rag.tools.general.act import ActAlwaysFirstRequirement, ActTool, act_tool_middleware
+from rag.tools.general.clarification import ClarificationTool, clarification_tool_middleware
 from rag.tools.general.current_time import CurrentTimeTool
-
-from agentstack_sdk.server.store.platform_context_store import PlatformContextStore
 
 BeeAIInstrumentor().instrument()
 
@@ -349,6 +321,7 @@ def serve():
             port=int(os.getenv("PORT", 8000)),
             configure_telemetry=True,
             context_store=PlatformContextStore(),
+            auth_backend=PlatformAuthBackend(),
         )
     except KeyboardInterrupt:
         pass

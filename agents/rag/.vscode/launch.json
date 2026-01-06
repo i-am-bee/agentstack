@@ -7,6 +7,7 @@
         {
             "name": "agent-rag",
             "type": "debugpy",
+            "justMyCode": false,
             "request": "launch",
             "program": "${workspaceFolder}/src/rag/agent.py",
             "console": "integratedTerminal"

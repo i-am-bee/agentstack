@@ -9,7 +9,7 @@ import httpx
 import pytest
 from agentstack_sdk.platform import use_platform_client
 from agentstack_sdk.platform.client import PlatformClient
-from agentstack_sdk.platform.context import Context, ContextPermissions
+from agentstack_sdk.platform.context import Context, ContextPermissions, Permissions
 from agentstack_sdk.platform.file import File
 from httpx import AsyncClient
 from tenacity import AsyncRetrying, stop_after_delay, wait_fixed
@@ -204,14 +204,19 @@ async def test_text_extraction_plain_text_workflow(subtests):
 async def test_context_scoped_file_access(subtests):
     """Test that files are properly scoped to contexts and users cannot access files from other contexts."""
 
+    global_permissions = Permissions(a2a_proxy={"*"})
     with subtests.test("create two different contexts"):
         ctx1 = await Context.create()
         ctx2 = await Context.create()
 
     with subtests.test("generate context tokens"):
-        permissions = ContextPermissions(files={"read", "write", "extract"})
-        token_1 = await ctx1.generate_token(grant_context_permissions=permissions)
-        token_2 = await ctx2.generate_token(grant_context_permissions=permissions)
+        ctx_permissions = ContextPermissions(files={"read", "write", "extract"})
+        token_1 = await ctx1.generate_token(
+            grant_context_permissions=ctx_permissions, grant_global_permissions=global_permissions
+        )
+        token_2 = await ctx2.generate_token(
+            grant_context_permissions=ctx_permissions, grant_global_permissions=global_permissions
+        )
 
     # Create platform clients with context tokens
     async with (
@@ -305,9 +310,14 @@ async def test_file_extraction_context_isolation(subtests, test_configuration):
             ctx1 = await Context.create()
             ctx2 = await Context.create()
 
-            permissions = ContextPermissions(files={"read", "write", "extract"})
-            token_1 = await ctx1.generate_token(grant_context_permissions=permissions)
-            token_2 = await ctx2.generate_token(grant_context_permissions=permissions)
+            ctx_permissions = ContextPermissions(files={"read", "write", "extract"})
+            global_permissions = Permissions(a2a_proxy={"*"})
+            token_1 = await ctx1.generate_token(
+                grant_context_permissions=ctx_permissions, grant_global_permissions=global_permissions
+            )
+            token_2 = await ctx2.generate_token(
+                grant_context_permissions=ctx_permissions, grant_global_permissions=global_permissions
+            )
 
     # Create platform clients with context tokens
     async with (
@@ -507,9 +517,14 @@ async def test_files_list(subtests):
         ctx2 = await Context.create()
 
         # Generate context tokens
-        permissions = ContextPermissions(files={"read", "write"})
-        token_1 = await ctx1.generate_token(grant_context_permissions=permissions)
-        token_2 = await ctx2.generate_token(grant_context_permissions=permissions)
+        ctx_permissions = ContextPermissions(files={"read", "write"})
+        global_permissions = Permissions(a2a_proxy={"*"})
+        token_1 = await ctx1.generate_token(
+            grant_context_permissions=ctx_permissions, grant_global_permissions=global_permissions
+        )
+        token_2 = await ctx2.generate_token(
+            grant_context_permissions=ctx_permissions, grant_global_permissions=global_permissions
+        )
 
         # Create platform clients with context tokens
         async with (
@@ -589,9 +604,14 @@ async def test_files_list_user_global_and_context_scoped(subtests):
         ctx2 = await Context.create()
 
     with subtests.test("generate context tokens"):
-        permissions = ContextPermissions(files={"read", "write"})
-        token_1 = await ctx1.generate_token(grant_context_permissions=permissions)
-        token_2 = await ctx2.generate_token(grant_context_permissions=permissions)
+        ctx_permissions = ContextPermissions(files={"read", "write"})
+        global_permissions = Permissions(a2a_proxy={"*"})
+        token_1 = await ctx1.generate_token(
+            grant_context_permissions=ctx_permissions, grant_global_permissions=global_permissions
+        )
+        token_2 = await ctx2.generate_token(
+            grant_context_permissions=ctx_permissions, grant_global_permissions=global_permissions
+        )
 
     async with (
         PlatformClient(context_id=ctx1.id, auth_token=token_1.token.get_secret_value()) as client_1,

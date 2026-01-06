@@ -240,10 +240,15 @@ spec:
             {{- if .Values.auth.enabled }}
             - name: AUTH__DISABLE_AUTH
               value: "false"
-            - name: AUTH__JWT_SECRET_KEY
+            - name: AUTH__JWT_PRIVATE_KEY
               valueFrom:
                 secretKeyRef:
-                  key: jwtSecretKey
+                  key: jwtPrivateKey
+                  name: agentstack-secret
+            - name: AUTH__JWT_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: jwtPublicKey
                   name: agentstack-secret
             {{- if .Values.auth.basic.enabled}}
             - name: AUTH__BASIC__ENABLED

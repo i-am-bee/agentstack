@@ -471,7 +471,6 @@ images=$(helm template \
   --set phoenix.enabled=true \
   --set encryptionKey=dummy \
   --set auth.enabled=false \
-  --set auth.jwtSecretKey=kyticka \
   --set providerBuilds.enabled=true \
   --set localDockerRegistry.enabled=true \
   --set redis.enabled=true \

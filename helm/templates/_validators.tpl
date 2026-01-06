@@ -31,11 +31,18 @@ Validate authentication configuration.
 */}}
 {{- define "agentstack.validate.authConfig" -}}
 {{- if .Values.auth.enabled -}}
-  {{- if empty .Values.auth.jwtSecretKey -}}
+  {{- if and (empty .Values.auth.jwtPrivateKey) (not (empty .Values.auth.jwtPublicKey)) -}}
   {{- fail `
-ERROR: .Values.auth.jwtSecretKey is missing.
+ERROR: .Values.auth.jwtPrivateKey is missing but .Values.auth.jwtPublicKey is provided.
 
-When authentication is enabled, you must provide a JWT secret key.
+Please provide both keys or neither (to auto-generate them).
+` -}}
+  {{- end -}}
+  {{- if and (not (empty .Values.auth.jwtPrivateKey)) (empty .Values.auth.jwtPublicKey) -}}
+  {{- fail `
+ERROR: .Values.auth.jwtPublicKey is missing but .Values.auth.jwtPrivateKey is provided.
+
+Please provide both keys or neither (to auto-generate them).
 ` -}}
   {{- end -}}
   {{- if and .Values.auth.basic.enabled (empty .Values.auth.basic.adminPassword) -}}

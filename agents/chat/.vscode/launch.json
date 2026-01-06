@@ -7,6 +7,7 @@
         {
             "name": "agent-chat",
             "type": "debugpy",
+            "justMyCode": false,
             "request": "launch",
             "program": "${workspaceFolder}/src/chat/agent.py",
             "console": "integratedTerminal"

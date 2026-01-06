@@ -8,7 +8,7 @@ from a2a.client import Client, ClientEvent, create_text_message_object
 from a2a.types import Message, Role, Task
 from agentstack_sdk.a2a.extensions.services.platform import PlatformApiExtensionClient, PlatformApiExtensionSpec
 from agentstack_sdk.a2a.types import RunYield
-from agentstack_sdk.platform.context import Context, ContextPermissions, ContextToken
+from agentstack_sdk.platform.context import Context, ContextPermissions, ContextToken, Permissions
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
 from agentstack_sdk.server.store.platform_context_store import PlatformContextStore
@@ -38,7 +38,13 @@ async def history_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server
             yield message
             await context.store(message)
 
-    async with create_server_with_agent(history_agent, context_store=PlatformContextStore()) as (server, client):
+    context = await Context.create()
+    token = await context.generate_token(grant_global_permissions=Permissions(a2a_proxy={"*"}))
+    async with create_server_with_agent(
+        history_agent,
+        context_token=token,
+        context_store=PlatformContextStore(),
+    ) as (server, client):
         yield server, client
 
 
@@ -56,7 +62,10 @@ async def test_agent_history(history_agent, subtests):
 
     with subtests.test("history repeats itself"):
         context1 = await Context.create()
-        token = await context1.generate_token(grant_context_permissions=ContextPermissions(context_data={"*"}))
+        token = await context1.generate_token(
+            grant_context_permissions=ContextPermissions(context_data={"*"}),
+            grant_global_permissions=Permissions(a2a_proxy={"*"}),
+        )
 
         final_task = await get_final_task_from_stream(client.send_message(create_message(token, "first message")))
         agent_messages = [msg.parts[0].root.text for msg in final_task.history]
@@ -89,7 +98,10 @@ async def test_agent_history(history_agent, subtests):
 
     with subtests.test("other context id does not mix history"):
         context2 = await Context.create()
-        token = await context2.generate_token(grant_context_permissions=ContextPermissions(context_data={"*"}))
+        token = await context2.generate_token(
+            grant_context_permissions=ContextPermissions(context_data={"*"}),
+            grant_global_permissions=Permissions(a2a_proxy={"*"}),
+        )
         final_task = await get_final_task_from_stream(client.send_message(create_message(token, "first message")))
         agent_messages = [msg.parts[0].root.text for msg in final_task.history]
         assert agent_messages == ["first message"]

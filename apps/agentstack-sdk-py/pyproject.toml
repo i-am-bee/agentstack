@@ -22,6 +22,8 @@ dependencies = [
     "httpx",                                          # version determined by a2a-sdk
     "mcp>=1.12.3",
     "fastapi>=0.116.1",
+    "authlib>=1.3.0",
+    "async-lru>=2.0.4",
 ]
 
 [dependency-groups]

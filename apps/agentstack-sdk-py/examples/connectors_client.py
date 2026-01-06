@@ -27,6 +27,7 @@ async def run(
     ):
         context = await Context.create(provider_id=agent_id)
         context_token = await context.generate_token(
+            providers=[agent_id],
             grant_global_permissions=Permissions(connectors={"proxy"}),
             grant_context_permissions=ContextPermissions(context_data={"*"}),
         )

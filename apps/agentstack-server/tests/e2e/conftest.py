@@ -12,6 +12,7 @@ import pytest
 from a2a.client import Client, ClientConfig, ClientEvent, ClientFactory
 from a2a.types import AgentCard, Message, Task
 from agentstack_sdk.platform import ModelProvider, SystemConfiguration, use_platform_client
+from agentstack_sdk.platform.context import ContextToken
 
 logger = logging.getLogger(__name__)
 
@@ -33,10 +34,11 @@ def get_final_task_from_stream() -> Callable[[AsyncIterator[ClientEvent | Messag
 
 
 @pytest.fixture()
-async def a2a_client_factory() -> Callable[[AgentCard | dict[str, Any]], AsyncIterator[Client]]:
+async def a2a_client_factory() -> Callable[[AgentCard | dict[str, Any], ContextToken], AsyncIterator[Client]]:
     @asynccontextmanager
-    async def a2a_client_factory(agent_card: AgentCard | dict) -> AsyncIterator[Client]:
-        async with httpx.AsyncClient(timeout=None, auth=("admin", "test-password")) as client:
+    async def a2a_client_factory(agent_card: AgentCard | dict, context_token: ContextToken) -> AsyncIterator[Client]:
+        token = context_token.token.get_secret_value()
+        async with httpx.AsyncClient(timeout=None, headers={"Authorization": f"Bearer {token}"}) as client:
             yield ClientFactory(ClientConfig(httpx_client=client)).create(card=agent_card)
 
     return a2a_client_factory

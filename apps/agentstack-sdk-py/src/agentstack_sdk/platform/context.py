@@ -13,6 +13,7 @@ from pydantic import AwareDatetime, BaseModel, SerializeAsAny
 
 from agentstack_sdk.platform.client import PlatformClient, get_platform_client
 from agentstack_sdk.platform.common import PaginatedResult
+from agentstack_sdk.platform.provider import Provider
 from agentstack_sdk.platform.types import Metadata, MetadataPatch
 from agentstack_sdk.util.utils import filter_dict
 
@@ -40,7 +41,7 @@ class ContextPermissions(pydantic.BaseModel):
 class Permissions(ContextPermissions):
     llm: set[Literal["*"] | str] = set()
     embeddings: set[Literal["*"] | str] = set()
-    a2a_proxy: set[Literal["*"]] = set()
+    a2a_proxy: set[Literal["*"] | str] = set()
     model_providers: set[Literal["read", "write", "*"]] = set()
     variables: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
 
@@ -179,6 +180,7 @@ class Context(pydantic.BaseModel):
     async def generate_token(
         self: Context | str,
         *,
+        providers: list[str] | list[Provider] | None = None,
         client: PlatformClient | None = None,
         grant_global_permissions: Permissions | None = None,
         grant_context_permissions: ContextPermissions | None = None,
@@ -193,6 +195,18 @@ class Context(pydantic.BaseModel):
         context_id = self if isinstance(self, str) else self.id
         grant_global_permissions = grant_global_permissions or Permissions()
         grant_context_permissions = grant_context_permissions or Permissions()
+
+        if isinstance(self, Context) and self.metadata and (provider_id := self.metadata.get("provider_id", None)):
+            providers = providers or [provider_id]
+
+        if "*" not in grant_global_permissions.a2a_proxy and not grant_global_permissions.a2a_proxy:
+            if not providers:
+                raise ValueError(
+                    "Invalid audience: You must specify providers or use '*' in grant_global_permissions.a2a_proxy."
+                )
+
+            grant_global_permissions.a2a_proxy |= {p.id if isinstance(p, Provider) else p for p in providers}
+
         async with client or get_platform_client() as client:
             token_response = (
                 (

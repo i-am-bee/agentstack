@@ -10,6 +10,7 @@ import pytest
 from a2a.client import Client
 from a2a.types import AgentCard
 from agentstack_sdk.platform import PlatformClient, Provider
+from agentstack_sdk.platform.context import ContextToken
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.store.context_store import ContextStore
 from tenacity import AsyncRetrying, stop_after_attempt, wait_fixed
@@ -21,7 +22,8 @@ from tests.conftest import TestConfiguration
 async def run_server(
     server: Server,
     port: int,
-    a2a_client_factory: Callable[[AgentCard | dict[str, Any]], AsyncIterator[Client]],
+    a2a_client_factory: Callable[[AgentCard | dict[str, Any], ContextToken], AsyncIterator[Client]],
+    context_token: ContextToken,
     context_store: ContextStore | None = None,
 ) -> AsyncGenerator[tuple[Server, Client]]:
     async with asyncio.TaskGroup() as tg:
@@ -41,7 +43,7 @@ async def run_server(
                         raise ConnectionError("Server hasn't started yet")
                     providers = [p for p in await Provider.list() if f":{port}" in p.source]
                     assert len(providers) == 1, "Provider not registered"
-                    async with a2a_client_factory(providers[0].agent_card) as client:
+                    async with a2a_client_factory(providers[0].agent_card, context_token=context_token) as client:
                         yield server, client
         finally:
             server.should_exit = True
@@ -57,11 +59,19 @@ def create_server_with_agent(
     """Factory fixture that creates a server with the given agent function."""
 
     @asynccontextmanager
-    async def _create_server(agent_fn, context_store: ContextStore | None = None):
+    async def _create_server(
+        agent_fn,
+        context_token: ContextToken,
+        context_store: ContextStore | None = None,
+    ):
         server = Server()
         server.agent()(agent_fn)
         async with run_server(
-            server, free_port, a2a_client_factory=a2a_client_factory, context_store=context_store
+            server,
+            free_port,
+            a2a_client_factory=a2a_client_factory,
+            context_store=context_store,
+            context_token=context_token,
         ) as (server, client):
             yield server, client
 

@@ -20,14 +20,14 @@ async def test_llm_permission_enforcement_with_context_token(subtests, test_conf
 
     with subtests.test("LLM request denied with insufficient global permissions"):
         ctx = await Context.create()
-        token = await ctx.generate_token(grant_global_permissions=Permissions(files={"read"}))
+        token = await ctx.generate_token(grant_global_permissions=Permissions(files={"read"}, a2a_proxy={"*"}))
         openai_client = openai.AsyncOpenAI(api_key=token.token.get_secret_value(), base_url=openai_base_url)
         with pytest.raises(openai.PermissionDeniedError):
             resp = await openai_client.chat.completions.create(**test_message, model=test_configuration.llm_model)
 
     # Test with sufficient global permissions
     with subtests.test("LLM request succeeds with sufficient global permissions"):
-        token = await ctx.generate_token(grant_global_permissions=Permissions(llm={"*"}))
+        token = await ctx.generate_token(grant_global_permissions=Permissions(llm={"*"}, a2a_proxy={"*"}))
         openai_client = openai.AsyncOpenAI(api_key=token.token.get_secret_value(), base_url=openai_base_url)
         resp = await openai_client.chat.completions.create(**test_message, model=test_configuration.llm_model)
         assert resp.choices[0].message.content
@@ -42,7 +42,9 @@ async def test_models_endpoint(subtests, test_configuration):
     with subtests.test("models endpoint returns default model"):
         # Create a context with LLM permissions to access models
         ctx = await Context.create()
-        token = await ctx.generate_token(grant_global_permissions=Permissions(llm={"*"}, model_providers={"read"}))
+        token = await ctx.generate_token(
+            grant_global_permissions=Permissions(llm={"*"}, model_providers={"read"}, a2a_proxy={"*"})
+        )
         openai_client = openai.AsyncOpenAI(api_key=token.token.get_secret_value(), base_url=openai_base_url)
 
         # Get available models

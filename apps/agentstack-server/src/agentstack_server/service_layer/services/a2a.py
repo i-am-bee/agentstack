@@ -42,8 +42,11 @@ from a2a.utils.errors import ServerError
 from kink import inject
 from opentelemetry import trace
 from pydantic import HttpUrl
+from starlette.datastructures import URL
 from structlog.contextvars import bind_contextvars, unbind_contextvars
 
+from agentstack_server.api.auth.auth import exchange_internal_jwt
+from agentstack_server.api.auth.utils import create_resource_uri
 from agentstack_server.configuration import Configuration
 from agentstack_server.domain.models.provider import (
     NetworkProviderLocation,
@@ -149,9 +152,11 @@ class ProxyRequestHandler(RequestHandler):
         # Calling the factory have side-effects, such as rotating the agent
         agent_card_factory: Callable[[], Awaitable[AgentCard]] | None = None,
         agent_card: AgentCard | None = None,
+        configuration: Configuration,
     ):
         if agent_card_factory is None and agent_card is None:
             raise ValueError("One of agent_card_factory or agent_card must be provided")
+        self._configuration = configuration
         self._agent_card_factory = agent_card_factory
         self._agent_card = agent_card
         self._provider_id = provider_id
@@ -159,12 +164,28 @@ class ProxyRequestHandler(RequestHandler):
         self._uow = uow
 
     @asynccontextmanager
-    async def _client_transport(self) -> AsyncIterator[ClientTransport]:
+    async def _client_transport(self, context: ServerCallContext | None = None) -> AsyncIterator[ClientTransport]:
+        from fastapi.security.utils import get_authorization_scheme_param
+
         if self._agent_card is None:
             assert self._agent_card_factory is not None
             self._agent_card = await self._agent_card_factory()
 
-        async with httpx.AsyncClient(follow_redirects=True, timeout=timedelta(hours=1).total_seconds()) as httpx_client:
+        headers = {} if not context else context.state.get("headers", {})
+        headers.pop("host", None)
+        headers.pop("content-length", None)
+        if auth_header := headers.get("authorization", None):
+            _scheme, header_token = get_authorization_scheme_param(auth_header)
+            try:
+                audience = create_resource_uri(URL(self._agent_card.url))
+                token, _ = exchange_internal_jwt(header_token, self._configuration, audience=[audience])
+                headers["authorization"] = f"Bearer {token}"
+            except Exception:
+                headers.pop("authorization", None)  # forward header only if it's a valid context token
+
+        async with httpx.AsyncClient(
+            follow_redirects=True, timeout=timedelta(hours=1).total_seconds(), headers=headers
+        ) as httpx_client:
             client: BaseClient = cast(
                 BaseClient,
                 ClientFactory(config=ClientConfig(httpx_client=httpx_client)).create(card=self._agent_card),
@@ -207,13 +228,13 @@ class ProxyRequestHandler(RequestHandler):
     @_handle_exception
     async def on_get_task(self, params: TaskQueryParams, context: ServerCallContext | None = None) -> Task | None:
         await self._check_task(params.id)
-        async with self._client_transport() as transport:
+        async with self._client_transport(context) as transport:
             return await transport.get_task(params, context=self._forward_context(context))
 
     @_handle_exception
     async def on_cancel_task(self, params: TaskIdParams, context: ServerCallContext | None = None) -> Task | None:
         await self._check_task(params.id)
-        async with self._client_transport() as transport:
+        async with self._client_transport(context) as transport:
             return await transport.cancel_task(params, context=self._forward_context(context))
 
     @_handle_exception
@@ -226,7 +247,7 @@ class ProxyRequestHandler(RequestHandler):
             params.message.context_id = params.message.context_id or str(uuid.uuid4())
             await self._check_and_record_request(params.message.task_id, params.message.context_id, trace_id=trace_id)
 
-            async with self._client_transport() as transport:
+            async with self._client_transport(context) as transport:
                 response = await transport.send_message(params, context=self._forward_context(context))
                 match response:
                     case Task(id=task_id) | Message(task_id=task_id):
@@ -248,7 +269,7 @@ class ProxyRequestHandler(RequestHandler):
 
             seen_tasks = {params.message.task_id} if params.message.task_id else set()
 
-            async with self._client_transport() as transport:
+            async with self._client_transport(context) as transport:
                 async for event in transport.send_message_streaming(params, context=self._forward_context(context)):
                     match event:
                         case (
@@ -276,7 +297,7 @@ class ProxyRequestHandler(RequestHandler):
         context: ServerCallContext | None = None,
     ) -> TaskPushNotificationConfig:
         await self._check_task(params.task_id)
-        async with self._client_transport() as transport:
+        async with self._client_transport(context) as transport:
             return await transport.set_task_callback(params)
 
     @_handle_exception
@@ -286,7 +307,7 @@ class ProxyRequestHandler(RequestHandler):
         context: ServerCallContext | None = None,
     ) -> TaskPushNotificationConfig:
         await self._check_task(params.id)
-        async with self._client_transport() as transport:
+        async with self._client_transport(context) as transport:
             if isinstance(params, TaskIdParams):
                 params = GetTaskPushNotificationConfigParams(id=params.id, metadata=params.metadata)
             return await transport.get_task_callback(params, context=self._forward_context(context))
@@ -296,7 +317,7 @@ class ProxyRequestHandler(RequestHandler):
         self, params: TaskIdParams, context: ServerCallContext | None = None
     ) -> AsyncGenerator[Event]:
         await self._check_task(params.id)
-        async with self._client_transport() as transport:
+        async with self._client_transport(context) as transport:
             async for event in transport.resubscribe(params):
                 yield event
 
@@ -345,6 +366,7 @@ class A2AProxyService:
             provider_id=provider.id,
             uow=self._uow,
             user=user,
+            configuration=self._config,
         )
 
     async def expire_requests(self) -> dict[str, int]:

@@ -8,10 +8,12 @@ from contextlib import asynccontextmanager
 from types import NoneType
 from typing import TYPE_CHECKING, Annotated, Any, Literal, Self
 
-import a2a.types
 import pydantic
+from a2a.server.agent_execution.context import RequestContext
+from a2a.types import Message as A2AMessage
 from mcp.client.stdio import StdioServerParameters, stdio_client
 from mcp.client.streamable_http import streamablehttp_client
+from typing_extensions import override
 
 from agentstack_sdk.a2a.extensions.auth.oauth.oauth import OAuthExtensionServer
 from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
@@ -102,8 +104,9 @@ class MCPServiceExtensionMetadata(pydantic.BaseModel):
 
 
 class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCPServiceExtensionMetadata]):
-    def handle_incoming_message(self, message: a2a.types.Message, context: RunContext):
-        super().handle_incoming_message(message, context)
+    @override
+    def handle_incoming_message(self, message: A2AMessage, run_context: RunContext, request_context: RequestContext):
+        super().handle_incoming_message(message, run_context, request_context)
         if not self.data:
             return
 
@@ -115,7 +118,8 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
                 except Exception:
                     logger.warning("Platform URL substitution failed", exc_info=True)
 
-    def parse_client_metadata(self, message: a2a.types.Message) -> MCPServiceExtensionMetadata | None:
+    @override
+    def parse_client_metadata(self, message: A2AMessage) -> MCPServiceExtensionMetadata | None:
         metadata = super().parse_client_metadata(message)
         if metadata:
             for name, demand in self.spec.params.mcp_demands.items():

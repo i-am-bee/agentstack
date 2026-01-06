@@ -10,6 +10,7 @@ from a2a.types import (
     TaskState,
 )
 from agentstack_sdk.platform import AddProvider, BuildState, Provider, ProviderBuild
+from agentstack_sdk.platform.context import Context
 
 pytestmark = pytest.mark.e2e
 
@@ -41,12 +42,16 @@ async def test_remote_agent_build_and_start(
     with subtests.test("run example agent"):
         providers = await Provider.list()
         assert len(providers) == 1
-        assert providers[0].source == build.destination
-        assert providers[0].id == build.provider_id
-        assert providers[0].agent_card
-        assert test_configuration.test_agent_build_repo in providers[0].origin
+        provider = providers[0]
+        assert provider.source == build.destination
+        assert provider.id == build.provider_id
+        assert provider.agent_card
+        assert test_configuration.test_agent_build_repo in provider.origin
 
-        async with a2a_client_factory(providers[0].agent_card) as a2a_client:
+        context = await Context.create()
+        context_token = await context.generate_token(providers={provider.id})
+
+        async with a2a_client_factory(provider.agent_card, context_token) as a2a_client:
             message = create_text_message_object(content="test of sirens")
             task = await get_final_task_from_stream(a2a_client.send_message(message))
 

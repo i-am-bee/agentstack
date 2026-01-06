@@ -9,8 +9,11 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from types import NoneType
 
-import a2a.types
 import pydantic
+from a2a.server.agent_execution.context import RequestContext
+from a2a.types import AgentCard, AgentExtension
+from a2a.types import Message as A2AMessage
+from typing_extensions import override
 
 ParamsT = typing.TypeVar("ParamsT")
 MetadataFromClientT = typing.TypeVar("MetadataFromClientT")
@@ -19,6 +22,7 @@ MetadataFromServerT = typing.TypeVar("MetadataFromServerT")
 
 if typing.TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
+    from agentstack_sdk.server.dependencies import Dependency
 
 
 def _get_generic_args(cls: type, base_class: type) -> tuple[typing.Any, ...]:
@@ -68,7 +72,7 @@ class BaseExtensionSpec(abc.ABC, typing.Generic[ParamsT]):
         self.params = params
 
     @classmethod
-    def from_agent_card(cls, agent: a2a.types.AgentCard) -> typing.Self | None:
+    def from_agent_card(cls, agent: AgentCard) -> typing.Self | None:
         """
         Client should construct an extension instance using this classmethod.
         """
@@ -81,14 +85,14 @@ class BaseExtensionSpec(abc.ABC, typing.Generic[ParamsT]):
         except StopIteration:
             return None
 
-    def to_agent_card_extensions(self, *, required: bool = False) -> list[a2a.types.AgentExtension]:
+    def to_agent_card_extensions(self, *, required: bool = False) -> list[AgentExtension]:
         """
         Agent should use this method to obtain extension definitions to advertise on the agent card.
         This returns a list, as it's possible to support multiple A2A extensions within a single class.
         (Usually, that would be different versions of the extension spec.)
         """
         return [
-            a2a.types.AgentExtension(
+            AgentExtension(
                 uri=self.URI,
                 description=self.DESCRIPTION,
                 params=typing.cast(
@@ -105,7 +109,8 @@ class NoParamsBaseExtensionSpec(BaseExtensionSpec[NoneType]):
         super().__init__(None)
 
     @classmethod
-    def from_agent_card(cls, agent: a2a.types.AgentCard) -> typing.Self | None:
+    @override
+    def from_agent_card(cls, agent: AgentCard) -> typing.Self | None:
         if any(e.uri == cls.URI for e in agent.capabilities.extensions or []):
             return cls()
         return None
@@ -125,7 +130,7 @@ class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromCl
         cls.MetadataFromClient = _get_generic_args(cls, BaseExtensionServer)[1]
 
     _metadata_from_client: MetadataFromClientT | None = None
-    _dependencies: dict
+    _dependencies: dict[str, Dependency] = {}  # noqa: RUF012
 
     @property
     def data(self):
@@ -139,7 +144,7 @@ class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromCl
         self._args = args
         self._kwargs = kwargs
 
-    def parse_client_metadata(self, message: a2a.types.Message) -> MetadataFromClientT | None:
+    def parse_client_metadata(self, message: A2AMessage) -> MetadataFromClientT | None:
         """
         Server should use this method to retrieve extension-associated metadata from a message.
         """
@@ -149,7 +154,7 @@ class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromCl
             else pydantic.TypeAdapter(self.MetadataFromClient).validate_python(message.metadata[self.spec.URI])
         )
 
-    def handle_incoming_message(self, message: a2a.types.Message, context: RunContext):
+    def handle_incoming_message(self, message: A2AMessage, run_context: RunContext, request_context: RequestContext):
         if self._metadata_from_client is None:
             self._metadata_from_client = self.parse_client_metadata(message)
 
@@ -158,12 +163,16 @@ class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromCl
         return type(self)(self.spec, *self._args, **self._kwargs)
 
     def __call__(
-        self, message: a2a.types.Message, context: RunContext, dependencies: dict[str, typing.Any]
+        self,
+        message: A2AMessage,
+        run_context: RunContext,
+        request_context: RequestContext,
+        dependencies: dict[str, Dependency],
     ) -> typing.Self:
         """Works as a dependency constructor - create a private instance for the request"""
         instance = self._fork()
         instance._dependencies = dependencies
-        instance.handle_incoming_message(message, context)
+        instance.handle_incoming_message(message, run_context, request_context)
         return instance
 
     @asynccontextmanager
@@ -185,7 +194,7 @@ class BaseExtensionClient(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromSe
     def __init__(self, spec: ExtensionSpecT) -> None:
         self.spec = spec
 
-    def parse_server_metadata(self, message: a2a.types.Message) -> MetadataFromServerT | None:
+    def parse_server_metadata(self, message: A2AMessage) -> MetadataFromServerT | None:
         """
         Client should use this method to retrieve extension-associated metadata from a message.
         """

@@ -3,29 +3,27 @@
 
 import os
 from typing import Annotated
-from pydantic import BaseModel
 
 import a2a.types
-from a2a.types import Message
-
-
-from agentstack_sdk.server import Server
-
 import agentstack_sdk.a2a.extensions
+from a2a.types import Message
 from agentstack_sdk.a2a.extensions.common.form import (
+    CheckboxField,
     DateField,
-    TextField,
     FileField,
     FileInfo,
-    CheckboxField,
+    FormRender,
     MultiSelectField,
     OptionItem,
-    FormRender,
+    TextField,
 )
 from agentstack_sdk.a2a.extensions.services.form import (
     FormServiceExtensionServer,
     FormServiceExtensionSpec,
 )
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.middleware.platform_auth_backend import PlatformAuthBackend
+from pydantic import BaseModel
 
 agent_detail_extension_spec = agentstack_sdk.a2a.extensions.AgentDetailExtensionSpec(
     params=agentstack_sdk.a2a.extensions.AgentDetail(
@@ -120,6 +118,7 @@ def serve():
             host=os.getenv("HOST", "127.0.0.1"),
             port=int(os.getenv("PORT", 10001)),
             configure_telemetry=True,
+            auth_backend=PlatformAuthBackend(),
         )
     except KeyboardInterrupt:
         pass

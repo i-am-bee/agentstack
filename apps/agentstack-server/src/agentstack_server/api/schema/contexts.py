@@ -3,7 +3,7 @@
 from typing import Literal
 from uuid import UUID
 
-from pydantic import AwareDatetime, BaseModel, Field, RootModel
+from pydantic import AwareDatetime, BaseModel, Field, RootModel, field_validator
 
 from agentstack_server.api.schema.common import PaginationQuery
 from agentstack_server.domain.models.common import Metadata, MetadataPatch
@@ -50,7 +50,7 @@ class GlobalPermissionGrant(BaseModel):
     embeddings: list[Literal["*"] | str] = Field(default_factory=list)
     model_providers: list[Literal["read", "write", "*"]] = Field(default_factory=list)
 
-    a2a_proxy: list[Literal["*"]] = Field(default_factory=list)
+    a2a_proxy: list[Literal["*"]] | list[UUID] = Field(default_factory=list)
 
     # agent providers
     providers: list[Literal["read", "write", "*"]] = Field(
@@ -66,6 +66,13 @@ class GlobalPermissionGrant(BaseModel):
     mcp_proxy: list[Literal["*"]] = Field(default_factory=list)
 
     connectors: list[Literal["read", "write", "proxy", "*"]] = Field(default_factory=list)
+
+    @field_validator("a2a_proxy", mode="after")
+    @classmethod
+    def validate_a2a_proxy(cls, v: list[Literal["*"]] | list[UUID]) -> list[Literal["*"]] | list[UUID]:
+        if "*" in v and len(v) > 1:
+            raise ValueError("a2a_proxy cannot be a mix of * and UUIDs")
+        return v
 
 
 class ContextTokenCreateRequest(BaseModel):

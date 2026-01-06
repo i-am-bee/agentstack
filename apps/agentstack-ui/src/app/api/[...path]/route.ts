@@ -31,8 +31,10 @@ async function handler(request: NextRequest, context: RouteContext) {
     targetUrl += '/';
   }
   targetUrl += search;
-
-  if (isAuthEnabled) {
+  if (request.url.includes('/api/v1/a2a')) {
+    console.log(path, headers);
+  }
+  if (isAuthEnabled && !(path[0] == 'v1' && path[1] == 'a2a')) {
     const token = await ensureToken(request);
 
     if (!token?.accessToken) {

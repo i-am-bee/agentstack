@@ -21,16 +21,15 @@ from a2a.server.tasks import PushNotificationConfigStore, PushNotificationSender
 from a2a.types import AgentExtension
 from fastapi import FastAPI
 from fastapi.applications import AppType
+from fastapi.responses import PlainTextResponse
 from httpx import HTTPError, HTTPStatusError
 from pydantic import AnyUrl
+from starlette.authentication import AuthenticationBackend, AuthenticationError
+from starlette.middleware.authentication import AuthenticationMiddleware
+from starlette.requests import HTTPConnection
 from starlette.types import Lifespan
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_attempt, wait_exponential
 
-from agentstack_sdk.a2a.extensions import AgentDetail, AgentDetailExtensionSpec
-from agentstack_sdk.a2a.extensions.services.platform import (
-    _PlatformSelfRegistrationExtensionParams,
-    _PlatformSelfRegistrationExtensionSpec,
-)
 from agentstack_sdk.platform import get_platform_client
 from agentstack_sdk.platform.client import PlatformClient
 from agentstack_sdk.platform.provider import Provider
@@ -132,6 +131,7 @@ class Server:
         factory: bool = False,
         h11_max_incomplete_event_size: int | None = None,
         self_registration_client_factory: Callable[[], PlatformClient] | None = None,
+        auth_backend: AuthenticationBackend | None = None,
     ) -> None:
         if self.server:
             raise RuntimeError("The server is already running")
@@ -179,6 +179,11 @@ class Server:
             self._agent.card.url = f"http://{host}:{port}"
 
         if self_registration:
+            from agentstack_sdk.a2a.extensions.services.platform import (
+                _PlatformSelfRegistrationExtensionParams,
+                _PlatformSelfRegistrationExtensionSpec,
+            )
+
             self._agent.card.capabilities.extensions = [
                 *(self._agent.card.capabilities.extensions or []),
                 *_PlatformSelfRegistrationExtensionSpec(
@@ -197,6 +202,13 @@ class Server:
             task_timeout=task_timeout,
             request_context_builder=request_context_builder,
         )
+
+        if auth_backend:
+
+            def on_error(connection: HTTPConnection, error: AuthenticationError) -> PlainTextResponse:
+                return PlainTextResponse("Unauthorized", status_code=401)
+
+            app.add_middleware(AuthenticationMiddleware, backend=auth_backend, on_error=on_error)
 
         if configure_logger:
             configure_logger_func(log_level)
@@ -286,6 +298,8 @@ class Server:
             await self._load_variables()
 
     async def _load_variables(self, first_run: bool = False) -> None:
+        from agentstack_sdk.a2a.extensions import AgentDetail, AgentDetailExtensionSpec
+
         assert self.server and self._agent
         if not self._provider_id:
             return
