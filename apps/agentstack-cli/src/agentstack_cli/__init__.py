@@ -16,16 +16,14 @@ import agentstack_cli.commands.platform
 import agentstack_cli.commands.self
 import agentstack_cli.commands.server
 import agentstack_cli.commands.user
-from agentstack_cli.async_typer import AliasGroup, AsyncTyper
+from agentstack_cli.async_typer import AsyncTyper
 from agentstack_cli.configuration import Configuration
 
 logging.basicConfig(level=logging.INFO if Configuration().debug else logging.FATAL)
 logging.getLogger("httpx").setLevel(logging.WARNING)  # not sure why this is necessary
 
 
-class RootHelpGroup(AliasGroup):
-    def get_help(self, ctx):
-        return """\
+HELP_TEXT = """\
 Usage: agentstack [OPTIONS] COMMAND [ARGS]...
 
 ╭─ Getting Started ──────────────────────────────────────────────────────────╮
@@ -63,7 +61,19 @@ Usage: agentstack [OPTIONS] COMMAND [ARGS]...
 """
 
 
-app = AsyncTyper(no_args_is_help=True, cls=RootHelpGroup)
+app = AsyncTyper()
+
+
+@app.callback(invoke_without_command=True)
+def main(
+    ctx: typer.Context,
+    help: bool = typer.Option(False, "--help", help="Show this message and exit."),
+):
+    if help or ctx.invoked_subcommand is None:
+        typer.echo(HELP_TEXT)
+        raise typer.Exit()
+
+
 app.add_typer(agentstack_cli.commands.model.app, name="model", no_args_is_help=True, help="Manage model providers.")
 app.add_typer(agentstack_cli.commands.agent.app, name="agent", no_args_is_help=True, help="Manage agents.")
 app.add_typer(
