@@ -171,6 +171,7 @@ async def add_agent(
     - **URL with Subfolder Path**: `https://github.com/myorg/myrepo#path=/path/to/agent`
     - **Combined Formats**: `https://github.com/myorg/myrepo.git@v1.0.0#path=/path/to/agent`
     - **Enterprise GitHub**: `https://github.mycompany.com/myorg/myrepo`
+    - **With a custom Dockerfile location**: `agentstack add --dockerfile /my-agent/path/to/Dockerfile "https://github.com/my-org/my-awesome-agents@main#path=/my-agent"`
 
     [aliases: install]
     """

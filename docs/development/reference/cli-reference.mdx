@@ -100,8 +100,8 @@ agentstack add "https://github.com/myorg/myrepo@my-branch"
 # With a subfolder path
 agentstack add "https://github.com/myorg/myrepo#path=/path/to/agent"
 
-# Combined formats
-agentstack add "https://github.com/myorg/myrepo.git@v1.0.0#path=/path/to/agent"
+# With a custom Dockerfile location
+agentstack add --dockerfile /my-agent/path/to/Dockerfile "https://github.com/my-org/my-awesome-agents@main#path=/my-agent"
 
 # From an enterprise GitHub instance
 agentstack add "https://github.mycompany.com/myorg/myrepo"

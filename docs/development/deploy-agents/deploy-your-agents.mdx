@@ -101,6 +101,13 @@ This command tells Agent Stack to:
 1. Fetch the `main` branch of the `my-awesome-agents` repository.
 2. Look for the agent's `Dockerfile` and source code in the `/my-agent` directory.
 3. Build the Docker image and register it with the platform.
+
+
+#### Example with `--dockerfile`
+
+```bash
+agentstack add --dockerfile /my-agent/path/to/Dockerfile "https://github.com/my-org/my-awesome-agents@main#path=/my-agent"
+```
 </Accordion>
 
 ### Verify Deployment
