@@ -273,14 +273,20 @@ curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhos
     --set auth.basic.adminPassword="test-password" \
     --set auth.jwtSecretKey="test-secret-key" \
     --set docling.enabled=true \
-    --set providerBuilds.enabled=true \
-    --set localDockerRegistry.enabled=true \
     --set connector.presets[0].url=mcp+stdio://test \
     --set connector.presets[0].stdio.image=mcp/aws-documentation \
     --set connector.presets[0].metadata.name="Test MCP Server"
 
 
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
+
+if [ -z "${TEST_AGENT_IMAGE}" ]; then
+    echo "Building test agent..."
+    # Build chat agent and push to local registry
+    TEST_AGENT_IMAGE=agentstack-registry-svc.default:5001/chat-test:latest
+    {{ mise_bin }} run agentstack-cli:run -- client-side-build -v "${PWD}/../.." --vm-name=${VM_NAME} --dockerfile "${PWD}/../..agents/chat/Dockerfile" --tag ${TEST_AGENT_IMAGE}
+fi
+export TEST_AGENT_IMAGE
 
 export SERVER_URL="http://localhost:8333"
 export DB_URL="postgresql+asyncpg://agentstack-user:password@localhost:5432/agentstack"
