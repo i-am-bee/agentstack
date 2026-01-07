@@ -6,6 +6,8 @@
 import type { TaskStatusUpdateEvent } from '@a2a-js/sdk';
 
 import type { FormRender } from './common/form';
+import type { ApprovalRequest } from './interactions/approval';
+import { approvalExtension } from './interactions/approval';
 import type { SecretDemands } from './services/secrets';
 import { secretsMessageExtension } from './services/secrets';
 import { FormRequestExtension } from './ui/form-request';
@@ -15,11 +17,13 @@ import { extractUiExtensionData } from './utils';
 const secretsMessageExtensionExtractor = extractUiExtensionData(secretsMessageExtension);
 const oauthRequestExtensionExtractor = extractUiExtensionData(oauthRequestExtension);
 const FormRequestExtensionExtractor = extractUiExtensionData(FormRequestExtension);
+const approvalExtensionExtractor = extractUiExtensionData(approvalExtension);
 
 export enum TaskStatusUpdateType {
   SecretRequired = 'secret-required',
   FormRequired = 'form-required',
   OAuthRequired = 'oauth-required',
+  ApprovalRequired = 'approval-required',
 }
 
 export interface SecretRequiredResult {
@@ -37,7 +41,16 @@ export interface OAuthRequiredResult {
   url: string;
 }
 
-export type TaskStatusUpdateResult = SecretRequiredResult | FormRequiredResult | OAuthRequiredResult;
+export interface ApprovalRequiredResult {
+  type: TaskStatusUpdateType.ApprovalRequired;
+  request: ApprovalRequest;
+}
+
+export type TaskStatusUpdateResult =
+  | SecretRequiredResult
+  | FormRequiredResult
+  | OAuthRequiredResult
+  | ApprovalRequiredResult;
 
 export const handleTaskStatusUpdate = (event: TaskStatusUpdateEvent): TaskStatusUpdateResult[] => {
   const results: TaskStatusUpdateResult[] = [];
@@ -61,11 +74,19 @@ export const handleTaskStatusUpdate = (event: TaskStatusUpdateEvent): TaskStatus
     }
   } else if (event.status.state === 'input-required') {
     const formRequired = FormRequestExtensionExtractor(event.status.message?.metadata);
+    const approvalRequired = approvalExtensionExtractor(event.status.message?.metadata);
 
     if (formRequired) {
       results.push({
         type: TaskStatusUpdateType.FormRequired,
         form: formRequired,
+      });
+    }
+
+    if (approvalRequired) {
+      results.push({
+        type: TaskStatusUpdateType.ApprovalRequired,
+        request: approvalRequired,
       });
     }
   }

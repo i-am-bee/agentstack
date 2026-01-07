@@ -29,6 +29,11 @@ export const toolCallApprovalRequestSchema = approvalRequestSchema.extend({
 });
 export type ToolCallApprovalRequest = z.infer<typeof toolCallApprovalRequestSchema>;
 
+export const approvalResultSchema = z.object({
+  action: z.enum(['approve', 'reject']),
+});
+export type ApprovalResult = z.infer<typeof approvalResultSchema>;
+
 export const approvalExtension: A2AUiExtension<typeof URI, ApprovalRequest> = {
   getMessageMetadataSchema: () => z.object({ [URI]: approvalRequestSchema }).partial(),
   getUri: () => URI,
