@@ -56,7 +56,11 @@ class ToolCallApprovalRequest(ApprovalRequest):
 class ApprovalResponse(BaseModel):
     action: Literal["approve", "reject"]
 
-    def raise_on_reject(self):
+    @property
+    def approved(self) -> bool:
+        return self.action == "approve"
+
+    def raise_on_rejection(self) -> None:
         if self.action == "reject":
             raise ApprovalRejectionError("Approval request has been rejected")
 

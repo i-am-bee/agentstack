@@ -44,7 +44,7 @@ async def tool_call_approval_agent(
             ToolCallApprovalRequest.from_mcp_tool(whoami_tool, arguments, server=session_init_result.serverInfo),
             context=context,
         )
-        if response.action == "approve":
+        if response.approved:
             result = await session.call_tool("hf_whoami", arguments)
             content = result.content[0]
             if isinstance(content, TextContent):

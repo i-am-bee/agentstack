@@ -5,18 +5,18 @@ description: "Have tool calls approved by the user before execution"
 
 Many agent frameworks support the ability to request user approval before executing certain actions. This is especially useful when an agent is calling external tools that may have significant effects or costs associated with their usage.
 
-The Tool Call extension provides a mechanism for implementing this functionality over A2A connection.
+The Approval extension provides a mechanism for implementing this functionality over A2A connection.
 
 ## Usage
 
 <Steps>
-<Step title="Add Tool Call extension to your agent">
-  Inject the `ToolCallExtension` into your agent function using the `Annotated`
+<Step title="Add Approval extension to your agent">
+  Inject the `ApprovalExtension` into your agent function using the `Annotated`
   type hint.
 </Step>
 
 <Step title="Implement the approval logic in your agent">
-  Use `request_tool_call_approval()` method to request tool call approval from the A2A client side.
+  Use `request_approval()` method to request tool call approval from the A2A client side.
 </Step>
 </Steps>
 
@@ -32,11 +32,11 @@ from a2a.types import (
 )
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
-from agentstack_sdk.a2a.extensions.tools.call import (
-    ToolCallExtensionParams,
-    ToolCallExtensionServer,
-    ToolCallExtensionSpec,
-    ToolCallRequest,
+from agentstack_sdk.a2a.extensions.interactions.approval import (
+    ApprovalExtensionParams,
+    ApprovalExtensionServer,
+    ApprovalExtensionSpec,
+    ToolCallApprovalRequest,
 )
 from agentstack_sdk.a2a.extensions.tools.exceptions import ToolCallRejectionError
 from beeai_framework.agents.requirement import RequirementAgent
@@ -53,18 +53,16 @@ server = Server()
 async def tool_call_agent(
     input: Message,
     context: RunContext,
-    mcp_tool_call: Annotated[ToolCallExtensionServer, ToolCallExtensionSpec(params=ToolCallExtensionParams())],
+    approval_ext: Annotated[ApprovalExtensionServer, ApprovalExtensionSpec(params=ApprovalExtensionParams())],
 ):
     async def handler(tool: Tool, input: dict[str, Any]) -> bool:
-        try:
-            await mcp_tool_call.request_tool_call_approval(
-                # using MCP Tool data model as intermediary to simplify conversion
-                ToolCallRequest.from_mcp_tool(_tool_factory(tool), input=input),  # type: ignore
-                context=context,
-            )
-            return True
-        except ToolCallRejectionError:
-            return False
+
+        response = await approval_ext.request_approval(
+            # using MCP Tool data model as intermediary to simplify conversion
+            ToolCallApprovalRequest.from_mcp_tool(_tool_factory(tool), input=input),  # type: ignore
+            context=context,
+        )
+        return response.approved
 
     think_tool = ThinkTool()
     agent = RequirementAgent(
