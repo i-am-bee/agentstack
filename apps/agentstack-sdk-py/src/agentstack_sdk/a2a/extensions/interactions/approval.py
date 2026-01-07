@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, Literal
 
 import a2a.types
 from mcp import Implementation, Tool
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, TypeAdapter
 
 from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 from agentstack_sdk.a2a.types import AgentMessage, InputRequired
@@ -108,7 +108,7 @@ class ApprovalExtensionClient(BaseExtensionClient[ApprovalExtensionSpec, NoneTyp
     def parse_request(self, *, message: a2a.types.Message):
         if not message or not message.metadata or not (data := message.metadata.get(self.spec.URI)):
             raise ValueError("Approval request data is missing")
-        return ApprovalRequest.model_validate(data)
+        return TypeAdapter(ToolCallApprovalRequest | ApprovalRequest).validate_python(data)
 
     def metadata(self) -> dict[str, Any]:
         return {self.spec.URI: ApprovalExtensionMetadata().model_dump(mode="json")}
