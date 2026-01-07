@@ -4,12 +4,11 @@
  */
 
 'use client';
-import { Code, Constraint, FlowConnection, Plug, Shapes } from '@carbon/icons-react';
+import { Code, Cognitive, Constraint, Insert, Plug, Shapes } from '@carbon/icons-react';
 
 import { FRAMEWORK_DOCS_LINK } from '@/constants';
 import { LayoutContainer } from '@/layouts/LayoutContainer';
 
-import FileConfigYaml from './assets/file-config-yaml.svg';
 import FrameworkGraphics from './assets/framework-diagram.svg';
 import type { FeatureItem } from './components/FeaturesList';
 import { FeaturesList } from './components/FeaturesList';
@@ -44,10 +43,10 @@ export function Framework() {
 
 const FEATURES_ITEMS: FeatureItem[] = [
   {
-    icon: FlowConnection,
-    title: 'Dynamic workflows',
+    icon: Insert,
+    title: 'Extensible event-driven middleware',
     content:
-      'Use simple decorators to design multi-agent systems with advanced patterns like parallelism, retries, and replanning.',
+      'Hook into agent execution events to add logging, safety checks, or custom behavior consistently across all components without modifying code.',
   },
   {
     icon: Constraint,
@@ -56,9 +55,10 @@ const FEATURES_ITEMS: FeatureItem[] = [
       "Preserve your agent's reasoning abilities while enforcing deterministic rules instead of suggesting behavior.",
   },
   {
-    icon: FileConfigYaml,
-    title: 'Declarative orchestration',
-    content: 'Define complex agent systems in YAML for more predictable and maintainable orchestration.',
+    icon: Cognitive,
+    title: 'Built-in memory management',
+    content:
+      'Swap between unbounded, summarized, or token-controlled memory implementations. Configure what to remember without changing agent code.',
   },
   {
     icon: Plug,
