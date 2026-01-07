@@ -238,7 +238,7 @@ wheels = [
 
 [[package]]
 name = "beeai-framework"
-version = "0.1.74"
+version = "0.1.70"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -252,9 +252,9 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/4b/d5/19d2a202edf61e629148aa63ec35e0ca2a9073183a66499aaa8f36b1ff9f/beeai_framework-0.1.74.tar.gz", hash = "sha256:1b0dd9114e0099b0f43e63d8951f05407499e4c371e387e27ef123b803211c69", size = 189160, upload-time = "2025-12-22T12:57:49.157Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a5/27/a26b1a55444de2271325d5471ba09e8a5f8c40bee25bf0f891eff52942ab/beeai_framework-0.1.70.tar.gz", hash = "sha256:7fe1b4f22015f8ea3ceffdbbaf1bba4ed390065d23c17aa3d406e25302ea24eb", size = 184126, upload-time = "2025-11-26T11:47:07.117Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5c/b0/62b5646b80f91930363fc01d12dea595d401d28445dd5e0744c97f0cf3bc/beeai_framework-0.1.74-py3-none-any.whl", hash = "sha256:9958f79ba917b3769572df6507513bdecf5ca4d2f62d22389e93a3f4b7dd9ac6", size = 347954, upload-time = "2025-12-22T12:57:47.806Z" },
+    { url = "https://files.pythonhosted.org/packages/bb/50/fb1172b5c1625832b6589a1c6150197940b73c9aaeadfda4d7fef2067763/beeai_framework-0.1.70-py3-none-any.whl", hash = "sha256:a0e9350cc9a8360f2b8f2251ac96bcc41511ed24ac6f27bc7fb6c3e5dbc260e2", size = 340421, upload-time = "2025-11-26T11:47:05.498Z" },
 ]
 
 [package.optional-dependencies]
@@ -396,7 +396,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "agentstack-sdk", editable = "../../apps/agentstack-sdk-py" },
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia", "a2a"], specifier = ">=0.1.74" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia", "a2a"], specifier = "==0.1.70" },
     { name = "fastuuid", specifier = ">=0.14.0" },
     { name = "openai", specifier = ">=1.107.1" },
     { name = "openinference-instrumentation-beeai", specifier = ">=0.1.12" },
