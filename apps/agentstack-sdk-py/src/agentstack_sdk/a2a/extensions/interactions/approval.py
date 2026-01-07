@@ -82,7 +82,7 @@ class ApprovalExtensionServer(BaseExtensionServer[ApprovalExtensionSpec, Approva
         return AgentMessage(text="Approval requested", metadata={self.spec.URI: request.model_dump(mode="json")})
 
     def parse_response(self, *, message: a2a.types.Message):
-        if not message or not message.metadata or not (data := message.metadata.get(self.spec.URI)):
+        if not message.metadata or not (data := message.metadata.get(self.spec.URI)):
             raise ValueError("Approval response data is missing")
         return ApprovalResponse.model_validate(data)
 
@@ -110,7 +110,7 @@ class ApprovalExtensionClient(BaseExtensionClient[ApprovalExtensionSpec, NoneTyp
         )
 
     def parse_request(self, *, message: a2a.types.Message):
-        if not message or not message.metadata or not (data := message.metadata.get(self.spec.URI)):
+        if not message.metadata or not (data := message.metadata.get(self.spec.URI)):
             raise ValueError("Approval request data is missing")
         return TypeAdapter(ToolCallApprovalRequest | ApprovalRequest).validate_python(data)
 
