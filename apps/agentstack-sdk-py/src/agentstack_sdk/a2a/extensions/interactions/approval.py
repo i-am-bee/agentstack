@@ -8,17 +8,25 @@ from types import NoneType
 from typing import TYPE_CHECKING, Any, Literal
 
 import a2a.types
-from deprecated import deprecated
-from mcp import Tool
-from mcp.types import Implementation
+from mcp import Implementation, Tool
 from pydantic import BaseModel, Field
 
 from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
-from agentstack_sdk.a2a.extensions.tools.exceptions import ToolCallRejectionError
 from agentstack_sdk.a2a.types import AgentMessage, InputRequired
 
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
+
+
+class ApprovalRejectionError(RuntimeError):
+    pass
+
+
+class ApprovalRequest(BaseModel):
+    title: str | None = Field(None, description="A human-readable title for the action being approved.")
+    description: str | None = Field(
+        None, description="A human-readable description of the action that is being approved."
+    )
 
 
 class ToolCallServer(BaseModel):
@@ -27,21 +35,16 @@ class ToolCallServer(BaseModel):
     version: str = Field(description="The version of the server.")
 
 
-@deprecated(reason="Use ToolCallApprovalRequest instead")
-class ToolCallRequest(BaseModel):
+class ToolCallApprovalRequest(ApprovalRequest):
     name: str = Field(description="The programmatic name of the tool.")
-    title: str | None = Field(None, description="A human-readable title for the tool.")
-    description: str | None = Field(None, description="A human-readable description of the tool.")
-
     input: dict[str, Any] | None = Field(description="The input for the tool.")
-
     server: ToolCallServer | None = Field(None, description="The server executing the tool.")
 
     @staticmethod
     def from_mcp_tool(
         tool: Tool, input: dict[str, Any] | None, server: Implementation | None = None
-    ) -> ToolCallRequest:
-        return ToolCallRequest(
+    ) -> ToolCallApprovalRequest:
+        return ToolCallApprovalRequest(
             name=tool.name,
             title=tool.annotations.title if tool.annotations else None,
             description=tool.description,
@@ -50,56 +53,50 @@ class ToolCallRequest(BaseModel):
         )
 
 
-class ToolCallResponse(BaseModel):
-    action: Literal["accept", "reject"]
+class ApprovalResponse(BaseModel):
+    action: Literal["approve", "reject"]
+
+    def raise_on_reject(self):
+        if self.action == "reject":
+            raise ApprovalRejectionError("Approval request has been rejected")
 
 
-class ToolCallExtensionParams(BaseModel):
+class ApprovalExtensionParams(BaseModel):
     pass
 
 
-class ToolCallExtensionSpec(BaseExtensionSpec[ToolCallExtensionParams]):
-    URI: str = "https://a2a-extensions.agentstack.beeai.dev/tools/call/v1"
+class ApprovalExtensionSpec(BaseExtensionSpec[ApprovalExtensionParams]):
+    URI: str = "https://a2a-extensions.agentstack.beeai.dev/interactions/approval/v1"
 
 
-class ToolCallExtensionMetadata(BaseModel):
+class ApprovalExtensionMetadata(BaseModel):
     pass
 
 
-@deprecated(reason="Use ApprovalExtensionServer instead")
-class ToolCallExtensionServer(BaseExtensionServer[ToolCallExtensionSpec, ToolCallExtensionMetadata]):
-    def create_request_message(self, *, request: ToolCallRequest):
-        return AgentMessage(
-            text="Tool call approval requested", metadata={self.spec.URI: request.model_dump(mode="json")}
-        )
+class ApprovalExtensionServer(BaseExtensionServer[ApprovalExtensionSpec, ApprovalExtensionMetadata]):
+    def create_request_message(self, *, request: ApprovalRequest):
+        return AgentMessage(text="Approval requested", metadata={self.spec.URI: request.model_dump(mode="json")})
 
     def parse_response(self, *, message: a2a.types.Message):
         if not message or not message.metadata or not (data := message.metadata.get(self.spec.URI)):
-            raise RuntimeError("Invalid mcp response")
-        return ToolCallResponse.model_validate(data)
+            raise ValueError("Approval response data is missing")
+        return ApprovalResponse.model_validate(data)
 
-    async def request_tool_call_approval(
+    async def request_approval(
         self,
-        request: ToolCallRequest,
+        request: ApprovalRequest,
         *,
         context: RunContext,
-    ) -> ToolCallResponse:
+    ) -> ApprovalResponse:
         message = self.create_request_message(request=request)
         message = await context.yield_async(InputRequired(message=message))
-        if message:
-            result = self.parse_response(message=message)
-            match result.action:
-                case "accept":
-                    return result
-                case "reject":
-                    raise ToolCallRejectionError("User has rejected the tool call")
-
-        else:
+        if not message:
             raise RuntimeError("Yield did not return a message")
+        return self.parse_response(message=message)
 
 
-class ToolCallExtensionClient(BaseExtensionClient[ToolCallExtensionSpec, NoneType]):
-    def create_response_message(self, *, response: ToolCallResponse, task_id: str | None):
+class ApprovalExtensionClient(BaseExtensionClient[ApprovalExtensionSpec, NoneType]):
+    def create_response_message(self, *, response: ApprovalResponse, task_id: str | None):
         return a2a.types.Message(
             message_id=str(uuid.uuid4()),
             role=a2a.types.Role.user,
@@ -110,8 +107,8 @@ class ToolCallExtensionClient(BaseExtensionClient[ToolCallExtensionSpec, NoneTyp
 
     def parse_request(self, *, message: a2a.types.Message):
         if not message or not message.metadata or not (data := message.metadata.get(self.spec.URI)):
-            raise ValueError("Invalid tool call request")
-        return ToolCallRequest.model_validate(data)
+            raise ValueError("Approval request data is missing")
+        return ApprovalRequest.model_validate(data)
 
     def metadata(self) -> dict[str, Any]:
-        return {self.spec.URI: ToolCallExtensionMetadata().model_dump(mode="json")}
+        return {self.spec.URI: ApprovalExtensionMetadata().model_dump(mode="json")}

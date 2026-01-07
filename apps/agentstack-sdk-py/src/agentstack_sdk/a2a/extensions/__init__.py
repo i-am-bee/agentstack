@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from .auth import *
+from .interactions import *
 from .services import *
 from .tools import *
 from .ui import *

@@ -8,13 +8,12 @@ from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 from mcp.types import TextContent
 
-from agentstack_sdk.a2a.extensions.tools.call import (
-    ToolCallExtensionParams,
-    ToolCallExtensionServer,
-    ToolCallExtensionSpec,
-    ToolCallRequest,
+from agentstack_sdk.a2a.extensions.interactions.approval import (
+    ApprovalExtensionParams,
+    ApprovalExtensionServer,
+    ApprovalExtensionSpec,
+    ToolCallApprovalRequest,
 )
-from agentstack_sdk.a2a.extensions.tools.exceptions import ToolCallRejectionError
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
 
@@ -25,7 +24,7 @@ server = Server()
 async def tool_call_approval_agent(
     message: Message,
     context: RunContext,
-    mcp_tool_call: Annotated[ToolCallExtensionServer, ToolCallExtensionSpec(params=ToolCallExtensionParams())],
+    mcp_tool_call: Annotated[ApprovalExtensionServer, ApprovalExtensionSpec(params=ApprovalExtensionParams())],
 ):
     async with (
         streamablehttp_client(url="https://hf.co/mcp") as (read, write, _),
@@ -41,18 +40,18 @@ async def tool_call_approval_agent(
             raise RuntimeError("Could not find whoami_tool on the server")
 
         arguments = {}
-        try:
-            await mcp_tool_call.request_tool_call_approval(
-                ToolCallRequest.from_mcp_tool(whoami_tool, arguments, server=session_init_result.serverInfo),
-                context=context,
-            )
+        response = await mcp_tool_call.request_approval(
+            ToolCallApprovalRequest.from_mcp_tool(whoami_tool, arguments, server=session_init_result.serverInfo),
+            context=context,
+        )
+        if response.action == "approve":
             result = await session.call_tool("hf_whoami", arguments)
             content = result.content[0]
             if isinstance(content, TextContent):
                 yield content.text
             else:
                 yield "Tool call succeeded"
-        except ToolCallRejectionError:
+        else:
             yield "Tool call has been rejected by the client"
 
 
