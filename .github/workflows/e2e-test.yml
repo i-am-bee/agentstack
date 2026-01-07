@@ -50,7 +50,7 @@ jobs:
       - run: mise run agentstack-server:test:e2e
         env:
           LLM_API_BASE: "${{ secrets.OPENAI_API_BASE }}"
-          LLM_MODEL: "${{ secrets.OPENAI_MODEL }}"
+          LLM_MODEL: "${{ vars.OPENAI_MODEL }}"
           LLM_API_KEY: "${{ secrets.OPENAI_API_KEY }}"
           # LLM_API_BASE: "https://api.groq.com/openai/v1"
           # LLM_MODEL: "groq:groq/compound"
