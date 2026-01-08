@@ -113,6 +113,7 @@ run = "uv run migrate"
 
 ["agentstack-server:migrations:alembic:nocheck"]
 dir = "{{config_root}}/apps/agentstack-server"
+usage = 'arg "[alembic_vars]" var=#true'
 run = """
 #!/bin/bash
 set -a
@@ -120,11 +121,12 @@ source .env
 set +a
 
 cd src/agentstack_server/infrastructure/persistence/migrations
-uv run alembic {{arg(name="alembic_vars", var=true)}}
+uv run alembic ${usage_alembic_vars}
 """
 
 ["agentstack-server:migrations:alembic"]
 dir = "{{config_root}}/apps/agentstack-server"
+usage = 'arg "[alembic_vars]" var=#true'
 run = """
 #!/bin/bash
 set -a
@@ -137,7 +139,7 @@ if ! telepresence list --replacements 2>/dev/null | grep -q agentstack; then
 fi
 
 cd src/agentstack_server/infrastructure/persistence/migrations
-uv run alembic {{arg(name="alembic_vars", var=true)}}
+uv run alembic ${usage_alembic_vars}
 """
 
 ["agentstack-server:migrations:generate"]
@@ -152,10 +154,14 @@ run = "{{ mise_bin }} run agentstack:shell --vm-name=agentstack-local-dev"
 
 ["agentstack-server:dev:start"]
 dir = "{{config_root}}/apps/agentstack-server"
+usage = '''
+flag "--vm-name <vm_name>" default="agentstack-local-dev"
+arg "[cli_args]" var=#true
+'''
 run = """
 #!/bin/bash
 set -e
-VM_NAME='{{option(name="vm-name", default="agentstack-local-dev")}}'
+VM_NAME="${usage_vm_name?}"
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
 {{ mise_bin }} run agentstack-server:dev:disconnect --vm-name="$VM_NAME"
 {{ mise_bin }} run agentstack:stop-all --except "$VM_NAME"
@@ -167,26 +173,29 @@ eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
 
 ["agentstack-server:dev:stop"]
 dir = "{{config_root}}/apps/agentstack-server"
+usage = 'flag "--vm-name <vm_name>" default="agentstack-local-dev"'
 run = """
 #!/bin/bash
-VM_NAME='{{option(name="vm-name", default="agentstack-local-dev")}}'
+VM_NAME="${usage_vm_name?}"
 {{ mise_bin }} run agentstack-server:dev:disconnect --vm-name="$VM_NAME"
 {{ mise_bin }} run agentstack:stop --vm-name="$VM_NAME"
 """
 
 ["agentstack-server:dev:delete"]
 dir = "{{config_root}}/apps/agentstack-server"
+usage = 'flag "--vm-name <vm_name>" default="agentstack-local-dev"'
 run = """
-VM_NAME={{option(name="vm-name", default="agentstack-local-dev")}}
+VM_NAME="${usage_vm_name?}"
 {{ mise_bin }} run agentstack-cli:run -- platform delete --vm-name="$VM_NAME"
 """
 
 ["agentstack-server:dev:connect"]
 dir = "{{config_root}}/apps/agentstack-server"
+usage = 'flag "--vm-name <vm_name>" default="agentstack-local-dev"'
 run = """
 #!/bin/bash
 NAMESPACE=default
-VM_NAME='{{option(name="vm-name", default="agentstack-local-dev")}}'
+VM_NAME="${usage_vm_name?}"
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
 
 tele="telepresence --use .*${NAMESPACE}.*"
@@ -197,10 +206,11 @@ $tele replace agentstack-server --port 18333:8333
 
 ["agentstack-server:dev:disconnect"]
 dir = "{{config_root}}/apps/agentstack-server"
+usage = 'flag "--vm-name <vm_name>" default="agentstack-local-dev"'
 run = """
 #!/bin/bash
 NAMESPACE=default
-VM_NAME='{{option(name="vm-name", default="agentstack-local-dev")}}'
+VM_NAME="${usage_vm_name?}"
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
 
 tele="telepresence --use .*${NAMESPACE}.*"
@@ -212,8 +222,9 @@ $tele quit
 
 ["agentstack-server:dev:reconnect"]
 dir = "{{config_root}}/apps/agentstack-server"
+usage = 'flag "--vm-name <vm_name>" default="agentstack-local-dev"'
 run = """
-VM_NAME='{{option(name="vm-name", default="agentstack-local-dev")}}'
+VM_NAME="${usage_vm_name?}"
 {{ mise_bin }} run agentstack-server:dev:disconnect --vm-name="$VM_NAME"
 {{ mise_bin }} run agentstack-server:dev:connect --vm-name="$VM_NAME"
 """
@@ -224,11 +235,12 @@ run = "uv run pytest -m unit"
 
 ["agentstack-server:test:e2e"]
 dir = "{{config_root}}/apps/agentstack-server"
+usage = 'flag "--no-clean"'
 run = """
 #!/bin/bash
 VM_NAME=e2e-test-run
 
-NO_CLEAN='{{flag(name="no-clean")}}'
+NO_CLEAN="${usage_no_clean:-false}"
 if [ "$NO_CLEAN" != "true" ]; then
     {{ mise_bin }} run agentstack:stop-all
     {{ mise_bin }} run agentstack:delete --vm-name=${VM_NAME}

@@ -12,13 +12,13 @@ pnpm = "10.15.1"
 # Kubernetes
 helm = "latest"
 kubeconform = "latest"
-"ubi:telepresenceio/telepresence" = "latest"
+"github:telepresenceio/telepresence" = "latest"
 
 # misc
 yq = "latest"
 "pipx:toml-cli" = "latest"
 fd = "latest"
-"ubi:google/addlicense" = "latest"
+"github:google/addlicense" = "latest"
 gum = "latest"
 
 [settings]
@@ -26,6 +26,7 @@ experimental = true # for python.uv_venv_auto
 python.uv_venv_auto = true
 raw = true
 node.gpg_verify = false # tends to randomly fail; sha is checked by lockfile
+task.disable_spec_from_run_scripts = true # opt-in to new task behavior
 
 [hooks]
 postinstall = [

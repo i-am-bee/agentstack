@@ -32,6 +32,6 @@ runs:
       run: |
         echo "UV_FROZEN=true" >> $GITHUB_ENV
     
-    - uses: jdx/mise-action@5083fe46898c414b2475087cc79da59e7da859e8
+    - uses: jdx/mise-action@5ff8b6c87089a23d44f61309fd05300c2f616b73
       with:
-        version: 2025.2.6
+        version: 2026.1.0

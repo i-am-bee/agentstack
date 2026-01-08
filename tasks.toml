@@ -137,11 +137,12 @@ run = "{{ mise_bin }} run agentstack-cli:run -- platform delete"
 run = "{{ mise_bin }} run agentstack-cli:run -- platform stop"
 
 ["agentstack:stop-all"]
+usage = 'flag "--except <except>" default=""'
 run = """
 #!/bin/bash
 # Stop all lima VMs
 
-EXCEPT='{{option(name="except", default="")}}'
+EXCEPT="${usage_except?}"
 
 {% raw %}
 TO_STOP="$(LIMA_HOME=~/.agentstack/lima limactl list -f '{{.Name}};{{.Status}}' | grep -v "Stopped" | cut -d';' -f1 2>/dev/null | sed '/^[^a-z]*$/d' | sed "/^$EXCEPT$/d")"
@@ -154,16 +155,17 @@ echo "$TO_STOP" | xargs -rn 1 -I"{}" mise run agentstack-cli:run -- platform sto
 
 ["agentstack:shell"]
 raw = true
-shell = "echo"
 dir = "{{cwd}}"
+usage = 'flag "--vm-name <vm_name>" default="agentstack"'
 run = """
+cat <<EOF
 deactivate () {
-  export PS1="$__OLD_PS1"
+  export PS1="\\$__OLD_PS1"
 
   # Restore LIMA_HOME to its original state (set or unset)
-  [[ -n "$__OLD_LIMA_HOME" ]] && export LIMA_HOME="$__OLD_LIMA_HOME" || unset LIMA_HOME
-  [[ -n "$__OLD_KUBECONFIG" ]] && export KUBECONFIG="$__OLD_KUBECONFIG" || unset KUBECONFIG
-  [[ -n "$__OLD_ADMIN_PASSWORD" ]] && export AGENTSTACK__ADMIN_PASSWORD="$__OLD_ADMIN_PASSWORD" || unset AGENTSTACK__ADMIN_PASSWORD
+  [[ -n "\\$__OLD_LIMA_HOME" ]] && export LIMA_HOME="\\$__OLD_LIMA_HOME" || unset LIMA_HOME
+  [[ -n "\\$__OLD_KUBECONFIG" ]] && export KUBECONFIG="\\$__OLD_KUBECONFIG" || unset KUBECONFIG
+  [[ -n "\\$__OLD_ADMIN_PASSWORD" ]] && export AGENTSTACK__ADMIN_PASSWORD="\\$__OLD_ADMIN_PASSWORD" || unset AGENTSTACK__ADMIN_PASSWORD
 
   # Clean up the backup values
   unset __OLD_PS1
@@ -171,25 +173,25 @@ deactivate () {
   unset __OLD_KUBECONFIG
   unset __OLD_ADMIN_PASSWORD
   unset -f deactivate
-  echo "Environment for '$VM_NAME' deactivated."
+  echo "Environment for '${usage_vm_name?}' deactivated."
 }
 
-while [[ -n "$__OLD_PS1" ]]; do
+while [[ -n "\\$__OLD_PS1" ]]; do
   deactivate;
 done
 
-VM_NAME={{option(name="vm-name", default="agentstack")}}
-echo "Activating environment for '$VM_NAME'..."
+echo "Activating environment for '${usage_vm_name?}'..."
 
-export __OLD_PS1="$PS1"
-export __OLD_LIMA_HOME="$LIMA_HOME"
-export __OLD_KUBECONFIG="$KUBECONFIG"
-export __OLD_ADMIN_PASSWORD="$AGENTSTACK__ADMIN_PASSWORD"
+export __OLD_PS1="\\$PS1"
+export __OLD_LIMA_HOME="\\$LIMA_HOME"
+export __OLD_KUBECONFIG="\\$KUBECONFIG"
+export __OLD_ADMIN_PASSWORD="\\$AGENTSTACK__ADMIN_PASSWORD"
 
-export KUBECONFIG="${AGENTSTACK__HOME:-${HOME}/.agentstack}/lima/${VM_NAME}/copied-from-guest/kubeconfig.yaml"
-export LIMA_HOME=${AGENTSTACK__HOME:-${HOME}/.agentstack}/lima
+export KUBECONFIG="\\${AGENTSTACK__HOME:-\\${HOME}/.agentstack}/lima/${usage_vm_name?}/copied-from-guest/kubeconfig.yaml"
+export LIMA_HOME=\\${AGENTSTACK__HOME:-\\${HOME}/.agentstack}/lima
 export AGENTSTACK__ADMIN_PASSWORD=test-password
-export PS1="(${VM_NAME}) ${__OLD_PS1}"
+export PS1="(${usage_vm_name?}) \\${__OLD_PS1}"
+EOF
 """
 
 # release tasks
@@ -427,11 +429,12 @@ echo -e "✅ Published \x1b[36mstable\x1b[0m docs for \x1b[36mv$publish_version\
 ["sync-images-to-ghcr"]
 dir = "{{config_root}}"
 depends = ["helm:build:dependencies"]
+usage = "flag --dryrun"
 run = '''
 #!/bin/bash
 
 set -euo pipefail
-DRY_RUN='{{flag(name='dryrun')}}'
+DRY_RUN="${usage_dryrun:-false}"
 
 {% raw %}
 echo "Extracting images from helm chart..."

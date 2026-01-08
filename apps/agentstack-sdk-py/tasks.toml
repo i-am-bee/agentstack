@@ -76,9 +76,10 @@ outputs = { auto = true }
 # test
 
 ["agentstack-sdk-py:test-all"]
+usage = 'flag "--python <python>" default="3.13"'
 run = """
 #!/bin/bash
-uv run --python={{option(name="python", default="3.13")}} pytest
+uv run --python="${usage_python?}" pytest
 """
 
 depends = ["agentstack-sdk-py:setup"]
