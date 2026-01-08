@@ -309,10 +309,15 @@ def print_log(line, ansi_mode=False, out_console: Console | None = None):
     def decode(text: str):
         return Text.from_ansi(text) if ansi_mode else text
 
-    if line["stream"] == "stderr":
-        (out_console or err_console).print(decode(line["message"]))
-    elif line["stream"] == "stdout":
-        (out_console or console).print(decode(line["message"]))
+    match line:
+        case {"stream": "stderr"}:
+            (out_console or err_console).print(decode(line["message"]))
+        case {"stream": "stdout"}:
+            (out_console or console).print(decode(line["message"]))
+        case {"event": "[DONE]"}:
+            return
+        case _:
+            (out_console or console).print(line)
 
 
 def is_github_url(url: str) -> bool:
