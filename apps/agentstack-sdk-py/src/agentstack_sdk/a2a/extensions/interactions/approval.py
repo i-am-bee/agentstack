@@ -5,11 +5,11 @@ from __future__ import annotations
 
 import uuid
 from types import NoneType
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Annotated, Any, Literal
 
 import a2a.types
 from mcp import Implementation, Tool
-from pydantic import BaseModel, Field, TypeAdapter
+from pydantic import BaseModel, Discriminator, Field, TypeAdapter
 
 from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 from agentstack_sdk.a2a.types import AgentMessage, InputRequired
@@ -22,11 +22,11 @@ class ApprovalRejectionError(RuntimeError):
     pass
 
 
-class ApprovalRequest(BaseModel):
+class GenericApprovalRequest(BaseModel):
+    action: Literal["generic"] = "generic"
+
     title: str | None = Field(None, description="A human-readable title for the action being approved.")
-    description: str | None = Field(
-        None, description="A human-readable description of the action that is being approved."
-    )
+    description: str | None = Field(None, description="A human-readable description of the action being approved.")
 
 
 class ToolCallServer(BaseModel):
@@ -35,7 +35,11 @@ class ToolCallServer(BaseModel):
     version: str = Field(description="The version of the server.")
 
 
-class ToolCallApprovalRequest(ApprovalRequest):
+class ToolCallApprovalRequest(BaseModel):
+    action: Literal["tool-call"] = "tool-call"
+
+    title: str | None = Field(None, description="A human-readable title for the tool call being approved.")
+    description: str | None = Field(None, description="A human-readable description of the tool call being approved.")
     name: str = Field(description="The programmatic name of the tool.")
     input: dict[str, Any] | None = Field(description="The input for the tool.")
     server: ToolCallServer | None = Field(None, description="The server executing the tool.")
@@ -53,15 +57,18 @@ class ToolCallApprovalRequest(ApprovalRequest):
         )
 
 
+ApprovalRequest = Annotated[GenericApprovalRequest | ToolCallApprovalRequest, Discriminator("action")]
+
+
 class ApprovalResponse(BaseModel):
-    action: Literal["approve", "reject"]
+    decision: Literal["approve", "reject"]
 
     @property
     def approved(self) -> bool:
-        return self.action == "approve"
+        return self.decision == "approve"
 
     def raise_on_rejection(self) -> None:
-        if self.action == "reject":
+        if self.decision == "reject":
             raise ApprovalRejectionError("Approval request has been rejected")
 
 
@@ -112,7 +119,7 @@ class ApprovalExtensionClient(BaseExtensionClient[ApprovalExtensionSpec, NoneTyp
     def parse_request(self, *, message: a2a.types.Message):
         if not message.metadata or not (data := message.metadata.get(self.spec.URI)):
             raise ValueError("Approval request data is missing")
-        return TypeAdapter(ToolCallApprovalRequest | ApprovalRequest).validate_python(data)
+        return TypeAdapter(ApprovalRequest).validate_python(data)
 
     def metadata(self) -> dict[str, Any]:
         return {self.spec.URI: ApprovalExtensionMetadata().model_dump(mode="json")}
