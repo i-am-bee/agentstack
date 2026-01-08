@@ -87,9 +87,9 @@ mise agentstack:start --set auth.oidc.enabled=true --set auth.oidc.validate_audi
 
 This does the following:
 
-- Installs Istio in ambient mode.
-- Creates a gateway and routes for `https://agentstack.localhost:8336/`.
-- Installs the Kiali console.
+* Installs Istio in ambient mode.
+* Creates a gateway and routes for `https://agentstack.localhost:8336/`.
+* Installs the Kiali console.
 
 **Why TLS is used:**  
 OAuth tokens are returned to the browser only over HTTPS to avoid leakage over plain HTTP. Always access the UI via
@@ -109,7 +109,7 @@ The default namespace is labeled `istio.io/dataplane-mode=ambient`. This ensures
 
 **OIDC configuration:**
 
-- Update OIDC provider credentials and settings helm/values.yaml under:
+* Update OIDC provider credentials and settings helm/values.yaml under:
 
 ```YAML
 oidc:
@@ -133,7 +133,7 @@ oidc:
   ]
 ```
 
-- When debugging the ui component (See debugging individual components), copy the env.example as .env and update the
+* When debugging the ui component (See debugging individual components), copy the env.example as .env and update the
   following oidc specific values:
 
 ```JavaScript
@@ -151,7 +151,7 @@ NEXTAUTH_DEBUG = "true"
 
 **To deploy the helm chart to OpenShift:**
 
-- Update values.yaml so that auth.enabled and auth.oidc.enabled are true. e.g.:
+* Update values.yaml so that auth.enabled and auth.oidc.enabled are true. e.g.:
 
 ```yaml
 auth:
@@ -161,9 +161,9 @@ auth:
     enabled: true
 ```
 
-- Update values.yaml so that the `nextauth_url` and the `nextauth_redirect_proxy_url` values reflect the URL for the
+* Update values.yaml so that the `nextauth_url` and the `nextauth_redirect_proxy_url` values reflect the URL for the
   route created for the `agentstack-ui-svc`.
-- Ensure that the oidc.nextauth_providers array entries in values.yaml have valid/appropriate values
+* Ensure that the oidc.nextauth_providers array entries in values.yaml have valid/appropriate values
 
 ### Running and debugging individual components
 
@@ -186,14 +186,14 @@ This will do the following:
 
 After the command succeeds, you can:
 
-- send requests as if your machine was running inside the cluster. For example:
+* send requests as if your machine was running inside the cluster. For example:
   `curl http://<service-name>:<service-port>`.
-- connect to postgresql using the default credentials `postgresql://agentstack-user:password@postgresql:5432/agentstack`
-- now you can start your server from your IDE or using `mise run agentstack-server:run` on port **18333**
-- run agentstack-cli using `mise agentstack-cli:run -- <command>` or HTTP requests to localhost:8333 or localhost:18333
-    - localhost:8333 is port-forwarded from the cluster, so any requests will pass through the cluster networking to the
+* connect to postgresql using the default credentials `postgresql://agentstack-user:password@postgresql:5432/agentstack`
+* now you can start your server from your IDE or using `mise run agentstack-server:run` on port **18333**
+* run agentstack-cli using `mise agentstack-cli:run -- <command>` or HTTP requests to localhost:8333 or localhost:18333
+  * localhost:8333 is port-forwarded from the cluster, so any requests will pass through the cluster networking to the
       agentstack pod, which is replaced by telepresence and forwarded back to your local machine to port 18333
-    - localhost:18333 is where your local platform should be running
+  * localhost:18333 is where your local platform should be running
 
 To inspect cluster using `kubectl` or `k9s` and lima using `limactl`, activate the dev environment using:
 
@@ -223,17 +223,14 @@ mise run agentstack-server:dev:delete
 
 #### Developing tests
 
-We use a separate VM for local development of e2e and integration tests, the setup is almost identical,
-but you need to change kubeconfig location in your .env:
+To run and develop agentstack-server tests locally use `mise run agentstack-server:dev:start` from above.
 
-```shell
-# Use for developing e2e and integration tests locally
-K8S_KUBECONFIG=~/.agentstack/lima/agentstack-local-test/copied-from-guest/kubeconfig.yaml
-```
+> Note:
+> - Some tests require additional settings (e.g. enabling authentication), see section for tests in `template.env` for more details.
+> - Tests will drop your database - you may need to add agents again or reconfigure model
 
-and then run `agentstack-server:dev:test:start`
-
-> TIP: Similarly to dev environment you can use `mise run agentstack-server:dev:test:reconnect`
+Locally, the default model for tests is configured in `apps/agentstack-server/tests/conftest.py` (`llama3.1:8b` from ollama).
+Make sure to have this model running locally.
 
 <details>
 <summary> Lower-level networking using telepresence directly</summary>
@@ -270,9 +267,9 @@ agentstack model setup --use-true-localhost
 
 The following commands can be used to create or run migrations in the dev environment above:
 
-- Run migrations: `mise run agentstack-server:migrations:run`
-- Generate migrations: `mise run agentstack-server:migrations:generate`
-- Use Alembic command directly: `mise run agentstack-server:migrations:alembic`
+* Run migrations: `mise run agentstack-server:migrations:run`
+* Generate migrations: `mise run agentstack-server:migrations:generate`
+* Use Alembic command directly: `mise run agentstack-server:migrations:alembic`
 
 > NOTE: The dev setup will run the locally built image including its migrations before replacing it with your local
 > instance. If new migrations you just implemented are not working, the dev setup will not start properly and you need

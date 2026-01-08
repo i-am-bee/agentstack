@@ -22,7 +22,7 @@ from agentstack_server.infrastructure.persistence.repositories.db_metadata impor
 
 class TestConfiguration(BaseSettings):
     model_config = SettingsConfigDict(extra="ignore")
-    kubeconfig: Path = Path.home() / ".agentstack/lima/agentstack-local-test/copied-from-guest/kubeconfig.yaml"
+    kubeconfig: Path = Path.home() / ".agentstack/lima/agentstack-local-dev/copied-from-guest/kubeconfig.yaml"
     llm_api_base: Secret[str] = Secret("http://localhost:11434/v1")
     llm_model: str = "other:llama3.1:8b"
     llm_api_key: Secret[str] = Secret("dummy")
@@ -61,10 +61,10 @@ def pytest_configure(config):
 async def _get_kr8s_client():
     api = await kr8s.asyncio.api()
     kubeconfig = api.auth.kubeconfig
-    kubeconfig_regex = r".*/.agentstack/(lima|docker)/.*test.*/copied-from-guest/kubeconfig.yaml$"
+    kubeconfig_regex = r".*/.agentstack/lima/(agentstack-local-dev|e2e-test-run|integration-test-run)/copied-from-guest/kubeconfig.yaml$"
     if not re.match(kubeconfig_regex, str(kubeconfig.path)):
         raise ValueError(
-            f"Preventing e2e tests run with invalid kubeconfig path.\n"
+            f"Preventing kubeconfig operations with invalid kubeconfig path.\n"
             f"actual: {kubeconfig.path}\n"
             f"expected: {kubeconfig_regex}"
         )

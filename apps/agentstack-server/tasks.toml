@@ -159,7 +159,9 @@ VM_NAME='{{option(name="vm-name", default="agentstack-local-dev")}}'
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
 {{ mise_bin }} run agentstack-server:dev:disconnect --vm-name="$VM_NAME"
 {{ mise_bin }} run agentstack:stop-all --except "$VM_NAME"
-{{ mise_bin }} agentstack:start --vm-name="$VM_NAME" {{arg(name="cli-args", var=true, default="--")}}
+{{ mise_bin }} agentstack:start --vm-name="$VM_NAME" \
+    --set externalRegistries=null \
+    {{arg(name="cli-args", var=true, default="--")}}
 {{ mise_bin }} run agentstack-server:dev:connect --vm-name="$VM_NAME"
 """
 
@@ -215,40 +217,6 @@ VM_NAME='{{option(name="vm-name", default="agentstack-local-dev")}}'
 {{ mise_bin }} run agentstack-server:dev:disconnect --vm-name="$VM_NAME"
 {{ mise_bin }} run agentstack-server:dev:connect --vm-name="$VM_NAME"
 """
-
-["agentstack-server:dev:test:start"]
-dir = "{{config_root}}/apps/agentstack-server"
-run = """
-#!/bin/bash
-{{ mise_bin }} run agentstack-server:dev:start \
-    --vm-name=agentstack-local-test \
-    --set externalRegistries=null \
-    {{arg(name="cli-args", var=true, default="--")}}
-"""
-
-["agentstack-server:dev:test:stop"]
-dir = "{{config_root}}/apps/agentstack-server"
-run = "{{ mise_bin }} run agentstack-server:dev:stop --vm-name=agentstack-local-test"
-
-["agentstack-server:dev:test:delete"]
-dir = "{{config_root}}/apps/agentstack-server"
-run = "{{ mise_bin }} run agentstack-server:dev:delete --vm-name=agentstack-local-test"
-
-["agentstack-server:dev:test:shell"]
-dir = "{{config_root}}/apps/agentstack-server"
-run = "{{ mise_bin }} run agentstack:shell --vm-name=agentstack-local-test"
-
-["agentstack-server:dev:test:connect"]
-dir = "{{config_root}}/apps/agentstack-server"
-run = "{{ mise_bin }} run agentstack-server:dev:connect --vm-name=agentstack-local-test"
-
-["agentstack-server:dev:test:disconnect"]
-dir = "{{config_root}}/apps/agentstack-server"
-run = "{{ mise_bin }} run agentstack-server:dev:disconnect --vm-name=agentstack-local-test"
-
-["agentstack-server:dev:test:reconnect"]
-dir = "{{config_root}}/apps/agentstack-server"
-run = "{{ mise_bin }} run agentstack-server:dev:reconnect --vm-name=agentstack-local-test"
 
 ["agentstack-server:test:unit"]
 dir = "{{config_root}}/apps/agentstack-server"
@@ -324,7 +292,7 @@ exit $result
 dir = "{{config_root}}/apps/agentstack-server"
 run = """
 #!/bin/bash
-VM_NAME=itegration-test-run
+VM_NAME=integration-test-run
 
 {{ mise_bin }} run agentstack:delete --vm-name="$VM_NAME"
 
