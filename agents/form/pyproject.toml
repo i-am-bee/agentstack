@@ -8,7 +8,7 @@ authors = [
 requires-python = ">=3.13,<3.14"
 dependencies = [
     "agentstack-sdk",
-    "openinference-instrumentation-beeai>=0.1.13",
+    "openinference-instrumentation-beeai>=0.1.14",
     "pydantic-settings>=2.9.0",
     "uvicorn>=0.35.0",
 ]

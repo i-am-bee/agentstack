@@ -7,12 +7,12 @@ authors = [
 ]
 requires-python = ">=3.13,<3.14"
 dependencies = [
-    "beeai-framework[duckduckgo,wikipedia,a2a]==0.1.70",
+    "beeai-framework[duckduckgo,wikipedia,a2a]==0.1.75",
     "tiktoken>=0.12.0",  # constraint for beeai-framework dependency (first version with musl arm64 wheel)
     "fastuuid>=0.14.0",  # constraint for beeai-framework dependency (first version with musl arm64 wheel)
     "openai>=1.107.1",
     "agentstack-sdk",
-    "openinference-instrumentation-beeai>=0.1.12",
+    "openinference-instrumentation-beeai>=0.1.14",
     "pydantic-settings>=2.9.0",
     "uvicorn>=0.35.0",
 ]
