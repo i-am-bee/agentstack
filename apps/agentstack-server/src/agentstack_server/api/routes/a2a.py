@@ -22,7 +22,6 @@ from agentstack_server.api.dependencies import (
 )
 from agentstack_server.configuration import Configuration
 from agentstack_server.domain.models.permissions import AuthorizedUser
-from agentstack_server.service_layer.services.a2a import A2AServerResponse
 
 router = fastapi.APIRouter()
 
@@ -31,9 +30,17 @@ def create_proxy_agent_card(
     agent_card: AgentCard, *, provider_id: UUID, request: Request, configuration: Configuration
 ) -> AgentCard:
     proxy_base = str(request.url_for(a2a_proxy_jsonrpc_transport.__name__, provider_id=provider_id))
-
     proxy_security = []
-    proxy_security_schemes = {}
+    proxy_security_schemes = {
+        "platform_context_token": SecurityScheme(
+            HTTPAuthSecurityScheme(
+                scheme="bearer",
+                bearer_format="JWT",
+                description="Platform context token, issued by the AgentStack server using POST /api/v1/context/{context_id}/token.",
+            )
+        )
+    }
+
     if not configuration.auth.disable_auth:
         # Note that we're purposefully not using oAuth but a more generic http scheme.
         # This is because we don't want to declare the auth metadata but prefer discovery through related RFCs
@@ -56,14 +63,6 @@ def create_proxy_agent_card(
             "security_schemes": proxy_security_schemes,
         }
     )
-
-
-def _to_fastapi(response: A2AServerResponse):
-    common = {"status_code": response.status_code, "headers": response.headers, "media_type": response.media_type}
-    if response.stream:
-        return fastapi.responses.StreamingResponse(content=response.stream, **common)
-    else:
-        return fastapi.responses.Response(content=response.content, **common)
 
 
 @router.get("/{provider_id}" + AGENT_CARD_WELL_KNOWN_PATH)
@@ -94,7 +93,7 @@ async def a2a_proxy_jsonrpc_transport(
     provider_service: ProviderServiceDependency,
     configuration: ConfigurationDependency,
     user: Annotated[AuthorizedUser, Depends(authorized_user)],
-):
+) -> AgentCard:
     user = RequiresPermissions(a2a_proxy={provider_id})(user)
 
     provider = await provider_service.get_provider(provider_id=provider_id)

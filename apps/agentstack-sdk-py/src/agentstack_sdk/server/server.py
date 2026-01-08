@@ -24,7 +24,7 @@ from fastapi.applications import AppType
 from fastapi.responses import PlainTextResponse
 from httpx import HTTPError, HTTPStatusError
 from pydantic import AnyUrl
-from starlette.authentication import AuthenticationBackend, AuthenticationError
+from starlette.authentication import AuthenticationError
 from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.requests import HTTPConnection
 from starlette.types import Lifespan
@@ -39,6 +39,7 @@ from agentstack_sdk.server.store.context_store import ContextStore
 from agentstack_sdk.server.store.memory_context_store import InMemoryContextStore
 from agentstack_sdk.server.telemetry import configure_telemetry as configure_telemetry_func
 from agentstack_sdk.server.utils import cancel_task
+from agentstack_sdk.types import SdkAuthenticationBackend
 from agentstack_sdk.util.logging import configure_logger as configure_logger_func
 from agentstack_sdk.util.logging import logger
 
@@ -131,7 +132,7 @@ class Server:
         factory: bool = False,
         h11_max_incomplete_event_size: int | None = None,
         self_registration_client_factory: Callable[[], PlatformClient] | None = None,
-        auth_backend: AuthenticationBackend | None = None,
+        auth_backend: SdkAuthenticationBackend | None = None,
     ) -> None:
         if self.server:
             raise RuntimeError("The server is already running")
@@ -201,9 +202,11 @@ class Server:
             push_sender=push_sender,
             task_timeout=task_timeout,
             request_context_builder=request_context_builder,
+            auth_backend=auth_backend,
         )
 
         if auth_backend:
+            auth_backend.update_card_security_schemes(self._agent.card)
 
             def on_error(connection: HTTPConnection, error: AuthenticationError) -> PlainTextResponse:
                 return PlainTextResponse("Unauthorized", status_code=401)

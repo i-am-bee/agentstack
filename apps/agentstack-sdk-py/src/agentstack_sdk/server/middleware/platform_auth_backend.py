@@ -7,6 +7,7 @@ from datetime import timedelta
 from urllib.parse import urljoin
 
 from a2a.auth.user import User
+from a2a.types import AgentCard, HTTPAuthSecurityScheme, SecurityScheme
 from async_lru import alru_cache
 from authlib.jose import JsonWebKey, JWTClaims, KeySet, jwt
 from authlib.jose.errors import JoseError
@@ -15,7 +16,6 @@ from fastapi.security import HTTPBearer
 from pydantic import Secret
 from starlette.authentication import (
     AuthCredentials,
-    AuthenticationBackend,
     AuthenticationError,
     BaseUser,
 )
@@ -23,7 +23,7 @@ from starlette.requests import HTTPConnection
 from typing_extensions import override
 
 from agentstack_sdk.platform import use_platform_client
-from agentstack_sdk.types import JsonValue
+from agentstack_sdk.types import JsonValue, SdkAuthenticationBackend
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ async def discover_jwks() -> KeySet:
         raise RuntimeError(f"JWKS discovery failed for url {url}") from e
 
 
-class PlatformAuthBackend(AuthenticationBackend):
+class PlatformAuthBackend(SdkAuthenticationBackend):
     def __init__(self, public_url: str | None = None, skip_audience_validation: bool | None = None) -> None:
         self.skip_audience_validation: bool = (
             skip_audience_validation
@@ -129,3 +129,16 @@ class PlatformAuthBackend(AuthenticationBackend):
         except Exception as e:
             logger.error(f"Authentication error: {e}")
             raise AuthenticationError(f"Authentication failed: {e}") from e
+
+    @override
+    def update_card_security_schemes(self, agent_card: AgentCard) -> None:
+        agent_card.security_schemes = {
+            "platform_context_token": SecurityScheme(
+                HTTPAuthSecurityScheme(
+                    scheme="bearer",
+                    bearer_format="JWT",
+                    description="Platform context token, issued by the AgentStack server using POST /api/v1/context/{context_id}/token.",
+                )
+            ),
+        }
+        agent_card.security = [{"platform_context_token": []}]
