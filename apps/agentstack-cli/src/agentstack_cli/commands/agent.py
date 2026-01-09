@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import abc
+import asyncio
 import base64
 import calendar
 import inspect
@@ -340,10 +341,15 @@ async def update_agent(
 
 def search_path_match_providers(search_path: str, providers: list[Provider]) -> dict[str, Provider]:
     search_path = search_path.lower()
-    provider_candidates = {p.id: p for p in providers if search_path in p.id.lower()}
-    provider_candidates.update({p.id: p for p in providers if search_path in p.agent_card.name.lower()})
-    provider_candidates.update({p.id: p for p in providers if search_path in ProviderUtils.short_location(p)})
-    return provider_candidates
+    return {
+        p.id: p
+        for p in providers
+        if (
+            search_path in p.id.lower()
+            or search_path in p.agent_card.name.lower()
+            or search_path in ProviderUtils.short_location(p)
+        )
+    }
 
 
 def select_provider(search_path: str, providers: list[Provider]):
@@ -370,8 +376,7 @@ async def select_providers_multi(search_path: str, providers: list[Provider]) ->
 
     selected_ids = await inquirer.checkbox(  # pyright: ignore[reportPrivateImportUsage]
         message="Select agents to remove (use ↑/↓ to navigate, Space to select):",
-        choices=choices,
-        validate=EmptyInputValidator(),
+        choices=choices
     ).execute_async()
 
     return [provider_candidates[pid] for pid in (selected_ids or [])]
@@ -404,8 +409,10 @@ async def uninstall_agent(
             selected_providers = providers
         else:
             selected_providers = await select_providers_multi(search_path, providers)
-
-        if len(selected_providers) == 1:
+        if not selected_providers:
+            console.info("No agents selected for removal, exiting.")
+            return
+        elif len(selected_providers) == 1:
             agent_names = f"{selected_providers[0].agent_card.name} - {selected_providers[0].id.split('-', 1)[0]}"
         else:
             agent_names = "\n".join([f"  - {p.agent_card.name} - {p.id.split('-', 1)[0]}" for p in selected_providers])
@@ -416,8 +423,14 @@ async def uninstall_agent(
         await confirm_server_action("Proceed with removing these agents from", url=url, yes=yes)
 
         with console.status("Uninstalling agent(s) (may take a few minutes)...", spinner="dots"):
-            for provider in selected_providers:
-                await Provider.delete(provider.id)
+            delete_tasks = [Provider.delete(provider.id) for provider in selected_providers]
+            results = await asyncio.gather(*delete_tasks, return_exceptions=True)
+        
+        # Check results for exceptions
+        for provider, result in zip(selected_providers, results):
+            if isinstance(result, Exception):
+                err_console.print(f"Failed to delete {provider.agent_card.name}: {result}")
+            # else: deletion succeeded
 
     await list_agents()
 
