@@ -199,7 +199,7 @@ VM_NAME="${usage_vm_name?}"
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
 
 tele="telepresence --use .*${NAMESPACE}.*"
-$tele helm upgrade --install
+$tele helm install || true
 $tele connect --namespace "$NAMESPACE"
 $tele replace agentstack-server --port 18333:8333
 """
