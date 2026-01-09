@@ -42,7 +42,7 @@ Install QEMU via package manager ([instructions](https://www.qemu.org/download/)
 Open a new terminal and run:
 
 ```bash
-uv tool install --refresh --quiet --force agentstack-cli && agentstack self install
+uv tool install --force --python-preference=only-managed --python=3.13 agentstack-cli; agentstack self install
 ```
 
 Follow the interactive prompts to finish installation and setup.
