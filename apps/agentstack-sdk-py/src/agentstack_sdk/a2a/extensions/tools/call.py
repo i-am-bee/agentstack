@@ -8,7 +8,6 @@ from types import NoneType
 from typing import TYPE_CHECKING, Any, Literal
 
 import a2a.types
-from deprecated import deprecated
 from mcp import Tool
 from mcp.types import Implementation
 from pydantic import BaseModel, Field
@@ -27,7 +26,6 @@ class ToolCallServer(BaseModel):
     version: str = Field(description="The version of the server.")
 
 
-@deprecated(reason="Use ToolCallApprovalRequest instead")
 class ToolCallRequest(BaseModel):
     name: str = Field(description="The programmatic name of the tool.")
     title: str | None = Field(None, description="A human-readable title for the tool.")
@@ -66,7 +64,6 @@ class ToolCallExtensionMetadata(BaseModel):
     pass
 
 
-@deprecated(reason="Use ApprovalExtensionServer instead")
 class ToolCallExtensionServer(BaseExtensionServer[ToolCallExtensionSpec, ToolCallExtensionMetadata]):
     def create_request_message(self, *, request: ToolCallRequest):
         return AgentMessage(
