@@ -375,8 +375,7 @@ async def select_providers_multi(search_path: str, providers: list[Provider]) ->
     choices = [Choice(value=p.id, name=f"{p.agent_card.name} - {p.id}") for p in provider_candidates.values()]
 
     selected_ids = await inquirer.checkbox(  # pyright: ignore[reportPrivateImportUsage]
-        message="Select agents to remove (use ↑/↓ to navigate, Space to select):",
-        choices=choices
+        message="Select agents to remove (use ↑/↓ to navigate, Space to select):", choices=choices
     ).execute_async()
 
     return [provider_candidates[pid] for pid in (selected_ids or [])]
@@ -425,9 +424,9 @@ async def uninstall_agent(
         with console.status("Uninstalling agent(s) (may take a few minutes)...", spinner="dots"):
             delete_tasks = [Provider.delete(provider.id) for provider in selected_providers]
             results = await asyncio.gather(*delete_tasks, return_exceptions=True)
-        
+
         # Check results for exceptions
-        for provider, result in zip(selected_providers, results):
+        for provider, result in zip(selected_providers, results, strict=True):
             if isinstance(result, Exception):
                 err_console.print(f"Failed to delete {provider.agent_card.name}: {result}")
             # else: deletion succeeded
