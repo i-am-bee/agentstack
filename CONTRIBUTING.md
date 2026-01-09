@@ -343,4 +343,6 @@ In addition to publishing the stable version, this action also ensures that the 
 
 All changes that modify existing features or introduce new functionality must include documentation updates as part of the pull request. Documentation files should be added or updated in the `docs/development` folder.
 
+The documentation for the CLI is auto-generated. Run `mise run agentstack-cli:docs` to generate it.
+
 A GitHub workflow automatically checks that documentation requirements are met. If your change does not require documentation updates (e.g., bug fixes that don't change behavior, internal refactoring, or test-only changes), you must explicitly note this in your PR description.

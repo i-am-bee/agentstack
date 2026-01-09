@@ -338,11 +338,16 @@ async def update_agent(
         await list_agents()
 
 
-def select_provider(search_path: str, providers: list[Provider]):
+def search_path_match_providers(search_path: str, providers: list[Provider]) -> dict[str, Provider]:
     search_path = search_path.lower()
     provider_candidates = {p.id: p for p in providers if search_path in p.id.lower()}
     provider_candidates.update({p.id: p for p in providers if search_path in p.agent_card.name.lower()})
     provider_candidates.update({p.id: p for p in providers if search_path in ProviderUtils.short_location(p)})
+    return provider_candidates
+
+
+def select_provider(search_path: str, providers: list[Provider]):
+    provider_candidates = search_path_match_providers(search_path, providers)
     if len(provider_candidates) != 1:
         provider_candidates = [f"  - {c}" for c in provider_candidates]
         remove_providers_detail = ":\n" + "\n".join(provider_candidates) if provider_candidates else ""
@@ -351,20 +356,69 @@ def select_provider(search_path: str, providers: list[Provider]):
     return selected_provider
 
 
+async def select_providers_multi(search_path: str, providers: list[Provider]) -> list[Provider]:
+    """Select multiple providers matching the search path."""
+    provider_candidates = search_path_match_providers(search_path, providers)
+    if not provider_candidates:
+        raise ValueError(f"No matching agents found for '{search_path}'")
+
+    if len(provider_candidates) == 1:
+        return list(provider_candidates.values())
+
+    # Multiple matches - show selection menu
+    choices = [Choice(value=p.id, name=f"{p.agent_card.name} - {p.id}") for p in provider_candidates.values()]
+
+    selected_ids = await inquirer.checkbox(  # pyright: ignore[reportPrivateImportUsage]
+        message="Select agents to remove (use ↑/↓ to navigate, Space to select):",
+        choices=choices,
+        validate=EmptyInputValidator(),
+    ).execute_async()
+
+    return [provider_candidates[pid] for pid in (selected_ids or [])]
+
+
 @app.command("remove | uninstall | rm | delete")
 async def uninstall_agent(
     search_path: typing.Annotated[
-        str, typer.Argument(..., help="Short ID, agent name or part of the provider location")
-    ],
+        str, typer.Argument(help="Short ID, agent name or part of the provider location")
+    ] = "",
     yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
+    all: typing.Annotated[bool, typer.Option("--all", "-a", help="Remove all agents without selection.")] = False,
 ) -> None:
     """Remove agent"""
-    url = announce_server_action(f"Removing agent '{search_path}' from")
-    await confirm_server_action("Proceed with removing this agent from", url=url, yes=yes)
-    with console.status("Uninstalling agent (may take a few minutes)...", spinner="dots"):
-        async with configuration.use_platform_client():
-            remove_provider = select_provider(search_path, await Provider.list()).id
-            await Provider.delete(remove_provider)
+    if search_path and all:
+        console.error(
+            "[bold]Cannot specify both --all and a search path."
+            " Use --all to remove all agents, or provide a search path for specific agents."
+            "[/bold]"
+        )
+        raise typer.Exit(1)
+
+    async with configuration.use_platform_client():
+        providers = await Provider.list()
+        if len(providers) == 0:
+            console.info("No agents found to remove.")
+            return
+
+        if all:
+            selected_providers = providers
+        else:
+            selected_providers = await select_providers_multi(search_path, providers)
+
+        if len(selected_providers) == 1:
+            agent_names = f"{selected_providers[0].agent_card.name} - {selected_providers[0].id.split('-', 1)[0]}"
+        else:
+            agent_names = "\n".join([f"  - {p.agent_card.name} - {p.id.split('-', 1)[0]}" for p in selected_providers])
+
+        message = f"\n[bold]Selected agents to remove:[/bold]\n{agent_names}\n from "
+
+        url = announce_server_action(message)
+        await confirm_server_action("Proceed with removing these agents from", url=url, yes=yes)
+
+        with console.status("Uninstalling agent(s) (may take a few minutes)...", spinner="dots"):
+            for provider in selected_providers:
+                await Provider.delete(provider.id)
+
     await list_agents()
 
 

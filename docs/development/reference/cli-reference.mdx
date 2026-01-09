@@ -323,16 +323,17 @@ Remove agent
 **Usage**:
 
 ```console
-$ agentstack agent remove | uninstall | rm | delete [OPTIONS] SEARCH_PATH
+$ agentstack agent remove | uninstall | rm | delete [OPTIONS] [SEARCH_PATH]
 ```
 
 **Arguments**:
 
-* `SEARCH_PATH`: Short ID, agent name or part of the provider location  [required]
+* `[SEARCH_PATH]`: Short ID, agent name or part of the provider location
 
 **Options**:
 
 * `-y, --yes`: Skip confirmation prompts.
+* `-a, --all`: Remove all agents without selection.
 * `--help`: Show this message and exit.
 
 ### `agentstack agent logs`
@@ -1090,16 +1091,17 @@ Remove agent
 **Usage**:
 
 ```console
-$ agentstack remove | uninstall | rm | delete [OPTIONS] SEARCH_PATH
+$ agentstack remove | uninstall | rm | delete [OPTIONS] [SEARCH_PATH]
 ```
 
 **Arguments**:
 
-* `SEARCH_PATH`: Short ID, agent name or part of the provider location  [required]
+* `[SEARCH_PATH]`: Short ID, agent name or part of the provider location
 
 **Options**:
 
 * `-y, --yes`: Skip confirmation prompts.
+* `-a, --all`: Remove all agents without selection.
 * `--help`: Show this message and exit.
 
 ## `agentstack logs`
