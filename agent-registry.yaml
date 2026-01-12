@@ -1,4 +1,5 @@
 providers:
   - location: ghcr.io/i-am-bee/agentstack/agents/chat:0.5.1
   - location: ghcr.io/i-am-bee/agentstack/agents/rag:0.5.1
+  - location: ghcr.io/i-am-bee/agentstack/agents/canvas:0.5.1
   - location: ghcr.io/i-am-bee/agentstack/agents/form:0.5.1

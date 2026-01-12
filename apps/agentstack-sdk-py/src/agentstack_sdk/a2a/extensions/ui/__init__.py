@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from .agent_detail import *
+from .canvas import *
 from .citation import *
 from .error import *
 from .form_request import *

@@ -41,6 +41,10 @@
             "path": "agents/rag"
         },
         {
+            "name": "agent-canvas",
+            "path": "agents/canvas"
+        },
+        {
             "name": "helm",
             "path": "helm"
         }
