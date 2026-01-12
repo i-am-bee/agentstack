@@ -213,6 +213,28 @@ class SqlAlchemyContextRepository(IContextRepository):
             has_more=result.has_more,
         )
 
+    async def delete_history_from_id(self, *, context_id: UUID, from_id: UUID) -> int:
+        """Delete all history items from a specific item onwards (inclusive) for a context"""
+        # First, get the created_at timestamp of the item to delete from
+        query_item = select(context_history_table.c.created_at).where(
+            context_history_table.c.id == from_id,
+            context_history_table.c.context_id == context_id,
+        )
+        result = await self._connection.execute(query_item)
+        row = result.first()
+        if not row:
+            raise EntityNotFoundError("context_history_item", from_id)
+
+        created_at = row[0]
+
+        # Delete all history items from the specified item onwards (created_at >= the target item's created_at)
+        query = delete(context_history_table).where(
+            context_history_table.c.context_id == context_id,
+            context_history_table.c.created_at >= created_at,
+        )
+        result = await self._connection.execute(query)
+        return result.rowcount
+
     def _row_to_context_history_item(self, row: Row) -> ContextHistoryItem:
         return ContextHistoryItem(
             id=row.id,

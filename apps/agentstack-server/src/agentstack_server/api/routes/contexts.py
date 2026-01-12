@@ -151,3 +151,13 @@ async def list_context_history(
     pagination: Annotated[PaginationQuery, Query()],
 ) -> PaginatedResult[ContextHistoryItem]:
     return await context_service.list_history(context_id=context_id, user=user.user, pagination=pagination)
+
+
+@router.delete("/{context_id}/history", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_context_history_from_id(
+    context_id: UUID,
+    from_id: Annotated[UUID, Query()],
+    context_service: ContextServiceDependency,
+    user: Annotated[AuthorizedUser, Depends(RequiresContextPermissionsPath(context_data={"read", "write"}))],
+) -> None:
+    await context_service.delete_history_from_id(context_id=context_id, from_id=from_id, user=user.user)

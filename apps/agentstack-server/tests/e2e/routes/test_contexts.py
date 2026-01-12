@@ -269,3 +269,43 @@ async def test_context_provider_filtering(subtests):
     with subtests.test("get context includes provider_id"):
         fetched_context = await Context.get(context_with_provider1.id)
         assert fetched_context.provider_id == provider1.id
+
+
+@pytest.mark.usefixtures("clean_up", "setup_platform_client")
+async def test_delete_context_history_from_id(subtests):
+    """Test deleting context history from a specific item ID onwards."""
+
+    context = None
+    history_items = []
+    n_messages = 3
+
+    with subtests.test("create context and add multiple history items"):
+        context = await Context.create()
+        for i in range(n_messages):
+            message = AgentMessage(text=f"Test message {i}")
+            await context.add_history_item(data=message)
+
+        history = await context.list_history(limit=50)
+        history_items = history.items
+        assert len(history.items) == n_messages
+
+    with subtests.test("delete history from a middle item onwards"):
+        await context.delete_history_from_id(from_id=history_items[1].id)
+
+        remaining_history = await context.list_history(limit=50)
+        remaining_ids = [item.id for item in remaining_history.items]
+        assert len(remaining_history.items) == 1
+        assert history_items[0].id in remaining_ids
+        assert history_items[1].id not in remaining_ids
+        assert history_items[2].id not in remaining_ids
+
+    with subtests.test("delete with nonexistent item_id raises error"):
+        nonexistent_id = uuid.uuid4()
+        with pytest.raises(HTTPStatusError) as exc_info:
+            await context.delete_history_from_id(from_id=nonexistent_id)
+        assert exc_info.value.response.status_code == 404
+
+    with subtests.test("delete from first item deletes all"):
+        await context.delete_history_from_id(from_id=remaining_ids[0])
+        remaining_history = await context.list_history(limit=50)
+        assert len(remaining_history.items) == 0

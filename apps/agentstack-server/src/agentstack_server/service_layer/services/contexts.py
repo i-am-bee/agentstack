@@ -271,3 +271,12 @@ class ContextService:
                 order=pagination.order,
                 order_by=pagination.order_by,
             )
+
+    async def delete_history_from_id(self, *, context_id: UUID, from_id: UUID, user: User) -> None:
+        """Delete all history items from a specific item onwards (inclusive)"""
+        async with self._uow() as uow:
+            # Verify user has access to this context
+            await uow.contexts.get(context_id=context_id, user_id=user.id)
+            # Delete history items from the specified ID onwards
+            await uow.contexts.delete_history_from_id(context_id=context_id, from_id=from_id)
+            await uow.commit()

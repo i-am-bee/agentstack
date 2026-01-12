@@ -276,3 +276,45 @@ This advanced example demonstrates several key concepts:
 - **Memory Management**: Converts conversation history to framework format and loads it into agent memory
 - **Tool Usage**: Includes thinking tools and conditional requirements for better reasoning
 - **Persistent Storage**: Uses `PlatformContextStore` for conversation persistence
+
+### Editing and Removing Messages from History
+
+Sometimes you may need to edit a previous message in a conversation or remove messages that are no longer relevant. 
+The Agent Stack provides a mechanism to delete history items from a specific point onward, allowing you to effectively “rewind” the conversation and replace a message with an edited version. 
+Possible use cases include editing a previous message, clearing irrelevant exchanges, or removing messages that resulted from processing errors.
+
+Here's an example of a function for editing a user message in a conversation using the context API, assuming you know the message id:
+
+```python
+import uuid
+from typing import Any
+
+from a2a.types import Message, Part, Role, TextPart
+from agentstack_sdk.platform.context import Context
+from agentstack_sdk.server.context import RunContext
+
+async def edit_message_in_context(run_context: RunContext, message_id: str, new_text: str, metadata: dict[str, Any] | None = None):
+    """Edit a message in the conversation history"""
+    context = await Context.get(run_context.context_id)
+
+    # Step 1: Delete from this message onwards
+    await context.delete_history_from_id(from_id=message_id)
+
+    # Step 2: Add the corrected message
+    corrected_message = Message(
+        message_id=str(uuid.uuid4()),
+        parts=[Part(root=TextPart(text=new_text))],
+        role=Role.user,
+        context_id=context.id,
+        metadata=metadata,
+    )
+    await run_context.store(data=corrected_message)
+```
+
+<Tip>
+When you delete history from a specific message onwards, all messages created after that point (including the message itself) are removed. This effectively creates a new conversation branch starting from the message before the deleted one.
+</Tip>
+
+<Warning>
+This operation is permanent. Once messages are deleted, they cannot be recovered. Consider informing users about this operation or implementing a confirmation step for important conversations.
+</Warning>

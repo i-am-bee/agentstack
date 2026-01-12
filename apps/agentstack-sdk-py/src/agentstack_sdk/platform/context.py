@@ -238,6 +238,21 @@ class Context(pydantic.BaseModel):
                 )
             ).raise_for_status()
 
+    async def delete_history_from_id(
+        self: Context | str,
+        *,
+        from_id: UUID | str,
+        client: PlatformClient | None = None,
+    ) -> None:
+        """Delete all history items from a specific item onwards (inclusive)"""
+        target_context_id = self if isinstance(self, str) else self.id
+        async with client or get_platform_client() as platform_client:
+            _ = (
+                await platform_client.delete(
+                    url=f"/api/v1/contexts/{target_context_id}/history", params={"from_id": str(from_id)}
+                )
+            ).raise_for_status()
+
     async def list_history(
         self: Context | str,
         *,
