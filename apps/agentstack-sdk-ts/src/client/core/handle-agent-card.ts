@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { oAuthExtension, oAuthRequestExtension } from '../a2a/extensions/auth/oauth';
+import { oauthExtension, oauthRequestExtension } from '../a2a/extensions/auth/oauth';
 import { secretsExtension } from '../a2a/extensions/auth/secrets';
 import { embeddingExtension } from '../a2a/extensions/services/embedding';
 import { formExtension } from '../a2a/extensions/services/form';
@@ -19,7 +19,7 @@ import type { Fulfillments } from './extensions/types';
 const mcpExtensionExtractor = extractServiceExtensionDemands(mcpExtension);
 const llmExtensionExtractor = extractServiceExtensionDemands(llmExtension);
 const embeddingExtensionExtractor = extractServiceExtensionDemands(embeddingExtension);
-const oAuthExtensionExtractor = extractServiceExtensionDemands(oAuthExtension);
+const oauthExtensionExtractor = extractServiceExtensionDemands(oauthExtension);
 const settingsExtensionExtractor = extractServiceExtensionDemands(settingsExtension);
 const secretExtensionExtractor = extractServiceExtensionDemands(secretsExtension);
 const formExtensionExtractor = extractServiceExtensionDemands(formExtension);
@@ -27,7 +27,7 @@ const formExtensionExtractor = extractServiceExtensionDemands(formExtension);
 const fulfillMcpDemand = fulfillServiceExtensionDemand(mcpExtension);
 const fulfillLlmDemand = fulfillServiceExtensionDemand(llmExtension);
 const fulfillEmbeddingDemand = fulfillServiceExtensionDemand(embeddingExtension);
-const fulfillOAuthDemand = fulfillServiceExtensionDemand(oAuthExtension);
+const fulfillOAuthDemand = fulfillServiceExtensionDemand(oauthExtension);
 const fulfillSettingsDemand = fulfillServiceExtensionDemand(settingsExtension);
 const fulfillSecretDemand = fulfillServiceExtensionDemand(secretsExtension);
 const fulfillFormDemand = fulfillServiceExtensionDemand(formExtension);
@@ -38,7 +38,7 @@ export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) 
   const llmDemands = llmExtensionExtractor(extensions);
   const embeddingDemands = embeddingExtensionExtractor(extensions);
   const mcpDemands = mcpExtensionExtractor(extensions);
-  const oauthDemands = oAuthExtensionExtractor(extensions);
+  const oauthDemands = oauthExtensionExtractor(extensions);
   const settingsDemands = settingsExtensionExtractor(extensions);
   const secretDemands = secretExtensionExtractor(extensions);
   const formDemands = formExtensionExtractor(extensions);
@@ -80,7 +80,7 @@ export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) 
     if (oauthRedirectUri) {
       fulfilledMetadata = {
         ...fulfilledMetadata,
-        [oAuthRequestExtension.getUri()]: {
+        [oauthRequestExtension.getUri()]: {
           redirect_uri: oauthRedirectUri,
         },
       };
@@ -95,7 +95,7 @@ export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) 
       llmDemands,
       embeddingDemands,
       mcpDemands,
-      oAuthDemands: oauthDemands,
+      oauthDemands,
       settingsDemands,
       secretDemands,
       formDemands,

@@ -8,7 +8,7 @@ import type { z } from 'zod';
 import type { OAuthDemands, OAuthFulfillments } from '../../a2a/extensions/auth/oauth/types';
 import type { SecretDemands, SecretFulfillments } from '../../a2a/extensions/auth/secrets/types';
 import type { FormRender, FormValues } from '../../a2a/extensions/common/form/types';
-import type { ApprovalRequest } from '../../a2a/extensions/interactions/approval';
+import type { ApprovalRequest } from '../../a2a/extensions/interactions/approval/types';
 import type { EmbeddingDemands, EmbeddingFulfillments } from '../../a2a/extensions/services/embedding/types';
 import type { FormDemands, FormFulfillments } from '../../a2a/extensions/services/form/types';
 import type { LLMDemands, LLMFulfillments } from '../../a2a/extensions/services/llm/types';

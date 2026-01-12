@@ -6,22 +6,22 @@
 import type z from 'zod';
 
 import type {
-  oAuthDemandSchema,
-  oAuthDemandsSchema,
-  oAuthFulfillmentSchema,
-  oAuthFulfillmentsSchema,
-  oAuthMessageSchema,
-  oAuthRequestSchema,
-  oAuthResponseSchema,
+  oauthDemandSchema,
+  oauthDemandsSchema,
+  oauthFulfillmentSchema,
+  oauthFulfillmentsSchema,
+  oauthMessageSchema,
+  oauthRequestSchema,
+  oauthResponseSchema,
 } from './schemas';
 
-export type OAuthDemand = z.infer<typeof oAuthDemandSchema>;
-export type OAuthDemands = z.infer<typeof oAuthDemandsSchema>;
+export type OAuthDemand = z.infer<typeof oauthDemandSchema>;
+export type OAuthDemands = z.infer<typeof oauthDemandsSchema>;
 
-export type OAuthFulfillment = z.infer<typeof oAuthFulfillmentSchema>;
-export type OAuthFulfillments = z.infer<typeof oAuthFulfillmentsSchema>;
+export type OAuthFulfillment = z.infer<typeof oauthFulfillmentSchema>;
+export type OAuthFulfillments = z.infer<typeof oauthFulfillmentsSchema>;
 
-export type OAuthRequest = z.infer<typeof oAuthRequestSchema>;
-export type OAuthResponse = z.infer<typeof oAuthResponseSchema>;
+export type OAuthRequest = z.infer<typeof oauthRequestSchema>;
+export type OAuthResponse = z.infer<typeof oauthResponseSchema>;
 
-export type OAuthMessage = z.infer<typeof oAuthMessageSchema>;
+export type OAuthMessage = z.infer<typeof oauthMessageSchema>;

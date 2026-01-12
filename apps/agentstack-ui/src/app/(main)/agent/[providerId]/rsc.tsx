@@ -23,6 +23,8 @@ export async function fetchAgent(providerId: string) {
     }
   } catch (error) {
     await handleApiError(error);
+
+    throw error;
   }
 
   if (!agent) {

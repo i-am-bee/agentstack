@@ -5,7 +5,7 @@
 
 import type { AgentCapabilities, Message } from '../../a2a/protocol/types';
 import type { Fulfillments } from '../extensions/types';
-import { handleAgentCard } from '../handleAgentCard';
+import { handleAgentCard } from '../handle-agent-card';
 
 export const buildMessageBuilder =
   (agent: { capabilities: AgentCapabilities }) =>

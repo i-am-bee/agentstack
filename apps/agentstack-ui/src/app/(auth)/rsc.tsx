@@ -10,6 +10,7 @@ import { notFound, redirect } from 'next/navigation';
 import { getToken } from 'next-auth/jwt';
 
 import { isUnauthenticatedError } from '#api/errors.ts';
+import { logErrorDetails } from '#api/utils.ts';
 import { runtimeConfig } from '#contexts/App/runtime-config.ts';
 import { routes } from '#utils/router.ts';
 
@@ -39,7 +40,7 @@ export async function ensureToken(request: Request) {
 }
 
 export async function handleApiError(error: unknown) {
-  console.error(error);
+  logErrorDetails(error);
 
   if (isUnauthenticatedError(error)) {
     redirect(routes.signIn());

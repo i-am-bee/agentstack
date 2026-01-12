@@ -3,8 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { GetTaskResponse, GetTaskSuccessResponse } from '@a2a-js/sdk';
-import type { FilePart, FileWithUri, Message, Part, TextPart } from 'agentstack-sdk';
+import type {
+  FilePart,
+  FileWithUri,
+  GetTaskResponse,
+  GetTaskSuccessResponse,
+  Message,
+  Part,
+  TextPart,
+} from 'agentstack-sdk';
 import {
   type Citation,
   citationExtension,

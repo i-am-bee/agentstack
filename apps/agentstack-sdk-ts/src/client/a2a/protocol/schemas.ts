@@ -71,7 +71,7 @@ export const passwordOAuthFlowSchema = z.object({
   refreshUrl: z.string().optional(),
 });
 
-export const oAuthFlowsSchema = z.object({
+export const oauthFlowsSchema = z.object({
   authorizationCode: authorizationCodeOAuthFlowSchema.optional(),
   clientCredentials: clientCredentialsOAuthFlowSchema.optional(),
   implicit: implicitOAuthFlowSchema.optional(),
@@ -92,9 +92,9 @@ export const httpAuthSecuritySchemeSchema = z.object({
   bearerFormat: z.string().optional(),
 });
 
-export const oAuth2SecuritySchemeSchema = z.object({
+export const oauth2SecuritySchemeSchema = z.object({
   type: z.literal('oauth2'),
-  flows: oAuthFlowsSchema,
+  flows: oauthFlowsSchema,
   description: z.string().optional(),
   oauth2MetadataUrl: z.string().optional(),
 });
@@ -113,7 +113,7 @@ export const mutualTlsSecuritySchemeSchema = z.object({
 export const securitySchemeSchema = z.union([
   apiKeySecuritySchemeSchema,
   httpAuthSecuritySchemeSchema,
-  oAuth2SecuritySchemeSchema,
+  oauth2SecuritySchemeSchema,
   openIdConnectSecuritySchemeSchema,
   mutualTlsSecuritySchemeSchema,
 ]);
@@ -139,12 +139,6 @@ export const agentCardSchema = z.object({
   securitySchemes: z.record(z.string(), securitySchemeSchema).optional(),
 });
 
-export const textPartSchema = z.object({
-  kind: z.literal('text'),
-  text: z.string(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
-});
-
 export const fileWithBytesSchema = z.object({
   bytes: z.string(),
   mimeType: z.string().optional(),
@@ -155,6 +149,12 @@ export const fileWithUriSchema = z.object({
   uri: z.string(),
   mimeType: z.string().optional(),
   name: z.string().optional(),
+});
+
+export const textPartSchema = z.object({
+  kind: z.literal('text'),
+  text: z.string(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const filePartSchema = z.object({
@@ -236,3 +236,88 @@ export const taskArtifactUpdateEventSchema = z.object({
   lastChunk: z.boolean().optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
+
+const errorBaseSchema = z.object({
+  message: z.string(),
+  data: z.record(z.string(), z.unknown()).optional(),
+});
+
+export const jsonRpcErrorSchema = errorBaseSchema.extend({
+  code: z.number(),
+});
+
+export const jsonParseErrorSchema = errorBaseSchema.extend({
+  code: z.literal(-32700),
+});
+
+export const invalidRequestErrorSchema = errorBaseSchema.extend({
+  code: z.literal(-32600),
+});
+
+export const methodNotFoundErrorSchema = errorBaseSchema.extend({
+  code: z.literal(-32601),
+});
+
+export const invalidParamsErrorSchema = errorBaseSchema.extend({
+  code: z.literal(-32602),
+});
+
+export const internalErrorSchema = errorBaseSchema.extend({
+  code: z.literal(-32603),
+});
+
+export const taskNotFoundErrorSchema = errorBaseSchema.extend({
+  code: z.literal(-32001),
+});
+
+export const taskNotCancelableErrorSchema = errorBaseSchema.extend({
+  code: z.literal(-32002),
+});
+
+export const pushNotificationNotSupportedErrorSchema = errorBaseSchema.extend({
+  code: z.literal(-32003),
+});
+
+export const unsupportedOperationErrorSchema = errorBaseSchema.extend({
+  code: z.literal(-32004),
+});
+
+export const contentTypeNotSupportedErrorSchema = errorBaseSchema.extend({
+  code: z.literal(-32005),
+});
+
+export const invalidAgentResponseErrorSchema = errorBaseSchema.extend({
+  code: z.literal(-32006),
+});
+
+export const authenticatedExtendedCardNotConfiguredErrorSchema = errorBaseSchema.extend({
+  code: z.literal(-32007),
+});
+
+export const jsonRpcErrorResponseSchema = z.object({
+  jsonrpc: z.literal('2.0'),
+  id: z.union([z.string(), z.number()]).nullable(),
+  error: z.union([
+    jsonRpcErrorSchema,
+    jsonParseErrorSchema,
+    invalidRequestErrorSchema,
+    methodNotFoundErrorSchema,
+    invalidParamsErrorSchema,
+    internalErrorSchema,
+    taskNotFoundErrorSchema,
+    taskNotCancelableErrorSchema,
+    pushNotificationNotSupportedErrorSchema,
+    unsupportedOperationErrorSchema,
+    contentTypeNotSupportedErrorSchema,
+    invalidAgentResponseErrorSchema,
+    authenticatedExtendedCardNotConfiguredErrorSchema,
+  ]),
+});
+
+export const getTaskSuccessResponseSchema = z.object({
+  jsonrpc: z.literal('2.0'),
+  id: z.union([z.string(), z.number()]).nullable(),
+  result: taskSchema,
+});
+
+export const getTaskResponseSchema = z.union([jsonRpcErrorResponseSchema, getTaskSuccessResponseSchema]);

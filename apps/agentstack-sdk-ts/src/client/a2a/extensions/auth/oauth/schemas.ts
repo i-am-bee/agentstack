@@ -5,30 +5,30 @@
 
 import z from 'zod';
 
-export const oAuthDemandSchema = z.object({
+export const oauthDemandSchema = z.object({
   redirect_uri: z.boolean(),
 });
 
-export const oAuthDemandsSchema = z.object({
-  oauth_demands: z.record(z.string(), oAuthDemandSchema),
+export const oauthDemandsSchema = z.object({
+  oauth_demands: z.record(z.string(), oauthDemandSchema),
 });
 
-export const oAuthFulfillmentSchema = z.object({
+export const oauthFulfillmentSchema = z.object({
   redirect_uri: z.string(),
 });
 
-export const oAuthFulfillmentsSchema = z.object({
-  oauth_fulfillments: z.record(z.string(), oAuthFulfillmentSchema),
+export const oauthFulfillmentsSchema = z.object({
+  oauth_fulfillments: z.record(z.string(), oauthFulfillmentSchema),
 });
 
-export const oAuthRequestSchema = z.object({
+export const oauthRequestSchema = z.object({
   authorization_endpoint_url: z.string(),
 });
 
-export const oAuthResponseSchema = z.object({
+export const oauthResponseSchema = z.object({
   redirect_uri: z.string(),
 });
 
-export const oAuthMessageSchema = z.object({
-  data: oAuthResponseSchema,
+export const oauthMessageSchema = z.object({
+  data: oauthResponseSchema,
 });

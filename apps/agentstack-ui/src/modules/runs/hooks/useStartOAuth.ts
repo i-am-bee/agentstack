@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { oAuthMessageSchema } from 'agentstack-sdk';
+import { oauthMessageSchema } from 'agentstack-sdk';
 import { useCallback } from 'react';
 
 import type { TaskId } from '#modules/tasks/api/types.ts';
@@ -30,7 +30,7 @@ export function useStartOAuth({ onSuccess }: Props) {
       }, 500);
 
       async function handler(message: unknown) {
-        const { success, data: parsedMessage } = oAuthMessageSchema.safeParse(message);
+        const { success, data: parsedMessage } = oauthMessageSchema.safeParse(message);
         if (!success) {
           return;
         }

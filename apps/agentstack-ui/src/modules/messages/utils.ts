@@ -85,7 +85,7 @@ export function getMessageForm(message: UIMessage) {
   return form;
 }
 
-export function getMessageOauth(message: UIMessage) {
+export function getMessageOAuth(message: UIMessage) {
   const oauth = message.parts.findLast((part) => part.kind === UIMessagePartKind.OAuth);
 
   return oauth;

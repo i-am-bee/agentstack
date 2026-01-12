@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ApiErrorException } from 'agentstack-sdk';
-import { isApiError, isHttpError } from 'agentstack-sdk';
+import { ApiErrorException, isApiError, isHttpError } from 'agentstack-sdk';
 
 import type { QueryMetadataError } from '#contexts/QueryProvider/types.ts';
 import type { Toast } from '#contexts/Toast/toast-context.ts';
@@ -41,11 +40,19 @@ export function getErrorMessage(error: unknown, includeMessage = true) {
   return typeof error === 'object' && isNotNull(error) && 'message' in error ? (error.message as string) : undefined;
 }
 
+export function logErrorDetails(error: unknown) {
+  console.error(error);
+
+  if (error instanceof ApiErrorException && 'details' in error.apiError) {
+    console.error(error.apiError.details);
+  }
+}
+
 export async function fetchEntity<T>(fetchFn: () => Promise<T>): Promise<T | undefined> {
   try {
     return await fetchFn();
   } catch (error) {
-    console.error(error);
+    logErrorDetails(error);
 
     return undefined;
   }

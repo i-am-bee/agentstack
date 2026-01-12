@@ -3,9 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { GetTaskResponse } from '@a2a-js/sdk';
 import type { A2AClient } from '@a2a-js/sdk/client';
-import type { Message, TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from 'agentstack-sdk';
+import type { GetTaskResponse, TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from 'agentstack-sdk';
 import { handleAgentCard, handleTaskStatusUpdate, resolveUserMetadata } from 'agentstack-sdk';
 import { defaultIfEmpty, filter, lastValueFrom, Subject } from 'rxjs';
 import { match } from 'ts-pattern';
@@ -43,8 +42,7 @@ function handleStatusUpdate<UIGenericPart = never>(
     return [];
   }
 
-  // TODO: Resolve so that we don't have to use typecasting
-  const metadataParts = processMessageMetadata(message as Message);
+  const metadataParts = processMessageMetadata(message);
   const contentParts = processParts(message.parts);
 
   const genericParts = onStatusUpdate?.(event) || [];
