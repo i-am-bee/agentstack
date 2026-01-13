@@ -5,7 +5,7 @@
 
 import '../styles/style.scss';
 
-import { APP_FAVICON_SVG, BASE_PATH, THEME_STORAGE_KEY } from '@i-am-bee/agentstack-ui';
+import { APP_FAVICON_SVG, APP_FAVICON_SVG_DARK, BASE_PATH, THEME_STORAGE_KEY } from '@i-am-bee/agentstack-ui';
 import type { Metadata } from 'next';
 
 import { AnalyticsScript } from '@/components/AnalyticsScript/AnalyticsScript';
@@ -34,11 +34,12 @@ const darkModeScript = `
 `;
 
 const icon = `${BASE_PATH}${APP_FAVICON_SVG}`;
+const darkIcon = `${BASE_PATH}${APP_FAVICON_SVG_DARK}`;
 
 export const metadata: Metadata = {
   title: APP_NAME,
   icons: {
-    icon: icon,
+    icon: [{ url: icon }, { url: darkIcon, media: '(prefers-color-scheme: dark)' }],
     shortcut: icon,
   },
 };
