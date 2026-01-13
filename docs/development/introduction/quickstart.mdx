@@ -42,7 +42,7 @@ Install QEMU via package manager ([instructions](https://www.qemu.org/download/)
 Open a new terminal and run:
 
 ```bash
-uv tool install --force --python-preference=only-managed --python=3.13 agentstack-cli; agentstack self install
+uv python install --quiet --python-preference=only-managed --no-bin 3.13 && uv tool install --refresh --force --python-preference=only-managed --python=3.13 agentstack-cli && agentstack self install
 ```
 
 Follow the interactive prompts to finish installation and setup.
@@ -125,10 +125,34 @@ uv tool update-shell
 Close and reopen your terminal after installation.
 
 </Step>
+<Step title="Configure Ollama (optional)">
+
+If you plan to use Ollama, we recommend installing the [Windows app](https://ollama.com/download/windows).
+
+In the Ollama app settings, it's necessary to enable *"Expose Ollama to the network"* in order for it to be accessible by Agent Stack. After enabling this option, you may get a firewall prompt where you need to select *"Allow"*.
+
+</Step>
+<Step title="Configure local agents">
+
+Run in PowerShell:
+
+```bash
+setx HOST 0.0.0.0
+```
+
+Close and reopen your terminal after this.
+
+<Info>
+
+This will make local agents accessible over the local network, which is needed for Agent Stack to access them. When running local agents, you may encounter firewall prompts where you need to select *"Allow"*.
+
+</Info>
+
+</Step>
 <Step title="Install Agent Stack">
 
 ```bash
-uv tool install --force --python-preference=only-managed --python=3.13 agentstack-cli; agentstack self install
+uv python install --quiet --python-preference=only-managed --no-bin 3.13; uv tool install --refresh --force --python-preference=only-managed --python=3.13 agentstack-cli; agentstack self install
 ```
 
 Follow the interactive prompts to finish the installation and setup.

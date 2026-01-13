@@ -36,7 +36,7 @@ class ModelProviderError(Exception): ...
 
 @functools.cache
 def _ollama_exe() -> str:
-    for exe in ("ollama", "ollama.exe"):
+    for exe in ("ollama", "ollama.exe", os.environ.get("LOCALAPPDATA", "") + "\\Programs\\Ollama\\ollama.exe"):
         if shutil.which(exe):
             return exe
     raise RuntimeError("Ollama executable not found")

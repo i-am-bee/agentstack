@@ -12,8 +12,6 @@ import typing
 import anyio
 import pydantic
 import yaml
-from InquirerPy import inquirer
-from InquirerPy.base.control import Choice
 
 from agentstack_cli.commands.platform.base_driver import BaseDriver
 from agentstack_cli.configuration import Configuration
@@ -87,29 +85,9 @@ class WSLDriver(BaseDriver):
             if not config.has_section("wsl2"):
                 config.add_section("wsl2")
 
-            if (
-                config.get("wsl2", "networkingMode", fallback=None) != "mirrored"
-                and await inquirer.select(  # type: ignore
-                    textwrap.dedent("""\
-                    The Agent Stack platform needs to switch WSL to `mirrored` networking mode in order to support connecting to Windows applications -- like Ollama or self-registered agents. If you skip this step, these features won't be available.
-
-                    However, the default `nat` mode is required by some software, like Docker Desktop or Rancher Desktop, to function properly. If you use such software, you may want to keep the default `nat` mode.
-
-                    (It can be changed anytime later in C:/Users/<your name>/.wslconfig, followed by `wsl --shutdown` and `agentstack platform start` to apply changes.)
-                    """),
-                    choices=[
-                        Choice(
-                            value=True,
-                            name="Change WSL2 networking mode to `mirrored`",
-                        ),
-                        Choice(
-                            value=False,
-                            name="Leave WSL2 networking mode as `nat`",
-                        ),
-                    ],
-                ).execute_async()
-            ):
-                config.set("wsl2", "networkingMode", "mirrored")
+            wsl2_networking_mode = config.get("wsl2", "networkingMode", fallback=None)
+            if wsl2_networking_mode and wsl2_networking_mode != "nat":
+                config.set("wsl2", "networkingMode", "nat")
                 f.seek(0)
                 f.truncate(0)
                 config.write(f)
@@ -154,6 +132,16 @@ class WSLDriver(BaseDriver):
         values_file: pathlib.Path | None = None,
         import_images: list[str] | None = None,
     ) -> None:
+        host_ip = (
+            (
+                await self.run_in_vm(
+                    ["bash", "-c", "ip route show | grep -i default | cut -d' ' -f3"],
+                    "Detecting host IP address",
+                )
+            )
+            .stdout.decode()
+            .strip()
+        )
         await self.run_in_vm(
             ["k3s", "kubectl", "apply", "-f", "-"],
             "Setting up internal networking",
@@ -163,7 +151,7 @@ class WSLDriver(BaseDriver):
                     "kind": "ConfigMap",
                     "metadata": {"name": "coredns-custom", "namespace": "kube-system"},
                     "data": {
-                        "default.server": "host.docker.internal {\n    hosts {\n        127.0.0.1 host.docker.internal\n        fallthrough\n    }\n}"
+                        "default.server": f"host.docker.internal {{\n    hosts {{\n        {host_ip} host.docker.internal\n        fallthrough\n    }}\n}}"
                     },
                 }
             ).encode(),
