@@ -40,7 +40,6 @@ export const metadata: Metadata = {
   title: APP_NAME,
   icons: {
     icon: [{ url: icon }, { url: darkIcon, media: '(prefers-color-scheme: dark)' }],
-    shortcut: icon,
   },
 };
 
