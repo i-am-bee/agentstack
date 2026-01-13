@@ -131,7 +131,11 @@ class WSLDriver(BaseDriver):
         set_values_list: list[str],
         values_file: pathlib.Path | None = None,
         import_images: list[str] | None = None,
+        pull_on_host: bool = False,
     ) -> None:
+        if pull_on_host:
+            raise NotImplementedError("Pulling on host is not supported on this platform.")
+
         host_ip = (
             (
                 await self.run_in_vm(

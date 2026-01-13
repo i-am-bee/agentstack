@@ -68,6 +68,13 @@ async def start(
             "--import", help="Import an image from a local Docker CLI into Agent Stack platform", default_factory=list
         ),
     ],
+    pull_on_host: typing.Annotated[
+        bool,
+        typer.Option(
+            "--pull-on-host",
+            help="Pull images on host Docker daemon and import them instead of pulling inside the VM. Acts as a pull cache layer.",
+        ),
+    ] = False,
     values_file: typing.Annotated[
         pathlib.Path | None, typer.Option("-f", help="Set Helm chart values using yaml values file")
     ] = None,
@@ -87,7 +94,12 @@ async def start(
         driver = get_driver(vm_name=vm_name)
         await driver.create_vm()
         await driver.install_tools()
-        await driver.deploy(set_values_list=set_values_list, values_file=values_file_path, import_images=import_images)
+        await driver.deploy(
+            set_values_list=set_values_list,
+            values_file=values_file_path,
+            import_images=import_images,
+            pull_on_host=pull_on_host,
+        )
 
         with console.status("Waiting for Agent Stack platform to be ready...", spinner="dots"):
             timeout = datetime.timedelta(minutes=20)

@@ -15,6 +15,7 @@ from tenacity import AsyncRetrying, stop_after_attempt
 
 import agentstack_cli.commands.platform.istio
 from agentstack_cli.configuration import Configuration
+from agentstack_cli.utils import run_command
 
 
 class BaseDriver(abc.ABC):
@@ -104,6 +105,7 @@ class BaseDriver(abc.ABC):
         set_values_list: list[str],
         values_file: pathlib.Path | None = None,
         import_images: list[str] | None = None,
+        pull_on_host: bool = False,
     ) -> None:
         await self.run_in_vm(
             ["sh", "-c", "mkdir -p /tmp/agentstack && cat >/tmp/agentstack/chart.tgz"],
@@ -151,10 +153,18 @@ class BaseDriver(abc.ABC):
                     attempt_num = attempt.retry_state.attempt_number
                     image_id = image if "." in image.split("/")[0] else f"docker.io/{image}"
                     self.loaded_images.add(image_id)
-                    await self.run_in_vm(
-                        ["k3s", "ctr", "image", "pull", image_id],
-                        f"Pulling image {image}" + (f" (attempt {attempt_num})" if attempt_num > 1 else ""),
-                    )
+
+                    if pull_on_host:
+                        await run_command(
+                            ["docker", "pull", image_id],
+                            f"Pulling image {image} on host" + (f" (attempt {attempt_num})" if attempt_num > 1 else ""),
+                        )
+                        await self.import_image(image_id)
+                    else:
+                        await self.run_in_vm(
+                            ["k3s", "ctr", "image", "pull", image_id],
+                            f"Pulling image {image}" + (f" (attempt {attempt_num})" if attempt_num > 1 else ""),
+                        )
 
         if any("auth.oidc.enabled=true" in value.lower() for value in set_values_list):
             await agentstack_cli.commands.platform.istio.install(driver=self)
