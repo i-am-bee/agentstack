@@ -65,9 +65,7 @@ async def canvas_agent(
             if isinstance(part.root, TextPart):
                 original_content = part.root.text
                 break
-        
         selected_text = original_content[edit_request.start_index:edit_request.end_index]
-
         system_prompt = f"""You are an expert content editor. The user has selected a part of a larger text and wants to edit it.
 
 The user's instruction is: "{edit_request.description}"
@@ -85,82 +83,48 @@ This selection is part of the following full document:
 Your task is to apply the user's instruction ONLY to the selected text and then return the ENTIRE document with just that selection modified. Do not add any extra commentary or explanation.
 """
         user_prompt = edit_request.description
-
-        # Create a new artifact for the edited content
-        edited_artifact = AgentArtifact(
+        artifact = AgentArtifact(
             name=f"Edited - {edit_request.artifact.name}",
             parts=[TextPart(text="")],
         )
-        yield edited_artifact
-
-        stream = await client.chat.completions.create(
-            model=llm_config.api_model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            stream=True,
-        )
-
-        buffer = ""
-        async for chunk in stream:
-            if not chunk.choices:
-                continue
-            content_delta = chunk.choices[0].delta.content or ""
-            if content_delta:
-                buffer += content_delta
-                yield AgentArtifact(
-                    artifact_id=edited_artifact.artifact_id,
-                    name=edited_artifact.name,
-                    parts=[TextPart(text=content_delta)],
-                )
-
-        final_artifact = AgentArtifact(
-            artifact_id=edited_artifact.artifact_id,
-            name=edited_artifact.name,
-            parts=[TextPart(text=buffer)],
-        )
-        await context.store(final_artifact)
-
     else:
-        # Create a new artifact
         system_prompt = "You are a helpful assistant. Output only the requested text, without any additional explanation or preamble. Use Markdown syntax in your output. Be mindful of the need for double new lines in order to make a new line."
         user_prompt = user_text_content
-
         artifact = AgentArtifact(
             name="Response",
             parts=[TextPart(text="")],
         )
-        yield artifact
 
-        stream = await client.chat.completions.create(
-            model=llm_config.api_model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            stream=True,
-        )
+    yield artifact
 
-        buffer = ""
-        async for chunk in stream:
-            if not chunk.choices:
-                continue
-            content_delta = chunk.choices[0].delta.content or ""
-            if content_delta:
-                buffer += content_delta
-                yield AgentArtifact(
-                    artifact_id=artifact.artifact_id,
-                    name=artifact.name,
-                    parts=[TextPart(text=content_delta)],
-                )
+    stream = await client.chat.completions.create(
+        model=llm_config.api_model,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        stream=True,
+    )
 
-        final_artifact = AgentArtifact(
-            artifact_id=artifact.artifact_id,
-            name=artifact.name,
-            parts=[TextPart(text=buffer)],
-        )
-        await context.store(final_artifact)
+    buffer = ""
+    async for chunk in stream:
+        if not chunk.choices:
+            continue
+        content_delta = chunk.choices[0].delta.content or ""
+        if content_delta:
+            buffer += content_delta
+            yield AgentArtifact(
+                artifact_id=artifact.artifact_id,
+                name=artifact.name,
+                parts=[TextPart(text=content_delta)],
+            )
+
+    final_artifact = AgentArtifact(
+        artifact_id=artifact.artifact_id,
+        name=artifact.name,
+        parts=[TextPart(text=buffer)],
+    )
+    await context.store(final_artifact)
 
 
 def serve():
