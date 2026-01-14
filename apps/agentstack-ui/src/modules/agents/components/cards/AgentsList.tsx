@@ -4,10 +4,12 @@
  */
 
 'use client';
+
+import type { ListProvidersResponse } from 'agentstack-sdk';
+
 import { SkeletonItems } from '#components/SkeletonItems/SkeletonItems.tsx';
 import { useListAgents } from '#modules/agents/api/queries/useListAgents.ts';
 import { ListAgentsOrderBy } from '#modules/agents/api/types.ts';
-import type { ListProvidersResponse } from '#modules/providers/api/types.ts';
 
 import classes from './AgentsList.module.scss';
 import { AgentsListItem } from './AgentsListItem';
