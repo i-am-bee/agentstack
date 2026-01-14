@@ -57,7 +57,7 @@ def get_driver(vm_name: str = "agentstack") -> BaseDriver:
         sys.exit(1)
 
 
-@app.command("start")
+@app.command("start", help="Start Agent Stack platform. [Local only]")
 async def start(
     set_values_list: typing.Annotated[
         list[str], typer.Option("--set", help="Set Helm chart values using <key>=<value> syntax", default_factory=list)
@@ -81,7 +81,6 @@ async def start(
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
 ):
-    """Start Agent Stack platform."""
     import agentstack_cli.commands.server
 
     values_file_path = None
@@ -136,12 +135,11 @@ async def start(
         await agentstack_cli.commands.server.server_login("http://localhost:8333")
 
 
-@app.command("stop")
+@app.command("stop", help="Stop Agent Stack platform. [Local only]")
 async def stop(
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
 ):
-    """Stop Agent Stack platform."""
     with verbosity(verbose):
         driver = get_driver(vm_name=vm_name)
         if not await driver.status():
@@ -151,25 +149,23 @@ async def stop(
         console.success("Agent Stack platform stopped successfully.")
 
 
-@app.command("delete")
+@app.command("delete", help="Delete Agent Stack platform. [Local only]")
 async def delete(
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
 ):
-    """Delete Agent Stack platform."""
     with verbosity(verbose):
         driver = get_driver(vm_name=vm_name)
         await driver.delete()
         console.success("Agent Stack platform deleted successfully.")
 
 
-@app.command("import")
+@app.command("import", help="Import a local docker image into the Agent Stack platform. [Local only]")
 async def import_image_cmd(
     tag: typing.Annotated[str, typer.Argument(help="Docker image tag to import")],
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
 ):
-    """Import a local docker image into the Agent Stack platform."""
     with verbosity(verbose):
         driver = get_driver(vm_name=vm_name)
         if (await driver.status()) != "running":
@@ -178,13 +174,12 @@ async def import_image_cmd(
         await driver.import_images(tag)
 
 
-@app.command("exec")
+@app.command("exec", help="For debugging -- execute a command inside the Agent Stack platform VM. [Local only]")
 async def exec_cmd(
     command: typing.Annotated[list[str] | None, typer.Argument()] = None,
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
 ):
-    """For debugging -- execute a command inside the Agent Stack platform VM."""
     with verbosity(verbose, show_success_status=False):
         driver = get_driver(vm_name=vm_name)
         if (await driver.status()) != "running":

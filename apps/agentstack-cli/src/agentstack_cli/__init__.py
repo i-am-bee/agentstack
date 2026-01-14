@@ -29,28 +29,28 @@ Usage: agentstack [OPTIONS] COMMAND [ARGS]...
 ╭─ Getting Started ──────────────────────────────────────────────────────────╮
 │ ui       Launch the web interface                                          │
 │ list     View all available agents                                         │
+│ info     Show agent details                                                │
 │ run      Run an agent interactively                                        │
 ╰────────────────────────────────────────────────────────────────────────────╯
 
-╭─ Agent Management ─────────────────────────────────────────────────────────╮
+╭─ Agent Management [Admin only] ────────────────────────────────────────────╮
 │ add                               Install an agent (Docker, GitHub)        │
 │ remove                            Uninstall an agent                       │
 │ update                            Update an agent                          │
-│ info                              Show agent details                       │
 │ logs                              Stream agent execution logs              │
 │ env                               Manage agent environment variables       │
 │ build                             Build an agent remotely                  │
-│ client-side-build                 Build an agent container image locally   │
+│ client-side-build                 Build an agent container image locally [Local only]│
 ╰────────────────────────────────────────────────────────────────────────────╯
 
 ╭─ Platform & Configuration ─────────────────────────────────────────────────╮
-│ model           Configure 15+ LLM providers                                │
-│ platform        Start, stop, or delete local platform                      │
+│ model           Configure 15+ LLM providers [Admin only]                   │
+│ platform        Start, stop, or delete local platform [Local only]         │
 │ server          Connect to remote Agent Stack servers                      │
-│ user            Manage users and roles                                     │
+│ user            Manage users and roles [Admin only]                        │
 │ self version    Show Agent Stack CLI and Platform version                  │
-│ self upgrade    Upgrade Agent Stack CLI and Platform                       │
-│ self uninstall  Uninstall Agent Stack CLI and Platform                     │
+│ self upgrade    Upgrade Agent Stack CLI and Platform [Local only]          │
+│ self uninstall  Uninstall Agent Stack CLI and Platform [Local only]        │
 ╰────────────────────────────────────────────────────────────────────────────╯
 
 ╭─ Options ──────────────────────────────────────────────────────────────────╮
@@ -74,13 +74,26 @@ def main(
         raise typer.Exit()
 
 
-app.add_typer(agentstack_cli.commands.model.app, name="model", no_args_is_help=True, help="Manage model providers.")
-app.add_typer(agentstack_cli.commands.agent.app, name="agent", no_args_is_help=True, help="Manage agents.")
 app.add_typer(
-    agentstack_cli.commands.platform.app, name="platform", no_args_is_help=True, help="Manage Agent Stack platform."
+    agentstack_cli.commands.model.app, name="model", no_args_is_help=True, help="Manage model providers. [Admin only]"
 )
 app.add_typer(
-    agentstack_cli.commands.mcp.app, name="mcp", no_args_is_help=True, help="Manage MCP servers and toolkits."
+    agentstack_cli.commands.agent.app,
+    name="agent",
+    no_args_is_help=True,
+    help="Manage agents. Some commands are [Admin only].",
+)
+app.add_typer(
+    agentstack_cli.commands.platform.app,
+    name="platform",
+    no_args_is_help=True,
+    help="Manage Agent Stack platform. [Local only]",
+)
+app.add_typer(
+    agentstack_cli.commands.mcp.app,
+    name="mcp",
+    no_args_is_help=True,
+    help="Manage MCP servers and toolkits. Some commands are [Admin only].",
 )
 app.add_typer(agentstack_cli.commands.build.app, name="", no_args_is_help=True, help="Build agent images.")
 app.add_typer(
@@ -100,7 +113,7 @@ app.add_typer(
     agentstack_cli.commands.user.app,
     name="user",
     no_args_is_help=True,
-    help="Manage users.",
+    help="Manage users. [Admin only]",
 )
 
 

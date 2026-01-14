@@ -23,13 +23,12 @@ ROLE_DISPLAY = {
 }
 
 
-@app.command("list")
+@app.command("list", help="List platform users [Admin only]")
 async def list_users(
     email: typing.Annotated[str | None, typer.Option(help="Filter by email (case-insensitive partial match)")] = None,
     limit: typing.Annotated[int, typer.Option(help="Results per page (1-100)")] = 40,
     after: typing.Annotated[str | None, typer.Option(help="Pagination cursor (page_token)")] = None,
 ):
-    """List platform users (admin only)."""
     announce_server_action("Listing users on")
 
     async with configuration.use_platform_client():
@@ -68,13 +67,12 @@ async def list_users(
         console.print(f"\n[dim]Use --after {next_page_token} to see more[/dim]")
 
 
-@app.command("set-role")
+@app.command("set-role", help="Change user role [Admin only]")
 async def set_role(
     user_id: typing.Annotated[str, typer.Argument(help="User UUID")],
     role: typing.Annotated[UserRole, typer.Argument(help="Target role (admin, developer, user)")],
     yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ):
-    """Change user role (admin only)."""
     url = announce_server_action(f"Changing user {user_id} to role '{role}' on")
     await confirm_server_action("Proceed with role change on", url=url, yes=yes)
 

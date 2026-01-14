@@ -28,7 +28,7 @@ async def add_provider(
     ] = Transport.STREAMABLE_HTTP,
     yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ) -> None:
-    """Install discovered MCP server."""
+    """Install discovered MCP server. [Admin only]"""
 
     url = announce_server_action(f"Registering MCP server '{name}' on")
     await confirm_server_action("Proceed with registering this MCP server on", url=url, yes=yes)
@@ -65,7 +65,7 @@ async def uninstall_provider(
     name: typing.Annotated[str, typer.Argument(help="Name of the MCP provider to remove")],
     yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ) -> None:
-    """Remove MCP server."""
+    """Remove MCP server. [Admin only]"""
     url = announce_server_action(f"Removing MCP server '{name}' from")
     await confirm_server_action("Proceed with removing this MCP server from", url=url, yes=yes)
     provider = await _get_provider_by_name(name)
@@ -107,7 +107,7 @@ async def toolkit(
     tools: typing.Annotated[list[str], typer.Argument(help="Tools to put in the toolkit")],
     yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ) -> None:
-    """Create a toolkit."""
+    """Create a toolkit. [Admin only]"""
 
     url = announce_server_action("Creating MCP toolkit on")
     await confirm_server_action("Proceed with creating this MCP toolkit on", url=url, yes=yes)

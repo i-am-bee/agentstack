@@ -191,7 +191,7 @@ async def add_agent(
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
     yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ) -> None:
-    """Add a docker image or GitHub repository.
+    """Add a docker image or GitHub repository. [Admin only]
 
     This command supports a variety of GitHub URL formats for deploying agents:
 
@@ -276,7 +276,7 @@ async def update_agent(
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
     yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ) -> None:
-    """Upgrade agent to a newer docker image or build from GitHub repository"""
+    """Upgrade agent to a newer docker image or build from GitHub repository. [Admin only]"""
     with verbosity(verbose):
         async with configuration.use_platform_client():
             providers = await Provider.list()
@@ -405,7 +405,7 @@ async def uninstall_agent(
     yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
     all: typing.Annotated[bool, typer.Option("--all", "-a", help="Remove all agents without selection.")] = False,
 ) -> None:
-    """Remove agent"""
+    """Remove agent. [Admin only]"""
     if search_path and all:
         console.error(
             "[bold]Cannot specify both --all and a search path."
@@ -456,7 +456,7 @@ async def stream_logs(
         str, typer.Argument(..., help="Short ID, agent name or part of the provider location")
     ],
 ):
-    """Stream agent provider logs"""
+    """Stream agent provider logs. [Admin only]"""
     announce_server_action(f"Streaming logs for '{search_path}' from")
     async with configuration.use_platform_client():
         provider = select_provider(search_path, await Provider.list()).id
@@ -1286,7 +1286,7 @@ async def add_env(
     env: typing.Annotated[list[str], typer.Argument(help="Environment variables to pass to agent")],
     yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ) -> None:
-    """Store environment variables"""
+    """Store environment variables. [Admin only]"""
     url = announce_server_action(f"Adding environment variables for '{search_path}' on")
     await confirm_server_action("Apply these environment variable changes on", url=url, yes=yes)
     env_vars = dict(parse_env_var(var) for var in env)
@@ -1302,7 +1302,7 @@ async def list_env(
         str, typer.Argument(..., help="Short ID, agent name or part of the provider location")
     ],
 ):
-    """List stored environment variables"""
+    """List stored environment variables. [Admin only]"""
     announce_server_action(f"Listing environment variables for '{search_path}' on")
     async with configuration.use_platform_client():
         provider = select_provider(search_path, await Provider.list())
@@ -1317,6 +1317,7 @@ async def remove_env(
     env: typing.Annotated[list[str], typer.Argument(help="Environment variable(s) to remove")],
     yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ):
+    """Remove environment variable(s). [Admin only]"""
     url = announce_server_action(f"Removing environment variables from '{search_path}' on")
     await confirm_server_action("Remove the selected environment variables on", url=url, yes=yes)
     async with configuration.use_platform_client():
@@ -1337,7 +1338,7 @@ async def list_feedback(
     limit: typing.Annotated[int, typer.Option("--limit", help="Number of results per page [default: 50]")] = 50,
     after_cursor: typing.Annotated[str | None, typer.Option("--after", help="Cursor for pagination")] = None,
 ):
-    """List your agent feedback"""
+    """List your agent feedback. [Admin only]"""
 
     announce_server_action("Listing feedback on")
 

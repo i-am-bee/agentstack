@@ -61,7 +61,7 @@ async def client_side_build(
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
 ):
-    """Build agent locally using Docker."""
+    """Build agent locally using Docker. [Local only]"""
     with verbosity(verbose):
         await run_command(["which", "docker"], "Checking docker")
         image_id = "agentstack-agent-build-tmp:latest"
@@ -210,7 +210,7 @@ async def server_side_build(
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
     yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ):
-    """Build agent from a GitHub repository in the platform."""
+    """Build agent from a GitHub repository in the platform. [Admin only]"""
 
     url = announce_server_action(f"Starting build for '{github_url}' on")
     await confirm_server_action("Proceed with building this agent on", url=url, yes=yes)

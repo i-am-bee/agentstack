@@ -379,6 +379,7 @@ async def _select_default_model(capability: ModelCapability) -> str | None:
 
 @app.command("list")
 async def list_models():
+    """List all available models."""
     announce_server_action("Listing models on")
     async with configuration.use_platform_client():
         config = await SystemConfiguration.get()
@@ -411,7 +412,7 @@ async def _reset_configuration(existing_providers: list[ModelProvider] | None = 
     await SystemConfiguration.update(default_embedding_model=None, default_llm_model=None)
 
 
-@app.command("setup")
+@app.command("setup", help="Interactive setup for LLM and embedding provider environment variables [Admin only]")
 async def setup(
     use_true_localhost: typing.Annotated[bool, typer.Option(hidden=True)] = False,
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
@@ -477,7 +478,7 @@ async def setup(
                 raise
 
 
-@app.command("change | select | default")
+@app.command("change | select | default", help="Change the default model [Admin only]")
 async def select_default_model(
     capability: typing.Annotated[
         ModelCapability | None, typer.Argument(help="Which default model to change (llm/embedding)")
@@ -524,19 +525,21 @@ def _list_providers(providers: list[ModelProvider]):
 
 @model_provider_app.command("list")
 async def list_model_providers():
+    """List all available model providers."""
     announce_server_action("Listing model providers on")
     async with configuration.use_platform_client():
         providers = await ModelProvider.list()
         _list_providers(providers)
 
 
-@model_provider_app.command("add")
+@model_provider_app.command("add", help="Add a new model provider [Admin only]")
 @app.command("add")
 async def add_provider(
     capability: typing.Annotated[
         ModelCapability | None, typer.Argument(help="Which default model to change (llm/embedding)")
     ] = None,
 ):
+    """Add a new model provider. [Admin only]"""
     announce_server_action("Adding provider for")
     if not capability:
         capability = await inquirer.select(  # type: ignore
@@ -577,7 +580,7 @@ def _select_provider(providers: list[ModelProvider], search_path: str) -> ModelP
     return selected_provider
 
 
-@model_provider_app.command("remove | rm | delete")
+@model_provider_app.command("remove | rm | delete", help="Remove a model provider [Admin only]")
 @app.command("remove | rm | delete")
 async def remove_provider(
     search_path: typing.Annotated[
