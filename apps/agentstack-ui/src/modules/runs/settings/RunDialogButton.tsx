@@ -95,11 +95,15 @@ export function RunDialogButton({
 RunDialogButton.Loading = function RunDialogButtonLoading({ description }: { description?: string }) {
   return (
     <div className={classes.loading}>
-      <Tooltip content={description} size="sm" asChild>
-        <span>
-          <SkeletonIcon />
-        </span>
-      </Tooltip>
+      {description ? (
+        <Tooltip content={description} size="sm" asChild>
+          <span>
+            <SkeletonIcon />
+          </span>
+        </Tooltip>
+      ) : (
+        <SkeletonIcon />
+      )}
     </div>
   );
 };

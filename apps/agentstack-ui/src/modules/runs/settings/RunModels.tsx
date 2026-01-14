@@ -6,6 +6,8 @@
 import { Cube, WarningFilled } from '@carbon/icons-react';
 import isEmpty from 'lodash/isEmpty';
 
+import { Tooltip } from '#components/Tooltip/Tooltip.tsx';
+
 import { useAgentDemands } from '../contexts/agent-demands';
 import { useAgentRun } from '../contexts/agent-run';
 import { ModelProviders } from './ModelProviders';
@@ -39,9 +41,7 @@ export function RunModels({ dialog, iconOnly = true }: Props) {
     <div className={classes.root}>
       <RunDialogButton
         dialog={dialog}
-        label={
-          hasUnmatchedDemands ? 'A required model is not available, so the agent might not work properly.' : 'Models'
-        }
+        label="Models"
         icon={Cube}
         useButtonReference={iconOnly && !hasMessages}
         iconOnly={iconOnly}
@@ -49,9 +49,16 @@ export function RunModels({ dialog, iconOnly = true }: Props) {
         <ModelProviders />
       </RunDialogButton>
       {hasUnmatchedDemands && (
-        <span className={classes.warning}>
-          <WarningFilled size={14} />
-        </span>
+        <Tooltip
+          content="A required model is not available, so the agent might not work properly."
+          size="sm"
+          asChild
+          placement="top"
+        >
+          <span className={classes.warning}>
+            <WarningFilled size={14} />
+          </span>
+        </Tooltip>
       )}
     </div>
   );
