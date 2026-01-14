@@ -300,14 +300,15 @@ async def edit_message_in_context(run_context: RunContext, message_id: str, new_
     # Step 1: Delete from this message onwards
     await context.delete_history_from_id(from_id=message_id)
 
-    # Step 2: Add the corrected message
+    # Step 2: Create the corrected message
     corrected_message = Message(
         message_id=str(uuid.uuid4()),
-        parts=[Part(root=TextPart(text=new_text))],
+        parts=[Part(TextPart(text=new_text))],
         role=Role.user,
-        context_id=context.id,
         metadata=metadata,
     )
+
+    # Step 3: Store the corrected message
     await run_context.store(data=corrected_message)
 ```
 

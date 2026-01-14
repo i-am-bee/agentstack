@@ -3,6 +3,7 @@
 
 
 from collections.abc import AsyncIterator
+from uuid import UUID
 
 import janus
 from a2a.types import Artifact, Message, MessageSendConfiguration, Task
@@ -35,6 +36,11 @@ class RunContext(BaseModel, arbitrary_types_allowed=True):
             raise RuntimeError("Context store is not initialized")
         async for item in self._store.load_history():
             yield item
+
+    async def delete_history_from_id(self, from_id: UUID) -> None:
+        if not self._store:
+            raise RuntimeError("Context store is not initialized")
+        await self._store.delete_history_from_id(from_id)
 
     def yield_sync(self, value: RunYield) -> RunYieldResume:
         self._yield_queue.sync_q.put(value)

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from collections.abc import AsyncIterator
+from uuid import UUID
 
 from a2a.types import Artifact, Message
 
@@ -46,3 +47,7 @@ class PlatformContextStoreInstance(ContextStoreInstance):
     async def store(self, data: Message | Artifact) -> None:
         async with self._platform_extension.use_client():
             await Context.add_history_item(self._context_id, data=data)
+
+    async def delete_history_from_id(self, from_id: UUID) -> None:
+        async with self._platform_extension.use_client():
+            await Context.delete_history_from_id(self._context_id, from_id=from_id)

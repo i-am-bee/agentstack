@@ -28,6 +28,17 @@ async def get_final_task_from_stream(stream: AsyncIterator[ClientEvent | Message
     return final_task
 
 
+async def send_message_get_response(
+    client: Client, content: str, context_id: str | None = None
+) -> tuple[list[str], str]:
+    message = create_text_message_object(content=content)
+    if context_id is not None:
+        message.context_id = context_id
+    final_task = await get_final_task_from_stream(client.send_message(message))
+    agent_messages = [msg.parts[0].root.text for msg in final_task.history or []]
+    return agent_messages, final_task.context_id
+
+
 @pytest.fixture
 async def history_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server, Client]]:
     """Agent that tests context.store.load_history() functionality."""
@@ -44,25 +55,40 @@ async def history_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server
         yield server, client
 
 
+@pytest.fixture
+async def history_deleting_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server, Client]]:
+    """Agent that tests context.store.load_history() functionality."""
+    context_store = InMemoryContextStore()
+
+    async def history_agent(input: Message, context: RunContext) -> AsyncGenerator[RunYield, None]:
+        await context.store(input)
+        n_messages = 0
+        async for message in context.load_history():
+            n_messages += 1
+            if n_messages == 1:
+                delete_id = message.message_id
+            if n_messages > 3:
+                await context.delete_history_from_id(delete_id)
+
+        async for message in context.load_history():
+            message.role = Role.agent
+            yield message
+
+    async with create_server_with_agent(history_agent, context_store=context_store) as (server, client):
+        yield server, client
+
+
 async def test_agent_history(history_agent):
     """Test that history starts empty."""
     _, client = history_agent
-    message = create_text_message_object(content="first message")
 
-    final_task = await get_final_task_from_stream(client.send_message(message))
-    agent_messages = [msg.parts[0].root.text for msg in final_task.history]
+    agent_messages, context_id = await send_message_get_response(client, "first message")
     assert agent_messages == ["first message"]
 
-    message = create_text_message_object(content="second message")
-    message.context_id = final_task.context_id
-    final_task = await get_final_task_from_stream(client.send_message(message))
-    agent_messages = [msg.parts[0].root.text for msg in final_task.history]
+    agent_messages, context_id = await send_message_get_response(client, "second message", context_id=context_id)
     assert agent_messages == ["first message", "first message", "second message"]
 
-    message = create_text_message_object(content="third message")
-    message.context_id = final_task.context_id
-    final_task = await get_final_task_from_stream(client.send_message(message))
-    agent_messages = [msg.parts[0].root.text for msg in final_task.history]
+    agent_messages, context_id = await send_message_get_response(client, "third message", context_id=context_id)
     assert agent_messages == [
         # first run
         "first message",
@@ -75,3 +101,23 @@ async def test_agent_history(history_agent):
         "second message",
         "third message",
     ]
+
+
+async def test_agent_deleting_history(history_deleting_agent):
+    """Test that history starts empty."""
+    _, client = history_deleting_agent
+
+    agent_messages, context_id = await send_message_get_response(client, "first message")
+    assert agent_messages == ["first message"]
+
+    agent_messages, context_id = await send_message_get_response(client, "second message", context_id=context_id)
+    assert agent_messages == ["first message", "second message"]
+
+    agent_messages, context_id = await send_message_get_response(client, "third message", context_id=context_id)
+    assert agent_messages == ["first message", "second message", "third message"]
+
+    agent_messages, context_id = await send_message_get_response(client, "delete message", context_id=context_id)
+    assert agent_messages == []
+
+    agent_messages, context_id = await send_message_get_response(client, "first message")
+    assert agent_messages == ["first message"]

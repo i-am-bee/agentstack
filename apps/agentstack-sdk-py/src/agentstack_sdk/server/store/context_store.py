@@ -6,6 +6,7 @@ from __future__ import annotations
 import abc
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING, Protocol
+from uuid import UUID
 
 from a2a.types import Artifact, Message
 
@@ -18,6 +19,8 @@ class ContextStoreInstance(Protocol):
         yield ...  # type: ignore
 
     async def store(self, data: Message | Artifact) -> None: ...
+
+    async def delete_history_from_id(self, from_id: UUID) -> None: ...
 
 
 class ContextStore(abc.ABC):

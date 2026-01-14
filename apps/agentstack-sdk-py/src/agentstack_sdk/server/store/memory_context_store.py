@@ -3,6 +3,7 @@
 
 from collections.abc import AsyncIterator
 from datetime import timedelta
+from uuid import UUID
 
 from a2a.types import Artifact, Message
 from cachetools import TTLCache
@@ -22,6 +23,15 @@ class MemoryContextStoreInstance(ContextStoreInstance):
 
     async def store(self, data: Message | Artifact) -> None:
         self._history.append(data.model_copy(deep=True))
+
+    async def delete_history_from_id(self, from_id: UUID) -> None:
+        # Does not allow to delete from an artifact onwards
+        index = next(
+            (i for i, item in enumerate(self._history) if isinstance(item, Message) and item.message_id == from_id),
+            None,
+        )
+        if index is not None:
+            self._history = self._history[:index]
 
 
 class InMemoryContextStore(ContextStore):
