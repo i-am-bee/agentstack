@@ -12,11 +12,11 @@ $panel-width: rem(432px);
   z-index: 1;
   inline-size: 0;
   overflow: hidden;
-  transition-timing-function: motion(entrance, expressive);
+  transition: inline-size $duration-moderate-02 motion(entrance, expressive);
 
   &.isOpen {
     inline-size: $panel-width;
-    transition: inline-size $duration-moderate-02 motion(exit, expressive);
+    transition-timing-function: motion(exit, expressive);
   }
 }
 

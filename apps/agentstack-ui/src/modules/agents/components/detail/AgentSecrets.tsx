@@ -56,7 +56,7 @@ export function AgentSecrets() {
   );
 
   return (
-    <div>
+    <div className={classes.root}>
       {hasSecrets ? (
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className={classes.secrets}>

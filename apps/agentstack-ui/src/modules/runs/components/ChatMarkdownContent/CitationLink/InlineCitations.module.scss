@@ -17,10 +17,8 @@
 
   &.isActive,
   &:hover {
-    .root:has(&) {
-      .content {
-        text-decoration: underline;
-      }
+    .root:has(&) .content {
+      text-decoration: underline;
     }
   }
 }
