@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from agentstack_server.domain.models.user import User, UserRole
+from agentstack_server.domain.models.user import User
 from agentstack_server.exceptions import EntityNotFoundError
 from agentstack_server.infrastructure.persistence.repositories.user import SqlAlchemyUserRepository
 
@@ -16,20 +16,7 @@ pytestmark = pytest.mark.integration
 
 @pytest.fixture
 async def test_user() -> User:
-    """Create a test user for use in tests."""
-    return User(
-        email=f"test-{uuid.uuid4()}@example.com",
-        role=UserRole.USER,
-    )
-
-
-@pytest.fixture
-async def test_admin() -> User:
-    """Create a test admin user for use in tests."""
-    return User(
-        email=f"admin-{uuid.uuid4()}@example.com",
-        role=UserRole.ADMIN,
-    )
+    return User(email=f"test-{uuid.uuid4()}@example.com")
 
 
 async def test_create_user(db_transaction: AsyncConnection, test_user: User):
@@ -45,7 +32,6 @@ async def test_create_user(db_transaction: AsyncConnection, test_user: User):
     assert row is not None
     assert str(row.id) == str(test_user.id)
     assert row.email == test_user.email
-    assert row.role == test_user.role
     assert row.created_at == test_user.created_at
 
 
@@ -113,25 +99,3 @@ async def test_delete_user(db_transaction: AsyncConnection, test_user: User):
     # Verify user was deleted
     result = await db_transaction.execute(text("SELECT * FROM users WHERE id = :id"), {"id": test_user.id})
     assert result.fetchone() is None
-
-
-async def test_list_users(db_transaction: AsyncConnection, test_user: User, test_admin: User):
-    # Create repository
-    repository = SqlAlchemyUserRepository(connection=db_transaction)
-
-    # Create users
-    await repository.create(user=test_user)
-    await repository.create(user=test_admin)
-
-    # List users
-    result = await repository.list(limit=100)
-    users = {user.id: user for user in result.items}
-
-    # Verify users
-    assert len(users) >= 2  # There might be other users in the database
-    assert test_user.id in users
-    assert test_admin.id in users
-    assert users[test_user.id].email == test_user.email
-    assert users[test_user.id].role == test_user.role
-    assert users[test_admin.id].email == test_admin.email
-    assert users[test_admin.id].role == test_admin.role

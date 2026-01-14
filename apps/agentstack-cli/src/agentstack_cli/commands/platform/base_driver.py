@@ -13,9 +13,8 @@ import anyio
 import yaml
 from tenacity import AsyncRetrying, stop_after_attempt
 
-import agentstack_cli.commands.platform.istio
 from agentstack_cli.configuration import Configuration
-from agentstack_cli.utils import run_command
+from agentstack_cli.utils import merge, run_command
 
 
 class BaseDriver(abc.ABC):
@@ -106,8 +105,10 @@ class BaseDriver(abc.ABC):
         values_file: pathlib.Path | None = None,
         import_images: list[str] | None = None,
         pull_on_host: bool = False,
+        skip_pull: bool = False,
+        skip_restart_deployments: bool = False,
     ) -> None:
-        await self.run_in_vm(
+        _ = await self.run_in_vm(
             ["sh", "-c", "mkdir -p /tmp/agentstack && cat >/tmp/agentstack/chart.tgz"],
             "Preparing Helm chart",
             input=(importlib.resources.files("agentstack_cli") / "data" / "helm-chart.tgz").read_bytes(),
@@ -117,13 +118,20 @@ class BaseDriver(abc.ABC):
             "service": {"type": "LoadBalancer"},
             "externalRegistries": {"public_github": str(Configuration().agent_registry)},
             "encryptionKey": "Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc=",
+            "trustProxyHeaders": True,
+            "keycloak": {
+                "uiClientSecret": "agentstack-ui-secret",
+                "serverClientSecret": "agentstack-server-secret",
+                "service": {"type": "LoadBalancer"},
+                "auth": {"adminPassword": "admin"},
+            },
             "features": {"uiLocalSetup": True},
             "providerBuilds": {"enabled": True},
             "localDockerRegistry": {"enabled": True},
             "auth": {"enabled": False},
         }
         if values_file:
-            values.update(yaml.safe_load(values_file.read_text()))
+            values = merge(values, yaml.safe_load(values_file.read_text()))
         await self.run_in_vm(
             ["sh", "-c", "cat >/tmp/agentstack/values.yaml"],
             "Preparing Helm values",
@@ -150,28 +158,28 @@ class BaseDriver(abc.ABC):
         images_to_import = {canonify(tag) for tag in import_images or []}
         images_to_pull = required_images - images_to_import
 
-        if pull_on_host:
-            for image in images_to_pull:
-                await run_command(["docker", "pull", image], f"Pulling image {image} on host")
-            images_to_import = required_images
-            images_to_pull = set[str]()
+        if not skip_pull:
+            if pull_on_host:
+                for image in images_to_pull:
+                    await run_command(["docker", "pull", image], f"Pulling image {image} on host")
+                images_to_import = required_images
+                images_to_pull = set[str]()
 
-        if images_to_import:
+            if images_to_import:
+                await self.import_images(*images_to_import)
+
+            for image in images_to_pull:
+                async for attempt in AsyncRetrying(stop=stop_after_attempt(5)):
+                    with attempt:
+                        attempt_num = attempt.retry_state.attempt_number
+                        await self.run_in_vm(
+                            ["k3s", "ctr", "image", "pull", image],
+                            f"Pulling image {image}" + (f" (attempt {attempt_num})" if attempt_num > 1 else ""),
+                        )
+        elif images_to_import:
             await self.import_images(*images_to_import)
 
-        for image in images_to_pull:
-            async for attempt in AsyncRetrying(stop=stop_after_attempt(5)):
-                with attempt:
-                    attempt_num = attempt.retry_state.attempt_number
-                    await self.run_in_vm(
-                        ["k3s", "ctr", "image", "pull", image],
-                        f"Pulling image {image}" + (f" (attempt {attempt_num})" if attempt_num > 1 else ""),
-                    )
-
         self.loaded_images = required_images
-
-        if any("auth.oidc.enabled=true" in value.lower() for value in set_values_list):
-            await agentstack_cli.commands.platform.istio.install(driver=self)
 
         kubeconfig_path = anyio.Path(Configuration().lima_home) / self.vm_name / "copied-from-guest" / "kubeconfig.yaml"
         await kubeconfig_path.parent.mkdir(parents=True, exist_ok=True)
@@ -202,7 +210,7 @@ class BaseDriver(abc.ABC):
             "Deploying Agent Stack platform with Helm",
         )
 
-        if import_images:
+        if import_images and not skip_restart_deployments:
             await self.run_in_vm(
                 ["k3s", "kubectl", "rollout", "restart", "deployment"],
                 "Restarting deployments to load imported images",

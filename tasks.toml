@@ -123,6 +123,7 @@ if [[ "$CI" != "true" ]]; then PULL_ON_HOST_FLAG="--pull-on-host"; fi
     --import "ghcr.io/i-am-bee/agentstack/agentstack-server:local" \
     --import "ghcr.io/i-am-bee/agentstack/supergateway:latest" \
     $UI_IMPORT \
+    --set auth.nextauthDevUrl="http://localhost:3000" \
     --set image.tag=local \
     $UI_TAG "$@"
 """
@@ -182,11 +183,9 @@ echo "Activating environment for '${usage_vm_name?}'..."
 export __OLD_PS1="\\$PS1"
 export __OLD_LIMA_HOME="\\$LIMA_HOME"
 export __OLD_KUBECONFIG="\\$KUBECONFIG"
-export __OLD_ADMIN_PASSWORD="\\$AGENTSTACK__ADMIN_PASSWORD"
 
 export KUBECONFIG="\\${AGENTSTACK__HOME:-\\${HOME}/.agentstack}/lima/${usage_vm_name?}/copied-from-guest/kubeconfig.yaml"
 export LIMA_HOME=\\${AGENTSTACK__HOME:-\\${HOME}/.agentstack}/lima
-export AGENTSTACK__ADMIN_PASSWORD=test-password
 export PS1="(${usage_vm_name?}) \\${__OLD_PS1}"
 EOF
 """

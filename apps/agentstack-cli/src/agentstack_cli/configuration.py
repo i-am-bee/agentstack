@@ -35,7 +35,8 @@ class Configuration(pydantic_settings.BaseSettings):
     agent_registry: pydantic.AnyUrl = HttpUrl(
         f"https://github.com/i-am-bee/agentstack@v{version()}#path=agent-registry.yaml"
     )
-    admin_password: SecretStr | None = None
+    username: str = "admin"
+    password: SecretStr | None = None
     server_metadata_ttl: int = 86400
 
     oidc_enabled: bool = False
@@ -64,7 +65,7 @@ class Configuration(pydantic_settings.BaseSettings):
             )
             sys.exit(1)
         async with use_platform_client(
-            auth=("admin", self.admin_password.get_secret_value()) if self.admin_password else None,
+            auth=(self.username, self.password.get_secret_value()) if self.password else None,
             auth_token=await self.auth_manager.load_auth_token(),
             base_url=self.auth_manager.active_server + "/",
         ) as client:

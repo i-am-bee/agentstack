@@ -198,10 +198,13 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                         console.warning(f" Dynamic client registration failed. Proceed with manual input.  {e!s}")
 
             if not client_id:
-                client_id = await inquirer.text(  #  type: ignore
-                    message="Enter Client ID:",
-                    instruction=f"(Redirect URI: {REDIRECT_URI})",
-                ).execute_async()
+                client_id = (
+                    await inquirer.text(  #  type: ignore
+                        message="Enter Client ID (default agentstack-cli):",
+                        instruction=f"(Redirect URI: {REDIRECT_URI})",
+                    ).execute_async()
+                    or "agentstack-cli"
+                )
                 if not client_id:
                     raise RuntimeError("Client ID is mandatory. Action cancelled.")
                 client_secret = (

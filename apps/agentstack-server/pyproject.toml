@@ -62,6 +62,7 @@ dev = [
     "pyright>=1.1.399",
     "ruff>=0.8.5",
     "agentstack-sdk",
+    "python-keycloak>=7.0.2",
 ]
 
 [tool.uv.sources]

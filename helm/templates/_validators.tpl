@@ -45,13 +45,6 @@ ERROR: .Values.auth.jwtPublicKey is missing but .Values.auth.jwtPrivateKey is pr
 Please provide both keys or neither (to auto-generate them).
 ` -}}
   {{- end -}}
-  {{- if and .Values.auth.basic.enabled (empty .Values.auth.basic.adminPassword) -}}
-  {{- fail `
-ERROR: .Values.auth.basic.adminPassword is missing.
-
-When basic authentication is enabled, you must provide an admin password.
-` -}}
-  {{- end -}}
 {{- end -}}
 {{- end -}}
 

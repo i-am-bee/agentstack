@@ -14,17 +14,19 @@ import typing
 
 import httpx
 import typer
-from agentstack_sdk.platform import Provider
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, wait_fixed
 
 from agentstack_cli.async_typer import AsyncTyper
 from agentstack_cli.commands.platform.base_driver import BaseDriver
 from agentstack_cli.commands.platform.lima_driver import LimaDriver
 from agentstack_cli.commands.platform.wsl_driver import WSLDriver
+from agentstack_cli.configuration import Configuration
 from agentstack_cli.console import console
 from agentstack_cli.utils import verbosity
 
 app = AsyncTyper()
+
+configuration = Configuration()
 
 
 @functools.cache
@@ -80,6 +82,9 @@ async def start(
     ] = None,
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
+    skip_pull: typing.Annotated[bool, typer.Option(hidden=True)] = False,
+    skip_restart_deployments: typing.Annotated[bool, typer.Option(hidden=True)] = False,
+    no_wait_for_platform: typing.Annotated[bool, typer.Option(hidden=True)] = False,
 ):
     import agentstack_cli.commands.server
 
@@ -98,23 +103,28 @@ async def start(
             values_file=values_file_path,
             import_images=import_images,
             pull_on_host=pull_on_host,
+            skip_pull=skip_pull,
+            skip_restart_deployments=skip_restart_deployments,
         )
 
-        with console.status("Waiting for Agent Stack platform to be ready...", spinner="dots"):
-            timeout = datetime.timedelta(minutes=20)
-            try:
-                async for attempt in AsyncRetrying(
-                    stop=stop_after_delay(timeout),
-                    wait=wait_fixed(datetime.timedelta(seconds=1)),
-                    retry=retry_if_exception_type((httpx.HTTPError, ConnectionError)),
-                    reraise=True,
-                ):
-                    with attempt:
-                        await Provider.list()
-            except Exception as ex:
-                raise ConnectionError(
-                    f"Server did not start in {timeout}. Please check your internet connection."
-                ) from ex
+        if not no_wait_for_platform:
+            with console.status("Waiting for Agent Stack platform to be ready...", spinner="dots"):
+                timeout = datetime.timedelta(minutes=20)
+                async with httpx.AsyncClient() as client:
+                    try:
+                        async for attempt in AsyncRetrying(
+                            stop=stop_after_delay(timeout),
+                            wait=wait_fixed(datetime.timedelta(seconds=1)),
+                            retry=retry_if_exception_type((httpx.HTTPError, ConnectionError)),
+                            reraise=True,
+                        ):
+                            with attempt:
+                                resp = await client.get("http://localhost:8333/healthcheck")
+                                resp.raise_for_status()
+                    except Exception as ex:
+                        raise ConnectionError(
+                            f"Server did not start in {timeout}. Please check your internet connection."
+                        ) from ex
 
         console.success("Agent Stack platform started successfully!")
 

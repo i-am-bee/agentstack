@@ -88,7 +88,8 @@ kubectl port-forward svc/agentstack-svc 8333:8333 &
 After the platform becomes ready, it's time to set up your model provider:
 
 ```shell
-AGENTSTACK__ADMIN_PASSWORD="my-secret-password" agentstack model setup
+# agentstack server login (if auth is enabled)
+agentstack model setup
 ```
 
 ### Step 5: Test the Deployment
@@ -118,59 +119,72 @@ auth:
   enabled: false
 ```
 
-#### Admin authentication
+#### OIDC authentication (via Keycloak)
 
-The admin password protects only administrative operations: deploying/deleting agents and modifying LLM provider connections. All other functionality is accessible to anyone who can reach the application on your network without authentication, including:
-
-- **Using agents (consuming LLM API credits)**
-- Uploading files and creating vector stores
-- Managing sessions
-
-**This means anyone on your network can incur LLM costs.** Basic authentication is only suitable for controlled environments (behind VPN/firewall) where you trust everyone with network access.
-
-For production deployments, multi-user environments, or cost control, use OIDC authentication which requires login for all actions.
-
-```yaml
-auth:
-  enabled: true
-  basic:
-    enabled: true
-    adminPassword: "my-admin-password" # fill in a strong admin password
-```
-
-#### OIDC authentication
-
-This is our most secure authentication method, supporting multi-user login with different roles.
+We use an internal Keycloak instance to handle OIDC authentication. This allows you to configure external Identity Providers (Google, GitHub, SAML, etc.) directly within Keycloak.
 
 ```yaml
 trustProxyHeaders: true # This is important if validate_audience is enabled
 
 auth:
   enabled: true
-  oidc:
-    # Important: redirect URIs must be configured correctly in your provider:
-    #  - UI endpoint: "https://your-public-url/api/auth/callback"
-    #  - CLI endpoint: "http://localhost:9001/callback"
-    enabled: true
-    default_new_user_role: "user" # valid options: [user, developer]. Developers can deploy and configure their agents.
-    admin_emails: # one or more administrators
-      - example.admin@ibm.com
-    nextauth_trust_host: true
-    nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
-    nextauth_url: "https://agentstack.localhost:8336"
-    validate_audience: true # audience must be set to the public URL of your application in your OIDC provider
-    providers:
-      [
-        {
-          "id": "w3id",
-          "name": "w3id",
-          "provider_type": "custom",
-          "client_id": "<oidc_client_id>",
-          "client_secret": "<oidc_client_secret>",
-          "issuer": "<oidc_issuer>",
-        },
-      ]
+  # Check helm/values.yaml for all available options
+  keycloakIssuerUrl: "https://keycloak.myapp.com/realms/agentstack" # Public URL of keycloak
+  
+  # Next.js settings
+  nextauthUrl: "https://myapp.com" # Public URL of the UI
+  apiUrl: "https://api.myapp.com" # Public URL of the API
 ```
+  
+<Warning>
+It is important to expose the following endpoints publicly and configure the value above:
+
+- UI (https://myapp.com)
+- API (https://api.myapp.com) - used by the CLI to authenticate
+- Keycloak (https://keycloak.myapp.com) - used by the UI and CLI to authenticate
+
+Use
+[ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/), 
+[gateway API](https://kubernetes.io/docs/concepts/services-networking/gateway/),
+[openshift routes](https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/ingress_and_load_balancing/routes)
+or other tools to expose the services.
+
+⚠️ Failure to configure these endpints with proper https may leave your application vulnerable.
+
+</Warning>
+
+Keycloak is deployed automatically when `auth.enabled` is `true`.
+
+**Accessing Keycloak:**
+- **Local Port-Forward:** `kubectl port-forward svc/agentstack-keycloak 8336:8336` -> Access at `http://localhost:8336`
+- **Production:** Create an [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) for the `agentstack-keycloak` service.
+
+**Configuration:**
+1.  Log in to Keycloak (default credentials: `admin` / retrieve from secret).
+2.  Navigate to **Identity Providers**.
+3.  Add your external provider (e.g., GitHub, Google).
+
+<details>
+<summary>Keycloak Architecture & Roles</summary>
+
+The Agent Stack Keycloak integration is automatically provisioned with the following architecture:
+
+**Realm:** `agentstack`
+
+**Clients:**
+- `agentstack-server`: Backend service client (Confidential, Service Accounts enabled).
+- `agentstack-ui`: Frontend UI client (Confidential, Standard Flow).
+- `agentstack-cli`: Command Line Interface client (Public, Standard Flow).
+
+**Roles:**
+- `agentstack-admin`: Full system access.
+- `agentstack-developer`: access to agent management.
+
+**Audiences:**
+Audience mappers are dynamically configured to ensure tokens are valid for the specific service URLs (UI, API) defined in your configuration.
+</details>
+
+
 
 ### Rate Limiting
 

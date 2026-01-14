@@ -23,13 +23,9 @@ pytestmark = pytest.mark.e2e
 
 
 @pytest.fixture
-async def platform_client(test_configuration: Configuration):
+async def platform_client(test_configuration: Configuration, test_admin):
     """Create a PlatformClient configured for the test environment."""
-    async with PlatformClient(
-        base_url=test_configuration.server_url,
-        auth=("admin", "test-password"),
-        timeout=120.0,
-    ) as client:
+    async with PlatformClient(base_url=test_configuration.server_url, auth=test_admin, timeout=120.0) as client:
         yield client
 
 

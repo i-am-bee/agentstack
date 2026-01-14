@@ -8,7 +8,8 @@ import os
 import re
 import subprocess
 import sys
-from collections.abc import AsyncIterator
+from collections import Counter
+from collections.abc import AsyncIterator, Mapping, MutableMapping
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
 from copy import deepcopy
@@ -340,3 +341,49 @@ def is_github_url(url: str) -> bool:
         $
     """
     return bool(re.match(pattern, url, re.VERBOSE))
+
+
+# Inspired by: https://github.com/clarketm/mergedeep/blob/master/mergedeep/mergedeep.py
+
+
+def _is_recursive_merge(a: Any, b: Any) -> bool:
+    both_mapping = isinstance(a, Mapping) and isinstance(b, Mapping)
+    both_counter = isinstance(a, Counter) and isinstance(b, Counter)
+    return both_mapping and not both_counter
+
+
+def _handle_merge_replace(destination, source, key):
+    if isinstance(destination[key], Counter) and isinstance(source[key], Counter):
+        # Merge both destination and source `Counter` as if they were a standard dict.
+        _deepmerge(destination[key], source[key])
+    else:
+        # If a key exists in both objects and the values are `different`, the value from the `source` object will be used.
+        destination[key] = deepcopy(source[key])
+
+
+def _deepmerge(dst, src):
+    for key in src:
+        if key in dst:
+            if _is_recursive_merge(dst[key], src[key]):
+                # If the key for both `dst` and `src` are both Mapping types (e.g. dict), then recurse.
+                _deepmerge(dst[key], src[key])
+            elif dst[key] is src[key]:
+                # If a key exists in both objects and the values are `same`, the value from the `dst` object will be used.
+                pass
+            else:
+                _handle_merge_replace(dst, src, key)
+        else:
+            # If the key exists only in `src`, the value from the `src` object will be used.
+            dst[key] = deepcopy(src[key])
+    return dst
+
+
+def merge(destination: MutableMapping[str, Any], *sources: Mapping[str, Any]) -> MutableMapping[str, Any]:
+    """
+    A deep merge function for 🐍.
+
+    :param destination: The destination mapping.
+    :param sources: The source mappings.
+    :return:
+    """
+    return functools.reduce(_deepmerge, sources, destination)

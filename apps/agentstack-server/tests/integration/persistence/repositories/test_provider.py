@@ -27,7 +27,7 @@ def set_di_configuration(override_global_dependency):
 
 
 @pytest.fixture
-async def test_provider(set_di_configuration, admin_user: UUID) -> Provider:
+async def test_provider(set_di_configuration, normal_user: UUID) -> Provider:
     """Create a test provider for use in tests."""
     source = NetworkProviderLocation(root="http://localhost:8000")
     return Provider(
@@ -45,7 +45,7 @@ async def test_provider(set_di_configuration, admin_user: UUID) -> Provider:
             skills=[],
         ),
         auto_stop_timeout=timedelta(minutes=5),
-        created_by=admin_user,
+        created_by=normal_user,
     )
 
 
@@ -68,7 +68,7 @@ async def test_create_provider(db_transaction: AsyncConnection, test_provider: P
 
 
 @pytest.mark.usefixtures("set_di_configuration")
-async def test_get_provider(db_transaction: AsyncConnection, test_provider, admin_user: UUID):
+async def test_get_provider(db_transaction: AsyncConnection, test_provider, normal_user: UUID):
     # Create repository
     repository = SqlAlchemyProviderRepository(connection=db_transaction)
 
@@ -94,7 +94,7 @@ async def test_get_provider(db_transaction: AsyncConnection, test_provider, admi
         "type": "unmanaged",
         "version_info": {"docker": None, "github": None},
         "unmanaged_state": None,
-        "created_by": admin_user,
+        "created_by": normal_user,
     }
 
     await db_transaction.execute(
@@ -150,7 +150,7 @@ async def test_delete_provider(db_transaction: AsyncConnection, test_provider: P
 
 
 @pytest.mark.usefixtures("set_di_configuration")
-async def test_list_providers(db_transaction: AsyncConnection, admin_user: UUID):
+async def test_list_providers(db_transaction: AsyncConnection, normal_user: UUID):
     # Create repository
     repository = SqlAlchemyProviderRepository(connection=db_transaction)
     source = NetworkProviderLocation(root="http://localhost:8001")
@@ -178,7 +178,7 @@ async def test_list_providers(db_transaction: AsyncConnection, admin_user: UUID)
         "type": "unmanaged",
         "version_info": {"docker": None, "github": None},
         "unmanaged_state": None,
-        "created_by": admin_user,
+        "created_by": normal_user,
     }
     second_provider = {
         "id": source2.provider_id,
@@ -201,7 +201,7 @@ async def test_list_providers(db_transaction: AsyncConnection, admin_user: UUID)
         "type": "unmanaged",
         "version_info": {"docker": None, "github": None},
         "unmanaged_state": None,
-        "created_by": admin_user,
+        "created_by": normal_user,
     }
 
     await db_transaction.execute(
@@ -245,7 +245,7 @@ async def test_list_providers(db_transaction: AsyncConnection, admin_user: UUID)
     assert providers[second_provider["id"]].type == second_provider["type"]
 
 
-async def test_create_duplicate_provider(db_transaction: AsyncConnection, test_provider: Provider, admin_user: UUID):
+async def test_create_duplicate_provider(db_transaction: AsyncConnection, test_provider: Provider, normal_user: UUID):
     # Create repository
     repository = SqlAlchemyProviderRepository(connection=db_transaction)
 
@@ -260,7 +260,7 @@ async def test_create_duplicate_provider(db_transaction: AsyncConnection, test_p
         registry=None,
         agent_card=test_provider.agent_card.model_copy(update={"name": "NEW_AGENT"}),
         auto_stop_timeout=timedelta(minutes=10),  # Different timeout
-        created_by=admin_user,
+        created_by=normal_user,
     )
 
     # This should raise a DuplicateEntityError because the source is the same

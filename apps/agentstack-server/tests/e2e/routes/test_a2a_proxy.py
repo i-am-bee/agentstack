@@ -161,7 +161,7 @@ def free_port() -> int:
 
 
 @pytest.fixture
-def create_test_server(free_port: int, app: A2AStarletteApplication, test_configuration, clean_up_fn):
+def create_test_server(free_port: int, app: A2AStarletteApplication, test_admin, test_configuration, clean_up_fn):
     server_instance: uvicorn.Server | None = None
     thread: Thread | None = None
     app.agent_card.url = f"http://host.docker.internal:{free_port}"
@@ -181,7 +181,7 @@ def create_test_server(free_port: int, app: A2AStarletteApplication, test_config
         while not server_instance.started:
             time.sleep(0.1)
 
-        with Client(base_url=f"{test_configuration.server_url}/api/v1", auth=("admin", "test-password")) as client:
+        with Client(base_url=f"{test_configuration.server_url}/api/v1", auth=test_admin) as client:
             for _attempt in range(20):
                 resp = client.post(
                     "providers",
@@ -199,8 +199,7 @@ def create_test_server(free_port: int, app: A2AStarletteApplication, test_config
                 raise RuntimeError(f"Server did not start or register itself correctly: {error}")
 
         return Client(
-            base_url=f"{test_configuration.server_url}/api/v1/a2a/{provider_id}",
-            auth=("admin", "test-password"),
+            base_url=f"{test_configuration.server_url}/api/v1/a2a/{provider_id}", auth=test_admin, timeout=None
         )
 
     try:
@@ -216,8 +215,8 @@ def create_test_server(free_port: int, app: A2AStarletteApplication, test_config
 
 
 @pytest.fixture
-async def ensure_mock_task(db_transaction, clean_up):
-    res = await db_transaction.execute(users_table.select().where(users_table.c.email == "admin@beeai.dev"))
+async def ensure_mock_task(test_admin, db_transaction, clean_up):
+    res = await db_transaction.execute(users_table.select().where(users_table.c.email == f"{test_admin[0]}@beeai.dev"))
     admin_user = res.fetchone().id
     await db_transaction.execute(
         text(
@@ -927,7 +926,9 @@ def test_non_dict_json(client: Client):
 # ------------------------------------- TESTS SPECIFIC TO PLATFORM PERMISSIONS -----------------------------------------
 
 
-def test_task_ownership_different_user_cannot_access_task(client: Client, handler: mock.AsyncMock, ensure_mock_task):
+def test_task_ownership_different_user_cannot_access_task(
+    client: Client, handler: mock.AsyncMock, ensure_mock_task, test_user, test_admin
+):
     """Test that a task owned by admin cannot be accessed by default user."""
     # Task is already created by ensure_mock_task for admin user
 
@@ -937,7 +938,7 @@ def test_task_ownership_different_user_cannot_access_task(client: Client, handle
     handler.on_get_task.return_value = task
 
     # Try to access as default user (without auth)
-    client.auth = None
+    client.auth = test_user
     response = client.post(
         "/",
         json={"jsonrpc": "2.0", "id": "123", "method": "tasks/get", "params": {"id": "task1"}},
@@ -949,7 +950,7 @@ def test_task_ownership_different_user_cannot_access_task(client: Client, handle
     assert data["error"]["code"] in [TaskNotFoundError().code]
 
     # Now try as admin user (who owns it)
-    client.auth = ("admin", "test-password")
+    client.auth = test_admin
     response = client.post(
         "/",
         json={"jsonrpc": "2.0", "id": "123", "method": "tasks/get", "params": {"id": "task1"}},
@@ -962,10 +963,10 @@ def test_task_ownership_different_user_cannot_access_task(client: Client, handle
     assert data["result"]["id"] == "task1"
 
 
-async def test_unknown_task_raises_error(client: Client, handler: mock.AsyncMock, db_transaction):
+async def test_unknown_task_raises_error(client: Client, handler: mock.AsyncMock, db_transaction, test_admin):
     """Test that sending a message creates a new task owned by the user."""
     # Send message with non-existing task
-    client.auth = ("admin", "test-password")
+    client.auth = test_admin
     response = client.post(
         "/",
         json={
@@ -991,7 +992,7 @@ async def test_unknown_task_raises_error(client: Client, handler: mock.AsyncMock
 
 
 async def test_task_ownership_new_task_creation_via_message_send(
-    client: Client, handler: mock.AsyncMock, db_transaction
+    client: Client, handler: mock.AsyncMock, db_transaction, test_admin, test_user
 ):
     """Test that sending a message creates a new task owned by the user."""
     # Setup mock response - server returns a new task
@@ -1004,7 +1005,7 @@ async def test_task_ownership_new_task_creation_via_message_send(
     handler.on_message_send.return_value = mock_task
 
     # Send message as admin which should create new task ownership
-    client.auth = ("admin", "test-password")
+    client.auth = test_admin
     response = client.post(
         "/",
         json={
@@ -1049,7 +1050,7 @@ async def test_task_ownership_new_task_creation_via_message_send(
     assert response.json()["result"]["id"] == "new-task-123"
 
     # Verify default user cannot access it
-    client.auth = None
+    client.auth = test_user
     response = client.post(
         "/",
         json={"jsonrpc": "2.0", "id": "125", "method": "tasks/get", "params": {"id": "new-task-123"}},
@@ -1061,13 +1062,13 @@ async def test_task_ownership_new_task_creation_via_message_send(
 
 
 async def test_context_ownership_cannot_be_claimed_by_different_user(
-    client: Client, handler: mock.AsyncMock, db_transaction
+    client: Client, handler: mock.AsyncMock, db_transaction, test_admin, test_user
 ):
     """Test that a context_id owned by one user cannot be used by another."""
     task_status = TaskStatus(**MINIMAL_TASK_STATUS)
 
     # Admin creates a message with a specific context
-    client.auth = ("admin", "test-password")
+    client.auth = test_admin
     mock_task = Task(id="task-ctx-1", context_id="shared-context-789", status=task_status)
     handler.on_message_send.return_value = mock_task
 
@@ -1100,7 +1101,7 @@ async def test_context_ownership_cannot_be_claimed_by_different_user(
     assert context_row is not None
 
     # Now default user tries to use the same context - should fail
-    client.auth = None
+    client.auth = test_user
     mock_task2 = Task(
         id="task-ctx-2",
         context_id="shared-context-789",  # Same context!
@@ -1133,9 +1134,9 @@ async def test_context_ownership_cannot_be_claimed_by_different_user(
     assert "insufficient permissions" in data["error"]["message"].lower()
 
 
-async def test_task_update_last_accessed_at(client: Client, handler: mock.AsyncMock, db_transaction):
+async def test_task_update_last_accessed_at(client: Client, handler: mock.AsyncMock, db_transaction, test_admin):
     """Test that accessing a task updates last_accessed_at timestamp."""
-    client.auth = ("admin", "test-password")
+    client.auth = test_admin
 
     mock_task = Task(id="task1", context_id="shared-context-789", status=TaskStatus(state=TaskState.submitted))
     handler.on_message_send.return_value = mock_task
@@ -1181,9 +1182,11 @@ async def test_task_update_last_accessed_at(client: Client, handler: mock.AsyncM
     assert new_timestamp > initial_timestamp
 
 
-async def test_task_and_context_both_specified_single_query(client: Client, handler: mock.AsyncMock, db_transaction):
+async def test_task_and_context_both_specified_single_query(
+    client: Client, handler: mock.AsyncMock, db_transaction, test_admin
+):
     """Test that both task_id and context_id are tracked in a single query when both are specified."""
-    client.auth = ("admin", "test-password")
+    client.auth = test_admin
 
     task_status = TaskStatus(**MINIMAL_TASK_STATUS)
     mock_task = Task(id="dual-task-123", context_id="dual-context-456", status=task_status)

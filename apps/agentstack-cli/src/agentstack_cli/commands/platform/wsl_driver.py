@@ -132,6 +132,8 @@ class WSLDriver(BaseDriver):
         values_file: pathlib.Path | None = None,
         import_images: list[str] | None = None,
         pull_on_host: bool = False,
+        skip_pull: bool = False,
+        skip_restart_deployments: bool = False,
     ) -> None:
         if pull_on_host:
             raise NotImplementedError("Pulling on host is not supported on this platform.")

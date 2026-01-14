@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-"""empty message
+"""add disconnect reason to connectors
 
 Revision ID: fb04d94673c6
 Revises: 4jowyo7q9m66

@@ -301,12 +301,12 @@ async def test_context_scoped_file_access(subtests):
 
 
 @pytest.mark.usefixtures("clean_up")
-async def test_file_extraction_context_isolation(subtests, test_configuration):
+async def test_file_extraction_context_isolation(subtests, test_configuration, test_admin):
     """Test that file text extraction is also properly scoped to contexts."""
     base_url = test_configuration.server_url
 
     with subtests.test("create contexts and tokens"):
-        async with use_platform_client(base_url=base_url, auth=("admin", "test-password")):
+        async with use_platform_client(base_url=base_url, auth=test_admin):
             ctx1 = await Context.create()
             ctx2 = await Context.create()
 
@@ -713,7 +713,7 @@ async def test_files_list_user_global_and_context_scoped(subtests):
 
 
 @pytest.mark.usefixtures("clean_up")
-async def test_files_list_user_isolation(subtests, test_configuration):
+async def test_files_list_user_isolation(subtests, test_configuration, test_admin, test_user):
     """Test that users cannot see files uploaded by other users when listing files.
 
     This test verifies user-level data isolation - each user should only see their own files,
@@ -728,8 +728,8 @@ async def test_files_list_user_isolation(subtests, test_configuration):
     # - correct admin password → admin@beeai.dev
     # - any other password → user@beeai.dev
     async with (
-        AsyncClient(base_url=f"{base_url}/api/v1", auth=("admin", "test-password")) as admin_client,
-        AsyncClient(base_url=f"{base_url}/api/v1", auth=("user", "not-admin")) as user_client,
+        AsyncClient(base_url=f"{base_url}/api/v1", auth=test_admin) as admin_client,
+        AsyncClient(base_url=f"{base_url}/api/v1", auth=test_user) as user_client,
     ):
         # Upload files as admin user
         with subtests.test("upload files as admin user"):

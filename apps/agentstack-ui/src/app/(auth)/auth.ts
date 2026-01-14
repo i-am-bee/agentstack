@@ -5,8 +5,6 @@
 
 import NextAuth from 'next-auth';
 import type { OIDCConfig } from 'next-auth/providers';
-import { match } from 'ts-pattern';
-import z from 'zod';
 
 import { runtimeConfig } from '#contexts/App/runtime-config.ts';
 import type { AuthProvider } from '#modules/auth/types.ts';
@@ -29,23 +27,22 @@ export function getAuthProviders(): AuthProvider[] {
 }
 
 function createOIDCProvider(config: ProviderConfig): OIDCConfig<unknown> {
-  const baseOptions = {
+  const options = {
     clientId: config.client_id,
     clientSecret: config.client_secret,
-    issuer: config.issuer,
+    issuer: config.external_issuer ?? config.issuer,
+    ...(config.external_issuer
+      ? {
+          authorization: {
+            params: { scope: 'openid email profile' },
+            url: `${config.external_issuer}/protocol/openid-connect/auth`,
+          },
+          token: `${config.issuer}/protocol/openid-connect/token`,
+          userinfo: `${config.issuer}/protocol/openid-connect/userinfo`,
+          jwks_endpoint: `${config.issuer}/protocol/openid-connect/certs`,
+        }
+      : {}),
   };
-
-  const options = match(config)
-    .with({ provider_type: undefined }, { provider_type: 'custom' }, () => baseOptions)
-    .with({ provider_type: 'auth0' }, ({ audience }) => ({
-      ...baseOptions,
-      authorization: {
-        params: {
-          audience,
-        },
-      },
-    }))
-    .exhaustive();
 
   return {
     id: config.id,
@@ -64,14 +61,34 @@ function getProviders(): ProviderWithId[] {
   }
 
   try {
-    const providersJson = process.env.OIDC_PROVIDERS;
-    if (!providersJson) {
-      throw new Error('No OIDC providers configured. Set OIDC_PROVIDERS with at least one provider.');
+    const name = process.env.OIDC_PROVIDER_NAME;
+    const id = process.env.OIDC_PROVIDER_ID;
+    const clientId = process.env.OIDC_PROVIDER_CLIENT_ID;
+    const clientSecret = process.env.OIDC_PROVIDER_CLIENT_SECRET;
+    const issuer = process.env.OIDC_PROVIDER_ISSUER;
+    const externalIssuer = process.env.OIDC_PROVIDER_EXTERNAL_ISSUER;
+
+    if (!name || !id || !clientId || !clientSecret || !issuer) {
+      throw new Error(
+        'Missing OIDC provider configuration. Set OIDC_PROVIDER_NAME, OIDC_PROVIDER_ID, OIDC_PROVIDER_CLIENT_ID, OIDC_PROVIDER_CLIENT_SECRET, and OIDC_PROVIDER_ISSUER.',
+      );
     }
 
-    return z.array(providerConfigSchema).parse(JSON.parse(providersJson)).map(createOIDCProvider);
+    const providerConfig = {
+      name,
+      id,
+      client_id: clientId,
+      client_secret: clientSecret,
+      issuer,
+      external_issuer: externalIssuer,
+    };
+
+    // Validate using the schema
+    const validatedConfig = providerConfigSchema.parse(providerConfig);
+
+    return [createOIDCProvider(validatedConfig)];
   } catch (err) {
-    console.error('Unable to parse providers from OIDC_PROVIDERS environment variable.', err);
+    console.error('Unable to parse OIDC provider configuration environment variables.', err);
 
     return [];
   }
@@ -134,6 +151,34 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.refreshSchedule = token.refreshSchedule;
 
       return session;
+    },
+  },
+  events: {
+    // Federated logout (sign out from OIDC provider)
+    async signOut(message) {
+      if ('token' in message && message.token) {
+        const { refreshToken } = message.token;
+        const issuer = process.env.OIDC_PROVIDER_ISSUER;
+        const clientId = process.env.OIDC_PROVIDER_CLIENT_ID;
+        const clientSecret = process.env.OIDC_PROVIDER_CLIENT_SECRET;
+
+        if (refreshToken && issuer && clientId && clientSecret) {
+          const params = new URLSearchParams();
+          params.append('client_id', clientId);
+          params.append('client_secret', clientSecret);
+          params.append('refresh_token', refreshToken as string);
+
+          try {
+            await fetch(`${issuer}/protocol/openid-connect/logout`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: params,
+            });
+          } catch (error) {
+            console.error('Auth Event: Failed to revoke Keycloak session:', error);
+          }
+        }
+      }
     },
   },
 });

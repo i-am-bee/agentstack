@@ -9,8 +9,7 @@ import { AuthError } from 'next-auth';
 import { getAuthProviders, signIn } from '#app/(auth)/auth.ts';
 import { routes } from '#utils/router.ts';
 
-import { SignInButton } from './SignInButton';
-import classes from './SignInProviders.module.scss';
+import { AutoSignIn } from './AutoSignIn';
 
 interface Props {
   callbackUrl?: string;
@@ -20,19 +19,7 @@ const authProviders = getAuthProviders();
 const providers = Object.values(authProviders);
 
 export function SignInProviders({ callbackUrl: redirectTo = routes.home() }: Props) {
-  return (
-    <div className={classes.root}>
-      {providers.map((provider) => {
-        const { id } = provider;
-
-        return (
-          <form key={id} action={handleSignIn.bind(null, { providerId: id, redirectTo })}>
-            <SignInButton provider={provider} />
-          </form>
-        );
-      })}
-    </div>
-  );
+  return <AutoSignIn signIn={handleSignIn.bind(null, { providerId: providers[0].id, redirectTo })} />;
 }
 
 async function handleSignIn({ providerId, redirectTo }: { providerId: string; redirectTo: string }) {
