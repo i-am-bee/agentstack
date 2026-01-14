@@ -17,14 +17,18 @@ export type FulfillmentsContext = Partial<{
   form: UIMessageForm;
 }>;
 
+export interface ModelProvidersContextValue {
+  isEnabled: boolean;
+  isLoading: boolean;
+  matched?: Record<string, string[]>;
+  selected: Record<string, string>;
+  select: (key: string, value: string) => void;
+}
+
 interface AgentDemandsContextValue {
-  matchedLLMProviders?: Record<string, string[]>;
-  selectedLLMProviders: Record<string, string>;
-  matchedEmbeddingProviders?: Record<string, string[]>;
-  selectedEmbeddingProviders: Record<string, string>;
+  llmProviders: ModelProvidersContextValue;
+  embeddingProviders: ModelProvidersContextValue;
   getFulfillments: (context: FulfillmentsContext) => Promise<Fulfillments>;
-  selectLLMProvider: (key: string, value: string) => void;
-  selectEmbeddingProvider: (key: string, value: string) => void;
   provideFormValues: (values: RunFormValues) => void;
   onUpdateSettings: (settings: SettingsValues) => void;
   selectedSettings: SettingsValues | undefined;

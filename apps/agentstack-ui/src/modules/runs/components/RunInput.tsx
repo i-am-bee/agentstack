@@ -16,6 +16,7 @@ import { useFileUpload } from '#modules/files/contexts/index.ts';
 import { dispatchInputEventOnTextarea, submitFormOnEnter } from '#utils/form-utils.ts';
 
 import { ChatDefaultTools } from '../chat/constants';
+import { useAgentDemands } from '../contexts/agent-demands';
 import { useAgentRun } from '../contexts/agent-run';
 import { RunModels } from '../settings/RunModels';
 import { RunSettings } from '../settings/RunSettings';
@@ -39,6 +40,8 @@ export function RunInput({ promptExamples, onMessageSent }: Props) {
   const [promptExamplesOpen, setPromptExamplesOpen] = useState(false);
 
   const { hasMessages } = useAgentRun();
+
+  const { llmProviders, embeddingProviders } = useAgentDemands();
 
   const {
     agent: {
@@ -65,7 +68,8 @@ export function RunInput({ promptExamples, onMessageSent }: Props) {
 
   const inputProps = register('input', { required: true });
   const inputValue = watch('input');
-  const isSubmitDisabled = !isReady || isFileUploadPending || !inputValue;
+  const isLoadingModelProviders = llmProviders.isLoading || embeddingProviders.isLoading;
+  const isSubmitDisabled = !isReady || isFileUploadPending || !inputValue || isLoadingModelProviders;
 
   const dispatchInputEventAndFocus = useCallback(() => {
     const inputElem = inputRef.current;

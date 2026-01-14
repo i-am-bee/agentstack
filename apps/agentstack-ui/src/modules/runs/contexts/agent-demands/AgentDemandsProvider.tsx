@@ -4,7 +4,7 @@
  */
 
 import { type FormFulfillments, ModelCapability, type SettingsValues } from 'agentstack-sdk';
-import { type PropsWithChildren, useCallback, useRef, useState } from 'react';
+import { type PropsWithChildren, useCallback, useMemo, useRef, useState } from 'react';
 
 import { useListConnectors } from '#modules/connectors/api/queries/useListConnectors.ts';
 import type { RunFormValues } from '#modules/form/types.ts';
@@ -50,7 +50,11 @@ export function AgentDemandsProvider({ children }: PropsWithChildren) {
     [setSelectedLLMProviders],
   );
 
-  const { data: matchedLLMProviders } = useMatchModelProviders({
+  const {
+    data: matchedLLMProviders,
+    isPending: isLLMProvidersPending,
+    isEnabled: isLLMProvidersEnabled,
+  } = useMatchModelProviders({
     demands: agentClient?.demands.llmDemands?.llm_demands ?? {},
     onSuccess: setDefaultSelectedLLMProviders,
     capability: ModelCapability.Llm,
@@ -73,7 +77,11 @@ export function AgentDemandsProvider({ children }: PropsWithChildren) {
     [setSelectedEmbeddingProviders],
   );
 
-  const { data: matchedEmbeddingProviders } = useMatchModelProviders({
+  const {
+    data: matchedEmbeddingProviders,
+    isPending: isEmbeddingProvidersPending,
+    isEnabled: isEmbeddingProvidersEnabled,
+  } = useMatchModelProviders({
     demands: agentClient?.demands.embeddingDemands?.embedding_demands ?? {},
     onSuccess: setDefaultSelectedEmbeddingProviders,
     capability: ModelCapability.Embedding,
@@ -128,24 +136,47 @@ export function AgentDemandsProvider({ children }: PropsWithChildren) {
     [contextToken, selectedLLMProviders, selectedEmbeddingProviders, selectedSettings, demandedSecrets, connectorsData],
   );
 
-  return (
-    <AgentDemandsContext.Provider
-      value={{
-        matchedLLMProviders,
-        selectedLLMProviders,
-        matchedEmbeddingProviders,
-        selectedEmbeddingProviders,
-        provideFormValues,
-        getFulfillments,
-        selectLLMProvider,
-        selectEmbeddingProvider,
-        selectedSettings,
-        settingsDemands: agentClient?.demands.settingsDemands ?? null,
-        formDemands: agentClient?.demands.formDemands ?? null,
-        onUpdateSettings,
-      }}
-    >
-      {children}
-    </AgentDemandsContext.Provider>
+  const value = useMemo(
+    () => ({
+      llmProviders: {
+        isEnabled: isLLMProvidersEnabled,
+        isLoading: isLLMProvidersEnabled && isLLMProvidersPending,
+        matched: matchedLLMProviders,
+        selected: selectedLLMProviders,
+        select: selectLLMProvider,
+      },
+      embeddingProviders: {
+        isEnabled: isEmbeddingProvidersEnabled,
+        isLoading: isEmbeddingProvidersEnabled && isEmbeddingProvidersPending,
+        matched: matchedEmbeddingProviders,
+        selected: selectedEmbeddingProviders,
+        select: selectEmbeddingProvider,
+      },
+      provideFormValues,
+      getFulfillments,
+      selectedSettings,
+      settingsDemands: agentClient?.demands.settingsDemands ?? null,
+      formDemands: agentClient?.demands.formDemands ?? null,
+      onUpdateSettings,
+    }),
+    [
+      agentClient,
+      getFulfillments,
+      isEmbeddingProvidersEnabled,
+      isEmbeddingProvidersPending,
+      isLLMProvidersEnabled,
+      isLLMProvidersPending,
+      matchedEmbeddingProviders,
+      matchedLLMProviders,
+      onUpdateSettings,
+      provideFormValues,
+      selectEmbeddingProvider,
+      selectLLMProvider,
+      selectedEmbeddingProviders,
+      selectedLLMProviders,
+      selectedSettings,
+    ],
   );
+
+  return <AgentDemandsContext.Provider value={value}>{children}</AgentDemandsContext.Provider>;
 }
