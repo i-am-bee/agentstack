@@ -122,8 +122,11 @@ if [[ ! "$*" =~ 'ui.enabled=false' ]]; then
     UI_TAG="--set ui.image.tag=local"
 fi
 
+PULL_ON_HOST_FLAG=""
+if [[ "$CI" != "true" ]]; then PULL_ON_HOST_FLAG="--pull-on-host"; fi
+
 {{ mise_bin }} run agentstack-cli:run -- platform start \
-    --pull-on-host \
+    $PULL_ON_HOST_FLAG \
     --import "ghcr.io/i-am-bee/agentstack/agentstack-server:local" \
     --import "ghcr.io/i-am-bee/agentstack/supergateway:latest" \
     $UI_IMPORT \
