@@ -167,7 +167,7 @@ eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
 {{ mise_bin }} run agentstack:stop-all --except "$VM_NAME"
 {{ mise_bin }} agentstack:start --vm-name="$VM_NAME" \
     --set externalRegistries=null \
-    {{arg(name="cli-args", var=true, default="--")}}
+    $usage_cli_args
 {{ mise_bin }} run agentstack-server:dev:connect --vm-name="$VM_NAME"
 """
 

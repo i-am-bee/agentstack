@@ -82,14 +82,22 @@ class AsyncTyper(typer.Typer):
                     else:
                         return f(*args, **kwargs)
                 except* Exception as ex:
+                    is_permission_error = False
                     is_connect_error = False
                     for exc_type, message in extract_messages(ex):
                         err_console.print(format_error(exc_type, message))
                         is_connect_error = is_connect_error or exc_type in ["ConnectionError", "ConnectError"]
+                        is_permission_error = is_permission_error or (
+                            exc_type == "HTTPStatusError" and "403" in message
+                        )
                         err_console.print()
                     if is_connect_error:
                         err_console.hint(
                             "Start the Agent Stack platform using: [green]agentstack platform start[/green]. If that does not help, run [green]agentstack platform delete[/green] to clean up, then [green]agentstack platform start[/green] again."
+                        )
+                    elif is_permission_error:
+                        err_console.hint(
+                            "This command requires higher permissions than your account currently has. Contact your administrator for assistance."
                         )
                     else:
                         err_console.hint(
