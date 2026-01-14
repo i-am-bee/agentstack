@@ -3,27 +3,29 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-:where(.root) {
-  inline-size: 100%;
-  block-size: 100%;
-  display: flex;
-  flex-direction: column;
-  min-block-size: 0;
-  position: relative;
-  &.scrollable {
-    @include scrollbar();
-  }
-  &.sm {
-    padding-block: $spacing-05;
-  }
-  &.md {
-    padding-block: $spacing-07;
-  }
-  &.lg {
-    padding-block: $spacing-07;
-  }
-  &.hasFooter {
-    padding-block-end: 0;
+.root {
+  :where(&) {
+    inline-size: 100%;
+    block-size: 100%;
+    display: flex;
+    flex-direction: column;
+    min-block-size: 0;
+
+    &.scrollable {
+      @include scrollbar();
+    }
+    &.sm {
+      padding-block: $spacing-05;
+    }
+    &.md {
+      padding-block: $spacing-07;
+    }
+    &.lg {
+      padding-block: $spacing-07;
+    }
+    &.hasFooter {
+      padding-block-end: 0;
+    }
   }
 }
 
@@ -32,11 +34,13 @@
   inset-block-start: 0;
 }
 
-:where(.body) {
-  flex-grow: 1;
-  min-block-size: 0;
-  .root.scrollable & {
-    min-block-size: auto;
+.body {
+  :where(&) {
+    flex-grow: 1;
+    min-block-size: 0;
+    .root.scrollable & {
+      min-block-size: auto;
+    }
   }
 }
 

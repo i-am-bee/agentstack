@@ -32,7 +32,6 @@ export function CanvasEditForm({ onSubmit }: Props) {
           labelText="Edit instructions"
           autoFocus
           size="sm"
-          className={classes.input}
           {...register('input', { required: true })}
         />
         <IconButton label="Ask agent" kind="ghost" size="sm" type="submit" disabled={!isValid}>

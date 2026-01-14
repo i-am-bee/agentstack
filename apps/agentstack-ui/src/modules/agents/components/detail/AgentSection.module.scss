@@ -7,8 +7,8 @@
   display: flex;
   flex-direction: column;
   gap: $spacing-05;
+}
 
-  h2 {
-    @include type-style('heading-02');
-  }
+.heading {
+  @include type-style('heading-02');
 }

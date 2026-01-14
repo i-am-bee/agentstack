@@ -44,7 +44,7 @@ export function Canvas() {
           </header>
         )}
 
-        <div className={classes.body} ref={contentRef}>
+        <div ref={contentRef}>
           <CanvasMarkdownContent className={classes.content} artifactId={activeArtifact.artifactId}>
             {content}
           </CanvasMarkdownContent>

@@ -69,8 +69,11 @@ $max-inline-size: rem(608px);
   flex-direction: column;
   row-gap: $spacing-06;
   flex-grow: 1;
-  > *:not(.text) {
+  > * {
     max-inline-size: $max-inline-size;
+    &.text {
+      max-inline-size: auto;
+    }
   }
 }
 

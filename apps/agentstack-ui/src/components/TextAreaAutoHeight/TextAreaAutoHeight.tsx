@@ -66,7 +66,6 @@ export const TextAreaAutoHeight = forwardRef<HTMLTextAreaElement, Props>(functio
     <div
       ref={containerRef}
       className={clsx(classes.root, className, sizeClassName, {
-        [classes.resizable]: resizable,
         [classes.resized]: Boolean(manualHeight),
       })}
       data-replicated-value={value}

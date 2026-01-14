@@ -53,7 +53,7 @@ export function FileFieldComponent({ field }: Props) {
   }
 
   return (
-    <FormGroup {...dropzone.getRootProps()} legendText={label} className={classes.root}>
+    <FormGroup {...dropzone.getRootProps()} legendText={label}>
       <input type="file" {...dropzone.getInputProps()} />
 
       {hasFiles ? (

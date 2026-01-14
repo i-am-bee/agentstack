@@ -17,15 +17,6 @@
   align-items: center;
 }
 
-.icon {
-  inline-size: rem(24px);
-  block-size: rem(24px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
-}
-
 .name {
   @include type-style('heading-02');
   @include line-clamp();
@@ -47,26 +38,5 @@
     @include type-style('label-01');
     column-gap: $spacing-02;
     color: $text-secondary;
-  }
-}
-
-.options {
-  &:global(.cds--overflow-menu-options) {
-    inline-size: rem(154px);
-    transform: translate(0, $spacing-04);
-    padding: $spacing-03;
-    row-gap: 0;
-
-    :global(.cds--overflow-menu-options__option) {
-      block-size: rem(26px);
-    }
-
-    :global(.cds--overflow-menu-options__option--danger .cds--overflow-menu-options__btn) {
-      color: $support-error;
-      &:hover,
-      &:focus {
-        color: $text-inverse;
-      }
-    }
   }
 }

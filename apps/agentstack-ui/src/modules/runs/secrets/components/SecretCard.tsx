@@ -58,7 +58,7 @@ export function SecretCard({ secret, variant = 'default', onCloseAddModal, onOpe
       </div>
 
       {isReady && variant === 'inline' && (
-        <OverflowMenu menuOptionsClass={classes.options} size="sm" flipped>
+        <OverflowMenu size="sm" flipped>
           <OverflowMenuItem itemText="Manage API Key" onClick={() => openAddModal()} />
 
           <OverflowMenuItem itemText="Revoke API Key" isDelete onClick={() => revokeSecret(secret)} />
