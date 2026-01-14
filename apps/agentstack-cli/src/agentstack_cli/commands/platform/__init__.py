@@ -175,7 +175,7 @@ async def import_image_cmd(
         if (await driver.status()) != "running":
             console.error("Agent Stack platform is not running.")
             sys.exit(1)
-        await driver.import_image(tag)
+        await driver.import_images(tag)
 
 
 @app.command("exec")

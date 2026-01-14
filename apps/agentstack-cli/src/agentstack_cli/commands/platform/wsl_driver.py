@@ -209,7 +209,7 @@ class WSLDriver(BaseDriver):
         await run_command(["wsl.exe", "--unregister", self.vm_name], "Deleting Agent Stack platform", check=False)
 
     @typing.override
-    async def import_image(self, tag: str) -> None:
+    async def import_images(self, *tags: str) -> None:
         raise NotImplementedError("Importing images is not supported on this platform.")
 
     @typing.override

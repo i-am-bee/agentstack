@@ -180,7 +180,7 @@ class LimaDriver(BaseDriver):
         )
 
     @typing.override
-    async def import_image(self, tag: str):
+    async def import_images(self, *tags: str):
         image_dir = anyio.Path("/tmp/agentstack")
         await image_dir.mkdir(exist_ok=True, parents=True)
         image_file = str(uuid.uuid4())
@@ -188,11 +188,12 @@ class LimaDriver(BaseDriver):
 
         try:
             await run_command(
-                ["docker", "image", "save", "-o", str(image_path), tag], f"Exporting image {tag} from Docker"
+                ["docker", "image", "save", "-o", str(image_path), *tags],
+                f"Exporting image{'' if len(tags) == 1 else 's'} {', '.join(tags)} from Docker",
             )
             await self.run_in_vm(
                 ["/bin/sh", "-c", f"k3s ctr images import /tmp/agentstack/{image_file}"],
-                f"Importing image {tag} into Agent Stack platform",
+                f"Importing image{'' if len(tags) == 1 else 's'} {', '.join(tags)} into Agent Stack platform",
             )
         finally:
             await image_path.unlink(missing_ok=True)
