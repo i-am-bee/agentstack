@@ -5,25 +5,29 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from typing import Literal
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import pydantic
 from a2a.types import Artifact, Message
-from pydantic import AwareDatetime, BaseModel, SerializeAsAny
+from pydantic import AwareDatetime, BaseModel, Field, SerializeAsAny, computed_field
 
 from agentstack_sdk.platform.client import PlatformClient, get_platform_client
 from agentstack_sdk.platform.common import PaginatedResult
 from agentstack_sdk.platform.provider import Provider
 from agentstack_sdk.platform.types import Metadata, MetadataPatch
-from agentstack_sdk.util.utils import filter_dict
+from agentstack_sdk.util.utils import filter_dict, utc_now
 
 
 class ContextHistoryItem(BaseModel):
-    id: UUID
+    id: UUID = Field(default_factory=uuid4)
     data: Artifact | Message
-    created_at: AwareDatetime
-    context_id: UUID
-    kind: Literal["message", "artifact"]
+    created_at: AwareDatetime = Field(default_factory=utc_now)
+    context_id: str
+
+    @computed_field
+    @property
+    def kind(self) -> Literal["message", "artifact"]:
+        return getattr(self.data, "kind", "artifact")
 
 
 class ContextToken(pydantic.BaseModel):

@@ -272,7 +272,7 @@ async def test_context_provider_filtering(subtests):
 
 
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
-async def test_delete_context_history_from_id(subtests):
+async def test_context_delete_context_history_from_id(subtests):
     """Test deleting context history from a specific item ID onwards."""
 
     context = None
@@ -307,5 +307,6 @@ async def test_delete_context_history_from_id(subtests):
 
     with subtests.test("delete from first item deletes all"):
         await context.delete_history_from_id(from_id=remaining_ids[0])
+        # await context.delete_history_from_id(from_id=remaining_ids[0])
         remaining_history = await context.list_history(limit=50)
         assert len(remaining_history.items) == 0

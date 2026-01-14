@@ -10,12 +10,14 @@ from uuid import UUID
 
 from a2a.types import Artifact, Message
 
+from agentstack_sdk.platform.context import ContextHistoryItem
+
 if TYPE_CHECKING:
     from agentstack_sdk.server.dependencies import Dependency, Depends
 
 
 class ContextStoreInstance(Protocol):
-    async def load_history(self) -> AsyncIterator[Message | Artifact]:
+    async def load_history(self, load_history_items: bool = False) -> AsyncIterator[ContextHistoryItem | Message | Artifact]:
         yield ...  # type: ignore
 
     async def store(self, data: Message | Artifact) -> None: ...

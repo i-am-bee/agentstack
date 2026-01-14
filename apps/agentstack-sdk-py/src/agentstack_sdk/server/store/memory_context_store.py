@@ -8,6 +8,7 @@ from uuid import UUID
 from a2a.types import Artifact, Message
 from cachetools import TTLCache
 
+from agentstack_sdk.platform.context import ContextHistoryItem
 from agentstack_sdk.server.dependencies import Dependency
 from agentstack_sdk.server.store.context_store import ContextStore, ContextStoreInstance
 
@@ -15,19 +16,24 @@ from agentstack_sdk.server.store.context_store import ContextStore, ContextStore
 class MemoryContextStoreInstance(ContextStoreInstance):
     def __init__(self, context_id: str):
         self.context_id = context_id
-        self._history: list[Message | Artifact] = []
+        self._history: list[ContextHistoryItem] = []
 
-    async def load_history(self) -> AsyncIterator[Message | Artifact]:
+    async def load_history(self, load_history_items: bool = False) -> AsyncIterator[ContextHistoryItem | Message | Artifact]:
         for message in self._history.copy():
-            yield message.model_copy(deep=True)
+            if load_history_items:
+                yield message.model_copy(deep=True)
+            else:
+                yield message.data.model_copy(deep=True)
 
     async def store(self, data: Message | Artifact) -> None:
-        self._history.append(data.model_copy(deep=True))
+        self._history.append(
+            ContextHistoryItem(data=data.model_copy(deep=True), context_id=self.context_id)
+        )
 
     async def delete_history_from_id(self, from_id: UUID) -> None:
         # Does not allow to delete from an artifact onwards
         index = next(
-            (i for i, item in enumerate(self._history) if isinstance(item, Message) and item.message_id == from_id),
+            (i for i, item in enumerate(self._history) if item.id == from_id),
             None,
         )
         if index is not None:

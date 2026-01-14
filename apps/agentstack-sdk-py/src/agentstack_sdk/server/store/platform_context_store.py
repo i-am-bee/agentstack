@@ -10,7 +10,7 @@ from agentstack_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionServer,
     PlatformApiExtensionSpec,
 )
-from agentstack_sdk.platform.context import Context
+from agentstack_sdk.platform.context import Context, ContextHistoryItem
 from agentstack_sdk.server.constants import _IMPLICIT_DEPENDENCY_PREFIX
 from agentstack_sdk.server.dependencies import Dependency, Depends
 from agentstack_sdk.server.store.context_store import ContextStore, ContextStoreInstance
@@ -39,10 +39,13 @@ class PlatformContextStoreInstance(ContextStoreInstance):
         self._context_id = context_id
         self._platform_extension = platform_extension
 
-    async def load_history(self) -> AsyncIterator[Message | Artifact]:
+    async def load_history(self, load_history_items: bool = False) -> AsyncIterator[ContextHistoryItem | Message | Artifact]:
         async with self._platform_extension.use_client():
             async for history_item in Context.list_all_history(self._context_id):
-                yield history_item.data
+                if load_history_items:
+                    yield history_item
+                else:
+                    yield history_item.data
 
     async def store(self, data: Message | Artifact) -> None:
         async with self._platform_extension.use_client():

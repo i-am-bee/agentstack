@@ -63,12 +63,13 @@ async def history_deleting_agent(create_server_with_agent) -> AsyncGenerator[tup
     async def history_agent(input: Message, context: RunContext) -> AsyncGenerator[RunYield, None]:
         await context.store(input)
         n_messages = 0
-        async for message in context.load_history():
+        async for message in context.load_history(load_history_items=True):
             n_messages += 1
             if n_messages == 1:
-                delete_id = message.message_id
+                delete_id = message.id
             if n_messages > 3:
                 await context.delete_history_from_id(delete_id)
+                break
 
         async for message in context.load_history():
             message.role = Role.agent

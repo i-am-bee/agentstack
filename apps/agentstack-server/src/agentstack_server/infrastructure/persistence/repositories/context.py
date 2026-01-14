@@ -217,8 +217,8 @@ class SqlAlchemyContextRepository(IContextRepository):
         """Delete all history items from a specific item onwards (inclusive) in given context"""
         # First, get the created_at timestamp of the item to delete from
         query_item = select(context_history_table.c.created_at).where(
-            context_history_table.c.id == from_id,
             context_history_table.c.context_id == context_id,
+            context_history_table.c.id == from_id,
         )
         result = await self._connection.execute(query_item)
         row = result.first()
