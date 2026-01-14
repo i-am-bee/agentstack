@@ -101,11 +101,11 @@ The default namespace is labeled `istio.io/dataplane-mode=ambient`. This ensures
 
 **Available endpoints:**
 
-| Service        | HTTPS                                           | HTTP                                |
-|----------------|-------------------------------------------------|-------------------------------------|
-| Kiali Console  | –                                               | `http://localhost:20001`            |
-| BeeAI UI       | `https://agentstack.localhost:8336`             | `http://localhost:8334`             |
-| BeeAI API Docs | `https://agentstack.localhost:8336/api/v1/docs` | `http://localhost:8333/api/v1/docs` |
+| Service              | HTTPS                                           | HTTP                                |
+|----------------------|-------------------------------------------------|-------------------------------------|
+| Kiali Console        | –                                               | `http://localhost:20001`            |
+| Agent Stack UI       | `https://agentstack.localhost:8336`             | `http://localhost:8334`             |
+| Agent Stack API Docs | `https://agentstack.localhost:8336/api/v1/docs` | `http://localhost:8333/api/v1/docs` |
 
 **OIDC configuration:**
 
@@ -290,7 +290,7 @@ in [Running and debugging individual components](#running-and-debugging-individu
 
 ```sh
 mise agentstack-cli:run -- agent list
-mise agentstack-cli:run -- agent run website_summarizer "summarize iambee.ai"
+mise agentstack-cli:run -- agent run website_summarizer "summarize beeai.dev"
 ```
 
 #### UI

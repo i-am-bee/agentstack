@@ -25,13 +25,6 @@ depends = ["check"]
 ["common:setup"]
 depends = ["common:setup:*"]
 
-["common:setup:mise-local-toml"]
-hide = true
-dir = "{{config_root}}"
-run = "test -f mise.local.toml || cp mise.local.toml-example mise.local.toml"
-sources = ["mise.local.toml-example"]
-outputs = { auto = true }
-
 ["common:setup:git-hooks"]
 hide = true
 dir = "{{config_root}}"

@@ -6,7 +6,6 @@
 !/helm/
 !/mise.toml
 !/mise.lock
-!/mise.local.toml-example
 !/pnpm-lock.yaml
 !/pnpm-workspace.yaml
 !/pyproject.toml

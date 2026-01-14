@@ -639,7 +639,7 @@ async def ensure_llm_provider():
         if config.default_llm_model and not inconsistent:
             return
 
-    console.print("[bold]Welcome to 🐝 [red]Agent Stack[/red]![/bold]")
+    console.print("[bold]Welcome to [red]Agent Stack[/red]![/bold]")
     console.print("Let's start by configuring your LLM environment.\n")
     try:
         await setup()
