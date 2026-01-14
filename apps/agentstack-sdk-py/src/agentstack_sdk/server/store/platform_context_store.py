@@ -39,7 +39,9 @@ class PlatformContextStoreInstance(ContextStoreInstance):
         self._context_id = context_id
         self._platform_extension = platform_extension
 
-    async def load_history(self, load_history_items: bool = False) -> AsyncIterator[ContextHistoryItem | Message | Artifact]:
+    async def load_history(
+        self, load_history_items: bool = False
+    ) -> AsyncIterator[ContextHistoryItem | Message | Artifact]:
         async with self._platform_extension.use_client():
             async for history_item in Context.list_all_history(self._context_id):
                 if load_history_items:

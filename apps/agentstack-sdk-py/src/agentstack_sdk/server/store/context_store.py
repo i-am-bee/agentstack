@@ -17,7 +17,9 @@ if TYPE_CHECKING:
 
 
 class ContextStoreInstance(Protocol):
-    async def load_history(self, load_history_items: bool = False) -> AsyncIterator[ContextHistoryItem | Message | Artifact]:
+    async def load_history(
+        self, load_history_items: bool = False
+    ) -> AsyncIterator[ContextHistoryItem | Message | Artifact]:
         yield ...  # type: ignore
 
     async def store(self, data: Message | Artifact) -> None: ...

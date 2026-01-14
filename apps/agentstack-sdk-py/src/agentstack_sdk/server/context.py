@@ -1,8 +1,8 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator
+from typing import Literal, overload
 from uuid import UUID
 
 import janus
@@ -32,7 +32,19 @@ class RunContext(BaseModel, arbitrary_types_allowed=True):
             data = data.model_copy(deep=True, update={"context_id": self.context_id, "task_id": self.task_id})
         await self._store.store(data)
 
-    async def load_history(self, load_history_items: bool = False) -> AsyncIterator[ContextHistoryItem | Message | Artifact]:
+    @overload
+    async def load_history(
+        self, load_history_items: Literal[False] = False
+    ) -> AsyncGenerator[Message | Artifact, None]:
+        yield ...  # type: ignore
+
+    @overload
+    async def load_history(self, load_history_items: Literal[True]) -> AsyncGenerator[ContextHistoryItem, None]:
+        yield ...  # type: ignore
+
+    async def load_history(
+        self, load_history_items: bool = False
+    ) -> AsyncGenerator[ContextHistoryItem | Message | Artifact]:
         if not self._store:
             raise RuntimeError("Context store is not initialized")
         async for item in self._store.load_history(load_history_items=load_history_items):

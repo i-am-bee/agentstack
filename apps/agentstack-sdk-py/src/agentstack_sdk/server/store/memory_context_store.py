@@ -18,17 +18,17 @@ class MemoryContextStoreInstance(ContextStoreInstance):
         self.context_id = context_id
         self._history: list[ContextHistoryItem] = []
 
-    async def load_history(self, load_history_items: bool = False) -> AsyncIterator[ContextHistoryItem | Message | Artifact]:
-        for message in self._history.copy():
+    async def load_history(
+        self, load_history_items: bool = False
+    ) -> AsyncIterator[ContextHistoryItem | Message | Artifact]:
+        for item in self._history.copy():
             if load_history_items:
-                yield message.model_copy(deep=True)
+                yield item.model_copy(deep=True)
             else:
-                yield message.data.model_copy(deep=True)
+                yield item.data.model_copy(deep=True)
 
     async def store(self, data: Message | Artifact) -> None:
-        self._history.append(
-            ContextHistoryItem(data=data.model_copy(deep=True), context_id=self.context_id)
-        )
+        self._history.append(ContextHistoryItem(data=data.model_copy(deep=True), context_id=self.context_id))
 
     async def delete_history_from_id(self, from_id: UUID) -> None:
         # Does not allow to delete from an artifact onwards
