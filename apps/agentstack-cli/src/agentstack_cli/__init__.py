@@ -10,7 +10,6 @@ import typer
 
 import agentstack_cli.commands.agent
 import agentstack_cli.commands.build
-import agentstack_cli.commands.mcp
 import agentstack_cli.commands.model
 import agentstack_cli.commands.platform
 import agentstack_cli.commands.self
@@ -88,12 +87,6 @@ app.add_typer(
     name="platform",
     no_args_is_help=True,
     help="Manage Agent Stack platform. [Local only]",
-)
-app.add_typer(
-    agentstack_cli.commands.mcp.app,
-    name="mcp",
-    no_args_is_help=True,
-    help="Manage MCP servers and toolkits. Some commands are [Admin only].",
 )
 app.add_typer(agentstack_cli.commands.build.app, name="", no_args_is_help=True, help="Build agent images.")
 app.add_typer(

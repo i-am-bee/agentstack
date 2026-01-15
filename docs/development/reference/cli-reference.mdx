@@ -26,7 +26,6 @@ $ agentstack [OPTIONS] COMMAND [ARGS]...
 * `model`: Manage model providers.
 * `agent`: Manage agents.
 * `platform`: Manage Agent Stack platform.
-* `mcp`: Manage MCP servers and toolkits.
 * `client-side-build`: Build agent locally using Docker.
 * `build`: Build agent from a GitHub repository in...
 * `server`: Manage Agent Stack servers and...
@@ -34,8 +33,8 @@ $ agentstack [OPTIONS] COMMAND [ARGS]...
 * `user`: Manage users.
 * `add`: Add a docker image or GitHub repository.
 * `update`: Upgrade agent to a newer docker image or...
-* `remove | uninstall | rm | delete`: Remove agent
-* `logs`: Stream agent provider logs
+* `remove | uninstall | rm | delete`: Remove agent.
+* `logs`: Stream agent provider logs.
 * `run`: Run an agent.
 * `list`: List agents.
 * `info`: Show agent details.
@@ -73,7 +72,7 @@ $ agentstack ui [OPTIONS]
 
 ## `agentstack model`
 
-Manage model providers.
+Manage model providers. [Admin only]
 
 **Usage**:
 
@@ -87,14 +86,16 @@ $ agentstack model [OPTIONS] COMMAND [ARGS]...
 
 **Commands**:
 
-* `list`
+* `list`: List all available models.
 * `setup`: Interactive setup for LLM and embedding...
-* `change | select | default`
-* `add`
+* `change | select | default`: Change the default model [Admin only]
+* `add`: Add a new model provider.
 * `remove | rm | delete`
 * `provider`
 
 ### `agentstack model list`
+
+List all available models.
 
 **Usage**:
 
@@ -108,7 +109,7 @@ $ agentstack model list [OPTIONS]
 
 ### `agentstack model setup`
 
-Interactive setup for LLM and embedding provider environment variables
+Interactive setup for LLM and embedding provider environment variables [Admin only]
 
 **Usage**:
 
@@ -122,6 +123,8 @@ $ agentstack model setup [OPTIONS]
 * `--help`: Show this message and exit.
 
 ### `agentstack model change | select | default`
+
+Change the default model [Admin only]
 
 **Usage**:
 
@@ -140,6 +143,8 @@ $ agentstack model change | select | default [OPTIONS] [CAPABILITY]:[llm|embeddi
 * `--help`: Show this message and exit.
 
 ### `agentstack model add`
+
+Add a new model provider. [Admin only]
 
 **Usage**:
 
@@ -186,11 +191,13 @@ $ agentstack model provider [OPTIONS] COMMAND [ARGS]...
 
 **Commands**:
 
-* `list`
-* `add`
-* `remove | rm | delete`
+* `list`: List all available model providers.
+* `add`: Add a new model provider [Admin only]
+* `remove | rm | delete`: Remove a model provider [Admin only]
 
 #### `agentstack model provider list`
+
+List all available model providers.
 
 **Usage**:
 
@@ -203,6 +210,8 @@ $ agentstack model provider list [OPTIONS]
 * `--help`: Show this message and exit.
 
 #### `agentstack model provider add`
+
+Add a new model provider [Admin only]
 
 **Usage**:
 
@@ -219,6 +228,8 @@ $ agentstack model provider add [OPTIONS] [CAPABILITY]:[llm|embedding]
 * `--help`: Show this message and exit.
 
 #### `agentstack model provider remove | rm | delete`
+
+Remove a model provider [Admin only]
 
 **Usage**:
 
@@ -237,7 +248,7 @@ $ agentstack model provider remove | rm | delete [OPTIONS] [SEARCH_PATH]
 
 ## `agentstack agent`
 
-Manage agents.
+Manage agents. Some commands are [Admin only].
 
 **Usage**:
 
@@ -253,8 +264,8 @@ $ agentstack agent [OPTIONS] COMMAND [ARGS]...
 
 * `add`: Add a docker image or GitHub repository.
 * `update`: Upgrade agent to a newer docker image or...
-* `remove | uninstall | rm | delete`: Remove agent
-* `logs`: Stream agent provider logs
+* `remove | uninstall | rm | delete`: Remove agent.
+* `logs`: Stream agent provider logs.
 * `run`: Run an agent.
 * `list`: List agents.
 * `info`: Show agent details.
@@ -263,7 +274,7 @@ $ agentstack agent [OPTIONS] COMMAND [ARGS]...
 
 ### `agentstack agent add`
 
-Add a docker image or GitHub repository.
+Add a docker image or GitHub repository. [Admin only]
 
 This command supports a variety of GitHub URL formats for deploying agents:
 
@@ -296,7 +307,7 @@ $ agentstack agent add [OPTIONS] [LOCATION]
 
 ### `agentstack agent update`
 
-Upgrade agent to a newer docker image or build from GitHub repository
+Upgrade agent to a newer docker image or build from GitHub repository. [Admin only]
 
 **Usage**:
 
@@ -318,7 +329,7 @@ $ agentstack agent update [OPTIONS] [SEARCH_PATH] [LOCATION]
 
 ### `agentstack agent remove | uninstall | rm | delete`
 
-Remove agent
+Remove agent. [Admin only]
 
 **Usage**:
 
@@ -338,7 +349,7 @@ $ agentstack agent remove | uninstall | rm | delete [OPTIONS] [SEARCH_PATH]
 
 ### `agentstack agent logs`
 
-Stream agent provider logs
+Stream agent provider logs. [Admin only]
 
 **Usage**:
 
@@ -420,13 +431,13 @@ $ agentstack agent env [OPTIONS] COMMAND [ARGS]...
 
 **Commands**:
 
-* `add`: Store environment variables
-* `list`: List stored environment variables
-* `remove`
+* `add`: Store environment variables.
+* `list`: List stored environment variables.
+* `remove`: Remove environment variable(s).
 
 #### `agentstack agent env add`
 
-Store environment variables
+Store environment variables. [Admin only]
 
 **Usage**:
 
@@ -446,7 +457,7 @@ $ agentstack agent env add [OPTIONS] SEARCH_PATH ENV...
 
 #### `agentstack agent env list`
 
-List stored environment variables
+List stored environment variables. [Admin only]
 
 **Usage**:
 
@@ -463,6 +474,8 @@ $ agentstack agent env list [OPTIONS] SEARCH_PATH
 * `--help`: Show this message and exit.
 
 #### `agentstack agent env remove`
+
+Remove environment variable(s). [Admin only]
 
 **Usage**:
 
@@ -496,11 +509,11 @@ $ agentstack agent feedback [OPTIONS] COMMAND [ARGS]...
 
 **Commands**:
 
-* `list`: List your agent feedback
+* `list`: List your agent feedback.
 
 #### `agentstack agent feedback list`
 
-List your agent feedback
+List your agent feedback. [Admin only]
 
 **Usage**:
 
@@ -520,7 +533,7 @@ $ agentstack agent feedback list [OPTIONS] [SEARCH_PATH]
 
 ## `agentstack platform`
 
-Manage Agent Stack platform.
+Manage Agent Stack platform. [Local only]
 
 **Usage**:
 
@@ -542,7 +555,7 @@ $ agentstack platform [OPTIONS] COMMAND [ARGS]...
 
 ### `agentstack platform start`
 
-Start Agent Stack platform.
+Start Agent Stack platform. [Local only]
 
 **Usage**:
 
@@ -554,13 +567,14 @@ $ agentstack platform start [OPTIONS]
 
 * `--set TEXT`: Set Helm chart values using &lt;key&gt;=&lt;value&gt; syntax  [default: &lt;class &#x27;list&#x27;&gt;]
 * `--import TEXT`: Import an image from a local Docker CLI into Agent Stack platform  [default: &lt;class &#x27;list&#x27;&gt;]
+* `--pull-on-host`: Pull images on host Docker daemon and import them instead of pulling inside the VM. Acts as a pull cache layer.
 * `-f PATH`: Set Helm chart values using yaml values file
 * `-v, --verbose`: Show verbose output
 * `--help`: Show this message and exit.
 
 ### `agentstack platform stop`
 
-Stop Agent Stack platform.
+Stop Agent Stack platform. [Local only]
 
 **Usage**:
 
@@ -575,7 +589,7 @@ $ agentstack platform stop [OPTIONS]
 
 ### `agentstack platform delete`
 
-Delete Agent Stack platform.
+Delete Agent Stack platform. [Local only]
 
 **Usage**:
 
@@ -590,7 +604,7 @@ $ agentstack platform delete [OPTIONS]
 
 ### `agentstack platform import`
 
-Import a local docker image into the Agent Stack platform.
+Import a local docker image into the Agent Stack platform. [Local only]
 
 **Usage**:
 
@@ -609,7 +623,7 @@ $ agentstack platform import [OPTIONS] TAG
 
 ### `agentstack platform exec`
 
-For debugging -- execute a command inside the Agent Stack platform VM.
+For debugging -- execute a command inside the Agent Stack platform VM. [Local only]
 
 **Usage**:
 
@@ -626,154 +640,9 @@ $ agentstack platform exec [OPTIONS] [COMMAND]...
 * `-v, --verbose`: Show verbose output
 * `--help`: Show this message and exit.
 
-## `agentstack mcp`
-
-Manage MCP servers and toolkits.
-
-**Usage**:
-
-```console
-$ agentstack mcp [OPTIONS] COMMAND [ARGS]...
-```
-
-**Options**:
-
-* `--help`: Show this message and exit.
-
-**Commands**:
-
-* `add`: Install discovered MCP server.
-* `list`: List MCP servers.
-* `remove | uninstall | rm | delete`: Remove MCP server.
-* `tool`: Inspect tools.
-* `toolkit`: Create toolkits.
-
-### `agentstack mcp add`
-
-Install discovered MCP server.
-
-**Usage**:
-
-```console
-$ agentstack mcp add [OPTIONS] NAME LOCATION [TRANSPORT]:[sse|streamable_http]
-```
-
-**Arguments**:
-
-* `NAME`: Name for the MCP server  [required]
-* `LOCATION`: Location of the MCP server  [required]
-* `[TRANSPORT]:[sse|streamable_http]`: Transport the MCP server uses  [default: streamable_http]
-
-**Options**:
-
-* `-y, --yes`: Skip confirmation prompts.
-* `--help`: Show this message and exit.
-
-### `agentstack mcp list`
-
-List MCP servers.
-
-**Usage**:
-
-```console
-$ agentstack mcp list [OPTIONS]
-```
-
-**Options**:
-
-* `--help`: Show this message and exit.
-
-### `agentstack mcp remove | uninstall | rm | delete`
-
-Remove MCP server.
-
-**Usage**:
-
-```console
-$ agentstack mcp remove | uninstall | rm | delete [OPTIONS] NAME
-```
-
-**Arguments**:
-
-* `NAME`: Name of the MCP provider to remove  [required]
-
-**Options**:
-
-* `-y, --yes`: Skip confirmation prompts.
-* `--help`: Show this message and exit.
-
-### `agentstack mcp tool`
-
-Inspect tools.
-
-**Usage**:
-
-```console
-$ agentstack mcp tool [OPTIONS] COMMAND [ARGS]...
-```
-
-**Options**:
-
-* `--help`: Show this message and exit.
-
-**Commands**:
-
-* `list`: List tools.
-
-#### `agentstack mcp tool list`
-
-List tools.
-
-**Usage**:
-
-```console
-$ agentstack mcp tool list [OPTIONS]
-```
-
-**Options**:
-
-* `--help`: Show this message and exit.
-
-### `agentstack mcp toolkit`
-
-Create toolkits.
-
-**Usage**:
-
-```console
-$ agentstack mcp toolkit [OPTIONS] COMMAND [ARGS]...
-```
-
-**Options**:
-
-* `--help`: Show this message and exit.
-
-**Commands**:
-
-* `create`: Create a toolkit.
-
-#### `agentstack mcp toolkit create`
-
-Create a toolkit.
-
-**Usage**:
-
-```console
-$ agentstack mcp toolkit create [OPTIONS] TOOLS...
-```
-
-**Arguments**:
-
-* `TOOLS...`: Tools to put in the toolkit  [required]
-
-**Options**:
-
-* `-y, --yes`: Skip confirmation prompts.
-* `--help`: Show this message and exit.
-
 ## `agentstack client-side-build`
 
-Build agent locally using Docker.
+Build agent locally using Docker. [Local only]
 
 **Usage**:
 
@@ -797,7 +666,7 @@ $ agentstack client-side-build [OPTIONS] [CONTEXT]
 
 ## `agentstack build`
 
-Build agent from a GitHub repository in the platform.
+Build agent from a GitHub repository in the platform. [Admin only]
 
 **Usage**:
 
@@ -975,7 +844,7 @@ $ agentstack self uninstall [OPTIONS]
 
 ## `agentstack user`
 
-Manage users.
+Manage users. [Admin only]
 
 **Usage**:
 
@@ -989,12 +858,12 @@ $ agentstack user [OPTIONS] COMMAND [ARGS]...
 
 **Commands**:
 
-* `list`: List platform users (admin only).
-* `set-role`: Change user role (admin only).
+* `list`: List platform users [Admin only]
+* `set-role`: Change user role [Admin only]
 
 ### `agentstack user list`
 
-List platform users (admin only).
+List platform users [Admin only]
 
 **Usage**:
 
@@ -1011,7 +880,7 @@ $ agentstack user list [OPTIONS]
 
 ### `agentstack user set-role`
 
-Change user role (admin only).
+Change user role [Admin only]
 
 **Usage**:
 
@@ -1031,7 +900,7 @@ $ agentstack user set-role [OPTIONS] USER_ID ROLE:{admin|developer|user}
 
 ## `agentstack add`
 
-Add a docker image or GitHub repository.
+Add a docker image or GitHub repository. [Admin only]
 
 This command supports a variety of GitHub URL formats for deploying agents:
 
@@ -1064,7 +933,7 @@ $ agentstack add [OPTIONS] [LOCATION]
 
 ## `agentstack update`
 
-Upgrade agent to a newer docker image or build from GitHub repository
+Upgrade agent to a newer docker image or build from GitHub repository. [Admin only]
 
 **Usage**:
 
@@ -1086,7 +955,7 @@ $ agentstack update [OPTIONS] [SEARCH_PATH] [LOCATION]
 
 ## `agentstack remove | uninstall | rm | delete`
 
-Remove agent
+Remove agent. [Admin only]
 
 **Usage**:
 
@@ -1106,7 +975,7 @@ $ agentstack remove | uninstall | rm | delete [OPTIONS] [SEARCH_PATH]
 
 ## `agentstack logs`
 
-Stream agent provider logs
+Stream agent provider logs. [Admin only]
 
 **Usage**:
 
@@ -1188,13 +1057,13 @@ $ agentstack env [OPTIONS] COMMAND [ARGS]...
 
 **Commands**:
 
-* `add`: Store environment variables
-* `list`: List stored environment variables
-* `remove`
+* `add`: Store environment variables.
+* `list`: List stored environment variables.
+* `remove`: Remove environment variable(s).
 
 ### `agentstack env add`
 
-Store environment variables
+Store environment variables. [Admin only]
 
 **Usage**:
 
@@ -1214,7 +1083,7 @@ $ agentstack env add [OPTIONS] SEARCH_PATH ENV...
 
 ### `agentstack env list`
 
-List stored environment variables
+List stored environment variables. [Admin only]
 
 **Usage**:
 
@@ -1231,6 +1100,8 @@ $ agentstack env list [OPTIONS] SEARCH_PATH
 * `--help`: Show this message and exit.
 
 ### `agentstack env remove`
+
+Remove environment variable(s). [Admin only]
 
 **Usage**:
 
@@ -1264,11 +1135,11 @@ $ agentstack feedback [OPTIONS] COMMAND [ARGS]...
 
 **Commands**:
 
-* `list`: List your agent feedback
+* `list`: List your agent feedback.
 
 ### `agentstack feedback list`
 
-List your agent feedback
+List your agent feedback. [Admin only]
 
 **Usage**:
 

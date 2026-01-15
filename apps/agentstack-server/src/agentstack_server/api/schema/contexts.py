@@ -61,10 +61,6 @@ class GlobalPermissionGrant(BaseModel):
     contexts: list[Literal["read", "write", "*"]] = Field(default_factory=list)
     context_data: list[Literal["read", "write", "*"]] = Field(default_factory=list)
 
-    mcp_providers: list[Literal["read", "write", "*"]] = Field(default_factory=list)
-    mcp_tools: list[Literal["read", "*"]] = Field(default_factory=list)
-    mcp_proxy: list[Literal["*"]] = Field(default_factory=list)
-
     connectors: list[Literal["read", "write", "proxy", "*"]] = Field(default_factory=list)
 
     @field_validator("a2a_proxy", mode="after")

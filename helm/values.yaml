@@ -75,9 +75,6 @@ contextTokenPermissions:
     provider_variables: []
     contexts: []
     context_data: []
-    mcp_providers: []
-    mcp_tools: []
-    mcp_proxy: []
     connectors: []
   grant_context_permissions:
     files: ["*"]
@@ -680,30 +677,6 @@ docling:
   maxSyncWait: 300  # 5 minutes in seconds
   imagePullPolicy: IfNotPresent
   image: "ghcr.io/docling-project/docling-serve-cpu:v1.5.0"
-
-## MCP Context Forge configuration
-forge:
-  image: ghcr.io/i-am-bee/mcp-context-forge:0.5.2
-  service:
-    type: ClusterIP
-    port: 4444
-  config:
-    CACHE_TYPE: "memory"
-    HOST: 0.0.0.0
-    PORT: 4444
-  secret:
-    AUTH_REQUIRED: "false"
-    DATABASE_URL: "sqlite:////data/forge.db"
-  storage:
-    storage: 256Mi
-    storageClass: local-path
-  volumeMounts:
-    - name: forge-storage
-      mountPath: /data
-  volumes:
-    - name: forge-storage
-      persistentVolumeClaim:
-        claimName: forge-pvc
 
 # This is to override the chart name.
 nameOverride: ""

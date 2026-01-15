@@ -48,9 +48,6 @@ ROLE_PERMISSIONS: dict[UserRole, Permissions] = {
         model_providers={"read"},
         contexts={"*"},
         context_data={"*"},
-        mcp_providers={"read"},
-        mcp_tools={"read"},
-        mcp_proxy={"*"},
         connectors={"*"},
     ),
 }
@@ -59,7 +56,6 @@ ROLE_PERMISSIONS[UserRole.DEVELOPER] = ROLE_PERMISSIONS[UserRole.USER] | Permiss
     feedback={"read", "write"},
     provider_builds={"read", "write"},
     provider_variables={"read", "write"},
-    mcp_providers={"read", "write"},
 )
 
 """

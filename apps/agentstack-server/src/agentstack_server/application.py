@@ -27,7 +27,6 @@ from agentstack_server.api.routes.configurations import router as configuration_
 from agentstack_server.api.routes.connectors import router as connectors_router
 from agentstack_server.api.routes.contexts import router as contexts_router
 from agentstack_server.api.routes.files import router as files_router
-from agentstack_server.api.routes.mcp import router as mcp_router
 from agentstack_server.api.routes.model_providers import router as model_providers_router
 from agentstack_server.api.routes.openai import router as openai_router
 from agentstack_server.api.routes.provider_builds import router as provider_builds_router
@@ -46,7 +45,6 @@ from agentstack_server.exceptions import (
 )
 from agentstack_server.jobs.crons.provider import check_registry
 from agentstack_server.run_workers import run_workers
-from agentstack_server.service_layer.services.mcp import McpService
 from agentstack_server.telemetry import INSTRUMENTATION_NAME, shutdown_telemetry
 
 logger = logging.getLogger(__name__)
@@ -121,7 +119,6 @@ def mount_routes(app: FastAPI):
     server_router.include_router(user_router, prefix="/user")
     server_router.include_router(users_router, prefix="/users")
     server_router.include_router(a2a_router, prefix="/a2a")
-    server_router.include_router(mcp_router, prefix="/mcp")
     server_router.include_router(provider_router, prefix="/providers", tags=["providers"])
     server_router.include_router(provider_builds_router, prefix="/provider_builds", tags=["provider_builds"])
     server_router.include_router(model_providers_router, prefix="/model_providers", tags=["model_providers"])
@@ -202,13 +199,12 @@ def app(*, dependency_overrides: Container | None = None, enable_workers: bool =
 
     @asynccontextmanager
     @inject
-    async def lifespan(_app: FastAPI, procrastinate_app: procrastinate.App, mcp_service: McpService):
+    async def lifespan(_app: FastAPI, procrastinate_app: procrastinate.App):
         try:
             register_telemetry()
             async with (
                 procrastinate_app.open_async(),
                 run_workers(app=procrastinate_app) if enable_workers else nullcontext(),
-                mcp_service,
             ):
                 with suppress(AlreadyEnqueued):
                     # Force initial sync of the registry immediately

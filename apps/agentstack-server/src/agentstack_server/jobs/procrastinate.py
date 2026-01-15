@@ -13,7 +13,6 @@ from agentstack_server.jobs.crons.connector import blueprint as connector_crons
 from agentstack_server.jobs.crons.provider import blueprint as provider_crons
 from agentstack_server.jobs.tasks.context import blueprint as context_tasks
 from agentstack_server.jobs.tasks.file import blueprint as file_tasks
-from agentstack_server.jobs.tasks.mcp import blueprint as mcp_tasks
 from agentstack_server.jobs.tasks.provider_build import blueprint as provider_build_tasks
 
 logger = logging.getLogger(__name__)
@@ -55,7 +54,6 @@ def create_app(configuration: Configuration) -> procrastinate.App:
         worker_defaults=WorkerOptions(install_signal_handlers=False),
     )
     app.add_tasks_from(blueprint=file_tasks, namespace="text_extraction")
-    app.add_tasks_from(blueprint=mcp_tasks, namespace="toolkit_deletion")
     app.add_tasks_from(blueprint=context_tasks, namespace="context_tasks")
     app.add_tasks_from(blueprint=provider_build_tasks, namespace="provider_build_tasks")
     app.add_tasks_from(blueprint=provider_crons, namespace="cron_provider")

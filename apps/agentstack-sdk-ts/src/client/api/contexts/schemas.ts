@@ -121,10 +121,6 @@ export const globalPermissionsGrantSchema = contextPermissionsGrantSchema
 
     contexts: z.array(z.literal(['read', 'write', '*'])).optional(),
 
-    mcp_providers: z.array(z.literal(['read', 'write', '*'])).optional(),
-    mcp_tools: z.array(z.literal(['read', '*'])).optional(),
-    mcp_proxy: z.array(z.literal('*')).optional(),
-
     connectors: z.array(z.literal(['read', 'write', 'proxy', '*'])).optional(),
   })
   .superRefine((val, ctx) => {

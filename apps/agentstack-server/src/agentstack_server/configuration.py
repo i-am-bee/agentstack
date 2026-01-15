@@ -152,11 +152,6 @@ class AuthConfiguration(BaseModel):
         return self
 
 
-class McpConfiguration(BaseModel):
-    gateway_endpoint_url: AnyUrl = AnyUrl("http://forge-svc:4444")
-    toolkit_expiration_seconds: int = 24 * 60 * 60  # TODO bind to context together with vector stores
-
-
 class ObjectStorageConfiguration(BaseModel):
     endpoint_url: AnyUrl = AnyUrl("http://seaweedfs-all-in-one:9009")
     access_key_id: Secret[str] = Secret("agentstack-admin-user")
@@ -424,7 +419,6 @@ class Configuration(BaseSettings):
     )
     provider_build: ProviderBuildConfiguration = Field(default_factory=ProviderBuildConfiguration)
     agent_registry: AgentRegistryConfiguration = Field(default_factory=AgentRegistryConfiguration)
-    mcp: McpConfiguration = Field(default_factory=McpConfiguration)
     oci_registry: dict[str, OCIRegistryConfiguration] = Field(default_factory=dict)
     oci_registry_docker_config_json: dict[int, DockerConfigJson] = {}
     github_registry_config_json: GithubConfigJson = Field(default_factory=GithubConfigJson)

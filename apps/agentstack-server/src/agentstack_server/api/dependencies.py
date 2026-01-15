@@ -32,7 +32,6 @@ from agentstack_server.service_layer.services.connector import ConnectorService
 from agentstack_server.service_layer.services.contexts import ContextService
 from agentstack_server.service_layer.services.external_mcp_service import ExternalMcpService
 from agentstack_server.service_layer.services.files import FileService
-from agentstack_server.service_layer.services.mcp import McpService
 from agentstack_server.service_layer.services.model_providers import ModelProviderService
 from agentstack_server.service_layer.services.provider_build import ProviderBuildService
 from agentstack_server.service_layer.services.providers import ProviderService
@@ -44,7 +43,6 @@ ConfigurationDependency = Annotated[Configuration, Depends(lambda: di[Configurat
 ProviderServiceDependency = Annotated[ProviderService, Depends(lambda: di[ProviderService])]
 ProviderBuildServiceDependency = Annotated[ProviderBuildService, Depends(lambda: di[ProviderBuildService])]
 A2AProxyServiceDependency = Annotated[A2AProxyService, Depends(lambda: di[A2AProxyService])]
-McpServiceDependency = Annotated[McpService, Depends(lambda: di[McpService])]
 ContextServiceDependency = Annotated[ContextService, Depends(lambda: di[ContextService])]
 ConfigurationServiceDependency = Annotated[ConfigurationService, Depends(lambda: di[ConfigurationService])]
 FileServiceDependency = Annotated[FileService, Depends(lambda: di[FileService])]
