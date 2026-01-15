@@ -80,13 +80,13 @@ export function MessageApproval({ message }: Props) {
 function ToolCallContent({ request }: { request: ToolCallApprovalRequest }) {
   const { agent } = useAgentRun();
 
-  const { title, input } = request;
+  const { title, name, input } = request;
 
   const requestInput = useMemo(() => (!isEmpty(input) ? JSON.stringify(input, null, 2) : null), [input]);
 
   return (
     <>
-      <h3 className={classes.title}>{`${agent.name} wants to use ${title}`}</h3>
+      <h3 className={classes.title}>{`${agent.name} wants to use ${title || name}`}</h3>
       {requestInput && (
         <div className={classes.toolCallInput}>
           <FormLabel>Request</FormLabel>
