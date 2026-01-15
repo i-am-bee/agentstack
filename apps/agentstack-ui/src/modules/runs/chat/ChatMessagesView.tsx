@@ -12,7 +12,7 @@ import { Container } from '#components/layouts/Container.tsx';
 import { useIsScrolled } from '#hooks/useIsScrolled.ts';
 import { Canvas } from '#modules/canvas/components/Canvas.tsx';
 import { useCanvas } from '#modules/canvas/contexts/index.ts';
-import { isAgentMessage, isUserMessage } from '#modules/messages/utils.ts';
+import { hasMessageApproval, isAgentMessage, isUserMessage } from '#modules/messages/utils.ts';
 import { routes } from '#utils/router.ts';
 
 import { FileUpload } from '../../files/components/FileUpload';
@@ -43,6 +43,8 @@ export function ChatMessagesView() {
   const showScrollToBottom = messages.length > 0 && isScrolled;
   const isCanvasView = Boolean(artifacts?.length);
 
+  const visibleMessages = messages.filter((message, idx) => !hasMessageApproval(message) || idx === 0);
+
   return (
     <FileUpload>
       <div
@@ -62,7 +64,7 @@ export function ChatMessagesView() {
               </header>
 
               <ol className={classes.messages} aria-label="messages">
-                {messages.map((message, idx) => {
+                {visibleMessages.map((message, idx) => {
                   const isUser = isUserMessage(message);
                   const isAgent = isAgentMessage(message);
 

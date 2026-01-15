@@ -14,6 +14,7 @@ export type FulfillmentsContext = Partial<{
   taskId: TaskId;
   providedSecrets: Record<string, string>;
   oauthRedirectUri: string;
+  approvalDecision: 'approve' | 'reject';
   form: UIMessageForm;
 }>;
 

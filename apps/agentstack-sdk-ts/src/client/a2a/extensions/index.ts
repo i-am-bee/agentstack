@@ -5,6 +5,7 @@
 
 export * from './auth/oauth';
 export * from './auth/secrets';
+export * from './interactions/approval';
 export * from './schemas';
 export * from './services/embedding';
 export * from './services/form';

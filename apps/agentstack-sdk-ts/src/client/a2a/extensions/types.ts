@@ -6,6 +6,7 @@
 export * from './auth/oauth/types';
 export * from './auth/secrets/types';
 export * from './common/form/types';
+export * from './interactions/approval/types';
 export * from './services/embedding/types';
 export * from './services/form/types';
 export * from './services/llm/types';

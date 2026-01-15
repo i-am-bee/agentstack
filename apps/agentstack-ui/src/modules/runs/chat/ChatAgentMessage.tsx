@@ -9,6 +9,7 @@ import { useCallback, useEffect, useRef } from 'react';
 
 import { Spinner } from '#components/Spinner/Spinner.tsx';
 import { MessageFiles } from '#modules/files/components/MessageFiles.tsx';
+import { MessageApproval } from '#modules/form/components/MessageApproval.tsx';
 import { MessageAuth } from '#modules/form/components/MessageAuth.tsx';
 import { MessageForm } from '#modules/form/components/MessageForm.tsx';
 import { MessageSecretsForm } from '#modules/form/components/MessageSecretsForm.tsx';
@@ -113,6 +114,8 @@ function Message({ message, isLast, isFirst, containerScrollableRef }: Props) {
       <MessageAuth message={message} />
 
       <MessageSecretsForm message={message} />
+
+      <MessageApproval message={message} />
 
       <MessageTrajectories message={message} autoScroll={isPending} toggleable={!isPending} />
 

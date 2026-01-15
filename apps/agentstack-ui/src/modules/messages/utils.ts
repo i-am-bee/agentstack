@@ -97,6 +97,23 @@ export function getMessageSecret(message: UIMessage) {
   return secret;
 }
 
+export function getMessageApproval(message: UIMessage) {
+  const approval = message.parts.findLast((part) => part.kind === UIMessagePartKind.ApprovalRequired);
+
+  return approval;
+}
+
+function hasMessageApprovalResult(message: UIMessage) {
+  return message.parts.some((part) => part.kind === UIMessagePartKind.ApprovalResult);
+}
+
+export function hasMessageApproval(message: UIMessage) {
+  return (
+    (isAgentMessage(message) && Boolean(getMessageApproval(message))) ||
+    (isUserMessage(message) && hasMessageApprovalResult(message))
+  );
+}
+
 export function checkMessageStatus(message: UIAgentMessage) {
   const { status, error } = message;
 
