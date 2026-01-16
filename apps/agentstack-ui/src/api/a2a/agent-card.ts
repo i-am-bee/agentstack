@@ -18,7 +18,7 @@ export async function getAgentClient(providerId: string, token?: string) {
   const fetchImpl = token ? createAuthenticatedFetch(token, clientFetch) : clientFetch;
 
   const baseUrl = getBaseUrl();
-  const agentCardPath = `/api/v1/a2a/${providerId}/.well-known/agent-card.json`;
+  const agentCardPath = `api/v1/a2a/${providerId}/.well-known/agent-card.json`;
   const factory = new ClientFactory(
     ClientFactoryOptions.createFrom(ClientFactoryOptions.default, {
       transports: [new JsonRpcTransportFactory({ fetchImpl })],
@@ -30,7 +30,7 @@ export async function getAgentClient(providerId: string, token?: string) {
   return client;
 }
 
-export async function clientFetch(input: RequestInfo, init?: RequestInit) {
+async function clientFetch(input: RequestInfo, init?: RequestInit) {
   const response = await fetch(input, init);
 
   if (!response.ok && response.status === 401) {

@@ -88,20 +88,18 @@ async function handleEventError(error: unknown, client: Client, taskId: TaskId |
   throw error;
 }
 
-export interface CreateA2AClientParams<UIGenericPart = never> {
+interface CreateA2AClientParams<UIGenericPart = never> {
   providerId: string;
+  authToken: string;
   onStatusUpdate?: (event: TaskStatusUpdateEvent) => UIGenericPart[];
-  authToken?: { token: string } | string | null | undefined;
 }
 
 export const buildA2AClient = async <UIGenericPart = never>({
   providerId,
+  authToken,
   onStatusUpdate,
-  authToken: contextToken,
 }: CreateA2AClientParams<UIGenericPart>) => {
-  const tokenData = contextToken;
-  const token = typeof tokenData === 'string' ? tokenData : tokenData?.token;
-  const client = await getAgentClient(providerId, token ?? undefined);
+  const client = await getAgentClient(providerId, authToken);
   const card = await client.getAgentCard();
 
   const { resolveMetadata: resolveAgentCardMetadata, demands } = handleAgentCard(card);
