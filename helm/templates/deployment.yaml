@@ -11,8 +11,6 @@ spec:
     matchLabels:
       app: agentstack-server
       {{- include "agentstack.selectorLabels" . | nindent 6 }}
-  strategy:
-    type: {{ ternary "Recreate" "RollingUpdate" .Values.hostNetwork }}
   template:
     metadata:
       annotations:
@@ -29,10 +27,6 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      {{- if .Values.hostNetwork }}
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
-      {{- end }}
       {{- include "agentstack.imagePullSecrets" . | nindent 6 }}
       serviceAccountName: {{ include "agentstack.serviceAccountName" . }}
       {{- with .Values.podSecurityContext }}

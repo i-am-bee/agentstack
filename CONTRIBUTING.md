@@ -97,7 +97,7 @@ OAuth tokens are returned to the browser only over HTTPS to avoid leakage over p
 
 **Istio details:**  
 The default namespace is labeled `istio.io/dataplane-mode=ambient`. This ensures all intra-pod traffic is routed through
-`ztunnel`, except the `agentstack` pod, which uses `hostNetwork` and is not compatible with the Istio mesh.
+`ztunnel`.
 
 **Available endpoints:**
 
