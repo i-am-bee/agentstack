@@ -155,6 +155,9 @@ def _to_response(connector: Connector) -> ConnectorResponse:
         auth_request=get_auth_request(),
         disconnect_reason=connector.disconnect_reason,
         metadata=connector.metadata,
+        created_at=connector.created_at,
+        updated_at=connector.updated_at,
+        created_by=connector.created_by,
     )
 
 

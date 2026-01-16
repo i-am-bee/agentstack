@@ -4,7 +4,7 @@
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import AnyUrl, BaseModel, Field
+from pydantic import AnyUrl, AwareDatetime, BaseModel, Field
 
 from agentstack_server.domain.models.common import Metadata
 from agentstack_server.domain.models.connector import ConnectorState
@@ -36,6 +36,9 @@ class ConnectorResponse(BaseModel):
     auth_request: AuthorizationRequest | None
     disconnect_reason: str | None
     metadata: Metadata | None
+    created_at: AwareDatetime
+    updated_at: AwareDatetime
+    created_by: UUID
 
 
 class ConnectorConnectRequest(BaseModel):

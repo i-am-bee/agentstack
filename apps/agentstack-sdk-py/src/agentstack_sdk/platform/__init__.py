@@ -3,6 +3,7 @@
 
 from .client import *
 from .configuration import *
+from .connector import *
 from .file import *
 from .model_provider import *
 from .provider import *

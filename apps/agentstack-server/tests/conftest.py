@@ -28,7 +28,8 @@ class TestConfiguration(BaseSettings):
     llm_api_key: Secret[str] = Secret("dummy")
     test_agent_image: str = "agentstack-registry-svc.default:5001/chat-test:latest"
     test_agent_build_repo: str = "https://github.com/i-am-bee/agentstack-starter"
-    server_url: str = "http://agentstack-server-svc:8333"
+    # server_url: str = "http://agentstack-server-svc:8333"
+    server_url: str = "http://localhost:18333"
     db_url: str = "postgresql+asyncpg://agentstack-user:password@postgresql:5432/agentstack"
 
     @computed_field
