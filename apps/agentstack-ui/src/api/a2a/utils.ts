@@ -3,15 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type {
-  FilePart,
-  FileWithUri,
-  GetTaskResponse,
-  GetTaskSuccessResponse,
-  Message,
-  Part,
-  TextPart,
-} from 'agentstack-sdk';
+import type { FilePart, FileWithUri, Message, Part, TextPart } from 'agentstack-sdk';
 import {
   type Citation,
   citationExtension,
@@ -178,10 +170,6 @@ export function getFileIdFromFilePlatformUrl(url: string) {
   const fileId = url.replace(PLATFORM_FILE_CONTENT_URL_BASE, '');
 
   return fileId;
-}
-
-export function isGetTaskSuccessResponse(response: GetTaskResponse): response is GetTaskSuccessResponse {
-  return 'result' in response;
 }
 
 const MAX_CONTENT_CHARS_LENGTH = 16000;
