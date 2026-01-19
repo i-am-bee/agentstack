@@ -4,6 +4,8 @@
  */
 
 import type { AgentCard, AgentExtension } from '@a2a-js/sdk';
+import { DefaultRequestHandler, InMemoryTaskStore } from '@a2a-js/sdk/server';
+import { agentCardHandler, jsonRpcHandler, UserBuilder } from '@a2a-js/sdk/server/express';
 import type { Express } from 'express';
 
 import { AutoRegistration } from './autoregistration';
@@ -12,30 +14,6 @@ import { agentDetailExtension } from './extensions/agent-detail';
 import { createPlatformSelfRegistrationExtension } from './extensions/platform-self-registration';
 import type { ExtensionConfig, ExtensionServer } from './extensions/types';
 import type { AgentOptions, ServerOptions } from './types';
-
-type DefaultRequestHandlerType = new (...args: unknown[]) => unknown;
-type InMemoryTaskStoreType = new () => unknown;
-type A2AExpressAppType = new (handler: unknown) => { setupRoutes: (app: Express) => Express };
-
-async function loadA2AServerModules(): Promise<{
-  InMemoryTaskStore: InMemoryTaskStoreType;
-  DefaultRequestHandler: DefaultRequestHandlerType;
-  A2AExpressApp: A2AExpressAppType;
-}> {
-  const serverModulePath = '@a2a-js/sdk/server';
-  const expressModulePath = '@a2a-js/sdk/server/express';
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const serverModule = await (Function('modulePath', 'return import(modulePath)')(serverModulePath) as Promise<any>);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const expressModule = await (Function('modulePath', 'return import(modulePath)')(expressModulePath) as Promise<any>);
-
-  return {
-    InMemoryTaskStore: serverModule.InMemoryTaskStore,
-    DefaultRequestHandler: serverModule.DefaultRequestHandler,
-    A2AExpressApp: expressModule.A2AExpressApp,
-  };
-}
 
 export class Server {
   private agentCard?: AgentCard;
@@ -97,8 +75,6 @@ export class Server {
       ];
     }
 
-    const { InMemoryTaskStore, DefaultRequestHandler, A2AExpressApp } = await loadA2AServerModules();
-
     const taskStore = new InMemoryTaskStore();
     const executor = new AgentExecutorImpl(
       this.agentOptions.handler,
@@ -107,12 +83,13 @@ export class Server {
 
     const requestHandler = new DefaultRequestHandler(this.agentCard, taskStore, executor);
 
-    const expressApp = new A2AExpressApp(requestHandler);
-
     const express = await import('express');
     const app: Express = express.default();
 
-    expressApp.setupRoutes(app);
+    const agentCardUrl = `/.well-known/agent-card.json`;
+
+    app.use(jsonRpcHandler({ requestHandler, userBuilder: UserBuilder.noAuthentication }));
+    app.use(agentCardUrl, agentCardHandler({ agentCardProvider: requestHandler }));
 
     let autoRegistration: AutoRegistration | undefined;
 
@@ -129,7 +106,7 @@ export class Server {
     return new Promise((resolve, reject) => {
       const server = app.listen(port, host, async () => {
         console.log(`Agent "${this.agentCard!.name}" running at http://${host}:${port}`);
-        console.log(`Agent card available at http://${host}:${port}/.well-known/agent-card.json`);
+        console.log(`Agent card available at http://${host}:${port}${agentCardUrl}`);
 
         if (autoRegistration) {
           await autoRegistration.register();

@@ -3,32 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type {
-  Artifact,
-  Message,
-  Part,
-  Task,
-  TaskArtifactUpdateEvent,
-  TaskStatus,
-  TaskStatusUpdateEvent,
-} from '@a2a-js/sdk';
+import type { Artifact, Message, Part, TaskArtifactUpdateEvent, TaskStatus, TaskStatusUpdateEvent } from '@a2a-js/sdk';
+import type { AgentExecutor, ExecutionEventBus, RequestContext } from '@a2a-js/sdk/server';
 
-interface ExecutionEventBus {
-  publish(event: Message | Task | TaskStatusUpdateEvent | TaskArtifactUpdateEvent): void;
-  finished(): void;
-}
-
-interface RequestContext {
-  readonly userMessage: Message;
-  readonly task?: Task;
-  readonly taskId: string;
-  readonly contextId: string;
-}
-
-interface AgentExecutor {
-  execute: (requestContext: RequestContext, eventBus: ExecutionEventBus) => Promise<void>;
-  cancelTask: (taskId: string, eventBus: ExecutionEventBus) => Promise<void>;
-}
 import { RunContext } from './context';
 import type { ExtensionConfig, ExtensionServer } from './extensions/types';
 import type { AgentFunction, RunYield } from './types';
