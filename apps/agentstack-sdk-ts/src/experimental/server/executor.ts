@@ -3,7 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Artifact, Message, Part, TaskArtifactUpdateEvent, TaskStatus, TaskStatusUpdateEvent } from '@a2a-js/sdk';
+import type {
+  Artifact,
+  Message,
+  Part,
+  Task,
+  TaskArtifactUpdateEvent,
+  TaskStatus,
+  TaskStatusUpdateEvent,
+} from '@a2a-js/sdk';
 import type { AgentExecutor, ExecutionEventBus, RequestContext } from '@a2a-js/sdk/server';
 
 import { RunContext } from './context';
@@ -97,12 +105,36 @@ export class AgentExecutorImpl<TDeps> implements AgentExecutor {
     this.extensions = extensions;
   }
 
+  private getOrCreateTask(requestContext: RequestContext, eventBus: ExecutionEventBus): Task {
+    if (!requestContext.task) {
+      const initialTask: Task = {
+        kind: 'task',
+        id: requestContext.taskId,
+        contextId: requestContext.contextId,
+        status: {
+          state: 'submitted',
+          timestamp: new Date().toISOString(),
+        },
+        history: [],
+      };
+
+      eventBus.publish(initialTask);
+      eventBus.publish(createStatusUpdateEvent(initialTask.id, requestContext.contextId, { state: 'working' }, false));
+
+      return initialTask;
+    } else {
+      return requestContext.task;
+    }
+  }
+
   async execute(requestContext: RequestContext, eventBus: ExecutionEventBus): Promise<void> {
-    const { userMessage, taskId, contextId, task } = requestContext;
-    const runContext = new RunContext(taskId, contextId, task);
+    const { userMessage, contextId } = requestContext;
+
+    const task = this.getOrCreateTask(requestContext, eventBus);
+    const runContext = new RunContext(task.id, contextId, task);
 
     const taskState = { cancelled: false };
-    this.runningTasks.set(taskId, taskState);
+    this.runningTasks.set(task.id, taskState);
 
     try {
       const deps = this.resolveExtensions(userMessage);
@@ -112,29 +144,29 @@ export class AgentExecutorImpl<TDeps> implements AgentExecutor {
       if (isAsyncIterable(result)) {
         for await (const yielded of result) {
           if (taskState.cancelled) {
-            this.publishCancelled(eventBus, taskId, contextId);
+            this.publishCancelled(eventBus, task.id, contextId);
             return;
           }
-          this.processYield(eventBus, taskId, contextId, yielded);
+          this.processYield(eventBus, task.id, contextId, yielded);
         }
       } else {
         const awaited = await result;
         if (awaited !== undefined) {
-          this.processYield(eventBus, taskId, contextId, awaited);
+          this.processYield(eventBus, task.id, contextId, awaited);
         }
       }
 
       if (!taskState.cancelled) {
-        eventBus.publish(createStatusUpdateEvent(taskId, contextId, { state: 'completed' }, true));
+        eventBus.publish(createStatusUpdateEvent(task.id, contextId, { state: 'completed' }, true));
       }
     } catch (error) {
       const message =
         error instanceof Error
-          ? createMessage(taskId, contextId, [createTextPart(error.message)])
-          : createMessage(taskId, contextId, [createTextPart('Unknown error')]);
-      eventBus.publish(createStatusUpdateEvent(taskId, contextId, { state: 'failed', message }, true));
+          ? createMessage(task.id, contextId, [createTextPart(error.message)])
+          : createMessage(task.id, contextId, [createTextPart('Unknown error')]);
+      eventBus.publish(createStatusUpdateEvent(task.id, contextId, { state: 'failed', message }, true));
+      this.runningTasks.delete(task.id);
     } finally {
-      this.runningTasks.delete(taskId);
       eventBus.finished();
     }
   }
