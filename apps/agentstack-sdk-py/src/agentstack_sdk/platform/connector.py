@@ -7,11 +7,11 @@ import asyncio
 import webbrowser
 from collections.abc import AsyncIterator
 from enum import StrEnum
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID
 
 import pydantic
-from pydantic import AnyUrl
+from pydantic import AnyUrl, Field
 
 from agentstack_sdk.platform.client import PlatformClient, get_platform_client
 from agentstack_sdk.platform.common import PaginatedResult
@@ -39,6 +39,14 @@ class ConnectorState(StrEnum):
     auth_required = "auth_required"
     connected = "connected"
     disconnected = "disconnected"
+
+
+class MCPProxyResponse(pydantic.BaseModel):
+    """Response from an MCP proxy request with headers and streaming content."""
+
+    headers: Annotated[dict[str, str], Field(description="HTTP headers from the proxy response")]
+    status_code: Annotated[int, Field(description="HTTP status code from the proxy response")]
+    chunk: Annotated[bytes, Field(description="Bytes chunk from streaming response content")]
 
 
 class Connector(pydantic.BaseModel):
@@ -248,7 +256,7 @@ class Connector(pydantic.BaseModel):
         headers: dict | None = None,
         content: bytes | None = None,
         client: PlatformClient | None = None,
-    ) -> AsyncIterator[bytes]:
+    ) -> AsyncIterator[MCPProxyResponse]:
         """
         Proxy a streaming request through to the connector's MCP endpoint.
 
@@ -269,17 +277,23 @@ class Connector(pydantic.BaseModel):
         async with client or get_platform_client() as client:
             url = f"/api/v1/connectors/{connector_id}/mcp"
 
+            # Merge headers - add Content-Type for JSON content if not already set
+            request_headers = dict(headers or {})
+            if content and "content-type" not in {k.lower() for k in request_headers}:
+                request_headers["Content-Type"] = "application/json"
+
             # Use streaming to support large/long-lived connections
-            response_stream = client.stream(
+            async with client.stream(
                 method=method.upper(),
                 url=url,
-                headers=headers,
+                headers=request_headers,
                 content=content,
-            )
-            async with response_stream as response:
+            ) as response:
                 response.raise_for_status()
                 async for chunk in response.aiter_bytes():
-                    yield chunk
+                    yield pydantic.TypeAdapter(MCPProxyResponse).validate_python(
+                        {"headers": dict(response.headers), "status_code": response.status_code, "chunk": chunk}
+                    )
 
     @staticmethod
     async def presets(

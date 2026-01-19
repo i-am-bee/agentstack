@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from contextlib import AsyncExitStack
 from uuid import UUID
@@ -11,6 +12,7 @@ import httpx
 from authlib.oauth2 import OAuth2Error
 from fastapi import Request, status
 from fastapi.responses import StreamingResponse
+from httpx import ConnectError, ReadError, RemoteProtocolError, TimeoutException
 from kink import inject
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
@@ -222,23 +224,50 @@ class ConnectorService:
             assert auth is None
             return self._external_mcp.create_http_client(connector=connector, headers=headers, timeout=timeout)
 
-        try:
-            async with (
-                streamablehttp_client(
-                    (
-                        f"{self._managed_mcp.get_service_url(connector=connector)}/mcp"
-                        if self._managed_mcp.is_managed(connector=connector)
-                        else str(connector.url)
-                    ),
-                    httpx_client_factory=client_factory,
-                ) as (read, write, _),
-                ClientSession(read, write) as session,
-            ):
-                await session.initialize()
-        except ExceptionGroup as excgroup:
-            if len(excgroup.exceptions) == 1:
-                raise excgroup.exceptions[0] from excgroup
-            raise excgroup
+        # For managed MCP servers, retry if connection fails as service might not be immediately ready
+        max_retries = 5 if self._managed_mcp.is_managed(connector=connector) else 1
+        retry_delay = 2.0
+
+        last_error = None
+        for attempt in range(max_retries):
+            try:
+                async with (
+                    streamablehttp_client(
+                        (
+                            f"{self._managed_mcp.get_service_url(connector=connector)}/mcp"
+                            if self._managed_mcp.is_managed(connector=connector)
+                            else str(connector.url)
+                        ),
+                        httpx_client_factory=client_factory,
+                    ) as (read, write, _),
+                    ClientSession(read, write) as session,
+                ):
+                    await session.initialize()
+                    return  # Success, exit retry loop
+            except ExceptionGroup as excgroup:
+                last_error = excgroup.exceptions[0] if len(excgroup.exceptions) == 1 else excgroup
+
+                # Only retry for managed MCP servers on connection errors
+                if (
+                    (attempt < max_retries - 1)
+                    and self._managed_mcp.is_managed(connector=connector)
+                    and isinstance(last_error, (ReadError, ConnectError, RemoteProtocolError, TimeoutException))
+                ):
+                    # Check if it's a connection error that might resolve with retry
+                    logger.warning(
+                        f"Probe attempt {attempt + 1}/{max_retries} failed for managed MCP server, retrying in {retry_delay}s: {last_error}"
+                    )
+                    await asyncio.sleep(retry_delay)
+                    continue
+
+                # If not retrying, raise the error
+                if len(excgroup.exceptions) == 1:
+                    raise last_error from excgroup
+                raise excgroup
+
+        # If we exhausted all retries, raise the last error
+        if last_error:
+            raise last_error
 
     async def mcp_proxy(self, *, connector_id: UUID, request: Request, user: User | None = None):
         connector = await self.read_connector(connector_id=connector_id, user=user)
