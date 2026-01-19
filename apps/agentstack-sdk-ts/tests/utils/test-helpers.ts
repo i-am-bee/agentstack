@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { TextPart } from '@a2a-js/sdk';
 import {
   ClientFactory,
   ClientFactoryOptions,
@@ -14,7 +13,7 @@ import net from 'net';
 
 import type { Fulfillments } from '../../src/client/core';
 import { buildMessageBuilder, handleAgentCard } from '../../src/client/core';
-import { Server, type ServerHandle } from '../../src/server';
+import { type ServerHandle } from '../../src/server';
 
 export async function getRandomPort(): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -30,26 +29,6 @@ export async function getRandomPort(): Promise<number> {
     });
     server.on('error', reject);
   });
-}
-
-export async function createEchoAgent(port: number): Promise<ServerHandle> {
-  const server = new Server();
-
-  return server
-    .agent({
-      name: 'EchoAgent',
-      description: 'An echo agent for testing',
-      version: '1.0.0',
-      handler: async function* (input) {
-        const firstPart = input.parts?.[0] as TextPart | undefined;
-        if (firstPart?.kind === 'text') {
-          yield `Echo: ${firstPart.text}`;
-        } else {
-          yield 'No text part found';
-        }
-      },
-    })
-    .run({ port, host: '127.0.0.1' });
 }
 
 export function createTestFulfillments(): Fulfillments {

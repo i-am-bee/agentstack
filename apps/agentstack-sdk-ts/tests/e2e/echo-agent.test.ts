@@ -6,7 +6,30 @@
 import { randomUUID } from 'crypto';
 import { describe, expect, it } from 'vitest';
 
-import { accumulateResponse, buildAgentTest, createEchoAgent, createTestFulfillments } from '../utils/test-helpers';
+import { accumulateResponse, buildAgentTest, createTestFulfillments } from '../utils/test-helpers';
+import { ServerHandle } from '../../src/experimental/server/types';
+import { Server } from '../../src/server';
+import { Part } from '@a2a-js/sdk';
+
+async function createEchoAgent(port: number): Promise<ServerHandle> {
+  const server = new Server();
+
+  return server
+    .agent({
+      name: 'EchoAgent',
+      description: 'An echo agent for testing',
+      version: '1.0.0',
+      handler: async function* (input) {
+        const firstPart = input.parts?.[0] as Part | undefined;
+        if (firstPart?.kind === 'text') {
+          yield `Echo: ${firstPart.text}`;
+        } else {
+          yield 'No text part found';
+        }
+      },
+    })
+    .run({ port, host: '127.0.0.1' });
+}
 
 describe('Echo Agent E2E', () => {
   it(
