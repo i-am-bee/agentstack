@@ -15,7 +15,7 @@ import { AgentExecutorImpl } from './executor';
 import { agentDetailExtension } from './extensions/agent-detail';
 import { createPlatformSelfRegistrationExtension } from './extensions/platform-self-registration';
 import type { ExtensionConfig, ExtensionServer } from './extensions/types';
-import type { AgentOptions, ServerOptions } from './types';
+import type { AgentOptions, ServerHandle, ServerOptions } from './types';
 
 export class Server {
   private agentCard?: AgentCard;
@@ -55,7 +55,7 @@ export class Server {
     return this;
   }
 
-  async run(options: ServerOptions = {}): Promise<void> {
+  async run(options: ServerOptions = {}): Promise<ServerHandle> {
     if (!this.agentConfigured || !this.agentCard || !this.agentOptions) {
       throw new Error('No agent configured. Call agent() before run().');
     }
@@ -109,7 +109,23 @@ export class Server {
       const server = app.listen(port, host, async () => {
         console.log(`Agent "${this.agentCard!.name}" running at http://${host}:${port}`);
         console.log(`Agent card available at http://${host}:${port}${agentCardUrl}`);
-        resolve();
+
+        const url = `http://${host === '0.0.0.0' ? 'localhost' : host}:${port}`;
+
+        const handle: ServerHandle = {
+          port,
+          url,
+          close: () =>
+            new Promise<void>((resolveClose, rejectClose) => {
+              stopAutoregistration?.();
+              server.close((err) => {
+                if (err) rejectClose(err);
+                else resolveClose();
+              });
+            }),
+        };
+
+        resolve(handle);
       });
 
       server.on('error', (error) => {

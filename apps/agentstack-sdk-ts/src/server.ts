@@ -9,5 +9,5 @@ export type { LLMDeps, LLMExtensionParams } from './experimental/server/extensio
 export { llmExtension } from './experimental/server/extensions/llm';
 export type { ExtensionConfig, ExtensionServer, ExtensionSpec } from './experimental/server/extensions/types';
 export { Server } from './experimental/server/server';
-export type { AgentFunction, AgentOptions, RunYield, ServerOptions } from './experimental/server/types';
+export type { AgentFunction, AgentOptions, RunYield, ServerHandle, ServerOptions } from './experimental/server/types';
 export type { AgentDetail } from './shared/extensions/ui/agent-detail';

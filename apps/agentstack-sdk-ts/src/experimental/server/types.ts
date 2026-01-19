@@ -40,3 +40,9 @@ export interface ServerOptions {
   selfRegistrationId?: string;
   platformUrl?: string;
 }
+
+export interface ServerHandle {
+  close: () => Promise<void>;
+  port: number;
+  url: string;
+}
