@@ -5,6 +5,7 @@
 
 'use client';
 import { useQueryClient } from '@tanstack/react-query';
+import type { ApprovalDecision } from 'agentstack-sdk';
 import { TaskStatusUpdateType } from 'agentstack-sdk';
 import type { PropsWithChildren } from 'react';
 import { useCallback, useMemo, useRef, useState } from 'react';
@@ -203,7 +204,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
           inputs: {
             form: form?.response,
             canvasEditRequest: canvasEditParams ? getCanvasEditRequest(canvasEditParams) : undefined,
-            approvalResult: approvalDecision ? { decision: approvalDecision } : undefined,
+            approvalResponse: approvalDecision ? { decision: approvalDecision } : undefined,
           },
           taskId: fulfillmentsContext.taskId,
         });
@@ -373,13 +374,13 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
   );
 
   const submitApproval = useCallback(
-    (taskId: TaskId, decision: 'approve' | 'reject') => {
+    (taskId: TaskId, decision: ApprovalDecision) => {
       checkPendingRun();
 
       const message: UIUserMessage = {
         id: uuid(),
         role: Role.User,
-        parts: [{ kind: UIMessagePartKind.ApprovalResult, result: { decision } }],
+        parts: [{ kind: UIMessagePartKind.ApprovalResponse, result: { decision } }],
       };
 
       return run(message, { taskId, approvalDecision: decision });

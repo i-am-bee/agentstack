@@ -6,8 +6,8 @@
 import z from 'zod';
 
 import type { A2AUiExtension } from '../../../../core/extensions/types';
-import { approvalRequestSchema, approvalResultSchema } from './schemas';
-import type { ApprovalRequest, ApprovalResult } from './types';
+import { approvalRequestSchema, approvalResponseSchema } from './schemas';
+import type { ApprovalRequest, ApprovalResponse } from './types';
 
 const URI = 'https://a2a-extensions.agentstack.beeai.dev/interactions/approval/v1';
 
@@ -16,7 +16,7 @@ export const approvalExtension: A2AUiExtension<typeof URI, ApprovalRequest> = {
   getMessageMetadataSchema: () => z.object({ [URI]: approvalRequestSchema }).partial(),
 };
 
-export const approvalResultExtension: A2AUiExtension<typeof URI, ApprovalResult> = {
+export const approvalResponseExtension: A2AUiExtension<typeof URI, ApprovalResponse> = {
   getUri: () => URI,
-  getMessageMetadataSchema: () => z.object({ [URI]: approvalResultSchema }).partial(),
+  getMessageMetadataSchema: () => z.object({ [URI]: approvalResponseSchema }).partial(),
 };

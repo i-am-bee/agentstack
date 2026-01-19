@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FormDemands, Fulfillments, SettingsDemands, SettingsValues } from 'agentstack-sdk';
+import type { ApprovalDecision, FormDemands, Fulfillments, SettingsDemands, SettingsValues } from 'agentstack-sdk';
 import { createContext } from 'react';
 
 import type { RunFormValues } from '#modules/form/types.ts';
@@ -14,7 +14,7 @@ export type FulfillmentsContext = Partial<{
   taskId: TaskId;
   providedSecrets: Record<string, string>;
   oauthRedirectUri: string;
-  approvalDecision: 'approve' | 'reject';
+  approvalDecision: ApprovalDecision;
   form: UIMessageForm;
 }>;
 

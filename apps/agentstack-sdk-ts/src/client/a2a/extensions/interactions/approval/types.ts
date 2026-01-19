@@ -7,7 +7,7 @@ import type z from 'zod';
 
 import type {
   approvalRequestSchema,
-  approvalResultSchema,
+  approvalResponseSchema,
   genericApprovalRequestSchema,
   toolCallApprovalRequestSchema,
 } from './schemas';
@@ -16,4 +16,9 @@ export type GenericApprovalRequest = z.infer<typeof genericApprovalRequestSchema
 export type ToolCallApprovalRequest = z.infer<typeof toolCallApprovalRequestSchema>;
 
 export type ApprovalRequest = z.infer<typeof approvalRequestSchema>;
-export type ApprovalResult = z.infer<typeof approvalResultSchema>;
+export type ApprovalResponse = z.infer<typeof approvalResponseSchema>;
+
+export enum ApprovalDecision {
+  Approve = 'approve',
+  Reject = 'reject',
+}

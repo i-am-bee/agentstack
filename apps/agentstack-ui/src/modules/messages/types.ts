@@ -5,7 +5,7 @@
 
 import type {
   ApprovalRequest,
-  ApprovalResult,
+  ApprovalResponse,
   FormRender,
   SecretDemands,
   Task,
@@ -57,7 +57,7 @@ export type UIMessagePart =
   | UISecretPart
   | UIArtifactPart
   | UIApprovalPart
-  | UIApprovalResultPart;
+  | UIApprovalResponsePart;
 
 export type UITextPart = {
   kind: UIMessagePartKind.Text;
@@ -117,9 +117,9 @@ export type UIApprovalPart = {
   taskId: TaskId;
 };
 
-export type UIApprovalResultPart = {
-  kind: UIMessagePartKind.ApprovalResult;
-  result: ApprovalResult;
+export type UIApprovalResponsePart = {
+  kind: UIMessagePartKind.ApprovalResponse;
+  result: ApprovalResponse;
 };
 
 export type UITransformPart = {
@@ -163,7 +163,7 @@ export enum UIMessagePartKind {
   Transform = 'transform',
   Artifact = 'artifact',
   ApprovalRequired = 'approval-required',
-  ApprovalResult = 'approval-result',
+  ApprovalResponse = 'approval-result',
 }
 
 export enum UIMessageStatus {

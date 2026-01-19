@@ -5,7 +5,7 @@
 
 import { Button } from '@carbon/react';
 import type { ToolCallApprovalRequest } from 'agentstack-sdk';
-import { isEmpty } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import { useCallback, useMemo, useState } from 'react';
 
 import { Code } from '#components/MarkdownContent/components/Code.tsx';

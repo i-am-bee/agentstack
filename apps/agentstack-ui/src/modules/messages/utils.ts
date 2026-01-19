@@ -103,14 +103,14 @@ export function getMessageApproval(message: UIMessage) {
   return approval;
 }
 
-function hasMessageApprovalResult(message: UIMessage) {
-  return message.parts.some((part) => part.kind === UIMessagePartKind.ApprovalResult);
+function hasMessageApprovalResponse(message: UIMessage) {
+  return message.parts.some((part) => part.kind === UIMessagePartKind.ApprovalResponse);
 }
 
 export function hasMessageApproval(message: UIMessage) {
   return (
     (isAgentMessage(message) && Boolean(getMessageApproval(message))) ||
-    (isUserMessage(message) && hasMessageApprovalResult(message))
+    (isUserMessage(message) && hasMessageApprovalResponse(message))
   );
 }
 

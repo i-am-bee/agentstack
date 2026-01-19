@@ -6,6 +6,7 @@
 export * from './auth/oauth/schemas';
 export * from './auth/secrets/schemas';
 export * from './common/form/schemas';
+export * from './interactions/approval/schemas';
 export * from './services/embedding/schemas';
 export * from './services/form/schemas';
 export * from './services/llm/schemas';
