@@ -431,7 +431,8 @@ phoenix:
   ingress:
     enabled: false
   image:
-    repository: "ghcr.io/i-am-bee/arizephoenix/phoenix"
+    registry: "ghcr.io"
+    repository: "i-am-bee/arizephoenix/phoenix"
   securityContext:
     container:
       enabled: true
