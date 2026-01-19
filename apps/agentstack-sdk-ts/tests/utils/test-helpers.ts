@@ -4,7 +4,6 @@
  */
 
 import type { TextPart } from '@a2a-js/sdk';
-import type { Client, TaskStatusUpdateEvent } from '@a2a-js/sdk/client';
 import {
   ClientFactory,
   ClientFactoryOptions,
@@ -67,26 +66,6 @@ export function createTestFulfillments(): Fulfillments {
   };
 }
 
-export async function collectAgentResponse(
-  client: Client,
-  message: Parameters<Client['sendMessageStream']>[0]['message'],
-) {
-  const stream = client.sendMessageStream({ message });
-  const parts: string[] = [];
-
-  for await (const event of stream) {
-    if (event.kind === 'status-update') {
-      for (const part of event.status.message?.parts ?? []) {
-        if (part.kind === 'text') {
-          parts.push(part.text);
-        }
-      }
-    }
-  }
-
-  return parts.join('');
-}
-
 export async function createA2AClient(url: string) {
   const factory = new ClientFactory(
     ClientFactoryOptions.createFrom(ClientFactoryOptions.default, {
@@ -108,3 +87,36 @@ export async function createA2AClient(url: string) {
     createMessage,
   };
 }
+
+export const buildAgentTest =
+  (
+    agentBuilder: (port: number) => Promise<ServerHandle>,
+    test: (client: Awaited<ReturnType<typeof createA2AClient>>) => Promise<void>,
+  ) =>
+  async () => {
+    const port = await getRandomPort();
+    const serverHandle = await agentBuilder(port);
+    const client = await createA2AClient(serverHandle.url);
+
+    try {
+      await test(client);
+    } finally {
+      await serverHandle.close();
+    }
+  };
+
+export const accumulateResponse = async (
+  stream: ReturnType<Awaited<ReturnType<typeof createA2AClient>>['client']['sendMessageStream']>,
+) => {
+  let responseText = '';
+  for await (const event of stream) {
+    if (event.kind === 'status-update') {
+      const textPart = event.status.message?.parts?.find((p) => p.kind === 'text');
+      if (textPart && 'text' in textPart) {
+        responseText = textPart.text;
+      }
+    }
+  }
+
+  return responseText;
+};

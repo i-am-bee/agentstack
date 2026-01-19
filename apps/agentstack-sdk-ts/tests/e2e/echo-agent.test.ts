@@ -3,50 +3,27 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Client } from '@a2a-js/sdk/client';
 import { randomUUID } from 'crypto';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import type { AgentCard } from '../../src/client/a2a';
-import type { ServerHandle } from '../../src/server';
-import {
-  collectAgentResponse,
-  createA2AClient,
-  createEchoAgent,
-  createTestFulfillments,
-  getRandomPort,
-} from '../utils/test-helpers';
+import { accumulateResponse, buildAgentTest, createEchoAgent, createTestFulfillments } from '../utils/test-helpers';
 
 describe('Echo Agent E2E', () => {
-  let serverHandle: ServerHandle;
-  let client: Client;
-  let agentCard: AgentCard;
-  let createMessage: Awaited<ReturnType<typeof createA2AClient>>['createMessage'];
+  it(
+    'should echo the message back',
+    buildAgentTest(createEchoAgent, async ({ createMessage, client }) => {
+      const testMessage = 'Hello, Agent!';
+      const contextId = randomUUID();
+      const fulfillments = createTestFulfillments();
 
-  beforeAll(async () => {
-    const port = await getRandomPort();
-    serverHandle = await createEchoAgent(port);
-    const result = await createA2AClient(serverHandle.url);
-    client = result.client;
-    agentCard = result.agentCard;
-    createMessage = result.createMessage;
-  });
+      const message = await createMessage(contextId, fulfillments, {
+        messageId: randomUUID(),
+        parts: [{ kind: 'text', text: testMessage }],
+      });
 
-  afterAll(async () => {
-    await serverHandle.close();
-  });
-
-  it('should echo the message back', async () => {
-    const testMessage = 'Hello, Agent!';
-    const fulfillments = createTestFulfillments();
-
-    const message = await createMessage(randomUUID(), fulfillments, {
-      messageId: randomUUID(),
-      parts: [{ kind: 'text', text: testMessage }],
-    });
-
-    const response = await collectAgentResponse(client, message);
-
-    expect(response).toBe(`Echo: ${testMessage}`);
-  });
+      const stream = client.sendMessageStream({ message });
+      const responseText = await accumulateResponse(stream);
+      expect(responseText).toBe(`Echo: ${testMessage}`);
+    }),
+  );
 });
