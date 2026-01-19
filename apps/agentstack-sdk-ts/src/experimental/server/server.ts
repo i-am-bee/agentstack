@@ -6,9 +6,11 @@
 import type { AgentCard, AgentExtension } from '@a2a-js/sdk';
 import { DefaultRequestHandler, InMemoryTaskStore } from '@a2a-js/sdk/server';
 import { agentCardHandler, jsonRpcHandler, UserBuilder } from '@a2a-js/sdk/server/express';
-import type { Express } from 'express';
+import express from 'express';
 
-import { AutoRegistration } from './autoregistration';
+import { buildApiClient } from '../../client/api/core';
+import { createAutoregisterToAgentstack } from './autoregistration';
+import { loadConfig } from './config';
 import { AgentExecutorImpl } from './executor';
 import { agentDetailExtension } from './extensions/agent-detail';
 import { createPlatformSelfRegistrationExtension } from './extensions/platform-self-registration';
@@ -58,16 +60,16 @@ export class Server {
       throw new Error('No agent configured. Call agent() before run().');
     }
 
+    const config = loadConfig();
     const host = options.host ?? '0.0.0.0';
     const port = options.port ?? 8000;
-    const selfRegistration = options.selfRegistration ?? true;
-    const selfRegistrationId = options.selfRegistrationId ?? this.agentCard.name;
-    const platformUrl = options.platformUrl ?? process.env.PLATFORM_URL ?? 'http://127.0.0.1:8333';
-    const productionMode = process.env.PRODUCTION_MODE?.toLowerCase() === 'true' || process.env.PRODUCTION_MODE === '1';
+    const selfRegistrationId = options.selfRegistrationId;
+    const platformUrl = options.platformUrl ?? config.platformUrl;
+    const productionMode = config.productionMode;
 
     this.agentCard.url = `http://${host === '0.0.0.0' ? 'localhost' : host}:${port}`;
 
-    if (selfRegistration && !productionMode) {
+    if (selfRegistrationId && !productionMode) {
       const selfRegExtension = createPlatformSelfRegistrationExtension(selfRegistrationId);
       this.agentCard.capabilities.extensions = [
         ...(this.agentCard.capabilities.extensions ?? []),
@@ -83,23 +85,23 @@ export class Server {
 
     const requestHandler = new DefaultRequestHandler(this.agentCard, taskStore, executor);
 
-    const express = await import('express');
-    const app: Express = express.default();
+    const app = express();
 
     const agentCardUrl = `/.well-known/agent-card.json`;
 
     app.use(jsonRpcHandler({ requestHandler, userBuilder: UserBuilder.noAuthentication }));
     app.use(agentCardUrl, agentCardHandler({ agentCardProvider: requestHandler }));
 
-    let autoRegistration: AutoRegistration | undefined;
+    const api = buildApiClient({ baseUrl: platformUrl });
+    let stopAutoregistration: (() => void) | undefined;
 
-    if (selfRegistration && !productionMode) {
-      autoRegistration = new AutoRegistration({
-        platformUrl,
+    if (selfRegistrationId && !productionMode) {
+      stopAutoregistration = createAutoregisterToAgentstack({
         selfRegistrationId,
         agentCard: this.agentCard,
         host,
         port,
+        api,
       });
     }
 
@@ -107,22 +109,16 @@ export class Server {
       const server = app.listen(port, host, async () => {
         console.log(`Agent "${this.agentCard!.name}" running at http://${host}:${port}`);
         console.log(`Agent card available at http://${host}:${port}${agentCardUrl}`);
-
-        if (autoRegistration) {
-          await autoRegistration.register();
-          autoRegistration.startVariableReload();
-        }
-
         resolve();
       });
 
       server.on('error', (error) => {
-        autoRegistration?.stop();
+        stopAutoregistration?.();
         reject(error);
       });
 
       const cleanup = () => {
-        autoRegistration?.stop();
+        stopAutoregistration?.();
         server.close();
       };
 

@@ -5,177 +5,157 @@
 
 import type { AgentCard } from '@a2a-js/sdk';
 
-import { ApiErrorType, buildApiClient } from '../../client/api/core';
+import type { buildApiClient } from '../../client/api/core';
+import { ApiErrorType } from '../../client/api/core';
+import { isProductionMode } from './config';
+import { withRetry } from './utils';
 
-const MAX_RETRY_ATTEMPTS = 10;
 const VARIABLE_RELOAD_INTERVAL_MS = 5000;
 
-export interface AutoRegistrationOptions {
-  platformUrl: string;
+export interface AutoregistrationOptions {
   selfRegistrationId: string;
   agentCard: AgentCard;
   host: string;
   port: number;
+  api: ReturnType<typeof buildApiClient>;
 }
 
-export class AutoRegistration {
-  private providerId: string | null = null;
-  private variableReloadInterval: ReturnType<typeof setInterval> | null = null;
-  private configuredVariables: Set<string> = new Set();
-  private stopped = false;
-  private readonly api: ReturnType<typeof buildApiClient>;
-  private readonly options: AutoRegistrationOptions;
+function setsEqual(a: Set<string>, b: Set<string>): boolean {
+  if (a.size !== b.size) return false;
+  for (const item of a) {
+    if (!b.has(item)) return false;
+  }
+  return true;
+}
 
-  constructor(options: AutoRegistrationOptions) {
-    this.options = options;
-    this.api = buildApiClient({ baseUrl: options.platformUrl });
+export function createAutoregisterToAgentstack(options: AutoregistrationOptions): () => void {
+  const { selfRegistrationId, agentCard, host, port, api } = options;
+  let providerId: string | null = null;
+  let variableReloadInterval: ReturnType<typeof setInterval> | null = null;
+  let configuredVariables = new Set<string>();
+  let stopped = false;
+
+  function buildProviderLocation(): string {
+    const normalizedHost = host.replace(/0\.0\.0\.0|localhost|127\.0\.0\.1/g, 'host.docker.internal');
+    return `http://${normalizedHost}:${port}#${selfRegistrationId}`;
   }
 
-  private get productionMode(): boolean {
-    return process.env.PRODUCTION_MODE?.toLowerCase() === 'true' || process.env.PRODUCTION_MODE === '1';
-  }
-
-  private buildProviderLocation(): string {
-    const host = this.options.host.replace(/0\.0\.0\.0|localhost|127\.0\.0\.1/g, 'host.docker.internal');
-    return `http://${host}:${this.options.port}#${this.options.selfRegistrationId}`;
-  }
-
-  private async sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  private async withRetry<T>(fn: () => Promise<T>): Promise<T> {
-    let lastError: Error | undefined;
-
-    for (let attempt = 0; attempt < MAX_RETRY_ATTEMPTS; attempt++) {
-      if (this.stopped) {
-        throw new Error('AutoRegistration stopped');
-      }
-
-      try {
-        return await fn();
-      } catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error));
-        const delay = Math.min(1000 * Math.pow(2, attempt), 10000);
-        console.log(`Registration attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
-        await this.sleep(delay);
-      }
-    }
-
-    throw lastError ?? new Error('Max retry attempts exceeded');
-  }
-
-  async register(): Promise<void> {
-    if (this.productionMode) {
-      console.log('Agent is not automatically registered in production mode.');
-      return;
-    }
-
-    const location = this.buildProviderLocation();
-    console.log('Registering agent to the agentstack platform', { location });
-
-    try {
-      await this.withRetry(async () => {
-        const existingResult = await this.api.readProviderByLocation({
-          location: encodeURIComponent(location),
-        });
-
-        if (existingResult.ok) {
-          const patchResult = await this.api.patchProvider({
-            id: existingResult.data.id,
-            agent_card: this.options.agentCard,
-          });
-
-          if (!patchResult.ok) {
-            throw new Error(`Failed to patch provider: ${patchResult.error.message}`);
-          }
-
-          this.providerId = patchResult.data.id;
-        } else if (existingResult.error.type === ApiErrorType.Http && existingResult.error.response?.status === 404) {
-          const createResult = await this.api.createProvider({
-            location,
-            agent_card: this.options.agentCard,
-          });
-
-          if (!createResult.ok) {
-            throw new Error(`Failed to create provider: ${createResult.error.message}`);
-          }
-
-          this.providerId = createResult.data.id;
-        } else {
-          throw new Error(`Failed to lookup provider: ${existingResult.error.message}`);
-        }
-      });
-
-      console.log('Agent registered successfully');
-      await this.loadVariables(true);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.log(`Agent can not be registered to agentstack server: ${message}`);
-    }
-  }
-
-  async loadVariables(firstRun = false): Promise<void> {
-    if (!this.providerId) {
+  async function loadVariables(firstRun = false): Promise<void> {
+    if (!providerId) {
       return;
     }
 
     try {
-      const result = await this.api.listProviderVariables({ id: this.providerId });
+      const result = await api.listProviderVariables({ id: providerId });
 
       if (!result.ok) {
-        console.log(`Failed to load variables: ${result.error.message}`);
+        console.warn(`Failed to load variables: ${result.error.message}`);
         return;
       }
 
       const variables = result.data.variables ?? {};
-      const oldVariables = new Set(this.configuredVariables);
+      const oldVariables = configuredVariables;
+      const newVariables = new Set<string>();
 
-      for (const variable of this.configuredVariables) {
+      for (const variable of configuredVariables) {
         if (!(variable in variables)) {
           delete process.env[variable];
-          this.configuredVariables.delete(variable);
         }
       }
 
       for (const [key, value] of Object.entries(variables)) {
         process.env[key] = value;
-        this.configuredVariables.add(key);
+        newVariables.add(key);
       }
 
-      const dirty =
-        oldVariables.size !== this.configuredVariables.size ||
-        [...oldVariables].some((v) => !this.configuredVariables.has(v));
+      const dirty = !setsEqual(oldVariables, newVariables);
+      configuredVariables = newVariables;
 
-      if (dirty) {
-        console.log(`Environment variables reloaded dynamically: ${[...this.configuredVariables].join(', ')}`);
+      if (dirty && configuredVariables.size > 0) {
+        console.log(`Environment variables reloaded: ${[...configuredVariables].join(', ')}`);
       }
 
-      if (firstRun && this.configuredVariables.size > 0) {
-        console.log('Environment variables loaded dynamically.');
+      if (firstRun && configuredVariables.size > 0) {
+        console.log('Environment variables loaded.');
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      console.log(`Failed to load variables: ${message}`);
+      console.error(`Failed to load variables: ${message}`);
     }
   }
 
-  startVariableReload(): void {
-    if (this.productionMode) {
+  async function register(): Promise<void> {
+    if (isProductionMode()) {
+      console.log('Agent is not automatically registered in production mode.');
       return;
     }
 
-    this.variableReloadInterval = setInterval(() => {
-      this.loadVariables().catch(() => {});
-    }, VARIABLE_RELOAD_INTERVAL_MS);
-  }
+    const location = buildProviderLocation();
+    console.log('Registering agent to the agentstack platform', { location });
 
-  stop(): void {
-    this.stopped = true;
+    try {
+      await withRetry(
+        async () => {
+          const existingResult = await api.readProviderByLocation({
+            location: encodeURIComponent(location),
+          });
 
-    if (this.variableReloadInterval) {
-      clearInterval(this.variableReloadInterval);
-      this.variableReloadInterval = null;
+          if (existingResult.ok) {
+            const patchResult = await api.patchProvider({
+              id: existingResult.data.id,
+              agent_card: agentCard,
+            });
+
+            if (!patchResult.ok) {
+              throw new Error(`Failed to patch provider: ${patchResult.error.message}`);
+            }
+
+            providerId = patchResult.data.id;
+          } else if (existingResult.error.type === ApiErrorType.Http && existingResult.error.response?.status === 404) {
+            const createResult = await api.createProvider({
+              location,
+              agent_card: agentCard,
+            });
+
+            if (!createResult.ok) {
+              throw new Error(`Failed to create provider: ${createResult.error.message}`);
+            }
+
+            providerId = createResult.data.id;
+          } else {
+            throw new Error(`Failed to lookup provider: ${existingResult.error.message}`);
+          }
+        },
+        {
+          shouldAbort: () => stopped,
+          onRetry: (attempt, _error, delayMs) => {
+            console.warn(`Registration attempt ${attempt} failed, retrying in ${delayMs}ms...`);
+          },
+        },
+      );
+
+      console.log('Agent registered successfully');
+      await loadVariables(true);
+
+      variableReloadInterval = setInterval(() => {
+        loadVariables().catch((error) => console.error('Error during variable reload:', error));
+      }, VARIABLE_RELOAD_INTERVAL_MS);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`Agent cannot be registered to agentstack server: ${message}`);
     }
   }
+
+  function stop(): void {
+    stopped = true;
+
+    if (variableReloadInterval) {
+      clearInterval(variableReloadInterval);
+      variableReloadInterval = null;
+    }
+  }
+
+  register();
+
+  return stop;
 }

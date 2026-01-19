@@ -12,7 +12,7 @@ export default defineConfig([
       api: 'src/api.ts',
       core: 'src/core.ts',
       extensions: 'src/extensions.ts',
-      server: 'src/experimental/server.ts',
+      server: 'src/server.ts',
     },
     format: ['esm', 'cjs'],
     dts: true,

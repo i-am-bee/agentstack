@@ -37,7 +37,6 @@ export interface AgentOptions<TDeps = Record<string, never>> {
 export interface ServerOptions {
   host?: string;
   port?: number;
-  selfRegistration?: boolean;
   selfRegistrationId?: string;
   platformUrl?: string;
 }
