@@ -3,10 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import nextBundleAnalyzer from '@next/bundle-analyzer';
 import type { NextConfig } from 'next';
 import path from 'path';
 
-const nextConfig: NextConfig = {
+const withBundleAnalyzer = nextBundleAnalyzer({ enabled: process.env.ANALYZE === 'true' });
+
+const nextConfig: NextConfig = withBundleAnalyzer({
   output: 'standalone',
   basePath: process.env.NEXT_PUBLIC_BASE_PATH,
   outputFileTracingRoot: path.join(__dirname, '../../'),
@@ -84,6 +87,6 @@ const nextConfig: NextConfig = {
   devIndicators: {
     position: 'bottom-right',
   },
-};
+});
 
 export default nextConfig;

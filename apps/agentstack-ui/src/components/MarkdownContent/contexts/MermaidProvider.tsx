@@ -3,6 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+'use client';
+
+import type { Mermaid } from 'mermaid';
 import type { PropsWithChildren } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 
@@ -11,6 +14,7 @@ import { MermaidContext } from './mermaid-context';
 
 export function MermaidProvider({ children }: PropsWithChildren) {
   const [diagrams, setDiagrams] = useState<Map<number, string | Error>>(new Map());
+  const [mermaidApi, setMermaidApi] = useState<Mermaid | null>(null);
 
   const setDiagram = useCallback((index: number, svg: string) => {
     setDiagrams((prev) => {
@@ -24,8 +28,10 @@ export function MermaidProvider({ children }: PropsWithChildren) {
     () => ({
       diagrams,
       setDiagram,
+      mermaidApi,
+      setMermaidApi,
     }),
-    [diagrams, setDiagram],
+    [diagrams, setDiagram, mermaidApi],
   );
 
   return <MermaidContext.Provider value={value}>{children}</MermaidContext.Provider>;

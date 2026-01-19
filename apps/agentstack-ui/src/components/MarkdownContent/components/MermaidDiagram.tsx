@@ -4,7 +4,6 @@
  */
 
 import { InlineLoading, InlineNotification } from '@carbon/react';
-import mermaid from 'mermaid';
 import { type HTMLAttributes, useEffect, useId } from 'react';
 import type { ExtraProps } from 'react-markdown';
 
@@ -21,7 +20,7 @@ export type MermaidDiagramProps = HTMLAttributes<HTMLElement> &
 export function MermaidDiagram({ children, mermaidIndex, isStreaming }: MermaidDiagramProps) {
   const id = useId();
   const { theme } = useTheme();
-  const { diagrams, setDiagram } = useMermaid();
+  const { diagrams, setDiagram, mermaidApi, setMermaidApi } = useMermaid();
 
   if (mermaidIndex === undefined) {
     console.error('MermaidDiagram component requires a `mermaidIndex` prop.');
@@ -29,14 +28,6 @@ export function MermaidDiagram({ children, mermaidIndex, isStreaming }: MermaidD
   const index = mermaidIndex ?? 0;
 
   const diagram = diagrams.get(index);
-
-  useEffect(() => {
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: theme === Theme.Dark ? 'dark' : 'default',
-      suppressErrorRendering: true,
-    });
-  }, [theme]);
 
   useEffect(() => {
     let isMounted = true;
@@ -47,7 +38,19 @@ export function MermaidDiagram({ children, mermaidIndex, isStreaming }: MermaidD
       }
 
       try {
-        const { svg } = await mermaid.render(id, children);
+        let api = mermaidApi;
+        if (!api) {
+          api = (await import('mermaid')).default;
+          api.initialize({
+            startOnLoad: false,
+            theme: theme === Theme.Dark ? 'dark' : 'default',
+            suppressErrorRendering: true,
+          });
+
+          setMermaidApi(api);
+        }
+
+        const { svg } = await api.render(id, children);
 
         if (isMounted) {
           setDiagram(index, svg);
@@ -65,7 +68,7 @@ export function MermaidDiagram({ children, mermaidIndex, isStreaming }: MermaidD
     return () => {
       isMounted = false;
     };
-  }, [children, theme, id, setDiagram, index, isStreaming]);
+  }, [children, theme, id, setDiagram, index, isStreaming, mermaidApi, setMermaidApi]);
 
   return (
     <div className={classes.root}>

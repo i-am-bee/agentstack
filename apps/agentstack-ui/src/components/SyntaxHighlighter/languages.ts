@@ -3,17 +3,27 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import bash from 'react-syntax-highlighter/dist/esm/languages/hljs/bash';
-import javascript from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
-import json from 'react-syntax-highlighter/dist/esm/languages/hljs/json';
-import python from 'react-syntax-highlighter/dist/esm/languages/hljs/python';
-import shell from 'react-syntax-highlighter/dist/esm/languages/hljs/shell';
-import typescript from 'react-syntax-highlighter/dist/esm/languages/hljs/typescript';
-import yaml from 'react-syntax-highlighter/dist/esm/languages/hljs/yaml';
+type RegisterableHighlighter = { registerLanguage(name: string, func: unknown): void };
 
-export function registerLanguages<Highlighter extends { registerLanguage(name: string, func: unknown): void }>(
-  highlighter: Highlighter,
-) {
+export async function registerLanguagesAsync(highlighter: RegisterableHighlighter) {
+  const [
+    { default: bash },
+    { default: shell },
+    { default: json },
+    { default: yaml },
+    { default: javascript },
+    { default: typescript },
+    { default: python },
+  ] = await Promise.all([
+    import('react-syntax-highlighter/dist/esm/languages/hljs/bash'),
+    import('react-syntax-highlighter/dist/esm/languages/hljs/shell'),
+    import('react-syntax-highlighter/dist/esm/languages/hljs/json'),
+    import('react-syntax-highlighter/dist/esm/languages/hljs/yaml'),
+    import('react-syntax-highlighter/dist/esm/languages/hljs/javascript'),
+    import('react-syntax-highlighter/dist/esm/languages/hljs/typescript'),
+    import('react-syntax-highlighter/dist/esm/languages/hljs/python'),
+  ]);
+
   highlighter.registerLanguage('bash', bash);
   highlighter.registerLanguage('shell', shell);
   highlighter.registerLanguage('json', json);
