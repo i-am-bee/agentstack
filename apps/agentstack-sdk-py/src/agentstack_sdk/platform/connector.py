@@ -11,11 +11,21 @@ from typing import Annotated, Literal
 from uuid import UUID
 
 import pydantic
-from pydantic import AnyUrl, Field
+from pydantic import AnyUrl, BeforeValidator, Field
 
 from agentstack_sdk.platform.client import PlatformClient, get_platform_client
 from agentstack_sdk.platform.common import PaginatedResult
 from agentstack_sdk.platform.types import Metadata
+
+
+def uuid_to_str(v: UUID | str) -> str:
+    """Convert UUID or str to str."""
+    if isinstance(v, UUID):
+        return str(v)
+    return v
+
+
+UuidStr = Annotated[UUID | str, BeforeValidator(uuid_to_str)]
 
 
 class AuthorizationCodeRequest(pydantic.BaseModel):
@@ -117,21 +127,21 @@ class Connector(pydantic.BaseModel):
             return pydantic.TypeAdapter(PaginatedResult[Connector]).validate_python(response.json())
 
     async def get(
-        self: Connector | UUID,
+        self: Connector | UuidStr,
         *,
         client: PlatformClient | None = None,
     ) -> Connector:
         """
         Read a specific connector by ID.
         """
-        connector_id = str(self if isinstance(self, UUID) else self.id)
+        connector_id = str(self.id) if isinstance(self, Connector) else self
         async with client or get_platform_client() as client:
             response = await client.get(url=f"/api/v1/connectors/{connector_id}")
             response.raise_for_status()
             return pydantic.TypeAdapter(Connector).validate_python(response.json())
 
     async def delete(
-        self: Connector | UUID,
+        self: Connector | UuidStr,
         *,
         client: PlatformClient | None = None,
     ) -> None:
@@ -141,13 +151,13 @@ class Connector(pydantic.BaseModel):
         Args:
             client: Optional PlatformClient instance
         """
-        connector_id = str(self if isinstance(self, UUID) else self.id)
+        connector_id = str(self.id) if isinstance(self, Connector) else self
         async with client or get_platform_client() as client:
             response = await client.delete(url=f"/api/v1/connectors/{connector_id}")
             response.raise_for_status()
 
     async def refresh(
-        self: Connector | UUID,
+        self: Connector | UuidStr,
         *,
         client: PlatformClient | None = None,
     ) -> Connector:
@@ -157,9 +167,10 @@ class Connector(pydantic.BaseModel):
         async with client or get_platform_client() as client:
             return await Connector.get(self, client=client)
 
-    async def wait_for_connection(
-        self: Connector | UUID,
+    async def wait_for_state(
+        self: Connector | UuidStr,
         *,
+        state: ConnectorState = ConnectorState.connected,
         poll_interval: int = 1,
         client: PlatformClient | None = None,
     ) -> Connector:
@@ -184,13 +195,28 @@ class Connector(pydantic.BaseModel):
             connector = self if isinstance(self, Connector) else await Connector.get(self, client=client)
 
             async with asyncio.timeout(300):
-                while connector.state != ConnectorState.connected:
+                while connector.state != state:
                     await asyncio.sleep(poll_interval)
                     connector = await connector.refresh(client=client)
             return connector
 
+    async def wait_for_deletion(
+        self: Connector | UuidStr,
+        *,
+        poll_interval: int = 1,
+        client: PlatformClient | None = None,
+    ) -> None:
+        connector_id = str(self.id) if isinstance(self, Connector) else self
+        async with client or get_platform_client() as client:
+            async with asyncio.timeout(30):
+                while True:
+                    connector_list = await Connector.list(client=client)
+                    if not any(str(conn.id) == connector_id for conn in connector_list.items):
+                        return
+                    await asyncio.sleep(poll_interval)
+
     async def connect(
-        self: Connector | UUID,
+        self: Connector | UuidStr,
         *,
         redirect_url: AnyUrl | str | None = None,
         access_token: str | None = None,
@@ -210,7 +236,7 @@ class Connector(pydantic.BaseModel):
         Returns:
             The updated Connector instance
         """
-        connector_id = str(self if isinstance(self, UUID) else self.id)
+        connector_id = str(self.id) if isinstance(self, Connector) else self
         async with client or get_platform_client() as client:
             response = await client.post(
                 url=f"/api/v1/connectors/{connector_id}/connect",
@@ -221,7 +247,6 @@ class Connector(pydantic.BaseModel):
             )
             response.raise_for_status()
             connector = pydantic.TypeAdapter(Connector).validate_python(response.json())
-
         # If auth is required, open the browser automatically and returns the connector in
         # `auth_required` state
         if connector.state == ConnectorState.auth_required and connector.auth_request:
@@ -230,7 +255,7 @@ class Connector(pydantic.BaseModel):
         return connector
 
     async def disconnect(
-        self: Connector | UUID,
+        self: Connector | UuidStr,
         *,
         client: PlatformClient | None = None,
     ) -> Connector:
@@ -243,14 +268,14 @@ class Connector(pydantic.BaseModel):
         Returns:
             The updated Connector instance
         """
-        connector_id = str(self if isinstance(self, UUID) else self.id)
+        connector_id = str(self.id) if isinstance(self, Connector) else self
         async with client or get_platform_client() as client:
             response = await client.post(url=f"/api/v1/connectors/{connector_id}/disconnect")
             response.raise_for_status()
             return pydantic.TypeAdapter(Connector).validate_python(response.json())
 
     async def mcp_proxy(
-        self: Connector | UUID,
+        self: Connector | UuidStr,
         *,
         method: str,
         headers: dict | None = None,
@@ -273,7 +298,7 @@ class Connector(pydantic.BaseModel):
         Yields:
             Response content chunks as bytes
         """
-        connector_id = str(self if isinstance(self, UUID) else self.id)
+        connector_id = str(self.id) if isinstance(self, Connector) else self
         async with client or get_platform_client() as client:
             url = f"/api/v1/connectors/{connector_id}/mcp"
 

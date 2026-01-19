@@ -110,6 +110,41 @@ class ConnectorService:
         async with self._uow() as uow:
             return [c async for c in uow.connectors.list(user_id=user.id if user else None)]
 
+    async def _handle_connection_error(
+        self,
+        err: Exception,
+        connector: Connector,
+        callback_uri: str,
+        redirect_url: AnyUrl | None = None,
+    ) -> None:
+        """Handle various connection errors and update connector state accordingly."""
+        if isinstance(err, OAuth2Error) or (
+            isinstance(err, httpx.HTTPStatusError) and err.response.status_code == status.HTTP_401_UNAUTHORIZED
+        ):
+            await self._external_mcp.bootstrap_auth(
+                connector=connector, callback_url=callback_uri, redirect_url=redirect_url
+            )
+            connector.state = ConnectorState.auth_required
+        elif isinstance(err, httpx.HTTPStatusError):
+            logger.error("Connector failed", exc_info=True)
+            try:
+                error = (await err.response.aread()).decode(err.response.encoding or "utf-8")
+            except Exception:
+                error = "Connector has returned an error"
+            raise PlatformError(
+                error,
+                status_code=status.HTTP_502_BAD_GATEWAY,
+            ) from err
+        elif isinstance(err, httpx.RequestError):
+            logger.error("Connector failed", exc_info=True)
+            raise PlatformError(
+                "Unable to establish connection with the connector",
+                status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            ) from err
+        else:
+            logger.error("Connector failed", exc_info=True)
+            raise PlatformError("Connection has failed") from err
+
     async def connect_connector(
         self,
         *,
@@ -121,7 +156,6 @@ class ConnectorService:
     ) -> Connector:
         async with self._uow() as uow:
             connector = await uow.connectors.get(connector_id=connector_id, user_id=user.id if user else None)
-
         if access_token:
             if not connector.auth:
                 connector.auth = Authorization()
@@ -134,31 +168,8 @@ class ConnectorService:
             await self.probe_connector(connector=connector)
             connector.state = ConnectorState.connected
             connector.disconnect_reason = None
-        except (httpx.HTTPStatusError, OAuth2Error) as err:
-            if isinstance(err, OAuth2Error) or err.response.status_code == status.HTTP_401_UNAUTHORIZED:
-                await self._external_mcp.bootstrap_auth(
-                    connector=connector, callback_url=callback_uri, redirect_url=redirect_url
-                )
-                connector.state = ConnectorState.auth_required
-            else:
-                logger.error("Connector failed", exc_info=True)
-                try:
-                    error = (await err.response.aread()).decode(err.response.encoding or "utf-8")
-                except Exception:
-                    error = "Connector has returned an error"
-                raise PlatformError(
-                    error,
-                    status_code=status.HTTP_502_BAD_GATEWAY,
-                ) from err
-        except httpx.RequestError as err:
-            logger.error("Connector failed", exc_info=True)
-            raise PlatformError(
-                "Unable to establish connection with the connector",
-                status_code=status.HTTP_504_GATEWAY_TIMEOUT,
-            ) from err
         except Exception as err:
-            logger.error("Connector failed", exc_info=True)
-            raise PlatformError("Connection has failed") from err
+            await self._handle_connection_error(err, connector, callback_uri, redirect_url)
 
         async with self._uow() as uow:
             await uow.connectors.update(connector=connector)
@@ -225,7 +236,8 @@ class ConnectorService:
             return self._external_mcp.create_http_client(connector=connector, headers=headers, timeout=timeout)
 
         # For managed MCP servers, retry if connection fails as service might not be immediately ready
-        max_retries = 5 if self._managed_mcp.is_managed(connector=connector) else 1
+        is_managed = self._managed_mcp.is_managed(connector=connector)
+        max_retries = 5 if is_managed else 1
         retry_delay = 2.0
 
         last_error = None
@@ -235,7 +247,7 @@ class ConnectorService:
                     streamablehttp_client(
                         (
                             f"{self._managed_mcp.get_service_url(connector=connector)}/mcp"
-                            if self._managed_mcp.is_managed(connector=connector)
+                            if is_managed
                             else str(connector.url)
                         ),
                         httpx_client_factory=client_factory,
@@ -247,27 +259,25 @@ class ConnectorService:
             except ExceptionGroup as excgroup:
                 last_error = excgroup.exceptions[0] if len(excgroup.exceptions) == 1 else excgroup
 
-                # Only retry for managed MCP servers on connection errors
-                if (
-                    (attempt < max_retries - 1)
-                    and self._managed_mcp.is_managed(connector=connector)
+                # Check if we should retry (only for managed MCP servers on connection errors)
+                should_retry = (
+                    attempt < max_retries - 1
+                    and is_managed
                     and isinstance(last_error, (ReadError, ConnectError, RemoteProtocolError, TimeoutException))
-                ):
-                    # Check if it's a connection error that might resolve with retry
+                )
+
+                if should_retry:
                     logger.warning(
-                        f"Probe attempt {attempt + 1}/{max_retries} failed for managed MCP server, retrying in {retry_delay}s: {last_error}"
+                        f"Probe attempt {attempt + 1}/{max_retries} failed for managed MCP server {connector.url}, retrying in {retry_delay}s: {last_error}"
                     )
                     await asyncio.sleep(retry_delay)
                     continue
 
-                # If not retrying, raise the error
+                # Not retrying, log and raise the error
+                logger.warning(f"Probe failed for managed MCP server {connector.url}: {last_error}")
                 if len(excgroup.exceptions) == 1:
                     raise last_error from excgroup
-                raise excgroup
-
-        # If we exhausted all retries, raise the last error
-        if last_error:
-            raise last_error
+                raise excgroup from None
 
     async def mcp_proxy(self, *, connector_id: UUID, request: Request, user: User | None = None):
         connector = await self.read_connector(connector_id=connector_id, user=user)

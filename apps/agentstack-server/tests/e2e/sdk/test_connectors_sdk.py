@@ -13,6 +13,7 @@ import logging
 import pytest
 from agentstack_sdk.platform.client import PlatformClient
 from agentstack_sdk.platform.connector import Connector, ConnectorState
+from httpx import HTTPStatusError
 
 from tests.conftest import TestConfiguration
 
@@ -68,12 +69,38 @@ async def test_stdio_connector_lifecycle_sdk(platform_client: PlatformClient):
     logger.info("Creating stdio connector with URL %s", mcp_url)
     connector = await Connector.create(url=mcp_url, client=platform_client)
 
+    result = await Connector.list(client=platform_client)
+    for conn in result.items:
+        logger.info(f"{conn.id}: {conn.url} ({conn.state})")
+
+    try:
+        _ = await Connector.create(url=mcp_url, client=platform_client)
+    except HTTPStatusError as e:
+        assert e.response.status_code == 409, "Expected 409 Conflict for duplicate connector creation"
+
+    result = await Connector.list(client=platform_client)
+    for conn in result.items:
+        logger.info(f"{conn.id}: {conn.url} ({conn.state})")
+
     assert connector.id is not None
     assert connector.state == ConnectorState.created
     assert connector.url.unicode_string() == mcp_url
     assert connector.metadata["name"] == "Test MCP Server"
 
     connector_id = connector.id
+
+    # Test all variations of get input (extends to other methods as well)
+    connector = await connector.get()
+    assert connector.id == connector_id
+    connector = await Connector.get(connector.id)
+    assert connector.id == connector_id
+    connector = await Connector.get(str(connector.id))
+    assert connector.id == connector_id
+
+    result = await Connector.list(client=platform_client)
+    for conn in result.items:
+        logger.info(f"{conn.id}: {conn.url} ({conn.state})")
+
     logger.info("Connector created: connector_id=%s state=%s", connector_id, connector.state)
 
     # Connect to connector
