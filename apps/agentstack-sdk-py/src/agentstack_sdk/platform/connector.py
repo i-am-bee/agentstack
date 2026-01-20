@@ -74,8 +74,8 @@ class Connector(pydantic.BaseModel):
 
     @staticmethod
     async def create(
-        *,
         url: AnyUrl | str,
+        *,
         client_id: str | None = None,
         client_secret: str | None = None,
         metadata: Metadata | None = None,

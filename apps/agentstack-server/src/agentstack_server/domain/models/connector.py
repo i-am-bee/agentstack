@@ -5,7 +5,7 @@ from enum import StrEnum
 from typing import Annotated, Literal
 from uuid import UUID, uuid4
 
-from pydantic import AnyUrl, AwareDatetime, BaseModel, ConfigDict, Field
+from pydantic import AnyUrl, AwareDatetime, BaseModel, ConfigDict, Field, field_validator
 
 from agentstack_server.domain.models.common import Metadata
 from agentstack_server.utils.utils import utc_now
@@ -26,9 +26,17 @@ AuthFlow = Annotated[AuthorizationCodeFlow, Field(discriminator="type")]
 class Token(BaseModel):
     access_token: str
     refresh_token: str | None = None
-    token_type: Literal["bearer"]
+    token_type: str
 
     model_config = ConfigDict(extra="allow")
+
+    @field_validator("token_type", mode="before")
+    @classmethod
+    def validate_token_type(cls, v: str) -> str:
+        v_lower = v.lower()
+        if v_lower != "bearer":
+            raise ValueError(f"token_type must be of 'bearer' type, got '{v}'")
+        return v_lower
 
 
 class Authorization(BaseModel):

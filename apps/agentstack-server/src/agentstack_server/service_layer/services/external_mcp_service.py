@@ -40,7 +40,7 @@ class ExternalMcpService:
 
     async def bootstrap_auth(self, *, connector: Connector, callback_url: str, redirect_url: AnyUrl | None) -> None:
         if not (auth_metadata := await self._discover_auth_metadata(connector=connector)):
-            raise RuntimeError("Not authorization server found for the connector")
+            raise RuntimeError("No authorization server found for the connector")
 
         if not connector.auth:
             connector.auth = Authorization()

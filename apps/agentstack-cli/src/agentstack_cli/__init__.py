@@ -10,6 +10,7 @@ import typer
 
 import agentstack_cli.commands.agent
 import agentstack_cli.commands.build
+import agentstack_cli.commands.connector
 import agentstack_cli.commands.mcp
 import agentstack_cli.commands.model
 import agentstack_cli.commands.platform
@@ -44,6 +45,7 @@ Usage: agentstack [OPTIONS] COMMAND [ARGS]...
 ╰────────────────────────────────────────────────────────────────────────────╯
 
 ╭─ Platform & Configuration ─────────────────────────────────────────────────╮
+| connector       Manage connectors to external services                     │
 │ model           Configure 15+ LLM providers [Admin only]                   │
 │ platform        Start, stop, or delete local platform [Local only]         │
 │ server          Connect to remote Agent Stack servers                      │
@@ -82,6 +84,12 @@ app.add_typer(
     name="agent",
     no_args_is_help=True,
     help="Manage agents. Some commands are [Admin only].",
+)
+app.add_typer(
+    agentstack_cli.commands.connector.app,
+    name="connector",
+    no_args_is_help=True,
+    help="Manage connectors to external services.",
 )
 app.add_typer(
     agentstack_cli.commands.platform.app,

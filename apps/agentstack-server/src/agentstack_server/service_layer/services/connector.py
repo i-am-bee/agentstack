@@ -162,6 +162,7 @@ class ConnectorService:
             connector.auth.token = Token(access_token=access_token, token_type="bearer")
 
         if self._managed_mcp.is_managed(connector=connector) and (preset := self._find_preset(url=connector.url)):
+            logger.error("Connector %s is managed MCP!!!!", connector.url)
             await self._managed_mcp.deploy(connector=connector, preset=preset)
 
         try:
@@ -274,7 +275,7 @@ class ConnectorService:
                     continue
 
                 # Not retrying, log and raise the error
-                logger.warning(f"Probe failed for managed MCP server {connector.url}: {last_error}")
+                logger.warning(f"Probe failed for MCP server {connector.url}: {last_error}")
                 if len(excgroup.exceptions) == 1:
                     raise last_error from excgroup
                 raise excgroup from None
