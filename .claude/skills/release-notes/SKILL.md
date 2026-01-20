@@ -73,17 +73,18 @@ Then at the end, provide list of all merged PRs (links + titles)
 ```markdown
 # 🚀 Agent Stack version 0.5.3 has been released 
 
-This release brings major improvements to the CLI experience and web UI, a redesigned form extension architecture, plus many platform and SDK enhancements.
+This release brings a major TypeScript SDK restructuring, a new Canvas agent, comprehensive UI redesign, and significant improvements to authentication and CLI experience.
 
 ## Major Changes
 
-**CLI Improvements** - The CLI has been redesigned with organized help text, improved agentstack list formatting with status indicators, and agentstack build now builds on the server by default - removing the need for Docker to be installed locally.
+### Breaking: TypeScript SDK Restructuring
+The `agentstack-sdk-ts` has been completely refactored with a new modular architecture. The API client is now organized into dedicated subdirectories (`auth`, `services`, `ui`, `configuration`, `connectors`, etc.) with proper `schemas.ts` and `types.ts` files. A new `buildApiClient` core function with `unwrapResult` utility provides standardized response handling. Error handling is now structured with `ApiErrorException` and specific error types (Http, Network, Parse, Validation). All consumers of the TS SDK need to update imports and usage patterns.
 
-**UI Enhancements** - Agent execution steps (trajectory) are now grouped together for easier reading. Both agent responses and trajectory now display Mermaid diagrams, LaTeX math, and images as rendered content instead of raw markdown code.
+### New Canvas Agent
+A new agent for multi-turn artifact editing is now available. Users can select and modify specific sections of text content, enabling precise iterative refinement of generated artifacts.
 
-**Breaking Change: Form Extension** - The Form Extension is now split into two separate extensions: FormServiceExtension for initial forms (shown before conversation starts) and FormRequestExtension for dynamic forms (requested during conversation). This prevents initial setup forms from being overridden by runtime forms. Agents using forms need to be updated (See docs).
-
-**Connector Management** - Added comprehensive connector UI and presets system. Users can browse, connect, and disconnect predefined connector presets without manually entering configuration details. The system intelligently creates new connectors on first connection and provides table-based management with search functionality.
+### SDK: User Approval Extension
+New `ApprovalExtensionServer` and `ApprovalExtensionClient` enable explicit human-in-the-loop workflows. Agents can request user approval for critical actions using structured `ApprovalRequest`/`ApprovalResponse` models. The older `ToolCallRequest` and `ToolCallExtensionServer` are now deprecated.
 
 ## What's changed
 - [#1737 feat(ui): add agent management under Providers feature flag](https://github.com/i-am-bee/agentstack/pull/1737)
