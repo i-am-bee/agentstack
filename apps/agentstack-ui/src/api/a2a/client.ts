@@ -13,7 +13,6 @@ import { A2AExtensionError, TaskCanceledError } from '#api/errors.ts';
 import type { UITextPart } from '#modules/messages/types.ts';
 import { type UIMessagePart, UIMessagePartKind } from '#modules/messages/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
-import { isNotNull } from '#utils/helpers.ts';
 
 import { getAgentClient } from './agent-card';
 import { AGENT_ERROR_MESSAGE } from './constants';
