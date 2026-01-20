@@ -4,6 +4,7 @@
  */
 
 .root {
+  @include scrollbar();
   background-color: $layer-02;
   inline-size: 100%;
   padding: $spacing-07;
