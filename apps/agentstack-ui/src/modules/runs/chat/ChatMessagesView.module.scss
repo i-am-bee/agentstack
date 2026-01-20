@@ -31,6 +31,10 @@ $zindex-buttons: 2;
   row-gap: $holder-row-gap;
   padding-block: $spacing-07;
   overflow: hidden;
+
+  .canvasView & {
+    min-inline-size: rem(120px);
+  }
 }
 
 .scrollable {
