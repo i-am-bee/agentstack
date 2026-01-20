@@ -13,7 +13,6 @@ import { A2AExtensionError, TaskCanceledError } from '#api/errors.ts';
 import type { UITextPart } from '#modules/messages/types.ts';
 import { type UIMessagePart, UIMessagePartKind } from '#modules/messages/types.ts';
 import type { TaskId } from '#modules/tasks/api/types.ts';
-import { isNotNull } from '#utils/helpers.ts';
 
 import { getAgentClient } from './agent-card';
 import { AGENT_ERROR_MESSAGE } from './constants';
@@ -69,12 +68,14 @@ function handleArtifactUpdate(event: TaskArtifactUpdateEvent): UIMessagePart[] {
     { textParts: [], otherParts: [] },
   );
 
+  if (textParts.length === 0) {
+    return otherParts;
+  }
+
   return [
-    textParts.length > 0
-      ? { kind: UIMessagePartKind.Artifact as const, artifactId, description, name, parts: textParts }
-      : null,
+    { kind: UIMessagePartKind.Artifact as const, artifactId, description, name, parts: textParts },
     ...otherParts,
-  ].filter(isNotNull);
+  ];
 }
 
 async function handleEventError(error: unknown, client: Client, taskId: TaskId | undefined) {
