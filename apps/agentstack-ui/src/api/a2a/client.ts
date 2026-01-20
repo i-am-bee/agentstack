@@ -72,10 +72,7 @@ function handleArtifactUpdate(event: TaskArtifactUpdateEvent): UIMessagePart[] {
     return otherParts;
   }
 
-  return [
-    { kind: UIMessagePartKind.Artifact as const, artifactId, description, name, parts: textParts },
-    ...otherParts,
-  ];
+  return [{ kind: UIMessagePartKind.Artifact, artifactId, description, name, parts: textParts }, ...otherParts];
 }
 
 async function handleEventError(error: unknown, client: Client, taskId: TaskId | undefined) {
