@@ -21,4 +21,4 @@ if [ -z "$END_DATE" ]; then
   exit 1
 fi
 
-gh pr list --state merged --search "merged:${START_DATE}..${END_DATE}" --limit 100 --json number,title,url
+gh pr list --state merged --search "merged:${START_DATE}..${END_DATE}" --limit 1000 --json number,title,url
