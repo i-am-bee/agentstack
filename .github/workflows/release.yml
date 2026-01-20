@@ -20,6 +20,7 @@ jobs:
           - chat
           - rag
           - form
+          - canvas
     steps:
       - uses: actions/checkout@v4
       - id: version
