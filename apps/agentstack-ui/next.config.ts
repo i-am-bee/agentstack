@@ -8,7 +8,6 @@ import path from 'path';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  transpilePackages: ['@i-am-bee/agentstack-sdk-ts'],
   basePath: process.env.NEXT_PUBLIC_BASE_PATH,
   outputFileTracingRoot: path.join(__dirname, '../../'),
   sassOptions: {
