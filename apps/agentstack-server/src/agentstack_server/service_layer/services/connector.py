@@ -162,7 +162,6 @@ class ConnectorService:
             connector.auth.token = Token(access_token=access_token, token_type="bearer")
 
         if self._managed_mcp.is_managed(connector=connector) and (preset := self._find_preset(url=connector.url)):
-            logger.error("Connector %s is managed MCP!!!!", connector.url)
             await self._managed_mcp.deploy(connector=connector, preset=preset)
 
         try:
