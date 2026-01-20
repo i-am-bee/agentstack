@@ -30,7 +30,7 @@ export interface A2AServiceExtension<U extends string, D, F> extends A2AExtensio
   getFulfillmentsSchema: () => z.ZodSchema<F>;
 }
 
-export interface Fulfillments {
+export type Fulfillments = Partial<{
   llm: (demand: LLMDemands) => Promise<LLMFulfillments>;
   embedding: (demand: EmbeddingDemands) => Promise<EmbeddingFulfillments>;
   mcp: (demand: MCPDemands) => Promise<MCPFulfillments>;
@@ -43,7 +43,7 @@ export interface Fulfillments {
    * @deprecated - keeping this for backwards compatibility, context token is now passed via A2A client headers
    */
   getContextToken: () => ContextToken;
-}
+}>;
 
 export type UserMetadataInputs = Partial<{
   form: FormValues;

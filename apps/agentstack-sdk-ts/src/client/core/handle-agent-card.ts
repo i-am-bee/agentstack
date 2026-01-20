@@ -46,37 +46,40 @@ export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) 
   const resolveMetadata = async (fulfillments: Fulfillments) => {
     let fulfilledMetadata: Record<string, unknown> = {};
 
-    fulfilledMetadata = platformApiExtension(fulfilledMetadata, fulfillments.getContextToken());
+    if (fulfillments.getContextToken) {
+      fulfilledMetadata = platformApiExtension(fulfilledMetadata, fulfillments.getContextToken());
+    }
 
-    if (llmDemands) {
+    if (llmDemands && fulfillments.llm) {
       fulfilledMetadata = fulfillLlmDemand(fulfilledMetadata, await fulfillments.llm(llmDemands));
     }
 
-    if (embeddingDemands) {
+    if (embeddingDemands && fulfillments.embedding) {
       fulfilledMetadata = fulfillEmbeddingDemand(fulfilledMetadata, await fulfillments.embedding(embeddingDemands));
     }
 
-    if (mcpDemands) {
+    if (mcpDemands && fulfillments.mcp) {
       fulfilledMetadata = fulfillMcpDemand(fulfilledMetadata, await fulfillments.mcp(mcpDemands));
     }
 
-    if (oauthDemands) {
+    if (oauthDemands && fulfillments.oauth) {
       fulfilledMetadata = fulfillOAuthDemand(fulfilledMetadata, await fulfillments.oauth(oauthDemands));
     }
 
-    if (settingsDemands) {
+    if (settingsDemands && fulfillments.settings) {
       fulfilledMetadata = fulfillSettingsDemand(fulfilledMetadata, await fulfillments.settings(settingsDemands));
     }
 
-    if (secretDemands) {
+    if (secretDemands && fulfillments.secrets) {
       fulfilledMetadata = fulfillSecretDemand(fulfilledMetadata, await fulfillments.secrets(secretDemands));
     }
 
-    if (formDemands) {
+    if (formDemands && fulfillments.form) {
       fulfilledMetadata = fulfillFormDemand(fulfilledMetadata, await fulfillments.form(formDemands));
     }
 
-    const oauthRedirectUri = fulfillments.oauthRedirectUri();
+    const oauthRedirectUri = fulfillments.oauthRedirectUri?.();
+
     if (oauthRedirectUri) {
       fulfilledMetadata = {
         ...fulfilledMetadata,
