@@ -5,6 +5,7 @@
 
 import { Button } from '@carbon/react';
 import type { ToolCallApprovalRequest } from 'agentstack-sdk';
+import { ApprovalDecision } from 'agentstack-sdk';
 import isEmpty from 'lodash/isEmpty';
 import { useCallback, useMemo, useState } from 'react';
 
@@ -28,7 +29,7 @@ export function MessageApproval({ message }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleDecision = useCallback(
-    async (decision: 'approve' | 'reject') => {
+    async (decision: ApprovalDecision) => {
       if (!approvalPart) {
         return;
       }
@@ -65,10 +66,20 @@ export function MessageApproval({ message }: Props) {
 
       {isCurrentMessageLast && (
         <div className={classes.actions}>
-          <Button kind="tertiary" size="sm" onClick={() => handleDecision('reject')} disabled={isSubmitting}>
+          <Button
+            kind="tertiary"
+            size="sm"
+            onClick={() => handleDecision(ApprovalDecision.Reject)}
+            disabled={isSubmitting}
+          >
             Decline
           </Button>
-          <Button kind="primary" size="sm" onClick={() => handleDecision('approve')} disabled={isSubmitting}>
+          <Button
+            kind="primary"
+            size="sm"
+            onClick={() => handleDecision(ApprovalDecision.Approve)}
+            disabled={isSubmitting}
+          >
             Allow
           </Button>
         </div>
