@@ -22,7 +22,7 @@ For example, you can do something like this:
 curl -s https://raw.githubusercontent.com/i-am-bee/agentstack/install/install.sh | grep 'LATEST_STABLE_AGENTSTACK_VERSION=' | cut -d'=' -f2
 ```
 
-This gives you a number, but the tag of the latest stable Agent Stack version is named `release-vX.Y.Z`.
+This gives you a version number (e.g., `0.5.0`). The corresponding git tag for the latest stable Agent Stack version is formed by prepending `release-v` to this number (e.g., `release-v0.5.0`).
 
 Now, knowing the start and end of the scope, you can figure out what the merged PRs are by calling the attached utility script:
 ```bash
