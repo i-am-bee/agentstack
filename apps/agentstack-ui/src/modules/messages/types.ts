@@ -3,8 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Task, TaskArtifactUpdateEvent } from '@a2a-js/sdk';
-import type { FormRender, SecretDemands } from 'agentstack-sdk';
+import type {
+  ApprovalRequest,
+  ApprovalResponse,
+  FormRender,
+  SecretDemands,
+  Task,
+  TaskArtifactUpdateEvent,
+} from 'agentstack-sdk';
 
 import type { UICanvasEditRequestParams } from '#modules/canvas/types.ts';
 import type { RunFormValues } from '#modules/form/types.ts';
@@ -49,7 +55,9 @@ export type UIMessagePart =
   | UIAuthPart
   | UITransformPart
   | UISecretPart
-  | UIArtifactPart;
+  | UIArtifactPart
+  | UIApprovalPart
+  | UIApprovalResponsePart;
 
 export type UITextPart = {
   kind: UIMessagePartKind.Text;
@@ -103,6 +111,17 @@ export type UISecretPart = {
   taskId: TaskId;
 };
 
+export type UIApprovalPart = {
+  kind: UIMessagePartKind.ApprovalRequired;
+  request: ApprovalRequest;
+  taskId: TaskId;
+};
+
+export type UIApprovalResponsePart = {
+  kind: UIMessagePartKind.ApprovalResponse;
+  result: ApprovalResponse;
+};
+
 export type UITransformPart = {
   kind: UIMessagePartKind.Transform;
   id: string;
@@ -143,6 +162,8 @@ export enum UIMessagePartKind {
   SecretRequired = 'secret-required',
   Transform = 'transform',
   Artifact = 'artifact',
+  ApprovalRequired = 'approval-required',
+  ApprovalResponse = 'approval-response',
 }
 
 export enum UIMessageStatus {

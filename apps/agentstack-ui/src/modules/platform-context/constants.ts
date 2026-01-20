@@ -20,9 +20,6 @@ export const contextTokenPermissionsDefaults: DeepRequired<ContextTokenPermissio
     provider_variables: [],
     contexts: [],
     context_data: [],
-    mcp_providers: [],
-    mcp_tools: [],
-    mcp_proxy: [],
     connectors: [],
   },
   grant_context_permissions: {

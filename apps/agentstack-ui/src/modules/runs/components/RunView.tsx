@@ -4,7 +4,10 @@
  */
 
 'use client';
-import { type Agent, InteractionMode } from '#modules/agents/api/types.ts';
+
+import { InteractionMode } from 'agentstack-sdk';
+
+import type { Agent } from '#modules/agents/api/types.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
 
 import { ChatView } from '../chat/ChatView';

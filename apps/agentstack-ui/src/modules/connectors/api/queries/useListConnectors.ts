@@ -5,14 +5,13 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-import { agentstackClient } from '#api/agentstack-client.ts';
-
+import { listConnectors } from '..';
 import { connectorKeys } from '../keys';
 
 export function useListConnectors() {
   const query = useQuery({
     queryKey: connectorKeys.list(),
-    queryFn: agentstackClient.listConnectors,
+    queryFn: listConnectors,
   });
 
   return query;

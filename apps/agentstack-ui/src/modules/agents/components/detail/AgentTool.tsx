@@ -19,8 +19,6 @@ export function AgentTool({ tool }: Props) {
   return (
     <div className={classes.root}>
       <div className={classes.header}>
-        {/* <span className={classes.icon}></span> */}
-
         <p className={classes.name}>{name}</p>
       </div>
 

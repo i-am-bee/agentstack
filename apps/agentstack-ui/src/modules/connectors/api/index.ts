@@ -3,46 +3,60 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { api } from '#api/index.ts';
-import { ensureData } from '#api/utils.ts';
+import type {
+  ConnectConnectorRequest,
+  CreateConnectorRequest,
+  DeleteConnectorRequest,
+  DisconnectConnectorRequest,
+} from 'agentstack-sdk';
+import { unwrapResult } from 'agentstack-sdk';
+
+import { agentStackClient } from '#api/agentstack-client.ts';
 import { BASE_URL } from '#utils/constants.ts';
 
-import type {
-  ConnectConnectorPath,
-  CreateConnectorRequest,
-  DeleteConnectorPath,
-  DisconnectConnectorPath,
-} from './types';
+import { connectorSchema, listConnectorPresetsResponseSchema, listConnectorsResponseSchema } from './types';
 
-export async function createConnector(body: CreateConnectorRequest) {
-  const response = await api.POST('/api/v1/connectors', { body });
+export async function listConnectors() {
+  const response = await agentStackClient.listConnectors();
+  const result = unwrapResult(response, listConnectorsResponseSchema);
 
-  return ensureData(response);
+  return result;
 }
 
-export async function deleteConnector(path: DeleteConnectorPath) {
-  const response = await api.DELETE('/api/v1/connectors/{connector_id}', { params: { path } });
+export async function createConnector(request: CreateConnectorRequest) {
+  const response = await agentStackClient.createConnector(request);
+  const result = unwrapResult(response, connectorSchema);
 
-  return ensureData(response);
+  return result;
 }
 
-export async function connectConnector(path: ConnectConnectorPath) {
-  const response = await api.POST('/api/v1/connectors/{connector_id}/connect', {
-    params: { path },
-    body: { redirect_url: `${BASE_URL}/oauth-callback` },
+export async function deleteConnector(request: DeleteConnectorRequest) {
+  const response = await agentStackClient.deleteConnector(request);
+  const result = unwrapResult(response);
+
+  return result;
+}
+
+export async function connectConnector(request: ConnectConnectorRequest) {
+  const response = await agentStackClient.connectConnector({
+    redirect_url: `${BASE_URL}/oauth-callback`,
+    ...request,
   });
+  const result = unwrapResult(response, connectorSchema);
 
-  return ensureData(response);
+  return result;
 }
 
-export async function disconnectConnector(path: DisconnectConnectorPath) {
-  const response = await api.POST('/api/v1/connectors/{connector_id}/disconnect', { params: { path } });
+export async function disconnectConnector(request: DisconnectConnectorRequest) {
+  const response = await agentStackClient.disconnectConnector(request);
+  const result = unwrapResult(response, connectorSchema);
 
-  return ensureData(response);
+  return result;
 }
 
 export async function listConnectorPresets() {
-  const response = await api.GET('/api/v1/connectors/presets');
+  const response = await agentStackClient.listConnectorPresets();
+  const result = unwrapResult(response, listConnectorPresetsResponseSchema);
 
-  return ensureData(response);
+  return result;
 }

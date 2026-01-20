@@ -16,7 +16,7 @@
 <p align="center">
     <a href="#key-features"><b>Key Features</b></a> •
     <a href="#quickstart"><b>Quickstart</b></a> •
-    <a href="#agent-catalog"><b>Agent Catalog</b></a> •
+    <a href="#reference-agents"><b>Reference Agents</b></a> •
     <a href="#documentation"><b>Documentation</b></a>
 </p>
 
@@ -89,9 +89,7 @@ You should see: "Ciao Alice!" 🎉
 
 ---
 
-## Agent Catalog
-
-### Reference Agents
+## Reference Agents
 
 Reference implementations demonstrating core Agent Stack capabilities.
 
@@ -105,18 +103,6 @@ Reference implementations demonstrating core Agent Stack capabilities.
 - [OAuth Agent](https://github.com/i-am-bee/agentstack/blob/main/apps/agentstack-sdk-py/examples/oauth.py) - OAuth Extension demo with MCP integration, browser-based authorization, secure token management, and Stripe MCP server access.
 - [Dynamic Form Request Agent](https://github.com/i-am-bee/agentstack/blob/main/apps/agentstack-sdk-py/examples/form_request_agent.py) - Multi-step form workflow showing both static and dynamic form generation, where the agent conditionally requests additional input mid-conversation.
 - [Flight Search 	and Visualization Agent](https://github.com/jezekra1/agentstack-workshop) - Agent that queries the Kiwi.com MCP API for flight results, requests missing parameters through the Form Extension, and optionally generates PNG or HTML route visualizations using geospatial helpers. It uses RequirementAgent to orchestrate tool calls (data validation and visualization) and streams a final answer with any generated files and citations.
-
-### Community Agents
-
-A growing collection of community-built agents showcasing various use cases and integrations.
-
-> [!NOTE]
-> Community agents are maintained by their respective authors. Please review each agent's documentation before use.
-
-- Coming soon! You can add your agent here via a PR to be featured.
-
-> [!TIP]
-> Before contributing, please review our [Contribution Guidelines](./CONTRIBUTING.md) to ensure a smooth experience.
 
 ---
 

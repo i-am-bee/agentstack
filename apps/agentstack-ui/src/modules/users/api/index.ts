@@ -3,11 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { api } from '#api/index.ts';
-import { ensureData } from '#api/utils.ts';
+import { unwrapResult } from 'agentstack-sdk';
+
+import { agentStackClient } from '#api/agentstack-client.ts';
 
 export async function readUser() {
-  const response = await api.GET('/api/v1/user');
+  const response = await agentStackClient.readUser();
+  const result = unwrapResult(response);
 
-  return ensureData(response);
+  return result;
 }

@@ -4,7 +4,7 @@
  */
 
 import { FormGroup } from '@carbon/react';
-import type { FileField, FormResponseValue } from 'agentstack-sdk';
+import type { FileField, FormFieldValue } from 'agentstack-sdk';
 
 import { getFileIdFromFilePlatformUrl } from '#api/a2a/utils.ts';
 import { FileCard } from '#modules/files/components/FileCard.tsx';
@@ -15,7 +15,7 @@ import classes from './FielFieldValue.module.scss';
 
 interface Props {
   field: FileField;
-  value: NonNullable<Extract<FormResponseValue, { type: 'file' }>['value']>;
+  value: NonNullable<Extract<FormFieldValue, { type: 'file' }>['value']>;
 }
 
 export function FileFieldValue({ field, value }: Props) {

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { InteractionMode } from '#modules/agents/api/types.ts';
+import { InteractionMode } from 'agentstack-sdk';
 
 export const SupportedUis: string[] = [InteractionMode.MultiTurn, InteractionMode.SingleTurn];
 

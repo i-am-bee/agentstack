@@ -39,7 +39,7 @@ export function RunLogItem({ children }: PropsWithChildren) {
   }, [children]);
 
   return (
-    <div className={clsx(classes.root, { [classes.isExpanded]: isExpanded })}>
+    <div className={classes.root}>
       <AnimateHeightChange className={classes.holder}>
         <p ref={contentRef} className={clsx(classes.content, { [classes.clamped]: !isExpanded })}>
           {children}

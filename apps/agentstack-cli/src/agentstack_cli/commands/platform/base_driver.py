@@ -114,7 +114,7 @@ class BaseDriver(abc.ABC):
         )
         values = {
             **{svc: {"service": {"type": "LoadBalancer"}} for svc in ["collector", "docling", "ui", "phoenix"]},
-            "hostNetwork": True,
+            "service": {"type": "LoadBalancer"},
             "externalRegistries": {"public_github": str(Configuration().agent_registry)},
             "encryptionKey": "Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc=",
             "features": {"uiLocalSetup": True},

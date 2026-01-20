@@ -10,10 +10,10 @@ The `buildApiClient` function creates a type-safe HTTP client for interacting wi
 Create an API client by calling `buildApiClient` with configuration options:
 
 ```typescript
-import { buildApiClient } from 'agentstack-sdk';
+import { buildApiClient } from "agentstack-sdk";
 
 const api = buildApiClient({
-  baseUrl: 'https://your-agentstack-instance.com',
+  baseUrl: "https://your-agentstack-instance.com",
   fetch: customFetch, // Optional: provide custom fetch implementation
 });
 ```
@@ -30,16 +30,16 @@ In many applications, you'll want to add authentication headers to requests:
 ```typescript
 const authenticatedFetch: typeof fetch = async (url, init) => {
   const request = new Request(url, init);
-  
+
   // Add your authentication token
   const token = await getAuthToken();
-  request.headers.set('Authorization', `Bearer ${token}`);
-  
+  request.headers.set("Authorization", `Bearer ${token}`);
+
   return fetch(request);
 };
 
 const api = buildApiClient({
-  baseUrl: 'https://your-agentstack-instance.com',
+  baseUrl: "https://your-agentstack-instance.com",
   fetch: authenticatedFetch,
 });
 ```
@@ -51,16 +51,18 @@ const api = buildApiClient({
 Creates a new agent context. Contexts are isolated workspaces where agents can store files, vector stores, and other context-specific data.
 
 **Parameters:**
+
 - `providerId`: The ID of the provider to associate with this context
 
 **Returns:** `Promise<CreateContextResponse>`
 
 ```typescript
-const context = await api.createContext('my-provider-id');
+const context = await api.createContext("my-provider-id");
 console.log(context.id); // Use this ID for subsequent operations
 ```
 
 **Response Type:**
+
 ```typescript
 interface CreateContextResponse {
   id: string;
@@ -78,6 +80,7 @@ interface CreateContextResponse {
 Generates a context token with specific permissions. Context tokens are used to grant agents access to platform resources through the [Platform API extension](/development/custom-ui/client-sdk/extensions#dependency-injection-service-extensions).
 
 **Parameters:**
+
 - `contextId`: The ID of the context to create a token for
 - `globalPermissions`: Permissions that apply across all contexts
 - `contextPermissions`: Permissions specific to this context
@@ -88,14 +91,14 @@ Generates a context token with specific permissions. Context tokens are used to 
 const { token, contextId } = await api.createContextToken({
   contextId: context.id,
   globalPermissions: {
-    llm: ['*'], // Grant access to all LLM providers
-    embeddings: ['*'], // Grant access to all embedding providers
-    a2a_proxy: ['*'], // Allow A2A proxy access
+    llm: ["*"], // Grant access to all LLM providers
+    embeddings: ["*"], // Grant access to all embedding providers
+    a2a_proxy: ["*"], // Allow A2A proxy access
   },
   contextPermissions: {
-    files: ['*'], // Full file access in this context
-    vector_stores: ['*'], // Full vector store access
-    context_data: ['*'], // Full context data access
+    files: ["*"], // Full file access in this context
+    vector_stores: ["*"], // Full vector store access
+    context_data: ["*"], // Full context data access
   },
 });
 
@@ -103,6 +106,7 @@ const { token, contextId } = await api.createContextToken({
 ```
 
 **Token Type:**
+
 ```typescript
 interface ContextToken {
   token: string;
@@ -125,9 +129,6 @@ Apply across all contexts and control access to platform-wide resources:
 - **`providers`**: Access to provider management
 - **`provider_variables`**: Access to provider environment variables
 - **`contexts`**: Access to context management
-- **`mcp_providers`**: Access to MCP providers
-- **`mcp_tools`**: Access to MCP tools
-- **`mcp_proxy`**: Access to MCP proxy
 - **`connectors`**: Access to connector management
 - **`feedback`**: Ability to submit feedback
 
@@ -144,6 +145,7 @@ Apply only to the specific context:
 Finds model providers that match specified criteria. This is typically used when fulfilling LLM or embedding service extension demands.
 
 **Parameters:**
+
 - `suggestedModels`: Array of preferred model IDs, or `null` to match any model
 - `capability`: Either `ModelCapability.Llm` or `ModelCapability.Embedding`
 - `scoreCutoff`: Minimum match score (0.0 to 1.0). Higher values require better matches.
@@ -151,10 +153,10 @@ Finds model providers that match specified criteria. This is typically used when
 **Returns:** `Promise<ModelProviderMatch>`
 
 ```typescript
-import { ModelCapability } from 'agentstack-sdk';
+import { ModelCapability } from "agentstack-sdk";
 
 const matches = await api.matchProviders({
-  suggestedModels: ['gpt-4', 'gpt-3.5-turbo'],
+  suggestedModels: ["gpt-4", "gpt-3.5-turbo"],
   capability: ModelCapability.Llm,
   scoreCutoff: 0.4,
 });
@@ -166,6 +168,7 @@ if (matches.items.length > 0) {
 ```
 
 **Response Type:**
+
 ```typescript
 interface ModelProviderMatch {
   items: Array<{
@@ -189,7 +192,7 @@ const connectors = await api.listConnectors();
 
 for (const connector of connectors.items) {
   console.log(`${connector.id}: ${connector.state}`);
-  
+
   if (connector.state === ConnectorState.AuthRequired) {
     // Handle OAuth flow using connector.auth_request
   }
@@ -197,6 +200,7 @@ for (const connector of connectors.items) {
 ```
 
 **Response Type:**
+
 ```typescript
 interface ListConnectorsResponse {
   items: Connector[];
@@ -210,7 +214,7 @@ interface Connector {
   url: string;
   state: ConnectorState;
   auth_request: {
-    type: 'code';
+    type: "code";
     authorization_endpoint: string;
   } | null;
   disconnect_reason: string | null;
@@ -218,10 +222,10 @@ interface Connector {
 }
 
 enum ConnectorState {
-  Created = 'created',
-  AuthRequired = 'auth_required',
-  Connected = 'connected',
-  Disconnected = 'disconnected',
+  Created = "created",
+  AuthRequired = "auth_required",
+  Connected = "connected",
+  Disconnected = "disconnected",
 }
 ```
 
@@ -233,20 +237,20 @@ The most common pattern is creating a context and generating a token with approp
 
 ```typescript
 // 1. Create a context
-const context = await api.createContext('my-provider-id');
+const context = await api.createContext("my-provider-id");
 
 // 2. Generate a token with permissions
 const { token } = await api.createContextToken({
   contextId: context.id,
   globalPermissions: {
-    llm: ['*'],
-    embeddings: ['*'],
-    a2a_proxy: ['*'],
+    llm: ["*"],
+    embeddings: ["*"],
+    a2a_proxy: ["*"],
   },
   contextPermissions: {
-    files: ['*'],
-    vector_stores: ['*'],
-    context_data: ['*'],
+    files: ["*"],
+    vector_stores: ["*"],
+    context_data: ["*"],
   },
 });
 
@@ -259,14 +263,14 @@ const { token } = await api.createContextToken({
 When an agent requests LLM access, use `matchProviders` to find suitable models:
 
 ```typescript
-import { buildLLMExtensionFulfillmentResolver } from 'agentstack-sdk';
+import { buildLLMExtensionFulfillmentResolver } from "agentstack-sdk";
 
 // Create context and token first
-const context = await api.createContext('my-provider-id');
+const context = await api.createContext("my-provider-id");
 const { token } = await api.createContextToken({
   contextId: context.id,
-  globalPermissions: { llm: ['*'], a2a_proxy: ['*'] },
-  contextPermissions: { files: ['*'] },
+  globalPermissions: { llm: ["*"], a2a_proxy: ["*"] },
+  contextPermissions: { files: ["*"] },
 });
 
 // Build the LLM fulfillment resolver
@@ -280,7 +284,6 @@ const metadata = resolveMetadata({
 });
 ```
 
-
 ## Type Safety
 
 All API methods are fully typed with TypeScript and use Zod schemas for runtime validation. Response data is automatically validated against these schemas, ensuring type safety and catching API contract changes at runtime.
@@ -289,4 +292,3 @@ All API methods are fully typed with TypeScript and use Zod schemas for runtime 
 
 - **[Extensions](/development/custom-ui/client-sdk/extensions)** - Learn how to use the API client with extension fulfillments
 - **[Examples](/development/custom-ui/client-sdk/examples)** - See complete integration examples
-

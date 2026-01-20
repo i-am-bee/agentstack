@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FormField, FormResponseValue } from 'agentstack-sdk';
+import type { FormField, FormFieldValue } from 'agentstack-sdk';
 
-export type RunFormValues = Record<string, FormResponseValue>;
+export type RunFormValues = Record<string, FormFieldValue>;
 
-export type ValueOfField<F extends FormField> = Extract<FormResponseValue, { type: F['type'] }>;
+export type ValueOfField<F extends FormField> = Extract<FormFieldValue, { type: F['type'] }>;
 export type ValuesOfField<F extends FormField> = Record<string, ValueOfField<F>>;

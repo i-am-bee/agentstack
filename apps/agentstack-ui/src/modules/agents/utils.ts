@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { Provider } from 'agentstack-sdk';
 import { agentDetailExtension, extractUiExtensionData } from 'agentstack-sdk';
 import uniq from 'lodash/uniq';
 import uniqWith from 'lodash/uniqWith';
 
-import type { Provider } from '#modules/providers/api/types.ts';
 import { SupportedUis } from '#modules/runs/constants.ts';
 import { compareStrings, isNotNull } from '#utils/helpers.ts';
 

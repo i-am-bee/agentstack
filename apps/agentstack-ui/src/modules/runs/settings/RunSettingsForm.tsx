@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentSettings, SettingsDemands } from 'agentstack-sdk';
+import type { SettingsDemands, SettingsValues } from 'agentstack-sdk';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';
@@ -20,12 +20,12 @@ interface Props {
 export function RunSettingsForm({ settingsDemands }: Props) {
   const { selectedSettings, onUpdateSettings } = useAgentDemands();
 
-  const form = useForm<AgentSettings>({
+  const form = useForm<SettingsValues>({
     defaultValues: selectedSettings,
   });
 
   useEffect(() => {
-    const subscription = form.watch((values: AgentSettings) => {
+    const subscription = form.watch((values: SettingsValues) => {
       onUpdateSettings(values);
     });
 

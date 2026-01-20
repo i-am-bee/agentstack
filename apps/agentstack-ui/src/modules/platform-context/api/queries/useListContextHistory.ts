@@ -4,22 +4,22 @@
  */
 
 import { useInfiniteQuery } from '@tanstack/react-query';
+import type { ListContextHistoryRequest, ListContextHistoryResponse } from 'agentstack-sdk';
 
 import type { PartialBy } from '#@types/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { listContextHistory } from '..';
 import { contextKeys } from '../keys';
-import type { ListContextHistoryParams, ListContextHistoryResponse } from '../types';
 
-type Params = PartialBy<ListContextHistoryParams, 'contextId'> & {
+type Params = PartialBy<ListContextHistoryRequest, 'context_id'> & {
   initialData?: ListContextHistoryResponse;
   enabled?: boolean;
   initialPageParam?: string;
 };
 
 export function useListContextHistory({
-  contextId,
+  context_id,
   query: queryParams,
   initialData,
   initialPageParam,
@@ -27,12 +27,12 @@ export function useListContextHistory({
 }: Params) {
   const query = useInfiniteQuery({
     queryKey: contextKeys.history({
-      contextId: contextId!,
+      context_id: context_id!,
       query: queryParams,
     }),
     queryFn: ({ pageParam }: { pageParam?: string }) => {
       return listContextHistory({
-        contextId: contextId!,
+        context_id: context_id!,
         query: {
           ...queryParams,
           page_token: pageParam,
@@ -52,7 +52,7 @@ export function useListContextHistory({
 
       return items;
     },
-    enabled: Boolean(contextId) && enabled,
+    enabled: Boolean(context_id) && enabled,
     initialData: initialData ? { pages: [initialData], pageParams: [undefined] } : undefined,
   });
 

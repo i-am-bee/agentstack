@@ -23,13 +23,7 @@ export function ConnectPresetButton({ preset, className }: Props) {
 
   const { data: connectors, isPending: isConnectorsPending } = useListConnectors();
   const { mutate: createConnector, isPending: isCreatePending } = useCreateConnector({
-    onSuccess: (connector) => {
-      if (!connector) {
-        return;
-      }
-
-      connect(connector.id);
-    },
+    onSuccess: ({ id }) => connect(id),
   });
   const { connect, isPending: isConnectPending } = useConnect();
   const { disconnect, isPending: isDisconnectPending } = useDisconnect();

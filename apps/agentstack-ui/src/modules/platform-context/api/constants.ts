@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ListContextHistoryQuery, ListContextsQuery } from './types';
+import type { ListContextHistoryRequest, ListContextsRequest } from 'agentstack-sdk';
 
-export const LIST_CONTEXTS_DEFAULT_QUERY: ListContextsQuery = { limit: 10, include_empty: false };
+export const LIST_CONTEXTS_DEFAULT_QUERY: ListContextsRequest['query'] = { limit: 10, include_empty: false };
 
-export const LIST_CONTEXT_HISTORY_DEFAULT_QUERY: ListContextHistoryQuery = { limit: 10 };
+export const LIST_CONTEXT_HISTORY_DEFAULT_QUERY: ListContextHistoryRequest['query'] = { limit: 10 };

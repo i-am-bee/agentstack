@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { UploadFileResponse } from './api/types';
+import type { CreateFileResponse } from 'agentstack-sdk';
 
 export interface FileEntity {
   id: string;
   originalFile: File;
   status: FileStatus;
-  uploadFile?: UploadFileResponse;
+  uploadFile?: CreateFileResponse;
   error?: string;
 }
 

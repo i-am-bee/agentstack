@@ -4,11 +4,11 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { ListProvidersResponse } from 'agentstack-sdk';
 
 import { providerKeys } from '#modules/providers/api/keys.ts';
 
 import { deleteProvider } from '..';
-import type { ListProvidersResponse } from '../types';
 
 export function useDeleteProvider() {
   const queryClient = useQueryClient();

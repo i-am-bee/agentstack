@@ -3,77 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentExtension as A2AAgentExtension } from '@a2a-js/sdk';
-import type { ServerSentEventMessage } from 'fetch-event-stream';
-import type { FetchResponse } from 'openapi-fetch';
-import type { MediaType } from 'openapi-typescript-helpers';
+import { ApiErrorException, isApiError, isHttpError } from 'agentstack-sdk';
 
 import type { QueryMetadataError } from '#contexts/QueryProvider/types.ts';
 import type { Toast } from '#contexts/Toast/toast-context.ts';
-import type { Agent } from '#modules/agents/api/types.ts';
+import { maybeParseJson } from '#modules/runs/utils.ts';
 import { NEXTAUTH_URL, TRUST_PROXY_HEADERS } from '#utils/constants.ts';
 import { isNotNull } from '#utils/helpers.ts';
 import { createMarkdownCodeBlock, createMarkdownSection, joinMarkdownSections } from '#utils/markdown.ts';
 
-import {
-  A2AExtensionError,
-  ApiError,
-  ApiValidationError,
-  HttpError,
-  TaskCanceledError,
-  UnauthenticatedError,
-} from './errors';
-import type { ApiErrorCode, ApiErrorResponse, ApiValidationErrorResponse } from './types';
-
-export function ensureData<T extends Record<string | number, unknown>, O, M extends MediaType>(
-  fetchResponse: FetchResponse<T, O, M>,
-) {
-  const { response, data, error } = fetchResponse;
-
-  if (response.status === 401) {
-    throw new UnauthenticatedError({ message: 'You are not authenticated.', response });
-  }
-
-  if (error) {
-    handleFailedResponse({ response, error });
-  }
-
-  return data;
-}
-
-export function handleFailedResponse({ response, error }: { response: Response; error: unknown }) {
-  if (typeof error === 'object' && isNotNull(error)) {
-    if ('detail' in error) {
-      const { detail } = error;
-
-      if (typeof detail === 'object') {
-        throw new ApiValidationError({ error: error as ApiValidationErrorResponse, response });
-      } else if (typeof detail === 'string') {
-        throw new HttpError({ message: detail, response });
-      }
-
-      throw new HttpError({ message: 'An error occurred', response });
-    }
-
-    throw new ApiError({ error: error as ApiErrorResponse, response });
-  }
-
-  throw new HttpError({ message: 'An error occurred.', response });
-}
-
-export async function handleStream<T>({
-  stream,
-  onEvent,
-}: {
-  stream: AsyncGenerator<ServerSentEventMessage>;
-  onEvent?: (event: T) => void;
-}): Promise<void> {
-  for await (const event of stream) {
-    if (event.data) {
-      onEvent?.(JSON.parse(event.data));
-    }
-  }
-}
+import { A2AExtensionError, TaskCanceledError } from './errors';
 
 export function getErrorTitle(error: unknown) {
   if (error instanceof A2AExtensionError) {
@@ -92,41 +31,31 @@ export function getErrorMessage(error: unknown, includeMessage = true) {
     return;
   }
 
-  if (error instanceof A2AExtensionError) {
+  if (isApiError(error)) {
+    return createApiErrorMessage(error);
+  } else if (error instanceof A2AExtensionError) {
     return createA2AErrorMessage(error);
   }
 
   return typeof error === 'object' && isNotNull(error) && 'message' in error ? (error.message as string) : undefined;
 }
 
-export function getErrorCode(error: unknown) {
-  return typeof error === 'object' && isNotNull(error) && 'code' in error
-    ? (error.code as number | ApiErrorCode)
-    : undefined;
+export function logErrorDetails(error: unknown) {
+  console.error(error);
+
+  if (error instanceof ApiErrorException && 'details' in error.apiError) {
+    console.error(error.apiError.details);
+  }
 }
 
 export async function fetchEntity<T>(fetchFn: () => Promise<T>): Promise<T | undefined> {
   try {
     return await fetchFn();
   } catch (error) {
-    console.error(error);
+    logErrorDetails(error);
 
     return undefined;
   }
-}
-
-export function getAgentExtensions(agent?: Agent): A2AAgentExtension[] {
-  const extensions = agent?.capabilities.extensions;
-  if (!extensions) {
-    return [];
-  }
-
-  return extensions.map(({ description, params, required, ...rest }) => ({
-    ...rest,
-    description: description ?? undefined,
-    params: params ?? undefined,
-    required: required ?? undefined,
-  }));
 }
 
 export async function getProxyHeaders(headers: Headers, url?: URL) {
@@ -160,7 +89,36 @@ export function buildErrorToast({ metadata = {}, error }: { metadata?: QueryMeta
   };
 }
 
-export function createA2AErrorMessage(error: A2AExtensionError) {
+function createApiErrorMessage(error: ApiErrorException) {
+  const { message } = error.apiError;
+
+  if (isHttpError(error)) {
+    const { status, bodyText } = error.apiError.response;
+    const heading = `${message} (${status})`;
+    const parsedBody = typeof bodyText === 'string' ? maybeParseJson(bodyText) : null;
+
+    if (parsedBody) {
+      const { type, value } = parsedBody;
+
+      return createMarkdownSection({
+        heading,
+        content:
+          type === 'string'
+            ? value
+            : createMarkdownCodeBlock({
+                snippet: value,
+                language: 'json',
+              }),
+      });
+    }
+
+    return heading;
+  }
+
+  return message;
+}
+
+function createA2AErrorMessage(error: A2AExtensionError) {
   const {
     error: { message: errorMessage },
     context,

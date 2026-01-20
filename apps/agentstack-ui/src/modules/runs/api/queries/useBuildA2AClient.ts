@@ -4,29 +4,32 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
+import type { TaskStatusUpdateEvent } from 'agentstack-sdk';
 
-import { buildA2AClient, type CreateA2AClientParams } from '#api/a2a/client.ts';
+import { buildA2AClient } from '#api/a2a/client.ts';
 
 import { runKeys } from '../keys';
 
-type Props<UIGenericPart> = Omit<CreateA2AClientParams<UIGenericPart>, 'providerId'> & {
+type Props<UIGenericPart> = {
   providerId?: string;
+  authToken?: string;
+  onStatusUpdate?: (event: TaskStatusUpdateEvent) => UIGenericPart[];
 };
 
 export function useBuildA2AClient<UIGenericPart = never>({
   providerId = '',
+  authToken = '',
   onStatusUpdate,
-  authToken,
 }: Props<UIGenericPart>) {
   const { data: agentClient } = useQuery({
-    queryKey: runKeys.client(`${providerId}${Boolean(authToken)}`),
+    queryKey: runKeys.client(providerId),
     queryFn: async () =>
       buildA2AClient<UIGenericPart>({
         providerId,
-        onStatusUpdate,
         authToken,
+        onStatusUpdate,
       }),
-    enabled: Boolean(providerId),
+    enabled: Boolean(providerId && authToken),
     staleTime: Infinity,
   });
 

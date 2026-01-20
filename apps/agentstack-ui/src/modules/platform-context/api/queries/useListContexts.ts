@@ -4,15 +4,14 @@
  */
 
 import { useInfiniteQuery } from '@tanstack/react-query';
+import type { ListContextsRequest } from 'agentstack-sdk';
 
-import type { ContextWithMetadata } from '#modules/platform-context/types.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
 import { listContexts } from '..';
 import { contextKeys } from '../keys';
-import type { ListContextsParams } from '../types';
 
-export function useListContexts(params: ListContextsParams = {}) {
+export function useListContexts(params: ListContextsRequest = {}) {
   const query = useInfiniteQuery({
     queryKey: contextKeys.list(params),
     queryFn: ({ pageParam }: { pageParam?: string }) => {
@@ -31,7 +30,7 @@ export function useListContexts(params: ListContextsParams = {}) {
     select: (data) => {
       const items = data.pages.flatMap((page) => page?.items).filter(isNotNull);
 
-      return items as ContextWithMetadata[];
+      return items;
     },
   });
 

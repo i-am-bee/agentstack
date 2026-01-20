@@ -11,23 +11,16 @@ import { useAgentDemands } from '../contexts/agent-demands';
 import classes from './ModelProviders.module.scss';
 
 export function ModelProviders() {
-  const {
-    matchedLLMProviders,
-    selectedLLMProviders,
-    selectLLMProvider,
-    matchedEmbeddingProviders,
-    selectedEmbeddingProviders,
-    selectEmbeddingProvider,
-  } = useAgentDemands();
+  const { llmProviders, embeddingProviders } = useAgentDemands();
 
   const llmProviderList = useMemo(
-    () => Object.entries(matchedLLMProviders || {}).map(([key, items]) => ({ key, items })),
-    [matchedLLMProviders],
+    () => Object.entries(llmProviders.matched || {}).map(([key, items]) => ({ key, items })),
+    [llmProviders.matched],
   );
 
   const embeddingProviderList = useMemo(
-    () => Object.entries(matchedEmbeddingProviders || {}).map(([key, items]) => ({ key, items })),
-    [matchedEmbeddingProviders],
+    () => Object.entries(embeddingProviders.matched || {}).map(([key, items]) => ({ key, items })),
+    [embeddingProviders.matched],
   );
 
   return (
@@ -37,9 +30,9 @@ export function ModelProviders() {
           key={key}
           name={key}
           label={llmProviderList.length == 1 ? 'LLM' : `LLM: ${key}`}
-          value={selectedLLMProviders[key]}
+          value={llmProviders.selected[key]}
           options={items.map((item) => ({ label: item, value: item }))}
-          onChange={(value) => selectLLMProvider(key, value)}
+          onChange={(value) => llmProviders.select(key, value)}
         />
       ))}
       {embeddingProviderList.map(({ key, items }) => (
@@ -47,9 +40,9 @@ export function ModelProviders() {
           key={key}
           name={key}
           label={embeddingProviderList.length == 1 ? 'Embedding' : `Embedding: ${key}`}
-          value={selectedEmbeddingProviders[key]}
+          value={embeddingProviders.selected[key]}
           options={items.map((item) => ({ label: item, value: item }))}
-          onChange={(value) => selectEmbeddingProvider(key, value)}
+          onChange={(value) => embeddingProviders.select(key, value)}
         />
       ))}
     </div>

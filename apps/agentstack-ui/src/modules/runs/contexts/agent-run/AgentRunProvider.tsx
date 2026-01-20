@@ -5,6 +5,7 @@
 
 'use client';
 import { useQueryClient } from '@tanstack/react-query';
+import type { ApprovalDecision } from 'agentstack-sdk';
 import { TaskStatusUpdateType } from 'agentstack-sdk';
 import type { PropsWithChildren } from 'react';
 import { useCallback, useMemo, useRef, useState } from 'react';
@@ -12,7 +13,6 @@ import { v4 as uuid } from 'uuid';
 
 import type { ChatRun } from '#api/a2a/types.ts';
 import { createTextPart } from '#api/a2a/utils.ts';
-import { getErrorCode } from '#api/utils.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { CanvasProvider } from '#modules/canvas/contexts/CanvasProvider.tsx';
@@ -103,11 +103,9 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
 
   const handleError = useCallback(
     (error: unknown) => {
-      const errorCode = getErrorCode(error);
-
       errorHandler(error, {
         errorToast: {
-          title: errorCode?.toString() ?? 'Failed to run agent.',
+          title: 'Failed to run agent.',
           includeErrorMessage: true,
         },
       });
@@ -196,6 +194,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
       });
 
       const { form, canvasEditParams } = message;
+      const { approvalDecision } = fulfillmentsContext;
 
       try {
         const run = agentClient.chat({
@@ -205,6 +204,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
           inputs: {
             form: form?.response,
             canvasEditRequest: canvasEditParams ? getCanvasEditRequest(canvasEditParams) : undefined,
+            approvalResponse: approvalDecision ? { decision: approvalDecision } : undefined,
           },
           taskId: fulfillmentsContext.taskId,
         });
@@ -251,6 +251,15 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
               taskId: result.taskId,
             });
           });
+        } else if (result && result.type === TaskStatusUpdateType.ApprovalRequired) {
+          updateCurrentAgentMessage((message) => {
+            message.status = UIMessageStatus.InputRequired;
+            message.parts.push({
+              kind: UIMessagePartKind.ApprovalRequired,
+              request: result.request,
+              taskId: result.taskId,
+            });
+          });
         } else {
           updateCurrentAgentMessage((message) => {
             message.status = UIMessageStatus.Completed;
@@ -265,7 +274,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
         pendingSubscription.current = undefined;
 
         queryClient.invalidateQueries({ queryKey: contextKeys.lists() });
-        queryClient.invalidateQueries({ queryKey: contextKeys.history({ contextId }) });
+        queryClient.invalidateQueries({ queryKey: contextKeys.history({ context_id: contextId }) });
       }
     },
     [
@@ -364,6 +373,21 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
     [checkPendingRun, run],
   );
 
+  const submitApproval = useCallback(
+    (taskId: TaskId, decision: ApprovalDecision) => {
+      checkPendingRun();
+
+      const message: UIUserMessage = {
+        id: uuid(),
+        role: Role.User,
+        parts: [{ kind: UIMessagePartKind.ApprovalResponse, result: { decision } }],
+      };
+
+      return run(message, { taskId, approvalDecision: decision });
+    },
+    [checkPendingRun, run],
+  );
+
   const submitCanvasEditRequest = useCallback(
     (params: UICanvasEditRequestParams) => {
       checkPendingRun();
@@ -414,6 +438,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
       submitRuntimeForm,
       startAuth,
       submitSecrets,
+      submitApproval,
       submitCanvasEditRequest,
       initialFormRender,
       cancel,
@@ -431,6 +456,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
     submitRuntimeForm,
     startAuth,
     submitSecrets,
+    submitApproval,
     submitCanvasEditRequest,
     initialFormRender,
     cancel,

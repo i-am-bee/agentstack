@@ -13,7 +13,6 @@
 }
 
 .link {
-  @include link-mask();
   @include type-style(heading-03);
   text-decoration: none;
   color: inherit;
@@ -22,5 +21,9 @@
   gap: $spacing-02;
   &:hover {
     text-decoration: underline;
+  }
+
+  &:global(:not(.cds--skeleton__text)) {
+    @include link-mask();
   }
 }

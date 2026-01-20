@@ -43,6 +43,13 @@ const nextConfig = [
   ...base,
   ...compat.extends('next/core-web-vitals', 'next/typescript', 'prettier'),
   ...compat.plugins('simple-import-sort'),
+  ...compat.config({
+    plugins: ['css-modules'],
+    rules: {
+      'css-modules/no-unused-class': 'off',
+      'css-modules/no-undef-class': 'error',
+    },
+  }),
 ];
 
 export { nextConfig };

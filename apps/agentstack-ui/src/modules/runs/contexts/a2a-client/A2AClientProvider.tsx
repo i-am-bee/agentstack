@@ -21,7 +21,7 @@ export function A2AClientProvider({ agent, children }: PropsWithChildren<Props>)
   const { data: contextToken } = useContextToken(agent);
   const { agentClient } = useBuildA2AClient({
     providerId: agent.provider.id,
-    authToken: contextToken,
+    authToken: contextToken?.token,
   });
 
   const contextValue = useMemo(() => {

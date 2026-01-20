@@ -3,8 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { ListProviderVariablesRequest } from 'agentstack-sdk';
+
 export const providerVariableKeys = {
   all: () => ['providers', 'variables'] as const,
   lists: () => [...providerVariableKeys.all(), 'list'] as const,
-  list: (providerId: string) => [...providerVariableKeys.lists(), providerId],
+  list: ({ id }: ListProviderVariablesRequest) => [...providerVariableKeys.lists(), id],
 };

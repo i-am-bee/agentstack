@@ -3,9 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentDetail } from 'agentstack-sdk';
-
-import type { Provider } from '#modules/providers/api/types.ts';
+import type { AgentDetail, Provider } from 'agentstack-sdk';
 
 type AgentCard = Provider['agent_card'];
 type AgentCardProvider = AgentCard['provider'];
@@ -18,11 +16,6 @@ export interface Agent extends Omit<AgentCard, 'provider'> {
 }
 
 export type AgentExtension = NonNullable<Agent['capabilities']['extensions']>[number];
-
-export enum InteractionMode {
-  MultiTurn = 'multi-turn',
-  SingleTurn = 'single-turn',
-}
 
 export enum ListAgentsOrderBy {
   Name = 'name',

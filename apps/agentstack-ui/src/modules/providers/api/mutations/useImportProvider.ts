@@ -5,12 +5,12 @@
 
 import { useMutation } from '@tanstack/react-query';
 
-import { registerManagedProvider } from '..';
+import { createProvider } from '..';
 import { providerKeys } from '../keys';
 
 export function useImportProvider() {
   const mutation = useMutation({
-    mutationFn: registerManagedProvider,
+    mutationFn: createProvider,
     meta: {
       invalidates: [providerKeys.lists()],
       errorToast: {

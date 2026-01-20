@@ -21,7 +21,7 @@ export function useProviderBuildLogs({ id = '' }: Props) {
       streamFn: async () => {
         const data = await readProviderBuildLogs({ id });
 
-        const stream = data?.pipeThrough(new TextDecoderStream()).pipeThrough(new EventSourceParserStream());
+        const stream = data.pipeThrough(new TextDecoderStream()).pipeThrough(new EventSourceParserStream());
 
         return readableToAsyncIterable(stream);
       },

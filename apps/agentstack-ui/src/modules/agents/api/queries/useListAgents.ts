@@ -4,30 +4,30 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
+import type { ListProvidersRequest, ListProvidersResponse } from 'agentstack-sdk';
 
 import { buildAgent, isAgentUiSupported, sortAgentsByName, sortProvidersBy } from '#modules/agents/utils.ts';
 import { listProviders } from '#modules/providers/api/index.ts';
 import { providerKeys } from '#modules/providers/api/keys.ts';
-import type { ListProvidersParams, ListProvidersResponse } from '#modules/providers/api/types.ts';
 
 import { ListAgentsOrderBy } from '../types';
 
-interface Props extends ListProvidersParams {
+interface Props extends ListProvidersRequest {
   includeUnsupportedUi?: boolean;
   includeOffline?: boolean;
   orderBy?: ListAgentsOrderBy;
   initialData?: ListProvidersResponse;
 }
 
-export function useListAgents({ includeUnsupportedUi, includeOffline, orderBy, initialData, ...params }: Props = {}) {
+export function useListAgents({ includeUnsupportedUi, includeOffline, orderBy, initialData, ...request }: Props = {}) {
   const query = useQuery({
-    queryKey: providerKeys.list(params),
-    queryFn: () => listProviders(params),
+    queryKey: providerKeys.list(request),
+    queryFn: () => listProviders(request),
     select: (response) => {
       let items = response?.items ?? [];
 
       if (orderBy === ListAgentsOrderBy.CreatedAt || orderBy === ListAgentsOrderBy.LastActiveAt) {
-        items = items.sort((...params) => sortProvidersBy(...params, orderBy));
+        items = items.sort((...providers) => sortProvidersBy(...providers, orderBy));
       }
 
       if (!includeOffline) {

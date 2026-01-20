@@ -4,13 +4,14 @@
  */
 
 import { useMutation } from '@tanstack/react-query';
+import type { CreateFileResponse } from 'agentstack-sdk';
 
 import { uploadFile } from '..';
-import type { UploadFileParams, UploadFileResponse } from '../types';
+import type { UploadFileParams } from '../types';
 
 interface Props {
   onMutate?: (variables: UploadFileParams) => void;
-  onSuccess?: (data: UploadFileResponse | undefined, variables: UploadFileParams) => void;
+  onSuccess?: (data: CreateFileResponse, variables: UploadFileParams) => void;
   onError?: (error: Error, variables: UploadFileParams) => void;
 }
 

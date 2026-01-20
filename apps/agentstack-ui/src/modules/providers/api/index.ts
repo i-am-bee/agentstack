@@ -3,35 +3,45 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { api } from '#api/index.ts';
-import { ensureData, fetchEntity } from '#api/utils.ts';
+import type {
+  CreateProviderRequest,
+  DeleteProviderRequest,
+  ListProvidersRequest,
+  ReadProviderRequest,
+} from 'agentstack-sdk';
+import { unwrapResult } from 'agentstack-sdk';
 
-import type { DeleteProviderPath, ListProvidersParams, ReadProviderPath, RegisterProviderRequest } from './types';
+import { agentStackClient } from '#api/agentstack-client.ts';
+import { fetchEntity } from '#api/utils.ts';
 
-export async function listProviders(params: ListProvidersParams = {}) {
-  const response = await api.GET('/api/v1/providers', { params });
+export async function listProviders(request: ListProvidersRequest = {}) {
+  const response = await agentStackClient.listProviders(request);
+  const result = unwrapResult(response);
 
-  return ensureData(response);
+  return result;
 }
 
-export async function readProvider(path: ReadProviderPath) {
-  const response = await api.GET('/api/v1/providers/{id}', { params: { path } });
+export async function createProvider(request: CreateProviderRequest) {
+  const response = await agentStackClient.createProvider(request);
+  const result = unwrapResult(response);
 
-  return ensureData(response);
+  return result;
 }
 
-export async function deleteProvider(path: DeleteProviderPath) {
-  const response = await api.DELETE('/api/v1/providers/{id}', { params: { path } });
+export async function readProvider(request: ReadProviderRequest) {
+  const response = await agentStackClient.readProvider(request);
+  const result = unwrapResult(response);
 
-  return ensureData(response);
+  return result;
 }
 
-export async function registerManagedProvider(body: RegisterProviderRequest) {
-  const response = await api.POST('/api/v1/providers', { body });
+export async function deleteProvider(request: DeleteProviderRequest) {
+  const response = await agentStackClient.deleteProvider(request);
+  const result = unwrapResult(response);
 
-  return ensureData(response);
+  return result;
 }
 
-export async function fetchProviders(params: ListProvidersParams = {}) {
-  return await fetchEntity(() => listProviders(params));
+export async function fetchProviders(request: ListProvidersRequest = {}) {
+  return await fetchEntity(() => listProviders(request));
 }

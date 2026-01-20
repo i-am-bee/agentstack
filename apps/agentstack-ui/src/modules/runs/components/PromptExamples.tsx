@@ -97,7 +97,7 @@ export function PromptExamples({ inputRef, isOpen, examples, setIsOpen, onSubmit
 
                     <ul className={classes.list}>
                       {visibleExamples.map((prompt, idx) => (
-                        <li key={idx} className={classes.item}>
+                        <li key={idx}>
                           <ExampleButton content={prompt} onSubmit={onSubmit} />
                         </li>
                       ))}

@@ -3,31 +3,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { api } from '#api/index.ts';
-import { ensureData } from '#api/utils.ts';
+import type { DeleteFileRequest } from 'agentstack-sdk';
+import { unwrapResult } from 'agentstack-sdk';
 
-import type { DeleteFileParams, UploadFileParams, UploadFileRequest } from './types';
+import { agentStackClient } from '#api/agentstack-client.ts';
 
-export async function uploadFile({ context_id, file }: UploadFileParams) {
-  const response = await api.POST('/api/v1/files', {
-    params: { query: { context_id } },
-    body: { file: file.originalFile } as unknown as UploadFileRequest,
-    bodySerializer: (body) => {
-      const formData = new FormData();
+import type { UploadFileParams } from './types';
 
-      formData.append('file', body.file);
+export async function uploadFile({ file, ...request }: UploadFileParams) {
+  const response = await agentStackClient.createFile({ ...request, file: file.originalFile });
+  const result = unwrapResult(response);
 
-      return formData;
-    },
-  });
-
-  return ensureData(response);
+  return result;
 }
 
-export async function deleteFile({ file_id, context_id }: DeleteFileParams) {
-  const response = await api.DELETE('/api/v1/files/{file_id}', {
-    params: { path: { file_id }, query: { context_id } },
-  });
+export async function deleteFile(request: DeleteFileRequest) {
+  const response = await agentStackClient.deleteFile(request);
+  const result = unwrapResult(response);
 
-  return ensureData(response);
+  return result;
 }

@@ -85,7 +85,7 @@ export function getMessageForm(message: UIMessage) {
   return form;
 }
 
-export function getMessageOauth(message: UIMessage) {
+export function getMessageOAuth(message: UIMessage) {
   const oauth = message.parts.findLast((part) => part.kind === UIMessagePartKind.OAuth);
 
   return oauth;
@@ -95,6 +95,23 @@ export function getMessageSecret(message: UIMessage) {
   const secret = message.parts.findLast((part) => part.kind === UIMessagePartKind.SecretRequired);
 
   return secret;
+}
+
+export function getMessageApproval(message: UIMessage) {
+  const approval = message.parts.findLast((part) => part.kind === UIMessagePartKind.ApprovalRequired);
+
+  return approval;
+}
+
+function hasMessageApprovalResponse(message: UIMessage) {
+  return message.parts.some((part) => part.kind === UIMessagePartKind.ApprovalResponse);
+}
+
+export function hasMessageApproval(message: UIMessage) {
+  return (
+    (isAgentMessage(message) && Boolean(getMessageApproval(message))) ||
+    (isUserMessage(message) && hasMessageApprovalResponse(message))
+  );
 }
 
 export function checkMessageStatus(message: UIAgentMessage) {

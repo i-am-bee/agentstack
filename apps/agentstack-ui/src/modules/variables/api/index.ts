@@ -3,21 +3,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { api } from '#api/index.ts';
-import { ensureData } from '#api/utils.ts';
+import type { UpdateVariablesRequest } from 'agentstack-sdk';
+import { unwrapResult } from 'agentstack-sdk';
 
-import type { UpdateVariablesParams } from './types';
+import { agentStackClient } from '#api/agentstack-client.ts';
 
 export async function listVariables() {
-  const response = await api.GET('/api/v1/variables');
+  const response = await agentStackClient.listVariables();
+  const result = unwrapResult(response);
 
-  return ensureData(response);
+  return result;
 }
 
-export async function updateVariables({ variables }: UpdateVariablesParams) {
-  const response = await api.PUT('/api/v1/variables', {
-    body: { variables },
-  });
+export async function updateVariables(request: UpdateVariablesRequest) {
+  const response = await agentStackClient.updateVariables(request);
+  const result = unwrapResult(response);
 
-  return ensureData(response);
+  return result;
 }

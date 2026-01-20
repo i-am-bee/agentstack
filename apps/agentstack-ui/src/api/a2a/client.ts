@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { GetTaskResponse, TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from '@a2a-js/sdk';
-import type { A2AClient } from '@a2a-js/sdk/client';
+import type { Client } from '@a2a-js/sdk/client';
+import type { Task, TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from 'agentstack-sdk';
 import { handleAgentCard, handleTaskStatusUpdate, resolveUserMetadata } from 'agentstack-sdk';
 import { defaultIfEmpty, filter, lastValueFrom, Subject } from 'rxjs';
 import { match } from 'ts-pattern';
@@ -19,7 +19,7 @@ import { AGENT_ERROR_MESSAGE } from './constants';
 import { processMessageMetadata, processParts } from './part-processors';
 import type { ChatResult, TaskStatusUpdateResultWithTaskId } from './types';
 import { type ChatParams, type ChatRun, RunResultType } from './types';
-import { createUserMessage, extractErrorExtension, extractTextFromMessage, isGetTaskSuccessResponse } from './utils';
+import { createUserMessage, extractErrorExtension, extractTextFromMessage } from './utils';
 
 function handleStatusUpdate<UIGenericPart = never>(
   event: TaskStatusUpdateEvent,
@@ -67,19 +67,25 @@ function handleArtifactUpdate(event: TaskArtifactUpdateEvent): UIMessagePart[] {
     },
     { textParts: [], otherParts: [] },
   );
+
+  if (textParts.length === 0) {
+    return otherParts;
+  }
+
   return [{ kind: UIMessagePartKind.Artifact, artifactId, description, name, parts: textParts }, ...otherParts];
 }
 
-async function handleEventError(error: unknown, client: A2AClient, taskId: TaskId | undefined) {
+async function handleEventError(error: unknown, client: Client, taskId: TaskId | undefined) {
   if (taskId) {
-    let task: null | GetTaskResponse = null;
+    let task: Task | null = null;
+
     try {
       task = await client.getTask({ id: taskId });
     } catch (getTaskError) {
       console.warn('Failed to check task status after stream error:', getTaskError);
     }
 
-    if (task && isGetTaskSuccessResponse(task) && task.result.status.state === 'canceled') {
+    if (task?.status.state === 'canceled') {
       throw new TaskCanceledError(taskId);
     }
   }
@@ -87,20 +93,18 @@ async function handleEventError(error: unknown, client: A2AClient, taskId: TaskI
   throw error;
 }
 
-export interface CreateA2AClientParams<UIGenericPart = never> {
+interface CreateA2AClientParams<UIGenericPart = never> {
   providerId: string;
+  authToken: string;
   onStatusUpdate?: (event: TaskStatusUpdateEvent) => UIGenericPart[];
-  authToken?: { token: string } | string | null | undefined;
 }
 
 export const buildA2AClient = async <UIGenericPart = never>({
   providerId,
+  authToken,
   onStatusUpdate,
-  authToken: contextToken,
 }: CreateA2AClientParams<UIGenericPart>) => {
-  const tokenData = contextToken;
-  const token = typeof tokenData === 'string' ? tokenData : tokenData?.token;
-  const client = await getAgentClient(providerId, token ?? undefined);
+  const client = await getAgentClient(providerId, authToken);
   const card = await client.getAgentCard();
 
   const { resolveMetadata: resolveAgentCardMetadata, demands } = handleAgentCard(card);

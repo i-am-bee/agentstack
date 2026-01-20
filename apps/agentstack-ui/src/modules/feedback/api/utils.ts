@@ -3,13 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { CreateUserFeedbackRequest } from 'agentstack-sdk';
+
 import type { Agent } from '#modules/agents/api/types.ts';
 import type { UIAgentMessage } from '#modules/messages/types.ts';
 import { getMessageRawContent } from '#modules/messages/utils.ts';
 import type { ContextId } from '#modules/tasks/api/types.ts';
 
 import { type FeedbackForm, FeedbackVote } from '../types';
-import type { SendFeedbackRequest } from './types';
 
 export function createSendFeedbackPayload({
   agent,
@@ -21,7 +22,7 @@ export function createSendFeedbackPayload({
   message: UIAgentMessage;
   values: FeedbackForm;
   contextId: ContextId;
-}): SendFeedbackRequest {
+}): CreateUserFeedbackRequest {
   const { vote, categories, comment } = values;
 
   if (!message.taskId) {

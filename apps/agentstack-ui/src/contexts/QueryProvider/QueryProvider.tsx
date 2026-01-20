@@ -7,7 +7,7 @@
 import { matchQuery, MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { type PropsWithChildren, useMemo } from 'react';
 
-import { UnauthenticatedError } from '#api/errors.ts';
+import { isUnauthenticatedError } from '#api/errors.ts';
 import { useHandleError } from '#hooks/useHandleError.ts';
 
 import type { HandleError } from './types';
@@ -20,7 +20,7 @@ const createQueryClient = ({ handleError }: { handleError: HandleError }) => {
         gcTime: 1000 * 60 * 60 * 24, // 24 hours
         retry: (failureCount, error) => {
           // Disable retries for unauthenticated errors
-          if (error instanceof UnauthenticatedError) {
+          if (isUnauthenticatedError(error)) {
             return false;
           }
           return failureCount < DEFAULT_RETRY_COUNT;

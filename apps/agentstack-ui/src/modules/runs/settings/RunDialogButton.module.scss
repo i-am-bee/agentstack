@@ -53,3 +53,18 @@
     transform: rotate(180deg);
   }
 }
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  block-size: rem(32px);
+  inline-size: rem(32px);
+
+  :global(.cds--inline-loading) {
+    inline-size: auto;
+  }
+  :global(.cds--inline-loading__animation) {
+    margin: 0;
+  }
+}

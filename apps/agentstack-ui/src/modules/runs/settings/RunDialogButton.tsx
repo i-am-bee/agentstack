@@ -4,12 +4,13 @@
  */
 
 import { ChevronDown } from '@carbon/icons-react';
-import { Button, IconButton } from '@carbon/react';
+import { Button, IconButton, SkeletonIcon } from '@carbon/react';
 import { FloatingFocusManager, FloatingPortal } from '@floating-ui/react';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { ComponentType, PropsWithChildren } from 'react';
 
+import { Tooltip } from '#components/Tooltip/Tooltip.tsx';
 import { fadeProps } from '#utils/fadeProps.ts';
 
 import { useAgentRun } from '../contexts/agent-run';
@@ -90,3 +91,19 @@ export function RunDialogButton({
     </div>
   );
 }
+
+RunDialogButton.Loading = function RunDialogButtonLoading({ description }: { description?: string }) {
+  return (
+    <div className={classes.loading}>
+      {description ? (
+        <Tooltip content={description} size="sm" asChild>
+          <span>
+            <SkeletonIcon />
+          </span>
+        </Tooltip>
+      ) : (
+        <SkeletonIcon />
+      )}
+    </div>
+  );
+};

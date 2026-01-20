@@ -3,13 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-.root {
-  &:has(.item:hover) .content,
-  &:has(.item.isActive) .content {
-    text-decoration: underline;
-  }
-}
-
 .list {
   display: inline-flex;
   gap: $spacing-02;
@@ -21,4 +14,11 @@
 
 .item {
   display: flex;
+
+  &.isActive,
+  &:hover {
+    .root:has(&) .content {
+      text-decoration: underline;
+    }
+  }
 }

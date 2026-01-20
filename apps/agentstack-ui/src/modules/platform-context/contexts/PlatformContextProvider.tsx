@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 'use client';
+import type { ListContextHistoryResponse } from 'agentstack-sdk';
 import { type PropsWithChildren, useCallback, useState } from 'react';
 
 import type { Agent } from '#modules/agents/api/types.ts';
 
 import { useCreateContext } from '../api/mutations/useCreateContext';
-import { useUpdateContextMetadata } from '../api/mutations/useUpdateContextMetadata';
-import type { ListContextHistoryResponse } from '../api/types';
+import { usePatchContextMetadata } from '../api/mutations/usePatchContextMetadata';
 import { PlatformContext } from './platform-context';
 
 interface Props {
@@ -21,16 +21,12 @@ export function PlatformContextProvider({ history, contextId: contextIdProp, chi
   const [contextId, setContextId] = useState<string | null>(contextIdProp ?? null);
 
   const { mutateAsync: createContext } = useCreateContext({
-    onSuccess: (context) => {
-      if (!context) {
-        throw new Error(`Context has not been created`);
-      }
-
-      setContextId(context.id);
+    onSuccess: ({ id }) => {
+      setContextId(id);
     },
   });
 
-  const { mutateAsync: updateContextMetadata } = useUpdateContextMetadata();
+  const { mutateAsync: patchContextMetadata } = usePatchContextMetadata();
 
   const resetContext = useCallback(() => {
     setContextId(null);
@@ -42,7 +38,7 @@ export function PlatformContextProvider({ history, contextId: contextIdProp, chi
         return;
       }
 
-      await updateContextMetadata({
+      await patchContextMetadata({
         context_id: contextId,
         metadata: {
           agent_name: agent.name,
@@ -50,7 +46,7 @@ export function PlatformContextProvider({ history, contextId: contextIdProp, chi
         },
       });
     },
-    [contextId, updateContextMetadata],
+    [contextId, patchContextMetadata],
   );
 
   const getContextId = useCallback(() => {

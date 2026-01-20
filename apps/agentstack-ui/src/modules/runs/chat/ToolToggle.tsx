@@ -26,7 +26,7 @@ export function ToolToggle({ tool, ...props }: Props) {
         <ToolName name={name} />
       </h3>
 
-      <Toggle {...props} id={name} className={classes.toggle} size="sm" />
+      <Toggle {...props} id={name} size="sm" />
     </div>
   );
 }
@@ -34,13 +34,13 @@ export function ToolToggle({ tool, ...props }: Props) {
 ToolToggle.Skeleton = function ToolToggleSkeleton() {
   return (
     <div className={classes.root}>
-      <span className={classes.icon}>
+      <span>
         <SkeletonIcon />
       </span>
 
       <SkeletonText className={classes.heading} />
 
-      <ToggleSkeleton className={classes.toggle} />
+      <ToggleSkeleton />
     </div>
   );
 };

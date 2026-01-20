@@ -38,8 +38,8 @@ class ToolCallServer(BaseModel):
 class ToolCallApprovalRequest(BaseModel):
     action: Literal["tool-call"] = "tool-call"
 
-    title: str | None = Field(None, description="A human-readable title for the tool call being approved.")
-    description: str | None = Field(None, description="A human-readable description of the tool call being approved.")
+    title: str | None = Field(None, description="A human-readable title of the tool.")
+    description: str | None = Field(None, description="A human-readable description of the tool.")
     name: str = Field(description="The programmatic name of the tool.")
     input: dict[str, Any] | None = Field(description="The input for the tool.")
     server: ToolCallServer | None = Field(None, description="The server executing the tool.")

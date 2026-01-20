@@ -5,7 +5,6 @@
 
 import { ArrowUpRight } from '@carbon/icons-react';
 import { SkeletonText } from '@carbon/react';
-import clsx from 'clsx';
 import Link from 'next/link';
 
 import type { Agent } from '#modules/agents/api/types.ts';
@@ -37,7 +36,7 @@ export function AgentsListItem({ agent }: Props) {
 
 AgentsListItem.Skeleton = function AgentsListItemSkeleton() {
   return (
-    <article className={clsx(classes.root, classes.skeleton)}>
+    <article className={classes.root}>
       <SkeletonText className={classes.link} />
     </article>
   );

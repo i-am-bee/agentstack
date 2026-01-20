@@ -22,7 +22,7 @@ import { Modal } from '#components/Modal/Modal.tsx';
 import type { ModalProps } from '#contexts/Modal/modal-context.ts';
 import { useListProviders } from '#modules/providers/api/queries/useListProviders.ts';
 
-import { useUpdateProviderVariable } from '../api/mutations/useUpdateProviderVariable';
+import { useUpdateProviderVariables } from '../api/mutations/useUpdateProviderVariables';
 import type { AddVariableForm } from '../types';
 import classes from './AddVariableModal.module.scss';
 
@@ -31,7 +31,7 @@ export function AddVariableModal({ onRequestClose, ...modalProps }: ModalProps) 
 
   const { data, isPending: isProvidersPending } = useListProviders();
 
-  const { mutate: updateVariable, isPending } = useUpdateProviderVariable({ onSuccess: onRequestClose });
+  const { mutate: updateVariables, isPending } = useUpdateProviderVariables({ onSuccess: onRequestClose });
 
   const {
     register,
@@ -41,9 +41,9 @@ export function AddVariableModal({ onRequestClose, ...modalProps }: ModalProps) 
 
   const onSubmit: SubmitHandler<AddVariableForm> = useCallback(
     ({ name, providerId, value }) => {
-      updateVariable({ id: providerId, variables: { [name]: value } });
+      updateVariables({ id: providerId, variables: { [name]: value } });
     },
-    [updateVariable],
+    [updateVariables],
   );
 
   return (

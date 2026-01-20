@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { Provider, ProviderBuildOnCompleteAction } from 'agentstack-sdk';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { flushSync } from 'react-dom';
 
@@ -10,10 +11,8 @@ import { useCreateProviderBuild } from '#modules/provider-builds/api/mutations/u
 import { usePreviewProviderBuild } from '#modules/provider-builds/api/mutations/usePreviewProviderBuild.ts';
 import { useProviderBuild } from '#modules/provider-builds/api/queries/useProviderBuild.ts';
 import { useProviderBuildLogs } from '#modules/provider-builds/api/queries/useProviderBuildLogs.ts';
-import type { ProviderBuild } from '#modules/provider-builds/api/types.ts';
 import { useImportProvider } from '#modules/providers/api/mutations/useImportProvider.ts';
 import { useListProviders } from '#modules/providers/api/queries/useListProviders.ts';
-import type { Provider } from '#modules/providers/api/types.ts';
 import { ProviderSourcePrefixes } from '#modules/providers/constants.ts';
 import { ProviderSource } from '#modules/providers/types.ts';
 import { maybeParseJson } from '#modules/runs/utils.ts';
@@ -118,7 +117,7 @@ export function useImportAgent() {
       action = 'add_provider',
       providerId = '',
     }: Pick<ImportAgentFormValues, 'location' | 'action' | 'providerId'>) => {
-      let onCompleteAction: ProviderBuild['on_complete'] = { type: 'no_action' };
+      let onCompleteAction: ProviderBuildOnCompleteAction = { type: 'no_action' };
 
       switch (action) {
         case 'update_provider':

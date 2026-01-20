@@ -3,61 +3,70 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { CreateContextResponse, CreateContextTokenParams, MatchProvidersParams } from 'agentstack-sdk';
-
-import { agentstackClient } from '#api/agentstack-client.ts';
-import { api } from '#api/index.ts';
-import { ensureData, fetchEntity } from '#api/utils.ts';
-
 import type {
-  DeleteContextParams,
-  ListContextHistoryParams,
-  ListContextsParams,
-  UpdateContextMetadataParams,
-} from './types';
+  CreateContextRequest,
+  CreateContextTokenRequest,
+  DeleteContextRequest,
+  ListContextHistoryRequest,
+  ListContextsRequest,
+} from 'agentstack-sdk';
+import { type MatchModelProvidersRequest, unwrapResult } from 'agentstack-sdk';
 
-export async function createContext(providerId: string): Promise<CreateContextResponse> {
-  return await agentstackClient.createContext(providerId);
+import { agentStackClient } from '#api/agentstack-client.ts';
+import { fetchEntity } from '#api/utils.ts';
+
+import type { PatchContextMetadataRequest } from './types';
+import { contextSchema, listContextsResponseSchema } from './types';
+
+export async function listContexts(request: ListContextsRequest) {
+  const response = await agentStackClient.listContexts(request);
+  const result = unwrapResult(response, listContextsResponseSchema);
+
+  return result;
 }
 
-export async function listContexts(params: ListContextsParams) {
-  const response = await api.GET('/api/v1/contexts', { params });
+export async function createContext(request: CreateContextRequest) {
+  const response = await agentStackClient.createContext(request);
+  const result = unwrapResult(response, contextSchema);
 
-  return ensureData(response);
+  return result;
 }
 
-export async function updateContextMetadata({ context_id, metadata }: UpdateContextMetadataParams) {
-  const response = await api.PATCH('/api/v1/contexts/{context_id}/metadata', {
-    body: { metadata },
-    params: { path: { context_id } },
-  });
+export async function deleteContext(request: DeleteContextRequest) {
+  const response = await agentStackClient.deleteContext(request);
+  const result = unwrapResult(response);
 
-  return ensureData(response);
+  return result;
 }
 
-export async function deleteContext(path: DeleteContextParams) {
-  const response = await api.DELETE('/api/v1/contexts/{context_id}', { params: { path } });
+export async function listContextHistory(request: ListContextHistoryRequest) {
+  const response = await agentStackClient.listContextHistory(request);
+  const result = unwrapResult(response);
 
-  return ensureData(response);
+  return result;
 }
 
-export async function listContextHistory({ contextId, query }: ListContextHistoryParams) {
-  const response = await api.GET('/api/v1/contexts/{context_id}/history', {
-    params: { path: { context_id: contextId }, query },
-  });
+export async function patchContextMetadata(request: PatchContextMetadataRequest) {
+  const response = await agentStackClient.patchContextMetadata(request);
+  const result = unwrapResult(response, contextSchema);
 
-  return ensureData(response);
+  return result;
 }
 
-export async function matchProviders(matchProvidersParams: MatchProvidersParams) {
-  return await agentstackClient.matchProviders(matchProvidersParams);
+export async function matchModelProviders(request: MatchModelProvidersRequest) {
+  const response = await agentStackClient.matchModelProviders(request);
+  const result = unwrapResult(response);
+
+  return result;
 }
 
-export async function createContextToken(createContextTokenParams: CreateContextTokenParams) {
-  const result = await agentstackClient.createContextToken(createContextTokenParams);
-  return result.token;
+export async function createContextToken(request: CreateContextTokenRequest) {
+  const response = await agentStackClient.createContextToken(request);
+  const result = unwrapResult(response);
+
+  return result;
 }
 
-export async function fetchContextHistory(params: ListContextHistoryParams) {
-  return await fetchEntity(() => listContextHistory(params));
+export async function fetchContextHistory(request: ListContextHistoryRequest) {
+  return await fetchEntity(() => listContextHistory(request));
 }

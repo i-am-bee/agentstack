@@ -13,7 +13,7 @@ import { connectorKeys } from '../api/keys';
 import { useConnectConnector } from '../api/mutations/useConnectConnector';
 import { useDisconnectConnector } from '../api/mutations/useDisconnectConnector';
 
-const authorizeOauth = (
+const authorizeOAuth = (
   url: string,
   onCallback: (props: { error: string | null; errorDescription: string | null }) => void,
 ) => {
@@ -115,7 +115,7 @@ export const useConnect = () => {
 
       if (result?.auth_request) {
         setIsAuthorizing(true);
-        authorizeOauth(result.auth_request.authorization_endpoint, (props) => {
+        authorizeOAuth(result.auth_request.authorization_endpoint, (props) => {
           handleAuthorizeCallback(props);
           setIsAuthorizing(false);
         });
@@ -138,7 +138,7 @@ export const useAuthorize = () => {
   const authorize = useCallback(
     (authorizationEndpoint: string) => {
       setIsPending(true);
-      authorizeOauth(authorizationEndpoint, (props) => {
+      authorizeOAuth(authorizationEndpoint, (props) => {
         handleAuthorizeCallback(props);
         setIsPending(false);
       });

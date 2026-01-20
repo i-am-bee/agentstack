@@ -4,14 +4,14 @@
  */
 
 import {
+  connectorPresetSchema as sdkConnectorPresetSchema,
   connectorSchema as sdkConnectorSchema,
+  listConnectorPresetsResponseSchema as sdkListConnectorPresetsResponseSchema,
   listConnectorsResponseSchema as sdkListConnectorsResponseSchema,
 } from 'agentstack-sdk';
 import z from 'zod';
 
-import type { ApiPath, ApiRequest, ApiResponse } from '#@types/utils.ts';
-
-const connectorMetadataSchema = z
+export const connectorMetadataSchema = z
   .object({
     name: z.string().optional(),
   })
@@ -20,28 +20,24 @@ const connectorMetadataSchema = z
 export const connectorSchema = sdkConnectorSchema.extend({
   metadata: connectorMetadataSchema,
 });
+export type Connector = z.infer<typeof connectorSchema>;
 
 export const listConnectorsResponseSchema = sdkListConnectorsResponseSchema.extend({
   items: z.array(connectorSchema),
 });
-
-export type Connector = z.infer<typeof connectorSchema>;
-
 export type ListConnectorsResponse = z.infer<typeof listConnectorsResponseSchema>;
 
-export type CreateConnectorRequest = ApiRequest<'/api/v1/connectors'>;
+export const connectorPresetMetadataSchema = z.object({
+  name: z.string().optional(),
+  description: z.string().optional(),
+});
 
-export type ConnectConnectorPath = ApiPath<'/api/v1/connectors/{connector_id}/connect', 'post'>;
+export const connectorPresetSchema = sdkConnectorPresetSchema.extend({
+  metadata: connectorPresetMetadataSchema.nullable(),
+});
+export type ConnectorPreset = z.infer<typeof connectorPresetSchema>;
 
-export type DisconnectConnectorPath = ApiPath<'/api/v1/connectors/{connector_id}/disconnect', 'post'>;
-
-export type DeleteConnectorPath = ApiPath<'/api/v1/connectors/{connector_id}', 'delete'>;
-
-export type ListConnectorPresetsResponse = ApiResponse<'/api/v1/connectors/presets'>;
-
-export type ConnectorPreset = Omit<ListConnectorPresetsResponse['items'][number], 'metadata'> & {
-  metadata: {
-    name?: string;
-    description?: string;
-  } | null;
-};
+export const listConnectorPresetsResponseSchema = sdkListConnectorPresetsResponseSchema.extend({
+  items: z.array(connectorPresetSchema),
+});
+export type ListConnectorPresetsResponse = z.infer<typeof listConnectorPresetsResponseSchema>;

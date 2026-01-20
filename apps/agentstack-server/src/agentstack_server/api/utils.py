@@ -4,22 +4,12 @@
 import re
 from collections.abc import Iterable
 
-import fastapi
 import openai.types.chat
 
 from agentstack_server.api.constants import AGENTSTACK_PROXY_VERSION
 from agentstack_server.api.schema.openai import ChatCompletionRequest
-from agentstack_server.service_layer.services.mcp import McpServerResponse
 from agentstack_server.types import JsonValue
 from agentstack_server.utils.utils import filter_json_recursively
-
-
-def to_fastapi(response: McpServerResponse):
-    common = {"status_code": response.status_code, "headers": response.headers, "media_type": response.media_type}
-    if response.stream:
-        return fastapi.responses.StreamingResponse(content=response.stream, **common)
-    else:
-        return fastapi.responses.Response(content=response.content, **common)
 
 
 def camel_case_to_snake_case(name: str) -> str:

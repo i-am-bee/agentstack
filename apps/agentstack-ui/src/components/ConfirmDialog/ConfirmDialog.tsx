@@ -43,7 +43,7 @@ export function ConfirmDialog({
   return (
     <Modal size={size} {...props} className={clsx(classes.root)}>
       <ModalHeader buttonOnClick={() => onRequestClose()}>
-        <h3 className={classes.heading}>{title}</h3>
+        <h3>{title}</h3>
       </ModalHeader>
 
       <ModalBody>{body}</ModalBody>

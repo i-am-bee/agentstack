@@ -10,13 +10,13 @@ $panel-width: rem(432px);
   grid-row: 1 / -1;
   position: relative;
   z-index: 1;
-  inline-size: $panel-width;
+  inline-size: 0;
   overflow: hidden;
-  transition: inline-size $duration-moderate-02 motion(exit, expressive);
+  transition: inline-size $duration-moderate-02 motion(entrance, expressive);
 
-  &:not(.isOpen) {
-    inline-size: 0;
-    transition-timing-function: motion(entrance, expressive);
+  &.isOpen {
+    inline-size: $panel-width;
+    transition-timing-function: motion(exit, expressive);
   }
 }
 

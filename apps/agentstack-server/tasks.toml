@@ -113,7 +113,7 @@ run = "uv run migrate"
 
 ["agentstack-server:migrations:alembic:nocheck"]
 dir = "{{config_root}}/apps/agentstack-server"
-usage = 'arg "[alembic_vars]" var=#true'
+usage = 'arg "[alembic_vars]..."'
 run = """
 #!/bin/bash
 set -a
@@ -121,12 +121,13 @@ source .env
 set +a
 
 cd src/agentstack_server/infrastructure/persistence/migrations
-uv run alembic ${usage_alembic_vars}
+eval "alembic_vars=(${usage_alembic_vars})"
+uv run alembic "${alembic_vars[@]}"
 """
 
 ["agentstack-server:migrations:alembic"]
 dir = "{{config_root}}/apps/agentstack-server"
-usage = 'arg "[alembic_vars]" var=#true'
+usage = 'arg "[alembic_vars]..."'
 run = """
 #!/bin/bash
 set -a
@@ -139,7 +140,8 @@ if ! telepresence list --replacements 2>/dev/null | grep -q agentstack; then
 fi
 
 cd src/agentstack_server/infrastructure/persistence/migrations
-uv run alembic ${usage_alembic_vars}
+eval "alembic_vars=(${usage_alembic_vars})"
+uv run alembic "${alembic_vars[@]}"
 """
 
 ["agentstack-server:migrations:generate"]
@@ -156,7 +158,7 @@ run = "{{ mise_bin }} run agentstack:shell --vm-name=agentstack-local-dev"
 dir = "{{config_root}}/apps/agentstack-server"
 usage = '''
 flag "--vm-name <vm_name>" default="agentstack-local-dev"
-arg "[cli_args]" var=#true
+arg "[cli_args]..."
 '''
 run = """
 #!/bin/bash
@@ -165,9 +167,10 @@ VM_NAME="${usage_vm_name?}"
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
 {{ mise_bin }} run agentstack-server:dev:disconnect --vm-name="$VM_NAME"
 {{ mise_bin }} run agentstack:stop-all --except "$VM_NAME"
+eval "cli_args=(${usage_cli_args})"
 {{ mise_bin }} agentstack:start --vm-name="$VM_NAME" \
     --set externalRegistries=null \
-    $usage_cli_args
+    "${cli_args[@]}"
 {{ mise_bin }} run agentstack-server:dev:connect --vm-name="$VM_NAME"
 """
 

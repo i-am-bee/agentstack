@@ -29,10 +29,3 @@ $max-container: get-value($grid-breakpoints, 'max.width');
 .communityNav {
   margin-inline-start: auto;
 }
-
-@include breakpoint-down(md) {
-  .holder {
-    flex-direction: column-reverse;
-    gap: $spacing-05;
-  }
-}

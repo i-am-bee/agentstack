@@ -24,7 +24,6 @@ async def run_workers(app: procrastinate.App):
                 str(Queues.CRON_PROVIDER),
                 str(Queues.CRON_CONNECTOR),
                 str(Queues.CRON_CLEANUP),
-                str(Queues.CRON_MCP_PROVIDER),
                 str(Queues.TOOLKIT_DELETION),
             ],
             concurrency=10,

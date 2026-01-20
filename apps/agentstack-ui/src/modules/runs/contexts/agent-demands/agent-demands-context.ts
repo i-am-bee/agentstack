@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentSettings, FormDemands, Fulfillments, SettingsDemands } from 'agentstack-sdk';
+import type { ApprovalDecision, FormDemands, Fulfillments, SettingsDemands, SettingsValues } from 'agentstack-sdk';
 import { createContext } from 'react';
 
 import type { RunFormValues } from '#modules/form/types.ts';
@@ -14,20 +14,25 @@ export type FulfillmentsContext = Partial<{
   taskId: TaskId;
   providedSecrets: Record<string, string>;
   oauthRedirectUri: string;
+  approvalDecision: ApprovalDecision;
   form: UIMessageForm;
 }>;
 
+export interface ModelProvidersContextValue {
+  isEnabled: boolean;
+  isLoading: boolean;
+  matched?: Record<string, string[]>;
+  selected: Record<string, string>;
+  select: (key: string, value: string) => void;
+}
+
 interface AgentDemandsContextValue {
-  matchedLLMProviders?: Record<string, string[]>;
-  selectedLLMProviders: Record<string, string>;
-  matchedEmbeddingProviders?: Record<string, string[]>;
-  selectedEmbeddingProviders: Record<string, string>;
+  llmProviders: ModelProvidersContextValue;
+  embeddingProviders: ModelProvidersContextValue;
   getFulfillments: (context: FulfillmentsContext) => Promise<Fulfillments>;
-  selectLLMProvider: (key: string, value: string) => void;
-  selectEmbeddingProvider: (key: string, value: string) => void;
   provideFormValues: (values: RunFormValues) => void;
-  onUpdateSettings: (settings: AgentSettings) => void;
-  selectedSettings: AgentSettings | undefined;
+  onUpdateSettings: (settings: SettingsValues) => void;
+  selectedSettings: SettingsValues | undefined;
   settingsDemands: SettingsDemands | null;
   formDemands: FormDemands | null;
 }

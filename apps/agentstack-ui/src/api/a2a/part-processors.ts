@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FilePart, Message, Part, TextPart } from '@a2a-js/sdk';
+import type { FilePart, Message, Part, TextPart } from 'agentstack-sdk';
 import { match } from 'ts-pattern';
 import { v4 as uuid } from 'uuid';
 

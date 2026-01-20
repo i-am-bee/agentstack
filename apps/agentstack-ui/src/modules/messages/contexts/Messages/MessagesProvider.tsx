@@ -21,7 +21,7 @@ export function MessagesProvider({ children }: PropsWithChildren) {
   const { contextId, history: initialHistory } = usePlatformContext();
 
   const { data: history, ...queryRest } = useListContextHistory({
-    contextId: contextId ?? undefined,
+    context_id: contextId ?? undefined,
     query: LIST_CONTEXT_HISTORY_DEFAULT_QUERY,
     initialData: initialHistory,
     // Ensures newly created messages are not fetched from history
