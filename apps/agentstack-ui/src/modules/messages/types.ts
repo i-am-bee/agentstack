@@ -163,7 +163,7 @@ export enum UIMessagePartKind {
   Transform = 'transform',
   Artifact = 'artifact',
   ApprovalRequired = 'approval-required',
-  ApprovalResponse = 'approval-result',
+  ApprovalResponse = 'approval-response',
 }
 
 export enum UIMessageStatus {
