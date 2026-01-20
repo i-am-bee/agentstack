@@ -89,7 +89,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.75" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.76" },
     { name = "pyright", specifier = ">=1.1.403" },
     { name = "pytest", specifier = ">=8.4.1" },
     { name = "pytest-asyncio", specifier = ">=1.1.0" },
@@ -244,7 +244,7 @@ wheels = [
 
 [[package]]
 name = "beeai-framework"
-version = "0.1.75"
+version = "0.1.76"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -258,9 +258,9 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/49/59/42693afbd87dd692a2fb353a47941b8c773df7174fc1ff44e273d3af6162/beeai_framework-0.1.75.tar.gz", hash = "sha256:b8e0a6709088539b0683636f6b0c418a8ed77e14cbb7648c3b01db8227ac85a9", size = 189965, upload-time = "2026-01-08T15:25:37.286Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/53/62/9d0b1bf0c583e8b97ac208530140f77a26a4696faf6d67a6d67005eb6287/beeai_framework-0.1.76.tar.gz", hash = "sha256:adc188bcf9e98fff3d8583acdddf6a248f61a08677877f1abbd4f4b16645b0cc", size = 191628, upload-time = "2026-01-20T10:37:01.878Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/25/00/dedb7e5037dc7022f711cded4ddf297150231b6d294ec489f2d8c5f7f378/beeai_framework-0.1.75-py3-none-any.whl", hash = "sha256:e1930465e3650a3da4ab086053338b3b996712bdc2831c0fc3e39ca0b369b76f", size = 348832, upload-time = "2026-01-08T15:25:35.597Z" },
+    { url = "https://files.pythonhosted.org/packages/d9/52/b173e81fb6db6a42cfde1062a5d3f243d348c8080b7e6014f73a9c65f186/beeai_framework-0.1.76-py3-none-any.whl", hash = "sha256:38afbc0b3ebe090d63c4b9257103cb41c5421c10af2056261fff890fe357cdd8", size = 352647, upload-time = "2026-01-20T10:37:00.24Z" },
 ]
 
 [package.optional-dependencies]
@@ -1655,7 +1655,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "agentstack-sdk", editable = "../../apps/agentstack-sdk-py" },
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia", "a2a"], specifier = ">=0.1.75" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia", "a2a"], specifier = ">=0.1.76" },
     { name = "fastuuid", specifier = ">=0.14.0" },
     { name = "langchain-text-splitters", specifier = ">=0.3.0" },
     { name = "openai", specifier = ">=1.107.1" },
