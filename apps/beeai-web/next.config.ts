@@ -87,6 +87,7 @@ const nextConfig: NextConfig = {
     // https://github.com/vercel/next.js/issues/68207
     // https://github.com/vercel/next.js/issues/64921
     cssChunking: false,
+    optimizePackageImports: ['@carbon/react', '@carbon/icons-react'],
   },
 };
 

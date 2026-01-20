@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-type RegisterableHighlighter = { registerLanguage(name: string, func: unknown): void };
+import type { Light as Highlighter } from 'react-syntax-highlighter';
 
-export async function registerLanguagesAsync(highlighter: RegisterableHighlighter) {
+export async function registerLanguagesAsync(highlighter: typeof Highlighter) {
   const [
     { default: bash },
     { default: shell },
