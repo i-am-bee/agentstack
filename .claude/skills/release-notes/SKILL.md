@@ -86,7 +86,7 @@ This release brings major improvements to the CLI experience and web UI, a redes
 **Connector Management** - Added comprehensive connector UI and presets system. Users can browse, connect, and disconnect predefined connector presets without manually entering configuration details. The system intelligently creates new connectors on first connection and provides table-based management with search functionality.
 
 ## What's changed
-- (https://github.com/i-am-bee/agentstack/pull/1737)[#1737 feat(ui): add agent management under Providers feature flag]
-- (https://github.com/i-am-bee/agentstack/pull/1737)[#1737 feat(ui): add agent management under Providers feature flag]
+- [#1737 feat(ui): add agent management under Providers feature flag](https://github.com/i-am-bee/agentstack/pull/1737)
+- [#1737 feat(ui): add agent management under Providers feature flag](https://github.com/i-am-bee/agentstack/pull/1737)
 ...
 ```
