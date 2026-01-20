@@ -61,7 +61,7 @@ Instead of PRs focus on factual changes, described with couple paragraphs. The g
 Keep in mind that user of Agent Stack is either of these personas:
 
 - A system administrator who is using the to manage agents and system via CLI
-- A system administrator who is deploying producting using kubernetes or openshift
+- A system administrator who is deploying production using kubernetes or openshift
 - A developer who is building agent via Agent Stack SDK (Python/TypeScript)
 - A developer who is integrating the Agent Stack in their custom GUI and using Agent Stack as backend for agents (TypeScript)
 - An end user who is running agents via GUI
