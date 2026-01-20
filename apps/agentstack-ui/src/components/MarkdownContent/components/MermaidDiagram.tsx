@@ -9,6 +9,7 @@ import type { ExtraProps } from 'react-markdown';
 
 import { useTheme } from '#contexts/Theme/index.ts';
 import { Theme } from '#contexts/Theme/types.ts';
+import { usePrevious } from '#hooks/usePrevious.ts';
 
 import { useMermaid } from '../contexts';
 import { Code } from './Code';
@@ -29,8 +30,10 @@ export function MermaidDiagram({ children, mermaidIndex, isStreaming }: MermaidD
 
   const diagram = diagrams.get(index);
 
+  const themePrevious = usePrevious(theme);
   useEffect(() => {
     let isMounted = true;
+    const hasThemeChanged = themePrevious && theme !== themePrevious;
 
     async function renderDiagram() {
       if (typeof children !== 'string') {
@@ -39,7 +42,7 @@ export function MermaidDiagram({ children, mermaidIndex, isStreaming }: MermaidD
 
       try {
         let api = mermaidApi;
-        if (!api) {
+        if (!api || hasThemeChanged) {
           api = (await import('mermaid')).default;
           api.initialize({
             startOnLoad: false,
@@ -68,7 +71,7 @@ export function MermaidDiagram({ children, mermaidIndex, isStreaming }: MermaidD
     return () => {
       isMounted = false;
     };
-  }, [children, theme, id, setDiagram, index, isStreaming, mermaidApi, setMermaidApi]);
+  }, [children, theme, themePrevious, id, setDiagram, index, isStreaming, mermaidApi, setMermaidApi]);
 
   return (
     <div className={classes.root}>
