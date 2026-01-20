@@ -20,7 +20,7 @@
   position: relative;
   &.limitWidth {
     inline-size: max-content;
-    max-inline-size: rem(368px);
+    max-inline-size: min(100%, rem(368px));
   }
   p {
     font-size: inherit;

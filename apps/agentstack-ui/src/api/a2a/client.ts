@@ -67,6 +67,11 @@ function handleArtifactUpdate(event: TaskArtifactUpdateEvent): UIMessagePart[] {
     },
     { textParts: [], otherParts: [] },
   );
+
+  if (textParts.length === 0) {
+    return otherParts;
+  }
+
   return [{ kind: UIMessagePartKind.Artifact, artifactId, description, name, parts: textParts }, ...otherParts];
 }
 
