@@ -541,3 +541,42 @@ done
 echo "Image sync completed!"
 {% endraw %}
 '''
+
+["release:checkout"]
+description = "Checkout the latest release branch"
+dir = "{{config_root}}"
+run = '''
+#!/bin/bash
+set -eu -o pipefail
+
+git fetch origin --tags --quiet
+
+latest_release_branch_version=$(git branch -r | \
+  awk '/origin\/release-v[0-9]+\.[0-9]+\.[0-9]+$/ {sub(/^origin\/release-v/, ""); print}' | \
+  sort -V | tail -n 1)
+
+branch=$(git branch -r --sort=-version:refname --format "%(refname:short)" | grep 'origin/release-v' | head -n1 | sed 's|origin/||')
+
+if git rev-parse "${branch/release//}" >/dev/null 2>&1; then
+  echo "⚠️  Latest release v$latest_branch already finalized!"
+fi
+
+git checkout "$branch"
+'''
+
+["release:status"]
+description = "Show current release status and latest remote release information"
+depends = ["common:check:version"]
+dir = "{{config_root}}"
+run = '''
+#!/bin/bash
+set -eu -o pipefail
+
+git fetch origin --tags --quiet
+
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Latest release branch:  $(git branch -r --sort=-version:refname --format "%(refname:short)" | grep 'origin/release-v' | head -n1 | sed 's|origin/||')"
+echo "Latest released tag:    $(git ls-remote --tags origin 'v*' | grep -o 'refs/tags/v[0-9]*\.[0-9]*\.[0-9]*\(-rc[0-9]*\)\?$' | sed 's|refs/tags/||' | sort -V | tail -n 1)"
+echo "CI status:              https://github.com/i-am-bee/agentstack/actions/workflows/release.yml"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+'''
