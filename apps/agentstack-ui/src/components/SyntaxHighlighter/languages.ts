@@ -14,6 +14,7 @@ export async function registerLanguagesAsync(highlighter: typeof Highlighter) {
     { default: javascript },
     { default: typescript },
     { default: python },
+    { default: markdown },
   ] = await Promise.all([
     import('react-syntax-highlighter/dist/esm/languages/hljs/bash'),
     import('react-syntax-highlighter/dist/esm/languages/hljs/shell'),
@@ -22,6 +23,7 @@ export async function registerLanguagesAsync(highlighter: typeof Highlighter) {
     import('react-syntax-highlighter/dist/esm/languages/hljs/javascript'),
     import('react-syntax-highlighter/dist/esm/languages/hljs/typescript'),
     import('react-syntax-highlighter/dist/esm/languages/hljs/python'),
+    import('react-syntax-highlighter/dist/esm/languages/hljs/markdown'),
   ]);
 
   highlighter.registerLanguage('bash', bash);
@@ -31,4 +33,5 @@ export async function registerLanguagesAsync(highlighter: typeof Highlighter) {
   highlighter.registerLanguage('javascript', javascript);
   highlighter.registerLanguage('typescript', typescript);
   highlighter.registerLanguage('python', python);
+  highlighter.registerLanguage('markdown', markdown);
 }
