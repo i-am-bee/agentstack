@@ -8,14 +8,14 @@ TypeScript/JavaScript client SDK for building applications that interact with Ag
 
 ## Overview
 
-The `agentstack-sdk` provides TypeScript/JavaScript tools for building client applications that communicate with agents deployed on Agent Stack. It includes utilities for handling the A2A (Agent-to-Agent) protocol, managing agent extensions, and working with the Agent Stack platform API.
+The `agentstack-sdk` provides TypeScript and JavaScript tools for building client applications that communicate with agents deployed on Agent Stack. It includes utilities for handling the A2A (Agent2Agent) protocol, working with extensions, and calling the Agent Stack platform API.
 
 ## Key Features
 
-- **A2A Protocol Support** - Full support for Agent-to-Agent communication
-- **Extension System** - Built-in handlers for forms, OAuth, LLM services, MCP, and more
-- **Platform API Client** - Utilities for context and token management
-- **TypeScript Types** - Comprehensive types for all APIs
+- **A2A Protocol Support** - Parse agent cards and task status updates with typed utilities
+- **Extension System** - Resolve service demands and UI metadata with typed helpers
+- **Platform API Client** - Typed access to core platform resources
+- **Type Safe Responses** - Zod validated payloads with structured API error helpers
 
 ## Installation
 
@@ -26,47 +26,121 @@ npm install agentstack-sdk
 ## Quickstart
 
 ```typescript
-import { handleAgentCard, handleTaskStatusUpdate, TaskStatusUpdateType } from 'agentstack-sdk';
+import {
+  buildApiClient,
+  buildLLMExtensionFulfillmentResolver,
+  handleAgentCard,
+  handleTaskStatusUpdate,
+  TaskStatusUpdateType,
+  unwrapResult,
+} from "agentstack-sdk";
 
-// Parse agent capabilities
-const { extensions, fulfillments } = await handleAgentCard(agentCard);
+const api = buildApiClient({ baseUrl: "https://your-agentstack-instance.com" });
 
-// Send message and handle responses
-const stream = client.sendMessage(message);
+// 1. Receive an agent card and resolve metadata for service demands.
+const { resolveMetadata } = handleAgentCard(agentCard);
+const context = unwrapResult(await api.createContext({ provider_id: "provider-id" }));
+const token = unwrapResult(
+  await api.createContextToken({
+    context_id: context.id,
+    grant_global_permissions: { llm: ["*"], a2a_proxy: ["*"] },
+  }),
+);
 
+const llmResolver = buildLLMExtensionFulfillmentResolver(api, token);
+const metadata = await resolveMetadata({ llm: llmResolver });
+
+// 2. Send a message with metadata using your A2A client.
+const stream = client.sendMessageStream({
+  message: {
+    messageId: 'message-id',
+    kind: "message",
+    role: "user",
+    contextId: context.id,
+    parts: [{ kind: "text", text: "Hello" }],
+    metadata,
+  }
+});
+
+// 3. Handle task status updates.
 for await (const event of stream) {
-  const result = handleTaskStatusUpdate(event);
-  
-  switch (result.type) {
-    case TaskStatusUpdateType.Message:
-      console.log('Agent response:', result.message.parts[0].text);
-      break;
-    case TaskStatusUpdateType.InputRequired:
-      // Handle extension demands (forms, OAuth, etc.)
-      break;
+  if (event.kind === "status-update") {
+    const message = event.status.message;
+
+    if (message) {
+      for (const part of message.parts) {
+        if (part.kind === "text") {
+          console.log("Agent:", part.text);
+        }
+      }
+
+      if (message.metadata) {
+        console.log("Metadata keys:", Object.keys(message.metadata));
+      }
+    }
+
+    handleTaskStatusUpdate(event).forEach((result) => {
+      switch (result.type) {
+        case TaskStatusUpdateType.FormRequired:
+          // Show form to the user
+          break;
+        case TaskStatusUpdateType.OAuthRequired:
+          // Redirect to result.url
+          break;
+        case TaskStatusUpdateType.SecretRequired:
+          // Prompt for secrets
+          break;
+        case TaskStatusUpdateType.ApprovalRequired:
+          // Request approval from the user
+          break;
+      }
+    });
   }
 }
 ```
 
-## Available Extensions
+## Core APIs
 
-The SDK includes clients and specs for handling:
+- `buildApiClient` returns a typed API client for platform endpoints.
+- `handleAgentCard` extracts extension demands and returns `resolveMetadata`.
+- `handleTaskStatusUpdate` parses A2A status updates into UI actions.
+- `resolveUserMetadata` builds metadata when the user submits forms, canvas edits, or approvals.
+- `createAuthenticatedFetch` helps add bearer auth headers to API calls.
+- `buildLLMExtensionFulfillmentResolver` matches LLM providers and returns fulfillments.
+- `unwrapResult` returns the response data on success, throws an `ApiErrorException` on error
 
-- **Forms** - Static and dynamic form handling (`FormExtensionClient`, `FormExtensionSpec`)
-- **OAuth** - Authentication flows (`OAuthExtensionClient`, `OAuthExtensionSpec`)
-- **LLM Services** - Model access and credentials (`LLMServiceExtensionClient`, `buildLLMExtensionFulfillmentResolver`)
-- **Platform API** - Context and resource access (`PlatformApiExtensionClient`, `buildApiClient`)
-- **MCP** - Model Context Protocol integration (`MCPServiceExtensionClient`)
-- **Embeddings** - Vector embedding services (`EmbeddingServiceExtensionClient`)
-- **Secrets** - Secure credential management (`SecretsExtensionClient`)
-- **Citations** - Source attribution (`citationExtension`)
-- **Agent Details** - Metadata and UI enhancements (`AgentDetailExtensionSpec`)
+## Extensions
 
-Each extension has a corresponding `ExtensionClient` for sending data and `ExtensionSpec` for parsing agent cards.
+Service extensions (client fulfillments):
+
+- **Embedding** - Provide embedding access (`api_base`, `api_key`, `api_model`) for RAG or search.
+- **Form** - Request structured user input via forms.
+- **LLM** - Resolve model access and credentials for text generation.
+- **MCP** - Connect Model Context Protocol services and tools.
+- **OAuth** - Provide OAuth credentials or redirect URIs.
+- **Platform API** - Inject context token metadata for platform access.
+- **Secrets** - Supply or request secret values securely.
+
+UI extensions (message metadata your UI can render):
+
+- **Agent Detail** - Show agent specific metadata and context.
+- **Approval** - Ask the user to approve actions or tool calls.
+- **Canvas** - Provide canvas edit requests and updates.
+- **Citation** - Display inline source references.
+- **Error** - Render structured error messages.
+- **Form Request** - Render interactive forms in the UI.
+- **Settings** - Read or update runtime configuration values.
+- **Trajectory** - Render execution traces or reasoning steps.
+
+## Documentation
+
+- [Agent Stack Documentation](https://agentstack.beeai.dev)
+- [Client SDK Overview](https://agentstack.beeai.dev/development/custom-ui/client-sdk/overview)
+- [Extensions](https://agentstack.beeai.dev/development/custom-ui/client-sdk/extensions)
+- [API Client](https://agentstack.beeai.dev/development/custom-ui/client-sdk/api-client)
 
 ## Resources
 
-- [Agent Stack Documentation](https://agentstack.beeai.dev)
 - [GitHub Repository](https://github.com/i-am-bee/agentstack)
 - [npm Package](https://www.npmjs.com/package/agentstack-sdk)
 
