@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { Part } from '@a2a-js/sdk';
 import { randomUUID } from 'crypto';
 import { describe, expect, it } from 'vitest';
 
-import { accumulateResponse, buildAgentTest, createTestFulfillments } from '../utils/test-helpers';
-import { ServerHandle } from '../../src/experimental/server/types';
+import type { ServerHandle } from '../../src/experimental/server/types';
 import { Server } from '../../src/server';
-import { Part } from '@a2a-js/sdk';
+import { accumulateResponse, buildAgentTest, createTestFulfillments } from '../utils/test-helpers';
 
 async function createEchoAgent(port: number): Promise<ServerHandle> {
   const server = new Server();

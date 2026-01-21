@@ -13,7 +13,7 @@ import net from 'net';
 
 import type { Fulfillments } from '../../src/client/core';
 import { buildMessageBuilder, handleAgentCard } from '../../src/client/core';
-import { type ServerHandle } from '../../src/server';
+import type { ServerHandle } from '../../src/server';
 
 export async function getRandomPort(): Promise<number> {
   return new Promise((resolve, reject) => {
