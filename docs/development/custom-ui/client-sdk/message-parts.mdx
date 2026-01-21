@@ -1,0 +1,88 @@
+---
+title: Message Parts and Rendering
+description: Render A2A message parts and metadata into UI components
+---
+
+This guide shows how `agentstack-ui` processes message parts and metadata for display.
+
+## Process message metadata
+
+Trajectory and citation metadata are stored in message metadata, not in parts. Use the UI extensions to extract them and render UI sections.
+
+```typescript
+import { citationExtension, extractUiExtensionData, trajectoryExtension } from "agentstack-sdk";
+
+const extractCitation = extractUiExtensionData(citationExtension);
+const extractTrajectory = extractUiExtensionData(trajectoryExtension);
+
+function processMessageMetadata(message: Message) {
+  const parts = [];
+  const trajectory = extractTrajectory(message.metadata);
+  const citations = extractCitation(message.metadata)?.citations;
+
+  if (trajectory) {
+    parts.push({ kind: "trajectory", ...trajectory });
+  }
+
+  if (citations) {
+    parts.push(
+      ...citations.map((citation) => ({
+        kind: "source",
+        url: citation.url,
+        startIndex: citation.start_index ?? undefined,
+        endIndex: citation.end_index ?? undefined,
+        title: citation.title ?? undefined,
+        description: citation.description ?? undefined,
+      })),
+    );
+  }
+
+  return parts;
+}
+```
+
+## Process message parts
+
+Text and file parts are in the `message.parts` array. Map them to your UI components.
+
+```typescript
+function processParts(parts: Part[]) {
+  return parts.flatMap((part) => {
+    if (part.kind === "text") {
+      return [{ kind: "text", text: part.text }];
+    }
+
+    if (part.kind === "file") {
+      return [
+        {
+          kind: "file",
+          filename: part.file.name ?? "file",
+          mimeType: part.file.mimeType ?? "application/octet-stream",
+          url: resolveFileUrl(part.file),
+        },
+      ];
+    }
+
+    return [];
+  });
+}
+```
+
+## Resolve file URLs
+
+Files can arrive as a platform URL or inline base64 bytes. Convert them to something the UI can render.
+
+```typescript
+function resolveFileUrl(file: FilePart["file"]) {
+  if ("uri" in file) {
+    return file.uri;
+  }
+
+  const mimeType = file.mimeType ?? "text/plain";
+  return `data:${mimeType};base64,${file.bytes}`;
+}
+```
+
+## Artifacts
+
+Artifact updates arrive as `artifact-update` events and contain their own parts. Process them the same way as message parts.

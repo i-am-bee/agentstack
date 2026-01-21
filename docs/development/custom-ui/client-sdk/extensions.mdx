@@ -10,6 +10,26 @@ Extensions fall into two categories:
 - **Service extensions**: Demands in the agent card that your client fulfills.
 - **UI extensions**: Message metadata your UI renders.
 
+All extension definitions are exported from `agentstack-sdk/extensions` if you prefer a narrower import surface.
+
+## Core Helpers
+
+The SDK includes helpers for reading and producing extension metadata:
+
+- `extractServiceExtensionDemands(extension)` reads demands from an agent card.
+- `fulfillServiceExtensionDemand(extension)` merges fulfillments into metadata.
+- `extractUiExtensionData(extension)` reads UI metadata from a message.
+- `resolveUserMetadata(inputs)` builds metadata for form, approval, and canvas responses.
+- `handleAgentCard(agentCard)` returns `demands` and a `resolveMetadata` function.
+- `handleTaskStatusUpdate(event)` maps status updates to actionable UI results.
+- `buildMessageBuilder(agentCard)` builds user messages with resolved metadata.
+
+Use these directly when you want fine grained control beyond `handleAgentCard`.
+
+`extractServiceExtensionDemands`, `fulfillServiceExtensionDemand`, and `extractUiExtensionData` are factories. You pass an extension definition once and reuse the returned function for that extension.
+
+For end to end usage, see **[A2A Client Integration](./a2a-client-integration)** and **[Message Building](./message-building)**.
+
 ## Service Extensions
 
 Service extensions use a dependency injection pattern. The agent declares demands and the client provides fulfillments.
@@ -123,6 +143,8 @@ const metadata = await resolveMetadata({
 
 Provides runtime configuration values that match the requested fields.
 
+This extension lives under `ui/settings` in the SDK, but it is treated as a service extension because it carries demands and fulfillments.
+
 ```typescript
 import { handleAgentCard } from "agentstack-sdk";
 
@@ -183,6 +205,8 @@ const metadata = await resolveMetadata({
   getContextToken: () => contextToken,
 });
 ```
+
+`getContextToken` is deprecated. Prefer sending the context token via A2A client headers when possible.
 
 ## UI Extensions
 

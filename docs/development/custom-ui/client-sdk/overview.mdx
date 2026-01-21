@@ -1,18 +1,23 @@
 ---
 title: Client SDK Overview
-description: Understanding the AgentStack TypeScript SDK architecture and core concepts
+description: Architecture and core workflows for the AgentStack TypeScript SDK
 ---
 
-The AgentStack TypeScript SDK is a layer built on top of the [Agent-to-Agent (A2A) Protocol](https://a2a-protocol.org/). While you can use plain [A2A SDK](https://github.com/a2aproject/a2a-js), AgentStack forms an opinion on basic agentic principles that are exposed in the AgentStack UI. This is achieved by **leveraging the A2A extension system and extending the protocol** to allow agents to declare their needs at runtime.
+The AgentStack TypeScript SDK builds on the [Agent2Agent Protocol (A2A)](https://a2a-protocol.org/) and provides two layers:
 
-The SDK helps you work with this extension system by providing **typing and parsing** for extensions. Instead of manually parsing extension URIs and metadata, the SDK gives you type-safe functions to extract data from agent cards.
+- A2A extensions and helpers that map agent demands to client fulfillments and UI metadata.
+- A platform API client that talks to the AgentStack server.
 
-## Architecture Overview
+The SDK also exports A2A protocol types and Zod schemas so your UI can stay in sync with the protocol.
 
-The SDK consists of two main components:
+## What the SDK Exports
 
-1. **A2A Extensions Handling** - Processes agent capabilities and manages the extension system through `handleAgentCard` and related functions
-2. **Platform API Client** - Provides HTTP client wrapper for interacting with the AgentStack platform API via `buildApiClient`
+The public surface of the SDK is grouped into four entrypoints:
+
+1. `agentstack-sdk` for everything
+2. `agentstack-sdk/api` for platform API client, schemas, and types
+3. `agentstack-sdk/core` for extension helpers and A2A interaction utilities
+4. `agentstack-sdk/extensions` for A2A extension definitions and types
 
 ```mermaid
 graph TB
@@ -38,59 +43,105 @@ graph TB
     style API fill:#f3e5f5
 ```
 
-## Core Concepts
+## Core Workflows
 
-### Agent Cards and Capabilities
+### 1. Handle agent card demands
 
-Agents declare their capabilities through **agent cards**. These cards specify what extensions the agent supports, such as:
-
-- **Service extensions** (LLM, embeddings, MCP, OAuth, secrets): Agent asks for a demand and it is client's responsibility to fulfill the demand. Think of a Dependency Injection where the client is injecting the dependency.
-- **UI extensions** (forms, citations, trajectory visualization): Extends basic A2A messaging with a structure that simplifies working with GUIs.
-
-The SDK processes these capabilities to determine what the agent needs from your application. When you receive an agent card, you use `handleAgentCard` to extract the demands and get a `resolveMetadata` function.
-
-### Task Status Updates
-
-During task execution, agents send **task status updates** through the A2A protocol. These updates can indicate:
-
-- **Message updates** - New content from the agent
-- **Input required** - Agent needs user input (forms, canvas edits)
-- **Auth required** - Agent needs authentication (OAuth, secrets)
-
-The SDK provides `handleTaskStatusUpdate` to parse A2A `TaskStatusUpdate` and extract structured information:
+Agents declare service demands in their agent card. Use `handleAgentCard` to read these demands and produce metadata fulfillments.
 
 ```typescript
-const results = handleTaskStatusUpdate(event);
+import { handleAgentCard } from "agentstack-sdk";
 
-for (const result of results) {
-  switch (result.type) {
-    case TaskStatusUpdateType.FormRequired:
-      // Display form to user
-      break;
-    case TaskStatusUpdateType.OAuthRequired:
-      // Redirect to OAuth URL
-      break;
-    case TaskStatusUpdateType.SecretRequired:
-      // Prompt for secret
-      break;
+const { demands, resolveMetadata } = handleAgentCard(agentCard);
+
+const metadata = await resolveMetadata({
+  llm: async (llmDemands) => {
+    return {
+      llm_fulfillments: {
+        default: {
+          identifier: "llm_proxy",
+          api_base: "{platform_url}/api/v1/openai/",
+          api_key: contextToken.token,
+          api_model: "gpt-4o",
+        },
+      },
+    };
+  },
+});
+```
+
+Use `buildMessageBuilder(agentCard)` when you want a helper that turns a user message into a fully formed A2A message with metadata.
+
+### 2. Stream task status updates into UI actions
+
+When you stream A2A task events, `handleTaskStatusUpdate` maps status updates into actionable UI events.
+It focuses on `auth-required` and `input-required` states, which cover OAuth, secrets, forms, and approvals.
+
+```typescript
+import { handleTaskStatusUpdate, TaskStatusUpdateType } from "agentstack-sdk";
+
+for await (const event of stream) {
+  if (event.kind === "status-update") {
+    for (const update of handleTaskStatusUpdate(event)) {
+      if (update.type === TaskStatusUpdateType.FormRequired) {
+        // Render update.form
+      }
+    }
   }
 }
 ```
 
-### Agent Stack API Client
+### 3. Build user metadata
 
-The `buildApiClient` function creates an HTTP client that exposes all AgentStack server capabilities. This client enables you to:
+When the user responds to forms, approvals, or canvas requests, use `resolveUserMetadata` to build message metadata.
 
-- **Manipulate files** - Upload, download, and manage files in agent contexts
-- **Manage vector stores** - Create and manage vector stores for RAG and semantic search
-- **Provide fulfillments for extensions** - Access platform services like LLM providers, embeddings, and connectors that you can use to fulfill service extension demands
-- **Manage contexts and permissions** - Create contexts and generate context tokens with appropriate permissions for agent access
+```typescript
+import { resolveUserMetadata } from "agentstack-sdk";
 
-The API client is typically used alongside extension fulfillments. For example, you might use it to get a context token that grants LLM access, then use that token in your LLM fulfillment function to provide the agent with model access.
+const metadata = await resolveUserMetadata({
+  form: { name: "Ada" },
+  approvalResponse: { decision: "approve" },
+});
+```
 
+### 4. Use the platform API client
+
+`buildApiClient` exposes the platform API with typed responses and runtime validation.
+
+```typescript
+import { buildApiClient, createAuthenticatedFetch } from "agentstack-sdk";
+
+const api = buildApiClient({
+  baseUrl: "https://your-agentstack-instance.com",
+  fetch: createAuthenticatedFetch("token-value"),
+});
+```
+
+All API calls return `ApiResult<T>`. Use `unwrapResult` if you want exceptions, and then handle errors with `isHttpError`, `isNetworkError`, `isParseError`, and `isValidationError`.
+
+## Extension Helpers at a Glance
+
+These helpers are factories. You pass an extension definition once and get back a function tailored to that extension.
+
+- `extractServiceExtensionDemands(extension)` returns a function that pulls typed demands for that service from an agent card.
+- `fulfillServiceExtensionDemand(extension)` returns a function that applies a fulfillment into outgoing metadata for that service.
+- `extractUiExtensionData(extension)` returns a function that reads typed UI metadata for that extension from messages.
+- `buildLLMExtensionFulfillmentResolver(api, token)` returns a resolver that maps LLM demands to platform models.
+
+## Protocol Types and Schemas
+
+The SDK exports A2A protocol types and Zod schemas that match the AgentStack UI usage, including:
+
+- `Message`, `Part`, and `Task` types
+- `TaskStatusUpdateEvent` and `TaskArtifactUpdateEvent`
+- UI and service extension schemas
+
+These exports are useful when building strongly typed UI layers or validating inbound messages.
 
 ## Next Steps
 
-Now that you understand the basic concepts:
-- **[Extensions](./extensions)** - Deep dive into service and UI extensions
-- **[API Client](./api-client)** - Complete reference for the AgentStack platform API client
+- **[Extensions](./extensions)** for service and UI extension handling
+- **[API Client](./api-client)** for endpoint reference and error helpers
+- **[Error Handling](./error-handling)** for platform and extension error patterns
+- **[Message Building](./message-building)** for composing user messages with metadata
+- **[A2A Client Integration](./a2a-client-integration)** for end to end streaming with `@a2a-js/sdk`

@@ -57,6 +57,36 @@ if (result.ok) {
 const user = unwrapResult(await api.readUser());
 ```
 
+`unwrapResult` also accepts an optional Zod schema if you want to validate against a more specific or stricter response shape:
+
+```typescript
+import { unwrapResult } from "agentstack-sdk";
+
+const connectors = unwrapResult(await api.listConnectors(), stricterListConnectorsResponseSchema);
+```
+
+### Error Helpers
+
+When you use `unwrapResult`, API errors throw `ApiErrorException`. Use the helper guards to handle specific cases:
+
+```typescript
+import { isHttpError, isValidationError } from "agentstack-sdk";
+
+try {
+  unwrapResult(await api.readUser());
+} catch (error) {
+  if (isHttpError(error, 401)) {
+    console.error("Unauthorized");
+  }
+
+  if (isValidationError(error)) {
+    console.error(error.apiError.details.issues);
+  }
+}
+```
+
+For more error handling patterns, see **[Error Handling](./error-handling)**.
+
 ## Type Safety
 
 All API methods are fully typed with TypeScript and validated with Zod schemas at runtime. This ensures response data matches the SDK types and catches API contract changes early.
@@ -157,6 +187,19 @@ await api.updateProviderVariables({
 });
 ```
 
+#### Example: Streaming Provider Logs
+
+`readProviderLogs` returns a `ReadableStream<Uint8Array>` in `data`:
+
+```typescript
+const result = await api.readProviderLogs({ id: "provider-id" });
+
+if (result.ok && result.data) {
+  const reader = result.data.getReader();
+  await reader.read();
+}
+```
+
 ### Provider Builds
 
 - `listProviderBuilds({ query }: ListProviderBuildsRequest): ListProviderBuildsResponse`
@@ -184,6 +227,19 @@ const build = unwrapResult(
 );
 
 console.log(build.status);
+```
+
+#### Example: Streaming Provider Build Logs
+
+`readProviderBuildLogs` returns a `ReadableStream<Uint8Array>` in `data`:
+
+```typescript
+const result = await api.readProviderBuildLogs({ id: build.id });
+
+if (result.ok && result.data) {
+  const reader = result.data.getReader();
+  await reader.read();
+}
 ```
 
 ### Model Providers
