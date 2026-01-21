@@ -73,7 +73,7 @@
   "module": "dist/index.js",
   "unpkg": "dist/index.umd.js",
   "dependencies": {
-    "@a2a-js/sdk": "catalog:",
+    "@a2a-js/sdk": "^0.3.7",
     "zod": "^4.1.11"
   },
   "devDependencies": {
