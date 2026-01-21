@@ -703,6 +703,14 @@ keycloak:
     repository: quay.io/keycloak/keycloak
     tag: 26.5.0
     pullPolicy: IfNotPresent
+  # Custom theme configuration
+  # Set customTheme.enabled=true and customTheme.image to use a custom Docker image with built-in theme
+  # Otherwise, theme files from keycloak-theme/** will be mounted via ConfigMap
+  customTheme:
+    enabled: true
+    image:
+      repository: ghcr.io/i-am-bee/agentstack/keycloak-theme
+      tag: "local"
   service:
     type: ClusterIP
     port: 8336

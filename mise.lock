@@ -24,9 +24,19 @@ backend = "aqua:charmbracelet/gum"
 version = "3.19.0"
 backend = "aqua:helm/helm"
 
+[[tools.java]]
+version = "21.0.2"
+backend = "core:java"
+"platforms.macos-arm64" = { checksum = "sha256:b3d588e16ec1e0ef9805d8a696591bd518a5cea62567da8f53b5ce32d11d22e4", url = "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2_macos-aarch64_bin.tar.gz"}
+
 [[tools.kubeconform]]
 version = "0.7.0"
 backend = "aqua:yannh/kubeconform"
+
+[[tools.maven]]
+version = "3.9.12"
+backend = "aqua:apache/maven"
+"platforms.macos-arm64" = { checksum = "blake3:07cf3b70c8b3c50ac71d7a4fae12a7fc78e8fd2f768eb2e3dfe13a7704fefa7e", url = "https://archive.apache.org/dist/maven/maven-3/3.9.12/binaries/apache-maven-3.9.12-bin.tar.gz"}
 
 [[tools.node]]
 version = "22.19.0"

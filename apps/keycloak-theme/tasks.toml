@@ -1,0 +1,15 @@
+
+["keycloak-theme:build"]
+depends = ["keycloak-theme:build:*"]
+dir = "{{config_root}}/apps/keycloak-theme"
+run = "docker build -t ghcr.io/i-am-bee/agentstack/keycloak-theme:local ."
+
+["keycloak-theme:build:jar"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/keycloak-theme"
+run = "pnpm run build-keycloak-theme"
+
+["keycloak-theme:run"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/keycloak-theme"
+run = "npx keycloakify start-keycloak -p ./"

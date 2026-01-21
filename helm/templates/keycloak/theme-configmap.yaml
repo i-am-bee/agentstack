@@ -1,4 +1,4 @@
-{{- if .Values.auth.enabled }}
+{{- if and .Values.auth.enabled (not .Values.keycloak.customTheme.enabled) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:

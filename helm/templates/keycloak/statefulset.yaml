@@ -49,8 +49,13 @@ spec:
             {{- include "agentstack.keycloak.dbEnvVars" . | nindent 12 }}
       containers:
         - name: keycloak
+          {{- if .Values.keycloak.customTheme.enabled }}
+          image: "{{ .Values.keycloak.customTheme.image.repository }}:{{ .Values.keycloak.customTheme.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.keycloak.customTheme.image.pullPolicy }}
+          {{- else }}
           image: "{{ .Values.keycloak.image.repository }}:{{ .Values.keycloak.image.tag }}"
           imagePullPolicy: {{ .Values.keycloak.image.pullPolicy }}
+          {{- end }}
           args: ["start"]
           env:
             - name: KC_BOOTSTRAP_ADMIN_USERNAME
@@ -113,6 +118,7 @@ spec:
             - name: jgroups-fd
               containerPort: 57800
           volumeMounts:
+            {{- if not .Values.keycloak.customTheme.enabled }}
             {{- range $path, $_ := .Files.Glob "keycloak-theme/**" }}
             - name: keycloak-theme
               mountPath: /opt/keycloak/themes/carbon/{{ $path | replace "keycloak-theme/" "" }}
@@ -120,6 +126,7 @@ spec:
             {{- end }}
             {{- if .Values.keycloak.extraVolumeMounts }}
             {{- toYaml .Values.keycloak.extraVolumeMounts | nindent 12 }}
+            {{- end }}
             {{- end }}
           startupProbe:
             httpGet:
@@ -142,6 +149,7 @@ spec:
           resources:
             {{- toYaml .Values.keycloak.resources | nindent 12 }}
       volumes:
+        {{- if not .Values.keycloak.customTheme.enabled }}
         - name: keycloak-theme
           configMap:
             name: keycloak-theme
