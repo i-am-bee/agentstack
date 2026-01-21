@@ -6,9 +6,6 @@ settings:
 
 catalogs:
   default:
-    '@a2a-js/sdk':
-      specifier: ^0.3.7
-      version: 0.3.7
     '@carbon/icons-react':
       specifier: ^11.71.0
       version: 11.71.0
@@ -72,7 +69,7 @@ importers:
   apps/agentstack-sdk-ts:
     dependencies:
       '@a2a-js/sdk':
-        specifier: 'catalog:'
+        specifier: ^0.3.7
         version: 0.3.7(express@4.21.2)
       zod:
         specifier: ^4.1.11
@@ -100,7 +97,7 @@ importers:
   apps/agentstack-ui:
     dependencies:
       '@a2a-js/sdk':
-        specifier: 'catalog:'
+        specifier: ^0.3.7
         version: 0.3.7(express@4.21.2)
       '@bprogress/next':
         specifier: ^3.2.12
