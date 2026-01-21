@@ -15,10 +15,33 @@ Your goal is to draft GitHub issue in form of markdown that user can easily file
   - `bug_report.md` for bugs
   - `feature_request.md` for features
 4. Search for potential ducplicates: `gh issue list -R i-am-bee/agentstack -S "<keywords>" --state all`
-5. Show draft as a markdown for user approval
+5. Fetch all available labels from Github
+6. Show draft as a markdown for user approval
 
 ## Rules
 
 - Keep issues very concise
 - Don't include implementation details - define the problem, not the solution
 - Always show draft for user approval before creating
+- Always provide proper title and labels, nothing else in the header
+
+## Example of a draft
+
+```markdown
+---
+title: "Add Hello World button to login page"
+labels: ["enhancement", "ui"]
+---
+
+**Is your feature request related to a problem? Please describe.**
+Users don't have a chance to test buttons, this proposal adds empty Hello World button that serves as a testing component for users who are willing to test the app.
+
+**Describe the solution you'd like**
+Add new button with title 'Hello World' right next to the Login button (on the right)
+
+**Describe alternatives you've considered**
+Add Hello World automatic alert when page loads, but it's too disturbing.
+
+**Additional context**
+This is a testing feature, solely for illustration purposes.
+```
