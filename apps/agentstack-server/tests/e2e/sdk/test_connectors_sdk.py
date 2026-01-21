@@ -71,7 +71,7 @@ async def test_stdio_connector_lifecycle_sdk(platform_client: PlatformClient):
     result = await Connector.list(client=platform_client)
     assert result.total_count > 0, "Expected at least one connector"
     assert len(result.items) > 0, "Expected connector items"
-    found = any(c.url == mcp_url for c in result.items)
+    found = any(c.url.unicode_string() == mcp_url for c in result.items)
     assert found, f"Expected to find connector {mcp_url} in list"
 
     try:
