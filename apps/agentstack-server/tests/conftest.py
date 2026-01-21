@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from agentstack_server.infrastructure.persistence.repositories.db_metadata import metadata
 
 
-class TestConfiguration(BaseSettings):
+class Configuration(BaseSettings):
     model_config = SettingsConfigDict(extra="ignore")
     kubeconfig: Path = Path.home() / ".agentstack/lima/agentstack-local-dev/copied-from-guest/kubeconfig.yaml"
     llm_api_base: Secret[str] = Secret("http://localhost:11434/v1")
@@ -43,14 +43,14 @@ class TestConfiguration(BaseSettings):
 
 
 @pytest.fixture(scope="session")
-def test_configuration() -> TestConfiguration:
-    return TestConfiguration()
+def test_configuration() -> Configuration:
+    return Configuration()
 
 
 def pytest_configure(config):
     expr = config.getoption("markexpr")
 
-    config = TestConfiguration()  # validate config and set KUBECONFIG env
+    config = Configuration()  # validate config and set KUBECONFIG env
 
     if "e2e" in expr or "integration" in expr:
         print("\n\nRunning with configuration:")

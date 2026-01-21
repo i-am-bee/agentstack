@@ -15,7 +15,7 @@ from agentstack_sdk.server import Server
 from agentstack_sdk.server.store.context_store import ContextStore
 from tenacity import AsyncRetrying, stop_after_attempt, wait_fixed
 
-from tests.conftest import TestConfiguration
+from tests.conftest import Configuration
 
 
 @asynccontextmanager
@@ -52,7 +52,7 @@ async def run_server(
 @pytest.fixture
 def create_server_with_agent(
     free_port,
-    test_configuration: TestConfiguration,
+    test_configuration: Configuration,
     a2a_client_factory,
     setup_platform_client,
 ):

@@ -15,7 +15,7 @@ from agentstack_sdk.platform.client import PlatformClient
 from agentstack_sdk.platform.connector import Connector, ConnectorState
 from httpx import HTTPStatusError
 
-from tests.conftest import TestConfiguration
+from tests.conftest import Configuration
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ pytestmark = pytest.mark.e2e
 
 
 @pytest.fixture
-async def platform_client(test_configuration: TestConfiguration):
+async def platform_client(test_configuration: Configuration):
     """Create a PlatformClient configured for the test environment."""
     async with PlatformClient(
         base_url=test_configuration.server_url,
@@ -66,21 +66,18 @@ async def test_stdio_connector_lifecycle_sdk(platform_client: PlatformClient):
     mcp_url = "mcp+stdio://test"
 
     # Create connector
-    logger.info("Creating stdio connector with URL %s", mcp_url)
     connector = await Connector.create(url=mcp_url, client=platform_client)
 
     result = await Connector.list(client=platform_client)
-    for conn in result.items:
-        logger.info(f"{conn.id}: {conn.url} ({conn.state})")
+    assert result.total_count > 0, "Expected at least one connector"
+    assert len(result.items) > 0, "Expected connector items"
+    found = any(c.url == mcp_url for c in result.items)
+    assert found, f"Expected to find connector {mcp_url} in list"
 
     try:
         _ = await Connector.create(url=mcp_url, client=platform_client)
     except HTTPStatusError as e:
         assert e.response.status_code == 409, "Expected 409 Conflict for duplicate connector creation"
-
-    result = await Connector.list(client=platform_client)
-    for conn in result.items:
-        logger.info(f"{conn.id}: {conn.url} ({conn.state})")
 
     assert connector.id is not None
     assert connector.state == ConnectorState.created
@@ -89,54 +86,25 @@ async def test_stdio_connector_lifecycle_sdk(platform_client: PlatformClient):
 
     connector_id = connector.id
 
-    # Test all variations of get input (extends to other methods as well)
-    connector = await connector.get()
+    # Test all variations of get and refresh input
+    connector = await connector.get(client=platform_client)
     assert connector.id == connector_id
-    connector = await Connector.get(connector.id)
+    connector = await Connector.get(connector.id, client=platform_client)
     assert connector.id == connector_id
-    connector = await Connector.get(str(connector.id))
+    connector = await Connector.get(str(connector.id), client=platform_client)
     assert connector.id == connector_id
 
-    result = await Connector.list(client=platform_client)
-    for conn in result.items:
-        logger.info(f"{conn.id}: {conn.url} ({conn.state})")
-
-    logger.info("Connector created: connector_id=%s state=%s", connector_id, connector.state)
+    connector = await connector.refresh(client=platform_client)
+    assert connector.id == connector_id
+    connector = await Connector.refresh(connector.id, client=platform_client)
+    assert connector.id == connector_id
+    connector = await Connector.refresh(str(connector.id), client=platform_client)
+    assert connector.id == connector_id
 
     # Connect to connector
     connector = await connector.connect(client=platform_client)
+    connector = await connector.wait_for_state(state=ConnectorState.connected, client=platform_client)
     assert connector.state == ConnectorState.connected
-    logger.info("Connector connected successfully: connector_id=%s state=%s", connector_id, connector.state)
-
-    # List connectors
-    result = await Connector.list(client=platform_client)
-
-    assert result.total_count > 0, "Expected at least one connector"
-    assert len(result.items) > 0, "Expected connector items"
-
-    # Check that our connector is in the list
-    found = any(c.id == connector_id for c in result.items)
-    assert found, f"Expected to find connector {connector_id} in list"
-
-    logging.info("Listed %d connectors, found our connector", result.total_count)
-
-    # Get specific connector
-    retrieved_connector = await Connector.get(connector_id, client=platform_client)
-
-    assert retrieved_connector.id == connector_id
-    assert retrieved_connector.state == connector.state
-    assert retrieved_connector.url == connector.url
-
-    logger.info("Retrieved connector: connector_id=%s", connector_id)
-
-    # Test refresh method (should be equivalent to get)
-    refreshed_connector = await connector.refresh(client=platform_client)
-
-    assert refreshed_connector.id == connector_id
-    assert refreshed_connector.state == connector.state
-    assert refreshed_connector.url == connector.url
-
-    logger.info("Refreshed connector: connector_id=%s", connector_id)
 
     # Initialize MCP protocol via proxy
     init_request = {
@@ -217,4 +185,15 @@ async def test_stdio_connector_lifecycle_sdk(platform_client: PlatformClient):
         tool_names,
     )
 
+    # Disconnect connector
+    connector = await connector.disconnect(client=platform_client)
+    connector = await connector.wait_for_state(state=ConnectorState.disconnected, client=platform_client)
+    assert connector.state == ConnectorState.disconnected
+
+    # Delete connector
     await connector.delete(client=platform_client)
+    await connector.wait_for_deletion(client=platform_client)
+    result = await Connector.list(client=platform_client)
+
+    found = any(c.url == mcp_url for c in result.items)
+    assert not found, f"Expected to not find connector {mcp_url} in list"

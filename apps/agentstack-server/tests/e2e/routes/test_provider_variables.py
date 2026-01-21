@@ -5,13 +5,13 @@ import pytest
 from a2a.types import AgentCapabilities, AgentCard
 from agentstack_sdk.platform import Provider
 
-from tests.conftest import TestConfiguration
+from tests.conftest import Configuration
 
 pytestmark = pytest.mark.e2e
 
 
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
-async def test_provider_variables(subtests, test_configuration: TestConfiguration):
+async def test_provider_variables(subtests, test_configuration: Configuration):
     """Test provider environment variables operations."""
 
     # First create a real test provider
