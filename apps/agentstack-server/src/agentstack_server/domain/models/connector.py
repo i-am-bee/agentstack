@@ -86,10 +86,18 @@ class Connector(BaseModel):
         disconnect_reason: str | None = None,
         disconnect_permanent: boolean | None = None,
     ) -> None:
-        if state != ConnectorState.disconnected and (disconnect_reason is not None or disconnect_permanent is not None):
-            raise ValueError("Disconnect arguments can only be specified when transitioning to disconnected state")
+        if state == ConnectorState.created:
+            raise ValueError("Created state can't be transitioned to")
 
-        self.state = state
+        if state == ConnectorState.disconnected:
+            if disconnect_reason is None or disconnect_permanent is None:
+                raise ValueError("Disconnect arguments are required when transitioning to disconnected state")
+        else:
+            if disconnect_reason is not None or disconnect_permanent is not None:
+                raise ValueError("Disconnect arguments can only be specified when transitioning to disconnected state")
+
         if state != ConnectorState.disconnected:
             self.disconnect_reason = None
             self.disconnect_permanent = None
+
+        self.state = state
