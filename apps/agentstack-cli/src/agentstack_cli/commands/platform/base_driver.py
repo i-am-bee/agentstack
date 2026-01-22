@@ -153,7 +153,6 @@ class BaseDriver(abc.ABC):
                     await run_command(
                         ["docker", "image", "ls", "--format", "{{.Repository}}:{{.Tag}}"],
                         "Checking for local images",
-                        check=False,
                     )
                 )
                 .stdout.decode()
