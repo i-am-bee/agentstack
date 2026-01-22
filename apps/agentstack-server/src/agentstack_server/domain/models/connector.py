@@ -64,6 +64,7 @@ class Connector(BaseModel):
 
     auth: Authorization | None = None
     disconnect_reason: str | None = None
+    disconnect_permanent: bool | None = None
 
     created_at: AwareDatetime = Field(default_factory=utc_now)
     updated_at: AwareDatetime = Field(default_factory=utc_now)

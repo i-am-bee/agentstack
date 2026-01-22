@@ -168,6 +168,7 @@ class ConnectorService:
             await self.probe_connector(connector=connector)
             connector.state = ConnectorState.connected
             connector.disconnect_reason = None
+            connector.disconnect_permanent = None
         except Exception as err:
             await self._handle_connection_error(err, connector, callback_uri, redirect_url)
 
@@ -192,6 +193,7 @@ class ConnectorService:
             connector.auth.flow = None
         connector.state = ConnectorState.disconnected
         connector.disconnect_reason = "Client request"
+        connector.disconnect_permanent = True
 
         if self._managed_mcp.is_managed(connector=connector):
             await self._managed_mcp.undeploy(connector=connector)
@@ -208,15 +210,26 @@ class ConnectorService:
         if connector.state not in (ConnectorState.connected, ConnectorState.disconnected):
             return
 
+        if connector.disconnect_permanent:
+            return
+
         try:
             await self.probe_connector(connector=connector)
             connector.state = ConnectorState.connected
             connector.disconnect_reason = None
+            connector.disconnect_permanent = None
         except Exception as err:
-            if isinstance(err, httpx.HTTPStatusError) and err.response.status_code == status.HTTP_401_UNAUTHORIZED:
-                await self._external_mcp.revoke_token(connector=connector)
-                if connector.auth:
-                    connector.auth.flow = None
+            if isinstance(err, httpx.HTTPStatusError):
+                if err.response.status_code >= 400 and err.response.status_code < 500:
+                    if err.response.status_code == status.HTTP_401_UNAUTHORIZED:
+                        await self._external_mcp.revoke_token(connector=connector)
+                        if connector.auth:
+                            connector.auth.flow = None
+                    connector.disconnect_permanent = True
+                else:
+                    connector.disconnect_permanent = False
+            else:
+                connector.disconnect_permanent = False
             connector.state = ConnectorState.disconnected
             connector.disconnect_reason = str(err)
         finally:
@@ -230,14 +243,13 @@ class ConnectorService:
     def _find_preset(self, *, url: AnyUrl) -> ConnectorPreset | None:
         return next((p for p in self._configuration.connector.presets if str(p.url) == str(url)), None)
 
-    async def probe_connector(self, *, connector: Connector):
+    async def probe_connector(self, *, connector: Connector, max_retries: int = 5):
         def client_factory(headers=None, timeout=None, auth=None):
             assert auth is None
             return self._external_mcp.create_http_client(connector=connector, headers=headers, timeout=timeout)
 
         # For managed MCP servers, retry if connection fails as service might not be immediately ready
         is_managed = self._managed_mcp.is_managed(connector=connector)
-        max_retries = 5 if is_managed else 1
         retry_delay = 2.0
 
         last_error = None

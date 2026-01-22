@@ -197,6 +197,7 @@ class ExternalMcpService:
                 logger.error("Failed to probe resource with a valid token", exc_info=True)
                 connector.state = ConnectorState.disconnected
                 connector.disconnect_reason = str(err)
+                connector.disconnect_permanent = True
 
             async with self._uow() as uow:
                 await uow.connectors.update(connector=connector)
