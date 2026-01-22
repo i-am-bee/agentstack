@@ -4,7 +4,6 @@
 from enum import StrEnum
 from typing import Annotated, Literal
 from uuid import UUID, uuid4
-from xmlrpc.client import boolean
 
 from pydantic import AnyUrl, AwareDatetime, BaseModel, BeforeValidator, ConfigDict, Field
 
@@ -84,7 +83,7 @@ class Connector(BaseModel):
         *,
         state: ConnectorState,
         disconnect_reason: str | None = None,
-        disconnect_permanent: boolean | None = None,
+        disconnect_permanent: bool | None = None,
     ) -> None:
         if state == ConnectorState.created:
             raise ValueError("Created state can't be transitioned to")
