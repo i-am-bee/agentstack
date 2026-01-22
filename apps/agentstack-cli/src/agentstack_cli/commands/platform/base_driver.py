@@ -104,8 +104,7 @@ class BaseDriver(abc.ABC):
         self,
         set_values_list: list[str],
         values_file: pathlib.Path | None = None,
-        import_images: list[str] | None = None,
-        pull_on_host: bool = False,
+        use_host_images: bool = False,
     ) -> None:
         await self.run_in_vm(
             ["sh", "-c", "mkdir -p /tmp/agentstack && cat >/tmp/agentstack/chart.tgz"],
@@ -146,29 +145,32 @@ class BaseDriver(abc.ABC):
         def canonify(tag: str) -> str:
             return tag if "." in tag.split("/")[0] else f"docker.io/{tag}"
 
-        required_images = {canonify(typing.cast(str, yaml.safe_load(line))) for line in images_str.splitlines()}
-        images_to_import = {canonify(tag) for tag in import_images or []}
-        images_to_pull = required_images - images_to_import
+        self.loaded_images = {canonify(typing.cast(str, yaml.safe_load(line))) for line in images_str.splitlines()}
 
-        if pull_on_host:
-            for image in images_to_pull:
-                await run_command(["docker", "pull", image], f"Pulling image {image} on host")
-            images_to_import = required_images
-            images_to_pull = set[str]()
-
-        if images_to_import:
-            await self.import_images(*images_to_import)
-
-        for image in images_to_pull:
-            async for attempt in AsyncRetrying(stop=stop_after_attempt(5)):
-                with attempt:
-                    attempt_num = attempt.retry_state.attempt_number
-                    await self.run_in_vm(
-                        ["k3s", "ctr", "image", "pull", image],
-                        f"Pulling image {image}" + (f" (attempt {attempt_num})" if attempt_num > 1 else ""),
+        if use_host_images:
+            local_images = set(
+                (
+                    await run_command(
+                        ["docker", "image", "ls", "--format", "{{.Repository}}:{{.Tag}}"],
+                        "Checking for local images",
+                        check=False,
                     )
-
-        self.loaded_images = required_images
+                )
+                .stdout.decode()
+                .splitlines()
+            )
+            for image in self.loaded_images - local_images:
+                await run_command(["docker", "pull", image], f"Pulling image {image} on host")
+            await self.import_images(*self.loaded_images)
+        else:
+            for image in self.loaded_images:
+                async for attempt in AsyncRetrying(stop=stop_after_attempt(5)):
+                    with attempt:
+                        attempt_num = attempt.retry_state.attempt_number
+                        await self.run_in_vm(
+                            ["k3s", "ctr", "image", "pull", image],
+                            f"Pulling image {image}" + (f" (attempt {attempt_num})" if attempt_num > 1 else ""),
+                        )
 
         if any("auth.oidc.enabled=true" in value.lower() for value in set_values_list):
             await agentstack_cli.commands.platform.istio.install(driver=self)
@@ -202,7 +204,7 @@ class BaseDriver(abc.ABC):
             "Deploying Agent Stack platform with Helm",
         )
 
-        if import_images:
+        if use_host_images:
             await self.run_in_vm(
                 ["k3s", "kubectl", "rollout", "restart", "deployment"],
                 "Restarting deployments to load imported images",

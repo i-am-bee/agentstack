@@ -130,11 +130,10 @@ class WSLDriver(BaseDriver):
         self,
         set_values_list: list[str],
         values_file: pathlib.Path | None = None,
-        import_images: list[str] | None = None,
-        pull_on_host: bool = False,
+        use_host_images: bool = False,
     ) -> None:
-        if pull_on_host:
-            raise NotImplementedError("Pulling on host is not supported on this platform.")
+        if use_host_images:
+            raise NotImplementedError("Using host images is not supported on this platform.")
 
         host_ip = (
             (
@@ -160,7 +159,7 @@ class WSLDriver(BaseDriver):
                 }
             ).encode(),
         )
-        await super().deploy(set_values_list=set_values_list, values_file=values_file, import_images=import_images)
+        await super().deploy(set_values_list=set_values_list, values_file=values_file, use_host_images=False)
         await self.run_in_vm(
             ["sh", "-c", "cat >/etc/systemd/system/kubectl-port-forward@.service"],
             "Installing systemd unit for port-forwarding",

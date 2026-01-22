@@ -62,17 +62,11 @@ async def start(
     set_values_list: typing.Annotated[
         list[str], typer.Option("--set", help="Set Helm chart values using <key>=<value> syntax", default_factory=list)
     ],
-    import_images: typing.Annotated[
-        list[str],
-        typer.Option(
-            "--import", help="Import an image from a local Docker CLI into Agent Stack platform", default_factory=list
-        ),
-    ],
-    pull_on_host: typing.Annotated[
+    use_host_images: typing.Annotated[
         bool,
         typer.Option(
-            "--pull-on-host",
-            help="Pull images on host Docker daemon and import them instead of pulling inside the VM. Acts as a pull cache layer.",
+            "--use-host-images",
+            help="Use images from host Docker daemon and import them instead of pulling inside the VM. Pulls images to host if not present. Acts as a pull cache layer.",
         ),
     ] = False,
     values_file: typing.Annotated[
@@ -96,8 +90,7 @@ async def start(
         await driver.deploy(
             set_values_list=set_values_list,
             values_file=values_file_path,
-            import_images=import_images,
-            pull_on_host=pull_on_host,
+            use_host_images=use_host_images,
         )
 
         with console.status("Waiting for Agent Stack platform to be ready...", spinner="dots"):
