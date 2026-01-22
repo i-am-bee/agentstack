@@ -6,22 +6,21 @@
 import { handleAgentCard } from 'agentstack-sdk';
 import type { ReactElement } from 'react';
 
-import { getAgentClient } from '#api/a2a/agent-card.ts';
 import { handleApiError } from '#app/(auth)/rsc.tsx';
 import { ErrorPage } from '#components/ErrorPage/ErrorPage.tsx';
 import { readSystemConfiguration } from '#modules/configuration/api/index.ts';
+import { readProvider } from '#modules/providers/api/index.ts';
 import { ModelType, NoModelSelectedErrorPage } from '#modules/runs/components/NoModelSelectedErrorPage.tsx';
 
 export async function ensureModelSelected(providerId: string) {
   let ErrorComponent: ReactElement | null = null;
 
   try {
-    const client = await getAgentClient(providerId);
-    const card = await client.getAgentCard();
+    const { agent_card } = await readProvider({ id: providerId });
 
     const {
       demands: { llmDemands, embeddingDemands },
-    } = handleAgentCard(card);
+    } = handleAgentCard(agent_card);
 
     if (llmDemands || embeddingDemands) {
       const config = await readSystemConfiguration();

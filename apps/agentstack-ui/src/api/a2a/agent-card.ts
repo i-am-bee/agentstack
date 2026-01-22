@@ -14,8 +14,8 @@ import { createAuthenticatedFetch } from 'agentstack-sdk';
 import { UnauthenticatedError } from '#api/errors.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 
-export async function getAgentClient(providerId: string, token?: string) {
-  const fetchImpl = token ? createAuthenticatedFetch(token, clientFetch) : clientFetch;
+export async function getAgentClient(providerId: string, token: string) {
+  const fetchImpl = createAuthenticatedFetch(token, clientFetch);
 
   const baseUrl = getBaseUrl();
   const agentCardPath = `api/v1/a2a/${providerId}/.well-known/agent-card.json`;
