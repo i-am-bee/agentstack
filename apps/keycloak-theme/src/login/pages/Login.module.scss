@@ -1,0 +1,70 @@
+/**
+ * Copyright 2026 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.root {
+  display: flex;
+  align-items: center;
+  min-block-size: 100vh;
+}
+
+.container {
+  margin-inline: auto;
+  padding-inline: $spacing-05;
+  inline-size: 100%;
+  display: flex;
+  flex-direction: column;
+  row-gap: $spacing-06;
+}
+
+.content {
+  inline-size: 100%;
+}
+
+.providers {
+  display: flex;
+  flex-direction: column;
+  row-gap: $spacing-03;
+
+  :global(.cds--btn) {
+    inline-size: 100%;
+    max-inline-size: none;
+  }
+}
+
+.separator {
+  margin-block: $spacing-06;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  block-size: 1rem;
+  background-color: transparent;
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    block-size: 1px;
+    inline-size: 100%;
+    background-color: $border-subtle;
+  }
+  &::after {
+    background: $background;
+    content: "OR";
+    font-size: rem(14px);
+    color: $text-placeholder;
+    position: relative;
+    padding-inline: $spacing-06;
+  }
+}
+
+.registration {
+  margin-block-start: $spacing-07;
+}
+
+@include breakpoint-up(md) {
+  .root {
+    padding-inline: $spacing-08;
+  }
+}

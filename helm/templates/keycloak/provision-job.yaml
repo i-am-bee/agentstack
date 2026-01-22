@@ -45,8 +45,8 @@ spec:
               fi
 
               # Set Login Theme
-              echo "Setting login theme to 'carbon'..."
-              /opt/keycloak/bin/kcadm.sh update realms/agentstack -s loginTheme=carbon
+              echo "Setting login theme to 'agentstack'..."
+              /opt/keycloak/bin/kcadm.sh update realms/agentstack -s loginTheme=agentstack
 
               # Create Roles
               echo "Creating Roles..."

@@ -122,10 +122,11 @@ if [[ "$CI" != "true" ]]; then PULL_ON_HOST_FLAG="--pull-on-host"; fi
     $PULL_ON_HOST_FLAG \
     --import "ghcr.io/i-am-bee/agentstack/agentstack-server:local" \
     --import "ghcr.io/i-am-bee/agentstack/supergateway:latest" \
-    --import "ghcr.io/i-am-bee/agentstack/keycloak-theme:local" \
+    --import "ghcr.io/i-am-bee/agentstack/keycloak-themed:local" \
     $UI_IMPORT \
     --set auth.nextauthDevUrl="http://localhost:3000" \
     --set image.tag=local \
+    --set keycloak.image.tag=local \
     $UI_TAG "$@"
 """
 

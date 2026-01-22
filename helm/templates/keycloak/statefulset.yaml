@@ -21,8 +21,6 @@ spec:
       labels:
         app: keycloak
         {{- include "agentstack.labels" . | nindent 8 }}
-      annotations:
-        checksum/keycloak-theme: {{ include (print $.Template.BasePath "/keycloak/theme-configmap.yaml") . | sha256sum }}
     spec:
       initContainers:
         - name: init-schema
@@ -49,13 +47,8 @@ spec:
             {{- include "agentstack.keycloak.dbEnvVars" . | nindent 12 }}
       containers:
         - name: keycloak
-          {{- if .Values.keycloak.customTheme.enabled }}
-          image: "{{ .Values.keycloak.customTheme.image.repository }}:{{ .Values.keycloak.customTheme.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.keycloak.customTheme.image.pullPolicy }}
-          {{- else }}
           image: "{{ .Values.keycloak.image.repository }}:{{ .Values.keycloak.image.tag }}"
           imagePullPolicy: {{ .Values.keycloak.image.pullPolicy }}
-          {{- end }}
           args: ["start"]
           env:
             - name: KC_BOOTSTRAP_ADMIN_USERNAME
@@ -117,17 +110,6 @@ spec:
               containerPort: 7800
             - name: jgroups-fd
               containerPort: 57800
-          volumeMounts:
-            {{- if not .Values.keycloak.customTheme.enabled }}
-            {{- range $path, $_ := .Files.Glob "keycloak-theme/**" }}
-            - name: keycloak-theme
-              mountPath: /opt/keycloak/themes/carbon/{{ $path | replace "keycloak-theme/" "" }}
-              subPath: {{ $path | replace "keycloak-theme/" "" | replace "/" "_" }}
-            {{- end }}
-            {{- if .Values.keycloak.extraVolumeMounts }}
-            {{- toYaml .Values.keycloak.extraVolumeMounts | nindent 12 }}
-            {{- end }}
-            {{- end }}
           startupProbe:
             httpGet:
               path: /health/started
@@ -148,12 +130,4 @@ spec:
             failureThreshold: 3              
           resources:
             {{- toYaml .Values.keycloak.resources | nindent 12 }}
-      volumes:
-        {{- if not .Values.keycloak.customTheme.enabled }}
-        - name: keycloak-theme
-          configMap:
-            name: keycloak-theme
-        {{- if .Values.keycloak.extraVolumes }}
-        {{- toYaml .Values.keycloak.extraVolumes | nindent 8 }}
-        {{- end }}
 {{- end }}

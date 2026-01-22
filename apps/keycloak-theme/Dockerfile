@@ -1,4 +1,4 @@
-FROM quay.io/keycloak/keycloak:26.0.7
+FROM quay.io/keycloak/keycloak:26.5.2
 WORKDIR /opt/keycloak
 COPY dist_keycloak/keycloak-theme-for-kc-all-other-versions.jar /opt/keycloak/providers/keycloak-theme.jar
 RUN /opt/keycloak/bin/kc.sh build

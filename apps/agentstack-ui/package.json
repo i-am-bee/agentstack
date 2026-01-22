@@ -17,7 +17,7 @@
     "@carbon/layout": "^11.44.0",
     "@carbon/motion": "^11.38.0",
     "@carbon/react": "catalog:",
-    "@carbon/styles": "^1.96.0",
+    "@carbon/styles": "catalog:",
     "@floating-ui/react": "^0.27.16",
     "@hookform/resolvers": "^5.2.2",
     "@ibm/plex": "^6.4.1",

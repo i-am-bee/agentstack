@@ -1,0 +1,15 @@
+/**
+ * Copyright 2026 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.heading {
+  font-size: rem(32px);
+  font-weight: 400;
+  line-height: math.div(40, 32);
+  margin-block-end: 0;
+
+  strong {
+    font-weight: 600;
+  }
+}
