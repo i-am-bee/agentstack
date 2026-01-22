@@ -124,7 +124,7 @@ class ConnectorService:
             await self._external_mcp.bootstrap_auth(
                 connector=connector, callback_url=callback_uri, redirect_url=redirect_url
             )
-            connector.state = ConnectorState.auth_required
+            connector.transition(state=ConnectorState.auth_required)
         elif isinstance(err, httpx.HTTPStatusError):
             logger.error("Connector failed", exc_info=True)
             try:
@@ -166,9 +166,7 @@ class ConnectorService:
 
         try:
             await self.probe_connector(connector=connector)
-            connector.state = ConnectorState.connected
-            connector.disconnect_reason = None
-            connector.disconnect_permanent = None
+            connector.transition(state=ConnectorState.connected)
         except Exception as err:
             await self._handle_connection_error(err, connector, callback_uri, redirect_url)
 
@@ -191,9 +189,9 @@ class ConnectorService:
 
         if connector.auth:
             connector.auth.flow = None
-        connector.state = ConnectorState.disconnected
-        connector.disconnect_reason = "Client request"
-        connector.disconnect_permanent = True
+        connector.transition(
+            state=ConnectorState.disconnected, disconnect_reason="Client request", disconnect_permanent=True
+        )
 
         if self._managed_mcp.is_managed(connector=connector):
             await self._managed_mcp.undeploy(connector=connector)
@@ -207,17 +205,12 @@ class ConnectorService:
         async with self._uow() as uow:
             connector = await uow.connectors.get(connector_id=connector_id, user_id=user.id if user else None)
 
-        if connector.state not in (ConnectorState.connected, ConnectorState.disconnected):
-            return
-
-        if connector.disconnect_permanent:
+        if not connector.refreshable:
             return
 
         try:
             await self.probe_connector(connector=connector)
-            connector.state = ConnectorState.connected
-            connector.disconnect_reason = None
-            connector.disconnect_permanent = None
+            connector.transition(state=ConnectorState.connected)
         except Exception as err:
             if isinstance(err, httpx.HTTPStatusError):
                 if err.response.status_code >= 400 and err.response.status_code < 500:
@@ -225,13 +218,17 @@ class ConnectorService:
                         await self._external_mcp.revoke_token(connector=connector)
                         if connector.auth:
                             connector.auth.flow = None
-                    connector.disconnect_permanent = True
+                    connector.transition(
+                        state=ConnectorState.disconnected, disconnect_reason=str(err), disconnect_permanent=True
+                    )
                 else:
-                    connector.disconnect_permanent = False
+                    connector.transition(
+                        state=ConnectorState.disconnected, disconnect_reason=str(err), disconnect_permanent=False
+                    )
             else:
-                connector.disconnect_permanent = False
-            connector.state = ConnectorState.disconnected
-            connector.disconnect_reason = str(err)
+                connector.transition(
+                    state=ConnectorState.disconnected, disconnect_reason=str(err), disconnect_permanent=False
+                )
         finally:
             async with self._uow() as uow:
                 await uow.connectors.update(connector=connector)

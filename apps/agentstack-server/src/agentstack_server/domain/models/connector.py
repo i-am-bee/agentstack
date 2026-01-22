@@ -4,6 +4,7 @@
 from enum import StrEnum
 from typing import Annotated, Literal
 from uuid import UUID, uuid4
+from xmlrpc.client import boolean
 
 from pydantic import AnyUrl, AwareDatetime, BaseModel, BeforeValidator, ConfigDict, Field
 
@@ -71,3 +72,24 @@ class Connector(BaseModel):
     created_by: UUID
 
     metadata: Metadata | None = None
+
+    @property
+    def refreshable(self) -> bool:
+        return self.state == ConnectorState.connected or (
+            self.state == ConnectorState.disconnected and not self.disconnect_permanent
+        )
+
+    def transition(
+        self,
+        *,
+        state: ConnectorState,
+        disconnect_reason: str | None = None,
+        disconnect_permanent: boolean | None = None,
+    ) -> None:
+        if state != ConnectorState.disconnected and (disconnect_reason is not None or disconnect_permanent is not None):
+            raise ValueError("Disconnect arguments can only be specified when transitioning to disconnected state")
+
+        self.state = state
+        if state != ConnectorState.disconnected:
+            self.disconnect_reason = None
+            self.disconnect_permanent = None
