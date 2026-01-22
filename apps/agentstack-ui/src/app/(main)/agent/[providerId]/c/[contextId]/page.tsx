@@ -3,16 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { notFound } from 'next/navigation';
-
-import { runtimeConfig } from '#contexts/App/runtime-config.ts';
-import { LIST_CONTEXT_HISTORY_DEFAULT_QUERY } from '#modules/platform-context/api/constants.ts';
-import { fetchContextHistory } from '#modules/platform-context/api/index.ts';
-import { PlatformContextProvider } from '#modules/platform-context/contexts/PlatformContextProvider.tsx';
-import { RunView } from '#modules/runs/components/RunView.tsx';
-
-import { ensureModelSelected } from '../../ensure-model-selected';
-import { fetchAgent } from '../../rsc';
+import { AgentRun } from '#modules/runs/components/AgentRun.tsx';
 
 interface Props {
   params: Promise<{ providerId: string; contextId: string }>;
@@ -20,30 +11,6 @@ interface Props {
 
 export default async function AgentRunPage({ params }: Props) {
   const { providerId, contextId } = await params;
-  const { featureFlags } = runtimeConfig;
 
-  if (featureFlags.LocalSetup) {
-    const { ErrorComponent } = await ensureModelSelected(providerId);
-    if (ErrorComponent) {
-      return ErrorComponent;
-    }
-  }
-
-  const [agent, initialData] = await Promise.all([
-    fetchAgent(providerId),
-    fetchContextHistory({
-      context_id: contextId,
-      query: LIST_CONTEXT_HISTORY_DEFAULT_QUERY,
-    }),
-  ]);
-
-  if (!initialData) {
-    notFound();
-  }
-
-  return (
-    <PlatformContextProvider history={initialData} contextId={contextId}>
-      <RunView agent={agent} />
-    </PlatformContextProvider>
-  );
+  return <AgentRun providerId={providerId} contextId={contextId} />;
 }

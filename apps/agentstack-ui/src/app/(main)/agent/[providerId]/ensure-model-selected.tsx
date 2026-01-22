@@ -8,19 +8,17 @@ import type { ReactElement } from 'react';
 
 import { handleApiError } from '#app/(auth)/rsc.tsx';
 import { ErrorPage } from '#components/ErrorPage/ErrorPage.tsx';
+import type { Agent } from '#modules/agents/api/types.ts';
 import { readSystemConfiguration } from '#modules/configuration/api/index.ts';
-import { readProvider } from '#modules/providers/api/index.ts';
 import { ModelType, NoModelSelectedErrorPage } from '#modules/runs/components/NoModelSelectedErrorPage.tsx';
 
-export async function ensureModelSelected(providerId: string) {
+export async function ensureModelSelected(agent: Agent) {
   let ErrorComponent: ReactElement | null = null;
 
   try {
-    const { agent_card } = await readProvider({ id: providerId });
-
     const {
       demands: { llmDemands, embeddingDemands },
-    } = handleAgentCard(agent_card);
+    } = handleAgentCard(agent);
 
     if (llmDemands || embeddingDemands) {
       const config = await readSystemConfiguration();
