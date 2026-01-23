@@ -175,6 +175,18 @@ spec:
             {{/* see https://fastapi.tiangolo.com/deployment/https/?h=forwarded+allow+ips#proxy-forwarded-headers */}}
             - name: TRUST_PROXY_HEADERS
               value: {{ .Values.trustProxyHeaders | quote }}
+            {{- if .Values.cors.enabled }}
+            - name: CORS__ENABLED
+              value: {{ .Values.cors.enabled | quote }}
+            - name: CORS__ALLOW_ORIGINS
+              value: {{ .Values.cors.allowOrigins | toJson | quote }}
+            - name: CORS__ALLOW_METHODS
+              value: {{ .Values.cors.allowMethods | toJson | quote }}
+            - name: CORS__ALLOW_HEADERS
+              value: {{ .Values.cors.allowHeaders | toJson | quote }}
+            - name: CORS__ALLOW_CREDENTIALS
+              value: {{ .Values.cors.allowCredentials | quote }}
+            {{- end }}
             - name: A2A_PROXY__REQUESTS_EXPIRE_AFTER_DAYS
               value: {{ .Values.a2aProxyRequestsExpireAfterDays | quote }}
             - name: CONTEXT__RESOURCES_EXPIRE_AFTER_DAYS

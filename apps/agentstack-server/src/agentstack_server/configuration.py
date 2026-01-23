@@ -407,6 +407,22 @@ class RateLimitConfiguration(BaseModel, arbitrary_types_allowed=True):
         return sorted(cast(list[RateLimitItem], self.global_limits))
 
 
+class CORSConfiguration(BaseModel):
+    enabled: bool = False
+    allow_origins: list[str] = Field(default_factory=list, description="List of allowed origins for CORS")
+    allow_methods: list[str] = Field(default_factory=lambda: ["*"], description="List of allowed methods for CORS")
+    allow_headers: list[str] = Field(default_factory=lambda: ["*"], description="List of allowed headers for CORS")
+    allow_credentials: bool = Field(default=False, description="Whether to allow credentials for CORS")
+
+    @model_validator(mode="after")
+    def validate_cors(self):
+        if self.enabled and not self.allow_origins:
+            logger.warning("CORS is enabled, but no origins are specified in 'allow_origins'")
+        if "*" in self.allow_origins and self.allow_credentials:
+            raise ValueError("allow_origins cannot be '*' when allow_credentials is True")
+        return self
+
+
 class Configuration(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", env_nested_delimiter="__", extra="ignore"
@@ -414,6 +430,7 @@ class Configuration(BaseSettings):
 
     auth: AuthConfiguration = Field(default_factory=AuthConfiguration)
     logging: LoggingConfiguration = Field(default_factory=LoggingConfiguration)
+    cors: CORSConfiguration = Field(default_factory=CORSConfiguration)
     generate_conversation_title: GenerateConversationTitleConfiguration = Field(
         default_factory=GenerateConversationTitleConfiguration
     )

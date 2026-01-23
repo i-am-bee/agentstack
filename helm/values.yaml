@@ -147,6 +147,17 @@ auth:
 # See https://www.uvicorn.org/settings/#application-interface
 trustProxyHeaders: false
 
+cors:
+  enabled: false
+  allowOrigins: []
+  # - http://localhost:3000
+  # - https://my-ui.example.com
+  allowMethods:
+    - "*"
+  allowHeaders:
+    - "*"
+  allowCredentials: false
+
 # --- EXTERNAL REGISTRIES ---
 # GitHub configuration for accessing private repositories
 # This creates a .githubconfigjson file in the agentstack-secret
