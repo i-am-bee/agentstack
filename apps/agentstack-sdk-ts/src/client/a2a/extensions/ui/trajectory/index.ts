@@ -9,9 +9,9 @@ import type { A2AUiExtension } from '../../../../core/extensions/types';
 import { trajectoryMetadataSchema } from './schemas';
 import type { TrajectoryMetadata } from './types';
 
-const URI = 'https://a2a-extensions.agentstack.beeai.dev/ui/trajectory/v1';
+export const TRAJECTORY_EXTENSION_URI = 'https://a2a-extensions.agentstack.beeai.dev/ui/trajectory/v1';
 
-export const trajectoryExtension: A2AUiExtension<typeof URI, TrajectoryMetadata> = {
-  getUri: () => URI,
-  getMessageMetadataSchema: () => z.object({ [URI]: trajectoryMetadataSchema }).partial(),
+export const trajectoryExtension: A2AUiExtension<typeof TRAJECTORY_EXTENSION_URI, TrajectoryMetadata> = {
+  getUri: () => TRAJECTORY_EXTENSION_URI,
+  getMessageMetadataSchema: () => z.object({ [TRAJECTORY_EXTENSION_URI]: trajectoryMetadataSchema }).partial(),
 };

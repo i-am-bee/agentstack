@@ -9,14 +9,14 @@ import type { A2AUiExtension } from '../../../../core/extensions/types';
 import { approvalRequestSchema, approvalResponseSchema } from './schemas';
 import type { ApprovalRequest, ApprovalResponse } from './types';
 
-const URI = 'https://a2a-extensions.agentstack.beeai.dev/interactions/approval/v1';
+export const APPROVAL_EXTENSION_URI = 'https://a2a-extensions.agentstack.beeai.dev/interactions/approval/v1';
 
-export const approvalExtension: A2AUiExtension<typeof URI, ApprovalRequest> = {
-  getUri: () => URI,
-  getMessageMetadataSchema: () => z.object({ [URI]: approvalRequestSchema }).partial(),
+export const approvalExtension: A2AUiExtension<typeof APPROVAL_EXTENSION_URI, ApprovalRequest> = {
+  getUri: () => APPROVAL_EXTENSION_URI,
+  getMessageMetadataSchema: () => z.object({ [APPROVAL_EXTENSION_URI]: approvalRequestSchema }).partial(),
 };
 
-export const approvalResponseExtension: A2AUiExtension<typeof URI, ApprovalResponse> = {
-  getUri: () => URI,
-  getMessageMetadataSchema: () => z.object({ [URI]: approvalResponseSchema }).partial(),
+export const approvalResponseExtension: A2AUiExtension<typeof APPROVAL_EXTENSION_URI, ApprovalResponse> = {
+  getUri: () => APPROVAL_EXTENSION_URI,
+  getMessageMetadataSchema: () => z.object({ [APPROVAL_EXTENSION_URI]: approvalResponseSchema }).partial(),
 };

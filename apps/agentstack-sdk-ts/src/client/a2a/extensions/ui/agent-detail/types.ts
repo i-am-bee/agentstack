@@ -3,10 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export {
-  type AgentDetail,
-  type AgentDetailContributor,
-  type AgentDetailTool,
-  type AgentDetailVariable,
-  InteractionMode,
-} from '../../../../../shared/extensions/ui/agent-detail';
+import type z from 'zod';
+
+import type { agentDetailContributorSchema, agentDetailSchema, agentDetailToolSchema } from './schemas';
+
+export enum InteractionMode {
+  SingleTurn = 'single-turn',
+  MultiTurn = 'multi-turn',
+}
+
+export type AgentDetailTool = z.infer<typeof agentDetailToolSchema>;
+
+export type AgentDetailContributor = z.infer<typeof agentDetailContributorSchema>;
+
+export type AgentDetail = z.infer<typeof agentDetailSchema>;

@@ -3,15 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Part } from '@a2a-js/sdk';
 import { randomUUID } from 'crypto';
 import { describe, expect, it } from 'vitest';
 
-import type { ServerHandle } from '../../src/experimental/server/types';
-import { Server } from '../../src/server';
-import { accumulateResponse, buildAgentTest, createTestFulfillments } from '../utils/test-helpers';
+import { isTextPart } from '../../src/experimental/server/a2a/utils';
+import { Server } from '../../src/experimental/server/core';
+import { accumulateResponse, buildAgentTest, createTestFulfillments } from '../utils';
 
-async function createEchoAgent(port: number): Promise<ServerHandle> {
+async function createEchoAgent(port: number) {
   const server = new Server();
 
   return server
@@ -20,8 +19,9 @@ async function createEchoAgent(port: number): Promise<ServerHandle> {
       description: 'An echo agent for testing',
       version: '1.0.0',
       handler: async function* (input) {
-        const firstPart = input.parts?.[0] as Part | undefined;
-        if (firstPart?.kind === 'text') {
+        const firstPart = input.parts.at(0);
+
+        if (isTextPart(firstPart)) {
           yield `Echo: ${firstPart.text}`;
         } else {
           yield 'No text part found';
@@ -41,11 +41,17 @@ describe('Echo Agent E2E', () => {
 
       const message = await createMessage(contextId, fulfillments, {
         messageId: randomUUID(),
-        parts: [{ kind: 'text', text: testMessage }],
+        parts: [
+          {
+            kind: 'text',
+            text: testMessage,
+          },
+        ],
       });
 
       const stream = client.sendMessageStream({ message });
       const responseText = await accumulateResponse(stream);
+
       expect(responseText).toBe(`Echo: ${testMessage}`);
     }),
   );

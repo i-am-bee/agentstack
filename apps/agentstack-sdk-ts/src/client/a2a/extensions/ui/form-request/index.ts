@@ -9,9 +9,9 @@ import type { A2AUiExtension } from '../../../../core/extensions/types';
 import { formRenderSchema } from '../../common/form/schemas';
 import type { FormRender } from '../../common/form/types';
 
-const URI = 'https://a2a-extensions.agentstack.beeai.dev/ui/form_request/v1';
+export const FORM_REQUEST_EXTENSION_URI = 'https://a2a-extensions.agentstack.beeai.dev/ui/form_request/v1';
 
-export const formRequestExtension: A2AUiExtension<typeof URI, FormRender> = {
-  getUri: () => URI,
-  getMessageMetadataSchema: () => z.object({ [URI]: formRenderSchema }).partial(),
+export const formRequestExtension: A2AUiExtension<typeof FORM_REQUEST_EXTENSION_URI, FormRender> = {
+  getUri: () => FORM_REQUEST_EXTENSION_URI,
+  getMessageMetadataSchema: () => z.object({ [FORM_REQUEST_EXTENSION_URI]: formRenderSchema }).partial(),
 };

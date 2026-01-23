@@ -7,10 +7,14 @@ import type { A2AServiceExtension } from '../../../../core/extensions/types';
 import { embeddingDemandsSchema, embeddingFulfillmentsSchema } from './schemas';
 import type { EmbeddingDemands, EmbeddingFulfillments } from './types';
 
-const URI = 'https://a2a-extensions.agentstack.beeai.dev/services/embedding/v1';
+export const EMBEDDING_EXTENSION_URI = 'https://a2a-extensions.agentstack.beeai.dev/services/embedding/v1';
 
-export const embeddingExtension: A2AServiceExtension<typeof URI, EmbeddingDemands, EmbeddingFulfillments> = {
-  getUri: () => URI,
+export const embeddingExtension: A2AServiceExtension<
+  typeof EMBEDDING_EXTENSION_URI,
+  EmbeddingDemands,
+  EmbeddingFulfillments
+> = {
+  getUri: () => EMBEDDING_EXTENSION_URI,
   getDemandsSchema: () => embeddingDemandsSchema,
   getFulfillmentsSchema: () => embeddingFulfillmentsSchema,
 };

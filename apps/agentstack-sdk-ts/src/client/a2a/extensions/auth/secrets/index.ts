@@ -9,15 +9,15 @@ import type { A2AServiceExtension, A2AUiExtension } from '../../../../core/exten
 import { secretDemandsSchema, secretFulfillmentsSchema } from './schemas';
 import type { SecretDemands, SecretFulfillments } from './types';
 
-const URI = 'https://a2a-extensions.agentstack.beeai.dev/auth/secrets/v1';
+export const SECRETS_EXTENSION_URI = 'https://a2a-extensions.agentstack.beeai.dev/auth/secrets/v1';
 
-export const secretsExtension: A2AServiceExtension<typeof URI, SecretDemands, SecretFulfillments> = {
-  getUri: () => URI,
+export const secretsExtension: A2AServiceExtension<typeof SECRETS_EXTENSION_URI, SecretDemands, SecretFulfillments> = {
+  getUri: () => SECRETS_EXTENSION_URI,
   getDemandsSchema: () => secretDemandsSchema,
   getFulfillmentsSchema: () => secretFulfillmentsSchema,
 };
 
-export const secretsRequestExtension: A2AUiExtension<typeof URI, SecretDemands> = {
-  getUri: () => URI,
-  getMessageMetadataSchema: () => z.object({ [URI]: secretDemandsSchema }).partial(),
+export const secretsRequestExtension: A2AUiExtension<typeof SECRETS_EXTENSION_URI, SecretDemands> = {
+  getUri: () => SECRETS_EXTENSION_URI,
+  getMessageMetadataSchema: () => z.object({ [SECRETS_EXTENSION_URI]: secretDemandsSchema }).partial(),
 };

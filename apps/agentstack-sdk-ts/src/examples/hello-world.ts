@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { TextPart } from '@a2a-js/sdk';
-
+import { isTextPart } from '../experimental/server/a2a/utils';
+import { InteractionMode } from '../extensions';
 import { Server } from '../server';
 
 const server = new Server();
@@ -15,13 +15,16 @@ server
     description: 'A simple hello world agent',
     version: '0.0.1',
     detail: {
-      interaction_mode: 'multi-turn',
+      interaction_mode: InteractionMode.MultiTurn,
       user_greeting: 'Hello! How can I help you?',
-      author: { name: 'Agentstack' },
+      author: {
+        name: 'Agent Stack',
+      },
     },
     handler: async function* (input) {
-      const firstPart = input.parts?.[0] as TextPart | undefined;
-      if (firstPart?.kind === 'text') {
+      const firstPart = input.parts.at(0);
+
+      if (isTextPart(firstPart)) {
         yield `Hello! You said: ${firstPart.text}`;
       } else {
         yield `No text part found`;

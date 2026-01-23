@@ -9,15 +9,15 @@ import type { A2AServiceExtension, A2AUiExtension } from '../../../../core/exten
 import { oauthDemandsSchema, oauthFulfillmentsSchema, oauthRequestSchema } from './schemas';
 import type { OAuthDemands, OAuthFulfillments, OAuthRequest } from './types';
 
-const URI = 'https://a2a-extensions.agentstack.beeai.dev/auth/oauth/v1';
+export const OAUTH_EXTENSION_URI = 'https://a2a-extensions.agentstack.beeai.dev/auth/oauth/v1';
 
-export const oauthExtension: A2AServiceExtension<typeof URI, OAuthDemands, OAuthFulfillments> = {
-  getUri: () => URI,
+export const oauthExtension: A2AServiceExtension<typeof OAUTH_EXTENSION_URI, OAuthDemands, OAuthFulfillments> = {
+  getUri: () => OAUTH_EXTENSION_URI,
   getDemandsSchema: () => oauthDemandsSchema,
   getFulfillmentsSchema: () => oauthFulfillmentsSchema,
 };
 
-export const oauthRequestExtension: A2AUiExtension<typeof URI, OAuthRequest> = {
-  getUri: () => URI,
-  getMessageMetadataSchema: () => z.object({ [URI]: oauthRequestSchema }).partial(),
+export const oauthRequestExtension: A2AUiExtension<typeof OAUTH_EXTENSION_URI, OAuthRequest> = {
+  getUri: () => OAUTH_EXTENSION_URI,
+  getMessageMetadataSchema: () => z.object({ [OAUTH_EXTENSION_URI]: oauthRequestSchema }).partial(),
 };

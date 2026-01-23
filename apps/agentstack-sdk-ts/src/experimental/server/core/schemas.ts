@@ -3,5 +3,4 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export * from './experimental/server/a2a';
-export * from './experimental/server/core';
+export * from './config/schemas';
