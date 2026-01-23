@@ -205,6 +205,34 @@ rateLimit:
   exceed limits by distributing requests across replicas.
 </Warning>
 
+### CORS Configuration
+
+Agent Stack supports Cross-Origin Resource Sharing (CORS) to allow web applications hosted on different domains to interact with the Agent Stack API.
+
+```yaml
+cors:
+  enabled: true
+  allowOrigins:
+    - http://localhost:3000
+    - https://my-ui.example.com
+  allowMethods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  allowHeaders:
+    - Content-Type
+    - Authorization
+  allowCredentials: true
+```
+
+- `cors.enabled`: Set to `true` to enable CORS. Default is `false`.
+- `cors.allowOrigins`: A list of origins (e.g., `http://localhost:3000`) that are allowed to make cross-site requests to the Agent Stack API.
+- `cors.allowMethods`: A list of HTTP methods (e.g., `GET`, `POST`) that are allowed for cross-origin requests. Default is `["*"]`.
+- `cors.allowHeaders`: A list of HTTP request headers (e.g., `Content-Type`, `Authorization`) that can be used when making the actual cross-origin request. Default is `["*"]`.
+- `cors.allowCredentials`: Set to `true` to indicate that the client can send cookies and HTTP authentication credentials with the cross-origin request. Note that `allowOrigins` cannot be `["*"]` when `allowCredentials` is `true`. Default is `false`.
+
 ### Exposing the platform
 
 Ingress is not configured by default. You can expose the following services using your preferred way.
