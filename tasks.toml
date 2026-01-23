@@ -111,11 +111,8 @@ if [[ ! "$*" =~ 'ui.enabled=false' ]]; then
     UI_TAG="--set ui.image.tag=local"
 fi
 
-USE_HOST_IMAGES_FLAG=""
-if [[ "$CI" != "true" ]]; then USE_HOST_IMAGES_FLAG="--use-host-images"; fi
-
 {{ mise_bin }} run agentstack-cli:run -- platform start \
-    $USE_HOST_IMAGES_FLAG \
+    --use-host-images \
     --set image.tag=local \
     $UI_TAG "$@"
 """
