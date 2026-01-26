@@ -124,6 +124,14 @@ class UserFeedbackService:
 
             span_id = edges[0]["node"]["spanId"]
 
+            def label():
+                if user_feedback.rating > 0:
+                    return "positive"
+                elif user_feedback.rating < 0:
+                    return "negative"
+                else:
+                    return "neutral"
+
             response = await self._phoenix_client.post(
                 "/v1/span_annotations",
                 json={
@@ -133,10 +141,11 @@ class UserFeedbackService:
                             "annotator_kind": "HUMAN",
                             "span_id": span_id,
                             "result": {
-                                "label": None,
+                                "label": label(),
                                 "score": user_feedback.rating,
                                 "explanation": user_feedback.comment,
                             },
+                            "metadata": {"tags": user_feedback.comment_tags},
                         }
                     ]
                 },
