@@ -1,6 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 import asyncio
+import sys
 import typing
 
 import pydantic
@@ -14,7 +15,7 @@ from agentstack_cli import configuration
 from agentstack_cli.async_typer import AsyncTyper
 from agentstack_cli.configuration import Configuration
 from agentstack_cli.console import console
-from agentstack_cli.utils import (
+from agentstack_cli.server_utils import (
     announce_server_action,
     confirm_server_action,
 )
@@ -99,7 +100,7 @@ async def remove_connector(
         console.error(
             "[red]Cannot specify both --all and a search path. Use --all to remove all connectors, or provide a search path for specific connectors.[/red]"
         )
-        raise typer.Exit(1)
+        sys.exit(1)
 
     async with configuration.use_platform_client():
         connectors_list = await Connector.list()
@@ -191,7 +192,7 @@ async def select_connector(search_path: str) -> Connector | None:
     except ValueError as e:
         console.error(e.__str__())
         console.hint("Please refine your input to match exactly one connector id or url.")
-        raise typer.Exit(code=1) from None
+        sys.exit(1)
 
 
 @app.command("get")
@@ -258,7 +259,7 @@ async def disconnect(
         console.error(
             "[red]Cannot specify both --all and a search path. Use --all to remove all connectors, or provide a search path for specific connectors.[/red]"
         )
-        raise typer.Exit(1)
+        sys.exit(1)
 
     async with configuration.use_platform_client():
         connectors_list = await Connector.list()

@@ -112,9 +112,8 @@ from rich.table import Column
 
 from agentstack_cli.api import a2a_client
 from agentstack_cli.async_typer import AsyncTyper, console, create_table, err_console
+from agentstack_cli.server_utils import announce_server_action, confirm_server_action
 from agentstack_cli.utils import (
-    announce_server_action,
-    confirm_server_action,
     generate_schema_example,
     is_github_url,
     parse_env_var,

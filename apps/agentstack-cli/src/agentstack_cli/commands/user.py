@@ -11,7 +11,7 @@ from rich.table import Column
 
 from agentstack_cli.async_typer import AsyncTyper, console, create_table
 from agentstack_cli.configuration import Configuration
-from agentstack_cli.utils import announce_server_action, confirm_server_action
+from agentstack_cli.server_utils import announce_server_action, confirm_server_action
 
 app = AsyncTyper()
 configuration = Configuration()

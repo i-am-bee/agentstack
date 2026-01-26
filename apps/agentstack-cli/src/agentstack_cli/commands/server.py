@@ -13,6 +13,7 @@ import httpx
 import typer
 import uvicorn
 from authlib.common.security import generate_token
+from authlib.oauth2.rfc6749.errors import InvalidGrantError, OAuth2Error
 from authlib.oauth2.rfc7636 import create_s256_code_challenge
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
@@ -104,6 +105,8 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
 
     server = server.rstrip("/")
 
+    log_in_message = "No authentication tokens found for this server. Proceeding to log in."
+
     if server_data := config.auth_manager.get_server(server):
         console.info("Switching to an already logged in server.")
         auth_server = None
@@ -127,126 +130,109 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
             if not auth_server:
                 console.info("Action cancelled.")
                 sys.exit(1)
-    else:
-        console.info("No authentication tokens found for this server. Proceeding to log in.")
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(f"{server}/.well-known/oauth-protected-resource/", follow_redirects=True)
-            if resp.is_error:
-                console.error("This server does not appear to run a compatible version of Agent Stack Platform.")
-                sys.exit(1)
-            metadata = resp.json()
 
-        auth_servers = metadata.get("authorization_servers", [])
-        auth_server = None
-        token = None
+        # Validate that the token is still valid by attempting to load it
 
-        client_id = config.client_id
-        client_secret = config.client_secret
-        registration_token = None
+        # Temporarily set the server as active to test the token, this does not save the change yet
+        previous_server = config.auth_manager.active_server
+        previous_auth_server = config.auth_manager.active_auth_server
+        config.auth_manager._auth.active_server = server
+        config.auth_manager._auth.active_auth_server = auth_server
 
-        if auth_servers:
-            if len(auth_servers) == 1:
-                auth_server = auth_servers[0]
+        try:
+            token = await config.auth_manager.load_auth_token()
+            if not token:
+                # No token available, need to log in
+                # Restore previous state until login completes
+                config.auth_manager._auth.active_server = previous_server
+                config.auth_manager._auth.active_auth_server = previous_auth_server
+                # Fall through to login flow below
             else:
-                auth_server = await inquirer.select(  # type: ignore
-                    message="Select an authorization server:",
-                    choices=auth_servers,
-                ).execute_async()
+                # Token is valid, switch to this server (setters handle saving)
+                config.auth_manager.active_server = server
+                config.auth_manager.active_auth_server = auth_server
+                console.success(f"Logged in to [cyan]{server}[/cyan].")
+                return
+        except InvalidGrantError:
+            # Token refresh failed due to invalid/expired refresh token
+            log_in_message = "Your session has expired. Please log in again."
+            # Restore previous state until login completes
+            config.auth_manager._auth.active_server = previous_server
+            config.auth_manager._auth.active_auth_server = previous_auth_server
+            # Fall through to login flow below
+        except OAuth2Error as e:
+            # Other OAuth2 protocol errors - report but don't continue
+            console.error(f"OAuth2 error: {e.description}")
+            config.auth_manager._auth.active_server = previous_server
+            config.auth_manager._auth.active_auth_server = previous_auth_server
+            sys.exit(1)
+        except RuntimeError as e:
+            # Network or OIDC discovery errors - report but don't continue
+            console.error(f"Failed to validate authentication: {e}")
+            console.hint("Check your network connection and try again.")
+            config.auth_manager._auth.active_server = previous_server
+            config.auth_manager._auth.active_auth_server = previous_auth_server
+            sys.exit(1)
 
-            if not auth_server:
-                raise RuntimeError("No authorization server selected.")
+    # Starting the login flow
+    console.info(log_in_message)
 
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(f"{server}/.well-known/oauth-protected-resource/", follow_redirects=True)
+        if resp.is_error:
+            console.error("This server does not appear to run a compatible version of Agent Stack Platform.")
+            sys.exit(1)
+        metadata = resp.json()
+
+    auth_servers = metadata.get("authorization_servers", [])
+    auth_server = None
+    token = None
+
+    client_id = config.client_id
+    client_secret = config.client_secret
+    registration_token = None
+
+    if auth_servers:
+        if len(auth_servers) == 1:
+            auth_server = auth_servers[0]
+        else:
+            auth_server = await inquirer.select(  # type: ignore
+                message="Select an authorization server:",
+                choices=auth_servers,
+            ).execute_async()
+
+        if not auth_server:
+            raise RuntimeError("No authorization server selected.")
+
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.get(f"{auth_server}/.well-known/openid-configuration")
+                resp.raise_for_status()
+                oidc = resp.json()
+            except Exception as e:
+                raise RuntimeError(f"OIDC discovery failed: {e}") from e
+
+        registration_endpoint = oidc["registration_endpoint"]
+        if not client_id and registration_endpoint:
             async with httpx.AsyncClient() as client:
+                resp = None
                 try:
-                    resp = await client.get(f"{auth_server}/.well-known/openid-configuration")
-                    resp.raise_for_status()
-                    oidc = resp.json()
-                except Exception as e:
-                    raise RuntimeError(f"OIDC discovery failed: {e}") from e
-
-            registration_endpoint = oidc["registration_endpoint"]
-            if not client_id and registration_endpoint:
-                async with httpx.AsyncClient() as client:
-                    resp = None
-                    try:
-                        app_name = get_unique_app_name()
-                        resp = await client.post(
-                            registration_endpoint,
-                            json={
-                                "client_name": app_name,
-                                "grant_types": ["authorization_code", "refresh_token"],
-                                "enforce_pkce": True,
-                                "all_users_entitled": True,
-                                "redirect_uris": [REDIRECT_URI],
-                            },
-                        )
-                        resp.raise_for_status()
-                        data = resp.json()
-                        client_id = data["client_id"]
-                        client_secret = data["client_secret"]
-                        registration_token = data["registration_access_token"]
-                    except Exception as e:
-                        if resp:
-                            try:
-                                error_details = resp.json()
-                                console.warning(
-                                    f"error: {error_details['error']} error description: {error_details['error_description']}"
-                                )
-
-                            except Exception:
-                                console.info("no parsable json response.")
-                        console.warning(f" Dynamic client registration failed. Proceed with manual input.  {e!s}")
-
-            if not client_id:
-                client_id = await inquirer.text(  #  type: ignore
-                    message="Enter Client ID:",
-                    instruction=f"(Redirect URI: {REDIRECT_URI})",
-                ).execute_async()
-                if not client_id:
-                    raise RuntimeError("Client ID is mandatory. Action cancelled.")
-                client_secret = (
-                    await inquirer.text(  #  type: ignore
-                        message="Enter Client Secret (optional):"
-                    ).execute_async()
-                    or None
-                )
-
-            code_verifier = generate_token(64)
-
-            auth_url = f"{oidc['authorization_endpoint']}?{
-                urlencode(
-                    {
-                        'client_id': client_id,
-                        'response_type': 'code',
-                        'redirect_uri': REDIRECT_URI,
-                        'scope': ' '.join(metadata.get('scopes_supported', ['openid', 'email', 'profile'])),
-                        'code_challenge': typing.cast(str, create_s256_code_challenge(code_verifier)),
-                        'code_challenge_method': 'S256',
-                    }
-                )
-            }"
-
-            console.info(f"Opening browser for login: [cyan]{auth_url}[/cyan]")
-            if not webbrowser.open(auth_url):
-                console.warning("Could not open browser. Please visit the above URL manually.")
-
-            code = await _wait_for_auth_code()
-            async with httpx.AsyncClient() as client:
-                token_resp = None
-                try:
-                    token_resp = await client.post(
-                        oidc["token_endpoint"],
-                        data={
-                            "grant_type": "authorization_code",
-                            "code": code,
-                            "redirect_uri": REDIRECT_URI,
-                            "client_id": client_id,
-                            "client_secret": client_secret,
-                            "code_verifier": code_verifier,
+                    app_name = get_unique_app_name()
+                    resp = await client.post(
+                        registration_endpoint,
+                        json={
+                            "client_name": app_name,
+                            "grant_types": ["authorization_code", "refresh_token"],
+                            "enforce_pkce": True,
+                            "all_users_entitled": True,
+                            "redirect_uris": [REDIRECT_URI],
                         },
                     )
-                    token_resp.raise_for_status()
-                    token = token_resp.json()
+                    resp.raise_for_status()
+                    data = resp.json()
+                    client_id = data["client_id"]
+                    client_secret = data["client_secret"]
+                    registration_token = data["registration_access_token"]
                 except Exception as e:
                     if resp:
                         try:
@@ -254,22 +240,87 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                             console.warning(
                                 f"error: {error_details['error']} error description: {error_details['error_description']}"
                             )
+
                         except Exception:
                             console.info("no parsable json response.")
+                    console.warning(f" Dynamic client registration failed. Proceed with manual input.  {e!s}")
 
-                    raise RuntimeError(f"Token request failed: {e}") from e
+        if not client_id:
+            client_id = (
+                await inquirer.text(  #  type: ignore
+                    message="Enter Client ID:",
+                    instruction=f"(Redirect URI: {REDIRECT_URI})",
+                ).execute_async()
+                or "agentstack-cli"
+            )
+            if not client_id:
+                raise RuntimeError("Client ID is mandatory. Action cancelled.")
+            client_secret = (
+                await inquirer.text(  #  type: ignore
+                    message="Enter Client Secret (optional):"
+                ).execute_async()
+                or None
+            )
 
-            if not token:
-                raise RuntimeError("Login timed out or not successful.")
+        code_verifier = generate_token(64)
 
-        config.auth_manager.save_auth_token(
-            server=server,
-            auth_server=auth_server,
-            client_id=client_id,
-            client_secret=client_secret,
-            token=token,
-            registration_token=registration_token,
-        )
+        auth_url = f"{oidc['authorization_endpoint']}?{
+            urlencode(
+                {
+                    'client_id': client_id,
+                    'response_type': 'code',
+                    'redirect_uri': REDIRECT_URI,
+                    'scope': ' '.join(metadata.get('scopes_supported', ['openid', 'email', 'profile'])),
+                    'code_challenge': typing.cast(str, create_s256_code_challenge(code_verifier)),
+                    'code_challenge_method': 'S256',
+                }
+            )
+        }"
+
+        console.info(f"Opening browser for login: [cyan]{auth_url}[/cyan]")
+        if not webbrowser.open(auth_url):
+            console.warning("Could not open browser. Please visit the above URL manually.")
+
+        code = await _wait_for_auth_code()
+        async with httpx.AsyncClient() as client:
+            token_resp = None
+            try:
+                token_resp = await client.post(
+                    oidc["token_endpoint"],
+                    data={
+                        "grant_type": "authorization_code",
+                        "code": code,
+                        "redirect_uri": REDIRECT_URI,
+                        "client_id": client_id,
+                        "client_secret": client_secret,
+                        "code_verifier": code_verifier,
+                    },
+                )
+                token_resp.raise_for_status()
+                token = token_resp.json()
+            except Exception as e:
+                if token_resp:
+                    try:
+                        error_details = token_resp.json()
+                        console.warning(
+                            f"error: {error_details['error']} error description: {error_details['error_description']}"
+                        )
+                    except Exception:
+                        console.info("no parsable json response.")
+
+                raise RuntimeError(f"Token request failed: {e}") from e
+
+        if not token:
+            raise RuntimeError("Login timed out or not successful.")
+
+    config.auth_manager.save_auth_token(
+        server=server,
+        auth_server=auth_server,
+        client_id=client_id,
+        client_secret=client_secret,
+        token=token,
+        registration_token=registration_token,
+    )
 
     config.auth_manager.active_server = server
     config.auth_manager.active_auth_server = auth_server
