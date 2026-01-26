@@ -17,7 +17,7 @@ import typer
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, wait_fixed
 
 from agentstack_cli.async_typer import AsyncTyper
-from agentstack_cli.commands.platform.base_driver import BaseDriver
+from agentstack_cli.commands.platform.base_driver import BaseDriver, ImagePullMode
 from agentstack_cli.commands.platform.lima_driver import LimaDriver
 from agentstack_cli.commands.platform.wsl_driver import WSLDriver
 from agentstack_cli.configuration import Configuration
@@ -64,19 +64,20 @@ async def start(
     set_values_list: typing.Annotated[
         list[str], typer.Option("--set", help="Set Helm chart values using <key>=<value> syntax", default_factory=list)
     ],
-    import_images: typing.Annotated[
-        list[str],
+    image_pull_mode: typing.Annotated[
+        ImagePullMode,
         typer.Option(
-            "--import", help="Import an image from a local Docker CLI into Agent Stack platform", default_factory=list
+            "--image-pull-mode",
+            help=textwrap.dedent(
+                """\
+                guest = pull all images inside VM
+                host = pull unavailable images on host, then import all
+                hybrid = import available images from host, pull the rest in VM
+                skip = skip explicit pull step (Kubernetes will attempt to pull missing images)
+                """
+            ),
         ),
-    ],
-    pull_on_host: typing.Annotated[
-        bool,
-        typer.Option(
-            "--pull-on-host",
-            help="Pull images on host Docker daemon and import them instead of pulling inside the VM. Acts as a pull cache layer.",
-        ),
-    ] = False,
+    ] = ImagePullMode.guest,
     values_file: typing.Annotated[
         pathlib.Path | None, typer.Option("-f", help="Set Helm chart values using yaml values file")
     ] = None,
@@ -101,10 +102,7 @@ async def start(
         await driver.deploy(
             set_values_list=set_values_list,
             values_file=values_file_path,
-            import_images=import_images,
-            pull_on_host=pull_on_host,
-            skip_pull=skip_pull,
-            skip_restart_deployments=skip_restart_deployments,
+            image_pull_mode=image_pull_mode,
         )
 
         if not no_wait_for_platform:

@@ -13,7 +13,7 @@ import anyio
 import pydantic
 import yaml
 
-from agentstack_cli.commands.platform.base_driver import BaseDriver
+from agentstack_cli.commands.platform.base_driver import BaseDriver, ImagePullMode
 from agentstack_cli.configuration import Configuration
 from agentstack_cli.console import console
 from agentstack_cli.utils import run_command
@@ -130,13 +130,10 @@ class WSLDriver(BaseDriver):
         self,
         set_values_list: list[str],
         values_file: pathlib.Path | None = None,
-        import_images: list[str] | None = None,
-        pull_on_host: bool = False,
-        skip_pull: bool = False,
-        skip_restart_deployments: bool = False,
+        image_pull_mode: ImagePullMode = ImagePullMode.guest,
     ) -> None:
-        if pull_on_host:
-            raise NotImplementedError("Pulling on host is not supported on this platform.")
+        if image_pull_mode in {ImagePullMode.host, ImagePullMode.hybrid}:
+            raise NotImplementedError("Importing host images is not supported on Windows.")
 
         host_ip = (
             (
@@ -162,7 +159,7 @@ class WSLDriver(BaseDriver):
                 }
             ).encode(),
         )
-        await super().deploy(set_values_list=set_values_list, values_file=values_file, import_images=import_images)
+        await super().deploy(set_values_list=set_values_list, values_file=values_file, image_pull_mode=image_pull_mode)
         await self.run_in_vm(
             ["sh", "-c", "cat >/etc/systemd/system/kubectl-port-forward@.service"],
             "Installing systemd unit for port-forwarding",

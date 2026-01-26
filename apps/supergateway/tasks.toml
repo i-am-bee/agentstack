@@ -3,3 +3,5 @@
 ["supergateway:build"]
 dir = "{{config_root}}/apps/supergateway"
 run = "docker build -f Dockerfile -t ghcr.io/i-am-bee/agentstack/supergateway:latest --load ."
+sources = ["*"]
+outputs = { auto = true }

@@ -717,8 +717,11 @@ $ agentstack platform start [OPTIONS]
 **Options**:
 
 * `--set TEXT`: Set Helm chart values using &lt;key&gt;=&lt;value&gt; syntax  [default: &lt;class &#x27;list&#x27;&gt;]
-* `--import TEXT`: Import an image from a local Docker CLI into Agent Stack platform  [default: &lt;class &#x27;list&#x27;&gt;]
-* `--pull-on-host`: Pull images on host Docker daemon and import them instead of pulling inside the VM. Acts as a pull cache layer.
+* `--image-pull-mode <guest|host|hybrid>`:
+    * `guest`: Pull all images inside VM
+    * `host`: Pull unavailable images on host, then import all
+    * `hybrid`: Import available images from host, pull the rest in VM
+    * `skip`: Skip explicit pull step (Kubernetes will attempt to pull missing images)
 * `-f PATH`: Set Helm chart values using yaml values file
 * `-v, --verbose`: Show verbose output
 * `--help`: Show this message and exit.
@@ -1307,4 +1310,3 @@ $ agentstack feedback list [OPTIONS] [SEARCH_PATH]
 * `--limit INTEGER`: Number of results per page   [default: 50]
 * `--after TEXT`: Cursor for pagination
 * `--help`: Show this message and exit.
-
