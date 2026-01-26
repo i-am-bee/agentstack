@@ -22,7 +22,24 @@ class UserFeedbackService:
     def __init__(self, uow: IUnitOfWorkFactory, configuration: Configuration):
         self._uow = uow
 
-        self._configuration = configuration
+        self._phoenix_client = (
+            httpx.AsyncClient(
+                base_url=str(configuration.telemetry.phoenix_url),
+                headers={"authorization": f"Bearer {configuration.telemetry.phoenix_api_key.get_secret_value()}"}
+                if configuration.telemetry.phoenix_api_key
+                else None,
+            )
+            if configuration.telemetry.phoenix_url
+            else None
+        )
+
+    async def __aenter__(self):
+        if self._phoenix_client:
+            await self._phoenix_client.__aenter__()
+
+    async def __aexit__(self, exc_type, exc, tb):
+        if self._phoenix_client:
+            await self._phoenix_client.__aexit__(exc_type, exc, tb)
 
     async def create_user_feedback(
         self,
@@ -82,51 +99,45 @@ class UserFeedbackService:
             return feedback_list, total, has_more
 
     async def _try_send_to_phoenix(self, *, user_feedback: UserFeedback) -> None:
-        if self._configuration.telemetry.phoenix_url is None or user_feedback.trace_id is None:
+        if self._phoenix_client is None or user_feedback.trace_id is None:
             return
 
         try:
-            async with httpx.AsyncClient(
-                base_url=str(self._configuration.telemetry.phoenix_url),
-                headers={"authorization": f"Bearer {self._configuration.telemetry.phoenix_api_key.get_secret_value()}"}
-                if self._configuration.telemetry.phoenix_api_key
-                else None,
-            ) as client:
-                response = await client.post(
-                    "/graphql",
-                    json={
-                        "query": "query GetTraceByOtelId($traceId: String!) { getTraceByOtelId(traceId: $traceId) { spans(rootSpansOnly: true, orphanSpanAsRootSpan: true) { edges { node { spanId }}} }}",
-                        "variables": {"traceId": user_feedback.trace_id},
-                    },
-                )
-                response.raise_for_status()
-                data = response.json()
-                if "errors" in data:
-                    raise ValueError(data["errors"])
-                elif "data" not in data or "getTraceByOtelId" not in data["data"]:
-                    raise ValueError("Invalid response")
+            response = await self._phoenix_client.post(
+                "/graphql",
+                json={
+                    "query": "query GetTraceByOtelId($traceId: String!) { getTraceByOtelId(traceId: $traceId) { spans(rootSpansOnly: true, orphanSpanAsRootSpan: true) { edges { node { spanId }}} }}",
+                    "variables": {"traceId": user_feedback.trace_id},
+                },
+            )
+            response.raise_for_status()
+            data = response.json()
+            if "errors" in data:
+                raise ValueError(data["errors"])
+            elif "data" not in data or "getTraceByOtelId" not in data["data"]:
+                raise ValueError("Invalid response")
 
-                span_id = data["data"]["getTraceByOtelId"]["spans"]["edges"][0]["node"]["spanId"]
-                if span_id is None:
-                    raise ValueError("No span found")
+            span_id = data["data"]["getTraceByOtelId"]["spans"]["edges"][0]["node"]["spanId"]
+            if span_id is None:
+                raise ValueError("No span found")
 
-                response = await client.post(
-                    "/v1/span_annotations",
-                    json={
-                        "data": [
-                            {
-                                "name": "Feedback",
-                                "annotator_kind": "HUMAN",
-                                "span_id": span_id,
-                                "result": {
-                                    "label": None,
-                                    "score": user_feedback.rating,
-                                    "explanation": user_feedback.comment,
-                                },
-                            }
-                        ]
-                    },
-                )
-                response.raise_for_status()
+            response = await self._phoenix_client.post(
+                "/v1/span_annotations",
+                json={
+                    "data": [
+                        {
+                            "name": "Feedback",
+                            "annotator_kind": "HUMAN",
+                            "span_id": span_id,
+                            "result": {
+                                "label": None,
+                                "score": user_feedback.rating,
+                                "explanation": user_feedback.comment,
+                            },
+                        }
+                    ]
+                },
+            )
+            response.raise_for_status()
         except Exception:
             logger.warning("Failed to send user feedback to Phoenix", exc_info=True)
