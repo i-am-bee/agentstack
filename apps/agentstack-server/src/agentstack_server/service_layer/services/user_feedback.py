@@ -94,7 +94,7 @@ class UserFeedbackService:
                 response = await client.post(
                     "/graphql",
                     json={
-                        "query": "query GetTraceByOtelId($traceId: String!) { getTraceByOtelId(traceId: $traceId) { rootSpan { id } }}",
+                        "query": "query GetTraceByOtelId($traceId: String!) { getTraceByOtelId(traceId: $traceId) { spans(rootSpansOnly: true, orphanSpanAsRootSpan: true) { edges { node { spanId }}} }}",
                         "variables": {"traceId": user_feedback.trace_id},
                     },
                 )
@@ -105,9 +105,9 @@ class UserFeedbackService:
                 elif "data" not in data or "getTraceByOtelId" not in data["data"]:
                     raise ValueError("Invalid response")
 
-                root_span = data["data"]["getTraceByOtelId"]["rootSpan"]
-                if root_span is None:
-                    raise ValueError("No root span found")
+                span_id = data["data"]["getTraceByOtelId"]["spans"]["edges"][0]["node"]["spanId"]
+                if span_id is None:
+                    raise ValueError("No span found")
 
                 response = await client.post(
                     "/v1/span_annotations",
@@ -116,7 +116,7 @@ class UserFeedbackService:
                             {
                                 "name": "Feedback",
                                 "annotator_kind": "HUMAN",
-                                "span_id": root_span["id"],
+                                "span_id": span_id,
                                 "result": {
                                     "label": None,
                                     "score": user_feedback.rating,
