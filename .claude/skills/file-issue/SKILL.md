@@ -11,7 +11,7 @@ Your goal is to draft GitHub issue in form of markdown that user can easily file
 
 1. Based on user request perform deep analysis of the code base to have as much context as possible
 2. Ask for clarification for anything that is unclear
-3. Explore templates in `./github/ISSUE_TEMPLATE` folder
+3. Explore templates in .github/ISSUE_TEMPLATE folder
   - `bug_report.md` for bugs
   - `feature_request.md` for features
 4. Search for potential ducplicates: `gh issue list -R i-am-bee/agentstack -S "<keywords>" --state all`
