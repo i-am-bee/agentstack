@@ -102,10 +102,10 @@ class UserFeedbackService:
                 data = response.json()
                 if "errors" in data:
                     raise ValueError(data["errors"])
-                elif "rootSpan" not in data or "getTraceByOtelId" not in data["rootSpan"]:
+                elif "data" not in data or "getTraceByOtelId" not in data["data"]:
                     raise ValueError("Invalid response")
 
-                root_span = data["rootSpan"]["getTraceByOtelId"]
+                root_span = data["data"]["getTraceByOtelId"]["rootSpan"]
                 if root_span is None:
                     raise ValueError("No root span found")
 
