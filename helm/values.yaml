@@ -684,6 +684,8 @@ docling:
 # Keycloak is an integral part of the application, it is deployed automatically when auth.enabled is set to true
 keycloak:
   replicaCount: 1
+  # Warning: set this to false if you want TLS in keycloak, make sure to provide certs in extraVolumes
+  httpEnabled: true
   auth:
     adminUser: admin
     # a random password will be generated if empty, you can get it using
@@ -724,6 +726,30 @@ keycloak:
     requests:
       cpu: 500m
       memory: 1700Mi
+
+  ## @param extraEnvVars Additional environment variables to pass to Keycloak
+  extraEnvVars: []
+  # - name: KC_HTTPS_CERTIFICATE_FILE
+  #   value: /opt/keycloak/conf/server.crt.pem
+  # - name: KC_HTTPS_CERTIFICATE_KEY_FILE
+  #   value: /opt/keycloak/conf/server.key.pem
+
+  ## @param extraVolumes Additional volumes to add to the pod
+  extraVolumes: []
+  # - name: keycloak-tls
+  #   secret:
+  #     secretName: keycloak-tls
+
+  ## @param extraVolumeMounts Additional volume mounts to add to the Keycloak container
+  extraVolumeMounts: []
+  # - name: keycloak-tls
+  #   mountPath: /opt/keycloak/conf/server.crt.pem
+  #   subPath: server.crt.pem
+  #   readOnly: true
+  # - name: keycloak-tls
+  #   mountPath: /opt/keycloak/conf/server.key.pem
+  #   subPath: server.key.pem
+  #   readOnly: true
 
 # This is to override the chart name.
 nameOverride: ""

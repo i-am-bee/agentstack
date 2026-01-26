@@ -68,7 +68,9 @@ spec:
             - name: KC_PROXY_HEADERS
               value: "xforwarded"
             - name: KC_HTTP_ENABLED
-              value: {{ hasPrefix "http://keycloak" .Values.auth.keycloakIssuerUrl | quote }}
+              value: {{ .Values.keycloak.httpEnabled | quote }}
+            - name: KC_HTTP_MANAGEMENT_SCHEME
+              value: http
             # Keycloak Hostname Configuration
             - name: KC_HOSTNAME
               value: {{ if hasPrefix "http://keycloak" .Values.auth.keycloakIssuerUrl }}"http://localhost:8336"{{ else }}{{ .Values.auth.keycloakIssuerUrl | quote }}{{ end }}
@@ -93,9 +95,19 @@ spec:
             # DATABASE CONFIGURATION
             {{- include "agentstack.keycloak.dbEnvVars" . | nindent 12 }}
 
+            {{- if .Values.keycloak.extraEnvVars }}
+            {{- toYaml .Values.keycloak.extraEnvVars | nindent 12 }}
+            {{- end }}
+
           ports:
+            - name: management
+              containerPort: 9000
             - name: http
               containerPort: 8080
+            {{- if not .Values.keycloak.httpEnabled }}
+            - name: https
+              containerPort: 8443
+            {{- end }}
             - name: jgroups
               containerPort: 7800
             - name: jgroups-fd
@@ -106,22 +118,25 @@ spec:
               mountPath: /opt/keycloak/themes/carbon/{{ $path | replace "keycloak-theme/" "" }}
               subPath: {{ $path | replace "keycloak-theme/" "" | replace "/" "_" }}
             {{- end }}
+            {{- if .Values.keycloak.extraVolumeMounts }}
+            {{- toYaml .Values.keycloak.extraVolumeMounts | nindent 12 }}
+            {{- end }}
           startupProbe:
             httpGet:
               path: /health/started
-              port: 9000
+              port: management
             periodSeconds: 1
             failureThreshold: 600              
           readinessProbe:
             httpGet:
               path: /health/ready
-              port: 9000
+              port: management
             periodSeconds: 10
             failureThreshold: 3              
           livenessProbe:
             httpGet:
               path: /health/live
-              port: 9000
+              port: management
             periodSeconds: 10
             failureThreshold: 3              
           resources:
@@ -130,4 +145,7 @@ spec:
         - name: keycloak-theme
           configMap:
             name: keycloak-theme
+        {{- if .Values.keycloak.extraVolumes }}
+        {{- toYaml .Values.keycloak.extraVolumes | nindent 8 }}
+        {{- end }}
 {{- end }}

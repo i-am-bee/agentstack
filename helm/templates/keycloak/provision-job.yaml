@@ -29,7 +29,7 @@ spec:
             - |
               # Wait for Keycloak to be ready by attempting login
               echo "Waiting for Keycloak to be ready..."
-              until /opt/keycloak/bin/kcadm.sh config credentials --server http://keycloak:{{ .Values.keycloak.service.port }} --realm master --user $KC_ADMIN_USER --password $KC_ADMIN_PASSWORD; do
+              until /opt/keycloak/bin/kcadm.sh config credentials --server {{ ternary "http" "https" .Values.keycloak.httpEnabled }}://keycloak:{{ .Values.keycloak.service.port }} --realm master --user $KC_ADMIN_USER --password $KC_ADMIN_PASSWORD {{ if not .Values.keycloak.httpEnabled }}--no-config --truststore /opt/keycloak/conf/server.crt.pem{{ end }}; do
                 echo "Keycloak not ready or login failed... retrying in 5s"
                 sleep 5
               done
@@ -179,6 +179,8 @@ spec:
               
               echo "Provisioning complete."
           env:
+            - name: HOME
+              value: /tmp
             - name: KC_ADMIN_USER
               value: {{ .Values.keycloak.auth.adminUser | quote }}
             - name: KC_ADMIN_PASSWORD
@@ -204,4 +206,11 @@ spec:
                   name: agentstack-ui-secret
                   key: agentstackUiClientSecret
             {{- end }}
+            {{- if .Values.keycloak.extraVolumeMounts }}
+            {{- toYaml .Values.keycloak.extraVolumeMounts | nindent 12 }}
+            {{- end }}
+      {{- if .Values.keycloak.extraVolumes }}
+      volumes:
+        {{- toYaml .Values.keycloak.extraVolumes | nindent 8 }}
+      {{- end }}
 {{- end }}
