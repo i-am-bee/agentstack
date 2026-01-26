@@ -14,7 +14,7 @@ Your goal is to draft GitHub issue in form of markdown that user can easily file
 3. Explore templates in .github/ISSUE_TEMPLATE folder
   - `bug_report.md` for bugs
   - `feature_request.md` for features
-4. Search for potential ducplicates: `gh issue list -R i-am-bee/agentstack -S "<keywords>" --state all`
+4. Search for potential duplicates: gh issue list -R i-am-bee/agentstack -S "<keywords>" --state all
 5. Fetch all available labels from Github
 6. Show draft as a markdown for user approval
 
