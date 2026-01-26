@@ -33,6 +33,10 @@
             "path": "agents/chat"
         },
         {
+            "name": "agent-deepagents-content-creator",
+            "path": "agents/deepagents_content_creator"
+        },
+        {
             "name": "agent-form",
             "path": "agents/form"
         },
